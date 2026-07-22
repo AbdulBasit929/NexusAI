@@ -1,0 +1,474 @@
+{
+  "schema_version": "2026-07-22",
+  "purpose": "Configurable recommendations for LocalAI/NexusAI forensic evidence models and backends. Runtime code should read installed model IDs and operator configuration instead of hardcoding these choices.",
+  "selection_policy": {
+    "principles": [
+      "Prefer deterministic parsers and databases for exact facts, counts, joins, filters, timestamps, identities, and provenance.",
+      "Use LLMs and multimodal models for extraction, interpretation, routing, summarization, OCR correction, and analyst productivity only after provenance-bearing artifacts exist.",
+      "Start with smaller local models for smoke testing, then benchmark larger models against the same evidence fixtures before changing production defaults.",
+      "Never download large weights without explicit operator approval."
+    ],
+    "profiles": {
+      "cpu": "Small quantized models and deterministic adapters for machines without GPU acceleration.",
+      "balanced": "Default local development profile: good quality without assuming a large GPU.",
+      "accuracy": "Prefer larger models or specialist models when latency and disk usage are acceptable.",
+      "throughput": "Prefer faster ASR/OCR/embedding paths for bulk processing.",
+      "multilingual": "Prefer models with broad language and accent coverage."
+    }
+  },
+  "evidence_types": {
+    "structured_records": {
+      "label": "Structured forensic records",
+      "examples": ["CSV", "TSV", "JSONL", "CDR", "IPDR", "ANPR", "subscriber", "tower", "transaction", "access log"],
+      "primary_pipeline": [
+        "forensic_records_worker",
+        "PostgreSQL/Timescale canonical records",
+        "deterministic SQL templates",
+        "Knowledge Base source preview"
+      ],
+      "recommended_models": [
+        {
+          "name": "qwen_qwen3-4b-instruct-2507",
+          "role": "analyst synthesis and query planning, not exact analytics",
+          "priority": 1,
+          "profiles": ["cpu", "balanced"],
+          "backend": "llama-cpp",
+          "capabilities": ["chat", "tool-routing", "summarization"],
+          "localai": {
+            "gallery_id": "qwen_qwen3-4b-instruct-2507",
+            "match_terms": ["qwen3", "4b", "instruct"]
+          },
+          "notes": "Use only to explain deterministic query results and ask clarifying questions."
+        },
+        {
+          "name": "qwen3-30b-a3b",
+          "role": "higher-quality analyst synthesis on GPU or high-memory machines",
+          "priority": 2,
+          "profiles": ["accuracy"],
+          "backend": "llama-cpp",
+          "capabilities": ["chat", "reasoning", "tool-routing", "summarization"],
+          "localai": {
+            "gallery_id": "qwen3-30b-a3b",
+            "match_terms": ["qwen3-30b", "qwen3", "30b"]
+          },
+          "notes": "Use after benchmarking against the small profile; keep deterministic SQL as source of truth."
+        }
+      ],
+      "benchmark_tasks": [
+        "exact count by record_type",
+        "duration_seconds greater than threshold",
+        "source_file filter detection",
+        "top contacts",
+        "date-range timeline",
+        "data quality limitations"
+      ]
+    },
+    "knowledge_base_text": {
+      "label": "Knowledge Base text retrieval",
+      "examples": ["TXT", "Markdown", "case notes", "OCR text", "transcripts", "source previews"],
+      "primary_pipeline": [
+        "chunking",
+        "embedding",
+        "hybrid retrieval",
+        "reranking",
+        "grounded synthesis"
+      ],
+      "recommended_models": [
+        {
+          "name": "BAAI/bge-m3",
+          "role": "multilingual long-context embedding and hybrid retrieval baseline",
+          "priority": 1,
+          "profiles": ["balanced", "multilingual", "accuracy"],
+          "backend": "sentencetransformers or rerankers",
+          "capabilities": ["dense-embedding", "sparse-retrieval", "multi-vector-retrieval", "multilingual"],
+          "localai": {
+            "gallery_id": "bge-m3-colbert",
+            "match_terms": ["bge-m3", "colbert"]
+          },
+          "notes": "Good default for evidence retrieval and route classification; pair with exact stores for counts."
+        },
+        {
+          "name": "qwen3-embedding-0.6b",
+          "role": "small multilingual embedding candidate",
+          "priority": 2,
+          "profiles": ["cpu", "throughput"],
+          "backend": "llama-cpp",
+          "capabilities": ["embedding", "multilingual"],
+          "localai": {
+            "gallery_id": "qwen3-embedding-0.6b",
+            "match_terms": ["qwen3-embedding", "0.6b"]
+          },
+          "notes": "Use for low-resource local testing when BGE-M3 or larger Qwen3 embedding models are too heavy."
+        },
+        {
+          "name": "qwen3-reranker-0.6b",
+          "role": "rerank Knowledge Base results before final answer synthesis",
+          "priority": 3,
+          "profiles": ["balanced", "accuracy"],
+          "backend": "llama-cpp",
+          "capabilities": ["reranking", "multilingual"],
+          "localai": {
+            "gallery_id": "qwen3-reranker-0.6b",
+            "match_terms": ["qwen3-reranker", "0.6b"]
+          },
+          "notes": "Use to reduce hallucination risk by promoting better source chunks."
+        }
+      ],
+      "benchmark_tasks": [
+        "known-answer retrieval",
+        "cross-file source attribution",
+        "no-answer abstention",
+        "duplicate chunk handling",
+        "long noisy document retrieval"
+      ]
+    },
+    "documents_ocr": {
+      "label": "Documents and OCR",
+      "examples": ["PDF", "scanned PDF", "DOCX", "PPTX", "XLSX", "images with tables/forms"],
+      "primary_pipeline": [
+        "Docling document conversion",
+        "layout and table extraction",
+        "OCR engine",
+        "Knowledge Base indexing",
+        "evidence registry provenance"
+      ],
+      "recommended_models": [
+        {
+          "name": "PaddleOCR PP-OCRv6",
+          "role": "OCR for multilingual printed text and messy scans",
+          "priority": 1,
+          "profiles": ["balanced", "throughput", "multilingual"],
+          "backend": "external-adapter",
+          "capabilities": ["ocr", "layout-aware-text"],
+          "localai": {
+            "gallery_id": "",
+            "match_terms": ["paddleocr", "pp-ocrv6"]
+          },
+          "notes": "Use through a document/OCR adapter rather than a chat model."
+        },
+        {
+          "name": "Docling VLM pipeline",
+          "role": "document layout, tables, figures, formulas, and export to structured text",
+          "priority": 2,
+          "profiles": ["balanced", "accuracy"],
+          "backend": "external-adapter",
+          "capabilities": ["pdf-layout", "table-extraction", "vlm-document-understanding"],
+          "localai": {
+            "gallery_id": "",
+            "match_terms": ["docling"]
+          },
+          "notes": "Use Docling models such as Granite-Docling or SmolDocling where supported."
+        },
+        {
+          "name": "qwen3-vl-8b-instruct",
+          "role": "visual document understanding and analyst explanation after OCR/layout extraction",
+          "priority": 3,
+          "profiles": ["accuracy", "multilingual"],
+          "backend": "llama-cpp or vllm",
+          "capabilities": ["vision-language", "document-question-answering"],
+          "localai": {
+            "gallery_id": "qwen3-vl-8b-instruct",
+            "match_terms": ["qwen3-vl", "8b", "instruct"]
+          },
+          "notes": "Do not use this as the only source of truth for tables; store OCR/table extraction first."
+        }
+      ],
+      "benchmark_tasks": [
+        "OCR character error rate on scanned forms",
+        "table cell accuracy",
+        "page layout reading order",
+        "source page citation",
+        "handwritten/noisy scan limitations"
+      ]
+    },
+    "audio_speech": {
+      "label": "Audio speech and transcripts",
+      "examples": ["WAV", "MP3", "call recording", "voice note", "meeting audio"],
+      "primary_pipeline": [
+        "audio metadata",
+        "speech-to-text",
+        "language detection",
+        "speaker/voice metadata where configured",
+        "transcript indexing"
+      ],
+      "recommended_models": [
+        {
+          "name": "whisper-large-turbo",
+          "role": "fast multilingual transcription baseline",
+          "priority": 1,
+          "profiles": ["balanced", "multilingual", "throughput"],
+          "backend": "whisper",
+          "capabilities": ["asr", "translation", "multilingual"],
+          "localai": {
+            "gallery_id": "whisper-large-turbo",
+            "match_terms": ["whisper", "large", "turbo"]
+          },
+          "notes": "Good first local model for broad language coverage and speed."
+        },
+        {
+          "name": "qwen3-asr-0.6b",
+          "role": "efficient multilingual ASR candidate",
+          "priority": 2,
+          "profiles": ["balanced", "throughput"],
+          "backend": "qwen-asr",
+          "capabilities": ["asr", "language-detection", "multilingual"],
+          "localai": {
+            "gallery_id": "qwen3-asr-0.6b",
+            "match_terms": ["qwen3-asr", "0.6b"]
+          },
+          "notes": "Benchmark against Whisper on local accents and noisy call recordings."
+        },
+        {
+          "name": "qwen3-asr-1.7b",
+          "role": "higher-accuracy multilingual ASR candidate",
+          "priority": 3,
+          "profiles": ["accuracy", "multilingual"],
+          "backend": "qwen-asr",
+          "capabilities": ["asr", "language-detection", "multilingual"],
+          "localai": {
+            "gallery_id": "qwen3-asr-1.7b",
+            "match_terms": ["qwen3-asr", "1.7b"]
+          },
+          "notes": "Use when local hardware can support the larger model."
+        },
+        {
+          "name": "parakeet-cpp-ctc-0.6b",
+          "role": "high-throughput speech recognition candidate",
+          "priority": 4,
+          "profiles": ["throughput"],
+          "backend": "parakeet-cpp",
+          "capabilities": ["asr", "streaming"],
+          "localai": {
+            "gallery_id": "parakeet-cpp-ctc-0.6b",
+            "match_terms": ["parakeet-cpp", "0.6b"]
+          },
+          "notes": "Use for speed tests and streaming workflows."
+        }
+      ],
+      "benchmark_tasks": [
+        "word error rate",
+        "speaker-turn boundary preservation",
+        "timestamp quality",
+        "accent/noise robustness",
+        "transcript retrieval accuracy"
+      ]
+    },
+    "audio_events_voice": {
+      "label": "Audio events and voice metadata",
+      "examples": ["non-speech sounds", "voice activity", "speaker candidate comparison"],
+      "primary_pipeline": [
+        "voice activity detection",
+        "audio event detection",
+        "speaker metadata extraction",
+        "transcript alignment"
+      ],
+      "recommended_models": [
+        {
+          "name": "ced",
+          "role": "audio event detection",
+          "priority": 1,
+          "profiles": ["balanced", "throughput"],
+          "backend": "ced",
+          "capabilities": ["audio-event-detection"],
+          "localai": {
+            "gallery_id": "",
+            "match_terms": ["ced"]
+          },
+          "notes": "Use to tag non-speech evidence signals; keep events linked to timestamps."
+        },
+        {
+          "name": "voice-detect",
+          "role": "voice activity or voice metadata adapter",
+          "priority": 2,
+          "profiles": ["balanced"],
+          "backend": "voice-detect",
+          "capabilities": ["voice-detection"],
+          "localai": {
+            "gallery_id": "",
+            "match_terms": ["voice-detect"]
+          },
+          "notes": "Use only with clear provenance and confidence thresholds."
+        }
+      ],
+      "benchmark_tasks": [
+        "voice activity precision/recall",
+        "false positive rate on background noise",
+        "event timestamp accuracy"
+      ]
+    },
+    "images_vision": {
+      "label": "Images and visual evidence",
+      "examples": ["photos", "screenshots", "plates", "faces", "objects", "scene evidence"],
+      "primary_pipeline": [
+        "image metadata",
+        "object detection",
+        "OCR when text is visible",
+        "face/plate adapters where legally permitted",
+        "grounded visual description"
+      ],
+      "recommended_models": [
+        {
+          "name": "qwen3-vl-8b-instruct",
+          "role": "visual question answering and image description",
+          "priority": 1,
+          "profiles": ["balanced", "accuracy"],
+          "backend": "llama-cpp or vllm",
+          "capabilities": ["vision-language", "image-question-answering", "multilingual"],
+          "localai": {
+            "gallery_id": "qwen3-vl-8b-instruct",
+            "match_terms": ["qwen3-vl", "8b", "instruct"]
+          },
+          "notes": "Use for analyst-friendly visual summaries; exact detections should come from specialist adapters."
+        },
+        {
+          "name": "qwen3-vl-2b-instruct",
+          "role": "small vision-language smoke test model",
+          "priority": 2,
+          "profiles": ["cpu", "throughput"],
+          "backend": "llama-cpp or vllm",
+          "capabilities": ["vision-language", "image-question-answering"],
+          "localai": {
+            "gallery_id": "qwen3-vl-2b-instruct",
+            "match_terms": ["qwen3-vl", "2b", "instruct"]
+          },
+          "notes": "Use first on constrained local hardware."
+        },
+        {
+          "name": "rfdetr-cpp",
+          "role": "object detection adapter",
+          "priority": 3,
+          "profiles": ["balanced", "throughput"],
+          "backend": "rfdetr-cpp",
+          "capabilities": ["object-detection"],
+          "localai": {
+            "gallery_id": "",
+            "match_terms": ["rfdetr"]
+          },
+          "notes": "Store bounding boxes, labels, confidences, and image coordinates."
+        },
+        {
+          "name": "insightface",
+          "role": "face embedding or recognition adapter when policy allows",
+          "priority": 4,
+          "profiles": ["accuracy"],
+          "backend": "insightface",
+          "capabilities": ["face-embedding", "face-recognition"],
+          "localai": {
+            "gallery_id": "",
+            "match_terms": ["insightface", "face-detect"]
+          },
+          "notes": "Use only with explicit legal/policy controls and audit thresholds."
+        }
+      ],
+      "benchmark_tasks": [
+        "object detection precision/recall",
+        "visual question answer grounding",
+        "OCR-on-image accuracy",
+        "face/plate false positive analysis",
+        "bounding box provenance"
+      ]
+    },
+    "video": {
+      "label": "Video evidence",
+      "examples": ["CCTV", "dashcam", "screen recording", "bodycam"],
+      "primary_pipeline": [
+        "media metadata",
+        "frame sampling",
+        "scene/object detection",
+        "audio transcript if present",
+        "timeline/event index"
+      ],
+      "recommended_models": [
+        {
+          "name": "qwen3-vl-8b-instruct",
+          "role": "sampled-frame and short-clip visual understanding",
+          "priority": 1,
+          "profiles": ["balanced", "accuracy"],
+          "backend": "llama-cpp or vllm",
+          "capabilities": ["vision-language", "video-frame-reasoning"],
+          "localai": {
+            "gallery_id": "qwen3-vl-8b-instruct",
+            "match_terms": ["qwen3-vl", "8b"]
+          },
+          "notes": "Use alongside deterministic frame sampling and event timestamps."
+        },
+        {
+          "name": "sam3-cpp",
+          "role": "segmentation/tracking candidate",
+          "priority": 2,
+          "profiles": ["accuracy"],
+          "backend": "sam3-cpp",
+          "capabilities": ["segmentation"],
+          "localai": {
+            "gallery_id": "",
+            "match_terms": ["sam3"]
+          },
+          "notes": "Use for object masks when frame-level detections need richer geometry."
+        },
+        {
+          "name": "whisper-large-turbo",
+          "role": "extract transcript from video audio track",
+          "priority": 3,
+          "profiles": ["balanced", "throughput", "multilingual"],
+          "backend": "whisper",
+          "capabilities": ["asr"],
+          "localai": {
+            "gallery_id": "whisper-large-turbo",
+            "match_terms": ["whisper", "turbo"]
+          },
+          "notes": "Store transcript chunks with start/end timestamps tied to the video evidence ID."
+        }
+      ],
+      "benchmark_tasks": [
+        "frame sampling recall",
+        "event timeline accuracy",
+        "transcript timestamp alignment",
+        "object persistence across frames",
+        "analyst query latency over long videos"
+      ]
+    },
+    "unknown_mixed": {
+      "label": "Unknown or mixed evidence",
+      "examples": ["zip exports", "unknown extensions", "mixed case bundles", "messy real-world dumps"],
+      "primary_pipeline": [
+        "safe file inspection",
+        "MIME and extension detection",
+        "schema sniffing",
+        "recursive evidence registration",
+        "quarantine unsupported items with warnings"
+      ],
+      "recommended_models": [
+        {
+          "name": "qwen_qwen3-4b-instruct-2507",
+          "role": "classification explanation and analyst triage after deterministic sniffing",
+          "priority": 1,
+          "profiles": ["cpu", "balanced"],
+          "backend": "llama-cpp",
+          "capabilities": ["chat", "classification-explanation"],
+          "localai": {
+            "gallery_id": "qwen_qwen3-4b-instruct-2507",
+            "match_terms": ["qwen3", "4b", "instruct"]
+          },
+          "notes": "Never let the model override hash, MIME, parser, or route facts; it explains uncertainty."
+        }
+      ],
+      "benchmark_tasks": [
+        "modality classification accuracy",
+        "unsupported file warning quality",
+        "duplicate detection",
+        "nested archive provenance",
+        "safe failure handling"
+      ]
+    }
+  },
+  "source_links": [
+    {"name": "LocalAI model gallery", "url": "https://models.localai.io"},
+    {"name": "PaddleOCR", "url": "https://github.com/PaddlePaddle/PaddleOCR"},
+    {"name": "OpenAI Whisper large-v3-turbo", "url": "https://huggingface.co/openai/whisper-large-v3-turbo"},
+    {"name": "OpenAI Whisper large-v3", "url": "https://huggingface.co/openai/whisper-large-v3"},
+    {"name": "Qwen3-ASR", "url": "https://qwen.ai/blog?id=qwen3asr"},
+    {"name": "Qwen3-VL", "url": "https://huggingface.co/docs/transformers/main/model_doc/qwen3_vl"},
+    {"name": "BGE-M3", "url": "https://huggingface.co/BAAI/bge-m3"},
+    {"name": "Docling", "url": "https://github.com/docling-project/docling"}
+  ]
+}

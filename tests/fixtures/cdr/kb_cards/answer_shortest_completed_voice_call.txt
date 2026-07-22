@@ -1,0 +1,13 @@
+TITLE: Shortest completed voice call overall
+INTENT KEYWORDS: shortest completed voice call, shortest duration call, smallest duration, sab se choti completed voice call
+
+FINAL ANSWER:
+The shortest completed voice call overall is CALL-0003.
+duration_seconds=7
+started_at=2026-07-10T09:17:21Z
+source_msisdn=923008889999
+target_msisdn=923334445555
+area=Gulberg
+cell_id=LHR-GUL-014
+status=completed
+

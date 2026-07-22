@@ -1,0 +1,10 @@
+TITLE: Calls using cell id LHR-GUL-014
+INTENT KEYWORDS: cell id LHR-GUL-014, calls used LHR-GUL-014, tower LHR-GUL-014
+
+FINAL ANSWER:
+cell_id=LHR-GUL-014 was used by these CDR entries:
+1. CALL-0001 source_msisdn=923001112222 target_msisdn=923334445555 duration_seconds=183.
+2. CALL-0003 source_msisdn=923008889999 target_msisdn=923334445555 duration_seconds=7.
+3. CALL-0009 source_msisdn=923001112222 target_msisdn=923331111222 duration_seconds=95 roaming=true.
+4. CALL-0012 source_msisdn=923009990000 target_msisdn=923334445555 duration_seconds=30.
+

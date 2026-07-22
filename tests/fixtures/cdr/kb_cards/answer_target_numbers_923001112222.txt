@@ -1,0 +1,10 @@
+TITLE: Target numbers called by 923001112222
+INTENT KEYWORDS: target numbers called by 923001112222, numbers dialed by 923001112222, 923001112222 ne kin numbers par calls ki
+
+FINAL ANSWER:
+source_msisdn=923001112222 called these target numbers:
+1. target_msisdn=923334445555 in CALL-0001 on 2026-07-10 from Gulberg, duration_seconds=183.
+2. target_msisdn=923336667777 in CALL-0002 on 2026-07-10 from DHA, duration_seconds=42.
+3. target_msisdn=923339999000 in CALL-0006 on 2026-07-11 from Model Town, duration_seconds=300.
+4. target_msisdn=923331111222 in CALL-0009 on 2026-07-12 from Gulberg, duration_seconds=95, roaming=true.
+

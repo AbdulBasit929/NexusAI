@@ -1,0 +1,2 @@
+{"event_time":"2026-07-10T08:00:30Z","subscriber_ip":"10.0.0.10","source_ip":"10.0.0.10","destination_ip":"203.0.113.10","source_port":45110,"destination_port":443,"bytes":2048,"msisdn":"03001234567"}
+{"event_time":"2026-07-10T08:02:30Z","subscriber_ip":"10.0.0.11","source_ip":"10.0.0.11","destination_ip":"198.51.100.20","source_port":49000,"destination_port":80,"bytes":512,"msisdn":"03111234567"}

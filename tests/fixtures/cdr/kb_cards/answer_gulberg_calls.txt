@@ -1,0 +1,11 @@
+TITLE: Calls that happened in Gulberg
+INTENT KEYWORDS: calls happened in Gulberg, Gulberg calls, area Gulberg, calls in Gulberg
+
+FINAL ANSWER:
+The CDR calls that happened in Gulberg are:
+1. CALL-0001 source_msisdn=923001112222 target_msisdn=923334445555 duration_seconds=183 cell_id=LHR-GUL-014 status=completed.
+2. CALL-0003 source_msisdn=923008889999 target_msisdn=923334445555 duration_seconds=7 cell_id=LHR-GUL-014 status=completed.
+3. CALL-0007 source_msisdn=923004445555 target_msisdn=923334445555 duration_seconds=12 cell_id=LHR-GUL-009 status=completed.
+4. CALL-0009 source_msisdn=923001112222 target_msisdn=923331111222 duration_seconds=95 cell_id=LHR-GUL-014 status=completed roaming=true.
+5. CALL-0012 source_msisdn=923009990000 target_msisdn=923334445555 duration_seconds=30 cell_id=LHR-GUL-014 status=completed.
+

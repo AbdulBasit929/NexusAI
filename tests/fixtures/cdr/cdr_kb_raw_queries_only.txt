@@ -1,0 +1,15 @@
+Which CDR record has the shortest completed voice call overall?
+Which call is the shortest completed voice call in DHA?
+List all target numbers called by 923001112222.
+Show calls from 923001112222 on 2026-07-10.
+Which calls happened in Gulberg?
+Which CDR entries target 923334445555?
+Find the failed call and explain its source, target, and area.
+Which call lasted the longest?
+Which calls used cell id LHR-GUL-014?
+Which call was roaming?
+Give me the IMEI and IMSI for CALL-0003.
+What happened at Johar Town in this CDR batch?
+Roman Urdu: 923001112222 ne kin numbers par calls ki hain? Exact numbers do.
+Roman Urdu: sab se choti completed voice call kaunsi thi?
+Are there any calls to 923336667777? Show call IDs and durations.

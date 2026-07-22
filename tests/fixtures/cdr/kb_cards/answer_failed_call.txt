@@ -1,0 +1,13 @@
+TITLE: Failed call in the CDR batch
+INTENT KEYWORDS: failed call, failed CDR, status failed, unsuccessful call, call failed
+
+FINAL ANSWER:
+The failed call is CALL-0004.
+source_msisdn=923009990000
+target_msisdn=923331234567
+area=Johar Town
+cell_id=LHR-JHT-031
+duration_seconds=0
+started_at=2026-07-10T10:05:00Z
+status=failed
+

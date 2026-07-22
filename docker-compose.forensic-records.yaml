@@ -1,0 +1,86 @@
+services:
+  forensic-postgres:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_DB: localrecall
+      POSTGRES_USER: localrecall
+      POSTGRES_PASSWORD: localrecall
+    ports:
+      - "5433:5432"
+    volumes:
+      - forensic_postgres_data:/var/lib/postgresql/data
+      - ./db/forensic_records:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U localrecall -d localrecall"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  forensic-nats:
+    image: nats:2.11-alpine
+    command: ["-js", "-m", "8222"]
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8222/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  forensic-spool-init:
+    image: alpine:3.22
+    command: ["sh", "-c", "mkdir -p /data/forensic/spool && chown -R 65532:65532 /data/forensic/spool && chmod 0750 /data/forensic/spool"]
+    volumes:
+      - forensic_spool:/data/forensic/spool
+
+  forensic-records-api:
+    build:
+      context: .
+      dockerfile: api/forensic_records/Dockerfile
+    user: "65532:65532"
+    environment:
+      FORENSIC_API_ADDR: ":8091"
+      FORENSIC_SPOOL_DIR: /data/forensic/spool
+      FORENSIC_KB_MIRROR_ENABLED: "true"
+      LOCALAI_KB_URL: http://host.docker.internal:8080
+      LOCALAI_API_KEY: ${LOCALAI_API_KEY:-}
+      FORENSIC_DATABASE_URL: postgresql://localrecall:localrecall@forensic-postgres:5432/localrecall
+      NATS_URL: nats://forensic-nats:4222
+    ports:
+      - "8091:8091"
+    volumes:
+      - forensic_spool:/data/forensic/spool
+    depends_on:
+      forensic-spool-init:
+        condition: service_completed_successfully
+      forensic-postgres:
+        condition: service_healthy
+      forensic-nats:
+        condition: service_healthy
+
+  forensic-records-worker:
+    build:
+      context: .
+      dockerfile: ingestion/forensic_records/Dockerfile
+    environment:
+      FORENSIC_DATABASE_URL: postgresql://localrecall:localrecall@forensic-postgres:5432/localrecall
+      NATS_URL: nats://forensic-nats:4222
+      NATS_RECORDS_SUBJECT: forensic.records.ingest.requested
+      FORENSIC_WORKER_METRICS_PORT: "9109"
+    user: "65532:65532"
+    ports:
+      - "9109:9109"
+    volumes:
+      - forensic_spool:/data/forensic/spool
+    depends_on:
+      forensic-spool-init:
+        condition: service_completed_successfully
+      forensic-postgres:
+        condition: service_healthy
+      forensic-nats:
+        condition: service_healthy
+
+volumes:
+  forensic_postgres_data:
+  forensic_spool:

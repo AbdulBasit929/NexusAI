@@ -1,0 +1,5 @@
+timestamp,account,counterparty,transaction_amount,currency,merchant,merchant_location,channel,status
+2026-07-10T19:42:01Z,ACCT-778812,MERCH-4421,14500,PKR,North Market Electronics,Gulberg,pos,approved
+2026-07-10T22:16:28Z,ACCT-778812,ACCT-881004,75000,PKR,Peer Transfer,Lahore,mobile,approved
+2026-07-11T01:18:12Z,ACCT-881004,MERCH-1180,9200,PKR,Fuel Station F7,Islamabad,pos,approved
+2026-07-13T03:20:03Z,ACCT-551090,MERCH-2290,31000,PKR,Clifton Services,Karachi,pos,reversed

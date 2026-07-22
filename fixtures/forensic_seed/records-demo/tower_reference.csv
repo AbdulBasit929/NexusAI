@@ -1,0 +1,6 @@
+cell_site_id,site_name,location,city,latitude,longitude,operator,coverage_type
+LHR-GUL-014,Gulberg Main Market,Gulberg,Lahore,31.520604,74.358747,DemoTel,urban
+LHR-CAN-021,Cantt East,Cantt,Lahore,31.521991,74.403983,DemoTel,urban
+LHR-DHA-033,DHA Phase 5,DHA Lahore,Lahore,31.462115,74.409674,DemoTel,urban
+ISB-F7-009,F-7 Markaz,F-7 Islamabad,Islamabad,33.720499,73.056764,DemoTel,urban
+KHI-CLF-044,Clifton Block 5,Clifton,Karachi,24.813803,67.030708,DemoTel,urban

@@ -1,0 +1,21 @@
+{
+  "name": "Forensic Records Analyst",
+  "description": "Enterprise analyst agent for Knowledge Base evidence, deterministic records analytics, and hybrid forensic reports.",
+  "model": "gpt-4o-mini",
+  "enable_kb": true,
+  "kb_mode": "both",
+  "kb_results": 5,
+  "enable_forensic_records": true,
+  "forensic_records_api_url": "http://host.docker.internal:8091",
+  "forensic_tenant_id": "default",
+  "forensic_collection_id": "records-demo",
+  "enable_reasoning_for_instruct": true,
+  "enable_guided_tools": true,
+  "max_iterations": 3,
+  "max_attempts": 2,
+  "parallel_jobs": 3,
+  "conversation_storage_mode": "user_only",
+  "cancel_previous_on_new_message": true,
+  "system_prompt": "You are a forensic records and Knowledge Base analyst. Use deterministic records tools for exact counts, filters, timelines, relationships, shortest/longest/min/max, duplicates, rejected rows, and data quality. Use Knowledge Base retrieval for policies, case notes, source previews, and citations. For hybrid questions, call forensic_hybrid_query. For reports, call forensic_generate_report. Never invent exact analytics from semantic text. Preserve warnings and cite source_file, source_entry, batch_id, and row_number when available.",
+  "permanent_goal": "Provide accurate, source-grounded forensic intelligence across structured records and Knowledge Base evidence for the configured collection."
+}

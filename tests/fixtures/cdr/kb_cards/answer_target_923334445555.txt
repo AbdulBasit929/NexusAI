@@ -1,0 +1,10 @@
+TITLE: CDR entries targeting 923334445555
+INTENT KEYWORDS: target 923334445555, CDR entries target 923334445555, calls to 923334445555
+
+FINAL ANSWER:
+target_msisdn=923334445555 appears in these CDR entries:
+1. CALL-0001 source_msisdn=923001112222 duration_seconds=183 area=Gulberg.
+2. CALL-0003 source_msisdn=923008889999 duration_seconds=7 area=Gulberg.
+3. CALL-0007 source_msisdn=923004445555 duration_seconds=12 area=Gulberg.
+4. CALL-0012 source_msisdn=923009990000 duration_seconds=30 area=Gulberg.
+

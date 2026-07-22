@@ -1,0 +1,70 @@
+{
+  "appName": "NexusAI",
+  "openMenu": "æ‰“å¼€èœå•",
+  "closeMenu": "å…³é—­èœå•",
+  "primaryNavigation": "ä¸»å¯¼èˆª",
+  "switchToLightMode": "åˆ‡æ¢åˆ°æµ…è‰²æ¨¡å¼",
+  "switchToDarkMode": "åˆ‡æ¢åˆ°æ·±è‰²æ¨¡å¼",
+  "expandSidebar": "å±•å¼€ä¾§è¾¹æ ",
+  "collapseSidebar": "æ”¶èµ·ä¾§è¾¹æ ",
+  "changeLanguage": "æ›´æ”¹è¯­è¨€",
+  "logout": "é€€å‡ºç™»å½•",
+  "accountSettings": "è´¦æˆ·è®¾ç½®",
+  "account": "è´¦æˆ·",
+  "accountFor": "è´¦æˆ·ï¼š{{name}}",
+  "sections": {
+    "create": "åˆ›å»º",
+    "recognition": "è¯†åˆ«",
+    "build": "æž„å»º",
+    "operate": "è¿ç»´"
+  },
+  "operate": {
+    "inference": "Inference",
+    "cluster": "Cluster",
+    "observability": "Observability",
+    "access": "Access",
+    "system": "System"
+  },
+  "items": {
+    "home": "é¦–é¡µ",
+    "installModels": "å®‰è£…æ¨¡åž‹",
+    "chat": "èŠå¤©",
+    "studio": "å·¥ä½œå®¤",
+    "talk": "é€šè¯",
+    "fineTune": "å¾®è°ƒï¼ˆå®žéªŒæ€§ï¼‰",
+    "quantize": "é‡åŒ–ï¼ˆå®žéªŒæ€§ï¼‰",
+    "faces": "äººè„¸",
+    "voices": "å£°éŸ³",
+    "jobs": "ä»»åŠ¡",
+    "operate": "ç®¡ç†",
+    "host": "ä¸»æœº",
+    "audioTransform": "éŸ³é¢‘å˜æ¢",
+    "faceRecognition": "äººè„¸è¯†åˆ«",
+    "voiceRecognition": "è¯­éŸ³è¯†åˆ«",
+    "agents": "æ™ºèƒ½ä½“",
+    "skills": "æŠ€èƒ½",
+    "memory": "è®°å¿†åº“",
+    "mcpJobs": "MCP CI ä»»åŠ¡",
+    "usage": "ç”¨é‡",
+    "users": "ç”¨æˆ·",
+    "backends": "åŽç«¯",
+    "traces": "è¿½è¸ª",
+    "nodes": "èŠ‚ç‚¹",
+    "scheduling": "è°ƒåº¦",
+    "swarm": "Swarm",
+    "system": "ç³»ç»Ÿ",
+    "settings": "è®¾ç½®",
+    "api": "API",
+    "middleware": "Middleware"
+  },
+  "footer": {
+    "github": "GitHub",
+    "documentation": "æ–‡æ¡£",
+    "author": "ä½œè€…",
+    "copyright": "Â© 2023-{{year}} {{author}}"
+  },
+  "console": {
+    "automation": "è‡ªåŠ¨åŒ–",
+    "training": "è®­ç»ƒ"
+  }
+}

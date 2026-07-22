@@ -1,0 +1,11 @@
+Case notes for records-demo
+
+Targets of interest:
+- Phone number 923461678183 appears in CDR records.
+- Plate ABC-123 appears near Gate 4 and North Road.
+- Cross-source timeline should combine structured observations with this narrative note.
+
+Analyst question examples:
+- Summarize evidence for ABC-123 with source citations.
+- Show call type breakdown for 923461678183.
+- Show data quality and duplicate-row counts.

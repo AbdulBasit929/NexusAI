@@ -1,0 +1,269 @@
+CDR KNOWLEDGE BASE SEED DATA
+
+This file is a search-ready text version of cdr_kb_seed.csv. Each CDR is written as a plain evidence card so the Knowledge Base can retrieve exact rows for natural-language questions.
+
+GROUND TRUTH SUMMARY
+
+Shortest completed voice call overall:
+call_id=CALL-0003
+duration_seconds=7
+started_at=2026-07-10T09:17:21Z
+source_msisdn=923008889999
+target_msisdn=923334445555
+area=Gulberg
+cell_id=LHR-GUL-014
+status=completed
+
+Shortest completed voice call in DHA:
+call_id=CALL-0010
+duration_seconds=12
+started_at=2026-07-12T19:10:05Z
+source_msisdn=923002223333
+target_msisdn=923336667777
+area=DHA
+cell_id=LHR-DHA-022
+status=completed
+
+Longest completed voice call:
+call_id=CALL-0011
+duration_seconds=2700
+started_at=2026-07-12T21:00:00Z
+source_msisdn=923007777111
+target_msisdn=923339876543
+area=Bahria Town
+cell_id=LHR-BHR-041
+status=completed
+
+Failed call:
+call_id=CALL-0004
+duration_seconds=0
+started_at=2026-07-10T10:05:00Z
+source_msisdn=923009990000
+target_msisdn=923331234567
+area=Johar Town
+cell_id=LHR-JHT-031
+status=failed
+
+Roaming call:
+call_id=CALL-0009
+duration_seconds=95
+started_at=2026-07-12T18:20:00Z
+source_msisdn=923001112222
+target_msisdn=923331111222
+area=Gulberg
+cell_id=LHR-GUL-014
+status=completed
+roaming=true
+
+TARGET NUMBERS CALLED BY 923001112222
+
+source_msisdn=923001112222 called target_msisdn=923334445555 in CALL-0001 on 2026-07-10 from Gulberg.
+source_msisdn=923001112222 called target_msisdn=923336667777 in CALL-0002 on 2026-07-10 from DHA.
+source_msisdn=923001112222 called target_msisdn=923339999000 in CALL-0006 on 2026-07-11 from Model Town.
+source_msisdn=923001112222 called target_msisdn=923331111222 in CALL-0009 on 2026-07-12 from Gulberg while roaming.
+
+GULBERG CALLS
+
+CALL-0001 happened in Gulberg. source_msisdn=923001112222, target_msisdn=923334445555, duration_seconds=183, status=completed, cell_id=LHR-GUL-014.
+CALL-0003 happened in Gulberg. source_msisdn=923008889999, target_msisdn=923334445555, duration_seconds=7, status=completed, cell_id=LHR-GUL-014.
+CALL-0007 happened in Gulberg. source_msisdn=923004445555, target_msisdn=923334445555, duration_seconds=12, status=completed, cell_id=LHR-GUL-009.
+CALL-0009 happened in Gulberg. source_msisdn=923001112222, target_msisdn=923331111222, duration_seconds=95, status=completed, cell_id=LHR-GUL-014, roaming=true.
+CALL-0012 happened in Gulberg. source_msisdn=923009990000, target_msisdn=923334445555, duration_seconds=30, status=completed, cell_id=LHR-GUL-014.
+
+TARGET 923334445555
+
+target_msisdn=923334445555 appears in CALL-0001, CALL-0003, CALL-0007, and CALL-0012.
+
+ALL CDR RECORDS
+
+CDR RECORD CALL-0001
+started_at=2026-07-10T08:41:03Z
+ended_at=2026-07-10T08:44:06Z
+source_msisdn=923001112222
+target_msisdn=923334445555
+duration_seconds=183
+call_type=voice
+direction=outgoing
+area=Gulberg
+cell_id=LHR-GUL-014
+imei=356789012345671
+imsi=410011234567001
+status=completed
+roaming=false
+operator=NexusTel
+
+CDR RECORD CALL-0002
+started_at=2026-07-10T09:02:44Z
+ended_at=2026-07-10T09:03:26Z
+source_msisdn=923001112222
+target_msisdn=923336667777
+duration_seconds=42
+call_type=voice
+direction=outgoing
+area=DHA
+cell_id=LHR-DHA-022
+imei=356789012345671
+imsi=410011234567001
+status=completed
+roaming=false
+operator=NexusTel
+
+CDR RECORD CALL-0003
+started_at=2026-07-10T09:17:21Z
+ended_at=2026-07-10T09:17:28Z
+source_msisdn=923008889999
+target_msisdn=923334445555
+duration_seconds=7
+call_type=voice
+direction=outgoing
+area=Gulberg
+cell_id=LHR-GUL-014
+imei=357111222333444
+imsi=410019998888777
+status=completed
+roaming=false
+operator=NexusTel
+
+CDR RECORD CALL-0004
+started_at=2026-07-10T10:05:00Z
+ended_at=2026-07-10T10:05:00Z
+source_msisdn=923009990000
+target_msisdn=923331234567
+duration_seconds=0
+call_type=voice
+direction=outgoing
+area=Johar Town
+cell_id=LHR-JHT-031
+imei=352222333444555
+imsi=410019990000111
+status=failed
+roaming=false
+operator=NexusTel
+
+CDR RECORD CALL-0005
+started_at=2026-07-10T11:25:10Z
+ended_at=2026-07-10T11:39:40Z
+source_msisdn=923007777111
+target_msisdn=923335555888
+duration_seconds=870
+call_type=voice
+direction=incoming
+area=DHA
+cell_id=LHR-DHA-019
+imei=359999888777666
+imsi=410017777111222
+status=completed
+roaming=false
+operator=NexusTel
+
+CDR RECORD CALL-0006
+started_at=2026-07-11T07:15:30Z
+ended_at=2026-07-11T07:20:30Z
+source_msisdn=923001112222
+target_msisdn=923339999000
+duration_seconds=300
+call_type=voice
+direction=outgoing
+area=Model Town
+cell_id=LHR-MDT-007
+imei=356789012345671
+imsi=410011234567001
+status=completed
+roaming=false
+operator=NexusTel
+
+CDR RECORD CALL-0007
+started_at=2026-07-11T08:03:12Z
+ended_at=2026-07-11T08:03:24Z
+source_msisdn=923004445555
+target_msisdn=923334445555
+duration_seconds=12
+call_type=voice
+direction=outgoing
+area=Gulberg
+cell_id=LHR-GUL-009
+imei=351234567890123
+imsi=410014445555333
+status=completed
+roaming=false
+operator=NexusTel
+
+CDR RECORD CALL-0008
+started_at=2026-07-11T12:48:59Z
+ended_at=2026-07-11T12:52:19Z
+source_msisdn=923006660001
+target_msisdn=923332220001
+duration_seconds=200
+call_type=sms
+direction=outgoing
+area=Liberty
+cell_id=LHR-LIB-003
+imei=358888777666555
+imsi=410016660001444
+status=completed
+roaming=false
+operator=NexusTel
+
+CDR RECORD CALL-0009
+started_at=2026-07-12T18:20:00Z
+ended_at=2026-07-12T18:21:35Z
+source_msisdn=923001112222
+target_msisdn=923331111222
+duration_seconds=95
+call_type=voice
+direction=outgoing
+area=Gulberg
+cell_id=LHR-GUL-014
+imei=356789012345671
+imsi=410011234567001
+status=completed
+roaming=true
+operator=NexusTel
+
+CDR RECORD CALL-0010
+started_at=2026-07-12T19:10:05Z
+ended_at=2026-07-12T19:10:17Z
+source_msisdn=923002223333
+target_msisdn=923336667777
+duration_seconds=12
+call_type=voice
+direction=incoming
+area=DHA
+cell_id=LHR-DHA-022
+imei=354444555666777
+imsi=410012223333555
+status=completed
+roaming=false
+operator=NexusTel
+
+CDR RECORD CALL-0011
+started_at=2026-07-12T21:00:00Z
+ended_at=2026-07-12T21:45:00Z
+source_msisdn=923007777111
+target_msisdn=923339876543
+duration_seconds=2700
+call_type=voice
+direction=outgoing
+area=Bahria Town
+cell_id=LHR-BHR-041
+imei=359999888777666
+imsi=410017777111222
+status=completed
+roaming=false
+operator=NexusTel
+
+CDR RECORD CALL-0012
+started_at=2026-07-13T06:30:15Z
+ended_at=2026-07-13T06:30:45Z
+source_msisdn=923009990000
+target_msisdn=923334445555
+duration_seconds=30
+call_type=voice
+direction=outgoing
+area=Gulberg
+cell_id=LHR-GUL-014
+imei=352222333444555
+imsi=410019990000111
+status=completed
+roaming=false
+operator=NexusTel

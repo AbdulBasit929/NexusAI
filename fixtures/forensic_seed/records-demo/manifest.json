@@ -1,0 +1,68 @@
+{
+  "collection_id": "records-demo",
+  "seed": 20260714,
+  "files": [
+    {
+      "path": "seed_cdr_large.csv",
+      "record_type": "cdr",
+      "rows": 5000
+    },
+    {
+      "path": "seed_cdr_mixed_formats.csv",
+      "record_type": "cdr",
+      "rows": 5
+    },
+    {
+      "path": "seed_anpr.csv",
+      "record_type": "anpr",
+      "rows": 750
+    },
+    {
+      "path": "seed_ipdr.csv",
+      "record_type": "ipdr",
+      "rows": 2500
+    },
+    {
+      "path": "seed_ipdr_domains.csv",
+      "record_type": "ipdr",
+      "rows": 4
+    },
+    {
+      "path": "seed_ipdr.jsonl",
+      "record_type": "ipdr",
+      "rows": 2500
+    },
+    {
+      "path": "seed_access_log.csv",
+      "record_type": "access_log",
+      "rows": 1000
+    },
+    {
+      "path": "seed_transactions.csv",
+      "record_type": "transaction",
+      "rows": 4
+    },
+    {
+      "path": "subscriber_registry.csv",
+      "record_type": "subscriber",
+      "rows": 5
+    },
+    {
+      "path": "tower_reference.csv",
+      "record_type": "tower_location",
+      "rows": 5
+    },
+    {
+      "path": "policy_records_handling.md",
+      "record_type": "document"
+    },
+    {
+      "path": "case_notes_records_demo.txt",
+      "record_type": "document"
+    },
+    {
+      "path": "identity_case_notes.md",
+      "record_type": "document"
+    }
+  ]
+}

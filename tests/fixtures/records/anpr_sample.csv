@@ -1,0 +1,5 @@
+sighting_id,sighting_time,plate_number,location,camera_id,lane
+anpr-001,2026-07-10 08:01:00,LEA-123,Gulberg Main,CAM-01,1
+anpr-002,2026-07-10 08:10:00,LEA-123,Gulberg Main,CAM-02,2
+anpr-003,2026-07-10 09:00:00,ICT-777,Airport Road,CAM-05,1
+anpr-004,2026-07-11 11:00:00,LEA-123,Model Town Link,CAM-07,1

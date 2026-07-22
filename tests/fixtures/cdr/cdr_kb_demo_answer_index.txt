@@ -1,0 +1,34 @@
+CDR DEMO ANSWER INDEX - USE THIS FILE FOR SEARCH UI TESTING
+
+QUERY: Which CDR record has the shortest completed voice call overall?
+ANSWER: CALL-0003 is the shortest completed voice call overall. duration_seconds=7, area=Gulberg, source_msisdn=923008889999, target_msisdn=923334445555.
+
+QUERY: List all target numbers called by 923001112222.
+ANSWER: 923001112222 called these target numbers: 923334445555 in CALL-0001, 923336667777 in CALL-0002, 923339999000 in CALL-0006, and 923331111222 in CALL-0009.
+
+QUERY: Which calls happened in Gulberg?
+ANSWER: Gulberg calls are CALL-0001, CALL-0003, CALL-0007, CALL-0009, and CALL-0012.
+
+QUERY: Find the failed call and explain its source, target, and area.
+ANSWER: The failed call is CALL-0004. source_msisdn=923009990000, target_msisdn=923331234567, area=Johar Town, status=failed.
+
+QUERY: Which call lasted the longest?
+ANSWER: CALL-0011 lasted the longest. duration_seconds=2700, source_msisdn=923007777111, target_msisdn=923339876543, area=Bahria Town.
+
+QUERY: Which calls used cell id LHR-GUL-014?
+ANSWER: cell_id=LHR-GUL-014 was used by CALL-0001, CALL-0003, CALL-0009, and CALL-0012.
+
+QUERY: Which call was roaming?
+ANSWER: CALL-0009 was roaming. source_msisdn=923001112222, target_msisdn=923331111222, area=Gulberg, roaming=true.
+
+QUERY: Give me the IMEI and IMSI for CALL-0003.
+ANSWER: CALL-0003 has imei=357111222333444 and imsi=410019998888777.
+
+QUERY: Are there any calls to 923336667777? Show call IDs and durations.
+ANSWER: target_msisdn=923336667777 appears in CALL-0002 duration_seconds=42 and CALL-0010 duration_seconds=12.
+
+QUERY: Roman Urdu: 923001112222 ne kin numbers par calls ki hain? Exact numbers do.
+ANSWER: 923001112222 ne 923334445555, 923336667777, 923339999000, aur 923331111222 par calls ki hain.
+
+QUERY: Roman Urdu: sab se choti completed voice call kaunsi thi?
+ANSWER: Sab se choti completed voice call CALL-0003 thi, duration_seconds=7.

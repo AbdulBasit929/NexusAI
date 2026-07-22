@@ -1,0 +1,14 @@
+TITLE: Roaming call
+INTENT KEYWORDS: roaming call, roaming true, which call was roaming
+
+FINAL ANSWER:
+The roaming call is CALL-0009.
+source_msisdn=923001112222
+target_msisdn=923331111222
+area=Gulberg
+cell_id=LHR-GUL-014
+duration_seconds=95
+started_at=2026-07-12T18:20:00Z
+status=completed
+roaming=true
+

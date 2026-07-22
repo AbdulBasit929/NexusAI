@@ -1,0 +1,118 @@
+{
+  "activity": {
+    "thought": "Pensamiento",
+    "tool": "Herramienta",
+    "result": "Resultado",
+    "toolResult": "Resultado de {{name}}",
+    "thinking": "Pensando..."
+  },
+  "header": {
+    "manageModeTooltip": "Este chat puede instalar modelos, editar configuraciones y administrar backends hablando con NexusAI.",
+    "modelInfo": "InformaciÃ³n del modelo",
+    "chatSettings": "Ajustes del chat",
+    "modelInfoTitle": "InformaciÃ³n del modelo: {{model}}",
+    "editConfig": "Editar configuraciÃ³n",
+    "close": "Cerrar"
+  },
+  "modelInfo": {
+    "backend": "Backend",
+    "modelFile": "Archivo del modelo",
+    "contextSize": "TamaÃ±o del contexto",
+    "threads": "Hilos",
+    "mcp": "MCP",
+    "configured": "Configurado",
+    "chatTemplate": "Plantilla de chat",
+    "yes": "SÃ­",
+    "gpuLayers": "Capas GPU"
+  },
+  "context": {
+    "label": "Contexto: {{percent}}%",
+    "labelWithTokens": "Contexto: {{percent}}% ({{tokens}} tokens)"
+  },
+  "settings": {
+    "title": "Ajustes del chat",
+    "manageMode": "Modo administraciÃ³n",
+    "manageModeDesc": "Permite que este chat instale modelos, cambie backends y edite configuraciones hablando con NexusAI.",
+    "systemPrompt": "Prompt del sistema",
+    "systemPromptPlaceholder": "Eres un asistente Ãºtil...",
+    "temperature": "Temperatura",
+    "topP": "Top P",
+    "topK": "Top K",
+    "contextSize": "TamaÃ±o del contexto",
+    "contextSizePlaceholder": "2048",
+    "clearHistory": "Borrar historial del chat"
+  },
+  "empty": {
+    "manageTitle": "Administra NexusAI chateando",
+    "manageText": "Pide instalar modelos, cambiar backends, editar configuraciones o consultar el estado. El asistente resumirÃ¡ las acciones y esperarÃ¡ tu confirmaciÃ³n antes de cambiar nada.",
+    "startTitle": "Inicia una conversaciÃ³n",
+    "readyText": "Listo para chatear con {{model}}",
+    "selectModelText": "Selecciona un modelo arriba para comenzar",
+    "suggestionsManage": [
+      "Â¿QuÃ© estÃ¡ instalado?",
+      "Instala un modelo de chat",
+      "Muestra el estado del sistema",
+      "Actualiza un backend"
+    ],
+    "suggestionsChat": [
+      "Explica cÃ³mo funciona esto",
+      "AyÃºdame a escribir cÃ³digo",
+      "Resume un documento",
+      "Lluvia de ideas"
+    ],
+    "recent": "Recientes",
+    "noMessages": "AÃºn no hay mensajes",
+    "hintEnter": "Enter para enviar",
+    "hintShiftEnter": "Shift+Enter para nueva lÃ­nea",
+    "hintAttach": "Adjuntar archivos"
+  },
+  "errors": {
+    "viewTraces": "Ver trazas para mÃ¡s detalles"
+  },
+  "actions": {
+    "copy": "Copiar",
+    "regenerate": "Regenerar",
+    "jumpToLatest": "Jump to latest"
+  },
+  "streaming": {
+    "transferring": "Transfiriendo modelo...",
+    "transferringTo": "Transfiriendo modelo a {{node}}..."
+  },
+  "tokens": {
+    "perSec": "{{count}} tok/s",
+    "peak": "Pico: {{count}} tok/s",
+    "usage": "{{prompt}}p + {{completion}}c = {{total}}"
+  },
+  "input": {
+    "placeholder": "Mensaje...",
+    "attachFile": "Adjuntar archivo",
+    "stopGenerating": "Detener generaciÃ³n",
+    "canvasTitle": "Canvas â€” extrae bloques de cÃ³digo y multimedia en un panel lateral para vista previa, copia y descarga",
+    "canvasLabel": "Canvas",
+    "openCanvas": "Abrir panel canvas"
+  },
+  "deleteAllDialog": {
+    "title": "Eliminar todos los chats",
+    "message": "Â¿Eliminar todos los chats? Esta acciÃ³n no se puede deshacer.",
+    "confirm": "Eliminar todo"
+  },
+  "toasts": {
+    "selectModel": "Por favor selecciona un modelo",
+    "copied": "Copiado al portapapeles",
+    "copyFailed": "No se pudo copiar al portapapeles"
+  },
+  "menu": {
+    "trigger": "Chats",
+    "triggerTitle": "Conversaciones (Ctrl/Cmd+K)",
+    "search": "Buscar conversaciones...",
+    "clearSearch": "Limpiar bÃºsqueda",
+    "noMatch": "Ninguna conversaciÃ³n coincide con tu bÃºsqueda",
+    "noConversations": "AÃºn no hay conversaciones",
+    "rename": "Renombrar",
+    "exportMarkdown": "Exportar como Markdown",
+    "deleteChat": "Eliminar chat",
+    "newChat": "Nuevo chat",
+    "clearAll": "Borrar todo",
+    "deleteAllTitle": "Eliminar todas las conversaciones"
+  }
+}

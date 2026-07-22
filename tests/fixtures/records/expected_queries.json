@@ -1,0 +1,13 @@
+{
+  "cdr": {
+    "shortest_call_id": "cdr-004",
+    "longest_call_id": "cdr-003",
+    "failed_call_id": "cdr-002",
+    "gulberg_count": 3
+  },
+  "anpr": {
+    "plate": "LEA-123",
+    "repeat_location": "Gulberg Main",
+    "plate_count": 3
+  }
+}

@@ -1,0 +1,2 @@
+{"timestamp":"2026-07-10T08:00:01Z","client_ip":"192.0.2.10","method":"GET","path":"/api/records/batches","status":200,"user":"analyst"}
+{"timestamp":"2026-07-10T08:00:05Z","client_ip":"192.0.2.11","method":"POST","path":"/api/records/query","status":200,"user":"analyst"}

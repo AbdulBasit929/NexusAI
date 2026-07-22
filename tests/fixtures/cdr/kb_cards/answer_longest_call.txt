@@ -1,0 +1,13 @@
+TITLE: Longest completed voice call
+INTENT KEYWORDS: longest call, longest completed voice call, maximum duration call, call lasted the longest
+
+FINAL ANSWER:
+The longest completed voice call is CALL-0011.
+duration_seconds=2700
+started_at=2026-07-12T21:00:00Z
+source_msisdn=923007777111
+target_msisdn=923339876543
+area=Bahria Town
+cell_id=LHR-BHR-041
+status=completed
+

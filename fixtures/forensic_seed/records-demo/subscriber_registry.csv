@@ -1,0 +1,6 @@
+msisdn,subscriber_name,cnic_last4,account_type,activation_date,home_city,billing_region,status
+923461678183,A. Khan,9183,postpaid,2024-02-18,Lahore,Central,active
+923001112222,S. Malik,2222,prepaid,2023-11-04,Lahore,Central,active
+923334445555,R. Ahmed,4555,postpaid,2022-08-21,Islamabad,North,active
+923215551010,N. Raza,1010,prepaid,2025-01-13,Karachi,South,suspended
+923458889900,H. Qureshi,9900,postpaid,2021-06-30,Faisalabad,Central,active

@@ -1,0 +1,5 @@
+timestamp,source_ip,destination_ip,domain,url,msisdn,cell_id,location,bytes_up,bytes_down
+2026-07-10T20:58:00Z,192.168.100.45,203.0.113.19,mail.example.org,https://mail.example.org/login,923461678183,LHR-GUL-014,Gulberg,8120,45291
+2026-07-10T21:03:12Z,192.168.100.45,198.51.100.88,storage.example.net,https://storage.example.net/share/7fa,923461678183,LHR-GUL-014,Gulberg,92311,145920
+2026-07-11T01:09:44Z,10.24.18.77,203.0.113.44,maps.example.com,https://maps.example.com/route,923334445555,ISB-F7-009,F-7 Islamabad,3321,72012
+2026-07-13T03:09:21Z,172.16.4.12,198.51.100.21,chat.example.org,https://chat.example.org/api/send,923215551010,KHI-CLF-044,Clifton,6291,22810
