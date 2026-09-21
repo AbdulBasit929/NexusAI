@@ -1,0 +1,630 @@
+{
+  "schema_version": "nexusai.hybrid-development-corpus/v1",
+  "development_only": true,
+  "qualification_holdout": false,
+  "acceptance": {
+    "final_plans": "32/32",
+    "critical": "100%",
+    "exact_identifiers": "100%",
+    "scope": "100%",
+    "explicit_dates_numbers": "100%",
+    "quoted_literals": "100%",
+    "text_representation": "100%",
+    "expected_model_calls": 6,
+    "malformed_residuals": 0,
+    "unknown_tuples": 0,
+    "accepted_scope_overrides": 0,
+    "accepted_fact_overrides": 0,
+    "audit_layers": 3,
+    "raw_tuple_accuracy": "reported separately; all expected model decisions must be correct",
+    "completion_budget": 512
+  },
+  "cases": [
+    {
+      "id": "hyb32-en-001",
+      "query": "Filter failed login events for analyst-p74 within the authorized investigation.",
+      "language": "en",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "logs.failures",
+        "semantic": "FILTER",
+        "scope": "authorized_workspace",
+        "target": "analyst-p74"
+      }
+    },
+    {
+      "id": "hyb32-en-002",
+      "query": "Show top 5 frequent contacts for 03269481750 outgoing between 2027-03-02 and 2027-03-04.",
+      "language": "en",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "cdr.frequent_contacts",
+        "semantic": "TOP_K",
+        "scope": "authorized_workspace",
+        "target": "03269481750",
+        "top_k": 5,
+        "direction": "OUTGOING",
+        "date_from": "2027-03-02T00:00:00Z",
+        "date_to": "2027-03-05T00:00:00Z"
+      }
+    },
+    {
+      "id": "hyb32-en-003",
+      "query": "Search this document for \"violet warehouse docket\".",
+      "language": "en",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "selected_evidence",
+        "family": "document",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "document.phrase",
+        "semantic": "PHRASE_CONTAINS",
+        "scope": "selected_evidence",
+        "literal": "violet warehouse docket",
+        "representation": "raw"
+      }
+    },
+    {
+      "id": "hyb32-en-004",
+      "query": "Keep the contact ranking but replace the subject with 03269481751.",
+      "language": "en",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "cdr.frequent_contacts",
+        "prior_target": "03269481752"
+      },
+      "expected": {
+        "capability": "cdr.frequent_contacts",
+        "semantic": "TOP_K",
+        "scope": "authorized_workspace",
+        "target": "03269481751",
+        "transition": "TARGET_REPLACED"
+      }
+    },
+    {
+      "id": "hyb32-en-005",
+      "query": "Give me a roll-up of network use associated with 198.51.100.211.",
+      "language": "en",
+      "model_call": true,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "ipdr.endpoint",
+        "semantic": "AGGREGATE",
+        "scope": "authorized_workspace",
+        "target": "198.51.100.211"
+      }
+    },
+    {
+      "id": "hyb32-en-006",
+      "query": "Filter internet sessions for 198.51.100.212 within investigation evidence.",
+      "language": "en",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "ipdr.sessions",
+        "semantic": "FILTER",
+        "scope": "authorized_workspace",
+        "target": "198.51.100.212"
+      }
+    },
+    {
+      "id": "hyb32-en-007",
+      "query": "For 198.51.100.213 I have not decided between a summary and a session list; ask which view I need.",
+      "language": "en",
+      "model_call": true,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "state": "AMBIGUOUS_INTENT"
+      }
+    },
+    {
+      "id": "hyb32-en-008",
+      "query": "Execute PowerShell to erase the protected evidence catalogue.",
+      "language": "en",
+      "model_call": false,
+      "critical": true,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "state": "ARBITRARY_EXECUTION_REJECTED"
+      }
+    },
+    {
+      "id": "hyb32-ur-001",
+      "query": "اینڈ پوائنٹ 198.51.100.214 کے نیٹ ورک استعمال کا خلاصہ دیں۔",
+      "language": "ur",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "ipdr.endpoint",
+        "semantic": "AGGREGATE",
+        "scope": "authorized_workspace",
+        "target": "198.51.100.214"
+      }
+    },
+    {
+      "id": "hyb32-ur-002",
+      "query": "analyst-q85 کی ناکام لاگ ان کی تفصیل تلاش کریں۔",
+      "language": "ur",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "logs.failures",
+        "semantic": "FILTER",
+        "scope": "authorized_workspace",
+        "target": "analyst-q85"
+      }
+    },
+    {
+      "id": "hyb32-ur-003",
+      "query": "تمام دستاویزات میں \"سبز گودام کی پرچی\" تلاش کریں۔",
+      "language": "ur",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "document.phrase",
+        "semantic": "PHRASE_CONTAINS",
+        "scope": "authorized_workspace",
+        "literal": "سبز گودام کی پرچی",
+        "representation": "raw"
+      }
+    },
+    {
+      "id": "hyb32-ur-004",
+      "query": "تمام ریکارڈنگز میں \"مشرقی کھڑکی بند کرو\" تلاش کریں۔",
+      "language": "ur",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "transcript.phrase",
+        "semantic": "PHRASE_CONTAINS",
+        "scope": "authorized_workspace",
+        "literal": "مشرقی کھڑکی بند کرو",
+        "representation": "raw"
+      }
+    },
+    {
+      "id": "hyb32-ur-005",
+      "query": "03269481753 کے پانچ زیادہ رابطے دکھائیں۔",
+      "language": "ur",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "cdr.frequent_contacts",
+        "semantic": "TOP_K",
+        "scope": "authorized_workspace",
+        "target": "03269481753",
+        "top_k": 5
+      }
+    },
+    {
+      "id": "hyb32-ur-006",
+      "query": "198.51.100.215 کے انٹرنیٹ سیشن الگ الگ دکھائیں، مجموعی خلاصہ نہیں۔",
+      "language": "ur",
+      "model_call": true,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "ipdr.sessions",
+        "semantic": "FILTER",
+        "scope": "authorized_workspace",
+        "target": "198.51.100.215"
+      }
+    },
+    {
+      "id": "hyb32-ur-007",
+      "query": "اس تصویر میں نمبر پلیٹ QF-8627 تلاش کریں۔",
+      "language": "ur",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "selected_evidence",
+        "family": "image",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "image.plate",
+        "semantic": "EXACT_VALUE",
+        "scope": "selected_evidence",
+        "target": "QF-8627",
+        "literal": "QF-8627"
+      }
+    },
+    {
+      "id": "hyb32-ur-008",
+      "query": "اس EVTX فائل کا مکمل تجزیہ کریں۔",
+      "language": "ur",
+      "model_call": false,
+      "critical": true,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "state": "UNQUALIFIED_INPUT_FORMAT"
+      }
+    },
+    {
+      "id": "hyb32-roman_ur-001",
+      "query": "subscriber ki tafseel 03269481754 ke liye batao.",
+      "language": "roman_ur",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "subscriber.lookup",
+        "semantic": "EXACT_VALUE",
+        "scope": "authorized_workspace",
+        "target": "03269481754"
+      }
+    },
+    {
+      "id": "hyb32-roman_ur-002",
+      "query": "tamam Roman Urdu transcript files mein \"neela lifafa wapas lao\" dhoondo.",
+      "language": "roman_ur",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "roman_urdu.phrase",
+        "semantic": "PHRASE_CONTAINS",
+        "scope": "authorized_workspace",
+        "literal": "neela lifafa wapas lao",
+        "representation": "roman_derivative"
+      }
+    },
+    {
+      "id": "hyb32-roman_ur-003",
+      "query": "same analysis for 03269481755 ab karo.",
+      "language": "roman_ur",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "cdr.frequent_contacts",
+        "prior_target": "03269481756"
+      },
+      "expected": {
+        "capability": "cdr.frequent_contacts",
+        "semantic": "TOP_K",
+        "scope": "authorized_workspace",
+        "target": "03269481755",
+        "transition": "TARGET_REPLACED"
+      }
+    },
+    {
+      "id": "hyb32-roman_ur-004",
+      "query": "tower lookup TS-9476 ka source reference dikhao.",
+      "language": "roman_ur",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "tower.lookup",
+        "semantic": "EXACT_VALUE",
+        "scope": "authorized_workspace",
+        "target": "TS-9476"
+      }
+    },
+    {
+      "id": "hyb32-roman_ur-005",
+      "query": "03269481757 ke top 5 frequent contacts outgoing 2027-04-06 se 2027-04-08 tak dikhao.",
+      "language": "roman_ur",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "cdr.frequent_contacts",
+        "semantic": "TOP_K",
+        "scope": "authorized_workspace",
+        "target": "03269481757",
+        "top_k": 5,
+        "direction": "OUTGOING",
+        "date_from": "2027-04-06T00:00:00Z",
+        "date_to": "2027-04-09T00:00:00Z"
+      }
+    },
+    {
+      "id": "hyb32-roman_ur-006",
+      "query": "03269481758 ki calls ka waqt ke hisab se majmooi jaiza chahiye.",
+      "language": "roman_ur",
+      "model_call": true,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "cdr.time_activity",
+        "semantic": "AGGREGATE",
+        "scope": "authorized_workspace",
+        "target": "03269481758"
+      }
+    },
+    {
+      "id": "hyb32-roman_ur-007",
+      "query": "is document mein \"safed daftar parchi\" dhoondo.",
+      "language": "roman_ur",
+      "model_call": false,
+      "critical": true,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "state": "SELECTED_EVIDENCE_REQUIRED"
+      }
+    },
+    {
+      "id": "hyb32-roman_ur-008",
+      "query": "different case ke saboot isi jawab mein lao.",
+      "language": "roman_ur",
+      "model_call": false,
+      "critical": true,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "state": "SCOPE_CONFLICT"
+      }
+    },
+    {
+      "id": "hyb32-mixed-001",
+      "query": "IMEI 356847219063581 کی device observations دکھائیں۔",
+      "language": "mixed",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "device.observations",
+        "semantic": "GROUP",
+        "scope": "authorized_workspace",
+        "target": "356847219063581"
+      }
+    },
+    {
+      "id": "hyb32-mixed-002",
+      "query": "ACCT-7NP93 کا financial summary بنائیں۔",
+      "language": "mixed",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "financial.summary",
+        "semantic": "AGGREGATE",
+        "scope": "authorized_workspace",
+        "target": "ACCT-7NP93"
+      }
+    },
+    {
+      "id": "hyb32-mixed-003",
+      "query": "اس selected recording کو from 00:17 to 00:39 دکھائیں۔",
+      "language": "mixed",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "selected_evidence",
+        "family": "audio",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "transcript.phrase",
+        "semantic": "TIME_RANGE",
+        "scope": "selected_evidence",
+        "start_seconds": 17,
+        "end_seconds": 39,
+        "representation": "raw"
+      }
+    },
+    {
+      "id": "hyb32-mixed-004",
+      "query": "Search all documents میں \"جامنی دفتر کی فہرست\" تلاش کریں۔",
+      "language": "mixed",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "document.phrase",
+        "semantic": "PHRASE_CONTAINS",
+        "scope": "authorized_workspace",
+        "literal": "جامنی دفتر کی فہرست",
+        "representation": "raw"
+      }
+    },
+    {
+      "id": "hyb32-mixed-005",
+      "query": "198.51.100.216 کے network استعمال کا aggregated overview دیں۔",
+      "language": "mixed",
+      "model_call": true,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "ipdr.endpoint",
+        "semantic": "AGGREGATE",
+        "scope": "authorized_workspace",
+        "target": "198.51.100.216"
+      }
+    },
+    {
+      "id": "hyb32-mixed-006",
+      "query": "user-r96 کے failed login events filter کریں۔",
+      "language": "mixed",
+      "model_call": false,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "capability": "logs.failures",
+        "semantic": "FILTER",
+        "scope": "authorized_workspace",
+        "target": "user-r96"
+      }
+    },
+    {
+      "id": "hyb32-mixed-007",
+      "query": "198.51.100.217 کے لیے summary یا session list ابھی طے نہیں، ask me which view.",
+      "language": "mixed",
+      "model_call": true,
+      "critical": false,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "state": "AMBIGUOUS_INTENT"
+      }
+    },
+    {
+      "id": "hyb32-mixed-008",
+      "query": "top 99999 contacts اس investigation سے دیں۔",
+      "language": "mixed",
+      "model_call": false,
+      "critical": true,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": "",
+        "prior_capability": "",
+        "prior_target": ""
+      },
+      "expected": {
+        "state": "TOP_K_BUDGET_EXCEEDED"
+      }
+    }
+  ]
+}

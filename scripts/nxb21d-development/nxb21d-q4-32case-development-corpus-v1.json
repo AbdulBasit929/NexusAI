@@ -1,0 +1,207 @@
+{
+  "schema_version": "nexusai.nxb21d-q4-development-corpus/v1",
+  "created_at": "2026-09-04T12:00:00Z",
+  "development_only": true,
+  "qualification_holdout": false,
+  "candidate_model": "qwen3-4b-instruct-2507-q4km-nxb21d-dev",
+  "language_counts": {
+    "english": 8,
+    "urdu-script": 8,
+    "roman-urdu": 8,
+    "mixed": 8
+  },
+  "cases": [
+    {
+      "id": "dev32-en-001",
+      "language": "english",
+      "question": "Locate vehicle registration KHI-7426 within the selected photograph.",
+      "expected": {"query_capability_id": "image.plate", "semantic": "EXACT_VALUE", "literal_text": "KHI-7426", "entities": ["KHI-7426"], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "dev32-en-002",
+      "language": "english",
+      "question": "Look across every image in this investigation for plate ISB-5907.",
+      "expected": {"query_capability_id": "image.plate", "semantic": "EXACT_VALUE", "literal_text": "ISB-5907", "entities": ["ISB-5907"], "scope": "workspace", "clarification_required": false}
+    },
+    {
+      "id": "dev32-en-003",
+      "language": "english",
+      "question": "Is registration MUX-3185 present in this source image?",
+      "expected": {"query_capability_id": "image.plate", "semantic": "EXACT_VALUE", "literal_text": "MUX-3185", "entities": ["MUX-3185"], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "dev32-en-004",
+      "language": "english",
+      "question": "Check this document for the words \"shipment held at depot\".",
+      "expected": {"query_capability_id": "document.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "shipment held at depot", "entities": [], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "dev32-en-005",
+      "language": "english",
+      "question": "Across the case documents, show whether \"secondary account review\" is present.",
+      "expected": {"query_capability_id": "document.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "secondary account review", "entities": [], "scope": "workspace", "clarification_required": false}
+    },
+    {
+      "id": "dev32-en-006",
+      "language": "english",
+      "question": "Search this audio source for \"leave by the east gate\".",
+      "expected": {"query_capability_id": "transcript.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "leave by the east gate", "entities": [], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "dev32-en-007",
+      "language": "english",
+      "question": "Look across every recording in the investigation for \"package arrives before dusk\".",
+      "expected": {"query_capability_id": "transcript.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "package arrives before dusk", "entities": [], "scope": "workspace", "clarification_required": false}
+    },
+    {
+      "id": "dev32-en-008",
+      "language": "english",
+      "question": "In all evidence documents, locate \"signed copy stored upstairs\".",
+      "expected": {"query_capability_id": "document.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "signed copy stored upstairs", "entities": [], "scope": "workspace", "clarification_required": false}
+    },
+    {
+      "id": "dev32-ur-001",
+      "language": "urdu-script",
+      "question": "اس منتخب عکس میں نمبر پلیٹ PEW-6143 چیک کریں۔",
+      "expected": {"query_capability_id": "image.plate", "semantic": "EXACT_VALUE", "literal_text": "PEW-6143", "entities": ["PEW-6143"], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "dev32-ur-002",
+      "language": "urdu-script",
+      "question": "مقدمے کی سب تصاویر میں پلیٹ HYD-2906 تلاش کریں۔",
+      "expected": {"query_capability_id": "image.plate", "semantic": "EXACT_VALUE", "literal_text": "HYD-2906", "entities": ["HYD-2906"], "scope": "workspace", "clarification_required": false}
+    },
+    {
+      "id": "dev32-ur-003",
+      "language": "urdu-script",
+      "question": "کیا اس تصویر میں رجسٹریشن SKT-8731 موجود ہے؟",
+      "expected": {"query_capability_id": "image.plate", "semantic": "EXACT_VALUE", "literal_text": "SKT-8731", "entities": ["SKT-8731"], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "dev32-ur-004",
+      "language": "urdu-script",
+      "question": "اس دستاویز میں عبارت \"دروازہ اندر سے بند تھا\" تلاش کریں۔",
+      "expected": {"query_capability_id": "document.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "دروازہ اندر سے بند تھا", "entities": [], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "dev32-ur-005",
+      "language": "urdu-script",
+      "question": "تمام کیس دستاویزات میں \"رسید دفتر میں جمع ہے\" موجود ہے یا نہیں، دیکھیں۔",
+      "expected": {"query_capability_id": "document.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "رسید دفتر میں جمع ہے", "entities": [], "scope": "workspace", "clarification_required": false}
+    },
+    {
+      "id": "dev32-ur-006",
+      "language": "urdu-script",
+      "question": "اس ریکارڈنگ میں \"گاڑی پل کے نیچے کھڑی ہے\" تلاش کریں۔",
+      "expected": {"query_capability_id": "transcript.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "گاڑی پل کے نیچے کھڑی ہے", "entities": [], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "dev32-ur-007",
+      "language": "urdu-script",
+      "question": "مقدمے کی سب ریکارڈنگز میں عبارت \"شام کے بعد رابطہ کرنا\" ڈھونڈیں۔",
+      "expected": {"query_capability_id": "transcript.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "شام کے بعد رابطہ کرنا", "entities": [], "scope": "workspace", "clarification_required": false}
+    },
+    {
+      "id": "dev32-ur-008",
+      "language": "urdu-script",
+      "question": "تمام شواہد کی دستاویزات میں \"فائل نیلی الماری میں ہے\" تلاش کریں۔",
+      "expected": {"query_capability_id": "document.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "فائل نیلی الماری میں ہے", "entities": [], "scope": "workspace", "clarification_required": false}
+    },
+    {
+      "id": "dev32-roman-001",
+      "language": "roman-urdu",
+      "question": "Is tasveer mein plate QTA-4627 check karo.",
+      "expected": {"query_capability_id": "image.plate", "semantic": "EXACT_VALUE", "literal_text": "QTA-4627", "entities": ["QTA-4627"], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "dev32-roman-002",
+      "language": "roman-urdu",
+      "question": "Sab case images mein registration FSD-8054 locate karo.",
+      "expected": {"query_capability_id": "image.plate", "semantic": "EXACT_VALUE", "literal_text": "FSD-8054", "entities": ["FSD-8054"], "scope": "workspace", "clarification_required": false}
+    },
+    {
+      "id": "dev32-roman-003",
+      "language": "roman-urdu",
+      "question": "Kya is selected photo mein number plate GUJ-1938 maujood hai?",
+      "expected": {"query_capability_id": "image.plate", "semantic": "EXACT_VALUE", "literal_text": "GUJ-1938", "entities": ["GUJ-1938"], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "dev32-roman-004",
+      "language": "roman-urdu",
+      "question": "Is document mein \"naya address confirm hua\" dhoondo.",
+      "expected": {"query_capability_id": "document.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "naya address confirm hua", "entities": [], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "dev32-roman-005",
+      "language": "roman-urdu",
+      "question": "Tamam case documents mein \"locker ki chabi missing hai\" check karo.",
+      "expected": {"query_capability_id": "document.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "locker ki chabi missing hai", "entities": [], "scope": "workspace", "clarification_required": false}
+    },
+    {
+      "id": "dev32-roman-006",
+      "language": "roman-urdu",
+      "question": "Is audio mein \"raat ko wapas aana\" sunai deta hai ya nahi, dekho.",
+      "expected": {"query_capability_id": "transcript.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "raat ko wapas aana", "entities": [], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "dev32-roman-007",
+      "language": "roman-urdu",
+      "question": "Sab recordings mein phrase \"parcel station par reh gaya\" talaash karo.",
+      "expected": {"query_capability_id": "transcript.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "parcel station par reh gaya", "entities": [], "scope": "workspace", "clarification_required": false}
+    },
+    {
+      "id": "dev32-roman-008",
+      "language": "roman-urdu",
+      "question": "Case ki tamam documents mein \"doosri copy manager ke paas hai\" locate karo.",
+      "expected": {"query_capability_id": "document.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "doosri copy manager ke paas hai", "entities": [], "scope": "workspace", "clarification_required": false}
+    },
+    {
+      "id": "dev32-mixed-001",
+      "language": "mixed",
+      "question": "Selected تصویر میں plate BWP-6702 locate کریں۔",
+      "expected": {"query_capability_id": "image.plate", "semantic": "EXACT_VALUE", "literal_text": "BWP-6702", "entities": ["BWP-6702"], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "dev32-mixed-002",
+      "language": "mixed",
+      "question": "Across sab تصاویر, registration ATD-4519 تلاش کرو۔",
+      "expected": {"query_capability_id": "image.plate", "semantic": "EXACT_VALUE", "literal_text": "ATD-4519", "entities": ["ATD-4519"], "scope": "workspace", "clarification_required": false}
+    },
+    {
+      "id": "dev32-mixed-003",
+      "language": "mixed",
+      "question": "تمام case images میں number plate RYK-3086 present ہے؟",
+      "expected": {"query_capability_id": "image.plate", "semantic": "EXACT_VALUE", "literal_text": "RYK-3086", "entities": ["RYK-3086"], "scope": "workspace", "clarification_required": false}
+    },
+    {
+      "id": "dev32-mixed-004",
+      "language": "mixed",
+      "question": "اس document میں \"backup key under desk\" check کریں۔",
+      "expected": {"query_capability_id": "document.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "backup key under desk", "entities": [], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "dev32-mixed-005",
+      "language": "mixed",
+      "question": "Across all case documents، عبارت \"درخواست منظور ہو گئی\" تلاش کریں۔",
+      "expected": {"query_capability_id": "document.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "درخواست منظور ہو گئی", "entities": [], "scope": "workspace", "clarification_required": false}
+    },
+    {
+      "id": "dev32-mixed-006",
+      "language": "mixed",
+      "question": "Is selected recording میں \"میٹنگ مغرب کے بعد ہے\" locate کریں۔",
+      "expected": {"query_capability_id": "transcript.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "میٹنگ مغرب کے بعد ہے", "entities": [], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "dev32-mixed-007",
+      "language": "mixed",
+      "question": "تمام case recordings میں \"driver waits near bridge\" search کریں۔",
+      "expected": {"query_capability_id": "transcript.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "driver waits near bridge", "entities": [], "scope": "workspace", "clarification_required": false}
+    },
+    {
+      "id": "dev32-mixed-008",
+      "language": "mixed",
+      "question": "اس selected document میں phrase \"parcel kal dispatch hoga\" تلاش کرو۔",
+      "expected": {"query_capability_id": "document.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "parcel kal dispatch hoga", "entities": [], "scope": "selected", "clarification_required": false}
+    }
+  ]
+}

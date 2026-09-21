@@ -1,0 +1,84 @@
+{
+  "schema_version": "nexusai.nxb21d-q4-final-qualification-operator/v1",
+  "candidate": {
+    "candidate_id": "nxb21d-q4-final-qualification-r1",
+    "identity_sha256": "11c7ce2a5c0ed1d6bb83a8d2a9b26274dbcedf6c96b014a4c7e0404160c26371",
+    "request_temperature": 0,
+    "effective_context": 4096
+  },
+  "model": {
+    "id": "qwen3-4b-instruct-2507-q4km-nxb21d-dev",
+    "backend": "llama-cpp",
+    "quantization": "Q4_K_M",
+    "artifact_path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/Qwen_Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+    "artifact_container_path": "/models/Qwen_Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+    "artifact_bytes": 2497280736,
+    "artifact_sha256": "2fde00ce69dd4899c70d020845e2638353015bba0fdf161b3eb965f2bca4464e",
+    "profile_path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/qwen3-4b-instruct-2507-q4km-nxb21d-dev.yaml",
+    "profile_container_path": "/models/qwen3-4b-instruct-2507-q4km-nxb21d-dev.yaml",
+    "profile_sha256": "30d3bcd8c92684e191277dad992354323b7e46c7d30d3c69149010e90f117129",
+    "q8_profile_container_path": "/models/qwen_qwen3-4b-instruct-2507.yaml",
+    "q8_profile_sha256": "ef036e0a02cc5e8331dc4dff41c0e0cb68e6e0bda71d92b92f47f673472e666f"
+  },
+  "corpus": {
+    "path": "scripts/nxb21d-q4-qualification/nxb21d-q4-independent-168case-holdout-v1.json",
+    "sha256": "aaa8517983ea4523e235c4b3de31e5562bfaeada21ef24a7b23065a567d31d13",
+    "validator": "scripts/nxb21d-q4-qualification/validate_qualification_corpus.py"
+  },
+  "evaluator": {
+    "path": "scripts/nxb21d-q4-qualification/d_q4_qualification_evaluator_test.go",
+    "sha256": "8100066faff4abc69fdc0bf444d10a8477bd903914d958be8eb6fd21b9db30d8"
+  },
+  "development_receipt": {
+    "path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/localai-dev-results/16case-scope-remediation/run-20260905T081643297Z/scope-remediation-16case-development-summary-v1.json",
+    "sha256": "921229a78719a5594271b4ede2fd5aadabc6f3a52d50c3893e4dd5f5badfafe1",
+    "result": "16_OF_16_MODEL_AND_FINAL_PASS"
+  },
+  "runtime": {
+    "localai_url": "http://127.0.0.1:8080",
+    "container": "nexusai-api-1",
+    "retained_tuple": "64|64|77|22507|828|61",
+    "activity_count": 314,
+    "containers": {
+      "api": {"id":"d62021a0a4fc258ff3ce6fc4140090c6d9862dcc04863a065e6e842f62d769de","image":"sha256:feb935b42a93c1810394cb270a809189ca240a225253159a47b8daa72a799171","restarts":0},
+      "forensic-records-api": {"id":"ffd93bf51ecad0bc61271dfad0576b852057cd85f85aa8221534e3250ef1c11b","image":"sha256:828e4b03e02979c3fc25dd6b6896e74fb97a2e59b8c17300a3efadce1236ace8","restarts":2},
+      "forensic-records-worker": {"id":"40b6e628d586d5d484468120a8591fdb46a2ecc6f5aac228583067b22811d088","image":"sha256:0b22a604dbf97443623258072a71f741111a1033a5e274166ea0f5b2f9968d47","restarts":5},
+      "forensic-postgres": {"id":"f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361","image":"sha256:61f891691050da6032023c01ea885730eeeba06b7c17b403e7d0b9c49c37dfe9","restarts":0},
+      "forensic-nats": {"id":"5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04","image":"sha256:e4bf19f15fd3218814a4e3c9e0064e1334bd8aa20d5984b9f1a0afd084f8cc00","restarts":0}
+    }
+  },
+  "gates": {
+    "minimum_available_ram_gib": 6,
+    "critical_percent": 100,
+    "natural_language_per_language_percent": 95
+  },
+  "activation": {
+    "source_manifest": "reports/nxb21/d-q4-activation-source-manifest-v1.json",
+    "source_manifest_sha256": "26d565355f5558718c927fd72356d337db98157ee7cb7c95e1c49e4dff02b22b",
+    "source_digest_sha256": "b20512221f2a8ffbc931e5c0b4d9d0d7cb246899eb88fc2a630ba1af1a7540bd",
+    "source_seal": "reports/nxb21/d-q4-activation-source-seal-v1.json",
+    "services": ["api", "forensic-records-api"],
+    "worker_required": false
+  },
+  "output_root": "local-acceptance-models/nxb21-d/q4-final-qualification-runs",
+  "consumed_holdout_registry": "reports/nxb21/d-consumed-holdouts-v1.json",
+  "public_receipt": "reports/nxb21/d-q4-final-qualification-receipt-v1.json",
+  "framework_files": {
+    "api/forensic_records/query_language_assistance.go": "f22d4d9bc340ba60eb395790fecfb7499f417c0a48fea3d26be6687fe095706b",
+    "api/forensic_records/d_dynamic_planner.go": "e85bee4b81c7ba681470dba0dbf1b7b903c7ec65d76c34efc9f64d5615ae8b3f",
+    "pkg/forensictext/query.go": "beda1fb828ab4d400afc5be008ee921ba11f77ba68f243e350a066bdc0055e97",
+    "api/forensic_records/query.go": "b50de13eedffd19ab4731493e8f4828a24fd28e9d9724f5aaf234c34701dda7e",
+    "api/forensic_records/query_intelligence_contracts.go": "56ea4c09d1b4d55e8f42b86b27a703aaaf646be3eeb0358d035f13c3d96cb726",
+    "api/forensic_records/contracts/query-capability-references-v1.json": "085982f58e9f3560f9f7291db45e520c4008ed9c492005e8e9f542cd9aa35ca0",
+    "scripts/nxb21d-development/byte_safe_transport.ps1": "9deed398e86e0347afc33964c47b8f4e489cc88372a77d16b4ba9ef8ed4a8c64",
+    "scripts/nxb21d-q4-qualification/d_q4_qualification_evaluator_test.go": "8100066faff4abc69fdc0bf444d10a8477bd903914d958be8eb6fd21b9db30d8",
+    "scripts/nxb21d-q4-qualification/nxb21d-q4-independent-168case-holdout-v1.json": "aaa8517983ea4523e235c4b3de31e5562bfaeada21ef24a7b23065a567d31d13",
+    "scripts/nxb21d-q4-qualification/validate_qualification_corpus.py": "5df4255ee594779cdc3bae92fc9809db3a433780d09f5963e8153afdedced77c",
+    "scripts/nxb21d-q4-qualification/make_qualification_corpus.py": "382e75d48d210cbf9e15eea68912904957f3395c36cea3dd22e90a890a30089e",
+    "scripts/nxb21d-q4-qualification/run_nxb21d_q4_final_qualification.ps1": "7544fb72cce245a5bbe3bc4901eb7bd213041ca39fe6467a0dc890253ed2b9cf",
+    "scripts/nxb21d-q4-qualification/run_nxb21_b1c_q4_activation.ps1": "e43a6b04ca1cb6b9930720918a7d0bacc64f0b5d5cce5d789dee6ccc7bfbe3f4",
+    "scripts/nxb21d-q4-qualification/rollback_nxb21_b1c_q4_activation.ps1": "916ba584718d80cf2e11b3f18120e9430412f7dc5facee7c184def022af0b6d4",
+    "reports/nxb21/d-q4-activation-source-manifest-v1.json": "26d565355f5558718c927fd72356d337db98157ee7cb7c95e1c49e4dff02b22b",
+    "scripts/nxb21d-q4-qualification/README.md": "c5524351c5b1c311a6e3f21c27f0769a02bcd326504383521b158816a0a37041"
+  }
+}

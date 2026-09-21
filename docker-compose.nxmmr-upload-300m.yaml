@@ -1,0 +1,7 @@
+# PREPARED ONLY: merge into a reviewed snapshot of the current api service.
+# This fragment is not a standalone deployment plan; no `compose up` is authorized.
+# A 300 MiB file needs room for multipart metadata. Keep the request cap finite.
+services:
+  api:
+    environment:
+      LOCALAI_UPLOAD_LIMIT: "320"

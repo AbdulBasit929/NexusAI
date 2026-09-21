@@ -1,0 +1,76 @@
+{
+  "schema_version": "nexusai.qwen3-8b-selection-development-operator/v1",
+  "development_only": true,
+  "qualification_holdout": false,
+  "model": {
+    "id": "qwen3-8b-q4km-nxb21d-selection-dev",
+    "backend": "llama-cpp",
+    "quantization": "Q4_K_M",
+    "repository": "Qwen/Qwen3-8B-GGUF",
+    "revision": "7c41481f57cb95916b40956ab2f0b139b296d974",
+    "artifact_path": "local-acceptance-models/nxb21-d/challengers/qwen3-8b-q4km/Qwen3-8B-Q4_K_M.gguf",
+    "artifact_container_path": "/models/Qwen3-8B-Q4_K_M.gguf",
+    "artifact_bytes": 5027783488,
+    "artifact_sha256": "d98cdcbd03e17ce47681435b5150e34c1417f50b5c0019dd560e4882c5745785",
+    "profile_path": "local-acceptance-models/nxb21-d/challengers/qwen3-8b-q4km/qwen3-8b-q4km-nxb21d-selection-dev.yaml",
+    "profile_container_path": "/models/qwen3-8b-q4km-nxb21d-selection-dev.yaml",
+    "profile_sha256": "c3d7b799fdc9fb0acf39b4c694513f1eec608146dc44b1e5baf9797e40ab0afe",
+    "acquisition_path": "local-acceptance-models/nxb21-d/challengers/qwen3-8b-q4km/acquisition-receipt-v1.json",
+    "acquisition_sha256": "bd822fab9a637eec707561d9d92d6d4505fd2cfef32b156f896801a4d1f3b477",
+    "context_size": 4096,
+    "n_batch": null,
+    "n_batch_source": "backend_default"
+  },
+  "decision_contract": {
+    "path": "scripts/nxb21d-hybrid-decision-development/decision-contract-v2.json",
+    "sha256": "77cf966bb4011a638fdc547669bc535f6f6f4595053907e79b15e31c60919c80"
+  },
+  "corpus": {
+    "path": "scripts/nxb21d-qwen3-8b-selection/qwen3-8b-selection-12case-corpus-v1.json",
+    "sha256": "6376e5d18352edd6319562e9799d773bedb67f54bbedc901f06256dd53b226cd",
+    "validator": "scripts/nxb21d-qwen3-8b-selection/validate_selection12_corpus.py",
+    "bindings_path": "scripts/nxb21d-qwen3-8b-selection/schema-bindings-v1.json",
+    "bindings_sha256": "a741d0a0e39c0b257f29532d8e968a4766082abcd62ef0d39e5d856d4583e749",
+    "freshness_path": "reports/nxb21/d-qwen3-8b-selection12-freshness-v1.json",
+    "freshness_sha256": "b98e290f43ded0d15cebf623b16798fe0d869d4be2a4623f75900a0d0ed19d1e",
+    "cases": 12,
+    "model_calls": 12
+  },
+  "resource": {
+    "minimum_before_load_gib": 6,
+    "minimum_loaded_gib": 4,
+    "ram_script": "scripts/nxb21d-hybrid-development/check_hybrid_ram.ps1"
+  },
+  "runtime_sha256": "a7e7819d0f500730c880580fe76e331bfa7da22505ff09218e3c5db62c7318bc",
+  "output_root": "local-acceptance-models/nxb21-d/qwen3-8b-selection-development-runs",
+  "framework_files": {
+    "api/forensic_records/query.go": "9108703f7c6979fc6b50e05c6fb9a5c2b43fc854816f9640c04783fd4502580a",
+    "api/forensic_records/query_hybrid_planner.go": "c327ea8b2e63ef18b7bcbee923ce9253ed1ff4ae247902cfaadfa9156f0be459",
+    "api/forensic_records/query_hybrid_planner_ginkgo_test.go": "98f55955ebf0d9009ee389ccd17bee662c700aab7069aca432f9f1853498e4a2",
+    "api/forensic_records/query_language_assistance.go": "f2d960f68867576d17b667242a59c27e1d0bd70a1fc090e365fc9c60c7825760",
+    "api/forensic_records/query_capability_references.go": "4c32909704d2f4bd2d0fd12928885a2c4fc5c37cd9c8d60278d7e89075e2f7a8",
+    "api/forensic_records/contracts/query-capability-references-v1.json": "085982f58e9f3560f9f7291db45e520c4008ed9c492005e8e9f542cd9aa35ca0",
+    "api/forensic_records/nxb21d_hybrid_development_ginkgo_test.go": "606fbbed487f7a1157ccf65a75c68a3fc302ff00f16dc74c1813d8ac5febce8d",
+    "api/forensic_records/nxb21d_qwen3_8b_selection_ginkgo_test.go": "cc8c76a61231bbe687b2a2607e7e1ddcbcd7061a451a2a697212607d9ffe0bd8",
+    "core/http/endpoints/openai/chat.go": "9f467268a8d55a8273eabe6f62a79f10080d3a185d61eab921281ecfe22ec3c9",
+    "pkg/functions/function_structure.go": "bcb974ae1970b9ea7acffe71c87e538dc5d77b2fee1f6f45646f7eb8a42a6fc4",
+    "pkg/functions/grammars/bnf_rules.go": "2484b3c05671f161a015d565299be77eccb59897dd516e8d1de3c18aea4fb205",
+    "pkg/functions/grammars/json_schema.go": "75249aa6b94d22738bb9b4b054fecda90cd5c892081f32c7ca17857266ed9199",
+    "pkg/functions/grammars/options.go": "366dcab0e45f6d802d0bcf196b087bf26e1eecec30fa2493695481a7efe06c0a",
+    "pkg/functions/grammars/rules.go": "91753a759ddf531a8ff755851d1b1f91ac0f7f273eed59f89df8fb6782339490",
+    "pkg/functions/grammars/types.go": "f706a602ad832e34c9fc4585f534d2544fab1f115523faaef43a0a5e47918031",
+    "scripts/nxb21d-offline/common.ps1": "60a73fb2d08c4d7c76b84c5f788a3d47706b2a708074b41195e6cf64b532c874",
+    "scripts/nxb21d-development/byte_safe_transport.ps1": "9deed398e86e0347afc33964c47b8f4e489cc88372a77d16b4ba9ef8ed4a8c64",
+    "scripts/nxb21d-q4-qualification/qualification_guards.ps1": "55eb36fc7d0ebac9ded5a0b9c51302a17f5d0bef428ca85646164131f0c36f14",
+    "scripts/nxb21d-hybrid-development/immutable_receipt.ps1": "143d28f7b419da73a032aaa754d4279d7245a69eef3e0949d238fc9049d9b067",
+    "scripts/nxb21d-hybrid-development/check_hybrid_ram.ps1": "cb11349e966ce43155707d13d2b448a998e64a71201a4624fc85a704ce63afc6",
+    "scripts/nxb21d-qwen3-8b-selection/validate_selection12_corpus.py": "27284b50353c603185dbc017302172749dc659152ae49fd35aa1d29830cf3fb7",
+    "scripts/nxb21d-qwen3-8b-selection/run_nxb21d_qwen3_8b_selection12_development.ps1": "d0ded343970f33dadc9c71a4624ddd091a04ff46fc26980df9b54ac3fcf493a1",
+    "scripts/nxb21d-qwen3-8b-selection/test_selection12_framework.ps1": "92c66b62a48c25ccfdb2f3b4ec7c1928f26cbbe06404c04d02ffc940e3e262fd"
+  },
+  "development_freeze": {
+    "freeze_id": "nxb21d-qwen3-8b-selection12-20260908T051432Z",
+    "completion_budget": 512,
+    "identity_sha256": "e0aa163fdf62e12ee3b416bf6fa05061355d16f2ce616566578673ae926e9771"
+  }
+}

@@ -1,0 +1,2120 @@
+{
+  "final12-en-ambiguous": {
+    "admission": {
+      "authorization_valid": "PASS",
+      "candidate_set_valid": "PASS",
+      "case_scope_valid": "PASS",
+      "expected_decision_reachable": "PASS",
+      "fact_packet_valid": "PASS",
+      "final_plan_valid": "PASS",
+      "model_call_required": true
+    },
+    "expected_final_typed_outcome": {
+      "clarification_code": "AMBIGUOUS_INTENT",
+      "state": "hybrid_clarification"
+    },
+    "facts": {
+      "contract_version": "forensics.hybrid-facts/v1",
+      "tenant_id": "t",
+      "user_id": "u",
+      "collection_id": "c",
+      "evidence_id": "",
+      "scope": "authorized_workspace",
+      "identifiers": [
+        {
+          "raw_span": "192.0.2.221",
+          "canonical": "192.0.2.221",
+          "identifier_type": "ip",
+          "start_byte": 4,
+          "end_byte": 15
+        }
+      ],
+      "target": "192.0.2.221",
+      "targets": [
+        "192.0.2.221"
+      ],
+      "family": "",
+      "date_from": "",
+      "date_to": "",
+      "direction": "",
+      "top_k": 0,
+      "start_seconds": null,
+      "end_seconds": null,
+      "filters": null,
+      "prior_capability": "",
+      "prior_semantic": "",
+      "prior_targets": null,
+      "inherited_fields": [],
+      "transition": "NONE",
+      "explicit_capability": "",
+      "state": ""
+    },
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "enum": [
+            "CLARIFY:AMBIGUOUS_INTENT",
+            "CLARIFY:INSUFFICIENT_FACTS",
+            "cross_family.identifiers/COMPOSE/authorized_workspace",
+            "ipdr.endpoint/AGGREGATE/authorized_workspace",
+            "ipdr.sessions/FILTER/authorized_workspace"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision"
+      ],
+      "type": "object"
+    },
+    "tuples": [
+      {
+        "tuple_id": "cross_family.identifiers/COMPOSE/authorized_workspace",
+        "capability_id": "cross_family.identifiers",
+        "semantic": "COMPOSE",
+        "allowed_scope": "authorized_workspace",
+        "family": "case_cross_family",
+        "operation_ref": "forensics.cross_family_correlation",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "ipdr.endpoint/AGGREGATE/authorized_workspace",
+        "capability_id": "ipdr.endpoint",
+        "semantic": "AGGREGATE",
+        "allowed_scope": "authorized_workspace",
+        "family": "network_ipdr",
+        "operation_ref": "ipdr.endpoint_summary",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "ipdr.sessions/FILTER/authorized_workspace",
+        "capability_id": "ipdr.sessions",
+        "semantic": "FILTER",
+        "allowed_scope": "authorized_workspace",
+        "family": "network_ipdr",
+        "operation_ref": "ipdr.subscriber_sessions",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      }
+    ]
+  },
+  "final12-en-insufficient": {
+    "admission": {
+      "authorization_valid": "PASS",
+      "candidate_set_valid": "PASS",
+      "case_scope_valid": "PASS",
+      "expected_decision_reachable": "PASS",
+      "fact_packet_valid": "PASS",
+      "final_plan_valid": "PASS",
+      "model_call_required": true
+    },
+    "expected_final_typed_outcome": {
+      "clarification_code": "INSUFFICIENT_FACTS",
+      "state": "hybrid_clarification"
+    },
+    "facts": {
+      "contract_version": "forensics.hybrid-facts/v1",
+      "tenant_id": "t",
+      "user_id": "u",
+      "collection_id": "c",
+      "evidence_id": "",
+      "scope": "authorized_workspace",
+      "identifiers": [
+        {
+          "raw_span": "03361294052",
+          "canonical": "03361294052",
+          "identifier_type": "phone",
+          "start_byte": 27,
+          "end_byte": 38
+        }
+      ],
+      "target": "03361294052",
+      "targets": [
+        "03361294052"
+      ],
+      "family": "",
+      "date_from": "",
+      "date_to": "",
+      "direction": "",
+      "top_k": 0,
+      "start_seconds": null,
+      "end_seconds": null,
+      "filters": null,
+      "prior_capability": "",
+      "prior_semantic": "",
+      "prior_targets": null,
+      "inherited_fields": [],
+      "transition": "NONE",
+      "explicit_capability": "",
+      "state": ""
+    },
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "enum": [
+            "CLARIFY:AMBIGUOUS_INTENT",
+            "CLARIFY:INSUFFICIENT_FACTS",
+            "cdr.frequent_contacts/TOP_K/authorized_workspace",
+            "cdr.identifier_lookup/EXACT_VALUE/authorized_workspace",
+            "cdr.time_activity/AGGREGATE/authorized_workspace",
+            "cross_family.identifiers/COMPOSE/authorized_workspace",
+            "device.observations/GROUP/authorized_workspace",
+            "subscriber.lookup/EXACT_VALUE/authorized_workspace"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision"
+      ],
+      "type": "object"
+    },
+    "tuples": [
+      {
+        "tuple_id": "cdr.frequent_contacts/TOP_K/authorized_workspace",
+        "capability_id": "cdr.frequent_contacts",
+        "semantic": "TOP_K",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "cdr.frequent_contacts",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cdr.identifier_lookup/EXACT_VALUE/authorized_workspace",
+        "capability_id": "cdr.identifier_lookup",
+        "semantic": "EXACT_VALUE",
+        "allowed_scope": "authorized_workspace",
+        "family": "case_cross_family",
+        "operation_ref": "forensics.canonical_records",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cdr.time_activity/AGGREGATE/authorized_workspace",
+        "capability_id": "cdr.time_activity",
+        "semantic": "AGGREGATE",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "cdr.temporal_activity",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cross_family.identifiers/COMPOSE/authorized_workspace",
+        "capability_id": "cross_family.identifiers",
+        "semantic": "COMPOSE",
+        "allowed_scope": "authorized_workspace",
+        "family": "case_cross_family",
+        "operation_ref": "forensics.cross_family_correlation",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "device.observations/GROUP/authorized_workspace",
+        "capability_id": "device.observations",
+        "semantic": "GROUP",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "forensics.imei_imsi_usage",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "subscriber.lookup/EXACT_VALUE/authorized_workspace",
+        "capability_id": "subscriber.lookup",
+        "semantic": "EXACT_VALUE",
+        "allowed_scope": "authorized_workspace",
+        "family": "subscriber_identity",
+        "operation_ref": "subscriber.identity_lookup",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      }
+    ]
+  },
+  "final12-en-resolved": {
+    "admission": {
+      "authorization_valid": "PASS",
+      "candidate_set_valid": "PASS",
+      "case_scope_valid": "PASS",
+      "expected_decision_reachable": "PASS",
+      "fact_packet_valid": "PASS",
+      "final_plan_valid": "PASS",
+      "model_call_required": true
+    },
+    "expected_final_typed_outcome": {
+      "capability": "subscriber.lookup",
+      "scope": "authorized_workspace",
+      "semantic": "EXACT_VALUE",
+      "state": "hybrid_model_plan",
+      "target": "03361294059"
+    },
+    "facts": {
+      "contract_version": "forensics.hybrid-facts/v1",
+      "tenant_id": "t",
+      "user_id": "u",
+      "collection_id": "c",
+      "evidence_id": "",
+      "scope": "authorized_workspace",
+      "identifiers": [
+        {
+          "raw_span": "03361294059",
+          "canonical": "03361294059",
+          "identifier_type": "phone",
+          "start_byte": 4,
+          "end_byte": 15
+        }
+      ],
+      "target": "03361294059",
+      "targets": [
+        "03361294059"
+      ],
+      "family": "",
+      "date_from": "",
+      "date_to": "",
+      "direction": "",
+      "top_k": 0,
+      "start_seconds": null,
+      "end_seconds": null,
+      "filters": null,
+      "prior_capability": "",
+      "prior_semantic": "",
+      "prior_targets": null,
+      "inherited_fields": [],
+      "transition": "NONE",
+      "explicit_capability": "",
+      "state": ""
+    },
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "enum": [
+            "CLARIFY:AMBIGUOUS_INTENT",
+            "CLARIFY:INSUFFICIENT_FACTS",
+            "cdr.frequent_contacts/TOP_K/authorized_workspace",
+            "cdr.identifier_lookup/EXACT_VALUE/authorized_workspace",
+            "cdr.time_activity/AGGREGATE/authorized_workspace",
+            "cross_family.identifiers/COMPOSE/authorized_workspace",
+            "device.observations/GROUP/authorized_workspace",
+            "subscriber.lookup/EXACT_VALUE/authorized_workspace"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision"
+      ],
+      "type": "object"
+    },
+    "tuples": [
+      {
+        "tuple_id": "cdr.frequent_contacts/TOP_K/authorized_workspace",
+        "capability_id": "cdr.frequent_contacts",
+        "semantic": "TOP_K",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "cdr.frequent_contacts",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cdr.identifier_lookup/EXACT_VALUE/authorized_workspace",
+        "capability_id": "cdr.identifier_lookup",
+        "semantic": "EXACT_VALUE",
+        "allowed_scope": "authorized_workspace",
+        "family": "case_cross_family",
+        "operation_ref": "forensics.canonical_records",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cdr.time_activity/AGGREGATE/authorized_workspace",
+        "capability_id": "cdr.time_activity",
+        "semantic": "AGGREGATE",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "cdr.temporal_activity",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cross_family.identifiers/COMPOSE/authorized_workspace",
+        "capability_id": "cross_family.identifiers",
+        "semantic": "COMPOSE",
+        "allowed_scope": "authorized_workspace",
+        "family": "case_cross_family",
+        "operation_ref": "forensics.cross_family_correlation",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "device.observations/GROUP/authorized_workspace",
+        "capability_id": "device.observations",
+        "semantic": "GROUP",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "forensics.imei_imsi_usage",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "subscriber.lookup/EXACT_VALUE/authorized_workspace",
+        "capability_id": "subscriber.lookup",
+        "semantic": "EXACT_VALUE",
+        "allowed_scope": "authorized_workspace",
+        "family": "subscriber_identity",
+        "operation_ref": "subscriber.identity_lookup",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      }
+    ]
+  },
+  "final12-mixed-ambiguous": {
+    "admission": {
+      "authorization_valid": "PASS",
+      "candidate_set_valid": "PASS",
+      "case_scope_valid": "PASS",
+      "expected_decision_reachable": "PASS",
+      "fact_packet_valid": "PASS",
+      "final_plan_valid": "PASS",
+      "model_call_required": true
+    },
+    "expected_final_typed_outcome": {
+      "clarification_code": "AMBIGUOUS_INTENT",
+      "state": "hybrid_clarification"
+    },
+    "facts": {
+      "contract_version": "forensics.hybrid-facts/v1",
+      "tenant_id": "t",
+      "user_id": "u",
+      "collection_id": "c",
+      "evidence_id": "",
+      "scope": "authorized_workspace",
+      "identifiers": [
+        {
+          "raw_span": "03361294057",
+          "canonical": "03361294057",
+          "identifier_type": "phone",
+          "start_byte": 0,
+          "end_byte": 11
+        }
+      ],
+      "target": "03361294057",
+      "targets": [
+        "03361294057"
+      ],
+      "family": "",
+      "date_from": "",
+      "date_to": "",
+      "direction": "",
+      "top_k": 0,
+      "start_seconds": null,
+      "end_seconds": null,
+      "filters": null,
+      "prior_capability": "",
+      "prior_semantic": "",
+      "prior_targets": null,
+      "inherited_fields": [],
+      "transition": "NONE",
+      "explicit_capability": "",
+      "state": ""
+    },
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "enum": [
+            "CLARIFY:AMBIGUOUS_INTENT",
+            "CLARIFY:INSUFFICIENT_FACTS",
+            "cdr.frequent_contacts/TOP_K/authorized_workspace",
+            "cdr.identifier_lookup/EXACT_VALUE/authorized_workspace",
+            "cdr.time_activity/AGGREGATE/authorized_workspace",
+            "cross_family.identifiers/COMPOSE/authorized_workspace",
+            "device.observations/GROUP/authorized_workspace",
+            "subscriber.lookup/EXACT_VALUE/authorized_workspace"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision"
+      ],
+      "type": "object"
+    },
+    "tuples": [
+      {
+        "tuple_id": "cdr.frequent_contacts/TOP_K/authorized_workspace",
+        "capability_id": "cdr.frequent_contacts",
+        "semantic": "TOP_K",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "cdr.frequent_contacts",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cdr.identifier_lookup/EXACT_VALUE/authorized_workspace",
+        "capability_id": "cdr.identifier_lookup",
+        "semantic": "EXACT_VALUE",
+        "allowed_scope": "authorized_workspace",
+        "family": "case_cross_family",
+        "operation_ref": "forensics.canonical_records",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cdr.time_activity/AGGREGATE/authorized_workspace",
+        "capability_id": "cdr.time_activity",
+        "semantic": "AGGREGATE",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "cdr.temporal_activity",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cross_family.identifiers/COMPOSE/authorized_workspace",
+        "capability_id": "cross_family.identifiers",
+        "semantic": "COMPOSE",
+        "allowed_scope": "authorized_workspace",
+        "family": "case_cross_family",
+        "operation_ref": "forensics.cross_family_correlation",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "device.observations/GROUP/authorized_workspace",
+        "capability_id": "device.observations",
+        "semantic": "GROUP",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "forensics.imei_imsi_usage",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "subscriber.lookup/EXACT_VALUE/authorized_workspace",
+        "capability_id": "subscriber.lookup",
+        "semantic": "EXACT_VALUE",
+        "allowed_scope": "authorized_workspace",
+        "family": "subscriber_identity",
+        "operation_ref": "subscriber.identity_lookup",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      }
+    ]
+  },
+  "final12-mixed-insufficient": {
+    "admission": {
+      "authorization_valid": "PASS",
+      "candidate_set_valid": "PASS",
+      "case_scope_valid": "PASS",
+      "expected_decision_reachable": "PASS",
+      "fact_packet_valid": "PASS",
+      "final_plan_valid": "PASS",
+      "model_call_required": true
+    },
+    "expected_final_typed_outcome": {
+      "clarification_code": "INSUFFICIENT_FACTS",
+      "state": "hybrid_clarification"
+    },
+    "facts": {
+      "contract_version": "forensics.hybrid-facts/v1",
+      "tenant_id": "t",
+      "user_id": "u",
+      "collection_id": "c",
+      "evidence_id": "",
+      "scope": "authorized_workspace",
+      "identifiers": [
+        {
+          "raw_span": "03361294058",
+          "canonical": "03361294058",
+          "identifier_type": "phone",
+          "start_byte": 8,
+          "end_byte": 19
+        }
+      ],
+      "target": "03361294058",
+      "targets": [
+        "03361294058"
+      ],
+      "family": "",
+      "date_from": "",
+      "date_to": "",
+      "direction": "",
+      "top_k": 0,
+      "start_seconds": null,
+      "end_seconds": null,
+      "filters": null,
+      "prior_capability": "",
+      "prior_semantic": "",
+      "prior_targets": null,
+      "inherited_fields": [],
+      "transition": "NONE",
+      "explicit_capability": "",
+      "state": ""
+    },
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "enum": [
+            "CLARIFY:AMBIGUOUS_INTENT",
+            "CLARIFY:INSUFFICIENT_FACTS",
+            "cdr.frequent_contacts/TOP_K/authorized_workspace",
+            "cdr.identifier_lookup/EXACT_VALUE/authorized_workspace",
+            "cdr.time_activity/AGGREGATE/authorized_workspace",
+            "cross_family.identifiers/COMPOSE/authorized_workspace",
+            "device.observations/GROUP/authorized_workspace",
+            "subscriber.lookup/EXACT_VALUE/authorized_workspace"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision"
+      ],
+      "type": "object"
+    },
+    "tuples": [
+      {
+        "tuple_id": "cdr.frequent_contacts/TOP_K/authorized_workspace",
+        "capability_id": "cdr.frequent_contacts",
+        "semantic": "TOP_K",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "cdr.frequent_contacts",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cdr.identifier_lookup/EXACT_VALUE/authorized_workspace",
+        "capability_id": "cdr.identifier_lookup",
+        "semantic": "EXACT_VALUE",
+        "allowed_scope": "authorized_workspace",
+        "family": "case_cross_family",
+        "operation_ref": "forensics.canonical_records",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cdr.time_activity/AGGREGATE/authorized_workspace",
+        "capability_id": "cdr.time_activity",
+        "semantic": "AGGREGATE",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "cdr.temporal_activity",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cross_family.identifiers/COMPOSE/authorized_workspace",
+        "capability_id": "cross_family.identifiers",
+        "semantic": "COMPOSE",
+        "allowed_scope": "authorized_workspace",
+        "family": "case_cross_family",
+        "operation_ref": "forensics.cross_family_correlation",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "device.observations/GROUP/authorized_workspace",
+        "capability_id": "device.observations",
+        "semantic": "GROUP",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "forensics.imei_imsi_usage",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "subscriber.lookup/EXACT_VALUE/authorized_workspace",
+        "capability_id": "subscriber.lookup",
+        "semantic": "EXACT_VALUE",
+        "allowed_scope": "authorized_workspace",
+        "family": "subscriber_identity",
+        "operation_ref": "subscriber.identity_lookup",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      }
+    ]
+  },
+  "final12-mixed-resolved": {
+    "admission": {
+      "authorization_valid": "PASS",
+      "candidate_set_valid": "PASS",
+      "case_scope_valid": "PASS",
+      "expected_decision_reachable": "PASS",
+      "fact_packet_valid": "PASS",
+      "final_plan_valid": "PASS",
+      "model_call_required": true
+    },
+    "expected_final_typed_outcome": {
+      "capability": "logs.failures",
+      "scope": "authorized_workspace",
+      "semantic": "FILTER",
+      "state": "hybrid_model_plan",
+      "target": "operator-v7319"
+    },
+    "facts": {
+      "contract_version": "forensics.hybrid-facts/v1",
+      "tenant_id": "t",
+      "user_id": "u",
+      "collection_id": "c",
+      "evidence_id": "",
+      "scope": "authorized_workspace",
+      "identifiers": [
+        {
+          "raw_span": "operator-v7319",
+          "canonical": "operator-v7319",
+          "identifier_type": "principal",
+          "start_byte": 0,
+          "end_byte": 14
+        }
+      ],
+      "target": "operator-v7319",
+      "targets": [
+        "operator-v7319"
+      ],
+      "family": "",
+      "date_from": "",
+      "date_to": "",
+      "direction": "",
+      "top_k": 0,
+      "start_seconds": null,
+      "end_seconds": null,
+      "filters": null,
+      "prior_capability": "",
+      "prior_semantic": "",
+      "prior_targets": null,
+      "inherited_fields": [],
+      "transition": "NONE",
+      "explicit_capability": "",
+      "state": ""
+    },
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "enum": [
+            "CLARIFY:AMBIGUOUS_INTENT",
+            "CLARIFY:INSUFFICIENT_FACTS",
+            "logs.failures/FILTER/authorized_workspace",
+            "subscriber.lookup/EXACT_VALUE/authorized_workspace"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision"
+      ],
+      "type": "object"
+    },
+    "tuples": [
+      {
+        "tuple_id": "logs.failures/FILTER/authorized_workspace",
+        "capability_id": "logs.failures",
+        "semantic": "FILTER",
+        "allowed_scope": "authorized_workspace",
+        "family": "access_security_logs",
+        "operation_ref": "access.failed_events",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "subscriber.lookup/EXACT_VALUE/authorized_workspace",
+        "capability_id": "subscriber.lookup",
+        "semantic": "EXACT_VALUE",
+        "allowed_scope": "authorized_workspace",
+        "family": "subscriber_identity",
+        "operation_ref": "subscriber.identity_lookup",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      }
+    ]
+  },
+  "final12-roman-ur-ambiguous": {
+    "admission": {
+      "authorization_valid": "PASS",
+      "candidate_set_valid": "PASS",
+      "case_scope_valid": "PASS",
+      "expected_decision_reachable": "PASS",
+      "fact_packet_valid": "PASS",
+      "final_plan_valid": "PASS",
+      "model_call_required": true
+    },
+    "expected_final_typed_outcome": {
+      "clarification_code": "AMBIGUOUS_INTENT",
+      "state": "hybrid_clarification"
+    },
+    "facts": {
+      "contract_version": "forensics.hybrid-facts/v1",
+      "tenant_id": "t",
+      "user_id": "u",
+      "collection_id": "c",
+      "evidence_id": "",
+      "scope": "authorized_workspace",
+      "identifiers": [
+        {
+          "raw_span": "03361294055",
+          "canonical": "03361294055",
+          "identifier_type": "phone",
+          "start_byte": 0,
+          "end_byte": 11
+        }
+      ],
+      "target": "03361294055",
+      "targets": [
+        "03361294055"
+      ],
+      "family": "",
+      "date_from": "",
+      "date_to": "",
+      "direction": "",
+      "top_k": 0,
+      "start_seconds": null,
+      "end_seconds": null,
+      "filters": null,
+      "prior_capability": "",
+      "prior_semantic": "",
+      "prior_targets": null,
+      "inherited_fields": [],
+      "transition": "NONE",
+      "explicit_capability": "",
+      "state": ""
+    },
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "enum": [
+            "CLARIFY:AMBIGUOUS_INTENT",
+            "CLARIFY:INSUFFICIENT_FACTS",
+            "cdr.frequent_contacts/TOP_K/authorized_workspace",
+            "cdr.identifier_lookup/EXACT_VALUE/authorized_workspace",
+            "cdr.time_activity/AGGREGATE/authorized_workspace",
+            "cross_family.identifiers/COMPOSE/authorized_workspace",
+            "device.observations/GROUP/authorized_workspace",
+            "subscriber.lookup/EXACT_VALUE/authorized_workspace"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision"
+      ],
+      "type": "object"
+    },
+    "tuples": [
+      {
+        "tuple_id": "cdr.frequent_contacts/TOP_K/authorized_workspace",
+        "capability_id": "cdr.frequent_contacts",
+        "semantic": "TOP_K",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "cdr.frequent_contacts",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cdr.identifier_lookup/EXACT_VALUE/authorized_workspace",
+        "capability_id": "cdr.identifier_lookup",
+        "semantic": "EXACT_VALUE",
+        "allowed_scope": "authorized_workspace",
+        "family": "case_cross_family",
+        "operation_ref": "forensics.canonical_records",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cdr.time_activity/AGGREGATE/authorized_workspace",
+        "capability_id": "cdr.time_activity",
+        "semantic": "AGGREGATE",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "cdr.temporal_activity",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cross_family.identifiers/COMPOSE/authorized_workspace",
+        "capability_id": "cross_family.identifiers",
+        "semantic": "COMPOSE",
+        "allowed_scope": "authorized_workspace",
+        "family": "case_cross_family",
+        "operation_ref": "forensics.cross_family_correlation",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "device.observations/GROUP/authorized_workspace",
+        "capability_id": "device.observations",
+        "semantic": "GROUP",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "forensics.imei_imsi_usage",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "subscriber.lookup/EXACT_VALUE/authorized_workspace",
+        "capability_id": "subscriber.lookup",
+        "semantic": "EXACT_VALUE",
+        "allowed_scope": "authorized_workspace",
+        "family": "subscriber_identity",
+        "operation_ref": "subscriber.identity_lookup",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      }
+    ]
+  },
+  "final12-roman-ur-insufficient": {
+    "admission": {
+      "authorization_valid": "PASS",
+      "candidate_set_valid": "PASS",
+      "case_scope_valid": "PASS",
+      "expected_decision_reachable": "PASS",
+      "fact_packet_valid": "PASS",
+      "final_plan_valid": "PASS",
+      "model_call_required": true
+    },
+    "expected_final_typed_outcome": {
+      "clarification_code": "INSUFFICIENT_FACTS",
+      "state": "hybrid_clarification"
+    },
+    "facts": {
+      "contract_version": "forensics.hybrid-facts/v1",
+      "tenant_id": "t",
+      "user_id": "u",
+      "collection_id": "c",
+      "evidence_id": "",
+      "scope": "authorized_workspace",
+      "identifiers": [
+        {
+          "raw_span": "03361294056",
+          "canonical": "03361294056",
+          "identifier_type": "phone",
+          "start_byte": 0,
+          "end_byte": 11
+        }
+      ],
+      "target": "03361294056",
+      "targets": [
+        "03361294056"
+      ],
+      "family": "",
+      "date_from": "",
+      "date_to": "",
+      "direction": "",
+      "top_k": 0,
+      "start_seconds": null,
+      "end_seconds": null,
+      "filters": null,
+      "prior_capability": "",
+      "prior_semantic": "",
+      "prior_targets": null,
+      "inherited_fields": [],
+      "transition": "NONE",
+      "explicit_capability": "",
+      "state": ""
+    },
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "enum": [
+            "CLARIFY:AMBIGUOUS_INTENT",
+            "CLARIFY:INSUFFICIENT_FACTS",
+            "cdr.frequent_contacts/TOP_K/authorized_workspace",
+            "cdr.identifier_lookup/EXACT_VALUE/authorized_workspace",
+            "cdr.time_activity/AGGREGATE/authorized_workspace",
+            "cross_family.identifiers/COMPOSE/authorized_workspace",
+            "device.observations/GROUP/authorized_workspace",
+            "subscriber.lookup/EXACT_VALUE/authorized_workspace"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision"
+      ],
+      "type": "object"
+    },
+    "tuples": [
+      {
+        "tuple_id": "cdr.frequent_contacts/TOP_K/authorized_workspace",
+        "capability_id": "cdr.frequent_contacts",
+        "semantic": "TOP_K",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "cdr.frequent_contacts",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cdr.identifier_lookup/EXACT_VALUE/authorized_workspace",
+        "capability_id": "cdr.identifier_lookup",
+        "semantic": "EXACT_VALUE",
+        "allowed_scope": "authorized_workspace",
+        "family": "case_cross_family",
+        "operation_ref": "forensics.canonical_records",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cdr.time_activity/AGGREGATE/authorized_workspace",
+        "capability_id": "cdr.time_activity",
+        "semantic": "AGGREGATE",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "cdr.temporal_activity",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cross_family.identifiers/COMPOSE/authorized_workspace",
+        "capability_id": "cross_family.identifiers",
+        "semantic": "COMPOSE",
+        "allowed_scope": "authorized_workspace",
+        "family": "case_cross_family",
+        "operation_ref": "forensics.cross_family_correlation",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "device.observations/GROUP/authorized_workspace",
+        "capability_id": "device.observations",
+        "semantic": "GROUP",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "forensics.imei_imsi_usage",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "subscriber.lookup/EXACT_VALUE/authorized_workspace",
+        "capability_id": "subscriber.lookup",
+        "semantic": "EXACT_VALUE",
+        "allowed_scope": "authorized_workspace",
+        "family": "subscriber_identity",
+        "operation_ref": "subscriber.identity_lookup",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      }
+    ]
+  },
+  "final12-roman-ur-resolved": {
+    "admission": {
+      "authorization_valid": "PASS",
+      "candidate_set_valid": "PASS",
+      "case_scope_valid": "PASS",
+      "expected_decision_reachable": "PASS",
+      "fact_packet_valid": "PASS",
+      "final_plan_valid": "PASS",
+      "model_call_required": true
+    },
+    "expected_final_typed_outcome": {
+      "capability": "cdr.frequent_contacts",
+      "scope": "authorized_workspace",
+      "semantic": "TOP_K",
+      "state": "hybrid_model_plan",
+      "target": "03361294060"
+    },
+    "facts": {
+      "contract_version": "forensics.hybrid-facts/v1",
+      "tenant_id": "t",
+      "user_id": "u",
+      "collection_id": "c",
+      "evidence_id": "",
+      "scope": "authorized_workspace",
+      "identifiers": [
+        {
+          "raw_span": "03361294060",
+          "canonical": "03361294060",
+          "identifier_type": "phone",
+          "start_byte": 0,
+          "end_byte": 11
+        }
+      ],
+      "target": "03361294060",
+      "targets": [
+        "03361294060"
+      ],
+      "family": "",
+      "date_from": "",
+      "date_to": "",
+      "direction": "",
+      "top_k": 0,
+      "start_seconds": null,
+      "end_seconds": null,
+      "filters": null,
+      "prior_capability": "",
+      "prior_semantic": "",
+      "prior_targets": null,
+      "inherited_fields": [],
+      "transition": "NONE",
+      "explicit_capability": "",
+      "state": ""
+    },
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "enum": [
+            "CLARIFY:AMBIGUOUS_INTENT",
+            "CLARIFY:INSUFFICIENT_FACTS",
+            "cdr.frequent_contacts/TOP_K/authorized_workspace",
+            "cdr.identifier_lookup/EXACT_VALUE/authorized_workspace",
+            "cdr.time_activity/AGGREGATE/authorized_workspace",
+            "cross_family.identifiers/COMPOSE/authorized_workspace",
+            "device.observations/GROUP/authorized_workspace",
+            "subscriber.lookup/EXACT_VALUE/authorized_workspace"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision"
+      ],
+      "type": "object"
+    },
+    "tuples": [
+      {
+        "tuple_id": "cdr.frequent_contacts/TOP_K/authorized_workspace",
+        "capability_id": "cdr.frequent_contacts",
+        "semantic": "TOP_K",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "cdr.frequent_contacts",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cdr.identifier_lookup/EXACT_VALUE/authorized_workspace",
+        "capability_id": "cdr.identifier_lookup",
+        "semantic": "EXACT_VALUE",
+        "allowed_scope": "authorized_workspace",
+        "family": "case_cross_family",
+        "operation_ref": "forensics.canonical_records",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cdr.time_activity/AGGREGATE/authorized_workspace",
+        "capability_id": "cdr.time_activity",
+        "semantic": "AGGREGATE",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "cdr.temporal_activity",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cross_family.identifiers/COMPOSE/authorized_workspace",
+        "capability_id": "cross_family.identifiers",
+        "semantic": "COMPOSE",
+        "allowed_scope": "authorized_workspace",
+        "family": "case_cross_family",
+        "operation_ref": "forensics.cross_family_correlation",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "device.observations/GROUP/authorized_workspace",
+        "capability_id": "device.observations",
+        "semantic": "GROUP",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "forensics.imei_imsi_usage",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "subscriber.lookup/EXACT_VALUE/authorized_workspace",
+        "capability_id": "subscriber.lookup",
+        "semantic": "EXACT_VALUE",
+        "allowed_scope": "authorized_workspace",
+        "family": "subscriber_identity",
+        "operation_ref": "subscriber.identity_lookup",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      }
+    ]
+  },
+  "final12-ur-ambiguous": {
+    "admission": {
+      "authorization_valid": "PASS",
+      "candidate_set_valid": "PASS",
+      "case_scope_valid": "PASS",
+      "expected_decision_reachable": "PASS",
+      "fact_packet_valid": "PASS",
+      "final_plan_valid": "PASS",
+      "model_call_required": true
+    },
+    "expected_final_typed_outcome": {
+      "clarification_code": "AMBIGUOUS_INTENT",
+      "state": "hybrid_clarification"
+    },
+    "facts": {
+      "contract_version": "forensics.hybrid-facts/v1",
+      "tenant_id": "t",
+      "user_id": "u",
+      "collection_id": "c",
+      "evidence_id": "",
+      "scope": "authorized_workspace",
+      "identifiers": [
+        {
+          "raw_span": "192.0.2.222",
+          "canonical": "192.0.2.222",
+          "identifier_type": "ip",
+          "start_byte": 0,
+          "end_byte": 11
+        }
+      ],
+      "target": "192.0.2.222",
+      "targets": [
+        "192.0.2.222"
+      ],
+      "family": "",
+      "date_from": "",
+      "date_to": "",
+      "direction": "",
+      "top_k": 0,
+      "start_seconds": null,
+      "end_seconds": null,
+      "filters": null,
+      "prior_capability": "",
+      "prior_semantic": "",
+      "prior_targets": null,
+      "inherited_fields": [],
+      "transition": "NONE",
+      "explicit_capability": "",
+      "state": ""
+    },
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "enum": [
+            "CLARIFY:AMBIGUOUS_INTENT",
+            "CLARIFY:INSUFFICIENT_FACTS",
+            "cross_family.identifiers/COMPOSE/authorized_workspace",
+            "ipdr.endpoint/AGGREGATE/authorized_workspace",
+            "ipdr.sessions/FILTER/authorized_workspace"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision"
+      ],
+      "type": "object"
+    },
+    "tuples": [
+      {
+        "tuple_id": "cross_family.identifiers/COMPOSE/authorized_workspace",
+        "capability_id": "cross_family.identifiers",
+        "semantic": "COMPOSE",
+        "allowed_scope": "authorized_workspace",
+        "family": "case_cross_family",
+        "operation_ref": "forensics.cross_family_correlation",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "ipdr.endpoint/AGGREGATE/authorized_workspace",
+        "capability_id": "ipdr.endpoint",
+        "semantic": "AGGREGATE",
+        "allowed_scope": "authorized_workspace",
+        "family": "network_ipdr",
+        "operation_ref": "ipdr.endpoint_summary",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "ipdr.sessions/FILTER/authorized_workspace",
+        "capability_id": "ipdr.sessions",
+        "semantic": "FILTER",
+        "allowed_scope": "authorized_workspace",
+        "family": "network_ipdr",
+        "operation_ref": "ipdr.subscriber_sessions",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      }
+    ]
+  },
+  "final12-ur-insufficient": {
+    "admission": {
+      "authorization_valid": "PASS",
+      "candidate_set_valid": "PASS",
+      "case_scope_valid": "PASS",
+      "expected_decision_reachable": "PASS",
+      "fact_packet_valid": "PASS",
+      "final_plan_valid": "PASS",
+      "model_call_required": true
+    },
+    "expected_final_typed_outcome": {
+      "clarification_code": "INSUFFICIENT_FACTS",
+      "state": "hybrid_clarification"
+    },
+    "facts": {
+      "contract_version": "forensics.hybrid-facts/v1",
+      "tenant_id": "t",
+      "user_id": "u",
+      "collection_id": "c",
+      "evidence_id": "",
+      "scope": "authorized_workspace",
+      "identifiers": [
+        {
+          "raw_span": "03361294054",
+          "canonical": "03361294054",
+          "identifier_type": "phone",
+          "start_byte": 0,
+          "end_byte": 11
+        }
+      ],
+      "target": "03361294054",
+      "targets": [
+        "03361294054"
+      ],
+      "family": "",
+      "date_from": "",
+      "date_to": "",
+      "direction": "",
+      "top_k": 0,
+      "start_seconds": null,
+      "end_seconds": null,
+      "filters": null,
+      "prior_capability": "",
+      "prior_semantic": "",
+      "prior_targets": null,
+      "inherited_fields": [],
+      "transition": "NONE",
+      "explicit_capability": "",
+      "state": ""
+    },
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "enum": [
+            "CLARIFY:AMBIGUOUS_INTENT",
+            "CLARIFY:INSUFFICIENT_FACTS",
+            "cdr.frequent_contacts/TOP_K/authorized_workspace",
+            "cdr.identifier_lookup/EXACT_VALUE/authorized_workspace",
+            "cdr.time_activity/AGGREGATE/authorized_workspace",
+            "cross_family.identifiers/COMPOSE/authorized_workspace",
+            "device.observations/GROUP/authorized_workspace",
+            "subscriber.lookup/EXACT_VALUE/authorized_workspace"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision"
+      ],
+      "type": "object"
+    },
+    "tuples": [
+      {
+        "tuple_id": "cdr.frequent_contacts/TOP_K/authorized_workspace",
+        "capability_id": "cdr.frequent_contacts",
+        "semantic": "TOP_K",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "cdr.frequent_contacts",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cdr.identifier_lookup/EXACT_VALUE/authorized_workspace",
+        "capability_id": "cdr.identifier_lookup",
+        "semantic": "EXACT_VALUE",
+        "allowed_scope": "authorized_workspace",
+        "family": "case_cross_family",
+        "operation_ref": "forensics.canonical_records",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cdr.time_activity/AGGREGATE/authorized_workspace",
+        "capability_id": "cdr.time_activity",
+        "semantic": "AGGREGATE",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "cdr.temporal_activity",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "cross_family.identifiers/COMPOSE/authorized_workspace",
+        "capability_id": "cross_family.identifiers",
+        "semantic": "COMPOSE",
+        "allowed_scope": "authorized_workspace",
+        "family": "case_cross_family",
+        "operation_ref": "forensics.cross_family_correlation",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "device.observations/GROUP/authorized_workspace",
+        "capability_id": "device.observations",
+        "semantic": "GROUP",
+        "allowed_scope": "authorized_workspace",
+        "family": "communications_cdr",
+        "operation_ref": "forensics.imei_imsi_usage",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "subscriber.lookup/EXACT_VALUE/authorized_workspace",
+        "capability_id": "subscriber.lookup",
+        "semantic": "EXACT_VALUE",
+        "allowed_scope": "authorized_workspace",
+        "family": "subscriber_identity",
+        "operation_ref": "subscriber.identity_lookup",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      }
+    ]
+  },
+  "final12-ur-resolved": {
+    "admission": {
+      "authorization_valid": "PASS",
+      "candidate_set_valid": "PASS",
+      "case_scope_valid": "PASS",
+      "expected_decision_reachable": "PASS",
+      "fact_packet_valid": "PASS",
+      "final_plan_valid": "PASS",
+      "model_call_required": true
+    },
+    "expected_final_typed_outcome": {
+      "capability": "ipdr.sessions",
+      "scope": "authorized_workspace",
+      "semantic": "FILTER",
+      "state": "hybrid_model_plan",
+      "target": "192.0.2.224"
+    },
+    "facts": {
+      "contract_version": "forensics.hybrid-facts/v1",
+      "tenant_id": "t",
+      "user_id": "u",
+      "collection_id": "c",
+      "evidence_id": "",
+      "scope": "authorized_workspace",
+      "identifiers": [
+        {
+          "raw_span": "192.0.2.224",
+          "canonical": "192.0.2.224",
+          "identifier_type": "ip",
+          "start_byte": 0,
+          "end_byte": 11
+        }
+      ],
+      "target": "192.0.2.224",
+      "targets": [
+        "192.0.2.224"
+      ],
+      "family": "",
+      "date_from": "",
+      "date_to": "",
+      "direction": "",
+      "top_k": 0,
+      "start_seconds": null,
+      "end_seconds": null,
+      "filters": null,
+      "prior_capability": "",
+      "prior_semantic": "",
+      "prior_targets": null,
+      "inherited_fields": [],
+      "transition": "NONE",
+      "explicit_capability": "",
+      "state": ""
+    },
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "enum": [
+            "CLARIFY:AMBIGUOUS_INTENT",
+            "CLARIFY:INSUFFICIENT_FACTS",
+            "cross_family.identifiers/COMPOSE/authorized_workspace",
+            "ipdr.endpoint/AGGREGATE/authorized_workspace",
+            "ipdr.sessions/FILTER/authorized_workspace"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision"
+      ],
+      "type": "object"
+    },
+    "tuples": [
+      {
+        "tuple_id": "cross_family.identifiers/COMPOSE/authorized_workspace",
+        "capability_id": "cross_family.identifiers",
+        "semantic": "COMPOSE",
+        "allowed_scope": "authorized_workspace",
+        "family": "case_cross_family",
+        "operation_ref": "forensics.cross_family_correlation",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "ipdr.endpoint/AGGREGATE/authorized_workspace",
+        "capability_id": "ipdr.endpoint",
+        "semantic": "AGGREGATE",
+        "allowed_scope": "authorized_workspace",
+        "family": "network_ipdr",
+        "operation_ref": "ipdr.endpoint_summary",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      },
+      {
+        "tuple_id": "ipdr.sessions/FILTER/authorized_workspace",
+        "capability_id": "ipdr.sessions",
+        "semantic": "FILTER",
+        "allowed_scope": "authorized_workspace",
+        "family": "network_ipdr",
+        "operation_ref": "ipdr.subscriber_sessions",
+        "text_representation_rule": "",
+        "required_fact_types": [
+          "scope",
+          "identifiers"
+        ],
+        "optional_fact_types": [
+          "identifiers",
+          "dates",
+          "direction",
+          "top_k",
+          "source_time",
+          "filters"
+        ]
+      }
+    ]
+  }
+}

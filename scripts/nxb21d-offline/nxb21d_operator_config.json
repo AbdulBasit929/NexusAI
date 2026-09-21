@@ -1,0 +1,42 @@
+{
+  "schema_version": "nexusai.nxb21d-offline-operator/v1",
+  "accepted_activation_receipt": "20260903T063719719Z",
+  "d_source_digest": "34c69067628a58373d471aa8e75d7a17a2c4a7f789b521f62c5baa38f8a5478d",
+  "d_source_manifest": "reports/nxb21/d-source-diff-manifest-v1.json",
+  "holdout": "reports/nxb21/d-unseen-query-corpus-v1.json",
+  "capability_contract": "api/forensic_records/contracts/query-capability-references-v1.json",
+  "model": {
+    "id": "qwen_qwen3-4b-instruct-2507",
+    "backend": "llama-cpp",
+    "artifact": "Qwen_Qwen3-4B-Instruct-2507-Q8_0.gguf",
+    "artifact_bytes": 4280405216,
+    "artifact_sha256": "260b5b5b6ad73e44df81a43ea1f5c11c37007b6bac18eb3cd2016e8667c19662",
+    "quantization": "Q8_0",
+    "threads": 8,
+    "gpu_layers": 0,
+    "context": 8192,
+    "temperature": 0,
+    "max_tokens": 192
+  },
+  "runtime": {
+    "localai_url": "http://127.0.0.1:8080",
+    "retained_tuple": "64|64|77|22507|828|61",
+    "containers": {
+      "api": {"id": "d62021a0a4fc258ff3ce6fc4140090c6d9862dcc04863a065e6e842f62d769de", "image": "sha256:feb935b42a93c1810394cb270a809189ca240a225253159a47b8daa72a799171", "restarts": 0},
+      "forensic-records-api": {"id": "ffd93bf51ecad0bc61271dfad0576b852057cd85f85aa8221534e3250ef1c11b", "image": "sha256:828e4b03e02979c3fc25dd6b6896e74fb97a2e59b8c17300a3efadce1236ace8", "restarts": 0},
+      "forensic-records-worker": {"id": "40b6e628d586d5d484468120a8591fdb46a2ecc6f5aac228583067b22811d088", "image": "sha256:0b22a604dbf97443623258072a71f741111a1033a5e274166ea0f5b2f9968d47", "restarts": 9},
+      "forensic-postgres": {"id": "f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361", "image": "sha256:61f891691050da6032023c01ea885730eeeba06b7c17b403e7d0b9c49c37dfe9", "restarts": 0},
+      "forensic-nats": {"id": "5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04", "image": "sha256:e4bf19f15fd3218814a4e3c9e0064e1334bd8aa20d5984b9f1a0afd084f8cc00", "restarts": 0}
+    }
+  },
+  "gates": {
+    "minimum_available_ram_gib": 6,
+    "critical_percent": 100,
+    "natural_language_per_language_percent": 95
+  },
+  "activation": {
+    "services": ["api", "forensic-records-api"],
+    "protected_services": ["forensic-records-worker", "forensic-postgres", "forensic-nats", "localai"],
+    "worker_required": false
+  }
+}

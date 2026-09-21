@@ -1,0 +1,22 @@
+FROM python:3.11-slim@sha256:90744cff8f32887f075c47d747a173ff333e9e98801667af93c357fa9f5e28ff
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python -m pip install --no-cache-dir \
+      --extra-index-url https://download.pytorch.org/whl/cpu \
+      numpy==1.26.4 \
+      torch==2.2.2+cpu \
+      torchvision==0.17.2+cpu \
+      easyocr==1.7.2 \
+      Pillow==12.1.1
+
+COPY tools/r8_challenger_eval/run_easyocr_arabic.py /opt/nexusai-r8/run_easyocr_arabic.py
+RUN python -c "import easyocr, torch, PIL; print('easyocr='+easyocr.__version__); print('torch='+torch.__version__); print('pillow='+PIL.__version__)"
+
+ENTRYPOINT ["python", "/opt/nexusai-r8/run_easyocr_arabic.py"]

@@ -1,0 +1,76 @@
+{
+  "schema_version": "nexusai.nxb21d-q4-remediation-16case-development-operator/v1",
+  "development_only": true,
+  "qualification_holdout": false,
+  "candidate": {
+    "candidate_id": "nxb21d-q4-atomic-identifier-authority-r1",
+    "identity_sha256": "1ccc03ab44a25cb20ec28053b898c2f975b6373829303e8265833164a89e2ccc",
+    "identity_algorithm": "sha256 of ordered LF-terminated key=value tuple documented by candidate fields",
+    "model_name": "qwen3-4b-instruct-2507-q4km-nxb21d-dev",
+    "artifact_path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/Qwen_Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+    "artifact_bytes": 2497280736,
+    "artifact_sha256": "2fde00ce69dd4899c70d020845e2638353015bba0fdf161b3eb965f2bca4464e",
+    "profile_path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/qwen3-4b-instruct-2507-q4km-nxb21d-dev.yaml",
+    "profile_sha256": "30d3bcd8c92684e191277dad992354323b7e46c7d30d3c69149010e90f117129",
+    "q8_profile_sha256": "ef036e0a02cc5e8331dc4dff41c0e0cb68e6e0bda71d92b92f47f673472e666f",
+    "prompt_path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/localai-dev-results/12case-smoke/planner-system.txt",
+    "prompt_sha256": "3ce8225e30beacb51430dc1f377ee58fbb0e5f2746a44660e099dddac9fc67bc",
+    "schema_path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/localai-dev-results/12case-smoke/planner-schema.json",
+    "schema_sha256": "be217f9e6ddec85131e5b0f60ac8f4050d18b5632e838b1560bc6b1067a3d731",
+    "implementation_path": "api/forensic_records/query_language_assistance.go",
+    "implementation_sha256": "85ad1fdf89a9794193896580595ecd33b054ba206e028467406824beea590828",
+    "bridge_path": "api/forensic_records/query.go",
+    "bridge_sha256": "95cbeb0547b616eccc326c27f4c22744638f109b949e1321097a4e7571e08164",
+    "authority_path": "scripts/nxb21d-remediation/exact_identifier_authority.ps1",
+    "authority_sha256": "216b0ec4e2b69c5482c65a3eef306f41b170a11a38a4b2b7a715b81134c7d304",
+    "transport_path": "scripts/nxb21d-development/byte_safe_transport.ps1",
+    "transport_sha256": "9deed398e86e0347afc33964c47b8f4e489cc88372a77d16b4ba9ef8ed4a8c64",
+    "request_temperature": 0,
+    "effective_context": 4096,
+    "max_tokens": 160
+  },
+  "prior_adjudicated_receipt": {
+    "path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/localai-dev-results/12case-smoke/12case-development-smoke-adjudicated-v1.json",
+    "sha256": "75ffdda521a33af075b4e03f95270cf32da64031968306e650774b87eeadc12a"
+  },
+  "pre_remediation_32case_receipt": {
+    "path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/localai-dev-results/32case-development/run-20260904T151011658Z/32case-development-summary-v1.json",
+    "sha256": "bf73696f2fc89ee02d26027818ee9d0b838926d1cbaf67a7276829a9b1321132",
+    "result": "31/32",
+    "failed_case_id": "dev32-en-002"
+  },
+  "corpus": {
+    "path": "scripts/nxb21d-remediation/nxb21d-q4-remediation-16case-development-corpus-v1.json",
+    "sha256": "937f44c241dce1abc6f0ca1781b865b8dc0d49c89ed804411c1ac58e6a329cec",
+    "validator": "scripts/nxb21d-remediation/validate_nxb21d_q4_remediation_corpus.py"
+  },
+  "runtime": {
+    "localai_url": "http://127.0.0.1:8080",
+    "container": "nexusai-api-1",
+    "container_id": "d62021a0a4fc258ff3ce6fc4140090c6d9862dcc04863a065e6e842f62d769de",
+    "image": "sha256:feb935b42a93c1810394cb270a809189ca240a225253159a47b8daa72a799171",
+    "restart_count": 0,
+    "q8_profile_container_path": "/models/qwen_qwen3-4b-instruct-2507.yaml",
+    "q4_profile_container_path": "/models/qwen3-4b-instruct-2507-q4km-nxb21d-dev.yaml",
+    "q4_artifact_container_path": "/models/Qwen_Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+    "request_timeout_seconds": 180
+  },
+  "resource": {
+    "minimum_loaded_gib": 4,
+    "minimum_before_load_gib": 6,
+    "deployment_build_recreate_minimum_gib": 6,
+    "severe_pressure_gib": 2
+  },
+  "output_root": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/localai-dev-results/16case-remediation",
+  "framework_files": {
+    "api/forensic_records/query_language_assistance.go": "85ad1fdf89a9794193896580595ecd33b054ba206e028467406824beea590828",
+    "api/forensic_records/query.go": "95cbeb0547b616eccc326c27f4c22744638f109b949e1321097a4e7571e08164",
+    "scripts/nxb21d-development/byte_safe_transport.ps1": "9deed398e86e0347afc33964c47b8f4e489cc88372a77d16b4ba9ef8ed4a8c64",
+    "scripts/nxb21d-remediation/exact_identifier_authority.ps1": "216b0ec4e2b69c5482c65a3eef306f41b170a11a38a4b2b7a715b81134c7d304",
+    "scripts/nxb21d-remediation/nxb21d-q4-remediation-16case-development-corpus-v1.json": "937f44c241dce1abc6f0ca1781b865b8dc0d49c89ed804411c1ac58e6a329cec",
+    "scripts/nxb21d-remediation/validate_nxb21d_q4_remediation_corpus.py": "b858949a1780da6796067e98c1010b6a97511fd18602d3c965a91da393a36e14",
+    "scripts/nxb21d-remediation/run_nxb21d_q4_remediation_16case_development.ps1": "514ecd0f4499b5cb7d13e7fee4463ceb0f5fdbaac683aad22a4f0c476b442d25",
+    "scripts/nxb21d-remediation/test_nxb21d_q4_remediation_framework.ps1": "520566bbc3b9bbddf6dcd6aa897e53e07894e216a9934cff9bafc71308e9bd22",
+    "scripts/nxb21d-remediation/README.md": "cdd1611abd1d388d0de5683e72d15617d0a98035ceee82f265f0f3ed6e15c047"
+  }
+}

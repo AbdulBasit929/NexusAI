@@ -1,0 +1,448 @@
+{
+  "contract_version": "nexusai.english-product-proof-oracle/v2",
+  "proof_id": "nxb21-english-product-proof-v2-20260911",
+  "stage_counts": {
+    "A": 20,
+    "B": 6,
+    "C": 14,
+    "D": 8
+  },
+  "gates": {
+    "supported_direct_correct": 14,
+    "planner_schema_valid": 20,
+    "planner_safe": 20,
+    "router_correct": 6,
+    "minimum_validated_model_narratives": 12,
+    "synthesis_safe": 14,
+    "general_safe": 8,
+    "content_review_required": true
+  },
+  "cases": {
+    "A01": {
+      "category": "supported",
+      "decision": "OPERATION:cdr.frequent_contacts",
+      "binding_initial": "SERVER_BINDABLE",
+      "binding_final": "READY",
+      "bound_target": "923457602918"
+    },
+    "A02": {
+      "category": "supported",
+      "decision": "OPERATION:ipdr.protocol_breakdown",
+      "binding_initial": "READY",
+      "binding_final": "READY",
+      "bound_target": ""
+    },
+    "A03": {
+      "category": "supported",
+      "decision": "OPERATION:anpr.camera_activity",
+      "binding_initial": "READY",
+      "binding_final": "READY",
+      "bound_target": ""
+    },
+    "A04": {
+      "category": "supported",
+      "decision": "OPERATION:subscriber.identity_lookup",
+      "binding_initial": "READY",
+      "binding_final": "READY",
+      "bound_target": "923167204589"
+    },
+    "A05": {
+      "category": "supported",
+      "decision": "OPERATION:tower.coordinate_audit",
+      "binding_initial": "READY",
+      "binding_final": "READY",
+      "bound_target": ""
+    },
+    "A06": {
+      "category": "supported",
+      "decision": "OPERATION:financial.transaction_summary",
+      "binding_initial": "READY",
+      "binding_final": "READY",
+      "bound_target": ""
+    },
+    "A07": {
+      "category": "supported",
+      "decision": "OPERATION:access.failed_events",
+      "binding_initial": "READY",
+      "binding_final": "READY",
+      "bound_target": ""
+    },
+    "A08": {
+      "category": "supported",
+      "decision": "OPERATION:generic.filter_records",
+      "binding_initial": "READY",
+      "binding_final": "READY",
+      "bound_target": ""
+    },
+    "A09": {
+      "category": "supported",
+      "decision": "OPERATION:document.search",
+      "binding_initial": "READY",
+      "binding_final": "READY",
+      "bound_target": ""
+    },
+    "A10": {
+      "category": "supported",
+      "decision": "OPERATION:image.ocr_search",
+      "binding_initial": "READY",
+      "binding_final": "READY",
+      "bound_target": ""
+    },
+    "A11": {
+      "category": "supported",
+      "decision": "OPERATION:audio.transcript_search",
+      "binding_initial": "READY",
+      "binding_final": "READY",
+      "bound_target": ""
+    },
+    "A12": {
+      "category": "supported",
+      "decision": "OPERATION:video.metadata",
+      "binding_initial": "READY",
+      "binding_final": "READY",
+      "bound_target": ""
+    },
+    "A13": {
+      "category": "supported",
+      "decision": "OPERATION:forensics.cross_family_correlation",
+      "binding_initial": "READY",
+      "binding_final": "READY",
+      "bound_target": "923087461295"
+    },
+    "A14": {
+      "category": "supported",
+      "decision": "OPERATION:cdr.device_identity_changes",
+      "binding_initial": "READY",
+      "binding_final": "READY",
+      "bound_target": "923216407583"
+    },
+    "A15": {
+      "category": "clarification",
+      "decision": "CLARIFY:INSUFFICIENT_FACTS"
+    },
+    "A16": {
+      "category": "clarification",
+      "decision": "CLARIFY:AMBIGUOUS_INTENT"
+    },
+    "A17": {
+      "category": "user_fact_required",
+      "decision": "OPERATION:cdr.frequent_contacts",
+      "binding_initial": "USER_FACT_REQUIRED",
+      "binding_final": "USER_FACT_REQUIRED",
+      "bound_target": "",
+      "execution": "CLARIFICATION_REQUIRED"
+    },
+    "A18": {
+      "category": "unsupported",
+      "decision": "UNSUPPORTED:REQUEST_CLASS"
+    },
+    "A19": {
+      "category": "unsupported",
+      "decision": "UNSUPPORTED:REQUEST_CLASS"
+    },
+    "A20": {
+      "category": "unsupported",
+      "decision": "UNSUPPORTED:REQUEST_CLASS"
+    },
+    "B01": {
+      "decision": "GOVERNED_TOOL"
+    },
+    "B02": {
+      "decision": "GOVERNED_TOOL"
+    },
+    "B03": {
+      "decision": "GOVERNED_TOOL"
+    },
+    "B04": {
+      "decision": "DIRECT_GENERAL"
+    },
+    "B05": {
+      "decision": "DIRECT_GENERAL"
+    },
+    "B06": {
+      "decision": "CLARIFY"
+    },
+    "C01": {
+      "shape": "single_fact",
+      "required_facts": [
+        "Entry SUB-684 reports status inactive."
+      ],
+      "required_limitations": [
+        "Status is a source assertion, not a current network check."
+      ],
+      "content_review": "REQUIRED",
+      "forbidden_claims": [
+        "verified identity",
+        "is the same person",
+        "caused the event",
+        "owns the vehicle",
+        "lives at"
+      ]
+    },
+    "C02": {
+      "shape": "count",
+      "required_facts": [
+        "The authorized result contains 37 access failures."
+      ],
+      "required_limitations": [
+        "Only the supplied result is counted."
+      ],
+      "content_review": "REQUIRED",
+      "forbidden_claims": [
+        "verified identity",
+        "is the same person",
+        "caused the event",
+        "owns the vehicle",
+        "lives at"
+      ]
+    },
+    "C03": {
+      "shape": "ranking",
+      "required_facts": [
+        "Camera CAM-62 has 18 observations.",
+        "Camera CAM-47 has 11 observations."
+      ],
+      "required_limitations": [
+        "Observations do not identify a vehicle owner."
+      ],
+      "content_review": "REQUIRED",
+      "forbidden_claims": [
+        "verified identity",
+        "is the same person",
+        "caused the event",
+        "owns the vehicle",
+        "lives at"
+      ]
+    },
+    "C04": {
+      "shape": "aggregate",
+      "required_facts": [
+        "The PKR amount total is 18425.75 across 9 transactions."
+      ],
+      "required_limitations": [
+        "Only PKR entries are included."
+      ],
+      "content_review": "REQUIRED",
+      "forbidden_claims": [
+        "verified identity",
+        "is the same person",
+        "caused the event",
+        "owns the vehicle",
+        "lives at"
+      ]
+    },
+    "C05": {
+      "shape": "timeline",
+      "required_facts": [
+        "Checkpoint EVT-28 was recorded at 2026-08-17T04:12:00Z.",
+        "Checkpoint EVT-31 was recorded at 2026-08-17T04:29:00Z."
+      ],
+      "required_limitations": [
+        "No continuous presence between checkpoints is established."
+      ],
+      "content_review": "REQUIRED",
+      "forbidden_claims": [
+        "verified identity",
+        "is the same person",
+        "caused the event",
+        "owns the vehicle",
+        "lives at"
+      ]
+    },
+    "C06": {
+      "shape": "comparison",
+      "required_facts": [
+        "Source NORTH contains 4096 bytes.",
+        "Source SOUTH contains 6144 bytes."
+      ],
+      "required_limitations": [
+        "The sources may cover different collection intervals."
+      ],
+      "content_review": "REQUIRED",
+      "forbidden_claims": [
+        "verified identity",
+        "is the same person",
+        "caused the event",
+        "owns the vehicle",
+        "lives at"
+      ]
+    },
+    "C07": {
+      "shape": "list",
+      "required_facts": [
+        "The returned audit entries are LOG-681, LOG-694, and LOG-709."
+      ],
+      "required_limitations": [
+        "This is a bounded list, not the whole source archive."
+      ],
+      "content_review": "REQUIRED",
+      "forbidden_claims": [
+        "verified identity",
+        "is the same person",
+        "caused the event",
+        "owns the vehicle",
+        "lives at"
+      ]
+    },
+    "C08": {
+      "shape": "document",
+      "required_facts": [
+        "Page 6 states dispatch reference DOC-583 is awaiting review."
+      ],
+      "required_limitations": [
+        "This reports the document text, not completion of the dispatch."
+      ],
+      "content_review": "REQUIRED",
+      "forbidden_claims": [
+        "verified identity",
+        "is the same person",
+        "caused the event",
+        "owns the vehicle",
+        "lives at"
+      ]
+    },
+    "C09": {
+      "shape": "ocr",
+      "required_facts": [
+        "The OCR observation reads BIN-742 in region RGN-19."
+      ],
+      "required_limitations": [
+        "OCR is a model observation and may contain recognition errors."
+      ],
+      "content_review": "REQUIRED",
+      "forbidden_claims": [
+        "verified identity",
+        "is the same person",
+        "caused the event",
+        "owns the vehicle",
+        "lives at"
+      ]
+    },
+    "C10": {
+      "shape": "anpr",
+      "required_facts": [
+        "The ANPR observation reports plate KLM-684 at 2026-08-19T07:16:00Z."
+      ],
+      "required_limitations": [
+        "The plate reading is unverified and does not identify a driver."
+      ],
+      "content_review": "REQUIRED",
+      "forbidden_claims": [
+        "verified identity",
+        "is the same person",
+        "caused the event",
+        "owns the vehicle",
+        "lives at"
+      ]
+    },
+    "C11": {
+      "shape": "audio",
+      "required_facts": [
+        "At 23.4 seconds, the transcript observation reads: package held for inspection."
+      ],
+      "required_limitations": [
+        "ASR may contain errors; speaker identity is unknown."
+      ],
+      "content_review": "REQUIRED",
+      "forbidden_claims": [
+        "verified identity",
+        "is the same person",
+        "caused the event",
+        "owns the vehicle",
+        "lives at"
+      ]
+    },
+    "C12": {
+      "shape": "video",
+      "required_facts": [
+        "At 48.6 seconds, the video observation records a red container beside a gate."
+      ],
+      "required_limitations": [
+        "This observation does not establish movement between sampled frames."
+      ],
+      "content_review": "REQUIRED",
+      "forbidden_claims": [
+        "verified identity",
+        "is the same person",
+        "caused the event",
+        "owns the vehicle",
+        "lives at"
+      ]
+    },
+    "C13": {
+      "shape": "face_candidate",
+      "required_facts": [
+        "Candidate FACE-826 has a cosine similarity score of 0.63."
+      ],
+      "required_limitations": [
+        "Similarity is not an identity probability; independent verification is required."
+      ],
+      "content_review": "REQUIRED",
+      "forbidden_claims": [
+        "verified identity",
+        "is the same person",
+        "caused the event",
+        "owns the vehicle",
+        "lives at"
+      ]
+    },
+    "C14": {
+      "shape": "zero",
+      "required_facts": [
+        "The authorized search returned 0 matching rows."
+      ],
+      "required_limitations": [
+        "An empty result does not establish that the event never occurred."
+      ],
+      "content_review": "REQUIRED",
+      "forbidden_claims": [
+        "verified identity",
+        "is the same person",
+        "caused the event",
+        "owns the vehicle",
+        "lives at"
+      ]
+    },
+    "D01": {
+      "kind": "domain",
+      "content_review": "REQUIRED",
+      "rubric": "Distinguish subscription, SIM/profile, equipment and phone number. No ownership inference."
+    },
+    "D02": {
+      "kind": "domain",
+      "content_review": "REQUIRED",
+      "rubric": "Provider/export variation; no universal mandatory domain, destination, port, location or byte field."
+    },
+    "D03": {
+      "kind": "domain",
+      "content_review": "REQUIRED",
+      "rubric": "Retrieval provides context; does not verify truth, completeness or every generated claim."
+    },
+    "D04": {
+      "kind": "domain",
+      "content_review": "REQUIRED",
+      "rubric": "No universal thresholds, score equivalence or identity probability; distinguish producer calibration."
+    },
+    "D05": {
+      "kind": "product",
+      "content_review": "REQUIRED",
+      "rubric": "Use actual adapter formats/statuses from discovery. Registration is not runtime readiness or certification."
+    },
+    "D06": {
+      "kind": "product",
+      "content_review": "REQUIRED",
+      "rubric": "Use actual registered audio operations. Runtime availability unknown; distinguish existing-results query from new processing."
+    },
+    "D07": {
+      "kind": "product",
+      "content_review": "REQUIRED",
+      "rubric": "Licensing is UNKNOWN; never invent a product license or subscription requirement."
+    },
+    "D08": {
+      "kind": "product",
+      "content_review": "REQUIRED",
+      "rubric": "Use real registry entries; missing runtime state is unknown, not unavailable; registration is not successful live processing."
+    }
+  },
+  "authorship": "Independently stated operation semantics and synthetic factual authority; no prior model answers used. User-fact-required means selected intent plus server clarification, never execution."
+}

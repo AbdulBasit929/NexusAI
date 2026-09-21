@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NexusAI R8 T2 capture assistant</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter,Segoe UI,sans-serif; background:#07111f; color:#e5edf7; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:radial-gradient(circle at top,#132b47,#07111f 55%); }
+    main { max-width:1280px; margin:auto; padding:24px; }
+    header,.panel { background:#0d1b2d; border:1px solid #29415f; border-radius:16px; padding:18px; box-shadow:0 16px 50px #0005; }
+    header { margin-bottom:18px; }
+    h1 { margin:0 0 8px; font-size:clamp(24px,4vw,38px); }
+    .warning { color:#fecaca; border-left:4px solid #ef4444; padding-left:12px; font-weight:700; }
+    .grid { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(290px,1fr); gap:18px; }
+    video { width:100%; aspect-ratio:16/9; background:#020617; border-radius:12px; object-fit:cover; }
+    canvas { display:none; }
+    button,.file-label { border:1px solid #4c6f98; background:#173454; color:white; border-radius:10px; padding:11px 14px; font-weight:750; cursor:pointer; display:inline-block; }
+    button.primary { background:#155eef; border-color:#5b8cff; }
+    button.success { background:#087f5b; border-color:#34d399; }
+    button:disabled { opacity:.45; cursor:not-allowed; }
+    input[type=file] { position:absolute; opacity:0; pointer-events:none; }
+    .controls { display:flex; flex-wrap:wrap; gap:9px; margin:12px 0; }
+    .step { display:grid; grid-template-columns:120px 1fr; gap:8px; padding:7px 0; border-bottom:1px solid #203652; }
+    .step strong { color:#9fc7ff; }
+    .progress { height:12px; background:#1d314a; border-radius:999px; overflow:hidden; margin:12px 0; }
+    .progress div { height:100%; width:0; background:linear-gradient(90deg,#22c55e,#60a5fa); }
+    .status { min-height:48px; padding:10px; border-radius:10px; background:#091524; color:#bfd0e7; }
+    .arrangement { margin:14px 0; padding:14px; border:1px solid #3b82f6; background:#0b2340; border-radius:12px; }
+    .arrangement h3 { margin:0 0 8px; color:#bfdbfe; }
+    .arrangement ol { margin:8px 0 0; padding-left:22px; }
+    .arrangement li { margin:6px 0; line-height:1.35; }
+    .reference { margin:12px 0; border:4px solid #111827; border-radius:12px; overflow:hidden; background:#f8f1d5; color:#101827; text-align:center; }
+    .reference .band { padding:8px; background:#12613d; color:white; font-weight:900; }
+    .reference .plate-id { padding:12px; font-size:clamp(27px,4vw,48px); font-weight:950; letter-spacing:4px; }
+    .reference .plate-id.urdu { direction:rtl; letter-spacing:0; }
+    .reference .test-note { padding:0 8px 8px; color:#b91c1c; font-weight:900; }
+    .holdout { color:#fde68a; font-weight:850; }
+    .saved { color:#86efac; font-weight:800; }
+    code { color:#bfdbfe; overflow-wrap:anywhere; }
+    @media(max-width:850px){ .grid{grid-template-columns:1fr;} main{padding:12px;} }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>NexusAI R8 controlled T2 capture</h1>
+    <p class="warning">Physical camera observations only. Do not use screenshots or generated distortions as T2. Never photograph unrelated people, real third-party plates, addresses, private screens or sensitive documents.</p>
+  </header>
+  <div class="grid">
+    <section class="panel">
+      <video id="camera" autoplay playsinline muted></video>
+      <canvas id="frame"></canvas>
+      <p id="cameraDiagnostic" class="status">Camera not started.</p>
+      <div class="controls">
+        <label class="file-label" for="planFile">1. Load capture-plan.json</label>
+        <input id="planFile" type="file" accept="application/json,.json">
+        <button id="folderButton">2. Select images folder</button>
+        <button id="cameraButton">3. Start camera</button>
+        <button id="captureButton" class="success" disabled>Capture and save current slot</button>
+      </div>
+      <div class="controls">
+        <button id="previousButton" disabled>Previous</button>
+        <button id="nextButton" disabled>Next</button>
+        <button id="retryButton" disabled>Retake current slot</button>
+      </div>
+      <p id="status" class="status">Load the generated capture plan. The assistant performs no model inference and does not create ground truth.</p>
+    </section>
+    <aside class="panel">
+      <h2 id="slotTitle">No plan loaded</h2>
+      <div class="progress"><div id="progressBar"></div></div>
+      <p><span id="progressText">0 / 32 saved</span></p>
+      <div id="details"></div>
+      <div id="arrangement" class="arrangement"></div>
+      <div id="targetReference" class="reference" hidden>
+        <div class="band">NEXUSAI CONTROLLED TEST</div>
+        <div id="targetText" class="plate-id"></div>
+        <div class="test-note">SYNTHETIC · NOT ROAD VALID</div>
+      </div>
+      <p><strong>Exact output:</strong><br><code id="filename">—</code></p>
+      <p id="savedMarker"></p>
+    </aside>
+  </div>
+</main>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  let plan = [];
+  let index = 0;
+  let directory = null;
+  let stream = null;
+  const saved = new Set();
+  const targetCycle = [
+    {text:'NXA-T01',script:'Latin'}, {text:'NXA-T02',script:'Latin'},
+    {text:'NXB-407',script:'Latin'}, {text:'NXC-826',script:'Latin'},
+    {text:'نی کس ۷۸۶',script:'Urdu'}, {text:'آزمائش ۱۲۳',script:'Urdu'},
+    {text:'NXD-519',script:'Latin'}, {text:'NXE-604',script:'Latin'}
+  ];
+
+  const baseName = value => value.replaceAll('\\','/').split('/').pop();
+  const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
+  const setStatus = (message, error=false) => {
+    $('status').textContent = message;
+    $('status').style.color = error ? '#fecaca' : '#bfd0e7';
+  };
+  const arrangementFor = item => {
+    const negative = item.negative_class;
+    if (negative) {
+      const negativeGuide = {
+        vehicle_body:'Frame only a clean panel/grille/bumper on an owned stationary vehicle; no plate target.',
+        logo:'Frame one harmless product or vehicle logo; exclude identifiers and people.',
+        street_sign:'Use a privately controlled printed TEST/EXIT sign or indoor sign; do not photograph a real sensitive location.',
+        rectangular_label:'Place a blank or synthetic rectangular label on a box; no plate target.',
+        document:'Use a blank page with several drawn horizontal lines; no real document content.',
+        screen:'Display harmless synthetic text on a second screen; close notifications and private content.',
+        random_text:'Arrange several unrelated printed words/numbers without a plate-shaped target.',
+        vehicle_without_target:'Photograph an owned stationary vehicle from an angle where no real plate or test target is visible.',
+        background_structure:'Frame a window, grille, gate or rectangular building feature with no identifiers.',
+        plain_scene:'Frame a plain wall/floor/box with no text or target.'
+      };
+      return [
+        'Remove every synthetic plate target from the camera view.',
+        negativeGuide[negative] || `Arrange a controlled ${negative} negative scene.`,
+        'Verify no unrelated face, real plate, address, private screen or sensitive paper appears.',
+        item.partition === 'holdout' ? 'This is sealed holdout: capture once and do not use it during tuning.' : 'Keep the object reasonably centered unless the Position field says edge.'
+      ];
+    }
+    const sourceGuide = {
+      printed_synthetic_target:'Use one printed target sheet cutout, or show the target full-screen on a separate device. Do not use a screenshot file as the captured image.',
+      controlled_mock_plate_board:'Attach one printed target to a plain rigid board or cardboard on private property.',
+      controlled_plate_crop:'Hold one printed target flat so it dominates the frame but its full border remains visible.',
+      controlled_owned_vehicle:'Use only a stationary owned/consented vehicle on private property. Place the synthetic target temporarily only while stationary; remove it before any road use.'
+    };
+    const distanceGuide = {
+      near:'Move the camera/target until the target occupies about 55–75% of image width.',
+      medium:'Make the target occupy about 25–45% of image width.',
+      far:'Make the target occupy about 10–20% of image width while remaining visible.'
+    };
+    const angleGuide = {
+      frontal:'Keep camera and target parallel; all four target corners should appear approximately symmetric.',
+      horizontal_moderate:'Rotate the target/board about 25–35° left or right while keeping all four corners visible.',
+      vertical_moderate:'Tilt the top of the target about 15–25° toward or away from the camera.',
+      not_applicable:'No plate target is used.'
+    };
+    const lightingGuide = {
+      daylight:'Use indirect daylight or a bright room; avoid a direct reflection.',
+      shadow:'Shade roughly half the target using cardboard or your hand outside the target area.',
+      glare:'Aim a lamp obliquely so a visible reflection crosses part of the target without hiding it completely.',
+      low_light:'Dim the room or move away from the main light; do not digitally darken the saved image.'
+    };
+    const blurGuide = {
+      none:'Hold camera and target steady and wait for focus.',
+      slight:'Tap focus away briefly or move the target a few millimetres during capture to create mild optical blur.',
+      motion:'Move the target slowly sideways during capture; keep it identifiable but visibly motion-blurred.'
+    };
+    const steps = [sourceGuide[item.capture_source_class] || 'Use the controlled synthetic target.', distanceGuide[item.distance], angleGuide[item.perspective], lightingGuide[item.lighting], blurGuide[item.blur_level]];
+    if (item.image_id.includes('multiple')) steps.push('Place two different synthetic targets side by side with clear separation.');
+    if (item.image_id.includes('occluded')) steps.push('Cover about 20–30% of the characters with a plain strip of paper; preserve the visible target border.');
+    if (item.target_position === 'edge') steps.push('Place the target near the left or right frame edge without cropping it.');
+    if (item.target_position === 'small_target') steps.push('Confirm the target is small but not cut off.');
+    if (item.target_position === 'large_target') steps.push('Fill most of the frame while retaining the complete target border.');
+    if (item.partition === 'holdout') steps.push('This is sealed holdout: capture once, do not preview model output and do not tune against it.');
+    return steps.filter(Boolean);
+  };
+  const render = () => {
+    const item = plan[index];
+    const total = plan.length || 32;
+    $('progressBar').style.width = `${Math.round(saved.size / total * 100)}%`;
+    $('progressText').textContent = `${saved.size} / ${total} saved`;
+    $('previousButton').disabled = !item || index === 0;
+    $('nextButton').disabled = !item || index >= plan.length - 1;
+    $('retryButton').disabled = !item || !saved.has(item.image_id);
+    $('captureButton').disabled = !item || !stream || (!directory && !('showDirectoryPicker' in window));
+    if (!item) return;
+    $('slotTitle').textContent = `Slot ${item.slot} — ${item.image_id}`;
+    $('filename').textContent = baseName(item.filename);
+    $('savedMarker').innerHTML = saved.has(item.image_id) ? '<span class="saved">✓ Saved — retake only if necessary</span>' : '';
+    const fields = [
+      ['Partition', item.partition], ['Source', item.capture_source_class],
+      ['Distance', item.distance], ['Perspective', item.perspective],
+      ['Lighting', item.lighting], ['Blur', item.blur_level],
+      ['Position', item.target_position], ['Negative class', item.negative_class ?? 'none'],
+      ['Instruction', item.instruction]
+    ];
+    $('details').innerHTML = fields.map(([name,value]) => `<div class="step"><strong>${escapeHtml(name)}</strong><span>${escapeHtml(value)}</span></div>`).join('');
+    const steps = arrangementFor(item);
+    $('arrangement').innerHTML = `<h3>How to arrange this slot</h3><ol>${steps.map(step => `<li>${escapeHtml(step)}</li>`).join('')}</ol>`;
+    const positive = !item.negative_class;
+    $('targetReference').hidden = !positive;
+    if (positive) {
+      const target = item.image_id.includes('urdu') ? targetCycle[item.image_id.includes('angle') ? 5 : 4] : targetCycle[(item.slot - 1) % targetCycle.length];
+      $('targetText').textContent = target.text;
+      $('targetText').className = `plate-id${target.script === 'Urdu' ? ' urdu' : ''}`;
+    }
+  };
+
+  $('planFile').addEventListener('change', async event => {
+    try {
+      const payload = JSON.parse(await event.target.files[0].text());
+      if (payload.contract_version !== 'forensics.controlled-demo-capture-plan/v1' || !Array.isArray(payload.items) || payload.items.length !== 32) throw new Error('Expected the generated 32-slot T2 capture plan.');
+      plan = payload.items; index = 0; saved.clear();
+      setStatus('Plan loaded. Select the exact pack images folder, then start the camera.'); render();
+    } catch (error) { setStatus(error.message, true); }
+  });
+
+  $('folderButton').addEventListener('click', async () => {
+    if (!('showDirectoryPicker' in window)) return setStatus('This browser cannot write directly to a selected folder. Use current Chrome or Edge on localhost.', true);
+    try {
+      directory = await window.showDirectoryPicker({mode:'readwrite'});
+      if (directory.name.toLowerCase() !== 'images') {
+        directory = null;
+        throw new Error('Select the T2 pack images folder, not the pack root.');
+      }
+      setStatus(`Output folder selected: ${directory.name}`); render();
+    } catch (error) { setStatus(`Folder selection cancelled: ${error.message}`, true); }
+  });
+
+  $('cameraButton').addEventListener('click', async () => {
+    const video = $('camera');
+    try {
+      if (stream) stream.getTracks().forEach(track => track.stop());
+      stream = await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}}});
+      video.srcObject = stream;
+      await new Promise((resolve, reject) => {
+        if (video.readyState >= HTMLMediaElement.HAVE_METADATA) return resolve();
+        const timeout = setTimeout(() => reject(new Error('No camera frame arrived within 10 seconds.')), 10000);
+        video.addEventListener('loadedmetadata', () => { clearTimeout(timeout); resolve(); }, {once:true});
+      });
+      await video.play();
+      if (!video.videoWidth || !video.videoHeight) throw new Error('The camera opened but produced no visible frame.');
+      const track = stream.getVideoTracks()[0];
+      $('cameraDiagnostic').textContent = `Live camera: ${track?.label || 'selected camera'} · ${video.videoWidth}×${video.videoHeight}`;
+      setStatus('Live camera frame verified. Arrange the exact current scene, inspect privacy, then capture.'); render();
+    } catch (error) {
+      if (stream) stream.getTracks().forEach(track => track.stop());
+      stream = null;
+      video.srcObject = null;
+      $('cameraDiagnostic').textContent = 'No live camera frame. Check the privacy shutter, close other camera apps, then retry.';
+      setStatus(`Camera unavailable: ${error.message}. Allow camera access for localhost and retry.`, true);
+      render();
+    }
+  });
+
+  const writeFrame = async item => {
+    const video = $('camera');
+    if (!video.videoWidth || !video.videoHeight) throw new Error('Camera has not produced a frame yet.');
+    const canvas = $('frame'); canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.94));
+    if (!blob) throw new Error('JPEG encoding failed.');
+    const handle = await directory.getFileHandle(baseName(item.filename), {create:true});
+    const writable = await handle.createWritable();
+    await writable.write(blob); await writable.close();
+  };
+
+  $('captureButton').addEventListener('click', async () => {
+    const item = plan[index];
+    try {
+      if (!directory) throw new Error('Select the pack images folder first.');
+      await writeFrame(item); saved.add(item.image_id);
+      setStatus(`Saved ${baseName(item.filename)}. No annotation or model inference was performed.`);
+      if (index < plan.length - 1) index += 1;
+      render();
+    } catch (error) { setStatus(error.message, true); }
+  });
+  $('previousButton').addEventListener('click', () => { if (index > 0) index -= 1; render(); });
+  $('nextButton').addEventListener('click', () => { if (index < plan.length - 1) index += 1; render(); });
+  $('retryButton').addEventListener('click', () => { saved.delete(plan[index].image_id); setStatus('Current slot unlocked for a controlled retake.'); render(); });
+  render();
+})();
+</script>
+</body>
+</html>

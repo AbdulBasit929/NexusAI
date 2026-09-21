@@ -1,0 +1,14 @@
+FROM python:3.11-slim@sha256:90744cff8f32887f075c47d747a173ff333e9e98801667af93c357fa9f5e28ff
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+RUN python -m pip install --no-cache-dir \
+      openvino==2024.6.0 \
+      Pillow==12.1.1
+
+COPY tools/r8_challenger_eval/run_omz0106.py /opt/nexusai-r8/run_omz0106.py
+RUN python -c "import openvino, PIL; print('openvino='+openvino.__version__); print('pillow='+PIL.__version__)"
+
+ENTRYPOINT ["python", "/opt/nexusai-r8/run_omz0106.py"]

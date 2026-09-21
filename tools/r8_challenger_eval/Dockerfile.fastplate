@@ -1,0 +1,15 @@
+FROM python:3.11.10-slim-bookworm
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+RUN python -m pip install --no-cache-dir \
+      "fast-plate-ocr[onnx]==1.1.0" \
+      Pillow==12.1.1
+
+COPY tools/r8_challenger_eval/run_fastplate.py /opt/nexusai-r8/run_fastplate.py
+COPY tools/r8_challenger_eval/run_fastplate_pilot.py /opt/nexusai-r8/run_fastplate_pilot.py
+RUN python -c "import fast_plate_ocr, onnxruntime, PIL; print(getattr(fast_plate_ocr, '__version__', 'unknown'), onnxruntime.__version__, PIL.__version__)"
+
+ENTRYPOINT ["python", "/opt/nexusai-r8/run_fastplate.py"]

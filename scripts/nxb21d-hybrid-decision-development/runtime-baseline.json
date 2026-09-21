@@ -1,0 +1,39 @@
+{
+  "localai_url": "http://127.0.0.1:8080",
+  "container": "nexusai-api-1",
+  "retained_tuple": "64|64|77|22507|828|61",
+  "activity_count": 314,
+  "active_jobs": 0,
+  "containers": {
+    "api": {
+      "id": "d62021a0a4fc258ff3ce6fc4140090c6d9862dcc04863a065e6e842f62d769de",
+      "image": "sha256:feb935b42a93c1810394cb270a809189ca240a225253159a47b8daa72a799171",
+      "restarts": 0,
+      "healthy": true
+    },
+    "forensic-nats": {
+      "id": "5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04",
+      "image": "sha256:e4bf19f15fd3218814a4e3c9e0064e1334bd8aa20d5984b9f1a0afd084f8cc00",
+      "restarts": 0,
+      "healthy": true
+    },
+    "forensic-postgres": {
+      "id": "f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361",
+      "image": "sha256:61f891691050da6032023c01ea885730eeeba06b7c17b403e7d0b9c49c37dfe9",
+      "restarts": 0,
+      "healthy": true
+    },
+    "forensic-records-api": {
+      "id": "ffd93bf51ecad0bc61271dfad0576b852057cd85f85aa8221534e3250ef1c11b",
+      "image": "sha256:828e4b03e02979c3fc25dd6b6896e74fb97a2e59b8c17300a3efadce1236ace8",
+      "restarts": 2,
+      "healthy": true
+    },
+    "forensic-records-worker": {
+      "id": "40b6e628d586d5d484468120a8591fdb46a2ecc6f5aac228583067b22811d088",
+      "image": "sha256:0b22a604dbf97443623258072a71f741111a1033a5e274166ea0f5b2f9968d47",
+      "restarts": 5,
+      "healthy": true
+    }
+  }
+}

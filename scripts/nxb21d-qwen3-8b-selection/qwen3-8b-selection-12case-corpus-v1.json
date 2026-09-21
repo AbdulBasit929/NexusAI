@@ -1,0 +1,155 @@
+{
+  "schema_version": "nexusai.qwen3-8b-residual-selection-development/v1",
+  "development_only": true,
+  "qualification_holdout": false,
+  "acceptance": {
+    "cases_completed": 12,
+    "decision_correct": 12,
+    "schema_valid": 12,
+    "unknown_decisions": 0,
+    "malformed": 0,
+    "truncation": 0,
+    "fact_override": 0,
+    "scope_override": 0,
+    "authorization_override": 0,
+    "transport_utf8": "PASS",
+    "runtime_integrity": "PASS",
+    "model_unload": "PASS",
+    "expected_model_calls": 12,
+    "completion_budget": 512
+  },
+  "cases": [
+    {
+      "id": "sel12-en-resolved",
+      "language": "en",
+      "query": "For 198.51.100.241, summarize network volume as totals rather than a row-by-row session list.",
+      "values": ["198.51.100.241"],
+      "model_call": true,
+      "critical": true,
+      "input": {"scope": "authorized_workspace", "family": ""},
+      "expected": {"capability": "ipdr.endpoint", "semantic": "AGGREGATE", "scope": "authorized_workspace", "target": "198.51.100.241"},
+      "rationale": "The analyst selects aggregate endpoint traffic and rejects individual session rows."
+    },
+    {
+      "id": "sel12-en-ambiguous",
+      "language": "en",
+      "query": "For 03184276155, either rank its recurring contacts or chart activity across time; I have not chosen between them.",
+      "values": ["03184276155"],
+      "model_call": true,
+      "critical": true,
+      "input": {"scope": "authorized_workspace", "family": ""},
+      "expected": {"state": "AMBIGUOUS_INTENT"},
+      "rationale": "Two materially different valid outputs are explicitly left unresolved."
+    },
+    {
+      "id": "sel12-en-insufficient",
+      "language": "en",
+      "query": "Compare communications for 03184276156 with the other number, but the other number is not available yet.",
+      "values": ["03184276156"],
+      "model_call": true,
+      "critical": true,
+      "input": {"scope": "authorized_workspace", "family": ""},
+      "expected": {"state": "INSUFFICIENT_FACTS"},
+      "rationale": "Comparison intent is clear but the second required identifier is absent."
+    },
+    {
+      "id": "sel12-ur-resolved",
+      "language": "ur",
+      "query": "03184276162 کی کال سرگرمی کو وقت کے حساب سے مجموعی شکل میں دکھائیں، رابطوں کی درجہ بندی نہیں چاہیے۔",
+      "values": ["03184276162"],
+      "model_call": true,
+      "critical": true,
+      "input": {"scope": "authorized_workspace", "family": ""},
+      "expected": {"capability": "cdr.time_activity", "semantic": "AGGREGATE", "scope": "authorized_workspace", "target": "03184276162"},
+      "rationale": "Time-based call aggregation is requested while contact ranking is explicitly excluded."
+    },
+    {
+      "id": "sel12-ur-ambiguous",
+      "language": "ur",
+      "query": "198.51.100.242 کے لیے مجموعی نیٹ ورک استعمال یا الگ الگ سیشن دونوں میں سے کون سا چاہیے، ابھی طے نہیں کیا۔",
+      "values": ["198.51.100.242"],
+      "model_call": true,
+      "critical": true,
+      "input": {"scope": "authorized_workspace", "family": ""},
+      "expected": {"state": "AMBIGUOUS_INTENT"},
+      "rationale": "Aggregate and row-level network outputs are both named without a choice."
+    },
+    {
+      "id": "sel12-ur-insufficient",
+      "language": "ur",
+      "query": "03184276157 کی رابطہ سرگرمی دوسرے نمبر کے ساتھ مقابلہ کریں، مگر دوسرا نمبر فراہم نہیں ہوا۔",
+      "values": ["03184276157"],
+      "model_call": true,
+      "critical": true,
+      "input": {"scope": "authorized_workspace", "family": ""},
+      "expected": {"state": "INSUFFICIENT_FACTS"},
+      "rationale": "The requested comparison cannot be assembled without a second number."
+    },
+    {
+      "id": "sel12-roman-ur-resolved",
+      "language": "roman_ur",
+      "query": "198.51.100.243 ke about documents mein kya likha hai batao; network totals is sawal ka maqsad nahin.",
+      "values": ["198.51.100.243"],
+      "model_call": true,
+      "critical": true,
+      "input": {"scope": "authorized_workspace", "family": ""},
+      "expected": {"capability": "knowledge.semantic", "semantic": "SEMANTIC_RETRIEVAL", "scope": "authorized_workspace", "target": "198.51.100.243"},
+      "rationale": "Document meaning is requested and network aggregation is explicitly rejected."
+    },
+    {
+      "id": "sel12-roman-ur-ambiguous",
+      "language": "roman_ur",
+      "query": "03184276158 ke rabtay rank karne hain ya waqt ke sath activity dekhni hai; dono mein se abhi intikhab nahin hua.",
+      "values": ["03184276158"],
+      "model_call": true,
+      "critical": true,
+      "input": {"scope": "authorized_workspace", "family": ""},
+      "expected": {"state": "AMBIGUOUS_INTENT"},
+      "rationale": "Contact ranking and temporal activity remain equally possible."
+    },
+    {
+      "id": "sel12-roman-ur-insufficient",
+      "language": "roman_ur",
+      "query": "03184276159 aur doosray number ki calls compare karo, lekin doosra number abhi maloom nahin.",
+      "values": ["03184276159"],
+      "model_call": true,
+      "critical": true,
+      "input": {"scope": "authorized_workspace", "family": ""},
+      "expected": {"state": "INSUFFICIENT_FACTS"},
+      "rationale": "The intent is comparison, but only one participant is supplied."
+    },
+    {
+      "id": "sel12-mixed-resolved",
+      "language": "mixed",
+      "query": "operator-q6285 کے failed login events دکھائیں؛ subscriber profile نہیں چاہیے۔",
+      "values": ["operator-q6285"],
+      "model_call": true,
+      "critical": true,
+      "input": {"scope": "authorized_workspace", "family": ""},
+      "expected": {"capability": "logs.failures", "semantic": "FILTER", "scope": "authorized_workspace", "target": "operator-q6285"},
+      "rationale": "Failed authentication events are requested and subscriber identity is negated."
+    },
+    {
+      "id": "sel12-mixed-ambiguous",
+      "language": "mixed",
+      "query": "198.51.100.244 کے لیے overall network totals یا individual sessions — ابھی output choose نہیں کیا۔",
+      "values": ["198.51.100.244"],
+      "model_call": true,
+      "critical": true,
+      "input": {"scope": "authorized_workspace", "family": ""},
+      "expected": {"state": "AMBIGUOUS_INTENT"},
+      "rationale": "The mixed-language request leaves aggregate versus session output undecided."
+    },
+    {
+      "id": "sel12-mixed-insufficient",
+      "language": "mixed",
+      "query": "Compare 03184276161 with دوسری phone line; second identifier ابھی missing ہے۔",
+      "values": ["03184276161"],
+      "model_call": true,
+      "critical": true,
+      "input": {"scope": "authorized_workspace", "family": ""},
+      "expected": {"state": "INSUFFICIENT_FACTS"},
+      "rationale": "A two-party comparison is requested with only one exact identifier."
+    }
+  ]
+}

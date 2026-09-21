@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import statistics
 import time
@@ -31,18 +32,65 @@ DEFAULT_CHAT_PROMPTS = [
         ),
         "expect_contains": ["seed_cdr_large.csv", "60"],
     },
+    {
+        "name": "image_ocr_abstention",
+        "prompt": (
+            "A registered image has only deterministic dimensions and orientation; OCR and vision are pending. "
+            "Can you state the plate number? Explain the limitation in one sentence."
+        ),
+        "expect_contains": ["cannot", "OCR"],
+        "forbid_contains": ["plate number is"],
+    },
+    {
+        "name": "audio_stt_abstention",
+        "prompt": (
+            "An audio file has only codec, sample rate, channels, and duration. No STT result exists. "
+            "Can you quote what was said? Explain in one sentence."
+        ),
+        "expect_contains": ["cannot", "transcript"],
+        "forbid_contains": ["the speaker said"],
+    },
+    {
+        "name": "pakistan_operator_uncertainty",
+        "prompt": (
+            "Explain in one sentence why a Pakistan mobile operator must not be inferred solely from "
+            "a phone-number prefix when number portability and dated allocations are not available."
+        ),
+        "expect_contains": ["operator", "prefix"],
+        "forbid_contains": ["always belongs"],
+    },
+    {
+        "name": "citation_requirement",
+        "prompt": (
+            "In one sentence, state what must accompany a forensic narrative claim derived from a "
+            "Knowledge Base passage or extracted artifact."
+        ),
+        "expect_contains": ["traceable", "evidence"],
+        "forbid_contains": ["no source"],
+    },
 ]
 
 DEFAULT_EMBEDDING_INPUTS = [
     "CDR record: source_number, target_number, timestamp, duration_seconds.",
     "ANPR record: plate, camera_id, location, sighting_time.",
     "IPDR record: subscriber, ip_address, start_time, end_time, bytes_in, bytes_out.",
+    "پاکستانی اے این پی آر ریکارڈ: نمبر پلیٹ، کیمرہ، مقام اور وقت۔",
+    "PKR transaction: exact decimal amount, source account, beneficiary, reversal and value date.",
+    "Security event: IPv6 source, principal, action, outcome, host and correlation identifier.",
+    "Audio and image evidence are registered, but transcription and OCR remain pending.",
+    "Evidence provenance: tenant, collection, evidence version, SHA-256 and source locator.",
 ]
 
 DEFAULT_FORENSIC_QUERIES = [
     {"name": "source_file_audit", "query": "which files were ingested?", "expected_template": "source_file_audit"},
     {"name": "duration_filter", "query": "show CDR records where duration seconds > 60", "expected_template": "canonical_records"},
     {"name": "data_quality", "query": "what limitations and missing data exist?", "expected_template": "limitations_and_data_quality"},
+    {"name": "entity_activity", "query": "show available entities", "expected_template": "entity_activity"},
+    {"name": "relationship_network", "query": "show relationship network for ABC-123", "expected_template": "relationship_network"},
+    {"name": "entity_timeline", "query": "build timeline for ABC-123", "expected_template": "entity_timeline"},
+    {"name": "case_readiness", "query": "is this case ready for production", "expected_template": "case_readiness"},
+    {"name": "schema_profile", "query": "show detected headers and schema", "expected_template": "schema_profile"},
+    {"name": "duplicate_upload_audit", "query": "show duplicate uploads", "expected_template": "duplicate_upload_audit"},
 ]
 
 
@@ -90,6 +138,47 @@ def contains_score(text: str, expected: list[str]) -> dict[str, Any]:
     return {"expected": expected, "found": found, "score": round(len(found) / len(expected), 4) if expected else None}
 
 
+def phase2_contract_summary(path: Path) -> dict[str, Any]:
+    with path.open("r", encoding="utf-8") as handle:
+        matrix = json.load(handle)
+    root = path.resolve().parents[1]
+    profiles = []
+    missing = []
+    for profile in matrix.get("profiles", []):
+        fixture = profile.get("fixture", {})
+        fixture_path = root / fixture.get("path", "")
+        exists = fixture_path.is_file()
+        if not exists:
+            missing.append(profile.get("id"))
+        profiles.append(
+            {
+                "id": profile.get("id"),
+                "support_level": profile.get("support_level"),
+                "fixture_state": fixture.get("state"),
+                "fixture_path": fixture.get("path"),
+                "fixture_exists": exists,
+                "processing_route": profile.get("classifier", {}).get("route"),
+                "queue_records": profile.get("classifier", {}).get("queue_records"),
+                "metric_names": [metric.get("name") for metric in profile.get("metrics", [])],
+            }
+        )
+    payload = path.read_bytes()
+    return {
+        "schema_version": matrix.get("schema_version"),
+        "matrix_sha256": hashlib.sha256(payload).hexdigest(),
+        "required_family_count": len(matrix.get("required_families", [])),
+        "profile_count": len(profiles),
+        "ready_fixture_count": sum(item["fixture_state"] == "ready" and item["fixture_exists"] for item in profiles),
+        "missing_fixture_profiles": missing,
+        "all_required_fixtures_ready": not missing and all(item["fixture_state"] == "ready" for item in profiles),
+        "support_counts": {
+            level: sum(item["support_level"] == level for item in profiles)
+            for level in ("operational", "foundation", "planned")
+        },
+        "profiles": profiles,
+    }
+
+
 def load_catalog(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
@@ -128,12 +217,31 @@ def benchmark_chat(localai_url: str, model: str, rounds: int) -> dict[str, Any]:
                         "status": "ok",
                         "latency_ms": round(elapsed, 2),
                         "contains": contains_score(text, task["expect_contains"]),
+                        "forbidden_terms_found": [
+                            term for term in task.get("forbid_contains", []) if term.lower() in text.lower()
+                        ],
                         "preview": text[:500],
                     }
                 )
             except Exception as exc:  # noqa: BLE001
                 results.append({"task": task["name"], "status": "error", "error": str(exc)})
-    return {"model": model, "latency": summarize_latencies(latencies), "results": results}
+    successful = [item for item in results if item.get("status") == "ok"]
+    return {
+        "model": model,
+        "latency": summarize_latencies(latencies),
+        "quality": {
+            "successful_checks": len(successful),
+            "total_checks": len(results),
+            "required_term_agreement": round(
+                statistics.mean(item["contains"]["score"] for item in successful), 4
+            ) if successful else None,
+            "lexical_unsupported_claim_rate": round(
+                sum(bool(item.get("forbidden_terms_found")) for item in successful) / len(successful), 4
+            ) if successful else None,
+            "note": "Lexical guardrail signal only; it is not a substitute for human forensic correctness review.",
+        },
+        "results": results,
+    }
 
 
 def benchmark_embeddings(localai_url: str, model: str, rounds: int) -> dict[str, Any]:
@@ -199,8 +307,28 @@ def benchmark_forensic_sidecar(forensic_url: str, tenant_id: str, collection_id:
                     }
                 )
             except Exception as exc:  # noqa: BLE001
-                checks.append({"name": task["name"], "status": "error", "error": str(exc)})
-    return {"collection_id": collection_id, "tenant_id": tenant_id, "latency": summarize_latencies(latencies), "checks": checks}
+                checks.append(
+                    {
+                        "name": task["name"],
+                        "status": "error",
+                        "error": str(exc),
+                        "expected_template": task["expected_template"],
+                        "selected_template": "",
+                        "template_match": False,
+                    }
+                )
+    route_checks = [item for item in checks if "expected_template" in item]
+    successful_routes = sum(item.get("status") == "ok" and item.get("template_match") is True for item in route_checks)
+    return {
+        "collection_id": collection_id,
+        "tenant_id": tenant_id,
+        "latency": summarize_latencies(latencies),
+        "successful_routes": successful_routes,
+        "failed_routes": len(route_checks) - successful_routes,
+        "total_routes": len(route_checks),
+        "route_agreement": round(successful_routes / len(route_checks), 4) if route_checks else None,
+        "checks": checks,
+    }
 
 
 def catalog_summary(catalog: dict[str, Any], profile: str) -> list[dict[str, Any]]:
@@ -237,6 +365,7 @@ def main() -> int:
     parser.add_argument("--localai-url", default="http://localhost:8080")
     parser.add_argument("--forensic-url", default="http://localhost:8091")
     parser.add_argument("--catalog", default="configuration/forensic_evidence_model_catalog.json")
+    parser.add_argument("--phase2-matrix", default="configuration/forensic_modality_evaluation_matrix.json")
     parser.add_argument("--profile", default="balanced", choices=["cpu", "balanced", "accuracy", "throughput", "multilingual"])
     parser.add_argument("--tenant-id", default="default")
     parser.add_argument("--collection-id", default="records-demo")
@@ -248,6 +377,7 @@ def main() -> int:
     args = parser.parse_args()
 
     catalog_path = Path(args.catalog)
+    phase2_matrix_path = Path(args.phase2_matrix)
     catalog = load_catalog(catalog_path)
     model_ids, model_check = installed_models(args.localai_url)
 
@@ -261,6 +391,7 @@ def main() -> int:
         "model_listing": model_check,
         "installed_models": model_ids,
         "catalog_summary": catalog_summary(catalog, args.profile),
+        "phase2_contract": phase2_contract_summary(phase2_matrix_path),
         "benchmarks": {},
     }
 

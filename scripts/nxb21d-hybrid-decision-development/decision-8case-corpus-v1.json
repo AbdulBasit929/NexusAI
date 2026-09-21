@@ -1,0 +1,183 @@
+{
+  "schema_version": "nexusai.hybrid-decision-development/v1",
+  "development_only": true,
+  "qualification_holdout": false,
+  "acceptance": {
+    "http_success": 8,
+    "strict_utf8": 8,
+    "valid_envelope": 8,
+    "valid_one_field_decision": 8,
+    "extra_fields": 0,
+    "malformed": 0,
+    "unknown_decisions": 0,
+    "truncation": 0,
+    "finish_reason_length": 0,
+    "resolved_correct": 4,
+    "clarification_correct": 4,
+    "deterministic_fact_integrity": "100%",
+    "final_outcomes_correct": 8,
+    "audit_layers": 3,
+    "runtime_integrity": "PASS",
+    "receipt": "single immutable final seal; sidecar match; no post-hash write",
+    "expected_model_calls": 8,
+    "completion_budget": 512
+  },
+  "cases": [
+    {
+      "id": "dec8-en-resolved",
+      "language": "en",
+      "query": "Condense the network usage linked to 192.0.2.183 into totals rather than individual connection rows.",
+      "values": [
+        "192.0.2.183"
+      ],
+      "model_call": true,
+      "critical": true,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": ""
+      },
+      "expected": {
+        "capability": "ipdr.endpoint",
+        "semantic": "AGGREGATE",
+        "scope": "authorized_workspace",
+        "target": "192.0.2.183"
+      },
+      "rationale": "Aggregate network usage, not session listing."
+    },
+    {
+      "id": "dec8-en-clarify",
+      "language": "en",
+      "query": "For 192.0.2.184, I might need overall network totals or each connection separately; I have not decided which output to request.",
+      "values": [
+        "192.0.2.184"
+      ],
+      "model_call": true,
+      "critical": true,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": ""
+      },
+      "expected": {
+        "state": "AMBIGUOUS_INTENT"
+      },
+      "rationale": "Two explicit alternative outputs without a selected intent."
+    },
+    {
+      "id": "dec8-ur-resolved",
+      "language": "ur",
+      "query": "03258740691 کی فون گفتگو کا وقت کے لحاظ سے مجموعی رجحان دکھائیں، کسی ایک رابطے کی شناخت مطلوب نہیں۔",
+      "values": [
+        "03258740691"
+      ],
+      "model_call": true,
+      "critical": true,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": ""
+      },
+      "expected": {
+        "capability": "cdr.time_activity",
+        "semantic": "AGGREGATE",
+        "scope": "authorized_workspace",
+        "target": "03258740691"
+      },
+      "rationale": "Time distribution of calls, not identity lookup."
+    },
+    {
+      "id": "dec8-ur-clarify",
+      "language": "ur",
+      "query": "موازنہ 03258740692 اور دوسری طرف کے نمبر کے درمیان چاہیے، مگر دوسری طرف کا نمبر میرے پاس ابھی نہیں ہے۔",
+      "values": [
+        "03258740692"
+      ],
+      "model_call": true,
+      "critical": true,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": ""
+      },
+      "expected": {
+        "state": "INSUFFICIENT_FACTS"
+      },
+      "rationale": "Comparison intent is stated but second required entity is absent."
+    },
+    {
+      "id": "dec8-roman_ur-resolved",
+      "language": "roman_ur",
+      "query": "operator-z684 ke failed login waqiat ki entries chahiye; subscriber ki tafseel is sawal ka maqsad nahin hai.",
+      "values": [
+        "operator-z684"
+      ],
+      "model_call": true,
+      "critical": true,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": ""
+      },
+      "expected": {
+        "capability": "logs.failures",
+        "semantic": "FILTER",
+        "scope": "authorized_workspace",
+        "target": "operator-z684"
+      },
+      "rationale": "Negated subscriber alternative must not displace affirmative login failure request."
+    },
+    {
+      "id": "dec8-roman_ur-clarify",
+      "language": "roman_ur",
+      "query": "03258740693 ke liye ya rabton ki darja bandi chahiye ya waqt ke hisab se kul sargarmi; abhi in dono mein se maqsad tay nahin hua.",
+      "values": [
+        "03258740693"
+      ],
+      "model_call": true,
+      "critical": true,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": ""
+      },
+      "expected": {
+        "state": "AMBIGUOUS_INTENT"
+      },
+      "rationale": "Contact ranking versus temporal aggregation left undecided."
+    },
+    {
+      "id": "dec8-mixed-resolved",
+      "language": "mixed",
+      "query": "What do the documents say about 192.0.2.186? مجھے متعلقہ تحریر کا مفہوم چاہیے، network totals نہیں۔",
+      "values": [
+        "192.0.2.186"
+      ],
+      "model_call": true,
+      "critical": true,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": ""
+      },
+      "expected": {
+        "capability": "knowledge.semantic",
+        "semantic": "SEMANTIC_RETRIEVAL",
+        "scope": "authorized_workspace",
+        "target": "192.0.2.186"
+      },
+      "rationale": "Semantic retrieval of documentary statements about the identifier, not network aggregation."
+    },
+    {
+      "id": "dec8-mixed-clarify",
+      "language": "mixed",
+      "query": "192.0.2.185 اور peer address کے درمیان sessions compare کریں؛ peer address ابھی فراہم نہیں کیا گیا۔",
+      "values": [
+        "192.0.2.185"
+      ],
+      "model_call": true,
+      "critical": true,
+      "input": {
+        "scope": "authorized_workspace",
+        "family": ""
+      },
+      "expected": {
+        "state": "INSUFFICIENT_FACTS"
+      },
+      "rationale": "Missing peer for requested comparison; unrelated single-endpoint summary is not an answer."
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "schema_version": "nexusai.qwen3-8b-final-local-selection12-operator/v1",
+  "gate_id": "nxb21d-qwen3-8b-final-local-selection12-20260908T100500Z",
+  "development_only": true,
+  "qualification_holdout": false,
+  "completion_budget": 512,
+  "model": {
+    "id": "qwen3-8b-q4km-nxb21d-selection-lowmem-dev",
+    "artifact_path": "local-acceptance-models/nxb21-d/challengers/qwen3-8b-q4km/Qwen3-8B-Q4_K_M.gguf",
+    "artifact_bytes": 5027783488,
+    "artifact_sha256": "d98cdcbd03e17ce47681435b5150e34c1417f50b5c0019dd560e4882c5745785",
+    "profile_path": "local-acceptance-models/nxb21-d/challengers/qwen3-8b-q4km/qwen3-8b-q4km-nxb21d-selection-lowmem-dev.yaml",
+    "profile_sha256": "672f8e2c29f162cdc74a8a8dfe7129955436c771db454b0a3ebb20a3bf9b560a",
+    "context": 1536,
+    "requested_batch": 128,
+    "known_effective_n_batch": 512,
+    "threads": 4,
+    "parallel": 1,
+    "gpu_layers": 0
+  },
+  "corpus": {
+    "path": "scripts/nxb21d-qwen3-8b-lowmem-selection/final-local-selection12/qwen3-8b-final-local-selection12-corpus-v1.json",
+    "sha256": "1fdd47b3112e910c9a9850a0cdca16db2240a12e8a9209676b0e60035d4f2d6d",
+    "bindings_path": "scripts/nxb21d-qwen3-8b-lowmem-selection/final-local-selection12/source-bindings-v1.json",
+    "bindings_sha256": "6d5a57e240a76b07ebfa729d3a92a0df0d875e405133ed2674c582d4d1ed5e22",
+    "validator": "scripts/nxb21d-qwen3-8b-lowmem-selection/fresh-selection12/validate_fresh_selection12.py",
+    "freshness_path": "reports/nxb21/d-qwen3-8b-final-local-selection12-freshness-v1.json",
+    "freshness_sha256": "d9c01a896f18b12bdb9318f8362fb7ad3a41750672e36b2a3cc05bc290589087",
+    "files_scanned": 2035
+  },
+  "evaluator": {
+    "path": "scripts/nxb21d-qwen3-8b-lowmem-selection/final-local-selection12/nxb21d-final-local-selection12-evaluator.exe",
+    "sha256": "130ffac7fcfeb01c57b713cf171dc27d4b9f54a0fde5a7b69796a1dc9875588d",
+    "final_warm_build_seconds": 0.766,
+    "final_warm_build_peak_toolchain_mib": 52.0,
+    "observed_cold_compile_and_source_admission_seconds": 114.375,
+    "observed_prebuild_peak_toolchain_mib": 535.9,
+    "prebuilt_source_admission_seconds": 0.621,
+    "live_gate_uses_prebuilt_evaluator": true
+  },
+  "resource": {
+    "minimum_before_load_gib": 6,
+    "preload_consecutive_samples": 3,
+    "preload_sample_interval_seconds": 5,
+    "preload_settling_limit_seconds": 180,
+    "minimum_loaded_gib": 4,
+    "loaded_settling_limit_seconds": 180,
+    "measure_script": "scripts/nxb21d-qwen3-8b-lowmem-selection/final-local-selection12/measure_final_selection_ram.ps1",
+    "governed_ram_script": "scripts/nxb21d-hybrid-development/check_hybrid_ram.ps1"
+  },
+  "runtime_path": "scripts/nxb21d-qwen3-8b-lowmem-selection/fresh-selection12/runtime-baseline.json",
+  "output_root": "local-acceptance-models/nxb21-d/qwen3-8b-final-local-selection12-development-runs",
+  "prior_consumed_failure": {
+    "receipt_sha256": "346a519e8e83ee18ade6ffb9a3a740ed7203f5fe07d5b0c102fcc6d32330f107",
+    "adjudication": "RESOURCE_ADMISSION_FAILURE_MODEL_LOADED_RAM_BELOW_4_GIB",
+    "model_quality": "INSUFFICIENT_EVIDENCE"
+  },
+  "frozen_files": {
+    "api/forensic_records/contracts/query-capability-references-v1.json": "085982f58e9f3560f9f7291db45e520c4008ed9c492005e8e9f542cd9aa35ca0",
+    "api/forensic_records/nxb21d_hybrid_development_ginkgo_test.go": "b403b6a713c710fda7d0eb34887fc30f450b98fc41168ca1c926d2f96a5b89b0",
+    "api/forensic_records/nxb21d_qwen3_8b_selection_ginkgo_test.go": "e30048edc0e4759ca42414df2cc125a4545c5f0496ae59d25ee977fbba49e6ed",
+    "api/forensic_records/query.go": "9108703f7c6979fc6b50e05c6fb9a5c2b43fc854816f9640c04783fd4502580a",
+    "api/forensic_records/query_capability_references.go": "4c32909704d2f4bd2d0fd12928885a2c4fc5c37cd9c8d60278d7e89075e2f7a8",
+    "api/forensic_records/query_hybrid_planner.go": "c327ea8b2e63ef18b7bcbee923ce9253ed1ff4ae247902cfaadfa9156f0be459",
+    "api/forensic_records/query_language_assistance.go": "f2d960f68867576d17b667242a59c27e1d0bd70a1fc090e365fc9c60c7825760",
+    "scripts/nxb21d-development/byte_safe_transport.ps1": "9deed398e86e0347afc33964c47b8f4e489cc88372a77d16b4ba9ef8ed4a8c64",
+    "scripts/nxb21d-hybrid-decision-development/decision-contract-v2.json": "77cf966bb4011a638fdc547669bc535f6f6f4595053907e79b15e31c60919c80",
+    "scripts/nxb21d-hybrid-development/check_hybrid_ram.ps1": "cb11349e966ce43155707d13d2b448a998e64a71201a4624fc85a704ce63afc6",
+    "scripts/nxb21d-hybrid-development/immutable_receipt.ps1": "143d28f7b419da73a032aaa754d4279d7245a69eef3e0949d238fc9049d9b067",
+    "scripts/nxb21d-offline/common.ps1": "60a73fb2d08c4d7c76b84c5f788a3d47706b2a708074b41195e6cf64b532c874",
+    "scripts/nxb21d-qwen3-8b-lowmem-selection/final-local-selection12/measure_final_selection_ram.ps1": "2506eff43a849159c62d1919f433628f4b7a1f651862a9bd4e8f92bd732dbfe0",
+    "scripts/nxb21d-qwen3-8b-lowmem-selection/final-local-selection12/run_final_local_selection12_development.ps1": "6c0b2afbd901e5f4e14fb7faea37dce803bdad88305ba4e3d7bab2e2f49ff7f9",
+    "scripts/nxb21d-qwen3-8b-lowmem-selection/final-local-selection12/test_final_local_selection12_framework.ps1": "a3295b823b9bdf4b9e5567ef9563e9d9b030afd78cfd9ae1b757cef82a3c8763",
+    "scripts/nxb21d-qwen3-8b-lowmem-selection/fresh-selection12/runtime-baseline.json": "6e6dde8c3c4a1dbda4c888d7fb4346c898944ddaa49072879054a7eb0d29783e",
+    "scripts/nxb21d-qwen3-8b-lowmem-selection/fresh-selection12/validate_fresh_selection12.py": "8ccc4cd75c24720078a3bbc23009ed5cc95986b0186c0757d231ec9b6d4895fb"
+  }
+}

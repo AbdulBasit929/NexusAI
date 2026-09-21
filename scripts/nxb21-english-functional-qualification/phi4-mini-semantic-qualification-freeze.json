@@ -1,0 +1,51 @@
+{
+  "contract_version": "nexusai.phi4-mini-semantic-qualification-freeze/v1",
+  "frozen_at": "2026-09-15",
+  "quality_evidence": "BOUNDED_SEMANTIC_QUALIFICATION_ONLY",
+  "model": {
+    "upstream_id": "microsoft/Phi-4-mini-instruct",
+    "role": "SEMANTIC_PLANNER_ONLY",
+    "id": "phi4-mini-instruct-nxb21d-semantic",
+    "download_source": "https://huggingface.co/bartowski/microsoft_Phi-4-mini-instruct-GGUF/resolve/faffc28d86d0c0781b4ec92d30e400a6d350a53b/microsoft_Phi-4-mini-instruct-Q4_K_M.gguf",
+    "artifact_path": "/models/microsoft_Phi-4-mini-instruct-Q4_K_M.gguf",
+    "artifact_bytes": 2491874688,
+    "artifact_sha256": "01999f17c39cc3074afae5e9c539bc82d45f2dd7faa3917c66cbef76fce8c0c2",
+    "profile_path": "/models/phi4-mini-instruct-nxb21d-semantic.yaml",
+    "profile_sha256": "c4a409b6d456cf86731c3f204f193871139260e9f36cc6a15c93a765ff2a1a74",
+    "license": "MIT",
+    "chat_template": "GGUF_EMBEDDED_PHI4_VIA_TOKENIZER_TEMPLATE",
+    "context": 4096,
+    "threads": 8,
+    "parallel": 1,
+    "gpu_layers": 0
+  },
+  "resource": {
+    "admission_floor_gib": 8.627,
+    "policy": "UNCHANGED_CONSERVATIVE_CURRENT_4B_ADMISSION"
+  },
+  "runtime": {
+    "localai_url": "http://127.0.0.1:8080",
+    "analyst_url": "http://127.0.0.1:8080/analyst"
+  },
+  "reload_envelope": {
+    "contract_version": "nexusai.current4b-model-resource-envelope/v1",
+    "state": "CONSERVATIVE_CURRENT_4B_BOUND_REUSED_FOR_APPROVED_SMALLER_CANDIDATE",
+    "measured_peak_delta_gib": 4.677,
+    "selected_reserve_gib": 3.5,
+    "load_margin_gib": 0.25,
+    "reload_admission_gib": 8.5,
+    "reload_commit_reserve_gib": 6.9,
+    "quiet_paging_pages_per_second": 127,
+    "unloaded_backend_rss_mib": 533.898
+  },
+  "qualification": {
+    "registered_cases": 5,
+    "dynamic_cases": 2,
+    "terminal_cases": 3,
+    "synthesis_cases": 0,
+    "semantic_p95_target_ms": 30000,
+    "semantic_individual_max_ms": 180000,
+    "second_model_downloaded": false,
+    "new_formal_proof_created": false
+  }
+}

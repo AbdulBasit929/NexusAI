@@ -1,0 +1,20 @@
+{
+  "http_success": 8,
+  "strict_utf8": 8,
+  "valid_envelope": 8,
+  "valid_one_field_decision": 8,
+  "extra_fields": 0,
+  "malformed": 0,
+  "unknown_decisions": 0,
+  "truncation": 0,
+  "finish_reason_length": 0,
+  "resolved_correct": 4,
+  "clarification_correct": 4,
+  "deterministic_fact_integrity": "100%",
+  "final_outcomes_correct": 8,
+  "audit_layers": 3,
+  "runtime_integrity": "PASS",
+  "receipt": "single immutable final seal; sidecar match; no post-hash write",
+  "expected_model_calls": 8,
+  "completion_budget": 512
+}

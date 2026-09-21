@@ -1,0 +1,17 @@
+{
+  "captured_at_utc": "2026-09-08T07:04:12Z",
+  "localai_url": "http://127.0.0.1:8080",
+  "container": "nexusai-api-1",
+  "retained_tuple": "67|67|80|22510|863|66",
+  "activity_count": 344,
+  "active_jobs": 0,
+  "loaded_models": ["face-detect-yunet-sface", "qwen3-embedding-0.6b"],
+  "analyst_index_sha256": "780fdefe6522e65371ff092004df933a99a1daaf6b6191e453b30cde43bec963",
+  "containers": {
+    "api": {"id": "13bff1431632606d04dc4550cd199e541632ad9ef34b6f96f903fa30b16e5e40", "image": "sha256:bed2eec364ca8c65151625685f79f5ab7a606a8223af88d1696504751b4a03a1", "restarts": 0},
+    "forensic-records-api": {"id": "ffd93bf51ecad0bc61271dfad0576b852057cd85f85aa8221534e3250ef1c11b", "image": "sha256:828e4b03e02979c3fc25dd6b6896e74fb97a2e59b8c17300a3efadce1236ace8", "restarts": 6},
+    "forensic-records-worker": {"id": "40b6e628d586d5d484468120a8591fdb46a2ecc6f5aac228583067b22811d088", "image": "sha256:0b22a604dbf97443623258072a71f741111a1033a5e274166ea0f5b2f9968d47", "restarts": 4},
+    "forensic-postgres": {"id": "f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361", "image": "sha256:61f891691050da6032023c01ea885730eeeba06b7c17b403e7d0b9c49c37dfe9", "restarts": 0},
+    "forensic-nats": {"id": "5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04", "image": "sha256:e4bf19f15fd3218814a4e3c9e0064e1334bd8aa20d5984b9f1a0afd084f8cc00", "restarts": 0}
+  }
+}

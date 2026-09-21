@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NX-MMR Human Verification</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <div>
+      <p class="eyebrow">LOCAL · GOLD LABEL ONLY</p>
+      <h1>NX-MMR Human Verification</h1>
+      <p>No predictions, external uploads, product database writes, or retained activity.</p>
+    </div>
+    <div id="statusPill" class="pill">Loading…</div>
+  </header>
+
+  <section class="reviewer-bar">
+    <label>Reviewer <input id="reviewer" maxlength="100" placeholder="Your name or reviewer ID"></label>
+    <button id="saveReviewer">Set reviewer</button>
+    <span id="progress"></span>
+  </section>
+
+  <nav aria-label="Review stages">
+    <button data-view="images" class="active">1 · Images</button>
+    <button data-view="video">2 · Video</button>
+    <button data-view="speech">3 · Speech</button>
+    <button data-view="finish">4 · Finish</button>
+  </nav>
+
+  <main>
+    <section id="images" class="view active">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow" id="imageStage"></p>
+          <h2 id="imageTitle">Image review</h2>
+        </div>
+        <div class="button-row">
+          <button id="previousImage" class="secondary">Previous</button>
+          <button id="nextImage" class="secondary">Next</button>
+        </div>
+      </div>
+      <div class="image-layout">
+        <div class="media-panel">
+          <img id="reviewImage" alt="Original source image under review">
+          <div id="imageMeta" class="meta"></div>
+        </div>
+        <div class="form-panel">
+          <div id="independenceGate" class="gate">
+            <h3>Independence check</h3>
+            <p>Before this review, did you see this exact image together with any candidate model output?</p>
+            <div class="button-row">
+              <button id="markUnseen">No — output not seen</button>
+              <button id="markSeen" class="danger">Yes — exclude and replace</button>
+            </div>
+          </div>
+          <form id="imageForm" hidden>
+            <label>Plate present?
+              <select id="platePresence" required><option value="">Choose…</option><option value="yes">Yes</option><option value="no">No</option></select>
+            </label>
+            <label>Number of visible plates <input id="plateCount" type="number" min="0" max="20" value="0" required></label>
+            <label>Exact plate text <span class="hint">one plate per line; blank if unreadable</span>
+              <textarea id="plateText" rows="3" spellcheck="false"></textarea>
+            </label>
+            <label>Readability
+              <select id="readability" required><option value="">Choose…</option><option value="readable">Readable</option><option value="partial">Partially readable</option><option value="unreadable">Unreadable</option><option value="not_applicable">Not applicable</option></select>
+            </label>
+            <label>Optional difficulty
+              <select id="difficulty"><option value="">Not set</option><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select>
+            </label>
+            <label>Optional notes <textarea id="imageNotes" rows="2"></textarea></label>
+            <button type="submit">Save &amp; next</button>
+          </form>
+          <button id="freezeDevelopment" class="finish-button" hidden>Freeze 10 development labels &amp; open holdout</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="video" class="view">
+      <div class="section-heading"><div><p class="eyebrow">60.010 SECOND SOURCE</p><h2>Video event review</h2></div></div>
+      <p>Watch the original once. Mark the start and end of each plate-visible event. Negative intervals can also be saved explicitly.</p>
+      <video id="reviewVideo" controls preload="metadata"></video>
+      <div class="time-strip">
+        <span>Current: <strong id="videoCurrent">0.000</strong>s</span>
+        <button id="previousFrame" class="secondary">−1 frame</button>
+        <button id="nextFrame" class="secondary">+1 frame</button>
+        <button id="setStart" class="secondary">Mark plate start</button><output id="startValue">0.000</output>
+        <button id="setEnd" class="secondary">Mark plate end</button><output id="endValue">0.000</output>
+      </div>
+      <form id="videoForm" class="grid-form">
+        <label>Interval type <select id="eventType"><option value="plate">Plate visible</option><option value="negative">Confirmed negative</option></select></label>
+        <label>Plate count <input id="eventPlateCount" type="number" min="0" max="20" value="1"></label>
+        <label>Plate text <textarea id="eventPlateText" rows="2" spellcheck="false"></textarea></label>
+        <label>Readability <select id="eventReadability"><option value="readable">Readable</option><option value="partial">Partial</option><option value="unreadable">Unreadable</option></select></label>
+        <label>Optional notes <textarea id="eventNotes" rows="2"></textarea></label>
+        <button type="submit">Save interval</button>
+      </form>
+      <div id="videoEvents" class="records"></div>
+      <div class="attestation">
+        <label><input id="watchedFullVideo" type="checkbox"> I watched the full source once and recorded all visible plate events.</label>
+        <label>Optional review notes <input id="videoNotes"></label>
+        <button id="saveVideoReview">Save video attestation</button>
+      </div>
+    </section>
+
+    <section id="speech" class="view">
+      <div class="section-heading"><div><p class="eyebrow">AUDIO ENERGY ONLY · NO ASR</p><h2>Bounded speech review</h2></div></div>
+      <p>The browser proposes bounded intervals from signal energy only. You decide speech presence and enter raw verbatim text. Roman Urdu is not accepted as the raw Urdu oracle.</p>
+      <audio id="reviewAudio" controls preload="metadata"></audio>
+      <button id="findSpeech">Find speech candidates by audio energy</button>
+      <p id="vadStatus" class="meta"></p>
+      <div id="speechCard"></div>
+      <div class="button-row">
+        <button id="previousSpeech" class="secondary">Previous segment</button>
+        <button id="nextSpeech" class="secondary">Next segment</button>
+      </div>
+    </section>
+
+    <section id="finish" class="view">
+      <div class="section-heading"><div><p class="eyebrow">LOCK BEFORE COMPARISON</p><h2>Ground-truth validation</h2></div></div>
+      <div id="validation"></div>
+      <button id="finishReview" class="finish-button">Finish and lock gold labels</button>
+      <p class="hint">After locking, this utility remains read-only. Candidate comparison is intentionally separate.</p>
+    </section>
+  </main>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="/app.js"></script>
+</body>
+</html>

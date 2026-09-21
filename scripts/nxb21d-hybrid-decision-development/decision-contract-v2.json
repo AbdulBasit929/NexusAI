@@ -1,0 +1,12 @@
+{
+  "contract_version": "forensics.hybrid-decision/v2",
+  "model_fields": [
+    "decision"
+  ],
+  "allowed_values": "server-issued tuple IDs or CLARIFY:AMBIGUOUS_INTENT or CLARIFY:INSUFFICIENT_FACTS",
+  "cross_field_model_state": false,
+  "confidence_model_owned": false,
+  "exact_case_schemas": "schema-bindings-v1.json",
+  "production_schema_function": "hybridResidualSchema",
+  "production_decoder": "decodeHybridResidual"
+}

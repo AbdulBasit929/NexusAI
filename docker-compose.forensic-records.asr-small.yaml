@@ -1,0 +1,5 @@
+services:
+  forensic-records-worker:
+    environment:
+      FORENSIC_ASR_ENABLED: "true"
+      FORENSIC_ASR_MODEL: faster-whisper-small-ur

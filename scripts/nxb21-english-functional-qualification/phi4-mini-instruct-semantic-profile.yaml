@@ -1,0 +1,29 @@
+name: phi4-mini-instruct-nxb21d-semantic
+backend: llama-cpp
+context_size: 4096
+threads: 8
+gpu_layers: 0
+f16: true
+mmap: true
+temperature: 0
+top_k: 20
+top_p: 0.95
+min_p: 0
+repeat_penalty: 1.0
+known_usecases:
+  - chat
+options:
+  - "use_jinja:true"
+  - "parallel:1"
+parameters:
+  model: microsoft_Phi-4-mini-instruct-Q4_K_M.gguf
+  f16: true
+  mmap: true
+template:
+  use_tokenizer_template: true
+function:
+  grammar:
+    disable: true
+stopwords:
+  - <|end|>
+  - <|endoftext|>

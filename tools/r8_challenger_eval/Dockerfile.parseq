@@ -1,0 +1,18 @@
+FROM nexusai/r8-easyocr-eval:1.7.2-cpu
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+RUN python -m pip install --no-cache-dir \
+      pytorch-lightning==1.9.5 \
+      torchmetrics==0.11.4 \
+      timm==0.4.12 \
+      nltk==3.9.1 \
+      PyYAML==6.0.3 \
+      Pillow==12.1.1
+
+COPY tools/r8_challenger_eval/run_parseq.py /opt/nexusai-r8/run_parseq.py
+RUN python -c "import torch, torchvision, pytorch_lightning, timm, PIL; print(torch.__version__, torchvision.__version__, pytorch_lightning.__version__, timm.__version__, PIL.__version__)"
+
+ENTRYPOINT ["python", "/opt/nexusai-r8/run_parseq.py"]

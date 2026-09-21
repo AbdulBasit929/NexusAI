@@ -1,0 +1,19 @@
+{
+  "contract_version": "nexusai.phi4-mini-semantic-prepared-binary-freeze/v1",
+  "prepared_from_run": "run-20260915T105152240Z-dd155bb5",
+  "live_inference": false,
+  "source_regression": "PASS",
+  "retrieval_precheck": "PASS 5/5",
+  "variant_ledger_top5_recall": "96.35% (132/137)",
+  "server_rejection_compatibility": "PASS",
+  "source_manifest": "local-acceptance-models/nxb21-phi4-mini-instruct-semantic/run-20260915T105152240Z-dd155bb5/qualification-source-manifest.json",
+  "source_manifest_sha256": "2d7583354e80ab5ded41fdb51b25a9f78fcb6c7269701e66dc041c57c1bc2113",
+  "binary": "local-acceptance-models/nxb21-phi4-mini-instruct-semantic/phi-semantic-qualification.test.exe",
+  "binary_bytes": 48183808,
+  "binary_sha256": "c2b1b21e007253db12658066e0320e62ce884c54922fcc5ee744b025b4e6ce63",
+  "allowed_manifest_drift": [
+    "scripts/nxb21-english-functional-qualification/run_phi4_mini_semantic_qualification.ps1",
+    "scripts/nxb21-english-functional-qualification/phi4-mini-semantic-qualification-freeze.json"
+  ],
+  "reason": "Avoid repeating the already-passed no-inference regression/build immediately before the unchanged physical-RAM admission gate. The runner and its LocalAI profile identity freeze are orchestration inputs outside the compiled Go binary; every compiled-source manifest entry remains exact."
+}

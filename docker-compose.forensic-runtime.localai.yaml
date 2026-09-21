@@ -1,0 +1,21 @@
+services:
+  api:
+    image: ${NEXUSAI_LOCALAI_RUNTIME_IMAGE:-nexusai/localai-forensic:phase3-runtime}
+    build:
+      # Bound local Go compilation on the 16 GiB Windows reference laptop so
+      # Docker remains responsive while Codex and the host OS are running.
+      args:
+        LOCALAI_BUILD_GOMAXPROCS: "4"
+        LOCALAI_BUILD_GOFLAGS: "-p=2"
+    environment:
+      FORENSIC_RECORDS_API_URL: http://host.docker.internal:8091
+      FORENSIC_RECORDS_API_KEY: ${FORENSIC_RECORDS_API_KEY:?FORENSIC_RECORDS_API_KEY is required}
+      FORENSIC_RECORDS_TENANT_ID: ${FORENSIC_RECORDS_TENANT_ID:-default}
+      # Explicit accountable identity for this intentionally local no-auth UI.
+      # Authenticated deployments ignore these values and forward the real user.
+      FORENSIC_RECORDS_PROXY_ACTOR_ID: ${FORENSIC_RECORDS_PROXY_ACTOR_ID:-nexusai-local-operator}
+      FORENSIC_RECORDS_PROXY_ACTOR_ROLE: ${FORENSIC_RECORDS_PROXY_ACTOR_ROLE:-admin}
+      # R6.3 retained case-analysis history. This must point at PostgreSQL and
+      # is intentionally explicit so production operators can supply a
+      # dedicated credential; the local reference profile may use its owner URL.
+      LOCALAI_AGENT_POOL_DATABASE_URL: ${NEXUSAI_AGENT_HISTORY_DATABASE_URL:?NEXUSAI_AGENT_HISTORY_DATABASE_URL is required}

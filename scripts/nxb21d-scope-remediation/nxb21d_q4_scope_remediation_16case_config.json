@@ -1,0 +1,108 @@
+{
+  "schema_version": "nexusai.nxb21d-q4-scope-remediation-16case-development-operator/v1",
+  "development_only": true,
+  "qualification_holdout": false,
+  "candidate": {
+    "candidate_id": "nxb21d-q4-explicit-scope-authority-r1",
+    "identity_sha256": "ba17c5c688eaa567ce2d006d8a0a80948a4e01e1b3c62f0765c84aeaa4d9d23a",
+    "identity_algorithm": "sha256 of ordered LF-terminated key=value tuple verified by runner and source tests",
+    "model_name": "qwen3-4b-instruct-2507-q4km-nxb21d-dev",
+    "artifact_path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/Qwen_Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+    "artifact_bytes": 2497280736,
+    "artifact_sha256": "2fde00ce69dd4899c70d020845e2638353015bba0fdf161b3eb965f2bca4464e",
+    "profile_path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/qwen3-4b-instruct-2507-q4km-nxb21d-dev.yaml",
+    "profile_sha256": "30d3bcd8c92684e191277dad992354323b7e46c7d30d3c69149010e90f117129",
+    "q8_profile_sha256": "ef036e0a02cc5e8331dc4dff41c0e0cb68e6e0bda71d92b92f47f673472e666f",
+    "prompt_path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/localai-dev-results/12case-smoke/planner-system.txt",
+    "prompt_sha256": "3ce8225e30beacb51430dc1f377ee58fbb0e5f2746a44660e099dddac9fc67bc",
+    "schema_path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/localai-dev-results/12case-smoke/planner-schema.json",
+    "schema_sha256": "be217f9e6ddec85131e5b0f60ac8f4050d18b5632e838b1560bc6b1067a3d731",
+    "implementation_path": "api/forensic_records/query_language_assistance.go",
+    "implementation_sha256": "f22d4d9bc340ba60eb395790fecfb7499f417c0a48fea3d26be6687fe095706b",
+    "bridge_path": "api/forensic_records/query.go",
+    "bridge_sha256": "b50de13eedffd19ab4731493e8f4828a24fd28e9d9724f5aaf234c34701dda7e",
+    "shared_scope_path": "pkg/forensictext/query.go",
+    "shared_scope_sha256": "beda1fb828ab4d400afc5be008ee921ba11f77ba68f243e350a066bdc0055e97",
+    "api_scope_path": "api/forensic_records/d_dynamic_planner.go",
+    "api_scope_sha256": "e85bee4b81c7ba681470dba0dbf1b7b903c7ec65d76c34efc9f64d5615ae8b3f",
+    "agent_scope_path": "core/services/agents/forensic_direct.go",
+    "agent_scope_sha256": "383b36623ee7f1530ddd782715bf5d84f6f0840748dc13ef26fe16dea1aa994f",
+    "authority_path": "scripts/nxb21d-remediation/exact_identifier_authority.ps1",
+    "authority_sha256": "216b0ec4e2b69c5482c65a3eef306f41b170a11a38a4b2b7a715b81134c7d304",
+    "phrase_authority_path": "scripts/nxb21d-phrase-remediation/phrase_literal_authority.ps1",
+    "phrase_authority_sha256": "b2ee25a909558656d53ccd84d14e33d2d8f9eb7181b8820613cf3e5ef41bab81",
+    "scope_authority_path": "scripts/nxb21d-scope-remediation/explicit_scope_authority.ps1",
+    "scope_authority_sha256": "55cf31315216d5ec3c5524868f488af9a479ece488b1fde75f3256921960ef85",
+    "transport_path": "scripts/nxb21d-development/byte_safe_transport.ps1",
+    "transport_sha256": "9deed398e86e0347afc33964c47b8f4e489cc88372a77d16b4ba9ef8ed4a8c64",
+    "request_temperature": 0,
+    "effective_context": 4096,
+    "max_tokens": 160
+  },
+  "prior_adjudicated_receipt": {
+    "path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/localai-dev-results/12case-smoke/12case-development-smoke-adjudicated-v1.json",
+    "sha256": "75ffdda521a33af075b4e03f95270cf32da64031968306e650774b87eeadc12a"
+  },
+  "pre_remediation_32case_receipt": {
+    "path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/localai-dev-results/32case-development/run-20260904T151011658Z/32case-development-summary-v1.json",
+    "sha256": "bf73696f2fc89ee02d26027818ee9d0b838926d1cbaf67a7276829a9b1321132",
+    "result": "31/32"
+  },
+  "atomic_remediation_16case_receipt": {
+    "path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/localai-dev-results/16case-remediation/run-20260905T054458677Z/remediation-16case-development-summary-v1.json",
+    "sha256": "83ac55c7cd9627f0d37e21f33c556245bc6e7e62f35fb267d66f95b6872c23f3",
+    "result": "13/16",
+    "plate_result": "8/8",
+    "phrase_result": "5/8"
+  },
+  "phrase_remediation_20case_receipt": {
+    "path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/localai-dev-results/20case-phrase-remediation/run-20260905T062620032Z/phrase-remediation-20case-development-summary-v1.json",
+    "sha256": "02a7981aa4d4918255ef056e0008250baa7fd265e72db5e10cf510da934123a0",
+    "result": "19/20",
+    "phrase_literal_result": "16/16",
+    "plate_result": "4/4",
+    "failed_case_id": "phrase20-roman-tr-001",
+    "failure": "workspace scope returned as selected"
+  },
+  "corpus": {
+    "path": "scripts/nxb21d-scope-remediation/nxb21d-q4-scope-remediation-16case-development-corpus-v1.json",
+    "sha256": "e034bb3683f23c1aeb7488232a7337c56d5e9eb7cb69f9f280698af3412b1b50",
+    "validator": "scripts/nxb21d-scope-remediation/validate_nxb21d_q4_scope_remediation_corpus.py"
+  },
+  "runtime": {
+    "localai_url": "http://127.0.0.1:8080",
+    "container": "nexusai-api-1",
+    "container_id": "d62021a0a4fc258ff3ce6fc4140090c6d9862dcc04863a065e6e842f62d769de",
+    "image": "sha256:feb935b42a93c1810394cb270a809189ca240a225253159a47b8daa72a799171",
+    "restart_count": 0,
+    "q8_profile_container_path": "/models/qwen_qwen3-4b-instruct-2507.yaml",
+    "q4_profile_container_path": "/models/qwen3-4b-instruct-2507-q4km-nxb21d-dev.yaml",
+    "q4_artifact_container_path": "/models/Qwen_Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+    "request_timeout_seconds": 180
+  },
+  "resource": {
+    "minimum_loaded_gib": 4,
+    "minimum_before_load_gib": 6,
+    "deployment_build_recreate_minimum_gib": 6,
+    "severe_pressure_gib": 2
+  },
+  "output_root": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/localai-dev-results/16case-scope-remediation",
+  "framework_files": {
+    "api/forensic_records/query_language_assistance.go": "f22d4d9bc340ba60eb395790fecfb7499f417c0a48fea3d26be6687fe095706b",
+    "api/forensic_records/query.go": "b50de13eedffd19ab4731493e8f4828a24fd28e9d9724f5aaf234c34701dda7e",
+    "pkg/forensictext/query.go": "beda1fb828ab4d400afc5be008ee921ba11f77ba68f243e350a066bdc0055e97",
+    "api/forensic_records/d_dynamic_planner.go": "e85bee4b81c7ba681470dba0dbf1b7b903c7ec65d76c34efc9f64d5615ae8b3f",
+    "core/services/agents/forensic_direct.go": "383b36623ee7f1530ddd782715bf5d84f6f0840748dc13ef26fe16dea1aa994f",
+    "api/forensic_records/d_dynamic_planner_ginkgo_test.go": "81cdf7e639302cb957b0538f910d9ceb6172b28fc71b1310f85dd5c14c4a21a8",
+    "core/services/agents/governed_transcript_scope_test.go": "f2c762096ad00111c9bc46209055bfcb44d03f21229bc11c527f6d47604d0e2a",
+    "scripts/nxb21d-development/byte_safe_transport.ps1": "9deed398e86e0347afc33964c47b8f4e489cc88372a77d16b4ba9ef8ed4a8c64",
+    "scripts/nxb21d-remediation/exact_identifier_authority.ps1": "216b0ec4e2b69c5482c65a3eef306f41b170a11a38a4b2b7a715b81134c7d304",
+    "scripts/nxb21d-phrase-remediation/phrase_literal_authority.ps1": "b2ee25a909558656d53ccd84d14e33d2d8f9eb7181b8820613cf3e5ef41bab81",
+    "scripts/nxb21d-scope-remediation/explicit_scope_authority.ps1": "55cf31315216d5ec3c5524868f488af9a479ece488b1fde75f3256921960ef85",
+    "scripts/nxb21d-scope-remediation/nxb21d-q4-scope-remediation-16case-development-corpus-v1.json": "e034bb3683f23c1aeb7488232a7337c56d5e9eb7cb69f9f280698af3412b1b50",
+    "scripts/nxb21d-scope-remediation/validate_nxb21d_q4_scope_remediation_corpus.py": "dff4e887b387bd2fdcd9526e2b18a33a89dd5fea8da3eeb273ca7ff1f9ee5575",
+    "scripts/nxb21d-scope-remediation/run_nxb21d_q4_scope_remediation_16case_development.ps1": "55ee473e6985a030dbe2f23958ea48a17ef36804416e1329ac7d0f8fa4b3fc9f",
+    "scripts/nxb21d-scope-remediation/test_nxb21d_q4_scope_remediation_framework.ps1": "545e1acbfd56036a49b448c8a97336279108c66f87ce2adf7eae0a224989137e",
+    "scripts/nxb21d-scope-remediation/README.md": "11d791cf03c82e9ee994218b9300287f7001a4219f7ea0c792897d0612b25b46"
+  }
+}

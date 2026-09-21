@@ -1,0 +1,82 @@
+{
+  "schema_version": "nexusai.nxb21d-q4-production-interface-remediation-development-operator/v1",
+  "development_only": true,
+  "qualification_holdout": false,
+  "development_freeze": {
+    "freeze_id": "nxb21d-q4-production-interface-remediation-dev-r1",
+    "identity_sha256": "032234bf2717965e6afe20135c61e8ff8907f2e3393771c7b7280c1c395cdfcb",
+    "identity_algorithm": "sha256 of ordered LF-terminated key=value tuple verified by runner and framework tests",
+    "completion_budget": 512,
+    "state": "FROZEN_NOT_EXECUTED"
+  },
+  "model": {
+    "id": "qwen3-4b-instruct-2507-q4km-nxb21d-dev",
+    "backend": "llama-cpp",
+    "quantization": "Q4_K_M",
+    "artifact_path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/Qwen_Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+    "artifact_container_path": "/models/Qwen_Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+    "artifact_bytes": 2497280736,
+    "artifact_sha256": "2fde00ce69dd4899c70d020845e2638353015bba0fdf161b3eb965f2bca4464e",
+    "profile_path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/qwen3-4b-instruct-2507-q4km-nxb21d-dev.yaml",
+    "profile_container_path": "/models/qwen3-4b-instruct-2507-q4km-nxb21d-dev.yaml",
+    "profile_sha256": "30d3bcd8c92684e191277dad992354323b7e46c7d30d3c69149010e90f117129",
+    "q8_profile_container_path": "/models/qwen_qwen3-4b-instruct-2507.yaml",
+    "q8_profile_sha256": "ef036e0a02cc5e8331dc4dff41c0e0cb68e6e0bda71d92b92f47f673472e666f"
+  },
+  "corpus": {
+    "path": "scripts/nxb21d-interface-remediation/nxb21d-q4-production-interface-24case-development-corpus-v1.json",
+    "sha256": "c9b71b7e27669b257a145ad5dd94ab1dd5576e718600f1c90ffefbb5cbca281e",
+    "validator": "scripts/nxb21d-interface-remediation/validate_nxb21d_q4_interface_corpus.py",
+    "cases": 24,
+    "model_calls_expected": 20
+  },
+  "evaluator": {
+    "path": "scripts/nxb21d-interface-remediation/d_q4_interface_remediation_evaluator_test.go",
+    "sha256": "4d839410e8a05fbb3e16b1070b3ef2f1e7099d423f0eccfbf52a2ee2ae461506"
+  },
+  "runner": {
+    "path": "scripts/nxb21d-interface-remediation/run_nxb21d_q4_interface_remediation_24case_development.ps1",
+    "sha256": "1925eff3c4c28cbc8ac613e875b52f3002da773ccd4e0bbb1816a9cec304234f"
+  },
+  "consumed_holdout_registry": "reports/nxb21/d-consumed-holdouts-v1.json",
+  "output_root": "local-acceptance-models/nxb21-d/interface-remediation-development-runs",
+  "runtime": {
+    "localai_url": "http://127.0.0.1:8080",
+    "container": "nexusai-api-1",
+    "retained_tuple": "64|64|77|22507|828|61",
+    "activity_count": 314,
+    "containers": {
+      "api": {"id":"d62021a0a4fc258ff3ce6fc4140090c6d9862dcc04863a065e6e842f62d769de","image":"sha256:feb935b42a93c1810394cb270a809189ca240a225253159a47b8daa72a799171","restarts":0},
+      "forensic-records-api": {"id":"ffd93bf51ecad0bc61271dfad0576b852057cd85f85aa8221534e3250ef1c11b","image":"sha256:828e4b03e02979c3fc25dd6b6896e74fb97a2e59b8c17300a3efadce1236ace8","restarts":2},
+      "forensic-records-worker": {"id":"40b6e628d586d5d484468120a8591fdb46a2ecc6f5aac228583067b22811d088","image":"sha256:0b22a604dbf97443623258072a71f741111a1033a5e274166ea0f5b2f9968d47","restarts":5},
+      "forensic-postgres": {"id":"f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361","image":"sha256:61f891691050da6032023c01ea885730eeeba06b7c17b403e7d0b9c49c37dfe9","restarts":0},
+      "forensic-nats": {"id":"5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04","image":"sha256:e4bf19f15fd3218814a4e3c9e0064e1334bd8aa20d5984b9f1a0afd084f8cc00","restarts":0}
+    }
+  },
+  "resource": {
+    "minimum_loaded_gib": 4,
+    "minimum_before_load_gib": 6,
+    "deployment_build_recreate_minimum_gib": 6,
+    "severe_pressure_gib": 2
+  },
+  "framework_files": {
+    "api/forensic_records/query_language_assistance.go": "f869bcb38f255b84de000e32fa01da152c36fd54ee8cf84f3966fa1e1d5287d5",
+    "api/forensic_records/query_language_assistance_test.go": "7e8b65ae6d44738cf9ebd7add5adfdef1efe36652713f10082be610f2985e1d4",
+    "api/forensic_records/d_dynamic_planner.go": "e85bee4b81c7ba681470dba0dbf1b7b903c7ec65d76c34efc9f64d5615ae8b3f",
+    "api/forensic_records/d_dynamic_planner_ginkgo_test.go": "81cdf7e639302cb957b0538f910d9ceb6172b28fc71b1310f85dd5c14c4a21a8",
+    "api/forensic_records/query.go": "b50de13eedffd19ab4731493e8f4828a24fd28e9d9724f5aaf234c34701dda7e",
+    "api/forensic_records/query_intelligence_contracts.go": "56ea4c09d1b4d55e8f42b86b27a703aaaf646be3eeb0358d035f13c3d96cb726",
+    "api/forensic_records/contracts/query-capability-references-v1.json": "085982f58e9f3560f9f7291db45e520c4008ed9c492005e8e9f542cd9aa35ca0",
+    "pkg/forensictext/query.go": "beda1fb828ab4d400afc5be008ee921ba11f77ba68f243e350a066bdc0055e97",
+    "core/services/agents/forensic_direct.go": "383b36623ee7f1530ddd782715bf5d84f6f0840748dc13ef26fe16dea1aa994f",
+    "scripts/nxb21d-remediation/exact_identifier_authority.ps1": "216b0ec4e2b69c5482c65a3eef306f41b170a11a38a4b2b7a715b81134c7d304",
+    "scripts/nxb21d-phrase-remediation/phrase_literal_authority.ps1": "b2ee25a909558656d53ccd84d14e33d2d8f9eb7181b8820613cf3e5ef41bab81",
+    "scripts/nxb21d-scope-remediation/explicit_scope_authority.ps1": "55cf31315216d5ec3c5524868f488af9a479ece488b1fde75f3256921960ef85",
+    "scripts/nxb21d-development/byte_safe_transport.ps1": "9deed398e86e0347afc33964c47b8f4e489cc88372a77d16b4ba9ef8ed4a8c64",
+    "scripts/nxb21d-q4-qualification/qualification_guards.ps1": "55eb36fc7d0ebac9ded5a0b9c51302a17f5d0bef428ca85646164131f0c36f14",
+    "scripts/nxb21d-interface-remediation/nxb21d-q4-production-interface-24case-development-corpus-v1.json": "c9b71b7e27669b257a145ad5dd94ab1dd5576e718600f1c90ffefbb5cbca281e",
+    "scripts/nxb21d-interface-remediation/validate_nxb21d_q4_interface_corpus.py": "dfa248fe95892e339cca4e19cd8ac290a25aa347d122f1cdecedf79f8c6ac571",
+    "scripts/nxb21d-interface-remediation/d_q4_interface_remediation_evaluator_test.go": "4d839410e8a05fbb3e16b1070b3ef2f1e7099d423f0eccfbf52a2ee2ae461506",
+    "scripts/nxb21d-interface-remediation/run_nxb21d_q4_interface_remediation_24case_development.ps1": "1925eff3c4c28cbc8ac613e875b52f3002da773ccd4e0bbb1816a9cec304234f"
+  }
+}

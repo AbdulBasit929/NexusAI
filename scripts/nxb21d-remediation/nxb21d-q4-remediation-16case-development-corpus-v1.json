@@ -1,0 +1,106 @@
+{
+  "schema_version": "nexusai.nxb21d-q4-remediation-development-corpus/v1",
+  "created_at": "2026-09-04T16:00:00Z",
+  "development_only": true,
+  "qualification_holdout": false,
+  "candidate_model": "qwen3-4b-instruct-2507-q4km-nxb21d-dev",
+  "contract_note": "image.plate is single-target and selected-evidence only; phrase controls exercise selected and workspace scope",
+  "cases": [
+    {
+      "id": "rem16-en-plate-001",
+      "language": "english",
+      "question": "Check whether registration JK-7315 appears in the selected photograph.",
+      "expected": {"query_capability_id": "image.plate", "semantic": "EXACT_VALUE", "literal_text": "JK-7315", "entities": ["JK-7315"], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "rem16-en-plate-002",
+      "language": "english",
+      "question": "Does the identifier TRV-2048 occur anywhere in this source image?",
+      "expected": {"query_capability_id": "image.plate", "semantic": "EXACT_VALUE", "literal_text": "TRV-2048", "entities": ["TRV-2048"], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "rem16-en-document-001",
+      "language": "english",
+      "question": "Search this document for the phrase signed inventory variance.",
+      "expected": {"query_capability_id": "document.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "signed inventory variance", "entities": [], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "rem16-en-transcript-001",
+      "language": "english",
+      "question": "Across every transcript in the investigation, locate north gate reopened.",
+      "expected": {"query_capability_id": "transcript.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "north gate reopened", "entities": [], "scope": "workspace", "clarification_required": false}
+    },
+    {
+      "id": "rem16-ur-plate-001",
+      "language": "urdu-script",
+      "question": "اس منتخب تصویر میں گاڑی کا نمبر PQ-4829 چیک کریں۔",
+      "expected": {"query_capability_id": "image.plate", "semantic": "EXACT_VALUE", "literal_text": "PQ-4829", "entities": ["PQ-4829"], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "rem16-ur-plate-002",
+      "language": "urdu-script",
+      "question": "کیا اس ماخذ تصویر میں ZXA-615 موجود ہے؟",
+      "expected": {"query_capability_id": "image.plate", "semantic": "EXACT_VALUE", "literal_text": "ZXA-615", "entities": ["ZXA-615"], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "rem16-ur-document-001",
+      "language": "urdu-script",
+      "question": "اس دستاویز میں سامان کی دوبارہ گنتی تلاش کریں۔",
+      "expected": {"query_capability_id": "document.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "سامان کی دوبارہ گنتی", "entities": [], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "rem16-ur-transcript-001",
+      "language": "urdu-script",
+      "question": "تحقیقات کی تمام ریکارڈنگز میں دروازہ بند رکھو تلاش کریں۔",
+      "expected": {"query_capability_id": "transcript.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "دروازہ بند رکھو", "entities": [], "scope": "workspace", "clarification_required": false}
+    },
+    {
+      "id": "rem16-roman-plate-001",
+      "language": "roman-urdu",
+      "question": "is selected tasveer mein N-9042 ko check karo",
+      "expected": {"query_capability_id": "image.plate", "semantic": "EXACT_VALUE", "literal_text": "N-9042", "entities": ["N-9042"], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "rem16-roman-plate-002",
+      "language": "roman-urdu",
+      "question": "is source image mein gaari number ABCD-77 mojood hai?",
+      "expected": {"query_capability_id": "image.plate", "semantic": "EXACT_VALUE", "literal_text": "ABCD-77", "entities": ["ABCD-77"], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "rem16-roman-document-001",
+      "language": "roman-urdu",
+      "question": "is document mein maal dobara gino jumla dhoondo",
+      "expected": {"query_capability_id": "document.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "maal dobara gino", "entities": [], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "rem16-roman-transcript-001",
+      "language": "roman-urdu",
+      "question": "tamam case recordings mein darwaza khula rakho search karo",
+      "expected": {"query_capability_id": "transcript.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "darwaza khula rakho", "entities": [], "scope": "workspace", "clarification_required": false}
+    },
+    {
+      "id": "rem16-mixed-plate-001",
+      "language": "mixed",
+      "question": "Selected image میں vehicle code LM-305K locate کریں۔",
+      "expected": {"query_capability_id": "image.plate", "semantic": "EXACT_VALUE", "literal_text": "LM-305K", "entities": ["LM-305K"], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "rem16-mixed-plate-002",
+      "language": "mixed",
+      "question": "اس source photograph میں UV-8801 present ہے یا نہیں؟",
+      "expected": {"query_capability_id": "image.plate", "semantic": "EXACT_VALUE", "literal_text": "UV-8801", "entities": ["UV-8801"], "scope": "selected", "clarification_required": false}
+    },
+    {
+      "id": "rem16-mixed-document-001",
+      "language": "mixed",
+      "question": "تمام case documents میں ادائیگی مؤخر phrase تلاش کریں۔",
+      "expected": {"query_capability_id": "document.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "ادائیگی مؤخر", "entities": [], "scope": "workspace", "clarification_required": false}
+    },
+    {
+      "id": "rem16-mixed-transcript-001",
+      "language": "mixed",
+      "question": "Selected recording میں checkpoint moved east check کریں۔",
+      "expected": {"query_capability_id": "transcript.phrase", "semantic": "PHRASE_CONTAINS", "literal_text": "checkpoint moved east", "entities": [], "scope": "selected", "clarification_required": false}
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "schema_version": "nexusai.nxb21d-offline-bundle-integrity/v1",
+  "files": {
+    "scripts/nxb21d-offline/README.md": "c2af441fac310c9fbd02414414dc0611476d26862e68ce0cc6ace5950e2a2522",
+    "scripts/nxb21d-offline/common.ps1": "60a73fb2d08c4d7c76b84c5f788a3d47706b2a708074b41195e6cf64b532c874",
+    "scripts/nxb21d-offline/d_model_evaluator_test.go": "984063c35f4595f75e9d22a2c4a4b1a3657202bd487a7c7dfbcb539e8dbbb458",
+    "scripts/nxb21d-offline/finalize_consumed_partial.py": "88df116bbeb9d048cc0e4d1c79f96663d01d23ccbb277cd1a2bb77063a42e641",
+    "scripts/nxb21d-offline/generate_runbooks.py": "422b7e848df325f3be65c787661ecaa8a742e9094a133b8371da7476ff18e791",
+    "scripts/nxb21d-offline/nxb21d_operator_config.json": "dcedce6a765596e72414a030c042883598f79b771f470a8e01f852b9e58f5b47",
+    "scripts/nxb21d-offline/rollback_nxb21_bcd_activation.ps1": "a14d73e3c7e9cc11dfdeba8b5ba1206879439d3e3469b7d1d911a638e5aaa361",
+    "scripts/nxb21d-offline/run_nxb21_bcd_activation.ps1": "dc9137ddafd0ddb26b38651a77335064bb137607f447ca31a7f2a18c0ffb9c9b",
+    "scripts/nxb21d-offline/run_nxb21d_qwen_evaluation.ps1": "c063af5f4fbf717c45a048a4d38f00b20b4eaeff65329276bf07de1010abf541",
+    "scripts/nxb21d-offline/test_nxb21d_offline_bundle.ps1": "90c510616be0d53ccfd81aba91c47754466655aeee5f6c03e59fb158f023dcdb"
+  }
+}

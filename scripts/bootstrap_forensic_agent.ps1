@@ -6,10 +6,25 @@ param(
   [string]$TenantId = "default",
   [string]$ForensicRecordsApiUrl = "http://host.docker.internal:8091",
   [int]$KnowledgeBaseResults = 5,
+  [string]$ProfilePath = "",
   [switch]$Force
 )
 
 $ErrorActionPreference = "Stop"
+
+if ([string]::IsNullOrWhiteSpace($ProfilePath)) {
+  $ProfilePath = Join-Path $PSScriptRoot "..\configuration\forensic_agent_profiles.json"
+}
+$resolvedProfilePath = (Resolve-Path -LiteralPath $ProfilePath).Path
+$profileCatalog = Get-Content -LiteralPath $resolvedProfilePath -Raw | ConvertFrom-Json
+$profile = @($profileCatalog.profiles | Where-Object { $_.agent_name -eq $AgentName }) | Select-Object -First 1
+if ($null -eq $profile) {
+  $availableProfiles = @($profileCatalog.profiles | ForEach-Object { $_.agent_name }) -join ", "
+  throw "No forensic agent profile is defined for '$AgentName' in $resolvedProfilePath. Available profiles: $availableProfiles"
+}
+if ([string]::IsNullOrWhiteSpace([string]$profile.system_prompt) -or [string]::IsNullOrWhiteSpace([string]$profile.permanent_goal)) {
+  throw "Forensic agent profile '$AgentName' must define system_prompt and permanent_goal."
+}
 
 function Invoke-JsonRequest {
   param(
@@ -96,39 +111,37 @@ if (-not $ready) {
 $availableModels = Get-AvailableModelIds -BaseUrl $LocalAIUrl
 $resolvedModel = $Model
 if ([string]::IsNullOrWhiteSpace($resolvedModel) -or $resolvedModel -eq "auto") {
-  $resolvedModel = Select-ChatModelId -ModelIds $availableModels
+  $preferredModel = [string]$profileCatalog.model_policy.preferred_model
+  if (-not [string]::IsNullOrWhiteSpace($preferredModel) -and $availableModels -contains $preferredModel) {
+    $resolvedModel = $preferredModel
+  } else {
+    $resolvedModel = Select-ChatModelId -ModelIds $availableModels
+  }
   if ([string]::IsNullOrWhiteSpace($resolvedModel)) {
     Write-Warning "No chat/instruct model was found in $LocalAIUrl/v1/models. Deterministic forensic prompts will still work after the current code is rebuilt, but general LLM answers require installing a chat model and rerunning this script with -Model <model-id>."
     $resolvedModel = ""
   } else {
     Write-Host "Using detected chat model: $resolvedModel"
   }
+} elseif ($resolvedModel -match "(?i)(embed|embedding|rerank|whisper|tts|stt|audio|vad|vision|clip)") {
+  throw "Configured model '$resolvedModel' is not a chat/instruct synthesis model. Choose a chat model; deterministic forensic operations do not require an LLM."
 } elseif ($availableModels.Count -gt 0 -and $availableModels -notcontains $resolvedModel) {
   Write-Warning "Configured model '$resolvedModel' is not currently listed by $LocalAIUrl/v1/models. Deterministic forensic prompts can still run, but general LLM answers will fail until this model is installed or the agent is reconfigured."
 }
 
 $cancelPrevious = $true
-$systemPrompt = @"
-You are Forensic Records Analyst, a Knowledge Base-first analyst for case evidence and structured records.
-
-Operating rules:
-1. Start from the current Knowledge Base collection for policy context, case notes, source previews, citations, and limitations.
-2. Use deterministic forensic records tools for exact analytics: counts, filters, contact breakdowns, timelines, entity activity, relationship networks, locations, duration statistics, source rows, schema profile, and data quality.
-3. Prefer forensic_hybrid_query when a user asks a natural-language forensic question over records-demo. Prefer forensic_query_templates when the user asks what exact templates are available. Prefer forensic_generate_report for report, briefing, findings summary, or case package requests.
-4. Never invent counts, dates, sources, citations, or relationships. If evidence is missing, say what is missing and which collection or record family should be checked.
-5. Do not send raw full tables to the LLM. Return computed aggregates, capped source previews, citations, and clear limitations.
-6. Keep responses presentation-ready: concise headings, compact tables, source names, retrieval mode, and a short accuracy guardrail.
-"@
-
-$permanentGoal = @"
-Answer forensic questions over the current Knowledge Base collection and structured records with exact deterministic analytics, grounded KB evidence, citations, and clear limitations.
-"@
+$systemPrompt = [string]$profile.system_prompt
+$permanentGoal = [string]$profile.permanent_goal
+$userPromptContract = $profile.user_prompt_contract | ConvertTo-Json -Depth 10 -Compress
 
 $agentConfig = [ordered]@{
   name = $AgentName
-  description = "Knowledge Base-first analyst for case evidence, structured records, exact analytics, and report generation."
+  description = [string]$profile.description
   model = $resolvedModel
-  multimodal_model = $resolvedModel
+  # The governed records agents are text-only. Assigning the chat model to the
+  # multimodal slot falsely advertises image capability and can route binary
+  # evidence to a model that was never approved for vision work.
+  multimodal_model = ""
 
   enable_kb = $true
   kb_mode = "both"
@@ -150,7 +163,7 @@ $agentConfig = [ordered]@{
 
   system_prompt = $systemPrompt
   permanent_goal = $permanentGoal
-  skills_prompt = ""
+  skills_prompt = "Analyst request contract (guidance only; never invent missing inputs): $userPromptContract"
   inner_monologue_template = ""
   scheduler_task_template = ""
 
@@ -212,6 +225,10 @@ Write-Host "Verification:"
 $agents = Invoke-RestMethod -Method Get -Uri "$LocalAIUrl/api/agents"
 $agents | ConvertTo-Json -Depth 8
 
+Write-Host ""
+Write-Host "Profile: $($profile.agent_name) v$($profile.version) ($resolvedProfilePath)"
+Write-Host "Families: $(@($profile.family_ids) -join ', ')"
+Write-Host "Model role: $($profileCatalog.model_policy.role); deterministic operations remain authoritative"
 Write-Host ""
 if ([string]::IsNullOrWhiteSpace($resolvedModel)) {
   Write-Host "Model mode: deterministic forensic mode only. Install a chat/instruct model later for open-ended LLM answers."

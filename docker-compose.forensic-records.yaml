@@ -18,10 +18,12 @@ services:
 
   forensic-nats:
     image: nats:2.11-alpine
-    command: ["-js", "-m", "8222"]
+    command: ["-js", "-sd", "/data/jetstream", "-m", "8222"]
     ports:
       - "4222:4222"
       - "8222:8222"
+    volumes:
+      - forensic_nats_data:/data/jetstream
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8222/healthz"]
       interval: 10s
@@ -35,6 +37,7 @@ services:
       - forensic_spool:/data/forensic/spool
 
   forensic-records-api:
+    restart: unless-stopped
     build:
       context: .
       dockerfile: api/forensic_records/Dockerfile
@@ -45,6 +48,26 @@ services:
       FORENSIC_KB_MIRROR_ENABLED: "true"
       LOCALAI_KB_URL: http://host.docker.internal:8080
       LOCALAI_API_KEY: ${LOCALAI_API_KEY:-}
+      # qwen3-4b-instruct-2507-q4km-nxb21d-dev (Q4_K_M, 2.49GB) replaces the
+      # Q8_0 build (4.28GB) as the default: live-benchmarked head-to-head with
+      # the same JSON-schema narration payload, Q8_0 did not finish generating
+      # a 250-token response within 240s while Q4_K_M finished in ~72s. Same
+      # model family/tokenizer/prompt template as the Q8_0 build already
+      # validated across the narration test suite, so this is a quantization
+      # change only, not a model swap.
+      FORENSIC_SYNTHESIS_MODEL: ${FORENSIC_SYNTHESIS_MODEL:-qwen3-4b-instruct-2507-q4km-nxb21d-dev}
+      FORENSIC_SYNTHESIS_TIMEOUT: ${FORENSIC_SYNTHESIS_TIMEOUT:-120s}
+      FORENSIC_DEFAULT_JURISDICTION: ${FORENSIC_DEFAULT_JURISDICTION:-PK}
+      FORENSIC_DEFAULT_SOURCE_TIMEZONE: ${FORENSIC_DEFAULT_SOURCE_TIMEZONE:-Asia/Karachi}
+      # Both default to fail-CLOSED: if FORENSIC_RECORDS_API_KEY isn't
+      # exported (e.g. from .env.forensic-runtime.local), the container
+      # refuses to start (validateForensicAuthConfig in auth_scope.go exits
+      # 1) rather than silently serving the forensic API without
+      # authentication, which happened live during this project's own
+      # development when the vars weren't exported before `docker compose up`.
+      FORENSIC_API_KEY: ${FORENSIC_RECORDS_API_KEY:-}
+      FORENSIC_API_AUTH_REQUIRED: ${FORENSIC_API_AUTH_REQUIRED:-true}
+      FORENSIC_TRUSTED_TENANT_ID: ${FORENSIC_RECORDS_TENANT_ID:-default}
       FORENSIC_DATABASE_URL: postgresql://localrecall:localrecall@forensic-postgres:5432/localrecall
       NATS_URL: nats://forensic-nats:4222
     ports:
@@ -60,6 +83,7 @@ services:
         condition: service_healthy
 
   forensic-records-worker:
+    restart: unless-stopped
     build:
       context: .
       dockerfile: ingestion/forensic_records/Dockerfile
@@ -67,12 +91,84 @@ services:
       FORENSIC_DATABASE_URL: postgresql://localrecall:localrecall@forensic-postgres:5432/localrecall
       NATS_URL: nats://forensic-nats:4222
       NATS_RECORDS_SUBJECT: forensic.records.ingest.requested
+      NATS_RECORDS_DLQ_SUBJECT: forensic.records.ingest.dead_letter
+      NATS_RECORDS_STREAM: FORENSIC_RECORDS_INGEST
+      NATS_RECORDS_DLQ_STREAM: FORENSIC_RECORDS_DLQ
+      NATS_RECORDS_CONSUMER: forensic-records-worker-v1
+      NATS_RECORDS_QUEUE_GROUP: forensic-records-worker-v1
+      FORENSIC_WORKER_LEASE_SECONDS: "600"
+      FORENSIC_WORKER_MAX_INFLIGHT: "1"
+      FORENSIC_SPOOL_DIR: /data/forensic/spool
       FORENSIC_WORKER_METRICS_PORT: "9109"
+      FORENSIC_DEFAULT_SOURCE_TIMEZONE: ${FORENSIC_DEFAULT_SOURCE_TIMEZONE:-Asia/Karachi}
+      FORENSIC_ANPR_ENABLED: ${FORENSIC_ANPR_ENABLED:-false}
+      FORENSIC_ANPR_DETECTOR_MODEL_PATH: /models/media/open-image-models/yolo-v9-t-384-license-plate-end2end/yolo-v9-t-384-license-plates-end2end.onnx
+      FORENSIC_ANPR_OCR_MODEL_PATH: /models/media/fast-plate-ocr/cct-xs-v2-global-model/cct_xs_v2_global.onnx
+      FORENSIC_ANPR_OCR_CONFIG_PATH: /models/media/fast-plate-ocr/cct-xs-v2-global-model/cct_xs_v2_global_plate_config.yaml
+      FORENSIC_ANPR_ONNX_PROVIDERS: ${FORENSIC_ANPR_ONNX_PROVIDERS:-OpenVINOExecutionProvider,CPUExecutionProvider}
+      FORENSIC_ANPR_MIN_DETECTION_CONFIDENCE: ${FORENSIC_ANPR_MIN_DETECTION_CONFIDENCE:-0.75}
+      FORENSIC_FACE_ENABLED: ${FORENSIC_FACE_ENABLED:-false}
+      FORENSIC_FACE_ENDPOINT: ${FORENSIC_FACE_ENDPOINT:-http://api:8080/v1/face}
+      FORENSIC_FACE_MODEL: ${FORENSIC_FACE_MODEL:-face-detect-yunet-sface}
+      FORENSIC_FACE_MODEL_SHA256: ${FORENSIC_FACE_MODEL_SHA256:-9ce78d4ba0ae9d5e8c91a0e145d511558d1d90f5d9c1f4131cca9bb4bce60902}
+      FORENSIC_FACE_BACKEND_DIGEST: ${FORENSIC_FACE_BACKEND_DIGEST:-sha256:8d303ecedb5e6f4dd2c5a0023da806ac3f8ceef369ff83628f24d99d1a0f3f19}
+      FORENSIC_FACE_MAX_INPUT_BYTES: ${FORENSIC_FACE_MAX_INPUT_BYTES:-16777216}
+      FORENSIC_FACE_MAX_OBSERVATIONS: ${FORENSIC_FACE_MAX_OBSERVATIONS:-32}
+      FORENSIC_FACE_TIMEOUT_SECONDS: ${FORENSIC_FACE_TIMEOUT_SECONDS:-180}
+      FORENSIC_IMAGE_EMBEDDING_ENABLED: ${FORENSIC_IMAGE_EMBEDDING_ENABLED:-false}
+      FORENSIC_IMAGE_EMBEDDING_MODEL: ${FORENSIC_IMAGE_EMBEDDING_MODEL:-google/siglip-base-patch16-224}
+      FORENSIC_IMAGE_EMBEDDING_MODEL_PATH: ${FORENSIC_IMAGE_EMBEDDING_MODEL_PATH:-/models/media/nexusai/models/google-siglip-base-patch16-224/7fd15f0689c79d79e38b1c2e2e2370a7bf2761ed}
+      FORENSIC_IMAGE_EMBEDDING_MODEL_REVISION: ${FORENSIC_IMAGE_EMBEDDING_MODEL_REVISION:-7fd15f0689c79d79e38b1c2e2e2370a7bf2761ed}
+      FORENSIC_IMAGE_EMBEDDING_MODEL_SHA256: ${FORENSIC_IMAGE_EMBEDDING_MODEL_SHA256:-2c63cb7d1f2e95ba501893cbb8faeb4ea9a3af295498d35097126228659c2af8}
+      FORENSIC_IMAGE_EMBEDDING_MAX_INPUT_BYTES: ${FORENSIC_IMAGE_EMBEDDING_MAX_INPUT_BYTES:-16777216}
+      FORENSIC_IMAGE_EMBEDDING_CPU_THREADS: ${FORENSIC_IMAGE_EMBEDDING_CPU_THREADS:-1}
+      FORENSIC_OCR_ENABLED: ${FORENSIC_OCR_ENABLED:-false}
+      FORENSIC_OCR_BACKEND: ${FORENSIC_OCR_BACKEND:-tesseract}
+      FORENSIC_PADDLE_DETECTOR_MODEL_DIR: ${FORENSIC_PADDLE_DETECTOR_MODEL_DIR:-/models/media/paddleocr/PP-OCRv5_mobile_det}
+      FORENSIC_PADDLE_ENGLISH_MODEL_DIR: ${FORENSIC_PADDLE_ENGLISH_MODEL_DIR:-/models/media/paddleocr/en_PP-OCRv5_mobile_rec}
+      FORENSIC_PADDLE_ARABIC_MODEL_DIR: ${FORENSIC_PADDLE_ARABIC_MODEL_DIR:-/models/media/paddleocr/arabic_PP-OCRv5_mobile_rec}
+      FORENSIC_PADDLE_DETECTOR_TREE_SHA256: ${FORENSIC_PADDLE_DETECTOR_TREE_SHA256:-1771a1ca1af2b1625228d2349849be1ccba507af13753547969c1de1702bdd74}
+      FORENSIC_PADDLE_ENGLISH_TREE_SHA256: ${FORENSIC_PADDLE_ENGLISH_TREE_SHA256:-9580601f0a93d061d89cd89676be65353a8e81ac760063f5c22788f4fe5673a9}
+      FORENSIC_PADDLE_ARABIC_MULTILINGUAL_TREE_SHA256: ${FORENSIC_PADDLE_ARABIC_MULTILINGUAL_TREE_SHA256:-3ee6f2267929b0fae36a6c63565f70f506ced8e133e9e2ed626a89c131d4cd1f}
+      FORENSIC_OCR_TESSERACT_PATH: ${FORENSIC_OCR_TESSERACT_PATH:-/usr/bin/tesseract}
+      FORENSIC_OCR_TESSDATA_PATH: ${FORENSIC_OCR_TESSDATA_PATH:-/models/media/nexusai/models/tessdata-fast/65727574dfcd264acbb0c3e07860e4e9e9b22185}
+      FORENSIC_OCR_TESSDATA_REVISION: ${FORENSIC_OCR_TESSDATA_REVISION:-65727574dfcd264acbb0c3e07860e4e9e9b22185}
+      FORENSIC_OCR_ENG_SHA256: ${FORENSIC_OCR_ENG_SHA256:-7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2}
+      FORENSIC_OCR_URD_SHA256: ${FORENSIC_OCR_URD_SHA256:-62e8250ce2a994106e313a82e26a516a39e2cf159d0ce3c5b5008387fd0d555f}
+      FORENSIC_OCR_LANGUAGES: ${FORENSIC_OCR_LANGUAGES:-eng+urd}
+      FORENSIC_OCR_MAX_INPUT_BYTES: ${FORENSIC_OCR_MAX_INPUT_BYTES:-16777216}
+      FORENSIC_OCR_MAX_OUTPUT_BYTES: ${FORENSIC_OCR_MAX_OUTPUT_BYTES:-4194304}
+      FORENSIC_OCR_MAX_OBSERVATIONS: ${FORENSIC_OCR_MAX_OBSERVATIONS:-256}
+      FORENSIC_OCR_TIMEOUT_SECONDS: ${FORENSIC_OCR_TIMEOUT_SECONDS:-60}
+      FORENSIC_OCR_PSM: ${FORENSIC_OCR_PSM:-11}
+      FORENSIC_VIDEO_MAX_SAMPLE_FRAMES: ${FORENSIC_VIDEO_MAX_SAMPLE_FRAMES:-6}
+      FORENSIC_VIDEO_SAMPLE_INTERVAL_SECONDS: ${FORENSIC_VIDEO_SAMPLE_INTERVAL_SECONDS:-5}
+      FORENSIC_VIDEO_ANPR_V2_ENABLED: ${FORENSIC_VIDEO_ANPR_V2_ENABLED:-false}
+      FORENSIC_VIDEO_ANPR_PLATE_DETECTOR_PATH: ${FORENSIC_VIDEO_ANPR_PLATE_DETECTOR_PATH:-/models/media/video-anpr-v2/license_plate_detector.pt}
+      FORENSIC_VIDEO_ANPR_VEHICLE_DETECTOR_PATH: ${FORENSIC_VIDEO_ANPR_VEHICLE_DETECTOR_PATH:-/models/media/video-anpr-v2/yolov8n.pt}
+      FORENSIC_VIDEO_ANPR_V2_MAX_FRAMES: ${FORENSIC_VIDEO_ANPR_V2_MAX_FRAMES:-300}
+      FORENSIC_VIDEO_ANPR_V2_MAX_DURATION_SECONDS: ${FORENSIC_VIDEO_ANPR_V2_MAX_DURATION_SECONDS:-900}
+      FORENSIC_VIDEO_ANPR_V3_ENABLED: ${FORENSIC_VIDEO_ANPR_V3_ENABLED:-false}
+      FORENSIC_VIDEO_ANPR_V3_DETECTION_CONFIDENCE: ${FORENSIC_VIDEO_ANPR_V3_DETECTION_CONFIDENCE:-0.25}
+      FORENSIC_VIDEO_ANPR_V3_MAX_FRAMES: ${FORENSIC_VIDEO_ANPR_V3_MAX_FRAMES:-1200}
+      FORENSIC_VIDEO_ANPR_V3_MAX_DURATION_SECONDS: ${FORENSIC_VIDEO_ANPR_V3_MAX_DURATION_SECONDS:-900}
+      FORENSIC_ASR_ENABLED: ${FORENSIC_ASR_ENABLED:-false}
+      FORENSIC_ASR_ENDPOINT: ${FORENSIC_ASR_ENDPOINT:-http://api:8080/v1/audio/transcriptions}
+      FORENSIC_ASR_MODEL: ${FORENSIC_ASR_MODEL:-}
+      FORENSIC_ASR_MAX_INPUT_BYTES: ${FORENSIC_ASR_MAX_INPUT_BYTES:-67108864}
+      FORENSIC_ASR_TIMEOUT_SECONDS: ${FORENSIC_ASR_TIMEOUT_SECONDS:-300}
     user: "65532:65532"
     ports:
       - "9109:9109"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9109/metrics', timeout=3).read(1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
     volumes:
-      - forensic_spool:/data/forensic/spool
+      - forensic_spool:/data/forensic/spool:ro
+      - ${NEXUSAI_MEDIA_MODEL_DIR:-./models/media}:/models/media:ro
     depends_on:
       forensic-spool-init:
         condition: service_completed_successfully
@@ -83,4 +179,5 @@ services:
 
 volumes:
   forensic_postgres_data:
+  forensic_nats_data:
   forensic_spool:

@@ -1,0 +1,23 @@
+{
+  "final_plans": "32/32",
+  "critical": "100%",
+  "exact_identifiers": "100%",
+  "scope": "100%",
+  "explicit_dates_numbers": "100%",
+  "quoted_literals": "100%",
+  "text_representation": "100%",
+  "expected_model_calls": 6,
+  "malformed_residuals": 0,
+  "unknown_tuples": 0,
+  "accepted_scope_overrides": 0,
+  "accepted_fact_overrides": 0,
+  "audit_layers": 3,
+  "raw_tuple_accuracy": "reported separately; all expected model decisions must be correct",
+  "completion_budget": 512,
+  "follow_up_transition": "100%",
+  "deterministic_explicit_facts": "100%",
+  "transport_defects": 0,
+  "runtime_integrity": "PASS",
+  "all_expected_model_decisions_correct": true,
+  "all_32_three_layer_audits_required": true
+}

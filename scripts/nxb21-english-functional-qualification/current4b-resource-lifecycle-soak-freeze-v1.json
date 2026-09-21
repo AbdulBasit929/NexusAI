@@ -1,0 +1,74 @@
+{
+  "contract_version": "nexusai.current4b-resource-lifecycle-soak-freeze/v1",
+  "frozen_at": "2026-09-09",
+  "soak_id": "nxb21-current4b-disposable-resource-lifecycle-soak-v1-20260909",
+  "quality_evidence": "NONE",
+  "runner": "scripts/nxb21-english-functional-qualification/run_disposable_current4b_resource_lifecycle_soak.ps1",
+  "runner_sha256": "18f27c767982e4e078ad3280b69aa44f7af830a7d7642378e2a70e71df3c95a2",
+  "consumed_r2": {
+    "corpus_id": "nxb21-english-functional-current-4b-fresh-r2-20260909",
+    "state": "CONSUMED_DO_NOT_RERUN",
+    "completed_calls": 0,
+    "last_dispatched_case": "r2-sem-001",
+    "last_completed_case": null,
+    "operator_receipt": "local-acceptance-models/nxb21-english-functional-qualification-r2/run-20260909T110254961Z/standalone-operator-receipt-v1.json",
+    "operator_receipt_sha256": "f4f0bbe8e3319e32f2b53bc81b57449755ecc11e7b39934df1bb7c6313cca80e",
+    "dispatch_lock": "local-acceptance-models/nxb21-english-functional-qualification-r2/english-functional-corpus-r2.dispatched.lock",
+    "dispatch_lock_sha256": "92398ed93a28ba30b4816d3da18817dcca17bb8e3f78f8b1bf156bc12271e46b"
+  },
+  "resource": {
+    "preload_floor_gib": 6.0,
+    "loaded_floor_gib": 4.0,
+    "admission_floor_gib": 8.627,
+    "admission_basis": "4.0 loaded floor + authoritative 4.627 GiB observed load delta",
+    "stable_sample_count": 5,
+    "sample_spacing_seconds": 5,
+    "maximum_wait_seconds": 120
+  },
+  "prompt_footprint": {
+    "semantic_cases": 101,
+    "candidate_count": 66,
+    "prompt_bytes_min": 11111,
+    "prompt_bytes_p50": 11150,
+    "prompt_bytes_max": 11197,
+    "request_bytes_min": 14798,
+    "request_bytes_p50": 14837,
+    "request_bytes_max": 14884,
+    "token_estimate_min": 2778,
+    "token_estimate_p50": 2788,
+    "token_estimate_max": 2800,
+    "token_estimate_method": "ceil UTF-8 prompt bytes divided by four; approximate only"
+  },
+  "batch_plan": [1, 2, 4, 8, 5],
+  "tiny_calls": 20,
+  "payload_shaped_calls": 3,
+  "model_reset_between_tiny_batches": true,
+  "model_reset_before_payload_shaped_phase": true,
+  "model": {
+    "id": "qwen_qwen3-4b-instruct-2507",
+    "artifact_path": "/models/Qwen_Qwen3-4B-Instruct-2507-Q8_0.gguf",
+    "artifact_bytes": 4280405216,
+    "artifact_sha256": "260b5b5b6ad73e44df81a43ea1f5c11c37007b6bac18eb3cd2016e8667c19662",
+    "profile_path": "/models/qwen_qwen3-4b-instruct-2507.yaml",
+    "profile_sha256": "ef036e0a02cc5e8331dc4dff41c0e0cb68e6e0bda71d92b92f47f673472e666f",
+    "context": 4096,
+    "threads": 8,
+    "parallel": 1,
+    "effective_batch": 512,
+    "gpu_layers": 0
+  },
+  "runtime": {
+    "localai_url": "http://127.0.0.1:8080",
+    "analyst_url": "http://127.0.0.1:8080/analyst",
+    "retained_tuple": "68|68|81|22511|870|68",
+    "activity_count": 353,
+    "active_jobs": 0,
+    "analyst_index_sha256": "a0f1e4288c1b9ee46b4fa3c3c94870fef46b12d7c1718c36eee2e905d14ae7de"
+  },
+  "files": {
+    "api/forensic_records/english_functional_resource_diagnostics_test.go": "783c98cac1b10a09af9a54d716b7cb2f1956f21490abd917c34d6035343c52df",
+    "local-acceptance-models/nxb21-english-functional-qualification-r2/run-20260909T110254961Z/standalone-operator-receipt-v1.json": "f4f0bbe8e3319e32f2b53bc81b57449755ecc11e7b39934df1bb7c6313cca80e",
+    "local-acceptance-models/nxb21-english-functional-qualification-r2/english-functional-corpus-r2.dispatched.lock": "92398ed93a28ba30b4816d3da18817dcca17bb8e3f78f8b1bf156bc12271e46b",
+    "scripts/nxb21-english-functional-qualification/validate_resource_lifecycle_soak.py": "f879c417205d4649cb438d8e7b07cc4e9d0c816d2331e142cd897889b4d808f0"
+  }
+}

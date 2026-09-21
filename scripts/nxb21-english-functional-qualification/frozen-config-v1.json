@@ -1,0 +1,56 @@
+{
+  "contract_version": "nexusai.english-functional-qualification-config/v1",
+  "source": {
+    "branch": "codex/forensic-hybrid-checkpoint-20260723",
+    "head": "40717b83510c08db25dc26b9d6674bf46db363ac"
+  },
+  "corpus": {
+    "id": "nxb21-english-functional-current-4b-fresh-r1-20260909",
+    "path": "scripts/nxb21-english-functional-qualification/english-functional-corpus-v1.json",
+    "sha256": "fa9dac24d2c779c02da53d41c9142b8ec7028dc7200b5e66696f9443bc4cf2be"
+  },
+  "oracle": {
+    "path": "scripts/nxb21-english-functional-qualification/english-functional-oracle-v1.json",
+    "sha256": "86611bd55f120d827e176a1837d52700ab450690bb96e392048f313da00e123f"
+  },
+  "model": {
+    "id": "qwen_qwen3-4b-instruct-2507",
+    "artifact_path": "/models/Qwen_Qwen3-4B-Instruct-2507-Q8_0.gguf",
+    "artifact_bytes": 4280405216,
+    "artifact_sha256": "260b5b5b6ad73e44df81a43ea1f5c11c37007b6bac18eb3cd2016e8667c19662",
+    "profile_path": "/models/qwen_qwen3-4b-instruct-2507.yaml",
+    "profile_sha256": "ef036e0a02cc5e8331dc4dff41c0e0cb68e6e0bda71d92b92f47f673472e666f"
+  },
+  "evaluator": {
+    "path": "local-acceptance-models/nxb21-english-functional-qualification/bin/forensic_records_english_qualification.test.exe",
+    "bytes": 46211072,
+    "sha256": "462084d7a76c35dc3d295b8a43139a18e5bb040d28d80a9a6d933996a13c448a"
+  },
+  "runtime": {
+    "localai_url": "http://127.0.0.1:8080",
+    "analyst_url": "http://127.0.0.1:8080/analyst",
+    "retained_tuple": "68|68|81|22511|870|68",
+    "activity_count": 353,
+    "active_jobs": 0,
+    "analyst_index_sha256": "a0f1e4288c1b9ee46b4fa3c3c94870fef46b12d7c1718c36eee2e905d14ae7de"
+  },
+  "files": {
+    "api/forensic_records/english_functional_qualification_test.go": "abf62c3c02d7eecda22a5fdc012f34554090f2eb6af5d7a6821fe92f89a174b8",
+    "scripts/nxb21-english-functional-qualification/check_loaded_ram.ps1": "03aba21249e5bb7ad97926d698f57a475c8be92d5739558566be98fcca1206f3",
+    "scripts/nxb21-english-functional-qualification/english-functional-corpus-v1.json": "fa9dac24d2c779c02da53d41c9142b8ec7028dc7200b5e66696f9443bc4cf2be",
+    "scripts/nxb21-english-functional-qualification/english-functional-oracle-v1.json": "86611bd55f120d827e176a1837d52700ab450690bb96e392048f313da00e123f",
+    "scripts/nxb21-english-functional-qualification/run_english_functional_qualification.ps1": "bdaae3e6744eb0564ff4b2e75bb35da94c27b1203d8048e8107cb4e539d0abdf",
+    "scripts/nxb21-english-functional-qualification/validate_freshness.py": "dbc969683ae1bfd72aea0c417729dfdbdd0cb366af04ab2aa4f9c9679868a8e4"
+  },
+  "contract": {
+    "sha256": "83206635cffd30e0e2a37887f444adc969db406dcd505b6b9d31190f33b6c2d1",
+    "files": {
+      "api/forensic_records/contracts/operation-certification-v1.json": "5733269514b418c5fb91b190d6d74d7c7f7ae87cd9ead00f78708bb7e50b6738",
+      "api/forensic_records/open_ended_semantic_planner.go": "b51b17217e5431b9dc8b993e84296d1d345719a478974f25deb54d58676b3d55",
+      "api/forensic_records/stim_fact_packet.go": "d59b4a6df0c917ebdfa66c692e0849c6c1fb00ae44c24c9968ddc68766ba8756",
+      "api/forensic_records/typed_query_plan_validation.go": "5caa411abd272f51d39608d88f11ec48a8470e5b8fca47b7ef1d7437fe17529a",
+      "core/services/agents/forensic_direct.go": "4ac5c4dafa865e2fa5f0d0148a641aab0e2a20f893bf8ab370a6eeac5e232fec",
+      "core/services/agents/records_tools.go": "1009411b827a7123b619c3581cf3b3b7acd4d901ca67c0b3e1f435cf764546e1"
+    }
+  }
+}

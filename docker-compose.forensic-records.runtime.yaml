@@ -1,0 +1,13 @@
+services:
+  forensic-records-api:
+    image: ${NEXUSAI_FORENSIC_API_IMAGE:-nexusai/forensic-records-api:phase3-runtime}
+    environment:
+      FORENSIC_API_AUTH_REQUIRED: "true"
+      FORENSIC_API_KEY: ${FORENSIC_RECORDS_API_KEY:?FORENSIC_RECORDS_API_KEY is required}
+      FORENSIC_TRUSTED_TENANT_ID: ${FORENSIC_RECORDS_TENANT_ID:-default}
+      FORENSIC_DATABASE_URL: postgresql://${FORENSIC_RUNTIME_DB_USER:-forensic_runtime}:${FORENSIC_RUNTIME_DB_PASSWORD:?FORENSIC_RUNTIME_DB_PASSWORD is required}@forensic-postgres:5432/localrecall
+
+  forensic-records-worker:
+    image: ${NEXUSAI_FORENSIC_WORKER_IMAGE:-nexusai/forensic-records-worker:phase3-runtime}
+    environment:
+      FORENSIC_DATABASE_URL: postgresql://${FORENSIC_RUNTIME_DB_USER:-forensic_runtime}:${FORENSIC_RUNTIME_DB_PASSWORD:?FORENSIC_RUNTIME_DB_PASSWORD is required}@forensic-postgres:5432/localrecall
