@@ -1,0 +1,13 @@
+{
+  "contract_version": "forensics.semantic-compiler-thresholds/v1",
+  "exact_metadata_minimum": 12,
+  "structural_score_minimum": 0,
+  "top1_top2_margin_minimum": 0.75,
+  "structural_override_minimum": 14,
+  "field_absolute_score_minimum": 1,
+  "field_top1_top2_margin_minimum": 0,
+  "operation_embedding_weight": 4.5,
+  "field_exact_name_weight": 8,
+  "field_bm25_weight": 1,
+  "field_embedding_weight": 2
+}

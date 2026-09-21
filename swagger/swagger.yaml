@@ -1,5 +1,143 @@
 basePath: /
 definitions:
+  agentpool.ChatRetryResult:
+    properties:
+      case_id:
+        type: string
+      idempotent_replay:
+        type: boolean
+      message_id:
+        type: string
+      retry_of:
+        type: string
+    type: object
+  agents.AgentRequestStatus:
+    properties:
+      agent_name:
+        type: string
+      case_id:
+        type: string
+      message_id:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  agents.AnalysisHistoryEntry:
+    properties:
+      agent_name:
+        type: string
+      analysis_id:
+        type: string
+      answer:
+        type: string
+      case_id:
+        type: string
+      collection_id:
+        type: string
+      completed_at:
+        type: string
+      contract_version:
+        type: string
+      created_at:
+        type: string
+      execution_authority:
+        type: string
+      import_id:
+        type: string
+      legal_hold:
+        type: boolean
+      message_id:
+        type: string
+      metadata:
+        additionalProperties: {}
+        type: object
+      model_role:
+        type: string
+      query:
+        type: string
+      retry_of:
+        type: string
+      saved:
+        type: boolean
+      saved_at:
+        type: string
+      saved_title:
+        type: string
+      source:
+        type: string
+      status:
+        type: string
+      tenant_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  agents.AnalysisHistoryPage:
+    properties:
+      contract_version:
+        type: string
+      has_more:
+        type: boolean
+      items:
+        items:
+          $ref: '#/definitions/agents.AnalysisHistoryEntry'
+        type: array
+      next_cursor:
+        type: string
+    type: object
+  agents.AnalysisImportRollbackResult:
+    properties:
+      deleted:
+        type: integer
+      import_id:
+        type: string
+      retained_legal_hold:
+        type: integer
+      retained_saved:
+        type: integer
+    type: object
+  agents.BrowserHistoryConversation:
+    properties:
+      created_at:
+        type: integer
+      id:
+        type: string
+      messages:
+        items:
+          $ref: '#/definitions/agents.BrowserHistoryMessage'
+        type: array
+      name:
+        type: string
+      updated_at:
+        type: integer
+    type: object
+  agents.BrowserHistoryImportResult:
+    properties:
+      contract_version:
+        type: string
+      import_id:
+        type: string
+      imported:
+        type: integer
+      rollback_available:
+        type: boolean
+      skipped:
+        type: integer
+    type: object
+  agents.BrowserHistoryMessage:
+    properties:
+      content:
+        type: string
+      metadata:
+        additionalProperties: {}
+        type: object
+      sender:
+        type: string
+      timestamp:
+        type: integer
+    type: object
   config.Gallery:
     properties:
       name:
@@ -390,6 +528,67 @@ definitions:
           >= 1.
         type: integer
     type: object
+  localai.analysisSavedRequest:
+    properties:
+      case_id:
+        type: string
+      collection_id:
+        type: string
+      saved:
+        type: boolean
+      title:
+        type: string
+    type: object
+  localai.browserHistoryImportRequest:
+    properties:
+      case_id:
+        type: string
+      collection_id:
+        type: string
+      contract_version:
+        type: string
+      conversations:
+        items:
+          $ref: '#/definitions/agents.BrowserHistoryConversation'
+        type: array
+    type: object
+  localai.forensicCaseV1:
+    properties:
+      aliases:
+        items:
+          type: string
+        type: array
+      case_id:
+        type: string
+      case_status:
+        type: string
+      cleanup_disposition:
+        type: string
+      collection_id:
+        type: string
+      contract_version:
+        type: string
+      display_name:
+        type: string
+      environment:
+        type: string
+      owner:
+        type: string
+      purpose:
+        type: string
+      retention_class:
+        type: string
+      security_classification:
+        type: string
+      selectable:
+        type: boolean
+      visibility:
+        type: string
+      warnings:
+        items:
+          type: string
+        type: array
+    type: object
   model.BackendLogLine:
     properties:
       stream:
@@ -503,6 +702,292 @@ definitions:
         type: number
       start:
         type: number
+    type: object
+  records.AggregateRequest:
+    properties:
+      batch_ids:
+        items:
+          type: string
+        type: array
+      collection_name:
+        type: string
+      field:
+        type: string
+      fields:
+        items:
+          type: string
+        type: array
+      filters:
+        items:
+          $ref: '#/definitions/records.Filter'
+        type: array
+      group_by:
+        items:
+          type: string
+        type: array
+      helper:
+        type: string
+      helper_args:
+        additionalProperties: {}
+        type: object
+      limit:
+        type: integer
+      offset:
+        type: integer
+      operation:
+        type: string
+      record_type:
+        type: string
+      sort:
+        items:
+          $ref: '#/definitions/records.SortField'
+        type: array
+      time_range:
+        $ref: '#/definitions/records.TimeRange'
+      top_n:
+        type: integer
+    type: object
+  records.AggregateResponse:
+    properties:
+      count:
+        type: integer
+      field:
+        type: string
+      groups:
+        items:
+          $ref: '#/definitions/records.GroupResult'
+        type: array
+      operation:
+        type: string
+      record:
+        additionalProperties: {}
+        type: object
+      results:
+        items:
+          $ref: '#/definitions/records.GroupResult'
+        type: array
+      value: {}
+      values:
+        items: {}
+        type: array
+    type: object
+  records.Batch:
+    properties:
+      collection_name:
+        type: string
+      created_at:
+        type: string
+      error_count:
+        type: integer
+      fields:
+        items:
+          $ref: '#/definitions/records.FieldSchema'
+        type: array
+      id:
+        type: string
+      record_type:
+        type: string
+      row_count:
+        type: integer
+      source_entry:
+        type: string
+      source_file:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  records.CorrelateRequest:
+    properties:
+      entity_fields:
+        items:
+          type: string
+        type: array
+      left:
+        $ref: '#/definitions/records.QueryRequest'
+      limit:
+        type: integer
+      right:
+        $ref: '#/definitions/records.QueryRequest'
+      time_field:
+        type: string
+      time_window_seconds:
+        type: integer
+    type: object
+  records.CorrelateResponse:
+    properties:
+      count:
+        type: integer
+      matches:
+        items:
+          $ref: '#/definitions/records.CorrelationMatch'
+        type: array
+    type: object
+  records.CorrelationMatch:
+    properties:
+      entity:
+        additionalProperties: {}
+        type: object
+      left:
+        additionalProperties: {}
+        type: object
+      right:
+        additionalProperties: {}
+        type: object
+      time_delta_seconds:
+        type: integer
+    type: object
+  records.FieldSchema:
+    properties:
+      canonical_name:
+        type: string
+      detected_aliases:
+        items:
+          type: string
+        type: array
+      non_empty_count:
+        type: integer
+      normalized_name:
+        type: string
+      original_name:
+        type: string
+      sample_values:
+        items:
+          type: string
+        type: array
+      type:
+        type: string
+    type: object
+  records.Filter:
+    properties:
+      field:
+        type: string
+      op:
+        type: string
+      value: {}
+      values:
+        items: {}
+        type: array
+    type: object
+  records.GroupResult:
+    properties:
+      count:
+        type: integer
+      key:
+        additionalProperties: {}
+        type: object
+      record:
+        additionalProperties: {}
+        type: object
+      value: {}
+    type: object
+  records.IngestError:
+    properties:
+      message:
+        type: string
+      raw:
+        type: string
+      row_number:
+        type: integer
+    type: object
+  records.IngestResult:
+    properties:
+      batch:
+        $ref: '#/definitions/records.Batch'
+      errors:
+        items:
+          $ref: '#/definitions/records.IngestError'
+        type: array
+      warnings:
+        items:
+          type: string
+        type: array
+    type: object
+  records.QueryRequest:
+    properties:
+      batch_ids:
+        items:
+          type: string
+        type: array
+      collection_name:
+        type: string
+      fields:
+        items:
+          type: string
+        type: array
+      filters:
+        items:
+          $ref: '#/definitions/records.Filter'
+        type: array
+      helper:
+        type: string
+      helper_args:
+        additionalProperties: {}
+        type: object
+      limit:
+        type: integer
+      offset:
+        type: integer
+      record_type:
+        type: string
+      sort:
+        items:
+          $ref: '#/definitions/records.SortField'
+        type: array
+      time_range:
+        $ref: '#/definitions/records.TimeRange'
+    type: object
+  records.QueryResponse:
+    properties:
+      batch_ids:
+        items:
+          type: string
+        type: array
+      count:
+        type: integer
+      limit:
+        type: integer
+      offset:
+        type: integer
+      records:
+        items:
+          additionalProperties: {}
+          type: object
+        type: array
+      total:
+        type: integer
+    type: object
+  records.SchemaResponse:
+    properties:
+      aliases:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        type: object
+      fields:
+        items:
+          $ref: '#/definitions/records.FieldSchema'
+        type: array
+      record_type:
+        type: string
+    type: object
+  records.SortField:
+    properties:
+      direction:
+        type: string
+      field:
+        type: string
+    type: object
+  records.TimeRange:
+    properties:
+      field:
+        type: string
+      from:
+        type: string
+      to:
+        type: string
     type: object
   schema.AnthropicContentBlock:
     properties:
@@ -908,6 +1393,27 @@ definitions:
         items:
           $ref: '#/definitions/schema.FaceAnalysis'
         type: array
+    type: object
+  schema.FaceDetectRequest:
+    properties:
+      img:
+        type: string
+      model:
+        type: string
+    type: object
+  schema.FaceDetectResponse:
+    properties:
+      faces:
+        items:
+          $ref: '#/definitions/schema.FaceDetection'
+        type: array
+    type: object
+  schema.FaceDetection:
+    properties:
+      confidence:
+        type: number
+      region:
+        $ref: '#/definitions/schema.FacialArea'
     type: object
   schema.FaceEmbedRequest:
     properties:
@@ -2843,6 +3349,415 @@ paths:
       summary: Execute an agent task by name
       tags:
       - agent-jobs
+  /api/agents/{name}/chat/{message_id}/cancel:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Agent name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Chat request message ID
+        in: path
+        name: message_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cancel an active agent chat request
+      tags:
+      - Agents
+  /api/agents/{name}/chat/{message_id}/retry:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Agent name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Original chat request message ID
+        in: path
+        name: message_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/agentpool.ChatRetryResult'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Retry a failed forensic agent chat request idempotently
+      tags:
+      - Agents
+  /api/agents/{name}/chat/{message_id}/status:
+    get:
+      parameters:
+      - description: Agent name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Chat request message ID
+        in: path
+        name: message_id
+        required: true
+        type: string
+      - description: Authorized forensic case ID
+        in: query
+        name: case_id
+        required: true
+        type: string
+      - description: Authorized forensic collection ID
+        in: query
+        name: collection_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/agents.AgentRequestStatus'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get an agent chat request status
+      tags:
+      - Agents
+  /api/agents/{name}/history:
+    get:
+      parameters:
+      - description: Agent name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Authorized forensic case ID
+        in: query
+        name: case_id
+        required: true
+        type: string
+      - description: Authorized forensic collection ID
+        in: query
+        name: collection_id
+        required: true
+        type: string
+      - description: Opaque pagination cursor
+        in: query
+        name: cursor
+        type: string
+      - description: Page size (1-100)
+        in: query
+        name: limit
+        type: integer
+      - description: Return only saved analyses
+        in: query
+        name: saved
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/agents.AnalysisHistoryPage'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: Service Unavailable
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List case-scoped forensic analysis history
+      tags:
+      - Agents
+  /api/agents/{name}/history/{analysis_id}:
+    get:
+      parameters:
+      - description: Agent name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Analysis ID
+        in: path
+        name: analysis_id
+        required: true
+        type: string
+      - description: Authorized forensic case ID
+        in: query
+        name: case_id
+        required: true
+        type: string
+      - description: Authorized forensic collection ID
+        in: query
+        name: collection_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/agents.AnalysisHistoryEntry'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a case-scoped forensic analysis
+      tags:
+      - Agents
+  /api/agents/{name}/history/{analysis_id}/saved:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Agent name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Analysis ID
+        in: path
+        name: analysis_id
+        required: true
+        type: string
+      - description: Saved state
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/localai.analysisSavedRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/agents.AnalysisHistoryEntry'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Save or unsave a forensic analysis
+      tags:
+      - Agents
+  /api/agents/{name}/history/import:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Agent name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Versioned browser history
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/localai.browserHistoryImportRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/agents.BrowserHistoryImportResult'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Import browser-local forensic analysis history
+      tags:
+      - Agents
+  /api/agents/{name}/history/imports/{import_id}:
+    delete:
+      parameters:
+      - description: Agent name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Import ID
+        in: path
+        name: import_id
+        required: true
+        type: string
+      - description: Authorized forensic case ID
+        in: query
+        name: case_id
+        required: true
+        type: string
+      - description: Authorized forensic collection ID
+        in: query
+        name: collection_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/agents.AnalysisImportRollbackResult'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Roll back a browser history import
+      tags:
+      - Agents
   /api/aliases:
     get:
       responses:
@@ -3343,6 +4258,373 @@ paths:
       summary: Redact PII in a string by applying the configured policy.
       tags:
       - pii
+  /api/records/aggregate:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: aggregate query
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/records.AggregateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: aggregate result
+          schema:
+            $ref: '#/definitions/records.AggregateResponse'
+      summary: Aggregate structured records
+      tags:
+      - records
+  /api/records/batches:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: batch list
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List record batches
+      tags:
+      - records
+  /api/records/batches/{id}:
+    delete:
+      parameters:
+      - description: Batch ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: status
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a record batch
+      tags:
+      - records
+    get:
+      parameters:
+      - description: Batch ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: batch
+          schema:
+            $ref: '#/definitions/records.Batch'
+      summary: Get a record batch
+      tags:
+      - records
+  /api/records/correlate:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: correlation query
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/records.CorrelateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: correlation result
+          schema:
+            $ref: '#/definitions/records.CorrelateResponse'
+      summary: Correlate structured records
+      tags:
+      - records
+  /api/records/forensic/capabilities:
+    get:
+      parameters:
+      - description: Tenant ID, defaults to the trusted forensic tenant
+        in: query
+        name: tenant_id
+        type: string
+      - description: Knowledge Base / records collection ID
+        in: query
+        name: collection_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: collection-aware capability catalog
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get forensic records capability coverage
+      tags:
+      - records
+  /api/records/forensic/evidence:
+    get:
+      parameters:
+      - description: Tenant ID, defaults to default
+        in: query
+        name: tenant_id
+        type: string
+      - description: Knowledge Base / records collection ID
+        in: query
+        name: collection_id
+        required: true
+        type: string
+      - description: Case ID
+        in: query
+        name: case_id
+        type: string
+      - description: Evidence modality
+        in: query
+        name: modality
+        type: string
+      - description: Detected evidence type
+        in: query
+        name: detected_type
+        type: string
+      - description: Processing status
+        in: query
+        name: processing_status
+        type: string
+      - description: Filename, hash, KB entry, or metadata search
+        in: query
+        name: q
+        type: string
+      - description: Maximum evidence items to include
+        in: query
+        name: limit
+        type: integer
+      - description: Pagination offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: sidecar evidence catalog
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List forensic evidence
+      tags:
+      - records
+  /api/records/forensic/evidence/{id}:
+    get:
+      parameters:
+      - description: Evidence ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Tenant ID, defaults to the trusted forensic tenant
+        in: query
+        name: tenant_id
+        type: string
+      - description: Knowledge Base / records collection ID
+        in: query
+        name: collection_id
+        required: true
+        type: string
+      - description: Maximum canonical row previews
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: sidecar evidence detail
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get forensic evidence detail
+      tags:
+      - records
+  /api/records/forensic/evidence/{id}/reprocess:
+    post:
+      consumes:
+      - application/json
+      description: Create an idempotent reprocessing job without resetting or deleting
+        prior processing history.
+      parameters:
+      - description: Evidence ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Stable 8-128 character request key
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: collection_id, reason, and optional max_attempts
+        in: body
+        name: request
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: reprocessing job
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Reprocess forensic evidence
+      tags:
+      - records
+  /api/records/forensic/query:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: hybrid forensic query
+        in: body
+        name: request
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: sidecar hybrid query result
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Query forensic records through the sidecar
+      tags:
+      - records
+  /api/records/forensic/status:
+    get:
+      parameters:
+      - description: Tenant ID, defaults to default
+        in: query
+        name: tenant_id
+        type: string
+      - description: Knowledge Base / records collection ID
+        in: query
+        name: collection_id
+        required: true
+        type: string
+      - description: Maximum recent jobs to include
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: sidecar collection status
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get forensic records collection status
+      tags:
+      - records
+  /api/records/forensic/templates:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: sidecar query templates
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List forensic records query templates
+      tags:
+      - records
+  /api/records/ingest:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload CSV, TSV, JSON array, JSONL/NDJSON, or text/log records
+        into the deterministic records store. If collection_name is supplied, the
+        raw file is also uploaded to the matching Knowledge Base collection.
+      parameters:
+      - description: Structured records file
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Knowledge Base collection to store the raw evidence file in
+        in: formData
+        name: collection_name
+        type: string
+      - description: 'Record type override: cdr, anpr, ipdr, subscriber, tower_location,
+          transaction, access_log, generic, or auto'
+        in: formData
+        name: record_type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ingest result
+          schema:
+            $ref: '#/definitions/records.IngestResult'
+      summary: Ingest structured records
+      tags:
+      - records
+  /api/records/query:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: query
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/records.QueryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: query result
+          schema:
+            $ref: '#/definitions/records.QueryResponse'
+      summary: Query structured records
+      tags:
+      - records
+  /api/records/schema/{record_type}:
+    get:
+      parameters:
+      - description: Record type
+        in: path
+        name: record_type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: schema
+          schema:
+            $ref: '#/definitions/records.SchemaResponse'
+      summary: Get structured record schema
+      tags:
+      - records
   /api/router/decide:
     post:
       consumes:
@@ -3412,6 +4694,351 @@ paths:
       summary: Clear API traces
       tags:
       - monitoring
+  /api/v1/forensics/adapters:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: forensic adapter catalog
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List forensic evidence-family adapters
+      tags:
+      - records
+  /api/v1/forensics/agents:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: forensic specialist catalog
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List forensic specialist agents
+      tags:
+      - records
+  /api/v1/forensics/cases:
+    get:
+      parameters:
+      - description: Include accessible legacy/system/test collections
+        in: query
+        name: include_system
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: governed case list
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List governed forensic cases
+      tags:
+      - records
+  /api/v1/forensics/cases/{case_id}:
+    get:
+      parameters:
+      - description: Case ID (identical to its bound collection ID in v1)
+        in: path
+        name: case_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: governed case
+          schema:
+            $ref: '#/definitions/localai.forensicCaseV1'
+      summary: Get a governed forensic case
+      tags:
+      - records
+  /api/v1/forensics/cases/{case_id}/evidence:
+    get:
+      parameters:
+      - description: Case ID
+        in: path
+        name: case_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: List evidence for one governed case
+      tags:
+      - records
+  /api/v1/forensics/cases/{case_id}/evidence/{evidence_id}:
+    get:
+      parameters:
+      - description: Case ID
+        in: path
+        name: case_id
+        required: true
+        type: string
+      - description: Evidence ID
+        in: path
+        name: evidence_id
+        required: true
+        type: string
+      - description: Maximum canonical row previews
+        in: query
+        name: limit
+        type: integer
+      - description: Include bounded canonical row previews
+        in: query
+        name: include_records_preview
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: case-scoped evidence detail
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Inspect evidence in one governed forensic case
+      tags:
+      - records
+  /api/v1/forensics/cases/{case_id}/evidence/{evidence_id}/content:
+    get:
+      parameters:
+      - description: Case ID
+        in: path
+        name: case_id
+        required: true
+        type: string
+      - description: Evidence ID
+        in: path
+        name: evidence_id
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: verified retained evidence
+          schema:
+            type: file
+      summary: Preview retained image, audio, or video evidence
+      tags:
+      - records
+  /api/v1/forensics/cases/{case_id}/evidence/{evidence_id}/reprocess-plan:
+    get:
+      parameters:
+      - description: Case ID
+        in: path
+        name: case_id
+        required: true
+        type: string
+      - description: Evidence ID
+        in: path
+        name: evidence_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: read-only reprocess plan
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Inspect governed evidence reprocess eligibility
+      tags:
+      - records
+  /api/v1/forensics/cases/{case_id}/evidence/compare:
+    get:
+      parameters:
+      - description: Case ID
+        in: path
+        name: case_id
+        required: true
+        type: string
+      - description: First evidence UUID
+        in: query
+        name: evidence_id_a
+        required: true
+        type: string
+      - description: Second evidence UUID
+        in: query
+        name: evidence_id_b
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: forensics.image-comparison/v1
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Compare two retained images inside one governed case
+      tags:
+      - records
+  /api/v1/forensics/cases/{case_id}/faces/similar:
+    get:
+      parameters:
+      - description: Case ID
+        in: path
+        name: case_id
+        required: true
+        type: string
+      - description: Query face observation UUID
+        in: query
+        name: query_face_observation_id
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: Explicit candidate evidence UUIDs
+        in: query
+        items:
+          type: string
+        name: candidate_evidence_id
+        required: true
+        type: array
+      - description: Maximum ranked candidates
+        in: query
+        name: top_k
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: forensics.face-candidate-similarity/v1
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Rank face candidates inside one governed case
+      tags:
+      - records
+  /api/v1/forensics/cases/{case_id}/images/similar:
+    get:
+      parameters:
+      - description: Case ID
+        in: path
+        name: case_id
+        required: true
+        type: string
+      - description: Query image observation UUID
+        in: query
+        name: query_image_observation_id
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: Explicit candidate evidence UUIDs
+        in: query
+        items:
+          type: string
+        name: candidate_evidence_id
+        required: true
+        type: array
+      - description: Maximum ranked candidates
+        in: query
+        name: top_k
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: forensics.semantic-image-candidate-similarity/v1
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Rank semantic image candidates inside one governed case
+      tags:
+      - records
+  /api/v1/forensics/cases/{case_id}/manifest:
+    get:
+      parameters:
+      - description: Case ID
+        in: path
+        name: case_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: case reconciliation manifest
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a read-only forensic case reconciliation manifest
+      tags:
+      - records
+  /api/v1/forensics/cases/{case_id}/query:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Case ID
+        in: path
+        name: case_id
+        required: true
+        type: string
+      - description: raw question or typed query plan
+        in: body
+        name: request
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: forensics.enterprise-response/v1
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Query a governed forensic case
+      tags:
+      - records
+  /api/v1/forensics/cases/{case_id}/reports:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Case ID
+        in: path
+        name: case_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Generate a bounded report for one governed case
+      tags:
+      - records
+  /api/v1/forensics/contracts:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: forensic contract catalog
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List forensic API contracts
+      tags:
+      - records
+  /api/v1/forensics/operations:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: forensic operation catalog
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List forensic deterministic operations
+      tags:
+      - records
   /audio/transform:
     post:
       consumes:
@@ -4108,6 +5735,23 @@ paths:
           schema:
             $ref: '#/definitions/schema.FaceAnalyzeResponse'
       summary: Analyze demographic attributes (age, gender, ...) of faces.
+      tags:
+      - face-recognition
+  /v1/face/detect:
+    post:
+      parameters:
+      - description: query params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.FaceDetectRequest'
+      responses:
+        "200":
+          description: Response
+          schema:
+            $ref: '#/definitions/schema.FaceDetectResponse'
+      summary: Detect faces without demographic analysis.
       tags:
       - face-recognition
   /v1/face/embed:

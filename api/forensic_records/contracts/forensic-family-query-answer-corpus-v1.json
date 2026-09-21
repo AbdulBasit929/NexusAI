@@ -1,0 +1,26 @@
+{
+  "contract_version": "forensics.family-query-answer-corpus/v1",
+  "corpus_version": "2026-08-11.r6.6",
+  "entries": [
+    {"id":"cdr-frequent-contacts-en","family_id":"cdr","locale":"en","query":"who does 923001110001 contact most?","expected_template":"frequent_contacts","required_sections":["executive_answer","deterministic_findings","citations","limitations"]},
+    {"id":"cdr-duration-en","family_id":"cdr","locale":"en","query":"show longest call duration","expected_template":"longest_call","required_sections":["executive_answer","deterministic_findings","citations","limitations"]},
+    {"id":"ipdr-activity-en","family_id":"ipdr_network_sessions","locale":"en","query":"show network session volume","expected_template":"ipdr_session_volume","required_sections":["executive_answer","deterministic_findings","citations","limitations"]},
+    {"id":"anpr-sequence-en","family_id":"anpr_vehicle_sightings","locale":"en","query":"show camera sequence for plate ABC-123","expected_template":"anpr_camera_sequence","required_sections":["executive_answer","deterministic_findings","citations","limitations"]},
+    {"id":"video-anpr-groups-en","family_id":"anpr_vehicle_sightings","locale":"en","query":"show grouped video ANPR observations","expected_template":"video_anpr_grouped_timeline","required_sections":["executive_answer","deterministic_findings","citations","limitations"]},
+    {"id":"subscriber-status-en","family_id":"subscriber_identity","locale":"en","query":"show subscriber status summary","expected_template":"subscriber_status_summary","required_sections":["executive_answer","deterministic_findings","citations","limitations"]},
+    {"id":"subscriber-status-roman-ur","family_id":"subscriber_identity","locale":"ur-Latn","query":"subscriber status ka khulasa","expected_template":"subscriber_status_summary","required_sections":["executive_answer","deterministic_findings","citations","limitations"]},
+    {"id":"tower-audit-en","family_id":"tower_location","locale":"en","query":"audit tower coordinates and uncertainty","expected_template":"tower_coordinate_audit","required_sections":["executive_answer","deterministic_findings","citations","limitations"]},
+    {"id":"financial-records-en","family_id":"financial_transactions","locale":"en","query":"Run deterministic forensic query; template=canonical_records; record_type=transaction; limit=20","expected_template":"canonical_records","required_sections":["executive_answer","deterministic_findings","citations","limitations"]},
+    {"id":"cross-family-en","family_id":"cross_family","locale":"en","query":"correlate 923001110001 across record families","expected_template":"cross_family_correlation","required_sections":["executive_answer","deterministic_findings","citations","limitations"]}
+  ],
+  "scenarios": [
+    {"id":"cdr-frequent-contacts-missing-target","kind":"ambiguity","query":"who are the frequent contacts?","expected_outcome":"needs_input","assertions":["no case-wide substitution","no fixture target selected","clarification requests number or subscriber","no SQL execution"]},
+    {"id":"ambiguity-missing-target","kind":"ambiguity","query":"build an evidence timeline","expected_outcome":"needs_input","assertions":["no inferred target","clarification identifies accepted target kinds","no model-owned facts"]},
+    {"id":"no-data-explicit-target","kind":"no_data","query":"Run deterministic forensic query; template=anpr_timeline; target=ZZZ-SYNTHETIC-NO-MATCH; limit=20","expected_outcome":"no_results","assertions":["bounded negative result","coverage limitation retained","no real-world absence claim"]},
+    {"id":"unsupported-audio-transcription","kind":"unsupported_operation","query":"transcribe and diarize this audio","expected_outcome":"unavailable","assertions":["missing accepted adapter named","no substitute answer","safe suggestions returned"]},
+    {"id":"unsupported-image-identity","kind":"unsupported_operation","query":"identify person in image evidence","expected_outcome":"unavailable","assertions":["missing accepted identity capability named","no substitute answer","safe suggestions returned"]},
+    {"id":"model-role-rejection","kind":"model_rejection","query":"explain this deterministic result using whisper-large-v3","expected_outcome":"deterministic_fallback","assertions":["incompatible model rejected","deterministic result remains authoritative","fallback disclosed"]},
+    {"id":"source-access-records","kind":"source_access","query":"show the CDR call type breakdown","expected_outcome":"records","assertions":["parameterized records route","source locators preserved","tenant and collection scoped"]},
+    {"id":"source-access-evidence","kind":"source_access","query":"show forensic evidence lineage","expected_outcome":"kb","assertions":["retrieved evidence cited","evidence identity preserved","no uncited semantic claim"]}
+  ]
+}

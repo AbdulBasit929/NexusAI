@@ -50,8 +50,8 @@ func TestClassifyEvidenceItemRoutesDocumentsToKB(t *testing.T) {
 	if classification.DetectedType != "pdf" {
 		t.Fatalf("DetectedType = %q, want pdf", classification.DetectedType)
 	}
-	if classification.ProcessingRoute != "kb_document_pipeline" {
-		t.Fatalf("ProcessingRoute = %q, want kb_document_pipeline", classification.ProcessingRoute)
+	if classification.ProcessingRoute != "native_document_worker" {
+		t.Fatalf("ProcessingRoute = %q, want native_document_worker", classification.ProcessingRoute)
 	}
 }
 
@@ -66,5 +66,30 @@ func TestReadTextHeadersFallback(t *testing.T) {
 	}
 	if len(headers) != 1 || headers[0] != "line" {
 		t.Fatalf("headers = %#v, want [line]", headers)
+	}
+}
+
+func TestResolveRequestedRecordTypePreservesAutoModeForWorkerPolicy(t *testing.T) {
+	headers := []string{"case_id", "observation"}
+	recordType, mode := resolveRequestedRecordType("auto", headers)
+	if recordType != "generic" || mode != "auto" {
+		t.Fatalf("resolveRequestedRecordType(auto) = (%q, %q), want (generic, auto)", recordType, mode)
+	}
+
+	recordType, mode = resolveRequestedRecordType("transaction", headers)
+	if recordType != "transaction" || mode != "explicit" {
+		t.Fatalf("resolveRequestedRecordType(transaction) = (%q, %q), want (transaction, explicit)", recordType, mode)
+	}
+}
+
+func TestExplicitRecordTypeControlsClassificationWhenHeaderDetectionIsDeferred(t *testing.T) {
+	classificationType := effectiveClassificationRecordType("cdr", "generic", "explicit")
+	classification := classifyEvidenceItem("calls.tsv", "text/tab-separated-values", classificationType, nil)
+	if classification.DetectedType != "cdr" || !classification.QueueRecords {
+		t.Fatalf("explicit TSV classification = %#v, want queued CDR", classification)
+	}
+
+	if got := effectiveClassificationRecordType("cdr", "generic", "auto"); got != "generic" {
+		t.Fatalf("auto classification type = %q, want detected generic", got)
 	}
 }

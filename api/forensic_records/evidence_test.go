@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -40,5 +41,29 @@ func TestEvidenceListHandlerRejectsUnsupportedMethod(t *testing.T) {
 	evidenceListHandler(nil).ServeHTTP(rec, req)
 	if rec.Code != http.StatusMethodNotAllowed {
 		t.Fatalf("status = %d, want %d", rec.Code, http.StatusMethodNotAllowed)
+	}
+}
+
+func TestEvidenceCatalogIncludesLegacyRowsInTheBoundCollection(t *testing.T) {
+	if !strings.Contains(evidenceWhereSQL, "coalesce(evidence.case_id, '') IN ('', $3)") {
+		t.Fatal("evidence catalog must include pre-case-id rows while rejecting rows bound to another case")
+	}
+}
+
+func TestEvidenceCatalogReturnsOneRowPerEvidenceItem(t *testing.T) {
+	for _, fragment := range []string{
+		"LEFT JOIN LATERAL (",
+		"FROM forensic.records_ingest_jobs job",
+		"FROM forensic.kb_collection_assets asset",
+		"ORDER BY job.queued_at DESC, job.id DESC",
+		"ORDER BY asset.updated_at DESC, asset.id DESC",
+	} {
+		if !strings.Contains(evidenceListSQL, fragment) {
+			t.Fatalf("evidence catalog query must select one current related row; missing %q", fragment)
+		}
+	}
+	if strings.Contains(evidenceListSQL, "LEFT JOIN forensic.records_ingest_jobs jobs") ||
+		strings.Contains(evidenceListSQL, "LEFT JOIN forensic.kb_collection_assets assets") {
+		t.Fatal("evidence catalog must not multiply evidence rows with one-to-many joins")
 	}
 }

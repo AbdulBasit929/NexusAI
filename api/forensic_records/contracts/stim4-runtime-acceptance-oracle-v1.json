@@ -1,0 +1,56 @@
+{
+  "contract_version": "forensics.stim4-runtime-acceptance-oracle/v1",
+  "authorship": "hand-authored-independent-oracle",
+  "source_timezone": "Asia/Karachi",
+  "fixtures": {
+    "multi_cdr": ["cdr_alpha.csv", "cdr_bravo.csv", "cdr_charlie.tsv"],
+    "ipdr_subscriber": ["ipdr.csv", "subscriber.jsonl"],
+    "cross_source_anpr": ["anpr_east.csv", "anpr_west.csv"]
+  },
+  "expectations": {
+    "multi_cdr": {
+      "target_canonical": "+923001234567",
+      "source_count": 3,
+      "source_row_count": 8,
+      "accepted_event_count": 7,
+      "duplicate_source_row_count": 1,
+      "common_contacts": ["923110000001"],
+      "source_unique_contacts": {
+        "cdr_alpha.csv": ["923220000002"],
+        "cdr_bravo.csv": ["923330000003"],
+        "cdr_charlie.tsv": ["923440000004"]
+      },
+      "shared_imei": ["490154203237518"],
+      "shared_imsi": ["410010123456789"],
+      "shared_tower": ["LHR-001"],
+      "reciprocal_contact": "923110000001",
+      "exact_temporal_overlap_utc": "2026-08-18T05:00:00Z",
+      "duplicate_candidate_sources": ["cdr_alpha.csv", "cdr_charlie.tsv"],
+      "conflict_candidate_sources": ["cdr_alpha.csv", "cdr_bravo.csv", "cdr_charlie.tsv"],
+      "no_evidence_semantics": "absent links remain no evidence, not evidence of absence"
+    },
+    "ipdr_subscriber": {
+      "target_canonical": "+923001234567",
+      "expected_families": ["ipdr", "subscriber"],
+      "relationship_basis": "exact normalized subscriber identifier",
+      "ipdr_source_rows": 3,
+      "subscriber_source_rows": 4,
+      "valid_relationship_count": 1,
+      "future_invalid_target": "+923008888888",
+      "wrong_entity_type_value": "10.0.0.10",
+      "no_match_ipdr_target": "+923007777777",
+      "no_match_subscriber_target": "+923006666666",
+      "ownership_inference": false
+    },
+    "cross_source_anpr": {
+      "plate_search_key": "STIM404",
+      "source_count": 2,
+      "accepted_sighting_count": 6,
+      "ordered_camera_ids": ["STIM-CAM-EAST", "STIM-CAM-WEST"],
+      "elapsed_seconds": 480,
+      "source_unique_plate_keys": {"anpr_east.csv": ["EAST101", "LOOK777"], "anpr_west.csv": ["LOOK778", "WEST202"]},
+      "plate_like_non_match": ["LOOK777", "LOOK778"],
+      "ownership_inference": false
+    }
+  }
+}

@@ -15,7 +15,12 @@ func loadCoverageSummary(ctx context.Context, db *pgxpool.Pool, req hybridQueryR
 	}
 	summary := CoverageSummary{}
 	if rows, err := queryRows(ctx, db, req.TenantID, `
-WITH events AS (
+WITH canonical AS (
+  SELECT "timestamp" AS event_time, record_type::text AS record_type
+  FROM forensic.records
+  WHERE tenant_id = $1 AND collection_id = $2
+),
+legacy AS (
   SELECT call_start_ts AS event_time, 'cdr'::text AS record_type
   FROM forensic.cdr_records
   WHERE tenant_id = $1 AND collection_id = $2
@@ -23,6 +28,12 @@ WITH events AS (
   SELECT observed_at AS event_time, record_type::text AS record_type
   FROM forensic.generic_records
   WHERE tenant_id = $1 AND collection_id = $2
+),
+events AS (
+  SELECT event_time, record_type FROM canonical
+  UNION ALL
+  SELECT event_time, record_type FROM legacy
+  WHERE NOT EXISTS (SELECT 1 FROM canonical)
 )
 SELECT min(event_time) AS collection_min_timestamp,
        max(event_time) AS collection_max_timestamp,
@@ -34,10 +45,25 @@ FROM events`, req.TenantID, req.CollectionID); err == nil && len(rows) > 0 {
 		summary.TotalIndexedRecords = valueAsInt(row["total_indexed_records"])
 	}
 	if rows, err := queryRows(ctx, db, req.TenantID, `
-SELECT record_type::text AS record_type, coalesce(sum(inserted_rows), 0) AS count
-FROM forensic.kb_active_metadata
-WHERE tenant_id = $1 AND collection_id = $2
-GROUP BY record_type
+WITH metadata_counts AS (
+  SELECT record_type::text AS record_type, coalesce(sum(inserted_rows), 0) AS count
+  FROM forensic.kb_active_metadata
+  WHERE tenant_id = $1 AND collection_id = $2
+  GROUP BY record_type
+),
+canonical_counts AS (
+  SELECT record_type::text AS record_type, count(*) AS count
+  FROM forensic.records
+  WHERE tenant_id = $1 AND collection_id = $2
+  GROUP BY record_type
+),
+family_counts AS (
+  SELECT record_type, count FROM metadata_counts
+  UNION ALL
+  SELECT c.record_type, c.count FROM canonical_counts c
+  WHERE NOT EXISTS (SELECT 1 FROM metadata_counts m WHERE m.record_type = c.record_type)
+)
+SELECT record_type, count FROM family_counts
 ORDER BY count DESC, record_type`, req.TenantID, req.CollectionID); err == nil {
 		for _, row := range rows {
 			summary.RecordFamiliesPresent = append(summary.RecordFamiliesPresent, RecordFamilyCoverage{

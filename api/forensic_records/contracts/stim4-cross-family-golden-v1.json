@@ -1,0 +1,24 @@
+{
+  "contract_version": "forensics.cross-family-golden/v1",
+  "observations": [
+    {"observation_id":"cdr-phone","family":"communications_cdr","source_id":"cdr-a","evidence_id":"e-cdr","version_id":"v-cdr","entity_type":"phone","entity_value":"0300-1110001","observed_at":"2026-08-18T10:00:00+05:00"},
+    {"observation_id":"subscriber-valid","family":"subscriber_identity","source_id":"subscriber-a","evidence_id":"e-sub","version_id":"v-sub","entity_type":"phone","entity_value":"923001110001","observed_at":"2026-08-18T09:00:00+05:00","valid_from":"2026-08-18T09:00:00+05:00","valid_to":"2026-08-18T11:00:00+05:00"},
+    {"observation_id":"subscriber-future","family":"subscriber_identity","source_id":"subscriber-b","evidence_id":"e-sub-future","version_id":"v-sub-future","entity_type":"phone","entity_value":"923001110001","observed_at":"2026-08-18T12:00:00+05:00","valid_from":"2026-08-18T12:00:00+05:00","valid_to":"2026-08-18T13:00:00+05:00"},
+    {"observation_id":"ipdr-phone","family":"network_ipdr","source_id":"ipdr-a","evidence_id":"e-ipdr","version_id":"v-ipdr","entity_type":"phone","entity_value":"+92 300 1110001","observed_at":"2026-08-18T10:00:00+05:00"},
+    {"observation_id":"cdr-site","family":"communications_cdr","source_id":"cdr-a","evidence_id":"e-cdr","version_id":"v-cdr","entity_type":"site","entity_value":"SITE-001","observed_at":"2026-08-18T10:00:00+05:00"},
+    {"observation_id":"tower-valid","family":"tower_location","source_id":"tower-a","evidence_id":"e-tower","version_id":"v-tower","entity_type":"site","entity_value":"SITE-001","observed_at":"2026-08-18T09:00:00+05:00","valid_from":"2026-08-18T09:00:00+05:00","valid_to":"2026-08-18T11:00:00+05:00"},
+    {"observation_id":"tower-expired","family":"tower_location","source_id":"tower-old","evidence_id":"e-tower-old","version_id":"v-tower-old","entity_type":"site","entity_value":"SITE-001","observed_at":"2026-08-18T08:00:00+05:00","valid_from":"2026-08-18T08:00:00+05:00","valid_to":"2026-08-18T09:00:00+05:00"},
+    {"observation_id":"anpr-a","family":"anpr_vehicles","source_id":"anpr-a","evidence_id":"e-anpr-a","version_id":"v-anpr-a","entity_type":"plate","entity_value":"ABC-001","observed_at":"2026-08-18T10:00:00+05:00"},
+    {"observation_id":"anpr-b","family":"anpr_vehicles","source_id":"anpr-b","evidence_id":"e-anpr-b","version_id":"v-anpr-b","entity_type":"plate","entity_value":"ABC001","observed_at":"2026-08-19T10:00:00+05:00"},
+    {"observation_id":"tempting-imei","family":"subscriber_identity","source_id":"subscriber-a","evidence_id":"e-sub","version_id":"v-sub","entity_type":"imei","entity_value":"923001110001","observed_at":"2026-08-18T10:00:00+05:00","valid_from":"2026-08-18T09:00:00+05:00","valid_to":"2026-08-18T11:00:00+05:00"},
+    {"observation_id":"unresolved-time-ipdr","family":"network_ipdr","source_id":"ipdr-b","evidence_id":"e-ipdr-b","version_id":"v-ipdr-b","entity_type":"phone","entity_value":"923001110001"}
+  ],
+  "expected_relationships": [
+    {"left_observation_id":"anpr-a","right_observation_id":"anpr-b","relationship":"plate_observed_in_multiple_sources","relationship_strength":"exact_match"},
+    {"left_observation_id":"cdr-phone","right_observation_id":"ipdr-phone","relationship":"cdr_ipdr_temporal_identifier_overlap","relationship_strength":"temporal_overlap"},
+    {"left_observation_id":"cdr-phone","right_observation_id":"subscriber-valid","relationship":"cdr_subscriber_identifier_match","relationship_strength":"source_declared_relationship"},
+    {"left_observation_id":"cdr-site","right_observation_id":"tower-valid","relationship":"cdr_tower_reference_match","relationship_strength":"exact_match"},
+    {"left_observation_id":"subscriber-valid","right_observation_id":"ipdr-phone","relationship":"ipdr_subscriber_identifier_match","relationship_strength":"source_declared_relationship"}
+  ],
+  "anti_correlation_observation_ids": ["subscriber-future", "tower-expired", "tempting-imei", "unresolved-time-ipdr"]
+}

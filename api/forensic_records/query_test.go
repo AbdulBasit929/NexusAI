@@ -6,6 +6,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 func TestClassifyIntent(t *testing.T) {
@@ -20,9 +22,19 @@ func TestClassifyIntent(t *testing.T) {
 		{"semantic", "summarize the policy evidence", "", intentSemantic},
 		{"hybrid", "summarize evidence and show most frequent contacts", "", intentHybrid},
 		{"hybrid plural entities", "summarize evidence for ABC-123 and show related entities", "", intentHybrid},
+		{"hybrid policy and exact records", "Using both policy context and deterministic records, explain why exact counts must not be inferred from Knowledge Base chunks.", "", intentHybrid},
 		{"readiness", "is this case ready for production", "", intentRecords},
 		{"explicit records", "anything", "temporal_activity", intentRecords},
 		{"explicit evidence", "anything", "evidence", intentSemantic},
+		{"explicit hybrid evidence package", "anything", "evidence_package_summary", intentHybrid},
+		{"explicit hybrid executive brief", "anything", "executive_case_brief", intentHybrid},
+		{"natural deterministic relationship", "What evidence-backed relationships exist for 923001110001?", "", intentRecords},
+		{"natural deterministic package", "What is included in the evidence package?", "", intentRecords},
+		{"natural deterministic executive brief", "Prepare an executive case brief from deterministic findings", "", intentRecords},
+		{"natural deterministic court summary", "Prepare a court-ready source and provenance summary", "", intentRecords},
+		{"natural model assistance", "Explain the frequent contacts using only returned counts", "", intentHybrid},
+		{"deterministic anomaly summary", "Summarize the deterministic anomalies", "", intentRecords},
+		{"deterministic cross-dataset summary", "Summarize 923001110001 across datasets", "", intentRecords},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -39,12 +51,30 @@ func TestChooseTemplate(t *testing.T) {
 		want  string
 	}{
 		{"show collection status and duplicate rows", "collection_overview"},
-		{"how many GPRS records are there", "call_type_breakdown"},
+		{"how many GPRS records are there", "service_usage"},
+		{"show IMEI changes for 923001234567", "device_identity_changes"},
+		{"show IPDR endpoint summary", "ipdr_endpoint_summary"},
+		{"show DNS domain summary", "ipdr_domain_summary"},
+		{"For 923001234567 show me calls activity around 10 July 2026.", "temporal_activity"},
+		{"923001234567 cdr actvty 10 july 2026 pls", "temporal_activity"},
+		{"10 جولائی 2026 کو 923001234567 کی CDR سرگرمی دکھائیں", "temporal_activity"},
+		{"show network protocol breakdown", "ipdr_protocol_breakdown"},
+		{"show hourly session volume", "ipdr_session_volume"},
+		{"show subscriber sessions for 923001234567", "ipdr_subscriber_sessions"},
+		{"show concurrent sessions for 923001234567", "ipdr_concurrent_sessions"},
+		{"show IPDR timeline for 10.20.1.7", "ipdr_timeline"},
+		{"show camera sequence for ABC-123", "anpr_camera_sequence"},
+		{"show ANPR camera activity", "anpr_camera_activity"},
+		{"show co-travel for ABC-123", "anpr_co_travel"},
+		{"show route timing for ABC-123", "anpr_route_timing"},
+		{"show plate variants for ABC-123", "anpr_plate_variants"},
+		{"show ANPR timeline for ABC-123", "anpr_timeline"},
 		{"show hourly nocturnal anomalies", "suspicious_patterns"},
 		{"shortest call duration of 923461678183", "shortest_call"},
 		{"longest call duration for 923461678183", "longest_call"},
 		{"show duration extremes for 923461678183", "duration_extremes"},
 		{"show first seen last seen for 923461678183", "first_seen_last_seen"},
+		{"when was 923001110001 first and last observed", "first_seen_last_seen"},
 		{"show daily activity for ABC-123", "activity_by_day"},
 		{"which files were ingested", "source_file_audit"},
 		{"summarize this case", "executive_case_brief"},
@@ -69,7 +99,9 @@ func TestChooseTemplate(t *testing.T) {
 		{"is this case ready for production", "case_readiness"},
 		{"show evidence health and readiness", "case_readiness"},
 		{"find source evidence", "evidence"},
+		{"Using both policy context and deterministic records, explain why exact counts must not be inferred from Knowledge Base chunks.", "evidence"},
 		{"top contacts", "frequent_contacts"},
+		{"please discover the hidden criminal intent", ""},
 	}
 	for _, tt := range tests {
 		if got := chooseTemplate(tt.query, ""); got != tt.want {
@@ -95,17 +127,33 @@ func TestCanonicalTemplateAliases(t *testing.T) {
 	}
 }
 
+func TestSourceFileAuditGroupsCanonicalSources(t *testing.T) {
+	for _, fragment := range []string{
+		"UNION ALL",
+		"FROM forensic.records_ingest_jobs",
+		"FROM forensic.kb_collection_assets",
+		"FROM forensic.evidence_items",
+		"GROUP BY source_file",
+		"string_agg(DISTINCT evidence_id",
+	} {
+		if !strings.Contains(sourceFileAuditSQL, fragment) {
+			t.Fatalf("source file audit must reconcile one canonical row per source; missing %q", fragment)
+		}
+	}
+}
+
 func TestChooseTemplateCanonicalRecords(t *testing.T) {
 	tests := map[string]string{
-		"query canonical records for record type cdr":   "canonical_records",
-		"filter forensic.records by raw_payload status": "canonical_records",
-		"show rows where field exists in raw payload":   "canonical_records",
-		"find records for batch id 7597b681-62c4-4a1f":  "canonical_records",
-		"show CDR records where call type is GPRS":      "canonical_records",
-		"how many rows where IMEI exists":               "canonical_records",
-		"show CDR records where duration seconds > 60":  "canonical_records",
-		"show source rows for ABC-123":                  "source_records",
-		"show detected headers and schema":              "schema_profile",
+		"query canonical records for record type cdr":       "canonical_records",
+		"filter forensic.records by raw_payload status":     "canonical_records",
+		"show rows where field exists in raw payload":       "canonical_records",
+		"find records for batch id 7597b681-62c4-4a1f":      "canonical_records",
+		"show CDR records where call type is GPRS":          "canonical_records",
+		"how many rows where IMEI exists":                   "canonical_records",
+		"show CDR records where duration seconds > 60":      "canonical_records",
+		"How many records do we have for each record type?": "canonical_records",
+		"show source rows for ABC-123":                      "source_records",
+		"show detected headers and schema":                  "schema_profile",
 	}
 	for query, want := range tests {
 		if got := chooseTemplate(query, ""); got != want {
@@ -286,6 +334,70 @@ func TestCanonicalRecordsQueryBuilderSortDefaultsAndRejectsBadPayloadOp(t *testi
 	}
 }
 
+func TestIPDRSessionScopePreservesRetainedLegacyRowsWithoutInference(t *testing.T) {
+	for _, want := range []string{
+		"raw_payload->>'source_ip'",
+		"raw_payload->>'destination_ip'",
+		"raw_payload->>'subscriber_id'",
+		"raw_payload->>'session_id'",
+		"raw_payload->>'domain'",
+		"raw_payload->>'bytes'",
+		"byte_count_text ~ '^[0-9]{1,19}$'",
+		"source_port_text::int BETWEEN 1 AND 65535",
+	} {
+		if !strings.Contains(ipdrSessionScopeSQL, want) {
+			t.Fatalf("IPDR compatibility scope missing %q:\n%s", want, ipdrSessionScopeSQL)
+		}
+	}
+	for _, forbidden := range []string{"geoip", "dns_lookup", "subscriber_owner", "route_inference"} {
+		if strings.Contains(strings.ToLower(ipdrSessionScopeSQL), forbidden) {
+			t.Fatalf("IPDR compatibility scope contains forbidden inference %q", forbidden)
+		}
+	}
+}
+
+func TestIPDREndpointSummaryCarriesRepresentativeAggregateProvenance(t *testing.T) {
+	for _, field := range []string{"source_file", "row_number", "row_hash", "evidence_id"} {
+		fragment := "array_agg(" + field + " ORDER BY session_start, record_id"
+		if !strings.Contains(ipdrEndpointSummarySQL, fragment) {
+			t.Fatalf("IPDR endpoint aggregate is missing representative %s provenance: %s", field, ipdrEndpointSummarySQL)
+		}
+	}
+	for _, forbidden := range []string{"geoip", "subscriber_owner", "route_inference"} {
+		if strings.Contains(strings.ToLower(ipdrEndpointSummarySQL), forbidden) {
+			t.Fatalf("IPDR endpoint summary contains forbidden inference %q", forbidden)
+		}
+	}
+}
+
+func TestNormalizeDBValueFormatsUUIDsForJSONAndCitations(t *testing.T) {
+	value := [16]byte{0x64, 0x35, 0xf6, 0x35, 0xb4, 0xfb, 0x4a, 0xed, 0xa5, 0xf5, 0x77, 0xc4, 0x52, 0x80, 0xf8, 0x81}
+	want := "6435f635-b4fb-4aed-a5f5-77c45280f881"
+	if got := normalizeDBValue(value); got != want {
+		t.Fatalf("normalizeDBValue(UUID) = %#v, want %q", got, want)
+	}
+	if got := normalizeDBValue(pgtype.UUID{Bytes: value, Valid: true}); got != want {
+		t.Fatalf("normalizeDBValue(pgtype.UUID) = %#v, want %q", got, want)
+	}
+}
+
+func TestEnterpriseProvenancePreservesEvidenceAndRowHash(t *testing.T) {
+	items := enterpriseProvenance(hybridQueryRequest{CollectionID: "case-alpha"}, []map[string]any{{
+		"source_file": "seed_ipdr.csv", "row_number": int64(4),
+		"evidence_id": "6435f635-b4fb-4aed-a5f5-77c45280f881",
+		"row_hash":    "881c502a9b349d29f4336c192e9b339b74bb88af58ea49ca798322342833d157",
+	}}, nil, nil)
+	if len(items) != 1 {
+		t.Fatalf("provenance len = %d, want 1", len(items))
+	}
+	if items[0]["evidence_id"] != "6435f635-b4fb-4aed-a5f5-77c45280f881" {
+		t.Fatalf("evidence ID not preserved: %#v", items[0])
+	}
+	if items[0]["row_hash"] != "881c502a9b349d29f4336c192e9b339b74bb88af58ea49ca798322342833d157" {
+		t.Fatalf("row hash not preserved: %#v", items[0])
+	}
+}
+
 func TestCanonicalRecordsQueryBuilderNumericComparison(t *testing.T) {
 	built, err := buildCanonicalRecordsQuery(hybridQueryRequest{
 		TenantID:     "default",
@@ -420,6 +532,18 @@ func TestExtractDateRange(t *testing.T) {
 	}
 }
 
+func TestExtractNamedMonthDateRange(t *testing.T) {
+	for _, query := range []string{
+		"923001234567 ki 10 July 2026 ki CDR activity dikhao.",
+		"10 جولائی 2026 کو 923001234567 کی CDR سرگرمی دکھائیں",
+	} {
+		from, to := extractDateRange(query)
+		if from != "2026-07-10T00:00:00Z" || to != "2026-07-11T00:00:00Z" {
+			t.Fatalf("named-month range for %q = %q to %q", query, from, to)
+		}
+	}
+}
+
 func TestNeedsClarificationForTargetSpecificQueries(t *testing.T) {
 	if !needsClarification("where was this number most often observed", "top_locations", "") {
 		t.Fatalf("expected target-specific location query to require clarification")
@@ -435,6 +559,14 @@ func TestNeedsClarificationForTargetSpecificQueries(t *testing.T) {
 	}
 	if needsClarification("compare 923461678183 and 923461678184", "relationship_network", "") {
 		t.Fatalf("comparison with two targets should not require clarification")
+	}
+	for _, template := range []string{"ipdr_subscriber_sessions", "ipdr_concurrent_sessions", "ipdr_timeline"} {
+		if !needsClarification("show bounded IPDR details", template, "") {
+			t.Fatalf("expected %s to require an explicit target", template)
+		}
+		if needsClarification("show bounded IPDR details for 10.20.1.7", template, "10.20.1.7") {
+			t.Fatalf("did not expect %s to require clarification with an explicit target", template)
+		}
 	}
 }
 
@@ -641,7 +773,7 @@ func TestBuildEnterprisePayloadForClarification(t *testing.T) {
 	}
 
 	enterprise := buildEnterprisePayload(hybridQueryRequest{CollectionID: "case-alpha"}, resp)
-	if got := enterprise["summary"].(string); !strings.Contains(got, "Clarification is required") {
+	if got := enterprise["summary"].(string); !strings.Contains(got, "More information is required") {
 		t.Fatalf("summary = %q", got)
 	}
 	grid := enterprise["data_grid"].(map[string]any)
@@ -651,6 +783,27 @@ func TestBuildEnterprisePayloadForClarification(t *testing.T) {
 	limitations := enterprise["limitations"].([]string)
 	if len(limitations) != 2 {
 		t.Fatalf("limitations = %#v, want clarification and limitation", limitations)
+	}
+}
+
+func TestTemporalActivityCountsMatchedEventsAndLabelsCalculationComponents(t *testing.T) {
+	records := map[string]any{
+		"hourly_activity":   []map[string]any{{"hour_of_day": int64(9), "event_count": int64(3)}, {"hour_of_day": int64(10), "event_count": int64(1)}},
+		"daily_activity":    []map[string]any{{"day_start": "2026-07-10T00:00:00Z", "event_count": int64(4)}},
+		"nocturnal":         map[string]any{"nocturnal_events": int64(0)},
+		"duration_stats":    map[string]any{"nonzero_duration_events": int64(2), "average_nonzero_duration": 27.5},
+		"duration_extremes": []map[string]any{{"metric": "shortest_nonzero_call"}, {"metric": "longest_call"}},
+	}
+	if got := canonicalAnswerRowCount("temporal_activity", records); got != 4 {
+		t.Fatalf("matched event count = %d, want 4", got)
+	}
+	enterprise := buildEnterprisePayload(hybridQueryRequest{CollectionID: "case-alpha"}, hybridQueryResponse{
+		Intent: intentRecords, Template: "temporal_activity", Route: []string{"records_sql"}, Records: records,
+		Answer: map[string]any{"records_row_count": 4, "records_summary": "Computed temporal activity."},
+	})
+	grid := enterprise["data_grid"].(map[string]any)
+	if grid["title"] != "Temporal calculation components" || grid["count_label"] != "calculation components" || grid["count"] != 7 {
+		t.Fatalf("temporal grid semantics are ambiguous: %#v", grid)
 	}
 }
 

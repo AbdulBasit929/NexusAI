@@ -1,0 +1,144 @@
+{
+  "contract_version": "nexusai.model-role-development-corpus/v1",
+  "corpus_id": "nxb21d-current4b-reduced-roles-dev-v1",
+  "purpose": "REUSABLE_DEVELOPMENT_NOT_CERTIFICATION_NOT_HOLDOUT",
+  "model_id": "qwen_qwen3-4b-instruct-2507",
+  "synthesis_cases": [
+    {
+      "id": "syn-structured-aggregate-001",
+      "family": "structured_aggregate",
+      "required_fact_refs": ["F1"],
+      "required_citation_refs": ["C1"],
+      "required_exact_tokens": ["2026-09-01", "2026-09-07", "12", "MSISDN-03001234567"],
+      "forbidden_terms": ["identified the caller", "call content", "owns"],
+      "packet": {
+        "contract_version": "forensics.fact-packet/v1",
+        "request_id": "syn-structured-aggregate-001",
+        "question": "How many incoming calls were recorded for this number last week?",
+        "language": {"tag": "en"},
+        "scope": {"tenant_id": "development-tenant", "case_id": "development-case", "collection_id": "development-case"},
+        "operation_id": "cdr.temporal_activity",
+        "normalized_parameters": {"direction": "incoming", "date_from": "2026-09-01", "date_to": "2026-09-07", "target": "MSISDN-03001234567"},
+        "execution_mode": "frozen_authoritative_packet",
+        "result_state": "complete",
+        "facts": [{"fact_id": "F1", "kind": "metric", "text": "Between 2026-09-01 and 2026-09-07, 12 incoming calls were recorded for MSISDN-03001234567.", "value": 12, "unit": "calls", "citation_ids": ["C1"]}],
+        "metrics": [], "rows": [], "row_set_state": "complete", "relationships": [],
+        "citations": [{"citation_id": "C1", "evidence_id": "11111111-1111-4111-8111-111111111111", "version_id": "21111111-1111-4111-8111-111111111111", "source_file": "cdr-week.csv", "source_row": 18, "proof_role": "aggregate_contribution_lineage", "completeness": "complete"}],
+        "citation_set_state": "complete", "conflicts": [],
+        "limitations": ["Call records do not establish communication content or the identity of the current handset operator."],
+        "missingness": [], "quality_warnings": [], "available_follow_up_capabilities": [],
+        "presentation_hints": {"result_kind": "metric", "language": "en", "direction": "ltr"}
+      }
+    },
+    {
+      "id": "syn-document-passage-001",
+      "family": "document_passage",
+      "required_fact_refs": ["F1"],
+      "required_citation_refs": ["C1"],
+      "required_exact_tokens": ["policy.pdf", "REF-7788", "2026-08-14"],
+      "forbidden_terms": ["because of fraud", "proved", "guilty"],
+      "packet": {
+        "contract_version": "forensics.fact-packet/v1", "request_id": "syn-document-passage-001",
+        "question": "What does the policy document say about REF-7788?", "language": {"tag": "en"},
+        "scope": {"tenant_id": "development-tenant", "case_id": "development-case", "collection_id": "development-case"},
+        "operation_id": "document.search", "normalized_parameters": {"text_query": "REF-7788", "retrieval_mode": "EXACT_TERM"},
+        "execution_mode": "frozen_authoritative_packet", "result_state": "complete",
+        "facts": [{"fact_id": "F1", "kind": "deterministic_fact", "text": "policy.pdf states that account REF-7788 was suspended on 2026-08-14.", "citation_ids": ["C1"]}],
+        "metrics": [], "rows": [], "row_set_state": "complete", "relationships": [],
+        "citations": [{"citation_id": "C1", "evidence_id": "12222222-2222-4222-8222-222222222222", "version_id": "22222222-2222-4222-8222-222222222222", "source_file": "policy.pdf", "locator": {"page": 4, "paragraph": 2}, "proof_role": "query_observation", "completeness": "complete"}],
+        "citation_set_state": "complete", "conflicts": [],
+        "limitations": ["The cited native-text passage does not establish why the account was suspended."],
+        "missingness": [], "quality_warnings": [], "available_follow_up_capabilities": [],
+        "presentation_hints": {"result_kind": "document_passages", "language": "en", "direction": "ltr"}
+      }
+    },
+    {
+      "id": "syn-anpr-sighting-001",
+      "family": "anpr_sighting",
+      "required_fact_refs": ["F1", "F2"],
+      "required_citation_refs": ["C1", "C2"],
+      "required_exact_tokens": ["ABC-123", "CAM-02", "2026-09-03T19:22:00Z", "CAM-09", "2026-09-03T19:41:00Z"],
+      "forbidden_terms": ["owns the vehicle", "was driving", "confirmed route", "physically present"],
+      "packet": {
+        "contract_version": "forensics.fact-packet/v1", "request_id": "syn-anpr-sighting-001",
+        "question": "Summarize the recorded sightings for ABC-123.", "language": {"tag": "en"},
+        "scope": {"tenant_id": "development-tenant", "case_id": "development-case", "collection_id": "development-case"},
+        "operation_id": "anpr.timeline", "normalized_parameters": {"plate": "ABC-123"},
+        "execution_mode": "frozen_authoritative_packet", "result_state": "complete",
+        "facts": [
+          {"fact_id": "F1", "kind": "deterministic_fact", "text": "Plate ABC-123 was observed at CAM-02 at 2026-09-03T19:22:00Z and later at CAM-09 at 2026-09-03T19:41:00Z.", "citation_ids": ["C1", "C2"]},
+          {"fact_id": "F2", "kind": "limitation", "text": "The sightings contain no owner or driver information.", "citation_ids": ["C1", "C2"]}
+        ],
+        "metrics": [], "rows": [], "row_set_state": "complete", "relationships": [],
+        "citations": [
+          {"citation_id": "C1", "evidence_id": "13333333-3333-4333-8333-333333333333", "version_id": "23333333-3333-4333-8333-333333333333", "source_file": "camera-02.json", "locator": {"frame": 1842}, "proof_role": "query_observation", "completeness": "complete"},
+          {"citation_id": "C2", "evidence_id": "14444444-4444-4444-8444-444444444444", "version_id": "24444444-4444-4444-8444-444444444444", "source_file": "camera-09.json", "locator": {"frame": 991}, "proof_role": "query_observation", "completeness": "complete"}
+        ],
+        "citation_set_state": "complete", "conflicts": [],
+        "limitations": ["ANPR readings are observations and do not establish vehicle ownership, driver identity, or a complete route."],
+        "missingness": [], "quality_warnings": [], "available_follow_up_capabilities": [],
+        "presentation_hints": {"result_kind": "timeline", "language": "en", "direction": "ltr"}
+      }
+    },
+    {
+      "id": "syn-transcript-hit-001",
+      "family": "transcript_hit",
+      "required_fact_refs": ["F1"],
+      "required_citation_refs": ["C1"],
+      "required_exact_tokens": ["AUD-17", "00:03:14", "REF-7788"],
+      "forbidden_terms": ["verified speaker", "confession", "proved"],
+      "packet": {
+        "contract_version": "forensics.fact-packet/v1", "request_id": "syn-transcript-hit-001",
+        "question": "Where is REF-7788 mentioned in the recording?", "language": {"tag": "en"},
+        "scope": {"tenant_id": "development-tenant", "case_id": "development-case", "collection_id": "development-case"},
+        "operation_id": "audio.transcript_search", "normalized_parameters": {"text_query": "REF-7788", "retrieval_mode": "EXACT_TERM"},
+        "execution_mode": "frozen_authoritative_packet", "result_state": "complete",
+        "facts": [{"fact_id": "F1", "kind": "deterministic_fact", "text": "Audio evidence AUD-17 contains the phrase REF-7788 at 00:03:14.", "citation_ids": ["C1"]}],
+        "metrics": [], "rows": [], "row_set_state": "complete", "relationships": [],
+        "citations": [{"citation_id": "C1", "evidence_id": "15555555-5555-4555-8555-555555555555", "version_id": "25555555-5555-4555-8555-555555555555", "source_file": "interview.wav", "locator": {"start_seconds": 194, "end_seconds": 198}, "proof_role": "query_observation", "completeness": "complete"}],
+        "citation_set_state": "complete", "conflicts": [],
+        "limitations": ["Automatic speech recognition is not verified speech and does not identify the speaker."],
+        "missingness": [], "quality_warnings": [], "available_follow_up_capabilities": [],
+        "presentation_hints": {"result_kind": "transcript_passages", "language": "en", "direction": "ltr"}
+      }
+    },
+    {
+      "id": "syn-cross-family-001",
+      "family": "cross_family",
+      "required_fact_refs": ["F1"],
+      "required_citation_refs": ["C1", "C2"],
+      "required_exact_tokens": ["MSISDN-03001234567", "ABC-123", "2026-09-03T19:20:00Z", "2026-09-03T19:45:00Z"],
+      "forbidden_terms": ["same person", "caused", "owns", "confirmed relationship"],
+      "packet": {
+        "contract_version": "forensics.fact-packet/v1", "request_id": "syn-cross-family-001",
+        "question": "What cross-source overlap is recorded?", "language": {"tag": "en"},
+        "scope": {"tenant_id": "development-tenant", "case_id": "development-case", "collection_id": "development-case"},
+        "operation_id": "forensics.cross_family_correlation", "normalized_parameters": {},
+        "execution_mode": "frozen_authoritative_packet", "result_state": "complete",
+        "facts": [{"fact_id": "F1", "kind": "candidate_correlation", "text": "A candidate correlation links MSISDN-03001234567 and plate ABC-123 within the window 2026-09-03T19:20:00Z to 2026-09-03T19:45:00Z.", "citation_ids": ["C1", "C2"]}],
+        "metrics": [], "rows": [], "row_set_state": "complete",
+        "relationships": [{"relationship_id": "R1", "type": "candidate_correlation", "strength": "candidate_correlation", "source": "MSISDN-03001234567", "target": "ABC-123", "time_window": {"from": "2026-09-03T19:20:00Z", "to": "2026-09-03T19:45:00Z"}, "citation_ids": ["C1", "C2"]}],
+        "citations": [
+          {"citation_id": "C1", "evidence_id": "16666666-6666-4666-8666-666666666666", "version_id": "26666666-6666-4666-8666-666666666666", "source_file": "cdr-week.csv", "source_row": 31, "proof_role": "query_observation", "completeness": "complete"},
+          {"citation_id": "C2", "evidence_id": "17777777-7777-4777-8777-777777777777", "version_id": "27777777-7777-4777-8777-777777777777", "source_file": "camera-02.json", "locator": {"frame": 1842}, "proof_role": "query_observation", "completeness": "complete"}
+        ],
+        "citation_set_state": "complete", "conflicts": [],
+        "limitations": ["Temporal overlap is a candidate correlation and does not establish identity, ownership, causality, or continuous presence."],
+        "missingness": [], "quality_warnings": [], "available_follow_up_capabilities": [],
+        "presentation_hints": {"result_kind": "relationship_network", "language": "en", "direction": "ltr"}
+      }
+    }
+  ],
+  "slot_assist_case": {
+    "id": "slot-date-range-001",
+    "question": "Show activity from the last seven days.",
+    "slot": "date_range",
+    "options": ["last_7_days", "last_30_days", "current_month"],
+    "expected_value": "last_7_days"
+  },
+  "general_cases": [
+    {"id": "general-imei-001", "question": "What is an IMEI?", "required_term_groups": [["equipment", "device"], ["identity", "identifier"]], "forbidden_terms": ["identifies the subscriber", "proves ownership", "case evidence shows"]},
+    {"id": "general-ipdr-001", "question": "What is IPDR?", "required_term_groups": [["internet", "network"], ["record", "metadata"]], "forbidden_terms": ["payload content is always included", "case evidence shows"]},
+    {"id": "general-ocr-001", "question": "What does OCR confidence mean?", "required_term_groups": [["confidence", "score"], ["not", "doesn't", "does not"]], "forbidden_terms": ["guarantees accuracy", "verified identity", "case evidence shows"]}
+  ]
+}

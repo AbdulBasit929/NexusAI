@@ -500,6 +500,620 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/agents/{name}/chat/{message_id}/cancel": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Cancel an active agent chat request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Agent name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chat request message ID",
+                        "name": "message_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/agents/{name}/chat/{message_id}/retry": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Retry a failed forensic agent chat request idempotently",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Agent name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Original chat request message ID",
+                        "name": "message_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/agentpool.ChatRetryResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/agents/{name}/chat/{message_id}/status": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Get an agent chat request status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Agent name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chat request message ID",
+                        "name": "message_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized forensic case ID",
+                        "name": "case_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized forensic collection ID",
+                        "name": "collection_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/agents.AgentRequestStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/agents/{name}/history": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "List case-scoped forensic analysis history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Agent name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized forensic case ID",
+                        "name": "case_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized forensic collection ID",
+                        "name": "collection_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Opaque pagination cursor",
+                        "name": "cursor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size (1-100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Return only saved analyses",
+                        "name": "saved",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/agents.AnalysisHistoryPage"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/agents/{name}/history/import": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Import browser-local forensic analysis history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Agent name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Versioned browser history",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/localai.browserHistoryImportRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/agents.BrowserHistoryImportResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/agents/{name}/history/imports/{import_id}": {
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Roll back a browser history import",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Agent name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Import ID",
+                        "name": "import_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized forensic case ID",
+                        "name": "case_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized forensic collection ID",
+                        "name": "collection_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/agents.AnalysisImportRollbackResult"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/agents/{name}/history/{analysis_id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Get a case-scoped forensic analysis",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Agent name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Analysis ID",
+                        "name": "analysis_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized forensic case ID",
+                        "name": "case_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized forensic collection ID",
+                        "name": "collection_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/agents.AnalysisHistoryEntry"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/agents/{name}/history/{analysis_id}/saved": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Save or unsave a forensic analysis",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Agent name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Analysis ID",
+                        "name": "analysis_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Saved state",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/localai.analysisSavedRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/agents.AnalysisHistoryEntry"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/aliases": {
             "get": {
                 "tags": [
@@ -1215,6 +1829,560 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/records/aggregate": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Aggregate structured records",
+                "parameters": [
+                    {
+                        "description": "aggregate query",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/records.AggregateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "aggregate result",
+                        "schema": {
+                            "$ref": "#/definitions/records.AggregateResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/records/batches": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "List record batches",
+                "responses": {
+                    "200": {
+                        "description": "batch list",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/records/batches/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Get a record batch",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Batch ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "batch",
+                        "schema": {
+                            "$ref": "#/definitions/records.Batch"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Delete a record batch",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Batch ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "status",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/records/correlate": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Correlate structured records",
+                "parameters": [
+                    {
+                        "description": "correlation query",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/records.CorrelateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "correlation result",
+                        "schema": {
+                            "$ref": "#/definitions/records.CorrelateResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/records/forensic/capabilities": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Get forensic records capability coverage",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tenant ID, defaults to the trusted forensic tenant",
+                        "name": "tenant_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Knowledge Base / records collection ID",
+                        "name": "collection_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "collection-aware capability catalog",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/records/forensic/evidence": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "List forensic evidence",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tenant ID, defaults to default",
+                        "name": "tenant_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Knowledge Base / records collection ID",
+                        "name": "collection_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Case ID",
+                        "name": "case_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Evidence modality",
+                        "name": "modality",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Detected evidence type",
+                        "name": "detected_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Processing status",
+                        "name": "processing_status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filename, hash, KB entry, or metadata search",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum evidence items to include",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Pagination offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "sidecar evidence catalog",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/records/forensic/evidence/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Get forensic evidence detail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Evidence ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tenant ID, defaults to the trusted forensic tenant",
+                        "name": "tenant_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Knowledge Base / records collection ID",
+                        "name": "collection_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum canonical row previews",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "sidecar evidence detail",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/records/forensic/evidence/{id}/reprocess": {
+            "post": {
+                "description": "Create an idempotent reprocessing job without resetting or deleting prior processing history.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Reprocess forensic evidence",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Evidence ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Stable 8-128 character request key",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "collection_id, reason, and optional max_attempts",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "reprocessing job",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/records/forensic/query": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Query forensic records through the sidecar",
+                "parameters": [
+                    {
+                        "description": "hybrid forensic query",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "sidecar hybrid query result",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/records/forensic/status": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Get forensic records collection status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tenant ID, defaults to default",
+                        "name": "tenant_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Knowledge Base / records collection ID",
+                        "name": "collection_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum recent jobs to include",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "sidecar collection status",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/records/forensic/templates": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "List forensic records query templates",
+                "responses": {
+                    "200": {
+                        "description": "sidecar query templates",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/records/ingest": {
+            "post": {
+                "description": "Upload CSV, TSV, JSON array, JSONL/NDJSON, or text/log records into the deterministic records store. If collection_name is supplied, the raw file is also uploaded to the matching Knowledge Base collection.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Ingest structured records",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Structured records file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Knowledge Base collection to store the raw evidence file in",
+                        "name": "collection_name",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Record type override: cdr, anpr, ipdr, subscriber, tower_location, transaction, access_log, generic, or auto",
+                        "name": "record_type",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ingest result",
+                        "schema": {
+                            "$ref": "#/definitions/records.IngestResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/records/query": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Query structured records",
+                "parameters": [
+                    {
+                        "description": "query",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/records.QueryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "query result",
+                        "schema": {
+                            "$ref": "#/definitions/records.QueryResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/records/schema/{record_type}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Get structured record schema",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Record type",
+                        "name": "record_type",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "schema",
+                        "schema": {
+                            "$ref": "#/definitions/records.SchemaResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/router/decide": {
             "post": {
                 "consumes": [
@@ -1315,6 +2483,526 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "Traces cleared"
+                    }
+                }
+            }
+        },
+        "/api/v1/forensics/adapters": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "List forensic evidence-family adapters",
+                "responses": {
+                    "200": {
+                        "description": "forensic adapter catalog",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/forensics/agents": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "List forensic specialist agents",
+                "responses": {
+                    "200": {
+                        "description": "forensic specialist catalog",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/forensics/cases": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "List governed forensic cases",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "Include accessible legacy/system/test collections",
+                        "name": "include_system",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "governed case list",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/forensics/cases/{case_id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Get a governed forensic case",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Case ID (identical to its bound collection ID in v1)",
+                        "name": "case_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "governed case",
+                        "schema": {
+                            "$ref": "#/definitions/localai.forensicCaseV1"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/forensics/cases/{case_id}/evidence": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "List evidence for one governed case",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Case ID",
+                        "name": "case_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/forensics/cases/{case_id}/evidence/compare": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Compare two retained images inside one governed case",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Case ID",
+                        "name": "case_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "First evidence UUID",
+                        "name": "evidence_id_a",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Second evidence UUID",
+                        "name": "evidence_id_b",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "forensics.image-comparison/v1",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/forensics/cases/{case_id}/evidence/{evidence_id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Inspect evidence in one governed forensic case",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Case ID",
+                        "name": "case_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Evidence ID",
+                        "name": "evidence_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum canonical row previews",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Include bounded canonical row previews",
+                        "name": "include_records_preview",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "case-scoped evidence detail",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/forensics/cases/{case_id}/evidence/{evidence_id}/content": {
+            "get": {
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Preview retained image, audio, or video evidence",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Case ID",
+                        "name": "case_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Evidence ID",
+                        "name": "evidence_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "verified retained evidence",
+                        "schema": {
+                            "type": "file"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/forensics/cases/{case_id}/evidence/{evidence_id}/reprocess-plan": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Inspect governed evidence reprocess eligibility",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Case ID",
+                        "name": "case_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Evidence ID",
+                        "name": "evidence_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "read-only reprocess plan",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/forensics/cases/{case_id}/faces/similar": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Rank face candidates inside one governed case",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Case ID",
+                        "name": "case_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Query face observation UUID",
+                        "name": "query_face_observation_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Explicit candidate evidence UUIDs",
+                        "name": "candidate_evidence_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum ranked candidates",
+                        "name": "top_k",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "forensics.face-candidate-similarity/v1",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/forensics/cases/{case_id}/images/similar": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Rank semantic image candidates inside one governed case",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Case ID",
+                        "name": "case_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Query image observation UUID",
+                        "name": "query_image_observation_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Explicit candidate evidence UUIDs",
+                        "name": "candidate_evidence_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum ranked candidates",
+                        "name": "top_k",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "forensics.semantic-image-candidate-similarity/v1",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/forensics/cases/{case_id}/manifest": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Get a read-only forensic case reconciliation manifest",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Case ID",
+                        "name": "case_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "case reconciliation manifest",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/forensics/cases/{case_id}/query": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Query a governed forensic case",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Case ID",
+                        "name": "case_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "raw question or typed query plan",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "forensics.enterprise-response/v1",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/forensics/cases/{case_id}/reports": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "Generate a bounded report for one governed case",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Case ID",
+                        "name": "case_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/forensics/contracts": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "List forensic API contracts",
+                "responses": {
+                    "200": {
+                        "description": "forensic contract catalog",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/forensics/operations": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "records"
+                ],
+                "summary": "List forensic deterministic operations",
+                "responses": {
+                    "200": {
+                        "description": "forensic operation catalog",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
                     }
                 }
             }
@@ -2376,6 +4064,33 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/face/detect": {
+            "post": {
+                "tags": [
+                    "face-recognition"
+                ],
+                "summary": "Detect faces without demographic analysis.",
+                "parameters": [
+                    {
+                        "description": "query params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.FaceDetectRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response",
+                        "schema": {
+                            "$ref": "#/definitions/schema.FaceDetectResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/face/embed": {
             "post": {
                 "tags": [
@@ -3175,6 +4890,216 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "agentpool.ChatRetryResult": {
+            "type": "object",
+            "properties": {
+                "case_id": {
+                    "type": "string"
+                },
+                "idempotent_replay": {
+                    "type": "boolean"
+                },
+                "message_id": {
+                    "type": "string"
+                },
+                "retry_of": {
+                    "type": "string"
+                }
+            }
+        },
+        "agents.AgentRequestStatus": {
+            "type": "object",
+            "properties": {
+                "agent_name": {
+                    "type": "string"
+                },
+                "case_id": {
+                    "type": "string"
+                },
+                "message_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "agents.AnalysisHistoryEntry": {
+            "type": "object",
+            "properties": {
+                "agent_name": {
+                    "type": "string"
+                },
+                "analysis_id": {
+                    "type": "string"
+                },
+                "answer": {
+                    "type": "string"
+                },
+                "case_id": {
+                    "type": "string"
+                },
+                "collection_id": {
+                    "type": "string"
+                },
+                "completed_at": {
+                    "type": "string"
+                },
+                "contract_version": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "execution_authority": {
+                    "type": "string"
+                },
+                "import_id": {
+                    "type": "string"
+                },
+                "legal_hold": {
+                    "type": "boolean"
+                },
+                "message_id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "model_role": {
+                    "type": "string"
+                },
+                "query": {
+                    "type": "string"
+                },
+                "retry_of": {
+                    "type": "string"
+                },
+                "saved": {
+                    "type": "boolean"
+                },
+                "saved_at": {
+                    "type": "string"
+                },
+                "saved_title": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "tenant_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "agents.AnalysisHistoryPage": {
+            "type": "object",
+            "properties": {
+                "contract_version": {
+                    "type": "string"
+                },
+                "has_more": {
+                    "type": "boolean"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/agents.AnalysisHistoryEntry"
+                    }
+                },
+                "next_cursor": {
+                    "type": "string"
+                }
+            }
+        },
+        "agents.AnalysisImportRollbackResult": {
+            "type": "object",
+            "properties": {
+                "deleted": {
+                    "type": "integer"
+                },
+                "import_id": {
+                    "type": "string"
+                },
+                "retained_legal_hold": {
+                    "type": "integer"
+                },
+                "retained_saved": {
+                    "type": "integer"
+                }
+            }
+        },
+        "agents.BrowserHistoryConversation": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/agents.BrowserHistoryMessage"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "integer"
+                }
+            }
+        },
+        "agents.BrowserHistoryImportResult": {
+            "type": "object",
+            "properties": {
+                "contract_version": {
+                    "type": "string"
+                },
+                "import_id": {
+                    "type": "string"
+                },
+                "imported": {
+                    "type": "integer"
+                },
+                "rollback_available": {
+                    "type": "boolean"
+                },
+                "skipped": {
+                    "type": "integer"
+                }
+            }
+        },
+        "agents.BrowserHistoryMessage": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "sender": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
         "config.Gallery": {
             "type": "object",
             "properties": {
@@ -3719,6 +5644,99 @@ const docTemplate = `{
                 }
             }
         },
+        "localai.analysisSavedRequest": {
+            "type": "object",
+            "properties": {
+                "case_id": {
+                    "type": "string"
+                },
+                "collection_id": {
+                    "type": "string"
+                },
+                "saved": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "localai.browserHistoryImportRequest": {
+            "type": "object",
+            "properties": {
+                "case_id": {
+                    "type": "string"
+                },
+                "collection_id": {
+                    "type": "string"
+                },
+                "contract_version": {
+                    "type": "string"
+                },
+                "conversations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/agents.BrowserHistoryConversation"
+                    }
+                }
+            }
+        },
+        "localai.forensicCaseV1": {
+            "type": "object",
+            "properties": {
+                "aliases": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "case_id": {
+                    "type": "string"
+                },
+                "case_status": {
+                    "type": "string"
+                },
+                "cleanup_disposition": {
+                    "type": "string"
+                },
+                "collection_id": {
+                    "type": "string"
+                },
+                "contract_version": {
+                    "type": "string"
+                },
+                "display_name": {
+                    "type": "string"
+                },
+                "environment": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "purpose": {
+                    "type": "string"
+                },
+                "retention_class": {
+                    "type": "string"
+                },
+                "security_classification": {
+                    "type": "string"
+                },
+                "selectable": {
+                    "type": "boolean"
+                },
+                "visibility": {
+                    "type": "string"
+                },
+                "warnings": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "model.BackendLogLine": {
             "type": "object",
             "properties": {
@@ -3884,6 +5902,436 @@ const docTemplate = `{
                 },
                 "start": {
                     "type": "number"
+                }
+            }
+        },
+        "records.AggregateRequest": {
+            "type": "object",
+            "properties": {
+                "batch_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "collection_name": {
+                    "type": "string"
+                },
+                "field": {
+                    "type": "string"
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "filters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/records.Filter"
+                    }
+                },
+                "group_by": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "helper": {
+                    "type": "string"
+                },
+                "helper_args": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "operation": {
+                    "type": "string"
+                },
+                "record_type": {
+                    "type": "string"
+                },
+                "sort": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/records.SortField"
+                    }
+                },
+                "time_range": {
+                    "$ref": "#/definitions/records.TimeRange"
+                },
+                "top_n": {
+                    "type": "integer"
+                }
+            }
+        },
+        "records.AggregateResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "field": {
+                    "type": "string"
+                },
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/records.GroupResult"
+                    }
+                },
+                "operation": {
+                    "type": "string"
+                },
+                "record": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/records.GroupResult"
+                    }
+                },
+                "value": {},
+                "values": {
+                    "type": "array",
+                    "items": {}
+                }
+            }
+        },
+        "records.Batch": {
+            "type": "object",
+            "properties": {
+                "collection_name": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "error_count": {
+                    "type": "integer"
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/records.FieldSchema"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "record_type": {
+                    "type": "string"
+                },
+                "row_count": {
+                    "type": "integer"
+                },
+                "source_entry": {
+                    "type": "string"
+                },
+                "source_file": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "records.CorrelateRequest": {
+            "type": "object",
+            "properties": {
+                "entity_fields": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "left": {
+                    "$ref": "#/definitions/records.QueryRequest"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "right": {
+                    "$ref": "#/definitions/records.QueryRequest"
+                },
+                "time_field": {
+                    "type": "string"
+                },
+                "time_window_seconds": {
+                    "type": "integer"
+                }
+            }
+        },
+        "records.CorrelateResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "matches": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/records.CorrelationMatch"
+                    }
+                }
+            }
+        },
+        "records.CorrelationMatch": {
+            "type": "object",
+            "properties": {
+                "entity": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "left": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "right": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "time_delta_seconds": {
+                    "type": "integer"
+                }
+            }
+        },
+        "records.FieldSchema": {
+            "type": "object",
+            "properties": {
+                "canonical_name": {
+                    "type": "string"
+                },
+                "detected_aliases": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "non_empty_count": {
+                    "type": "integer"
+                },
+                "normalized_name": {
+                    "type": "string"
+                },
+                "original_name": {
+                    "type": "string"
+                },
+                "sample_values": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "records.Filter": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "op": {
+                    "type": "string"
+                },
+                "value": {},
+                "values": {
+                    "type": "array",
+                    "items": {}
+                }
+            }
+        },
+        "records.GroupResult": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "key": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "record": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "value": {}
+            }
+        },
+        "records.IngestError": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "raw": {
+                    "type": "string"
+                },
+                "row_number": {
+                    "type": "integer"
+                }
+            }
+        },
+        "records.IngestResult": {
+            "type": "object",
+            "properties": {
+                "batch": {
+                    "$ref": "#/definitions/records.Batch"
+                },
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/records.IngestError"
+                    }
+                },
+                "warnings": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "records.QueryRequest": {
+            "type": "object",
+            "properties": {
+                "batch_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "collection_name": {
+                    "type": "string"
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "filters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/records.Filter"
+                    }
+                },
+                "helper": {
+                    "type": "string"
+                },
+                "helper_args": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "record_type": {
+                    "type": "string"
+                },
+                "sort": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/records.SortField"
+                    }
+                },
+                "time_range": {
+                    "$ref": "#/definitions/records.TimeRange"
+                }
+            }
+        },
+        "records.QueryResponse": {
+            "type": "object",
+            "properties": {
+                "batch_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "records": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "records.SchemaResponse": {
+            "type": "object",
+            "properties": {
+                "aliases": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/records.FieldSchema"
+                    }
+                },
+                "record_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "records.SortField": {
+            "type": "object",
+            "properties": {
+                "direction": {
+                    "type": "string"
+                },
+                "field": {
+                    "type": "string"
+                }
+            }
+        },
+        "records.TimeRange": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
                 }
             }
         },
@@ -4481,6 +6929,39 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/schema.FaceAnalysis"
                     }
+                }
+            }
+        },
+        "schema.FaceDetectRequest": {
+            "type": "object",
+            "properties": {
+                "img": {
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.FaceDetectResponse": {
+            "type": "object",
+            "properties": {
+                "faces": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.FaceDetection"
+                    }
+                }
+            }
+        },
+        "schema.FaceDetection": {
+            "type": "object",
+            "properties": {
+                "confidence": {
+                    "type": "number"
+                },
+                "region": {
+                    "$ref": "#/definitions/schema.FacialArea"
                 }
             }
         },

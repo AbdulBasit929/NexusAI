@@ -41,10 +41,16 @@ func collectionStatusHandler(db *pgxpool.Pool) http.HandlerFunc {
 			writeError(w, http.StatusServiceUnavailable, errors.New("FORENSIC_DATABASE_URL is not configured"))
 			return
 		}
-		scope := collectionScope{
-			TenantID:     defaultString(r.URL.Query().Get("tenant_id"), "default"),
+		requestedScope := collectionScope{
+			TenantID:     strings.TrimSpace(r.URL.Query().Get("tenant_id")),
 			CollectionID: strings.TrimSpace(r.URL.Query().Get("collection_id")),
 		}
+		boundScope, err := bindForensicScope(r, requestedScope.TenantID, requestedScope.CollectionID, "", "")
+		if err != nil {
+			writeScopeError(w, err)
+			return
+		}
+		scope := collectionScope{TenantID: boundScope.TenantID, CollectionID: boundScope.CollectionID}
 		if scope.CollectionID == "" {
 			writeError(w, http.StatusBadRequest, errors.New("collection_id is required"))
 			return
@@ -68,9 +74,13 @@ func collectionRepairHandler(db *pgxpool.Pool) http.HandlerFunc {
 			writeError(w, http.StatusServiceUnavailable, errors.New("FORENSIC_DATABASE_URL is not configured"))
 			return
 		}
+		if err := requireForensicAdmin(r); err != nil {
+			writeScopeError(w, err)
+			return
+		}
 		req := collectionRepairRequest{
 			collectionScope: collectionScope{
-				TenantID:     defaultString(r.URL.Query().Get("tenant_id"), "default"),
+				TenantID:     strings.TrimSpace(r.URL.Query().Get("tenant_id")),
 				CollectionID: strings.TrimSpace(r.URL.Query().Get("collection_id")),
 			},
 			DryRun: envBoolValue(r.URL.Query().Get("dry_run"), false),
@@ -94,8 +104,13 @@ func collectionRepairHandler(db *pgxpool.Pool) http.HandlerFunc {
 				req.Limit = body.Limit
 			}
 		}
-		req.TenantID = defaultString(req.TenantID, "default")
-		req.CollectionID = strings.TrimSpace(req.CollectionID)
+		boundScope, err := bindForensicScope(r, req.TenantID, req.CollectionID, "", "")
+		if err != nil {
+			writeScopeError(w, err)
+			return
+		}
+		req.TenantID = boundScope.TenantID
+		req.CollectionID = boundScope.CollectionID
 		req.Limit = clampRepairLimit(req.Limit)
 		if req.CollectionID == "" {
 			writeError(w, http.StatusBadRequest, errors.New("collection_id is required"))
@@ -210,12 +225,28 @@ LIMIT $3`, scope.TenantID, scope.CollectionID, limit)
 	if err != nil {
 		return nil, err
 	}
+	recentJobs, err := rowsFromQuery(ctx, tx, `
+SELECT id::text AS job_id, evidence_id::text, source_file,
+       record_type::text AS record_type, status::text AS status,
+       attempt_count, max_attempts, total_rows, accepted_rows, duplicate_rows,
+       rejected_rows, error_message, queue_published_at, queue_publish_attempts,
+       queue_publish_next_at, queue_publish_error, worker_lease_owner,
+       worker_lease_expires_at, next_attempt_at, last_error_class,
+       dead_lettered_at, acknowledged_at, queued_at, started_at, completed_at
+FROM forensic.records_ingest_jobs
+WHERE tenant_id = $1 AND collection_id = $2
+ORDER BY coalesce(completed_at, started_at, queued_at) DESC NULLS LAST, id DESC
+LIMIT $3`, scope.TenantID, scope.CollectionID, limit)
+	if err != nil {
+		return nil, err
+	}
 	return map[string]any{
 		"tenant_id":         scope.TenantID,
 		"collection_id":     scope.CollectionID,
 		"summary":           firstRow(summary),
 		"missing_kb_assets": missing,
 		"record_families":   families,
+		"recent_jobs":       recentJobs,
 		"recent_evidence":   evidence,
 		"generated_at":      time.Now().UTC(),
 	}, nil

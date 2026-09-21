@@ -1,0 +1,2521 @@
+{
+  "schema_version": "forensics.query-capability-references/v1",
+  "implementation_state": "SOURCE_CANDIDATE",
+  "execution_source": "supportedQueryTemplates and reconciledForensicPlatformCatalog",
+  "certification_source": "contracts/operation-certification-v1.json",
+  "capabilities": [
+    {
+      "query_capability_id": "cdr.identifier_lookup",
+      "operation_ref": "forensics.canonical_records",
+      "reference_kind": "QUERY_OPERATION",
+      "family": "case_cross_family",
+      "authority": "DETERMINISTIC_STRUCTURED_FACT",
+      "semantics": [
+        "EXACT_VALUE"
+      ],
+      "representations": [],
+      "artifact_types": [],
+      "processor_role": "",
+      "result_state_key": "",
+      "readiness_kind": "records",
+      "input_types": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "locator_types": [
+        "row",
+        "evidence"
+      ],
+      "proof_refs": [],
+      "limitations": [],
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "operation_policy"
+    },
+    {
+      "query_capability_id": "cdr.frequent_contacts",
+      "operation_ref": "cdr.frequent_contacts",
+      "reference_kind": "QUERY_OPERATION",
+      "family": "communications_cdr",
+      "authority": "DETERMINISTIC_STRUCTURED_FACT",
+      "semantics": [
+        "TOP_K"
+      ],
+      "representations": [],
+      "artifact_types": [],
+      "processor_role": "",
+      "result_state_key": "",
+      "readiness_kind": "records",
+      "input_types": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "locator_types": [
+        "row",
+        "evidence"
+      ],
+      "proof_refs": [],
+      "limitations": [],
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "operation_policy"
+    },
+    {
+      "query_capability_id": "cdr.time_activity",
+      "operation_ref": "cdr.temporal_activity",
+      "reference_kind": "QUERY_OPERATION",
+      "family": "communications_cdr",
+      "authority": "DETERMINISTIC_STRUCTURED_FACT",
+      "semantics": [
+        "AGGREGATE"
+      ],
+      "representations": [],
+      "artifact_types": [],
+      "processor_role": "",
+      "result_state_key": "",
+      "readiness_kind": "records",
+      "input_types": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "locator_types": [
+        "row",
+        "evidence"
+      ],
+      "proof_refs": [],
+      "limitations": [],
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "operation_policy"
+    },
+    {
+      "query_capability_id": "ipdr.endpoint",
+      "operation_ref": "ipdr.endpoint_summary",
+      "reference_kind": "QUERY_OPERATION",
+      "family": "network_ipdr",
+      "authority": "DETERMINISTIC_STRUCTURED_FACT",
+      "semantics": [
+        "AGGREGATE"
+      ],
+      "representations": [],
+      "artifact_types": [],
+      "processor_role": "",
+      "result_state_key": "",
+      "readiness_kind": "records",
+      "input_types": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "locator_types": [
+        "row",
+        "evidence"
+      ],
+      "proof_refs": [],
+      "limitations": [],
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "operation_policy"
+    },
+    {
+      "query_capability_id": "ipdr.sessions",
+      "operation_ref": "ipdr.subscriber_sessions",
+      "reference_kind": "QUERY_OPERATION",
+      "family": "network_ipdr",
+      "authority": "DETERMINISTIC_STRUCTURED_FACT",
+      "semantics": [
+        "FILTER"
+      ],
+      "representations": [],
+      "artifact_types": [],
+      "processor_role": "",
+      "result_state_key": "",
+      "readiness_kind": "records",
+      "input_types": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "locator_types": [
+        "row",
+        "evidence"
+      ],
+      "proof_refs": [],
+      "limitations": [],
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "operation_policy"
+    },
+    {
+      "query_capability_id": "subscriber.lookup",
+      "operation_ref": "subscriber.identity_lookup",
+      "reference_kind": "QUERY_OPERATION",
+      "family": "subscriber_identity",
+      "authority": "DETERMINISTIC_STRUCTURED_FACT",
+      "semantics": [
+        "EXACT_VALUE"
+      ],
+      "representations": [],
+      "artifact_types": [],
+      "processor_role": "",
+      "result_state_key": "",
+      "readiness_kind": "records",
+      "input_types": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "locator_types": [
+        "row",
+        "evidence"
+      ],
+      "proof_refs": [],
+      "limitations": [],
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "operation_policy"
+    },
+    {
+      "query_capability_id": "device.observations",
+      "operation_ref": "forensics.imei_imsi_usage",
+      "reference_kind": "QUERY_OPERATION",
+      "family": "communications_cdr",
+      "authority": "DETERMINISTIC_STRUCTURED_FACT",
+      "semantics": [
+        "GROUP"
+      ],
+      "representations": [],
+      "artifact_types": [],
+      "processor_role": "",
+      "result_state_key": "",
+      "readiness_kind": "records",
+      "input_types": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "locator_types": [
+        "row",
+        "evidence"
+      ],
+      "proof_refs": [],
+      "limitations": [],
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "operation_policy"
+    },
+    {
+      "query_capability_id": "tower.lookup",
+      "operation_ref": "tower.site_lookup",
+      "reference_kind": "QUERY_OPERATION",
+      "family": "tower_location",
+      "authority": "DETERMINISTIC_STRUCTURED_FACT",
+      "semantics": [
+        "EXACT_VALUE"
+      ],
+      "representations": [],
+      "artifact_types": [],
+      "processor_role": "",
+      "result_state_key": "",
+      "readiness_kind": "records",
+      "input_types": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "locator_types": [
+        "row",
+        "evidence"
+      ],
+      "proof_refs": [],
+      "limitations": [],
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "operation_policy"
+    },
+    {
+      "query_capability_id": "financial.summary",
+      "operation_ref": "financial.transaction_summary",
+      "reference_kind": "QUERY_OPERATION",
+      "family": "financial_transactions",
+      "authority": "DETERMINISTIC_STRUCTURED_FACT",
+      "semantics": [
+        "AGGREGATE"
+      ],
+      "representations": [],
+      "artifact_types": [],
+      "processor_role": "",
+      "result_state_key": "",
+      "readiness_kind": "records",
+      "input_types": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "locator_types": [
+        "row",
+        "evidence"
+      ],
+      "proof_refs": [],
+      "limitations": [],
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "operation_policy"
+    },
+    {
+      "query_capability_id": "logs.failures",
+      "operation_ref": "access.failed_events",
+      "reference_kind": "QUERY_OPERATION",
+      "family": "access_security_logs",
+      "authority": "DETERMINISTIC_STRUCTURED_FACT",
+      "semantics": [
+        "FILTER"
+      ],
+      "representations": [],
+      "artifact_types": [],
+      "processor_role": "",
+      "result_state_key": "",
+      "readiness_kind": "records",
+      "input_types": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "locator_types": [
+        "row",
+        "evidence"
+      ],
+      "proof_refs": [],
+      "limitations": [],
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "operation_policy"
+    },
+    {
+      "query_capability_id": "generic.filter",
+      "operation_ref": "generic.filter_records",
+      "reference_kind": "QUERY_OPERATION",
+      "family": "generic_tabular",
+      "authority": "DETERMINISTIC_STRUCTURED_FACT",
+      "semantics": [
+        "FILTER"
+      ],
+      "representations": [],
+      "artifact_types": [],
+      "processor_role": "",
+      "result_state_key": "",
+      "readiness_kind": "records",
+      "input_types": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "locator_types": [
+        "row",
+        "evidence"
+      ],
+      "proof_refs": [],
+      "limitations": [],
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "operation_policy"
+    },
+    {
+      "query_capability_id": "document.phrase",
+      "operation_ref": "document.search",
+      "reference_kind": "QUERY_OPERATION",
+      "family": "document_intelligence",
+      "authority": "SOURCE_TEXT",
+      "semantics": [
+        "EXACT_VALUE",
+        "EXACT_PHRASE",
+        "PHRASE_CONTAINS",
+        "TOKEN_SEARCH",
+        "SOURCE",
+        "TIME_RANGE",
+        "SOURCE_TIME"
+      ],
+      "representations": [
+        "native_extracted"
+      ],
+      "artifact_types": [
+        "forensics.document-native-text-passage/v1"
+      ],
+      "processor_role": "native_document",
+      "result_state_key": "",
+      "readiness_kind": "artifacts",
+      "input_types": [
+        "txt",
+        "pdf",
+        "docx"
+      ],
+      "scope_modes": [
+        "selected_evidence",
+        "authorized_workspace"
+      ],
+      "locator_types": [
+        "page",
+        "artifact",
+        "evidence"
+      ],
+      "proof_refs": [
+        "reports/nxb21/b1-query-semantics-matrix-v1.json"
+      ],
+      "limitations": [
+        "Exhaustive absence requires EXHAUSTIVE executor completeness; bounded or incomplete retrieval cannot establish absence.",
+        "Legacy exact retains its distinct historical normalization."
+      ],
+      "supports_exhaustive_negative": true,
+      "negative_requires": "EXHAUSTIVE",
+      "semantic_contract": "derived-text-search/v1",
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "bounded_paginated"
+    },
+    {
+      "query_capability_id": "knowledge.semantic",
+      "operation_ref": "forensics.evidence",
+      "reference_kind": "QUERY_OPERATION",
+      "family": "knowledge_evidence",
+      "authority": "SEMANTIC_RETRIEVAL",
+      "semantics": [
+        "SEMANTIC_RETRIEVAL"
+      ],
+      "representations": [],
+      "artifact_types": [],
+      "processor_role": "",
+      "result_state_key": "",
+      "readiness_kind": "kb",
+      "input_types": [
+        "txt",
+        "pdf",
+        "docx"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "locator_types": [
+        "evidence",
+        "page"
+      ],
+      "proof_refs": [],
+      "limitations": [
+        "Runtime retrieval availability must be attested separately; indexed metadata alone is insufficient."
+      ],
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "operation_policy"
+    },
+    {
+      "query_capability_id": "ocr.phrase",
+      "operation_ref": "image.ocr_search",
+      "reference_kind": "QUERY_OPERATION",
+      "family": "image_intelligence",
+      "authority": "MODEL_OBSERVATION",
+      "semantics": [
+        "EXACT_VALUE",
+        "EXACT_PHRASE",
+        "PHRASE_CONTAINS",
+        "TOKEN_SEARCH",
+        "SOURCE",
+        "TIME_RANGE",
+        "SOURCE_TIME"
+      ],
+      "representations": [
+        "raw"
+      ],
+      "artifact_types": [
+        "forensics.image-ocr-observation/v1"
+      ],
+      "processor_role": "ocr",
+      "result_state_key": "ocr",
+      "readiness_kind": "artifacts",
+      "input_types": [
+        "jpg",
+        "jpeg",
+        "png",
+        "bmp",
+        "tif",
+        "tiff",
+        "webp"
+      ],
+      "scope_modes": [
+        "selected_evidence",
+        "authorized_workspace"
+      ],
+      "locator_types": [
+        "region",
+        "artifact",
+        "evidence"
+      ],
+      "proof_refs": [
+        "reports/nxb21/b1-query-semantics-matrix-v1.json"
+      ],
+      "limitations": [
+        "Exhaustive absence requires EXHAUSTIVE executor completeness; bounded or incomplete retrieval cannot establish absence.",
+        "Legacy exact retains its distinct historical normalization."
+      ],
+      "supports_exhaustive_negative": true,
+      "negative_requires": "EXHAUSTIVE",
+      "semantic_contract": "derived-text-search/v1",
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "bounded_paginated"
+    },
+    {
+      "query_capability_id": "transcript.phrase",
+      "operation_ref": "audio.transcript_search",
+      "reference_kind": "QUERY_OPERATION",
+      "family": "audio_intelligence",
+      "authority": "MODEL_OBSERVATION",
+      "semantics": [
+        "EXACT_VALUE",
+        "EXACT_PHRASE",
+        "PHRASE_CONTAINS",
+        "TOKEN_SEARCH",
+        "SOURCE",
+        "TIME_RANGE",
+        "SOURCE_TIME"
+      ],
+      "representations": [
+        "raw"
+      ],
+      "artifact_types": [
+        "forensics.audio-timestamp-segment/v1"
+      ],
+      "processor_role": "asr",
+      "result_state_key": "asr",
+      "readiness_kind": "artifacts",
+      "input_types": [
+        "wav",
+        "mp3",
+        "flac",
+        "ogg",
+        "m4a",
+        "aac",
+        "mp4",
+        "mov",
+        "mkv",
+        "avi",
+        "webm"
+      ],
+      "scope_modes": [
+        "selected_evidence",
+        "authorized_workspace"
+      ],
+      "locator_types": [
+        "source_time",
+        "artifact",
+        "evidence"
+      ],
+      "proof_refs": [
+        "reports/nxb21/b1-query-semantics-matrix-v1.json"
+      ],
+      "limitations": [
+        "Exhaustive absence requires EXHAUSTIVE executor completeness; bounded or incomplete retrieval cannot establish absence.",
+        "Legacy exact retains its distinct historical normalization."
+      ],
+      "supports_exhaustive_negative": true,
+      "negative_requires": "EXHAUSTIVE",
+      "semantic_contract": "derived-text-search/v1",
+      "cross_segment_supported": true,
+      "bounded_window": [
+        2,
+        4
+      ],
+      "adjacency_authority": "source_time_current_contract",
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "bounded_paginated"
+    },
+    {
+      "query_capability_id": "roman_urdu.phrase",
+      "operation_ref": "audio.transcript_search",
+      "reference_kind": "QUERY_OPERATION",
+      "family": "audio_intelligence",
+      "authority": "DERIVED_REPRESENTATION",
+      "semantics": [
+        "EXACT_VALUE",
+        "EXACT_PHRASE",
+        "PHRASE_CONTAINS",
+        "TOKEN_SEARCH",
+        "SOURCE",
+        "TIME_RANGE",
+        "SOURCE_TIME"
+      ],
+      "representations": [
+        "roman_derivative"
+      ],
+      "artifact_types": [
+        "forensics.audio-roman-urdu-segment/v1"
+      ],
+      "processor_role": "asr",
+      "result_state_key": "",
+      "readiness_kind": "artifacts",
+      "input_types": [
+        "wav",
+        "mp3",
+        "flac",
+        "ogg",
+        "m4a",
+        "aac",
+        "mp4",
+        "mov",
+        "mkv",
+        "avi",
+        "webm"
+      ],
+      "scope_modes": [
+        "selected_evidence",
+        "authorized_workspace"
+      ],
+      "locator_types": [
+        "source_time",
+        "artifact",
+        "evidence"
+      ],
+      "proof_refs": [
+        "reports/nxb21/b1-query-semantics-matrix-v1.json"
+      ],
+      "limitations": [
+        "Exhaustive absence requires EXHAUSTIVE executor completeness; bounded or incomplete retrieval cannot establish absence.",
+        "Legacy exact retains its distinct historical normalization."
+      ],
+      "supports_exhaustive_negative": true,
+      "negative_requires": "EXHAUSTIVE",
+      "semantic_contract": "derived-text-search/v1",
+      "cross_segment_supported": true,
+      "bounded_window": [
+        2,
+        4
+      ],
+      "adjacency_authority": "source_time_current_contract",
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "bounded_paginated"
+    },
+    {
+      "query_capability_id": "image.plate",
+      "operation_ref": "anpr.sightings",
+      "reference_kind": "QUERY_OPERATION",
+      "family": "anpr_vehicles",
+      "authority": "MODEL_OBSERVATION",
+      "semantics": [
+        "EXACT_VALUE"
+      ],
+      "representations": [],
+      "artifact_types": [
+        "forensics.anpr-observation/v1"
+      ],
+      "processor_role": "image_anpr",
+      "result_state_key": "image_anpr",
+      "readiness_kind": "records_and_artifacts",
+      "input_types": [
+        "jpg",
+        "jpeg",
+        "png",
+        "bmp",
+        "tif",
+        "tiff",
+        "webp"
+      ],
+      "scope_modes": [
+        "selected_evidence"
+      ],
+      "locator_types": [
+        "region",
+        "artifact",
+        "evidence"
+      ],
+      "proof_refs": [],
+      "limitations": [
+        "Image-only authority requires selected image evidence_id and current normalized ANPR rows; workspace ANPR can also contain structured source records."
+      ],
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "bounded_paginated"
+    },
+    {
+      "query_capability_id": "video.group_plate",
+      "operation_ref": "video.anpr_grouped_timeline",
+      "reference_kind": "QUERY_OPERATION",
+      "family": "anpr_vehicles",
+      "authority": "MODEL_OBSERVATION",
+      "semantics": [
+        "EXACT_VALUE",
+        "GROUP",
+        "SOURCE_TIME"
+      ],
+      "representations": [],
+      "artifact_types": [
+        "forensics.anpr-observation/v1",
+        "forensics.video-anpr-plate-group/v1"
+      ],
+      "processor_role": "video_anpr",
+      "result_state_key": "video_anpr",
+      "readiness_kind": "artifacts",
+      "input_types": [
+        "mp4",
+        "mov",
+        "mkv",
+        "avi",
+        "webm"
+      ],
+      "scope_modes": [
+        "selected_evidence"
+      ],
+      "locator_types": [
+        "frame",
+        "source_time",
+        "artifact",
+        "evidence"
+      ],
+      "proof_refs": [],
+      "limitations": [],
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "bounded_paginated"
+    },
+    {
+      "query_capability_id": "image.similarity",
+      "operation_ref": "image.visual_similarity",
+      "reference_kind": "DIRECT_DESCRIPTOR",
+      "family": "image_intelligence",
+      "authority": "MODEL_SIMILARITY",
+      "semantics": [
+        "SIMILARITY"
+      ],
+      "representations": [],
+      "artifact_types": [
+        "forensics.image-embedding-observation/v1"
+      ],
+      "processor_role": "image_embedding",
+      "result_state_key": "",
+      "readiness_kind": "similarity",
+      "input_types": [
+        "jpg",
+        "jpeg",
+        "png",
+        "bmp",
+        "tif",
+        "tiff",
+        "webp"
+      ],
+      "scope_modes": [
+        "selected_evidence",
+        "authorized_workspace"
+      ],
+      "locator_types": [
+        "region",
+        "artifact",
+        "evidence"
+      ],
+      "proof_refs": [],
+      "limitations": [
+        "Requires explicit authorized query observation and candidate set with compatible admitted vectors; family inventory does not establish this."
+      ],
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "similarity_ranked"
+    },
+    {
+      "query_capability_id": "face.candidates",
+      "operation_ref": "face.similarity",
+      "reference_kind": "DIRECT_DESCRIPTOR",
+      "family": "face_intelligence",
+      "authority": "MODEL_SIMILARITY",
+      "semantics": [
+        "SIMILARITY"
+      ],
+      "representations": [],
+      "artifact_types": [
+        "forensics.face-observation/v1"
+      ],
+      "processor_role": "face",
+      "result_state_key": "",
+      "readiness_kind": "similarity",
+      "input_types": [
+        "jpg",
+        "jpeg",
+        "png",
+        "bmp",
+        "tif",
+        "tiff",
+        "webp"
+      ],
+      "scope_modes": [
+        "selected_evidence",
+        "authorized_workspace"
+      ],
+      "locator_types": [
+        "region",
+        "artifact",
+        "evidence"
+      ],
+      "proof_refs": [],
+      "limitations": [
+        "Requires explicit authorized query observation and candidate set with compatible admitted vectors; family inventory does not establish this."
+      ],
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "similarity_ranked"
+    },
+    {
+      "query_capability_id": "cross_family.identifiers",
+      "operation_ref": "forensics.cross_family_correlation",
+      "reference_kind": "QUERY_OPERATION",
+      "family": "case_cross_family",
+      "authority": "COMPOSED_VALIDATED_RESULT",
+      "semantics": [
+        "COMPOSE"
+      ],
+      "representations": [],
+      "artifact_types": [],
+      "processor_role": "",
+      "result_state_key": "",
+      "readiness_kind": "composition",
+      "input_types": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "locator_types": [
+        "row",
+        "evidence"
+      ],
+      "proof_refs": [],
+      "limitations": [
+        "Each typed component and its required arguments must independently validate."
+      ],
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "composed_multi_operation"
+    },
+    {
+      "query_capability_id": "case.evidence_package",
+      "operation_ref": "forensics.evidence_package_summary",
+      "reference_kind": "QUERY_OPERATION",
+      "family": "case_cross_family",
+      "authority": "COMPOSED_VALIDATED_RESULT",
+      "semantics": [
+        "SUMMARY"
+      ],
+      "representations": [],
+      "artifact_types": [],
+      "processor_role": "",
+      "result_state_key": "",
+      "readiness_kind": "inventory",
+      "input_types": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet",
+        "txt",
+        "pdf",
+        "docx",
+        "wav",
+        "mp3",
+        "flac",
+        "ogg",
+        "m4a",
+        "aac",
+        "mp4",
+        "mov",
+        "mkv",
+        "avi",
+        "webm",
+        "jpg",
+        "jpeg",
+        "png",
+        "bmp",
+        "tif",
+        "tiff",
+        "webp"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "locator_types": [
+        "evidence",
+        "row"
+      ],
+      "proof_refs": [],
+      "limitations": [
+        "Canonical certification applies to the operation; variants and navigation have separate proof."
+      ],
+      "language_coverage": {
+        "english": "UNTESTED",
+        "urdu": "UNTESTED",
+        "roman_urdu": "UNTESTED",
+        "mixed": "UNTESTED"
+      },
+      "proof_requirements": [
+        "positive",
+        "zero",
+        "unavailable",
+        "incomplete",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "performance_class": "operation_policy"
+    }
+  ],
+  "input_boundaries": [
+    {
+      "category": "plain_text_notes",
+      "input_type": "txt",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "native_document",
+      "limitation": "Native text only; scanned PDF needs a separately supported OCR path."
+    },
+    {
+      "category": "plain_text_notes",
+      "input_type": "md",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "plain_text_notes",
+      "input_type": "yaml",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "plain_text_notes",
+      "input_type": "yml",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "logs_access_security",
+      "input_type": "log",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "logs_access_security",
+      "input_type": "txt",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "native_document",
+      "limitation": "Native text only; scanned PDF needs a separately supported OCR path."
+    },
+    {
+      "category": "logs_access_security",
+      "input_type": "csv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "logs_access_security",
+      "input_type": "jsonl",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "logs_access_security",
+      "input_type": "ndjson",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "logs_access_security",
+      "input_type": "evtx",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "cdr",
+      "input_type": "csv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "cdr",
+      "input_type": "json",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "cdr",
+      "input_type": "jsonl",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "cdr",
+      "input_type": "ndjson",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "cdr",
+      "input_type": "parquet",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "ipdr_network_sessions",
+      "input_type": "csv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "ipdr_network_sessions",
+      "input_type": "json",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "ipdr_network_sessions",
+      "input_type": "jsonl",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "ipdr_network_sessions",
+      "input_type": "ndjson",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "ipdr_network_sessions",
+      "input_type": "parquet",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "ipdr_network_sessions",
+      "input_type": "pcap",
+      "state": "SUPPORTED_INGEST_INVENTORY_ONLY",
+      "pipeline": "bounded_inventory",
+      "limitation": "No full sessions, general SQL or child-ingest analytics."
+    },
+    {
+      "category": "ipdr_network_sessions",
+      "input_type": "pcapng",
+      "state": "SUPPORTED_INGEST_INVENTORY_ONLY",
+      "pipeline": "bounded_inventory",
+      "limitation": "No full sessions, general SQL or child-ingest analytics."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "csv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "json",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "jsonl",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "ndjson",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "parquet",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "tsv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "xlsx",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "png",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "jpg",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "jpeg",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "webp",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "bmp",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "tif",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "tiff",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "subscriber_identity",
+      "input_type": "csv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "subscriber_identity",
+      "input_type": "json",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "subscriber_identity",
+      "input_type": "jsonl",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "subscriber_identity",
+      "input_type": "ndjson",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "subscriber_identity",
+      "input_type": "parquet",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "subscriber_identity",
+      "input_type": "tsv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "subscriber_identity",
+      "input_type": "xlsx",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "tower_location",
+      "input_type": "csv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "tower_location",
+      "input_type": "json",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "tower_location",
+      "input_type": "jsonl",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "tower_location",
+      "input_type": "ndjson",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "tower_location",
+      "input_type": "geojson",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "tower_location",
+      "input_type": "parquet",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "tower_location",
+      "input_type": "tsv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "tower_location",
+      "input_type": "xlsx",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "financial_transactions",
+      "input_type": "csv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "financial_transactions",
+      "input_type": "json",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "financial_transactions",
+      "input_type": "jsonl",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "financial_transactions",
+      "input_type": "parquet",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "financial_transactions",
+      "input_type": "xlsx",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "financial_transactions",
+      "input_type": "ofx",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "financial_transactions",
+      "input_type": "mt940",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "csv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "json",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "jsonl",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "ndjson",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "parquet",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "tsv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "xlsx",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "xml",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "avro",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "orc",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "arrow",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "feather",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "tsv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "xls",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "xlsx",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "xlsm",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "ods",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "parquet",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "arrow",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "feather",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "avro",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "orc",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "xml",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "pdf",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "native_document",
+      "limitation": "Native text only; scanned PDF needs a separately supported OCR path."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "doc",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "docx",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "native_document",
+      "limitation": "Native text only; scanned PDF needs a separately supported OCR path."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "rtf",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "odt",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "ppt",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "pptx",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "odp",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "html",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "htm",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "epub",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "eml",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "msg",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "png",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "jpg",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "jpeg",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "webp",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "gif",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "bmp",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "tif",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "tiff",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "heic",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "heif",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "dng",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "raw",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "svg",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "audio_and_stt",
+      "input_type": "wav",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "audio_and_stt",
+      "input_type": "mp3",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "audio_and_stt",
+      "input_type": "m4a",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "audio_and_stt",
+      "input_type": "flac",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "audio_and_stt",
+      "input_type": "ogg",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "audio_and_stt",
+      "input_type": "aac",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "audio_and_stt",
+      "input_type": "opus",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "audio_and_stt",
+      "input_type": "wma",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "audio_and_stt",
+      "input_type": "amr",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "tts_artifacts",
+      "input_type": "wav",
+      "state": "UNAVAILABLE",
+      "pipeline": "none",
+      "limitation": "No registered generation descriptor or admitted live generation role; audio inventory is unrelated."
+    },
+    {
+      "category": "tts_artifacts",
+      "input_type": "mp3",
+      "state": "UNAVAILABLE",
+      "pipeline": "none",
+      "limitation": "No registered generation descriptor or admitted live generation role; audio inventory is unrelated."
+    },
+    {
+      "category": "tts_artifacts",
+      "input_type": "m4a",
+      "state": "UNAVAILABLE",
+      "pipeline": "none",
+      "limitation": "No registered generation descriptor or admitted live generation role; audio inventory is unrelated."
+    },
+    {
+      "category": "tts_artifacts",
+      "input_type": "flac",
+      "state": "UNAVAILABLE",
+      "pipeline": "none",
+      "limitation": "No registered generation descriptor or admitted live generation role; audio inventory is unrelated."
+    },
+    {
+      "category": "tts_artifacts",
+      "input_type": "ogg",
+      "state": "UNAVAILABLE",
+      "pipeline": "none",
+      "limitation": "No registered generation descriptor or admitted live generation role; audio inventory is unrelated."
+    },
+    {
+      "category": "tts_artifacts",
+      "input_type": "opus",
+      "state": "UNAVAILABLE",
+      "pipeline": "none",
+      "limitation": "No registered generation descriptor or admitted live generation role; audio inventory is unrelated."
+    },
+    {
+      "category": "transcripts_and_subtitles",
+      "input_type": "txt",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "native_document",
+      "limitation": "Native text only; scanned PDF needs a separately supported OCR path."
+    },
+    {
+      "category": "transcripts_and_subtitles",
+      "input_type": "json",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "transcripts_and_subtitles",
+      "input_type": "srt",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "transcripts_and_subtitles",
+      "input_type": "vtt",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "transcripts_and_subtitles",
+      "input_type": "ass",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "transcripts_and_subtitles",
+      "input_type": "ssa",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "video",
+      "input_type": "mp4",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "video",
+      "input_type": "mov",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "video",
+      "input_type": "mkv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "video",
+      "input_type": "avi",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "video",
+      "input_type": "webm",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "video",
+      "input_type": "m4v",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "video",
+      "input_type": "mpg",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "video",
+      "input_type": "mpeg",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "video",
+      "input_type": "mts",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "video",
+      "input_type": "m2ts",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "video",
+      "input_type": "3gp",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "network_system_captures",
+      "input_type": "pcap",
+      "state": "SUPPORTED_INGEST_INVENTORY_ONLY",
+      "pipeline": "bounded_inventory",
+      "limitation": "No full sessions, general SQL or child-ingest analytics."
+    },
+    {
+      "category": "network_system_captures",
+      "input_type": "pcapng",
+      "state": "SUPPORTED_INGEST_INVENTORY_ONLY",
+      "pipeline": "bounded_inventory",
+      "limitation": "No full sessions, general SQL or child-ingest analytics."
+    },
+    {
+      "category": "network_system_captures",
+      "input_type": "cap",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "network_system_captures",
+      "input_type": "evtx",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "databases_and_sql",
+      "input_type": "sqlite",
+      "state": "SUPPORTED_INGEST_INVENTORY_ONLY",
+      "pipeline": "bounded_inventory",
+      "limitation": "No full sessions, general SQL or child-ingest analytics."
+    },
+    {
+      "category": "databases_and_sql",
+      "input_type": "sqlite3",
+      "state": "SUPPORTED_INGEST_INVENTORY_ONLY",
+      "pipeline": "bounded_inventory",
+      "limitation": "No full sessions, general SQL or child-ingest analytics."
+    },
+    {
+      "category": "databases_and_sql",
+      "input_type": "db",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "databases_and_sql",
+      "input_type": "sql",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "archives_and_bundles",
+      "input_type": "zip",
+      "state": "SUPPORTED_INGEST_INVENTORY_ONLY",
+      "pipeline": "bounded_inventory",
+      "limitation": "No full sessions, general SQL or child-ingest analytics."
+    },
+    {
+      "category": "archives_and_bundles",
+      "input_type": "7z",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "archives_and_bundles",
+      "input_type": "rar",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "archives_and_bundles",
+      "input_type": "tar",
+      "state": "SUPPORTED_INGEST_INVENTORY_ONLY",
+      "pipeline": "bounded_inventory",
+      "limitation": "No full sessions, general SQL or child-ingest analytics."
+    },
+    {
+      "category": "archives_and_bundles",
+      "input_type": "gz",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "archives_and_bundles",
+      "input_type": "tgz",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "archives_and_bundles",
+      "input_type": "bz2",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "archives_and_bundles",
+      "input_type": "xz",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "unknown_and_mixed",
+      "input_type": "unknown extension",
+      "state": "MANUAL_REVIEW",
+      "pipeline": "preserve_inspect",
+      "limitation": "Preserve and inspect; no analytical capability inferred."
+    },
+    {
+      "category": "unknown_and_mixed",
+      "input_type": "binary dump",
+      "state": "MANUAL_REVIEW",
+      "pipeline": "preserve_inspect",
+      "limitation": "Preserve and inspect; no analytical capability inferred."
+    },
+    {
+      "category": "unknown_and_mixed",
+      "input_type": "mixed export",
+      "state": "MANUAL_REVIEW",
+      "pipeline": "preserve_inspect",
+      "limitation": "Preserve and inspect; no analytical capability inferred."
+    },
+    {
+      "category": "unknown_and_mixed",
+      "input_type": "unsupported MIME",
+      "state": "MANUAL_REVIEW",
+      "pipeline": "preserve_inspect",
+      "limitation": "Preserve and inspect; no analytical capability inferred."
+    }
+  ],
+  "design_reconciliation": [
+    {
+      "design_id": "cdr.identifier_lookup",
+      "capability_id": "cdr.identifier_lookup",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "cdr.frequent_contacts",
+      "capability_id": "cdr.frequent_contacts",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "cdr.time_activity",
+      "capability_id": "cdr.time_activity",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "ipdr.endpoint",
+      "capability_id": "ipdr.endpoint",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "ipdr.sessions",
+      "capability_id": "ipdr.sessions",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "subscriber.lookup",
+      "capability_id": "subscriber.lookup",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "device.observations",
+      "capability_id": "device.observations",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "tower.lookup",
+      "capability_id": "tower.lookup",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "financial.summary",
+      "capability_id": "financial.summary",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "logs.failures",
+      "capability_id": "logs.failures",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "generic.filter",
+      "capability_id": "generic.filter",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "document.phrase",
+      "capability_id": "document.phrase",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "knowledge.semantic",
+      "capability_id": "knowledge.semantic",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "ocr.whole_value",
+      "capability_id": "ocr.phrase",
+      "disposition": "MERGED"
+    },
+    {
+      "design_id": "ocr.phrase",
+      "capability_id": "ocr.phrase",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "transcript.source",
+      "capability_id": "transcript.phrase",
+      "disposition": "MERGED"
+    },
+    {
+      "design_id": "transcript.phrase",
+      "capability_id": "transcript.phrase",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "transcript.source_time",
+      "capability_id": "transcript.phrase",
+      "disposition": "MERGED"
+    },
+    {
+      "design_id": "roman_urdu.phrase",
+      "capability_id": "roman_urdu.phrase",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "image.plate",
+      "capability_id": "image.plate",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "video.raw_plate",
+      "capability_id": "video.group_plate",
+      "disposition": "MERGED"
+    },
+    {
+      "design_id": "video.group_plate",
+      "capability_id": "video.group_plate",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "image.similarity",
+      "capability_id": "image.similarity",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "face.candidates",
+      "capability_id": "face.candidates",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "cross_family.identifiers",
+      "capability_id": "cross_family.identifiers",
+      "disposition": "RECONCILED"
+    }
+  ],
+  "unavailable_intents": [
+    {
+      "id": "tts.generation",
+      "category": "tts_artifacts",
+      "reason": "NO_REGISTERED_GENERATION_DESCRIPTOR",
+      "query_existing_results": false,
+      "process_new_input": false,
+      "generate_new_output": false
+    }
+  ]
+}

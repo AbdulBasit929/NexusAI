@@ -48,8 +48,13 @@ func reportGenerateHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			writeError(w, http.StatusBadRequest, fmt.Errorf("decode report request: %w", err))
 			return
 		}
-		req.TenantID = defaultString(req.TenantID, "default")
 		req.CollectionID = normalizeCollectionID(req.CollectionID)
+		scope, err := bindForensicScope(r, req.TenantID, req.CollectionID, "", req.UserID)
+		if err != nil {
+			writeScopeError(w, err)
+			return
+		}
+		req.TenantID, req.UserID, req.CollectionID = scope.TenantID, scope.SubjectID, scope.CollectionID
 		req.Target = strings.TrimSpace(req.Target)
 		if req.CollectionID == "" {
 			writeError(w, http.StatusBadRequest, errors.New("collection_id is required"))

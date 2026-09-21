@@ -1,0 +1,1104 @@
+{
+  "schema_version": "forensics.platform/v1",
+  "catalog_version": "2026-08-28.nxb1.1",
+  "query_plan_contract": "forensics.query-plan/v1",
+  "response_contract": "forensics.enterprise-response/v1",
+  "structured_schema_registry": "forensics.schema-registry/v1",
+  "structured_schema_profile": "forensics.schema-profile/v1",
+  "dynamic_attribute_contract": "forensics.dynamic-attribute/v1",
+  "structured_quality_contract": "forensics.structured-quality/v1",
+  "structured_time_policy": "forensics.time-policy/v1",
+  "adapter_lifecycle": [
+    "detect",
+    "validate",
+    "plan",
+    "extract",
+    "normalize",
+    "derive",
+    "persist",
+    "index",
+    "verify",
+    "capabilities"
+  ],
+  "adapters": [
+    {
+      "id": "nexusai.adapter.cdr",
+      "version": "1.4.0",
+      "family_ids": ["communications_cdr"],
+      "formats": ["csv", "json", "jsonl", "ndjson", "parquet", "tsv", "xlsx"],
+      "operation_ids": [
+        "cdr.detect_schema",
+        "cdr.normalize_records",
+        "cdr.frequent_contacts",
+        "cdr.call_type_breakdown",
+        "cdr.temporal_activity",
+        "cdr.duration_extremes",
+        "cdr.timeline",
+        "cdr.geospatial_movement",
+        "cdr.device_identity_changes",
+        "cdr.service_usage",
+        "cdr.tower_activity"
+      ],
+      "implementation_key": "cdr",
+      "implementation_status": "operational_family_slice",
+      "configuration_schema_version": "forensics.adapter-config/v1",
+      "output_contract_version": "forensics.adapter-output/v1",
+      "resource_profile": "cpu_deterministic",
+      "preserves_legacy_output": true
+    },
+    {
+      "id": "nexusai.adapter.ipdr",
+      "version": "1.2.0",
+      "family_ids": ["network_ipdr"],
+      "formats": ["csv", "json", "jsonl", "ndjson", "parquet", "tsv", "xlsx"],
+      "operation_ids": [
+        "ipdr.detect_schema",
+        "ipdr.normalize_records",
+        "ipdr.endpoint_summary",
+        "ipdr.domain_summary",
+        "ipdr.protocol_breakdown",
+        "ipdr.session_volume",
+        "ipdr.subscriber_sessions",
+        "ipdr.concurrent_sessions",
+        "ipdr.timeline"
+      ],
+      "implementation_key": "ipdr",
+      "implementation_status": "operational_family_slice",
+      "configuration_schema_version": "forensics.adapter-config/v1",
+      "output_contract_version": "forensics.adapter-output/v1",
+      "resource_profile": "cpu_deterministic",
+      "preserves_legacy_output": true
+    },
+    {
+      "id": "nexusai.adapter.anpr",
+      "version": "1.2.0",
+      "family_ids": ["anpr_vehicles", "geospatial"],
+      "formats": ["csv", "json", "jsonl", "ndjson", "parquet", "tsv", "xlsx"],
+      "operation_ids": [
+        "anpr.detect_schema",
+        "anpr.normalize_records",
+        "anpr.sightings",
+        "anpr.camera_sequence",
+        "anpr.camera_activity",
+        "anpr.co_travel",
+        "anpr.route_timing",
+        "anpr.plate_variants",
+        "anpr.timeline"
+      ],
+      "implementation_key": "anpr",
+      "implementation_status": "operational_family_slice",
+      "configuration_schema_version": "forensics.adapter-config/v1",
+      "output_contract_version": "forensics.adapter-output/v1",
+      "resource_profile": "cpu_deterministic",
+      "preserves_legacy_output": true
+    },
+    {
+      "id": "nexusai.adapter.subscriber_identity",
+      "version": "1.3.0",
+      "family_ids": ["subscriber_identity"],
+      "formats": ["csv", "json", "jsonl", "ndjson", "parquet", "tsv", "xlsx"],
+      "operation_ids": [
+        "subscriber.detect_schema",
+        "subscriber.normalize_records",
+        "subscriber.identity_lookup",
+        "subscriber.validity_timeline",
+        "subscriber.device_links",
+        "subscriber.status_summary",
+        "subscriber.conflict_audit",
+        "subscriber.reuse_candidates"
+      ],
+      "implementation_key": "subscriber",
+      "implementation_status": "operational_family_slice",
+      "configuration_schema_version": "forensics.adapter-config/v1",
+      "output_contract_version": "forensics.adapter-output/v1",
+      "resource_profile": "cpu_deterministic",
+      "preserves_legacy_output": true
+    },
+    {
+      "id": "nexusai.adapter.tower_location",
+      "version": "1.3.0",
+      "family_ids": ["tower_location"],
+      "formats": ["csv", "json", "jsonl", "ndjson", "geojson", "parquet", "tsv", "xlsx"],
+      "operation_ids": [
+        "tower.detect_schema",
+        "tower.normalize_records",
+        "tower.site_lookup",
+        "tower.reference_timeline",
+        "tower.coordinate_audit",
+        "tower.status_summary",
+        "tower.alias_conflicts",
+        "tower.cdr_join"
+      ],
+      "implementation_key": "tower_location",
+      "implementation_status": "operational_family_slice",
+      "configuration_schema_version": "forensics.adapter-config/v1",
+      "output_contract_version": "forensics.adapter-output/v1",
+      "resource_profile": "cpu_deterministic",
+      "preserves_legacy_output": true
+    },
+    {
+      "id": "nexusai.adapter.generic_tabular",
+      "version": "1.0.0",
+      "family_ids": ["generic_tabular"],
+      "formats": ["csv", "json", "jsonl", "ndjson", "parquet", "tsv", "xlsx"],
+      "operation_ids": [
+        "generic.detect_schema",
+        "generic.normalize_records",
+        "generic.schema_profile",
+        "generic.filter_records",
+        "generic.data_quality",
+        "financial.transaction_summary",
+        "access.failed_events"
+      ],
+      "implementation_key": "generic",
+      "implementation_status": "compatibility_wrapped",
+      "configuration_schema_version": "forensics.adapter-config/v1",
+      "output_contract_version": "forensics.adapter-output/v1",
+      "resource_profile": "cpu_deterministic",
+      "preserves_legacy_output": true
+    },
+    {
+      "id": "nexusai.adapter.image_media",
+      "version": "1.0.0",
+      "family_ids": ["image_intelligence", "anpr_vehicles", "face_intelligence"],
+      "formats": ["png", "jpg", "jpeg", "webp", "bmp", "tif", "tiff"],
+      "operation_ids": ["image.metadata", "image.ocr_search", "image.exact_duplicate", "image.near_duplicate", "image.compare", "image.visual_similarity", "image.anpr", "face.candidate_observations", "face.detect", "face.similarity", "face.search_authorized"],
+      "implementation_key": "unified_media_worker",
+      "implementation_status": "limited_runtime_active",
+      "configuration_schema_version": "forensics.adapter-config/v1",
+      "output_contract_version": "forensics.media-observation/v1",
+      "resource_profile": "cpu_deterministic_optional_approved_local_model",
+      "preserves_legacy_output": true
+    },
+    {
+      "id": "nexusai.adapter.audio_text",
+      "version": "1.0.0",
+      "family_ids": ["audio_intelligence", "video_intelligence"],
+      "formats": ["wav", "mp3", "m4a", "flac", "ogg", "aac", "opus", "mp4", "mkv", "webm"],
+      "operation_ids": ["audio.metadata", "audio.roman_urdu", "audio.transcript_search", "video.metadata", "video.timeline", "video.face_observations"],
+      "implementation_key": "unified_media_worker",
+      "implementation_status": "limited_runtime_active",
+      "configuration_schema_version": "forensics.adapter-config/v1",
+      "output_contract_version": "forensics.media-observation/v1",
+      "resource_profile": "cpu_deterministic_optional_approved_local_model",
+      "preserves_legacy_output": true
+    },
+    {
+      "id": "nexusai.adapter.native_document",
+      "version": "1.0.0",
+      "family_ids": ["document_intelligence"],
+      "formats": ["txt", "pdf", "docx"],
+      "operation_ids": ["document.extract", "document.metadata", "document.search"],
+      "implementation_key": "native_document_worker",
+      "implementation_status": "limited_runtime_active",
+      "configuration_schema_version": "forensics.adapter-config/v1",
+      "output_contract_version": "forensics.document-native-text-result/v1",
+      "resource_profile": "cpu_deterministic",
+      "preserves_legacy_output": true
+    }
+  ],
+  "operations": [
+    {
+      "id": "cdr.detect_schema",
+      "version": "1.0.0",
+      "family_id": "communications_cdr",
+      "kind": "deterministic",
+      "implementation": "worker.resolve_adapter",
+      "required_tools": [],
+      "input_contract": "forensics.tabular-sample/v1",
+      "output_contract": "forensics.adapter-detection/v1",
+      "citation_required": false
+    },
+    {
+      "id": "cdr.normalize_records",
+      "version": "1.0.0",
+      "family_id": "communications_cdr",
+      "kind": "deterministic",
+      "implementation": "worker.normalize_cdr_row",
+      "required_tools": [],
+      "input_contract": "forensics.tabular-row/v1",
+      "output_contract": "forensics.cdr-record/v1",
+      "citation_required": true
+    },
+    {
+      "id": "cdr.frequent_contacts",
+      "version": "1.0.0",
+      "family_id": "communications_cdr",
+      "kind": "deterministic",
+      "implementation": "query.frequent_contacts",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.table-result/v1",
+      "required_inputs": ["target"],
+      "accepted_target_kinds": ["MSISDN", "originating_number", "dialed_number"],
+      "case_wide_default": false,
+      "missing_input_behavior": "clarification_required",
+      "citation_required": true
+    },
+    {
+      "id": "cdr.call_type_breakdown",
+      "version": "1.0.0",
+      "family_id": "communications_cdr",
+      "kind": "deterministic",
+      "implementation": "query.call_type_breakdown",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.table-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "cdr.temporal_activity",
+      "version": "1.0.0",
+      "family_id": "communications_cdr",
+      "kind": "deterministic",
+      "implementation": "query.temporal_activity",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.chart-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "cdr.duration_extremes",
+      "version": "1.0.0",
+      "family_id": "communications_cdr",
+      "kind": "deterministic",
+      "implementation": "query.duration_extremes",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.table-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "cdr.timeline",
+      "version": "1.0.0",
+      "family_id": "communications_cdr",
+      "kind": "deterministic",
+      "implementation": "query.entity_timeline",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.timeline-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "cdr.geospatial_movement",
+      "version": "1.0.0",
+      "family_id": "communications_cdr",
+      "kind": "deterministic",
+      "implementation": "query.geospatial_movement",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.map-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "cdr.device_identity_changes",
+      "version": "1.0.0",
+      "family_id": "communications_cdr",
+      "kind": "deterministic",
+      "implementation": "query.device_identity_changes",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.timeline-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "cdr.service_usage",
+      "version": "1.0.0",
+      "family_id": "communications_cdr",
+      "kind": "deterministic",
+      "implementation": "query.service_usage",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.table-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "cdr.tower_activity",
+      "version": "1.0.0",
+      "family_id": "communications_cdr",
+      "kind": "deterministic",
+      "implementation": "query.tower_activity",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.table-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "ipdr.detect_schema",
+      "version": "1.0.0",
+      "family_id": "network_ipdr",
+      "kind": "deterministic",
+      "implementation": "worker.resolve_adapter",
+      "required_tools": [],
+      "input_contract": "forensics.tabular-sample/v1",
+      "output_contract": "forensics.adapter-detection/v1",
+      "citation_required": false
+    },
+    {
+      "id": "ipdr.normalize_records",
+      "version": "1.0.0",
+      "family_id": "network_ipdr",
+      "kind": "deterministic",
+      "implementation": "worker.normalize_ipdr_details",
+      "required_tools": [],
+      "input_contract": "forensics.tabular-row/v1",
+      "output_contract": "forensics.ipdr-session/v1",
+      "citation_required": true
+    },
+    {
+      "id": "ipdr.endpoint_summary",
+      "version": "1.0.0",
+      "family_id": "network_ipdr",
+      "kind": "deterministic",
+      "implementation": "query.ipdrEndpointSummary",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.table-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "ipdr.domain_summary",
+      "version": "1.0.0",
+      "family_id": "network_ipdr",
+      "kind": "deterministic",
+      "implementation": "query.ipdrDomainSummary",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.table-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "ipdr.protocol_breakdown",
+      "version": "1.0.0",
+      "family_id": "network_ipdr",
+      "kind": "deterministic",
+      "implementation": "query.ipdrProtocolBreakdown",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.chart-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "ipdr.session_volume",
+      "version": "1.0.0",
+      "family_id": "network_ipdr",
+      "kind": "deterministic",
+      "implementation": "query.ipdrSessionVolume",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.chart-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "ipdr.subscriber_sessions",
+      "version": "1.0.0",
+      "family_id": "network_ipdr",
+      "kind": "deterministic",
+      "implementation": "query.ipdrSubscriberSessions",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.table-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "ipdr.concurrent_sessions",
+      "version": "1.0.0",
+      "family_id": "network_ipdr",
+      "kind": "deterministic",
+      "implementation": "query.ipdrConcurrentSessions",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.timeline-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "ipdr.timeline",
+      "version": "1.0.0",
+      "family_id": "network_ipdr",
+      "kind": "deterministic",
+      "implementation": "query.ipdrTimeline",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.timeline-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "anpr.detect_schema",
+      "version": "1.0.0",
+      "family_id": "anpr_vehicles",
+      "kind": "deterministic",
+      "implementation": "worker.resolve_adapter",
+      "required_tools": [],
+      "input_contract": "forensics.tabular-sample/v1",
+      "output_contract": "forensics.adapter-detection/v1",
+      "citation_required": false
+    },
+    {
+      "id": "anpr.normalize_records",
+      "version": "1.0.0",
+      "family_id": "anpr_vehicles",
+      "kind": "deterministic",
+      "implementation": "worker.normalize_anpr_details",
+      "required_tools": [],
+      "input_contract": "forensics.tabular-row/v1",
+      "output_contract": "forensics.anpr-sighting/v1",
+      "citation_required": true
+    },
+    {
+      "id": "anpr.sightings",
+      "version": "1.0.0",
+      "family_id": "anpr_vehicles",
+      "kind": "deterministic",
+      "implementation": "query.anprSightings",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.table-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "anpr.camera_sequence",
+      "version": "1.0.0",
+      "family_id": "anpr_vehicles",
+      "kind": "deterministic",
+      "implementation": "query.anprCameraSequence",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.timeline-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "anpr.camera_activity",
+      "version": "1.0.0",
+      "family_id": "anpr_vehicles",
+      "kind": "deterministic",
+      "implementation": "query.anprCameraActivity",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.chart-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "anpr.co_travel",
+      "version": "1.0.0",
+      "family_id": "anpr_vehicles",
+      "kind": "deterministic",
+      "implementation": "query.anprCoTravel",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.table-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "anpr.route_timing",
+      "version": "1.0.0",
+      "family_id": "anpr_vehicles",
+      "kind": "deterministic",
+      "implementation": "query.anprRouteTiming",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.map-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "anpr.plate_variants",
+      "version": "1.0.0",
+      "family_id": "anpr_vehicles",
+      "kind": "deterministic",
+      "implementation": "query.anprPlateVariants",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.table-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "anpr.timeline",
+      "version": "1.0.0",
+      "family_id": "anpr_vehicles",
+      "kind": "deterministic",
+      "implementation": "query.anprTimeline",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.timeline-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "subscriber.detect_schema",
+      "version": "1.0.0",
+      "family_id": "subscriber_identity",
+      "kind": "deterministic",
+      "implementation": "worker.resolve_adapter",
+      "required_tools": [],
+      "input_contract": "forensics.tabular-sample/v1",
+      "output_contract": "forensics.adapter-detection/v1",
+      "citation_required": false
+    },
+    {
+      "id": "subscriber.normalize_records",
+      "version": "1.0.0",
+      "family_id": "subscriber_identity",
+      "kind": "deterministic",
+      "implementation": "worker.normalize_subscriber_details",
+      "required_tools": [],
+      "input_contract": "forensics.tabular-row/v1",
+      "output_contract": "forensics.subscriber-identity/v1",
+      "citation_required": true
+    },
+    {
+      "id": "subscriber.identity_lookup",
+      "version": "1.0.0",
+      "family_id": "subscriber_identity",
+      "kind": "deterministic",
+      "implementation": "query.subscriber_identity_lookup",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.table-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "subscriber.validity_timeline",
+      "version": "1.0.0",
+      "family_id": "subscriber_identity",
+      "kind": "deterministic",
+      "implementation": "query.subscriber_validity_timeline",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.timeline-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "subscriber.device_links",
+      "version": "1.0.0",
+      "family_id": "subscriber_identity",
+      "kind": "deterministic",
+      "implementation": "query.subscriber_device_links",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.timeline-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "subscriber.status_summary",
+      "version": "1.0.0",
+      "family_id": "subscriber_identity",
+      "kind": "deterministic",
+      "implementation": "query.subscriber_status_summary",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.chart-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "subscriber.conflict_audit",
+      "version": "1.0.0",
+      "family_id": "subscriber_identity",
+      "kind": "deterministic",
+      "implementation": "query.subscriber_conflict_audit",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.table-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "subscriber.reuse_candidates",
+      "version": "1.0.0",
+      "family_id": "subscriber_identity",
+      "kind": "deterministic",
+      "implementation": "query.subscriber_reuse_candidates",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.table-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "tower.detect_schema",
+      "version": "1.0.0",
+      "family_id": "tower_location",
+      "kind": "deterministic",
+      "implementation": "worker.resolve_adapter",
+      "required_tools": [],
+      "input_contract": "forensics.tabular-sample/v1",
+      "output_contract": "forensics.adapter-detection/v1",
+      "citation_required": false
+    },
+    {
+      "id": "tower.normalize_records",
+      "version": "1.0.0",
+      "family_id": "tower_location",
+      "kind": "deterministic",
+      "implementation": "worker.normalize_tower_details",
+      "required_tools": [],
+      "input_contract": "forensics.tabular-row/v1",
+      "output_contract": "forensics.tower-reference/v1",
+      "citation_required": true
+    },
+    {
+      "id": "tower.site_lookup",
+      "version": "1.0.0",
+      "family_id": "tower_location",
+      "kind": "deterministic",
+      "implementation": "query.towerSiteLookup",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.table-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "tower.reference_timeline",
+      "version": "1.0.0",
+      "family_id": "tower_location",
+      "kind": "deterministic",
+      "implementation": "query.towerReferenceTimeline",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.timeline-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "tower.coordinate_audit",
+      "version": "1.0.0",
+      "family_id": "tower_location",
+      "kind": "deterministic",
+      "implementation": "query.towerCoordinateAudit",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.map-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "tower.status_summary",
+      "version": "1.0.0",
+      "family_id": "tower_location",
+      "kind": "deterministic",
+      "implementation": "query.towerStatusSummary",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.chart-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "tower.alias_conflicts",
+      "version": "1.0.0",
+      "family_id": "tower_location",
+      "kind": "deterministic",
+      "implementation": "query.towerAliasConflicts",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.table-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "tower.cdr_join",
+      "version": "1.0.0",
+      "family_id": "tower_location",
+      "kind": "deterministic",
+      "implementation": "query.towerCDRJoin",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.timeline-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "generic.detect_schema",
+      "version": "1.0.0",
+      "family_id": "generic_tabular",
+      "kind": "deterministic",
+      "implementation": "worker.resolve_adapter",
+      "required_tools": [],
+      "input_contract": "forensics.tabular-sample/v1",
+      "output_contract": "forensics.adapter-detection/v1",
+      "citation_required": false
+    },
+    {
+      "id": "generic.normalize_records",
+      "version": "1.0.0",
+      "family_id": "generic_tabular",
+      "kind": "deterministic",
+      "implementation": "worker.normalize_generic_row",
+      "required_tools": [],
+      "input_contract": "forensics.tabular-row/v1",
+      "output_contract": "forensics.generic-record/v1",
+      "citation_required": true
+    },
+    {
+      "id": "generic.schema_profile",
+      "version": "1.0.0",
+      "family_id": "generic_tabular",
+      "kind": "deterministic",
+      "implementation": "query.schema_profile",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.table-result/v1",
+      "citation_required": true
+    },
+    {
+      "id": "generic.filter_records",
+      "version": "1.0.0",
+      "family_id": "generic_tabular",
+      "kind": "deterministic",
+      "implementation": "runAnalyticalTemplate:generic_filter_records",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-understanding/v1",
+      "output_contract": "forensics.enterprise-response/v1",
+      "citation_required": true,
+      "maturity": "LIMITED"
+    },
+    {
+      "id": "generic.data_quality",
+      "version": "1.0.0",
+      "family_id": "generic_tabular",
+      "kind": "deterministic",
+      "implementation": "query.data_quality",
+      "required_tools": ["records_sql"],
+      "input_contract": "forensics.query-plan/v1",
+      "output_contract": "forensics.findings/v1",
+      "citation_required": true,
+      "maturity": "CERTIFIED"
+    },
+    {
+      "id": "image.metadata", "version": "1.0.0", "family_id": "image_intelligence", "kind": "deterministic",
+      "implementation": "runAnalyticalTemplate:image_metadata", "required_tools": ["records_sql"], "input_contract": "forensics.query-understanding/v1", "output_contract": "forensics.enterprise-response/v1", "citation_required": true, "maturity": "LIMITED"
+    },
+    {
+      "id": "image.ocr_search", "version": "1.0.0", "family_id": "image_intelligence", "kind": "retrieval",
+      "implementation": "derivedTextEvidence:image_ocr_search", "required_tools": ["derived_text_lexical"], "input_contract": "forensics.query-understanding/v1", "output_contract": "forensics.enterprise-response/v1", "citation_required": true, "maturity": "LIMITED"
+    },
+    {
+      "id": "image.exact_duplicate", "version": "1.0.0", "family_id": "image_intelligence", "kind": "deterministic",
+      "implementation": "image_compare.sha256", "required_tools": ["records_sql"], "input_contract": "forensics.image-comparison-request/v1", "output_contract": "forensics.image-comparison/v1", "citation_required": true, "maturity": "ENGINEERING_ONLY"
+    },
+    {
+      "id": "image.near_duplicate", "version": "1.0.0", "family_id": "image_intelligence", "kind": "deterministic",
+      "implementation": "image_compare.dhash64", "required_tools": ["records_sql"], "input_contract": "forensics.image-comparison-request/v1", "output_contract": "forensics.image-comparison/v1", "citation_required": true, "maturity": "ENGINEERING_ONLY"
+    },
+    {
+      "id": "image.compare", "version": "1.0.0", "family_id": "image_intelligence", "kind": "deterministic",
+      "implementation": "GET /evidence/compare", "required_tools": ["records_sql"], "input_contract": "forensics.image-comparison-request/v1", "output_contract": "forensics.image-comparison/v1", "citation_required": true, "maturity": "ENGINEERING_ONLY"
+    },
+    {
+      "id": "image.visual_similarity", "version": "1.0.0", "family_id": "image_intelligence", "kind": "retrieval",
+      "implementation": "GET /images/similar with explicit_case_evidence_scope and enumerated candidate evidence IDs", "required_tools": ["records_sql"], "input_contract": "forensics.image-query/v1", "output_contract": "forensics.semantic-image-candidate-similarity/v1", "citation_required": true, "maturity": "LIMITED"
+    },
+    {
+      "id": "image.anpr", "version": "1.0.0", "family_id": "anpr_vehicles", "kind": "deterministic",
+      "implementation": "media_pipeline.FastALPRImageProcessor", "required_tools": [], "input_contract": "forensics.image-evidence/v1", "output_contract": "forensics.anpr-image-observation/v1", "citation_required": true, "maturity": "LIMITED"
+    },
+    {
+      "id": "face.detect", "version": "1.0.0", "family_id": "face_intelligence", "kind": "deterministic",
+      "implementation": "media_pipeline.LocalAIFaceProcessor", "required_tools": [], "input_contract": "forensics.image-evidence/v1", "output_contract": "forensics.face-observation/v1", "citation_required": true, "maturity": "LIMITED"
+    },
+    {
+      "id": "face.similarity", "version": "1.0.0", "family_id": "face_intelligence", "kind": "deterministic",
+      "implementation": "GET /faces/similar", "required_tools": ["records_sql"], "input_contract": "forensics.face-comparison-request/v1", "output_contract": "forensics.face-similarity-results/v1", "citation_required": true, "maturity": "LIMITED"
+    },
+    {
+      "id": "face.search_authorized", "version": "1.0.0", "family_id": "face_intelligence", "kind": "retrieval",
+      "implementation": "GET /faces/similar with explicit_case_evidence_scope and enumerated candidate evidence IDs", "required_tools": ["records_sql"], "input_contract": "forensics.face-search-request/v1", "output_contract": "forensics.face-similarity-results/v1", "citation_required": true, "maturity": "LIMITED"
+    },
+    {
+      "id": "audio.roman_urdu", "version": "1.0.0", "family_id": "audio_intelligence", "kind": "deterministic",
+      "implementation": "roman_urdu.roman_urdu_payload", "required_tools": [], "input_contract": "forensics.audio-timestamp-segment/v1", "output_contract": "forensics.audio-roman-urdu-segment/v1", "citation_required": true, "maturity": "LIMITED"
+    },
+    {
+      "id": "audio.transcript_search", "version": "1.0.0", "family_id": "audio_intelligence", "kind": "retrieval",
+      "implementation": "derivedTextEvidence:audio_transcript_search", "required_tools": ["derived_text_lexical"], "input_contract": "forensics.query-understanding/v1", "output_contract": "forensics.enterprise-response/v1", "citation_required": true, "maturity": "LIMITED"
+    },
+    {
+      "id": "video.timeline", "version": "1.0.0", "family_id": "video_intelligence", "kind": "retrieval",
+      "implementation": "runAnalyticalTemplate:video_timeline", "required_tools": ["records_sql"], "input_contract": "forensics.query-understanding/v1", "output_contract": "forensics.enterprise-response/v1", "citation_required": true, "maturity": "LIMITED"
+    },
+    {
+      "id": "video.face_observations", "version": "1.0.0", "family_id": "video_intelligence", "kind": "retrieval",
+      "implementation": "unavailable.model_gate", "required_tools": [], "input_contract": "forensics.video-evidence/v1", "output_contract": "forensics.unsupported-operation/v1", "citation_required": true, "maturity": "PLANNED"
+    },
+    {
+      "id": "document.extract", "version": "1.0.0", "family_id": "document_intelligence", "kind": "deterministic",
+      "implementation": "document_pipeline.extract_document", "required_tools": [], "input_contract": "forensics.document-evidence/v1", "output_contract": "forensics.document-native-text-result/v1", "citation_required": true, "maturity": "LIMITED"
+    },
+    {
+      "id": "document.search", "version": "1.0.0", "family_id": "document_intelligence", "kind": "retrieval",
+      "implementation": "derivedTextEvidence:document_search", "required_tools": ["derived_text_lexical"], "input_contract": "forensics.query-understanding/v1", "output_contract": "forensics.enterprise-response/v1", "citation_required": true, "maturity": "LIMITED"
+    }
+  ],
+  "model_roles": [
+    {
+      "id": "structured_exact",
+      "kind": "deterministic",
+      "configured_model": "",
+      "status": "operational",
+      "selection_policy": "no_model"
+    },
+    {
+      "id": "query_planner",
+      "kind": "chat",
+      "configured_model": "qwen_qwen3-4b-instruct-2507",
+      "status": "rollback_baseline",
+      "selection_policy": "auto_or_authorized_compatible_override"
+    },
+    {
+      "id": "synthesis",
+      "kind": "chat",
+      "configured_model": "qwen_qwen3-4b-instruct-2507",
+      "status": "rollback_baseline",
+      "selection_policy": "auto_or_authorized_compatible_override"
+    },
+    {
+      "id": "embedding",
+      "kind": "embedding",
+      "configured_model": "qwen3-embedding-0.6b",
+      "status": "rollback_baseline",
+      "selection_policy": "auto_or_authorized_compatible_override"
+    },
+    {
+      "id": "extraction",
+      "kind": "extraction",
+      "configured_model": "",
+      "status": "benchmark_required",
+      "selection_policy": "deterministic_first_then_accepted_installed_only"
+    },
+    {
+      "id": "reranker",
+      "kind": "reranker",
+      "configured_model": "",
+      "status": "benchmark_required",
+      "selection_policy": "accepted_installed_only"
+    },
+    {
+      "id": "ocr",
+      "kind": "ocr",
+      "configured_model": "",
+      "status": "benchmark_required",
+      "selection_policy": "accepted_installed_only"
+    },
+    {
+      "id": "asr",
+      "kind": "speech_to_text",
+      "configured_model": "faster-whisper-small-ur",
+      "status": "retained_m1_accepted",
+      "selection_policy": "accepted_installed_only"
+    },
+    {
+      "id": "vision",
+      "kind": "vision",
+      "configured_model": "",
+      "status": "benchmark_required",
+      "selection_policy": "accepted_installed_only"
+    },
+    {
+      "id": "tts",
+      "kind": "text_to_speech",
+      "configured_model": "",
+      "status": "benchmark_required",
+      "selection_policy": "accepted_installed_only"
+    }
+  ],
+  "agents": [
+    {
+      "id": "Case_Intelligence_Orchestrator",
+      "version": "1.0.0",
+      "family_ids": ["*"],
+      "operation_ids": ["*"],
+      "tool_allowlist": ["adapter.discover", "capability.discover", "specialist.delegate", "response.validate", "response.merge"],
+      "model_role_ids": ["query_planner", "synthesis", "embedding"],
+      "scope_source": "request_bound_case",
+      "status": "contract_only",
+      "response_contract": "forensics.enterprise-response/v1",
+      "required_citations": true,
+      "fallback_agent_id": "Forensic_Records_Analyst"
+    },
+    {
+      "id": "Communications_CDR_Analyst",
+      "version": "1.2.0",
+      "family_ids": ["communications_cdr"],
+      "operation_ids": ["cdr.detect_schema", "cdr.normalize_records", "cdr.frequent_contacts", "cdr.call_type_breakdown", "cdr.temporal_activity", "cdr.duration_extremes", "cdr.timeline", "cdr.geospatial_movement", "cdr.device_identity_changes", "cdr.service_usage", "cdr.tower_activity"],
+      "tool_allowlist": ["records_sql", "kb_retrieval"],
+      "model_role_ids": ["structured_exact", "synthesis"],
+      "scope_source": "orchestrator_bound_case",
+      "status": "operational_family_slice",
+      "response_contract": "forensics.enterprise-response/v1",
+      "required_citations": true,
+      "fallback_agent_id": "Forensic_Records_Analyst"
+    },
+    {
+      "id": "Network_IPDR_Capture_Analyst",
+      "version": "1.1.0",
+      "family_ids": ["network_ipdr", "network_captures"],
+      "operation_ids": ["ipdr.detect_schema", "ipdr.normalize_records", "ipdr.endpoint_summary", "ipdr.domain_summary", "ipdr.protocol_breakdown", "ipdr.session_volume", "ipdr.subscriber_sessions", "ipdr.concurrent_sessions", "ipdr.timeline"],
+      "tool_allowlist": ["records_sql", "capture_inventory"],
+      "model_role_ids": ["structured_exact", "synthesis"],
+      "scope_source": "orchestrator_bound_case",
+      "status": "operational_family_slice",
+      "response_contract": "forensics.enterprise-response/v1",
+      "required_citations": true,
+      "fallback_agent_id": "Forensic_Records_Analyst"
+    },
+    {
+      "id": "Vehicle_ANPR_Geospatial_Analyst",
+      "version": "1.1.0",
+      "family_ids": ["anpr_vehicles", "geospatial"],
+      "operation_ids": ["anpr.detect_schema", "anpr.normalize_records", "anpr.sightings", "anpr.camera_sequence", "anpr.camera_activity", "anpr.co_travel", "anpr.route_timing", "anpr.plate_variants", "anpr.timeline"],
+      "tool_allowlist": ["records_sql", "kb_retrieval"],
+      "model_role_ids": ["structured_exact", "synthesis"],
+      "scope_source": "orchestrator_bound_case",
+      "status": "operational_family_slice",
+      "response_contract": "forensics.enterprise-response/v1",
+      "required_citations": true,
+      "fallback_agent_id": "Forensic_Records_Analyst"
+    },
+    {
+      "id": "Subscriber_Identity_Analyst",
+      "version": "1.2.0",
+      "family_ids": ["subscriber_identity"],
+      "operation_ids": ["subscriber.detect_schema", "subscriber.normalize_records", "subscriber.identity_lookup", "subscriber.validity_timeline", "subscriber.device_links", "subscriber.status_summary", "subscriber.conflict_audit", "subscriber.reuse_candidates"],
+      "tool_allowlist": ["records_sql"],
+      "model_role_ids": ["structured_exact", "synthesis"],
+      "scope_source": "orchestrator_bound_case",
+      "status": "operational_family_slice",
+      "response_contract": "forensics.enterprise-response/v1",
+      "required_citations": true,
+      "fallback_agent_id": "Forensic_Records_Analyst"
+    },
+    {
+      "id": "Tower_Location_Reference_Analyst",
+      "version": "1.2.0",
+      "family_ids": ["tower_location"],
+      "operation_ids": ["tower.detect_schema", "tower.normalize_records", "tower.site_lookup", "tower.reference_timeline", "tower.coordinate_audit", "tower.status_summary", "tower.alias_conflicts", "tower.cdr_join"],
+      "tool_allowlist": ["records_sql"],
+      "model_role_ids": ["structured_exact", "synthesis"],
+      "scope_source": "orchestrator_bound_case",
+      "status": "operational_family_slice",
+      "response_contract": "forensics.enterprise-response/v1",
+      "required_citations": true,
+      "fallback_agent_id": "Forensic_Records_Analyst"
+    },
+    {
+      "id": "Financial_Transactions_Analyst",
+      "version": "1.0.0",
+      "family_ids": ["financial_transactions"],
+      "operation_ids": ["financial.transaction_summary"],
+      "tool_allowlist": ["records_sql"],
+      "model_role_ids": ["structured_exact", "synthesis"],
+      "scope_source": "orchestrator_bound_case",
+      "status": "limited_operational_baseline",
+      "response_contract": "forensics.enterprise-response/v1",
+      "required_citations": true,
+      "fallback_agent_id": ""
+    },
+    {
+      "id": "Access_Security_Log_Analyst",
+      "version": "1.0.0",
+      "family_ids": ["access_security_logs"],
+      "operation_ids": ["access.failed_events"],
+      "tool_allowlist": ["records_sql"],
+      "model_role_ids": ["structured_exact", "synthesis"],
+      "scope_source": "orchestrator_bound_case",
+      "status": "limited_operational_baseline",
+      "response_contract": "forensics.enterprise-response/v1",
+      "required_citations": true,
+      "fallback_agent_id": ""
+    },
+    {
+      "id": "Document_OCR_Analyst",
+      "version": "1.0.0",
+      "family_ids": ["documents_ocr"],
+      "operation_ids": ["document.extract", "document.metadata", "document.search"],
+      "tool_allowlist": ["document_inventory", "kb_retrieval"],
+      "model_role_ids": ["extraction", "ocr", "embedding", "synthesis"],
+      "scope_source": "orchestrator_bound_case",
+      "status": "limited_runtime_active_native_text",
+      "response_contract": "forensics.enterprise-response/v1",
+      "required_citations": true,
+      "fallback_agent_id": ""
+    },
+    {
+      "id": "Audio_Speech_Analyst",
+      "version": "1.0.0",
+      "family_ids": ["audio_stt", "transcripts", "tts_artifacts"],
+      "operation_ids": ["audio.metadata", "audio.roman_urdu", "audio.transcript_search"],
+      "tool_allowlist": ["audio_inventory", "kb_retrieval"],
+      "model_role_ids": ["asr", "embedding", "synthesis", "tts"],
+      "scope_source": "orchestrator_bound_case",
+      "status": "limited_runtime_active_asr_roman_urdu",
+      "response_contract": "forensics.enterprise-response/v1",
+      "required_citations": true,
+      "fallback_agent_id": ""
+    },
+    {
+      "id": "Image_Vision_Analyst",
+      "version": "1.0.0",
+      "family_ids": ["images_vision"],
+      "operation_ids": ["image.metadata", "image.ocr_search", "image.exact_duplicate", "image.near_duplicate", "image.compare", "image.visual_similarity", "image.anpr", "face.candidate_observations", "face.detect", "face.similarity", "face.search_authorized"],
+      "tool_allowlist": ["image_inventory", "records_sql"],
+      "model_role_ids": ["ocr", "vision", "synthesis"],
+      "scope_source": "orchestrator_bound_case",
+      "status": "limited_runtime_active_image_face_ocr",
+      "response_contract": "forensics.enterprise-response/v1",
+      "required_citations": true,
+      "fallback_agent_id": ""
+    },
+    {
+      "id": "Video_Timeline_Analyst",
+      "version": "1.0.0",
+      "family_ids": ["video_timeline"],
+      "operation_ids": ["video.metadata", "video.timeline", "video.face_observations"],
+      "tool_allowlist": ["video_inventory"],
+      "model_role_ids": ["asr", "vision", "synthesis"],
+      "scope_source": "orchestrator_bound_case",
+      "status": "limited_face_model_gated",
+      "response_contract": "forensics.enterprise-response/v1",
+      "required_citations": true,
+      "fallback_agent_id": ""
+    },
+    {
+      "id": "Generic_Data_Quality_Analyst",
+      "version": "1.0.0",
+      "family_ids": ["generic_tabular"],
+      "operation_ids": ["generic.detect_schema", "generic.normalize_records", "generic.schema_profile", "generic.filter_records", "generic.data_quality"],
+      "tool_allowlist": ["records_sql"],
+      "model_role_ids": ["structured_exact", "synthesis"],
+      "scope_source": "orchestrator_bound_case",
+      "status": "compatibility_contract",
+      "response_contract": "forensics.enterprise-response/v1",
+      "required_citations": true,
+      "fallback_agent_id": "Forensic_Records_Analyst"
+    },
+    {
+      "id": "Database_Archive_Unknown_Evidence_Analyst",
+      "version": "1.0.0",
+      "family_ids": ["databases", "archives", "unknown_evidence"],
+      "operation_ids": [],
+      "tool_allowlist": ["database_inventory", "archive_inventory", "evidence_registry"],
+      "model_role_ids": ["structured_exact", "synthesis"],
+      "scope_source": "orchestrator_bound_case",
+      "status": "pending_family_adapters",
+      "response_contract": "forensics.enterprise-response/v1",
+      "required_citations": true,
+      "fallback_agent_id": ""
+    },
+    {
+      "id": "Evidence_Integrity_And_Provenance_Analyst",
+      "version": "1.0.0",
+      "family_ids": ["evidence_integrity"],
+      "operation_ids": [],
+      "tool_allowlist": ["evidence_registry", "custody_log", "artifact_lineage"],
+      "model_role_ids": ["structured_exact", "synthesis"],
+      "scope_source": "orchestrator_bound_case",
+      "status": "contract_only",
+      "response_contract": "forensics.enterprise-response/v1",
+      "required_citations": true,
+      "fallback_agent_id": ""
+    },
+    {
+      "id": "Forensic_Records_Analyst",
+      "version": "1.2.0",
+      "family_ids": ["communications_cdr", "network_ipdr", "anpr_vehicles", "subscriber_identity", "tower_location", "generic_tabular"],
+      "operation_ids": ["cdr.frequent_contacts", "cdr.call_type_breakdown", "cdr.temporal_activity", "cdr.duration_extremes", "cdr.timeline", "cdr.geospatial_movement", "cdr.device_identity_changes", "cdr.service_usage", "cdr.tower_activity", "ipdr.endpoint_summary", "ipdr.domain_summary", "ipdr.protocol_breakdown", "ipdr.session_volume", "ipdr.subscriber_sessions", "ipdr.concurrent_sessions", "ipdr.timeline", "anpr.sightings", "anpr.camera_sequence", "anpr.camera_activity", "anpr.co_travel", "anpr.route_timing", "anpr.plate_variants", "anpr.timeline", "subscriber.identity_lookup", "subscriber.validity_timeline", "subscriber.device_links", "subscriber.status_summary", "subscriber.conflict_audit", "subscriber.reuse_candidates", "tower.site_lookup", "tower.reference_timeline", "tower.coordinate_audit", "tower.status_summary", "tower.alias_conflicts", "tower.cdr_join", "generic.schema_profile", "generic.filter_records", "generic.data_quality"],
+      "tool_allowlist": ["records_sql", "kb_retrieval"],
+      "model_role_ids": ["structured_exact", "synthesis", "embedding"],
+      "scope_source": "configured_collection_compatibility_only",
+      "status": "configured_compatibility_alias",
+      "response_contract": "forensics.enterprise-response/v1",
+      "required_citations": true,
+      "fallback_agent_id": ""
+    }
+  ]
+}

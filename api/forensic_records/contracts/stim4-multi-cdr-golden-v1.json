@@ -1,0 +1,44 @@
+{
+  "contract_version": "forensics.multi-cdr-golden/v1",
+  "target": "923001110001",
+  "source_set": {
+    "contract_version": "forensics.structured-source-set/v1",
+    "sources": [
+      {"source_id": "cdr-a", "evidence_id": "evidence-a", "version_id": "version-a", "source_file": "cdr-a.csv"},
+      {"source_id": "cdr-b", "evidence_id": "evidence-b", "version_id": "version-b", "source_file": "cdr-b.csv"},
+      {"source_id": "cdr-c", "evidence_id": "evidence-c", "version_id": "version-c", "source_file": "cdr-c.csv"}
+    ]
+  },
+  "observations": [
+    {"observation_id":"a1","source_id":"cdr-a","source_file":"cdr-a.csv","evidence_id":"evidence-a","version_id":"version-a","row_number":2,"row_hash":"hash-a1","caller":"923001110001","callee":"923009000001","direction":"OUTGOING","event_type":"VOICE","imei":"356000000000001","imsi":"410010000000001","tower":"SITE-001","started_at":"2026-08-18T10:00:00+05:00","duration_seconds":60},
+    {"observation_id":"a2","source_id":"cdr-a","source_file":"cdr-a.csv","evidence_id":"evidence-a","version_id":"version-a","row_number":3,"row_hash":"hash-a2","caller":"923009000002","callee":"923001110001","direction":"INCOMING","event_type":"VOICE","imei":"356000000000001","imsi":"410010000000001","tower":"SITE-001","started_at":"2026-08-18T10:05:00+05:00","duration_seconds":30},
+    {"observation_id":"a3","source_id":"cdr-a","source_file":"cdr-a.csv","evidence_id":"evidence-a","version_id":"version-a","row_number":4,"row_hash":"hash-a3","caller":"923009000001","callee":"923001110001","direction":"INCOMING","event_type":"VOICE","imei":"356000000000001","imsi":"410010000000001","tower":"SITE-001","started_at":"2026-08-18T10:10:00+05:00","duration_seconds":null},
+    {"observation_id":"a4","source_id":"cdr-a","source_file":"cdr-a.csv","evidence_id":"evidence-a","version_id":"version-a","row_number":5,"row_hash":"hash-a4","caller":"923001110001","callee":"INTERNET","direction":"OUTGOING","event_type":"PACKET_DATA","started_at":"2026-08-18T10:20:00+05:00","duration_seconds":0},
+    {"observation_id":"a5","source_id":"cdr-a","source_file":"cdr-a.csv","evidence_id":"evidence-a","version_id":"version-a","row_number":6,"row_hash":"hash-a5","caller":"923001110001","callee":"923009000003","direction":"OUTGOING","event_type":"VOICE","imei":"356000000000002","imsi":"410010000000002","tower":"SITE-002","started_at":"2026-08-18T11:00:00+05:00","duration_seconds":10},
+
+    {"observation_id":"b1","source_id":"cdr-b","source_file":"cdr-b.csv","evidence_id":"evidence-b","version_id":"version-b","row_number":2,"row_hash":"hash-b1","caller":"923001110001","callee":"923009000003","direction":"OUTGOING","event_type":"VOICE","imei":"356000000000002","imsi":"410010000000002","tower":"SITE-002","started_at":"2026-08-18T11:00:00+05:00","duration_seconds":10},
+    {"observation_id":"b2","source_id":"cdr-b","source_file":"cdr-b.csv","evidence_id":"evidence-b","version_id":"version-b","row_number":3,"row_hash":"hash-b2","caller":"923001110001","callee":"923009000001","direction":"OUTGOING","event_type":"VOICE","imei":"356000000000001","imsi":"410010000000001","tower":"SITE-001","started_at":"2026-08-18T10:02:00+05:00","duration_seconds":0},
+    {"observation_id":"b3","source_id":"cdr-b","source_file":"cdr-b.csv","evidence_id":"evidence-b","version_id":"version-b","row_number":4,"row_hash":"hash-b3","caller":"923001110001","callee":"923009000003","direction":"OUTGOING","event_type":"VOICE","imei":"356000000000002","imsi":"410010000000002","tower":"SITE-002","started_at":"2026-08-18T11:00:00+05:00","duration_seconds":20},
+    {"observation_id":"b4","source_id":"cdr-b","source_file":"cdr-b.csv","evidence_id":"evidence-b","version_id":"version-b","row_number":5,"row_hash":"hash-b4","caller":"923009000004","callee":"923001110001","direction":"INCOMING","event_type":"VOICE","imei":"356000000000004","imsi":"410010000000004","tower":"SITE-004","started_at":"2026-08-18T12:00:00+05:00","duration_seconds":15},
+
+    {"observation_id":"c1","source_id":"cdr-c","source_file":"cdr-c.csv","evidence_id":"evidence-c","version_id":"version-c","row_number":2,"row_hash":"hash-c1","caller":"923001110001","callee":"923009000001","direction":"OUTGOING","event_type":"VOICE","imei":"356000000000001","imsi":"410010000000003","tower":"SITE-001","started_at":"2026-08-18T10:01:00+05:00","duration_seconds":40},
+    {"observation_id":"c2","source_id":"cdr-c","source_file":"cdr-c.csv","evidence_id":"evidence-c","version_id":"version-c","row_number":3,"row_hash":"hash-c2","caller":"923009000002","callee":"923001110001","direction":"INCOMING","event_type":"VOICE","imei":"356000000000003","imsi":"410010000000003","tower":"SITE-003","started_at":"2026-08-18T10:05:00+05:00","duration_seconds":30},
+    {"observation_id":"c3","source_id":"cdr-c","source_file":"cdr-c.csv","evidence_id":"evidence-c","version_id":"version-c","row_number":4,"row_hash":"hash-c3","caller":"923001110001","callee":"923009000005","direction":"OUTGOING","event_type":"VOICE","imei":"356000000000005","imsi":"410010000000005","tower":"SITE-005","started_at":"2026-08-19T00:00:00+05:00","duration_seconds":5}
+  ],
+  "expected": {
+    "matched_event_count": 11,
+    "contact_comparison_rows": 9,
+    "common_contacts": ["923009000001"],
+    "unique_contacts": {
+      "cdr-a": [],
+      "cdr-b": ["923009000004"],
+      "cdr-c": ["923009000005"]
+    },
+    "shared_imei_count": 2,
+    "shared_imsi_count": 2,
+    "shared_tower_count": 2,
+    "temporal_overlap_count": 3,
+    "duplicate_candidate_count": 1,
+    "conflict_count": 2
+  }
+}
