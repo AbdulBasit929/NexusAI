@@ -1,0 +1,3 @@
+a_number	b_number	timestamp	call_end_time	direction	call_type	carrier	call_id	Native Switch Code
++923001234567	+923111234567	2026-08-01T05:00:00Z	2026-08-01T05:02:00Z	ORIGINATING	VOLTE	synthetic-c	C-001	SW-C
++923221234567	+923001234567	2026-08-02T06:30:00Z	2026-08-02T06:30:00Z	TERMINATING	SMS	synthetic-c	C-002	SW-C

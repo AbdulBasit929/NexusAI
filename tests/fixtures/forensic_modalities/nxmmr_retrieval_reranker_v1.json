@@ -1,0 +1,34 @@
+{
+  "contract_version": "nexusai.nxmmr.retrieval-reranker-fixture/v1",
+  "ground_truth_authority": "repository_controlled_expected_document_ids_sealed_before_model_execution",
+  "candidate_set_policy": "all queries receive the same eight documents in the declared order",
+  "thresholds": {
+    "embedding_no_answer_max_cosine": 0.5,
+    "reranker_no_answer_max_relevance": 0.5
+  },
+  "documents": [
+    {"id":"shortest","text":"Shortest completed voice call overall. CALL-0003 lasted 7 seconds, source 923008889999, target 923334445555, area Gulberg, cell LHR-GUL-014."},
+    {"id":"targets-923001112222","text":"Target numbers called by 923001112222 were 923334445555, 923336667777, 923339999000, and 923331111222."},
+    {"id":"gulberg","text":"Calls in Gulberg were CALL-0001, CALL-0003, CALL-0007, CALL-0009, and CALL-0012."},
+    {"id":"failed","text":"The failed call is CALL-0004 from 923009990000 to 923331234567 in Johar Town, cell LHR-JHT-031, duration 0 seconds."},
+    {"id":"longest","text":"The longest completed voice call is CALL-0011, duration 2700 seconds, from 923007777111 to 923339876543 in Bahria Town."},
+    {"id":"target-923334445555","text":"Calls targeting 923334445555 were CALL-0001, CALL-0003, CALL-0007, and CALL-0012."},
+    {"id":"cell-lhr-gul-014","text":"Cell LHR-GUL-014 was used by CALL-0001, CALL-0003, CALL-0009, and CALL-0012."},
+    {"id":"roaming","text":"The roaming call is CALL-0009 from 923001112222 to 923331111222 in Gulberg using cell LHR-GUL-014, duration 95 seconds, roaming true."}
+  ],
+  "queries": [
+    {"id":"shortest-en","locale":"en","query":"Which completed voice call was the shortest?","expected_document_ids":["shortest"]},
+    {"id":"failed-en","locale":"en","query":"Which call failed?","expected_document_ids":["failed"]},
+    {"id":"roaming-en","locale":"en","query":"Show the roaming call.","expected_document_ids":["roaming"]},
+    {"id":"longest-en","locale":"en","query":"What was the longest completed call?","expected_document_ids":["longest"]},
+    {"id":"target-en","locale":"en","query":"Which calls targeted 923334445555?","expected_document_ids":["target-923334445555"]},
+    {"id":"cell-en","locale":"en","query":"Which calls used cell LHR-GUL-014?","expected_document_ids":["cell-lhr-gul-014"]},
+    {"id":"shortest-roman-ur","locale":"ur-Latn","query":"sab se choti completed voice call kaun si thi?","expected_document_ids":["shortest"]},
+    {"id":"targets-roman-ur","locale":"ur-Latn","query":"923001112222 ne kin numbers par calls ki?","expected_document_ids":["targets-923001112222"]},
+    {"id":"longest-ur","locale":"ur","query":"سب سے طویل مکمل کال کون سی تھی؟","expected_document_ids":["longest"]},
+    {"id":"roaming-ur","locale":"ur","query":"رومنگ کال کون سی تھی؟","expected_document_ids":["roaming"]},
+    {"id":"cell-mixed","locale":"mixed","query":"LHR-GUL-014 cell ki calls dikhayein","expected_document_ids":["cell-lhr-gul-014"]},
+    {"id":"no-answer-karachi","locale":"en","query":"Which call happened in Karachi?","expected_document_ids":[]},
+    {"id":"no-answer-owner","locale":"en","query":"Who legally owns vehicle ABC-999?","expected_document_ids":[]}
+  ]
+}

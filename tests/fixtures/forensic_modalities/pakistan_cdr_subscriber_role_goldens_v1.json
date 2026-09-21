@@ -1,0 +1,50 @@
+{
+  "contract_version": "forensics.pakistan-telecom-role-goldens/v1",
+  "synthetic_only": true,
+  "cdr": {
+    "source_file": "pakistan_cdr_messy_synthetic.csv",
+    "source_row": 2,
+    "expected": {
+      "msisdn_raw": "923001234567",
+      "msisdn_canonical": "+923001234567",
+      "originating_number_canonical": "+923001234567",
+      "originating_number_role": "explicit_originating_party",
+      "called_number_canonical": "+923111234567",
+      "called_number_role": "explicit_called_party",
+      "direction_canonical": "OUTGOING",
+      "service_class": "VOICE",
+      "source_timezone": "Asia/Karachi",
+      "timestamp_basis": "assumed_source_timezone",
+      "canonical_timezone": "UTC"
+    }
+  },
+  "subscriber": {
+    "source_row": {
+      "mobile_no": "0300 1234567",
+      "subscriber_id": "PK-SUB-SYN-001",
+      "imsi": "410010123456789",
+      "device_imei": "490154203237518",
+      "sim_serial": "8992410000000000001",
+      "service_id": "PK-SVC-SYN-001",
+      "subscription_type": "prepaid",
+      "operator": "SyntheticTel",
+      "rate_plan": "Synthetic Gold",
+      "activation_date": "2026-07-17 08:00:00",
+      "deactivation_date": "2026-08-01 10:30:00",
+      "status": "active"
+    },
+    "expected": {
+      "msisdn_canonical": "+923001234567",
+      "subscriber_reference": "PK-SUB-SYN-001",
+      "imsi_raw": "410010123456789",
+      "iccid_raw": "8992410000000000001",
+      "imei_raw": "490154203237518",
+      "service_identifier": "PK-SVC-SYN-001",
+      "service_type": "PREPAID",
+      "provider": "SyntheticTel",
+      "service_plan": "Synthetic Gold",
+      "validity_status": "closed_window",
+      "association_basis": "explicit_source_row_co_observation"
+    }
+  }
+}

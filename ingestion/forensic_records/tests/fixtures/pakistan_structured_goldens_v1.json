@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_policy": "All values are synthetic, shape-preserving, and unrelated to real people, accounts, cameras, or cases.",
+  "jurisdiction": "PK",
+  "source_timezone": "Asia/Karachi",
+  "datasets": {
+    "anpr": {
+      "path": "pakistan_anpr_messy_synthetic.csv",
+      "total_rows": 10,
+      "accepted_rows": 6,
+      "inserted_rows": 5,
+      "duplicate_rows": 1,
+      "rejected_rows": 4,
+      "expected_rejection_fragments": [
+        "invalid timestamp",
+        "outside 0..1",
+        "latitude",
+        "plate value is required"
+      ],
+      "exact_checks": {
+        "first_timestamp_utc": "2026-07-15T03:10:00+00:00",
+        "explicit_offset_timestamp_utc": "2026-07-15T04:15:00+00:00",
+        "urdu_plate_search_key": "اسلامآباد۱۲۳",
+        "low_confidence_manual_review": true
+      }
+    },
+    "financial_transactions": {
+      "path": "pakistan_financial_messy_synthetic.jsonl",
+      "total_rows": 11,
+      "accepted_rows": 7,
+      "inserted_rows": 6,
+      "duplicate_rows": 1,
+      "rejected_rows": 4,
+      "expected_rejection_fragments": [
+        "invalid money amount",
+        "minor-unit digits",
+        "invalid timestamp",
+        "multiple non-empty amount fields"
+      ],
+      "exact_checks": {
+        "formatted_pkr_decimal": "1234.50",
+        "formatted_pkr_minor_units": 123450,
+        "reversal_decimal": "-250.00",
+        "reversal_minor_units": -25000,
+        "smallest_minor_unit_decimal": "0.01",
+        "invalid_pk_iban_manual_review": true,
+        "missing_timestamp_manual_review": true
+      }
+    }
+  },
+  "primary_sources": [
+    "https://www.sbp.org.pk/psd/2012/IBAN-Guidelines-CL02-2012.pdf",
+    "https://www.sbp.org.pk/psd/2015/CL1-Annex-B.pdf",
+    "https://excise.punjab.gov.pk/system/files/Vanity_Plates_Terms%20and%20Conditions%2010-12-2024%20%282%29.pdf",
+    "https://www.excise.gos.pk/vehicle/check_number_plate",
+    "https://excise.gos.pk/Available-Number-Plates"
+  ]
+}

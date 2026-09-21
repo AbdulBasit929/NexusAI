@@ -1,0 +1,28 @@
+{
+  "contract_version": "stim.cdr-multi-schema-golden/v1",
+  "schemas": [
+    {"file": "stim_cdr_schema_a.csv", "unmapped_fields": ["Provider Event Class"]},
+    {"file": "stim_cdr_schema_b.csv", "unmapped_fields": ["Export Batch Label"]},
+    {"file": "stim_cdr_schema_c.tsv", "unmapped_fields": ["Native Switch Code"]}
+  ],
+  "expected_analytical_events": [
+    {
+      "originating_number_canonical": "+923001234567",
+      "called_number_canonical": "+923111234567",
+      "call_start_utc": "2026-08-01T05:00:00+00:00",
+      "call_end_utc": "2026-08-01T05:02:00+00:00",
+      "duration_seconds": 120,
+      "direction_canonical": "OUTGOING",
+      "service_class": "VOICE"
+    },
+    {
+      "originating_number_canonical": "+923221234567",
+      "called_number_canonical": "+923001234567",
+      "call_start_utc": "2026-08-02T06:30:00+00:00",
+      "call_end_utc": "2026-08-02T06:30:00+00:00",
+      "duration_seconds": 0,
+      "direction_canonical": "INCOMING",
+      "service_class": "SMS"
+    }
+  ]
+}

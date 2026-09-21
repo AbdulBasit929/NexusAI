@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_policy": "Deterministic synthetic Pakistan-oriented evidence only. Formulas, external relationships, hidden content and malformed OOXML are inert test data; no network, macro or formula execution is permitted.",
+  "adapter_contract": {
+    "format": "xlsx",
+    "date_system": "1904",
+    "sheet_count": 2,
+    "formula_cell_count": 2,
+    "error_cell_count": 1,
+    "hidden_row_count": 1,
+    "merged_range_count": 1,
+    "formulas_executed": false,
+    "macros_executed": false,
+    "external_links_followed": false
+  },
+  "first_transaction": {
+    "sheet_name": "Transactions",
+    "row_number": 2,
+    "txn_time": "1904-01-02",
+    "txn_time_raw": "1",
+    "debit_account": "00012345",
+    "debit_amount": "001250.5000",
+    "currency_code": "PKR",
+    "counterparty": "کراچی مرچنٹ",
+    "formula": "SUM(C2:C2)",
+    "cached_formula_value": "1250.5",
+    "error_state": "#DIV/0!"
+  },
+  "safety_cases": [
+    "macro_payload_rejected",
+    "dtd_or_entity_rejected",
+    "unsafe_zip_path_rejected",
+    "corrupt_zip_rejected_as_permanent_input",
+    "invalid_shared_string_rejected",
+    "formula_text_not_executed",
+    "external_relationship_not_followed",
+    "excel_1900_fictitious_leap_day_flagged"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_policy": "All values are synthetic, de-identified, shape-preserving, and unrelated to real subscribers, systems, sessions, providers, or cases.",
+  "jurisdiction": "PK",
+  "source_timezone": "Asia/Karachi",
+  "acceptance_matrix": [
+    {"record_type": "cdr", "path": "pakistan_cdr_messy_synthetic.csv", "total_rows": 5, "accepted_rows": 5, "rejected_rows": 0, "duplicate_rows": 1, "unique_normalized_rows": 4},
+    {"record_type": "ipdr", "path": "pakistan_ipdr_messy_synthetic.csv", "total_rows": 6, "accepted_rows": 4, "rejected_rows": 2, "duplicate_rows": 1, "unique_normalized_rows": 3},
+    {"record_type": "anpr", "path": "pakistan_anpr_messy_synthetic.csv", "total_rows": 10, "accepted_rows": 6, "rejected_rows": 4, "duplicate_rows": 1, "unique_normalized_rows": 5},
+    {"record_type": "transaction", "path": "pakistan_financial_messy_synthetic.jsonl", "total_rows": 11, "accepted_rows": 7, "rejected_rows": 4, "duplicate_rows": 1, "unique_normalized_rows": 6},
+    {"record_type": "subscriber", "path": "pakistan_subscriber_messy_synthetic.jsonl", "total_rows": 9, "accepted_rows": 6, "rejected_rows": 3, "duplicate_rows": 1, "unique_normalized_rows": 5},
+    {"record_type": "tower_location", "path": "pakistan_tower_sector_messy_synthetic.csv", "total_rows": 10, "accepted_rows": 6, "rejected_rows": 4, "duplicate_rows": 1, "unique_normalized_rows": 5},
+    {"record_type": "access_log", "path": "pakistan_access_security_messy_synthetic.jsonl", "total_rows": 10, "accepted_rows": 6, "rejected_rows": 4, "duplicate_rows": 1, "unique_normalized_rows": 5}
+  ],
+  "datasets": {
+    "ipdr": {
+      "path": "pakistan_ipdr_messy_synthetic.csv",
+      "total_rows": 6,
+      "accepted_rows": 4,
+      "unique_normalized_rows": 3,
+      "duplicate_rows": 1,
+      "rejected_rows": 2,
+      "exact_checks": {
+        "first_timestamp_utc": "2026-07-20T03:00:00+00:00",
+        "first_duration_seconds": 30,
+        "ipv6_source_canonical": "2001:db8::10",
+        "explicit_offset_timestamp_utc": "2026-07-20T06:00:00+00:00",
+        "nat_source_canonical": "203.0.113.5",
+        "rejection_codes": {
+          "invalid_network_value": 2
+        }
+      }
+    }
+  }
+}

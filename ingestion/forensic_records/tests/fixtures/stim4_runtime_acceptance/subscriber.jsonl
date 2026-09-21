@@ -1,0 +1,4 @@
+{"mobile_no":"0300 1234567","full_name":"Synthetic Acceptance Person","subscriber_id":"STIM-SUB-001","imsi":"410010123456789","device_imei":"490154203237518","activation_date":"2026-08-01 00:00:00","status":"ACTIVE","city":"Lahore"}
+{"mobile_no":"0300 8888888","full_name":"Synthetic Future Record","subscriber_id":"STIM-SUB-FUTURE","activation_date":"2026-08-19 00:00:00","status":"PENDING","city":"Lahore"}
+{"mobile_no":"0300 9999999","full_name":"Synthetic Type Collision","subscriber_id":"10.0.0.10","activation_date":"2026-08-01 00:00:00","status":"ACTIVE","city":"Lahore"}
+{"mobile_no":"0300 6666666","full_name":"Synthetic No Match","subscriber_id":"STIM-SUB-NO-MATCH","activation_date":"2026-08-01 00:00:00","status":"ACTIVE","city":"Lahore"}

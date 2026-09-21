@@ -1,0 +1,3 @@
+event_time,custom_id,note,extra_metric
+2026-07-10T03:00:00Z,000123,preserve this raw value,7.50
+2026-07-11T04:15:00Z,000124,second synthetic row,8.25

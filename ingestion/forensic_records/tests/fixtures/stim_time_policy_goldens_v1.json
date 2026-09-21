@@ -1,0 +1,11 @@
+{
+  "contract_version": "forensics.time-policy-golden/v1",
+  "cases": [
+    {"id": "unambiguous_dmy", "input": "13/02/2026 00:30:00", "timezone": "Asia/Karachi", "date_order": "", "expected_utc": "2026-02-12T19:30:00+00:00"},
+    {"id": "unambiguous_mdy", "input": "02/13/2026 00:30:00", "timezone": "Asia/Karachi", "date_order": "", "expected_utc": "2026-02-12T19:30:00+00:00"},
+    {"id": "declared_dmy", "input": "03/04/2026 00:30:00", "timezone": "Asia/Karachi", "date_order": "DMY", "expected_utc": "2026-04-02T19:30:00+00:00"},
+    {"id": "declared_mdy", "input": "03/04/2026 00:30:00", "timezone": "Asia/Karachi", "date_order": "MDY", "expected_utc": "2026-03-03T19:30:00+00:00"},
+    {"id": "explicit_offset", "input": "2026-02-13T00:30:00+05:00", "timezone": "", "date_order": "", "expected_utc": "2026-02-12T19:30:00+00:00"},
+    {"id": "cross_midnight", "input": "2026-01-02 00:15:00", "timezone": "Asia/Karachi", "date_order": "YMD", "expected_utc": "2026-01-01T19:15:00+00:00"}
+  ]
+}

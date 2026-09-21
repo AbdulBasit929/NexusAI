@@ -1,0 +1,64 @@
+{
+  "schema_version": "2.0.0",
+  "fixture_policy": "All values are synthetic, shape-preserving, and unrelated to real people, identifiers, sites, systems, accounts, cameras, or cases.",
+  "jurisdiction": "PK",
+  "source_timezone": "Asia/Karachi",
+  "inherits": "pakistan_structured_goldens_v1.json",
+  "datasets": {
+    "subscriber": {
+      "path": "pakistan_subscriber_messy_synthetic.jsonl",
+      "total_rows": 9,
+      "accepted_rows": 6,
+      "inserted_rows": 5,
+      "duplicate_rows": 1,
+      "rejected_rows": 3,
+      "expected_rejection_fragments": ["MSISDN/phone value is required", "identity reference is required", "invalid timestamp"],
+      "exact_checks": {
+        "first_msisdn_canonical": "+923001234567",
+        "first_timestamp_utc": "2026-07-17T03:00:00+00:00",
+        "urdu_name": "عائشہ تجرباتی",
+        "invalid_identity_flags": ["cnic_format_invalid", "imsi_non_pakistan_mcc", "imei_length_invalid"],
+        "missing_timestamp_flag": "activation_timestamp_missing"
+      }
+    },
+    "tower_location": {
+      "path": "pakistan_tower_sector_messy_synthetic.csv",
+      "total_rows": 10,
+      "accepted_rows": 6,
+      "inserted_rows": 5,
+      "duplicate_rows": 1,
+      "rejected_rows": 4,
+      "expected_rejection_fragments": ["latitude", "longitude", "azimuth", "site identifier is required"],
+      "exact_checks": {
+        "first_timestamp_utc": "2026-07-18T03:00:00+00:00",
+        "first_azimuth": "30",
+        "explicit_offset_timestamp_utc": "2026-07-18T04:15:00+00:00",
+        "outside_pakistan_flag": "outside_pakistan_screening_bounds",
+        "assumed_datum_flag": "coordinate_datum_assumed_wgs84"
+      }
+    },
+    "access_log": {
+      "path": "pakistan_access_security_messy_synthetic.jsonl",
+      "total_rows": 10,
+      "accepted_rows": 6,
+      "inserted_rows": 5,
+      "duplicate_rows": 1,
+      "rejected_rows": 4,
+      "expected_rejection_fragments": ["timestamp", "invalid source IP", "outside 100..599", "source IP is required"],
+      "exact_checks": {
+        "first_timestamp_utc": "2026-07-19T03:00:01+00:00",
+        "first_method": "GET",
+        "ipv6_canonical": "2001:db8::10",
+        "urdu_principal": "تجزیہ کار تجرباتی",
+        "missing_user_flag": "user_or_principal_missing"
+      }
+    }
+  },
+  "primary_sources": [
+    "https://ntcert.pta.gov.pk/sops/national_cs_framework_for_telecom_07-07-2022.pdf",
+    "https://www.pakistancode.gov.pk/pdffiles/administrator6a061efe0ed5bd153fa8b79b8eb4cba7.pdf",
+    "https://www.itu.int/rec/T-REC-E.164-202602-I",
+    "https://www.itu.int/rec/T-REC-E.212/en",
+    "https://www.nadra.gov.pk/identityDocument/cnic?action=new&tab=nic"
+  ]
+}

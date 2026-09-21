@@ -1,0 +1,108 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_policy": "Deterministic synthetic Pakistan-oriented identifiers and citations only. No retained database, model, network, or real evidence is used.",
+  "planner_cases": [
+    {
+      "query": "correlate 923461678183 across record families",
+      "template": "cross_family_correlation",
+      "intent": "records",
+      "target": "923461678183",
+      "clarification_required": false
+    },
+    {
+      "query": "connect ABC-123 across datasets",
+      "template": "cross_family_correlation",
+      "intent": "records",
+      "target": "ABC-123",
+      "clarification_required": false
+    },
+    {
+      "query": "compare these accounts across record families",
+      "template": "cross_family_correlation",
+      "intent": "records",
+      "target": "",
+      "clarification_required": true
+    },
+    {
+      "query": "show relationship network for 923461678183",
+      "template": "relationship_network",
+      "intent": "records",
+      "target": "923461678183",
+      "clarification_required": false
+    }
+  ],
+  "related_occurrences": [
+    {
+      "requested_target": "923461678183",
+      "related_entity_type": "account",
+      "related_entity_value": "PK36SCBL0000001123456702",
+      "related_source_field": "primary_account_compact",
+      "record_type": "transaction",
+      "observed_at": "2026-07-20T08:00:00+05:00",
+      "source_file": "pakistan_transactions.xlsx",
+      "citation_locator": {"record_id": "record-txn-1", "evidence_id": "evidence-txn", "source_file": "pakistan_transactions.xlsx", "row_number": 2, "row_hash": "hash-txn-1", "xlsx_locator": {"sheet_name": "Transactions", "row_number": 2}}
+    },
+    {
+      "requested_target": "923461678183",
+      "related_entity_type": "account",
+      "related_entity_value": "PK36SCBL0000001123456702",
+      "related_source_field": "primary_target",
+      "record_type": "transaction",
+      "observed_at": "2026-07-20T09:00:00+05:00",
+      "source_file": "wallet_transactions.jsonl",
+      "citation_locator": {"record_id": "record-txn-2", "evidence_id": "evidence-wallet", "source_file": "wallet_transactions.jsonl", "row_number": 7, "row_hash": "hash-txn-2"}
+    },
+    {
+      "requested_target": "923461678183",
+      "related_entity_type": "imei",
+      "related_entity_value": "356938035643809",
+      "related_source_field": "imei",
+      "record_type": "cdr",
+      "observed_at": "2026-07-20T03:30:00Z",
+      "source_file": "provider_cdr.csv",
+      "citation_locator": {"record_id": "record-cdr-1", "evidence_id": "evidence-cdr", "source_file": "provider_cdr.csv", "row_number": 42, "row_hash": "hash-cdr-1"}
+    },
+    {
+      "requested_target": "923461678183",
+      "related_entity_type": "identity",
+      "related_entity_value": "3520212345671",
+      "related_source_field": "cnic_digits",
+      "record_type": "subscriber",
+      "observed_at": "2026-07-19T19:00:00Z",
+      "source_file": "subscriber_registry.jsonl",
+      "citation_locator": {"record_id": "record-sub-1", "evidence_id": "evidence-sub", "source_file": "subscriber_registry.jsonl", "row_number": 3, "row_hash": "hash-sub-1"}
+    }
+  ],
+  "expected_relations": [
+    {
+      "requested_target": "923461678183",
+      "related_entity_type": "account",
+      "related_entity_value": "PK36SCBL0000001123456702",
+      "co_observation_count": 2,
+      "record_types": ["transaction"],
+      "source_fields": ["primary_account_compact", "primary_target"],
+      "source_files": ["pakistan_transactions.xlsx", "wallet_transactions.jsonl"],
+      "citation_count": 2
+    },
+    {
+      "requested_target": "923461678183",
+      "related_entity_type": "identity",
+      "related_entity_value": "*********5671",
+      "co_observation_count": 1,
+      "record_types": ["subscriber"],
+      "source_fields": ["cnic_digits"],
+      "source_files": ["subscriber_registry.jsonl"],
+      "citation_count": 1
+    },
+    {
+      "requested_target": "923461678183",
+      "related_entity_type": "imei",
+      "related_entity_value": "356938035643809",
+      "co_observation_count": 1,
+      "record_types": ["cdr"],
+      "source_fields": ["imei"],
+      "source_files": ["provider_cdr.csv"],
+      "citation_count": 1
+    }
+  ]
+}

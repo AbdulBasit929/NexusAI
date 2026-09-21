@@ -1,0 +1,58 @@
+{
+  "contract_version": "forensics.adapter-manifest/v1",
+  "id": "nexusai.adapter.cdr",
+  "version": "1.4.0",
+  "family_id": "communications_cdr",
+  "status": "operational",
+  "implementation": "ingestion.forensic_records.adapters.cdr",
+  "normalization_version": "cdr-canonical/v2",
+  "schema_profile_version": "cdr-source-mapping/v2",
+  "schema_registry_version": "forensics.schema-registry/v1",
+  "dynamic_attribute_contract": "forensics.dynamic-attribute/v1",
+  "quality_contract": "forensics.structured-quality/v1",
+  "time_policy_version": "forensics.time-policy/v1",
+  "preserves_legacy_output": true,
+  "formats": ["csv", "json", "jsonl", "ndjson", "parquet", "tsv", "xlsx"],
+  "lifecycle": ["detect", "validate", "plan", "extract", "normalize", "derive", "persist", "index", "verify", "capabilities"],
+  "operation_ids": [
+    "cdr.detect_schema",
+    "cdr.normalize_records",
+    "cdr.frequent_contacts",
+    "cdr.call_type_breakdown",
+    "cdr.temporal_activity",
+    "cdr.duration_extremes",
+    "cdr.timeline",
+    "cdr.geospatial_movement",
+    "cdr.tower_activity",
+    "cdr.device_identity_changes",
+    "cdr.service_usage"
+  ],
+  "required_accounting": ["total_rows", "accepted_rows", "duplicate_rows", "rejected_rows", "indexed_entities"],
+  "required_provenance": ["tenant_id", "collection_id", "file_id", "batch_id", "source_file", "row_number", "row_hash"],
+  "localization": {
+    "default_country_profile": "PK",
+    "supported_timezone": "Asia/Karachi",
+    "phone_variants": ["03xx", "+92", "92"],
+    "preserve_urdu": true,
+    "preserve_provider_tokens": true
+  },
+  "role_contract": {
+    "subscriber": "msisdn_raw plus msisdn_canonical",
+    "originating_party": "originating_number_raw plus originating_number_canonical",
+    "called_party": "called_number_raw plus called_number_canonical",
+    "service_labels_are_phone_numbers": false,
+    "canonical_timezone": "UTC",
+    "source_timezone_provenance_required": true
+  },
+  "resource_profile": {
+    "kind": "cpu_deterministic",
+    "model_required": false,
+    "bounded_query_seconds": 15,
+    "default_result_limit": 20,
+    "maximum_result_limit": 200
+  },
+  "rollback": {
+    "strategy": "compatibility wrapper",
+    "target": "worker.normalize_cdr_row accepted Phase 5A behavior"
+  }
+}

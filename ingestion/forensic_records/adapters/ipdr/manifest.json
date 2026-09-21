@@ -1,0 +1,49 @@
+{
+  "contract_version": "forensics.adapter-manifest/v1",
+  "id": "nexusai.adapter.ipdr",
+  "version": "1.2.0",
+  "family_id": "network_ipdr",
+  "status": "operational",
+  "implementation": "ingestion.forensic_records.adapters.ipdr",
+  "normalization_version": "ipdr-session-canonical/v1",
+  "schema_profile_version": "ipdr-source-mapping/v1",
+  "schema_registry_version": "forensics.schema-registry/v1",
+  "dynamic_attribute_contract": "forensics.dynamic-attribute/v1",
+  "quality_contract": "forensics.structured-quality/v1",
+  "time_policy_version": "forensics.time-policy/v1",
+  "preserves_legacy_output": true,
+  "formats": ["csv", "json", "jsonl", "ndjson", "parquet", "tsv", "xlsx"],
+  "lifecycle": ["detect", "validate", "plan", "extract", "normalize", "derive", "persist", "index", "verify", "capabilities"],
+  "operation_ids": [
+    "ipdr.detect_schema",
+    "ipdr.normalize_records",
+    "ipdr.endpoint_summary",
+    "ipdr.domain_summary",
+    "ipdr.protocol_breakdown",
+    "ipdr.session_volume",
+    "ipdr.subscriber_sessions",
+    "ipdr.concurrent_sessions",
+    "ipdr.timeline"
+  ],
+  "required_accounting": ["total_rows", "accepted_rows", "duplicate_rows", "rejected_rows", "indexed_entities"],
+  "required_provenance": ["tenant_id", "collection_id", "file_id", "batch_id", "source_file", "row_number", "row_hash"],
+  "localization": {
+    "default_country_profile": "PK",
+    "supported_timezone": "Asia/Karachi",
+    "ip_versions": [4, 6],
+    "preserve_provider_tokens": true,
+    "cgnat_policy": "report explicit NAT fields only",
+    "clock_drift_policy": "preserve source timezone and explicit offsets; do not infer drift"
+  },
+  "resource_profile": {
+    "kind": "cpu_deterministic",
+    "model_required": false,
+    "bounded_query_seconds": 15,
+    "default_result_limit": 20,
+    "maximum_result_limit": 200
+  },
+  "rollback": {
+    "strategy": "compatibility wrapper",
+    "target": "worker.normalize_ipdr_details accepted Phase 4 behavior"
+  }
+}

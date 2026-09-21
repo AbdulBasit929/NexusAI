@@ -1,0 +1,39 @@
+{
+  "contract_version": "forensics.image-fixture-taxonomy/v2",
+  "privacy_policy": "synthetic_non_personal_only_until_an_explicit_real_visual_pack_approval",
+  "coordinate_space": "original_image_pixels",
+  "required_classes": [
+    "clear_single_plate",
+    "regional_style",
+    "night",
+    "glare",
+    "blur",
+    "skew",
+    "occlusion",
+    "multiple_vehicles",
+    "pre_cropped_plate",
+    "empty_scene",
+    "malformed_image",
+    "oversized_dimensions",
+    "extension_signature_mismatch",
+    "polyglot_or_trailing_payload"
+  ],
+  "annotation_requirements": [
+    "fixture_id",
+    "source_sha256",
+    "width_pixels",
+    "height_pixels",
+    "plate_regions_original_pixels",
+    "plate_text_raw_when_visible",
+    "script_when_visible",
+    "expected_abstention_state",
+    "adverse_conditions",
+    "annotation_actor_and_timestamp"
+  ],
+  "fixture_pack_generator": "tools/r8_ocr_eval/generate_fixtures.py",
+  "generator_version": "nexusai-r8-synthetic-v2",
+  "generator_seed": "nexusai-r8-t0-t1-20260812",
+  "model_lane_policy": "hostile admission-only fixtures must never be opened by detector or OCR code",
+  "fixtures": [],
+  "acceptance_state": "taxonomy_and_reproducible_t0_t1_generator_source_complete_materialized_benchmark_pending"
+}

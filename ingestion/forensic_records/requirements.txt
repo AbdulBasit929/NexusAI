@@ -2,3 +2,20 @@ polars==1.36.1
 psycopg[binary]==3.3.2
 nats-py==2.12.0
 prometheus-client==0.23.1
+tzdata==2026.3
+fast-alpr==0.4.0
+fast-plate-ocr==1.1.0
+open-image-models==0.6.0
+onnxruntime-openvino==1.24.1
+openvino==2025.4.1
+numpy==2.3.5
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.5.1+cpu
+torchvision==0.20.1+cpu
+transformers==4.49.0
+# PaddlePaddle 3.3.1 requires >=0.6.0; compatible with Transformers 4.49.0.
+safetensors==0.6.2
+sentencepiece==0.2.0
+Pillow==11.1.0
+paddleocr==3.7.0
+paddlepaddle==3.3.1

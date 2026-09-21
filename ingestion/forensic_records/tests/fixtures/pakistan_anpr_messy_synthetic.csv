@@ -1,0 +1,11 @@
+Registration No.,Camera Code,Captured At,Camera Location,Province,OCR Confidence,Plate Script,Crop SHA256,Latitude,Longitude,Lane,Province Series Rule Version,Camera Timezone
+TEST-001,PK-CAM-LHR-01,2026-07-15 08:10:00,لاہور ٹول پلازہ,Punjab,98%,Latin,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,31.5204,74.3587,L1,pk-anpr-rules-2026-07,Asia/Karachi
+AAA-123456,PK-CAM-KHI-02,2026-07-15T09:15:00+05:00,کراچی داخلی راستہ,Sindh,0.94,Latin,bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,24.8607,67.0011,L2,pk-anpr-rules-2026-07,Asia/Karachi
+اسلام آباد ۱۲۳,PK-CAM-ICT-03,2026-07-15 10:20:00,اسلام آباد چیک پوسٹ,Islamabad Capital Territory,0.88,Arabic-derived Urdu,cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc,33.6844,73.0479,L3,pk-anpr-rules-2026-07,Asia/Karachi
+ICT-0007,PK-CAM-ICT-04,2026-07-15 11:30:00,F-8 synthetic checkpoint,Islamabad Capital Territory,0.54,Latin,dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd,33.7100,73.0390,L4,pk-anpr-rules-2026-07,Asia/Karachi
+KP TEST 9,PK-CAM-KP-05,2026-07-15 12:40:00,Peshawar synthetic gate,Khyber Pakhtunkhwa,,Latin,eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee,34.0151,71.5249,L5,pk-anpr-rules-2026-07,Asia/Karachi
+TEST-001,PK-CAM-LHR-01,2026-07-15 08:10:00,لاہور ٹول پلازہ,Punjab,98%,Latin,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,31.5204,74.3587,L1,pk-anpr-rules-2026-07,Asia/Karachi
+SYN-0008,PK-CAM-LHR-08,15-07-2026 25:61:00,Lahore malformed-time gate,Punjab,0.91,Latin,ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff,31.5000,74.3000,L8,pk-anpr-rules-2026-07,Asia/Karachi
+SYN-0009,PK-CAM-KHI-09,2026-07-15 14:10:00,Karachi invalid-confidence gate,Sindh,1.20,Latin,1111111111111111111111111111111111111111111111111111111111111111,24.9000,67.1000,L9,pk-anpr-rules-2026-07,Asia/Karachi
+SYN-0010,PK-CAM-ICT-10,2026-07-15 15:10:00,Islamabad invalid-coordinate gate,Islamabad Capital Territory,0.90,Latin,2222222222222222222222222222222222222222222222222222222222222222,131.0000,73.1000,L10,pk-anpr-rules-2026-07,Asia/Karachi
+,PK-CAM-TEST-11,2026-07-15 16:10:00,Missing plate test,Punjab,0.90,Latin,3333333333333333333333333333333333333333333333333333333333333333,31.5000,74.3000,L11,pk-anpr-rules-2026-07,Asia/Karachi

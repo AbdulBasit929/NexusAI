@@ -5,6 +5,8 @@ from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
+from ingestion.forensic_records.worker import audit_structured_source
+
 
 SAMPLE_PATH = Path(os.getenv("FORENSIC_CDR_SAMPLE", r"C:\Users\W S Mughal\Downloads\923461678183.csv"))
 
@@ -52,6 +54,24 @@ class AttachedCDRSampleTest(unittest.TestCase):
         self.assertEqual(duplicates, 297)
         self.assertEqual(min(timestamps).strftime("%Y-%m-%d %H:%M:%S"), "2026-04-02 01:22:34")
         self.assertEqual(max(timestamps).strftime("%Y-%m-%d %H:%M:%S"), "2026-06-20 19:08:01")
+
+    def test_reference_file_passes_privacy_safe_production_adapter_audit(self):
+        audit = audit_structured_source(
+            SAMPLE_PATH,
+            record_type="auto",
+            source_timezone="Asia/Karachi",
+            jurisdiction="PK",
+        )
+
+        self.assertEqual(audit["routing"]["detected_record_type"], "cdr")
+        self.assertEqual(audit["accounting"]["total_rows"], 3931)
+        self.assertEqual(audit["accounting"]["accepted_rows"], 3931)
+        self.assertEqual(audit["accounting"]["rejected_rows"], 0)
+        self.assertEqual(audit["accounting"]["exact_duplicate_rows"], 297)
+        self.assertEqual(audit["accounting"]["unique_normalized_rows"], 3634)
+        self.assertTrue(audit["accounting"]["row_accounting_complete"])
+        self.assertEqual(audit["source"]["sha256"], "3eee8cb613d2dee9a5ee10600ec361ad2537c0b95d5601fe8d5c8d135a39c8f5")
+        self.assertFalse(audit["privacy"]["raw_rows_emitted"])
 
 
 if __name__ == "__main__":

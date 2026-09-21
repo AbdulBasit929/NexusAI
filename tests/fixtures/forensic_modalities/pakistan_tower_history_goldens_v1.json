@@ -1,0 +1,12 @@
+{
+  "contract_version": "forensics.pakistan-tower-history-goldens/v1",
+  "synthetic_only": true,
+  "history_key": "synthetictelcopk|pklhrhist001|a",
+  "reference_rows": 3,
+  "overlap_pairs": 2,
+  "provider_alias_key": "synthetictelcopk",
+  "first_window_status": "closed_window",
+  "current_window_status": "open_ended_window",
+  "expected_uncertainty_classes": ["bounded_supplied", "coarse_supplied"],
+  "rf_coverage_inference_allowed": false
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_policy": "Deterministic synthetic Pakistan-oriented analyst questions only. No real subscriber, CNIC, telecom, or retained evidence data is present.",
+  "query_cases": [
+    {"language": "en", "query": "look up subscriber identity for 923001234567", "template": "subscriber_identity_lookup", "target": "923001234567", "clarification_required": false},
+    {"language": "roman_urdu", "query": "subscriber ki tafseel 0300-1234567 ke liye dikhao", "template": "subscriber_identity_lookup", "target": "03001234567", "clarification_required": false},
+    {"language": "ur", "query": "اس نمبر 0300-1234567 کی سبسکرائبر کی تفصیل دکھائیں", "template": "subscriber_identity_lookup", "target": "03001234567", "clarification_required": false},
+    {"language": "roman_urdu", "query": "subscriber ki maloomat dikhao", "template": "subscriber_identity_lookup", "target": "", "clarification_required": true},
+
+    {"language": "en", "query": "show subscriber activation and deactivation for +92 300 1234567", "template": "subscriber_validity_timeline", "target": "923001234567", "clarification_required": false},
+    {"language": "roman_urdu", "query": "03001234567 kab active hua aur kab band hua", "template": "subscriber_validity_timeline", "target": "03001234567", "clarification_required": false},
+    {"language": "ur", "query": "410010123456789 کی فعالیت کی مدت دکھائیں", "template": "subscriber_validity_timeline", "target": "410010123456789", "clarification_required": false},
+    {"language": "roman_urdu", "query": "activation aur deactivation timeline dikhao", "template": "subscriber_validity_timeline", "target": "", "clarification_required": true},
+
+    {"language": "en", "query": "show subscriber SIM and device links for 410010123456789", "template": "subscriber_device_links", "target": "410010123456789", "clarification_required": false},
+    {"language": "roman_urdu", "query": "03001234567 ke sim aur device links dikhao", "template": "subscriber_device_links", "target": "03001234567", "clarification_required": false},
+    {"language": "ur", "query": "356938035643809 کے سم اور ڈیوائس لنکس دکھائیں", "template": "subscriber_device_links", "target": "356938035643809", "clarification_required": false},
+    {"language": "roman_urdu", "query": "imei imsi rabta dikhao", "template": "subscriber_device_links", "target": "", "clarification_required": true},
+
+    {"language": "en", "query": "show active inactive and suspended subscriber statuses", "template": "subscriber_status_summary", "target": "", "clarification_required": false},
+    {"language": "roman_urdu", "query": "subscriber status ka khulasa dikhao", "template": "subscriber_status_summary", "target": "", "clarification_required": false},
+    {"language": "ur", "query": "فعال اور معطل سبسکرائبرز کی حیثیت دکھائیں", "template": "subscriber_status_summary", "target": "", "clarification_required": false},
+    {"language": "en", "query": "show subscriber status for 03001234567", "template": "subscriber_status_summary", "target": "03001234567", "clarification_required": false},
+
+    {"language": "en", "query": "audit conflicting subscriber identity attributes", "template": "subscriber_conflict_audit", "target": "", "clarification_required": false},
+    {"language": "roman_urdu", "query": "subscriber record mein ikhtilaf dikhao", "template": "subscriber_conflict_audit", "target": "", "clarification_required": false},
+    {"language": "ur", "query": "سبسکرائبر ریکارڈ میں تضاد دکھائیں", "template": "subscriber_conflict_audit", "target": "", "clarification_required": false},
+    {"language": "en", "query": "audit subscriber conflicts for PK-SUB-SYN-001", "template": "subscriber_conflict_audit", "target": "PK-SUB-SYN-001", "clarification_required": false},
+
+    {"language": "en", "query": "show subscriber identifier reuse candidates", "template": "subscriber_reuse_candidates", "target": "", "clarification_required": false},
+    {"language": "roman_urdu", "query": "sim dobara istemal hone ke candidates dikhao", "template": "subscriber_reuse_candidates", "target": "", "clarification_required": false},
+    {"language": "ur", "query": "شناختی نمبر کا دوبارہ استعمال دکھائیں", "template": "subscriber_reuse_candidates", "target": "", "clarification_required": false},
+    {"language": "en", "query": "show reused IMSI candidates", "template": "subscriber_reuse_candidates", "target": "", "clarification_required": false}
+  ]
+}

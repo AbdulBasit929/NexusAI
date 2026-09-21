@@ -1,0 +1,40 @@
+{
+  "schema_version": "forensics.adapter-goldens/v1",
+  "cdr": {
+    "input": {
+      "MSISDN": "923001234567",
+      "call_org_num": "923001234567",
+      "CALL_DIALED_NUM": "923111234567",
+      "CALL_START_DT_TM": "2026-07-10T03:00:00Z",
+      "CALL_END_DT_TM": "2026-07-10T03:00:45Z",
+      "CALL_TYPE": "VOICE",
+      "INBOUND_OUTBOUND_IND": "OUTGOING",
+      "Cell_SITE_ID": "SITE-001",
+      "location": "Islamabad"
+    },
+    "expected": {
+      "call_org_num": "923001234567",
+      "call_dialed_num": "923111234567",
+      "call_start_ts": "2026-07-10T03:00:00+00:00",
+      "call_end_ts": "2026-07-10T03:00:45+00:00",
+      "duration_seconds": 45,
+      "call_type": "VOICE",
+      "direction": "OUTGOING",
+      "cell_site_id": "SITE-001",
+      "location": "Islamabad"
+    }
+  },
+  "generic": {
+    "input": {
+      "event_time": "2026-07-10T03:00:00Z",
+      "custom_id": "000123",
+      "note": "preserve this raw value"
+    },
+    "expected": {
+      "record_type": "generic",
+      "observed_at": "2026-07-10T03:00:00+00:00",
+      "raw_record": "{\"event_time\": \"2026-07-10T03:00:00Z\", \"custom_id\": \"000123\", \"note\": \"preserve this raw value\"}",
+      "source_file": "phase5a.csv"
+    }
+  }
+}

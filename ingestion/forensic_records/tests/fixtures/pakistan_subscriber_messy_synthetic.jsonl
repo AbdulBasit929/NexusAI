@@ -1,0 +1,9 @@
+{"mobile_no":"0300 1234567","full_name":"Ali Synthetic","cnic_no":"35202-1234567-1","subscriber_id":"PK-SUB-SYN-001","imsi":"410010123456789","device_imei":"490154203237518","activation_date":"2026-07-17 08:00:00","status":"ACTIVE","city":"Lahore"}
+{"MSISDN":"+92-311-7654321","subscriber_name":"عائشہ تجرباتی","CNIC":"61101-7654321-2","customer_no":"PK-SUB-SYN-002","subscriber_imsi":"410030987654321","IMEI":"35678901234567","activation_date":"2026-07-17T09:15:00+05:00","account_status":"ACTIVE","home_city":"اسلام آباد"}
+{"phone_number":"0092 321 1112233","customer_id":"PK-SUB-SYN-003","cnic":"123-INVALID","imsi":"404010123456789","imei":"12345","created_at":"2026-07-17 10:30:00","billing_region":"Karachi","status":"SUSPENDED"}
+{"subscriber_number":"12345","name":"Service Test Identity","subscriber_id":"PK-SUB-SYN-004","activation_date":"2026-07-17 11:00:00","city":"Peshawar"}
+{"account_msisdn":"923331234567","customer_name":"Missing Time Synthetic","national_id":"37405-1111111-3","subscriber_id":"PK-SUB-SYN-005","status":"INACTIVE","location":"Quetta"}
+{"mobile_no":"0300 1234567","full_name":"Ali Synthetic","cnic_no":"35202-1234567-1","subscriber_id":"PK-SUB-SYN-001","imsi":"410010123456789","device_imei":"490154203237518","activation_date":"2026-07-17 08:00:00","status":"ACTIVE","city":"Lahore"}
+{"mobile_no":"","full_name":"Missing Phone Synthetic","subscriber_id":"PK-SUB-SYN-BAD-001","activation_date":"2026-07-17 12:00:00"}
+{"mobile_no":"03015550000","full_name":"","subscriber_id":"","cnic":"","activation_date":"2026-07-17 12:15:00"}
+{"mobile_no":"03016660000","full_name":"Bad Time Synthetic","subscriber_id":"PK-SUB-SYN-BAD-003","activation_date":"2026-99-99 25:00:00"}

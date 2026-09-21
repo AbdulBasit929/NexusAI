@@ -1,0 +1,61 @@
+{
+  "contract_version": "forensics.adapter-manifest/v1",
+  "id": "nexusai.adapter.subscriber_identity",
+  "version": "1.3.0",
+  "family_id": "subscriber_identity",
+  "status": "operational",
+  "implementation": "ingestion.forensic_records.adapters.subscriber",
+  "normalization_version": "subscriber-identity/v2",
+  "schema_profile_version": "subscriber-source-mapping/v1",
+  "schema_registry_version": "forensics.schema-registry/v1",
+  "dynamic_attribute_contract": "forensics.dynamic-attribute/v1",
+  "quality_contract": "forensics.structured-quality/v1",
+  "time_policy_version": "forensics.time-policy/v1",
+  "preserves_legacy_output": true,
+  "formats": ["csv", "json", "jsonl", "ndjson", "parquet", "tsv", "xlsx"],
+  "lifecycle": ["detect", "validate", "plan", "extract", "normalize", "derive", "persist", "index", "verify", "capabilities"],
+  "operation_ids": [
+    "subscriber.detect_schema",
+    "subscriber.normalize_records",
+    "subscriber.identity_lookup",
+    "subscriber.validity_timeline",
+    "subscriber.device_links",
+    "subscriber.status_summary",
+    "subscriber.conflict_audit",
+    "subscriber.reuse_candidates"
+  ],
+  "required_accounting": ["total_rows", "accepted_rows", "duplicate_rows", "rejected_rows", "indexed_entities"],
+  "required_provenance": ["tenant_id", "collection_id", "file_id", "batch_id", "source_file", "row_number", "row_hash"],
+  "privacy": {
+    "default_redaction": ["cnic", "subscriber_name"],
+    "queryable_exact_identifiers": ["msisdn", "subscriber_reference", "service_identifier", "imsi", "iccid", "imei"],
+    "ownership_inference": false
+  },
+  "role_contract": {
+    "subscriber_identifiers": ["msisdn", "subscriber_reference"],
+    "sim_identifiers": ["imsi", "iccid"],
+    "device_identifiers": ["imei"],
+    "service_identifiers": ["service_identifier", "service_type", "service_plan"],
+    "association_basis": "explicit_source_row_co_observation",
+    "ownership_inference": false
+  },
+  "localization": {
+    "default_country_profile": "PK",
+    "supported_timezone": "Asia/Karachi",
+    "phone_variants": ["03xx", "+92", "92", "0092"],
+    "preserve_urdu": true,
+    "name_search_normalization": "Unicode NFKC casefold",
+    "silent_transliteration": false
+  },
+  "resource_profile": {
+    "kind": "cpu_deterministic",
+    "model_required": false,
+    "bounded_query_seconds": 15,
+    "default_result_limit": 20,
+    "maximum_result_limit": 100
+  },
+  "rollback": {
+    "strategy": "compatibility wrapper",
+    "target": "worker.normalize_subscriber_details accepted Phase 2 behavior"
+  }
+}

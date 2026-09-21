@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_policy": "Synthetic and de-identified Pakistan-oriented multisheet workbook. No real evidence, model, network, or database is used.",
+  "mapping_policy": "per_sheet_schema_v1",
+  "sheet_mappings": [
+    {"sheet_index": 1, "sheet_name": "Operator CDR", "record_type": "cdr", "decision": "auto_typed_unique_schema", "review_required": false},
+    {"sheet_index": 2, "sheet_name": "ANPR Export", "record_type": "anpr", "decision": "auto_typed_unique_schema", "review_required": false},
+    {"sheet_index": 3, "sheet_name": "Wallet Transactions", "record_type": "transaction", "decision": "auto_typed_unique_schema", "review_required": false},
+    {"sheet_index": 4, "sheet_name": "Case Notes", "record_type": "generic", "decision": "auto_generic_no_schema_match", "review_required": false}
+  ],
+  "normalized_rows": [
+    {"sheet_index": 1, "record_type": "cdr", "row_number": 2, "primary_entity": "+92 346 167 8183", "secondary_entity": "923001234567"},
+    {"sheet_index": 2, "record_type": "anpr", "row_number": 2, "primary_entity": "ICT-AB-123", "plate_search_key": "ICTAB123"},
+    {"sheet_index": 3, "record_type": "transaction", "row_number": 2, "primary_entity": "00012345", "amount_decimal": "1250.50", "currency": "PKR"},
+    {"sheet_index": 4, "record_type": "generic", "row_number": 2, "primary_entity": "PK-CASE-4D"}
+  ]
+}

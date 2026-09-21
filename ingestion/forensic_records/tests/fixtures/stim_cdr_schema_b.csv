@@ -1,0 +1,3 @@
+msisdn,source_number,target_number,call_time,end_time,direction,call_type,operator,event_id,Export Batch Label
+923001234567,923001234567,923111234567,2026-08-01T10:00:00+05:00,2026-08-01T10:02:00+05:00,MO,CALL,synthetic-b,B-001,batch-b
+923001234567,923221234567,923001234567,2026-08-02T11:30:00+05:00,2026-08-02T11:30:00+05:00,MT,SMS,synthetic-b,B-002,batch-b

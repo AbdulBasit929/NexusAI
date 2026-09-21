@@ -1,0 +1,6 @@
+Site Code,Sector Code,Latitude WGS84,Longitude WGS84,Azimuth,Beam Width,Technology,LAC,TAC,Operator,Operator Code,MCC,MNC,ECGI,eNodeB ID,Reference ID,Reference Version,Site Location,District,Coordinate Datum,Uncertainty Radius M,Coordinate Method,Coordinate Source,Valid From,Valid To,Site Status
+PK-LHR-HIST-001,A,31.5204,74.3587,30,65,LTE,1001,2001,Synthetic Telco PK,STPK,410,01,410010000000001,10001,REF-LHR-A,1,Gulberg synthetic history,Lahore,WGS84,50,SURVEY,provider_inventory,2026-01-01 00:00:00,2026-04-01 00:00:00,ACTIVE
+PK-LHR-HIST-001,A,31.5205,74.3588,35,65,LTE,1001,2001,Synthetic-Telco PK,STPK,410,01,410010000000001,10001,REF-LHR-A,2,Gulberg synthetic history,Lahore,EPSG:4326,75,GPS,provider_inventory,2026-04-01 00:00:00,,ACTIVE
+PK-LHR-HIST-001,A,31.5206,74.3589,40,65,LTE,1001,2001,Synthetic Telco PK,STPK,410,01,410010000000001,10001,REF-LHR-A,2B,Gulberg overlapping synthetic,Lahore,WGS84,125,ESTIMATED,manual_reference,2026-03-15 00:00:00,2026-05-01 00:00:00,MAINTENANCE
+PK-LHR-HIST-001,B,31.5207,74.3590,120,70,5G,,3001,Synthetic Telco PK,STPK,410,01,,20001,REF-LHR-B,1,Gulberg sector B,Lahore,WGS84,25,SURVEY,provider_inventory,2026-04-01 00:00:00,,ACTIVE
+PK-ISB-HIST-002,,33.6844,73.0479,,,3G,1300,,Other Synthetic Operator,OSO,410,03,,,REF-ISB,1,Islamabad synthetic history,Islamabad,,,IMPORT,legacy_sheet,,,RETIRED

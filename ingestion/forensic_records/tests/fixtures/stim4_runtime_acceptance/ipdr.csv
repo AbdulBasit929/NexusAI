@@ -1,0 +1,4 @@
+session_start,session_end,source_ip,destination_ip,source_port,destination_port,protocol,bytes,subscriber_id,session_id,source_timezone
+2026-08-18 11:00:00,2026-08-18 11:05:00,10.0.0.10,8.8.8.8,53000,443,TCP,2048,923001234567,stim-ipdr-001,Asia/Karachi
+2026-08-18 11:10:00,2026-08-18 11:12:00,10.0.0.20,1.1.1.1,53001,443,TCP,1024,923008888888,stim-ipdr-future,Asia/Karachi
+2026-08-18 11:20:00,2026-08-18 11:21:00,10.0.0.30,9.9.9.9,53002,53,UDP,512,923007777777,stim-ipdr-no-match,Asia/Karachi

@@ -1,0 +1,85 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "PK-SYNTHETIC-SUBSCRIBER-POPULATED-20260804-v1",
+  "fixture_policy": "All values are fictional, shape-preserving test tokens. CNIC values use the deliberately non-real 00000 prefix. No provider, operator, person, subscriber, or retained case data is represented.",
+  "source_file": "pakistan_subscriber_populated_acceptance_v1.jsonl",
+  "source_sha256": "a5edc8f2658b12e8564b49560fe40959be397de6e086eaa1bfe2aa11bad912b0",
+  "jurisdiction": "PK",
+  "source_timezone": "Asia/Karachi",
+  "runtime_scope": {
+    "tenant_id": "default",
+    "case_id": "phase7-subscriber-populated-acceptance-v1",
+    "collection_id": "phase7-subscriber-populated-acceptance-v1",
+    "evidence_id": "data_pending_authorization",
+    "version_id": "data_pending_authorization",
+    "batch_id": "data_pending_authorization",
+    "job_id": "data_pending_authorization"
+  },
+  "accounting": {
+    "total_rows": 15,
+    "normalized_candidates": 12,
+    "duplicate_rows": 1,
+    "unique_accepted_rows": 11,
+    "rejected_rows": 3
+  },
+  "expected_rejection_fragments": [
+    "subscriber MSISDN/phone value is required",
+    "subscriber identity reference is required",
+    "invalid timestamp"
+  ],
+  "operations": {
+    "subscriber.identity_lookup": {
+      "target_type": "subscriber_reference",
+      "target": "PK-SUB-SYN-ALPHA",
+      "row_count": 2,
+      "source_rows": [2, 3]
+    },
+    "subscriber.validity_timeline": {
+      "target_type": "subscriber_reference",
+      "target": "PK-SUB-SYN-ALPHA",
+      "row_count": 2,
+      "closed_windows": 1,
+      "open_windows": 1
+    },
+    "subscriber.device_links": {
+      "target_type": "subscriber_reference",
+      "target": "PK-SUB-SYN-ALPHA",
+      "row_count": 2,
+      "distinct_imsi_count": 1,
+      "distinct_imei_count": 2
+    },
+    "subscriber.status_summary": {
+      "row_count": 11,
+      "groups": [
+        {"subscriber_status": "ACTIVE", "manual_review_required": false, "row_count": 4},
+        {"subscriber_status": "ACTIVE", "manual_review_required": true, "row_count": 2},
+        {"subscriber_status": "SUSPENDED", "manual_review_required": false, "row_count": 2},
+        {"subscriber_status": "CLOSED", "manual_review_required": false, "row_count": 1},
+        {"subscriber_status": "INACTIVE", "manual_review_required": false, "row_count": 1},
+        {"subscriber_status": "PENDING", "manual_review_required": true, "row_count": 1}
+      ]
+    },
+    "subscriber.conflict_audit": {
+      "row_count": 2,
+      "stable_identifiers": ["PK-SUB-SYN-ALPHA", "PK-SUB-SYN-CONFLICT"]
+    },
+    "subscriber.reuse_candidates": {
+      "row_count": 3,
+      "candidates": [
+        {"identifier_kind": "imei", "identifier_value": "490154203237518", "distinct_msisdn_count": 3},
+        {"identifier_kind": "imsi", "identifier_value": "410030000000099", "distinct_msisdn_count": 2},
+        {"identifier_kind": "subscriber_reference", "identifier_value": "PK-SUB-SYN-CONFLICT", "distinct_msisdn_count": 2}
+      ]
+    }
+  },
+  "privacy": {
+    "cnic_mask": "nine_asterisks_plus_last_four",
+    "subscriber_name_default_output": "omitted",
+    "allowed_target_types": ["msisdn", "subscriber_reference", "imsi", "imei"],
+    "prohibited_target_types": ["cnic", "subscriber_name"]
+  },
+  "cleanup": {
+    "status": "not_applicable_until_authorized_upload",
+    "procedure": "After an authorized isolated upload, archive or remove only the exact synthetic case through its approved manifest-backed cleanup workflow; verify evidence/version/job/row/audit counts first. Never delete the governed records-demo-verified case or the two legacy subscriber-name collections."
+  }
+}
