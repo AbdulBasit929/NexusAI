@@ -1,0 +1,41 @@
+{
+  "contract_version": "nexusai.r8-t3-diagnostic-pilot/v1",
+  "dataset_id": "ccpd-official-demo-pilot-02aaea15",
+  "tier": "T3-diagnostic-pilot",
+  "publisher": "detectRecog/CCPD",
+  "repository": "https://github.com/detectRecog/CCPD",
+  "revision": "02aaea15137c4d2fe662e57d257c6822356e9304",
+  "revision_verified_signature": true,
+  "license": "MIT",
+  "source_path": "rpnet/demo",
+  "real_images": true,
+  "publisher_ground_truth_present": false,
+  "purpose": "Real-image decode, detector/crop/OCR compatibility and failure-mode diagnostic only",
+  "acceptance_authority": false,
+  "boundary_a_authority": false,
+  "tuning_authority": false,
+  "production_authority": false,
+  "automatic_promotion": false,
+  "privacy": {
+    "classification": "real vehicle imagery and identifiers",
+    "storage": "isolated outside Git under C:\\NexusAI-Evaluation",
+    "human_display": "authorized evaluator only",
+    "safe_for_demo": false,
+    "safe_for_git": false,
+    "derived_outputs": "hashes, aggregate diagnostic counts and non-identifying error categories only; no strings or thumbnails in reports"
+  },
+  "files": [
+    {"name": "0.jpg", "size_bytes": 78375, "git_blob_sha1": "5cc99511c2493034e9819148188c03c36d26a046"},
+    {"name": "1.jpg", "size_bytes": 79187, "git_blob_sha1": "d58e3903f2b5a1e49201ae20d8fd0b0854662c9a"},
+    {"name": "2.jpg", "size_bytes": 71809, "git_blob_sha1": "6de87a9cce1397a0a8b81e6a7dad682b54a7c53a"},
+    {"name": "3.jpg", "size_bytes": 55472, "git_blob_sha1": "382142aedca410143e7afe4f0a1261de494ab8b1"},
+    {"name": "4.jpg", "size_bytes": 70010, "git_blob_sha1": "7ce96b439af92f85538a5d1e932193335786b439"}
+  ],
+  "total_bytes": 354853,
+  "required_interpretation": [
+    "Results are diagnostic observations, not accuracy metrics.",
+    "No manual label produced during model review becomes independent ground truth.",
+    "No threshold, model or preprocessing choice may be selected from these five images and later described as holdout performance.",
+    "Full CCPD official partitions remain required for T3 acceptance."
+  ]
+}

@@ -7,6 +7,21 @@ import { useUserMap } from '../hooks/useUserMap'
 import UserGroupSection from '../components/UserGroupSection'
 import PageHeader from '../components/PageHeader'
 import ConfirmDialog from '../components/ConfirmDialog'
+import EmptyState from '../components/EmptyState'
+import NexusLoadingState from '../components/NexusLoadingState'
+import { useActiveCase } from '../contexts/ActiveCaseContext'
+
+function isRetainedSystemCollection(collection) {
+  const name = String(typeof collection === 'string' ? collection : collection?.name || '')
+  const lower = name.toLowerCase()
+  return lower === 'forensic_records_analyst' ||
+    lower === 'communications_cdr_analyst' ||
+    lower === 'network_ipdr_capture_analyst' ||
+    lower === 'vehicle_anpr_geospatial_analyst' ||
+    lower === 'records-demo' ||
+    lower.startsWith('nexusai-structured-demo') ||
+    (lower.startsWith('forensic-') && /acceptance|validation|audit|golden|warning/.test(lower))
+}
 
 export default function Collections() {
   const { addToast } = useOutletContext()
@@ -14,19 +29,30 @@ export default function Collections() {
   const { t } = useTranslation('collections')
   const { isAdmin, authEnabled, user } = useAuth()
   const userMap = useUserMap()
+  const { caseOptions, registryState, ensureCaseRegistry, setActiveCase } = useActiveCase()
   const [collections, setCollections] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [newName, setNewName] = useState('')
   const [creating, setCreating] = useState(false)
   const [userGroups, setUserGroups] = useState(null)
   const [confirmDialog, setConfirmDialog] = useState(null)
+  const [showRetainedSystem, setShowRetainedSystem] = useState(false)
+
+  const visibleCollections = showRetainedSystem
+    ? collections
+    : collections.filter(collection => !isRetainedSystemCollection(collection))
+  const hiddenCollectionCount = collections.length - visibleCollections.length
 
   const fetchCollections = useCallback(async () => {
+    setLoading(true)
+    setLoadError('')
     try {
       const data = await agentCollectionsApi.list(isAdmin && authEnabled)
       setCollections(Array.isArray(data.collections) ? data.collections : [])
       setUserGroups(data.user_groups || null)
     } catch (err) {
+      setLoadError(err.message || t('errors.unavailable'))
       addToast(t('toasts.loadFailed', { message: err.message }), 'error')
     } finally {
       setLoading(false)
@@ -36,6 +62,10 @@ export default function Collections() {
   useEffect(() => {
     fetchCollections()
   }, [fetchCollections])
+
+  useEffect(() => {
+    if (registryState === 'idle') ensureCaseRegistry()
+  }, [ensureCaseRegistry, registryState])
 
   const handleCreate = async () => {
     const name = newName.trim()
@@ -118,9 +148,24 @@ export default function Collections() {
           gap: var(--spacing-xs);
           margin-top: var(--spacing-md);
         }
+        .collections-scope-bar { display: flex; justify-content: space-between; align-items: center; gap: var(--spacing-sm); flex-wrap: wrap; margin-bottom: var(--spacing-md); padding: var(--spacing-sm) var(--spacing-md); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg-secondary); }
+        .collections-scope-bar strong { display: block; color: var(--color-text-primary); }
+        .collections-scope-bar span { color: var(--color-text-secondary); font-size: .8125rem; }
       `}</style>
 
-      <PageHeader title={t('title')} supporting={t('subtitle')} />
+      <PageHeader title={t('title')} supporting="Administrative knowledge collections, sources, and lifecycle controls. Case analysis opens only through an authorized case mapping." />
+
+      <div className="collections-scope-bar" role="note" aria-label="Knowledge administration boundary">
+          <div>
+            <strong>Knowledge administration</strong>
+            <span>{visibleCollections.length} active collection{visibleCollections.length === 1 ? '' : 's'} · case identity is never inferred from a collection name{hiddenCollectionCount ? ` · ${hiddenCollectionCount} retained system collection${hiddenCollectionCount === 1 ? '' : 's'} hidden` : ''}</span>
+          </div>
+          {hiddenCollectionCount > 0 && (
+          <button className="btn btn-secondary btn-sm" type="button" onClick={() => setShowRetainedSystem(value => !value)}>
+            <i className={`fas ${showRetainedSystem ? 'fa-eye-slash' : 'fa-box-archive'}`} /> {showRetainedSystem ? 'Hide retained system collections' : 'Review retained system collections'}
+          </button>
+          )}
+      </div>
 
       <div className="collections-create-bar">
         <input
@@ -137,26 +182,38 @@ export default function Collections() {
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--spacing-xl)' }}>
-          <i className="fas fa-spinner fa-spin" style={{ fontSize: '2rem', color: 'var(--color-text-muted)' }} />
-        </div>
-      ) : collections.length === 0 && !userGroups ? (
-        <div className="empty-state">
-          <div className="empty-state-icon"><i className="fas fa-database" /></div>
-          <h2 className="empty-state-title">{t('empty.title')}</h2>
-          <p className="empty-state-text">
-            {t('empty.text')}
-          </p>
-        </div>
+        <NexusLoadingState label={t('states.loading')} />
+      ) : loadError ? (
+        <EmptyState
+          state="error"
+          eyebrow={t('states.eyebrow')}
+          title={t('errors.title')}
+          body={t('errors.body')}
+          details={loadError}
+          actions={(
+            <button className="btn btn-primary" type="button" onClick={fetchCollections}>
+              <i className="fas fa-rotate" aria-hidden="true" /> {t('actions.retry')}
+            </button>
+          )}
+        />
+      ) : visibleCollections.length === 0 && !userGroups ? (
+        <EmptyState
+          state="empty"
+          eyebrow={t('states.eyebrow')}
+          icon="fa-folder-open"
+          title={t('empty.title')}
+          body={t('empty.text')}
+        />
       ) : (
         <>
         {userGroups && <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 'var(--spacing-md)' }}>{t('sections.yourCollections')}</h2>}
-        {collections.length === 0 ? (
+        {visibleCollections.length === 0 ? (
           <p style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-md)' }}>{t('empty.noPersonal')}</p>
         ) : (
         <div className="collections-grid">
-          {collections.map((collection) => {
+          {visibleCollections.map((collection) => {
             const name = typeof collection === 'string' ? collection : collection.name
+            const authorizedCase = caseOptions.find(item => item.collectionId === name)
             return (
               <div className="card" key={name} style={{ cursor: 'pointer' }} onClick={() => navigate(`/app/collections/${encodeURIComponent(name)}`)}>
                 <div className="collections-card-name">
@@ -170,6 +227,11 @@ export default function Collections() {
                   <button className="btn btn-secondary btn-sm" onClick={() => handleReset(name)} title={t('actions.resetCollection')}>
                     <i className="fas fa-rotate" /> {t('actions.reset')}
                   </button>
+                  {authorizedCase && (
+                    <button className="btn btn-primary btn-sm" type="button" onClick={() => setActiveCase(authorizedCase.caseId, 'overview')} aria-label={`Open authorized case ${authorizedCase.displayName}`}>
+                      <i className="fas fa-shield-halved" /> Open case
+                    </button>
+                  )}
                   <button className="btn btn-danger btn-sm" onClick={() => handleDelete(name)} title={t('actions.deleteCollection')}>
                     <i className="fas fa-trash" />
                   </button>

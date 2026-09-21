@@ -1,6 +1,9 @@
 package agents
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"strings"
+)
 
 // KB mode constants for AgentConfig.KBMode.
 const (
@@ -59,6 +62,10 @@ type AgentConfig struct {
 	ForensicRecordsAPIKey string `json:"forensic_records_api_key"`
 	ForensicTenantID      string `json:"forensic_tenant_id"`
 	ForensicCollectionID  string `json:"forensic_collection_id"`
+	// ForensicConversationContext is request-scoped and never persisted or
+	// exported with the agent configuration.
+	ForensicConversationContext *ForensicConversationContext `json:"-" yaml:"-"`
+	ForensicQueryScope          *ForensicQueryScope          `json:"-" yaml:"-"`
 
 	// Timing
 	LastMessageDuration   string `json:"last_message_duration"`
@@ -115,6 +122,21 @@ type AgentConfig struct {
 	LoopDetection              int   `json:"loop_detection"`
 	EnableAutoCompaction       bool  `json:"enable_auto_compaction"`
 	AutoCompactionThreshold    int   `json:"auto_compaction_threshold"`
+}
+
+// KnowledgeCollectionName keeps a forensic specialist attached to its
+// explicitly configured case collection. Generic agents retain LocalAGI's
+// historical agent-name collection behavior.
+func (c *AgentConfig) KnowledgeCollectionName() string {
+	if c == nil {
+		return ""
+	}
+	if c.EnableForensicRecords {
+		if collectionID := strings.TrimSpace(c.ForensicCollectionID); collectionID != "" {
+			return collectionID
+		}
+	}
+	return strings.TrimSpace(c.Name)
 }
 
 // ConnectorConfig defines a connector integration (Slack, Discord, etc.).

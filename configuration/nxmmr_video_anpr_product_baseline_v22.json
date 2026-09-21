@@ -1,0 +1,88 @@
+{
+  "contract_version": "nexusai.nxmmr.video-anpr-product-baseline/v2.2",
+  "adapter_id": "NX-MMR-VIDEO-ANPR-PRODUCT-BASELINE-V2.2",
+  "adapter_version": "2.2.0-development",
+  "activation_state": "development_frozen_reserved_unevaluated",
+  "source_partition": "development_only",
+  "reserved_candidate_evaluation_performed": false,
+  "live_activation": false,
+  "ocr_input": {
+    "selected_mode": "RAW_RGB",
+    "model_declared_color_mode": "RGB",
+    "supplied_array_color_convention": "RGB",
+    "source_crop_color_convention": "BGR",
+    "transform": "channel_permutation_bgr_to_rgb_only",
+    "spatial_or_intensity_transform": false,
+    "ocr_input_contract": "PASS"
+  },
+  "frame_policy": {
+    "policy_id": "fixed-4fps-fastplate-vehicle-v2",
+    "base_cadence_fps": 4,
+    "refinement_enabled": false,
+    "input_size": 640,
+    "detector_confidence_threshold": 0.25,
+    "actual_frames_only": true,
+    "interpolated_observations": false,
+    "maximum_analyzed_frames": 300
+  },
+  "models": {
+    "plate_detector": {
+      "file": "license_plate_detector.pt",
+      "sha256": "8ec3b254a6c87610f037a90957462cafa11a9c03224e33a28c6a1d1ac2ac51b0",
+      "confidence_threshold": 0.25,
+      "backend": "ultralytics-8.0.114/torch-2.5.1-cpu"
+    },
+    "vehicle_detector": {
+      "file": "yolov8n.pt",
+      "sha256": "31e20dde3def09e2cf938c7be6fe23d9150bbbe503982af13345706515f2ef95",
+      "decision": "required",
+      "allowed_classes": [2, 3, 5, 7],
+      "confidence_threshold": 0.25,
+      "backend": "ultralytics-8.0.114/torch-2.5.1-cpu"
+    },
+    "ocr_recognizer": {
+      "file": "cct-xs-v2-global-model.onnx",
+      "config_file": "cct-xs-v2-global-model.yaml",
+      "sha256": "8031afb5fdc6b4d80462c9d542f1284ebd2cfddf5dbacd62609848d7e2855f44",
+      "config_sha256": "0335c74a305173bb6f393efed0fde03cadeaa0b649ed8e19f431016d8232d0a6",
+      "preprocessing": "raw_rgb_channel_permutation_only"
+    }
+  },
+  "selected_policy": {
+    "strategy": "confidence_weighted_support",
+    "maximum_temporal_gap_seconds": 1.0,
+    "minimum_spatial_iou": 0.05,
+    "maximum_center_distance_ratio": 2.0,
+    "maximum_candidate_edit_distance": 1,
+    "maximum_observations_per_group": 24,
+    "maximum_active_groups": 128,
+    "minimum_selected_support": 3,
+    "minimum_candidate_length": 4,
+    "maximum_candidate_length": 10,
+    "minimum_best_ocr_confidence": 0.5,
+    "minimum_weighted_support": 1.5,
+    "minimum_observed_duration_seconds": 0.0
+  },
+  "normalization": {
+    "neutral_alphanumeric_uppercase": true,
+    "province_regex": false,
+    "character_substitution": false
+  },
+  "resource_policy": {
+    "one_heavy_evaluator": true,
+    "container_memory_gib": 3.0,
+    "container_cpus": 4,
+    "absolute_available_ram_stop_gib": 1.5,
+    "maximum_duration_seconds": 900,
+    "network": "none"
+  },
+  "authority": {
+    "selected_candidate_must_be_observed": true,
+    "persistent_tracking": false,
+    "vehicle_identity": false,
+    "manual_review_required": true,
+    "product_certified": false,
+    "live_api_ask_data_citation_activity_ui_gates_required": true,
+    "license_admission_required": true
+  }
+}

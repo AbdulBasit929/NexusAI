@@ -1,5 +1,6 @@
 import { API_CONFIG } from './config'
 import { apiUrl } from './basePath'
+import { uploadHttpError, uploadConnectionError } from './uploadPolicy'
 
 const enc = encodeURIComponent
 const userQ = (userId) => userId ? `?user_id=${enc(userId)}` : ''
@@ -35,7 +36,8 @@ function buildUrl(endpoint, params) {
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '') {
-        url.searchParams.set(key, value)
+        if (Array.isArray(value)) value.forEach(entry => url.searchParams.append(key, entry))
+        else url.searchParams.set(key, value)
       }
     })
   }
@@ -55,6 +57,44 @@ async function postJSON(endpoint, body, options = {}) {
     method: 'POST',
     body: JSON.stringify(body),
     ...options,
+  })
+}
+
+function uploadFormWithProgress(endpoint, formData, onProgress, options = {}) {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest()
+    const signal = options?.signal
+    const abort = () => request.abort()
+    const cleanup = () => signal?.removeEventListener('abort', abort)
+    request.open('POST', apiUrl(endpoint))
+    request.responseType = 'json'
+    request.upload.addEventListener('progress', event => {
+      if (event.lengthComputable) onProgress?.(Math.round((event.loaded / event.total) * 100))
+    })
+    request.addEventListener('load', () => {
+      cleanup()
+      const payload = request.response || (() => {
+        try { return JSON.parse(request.responseText) } catch (_error) { return null }
+      })()
+      if (request.status >= 200 && request.status < 300) {
+        resolve(payload)
+        return
+      }
+      reject(uploadHttpError(request.status, payload))
+    })
+    request.addEventListener('error', () => { cleanup(); reject(uploadConnectionError()) })
+    request.addEventListener('abort', () => {
+      cleanup()
+      const error = new Error('Upload cancelled. Check Data before retrying because server receipt may be uncertain.')
+      error.name = 'AbortError'
+      reject(error)
+    })
+    if (signal?.aborted) {
+      abort()
+      return
+    }
+    signal?.addEventListener('abort', abort, { once: true })
+    request.send(formData)
   })
 }
 
@@ -325,6 +365,7 @@ export const audioApi = {
 
 // Face biometrics — backend spec: core/http/endpoints/localai/face_*.go
 export const faceApi = {
+  detect: (body) => postJSON(API_CONFIG.endpoints.faceDetect, body),
   verify: (body) => postJSON(API_CONFIG.endpoints.faceVerify, body),
   analyze: (body) => postJSON(API_CONFIG.endpoints.faceAnalyze, body),
   embed: (body) => postJSON(API_CONFIG.endpoints.faceEmbed, body),
@@ -372,7 +413,85 @@ export const agentsApi = {
   status: (name, userId) => fetchJSON(`/api/agents/${enc(name)}/status${userQ(userId)}`),
   observables: (name, userId) => fetchJSON(`/api/agents/${enc(name)}/observables${userQ(userId)}`),
   clearObservables: (name, userId) => fetchJSON(`/api/agents/${enc(name)}/observables${userQ(userId)}`, { method: 'DELETE' }),
-  chat: (name, message, userId) => postJSON(`/api/agents/${enc(name)}/chat${userQ(userId)}`, { message }),
+  chat: (name, message, userId, forensicScope) => {
+    const scope = typeof forensicScope === 'string'
+      ? { caseId: forensicScope, collectionId: forensicScope }
+      : forensicScope || {}
+    return postJSON(`/api/agents/${enc(name)}/chat${userQ(userId)}`, {
+      message,
+      ...(scope.caseId ? { case_id: scope.caseId } : {}),
+      ...(scope.collectionId ? { collection_id: scope.collectionId } : {}),
+	  ...(scope.conversationContext ? { conversation_context: scope.conversationContext } : {}),
+      ...(scope.queryScope ? { query_scope: scope.queryScope } : {}),
+    })
+  },
+  cancelChat: (name, messageId, userId, forensicScope = {}) => postJSON(
+	`/api/agents/${enc(name)}/chat/${enc(messageId)}/cancel${userQ(userId)}`,
+	{ case_id: forensicScope.caseId, collection_id: forensicScope.collectionId },
+  ),
+  retryChat: (name, messageId, message, idempotencyKey, userId, forensicScope = {}) => postJSON(
+	`/api/agents/${enc(name)}/chat/${enc(messageId)}/retry${userQ(userId)}`,
+	{
+	  message,
+	  idempotency_key: idempotencyKey,
+	  case_id: forensicScope.caseId,
+	  collection_id: forensicScope.collectionId,
+	  ...(forensicScope.queryScope ? { query_scope: forensicScope.queryScope } : {}),
+	},
+  ),
+  chatStatus: (name, messageId, userId, forensicScope = {}) => {
+	const query = new URLSearchParams()
+	if (userId) query.set('user_id', userId)
+	if (forensicScope.caseId) query.set('case_id', forensicScope.caseId)
+	if (forensicScope.collectionId) query.set('collection_id', forensicScope.collectionId)
+	return fetchJSON(`/api/agents/${enc(name)}/chat/${enc(messageId)}/status?${query}`)
+  },
+  analysisHistory: (name, userId, forensicScope = {}, options = {}) => {
+	const query = new URLSearchParams()
+	if (userId) query.set('user_id', userId)
+	query.set('case_id', forensicScope.caseId || '')
+	query.set('collection_id', forensicScope.collectionId || '')
+	query.set('limit', String(options.limit || 25))
+	if (options.cursor) query.set('cursor', options.cursor)
+	if (options.saved) query.set('saved', 'true')
+	return fetchJSON(`/api/agents/${enc(name)}/history?${query}`)
+  },
+    saveAnalysis: (name, analysisId, saved, title, userId, forensicScope = {}) => fetchJSON(
+      `/api/agents/${enc(name)}/history/${enc(analysisId)}/saved${userQ(userId)}`,
+      { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+        case_id: forensicScope.caseId,
+        collection_id: forensicScope.collectionId,
+        saved,
+        title: title || '',
+      }) },
+    ),
+    importAnalysisHistory: (name, conversations, userId, forensicScope = {}) => postJSON(
+      `/api/agents/${enc(name)}/history/import${userQ(userId)}`,
+      {
+        contract_version: 'browser-agent-history/v1',
+        case_id: forensicScope.caseId,
+        collection_id: forensicScope.collectionId,
+        conversations: conversations.map(conversation => ({
+          id: String(conversation.id),
+          name: conversation.name || 'Imported analysis',
+          created_at: Number(conversation.createdAt) || Date.now(),
+          updated_at: Number(conversation.updatedAt) || Date.now(),
+          messages: (conversation.messages || []).map(message => ({
+            sender: message.sender,
+            content: message.content || '',
+            timestamp: Number(message.timestamp) || Date.now(),
+            ...(message.metadata ? { metadata: message.metadata } : {}),
+          })),
+        })),
+      },
+    ),
+    rollbackAnalysisImport: (name, importId, userId, forensicScope = {}) => {
+      const query = new URLSearchParams()
+      if (userId) query.set('user_id', userId)
+      query.set('case_id', forensicScope.caseId || '')
+      query.set('collection_id', forensicScope.collectionId || '')
+      return fetchJSON(`/api/agents/${enc(name)}/history/imports/${enc(importId)}?${query}`, { method: 'DELETE' })
+    },
   export: (name, userId) => fetchJSON(`/api/agents/${enc(name)}/export${userQ(userId)}`),
   import: (formData) => fetch(apiUrl('/api/agents/import'), { method: 'POST', body: formData }).then(handleResponse),
   configMeta: () => fetchJSON('/api/agents/config/metadata'),
@@ -383,6 +502,7 @@ export const agentCollectionsApi = {
   list: (allUsers) => fetchJSON(`/api/agents/collections${allUsers ? '?all_users=true' : ''}`),
   create: (name) => postJSON('/api/agents/collections', { name }),
   upload: (name, formData, userId) => fetch(apiUrl(`/api/agents/collections/${enc(name)}/upload${userQ(userId)}`), { method: 'POST', body: formData }).then(handleResponse),
+  uploadWithProgress: (name, formData, onProgress, userId, options) => uploadFormWithProgress(`/api/agents/collections/${enc(name)}/upload${userQ(userId)}`, formData, onProgress, options),
   entries: (name, userId) => fetchJSON(`/api/agents/collections/${enc(name)}/entries${userQ(userId)}`),
   entryContent: (name, entry, userId) => fetchJSON(`/api/agents/collections/${enc(name)}/entries/${encodeURIComponent(entry)}${userQ(userId)}`),
   rawEntryContent: async (name, entry, userId) => {
@@ -419,9 +539,33 @@ export const recordsApi = {
   schema: (recordType) => fetchJSON(`/api/records/schema/${enc(recordType)}`),
   forensicStatus: (params = {}) => fetchJSON(buildUrl('/api/records/forensic/status', params)),
   forensicTemplates: () => fetchJSON('/api/records/forensic/templates'),
+  forensicCapabilities: (params = {}) => fetchJSON(buildUrl('/api/records/forensic/capabilities', params)),
   forensicEvidence: (params = {}) => fetchJSON(buildUrl('/api/records/forensic/evidence', params)),
   forensicEvidenceDetail: (id, params = {}) => fetchJSON(buildUrl(`/api/records/forensic/evidence/${enc(id)}`, params)),
+  forensicEvidenceReprocess: (id, body, idempotencyKey) => postJSON(
+    `/api/records/forensic/evidence/${enc(id)}/reprocess`,
+    { ...body, idempotency_key: idempotencyKey },
+  ),
   forensicQuery: (body) => postJSON('/api/records/forensic/query', body),
+  forensicCases: (params = {}) => fetchJSON(buildUrl('/api/v1/forensics/cases', params)),
+  forensicCase: (caseId) => fetchJSON(`/api/v1/forensics/cases/${enc(caseId)}`),
+  forensicCaseManifest: (caseId) => fetchJSON(`/api/v1/forensics/cases/${enc(caseId)}/manifest`),
+  forensicCaseEvidence: (caseId, params = {}) => fetchJSON(buildUrl(`/api/v1/forensics/cases/${enc(caseId)}/evidence`, params)),
+  forensicCaseImageCompare: (caseId, params = {}) => fetchJSON(buildUrl(`/api/v1/forensics/cases/${enc(caseId)}/evidence/compare`, params)),
+  forensicCaseFaceSimilarity: (caseId, params = {}) => fetchJSON(buildUrl(`/api/v1/forensics/cases/${enc(caseId)}/faces/similar`, params)),
+  forensicCaseImageSimilarity: (caseId, params = {}) => fetchJSON(buildUrl(`/api/v1/forensics/cases/${enc(caseId)}/images/similar`, params)),
+  forensicCaseEvidenceDetail: (caseId, evidenceId, params = {}) => fetchJSON(buildUrl(`/api/v1/forensics/cases/${enc(caseId)}/evidence/${enc(evidenceId)}`, params)),
+  forensicCaseEvidenceContentUrl: (caseId, evidenceId) => apiUrl(`/api/v1/forensics/cases/${enc(caseId)}/evidence/${enc(evidenceId)}/content`),
+  forensicCaseEvidenceReprocessPlan: (caseId, evidenceId, params = {}) => fetchJSON(buildUrl(`/api/v1/forensics/cases/${enc(caseId)}/evidence/${enc(evidenceId)}/reprocess-plan`, params)),
+  forensicCaseQuery: (caseId, body) => postJSON(`/api/v1/forensics/cases/${enc(caseId)}/query`, body),
+  forensicCaseReport: ({ caseId, collectionId }, body = {}) => {
+    if (!caseId || !collectionId) return Promise.reject(new Error('An authorized case and collection scope is required.'))
+    return postJSON(`/api/v1/forensics/cases/${enc(caseId)}/reports`, {
+      ...body,
+      case_id: caseId,
+      collection_id: collectionId,
+    })
+  },
 }
 
 // Skills API

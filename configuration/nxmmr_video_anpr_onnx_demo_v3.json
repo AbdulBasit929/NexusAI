@@ -1,0 +1,63 @@
+{
+  "contract_version": "nexusai.nxmmr.video-anpr-onnx-demo/v3",
+  "adapter_id": "NX-MMR-VIDEO-ANPR-ONNX-DEMO-V3",
+  "adapter_version": "3.0.0-development-demo",
+  "activation_state": "DEVELOPMENT_PREREGISTERED_UNMEASURED",
+  "evidence_authority": "DEVELOPMENT_ONLY_NEVER_CONSUMED_RESERVED_HOLDOUT",
+  "models": {
+    "plate_detector": {
+      "name": "yolo-v9-t-384-license-plate-end2end",
+      "format": "ONNX",
+      "sha256": "888397b96d761c89db40bc9c305838e8652660f5e282c2cadebbe8d2951a77a8",
+      "confidence_threshold": 0.25,
+      "backend": "open-image-models-0.6.0/onnxruntime"
+    },
+    "plate_ocr": {
+      "name": "cct-xs-v2-global-model",
+      "format": "ONNX",
+      "sha256": "8031afb5fdc6b4d80462c9d542f1284ebd2cfddf5dbacd62609848d7e2855f44",
+      "config_sha256": "0335c74a305173bb6f393efed0fde03cadeaa0b649ed8e19f431016d8232d0a6",
+      "input_contract": "RAW_RGB",
+      "transform": "FastALPR DefaultOCR deterministic BGR-to-RGB channel permutation"
+    },
+    "vehicle_detector": null,
+    "ultralytics_runtime": false
+  },
+  "frame_policy": {
+    "policy_id": "fixed-4fps-fastplate-onnx-plate-only-v3",
+    "base_cadence_fps": 4,
+    "actual_frames_only": true,
+    "maximum_analyzed_frames": 1200,
+    "maximum_duration_seconds": 900,
+    "interpolation": false,
+    "persistent_tracking": false
+  },
+  "aggregation_policy": {
+    "strategy": "confidence_weighted_support",
+    "maximum_temporal_gap_seconds": 1.0,
+    "minimum_spatial_iou": 0.05,
+    "maximum_center_distance_ratio": 2.0,
+    "maximum_candidate_edit_distance": 1,
+    "minimum_selected_support": 3,
+    "minimum_candidate_length": 4,
+    "maximum_candidate_length": 10,
+    "minimum_best_ocr_confidence": 0.5,
+    "minimum_weighted_support": 1.5,
+    "selected_candidate_must_be_observed": true
+  },
+  "development_utility_context": {
+    "event_recall_minimum": 0.75,
+    "group_precision_minimum": 0.8,
+    "group_f1_minimum": 0.65,
+    "exact_f1_minimum": 0.6,
+    "source_time": "reviewable_no_catastrophic_regression"
+  },
+  "product_semantics": {
+    "label": "Candidate plate observation",
+    "manual_review_required": true,
+    "vehicle_identity": false,
+    "ownership": false,
+    "continuous_presence": false,
+    "product_certified": false
+  }
+}

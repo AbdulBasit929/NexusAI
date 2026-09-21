@@ -31,7 +31,7 @@
   },
   "settings": {
     "title": "Chat Settings",
-    "manageMode": "Manage mode",
+    "manageMode": "System administration",
     "manageModeDesc": "Let this chat install models, switch backends, and edit configs by talking to NexusAI.",
     "systemPrompt": "System Prompt",
     "systemPromptPlaceholder": "You are a helpful assistant...",

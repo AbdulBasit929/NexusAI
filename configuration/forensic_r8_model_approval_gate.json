@@ -1,0 +1,383 @@
+{
+  "contract_version": "forensics.image-model-approval/v1",
+  "evaluated_at": "2026-08-13T00:00:00Z",
+  "evaluation_scope": "read_only_installed_inventory_hardware_tier_governance_and_operator_approved_isolated_evaluation_plan",
+  "boundary_a_closure_program": {
+    "active_work_items": {
+      "R8.4-A": "T2-V controlled virtual evidence materialization; T2-P optional/deferred",
+      "R8.4-B": "T3 benchmark authorization closure",
+      "R8.4-C": "detector replacement selection",
+      "R8.4-D": "OCR candidate improvement/replacement",
+      "R8.4-E": "unified evaluation readiness",
+      "R8.4-F": "Boundary A decision"
+    },
+    "stream_status": {
+      "R8.4-A": "96-image T2-V pack generated, validated, sealed and evaluated against incumbents; all candidates fail unchanged gates; T2-P tooling source accepted and evidence deferred_environment_unavailable",
+      "R8.4-B": "CCPD2019 exact 13,164,924,944-byte Zenodo artifact, MD5, CC BY 4.0 mirror terms and isolated non-display privacy disposition complete; operator download not started",
+      "R8.4-C": "OMZ 0106 measured/rejected; OMZ 0123 conversion deferred as non-differentiating; NVIDIA LPDNet is the only retained GPU detector research target pending exact NGC asset metadata and future hardware",
+      "R8.4-D": "Paddle/PARSeq/EasyOCR/FastPlateOCR measured and rejected under unchanged correctness gates; FastPlateOCR is the best efficient Latin reference and passes real-image compatibility diagnostics only; no qualified stronger pretrained Urdu plate model found",
+      "R8.4-E": "candidate revision, fixture hash, partition provenance and reusable D0-D1-P1-P2 evaluation metadata contract implemented",
+      "R8.4-F": "blocked"
+    }
+  },
+  "hardware_profiles": {
+    "policy_contract": "configuration/nexusai_hardware_tiers.json",
+    "candidate_matrix": "configuration/nexusai_r8_candidate_hardware_matrix.json",
+    "current_cpu_development": {
+      "cpu": "12th Gen Intel Core i7-1260P",
+      "physical_cores": 12,
+      "logical_cores": 16,
+      "ram_gib": 15.71,
+      "gpu": "Intel UHD Graphics integrated",
+      "reported_adapter_memory_gib": 2,
+      "cuda_available": false,
+      "available_ram_gib_at_capture": 5.31,
+      "system_drive_free_gib_at_capture": 1716.338,
+      "docker_linux_memory_gib": 7.611,
+      "inventory_evidence": "reports/runtime-evaluation-r8/hardware-inventory-d0-20260813.json",
+      "evaluation_strategy": "D0 CPU development and small isolated evaluation; no CUDA, DirectML or production GPU claim"
+    },
+    "D1": {"status": "target_profile_not_installed", "vram_gib": "6-8", "measurement": "pending_hardware_validation"},
+    "P1": {"status": "target_profile_not_installed", "vram_gib": "12-24+", "measurement": "pending_hardware_validation"},
+    "P2": {"status": "target_profile_not_installed", "vram_gib": "24+ per qualified worker", "measurement": "pending_hardware_validation"}
+  },
+  "runtime_inventory": {
+    "localai_models": [
+      {
+        "id": "qwen_qwen3-4b-instruct-2507",
+        "eligible_roles": ["text_explanation"],
+        "plate_detection": false,
+        "ocr": false
+      },
+      {
+        "id": "qwen3-embedding-0.6b",
+        "eligible_roles": ["embedding"],
+        "plate_detection": false,
+        "ocr": false
+      }
+    ],
+    "worker_packages": {
+      "paddleocr": false,
+      "pytesseract": false,
+      "opencv": false,
+      "ultralytics": false,
+      "torch": false
+    },
+    "host_executables": {
+      "tesseract": false,
+      "paddleocr": false
+    },
+    "isolated_evaluator": {
+      "image": "nexusai/r8-ocr-eval:3.7.0-cpu",
+      "image_id": "sha256:614ac87f4f10d206cdd1283f3acb18d950df1f5c12d380a5e422527f8a9824ce",
+      "image_size_mib": 537.076,
+      "cache_volume": "nexusai_r8_paddlex_model_cache",
+      "candidate_asset_size_mib": {
+        "paddle-detector": 4.707,
+        "paddle-en": 7.633,
+        "paddle-arabic": 7.781,
+        "tesseract": 15.477
+      },
+      "measurement_basis": "read-only du inside existing evaluator image/cache; production runtime unchanged",
+      "license_notice": "tools/r8_ocr_eval/THIRD_PARTY_NOTICES.md",
+      "license_verification": {
+        "paddleocr_3_7_0": "Apache-2.0 verified from installed package metadata and official repository",
+        "paddlepaddle_3_3_1": "Apache Software License verified from installed package metadata",
+        "tesseract_5_5_0": "Apache-2.0 verified from installed Debian copyright and official repository",
+        "tessdata_fast_eng_urd": "Apache-2.0 verified from installed Debian copyright and official repository",
+        "production_redistribution_inventory": "required_before_production_packaging"
+      }
+    }
+  },
+  "benchmark_gate": {
+    "minimum_fixture_policy": "approved_non_personal_synthetic_or_explicitly_authorized_visual_pack",
+    "localization_iou_threshold": 0.5,
+    "required_metrics": [
+      "localization_precision",
+      "localization_recall",
+      "exact_plate_accuracy",
+      "character_error_rate",
+      "confidence_calibration",
+      "abstention_precision",
+      "latency_p50_ms",
+      "latency_p95_ms",
+      "peak_memory_mib",
+      "package_size_mib"
+    ],
+    "required_non_numeric_evidence": [
+      "model_and_adapter_version",
+      "hardware_tier_cpu_gpu_vram_ram",
+      "backend_precision_threads_batch_size",
+      "offline_operation",
+      "license_and_packaged_notice",
+      "cpu_gpu_fit",
+      "supported_fixture_scripts",
+      "reproducible_preprocessing_recipe"
+    ],
+    "acceptance_boundaries": {
+      "boundary_a_engineering_pipeline_eligibility": {
+        "required": [
+          "T0 complete",
+          "T1 complete",
+          "T2-V controlled virtual evidence accepted",
+          "T3-D licensed public real-image detector benchmark accepted",
+          "T3-O licensed public real-image OCR benchmark accepted where legally and technically available",
+          "license verified",
+          "privacy reviewed",
+          "hostile-input gates pass",
+          "candidate thresholds pass unchanged",
+          "calibration passes",
+          "resource limits pass",
+          "model artifacts reproducible"
+        ],
+        "t4_may_be_pending": true,
+        "physical_t2_p_policy": "optional/deferred for Boundary A only when T2-V and suitable real-image T3 acceptance both pass",
+        "maximum_authority": "engineering_accepted_public_real_benchmark_accepted_controlled_virtual_accepted_operational_agreement_pending_production_disabled",
+        "current_state": "blocked"
+      },
+      "boundary_b_operational_production_promotion": {
+        "required": [
+          "Boundary A passed",
+          "authorized T4 operational evidence",
+          "T1/T2/T3 versus T4 agreement analysis",
+          "live authorized case acceptance",
+          "overlay/source/citation validation",
+          "operational latency/resource acceptance",
+          "explicit promotion approval"
+        ],
+        "maximum_authority": "production_approved",
+        "current_state": "blocked"
+      }
+    },
+    "promotion_thresholds": {
+      "detector": {
+        "minimum_localization_precision": 0.95,
+        "minimum_localization_recall": 0.95,
+        "minimum_abstention_precision": 0.95,
+        "maximum_brier_score": 0.15,
+        "maximum_p95_latency_ms": 1500,
+        "maximum_peak_process_rss_mib": 1536
+      },
+      "ocr": {
+        "minimum_normalized_exact_plate_accuracy": 0.9,
+        "maximum_normalized_character_error_rate": 0.05,
+        "minimum_abstention_precision": 0.95,
+        "maximum_brier_score": 0.15,
+        "maximum_p95_latency_ms": 500,
+        "maximum_peak_process_rss_mib": 1536
+      }
+    }
+  },
+  "shortlist": [
+    {
+      "candidate": "specialized local plate detector adapter",
+      "role": "plate_region_detection",
+      "status": "isolated_evaluator_measured_not_promoted",
+      "selection_condition": "must beat the approved localization gate and emit original-pixel boxes; generic VLM coordinates are not authoritative"
+    },
+    {
+      "candidate": "PaddleOCR arabic_PP-OCRv5_mobile_rec",
+      "role": "urdu_english_plate_ocr",
+      "status": "isolated_evaluator_installed_and_measured_not_promoted",
+      "license_claim": "Apache-2.0 project and installed package metadata",
+      "license_status": "evaluation_notice_verified_production_dependency_inventory_pending"
+    },
+    {
+      "candidate": "Tesseract tessdata_fast urd+eng",
+      "role": "cpu_ocr_baseline",
+      "status": "isolated_evaluator_installed_and_measured_not_promoted",
+      "license_claim": "Apache-2.0 engine and trained data verified from installed Debian notices and official repositories",
+      "license_status": "evaluation_notice_verified_production_dependency_inventory_pending"
+    }
+  ],
+  "bounded_tuning_result": {
+    "evidence_scope": "T0/T1 exploratory only; held-out T2/T3 validation unavailable",
+    "detector": {
+      "baseline": {"precision": 0.6071428571, "recall": 0.9444444444, "brier": 0.2235086966, "p95_ms": 773.981},
+      "confidence_sweep": "cannot reach both 0.95 precision and 0.95 recall",
+      "nms_0_3_0_5_0_7": "no metric change",
+      "input_long_side_640": {"precision": 0.85, "recall": 0.9444444444, "brier": 0.125367601, "p95_ms": 546.496},
+      "input_long_side_1280": {"precision": 0.6071428571, "recall": 0.9444444444, "brier": 0.222927751, "p95_ms": 933.03},
+      "classification": "replace_generic_text_detector_with_specialized_plate_detector_after_t2_t3"
+    },
+    "ocr": {
+      "paddle_english": {"baseline_exact": 0.875, "baseline_cer": 0.1470588235, "scale2x_accuracy_change": 0.0, "contrast_accuracy_change": 0.0, "classification": "promising_latin_only_but_blocked"},
+      "paddle_arabic": {"baseline_exact": 0.875, "baseline_cer": 0.068627451, "scale2x_accuracy_change": 0.0, "contrast_accuracy_change": 0.0, "classification": "promising_but_blocked_pending_regional_t3"},
+      "tesseract": {"baseline_exact": 0.5, "baseline_cer": 0.3137254902, "classification": "reject_as_primary_candidate_retain_diagnostic_baseline"}
+    },
+    "thresholds_changed": false
+  },
+  "t2v_incumbent_result": {
+    "dataset_id": "nexusai-r8-controlled-virtual-t2v",
+    "manifest_sha256": "180889ad2dc78736cba6617ab49b3b910ddfd29e8dfb77a143fc9ce26f50e510",
+    "evaluation_mode": "offline benchmark; no tuning; cached artifacts only",
+    "development": {
+      "paddle_detector": {"precision": 0.1851851852, "recall": 0.8888888889, "brier": 0.5169149507},
+      "paddle_english": {"normalized_exact": 0.5897435897, "normalized_cer": 0.1779359431, "brier": 0.2557722408},
+      "paddle_arabic": {"normalized_exact": 0.2564102564, "normalized_cer": 0.2384341637, "brier": 0.3632716836},
+      "tesseract": {"normalized_exact": 0.2564102564, "normalized_cer": 0.5444839858, "brier": 0.2889320289}
+    },
+    "validation": {
+      "paddle_detector": {"precision": 0.2112676056, "recall": 0.9375, "brier": 0.4817665718},
+      "paddle_english": {"normalized_exact": 0.5, "normalized_cer": 0.1881188119, "brier": 0.3117387164},
+      "paddle_arabic": {"normalized_exact": 0.2857142857, "normalized_cer": 0.2079207921, "brier": 0.3745666845},
+      "tesseract": {"normalized_exact": 0.2142857143, "normalized_cer": 0.5445544554, "brier": 0.163979587}
+    },
+    "sealed_holdout": {
+      "paddle_detector": {"precision": 0.2027027027, "recall": 0.9375, "brier": 0.4913542916},
+      "paddle_english": {"normalized_exact": 0.6428571429, "normalized_cer": 0.1485148515, "brier": 0.2318531307},
+      "paddle_arabic": {"normalized_exact": 0.3571428571, "normalized_cer": 0.1683168317, "brier": 0.3768755059},
+      "tesseract": {"normalized_exact": 0.2857142857, "normalized_cer": 0.4752475248, "brier": 0.3031395467}
+    },
+    "decision": "all_incumbents_blocked_on_all_partitions",
+    "thresholds_changed": false,
+    "automatic_promotion": false,
+    "production_mutation": false
+  },
+  "alternative_candidate_research": [
+    {
+      "candidate": "Open Model Zoo vehicle-license-plate-detection-barrier-0123",
+      "role": "specialized_plate_detector_cpu_research_candidate",
+      "license": "Apache-2.0 according to the official model page",
+      "fit": "0.547M-parameter 256x256 MobileNetV2+SSD plate/vehicle detector; CPU/OpenVINO viable",
+      "limitations": "Chinese front-facing barrier domain, minimum plate width 96 pixels, maintenance-mode model source; Pakistan/T2/T3 validation mandatory",
+      "status": "shortlisted_download_not_approved"
+    },
+    {
+      "candidate": "Open Model Zoo vehicle-license-plate-detection-barrier-0106",
+      "role": "specialized_plate_detector_cpu_research_candidate",
+      "license": "Open Model Zoo repository is Apache-2.0; artifact notice must be captured before download",
+      "fit": "0.634M-parameter 300x300 MobileNetV2+SSD detector; CPU/OpenVINO viable",
+      "limitations": "Chinese front-facing BIT-Vehicle domain and 96-pixel minimum plate width",
+      "status": "secondary_shortlist_download_not_approved"
+    },
+    {
+      "candidate": "P-LPCD-author YOLOv11 character-recognition approach",
+      "role": "Pakistan_format_character_recognition_research_path",
+      "license": "blocked by CC BY 4.0 versus CC BY-NC 4.0 publisher-source conflict",
+      "fit": "Pakistan Punjab template and synthetic-to-real relevance",
+      "limitations": "no verified reusable weight artifact in the reviewed repository; character detector rather than sequence OCR; training/runtime license strategy unresolved",
+      "status": "blocked_no_download"
+    },
+    {
+      "candidate": "Open Model Zoo license-plate-recognition-barrier-0001",
+      "role": "specialized_ocr_research_candidate",
+      "license": "Open Model Zoo repository is Apache-2.0",
+      "fit": "small CPU/OpenVINO recognizer",
+      "limitations": "Chinese blue-plate domain and publisher correct-read ratio 88.58%, already below NexusAI's 0.90 exact threshold",
+      "status": "rejected_before_download_domain_and_accuracy_mismatch"
+    }
+  ],
+  "bounded_replacement_shortlist": {
+    "detector": [
+      {
+        "priority": 1,
+        "candidate": "Open Model Zoo vehicle-license-plate-detection-barrier-0123",
+        "revision": "public/2022.1",
+        "artifact": "ssd-mobilenet-v2-0.35.1-barrier-256x256-0123.tar.gz",
+        "artifact_bytes": 4387714,
+        "license": "Apache-2.0",
+        "status": "source_acquired_conversion_deferred_no_material_differentiation_after_0106_zero_recall"
+      },
+      {
+        "priority": 2,
+        "candidate": "Open Model Zoo vehicle-license-plate-detection-barrier-0106 FP16",
+        "revision": "models_bin/1/2023.0",
+        "artifact_bytes": 1612224,
+        "license": "Apache-2.0 repository/model manifest path; notices required",
+        "status": "research_complete_download_not_approved"
+      },
+      {
+        "priority": 0,
+        "candidate": "Paddle PP-OCRv5_mobile_det",
+        "revision": "PaddleOCR 3.7.0",
+        "license": "Apache-2.0",
+        "status": "baseline_only_replace"
+      },
+      {
+        "priority": 1,
+        "candidate": "NVIDIA TAO LPDNet",
+        "revision": "pruned_v2.3.1 research target",
+        "license": "NGC model card commercial-use claim; exact asset terms pending",
+        "status": "gpu_research_shortlist_exact_asset_and_hardware_pending"
+      }
+    ],
+    "ocr": [
+      {
+        "priority": 0,
+        "candidate": "Paddle English plus Arabic mobile recognizers with confidence-bounded script policy",
+        "revision": "PaddleOCR 3.7.0",
+        "license": "Apache-2.0",
+        "status": "incumbent_research_control_t2_t3_validation_required"
+      },
+      {
+        "priority": 1,
+        "candidate": "PARSeq Latin recognizer",
+        "revision": "v1.0.0 commit 315d19b; exact standard/tiny artifact must be selected before download",
+        "license": "Apache-2.0 majority project plus NOTICE",
+        "status": "primary_latin_research_candidate_download_not_approved"
+      },
+      {
+        "priority": 2,
+        "candidate": "EasyOCR arabic_g1",
+        "revision": "EasyOCR 1.7.2 runtime with official arabic_g1 weight manifest",
+        "license": "Apache-2.0",
+        "status": "measured_rejected_accuracy_and_resource_gates"
+      },
+      {
+        "priority": 1,
+        "candidate": "FastPlateOCR cct-s-v2-global",
+        "revision": "v1.1.0 commit 9ce7a5b64a939aa421c243b331d42e6bc25ffd44",
+        "license": "MIT project; asset-specific promotion notice pending",
+        "status": "measured_T2V_rejected_accuracy_and_abstention_gates_real_image_diagnostic_pass_retain_efficient_reference_not_promoted"
+      }
+    ]
+  },
+  "decision": {
+    "state": "two_boundary_gate_applied_bounded_tuning_failed_t2_t3_t4_pending",
+    "selected_detector": null,
+    "selected_ocr": null,
+    "production_role_assignment_allowed": false,
+    "download_allowed": "only the named isolated artifacts governed by configuration/nexusai_r8_evaluation_artifacts.json and configuration/nexusai_r8_t3_acquisition.json; no production installation",
+    "download_policy": "small FastPlateOCR artifact may use the existing isolated acquisition script; CCPD2019 is operator-run, resumable and preflight-only by default",
+    "approved_evaluation_candidates": [
+      "Tesseract tessdata_fast urd+eng CPU baseline",
+      "PaddleOCR 3.7.0 with PaddlePaddle 3.3.1 CPU evaluation",
+      "FastPlateOCR cct-s-v2-global v1.1.0 measured isolated Latin OCR reference; blocked_no_promotion"
+    ],
+    "approved_fixture_policy": "generated_non_personal_synthetic_visual_pack",
+    "data_tier_acceptance": {
+      "t0_fixture_accepted": true,
+      "t1_synthetic_pack_accepted": true,
+      "t1_candidate_threshold_accepted": false,
+      "synthetic_accepted": false,
+      "controlled_demo_accepted": false,
+      "public_benchmark_accepted": false,
+      "authorized_real_data_accepted": false,
+      "runtime_accepted": false,
+      "production_promoted": false,
+      "controlled_virtual_accepted": false,
+      "physical_t2_p_status": "deferred_environment_unavailable",
+      "status_note": "T0/T1 and the 96-image T2-V pack have completed incumbent inference. T2-V integrity/holdout sealing pass, but all incumbent candidates fail unchanged thresholds, so controlled_virtual_accepted remains false. T3-D/T3-O acceptance and replacement candidate evaluation remain pending."
+    },
+    "boundary_a": {
+      "state": "blocked",
+      "engineering_accepted": false,
+      "benchmark_accepted": false,
+      "controlled_demo_accepted": false,
+      "controlled_virtual_accepted": false,
+      "r8_5_source_integration_allowed": false,
+      "blocking_reasons": ["all measured candidates fail unchanged T2-V thresholds", "CCPD2019 T3-D/T3-O artifact is authorized but has not been downloaded, sealed or evaluated", "no detector replacement has passed; the selected next Latin OCR artifact has not been evaluated", "no stronger qualified Urdu plate OCR candidate has passed"]
+    },
+    "boundary_b": {
+      "state": "blocked",
+      "operational_agreement": "pending",
+      "production_promotion_allowed": false,
+      "blocking_reasons": ["Boundary A is blocked", "authorized T4 evidence is unavailable", "explicit promotion approval has not occurred"]
+    },
+    "current_gate_interpretation": "Physical T2-P is deferred_environment_unavailable and is not mandatory for Boundary A when T2-V plus suitable licensed real-image T3-D/T3-O pass every unchanged gate. T4 is not required to begin production-disabled R8.5 source integration after Boundary A passes; T4 and explicit approval remain mandatory for Boundary B production promotion.",
+    "execution_state": "isolated_offline_t0_t1_and_t2v_incumbent_evaluation_completed",
+    "result_bundle": "reports/runtime-evaluation-r8/r8-model-evaluation-review-t0-t1-v2-20260812.json",
+    "reason": "The physical capture environment is unavailable, not failed. The approved feasibility amendment preserves T2-P tooling and replaces mandatory physical capture at Boundary A with accepted high-fidelity T2-V plus accepted licensed real-image T3-D/T3-O. T2-V generation/validation pass, but offline incumbent evaluation fails unchanged quantitative gates on development, validation and sealed holdout. No T3 or replacement model has been downloaded or accepted; R8.5 and production remain blocked."
+  }
+}

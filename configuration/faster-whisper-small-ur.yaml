@@ -1,0 +1,13 @@
+name: faster-whisper-small-ur
+backend: faster-whisper
+threads: 8
+parameters:
+  model: faster-whisper-small
+description: >-
+  Pakistan Audio M1 ASR using the pinned Systran faster-whisper-small
+  CTranslate2 model. Known Urdu evidence must request language=ur; unknown
+  audio preserves automatic detection.
+license: MIT
+urls:
+  - https://huggingface.co/Systran/faster-whisper-small
+  - https://github.com/SYSTRAN/faster-whisper

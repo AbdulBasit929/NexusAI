@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -16,6 +17,11 @@ var _ = Describe("forensic records tools", func() {
 			Expect(r.Method).To(Equal(http.MethodPost))
 			Expect(r.URL.Path).To(Equal("/query/hybrid"))
 			Expect(r.Header.Get("Authorization")).To(Equal("Bearer secret"))
+			Expect(r.Header.Get("X-Forensic-Tenant-ID")).To(Equal("default"))
+			Expect(r.Header.Get("X-Forensic-Actor-ID")).To(Equal("worker-1"))
+			Expect(r.Header.Get("X-Forensic-Subject-ID")).To(Equal("user-1"))
+			Expect(r.Header.Get("X-Forensic-Actor-Role")).To(Equal("agent-worker"))
+			Expect(r.Header.Get("X-Forensic-Collection-ID")).To(Equal("records-demo"))
 
 			var body ForensicHybridQueryArgs
 			Expect(json.NewDecoder(r.Body).Decode(&body)).To(Succeed())
@@ -36,6 +42,8 @@ var _ = Describe("forensic records tools", func() {
 			APIKey:       "secret",
 			UserID:       "user-1",
 			CollectionID: "records-demo",
+			ActorID:      "worker-1",
+			ActorRole:    "agent-worker",
 		}}
 
 		text, raw, err := tool.Run(ForensicHybridQueryArgs{Query: "show relationship network for ABC-123"})
@@ -96,6 +104,7 @@ var _ = Describe("forensic records tools", func() {
 			Expect(r.Method).To(Equal(http.MethodGet))
 			Expect(r.URL.Path).To(Equal("/evidence/11111111-1111-1111-1111-111111111111"))
 			Expect(r.URL.Query().Get("tenant_id")).To(Equal("default"))
+			Expect(r.URL.Query().Get("collection_id")).To(Equal("records-demo"))
 			Expect(r.URL.Query().Get("limit")).To(Equal("10"))
 
 			w.Header().Set("Content-Type", "application/json")
@@ -103,7 +112,7 @@ var _ = Describe("forensic records tools", func() {
 		}))
 		defer server.Close()
 
-		tool := ForensicGetEvidenceTool{ForensicRecordsToolConfig: ForensicRecordsToolConfig{APIURL: server.URL}}
+		tool := ForensicGetEvidenceTool{ForensicRecordsToolConfig: ForensicRecordsToolConfig{APIURL: server.URL, CollectionID: "records-demo"}}
 		text, raw, err := tool.Run(ForensicGetEvidenceArgs{
 			EvidenceID: "11111111-1111-1111-1111-111111111111",
 			Limit:      10,
@@ -202,9 +211,40 @@ var _ = Describe("forensic records tools", func() {
 		Expect(resolved.UserID).To(Equal("user-1"))
 		Expect(resolved.TenantID).To(Equal("default"))
 		Expect(resolved.CollectionID).To(Equal("records-demo"))
+		Expect(resolved.ActorID).To(Equal("user-1"))
+		Expect(resolved.ActorRole).To(Equal("agent-worker"))
 		Expect(agentKnowledgeBaseCollection(cfg)).To(Equal("records-demo"))
 		Expect(normalizeForensicCollectionID("forensic_records_analyst")).To(Equal("records-demo"))
 		Expect(normalizeForensicCollectionID("records-demo")).To(Equal("records-demo"))
+	})
+
+	It("uses the explicit local proxy identity when authentication is disabled", func() {
+		previousActor, actorWasSet := os.LookupEnv("FORENSIC_RECORDS_PROXY_ACTOR_ID")
+		previousRole, roleWasSet := os.LookupEnv("FORENSIC_RECORDS_PROXY_ACTOR_ROLE")
+		DeferCleanup(func() {
+			if actorWasSet {
+				_ = os.Setenv("FORENSIC_RECORDS_PROXY_ACTOR_ID", previousActor)
+			} else {
+				_ = os.Unsetenv("FORENSIC_RECORDS_PROXY_ACTOR_ID")
+			}
+			if roleWasSet {
+				_ = os.Setenv("FORENSIC_RECORDS_PROXY_ACTOR_ROLE", previousRole)
+			} else {
+				_ = os.Unsetenv("FORENSIC_RECORDS_PROXY_ACTOR_ROLE")
+			}
+		})
+
+		Expect(os.Setenv("FORENSIC_RECORDS_PROXY_ACTOR_ID", "local-operator")).To(Succeed())
+		Expect(os.Setenv("FORENSIC_RECORDS_PROXY_ACTOR_ROLE", "admin")).To(Succeed())
+		resolved := forensicRecordsToolConfig(&AgentConfig{
+			Name:                  "Forensic_Records_Analyst",
+			EnableForensicRecords: true,
+			ForensicRecordsAPIURL: "http://records-api:8091",
+		}, "")
+
+		Expect(resolved.UserID).To(Equal("local-operator"))
+		Expect(resolved.ActorID).To(Equal("local-operator"))
+		Expect(resolved.ActorRole).To(Equal("admin"))
 	})
 
 	It("directly routes explicit forensic template requests to the templates endpoint", func() {
@@ -276,11 +316,11 @@ var _ = Describe("forensic records tools", func() {
 		Expect(err).ToNot(HaveOccurred())
 		Expect(ok).To(BeTrue())
 		Expect(result.ToolName).To(Equal("forensic_list_evidence"))
-		Expect(result.Text).To(ContainSubstring("Forensic evidence catalog"))
+		Expect(result.Text).To(ContainSubstring("Evidence inventory"))
 		Expect(result.Text).To(ContainSubstring("calls.csv"))
 	})
 
-	It("directly routes natural forensic runtime questions before LLM planning", func() {
+	It("directly computes natural forensic runtime questions before bounded LLM presentation", func() {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			Expect(r.Method).To(Equal(http.MethodPost))
 			Expect(r.URL.Path).To(Equal("/query/hybrid"))
@@ -293,6 +333,7 @@ var _ = Describe("forensic records tools", func() {
 			Expect(body.CollectionID).To(Equal("records-demo"))
 			Expect(body.Limit).To(Equal(20))
 			Expect(body.MaxKBResults).To(Equal(3))
+			Expect(body.SynthesisModel).To(Equal("local-explainer"))
 
 			w.Header().Set("Content-Type", "application/json")
 			_, _ = w.Write([]byte(`{"template":"temporal_activity","records":{"row_count":1,"duration_stats":[{"shortest_nonzero_duration":1}]}}`))
@@ -301,7 +342,7 @@ var _ = Describe("forensic records tools", func() {
 
 		result, ok, err := runDeterministicForensicRoute(
 			"shortest call duration of 923461678183",
-			ForensicRecordsToolConfig{APIURL: server.URL, CollectionID: "records-demo"},
+			ForensicRecordsToolConfig{APIURL: server.URL, CollectionID: "records-demo", Model: "local-explainer"},
 		)
 
 		Expect(err).ToNot(HaveOccurred())
@@ -310,6 +351,31 @@ var _ = Describe("forensic records tools", func() {
 		Expect(result.ArgsJSON).To(ContainSubstring("923461678183"))
 		Expect(result.ArgsJSON).To(ContainSubstring("shortest_call"))
 		Expect(result.Text).To(ContainSubstring("temporal_activity"))
+	})
+
+	It("uses bounded model synthesis only when narrative explanation is requested", func() {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			Expect(r.Method).To(Equal(http.MethodPost))
+			Expect(r.URL.Path).To(Equal("/query/hybrid"))
+
+			var body ForensicHybridQueryArgs
+			Expect(json.NewDecoder(r.Body).Decode(&body)).To(Succeed())
+			Expect(body.Template).To(Equal("frequent_contacts"))
+			Expect(body.SynthesisModel).To(Equal("local-explainer"))
+
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"template":"frequent_contacts","records":{"row_count":2}}`))
+		}))
+		defer server.Close()
+
+		result, ok, err := runDeterministicForensicRoute(
+			"explain and summarize the frequent contacts",
+			ForensicRecordsToolConfig{APIURL: server.URL, CollectionID: "records-demo", Model: "local-explainer"},
+		)
+
+		Expect(err).ToNot(HaveOccurred())
+		Expect(ok).To(BeTrue())
+		Expect(result.ToolName).To(Equal("forensic_hybrid_query"))
 	})
 
 	It("directly routes natural raw-attribute questions to canonical records", func() {
@@ -356,6 +422,7 @@ var _ = Describe("forensic records tools", func() {
 		Expect(forensicTemplateHint("who are the frequent contacts?")).To(Equal("frequent_contacts"))
 		Expect(isNaturalForensicQuery("what happened on 2026-07-10?", strings.ToLower("what happened on 2026-07-10?"))).To(BeTrue())
 		Expect(forensicTemplateHint("what happened on 2026-07-10?")).To(Equal("entity_timeline"))
+		Expect(forensicTemplateHint("923001234567 cdr actvty 10 july 2026 pls")).To(Equal("temporal_activity"))
 		Expect(isNaturalForensicReportQuery("generate a report", strings.ToLower("generate a report"))).To(BeTrue())
 		Expect(isNaturalForensicQuery("how do I upload evidence?", strings.ToLower("how do I upload evidence?"))).To(BeFalse())
 	})
@@ -368,11 +435,24 @@ var _ = Describe("forensic records tools", func() {
 		Entry("email", "show evidence for analyst.one@example.org", "analyst.one@example.org"),
 		Entry("ipv4", "activity for 192.168.100.45", "192.168.100.45"),
 		Entry("plate", "where was LEB 4321 seen", "LEB-4321"),
+		Entry("plate with one trailing letter", "where was plate ZZ99Z seen", "ZZ99Z"),
+		Entry("plate with two trailing letters", "where was plate ZZ99ZZ seen", "ZZ99ZZ"),
+		Entry("plate with three trailing letters", "where was plate ZZ99ZZZ seen", "ZZ99ZZZ"),
 		Entry("cell site", "tower activity for LHR-GUL-014", "LHR-GUL-014"),
+		Entry("long segmented identifier", "show exact ANPR sightings for ZZZ-SYNTHETIC-NO-MATCH", "ZZZ-SYNTHETIC-NO-MATCH"),
+		Entry("phone after named date", "10 july 2026 ko 923001234567 ki CDR activity dikhao", "923001234567"),
 		Entry("date is not a target", "what happened on 2026-07-10", ""),
 		Entry("compact date is not a target", "what happened on 20260710", ""),
 		Entry("ignores canonical collection", "summarize records-demo", ""),
 	)
+
+	It("defers bounded subscriber and CDR compositions to the forensic sidecar", func() {
+		query := "Show subscriber identity and CDR activity for 923001234567."
+		Expect(deterministicForensicRouteRequested(query)).To(BeTrue())
+		Expect(extractForensicTarget(query)).To(Equal("923001234567"))
+		Expect(forensicTemplateHint(query)).To(BeEmpty())
+		Expect(forensicTemplateHint("Show IPDR endpoint activity for 10.20.1.7.")).To(Equal("ipdr_endpoint_summary"))
+	})
 
 	It("directly routes natural report requests before LLM planning", func() {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -424,7 +504,7 @@ var _ = Describe("forensic records tools", func() {
 
 		visibleSummary := strings.Split(text, "<details>")[0]
 		Expect(visibleSummary).To(ContainSubstring("Planner confidence:** 0.92"))
-		Expect(visibleSummary).To(ContainSubstring("| call_type | direction | event_count |"))
+		Expect(visibleSummary).To(ContainSubstring("| Call Type | Direction | Event Count |"))
 		Expect(visibleSummary).ToNot(ContainSubstring("ignored_column"))
 		Expect(visibleSummary).To(ContainSubstring("1. Records Handling Policy Exact records analytics only."))
 		Expect(visibleSummary).ToNot(ContainSubstring("1. # Records"))

@@ -48,6 +48,7 @@ func TranscriptEndpoint(cl *config.ModelConfigLoader, ml *model.ModelLoader, app
 		diarize := c.FormValue("diarize") != "false"
 		prompt := c.FormValue("prompt")
 		responseFormat := schema.TranscriptionResponseFormatType(c.FormValue("response_format"))
+		language := requestedTranscriptionLanguage(c, input)
 
 		// OpenAI accepts `temperature` as a string in multipart form. Tolerate
 		// missing/invalid values rather than failing the whole request.
@@ -114,7 +115,7 @@ func TranscriptEndpoint(cl *config.ModelConfigLoader, ml *model.ModelLoader, app
 
 		req := backend.TranscriptionRequest{
 			Audio:                  dst,
-			Language:               input.Language,
+			Language:               language,
 			Translate:              input.Translate,
 			Diarize:                diarize,
 			Prompt:                 prompt,
@@ -188,6 +189,13 @@ func TranscriptEndpoint(cl *config.ModelConfigLoader, ml *model.ModelLoader, app
 			return errors.New("invalid response_format")
 		}
 	}
+}
+
+func requestedTranscriptionLanguage(c echo.Context, input *schema.OpenAIRequest) string {
+	if language := strings.TrimSpace(c.FormValue("language")); language != "" {
+		return language
+	}
+	return strings.TrimSpace(input.Language)
 }
 
 // streamTranscription emits OpenAI-format SSE events for a transcription

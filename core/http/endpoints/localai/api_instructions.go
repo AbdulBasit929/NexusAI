@@ -67,13 +67,14 @@ var instructionDefs = []instructionDef{
 	{
 		Name:        "agents",
 		Description: "Agent task and job management for CI/automation workflows",
-		Tags:        []string{"agent-jobs"},
+		Tags:        []string{"agent-jobs", "Agents"},
+		Intro:       "Interactive agent chat returns a request message_id. Forensic case-scoped requests can be stopped with POST /api/agents/{name}/chat/{message_id}/cancel, reconciled after SSE reconnect with GET /api/agents/{name}/chat/{message_id}/status, and explicitly retried only from a failed, timed-out, or cancelled state with POST /api/agents/{name}/chat/{message_id}/retry plus a 16-128 character idempotency_key. Retained final analyses use the /api/agents/{name}/history list, detail, saved-state, explicit browser-import and import-rollback contracts; hidden reasoning is not retained. All forensic operations require matching authorized case_id and collection_id.",
 	},
 	{
 		Name:        "records-intelligence",
 		Description: "Exact structured record ingestion, querying, aggregation, correlation, and forensic sidecar analytics",
 		Tags:        []string{"records"},
-		Intro:       "Records Intelligence complements Knowledge Base search. Use it for exact counts, filters, rankings, min/max, distinct values, joins, forensic collection status, deterministic query templates, and hybrid sidecar analytics over CSV, TSV, JSON, JSONL/NDJSON, and log-style records. Knowledge Base remains the evidence retrieval and preview layer.",
+		Intro:       "Case Workspace and Records Intelligence complement Knowledge Base search. Use /api/v1/forensics/cases for governed, URL-bound case selection, reconciliation manifests, evidence catalogs and detail inspection, query, and report operations. A v1 case ID is identical to its authorized collection ID; conflicting request bodies are rejected. Use records endpoints for exact counts, filters, rankings, min/max, distinct values, joins, capability checks, status, templates, and hybrid analytics. Knowledge Base remains the evidence retrieval and preview layer. Operations whose adapters or models have not passed acceptance are returned as unavailable rather than simulated.",
 	},
 	{
 		Name:        "video",
@@ -82,9 +83,9 @@ var instructionDefs = []instructionDef{
 	},
 	{
 		Name:        "face-recognition",
-		Description: "Face verification (1:1), identification (1:N), embedding, and demographic analysis",
+		Description: "Face detection, verification (1:1), identification (1:N), embedding, and optional demographic analysis",
 		Tags:        []string{"face-recognition"},
-		Intro:       "The /v1/face/register, /identify, and /forget endpoints build on a vector store — registrations are in-memory by default and lost on restart. Use /v1/face/embed for a raw embedding; /v1/embeddings is OpenAI-compatible and text-only.",
+		Intro:       "Use /v1/face/detect when only face regions and detector confidence are needed; it does not return identity or demographic attributes. The /v1/face/register, /identify, and /forget endpoints build on a vector store — registrations are in-memory by default and lost on restart. Use /v1/face/embed for a raw embedding; /v1/embeddings is OpenAI-compatible and text-only.",
 	},
 	{
 		Name:        "voice-recognition",

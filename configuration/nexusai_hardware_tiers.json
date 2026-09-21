@@ -1,0 +1,113 @@
+{
+  "contract_version": "nexusai.hardware-tier-policy/v1",
+  "effective_date": "2026-08-13",
+  "purpose": "Keep forensic model roles and evidence contracts stable while selecting implementations according to measured accuracy and declared hardware fitness.",
+  "governing_rules": [
+    "Accuracy acceptance and hardware fitness are independent decisions.",
+    "A faster implementation remains rejected when it fails the unchanged role accuracy gate.",
+    "A GPU-only implementation may be accepted for a GPU tier without pretending that the capability is available on D0.",
+    "The actual model revision, backend, precision and hardware profile must be disclosed; materially weaker fallback is never silent.",
+    "GPU target profiles are planning assumptions until measured on installed hardware."
+  ],
+  "capability_states": [
+    "available",
+    "available_degraded",
+    "evaluation_only",
+    "hardware_acceleration_recommended",
+    "hardware_incompatible",
+    "model_not_installed",
+    "blocked_accuracy_gate",
+    "blocked_governance_gate"
+  ],
+  "tiers": {
+    "D0": {
+      "name": "CPU Development",
+      "current_machine": true,
+      "accelerator_requirement": "none",
+      "minimum_system_ram_gib": 16,
+      "target_vram_gib": 0,
+      "intended_uses": ["contract tests", "small fixture evaluation", "offline CPU inference", "deterministic adapters", "UI/API development"],
+      "not_authorized_as": ["evidence that a GPU candidate is production-fit", "reason to lower accuracy thresholds"]
+    },
+    "D1": {
+      "name": "Accelerated Developer / Entry GPU",
+      "current_machine": false,
+      "accelerator_requirement": "supported discrete GPU",
+      "minimum_system_ram_gib": 16,
+      "target_vram_gib": {"minimum": 6, "maximum": 8},
+      "intended_uses": ["candidate evaluation", "larger OCR/vision models", "bounded fine-tuning experiments"],
+      "measurement_state": "pending_hardware_validation"
+    },
+    "P1": {
+      "name": "Professional Single-GPU Workstation",
+      "current_machine": false,
+      "accelerator_requirement": "supported discrete GPU",
+      "minimum_system_ram_gib": 32,
+      "target_vram_gib": {"minimum": 12, "maximum": 24},
+      "intended_uses": ["accuracy-first forensic inference", "concurrent specialist roles", "approved fine-tuning"],
+      "measurement_state": "pending_hardware_validation"
+    },
+    "P2": {
+      "name": "Enterprise GPU Worker",
+      "current_machine": false,
+      "accelerator_requirement": "one or more qualified data-center GPUs",
+      "minimum_system_ram_gib": 64,
+      "target_vram_gib": {"minimum": 24},
+      "intended_uses": ["multi-model serving", "batch inference", "controlled concurrency", "observed failover"],
+      "measurement_state": "pending_hardware_validation"
+    }
+  },
+  "stable_pipeline_roles": [
+    "image_intake",
+    "plate_region_detection",
+    "lossless_plate_crop",
+    "script_classification",
+    "latin_plate_ocr",
+    "urdu_arabic_plate_ocr",
+    "normalization_validation",
+    "confidence_abstention",
+    "evidence_persistence",
+    "analyst_presentation"
+  ],
+  "role_resolution": {
+    "configuration_driven": true,
+    "agent_contract_hardware_neutral": true,
+    "api_business_contract_hardware_neutral": true,
+    "technical_trace_required": ["model_role", "model_id", "model_revision", "backend", "hardware_tier", "precision"],
+    "fallback_policy": "fail_closed_or_disclose_available_degraded; never silently substitute a materially weaker model"
+  },
+  "evaluation_record_required_fields": [
+    "hardware_tier",
+    "cpu_model",
+    "physical_cores",
+    "logical_cores",
+    "system_ram_gib",
+    "available_ram_gib",
+    "gpu_model",
+    "gpu_vram_gib",
+    "accelerator_runtime",
+    "container_runtime",
+    "backend",
+    "backend_version",
+    "precision",
+    "threads",
+    "batch_size",
+    "model_id",
+    "model_revision",
+    "dataset_id",
+    "dataset_revision"
+  ],
+  "future_gpu_qualification": {
+    "same_model_same_evidence": true,
+    "required_checks": [
+      "inventory and driver/runtime compatibility",
+      "artifact hash equality",
+      "CPU versus GPU output agreement within documented numerical tolerance",
+      "accuracy and calibration unchanged",
+      "P50/P95 latency, throughput, peak RAM and peak VRAM",
+      "batch and concurrency saturation",
+      "out-of-memory and unavailable-accelerator behavior",
+      "capability-state and technical-trace truthfulness"
+    ]
+  }
+}

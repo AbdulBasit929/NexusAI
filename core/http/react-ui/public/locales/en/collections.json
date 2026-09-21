@@ -1,10 +1,11 @@
 {
-  "title": "Knowledge Base",
-  "subtitle": "Manage document collections for agent RAG",
+  "title": "Knowledge",
+  "subtitle": "Organize authorized reference material for analyst tools",
   "newPlaceholder": "New collection name...",
   "actions": {
     "create": "Create",
     "creating": "Creating...",
+    "retry": "Try again",
     "details": "Details",
     "reset": "Reset",
     "delete": "Delete",
@@ -18,8 +19,17 @@
   },
   "empty": {
     "title": "No collections yet",
-    "text": "Collections let you organize documents into knowledge bases that agents can search using RAG (Retrieval-Augmented Generation). Create a collection above to get started.",
+    "text": "Create a collection to organize authorized reference material for analyst tools.",
     "noPersonal": "You have no collections yet."
+  },
+  "states": {
+    "eyebrow": "Knowledge",
+    "loading": "Loading authorized knowledge collections..."
+  },
+  "errors": {
+    "title": "Knowledge is temporarily unavailable",
+    "body": "NexusAI could not load the collections you are authorized to view.",
+    "unavailable": "Collection service unavailable"
   },
   "deleteDialog": {
     "title": "Delete Collection",

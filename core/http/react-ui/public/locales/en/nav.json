@@ -3,6 +3,9 @@
   "openMenu": "Open menu",
   "closeMenu": "Close menu",
   "primaryNavigation": "Primary navigation",
+  "applicationContext": "Application context",
+  "caseContext": "Case context",
+  "skipToContent": "Skip to main content",
   "switchToLightMode": "Switch to light mode",
   "switchToDarkMode": "Switch to dark mode",
   "expandSidebar": "Expand sidebar",
@@ -13,10 +16,10 @@
   "account": "Account",
   "accountFor": "Account: {{name}}",
   "sections": {
-    "create": "Create",
+    "create": "Analyst Tools",
     "recognition": "Recognition",
-    "build": "Build",
-    "operate": "Operate"
+    "build": "Intelligence Tools",
+    "operate": "System Administration"
   },
   "operate": {
     "inference": "Inference",
@@ -27,7 +30,7 @@
   },
   "items": {
     "home": "Home",
-    "installModels": "Install Models",
+    "installModels": "Model Library",
     "chat": "Chat",
     "studio": "Studio",
     "talk": "Talk",
@@ -43,8 +46,8 @@
     "voiceRecognition": "Voice Recognition",
     "agents": "Agents",
     "skills": "Skills",
-    "memory": "Memory",
-    "records": "Records",
+    "memory": "Knowledge",
+    "records": "Cases",
     "mcpJobs": "MCP CI Jobs",
     "usage": "Usage",
     "users": "Users",
@@ -67,5 +70,10 @@
   "console": {
     "automation": "Automation",
     "training": "Training"
+  },
+  "roles": {
+    "analyst": "Analyst",
+    "systemAdministrator": "System Administrator",
+    "localWorkspace": "Local workspace"
   }
 }

@@ -1,0 +1,162 @@
+{
+  "contract_version": "nexusai.r8-evaluation-artifact-acquisition/v1",
+  "approved_at": "2026-08-13T00:00:00Z",
+  "scope": "isolated_offline_evaluation_only",
+  "production_role_assignment": false,
+  "production_runtime_mutation": false,
+  "retained_case_ingest": false,
+  "automatic_promotion": false,
+  "default_output_root": "C:\\NexusAI-Evaluation\\R8\\Artifacts\\1.0.0",
+  "candidates": [
+    {
+      "candidate_id": "omz-vehicle-license-plate-detection-barrier-0106-fp32",
+      "role": "plate_detector_challenger",
+      "publisher": "Intel Open Model Zoo",
+      "revision": "af810de42bcf460a18610481f639dcdc86249e69",
+      "license": "Apache-2.0",
+      "license_url": "https://raw.githubusercontent.com/openvinotoolkit/open_model_zoo/af810de42bcf460a18610481f639dcdc86249e69/LICENSE",
+      "task": "MobileNetV2+SSD vehicle and license-plate detection",
+      "input": "1x300x300x3 NHWC",
+      "evaluation_decision": "acquire_primary_ready_ir_detector_challenger",
+      "artifacts": [
+        {
+          "name": "vehicle-license-plate-detection-barrier-0106.xml",
+          "url": "https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/vehicle-license-plate-detection-barrier-0106/FP32/vehicle-license-plate-detection-barrier-0106.xml",
+          "size_bytes": 238536,
+          "checksum_algorithm": "SHA384",
+          "checksum": "5467807d2432f717edc7d1d121399c3bc62f483a8b7a444be844a2415a1a036979cff8fc652b6ab1e692d62ff6723c6e"
+        },
+        {
+          "name": "vehicle-license-plate-detection-barrier-0106.bin",
+          "url": "https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/vehicle-license-plate-detection-barrier-0106/FP32/vehicle-license-plate-detection-barrier-0106.bin",
+          "size_bytes": 2573388,
+          "checksum_algorithm": "SHA384",
+          "checksum": "4bc69a94aeab8c9141c1531e13bdd93224ba1048602d8f80c697f4e376700569677cd72e4a75c7e9dc2dbccef61582e2"
+        }
+      ]
+    },
+    {
+      "candidate_id": "omz-vehicle-license-plate-detection-barrier-0123-source",
+      "role": "plate_detector_challenger",
+      "publisher": "Intel Open Model Zoo / OpenCV training toolbox",
+      "revision": "af810de42bcf460a18610481f639dcdc86249e69",
+      "license": "Apache-2.0",
+      "license_url": "https://raw.githubusercontent.com/opencv/training_toolbox_tensorflow/develop/LICENSE",
+      "task": "MobileNetV2+SSD vehicle and Chinese license-plate detection",
+      "input": "1x256x256x3 NHWC",
+      "evaluation_decision": "acquire_secondary_source_model_conversion_required",
+      "artifacts": [
+        {
+          "name": "ssd-mobilenet-v2-0.35.1-barrier-256x256-0123.tar.gz",
+          "url": "https://storage.openvinotoolkit.org/repositories/open_model_zoo/public/2022.1/vehicle-license-plate-detection-barrier-0123/ssd-mobilenet-v2-0.35.1-barrier-256x256-0123.tar.gz",
+          "size_bytes": 4387714,
+          "checksum_algorithm": "SHA384",
+          "checksum": "71a1b74e9612204e4533d44a8eff105490bb3248043d22ef894c19d5da4fb135a989946307b86191ba4ec2ce391b34bf"
+        }
+      ]
+    },
+    {
+      "candidate_id": "parseq-tiny-v1.0.0",
+      "role": "latin_ocr_challenger",
+      "publisher": "PARSeq authors",
+      "revision": "315d19be8ef473a864950ab497a649a69e37c6a4",
+      "release_asset_id": 70500779,
+      "license": "Apache-2.0 with NOTICE",
+      "license_url": "https://raw.githubusercontent.com/baudm/parseq/315d19be8ef473a864950ab497a649a69e37c6a4/LICENSE",
+      "notice_url": "https://raw.githubusercontent.com/baudm/parseq/315d19be8ef473a864950ab497a649a69e37c6a4/NOTICE",
+      "task": "Latin/ASCII scene-text recognition on existing plate crops",
+      "input": "32x128 RGB; 94 printable ASCII characters plus EOS",
+      "evaluation_decision": "acquire_primary_latin_ocr_challenger",
+      "artifacts": [
+        {
+          "name": "parseq_tiny-e7a21b54.pt",
+          "url": "https://github.com/baudm/parseq/releases/download/v1.0.0/parseq_tiny-e7a21b54.pt",
+          "size_bytes": 24136675,
+          "checksum_algorithm": null,
+          "checksum": null,
+          "integrity_note": "Official GitHub release asset has no publisher digest; exact size and asset ID are pinned and NexusAI SHA-256 is captured in the acquisition receipt."
+        },
+        {
+          "name": "parseq-source-315d19be.zip",
+          "url": "https://github.com/baudm/parseq/archive/315d19be8ef473a864950ab497a649a69e37c6a4.zip",
+          "size_bytes": 745571,
+          "checksum_algorithm": "SHA256",
+          "checksum": "4e905c31909ab86467b7b654d68d89e91aa680e0449a5f94b02231e4914f0569",
+          "integrity_note": "Exact source revision archive used only to construct the isolated evaluator runtime."
+        }
+      ]
+    },
+    {
+      "candidate_id": "easyocr-arabic-g1-v1.7.2",
+      "role": "urdu_arabic_ocr_challenger",
+      "publisher": "JaidedAI EasyOCR",
+      "revision": "c4f3cd7225efd4f85451bd8b4a7646ae9a092420",
+      "release_asset_id": 23574211,
+      "license": "Apache-2.0",
+      "license_url": "https://raw.githubusercontent.com/JaidedAI/EasyOCR/c4f3cd7225efd4f85451bd8b4a7646ae9a092420/LICENSE",
+      "task": "Arabic-family recognition including Urdu on existing plate crops",
+      "input": "CRNN arabic_g1 character set; recognition-only evaluation",
+      "evaluation_decision": "acquire_primary_urdu_arabic_ocr_challenger",
+      "artifacts": [
+        {
+          "name": "arabic.zip",
+          "url": "https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/arabic.zip",
+          "size_bytes": 199916962,
+          "checksum_algorithm": null,
+          "checksum": null,
+          "integrity_note": "The publisher MD5 is for the extracted arabic.pth weight, not the ZIP container. The exact official release asset ID and size are pinned; NexusAI records the ZIP SHA-256 after download and validates the sole member before any extraction.",
+          "expected_archive_members": [
+            {
+              "name": "arabic.pth",
+              "size_bytes": 215400714,
+              "checksum_algorithm": "MD5",
+              "checksum": "993074555550e4e06a6077d55ff0449a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate_id": "fast-plate-ocr-cct-s-v2-global-v1.1.0",
+      "role": "latin_plate_ocr_challenger",
+      "publisher": "ankandrew / FastPlateOCR",
+      "revision": "9ce7a5b64a939aa421c243b331d42e6bc25ffd44",
+      "license": "MIT project; asset-specific notice review remains required before promotion",
+      "license_url": "https://raw.githubusercontent.com/ankandrew/fast-plate-ocr/9ce7a5b64a939aa421c243b331d42e6bc25ffd44/LICENSE",
+      "task": "Plate-specific global Latin/digit OCR on existing governed crops",
+      "input": "RGB plate crop using publisher YAML; output Latin/digit sequence plus optional region head",
+      "evaluation_decision": "acquire_next_small_latin_plate_ocr_challenger",
+      "artifacts": [
+        {
+          "name": "cct_s_v2_global.onnx",
+          "url": "https://github.com/ankandrew/fast-plate-ocr/releases/download/arg-plates/cct_s_v2_global.onnx",
+          "size_bytes": 5262230,
+          "checksum_algorithm": "SHA256",
+          "checksum": "384bbbd2cea3ef54761d3df70822ef3a349ee1a112aeafddbe0e3ba06bc6e47b"
+        },
+        {
+          "name": "cct_s_v2_global_plate_config.yaml",
+          "url": "https://github.com/ankandrew/fast-plate-ocr/releases/download/arg-plates/cct_s_v2_global_plate_config.yaml",
+          "size_bytes": 1725,
+          "checksum_algorithm": "SHA256",
+          "checksum": "0335c74a305173bb6f393efed0fde03cadeaa0b649ed8e19f431016d8232d0a6"
+        }
+      ]
+    }
+  ],
+  "datasets": [
+    {
+      "dataset_id": "ccpd-2019",
+      "decision": "not_downloadable_yet",
+      "reason": "The exact 13,164,924,944-byte Zenodo mirror and publisher MD5 are now governed by configuration/nexusai_r8_t3_acquisition.json. This small-model acquisition manifest intentionally cannot initiate the multi-gigabyte operator-run transfer.",
+      "official_url": "https://github.com/detectRecog/CCPD",
+      "download_object_id": "https://doi.org/10.5281/zenodo.15647076"
+    },
+    {
+      "dataset_id": "artificial-mercosur-mendeley-nx9xbs4rgx-v1",
+      "decision": "not_downloadable_yet",
+      "reason": "The official archive is 1,634,711,438 bytes, but no archive digest is published and mixed real monitoring backgrounds remain a third-party-rights/privacy review blocker; supplemental detector evidence only.",
+      "official_url": "https://data.mendeley.com/datasets/nx9xbs4rgx/1"
+    }
+  ]
+}

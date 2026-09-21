@@ -1,0 +1,122 @@
+{
+  "contract_version": "nexusai.nxmmr.demo-activation/v1",
+  "state": "SOURCE_READY_ACTIVATION_BLOCKED_RAM_GATE",
+  "authorized_scope": "Image ANPR, Video ANPR V3, printed English/Urdu/mixed OCR internal development demo",
+  "license_admission": "ADMITTED_WITH_NOTICE",
+  "technical_admission": {
+    "image_anpr": "PASS_WITH_OCR_LIMITATION",
+    "video_anpr_v3": "DEVELOPMENT_UTILITY_PASS",
+    "printed_english_ocr": "FIXTURE_MEASURED_PASS",
+    "printed_urdu_ocr": "FIXTURE_MEASURED_WITH_LIMITATION",
+    "mixed_ocr": "FIXTURE_MEASURED_WITH_LIMITATION"
+  },
+  "activation_preflight": {
+    "measured_available_ram_gib": 4.790039,
+    "minimum_available_ram_gib": 6,
+    "workspace_free_disk_gib": 1648.204899,
+    "minimum_workspace_free_disk_gib": 12,
+    "active_jobs": 0,
+    "protected_services_healthy": true,
+    "exact_asset_hashes": true,
+    "license_notice_pass": true,
+    "result": "SAFE_STOP_RAM_GATE"
+  },
+  "asset_plan": [
+    {
+      "source": "local-acceptance-models/nxmmr/yolo-v9-t-384-license-plates-end2end.onnx",
+      "destination": "models/media/open-image-models/yolo-v9-t-384-license-plate-end2end/yolo-v9-t-384-license-plates-end2end.onnx",
+      "sha256": "888397b96d761c89db40bc9c305838e8652660f5e282c2cadebbe8d2951a77a8",
+      "size_bytes": 7771218,
+      "mode": "0444"
+    },
+    {
+      "source": "local-acceptance-models/nxmmr/cct_xs_v2_global.onnx",
+      "destination": "models/media/fast-plate-ocr/cct-xs-v2-global-model/cct_xs_v2_global.onnx",
+      "sha256": "8031afb5fdc6b4d80462c9d542f1284ebd2cfddf5dbacd62609848d7e2855f44",
+      "size_bytes": 3344292,
+      "mode": "0444"
+    },
+    {
+      "source": "local-acceptance-models/nxmmr/cct_xs_v2_global_plate_config.yaml",
+      "destination": "models/media/fast-plate-ocr/cct-xs-v2-global-model/cct_xs_v2_global_plate_config.yaml",
+      "sha256": "0335c74a305173bb6f393efed0fde03cadeaa0b649ed8e19f431016d8232d0a6",
+      "size_bytes": 1725,
+      "mode": "0444"
+    },
+    {
+      "source": "local-acceptance-models/nxmmr/operator-bundle-v1/paddleocr",
+      "original_source": "docker-volume:nexusai_r8_paddlex_model_cache:/official_models",
+      "destination": "models/media/paddleocr",
+      "tree_sha256": {
+        "PP-OCRv5_mobile_det": "1771a1ca1af2b1625228d2349849be1ccba507af13753547969c1de1702bdd74",
+        "en_PP-OCRv5_mobile_rec": "9580601f0a93d061d89cd89676be65353a8e81ac760063f5c22788f4fe5673a9",
+        "arabic_PP-OCRv5_mobile_rec": "3ee6f2267929b0fae36a6c63565f70f506ced8e133e9e2ed626a89c131d4cd1f"
+      },
+      "directory_mode": "0555",
+      "file_mode": "0444"
+    }
+  ],
+  "worker_environment": {
+    "FORENSIC_ASR_ENABLED": "false",
+    "FORENSIC_FACE_ENABLED": "false",
+    "FORENSIC_IMAGE_EMBEDDING_ENABLED": "false",
+    "FORENSIC_TTS_ENABLED": "false",
+    "PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK": "True",
+    "PADDLE_HOME": "/tmp/paddle",
+    "PADDLE_PDX_CACHE_HOME": "/tmp/paddlex",
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "FORENSIC_ANPR_ENABLED": "true",
+    "FORENSIC_ANPR_MIN_DETECTION_CONFIDENCE": "0.75",
+    "FORENSIC_OCR_ENABLED": "true",
+    "FORENSIC_OCR_BACKEND": "paddle",
+    "FORENSIC_PADDLE_DETECTOR_MODEL_DIR": "/models/media/paddleocr/PP-OCRv5_mobile_det",
+    "FORENSIC_PADDLE_ENGLISH_MODEL_DIR": "/models/media/paddleocr/en_PP-OCRv5_mobile_rec",
+    "FORENSIC_PADDLE_ARABIC_MODEL_DIR": "/models/media/paddleocr/arabic_PP-OCRv5_mobile_rec",
+    "FORENSIC_PADDLE_DETECTOR_TREE_SHA256": "1771a1ca1af2b1625228d2349849be1ccba507af13753547969c1de1702bdd74",
+    "FORENSIC_PADDLE_ENGLISH_TREE_SHA256": "9580601f0a93d061d89cd89676be65353a8e81ac760063f5c22788f4fe5673a9",
+    "FORENSIC_PADDLE_ARABIC_MULTILINGUAL_TREE_SHA256": "3ee6f2267929b0fae36a6c63565f70f506ced8e133e9e2ed626a89c131d4cd1f",
+    "FORENSIC_VIDEO_ANPR_V2_ENABLED": "false",
+    "FORENSIC_VIDEO_ANPR_V3_ENABLED": "true",
+    "FORENSIC_VIDEO_ANPR_V3_DETECTION_CONFIDENCE": "0.25",
+    "FORENSIC_VIDEO_ANPR_V3_MAX_FRAMES": "1200",
+    "FORENSIC_VIDEO_ANPR_V3_MAX_DURATION_SECONDS": "900"
+  },
+  "worker_image_policy": {
+    "ultralytics_dependency_present_after_rebuild": false,
+    "runtime_model_downloads": false,
+    "media_mount": "read_only"
+  },
+  "service_delta_when_gate_passes": {
+    "build": ["forensic-records-worker"],
+    "recreate_no_deps": ["forensic-records-worker"],
+    "must_not_recreate": ["api", "forensic-records-api", "forensic-postgres", "forensic-nats"]
+  },
+  "rollback": {
+    "current_worker_container": "296e0881d891b421b36da873f902b485669d1df82a258d37aa9db8e5de19e2fd",
+    "current_worker_image": "sha256:be13dbec4bd9bb62c824140df3777b898d7ad2801a0e68cd512c00dafaf4f9ef",
+    "proposed_tag": "nexusai/forensic-records-worker:rollback-before-nxmmr-demo-v1-20260831",
+    "restore_flags": {
+      "FORENSIC_ANPR_ENABLED": "false",
+      "FORENSIC_OCR_ENABLED": "false",
+      "FORENSIC_VIDEO_ANPR_V2_ENABLED": "false",
+      "FORENSIC_VIDEO_ANPR_V3_ENABLED": "false"
+    }
+  },
+  "operator_bundle": {
+    "version": "1",
+    "preparation_only": true,
+    "runtime_mutated": false,
+    "build_image": "nexusai/forensic-records-worker:nxmmr-demo-operator-v1",
+    "compose_project": "nexusai",
+    "runtime_env_file": ".env.forensic-runtime.local",
+    "compose_files": ["docker-compose.forensic-records.yaml", "docker-compose.forensic-records.runtime.yaml"],
+    "private_log_root": "local-acceptance-models/nxmmr/private-activation",
+    "build_timeout_seconds": 3600,
+    "health_timeout_seconds": 240,
+    "build_dependency_network": "Dockerfile apt/pip package installation may require Internet; no model downloads and no Codex interaction. A failed build leaves the original live worker untouched.",
+    "rollback_policy": "Capture the complete current worker environment/configuration, including prior ASR=true, before mutation. Restore that snapshot, not new defaults. Never recreate any other service."
+  },
+  "retained_demo_policy": "After activation, add fresh copies of controlled samples when identity is ambiguous; never bulk reprocess retained evidence.",
+  "product_certification_performed": false
+}

@@ -14,6 +14,20 @@
   --color-surface-hover: #242a36;
   --color-surface-elevated: #2f3644;
 
+  /* NexusAI semantic aliases. Existing --color-* variables remain the
+     compatibility layer while R3 migrates shell surfaces incrementally. */
+  --nx-color-brand-primary: #2563eb;
+  --nx-color-brand-primary-hover: #3b82f6;
+  --nx-color-brand-accent: #14b8a6;
+  --nx-color-canvas: var(--color-bg-primary);
+  --nx-color-surface: var(--color-bg-secondary);
+  --nx-color-surface-elevated: var(--color-surface-elevated);
+  --nx-color-text-primary: var(--color-text-primary);
+  --nx-color-text-secondary: var(--color-text-secondary);
+  --nx-color-text-muted: var(--color-text-muted);
+  --nx-color-border: var(--color-border-default);
+  --nx-color-focus: #60a5fa;
+
   /* Primary — frost cyan (nord8) */
   --color-primary: #88c0d0;
   --color-primary-hover: #9ccbd9;
@@ -174,6 +188,18 @@
   --color-surface-sunken: #e5e9f0;
   --color-surface-hover: #d8dee9;
   --color-surface-elevated: #d8dee9;     /* nord4 */
+
+  --nx-color-brand-primary: #1d4ed8;
+  --nx-color-brand-primary-hover: #1e40af;
+  --nx-color-brand-accent: #0f766e;
+  --nx-color-canvas: var(--color-bg-primary);
+  --nx-color-surface: var(--color-bg-secondary);
+  --nx-color-surface-elevated: var(--color-surface-elevated);
+  --nx-color-text-primary: var(--color-text-primary);
+  --nx-color-text-secondary: var(--color-text-secondary);
+  --nx-color-text-muted: var(--color-text-muted);
+  --nx-color-border: var(--color-border-default);
+  --nx-color-focus: #1d4ed8;
 
   /* Primary — deeper frost for WCAG on snow storm */
   --color-primary: #5e81ac;              /* nord10 */

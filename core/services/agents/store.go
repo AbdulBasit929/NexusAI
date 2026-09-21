@@ -10,6 +10,7 @@ import (
 	"github.com/mudler/LocalAI/core/services/advisorylock"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // AgentConfigRecord persists agent configuration in PostgreSQL.
@@ -53,7 +54,7 @@ type AgentStore struct {
 // when multiple instances (frontend + workers) start at the same time.
 func NewAgentStore(db *gorm.DB) (*AgentStore, error) {
 	if err := advisorylock.WithLockCtx(context.Background(), db, advisorylock.KeySchemaMigrate, func() error {
-		return db.AutoMigrate(&AgentConfigRecord{}, &AgentObservableRecord{})
+		return db.AutoMigrate(&AgentConfigRecord{}, &AgentObservableRecord{}, &AgentAnalysisRecord{})
 	}); err != nil {
 		return nil, fmt.Errorf("migrating agent tables: %w", err)
 	}
@@ -163,6 +164,43 @@ func (s *AgentStore) AppendObservable(obs *AgentObservableRecord) error {
 		obs.CreatedAt = time.Now()
 	}
 	return s.db.Create(obs).Error
+}
+
+// ReserveChatRetry atomically creates or retrieves a distributed retry
+// reservation using the existing observability store. The caller supplies a
+// deterministic ID scoped to user, agent, case, and idempotency key.
+func (s *AgentStore) ReserveChatRetry(id, agentName string, requested ChatRetryReservation) (ChatRetryReservation, bool, error) {
+	payload, err := json.Marshal(requested)
+	if err != nil {
+		return ChatRetryReservation{}, false, fmt.Errorf("encoding retry reservation: %w", err)
+	}
+	record := AgentObservableRecord{
+		ID: id, AgentName: agentName, EventType: AgentChatRetryObservableType,
+		PayloadJSON: string(payload), CreatedAt: time.Now().UTC(),
+	}
+	result := s.db.Clauses(clause.OnConflict{DoNothing: true}).Create(&record)
+	if result.Error != nil {
+		return ChatRetryReservation{}, false, result.Error
+	}
+	if result.RowsAffected == 1 {
+		return requested, true, nil
+	}
+
+	var existing AgentObservableRecord
+	if err := s.db.First(&existing, "id = ?", id).Error; err != nil {
+		return ChatRetryReservation{}, false, err
+	}
+	if existing.AgentName != agentName || existing.EventType != AgentChatRetryObservableType {
+		return ChatRetryReservation{}, false, ErrRetryPayloadConflict
+	}
+	var reservation ChatRetryReservation
+	if err := json.Unmarshal([]byte(existing.PayloadJSON), &reservation); err != nil {
+		return ChatRetryReservation{}, false, fmt.Errorf("decoding retry reservation: %w", err)
+	}
+	if !reservation.sameRequest(requested) {
+		return ChatRetryReservation{}, false, ErrRetryPayloadConflict
+	}
+	return reservation, false, nil
 }
 
 // GetObservables retrieves observables for an agent.

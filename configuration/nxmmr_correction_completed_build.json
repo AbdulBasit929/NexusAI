@@ -1,0 +1,19 @@
+{
+  "contract": "nxmmr.completed-build/v1",
+  "run_directory": "local-acceptance-models/nxmmr/private-activation/20260831T115207942Z",
+  "images": {
+    "api": "sha256:54683ddd2c2302632b25c2619d13254f7ef685d46f556ea3854fdfcd5463f8c1",
+    "forensic-records-worker": "sha256:2755e0ffbf3774d722b12cc9a5fbfc2241aad6e876e9891ca8b1c13d24afd146"
+  },
+  "receipt_hashes": {
+    "correction-state.json": "e0987ba39db275d2309e54378340597717c3205872fdcd810a9ca3ee13fec63b",
+    "before.json": "02491996b6e6f5c9057992f4a62de794f5e7f136f7e77d0a7aa9e701979b5047",
+    "candidate-api.json": "5ad98291daeb9afa472d21ae2260dae882728b250d4a74b2349945be2c086f24",
+    "candidate-forensic-records-worker.json": "e2f9811c2a9bbaae49ccfdc69b6160e5543d4fee793960e0e5e02e728e097c66",
+    "build-api.log": "c2109f587964f1067ad7ceffd350f7def75b83c90a223edd5e5c5a68a8591246",
+    "build-worker.log": "348bb1c65dc331757f34dcd0c35239e3c9c70ff37865445852deb2b4f646e026",
+    "worker-source-smoke.log": "dfe591a73f447bcef9f90b5784e65baf844e9dbad7a44016a5ba98a530002dbf",
+    "api-version-smoke.log": "177c33a7b4d1fe61bf54e57240d285dc9d8e1cd64a1141bdca2e1b2cb1ecc854",
+    "embedded-ui-smoke.log": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  }
+}

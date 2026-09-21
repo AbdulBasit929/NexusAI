@@ -1,0 +1,14 @@
+{
+  "contract_version": "forensics.controlled-demo-pack/v1",
+  "pack_id": "nexusai-r8-t2-anpr-demo",
+  "version": "1.0.0-draft",
+  "tier": "T2",
+  "status": "capture_pending",
+  "purpose": "Controlled, owned and non-operational R8 ANPR demonstration and benchmark evidence",
+  "ground_truth_policy": "independent_human_annotation_only",
+  "storage_policy": "raw assets outside Git; manifest may enter Git only after privacy and path review",
+  "capture_plan": "configuration/nexusai_r8_t2_capture_plan.json",
+  "required_image_count": 32,
+  "partition_policy": "28 development images and 4 sealed holdout images; model output must not be consulted during annotation",
+  "images": []
+}

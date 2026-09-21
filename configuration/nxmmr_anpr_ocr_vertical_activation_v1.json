@@ -1,0 +1,192 @@
+{
+  "contract_version": "nexusai.nxmmr.anpr-ocr-vertical-activation/v1",
+  "work_item": "NX-MMR-ANPR-OCR-VERTICAL-CLOSURE-V1",
+  "state": "PROPOSED_NOT_AUTHORIZED",
+  "deployment_performed": false,
+  "new_model_or_dataset_downloads_required": false,
+  "container_build_dependency_network_may_be_required": true,
+  "reserved_video_evaluation_required_before_activation": true,
+  "video_v2_freeze_digest": "212c00970d7bed1c40612102c11f1a0dd24c43435c406df83d80bd8f40117b20",
+  "source_freeze_files": {
+    "ingestion/forensic_records/video_anpr_product_v2.py": "71bc4870a55846e3b9ecd250d16e8df4df54190acf4c73b7c306454aac42b212",
+    "ingestion/forensic_records/video_anpr_parity_adapter.py": "e856439183d48a500cd9290326550de16c88fdc1100b09fb2e6e985c244b1413",
+    "ingestion/forensic_records/media_pipeline.py": "17f9b10c1d8c73091de1a8adee08b63ecb3af203cb8d8d2c3091975f5e69349a",
+    "ingestion/forensic_records/requirements.txt": "d9593d2c36bb7e3cd262aa6fdb49b8f644ee62ea0202612f53a9e51d5e86f2d2",
+    "ingestion/forensic_records/Dockerfile": "3aca709c070fc28a3e4627081ebc740398554e57deda28a3015810c1e7f6ca38",
+    "docker-compose.forensic-records.yaml": "231340d09faba7faea8587deb1cc1486ed449858d6e70f19880f979d803293a2",
+    "configuration/nxmmr_video_anpr_product_baseline_v2.json": "ec28d054ae4eef0db1107302045cd60c62fead0f9cb96b7d2b8779ed4ed1eeea",
+    "ingestion/forensic_records/multilingual_ocr.py": "569234c45635b4834dd8611ec3231f6651e06ef2071a969a9754e2d5ded72310",
+    "ingestion/forensic_records/processor_readiness.py": "99ac99bb215de2d8556e8f3d3d89c3604aaa98fd00c3bb009e24e664a527e0a7",
+    "api/forensic_records/video_anpr.go": "88a7f9b38c55fb22875926bec944509825c8816cfe330bb95b4a76c73d1bffa4",
+    "api/forensic_records/derived_text_query.go": "56817f7086f35ba21dd1f8abb54ea82871db5a6f3cf9cbc2e94f57f2a566d644",
+    "api/forensic_records/query.go": "8ec9e06b7660f677fe8c3fa26e5b7e2e48b80e3cd4c431a4c207b0ab819768c0"
+  },
+  "source_assets": [
+    {
+      "role": "image_anpr_detector",
+      "source": "local-acceptance-models/nxmmr/yolo-v9-t-384-license-plates-end2end.onnx",
+      "destination": "models/media/open-image-models/yolo-v9-t-384-license-plate-end2end/yolo-v9-t-384-license-plates-end2end.onnx",
+      "size_bytes": 7771218,
+      "sha256": "888397b96d761c89db40bc9c305838e8652660f5e282c2cadebbe8d2951a77a8",
+      "license_gate": "MIT attribution/notice must be retained"
+    },
+    {
+      "role": "image_and_video_anpr_ocr",
+      "source": "local-acceptance-models/nxmmr/cct_xs_v2_global.onnx",
+      "destination": "models/media/fast-plate-ocr/cct-xs-v2-global-model/cct_xs_v2_global.onnx",
+      "size_bytes": 3344292,
+      "sha256": "8031afb5fdc6b4d80462c9d542f1284ebd2cfddf5dbacd62609848d7e2855f44",
+      "license_gate": "MIT attribution/notice must be retained"
+    },
+    {
+      "role": "image_and_video_anpr_ocr_config",
+      "source": "local-acceptance-models/nxmmr/cct_xs_v2_global_plate_config.yaml",
+      "destination": "models/media/fast-plate-ocr/cct-xs-v2-global-model/cct_xs_v2_global_plate_config.yaml",
+      "size_bytes": 1725,
+      "sha256": "0335c74a305173bb6f393efed0fde03cadeaa0b649ed8e19f431016d8232d0a6",
+      "license_gate": "MIT attribution/notice must be retained"
+    },
+    {
+      "role": "video_anpr_plate_detector",
+      "source": "C:/Users/sheik/Workspace/Personal/Vehicle-License-Plate-Detection/src/license_plate_detector.pt",
+      "source_access": "read_only_operator_attested_local_reference",
+      "destination": "models/media/video-anpr-v2/license_plate_detector.pt",
+      "size_bytes": 6241454,
+      "sha256": "8ec3b254a6c87610f037a90957462cafa11a9c03224e33a28c6a1d1ac2ac51b0",
+      "license_gate": "BLOCKED_PENDING_EXACT_CHECKPOINT_LICENSE_ADMISSION"
+    },
+    {
+      "role": "video_anpr_vehicle_detector",
+      "source": "C:/Users/sheik/Workspace/Personal/Vehicle-License-Plate-Detection/src/yolov8n.pt",
+      "source_access": "read_only_operator_attested_local_reference",
+      "destination": "models/media/video-anpr-v2/yolov8n.pt",
+      "size_bytes": 6534387,
+      "sha256": "31e20dde3def09e2cf938c7be6fe23d9150bbbe503982af13345706515f2ef95",
+      "license_gate": "BLOCKED_PENDING_ULTRALYTICS_AND_CHECKPOINT_PRODUCTION_ADMISSION"
+    },
+    {
+      "role": "printed_text_detector",
+      "source": "docker-volume:nexusai_r8_paddlex_model_cache:/official_models/PP-OCRv5_mobile_det",
+      "source_access": "read_only_existing_isolated_cache",
+      "destination": "models/media/paddleocr/PP-OCRv5_mobile_det",
+      "tree_sha256": "1771a1ca1af2b1625228d2349849be1ccba507af13753547969c1de1702bdd74",
+      "license_gate": "Apache-2.0 packaging and NOTICE review required"
+    },
+    {
+      "role": "printed_english_recognizer",
+      "source": "docker-volume:nexusai_r8_paddlex_model_cache:/official_models/en_PP-OCRv5_mobile_rec",
+      "source_access": "read_only_existing_isolated_cache",
+      "destination": "models/media/paddleocr/en_PP-OCRv5_mobile_rec",
+      "tree_sha256": "9580601f0a93d061d89cd89676be65353a8e81ac760063f5c22788f4fe5673a9",
+      "license_gate": "Apache-2.0 packaging and NOTICE review required"
+    },
+    {
+      "role": "printed_urdu_arabic_multilingual_recognizer",
+      "source": "docker-volume:nexusai_r8_paddlex_model_cache:/official_models/arabic_PP-OCRv5_mobile_rec",
+      "source_access": "read_only_existing_isolated_cache",
+      "destination": "models/media/paddleocr/arabic_PP-OCRv5_mobile_rec",
+      "tree_sha256": "3ee6f2267929b0fae36a6c63565f70f506ced8e133e9e2ed626a89c131d4cd1f",
+      "license_gate": "Apache-2.0 packaging and NOTICE review required"
+    }
+  ],
+  "optional_rollback_ocr_floor": [
+    {
+      "source": "local-acceptance-models/nxmmr/eng.traineddata",
+      "destination": "models/media/nexusai/models/tessdata-fast/65727574dfcd264acbb0c3e07860e4e9e9b22185/eng.traineddata",
+      "size_bytes": 4113088,
+      "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2"
+    },
+    {
+      "source": "local-acceptance-models/nxmmr/urd.traineddata",
+      "destination": "models/media/nexusai/models/tessdata-fast/65727574dfcd264acbb0c3e07860e4e9e9b22185/urd.traineddata",
+      "size_bytes": 1398718,
+      "sha256": "62e8250ce2a994106e313a82e26a516a39e2cf159d0ce3c5b5008387fd0d555f"
+    }
+  ],
+  "worker_environment": {
+    "FORENSIC_ANPR_ENABLED": "true",
+    "FORENSIC_OCR_ENABLED": "true",
+    "FORENSIC_OCR_BACKEND": "paddle",
+    "FORENSIC_VIDEO_ANPR_V2_ENABLED": "true",
+    "FORENSIC_ASR_ENABLED": "false",
+    "FORENSIC_FACE_ENABLED": "false",
+    "FORENSIC_IMAGE_EMBEDDING_ENABLED": "false",
+    "NEXUSAI_MEDIA_MODEL_DIR": "./models/media"
+  },
+  "services": {
+    "build": [
+      "forensic-records-worker",
+      "forensic-records-api"
+    ],
+    "recreate_no_deps": [
+      "forensic-records-worker",
+      "forensic-records-api"
+    ],
+    "must_not_recreate": [
+      "api",
+      "forensic-postgres",
+      "forensic-nats"
+    ]
+  },
+  "current_rollback_sources": {
+    "forensic-records-worker": {
+      "image": "sha256:be13dbec4bd9bb62c824140df3777b898d7ad2801a0e68cd512c00dafaf4f9ef",
+      "container": "296e0881d891b421b36da873f902b485669d1df82a258d37aa9db8e5de19e2fd",
+      "proposed_tag": "nexusai/forensic-records-worker:nxmmr-anpr-ocr-vertical-rollback-20260830"
+    },
+    "forensic-records-api": {
+      "image": "sha256:d2992062b8f55334d602530eb96cec8289dd714f0ae9523d3b27edebb724b5c5",
+      "container": "b5c13f96e67f21f129f477c1b0d1a921a7d761ca528757240ca2ee90a85157d8",
+      "proposed_tag": "nexusai/forensic-records-api:nxmmr-anpr-ocr-vertical-rollback-20260830"
+    }
+  },
+  "protected_runtime": {
+    "api_container": "321ba681774b371dfbbf8a85c34ee45596e62f659800e6d647a0f5b7974c4021",
+    "postgres_container": "f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361",
+    "nats_container": "5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04",
+    "named_volumes": [
+      "nexusai_backends",
+      "nexusai_configuration",
+      "nexusai_data",
+      "nexusai_forensic_nats_data",
+      "nexusai_forensic_postgres_data",
+      "nexusai_forensic_spool",
+      "nexusai_images",
+      "nexusai_models",
+      "nexusai_r8_paddlex_model_cache"
+    ],
+    "retained_tuple_baseline": "51|51|64|0|22207|441|47",
+    "database_migration": false
+  },
+  "preflight": {
+    "minimum_free_ram_gib": 6,
+    "minimum_free_workspace_disk_gib": 12,
+    "maximum_active_jobs": 0,
+    "require_all_current_health_checks": true,
+    "require_exact_asset_hashes": true,
+    "require_exact_source_hashes": true,
+    "require_license_and_notice_gate_closed": true,
+    "require_video_reserved_evaluation_pass": true
+  },
+  "post_activation_fresh_only_acceptance": [
+    "worker and forensic API health pass",
+    "protected container IDs and named-volume inventory remain unchanged",
+    "retained tuple remains unchanged before fresh test uploads",
+    "image positive and negative produce COMPLETE_RESULTS and COMPLETE_ZERO_RESULTS respectively",
+    "missing-model preflight produces MODEL_REQUIRED without submitting a job",
+    "sample video produces actual-frame source-time observations and groups",
+    "printed English, Urdu, and mixed images preserve source regions, script direction, and identifiers",
+    "Data and Ask consume the same scoped result contracts and citations",
+    "manual UI acceptance guide passes before any PRODUCT_CERTIFIED promotion"
+  ],
+  "rollback": {
+    "trigger": "health, readiness, contract, resource, retained-invariant, or fresh-acceptance failure",
+    "actions": [
+      "restore the two exact rollback image tags",
+      "recreate only forensic-records-worker and forensic-records-api with --no-deps",
+      "restore prior disabled role environment",
+      "leave retained evidence, Activity, PostgreSQL, NATS, named volumes, and LocalAI/UI untouched",
+      "quarantine newly copied model files only after their exact destination paths are revalidated"
+    ]
+  }
+}

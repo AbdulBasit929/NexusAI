@@ -1,14 +1,15 @@
 package localai
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"math"
+	"mime"
 	"mime/multipart"
 	"net/http"
+	"net/textproto"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -89,6 +90,7 @@ func UploadToCollectionEndpoint(app *application.Application) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		svc := app.AgentPoolService()
 		userID := effectiveUserID(c)
+		actorID, subjectID, actorRole, identityErr := forensicForwardIdentity(c)
 		name := decodedParam(c, "name")
 		file, err := c.FormFile("file")
 		if err != nil {
@@ -112,18 +114,39 @@ func UploadToCollectionEndpoint(app *application.Application) echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		resp := map[string]any{"status": "ok", "filename": file.Filename, "key": key}
-		if forward := forensicRecordsKBUploadConfigFromEnv(); forward.Enabled && shouldForwardKBUploadToForensicRecords(file.Filename) {
-			if _, err := src.Seek(0, io.SeekStart); err != nil {
+		if forward := forensicRecordsKBUploadConfigFromEnv(); forward.Enabled && shouldForwardKBUploadRequestToForensicRecords(file.Filename, c.FormValue("skip_forensic_records")) {
+			if identityErr != nil {
+				resp["records_status"] = "failed"
+				resp["evidence_status"] = "failed"
+				resp["records_warning"] = identityErr.Error()
+			} else if _, err := src.Seek(0, io.SeekStart); err != nil {
 				resp["records_status"] = "skipped"
-				resp["records_warning"] = "file could not be rewound for structured records ingest: " + err.Error()
+				resp["evidence_status"] = "skipped"
+				resp["records_warning"] = "file could not be rewound for forensic evidence registration: " + err.Error()
 			} else {
-				result, err := forwardKBUploadToForensicRecords(c.Request().Context(), forward, name, userID, file.Filename, key, src)
+				result, err := forwardKBUploadToForensicRecords(c.Request().Context(), forward, name, subjectID, actorID, actorRole, file.Filename, file.Header.Get("Content-Type"), key, src, map[string]string{
+					"record_type":             c.FormValue("record_type"),
+					"declared_modality":       c.FormValue("declared_modality"),
+					"evidence_role":           c.FormValue("evidence_role"),
+					"parent_evidence_id":      c.FormValue("parent_evidence_id"),
+					"case_id":                 c.FormValue("case_id"),
+					"jurisdiction":            c.FormValue("jurisdiction"),
+					"source_timezone":         c.FormValue("source_timezone"),
+					"source_timezone_state":   c.FormValue("source_timezone_state"),
+					"source_date_order":       c.FormValue("source_date_order"),
+					"source_date_order_state": c.FormValue("source_date_order_state"),
+					"asr_language":            c.FormValue("asr_language"),
+				})
 				if err != nil {
 					resp["records_status"] = "failed"
+					resp["evidence_status"] = "failed"
 					resp["records_warning"] = err.Error()
 				} else {
-					resp["records_status"] = forensicRecordsResultStatus(result)
+					status := forensicRecordsResultStatus(result)
+					resp["records_status"] = status
+					resp["evidence_status"] = status
 					resp["records_ingest"] = result
+					resp["evidence_registration"] = result
 				}
 			}
 		}
@@ -139,10 +162,11 @@ func forensicRecordsResultStatus(result map[string]any) string {
 }
 
 type forensicRecordsKBUploadConfig struct {
-	Enabled  bool
-	APIURL   string
-	APIKey   string
-	TenantID string
+	Enabled       bool
+	APIURL        string
+	APIKey        string
+	TenantID      string
+	UploadTimeout time.Duration
 }
 
 func forensicRecordsKBUploadConfigFromEnv() forensicRecordsKBUploadConfig {
@@ -152,60 +176,97 @@ func forensicRecordsKBUploadConfigFromEnv() forensicRecordsKBUploadConfig {
 	}
 	enabled := apiURL != "" && envBoolValueLocal(os.Getenv("FORENSIC_RECORDS_KB_UPLOAD_ENABLED"), true)
 	return forensicRecordsKBUploadConfig{
-		Enabled:  enabled,
-		APIURL:   apiURL,
-		APIKey:   strings.TrimSpace(os.Getenv("FORENSIC_RECORDS_API_KEY")),
-		TenantID: defaultStringLocal(os.Getenv("FORENSIC_RECORDS_TENANT_ID"), "default"),
+		Enabled:       enabled,
+		APIURL:        apiURL,
+		APIKey:        strings.TrimSpace(os.Getenv("FORENSIC_RECORDS_API_KEY")),
+		TenantID:      defaultStringLocal(os.Getenv("FORENSIC_RECORDS_TENANT_ID"), "default"),
+		UploadTimeout: durationFromEnvLocal("FORENSIC_RECORDS_UPLOAD_TIMEOUT", 5*time.Minute),
 	}
 }
 
 func shouldForwardKBUploadToForensicRecords(filename string) bool {
-	switch strings.ToLower(filepath.Ext(filename)) {
-	case ".csv", ".tsv", ".json", ".jsonl", ".ndjson", ".log", ".txt":
-		return true
-	default:
-		return false
-	}
+	base := strings.TrimSpace(filepath.Base(filename))
+	return base != "" && base != "." && base != string(filepath.Separator)
 }
 
-func forwardKBUploadToForensicRecords(ctx context.Context, cfg forensicRecordsKBUploadConfig, collectionID, userID, filename, sourceEntry string, src io.Reader) (map[string]any, error) {
-	var body bytes.Buffer
-	writer := multipart.NewWriter(&body)
+func shouldForwardKBUploadRequestToForensicRecords(filename, skipValue string) bool {
+	return !envBoolValueLocal(skipValue, false) && shouldForwardKBUploadToForensicRecords(filename)
+}
+
+func forwardKBUploadToForensicRecords(ctx context.Context, cfg forensicRecordsKBUploadConfig, collectionID, subjectID, actorID, actorRole, filename, contentType, sourceEntry string, src io.Reader, hints ...map[string]string) (map[string]any, error) {
+	reader, pipeWriter := io.Pipe()
+	writer := multipart.NewWriter(pipeWriter)
 	fields := map[string]string{
 		"tenant_id":      cfg.TenantID,
 		"collection_id":  collectionID,
-		"user_id":        userID,
+		"user_id":        subjectID,
 		"record_type":    "auto",
 		"skip_kb_mirror": "true",
 		"source_entry":   sourceEntry,
 	}
-	for key, value := range fields {
-		if strings.TrimSpace(value) == "" {
-			continue
+	if len(hints) > 0 {
+		for _, key := range []string{
+			"record_type", "declared_modality", "evidence_role", "parent_evidence_id",
+			"case_id", "jurisdiction", "source_timezone", "source_timezone_state",
+			"source_date_order", "source_date_order_state", "asr_language",
+		} {
+			if value := strings.TrimSpace(hints[0][key]); value != "" {
+				fields[key] = value
+			}
 		}
-		if err := writer.WriteField(key, value); err != nil {
-			return nil, fmt.Errorf("write forensic field %s: %w", key, err)
+	}
+	go func() {
+		for key, value := range fields {
+			if strings.TrimSpace(value) == "" {
+				continue
+			}
+			if err := writer.WriteField(key, value); err != nil {
+				_ = pipeWriter.CloseWithError(fmt.Errorf("write forensic field %s: %w", key, err))
+				return
+			}
 		}
-	}
-	part, err := writer.CreateFormFile("file", filename)
+		partHeader := make(textproto.MIMEHeader)
+		partHeader.Set("Content-Disposition", mime.FormatMediaType("form-data", map[string]string{"name": "file", "filename": filename}))
+		if contentType = strings.TrimSpace(contentType); contentType != "" {
+			partHeader.Set("Content-Type", contentType)
+		}
+		part, err := writer.CreatePart(partHeader)
+		if err != nil {
+			_ = pipeWriter.CloseWithError(fmt.Errorf("create forensic file field: %w", err))
+			return
+		}
+		if _, err := io.Copy(part, src); err != nil {
+			_ = pipeWriter.CloseWithError(fmt.Errorf("copy forensic file: %w", err))
+			return
+		}
+		if err := writer.Close(); err != nil {
+			_ = pipeWriter.CloseWithError(fmt.Errorf("close forensic multipart: %w", err))
+			return
+		}
+		_ = pipeWriter.Close()
+	}()
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, cfg.APIURL+"/webhooks/records/upload", reader)
 	if err != nil {
-		return nil, fmt.Errorf("create forensic file field: %w", err)
-	}
-	if _, err := io.Copy(part, src); err != nil {
-		return nil, fmt.Errorf("copy forensic file: %w", err)
-	}
-	if err := writer.Close(); err != nil {
-		return nil, fmt.Errorf("close forensic multipart: %w", err)
-	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, cfg.APIURL+"/webhooks/records/upload", &body)
-	if err != nil {
+		_ = reader.Close()
 		return nil, fmt.Errorf("create forensic upload request: %w", err)
 	}
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	if cfg.APIKey != "" {
 		req.Header.Set("Authorization", "Bearer "+cfg.APIKey)
 	}
-	resp, err := httpclient.NewWithTimeout(30 * time.Second).Do(req)
+	req.Header.Set("X-Forensic-Tenant-ID", cfg.TenantID)
+	req.Header.Set("X-Forensic-Actor-ID", strings.TrimSpace(actorID))
+	req.Header.Set("X-Forensic-Subject-ID", strings.TrimSpace(subjectID))
+	req.Header.Set("X-Forensic-Actor-Role", strings.TrimSpace(actorRole))
+	req.Header.Set("X-Forensic-Collection-ID", strings.TrimSpace(collectionID))
+	if len(hints) > 0 {
+		req.Header.Set("X-Forensic-Case-ID", strings.TrimSpace(hints[0]["case_id"]))
+	}
+	timeout := cfg.UploadTimeout
+	if timeout <= 0 {
+		timeout = 5 * time.Minute
+	}
+	resp, err := httpclient.NewWithTimeout(timeout).Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("forensic upload request: %w", err)
 	}
@@ -235,6 +296,18 @@ func defaultStringLocal(value, fallback string) string {
 		return fallback
 	}
 	return value
+}
+
+func durationFromEnvLocal(name string, fallback time.Duration) time.Duration {
+	value := strings.TrimSpace(os.Getenv(name))
+	if value == "" {
+		return fallback
+	}
+	parsed, err := time.ParseDuration(value)
+	if err != nil || parsed <= 0 {
+		return fallback
+	}
+	return parsed
 }
 
 // isEmbeddingDimensionMismatch detects the pgvector-side error that bubbles up

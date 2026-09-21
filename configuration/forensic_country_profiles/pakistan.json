@@ -1,0 +1,206 @@
+{
+  "schema_version": "1.3.0",
+  "profile_id": "pk-authoritative-2026-08-19-v1.3",
+  "jurisdiction": {
+    "iso_3166_1_alpha_2": "PK",
+    "name": "Pakistan",
+    "default_timezone": "Asia/Karachi",
+    "default_currency": "PKR",
+    "calling_code": "92",
+    "mobile_country_code": "410"
+  },
+  "operating_principles": {
+    "preserve_raw_evidence": true,
+    "canonicalize_only_when_unambiguous": true,
+    "retain_source_timezone_and_offset": true,
+    "naive_timestamp_policy": "Use only an explicit source/schema declaration, an accepted provider mapping, or an analyst-confirmed source timezone. Pakistan context alone does not prove Asia/Karachi. An explicitly permitted profile default must remain labeled profile_defaulted; otherwise timezone is unknown and a naive timestamp cannot become a canonical UTC instant.",
+    "slash_date_policy": "Use an explicit source/schema declaration, accepted provider mapping, analyst confirmation, or structurally unambiguous numeric date. Pakistan context and filenames do not prove DMY. Unresolved ambiguous slash dates require review and must not be normalized.",
+    "unknown_value_policy": "Preserve the original token, classify it as unknown or provider-defined, and do not coerce it to zero or an empty identifier.",
+    "operator_inference_policy": "Do not infer a current mobile operator solely from a number prefix because allocations and portability can change.",
+    "format_policy": "Treat patterns as recognition and quality signals, not as grounds to discard otherwise parseable evidence.",
+    "legal_policy": "Retention, disclosure, interception, and deletion decisions require a case policy approved by Pakistan-qualified counsel; source references are engineering inputs, not legal advice."
+  },
+  "identifiers": {
+    "telephone": {
+      "standards": ["ITU-T E.164"],
+      "accepted_prefix_forms": ["+92", "0092", "92", "domestic trunk prefix 0"],
+      "accepted_non_e164_classes": ["short_code", "ussd", "service_label", "withheld", "unknown", "provider_placeholder"],
+      "normalization": [
+        "Preserve raw text.",
+        "Remove presentation separators only for validation.",
+        "Emit +92 canonical form only when the national number is unambiguous.",
+        "Keep short codes, USSD strings, and alphanumeric service labels as typed identifiers."
+      ]
+    },
+    "imsi": {
+      "standards": ["ITU-T E.212"],
+      "expected_digits": 15,
+      "pakistan_mcc": "410",
+      "mnc_policy": "Resolve two- or three-digit MNCs only against a dated, versioned authoritative allocation table; preserve the full IMSI regardless."
+    },
+    "imei": {
+      "accepted_digits": [14, 15, 16],
+      "policy": "Accept provider exports containing a 14-digit TAC-plus-serial value, a 15-digit value with check digit, or a 16-digit IMEISV. Apply Luhn only where the source representation includes a check digit; never synthesize one into evidence."
+    },
+    "cnic": {
+      "expected_digits": 13,
+      "display_pattern": "#####-#######-#",
+      "sensitivity": "direct_identifier",
+      "policy": "Preserve leading zeroes and formatting; store canonical digits separately only under field-level access control."
+    },
+    "iban": {
+      "country_prefix": "PK",
+      "total_characters": 24,
+      "bank_identifier_characters": 4,
+      "account_component_characters": 16,
+      "checksum": "ISO 7064 MOD 97-10",
+      "sensitivity": "financial_identifier"
+    },
+    "vehicle_registration": {
+      "strategy": "province_series_and_period_specific",
+      "jurisdictions": ["Islamabad Capital Territory", "Punjab", "Sindh", "Khyber Pakhtunkhwa", "Balochistan", "Gilgit-Baltistan", "Azad Jammu and Kashmir"],
+      "ocr_scripts": ["Latin", "Arabic-derived Urdu"],
+      "variants": ["private", "commercial", "motorcycle", "government", "diplomatic", "premium", "personalized", "legacy"],
+      "policy": "Preserve OCR text, image crop, confidence, province hypothesis, plate series, spacing and punctuation. Use versioned jurisdiction rules and manual review rather than a single national rejection regex."
+    }
+  },
+  "cdr_profile": {
+    "known_header_set": [
+      "MSISDN",
+      "call_org_num",
+      "CALL_DIALED_NUM",
+      "IMSI",
+      "IMEI",
+      "CALL_START_DT_TM",
+      "CALL_END_DT_TM",
+      "INBOUND_OUTBOUND_IND",
+      "Call_Network_Volume",
+      "Lac_Id",
+      "Site_Id",
+      "Cell_SITE_ID",
+      "lat",
+      "longitude",
+      "CALL_TYPE",
+      "location"
+    ],
+    "recognized_direction_values": ["INCOMING", "OUTGOING", "DATA"],
+    "recognized_call_type_values": ["CALL", "SMS", "GPRS", "VOLTE"],
+    "numeric_identifier_rules": {
+      "lac_id": "Preserve as text; remove only a spreadsheet-generated terminal .0 when the remaining token is an integer.",
+      "site_id": "Preserve as text; remove only a spreadsheet-generated terminal .0 when the remaining token is an integer.",
+      "cell_site_id": "Treat negative values and provider tokens as sentinel candidates, not physical cells; retain the raw token and flag it."
+    },
+    "duplicate_policy": "Hash canonical record content for deterministic duplicate reporting while preserving every source-row lineage reference.",
+    "coordinate_policy": "Validate numeric latitude and longitude, record uncertainty, and use a configurable administrative-boundary dataset for Pakistan; a bounding box is screening only, never proof of location."
+  },
+  "anpr_profile": {
+    "recognized_plate_aliases": ["plate_number", "registration_no", "reg_no", "vehicle_no", "number_plate", "plate_no", "vehicle_registration_no", "registration_mark", "vrn"],
+    "recognized_camera_aliases": ["camera_id", "camera_code", "camera_name", "device_id", "checkpoint_id", "gantry_id", "lane_id"],
+    "normalization": [
+      "Preserve the exact plate/OCR token and source row.",
+      "Create a Unicode NFKC case-folded search key with presentation separators removed; never replace the evidential token with that key.",
+      "Retain Arabic-derived Urdu and Latin scripts and label mixed-script observations.",
+      "Convert capture time to UTC only after recording an explicit offset or the declared source-timezone assumption."
+    ],
+    "quality_rules": {
+      "confidence": "Accept a fraction from 0 through 1 or a percent from 0 through 100 and store the canonical fraction exactly.",
+      "coordinates": "Supplied latitude and longitude must be numeric and within global bounds; a Pakistan boundary check is a review signal, not an identity decision.",
+      "plate_format": "Province, series, class and rule-version metadata are review signals. Do not reject solely because a plate does not match one current public example.",
+      "crop_lineage": "Retain a valid SHA-256 crop hash when supplied; invalid hashes are visibly flagged."
+    },
+    "golden_fixture": "ingestion/forensic_records/tests/fixtures/pakistan_anpr_messy_synthetic.csv"
+  },
+  "financial_transaction_profile": {
+    "recognized_amount_aliases": ["amount", "txn_amount", "amount_pkr", "debit_amount", "credit_amount", "transaction_value", "local_amount"],
+    "recognized_source_account_aliases": ["account_number", "iban", "from_iban", "source_account", "debit_account", "payer_account", "remitter_account", "sender_iban"],
+    "recognized_counterparty_aliases": ["to_iban", "beneficiary_account", "beneficiary_iban", "destination_account", "credit_account", "payee_account", "receiver_account", "beneficiary", "merchant_name"],
+    "money_rules": {
+      "default_currency": "PKR",
+      "minor_unit_digits": 2,
+      "grouping": "Accept no grouping or correctly placed three-digit comma groups; reject ambiguous grouping.",
+      "reversals": "Preserve an explicit negative sign or accounting parentheses as an exact negative decimal; never coerce invalid money to zero.",
+      "multiple_amount_columns": "Reject a row when multiple amount-bearing fields are non-empty instead of guessing debit/credit precedence."
+    },
+    "iban_policy": "Validate Pakistan IBAN length, structure and ISO 7064 MOD 97-10 separately. Preserve a structurally invalid source account with an explicit review flag rather than fabricating a corrected identifier.",
+    "timestamp_policy": "Preserve booking/value/source timestamps; a missing event timestamp remains visible and review-required rather than being replaced with ingest time.",
+    "golden_fixture": "ingestion/forensic_records/tests/fixtures/pakistan_financial_messy_synthetic.jsonl"
+  },
+  "subscriber_profile": {
+    "recognized_phone_aliases": ["msisdn", "phone_number", "subscriber_number", "mobile_no", "cellular_number", "mdn", "account_msisdn"],
+    "recognized_identity_aliases": ["cnic", "cnic_no", "national_id", "nic", "cnic_last4", "customer_id", "customer_no", "subscriber_id", "name", "full_name", "subscriber_name", "customer_name"],
+    "normalization": [
+      "Preserve the exact source phone, identity, CNIC, IMSI and IMEI tokens.",
+      "Emit +92 canonical form only for an unambiguous Pakistan national number; retain short/service/provider identifiers as their own class.",
+      "Validate CNIC shape, IMSI length/MCC and IMEI length/check digit separately and expose failures as review flags.",
+      "Never infer the current operator from a number prefix and never merge conflicting or time-separated ownership rows."
+    ],
+    "golden_fixture": "ingestion/forensic_records/tests/fixtures/pakistan_subscriber_messy_synthetic.jsonl"
+  },
+  "tower_sector_profile": {
+    "recognized_site_aliases": ["cell_id", "cell_site_id", "site_id", "site_code", "cgi", "ecgi", "enodeb_id", "gnodeb_id"],
+    "recognized_coordinate_aliases": ["lat", "latitude", "latitude_wgs84", "longitude", "lon", "lng", "longitude_wgs84"],
+    "geometry_policy": "Require globally valid coordinates, preserve datum/CRS, sector/azimuth/beamwidth and uncertainty radius. Pakistan bounds are a review screen only, not proof of location or grounds to discard a globally valid row.",
+    "history_policy": "Retain operational status and timestamp per row; do not overwrite retired or historical site mappings with a current record.",
+    "golden_fixture": "ingestion/forensic_records/tests/fixtures/pakistan_tower_sector_messy_synthetic.csv"
+  },
+  "access_security_log_profile": {
+    "recognized_source_aliases": ["ip", "source_ip", "src_ip", "client_ip", "remote_addr", "remote_ip", "source_address"],
+    "recognized_actor_or_action_aliases": ["user", "username", "user_id", "principal", "actor", "path", "url", "uri", "event_action"],
+    "normalization": [
+      "Require a valid event timestamp and IPv4/IPv6 source address for a typed access/security event.",
+      "Canonicalize IP presentation separately and validate optional port and HTTP status bounds.",
+      "Preserve actor, action, outcome, host and correlation identifiers without treating missing user identity as anonymous proof.",
+      "Keep row order, raw payload, source timezone, hash and rejection reason for incident reconstruction and evidence integrity."
+    ],
+    "golden_fixture": "ingestion/forensic_records/tests/fixtures/pakistan_access_security_messy_synthetic.jsonl"
+  },
+  "language_and_script_profile": {
+    "primary_workflow_languages": [
+      {"name": "Urdu", "bcp47": "ur-PK", "scripts": ["Arabic"]},
+      {"name": "English", "bcp47": "en-PK", "scripts": ["Latin"]},
+      {"name": "Punjabi", "bcp47": "pa-PK", "scripts": ["Arabic"]},
+      {"name": "Sindhi", "bcp47": "sd-PK", "scripts": ["Arabic"]},
+      {"name": "Pashto", "bcp47": "ps-PK", "scripts": ["Arabic"]},
+      {"name": "Balochi", "bcp47": "bal", "scripts": ["Arabic", "Latin"]},
+      {"name": "Saraiki", "bcp47": "skr", "scripts": ["Arabic"]}
+    ],
+    "mixed_language_policy": "Detect language per segment, retain original script, and label Roman Urdu as Urdu-language Latin-script content rather than silently translating it.",
+    "coverage_policy": "The list seeds deployment defaults and is extensible; it is not a claim that every language used in Pakistan is enumerated."
+  },
+  "evidence_family_requirements": {
+    "cdr_ipdr_and_logs": ["provider_schema_aliases", "timezone_provenance", "duplicate_lineage", "network_and_cell_sentinels", "IPv4_and_IPv6", "NAT_and_session_uncertainty"],
+    "anpr": ["province_and_series_rule_version", "Urdu_and_English_OCR", "image_crop_hash", "confidence", "camera_clock_provenance", "manual_review_queue"],
+    "financial_transactions": ["PKR_minor_units", "PK_IBAN_validation", "account_tokenization", "reversal_and_chargeback_semantics", "timezone_and_value_date", "double_entry_reconciliation"],
+    "audio_stt_and_tts": ["ur-PK_and_en-PK", "Roman_Urdu", "speaker_diarization", "word_timestamps", "noise_profile", "consent_and_authority_metadata", "parent_derivative_lineage"],
+    "images_documents_and_video": ["Urdu_and_English_OCR", "EXIF_and_container_metadata", "perceptual_and_cryptographic_hashes", "redaction_derivative_lineage", "frame_or_page_coordinates", "model_and_prompt_version"],
+    "databases_archives_and_office_files": ["read_only_inventory", "path_traversal_protection", "macro_and_executable_abstention", "member_hashes", "formula_preservation", "schema_and_encoding_drift"]
+  },
+  "security_and_governance": {
+    "classification": "restricted_forensic_evidence",
+    "controls": ["tenant_isolation", "least_privilege", "encryption_in_transit", "encryption_at_rest", "immutable_source_hash", "chain_of_custody", "access_audit", "data_localization_policy", "secure_disposal_policy"],
+    "real_data_fixture_policy": "Never commit real subscriber, location, identity, financial, biometric, image, audio, or communications data. Derive only synthetic shape-preserving test cases.",
+    "retention_policy": "Case-configured and counsel-reviewed. Do not encode a universal deletion schedule from a statutory minimum."
+  },
+  "source_registry": [
+    {"authority": "ITU", "topic": "international_numbering", "url": "https://www.itu.int/rec/T-REC-E.164-202602-I", "verified_on": "2026-07-24"},
+    {"authority": "ITU", "topic": "national_numbering_plans", "url": "https://www.itu.int/oth/T0202.aspx?lang=en&parent=T0202", "verified_on": "2026-07-24"},
+    {"authority": "ITU", "topic": "international_mobile_subscriber_identity", "url": "https://www.itu.int/rec/T-REC-E.212/en", "verified_on": "2026-07-24"},
+    {"authority": "NADRA", "topic": "cnic", "url": "https://www.nadra.gov.pk/identityDocument/cnic?action=new&tab=nic", "verified_on": "2026-07-24"},
+    {"authority": "State Bank of Pakistan", "topic": "pakistan_iban", "url": "https://www.sbp.org.pk/psd/2012/IBAN-Guidelines-CL02-2012.pdf", "verified_on": "2026-07-24"},
+    {"authority": "State Bank of Pakistan", "topic": "remittance_transaction_fields", "url": "https://www.sbp.org.pk/psd/2015/CL1-Annex-B.pdf", "verified_on": "2026-07-27"},
+    {"authority": "Sindh Excise", "topic": "vehicle_plate_examples", "url": "https://www.excise.gos.pk/vehicle/check_number_plate", "verified_on": "2026-07-24"},
+    {"authority": "Sindh Excise", "topic": "current_available_number_series", "url": "https://excise.gos.pk/Available-Number-Plates", "verified_on": "2026-07-27"},
+    {"authority": "Punjab Excise", "topic": "vehicle_plate_format", "url": "https://excise.punjab.gov.pk/node/3465", "verified_on": "2026-07-24"},
+    {"authority": "Punjab Excise", "topic": "personalized_plate_policy", "url": "https://excise.punjab.gov.pk/system/files/Vanity_Plates_Terms%20and%20Conditions%2010-12-2024%20%282%29.pdf", "verified_on": "2026-07-27"},
+    {"authority": "Khyber Pakhtunkhwa DGIPR", "topic": "vehicle_registration_marks", "url": "https://dgipr.kp.gov.pk/excise-12-12-25/", "verified_on": "2026-07-24"},
+    {"authority": "Pakistan Code", "topic": "electronic_crime_and_traffic_data", "url": "https://www.pakistancode.gov.pk/pdffiles/administrator6a061efe0ed5bd153fa8b79b8eb4cba7.pdf", "verified_on": "2026-07-24"},
+    {"authority": "PTA NTCERT", "topic": "telecom_cybersecurity_and_chain_of_custody", "url": "https://ntcert.pta.gov.pk/sops/national_cs_framework_for_telecom_07-07-2022.pdf", "verified_on": "2026-07-24"},
+    {"authority": "PTA NTCERT", "topic": "critical_telecom_data", "url": "https://ntcert.pta.gov.pk/sops/critical_telecom_data_reg_20112020.pdf", "verified_on": "2026-07-24"},
+    {"authority": "Ministry of IT and Telecommunication", "topic": "draft_personal_data_protection_bill", "url": "https://moitt.gov.pk/Detail/YjVmNzU0MWMtYzBkMC00Yjg5LTk1ODktOTJiODYzZTY5ZWRk", "status": "draft_reference_not_enacted_law", "verified_on": "2026-07-24"}
+  ],
+  "maintenance": {
+    "review_interval_days": 90,
+    "mandatory_refresh_triggers": ["regulatory_change", "numbering_or_plate_series_change", "provider_export_change", "new_language_or_script_requirement", "failed_golden_fixture"],
+    "provider_onboarding": ["collect_a_lawfully_authorized_sample", "profile_without_exporting_sensitive_values", "map_aliases", "generate_synthetic_goldens", "validate_counts_and_lineage", "record_profile_version", "promote_only_after_acceptance"]
+  }
+}

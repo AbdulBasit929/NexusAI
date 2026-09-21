@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -14,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/mudler/LocalAI/core/config"
 	"github.com/mudler/LocalAI/core/http/auth"
 	"github.com/mudler/LocalAI/core/services/agents"
@@ -73,14 +75,19 @@ type AgentPoolService struct {
 	outputsDir         string
 	apiURL             string // Resolved API URL for agent execution
 	apiKey             string // Resolved API key for agent execution
+	chatCancels        messaging.CancelRegistry
+	chatStatuses       agents.RequestStatusRegistry
+	chatRetries        agents.ChatRetryRegistry
 	mu                 sync.Mutex
 }
 
 // AgentEventBridge is the interface for event publishing needed by AgentPoolService.
 type AgentEventBridge interface {
-	PublishMessage(agentName, userID, sender, content, messageID string) error
-	PublishStatus(agentName, userID, status string) error
-	PublishStreamEvent(agentName, userID string, data map[string]any) error
+	PublishMessage(agentName, userID, sender, content, messageID string, answerMetadata ...map[string]any) error
+	PublishStatus(agentName, userID, messageID, status string, caseIDs ...string) error
+	PublishStreamEvent(agentName, userID, messageID string, data map[string]any) error
+	RequestStatus(agentName, userID, caseID, messageID string) (agents.AgentRequestStatus, bool)
+	CancelExecution(agentName, userID, caseID, messageID string) error
 	RegisterCancel(key string, cancel context.CancelFunc)
 	DeregisterCancel(key string)
 }
@@ -127,7 +134,18 @@ func NewAgentPoolService(appConfig *config.ApplicationConfig, opts ...AgentPoolO
 			svc.distributed.agentStore = o.AgentStore
 		}
 	}
+	if svc.distributed.agentStore == nil && isPostgresAgentDatabaseURL(appConfig.AgentPool.DatabaseURL) {
+		store, err := agents.NewAgentStoreFromURL(appConfig.AgentPool.DatabaseURL)
+		if err != nil {
+			return nil, fmt.Errorf("initializing standalone agent history store: %w", err)
+		}
+		svc.distributed.agentStore = store
+	}
 	return svc, nil
+}
+
+func isPostgresAgentDatabaseURL(value string) bool {
+	return strings.HasPrefix(value, "postgres://") || strings.HasPrefix(value, "postgresql://")
 }
 
 func (s *AgentPoolService) Start(ctx context.Context) error {
@@ -412,17 +430,19 @@ func (s *AgentPoolService) Chat(name, message string) (string, error) {
 
 	// Send user message via SSE
 	userMsg, _ := json.Marshal(map[string]any{
-		"id":        messageID + "-user",
-		"sender":    "user",
-		"content":   message,
-		"timestamp": time.Now().Format(time.RFC3339),
+		"id":         messageID + "-user",
+		"message_id": messageID + "-user",
+		"sender":     "user",
+		"content":    message,
+		"timestamp":  time.Now().Format(time.RFC3339),
 	})
 	manager.Send(sse.NewMessage(string(userMsg)).WithEvent("json_message"))
 
 	// Send processing status
 	statusMsg, _ := json.Marshal(map[string]any{
-		"status":    "processing",
-		"timestamp": time.Now().Format(time.RFC3339),
+		"status":     "processing",
+		"message_id": messageID,
+		"timestamp":  time.Now().Format(time.RFC3339),
 	})
 	manager.Send(sse.NewMessage(string(statusMsg)).WithEvent("json_message_status"))
 
@@ -431,7 +451,7 @@ func (s *AgentPoolService) Chat(name, message string) (string, error) {
 	} else if shouldUseNativeAgentExecutor(nativeCfg) {
 		userID, agentName := splitAgentKey(name)
 		xlog.Info("Using native local agent executor", "agent", agentName, "user", userID, "forensic_records", nativeCfg.EnableForensicRecords, "forensic_api_url", nativeCfg.ForensicRecordsAPIURL, "forensic_collection", nativeCfg.ForensicCollectionID)
-		go s.executeNativeLocalChat(name, message, messageID, nativeCfg, manager)
+		s.startNativeLocalChat(name, message, messageID, nativeCfg, manager)
 		return messageID, nil
 	} else {
 		xlog.Debug("Native local agent executor not selected", "agent", name, "native_config", nativeCfg != nil)
@@ -443,14 +463,16 @@ func (s *AgentPoolService) Chat(name, message string) (string, error) {
 
 		if response == nil {
 			errMsg, _ := json.Marshal(map[string]any{
-				"error":     "agent request failed or was cancelled",
-				"timestamp": time.Now().Format(time.RFC3339),
+				"error":      "agent request failed or was cancelled",
+				"message_id": messageID,
+				"timestamp":  time.Now().Format(time.RFC3339),
 			})
 			manager.Send(sse.NewMessage(string(errMsg)).WithEvent("json_error"))
 		} else if response.Error != nil {
 			errMsg, _ := json.Marshal(map[string]any{
-				"error":     response.Error.Error(),
-				"timestamp": time.Now().Format(time.RFC3339),
+				"error":      response.Error.Error(),
+				"message_id": messageID,
+				"timestamp":  time.Now().Format(time.RFC3339),
 			})
 			manager.Send(sse.NewMessage(string(errMsg)).WithEvent("json_error"))
 		} else {
@@ -481,10 +503,11 @@ func (s *AgentPoolService) Chat(name, message string) (string, error) {
 
 			content := s.appendLocalAGIKBCitations(response.Response, name, message, response.State)
 			msg := map[string]any{
-				"id":        messageID + "-agent",
-				"sender":    "agent",
-				"content":   content,
-				"timestamp": time.Now().Format(time.RFC3339),
+				"id":         messageID + "-agent",
+				"message_id": messageID + "-agent",
+				"sender":     "agent",
+				"content":    content,
+				"timestamp":  time.Now().Format(time.RFC3339),
 			}
 			if len(metadata) > 0 {
 				msg["metadata"] = metadata
@@ -494,8 +517,9 @@ func (s *AgentPoolService) Chat(name, message string) (string, error) {
 		}
 
 		completedMsg, _ := json.Marshal(map[string]any{
-			"status":    "completed",
-			"timestamp": time.Now().Format(time.RFC3339),
+			"status":     "completed",
+			"message_id": messageID,
+			"timestamp":  time.Now().Format(time.RFC3339),
 		})
 		manager.Send(sse.NewMessage(string(completedMsg)).WithEvent("json_message_status"))
 	}()
@@ -512,18 +536,42 @@ func shouldUseNativeAgentExecutor(cfg *agents.AgentConfig) bool {
 	return cfg != nil && cfg.EnableForensicRecords
 }
 
-func (s *AgentPoolService) executeNativeLocalChat(agentKey, message, messageID string, cfg *agents.AgentConfig, manager sse.Manager) {
+func (s *AgentPoolService) startNativeLocalChat(agentKey, message, messageID string, cfg *agents.AgentConfig, manager sse.Manager) {
+	userID, agentName := splitAgentKey(agentKey)
+	ctx, cancel := agents.WithAgentChatDeadline(context.Background(), 0)
+	key := agents.AgentCancellationKey(agentName, userID, cfg.ForensicCollectionID, messageID)
+	s.chatCancels.Register(key, cancel)
+	go func() {
+		defer s.chatCancels.Deregister(key)
+		defer cancel()
+		s.executeNativeLocalChat(ctx, agentKey, message, messageID, cfg, manager)
+	}()
+}
+
+func (s *AgentPoolService) executeNativeLocalChat(ctx context.Context, agentKey, message, messageID string, cfg *agents.AgentConfig, manager sse.Manager) {
 	userID, agentName := splitAgentKey(agentKey)
 	cfgCopy := *cfg
 	cfgCopy.Name = agentName
 	normalizeNativeAgentConfig(&cfgCopy)
 
 	sendJSON := func(event string, payload map[string]any) {
+		if _, ok := payload["message_id"]; !ok {
+			payload["message_id"] = messageID
+		}
 		if _, ok := payload["timestamp"]; !ok {
 			payload["timestamp"] = time.Now().Format(time.RFC3339)
 		}
 		data, _ := json.Marshal(payload)
 		manager.Send(sse.NewMessage(string(data)).WithEvent(event))
+	}
+	sendStatus := func(status string) {
+		s.chatStatuses.Record(agentName, userID, cfgCopy.ForensicCollectionID, messageID, status)
+		if s.distributed.agentStore != nil {
+			if err := s.distributed.agentStore.UpdateAnalysisStatus(userID, agentName, cfgCopy.ForensicCollectionID, messageID, status); err != nil {
+				xlog.Warn("Failed to retain local analysis status", "agent", agentName, "message_id", messageID, "error", err)
+			}
+		}
+		sendJSON("json_message_status", map[string]any{"status": status})
 	}
 
 	opts := agents.ExecuteChatOpts{
@@ -566,42 +614,71 @@ func (s *AgentPoolService) executeNativeLocalChat(agentKey, message, messageID s
 			})
 		},
 		OnStatus: func(status string) {
-			sendJSON("json_message_status", map[string]any{
-				"status": status,
-			})
+			sendStatus(status)
 		},
 		OnMessage: func(sender, content, id string) {
 			messageSent = true
+			if sender == "agent" && s.distributed.agentStore != nil {
+				if err := s.distributed.agentStore.CompleteAnalysis(userID, agentName, messageID, content, nil); err != nil {
+					xlog.Warn("Failed to retain local final analysis", "agent", agentName, "message_id", messageID, "error", err)
+				}
+			}
 			sendJSON("json_message", map[string]any{
-				"id":      id,
-				"sender":  sender,
-				"content": content,
+				"id":         id,
+				"message_id": id,
+				"sender":     sender,
+				"content":    content,
+			})
+		},
+		OnMessageMetadata: func(sender, content, id string, metadata map[string]any) {
+			messageSent = true
+			if sender == "agent" && s.distributed.agentStore != nil {
+				if err := s.distributed.agentStore.CompleteAnalysis(userID, agentName, messageID, content, metadata); err != nil {
+					xlog.Warn("Failed to retain local final analysis metadata", "agent", agentName, "message_id", messageID, "error", err)
+				}
+			}
+			sendJSON("json_message", map[string]any{
+				"id": id, "message_id": id, "sender": sender, "content": content, "answer_metadata": metadata,
 			})
 		},
 	}
 
 	if agents.CanRunDeterministicForensicRoute(&cfgCopy, message, userID) {
-		if _, handled, err := agents.TryDeterministicForensicRoute(&cfgCopy, message, userID, callbacks, opts); handled {
+		if _, handled, err := agents.TryDeterministicForensicRouteContext(ctx, &cfgCopy, message, userID, callbacks, opts); handled {
 			if err != nil {
+				switch agents.ExecutionTerminalStatus(err) {
+				case "timed_out":
+					sendStatus("timed_out")
+					return
+				case "cancelled":
+					sendStatus("cancelled")
+					return
+				}
 				sendJSON("json_error", map[string]any{
-					"error": err.Error(),
+					"error": "The analysis could not be completed. Please try again or contact your administrator.",
 				})
-				sendJSON("json_message_status", map[string]any{
-					"status": "completed",
-				})
+				xlog.Warn("Forensic analysis failed", "agent", agentName, "message_id", messageID, "error", err)
+				sendStatus("error")
 			}
 			return
 		}
 	}
 
-	response, err := agents.ExecuteChat(context.Background(), s.apiURL, s.apiKey, &cfgCopy, message, callbacks, opts)
+	response, err := agents.ExecuteChat(ctx, s.apiURL, s.apiKey, &cfgCopy, message, callbacks, opts)
 	if err != nil {
+		switch agents.ExecutionTerminalStatus(err) {
+		case "timed_out":
+			sendStatus("timed_out")
+			return
+		case "cancelled":
+			sendStatus("cancelled")
+			return
+		}
 		sendJSON("json_error", map[string]any{
-			"error": err.Error(),
+			"error": "The analysis could not be completed. Please try again or contact your administrator.",
 		})
-		sendJSON("json_message_status", map[string]any{
-			"status": "completed",
-		})
+		xlog.Warn("Agent analysis failed", "agent", agentName, "message_id", messageID, "error", err)
+		sendStatus("error")
 		return
 	}
 	if !messageSent {
@@ -1031,6 +1108,10 @@ func (s *AgentPoolService) ListAgentsForUser(userID string) map[string]bool {
 // When auth is enabled and the agent config has no API key, a new user API key
 // is auto-generated so the agent can authenticate against LocalAI's own API.
 func (s *AgentPoolService) CreateAgentForUser(userID string, config *state.AgentConfig) error {
+	return s.createAgentForUserWithCollection(userID, config, config.Name)
+}
+
+func (s *AgentPoolService) createAgentForUserWithCollection(userID string, config *state.AgentConfig, collectionName string) error {
 	if err := ValidateAgentName(config.Name); err != nil {
 		return err
 	}
@@ -1051,8 +1132,8 @@ func (s *AgentPoolService) CreateAgentForUser(userID string, config *state.Agent
 
 	// Auto-create collection when knowledge base or long-term memory is enabled
 	if config.EnableKnowledgeBase || config.LongTermMemory {
-		if err := s.ensureCollectionForUser(userID, config.Name); err != nil {
-			xlog.Warn("Failed to auto-create collection for agent", "agent", config.Name, "error", err)
+		if err := s.ensureCollectionForUser(userID, collectionName); err != nil {
+			xlog.Warn("Failed to ensure agent knowledge collection", "agent", config.Name, "collection", collectionName, "error", err)
 		}
 	}
 
@@ -1092,7 +1173,7 @@ func (s *AgentPoolService) CreateNativeAgentForUser(userID string, config *agent
 	if err != nil {
 		return fmt.Errorf("invalid agent config: %w", err)
 	}
-	if err := s.CreateAgentForUser(userID, localConfig); err != nil {
+	if err := s.createAgentForUserWithCollection(userID, localConfig, config.KnowledgeCollectionName()); err != nil {
 		return err
 	}
 	config.APIKey = localConfig.APIKey
@@ -1104,6 +1185,10 @@ func (s *AgentPoolService) CreateNativeAgentForUser(userID string, config *agent
 
 // UpdateAgentForUser updates a user's agent.
 func (s *AgentPoolService) UpdateAgentForUser(userID, name string, config *state.AgentConfig) error {
+	return s.updateAgentForUserWithCollection(userID, name, config, config.Name)
+}
+
+func (s *AgentPoolService) updateAgentForUserWithCollection(userID, name string, config *state.AgentConfig, collectionName string) error {
 	// Auto-generate a user API key when auth is active and none is specified
 	if s.users.authDB != nil && userID != "" && config.APIKey == "" {
 		plaintext, _, err := auth.CreateAPIKey(s.users.authDB, userID, "agent:"+name, "user", s.appConfig.Auth.APIKeyHMACSecret, nil)
@@ -1119,8 +1204,8 @@ func (s *AgentPoolService) UpdateAgentForUser(userID, name string, config *state
 
 	// Auto-create collection when knowledge base or long-term memory is enabled
 	if config.EnableKnowledgeBase || config.LongTermMemory {
-		if err := s.ensureCollectionForUser(userID, config.Name); err != nil {
-			xlog.Warn("Failed to auto-create collection for agent", "agent", config.Name, "error", err)
+		if err := s.ensureCollectionForUser(userID, collectionName); err != nil {
+			xlog.Warn("Failed to ensure agent knowledge collection", "agent", config.Name, "collection", collectionName, "error", err)
 		}
 	}
 
@@ -1139,7 +1224,7 @@ func (s *AgentPoolService) UpdateNativeAgentForUser(userID, name string, config 
 	if err != nil {
 		return fmt.Errorf("invalid agent config: %w", err)
 	}
-	if err := s.UpdateAgentForUser(userID, name, localConfig); err != nil {
+	if err := s.updateAgentForUserWithCollection(userID, name, localConfig, config.KnowledgeCollectionName()); err != nil {
 		return err
 	}
 	config.APIKey = localConfig.APIKey
@@ -1194,6 +1279,310 @@ func (s *AgentPoolService) ChatForUser(userID, name, message string) (string, er
 	return s.configBackend.Chat(userID, name, message)
 }
 
+// ChatForUserWithForensicScope executes one chat against a request-bound case.
+// The stored agent configuration is copied and never mutated. This is the
+// enforcement point behind the URL-backed Case Workspace selector: both
+// deterministic direct routes and model-selected forensic tools receive the
+// same authoritative collection ID.
+func (s *AgentPoolService) ChatForUserWithForensicScope(userID, name, message, collectionID string, queryScope *agents.ForensicQueryScope, conversationContext ...agents.ForensicConversationContext) (string, error) {
+	messageID := fmt.Sprintf("%d", time.Now().UnixNano())
+	s.recordAnalysisAccepted(userID, name, collectionID, messageID, message, "")
+	var boundedContext *agents.ForensicConversationContext
+	if len(conversationContext) > 0 {
+		contextCopy := conversationContext[0]
+		boundedContext = &contextCopy
+	}
+	acceptedID, err := s.chatForUserWithForensicScopeID(userID, name, message, collectionID, messageID, queryScope, boundedContext)
+	if err != nil && s.distributed.agentStore != nil {
+		_ = s.distributed.agentStore.UpdateAnalysisStatus(userID, name, collectionID, messageID, "error: dispatch failed")
+	}
+	return acceptedID, err
+}
+
+func (s *AgentPoolService) chatForUserWithForensicScopeID(userID, name, message, collectionID, messageID string, queryScope *agents.ForensicQueryScope, conversationContext *agents.ForensicConversationContext) (string, error) {
+	collectionID = strings.TrimSpace(collectionID)
+	if collectionID == "" {
+		return "", errors.New("forensic collection scope is required")
+	}
+	cfg, err := s.nativeAgentConfigForUser(userID, name)
+	if err != nil {
+		return "", fmt.Errorf("invalid agent config: %w", err)
+	}
+	if cfg == nil {
+		return "", fmt.Errorf("agent not found: %s", name)
+	}
+	if !cfg.EnableForensicRecords {
+		return "", fmt.Errorf("agent %s is not enabled for forensic case-scoped chat", name)
+	}
+	cfgCopy := *cfg
+	cfgCopy.ForensicCollectionID = collectionID
+	cfgCopy.ForensicConversationContext = conversationContext
+	cfgCopy.ForensicQueryScope = queryScope
+
+	if s.distributed.natsClient != nil {
+		return s.dispatchChatWithConfigID(userID, name, message, &cfgCopy, messageID)
+	}
+	manager := s.configBackend.GetSSEManager(userID, name)
+	if manager == nil {
+		return "", fmt.Errorf("SSE manager not found for agent: %s", name)
+	}
+	if messageID == "" {
+		messageID = fmt.Sprintf("%d", time.Now().UnixNano())
+	}
+	s.chatStatuses.Record(name, userID, collectionID, messageID, "processing")
+	sendAgentChatStarted(manager, message, messageID)
+	s.startNativeLocalChat(agents.AgentKey(userID, name), message, messageID, &cfgCopy, manager)
+	return messageID, nil
+}
+
+// ChatRetryResult records the retry lineage and whether this call created the
+// dispatch or replayed an existing idempotent acknowledgement.
+type ChatRetryResult struct {
+	MessageID        string `json:"message_id"`
+	RetryOf          string `json:"retry_of"`
+	CaseID           string `json:"case_id"`
+	IdempotentReplay bool   `json:"idempotent_replay"`
+}
+
+// RetryChatForUser performs one explicit forensic retry. It never retries
+// automatically and reserves the idempotency key before dispatch.
+func (s *AgentPoolService) RetryChatForUser(userID, name, caseID, originalMessageID, message, idempotencyKey string, queryScope *agents.ForensicQueryScope) (ChatRetryResult, error) {
+	status, ok := s.ChatStatusForUser(userID, name, caseID, originalMessageID)
+	if !ok {
+		return ChatRetryResult{}, errors.New("original request status not found")
+	}
+	if !agents.IsRetryEligibleStatus(status.Status) {
+		return ChatRetryResult{}, agents.ErrRetryNotEligible
+	}
+
+	retryID := fmt.Sprintf("%d", time.Now().UnixNano())
+	requested := agents.ChatRetryReservation{
+		AgentName: name, UserID: userID, CaseID: caseID,
+		OriginalMessageID: originalMessageID, RetryMessageID: retryID,
+		IdempotencyKeyHash: agents.ChatRetryMessageHash(idempotencyKey), MessageHash: agents.ChatRetryMessageHash(message),
+	}
+	reservationID := agents.ChatRetryReservationID(name, userID, caseID, idempotencyKey)
+	var reservation agents.ChatRetryReservation
+	var created bool
+	var err error
+	if s.distributed.agentStore != nil {
+		reservation, created, err = s.distributed.agentStore.ReserveChatRetry(reservationID, agents.AgentKey(userID, name), requested)
+	} else {
+		reservation, created, err = s.chatRetries.Reserve(reservationID, requested)
+	}
+	if err != nil {
+		return ChatRetryResult{}, err
+	}
+	result := ChatRetryResult{
+		MessageID: reservation.RetryMessageID, RetryOf: reservation.OriginalMessageID,
+		CaseID: reservation.CaseID, IdempotentReplay: !created,
+	}
+	if !created {
+		return result, nil
+	}
+	s.recordAnalysisAccepted(userID, name, caseID, reservation.RetryMessageID, message, originalMessageID)
+	if _, err := s.chatForUserWithForensicScopeID(userID, name, message, caseID, reservation.RetryMessageID, queryScope, nil); err != nil {
+		s.chatStatuses.Record(name, userID, caseID, reservation.RetryMessageID, "error: retry dispatch failed")
+		if s.distributed.agentStore != nil {
+			_ = s.distributed.agentStore.UpdateAnalysisStatus(userID, name, caseID, reservation.RetryMessageID, "error: retry dispatch failed")
+		}
+		return ChatRetryResult{}, err
+	}
+	return result, nil
+}
+
+func (s *AgentPoolService) analysisScopeForUser(userID, name, caseID string) (agents.AnalysisHistoryScope, error) {
+	if s.distributed.agentStore == nil {
+		return agents.AnalysisHistoryScope{}, agents.ErrAnalysisHistoryUnavailable
+	}
+	cfg, err := s.nativeAgentConfigForUser(userID, name)
+	if err != nil || cfg == nil {
+		return agents.AnalysisHistoryScope{}, fmt.Errorf("agent not found: %s", name)
+	}
+	if !cfg.EnableForensicRecords {
+		return agents.AnalysisHistoryScope{}, fmt.Errorf("agent %s is not enabled for forensic case history", name)
+	}
+	tenantID := strings.TrimSpace(cfg.ForensicTenantID)
+	if tenantID == "" {
+		tenantID = "default"
+	}
+	return agents.AnalysisHistoryScope{
+		TenantID: tenantID, UserID: userID, AgentName: name,
+		CaseID: caseID, CollectionID: caseID,
+	}, nil
+}
+
+func (s *AgentPoolService) recordAnalysisAccepted(userID, name, caseID, messageID, message, retryOf string) {
+	if messageID == "" || s.distributed.agentStore == nil {
+		return
+	}
+	scope, err := s.analysisScopeForUser(userID, name, caseID)
+	if err != nil {
+		return
+	}
+	cfg := s.GetNativeAgentConfigForUser(userID, name)
+	authority, modelRole := "specialist_agent", "bounded_specialist_synthesis"
+	if agents.CanRunDeterministicForensicRoute(cfg, message, userID) {
+		authority, modelRole = "deterministic_records", "explanation_after_exact_analysis"
+	}
+	_, err = s.distributed.agentStore.CreateAnalysis(&agents.AgentAnalysisRecord{
+		TenantID: scope.TenantID, UserID: userID, AgentName: name,
+		CaseID: caseID, CollectionID: caseID, MessageID: messageID,
+		RetryOf: retryOf, QueryText: message, Status: "processing",
+		ExecutionAuthority: authority, ModelRole: modelRole,
+	})
+	if err != nil {
+		xlog.Warn("Failed to retain accepted analysis", "agent", name, "message_id", messageID, "error", err)
+	}
+}
+
+func (s *AgentPoolService) AnalysisHistoryForUser(userID, name, caseID string, opts agents.AnalysisHistoryListOptions) (agents.AnalysisHistoryPage, error) {
+	scope, err := s.analysisScopeForUser(userID, name, caseID)
+	if err != nil {
+		return agents.AnalysisHistoryPage{}, err
+	}
+	return s.distributed.agentStore.ListAnalysisHistory(scope, opts)
+}
+
+func (s *AgentPoolService) AnalysisForUser(userID, name, caseID, analysisID string) (agents.AnalysisHistoryEntry, error) {
+	scope, err := s.analysisScopeForUser(userID, name, caseID)
+	if err != nil {
+		return agents.AnalysisHistoryEntry{}, err
+	}
+	return s.distributed.agentStore.GetAnalysis(scope, analysisID)
+}
+
+func (s *AgentPoolService) SetAnalysisSavedForUser(userID, name, caseID, analysisID string, saved bool, title string) (agents.AnalysisHistoryEntry, error) {
+	scope, err := s.analysisScopeForUser(userID, name, caseID)
+	if err != nil {
+		return agents.AnalysisHistoryEntry{}, err
+	}
+	entry, err := s.distributed.agentStore.SetAnalysisSaved(scope, analysisID, saved, title, userID)
+	if err == nil {
+		s.distributed.agentStore.AppendObservable(&agents.AgentObservableRecord{
+			AgentName: agents.AgentKey(userID, name), EventType: "analysis_saved_state",
+			PayloadJSON: string(agents.JSONPayload(map[string]any{"analysis_id": analysisID, "case_id": caseID, "saved": saved})),
+		})
+	}
+	return entry, err
+}
+
+func (s *AgentPoolService) ImportBrowserAnalysisHistory(userID, name, caseID string, conversations []agents.BrowserHistoryConversation) (agents.BrowserHistoryImportResult, error) {
+	scope, err := s.analysisScopeForUser(userID, name, caseID)
+	if err != nil {
+		return agents.BrowserHistoryImportResult{}, err
+	}
+	importID := uuid.New().String()
+	result := agents.BrowserHistoryImportResult{ContractVersion: agents.AnalysisHistoryContractV1, ImportID: importID, RollbackAvailable: true}
+	for _, conversation := range conversations {
+		for index, message := range conversation.Messages {
+			if message.Sender != "user" || strings.TrimSpace(message.Content) == "" {
+				continue
+			}
+			answer := ""
+			metadata := map[string]any{}
+			var answerTimestamp int64
+			for next := index + 1; next < len(conversation.Messages); next++ {
+				candidate := conversation.Messages[next]
+				if candidate.Sender == "user" {
+					break
+				}
+				if candidate.Sender == "agent" {
+					answer, metadata = candidate.Content, candidate.Metadata
+					answerTimestamp = candidate.Timestamp
+					break
+				}
+			}
+			createdAt := time.Now().UTC()
+			if message.Timestamp > 0 {
+				createdAt = time.UnixMilli(message.Timestamp).UTC()
+			}
+			status := "imported_incomplete"
+			var completedAt *time.Time
+			if answer != "" {
+				status = "completed"
+				completionTime := createdAt
+				if answerTimestamp > 0 {
+					completionTime = time.UnixMilli(answerTimestamp).UTC()
+				}
+				completedAt = &completionTime
+			}
+			created, createErr := s.distributed.agentStore.CreateAnalysis(&agents.AgentAnalysisRecord{
+				TenantID: scope.TenantID, UserID: userID, AgentName: name,
+				CaseID: caseID, CollectionID: caseID,
+				MessageID: agents.BrowserImportMessageID(userID, name, caseID, conversation.ID, index, message.Content),
+				QueryText: message.Content, AnswerText: answer, AnswerMetadata: string(agents.JSONPayload(metadata)),
+				Status: status, ExecutionAuthority: "historical_unknown", ModelRole: "historical_unknown",
+				Source: agents.AnalysisSourceBrowserImport, ImportID: importID,
+				CreatedAt: createdAt, CompletedAt: completedAt,
+			})
+			if createErr != nil {
+				return result, createErr
+			}
+			if created {
+				result.Imported++
+			} else {
+				result.Skipped++
+			}
+		}
+	}
+	result.RollbackAvailable = result.Imported > 0
+	s.distributed.agentStore.AppendObservable(&agents.AgentObservableRecord{
+		AgentName: agents.AgentKey(userID, name), EventType: "analysis_history_import",
+		PayloadJSON: string(agents.JSONPayload(map[string]any{"import_id": importID, "case_id": caseID, "imported": result.Imported, "skipped": result.Skipped})),
+	})
+	return result, nil
+}
+
+func (s *AgentPoolService) RollbackBrowserAnalysisImport(userID, name, caseID, importID string) (agents.AnalysisImportRollbackResult, error) {
+	scope, err := s.analysisScopeForUser(userID, name, caseID)
+	if err != nil {
+		return agents.AnalysisImportRollbackResult{}, err
+	}
+	result, err := s.distributed.agentStore.RollbackAnalysisImport(scope, importID)
+	if err == nil {
+		s.distributed.agentStore.AppendObservable(&agents.AgentObservableRecord{
+			AgentName: agents.AgentKey(userID, name), EventType: "analysis_history_import_rollback",
+			PayloadJSON: string(agents.JSONPayload(result)),
+		})
+	}
+	return result, err
+}
+
+// CancelChatForUser cancels only the exact user/agent/case/request tuple.
+func (s *AgentPoolService) CancelChatForUser(userID, name, caseID, messageID string) error {
+	key := agents.AgentCancellationKey(name, userID, caseID, messageID)
+	if s.chatCancels.Cancel(key) {
+		return nil
+	}
+	if s.distributed.eventBridge != nil {
+		return s.distributed.eventBridge.CancelExecution(name, userID, caseID, messageID)
+	}
+	return nil
+}
+
+// ChatStatusForUser returns only the exact user/agent/case/request lifecycle snapshot.
+func (s *AgentPoolService) ChatStatusForUser(userID, name, caseID, messageID string) (agents.AgentRequestStatus, bool) {
+	if status, ok := s.chatStatuses.Get(name, userID, caseID, messageID); ok {
+		return status, true
+	}
+	if s.distributed.eventBridge != nil {
+		return s.distributed.eventBridge.RequestStatus(name, userID, caseID, messageID)
+	}
+	return agents.AgentRequestStatus{}, false
+}
+
+func sendAgentChatStarted(manager sse.Manager, message, messageID string) {
+	userMsg, _ := json.Marshal(map[string]any{
+		"id": messageID + "-user", "message_id": messageID + "-user", "sender": "user", "content": message, "timestamp": time.Now().Format(time.RFC3339),
+	})
+	manager.Send(sse.NewMessage(string(userMsg)).WithEvent("json_message"))
+	statusMsg, _ := json.Marshal(map[string]any{
+		"status": "processing", "message_id": messageID, "timestamp": time.Now().Format(time.RFC3339),
+	})
+	manager.Send(sse.NewMessage(string(statusMsg)).WithEvent("json_message_status"))
+}
+
 func (s *AgentPoolService) tryDeterministicForensicChatForUser(userID, name, message string) (string, bool, error) {
 	cfg, err := s.nativeAgentConfigForUser(userID, name)
 	if err != nil {
@@ -1208,7 +1597,7 @@ func (s *AgentPoolService) tryDeterministicForensicChatForUser(userID, name, mes
 
 	if s.distributed.eventBridge != nil {
 		_ = s.distributed.eventBridge.PublishMessage(name, userID, "user", message, messageID+"-user")
-		_ = s.distributed.eventBridge.PublishStatus(name, userID, "processing")
+		_ = s.distributed.eventBridge.PublishStatus(name, userID, messageID, "processing", cfg.ForensicCollectionID)
 		go s.runDistributedDeterministicForensicChat(userID, name, message, messageID, cfg)
 		return messageID, true, nil
 	}
@@ -1218,18 +1607,21 @@ func (s *AgentPoolService) tryDeterministicForensicChatForUser(userID, name, mes
 		return "", false, nil
 	}
 	userMsg, _ := json.Marshal(map[string]any{
-		"id":        messageID + "-user",
-		"sender":    "user",
-		"content":   message,
-		"timestamp": time.Now().Format(time.RFC3339),
+		"id":         messageID + "-user",
+		"message_id": messageID + "-user",
+		"sender":     "user",
+		"content":    message,
+		"timestamp":  time.Now().Format(time.RFC3339),
 	})
 	manager.Send(sse.NewMessage(string(userMsg)).WithEvent("json_message"))
 	statusMsg, _ := json.Marshal(map[string]any{
-		"status":    "processing",
-		"timestamp": time.Now().Format(time.RFC3339),
+		"status":     "processing",
+		"message_id": messageID,
+		"timestamp":  time.Now().Format(time.RFC3339),
 	})
 	manager.Send(sse.NewMessage(string(statusMsg)).WithEvent("json_message_status"))
-	go s.executeNativeLocalChat(agents.AgentKey(userID, name), message, messageID, cfg, manager)
+	s.chatStatuses.Record(name, userID, cfg.ForensicCollectionID, messageID, "processing")
+	s.startNativeLocalChat(agents.AgentKey(userID, name), message, messageID, cfg, manager)
 	return messageID, true, nil
 }
 
@@ -1237,21 +1629,34 @@ func (s *AgentPoolService) tryDeterministicForensicChatForUser(userID, name, mes
 // The event is enriched with the full agent config and resolved skills so that
 // the worker does not need direct database access.
 func (s *AgentPoolService) dispatchChat(userID, name, message string) (string, error) {
-	messageID := fmt.Sprintf("%d", time.Now().UnixNano())
+	return s.dispatchChatWithConfig(userID, name, message, nil)
+}
 
-	// Send user message to SSE immediately so the UI shows it right away
+func (s *AgentPoolService) dispatchChatWithConfig(userID, name, message string, suppliedCfg *agents.AgentConfig) (string, error) {
+	return s.dispatchChatWithConfigID(userID, name, message, suppliedCfg, "")
+}
+
+func (s *AgentPoolService) dispatchChatWithConfigID(userID, name, message string, suppliedCfg *agents.AgentConfig, messageID string) (string, error) {
+	if messageID == "" {
+		messageID = fmt.Sprintf("%d", time.Now().UnixNano())
+	}
+
+	// Send user message to SSE immediately so the UI shows it right away.
 	if s.distributed.eventBridge != nil {
 		agentName := name
 		s.distributed.eventBridge.PublishMessage(agentName, userID, "user", message, messageID+"-user")
-		s.distributed.eventBridge.PublishStatus(agentName, userID, "processing")
 	}
 
 	// Load the native LocalAI config to embed in the NATS payload. This keeps
 	// LocalAI-only fields such as enable_forensic_records available to the
 	// worker instead of losing them through the legacy LocalAGI config shape.
-	cfg, err := s.nativeAgentConfigForUser(userID, name)
-	if err != nil {
-		return "", fmt.Errorf("invalid agent config: %w", err)
+	cfg := suppliedCfg
+	if cfg == nil {
+		var err error
+		cfg, err = s.nativeAgentConfigForUser(userID, name)
+		if err != nil {
+			return "", fmt.Errorf("invalid agent config: %w", err)
+		}
 	}
 	if cfg == nil && s.distributed.agentStore != nil {
 		rec, err := s.distributed.agentStore.GetConfig(userID, name)
@@ -1263,6 +1668,13 @@ func (s *AgentPoolService) dispatchChat(userID, name, message string) (string, e
 			return "", fmt.Errorf("invalid agent config: %w", err)
 		}
 		cfg = &c
+	}
+	caseID := ""
+	if cfg != nil && cfg.EnableForensicRecords {
+		caseID = cfg.ForensicCollectionID
+	}
+	if s.distributed.eventBridge != nil {
+		_ = s.distributed.eventBridge.PublishStatus(name, userID, messageID, "processing", caseID)
 	}
 
 	// Load skills if enabled — uses SkillManager which reads from filesystem/PostgreSQL
@@ -1279,13 +1691,17 @@ func (s *AgentPoolService) dispatchChat(userID, name, message string) (string, e
 	}
 
 	evt := agents.AgentChatEvent{
-		AgentName: name,
-		UserID:    userID,
-		Message:   message,
-		MessageID: messageID,
-		Role:      "user",
-		Config:    cfg,
-		Skills:    skills,
+		AgentName:                   name,
+		UserID:                      userID,
+		Message:                     message,
+		MessageID:                   messageID,
+		Role:                        "user",
+		CaseID:                      caseID,
+		ForensicConversationContext: cfg.ForensicConversationContext,
+		ForensicQueryScope:          cfg.ForensicQueryScope,
+		DeadlineUnixMilli:           agents.AgentChatDeadlineUnixMilli(),
+		Config:                      cfg,
+		Skills:                      skills,
 	}
 	if err := s.distributed.natsClient.Publish(messaging.SubjectAgentExecute, evt); err != nil {
 		return "", fmt.Errorf("failed to dispatch agent chat: %w", err)
@@ -1297,6 +1713,11 @@ func (s *AgentPoolService) runDistributedDeterministicForensicChat(userID, name,
 	if s.distributed.eventBridge == nil {
 		return
 	}
+	ctx, cancel := agents.WithAgentChatDeadline(context.Background(), 0)
+	cancelKey := agents.AgentCancellationKey(name, userID, cfg.ForensicCollectionID, messageID)
+	s.distributed.eventBridge.RegisterCancel(cancelKey, cancel)
+	defer s.distributed.eventBridge.DeregisterCancel(cancelKey)
+	defer cancel()
 	opts := agents.ExecuteChatOpts{
 		APIURL:    s.apiURL,
 		APIKey:    s.apiKey,
@@ -1305,7 +1726,7 @@ func (s *AgentPoolService) runDistributedDeterministicForensicChat(userID, name,
 	}
 	cb := agents.Callbacks{
 		OnToolCall: func(toolName, args string) {
-			_ = s.distributed.eventBridge.PublishStreamEvent(name, userID, map[string]any{
+			_ = s.distributed.eventBridge.PublishStreamEvent(name, userID, messageID, map[string]any{
 				"type":      "tool_call",
 				"tool_name": toolName,
 				"tool_args": args,
@@ -1313,7 +1734,7 @@ func (s *AgentPoolService) runDistributedDeterministicForensicChat(userID, name,
 			})
 		},
 		OnToolResult: func(toolName, result string) {
-			_ = s.distributed.eventBridge.PublishStreamEvent(name, userID, map[string]any{
+			_ = s.distributed.eventBridge.PublishStreamEvent(name, userID, messageID, map[string]any{
 				"type":        "tool_result",
 				"tool_name":   toolName,
 				"tool_result": result,
@@ -1321,22 +1742,33 @@ func (s *AgentPoolService) runDistributedDeterministicForensicChat(userID, name,
 			})
 		},
 		OnStatus: func(status string) {
-			_ = s.distributed.eventBridge.PublishStatus(name, userID, status)
+			_ = s.distributed.eventBridge.PublishStatus(name, userID, messageID, status, cfg.ForensicCollectionID)
 		},
 		OnMessage: func(sender, content, msgID string) {
 			_ = s.distributed.eventBridge.PublishMessage(name, userID, sender, content, msgID)
 		},
+		OnMessageMetadata: func(sender, content, msgID string, metadata map[string]any) {
+			_ = s.distributed.eventBridge.PublishMessage(name, userID, sender, content, msgID, metadata)
+		},
 	}
-	if _, handled, err := agents.TryDeterministicForensicRoute(cfg, message, userID, cb, opts); handled {
+	if _, handled, err := agents.TryDeterministicForensicRouteContext(ctx, cfg, message, userID, cb, opts); handled {
 		if err != nil {
+			switch agents.ExecutionTerminalStatus(err) {
+			case "timed_out":
+				_ = s.distributed.eventBridge.PublishStatus(name, userID, messageID, "timed_out", cfg.ForensicCollectionID)
+				return
+			case "cancelled":
+				_ = s.distributed.eventBridge.PublishStatus(name, userID, messageID, "cancelled", cfg.ForensicCollectionID)
+				return
+			}
 			xlog.Error("deterministic forensic dispatch failed", "agent", name, "error", err)
-			_ = s.distributed.eventBridge.PublishStatus(name, userID, "error: "+err.Error())
+			_ = s.distributed.eventBridge.PublishStatus(name, userID, messageID, "error: "+err.Error(), cfg.ForensicCollectionID)
 			_ = s.distributed.eventBridge.PublishMessage(name, userID, "agent", "Records analysis failed: "+err.Error(), messageID)
 		}
 		return
 	}
 	xlog.Warn("deterministic forensic dispatch was requested but no route handled the message", "agent", name)
-	_ = s.distributed.eventBridge.PublishStatus(name, userID, "error: deterministic forensic route unavailable")
+	_ = s.distributed.eventBridge.PublishStatus(name, userID, messageID, "error: deterministic forensic route unavailable", cfg.ForensicCollectionID)
 }
 
 // GetSSEManagerForUser returns the SSE manager for a user's agent.
@@ -1406,8 +1838,9 @@ func (s *AgentPoolService) ImportNativeAgentForUser(userID string, cfg *agents.A
 		return err
 	}
 	if cfg.EnableKnowledgeBase || cfg.LongTermMemory {
-		if err := s.ensureCollectionForUser(userID, cfg.Name); err != nil {
-			xlog.Warn("Failed to auto-create collection for agent", "agent", cfg.Name, "error", err)
+		collectionName := cfg.KnowledgeCollectionName()
+		if err := s.ensureCollectionForUser(userID, collectionName); err != nil {
+			xlog.Warn("Failed to ensure agent knowledge collection", "agent", cfg.Name, "collection", collectionName, "error", err)
 		}
 	}
 	if s.distributed.agentStore != nil {

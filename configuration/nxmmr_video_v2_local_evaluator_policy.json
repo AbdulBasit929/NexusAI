@@ -1,0 +1,43 @@
+{
+  "contract_version": "nexusai.nxmmr.video-v2-local-evaluator-resource-policy/v1",
+  "workload_class": "VIDEO_V2_LOCAL_EVALUATOR",
+  "authorization_sha256": "a843de7f77bada032de623b773996495d1212bf379c8fd11cb0bd8f99af8d71d",
+  "candidate_freeze_digest": "212c00970d7bed1c40612102c11f1a0dd24c43435c406df83d80bd8f40117b20",
+  "scope": "isolated Video V2 development comparability and conditionally authorized reserved evaluation only",
+  "initial_minimum_available_physical_ram_gib": 3.0,
+  "parallel_heavy_models": 1,
+  "absolute_safety_stop_available_physical_ram_gib": 1.5,
+  "prior_replay_peak_rss_mib": 672.398,
+  "prior_peak_is_not_integrated_runtime_measurement": true,
+  "measurements_required": [
+    "physical RAM available before model load",
+    "minimum host available physical RAM during run",
+    "process peak RSS",
+    "child-process peak RSS where measurable",
+    "incremental evaluator memory peak",
+    "aggregate CPU seconds",
+    "wall seconds"
+  ],
+  "empirical_requirement": "measured incremental peak GiB + at least 1.5 GiB safety headroom; record after exact-runtime development measurement, not from the earlier OCR-only replay",
+  "unexpectedly_high_consumption": "stop and reclassify before reserved admission",
+  "exact_runtime_verification_required": true,
+  "development_gate_required_before_reserved": true,
+  "reserved_maximum_evaluations": 1,
+  "prospective_utility_gates": {
+    "event_recall_preferred": 0.75,
+    "event_recall_strong": 0.85,
+    "final_group_precision_preferred": 0.8,
+    "final_group_f1_preferred": 0.65,
+    "exact_plate_f1_preferred": 0.6,
+    "source_time": "no catastrophic regression; practical source review"
+  },
+  "existing_future_build_deployment_minimum_free_ram_gib": 6.0,
+  "other_heavy_workload_gates_changed": false,
+  "live_service_startup_policy_changed": false,
+  "operator_application_shutdown_required": false,
+  "model_or_backend_download_authorized": false,
+  "isolated_python_dependency_acquisition_authorized": true,
+  "dependency_provisioning_authorization_sha256": "aca17eb8ff951052ae3aadafb94763cacb2f2859b618ddc1169aaac87748a20b",
+  "deployment_authorized": false,
+  "runtime_policy_enforcement_status": "host monitor enforced 3.0-GiB admission and 1.5-GiB stop; exact runtime/import/pip-check PASS; synthetic OCR contract FAIL blocks development/reserved; exception-path process resource finalization remains open"
+}

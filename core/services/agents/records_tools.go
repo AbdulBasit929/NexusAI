@@ -11,18 +11,23 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/mudler/LocalAI/core/services/records"
+	"github.com/mudler/LocalAI/pkg/forensicpolicy"
+	"github.com/mudler/LocalAI/pkg/forensictext"
 	"github.com/mudler/LocalAI/pkg/httpclient"
 )
 
 const RecordsToolsPolicy = `Structured Records Intelligence is available for exact analytics.
-Use records_query, records_aggregate, records_schema, records_explain_batch, cdr_query, anpr_query, or correlate_records for exact counts, filters, rankings, shortest/longest/min/max, distinct values, and time-window correlations over ingested CSV/JSON/JSONL/TSV/log records.
+Use records_query, records_aggregate, records_schema, records_explain_batch, cdr_query, anpr_query, or correlate_records for exact counts, filters, rankings, shortest/longest/min/max, distinct values, and time-window correlations over ingested CSV/JSON/JSONL/TSV/XLSX/log records.
 Use Knowledge Base search for evidence text, previews, summaries, and explanation context.
 Never infer exact structured values from semantic retrieval alone; if the needed batch or field is missing, say what data or tool input is missing.
 Cite batch_id, source_file, source_entry, and row_number when the tool returns them.`
 
 const ForensicRecordsToolsPolicy = `Enterprise Forensic Records Intelligence is available through forensic_hybrid_query, forensic_query_templates, forensic_list_evidence, forensic_get_evidence, and forensic_generate_report.
-Use forensic_hybrid_query for natural-language analyst questions over a Knowledge Base collection, including CDR, ANPR, IPDR, subscriber, tower, transaction, access-log, policy, document, and generic evidence collections.
+First classify the request by meaning. Investigation questions, conversational follow-ups, document/evidence retrieval, and requests for case facts require the appropriate governed forensic tool. Product help, greetings, and relevant general knowledge may be answered directly, but must not claim anything about the current case, uploaded evidence, processing state, available models, or computed findings unless a tool returned it in this turn.
+Do not force product help or general questions into a forensic query. When an investigation request is ambiguous, ask one concise clarification. When a requested analytical capability is unavailable, state that limitation and offer only genuinely supported alternatives.
+Use forensic_hybrid_query for natural-language analyst questions over a Knowledge Base collection, including CDR, ANPR, IPDR, subscriber, tower, transaction, access-log, policy, document, spreadsheet, and generic evidence collections. Ask to correlate a concrete identifier across record families when exact cross-family linkage and source-row citations are required.
 Use forensic_list_evidence to audit what evidence exists in a collection and forensic_get_evidence to inspect one evidence item, linked ingest jobs, KB assets, canonical row previews, and entity rollups.
 Use canonical_records through forensic_hybrid_query for source-of-truth filters over any record family, entity, source_file, batch_id, raw_payload field, or field-exists/not-exists question.
 The forensic API routes exact analytics to read-only SQL templates and evidence/context lookup to the Knowledge Base. Do not invent counts, timelines, relationships, attributes, or quality statistics from retrieved text alone.
@@ -41,29 +46,123 @@ type ForensicCanonicalFieldFilter struct {
 	Op    string `json:"op" jsonschema:"description=Operator: exists or not_exists"`
 }
 
+type ForensicCanonicalGroup struct {
+	Field   string `json:"field" jsonschema:"enum=record_type,enum=source_file,description=Canonical string field for bounded grouping"`
+	Measure string `json:"measure" jsonschema:"enum=count,description=Exact row count; at most 1000 input rows and 100 groups with retained nulls and row lineage"`
+}
+
+// ForensicConversationContext is the bounded analyst context returned by a
+// prior authorized answer. It carries filters only; it never carries findings
+// or grants access to another case.
+type ForensicConversationContext struct {
+	ContractVersion   string          `json:"contract_version,omitempty"`
+	ConversationID    string          `json:"conversation_id,omitempty"`
+	AnalysisID        string          `json:"analysis_id,omitempty"`
+	TurnID            string          `json:"turn_id,omitempty"`
+	TenantID          string          `json:"tenant_id,omitempty"`
+	UserID            string          `json:"user_id,omitempty"`
+	CollectionID      string          `json:"collection_id,omitempty"`
+	CurrentQuestion   string          `json:"current_question,omitempty"`
+	CreatedAt         string          `json:"created_at,omitempty"`
+	ExpiresAt         string          `json:"expires_at,omitempty"`
+	Target            string          `json:"target,omitempty"`
+	Targets           []string        `json:"targets,omitempty"`
+	Template          string          `json:"template,omitempty"`
+	DateFrom          string          `json:"date_from,omitempty"`
+	DateTo            string          `json:"date_to,omitempty"`
+	Direction         string          `json:"direction,omitempty"`
+	EvidenceID        string          `json:"evidence_id,omitempty"`
+	EvidenceVersionID string          `json:"evidence_version_id,omitempty"`
+	OperationID       string          `json:"operation_id,omitempty"`
+	SourceNative      json.RawMessage `json:"source_native,omitempty"`
+	IssuedFields      json.RawMessage `json:"issued_fields,omitempty"`
+	EntityHandles     json.RawMessage `json:"entity_handles,omitempty"`
+	ResultHandles     json.RawMessage `json:"result_handles,omitempty"`
+	FactHandles       json.RawMessage `json:"fact_handles,omitempty"`
+	CitationHandles   json.RawMessage `json:"citation_handles,omitempty"`
+	SourceSet         json.RawMessage `json:"source_set,omitempty"`
+	Mutation          json.RawMessage `json:"mutation,omitempty"`
+	InheritedFields   json.RawMessage `json:"inherited_fields,omitempty"`
+	AuditID           string          `json:"audit_id,omitempty"`
+}
+
+// ForensicQueryScope is the request-selected evidence context. It is a hint
+// until the forensic sidecar rebinds every identifier to the authorized case
+// and current evidence version.
+type ForensicQueryScope struct {
+	Kind                    string   `json:"kind,omitempty"`
+	EvidenceID              string   `json:"evidence_id,omitempty"`
+	EvidenceVersionID       string   `json:"evidence_version_id,omitempty"`
+	SourceFamily            string   `json:"source_family,omitempty"`
+	AvailableResultFamilies []string `json:"available_result_families,omitempty"`
+}
+
+func (s ForensicQueryScope) Validate() error {
+	kind := strings.TrimSpace(s.Kind)
+	switch kind {
+	case "current_workspace":
+		if strings.TrimSpace(s.EvidenceID) != "" || strings.TrimSpace(s.EvidenceVersionID) != "" {
+			return fmt.Errorf("workspace query scope cannot name evidence or a version")
+		}
+	case "selected_evidence":
+		if _, err := uuid.Parse(strings.TrimSpace(s.EvidenceID)); err != nil {
+			return fmt.Errorf("selected evidence query scope requires a valid evidence UUID")
+		}
+		if value := strings.TrimSpace(s.EvidenceVersionID); value != "" {
+			if _, err := uuid.Parse(value); err != nil {
+				return fmt.Errorf("evidence version must be a valid UUID")
+			}
+		}
+	default:
+		return fmt.Errorf("query scope kind must be current_workspace or selected_evidence")
+	}
+	if len(strings.TrimSpace(s.SourceFamily)) > 64 || len(s.AvailableResultFamilies) > 32 {
+		return fmt.Errorf("query scope exceeds bounded family limits")
+	}
+	for _, family := range s.AvailableResultFamilies {
+		if value := strings.TrimSpace(family); value == "" || len(value) > 128 {
+			return fmt.Errorf("query scope contains an invalid result family")
+		}
+	}
+	return nil
+}
+
 type ForensicHybridQueryArgs struct {
-	TenantID          string                           `json:"tenant_id,omitempty" jsonschema:"description=Tenant ID, defaults to the agent forensic_tenant_id or default"`
-	UserID            string                           `json:"user_id,omitempty" jsonschema:"description=Optional user ID for scoped KB evidence lookup"`
-	CollectionID      string                           `json:"collection_id,omitempty" jsonschema:"description=Knowledge Base collection/case ID"`
-	Query             string                           `json:"query" jsonschema:"description=Natural-language analyst question"`
-	Target            string                           `json:"target,omitempty" jsonschema:"description=Optional extracted target such as phone, plate, IP, IMSI, IMEI, location, or call type"`
-	Targets           []string                         `json:"targets,omitempty" jsonschema:"description=Optional multiple targets to match against primary_target and secondary_target"`
-	Template          string                           `json:"template,omitempty" jsonschema:"description=Optional deterministic template name, for example canonical_records, entity_activity, relationship_network, entity_timeline, source_records, schema_profile, data_quality, evidence"`
-	RecordType        string                           `json:"record_type,omitempty" jsonschema:"description=Optional canonical record type such as cdr, anpr, ipdr, subscriber, tower_location, transaction, access_log, or generic"`
-	DateFrom          string                           `json:"date_from,omitempty" jsonschema:"description=Optional inclusive timestamp lower bound in RFC3339 format"`
-	DateTo            string                           `json:"date_to,omitempty" jsonschema:"description=Optional exclusive timestamp upper bound in RFC3339 format"`
-	SourceFile        string                           `json:"source_file,omitempty" jsonschema:"description=Optional exact source file filter"`
-	BatchID           string                           `json:"batch_id,omitempty" jsonschema:"description=Optional exact batch UUID/text filter"`
-	RawPayloadFilters []ForensicCanonicalPayloadFilter `json:"raw_payload_filters,omitempty" jsonschema:"description=Canonical raw_payload filters for source-specific attributes/properties"`
-	FieldFilters      []ForensicCanonicalFieldFilter   `json:"field_filters,omitempty" jsonschema:"description=Canonical raw_payload field exists/not_exists filters"`
-	FieldExists       []string                         `json:"field_exists,omitempty" jsonschema:"description=Raw payload fields that must exist, exact or case-insensitive"`
-	FieldNotExists    []string                         `json:"field_not_exists,omitempty" jsonschema:"description=Raw payload fields that must not exist, exact or case-insensitive"`
-	Offset            int                              `json:"offset,omitempty" jsonschema:"description=Pagination offset for canonical_records"`
-	SortBy            string                           `json:"sort_by,omitempty" jsonschema:"description=Sort column for canonical_records: timestamp, record_type, primary_target, secondary_target, source_file, row_number, or ingested_at"`
-	SortDirection     string                           `json:"sort_direction,omitempty" jsonschema:"description=Sort direction asc or desc"`
-	Limit             int                              `json:"limit,omitempty" jsonschema:"description=Maximum structured rows or aggregate rows to return"`
-	MaxKBResults      int                              `json:"max_kb_results,omitempty" jsonschema:"description=Maximum KB evidence results to include"`
-	SynthesisModel    string                           `json:"synthesis_model,omitempty" jsonschema:"description=Optional LocalAI chat model to use for bounded synthesis. If omitted, the sidecar uses FORENSIC_SYNTHESIS_MODEL or deterministic fallback."`
+	TenantID            string                           `json:"tenant_id,omitempty" jsonschema:"description=Tenant ID, defaults to the agent forensic_tenant_id or default"`
+	UserID              string                           `json:"user_id,omitempty" jsonschema:"description=Optional user ID for scoped KB evidence lookup"`
+	CollectionID        string                           `json:"collection_id,omitempty" jsonschema:"description=Knowledge Base collection/case ID"`
+	Query               string                           `json:"query" jsonschema:"description=Natural-language analyst question"`
+	Target              string                           `json:"target,omitempty" jsonschema:"description=Optional extracted target such as phone, plate, IP, IMSI, IMEI, location, or call type"`
+	Targets             []string                         `json:"targets,omitempty" jsonschema:"description=Optional multiple targets to match against primary_target and secondary_target"`
+	Template            string                           `json:"template,omitempty" jsonschema:"description=Optional deterministic template name, for example canonical_records, entity_activity, relationship_network, entity_timeline, source_records, schema_profile, data_quality, evidence"`
+	RecordType          string                           `json:"record_type,omitempty" jsonschema:"description=Optional canonical record type such as cdr, anpr, ipdr, subscriber, tower_location, transaction, access_log, or generic"`
+	DateFrom            string                           `json:"date_from,omitempty" jsonschema:"description=Optional inclusive timestamp lower bound in RFC3339 format"`
+	DateTo              string                           `json:"date_to,omitempty" jsonschema:"description=Optional exclusive timestamp upper bound in RFC3339 format"`
+	SourceFile          string                           `json:"source_file,omitempty" jsonschema:"description=Optional exact source file filter"`
+	BatchID             string                           `json:"batch_id,omitempty" jsonschema:"description=Optional exact batch UUID/text filter"`
+	RawPayloadFilters   []ForensicCanonicalPayloadFilter `json:"raw_payload_filters,omitempty" jsonschema:"description=Canonical raw_payload filters for source-specific attributes/properties"`
+	FieldFilters        []ForensicCanonicalFieldFilter   `json:"field_filters,omitempty" jsonschema:"description=Canonical raw_payload field exists/not_exists filters"`
+	FieldExists         []string                         `json:"field_exists,omitempty" jsonschema:"description=Raw payload fields that must exist, exact or case-insensitive"`
+	FieldNotExists      []string                         `json:"field_not_exists,omitempty" jsonschema:"description=Raw payload fields that must not exist, exact or case-insensitive"`
+	Offset              int                              `json:"offset,omitempty" jsonschema:"description=Pagination offset for canonical_records"`
+	SortBy              string                           `json:"sort_by,omitempty" jsonschema:"description=Sort column for canonical_records: timestamp, record_type, primary_target, secondary_target, source_file, row_number, or ingested_at"`
+	SortDirection       string                           `json:"sort_direction,omitempty" jsonschema:"description=Sort direction asc or desc"`
+	Projection          []string                         `json:"projection,omitempty" jsonschema:"description=Optional unique canonical_records output fields: record_type, timestamp, primary_target, secondary_target, source_file, row_number, ingested_at. Source provenance is always retained; expressions and payload fields are rejected."`
+	Group               *ForensicCanonicalGroup          `json:"group,omitempty" jsonschema:"description=Optional canonical_records grouping; cannot combine projection, offset, or custom sort. Source implementation pending live qualification."`
+	Limit               int                              `json:"limit,omitempty" jsonschema:"description=Maximum structured rows or aggregate rows to return"`
+	MaxKBResults        int                              `json:"max_kb_results,omitempty" jsonschema:"description=Maximum KB evidence results to include"`
+	SynthesisModel      string                           `json:"synthesis_model,omitempty" jsonschema:"description=Optional LocalAI chat model to use for bounded synthesis. If omitted, the sidecar uses FORENSIC_SYNTHESIS_MODEL or deterministic fallback."`
+	ConversationContext *ForensicConversationContext     `json:"conversation_context,omitempty" jsonschema:"description=Optional bounded context from the last authorized answer; used only for explicit follow-up language"`
+	QueryScope          *ForensicQueryScope              `json:"query_scope,omitempty" jsonschema:"description=Request-selected evidence scope; the sidecar authoritatively validates case, current version, and available result families"`
+	EvidenceVersionID   string                           `json:"evidence_version_id,omitempty" jsonschema:"description=Optional current evidence version UUID from selected-source context"`
+	TextQuery           *forensictext.Query              `json:"text_query,omitempty"`
+	TranscriptMode      string                           `json:"transcript_mode,omitempty" jsonschema:"description=Governed transcript mode: source, exact, or time_range"`
+	ExactTerm           string                           `json:"exact_term,omitempty" jsonschema:"description=Original Unicode phrase for deterministic exact-normalized transcript or selected-image OCR matching"`
+	QueryLanguage       string                           `json:"query_language,omitempty" jsonschema:"description=Detected query language hint: en, ur, roman_urdu, or mixed"`
+	EvidenceID          string                           `json:"evidence_id,omitempty" jsonschema:"description=Exact retained video evidence UUID for media operations"`
+	Plate               string                           `json:"plate,omitempty" jsonschema:"description=Optional exact normalized plate filter for grouped video ANPR observations"`
+	StartSeconds        *float64                         `json:"start_seconds,omitempty" jsonschema:"description=Optional inclusive source-video lower bound in seconds"`
+	EndSeconds          *float64                         `json:"end_seconds,omitempty" jsonschema:"description=Optional inclusive source-video upper bound in seconds"`
 }
 
 type ForensicReportArgs struct {
@@ -87,21 +186,38 @@ type ForensicListEvidenceArgs struct {
 }
 
 type ForensicGetEvidenceArgs struct {
-	TenantID   string `json:"tenant_id,omitempty" jsonschema:"description=Tenant ID, defaults to the agent forensic_tenant_id or default"`
-	EvidenceID string `json:"evidence_id" jsonschema:"description=Evidence UUID to inspect"`
-	Limit      int    `json:"limit,omitempty" jsonschema:"description=Maximum canonical row previews to return"`
+	TenantID     string `json:"tenant_id,omitempty" jsonschema:"description=Tenant ID, defaults to the agent forensic_tenant_id or default"`
+	CollectionID string `json:"collection_id,omitempty" jsonschema:"description=Knowledge Base collection/case ID"`
+	EvidenceID   string `json:"evidence_id" jsonschema:"description=Evidence UUID to inspect"`
+	Limit        int    `json:"limit,omitempty" jsonschema:"description=Maximum canonical row previews to return"`
 }
 
 type ForensicQueryTemplatesArgs struct{}
 
 type ForensicRecordsToolConfig struct {
-	APIURL       string
-	APIKey       string
-	UserID       string
-	TenantID     string
-	CollectionID string
-	Model        string
+	Context             context.Context
+	APIURL              string
+	APIKey              string
+	UserID              string
+	TenantID            string
+	CollectionID        string
+	Model               string
+	ActorID             string
+	ActorRole           string
+	ConversationContext *ForensicConversationContext
+	QueryScope          *ForensicQueryScope
 }
+
+func forensicRequestContext(cfg ForensicRecordsToolConfig, timeout time.Duration) (context.Context, context.CancelFunc) {
+	parent := cfg.Context
+	if parent == nil {
+		parent = context.Background()
+	}
+	return context.WithTimeout(parent, timeout)
+}
+
+// Preserve the complete bounded planner, executor and synthesis interaction.
+const forensicPostTimeout = forensicpolicy.QueryTransportTimeout
 
 type ForensicHybridQueryTool struct {
 	ForensicRecordsToolConfig
@@ -110,7 +226,7 @@ type ForensicHybridQueryTool struct {
 func (t ForensicHybridQueryTool) Run(args ForensicHybridQueryArgs) (string, any, error) {
 	args = t.defaultsHybridArgs(args)
 	var resp map[string]any
-	if err := forensicPost(t.APIURL, t.APIKey, "/query/hybrid", args, &resp); err != nil {
+	if err := forensicPost(t.ForensicRecordsToolConfig, "/query/hybrid", args.CollectionID, "", args, &resp); err != nil {
 		return "", nil, err
 	}
 	return marshalToolResult(resp), resp, nil
@@ -122,7 +238,7 @@ type ForensicQueryTemplatesTool struct {
 
 func (t ForensicQueryTemplatesTool) Run(_ ForensicQueryTemplatesArgs) (string, any, error) {
 	var resp map[string]any
-	if err := forensicGet(t.APIURL, t.APIKey, "/query/templates", &resp); err != nil {
+	if err := forensicGet(t.ForensicRecordsToolConfig, "/query/templates", "", "", &resp); err != nil {
 		return "", nil, err
 	}
 	return marshalToolResult(resp), resp, nil
@@ -135,7 +251,7 @@ type ForensicGenerateReportTool struct {
 func (t ForensicGenerateReportTool) Run(args ForensicReportArgs) (string, any, error) {
 	args = t.defaultsReportArgs(args)
 	var resp map[string]any
-	if err := forensicPost(t.APIURL, t.APIKey, "/reports/generate", args, &resp); err != nil {
+	if err := forensicPost(t.ForensicRecordsToolConfig, "/reports/generate", args.CollectionID, "", args, &resp); err != nil {
 		return "", nil, err
 	}
 	return marshalToolResult(resp), resp, nil
@@ -171,7 +287,7 @@ func (t ForensicListEvidenceTool) Run(args ForensicListEvidenceArgs) (string, an
 		values.Set("offset", fmt.Sprint(args.Offset))
 	}
 	var resp map[string]any
-	if err := forensicGetQuery(t.APIURL, t.APIKey, "/evidence", values, &resp); err != nil {
+	if err := forensicGetQuery(t.ForensicRecordsToolConfig, "/evidence", args.CollectionID, args.CaseID, values, &resp); err != nil {
 		return "", nil, err
 	}
 	return marshalToolResult(resp), resp, nil
@@ -185,11 +301,12 @@ func (t ForensicGetEvidenceTool) Run(args ForensicGetEvidenceArgs) (string, any,
 	args = t.defaultsGetEvidenceArgs(args)
 	values := url.Values{}
 	values.Set("tenant_id", args.TenantID)
+	values.Set("collection_id", args.CollectionID)
 	if args.Limit > 0 {
 		values.Set("limit", fmt.Sprint(args.Limit))
 	}
 	var resp map[string]any
-	if err := forensicGetQuery(t.APIURL, t.APIKey, "/evidence/"+url.PathEscape(args.EvidenceID), values, &resp); err != nil {
+	if err := forensicGetQuery(t.ForensicRecordsToolConfig, "/evidence/"+url.PathEscape(args.EvidenceID), args.CollectionID, "", values, &resp); err != nil {
 		return "", nil, err
 	}
 	return marshalToolResult(resp), resp, nil
@@ -199,13 +316,13 @@ func (t ForensicRecordsToolConfig) defaultsHybridArgs(args ForensicHybridQueryAr
 	if strings.TrimSpace(args.TenantID) == "" {
 		args.TenantID = defaultForensicTenant(t.TenantID)
 	}
-	if strings.TrimSpace(args.UserID) == "" {
-		args.UserID = t.UserID
-	}
 	if strings.TrimSpace(args.CollectionID) == "" {
 		args.CollectionID = t.CollectionID
 	}
-	if args.Limit <= 0 {
+	if strings.TrimSpace(args.UserID) == "" {
+		args.UserID = t.UserID
+	}
+	if args.Limit <= 0 && args.Group == nil {
 		args.Limit = 20
 	}
 	if args.MaxKBResults <= 0 {
@@ -233,6 +350,9 @@ func (t ForensicRecordsToolConfig) defaultsListEvidenceArgs(args ForensicListEvi
 func (t ForensicRecordsToolConfig) defaultsGetEvidenceArgs(args ForensicGetEvidenceArgs) ForensicGetEvidenceArgs {
 	if strings.TrimSpace(args.TenantID) == "" {
 		args.TenantID = defaultForensicTenant(t.TenantID)
+	}
+	if strings.TrimSpace(args.CollectionID) == "" {
+		args.CollectionID = t.CollectionID
 	}
 	if args.Limit <= 0 {
 		args.Limit = 25
@@ -520,32 +640,30 @@ func recordsGet(apiURL, apiKey, userID, path string, dst any) error {
 	return doRecordsRequest(req, dst)
 }
 
-func forensicPost(apiURL, apiKey, path string, body any, dst any) error {
+func forensicPost(cfg ForensicRecordsToolConfig, path, collectionID, caseID string, body any, dst any) error {
 	payload, err := json.Marshal(body)
 	if err != nil {
 		return err
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+	ctx, cancel := forensicRequestContext(cfg, forensicPostTimeout)
 	defer cancel()
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, forensicURL(apiURL, path), bytes.NewReader(payload))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, forensicURL(cfg.APIURL, path), bytes.NewReader(payload))
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	if apiKey != "" {
-		req.Header.Set("Authorization", "Bearer "+apiKey)
-	}
+	applyForensicScopeHeaders(req, cfg, collectionID, caseID)
 	return doRecordsRequest(req, dst)
 }
 
-func forensicGet(apiURL, apiKey, path string, dst any) error {
-	return forensicGetQuery(apiURL, apiKey, path, nil, dst)
+func forensicGet(cfg ForensicRecordsToolConfig, path, collectionID, caseID string, dst any) error {
+	return forensicGetQuery(cfg, path, collectionID, caseID, nil, dst)
 }
 
-func forensicGetQuery(apiURL, apiKey, path string, query url.Values, dst any) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+func forensicGetQuery(cfg ForensicRecordsToolConfig, path, collectionID, caseID string, query url.Values, dst any) error {
+	ctx, cancel := forensicRequestContext(cfg, 30*time.Second)
 	defer cancel()
-	target := forensicURL(apiURL, path)
+	target := forensicURL(cfg.APIURL, path)
 	if len(query) > 0 {
 		target += "?" + query.Encode()
 	}
@@ -553,10 +671,20 @@ func forensicGetQuery(apiURL, apiKey, path string, query url.Values, dst any) er
 	if err != nil {
 		return err
 	}
-	if apiKey != "" {
-		req.Header.Set("Authorization", "Bearer "+apiKey)
-	}
+	applyForensicScopeHeaders(req, cfg, collectionID, caseID)
 	return doRecordsRequest(req, dst)
+}
+
+func applyForensicScopeHeaders(req *http.Request, cfg ForensicRecordsToolConfig, collectionID, caseID string) {
+	if cfg.APIKey != "" {
+		req.Header.Set("Authorization", "Bearer "+cfg.APIKey)
+	}
+	req.Header.Set("X-Forensic-Tenant-ID", defaultForensicTenant(cfg.TenantID))
+	req.Header.Set("X-Forensic-Actor-ID", strings.TrimSpace(cfg.ActorID))
+	req.Header.Set("X-Forensic-Subject-ID", strings.TrimSpace(cfg.UserID))
+	req.Header.Set("X-Forensic-Actor-Role", strings.TrimSpace(cfg.ActorRole))
+	req.Header.Set("X-Forensic-Collection-ID", strings.TrimSpace(collectionID))
+	req.Header.Set("X-Forensic-Case-ID", strings.TrimSpace(caseID))
 }
 
 func recordsURL(apiURL, path, userID string) string {

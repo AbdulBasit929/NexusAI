@@ -1,6 +1,6 @@
 import { test, expect } from './coverage-fixtures.js'
 
-// Collections (Knowledge Base) feature page (src/pages/Collections.jsx).
+// Collections (Knowledge) feature page (src/pages/Collections.jsx).
 test.describe('Collections page', () => {
   test.beforeEach(async ({ page }) => {
     await page.route('**/api/auth/status', async route => {
@@ -33,9 +33,31 @@ test.describe('Collections page', () => {
 
   test('renders the knowledge base with an empty state and create control', async ({ page }) => {
     await expect(page).toHaveURL(/\/app\/collections$/)
-    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible()
-    await expect(page.getByText(/No collections yet/i)).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Knowledge' })).toBeVisible()
+    await expect(page.locator('[data-state="empty"]')).toContainText('No collections yet')
     await expect(page.locator('button.btn-primary').filter({ hasText: 'Create' })).toBeVisible()
+  })
+
+  test('keeps collection-load failure visible and retryable', async ({ page }) => {
+    await page.route('**/api/agents/collections', async route => {
+      await route.fulfill({
+        status: 503,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Collection service unavailable' }),
+      })
+    })
+
+    await page.route('**/api/v1/forensics/cases', route => route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ cases: [], default_case_id: '' }),
+    }))
+
+    await page.reload()
+
+    const state = page.locator('[data-state="error"]')
+    await expect(state).toHaveAttribute('role', 'alert')
+    await expect(state).toContainText('Knowledge is temporarily unavailable')
+    await expect(state.getByRole('button', { name: /Try again/ })).toBeVisible()
   })
 
   test('new-collection name field accepts input', async ({ page }) => {
@@ -43,6 +65,37 @@ test.describe('Collections page', () => {
     await expect(input).toBeVisible()
     await input.fill('my-kb')
     await expect(input).toHaveValue('my-kb')
+  })
+
+  test('opens only an exact authorized case mapping and never falls through to the default case', async ({ page }) => {
+    await page.route('**/api/agents/collections', route => route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ collections: ['collection-mapped', 'collection-admin-only'], count: 2 }),
+    }))
+    await page.route('**/api/v1/forensics/cases', route => route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        default_case_id: 'case-default-other',
+        cases: [
+          { case_id: 'case-default-other', collection_id: 'collection-default-other', display_name: 'Default Other', selectable: true },
+          { case_id: 'case-authorized-explicit', collection_id: 'collection-mapped', display_name: 'Authorized Explicit', selectable: true },
+        ],
+      }),
+    }))
+
+    await page.reload()
+    await expect(page.getByRole('note', { name: 'Knowledge administration boundary' })).toContainText('case identity is never inferred')
+
+    const adminOnly = page.locator('.card').filter({ hasText: 'collection-admin-only' })
+    await expect(adminOnly.getByRole('button', { name: /Open authorized case/ })).toHaveCount(0)
+    await adminOnly.getByRole('button', { name: /Details/ }).click()
+    await expect(page).toHaveURL(/\/app\/collections\/collection-admin-only$/)
+
+    await page.goto('/app/collections')
+    const mapped = page.locator('.card').filter({ hasText: 'collection-mapped' })
+    await mapped.getByRole('button', { name: 'Open authorized case Authorized Explicit' }).click()
+    await expect(page).toHaveURL(/\/app\/cases\/case-authorized-explicit\/overview$/)
+    await expect(page).not.toHaveURL(/case-default-other/)
   })
 
   test('supports CDR upload, raw search, and source interval inputs', async ({ page }) => {

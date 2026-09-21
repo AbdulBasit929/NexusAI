@@ -1,0 +1,103 @@
+{
+  "contract_version": "nexusai.nxmmr.p1-correction-activation/v1",
+  "state": "SOURCE_SEALED_AWAITING_OPERATOR",
+  "activation_namespace": "NX-MMR-SHARED-P1-CORRECTION-ACTIVATION-V1-BUILD-DEPS-R2",
+  "previous_activation_receipt": "20260902T025246574Z",
+  "scope": [
+    "same-scope English and Urdu transcript timing anaphora",
+    "explicit cross-family intent isolation from selected audio",
+    "selected-video exact ANPR and truthful exact no-match",
+    "bounded canonical analytical status",
+    "selected-image exact OCR and exact no-match",
+    "typed transcript source-time citation presentation",
+    "cross-family citation fairness",
+    "SigLIP Ask result and citation presentation",
+    "face natural-language routing and request-scoped transport",
+    "truthful Ask and Activity result presentation"
+  ],
+  "resource_gates": {
+    "minimum_available_ram_gib": 6,
+    "minimum_workspace_free_disk_gib": 20,
+    "maximum_active_jobs": 0,
+    "initial_ram_wait_minutes": 120,
+    "post_build_ram_wait_minutes": 5,
+    "post_drain_ram_wait_minutes": 120,
+    "safe_build_cache_recovery": "drop_linux_page_cache_mode_1_only_after_dirty_and_writeback_are_zero",
+    "build_timeout_seconds": 7200,
+    "health_timeout_seconds": 300
+  },
+  "services": {
+    "build_and_recreate_no_deps": ["api", "forensic-records-api"],
+    "preserve_exact_identity": ["forensic-records-worker", "forensic-postgres", "forensic-nats"],
+    "candidate_images": {
+      "api": "nexusai/localai-forensic:nxmmr-shared-p1-correction-v1-build-deps-r2",
+      "forensic-records-api": "nexusai/forensic-records-api:nxmmr-shared-p1-correction-v1-build-deps-r2"
+    },
+    "dockerfiles": {
+      "api": "Dockerfile",
+      "forensic-records-api": "api/forensic_records/Dockerfile"
+    },
+    "build_network": "default",
+    "build_dependency_acquisition": "dockerfile_required_only_user_approved",
+    "api_build_args": {
+      "LOCALAI_BUILD_GOMAXPROCS": "4",
+      "LOCALAI_BUILD_GOFLAGS": "-p=2"
+    },
+    "pull_policy": "never"
+  },
+  "starting_runtime": {
+    "api": {
+      "container_id": "580268751d33a04b5661d5488191c84bf89a7f2e8780e942f616cf8c59738dc8",
+      "image_id": "sha256:b1f15e80fbc6bf9f5833271b81d5c6eccc8373b3f73e461d5543bb4b7d07d95c"
+    },
+    "forensic-records-api": {
+      "container_id": "084d3757e025b5566bf51fcfd999542296d581aef5c432ec23437cfa14a2e780",
+      "image_id": "sha256:f0f49921bf9a5fced9f4289eaefc85aceedd1c5501e040bca94e0652a3580028"
+    },
+    "forensic-records-worker": {
+      "container_id": "40b6e628d586d5d484468120a8591fdb46a2ecc6f5aac228583067b22811d088",
+      "image_id": "sha256:0b22a604dbf97443623258072a71f741111a1033a5e274166ea0f5b2f9968d47"
+    },
+    "forensic-postgres": {
+      "container_id": "f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361",
+      "image_id": "sha256:61f891691050da6032023c01ea885730eeeba06b7c17b403e7d0b9c49c37dfe9"
+    },
+    "forensic-nats": {
+      "container_id": "5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04",
+      "image_id": "sha256:e4bf19f15fd3218814a4e3c9e0064e1334bd8aa20d5984b9f1a0afd084f8cc00"
+    }
+  },
+  "retained_count_baseline": "63|63|76|22507|827|61",
+  "worker_environment_required": {
+    "FORENSIC_ASR_ENABLED": "true",
+    "FORENSIC_ASR_MODEL": "faster-whisper-small-ur",
+    "FORENSIC_IMAGE_EMBEDDING_ENABLED": "true",
+    "FORENSIC_FACE_ENABLED": "true",
+    "FORENSIC_ANPR_ENABLED": "true",
+    "FORENSIC_OCR_ENABLED": "true",
+    "FORENSIC_VIDEO_ANPR_V2_ENABLED": "false",
+    "FORENSIC_VIDEO_ANPR_V3_ENABLED": "true",
+    "FORENSIC_TTS_ENABLED": "false",
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1"
+  },
+  "localai_required_models": ["faster-whisper-small-ur", "face-detect-yunet-sface"],
+  "prohibitions": [
+    "compose down",
+    "--remove-orphans",
+    "prune",
+    "volume deletion",
+    "model download",
+    "runtime package acquisition",
+    "bulk evidence reprocessing",
+    "database migration",
+    "arbitrary application termination"
+  ],
+  "rollback": "Capture exact runtime topology, then restore only api and forensic-records-api by immutable image ID. Worker, PostgreSQL and NATS must retain exact identity, image and restart count.",
+  "runtime_mutated": false,
+  "database_migration": false,
+  "volumes_changed": false,
+  "retained_evidence_changed": false,
+  "product_certification_performed": false,
+  "nxb2_activation_performed": false
+}

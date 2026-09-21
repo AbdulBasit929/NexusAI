@@ -16,6 +16,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/mudler/LocalAI/core/application"
 	"github.com/mudler/LocalAI/core/services/records"
+	"github.com/mudler/LocalAI/pkg/forensicpolicy"
 	"github.com/mudler/LocalAI/pkg/httpclient"
 )
 
@@ -245,9 +246,10 @@ func GetRecordSchemaEndpoint(app *application.Application) echo.HandlerFunc {
 }
 
 type forensicRecordsSidecarConfig struct {
-	Enabled bool
-	APIURL  string
-	APIKey  string
+	Enabled  bool
+	APIURL   string
+	APIKey   string
+	TenantID string
 }
 
 func forensicRecordsSidecarConfigFromEnv() forensicRecordsSidecarConfig {
@@ -259,6 +261,9 @@ func forensicRecordsSidecarConfigFromEnv() forensicRecordsSidecarConfig {
 		Enabled: apiURL != "",
 		APIURL:  apiURL,
 		APIKey:  strings.TrimSpace(os.Getenv("FORENSIC_RECORDS_API_KEY")),
+		TenantID: defaultString(
+			strings.TrimSpace(os.Getenv("FORENSIC_RECORDS_TENANT_ID")), "default",
+		),
 	}
 }
 
@@ -272,19 +277,24 @@ func forensicRecordsSidecarConfigFromEnv() forensicRecordsSidecarConfig {
 // @Param limit query int false "Maximum recent jobs to include"
 // @Success 200 {object} map[string]any "sidecar collection status"
 // @Router /api/records/forensic/status [get]
-func GetForensicRecordsStatusEndpoint() echo.HandlerFunc {
+func GetForensicRecordsStatusEndpoint(app *application.Application) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		collectionID := strings.TrimSpace(c.QueryParam("collection_id"))
 		if collectionID == "" {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "collection_id is required"})
 		}
+		if err := requireForensicCollectionAccess(c, app, collectionID); err != nil {
+			return err
+		}
 		values := url.Values{}
-		values.Set("tenant_id", defaultString(strings.TrimSpace(c.QueryParam("tenant_id")), "default"))
+		if tenantID := strings.TrimSpace(c.QueryParam("tenant_id")); tenantID != "" {
+			values.Set("tenant_id", tenantID)
+		}
 		values.Set("collection_id", collectionID)
 		if limit := strings.TrimSpace(c.QueryParam("limit")); limit != "" {
 			values.Set("limit", limit)
 		}
-		return proxyForensicRecords(c, http.MethodGet, "/collections/status", values, nil)
+		return proxyForensicRecords(c, http.MethodGet, "/collections/status", values, nil, collectionID, "")
 	}
 }
 
@@ -297,7 +307,41 @@ func GetForensicRecordsStatusEndpoint() echo.HandlerFunc {
 // @Router /api/records/forensic/templates [get]
 func GetForensicRecordsTemplatesEndpoint() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return proxyForensicRecords(c, http.MethodGet, "/query/templates", nil, nil)
+		return proxyForensicRecords(c, http.MethodGet, "/query/templates", nil, nil, "", "")
+	}
+}
+
+// GetForensicRecordsCapabilitiesEndpoint returns collection-aware support for
+// every registered forensic data family and operation.
+// @Summary Get forensic records capability coverage
+// @Tags records
+// @Produce json
+// @Param tenant_id query string false "Tenant ID, defaults to the trusted forensic tenant"
+// @Param collection_id query string true "Knowledge Base / records collection ID"
+// @Param case_id query string false "Authorized case filter"
+// @Param evidence_id query string false "Selected evidence UUID; omitted for workspace readiness"
+// @Param evidence_version_id query string false "Selected current version UUID"
+// @Success 200 {object} map[string]any "collection-aware capability catalog"
+// @Router /api/records/forensic/capabilities [get]
+func GetForensicRecordsCapabilitiesEndpoint(app *application.Application) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		collectionID := strings.TrimSpace(c.QueryParam("collection_id"))
+		if collectionID == "" {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "collection_id is required"})
+		}
+		if err := requireForensicCollectionAccess(c, app, collectionID); err != nil {
+			return err
+		}
+		values := url.Values{"collection_id": []string{collectionID}}
+		if tenantID := strings.TrimSpace(c.QueryParam("tenant_id")); tenantID != "" {
+			values.Set("tenant_id", tenantID)
+		}
+		for _, key := range []string{"case_id", "evidence_id", "evidence_version_id"} {
+			if value := strings.TrimSpace(c.QueryParam(key)); value != "" {
+				values.Set(key, value)
+			}
+		}
+		return proxyForensicRecords(c, http.MethodGet, "/query/capabilities", values, nil, collectionID, values.Get("case_id"))
 	}
 }
 
@@ -317,11 +361,14 @@ func GetForensicRecordsTemplatesEndpoint() echo.HandlerFunc {
 // @Param offset query int false "Pagination offset"
 // @Success 200 {object} map[string]any "sidecar evidence catalog"
 // @Router /api/records/forensic/evidence [get]
-func ListForensicEvidenceEndpoint() echo.HandlerFunc {
+func ListForensicEvidenceEndpoint(app *application.Application) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		collectionID := strings.TrimSpace(c.QueryParam("collection_id"))
 		if collectionID == "" {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "collection_id is required"})
+		}
+		if err := requireForensicCollectionAccess(c, app, collectionID); err != nil {
+			return err
 		}
 		values := url.Values{}
 		for _, key := range []string{"tenant_id", "collection_id", "case_id", "modality", "detected_type", "processing_status", "q", "limit", "offset"} {
@@ -329,10 +376,7 @@ func ListForensicEvidenceEndpoint() echo.HandlerFunc {
 				values.Set(key, value)
 			}
 		}
-		if values.Get("tenant_id") == "" {
-			values.Set("tenant_id", "default")
-		}
-		return proxyForensicRecords(c, http.MethodGet, "/evidence", values, nil)
+		return proxyForensicRecords(c, http.MethodGet, "/evidence", values, nil, collectionID, values.Get("case_id"))
 	}
 }
 
@@ -342,22 +386,86 @@ func ListForensicEvidenceEndpoint() echo.HandlerFunc {
 // @Tags records
 // @Produce json
 // @Param id path string true "Evidence ID"
-// @Param tenant_id query string false "Tenant ID, defaults to default"
+// @Param tenant_id query string false "Tenant ID, defaults to the trusted forensic tenant"
+// @Param collection_id query string true "Knowledge Base / records collection ID"
 // @Param limit query int false "Maximum canonical row previews"
 // @Success 200 {object} map[string]any "sidecar evidence detail"
 // @Router /api/records/forensic/evidence/{id} [get]
-func GetForensicEvidenceEndpoint() echo.HandlerFunc {
+func GetForensicEvidenceEndpoint(app *application.Application) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		evidenceID := strings.TrimSpace(c.Param("id"))
 		if evidenceID == "" {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "evidence id is required"})
 		}
+		collectionID := strings.TrimSpace(c.QueryParam("collection_id"))
+		if collectionID == "" {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "collection_id is required"})
+		}
+		if err := requireForensicCollectionAccess(c, app, collectionID); err != nil {
+			return err
+		}
 		values := url.Values{}
-		values.Set("tenant_id", defaultString(strings.TrimSpace(c.QueryParam("tenant_id")), "default"))
+		if tenantID := strings.TrimSpace(c.QueryParam("tenant_id")); tenantID != "" {
+			values.Set("tenant_id", tenantID)
+		}
+		values.Set("collection_id", collectionID)
 		if limit := strings.TrimSpace(c.QueryParam("limit")); limit != "" {
 			values.Set("limit", limit)
 		}
-		return proxyForensicRecords(c, http.MethodGet, "/evidence/"+url.PathEscape(evidenceID), values, nil)
+		return proxyForensicRecords(c, http.MethodGet, "/evidence/"+url.PathEscape(evidenceID), values, nil, collectionID, "")
+	}
+}
+
+// ReprocessForensicEvidenceEndpoint requests a new immutable processing job for
+// existing evidence. Earlier jobs and outputs remain available.
+// @Summary Reprocess forensic evidence
+// @Description Create an idempotent reprocessing job without resetting or deleting prior processing history.
+// @Tags records
+// @Accept json
+// @Produce json
+// @Param id path string true "Evidence ID"
+// @Param Idempotency-Key header string true "Stable 8-128 character request key"
+// @Param request body map[string]any true "collection_id, reason, and optional max_attempts"
+// @Success 202 {object} map[string]any "reprocessing job"
+// @Router /api/records/forensic/evidence/{id}/reprocess [post]
+func ReprocessForensicEvidenceEndpoint(app *application.Application) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		evidenceID := strings.TrimSpace(c.Param("id"))
+		if evidenceID == "" {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "evidence id is required"})
+		}
+		var body map[string]any
+		decoder := json.NewDecoder(io.LimitReader(c.Request().Body, 64<<10))
+		if err := decoder.Decode(&body); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		}
+		collectionID, _ := body["collection_id"].(string)
+		collectionID = strings.TrimSpace(collectionID)
+		if collectionID == "" {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "collection_id is required"})
+		}
+		if err := requireForensicCollectionAccess(c, app, collectionID); err != nil {
+			return err
+		}
+		key := strings.TrimSpace(c.Request().Header.Get("Idempotency-Key"))
+		if key == "" {
+			key, _ = body["idempotency_key"].(string)
+			key = strings.TrimSpace(key)
+		}
+		if key == "" {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Idempotency-Key is required"})
+		}
+		c.Request().Header.Set("Idempotency-Key", key)
+		payload, err := json.Marshal(body)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		}
+		caseID, _ := body["case_id"].(string)
+		return proxyForensicRecords(
+			c, http.MethodPost,
+			"/evidence/"+url.PathEscape(evidenceID)+"/reprocess",
+			nil, bytes.NewReader(payload), collectionID, strings.TrimSpace(caseID),
+		)
 	}
 }
 
@@ -370,24 +478,56 @@ func GetForensicEvidenceEndpoint() echo.HandlerFunc {
 // @Param request body map[string]any true "hybrid forensic query"
 // @Success 200 {object} map[string]any "sidecar hybrid query result"
 // @Router /api/records/forensic/query [post]
-func QueryForensicRecordsEndpoint() echo.HandlerFunc {
+func QueryForensicRecordsEndpoint(app *application.Application) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var body map[string]any
 		if err := json.NewDecoder(io.LimitReader(c.Request().Body, 1<<20)).Decode(&body); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		}
-		if _, ok := body["tenant_id"]; !ok {
-			body["tenant_id"] = "default"
+		collectionID, _ := body["collection_id"].(string)
+		collectionID = strings.TrimSpace(collectionID)
+		if collectionID == "" {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "collection_id is required"})
+		}
+		if err := requireForensicCollectionAccess(c, app, collectionID); err != nil {
+			return err
 		}
 		payload, err := json.Marshal(body)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		}
-		return proxyForensicRecords(c, http.MethodPost, "/query/hybrid", nil, bytes.NewReader(payload))
+		return proxyForensicRecords(c, http.MethodPost, "/query/hybrid", nil, bytes.NewReader(payload), strings.TrimSpace(collectionID), "")
 	}
 }
 
-func proxyForensicRecords(c echo.Context, method, path string, query url.Values, body io.Reader) error {
+func requireForensicCollectionAccess(c echo.Context, app *application.Application, collectionID string) error {
+	if app == nil || app.AgentPoolService() == nil {
+		return echo.NewHTTPError(http.StatusServiceUnavailable, "agent pool collections are not available")
+	}
+	collections, err := app.AgentPoolService().ListCollectionsForUser(effectiveUserID(c))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "could not verify collection access")
+	}
+	if !forensicCollectionAllowed(collections, collectionID) {
+		return echo.NewHTTPError(http.StatusForbidden, "forensic collection access denied")
+	}
+	return nil
+}
+
+func forensicCollectionAllowed(collections []string, collectionID string) bool {
+	return slices.Contains(collections, strings.TrimSpace(collectionID))
+}
+
+func forensicRecordsProxyTimeout(path string) time.Duration {
+	cleanPath := strings.TrimSuffix(strings.TrimSpace(path), "/")
+	if cleanPath == "/query/hybrid" || strings.HasSuffix(cleanPath, "/query") {
+		// Share the agent's complete-interaction bound, including final fallback.
+		return forensicpolicy.QueryTransportTimeout
+	}
+	return 30 * time.Second
+}
+
+func proxyForensicRecords(c echo.Context, method, path string, query url.Values, body io.Reader, collectionID, caseID string) error {
 	cfg := forensicRecordsSidecarConfigFromEnv()
 	if !cfg.Enabled {
 		return c.JSON(http.StatusServiceUnavailable, map[string]any{
@@ -417,10 +557,23 @@ func proxyForensicRecords(c echo.Context, method, path string, query url.Values,
 	if method == http.MethodPost {
 		req.Header.Set("Content-Type", "application/json")
 	}
+	if key := strings.TrimSpace(c.Request().Header.Get("Idempotency-Key")); key != "" {
+		req.Header.Set("Idempotency-Key", key)
+	}
 	if cfg.APIKey != "" {
 		req.Header.Set("Authorization", "Bearer "+cfg.APIKey)
 	}
-	resp, err := httpclient.NewWithTimeout(30 * time.Second).Do(req)
+	actorID, subjectID, actorRole, err := forensicForwardIdentity(c)
+	if err != nil {
+		return c.JSON(http.StatusServiceUnavailable, map[string]string{"error": err.Error()})
+	}
+	req.Header.Set("X-Forensic-Tenant-ID", cfg.TenantID)
+	req.Header.Set("X-Forensic-Actor-ID", actorID)
+	req.Header.Set("X-Forensic-Subject-ID", subjectID)
+	req.Header.Set("X-Forensic-Actor-Role", actorRole)
+	req.Header.Set("X-Forensic-Collection-ID", strings.TrimSpace(collectionID))
+	req.Header.Set("X-Forensic-Case-ID", strings.TrimSpace(caseID))
+	resp, err := httpclient.NewWithTimeout(forensicRecordsProxyTimeout(path)).Do(req)
 	if err != nil {
 		return c.JSON(http.StatusBadGateway, map[string]string{"error": fmt.Sprintf("forensic records sidecar request failed: %v", err)})
 	}
@@ -433,6 +586,58 @@ func proxyForensicRecords(c echo.Context, method, path string, query url.Values,
 		return c.NoContent(resp.StatusCode)
 	}
 	return c.JSONBlob(resp.StatusCode, payload)
+}
+
+func proxyForensicMedia(c echo.Context, path string, query url.Values, collectionID, caseID string) error {
+	cfg := forensicRecordsSidecarConfigFromEnv()
+	if !cfg.Enabled {
+		return c.JSON(http.StatusServiceUnavailable, map[string]any{"error": "forensic records sidecar is not configured", "enabled": false})
+	}
+	target, err := url.Parse(cfg.APIURL + path)
+	if err != nil {
+		return c.JSON(http.StatusServiceUnavailable, map[string]string{"error": "invalid forensic records API URL"})
+	}
+	target.RawQuery = query.Encode()
+	req, err := http.NewRequestWithContext(c.Request().Context(), http.MethodGet, target.String(), nil)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	req.Header.Set("Accept", defaultString(c.Request().Header.Get("Accept"), "application/octet-stream"))
+	if value := strings.TrimSpace(c.Request().Header.Get("Range")); value != "" {
+		req.Header.Set("Range", value)
+	}
+	requestID := strings.TrimSpace(c.Request().Header.Get("X-Request-ID"))
+	if requestID == "" {
+		requestID = uuid.NewString()
+	}
+	req.Header.Set("X-Request-ID", requestID)
+	c.Response().Header().Set("X-Request-ID", requestID)
+	if cfg.APIKey != "" {
+		req.Header.Set("Authorization", "Bearer "+cfg.APIKey)
+	}
+	actorID, subjectID, actorRole, err := forensicForwardIdentity(c)
+	if err != nil {
+		return c.JSON(http.StatusServiceUnavailable, map[string]string{"error": err.Error()})
+	}
+	req.Header.Set("X-Forensic-Tenant-ID", cfg.TenantID)
+	req.Header.Set("X-Forensic-Actor-ID", actorID)
+	req.Header.Set("X-Forensic-Subject-ID", subjectID)
+	req.Header.Set("X-Forensic-Actor-Role", actorRole)
+	req.Header.Set("X-Forensic-Collection-ID", strings.TrimSpace(collectionID))
+	req.Header.Set("X-Forensic-Case-ID", strings.TrimSpace(caseID))
+	resp, err := httpclient.New().Do(req)
+	if err != nil {
+		return c.JSON(http.StatusBadGateway, map[string]string{"error": fmt.Sprintf("forensic media request failed: %v", err)})
+	}
+	defer resp.Body.Close()
+	for _, name := range []string{"Accept-Ranges", "Cache-Control", "Content-Disposition", "Content-Length", "Content-Range", "Content-Type", "ETag", "X-Content-Type-Options", "X-Evidence-SHA256"} {
+		if value := resp.Header.Get(name); value != "" {
+			c.Response().Header().Set(name, value)
+		}
+	}
+	c.Response().WriteHeader(resp.StatusCode)
+	_, err = io.Copy(c.Response().Writer, io.LimitReader(resp.Body, (256<<20)+1))
+	return err
 }
 
 func defaultString(value, fallback string) string {

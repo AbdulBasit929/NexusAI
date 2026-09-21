@@ -78,6 +78,7 @@ export const API_CONFIG = {
     embeddings: '/v1/embeddings',
 
     // Face biometrics
+    faceDetect: '/v1/face/detect',
     faceVerify: '/v1/face/verify',
     faceAnalyze: '/v1/face/analyze',
     faceEmbed: '/v1/face/embed',

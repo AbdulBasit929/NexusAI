@@ -8,6 +8,8 @@ import ClientMCPDropdown from '../components/ClientMCPDropdown'
 import { useMCPClient } from '../hooks/useMCPClient'
 import { loadClientMCPServers } from '../utils/mcpClientStorage'
 import { useAuth } from '../context/AuthContext'
+import EmptyState from '../components/EmptyState'
+import NexusLoadingState from '../components/NexusLoadingState'
 
 const STATUS_STYLES = {
   disconnected: { icon: 'fa-solid fa-circle', color: 'var(--color-text-secondary)', bg: 'transparent' },
@@ -54,6 +56,7 @@ export default function Talk() {
   const pipelineModelNames = useMemo(() => pipelineModels.map(m => m.name), [pipelineModels])
   const [selectedModel, setSelectedModel] = useState('')
   const [modelsLoading, setModelsLoading] = useState(true)
+  const [modelsError, setModelsError] = useState('')
 
   // Connection state
   const [status, setStatus] = useState('disconnected')
@@ -125,13 +128,17 @@ export default function Talk() {
   useEffect(() => {
     realtimeApi.pipelineModels()
       .then(models => {
+        setModelsError('')
         setPipelineModels(models || [])
         if (models?.length > 0) {
           setSelectedModel(models[0].name)
           if (!voiceEdited) setVoice(models[0].voice || '')
         }
       })
-      .catch(err => addToast(`Failed to load realtime models: ${err.message}`, 'error', 5000, { link: { href: '/app/traces?tab=backend', text: 'View traces' } }))
+      .catch(err => {
+        setModelsError(err.message || 'Realtime model service unavailable')
+        addToast(`Failed to load realtime models: ${err.message}`, 'error', 5000, { link: { href: '/app/traces?tab=backend', text: 'View traces' } })
+      })
       .finally(() => setModelsLoading(false))
   }, [])
 
@@ -665,6 +672,34 @@ export default function Talk() {
           </div>
 
           {/* Pipeline model selector */}
+          {modelsLoading ? (
+            <NexusLoadingState label="Loading realtime voice pipelines..." />
+          ) : modelsError ? (
+            <EmptyState
+              state="error"
+              eyebrow="Realtime voice"
+              title="Voice pipelines are unavailable"
+              body="NexusAI could not load the realtime voice pipelines available to this workspace."
+              details={modelsError}
+              actions={(
+                <a className="btn btn-secondary" href="/app/traces?tab=backend">
+                  <i className="fas fa-wave-square" aria-hidden="true" /> View traces
+                </a>
+              )}
+            />
+          ) : pipelineModels.length === 0 ? (
+            <EmptyState
+              state="unavailable"
+              eyebrow="Realtime voice"
+              title="No voice pipeline is available"
+              body="A realtime pipeline model must be configured before a voice session can start."
+              actions={(
+                <button className="btn btn-primary" type="button" onClick={() => navigate('/app/model-editor?template=pipeline', { state: fromState(location, 'Talk') })}>
+                  <i className="fas fa-plus" aria-hidden="true" /> Create pipeline model
+                </button>
+              )}
+            />
+          ) : (
           <div style={{ marginBottom: 'var(--spacing-md)' }}>
             <label className="form-label" style={{ fontSize: '0.8125rem' }}>
               <i className="fas fa-brain" style={{ color: 'var(--color-primary)', marginRight: 4 }} /> Pipeline Model
@@ -686,6 +721,7 @@ export default function Talk() {
               <i className="fas fa-plus" style={{ marginRight: 'var(--spacing-xs)' }} /> Create Pipeline Model
             </button>
           </div>
+          )}
 
           {/* Tools (client-side MCP servers, mirroring the chat page) */}
           <div style={{ marginBottom: 'var(--spacing-md)' }}>
@@ -714,7 +750,7 @@ export default function Talk() {
                   onChange={(e) => setManageMode(e.target.checked)}
                 />
                 <i className="fas fa-user-shield" style={{ color: 'var(--color-primary)' }} />
-                Manage Mode
+                System administration
                 <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem' }}>
                   — let the model query NexusAI (models, backends, system info)
                 </span>

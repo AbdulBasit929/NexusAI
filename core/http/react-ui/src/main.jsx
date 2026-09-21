@@ -13,14 +13,15 @@ import '@fontsource-variable/geist-mono'
 import './index.css'
 import './theme.css'
 import './App.css'
-import LoadingSpinner from './components/LoadingSpinner'
+import './nexusai-elite.css'
+import NexusLoadingState from './components/NexusLoadingState'
+import { investigationWorkspaceIdentity } from './analyst/investigationWorkspace'
 
 function BootFallback() {
-  return (
-    <div className="app-boot-spinner">
-      <LoadingSpinner size="boot" />
-    </div>
-  )
+  if (window.location.pathname.startsWith('/analyst')) {
+    return <NexusLoadingState label="Opening investigation workspace…" brandProps={{ instanceName: investigationWorkspaceIdentity.name, instanceTagline: '' }} staticBrand fullScreen />
+  }
+  return <NexusLoadingState label="Starting NexusAI…" staticBrand fullScreen />
 }
 
 // BrandingProvider sits outside AuthProvider so the login screen — which

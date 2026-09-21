@@ -8,6 +8,7 @@
 
 .main-content {
   flex: 1;
+  min-width: 0;
   margin-left: var(--sidebar-width);
   min-height: 100vh;
   min-height: 100dvh;
@@ -22,9 +23,178 @@
 
 .main-content-inner {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+
+.main-content-inner:focus {
+  outline: none;
+}
+
+.skip-link {
+  position: fixed;
+  top: var(--spacing-sm);
+  left: var(--spacing-sm);
+  z-index: 10000;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  background: var(--nx-color-brand-primary, var(--color-primary));
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  transform: translateY(calc(-100% - var(--spacing-lg)));
+  transition: transform var(--duration-fast) var(--ease-default);
+}
+
+.skip-link:focus {
+  outline: 3px solid var(--nx-color-focus, var(--color-focus-ring));
+  outline-offset: 2px;
+  transform: translateY(0);
+}
+
+/* Global application context. Case identity comes only from the case-bound URL;
+   richer case metadata remains inside the governed Case Workspace. */
+.app-shell-header {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: color-mix(in srgb, var(--nx-color-surface, var(--color-bg-secondary)) 94%, transparent);
+  border-bottom: 1px solid var(--nx-color-border, var(--color-border-subtle));
+}
+
+.app-shell-header__route,
+.app-shell-header__identity-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.app-shell-header__route {
+  flex: 0 1 220px;
+}
+
+.app-shell-header__route > strong {
+  overflow: hidden;
+  color: var(--nx-color-text-primary, var(--color-text-primary));
+  font-size: var(--text-sm);
+  line-height: var(--leading-tight);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-shell-header__area {
+  color: var(--nx-color-text-muted, var(--color-text-muted));
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.1em;
+  line-height: var(--leading-snug);
+  text-transform: uppercase;
+}
+
+.app-shell-header__case {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 6px var(--spacing-sm);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+}
+
+.app-shell-header__case i {
+  color: var(--nx-color-brand-accent, var(--color-accent));
+}
+
+.app-shell-header__case code {
+  max-width: 24ch;
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-shell-header__identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-left: auto;
+}
+
+.app-shell-header__identity-mark {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-full);
+  background: var(--nx-color-brand-accent, var(--color-success));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--nx-color-brand-accent, var(--color-success)) 15%, transparent);
+}
+
+.app-shell-header__identity-copy {
+  max-width: 220px;
+}
+
+.app-shell-header__identity-copy strong,
+.app-shell-header__identity-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-shell-header__identity-copy strong {
+  color: var(--color-text-primary);
+  font-size: var(--text-xs);
+}
+
+.app-shell-header__identity-copy small {
+  color: var(--color-text-muted);
+  font-size: 0.65rem;
+}
+
+.app-shell-header__account {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  padding: 4px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.app-shell-header__account:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.app-shell-header__account:focus-visible {
+  outline: 2px solid var(--nx-color-focus, var(--color-focus-ring));
+  outline-offset: 2px;
+}
+
+.app-shell-header__account img {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+}
+
+.app-shell-header__account i {
+  font-size: 1.5rem;
 }
 
 .app-layout-chat {
@@ -140,6 +310,20 @@
   white-space: nowrap;
 }
 
+.mobile-title > span,
+.mobile-title > small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-title > small {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-regular);
+}
+
 .mobile-header-actions {
   display: flex;
   align-items: center;
@@ -221,11 +405,140 @@
   display: block;
 }
 
+.nexus-brand--lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 var(--spacing-xs);
+  color: var(--nx-color-text-primary, var(--color-text-primary));
+}
+
+.nexus-brand__mark,
+.nexus-brand--mark {
+  display: grid;
+  place-items: center;
+  width: 29px;
+  height: 29px;
+  flex: 0 0 auto;
+  border-radius: 9px;
+  color: #fff;
+  font-weight: 850;
+  letter-spacing: -0.05em;
+  background: linear-gradient(
+    135deg,
+    var(--nx-color-brand-primary, #2563eb),
+    var(--nx-color-brand-accent, #14b8a6)
+  );
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.22);
+}
+
+.nexus-brand--lockup .nexus-brand__name {
+  font-size: 1rem;
+  letter-spacing: -0.025em;
+}
+
+.nexus-brand--lockup.nexus-brand__asset {
+  display: block;
+  width: 100%;
+  max-width: 120px;
+  height: auto;
+  padding: 0 var(--spacing-xs);
+}
+
+.nexus-brand--mark.nexus-brand__asset {
+  object-fit: contain;
+  box-shadow: none;
+  background: none;
+}
+
+.nexus-brand--signature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.nexus-brand__identity {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.nexus-brand--signature .nexus-brand__mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  font-size: 1.2rem;
+}
+
+.nexus-brand--signature .nexus-brand__asset {
+  width: auto;
+  max-width: 180px;
+  max-height: 56px;
+  object-fit: contain;
+}
+
+.nexus-brand--signature .nexus-brand__name {
+  margin: 0;
+  color: var(--nx-color-text-primary, var(--color-text-primary));
+  font-size: 1.75rem;
+  line-height: var(--leading-tight);
+  letter-spacing: -0.035em;
+}
+
+.nexus-brand__context {
+  margin: var(--spacing-xs) 0 0;
+  color: var(--nx-color-brand-accent, var(--color-accent));
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.nexus-brand__tagline {
+  margin: 0;
+  color: var(--nx-color-text-secondary, var(--color-text-secondary));
+  font-size: var(--text-sm);
+}
+
 .sidebar-logo-img {
   width: 100%;
   max-width: 120px;
   height: auto;
   padding: 0 var(--spacing-xs);
+}
+
+.sidebar-nexus-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 var(--spacing-xs);
+  color: var(--color-text-primary);
+}
+
+.sidebar-nexus-wordmark > span,
+.sidebar-nexus-mark {
+  display: grid;
+  place-items: center;
+  width: 29px;
+  height: 29px;
+  border-radius: 9px;
+  color: #fff;
+  font-weight: 850;
+  letter-spacing: -0.05em;
+  background: linear-gradient(135deg, #2563eb, #0891b2);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.22);
+}
+
+.sidebar-nexus-wordmark strong {
+  font-size: 1rem;
+  letter-spacing: -0.025em;
+}
+
+.sidebar-nexus-mark {
+  width: 31px;
+  height: 31px;
 }
 
 .sidebar-logo-icon {
@@ -435,6 +748,24 @@
   text-align: left;
 }
 
+.sidebar-user-identity {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.25;
+}
+
+.sidebar-user-role {
+  color: var(--color-text-tertiary);
+  font-size: 0.65rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
 .sidebar-logout-btn {
   background: none;
   border: none;
@@ -642,14 +973,32 @@
   font-size: 0.75rem;
 }
 
-/* App boot fallback (rendered while initial i18n namespaces load) */
-.app-boot-spinner {
-  position: fixed;
-  inset: 0;
+/* Branded boot, login-status and lazy-route loading state. */
+.nexus-loading-state {
   display: flex;
+  min-height: 40vh;
+  width: 100%;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--color-bg-primary, #111);
+  gap: var(--spacing-lg);
+  color: var(--nx-color-text-secondary, var(--color-text-secondary));
+}
+
+.nexus-loading-state--fullscreen {
+  position: fixed;
+  inset: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  z-index: 1000;
+  background: var(--nx-color-canvas, var(--color-bg-primary, #111));
+}
+
+.nexus-loading-state__progress {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--text-sm);
 }
 .app-boot-spinner-dot {
   width: 36px;
@@ -2895,6 +3244,32 @@ select.input {
   margin-top: var(--spacing-xs);
 }
 
+.empty-state--error .empty-state-icon {
+  color: var(--color-error);
+}
+
+.empty-state--forbidden .empty-state-icon,
+.empty-state--partial .empty-state-icon {
+  color: var(--color-warning);
+}
+
+.empty-state--unavailable .empty-state-icon {
+  color: var(--color-text-muted);
+}
+
+.empty-state__details {
+  width: 100%;
+  max-width: 60ch;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+
 /* Animations */
 @keyframes spin {
   to { transform: rotate(360deg); }
@@ -3112,8 +3487,11 @@ select.input {
 
 .chat-messages {
   flex: 1;
+  min-height: min(360px, 50dvh);
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   padding: var(--spacing-md) var(--spacing-lg);
   display: flex;
   flex-direction: column;
@@ -3127,9 +3505,10 @@ select.input {
 
 /* Floating "jump to latest" pill, shown when scrolled away from the bottom. */
 .chat-jump-latest {
-  position: sticky;
-  bottom: 12px;
-  align-self: center;
+  position: absolute;
+  right: 50%;
+  bottom: 112px;
+  transform: translateX(50%);
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-xs);
@@ -3146,6 +3525,7 @@ select.input {
   animation: pageReveal var(--duration-fast) var(--ease-default) both;
 }
 .chat-jump-latest:hover { border-color: var(--color-primary-border); color: var(--color-primary); }
+.chat-jump-latest:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 .chat-messages::-webkit-scrollbar-thumb {
   background: var(--color-border-subtle);
   border-radius: 3px;
@@ -5280,8 +5660,34 @@ select.input {
     min-height: 56px;
   }
 
-  /* Layouts that need to collapse to single-column on any narrow viewport */
-  .chat-sidebar { display: none; }
+  .app-shell-header {
+    min-height: 54px;
+    gap: var(--spacing-md);
+    padding-inline: var(--spacing-md);
+  }
+
+  .app-shell-header__identity-copy small {
+    display: none;
+  }
+
+  .app-shell-header__case code {
+    max-width: 18ch;
+  }
+
+  /* The chat history becomes an explicit overlay drawer on narrow viewports. */
+  .chat-sidebar {
+    display: flex;
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: min(88vw, 320px);
+    z-index: 20;
+    box-shadow: var(--shadow-xl);
+  }
+  .chat-sidebar.hidden {
+    display: flex;
+    width: 0;
+    box-shadow: none;
+  }
   .chat-settings-drawer {
     width: 100%;
     max-width: 100%;
@@ -5362,6 +5768,8 @@ select.input {
 
 /* Mobile (<640): sidebar slides off-screen as a drawer */
 @media (max-width: 639px) {
+  .app-shell-header { display: none; }
+
   .main-content,
   .sidebar-is-collapsed .main-content {
     margin-left: 0;

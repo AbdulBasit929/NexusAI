@@ -1,4 +1,5 @@
-faster-whisper
+faster-whisper==1.2.1
+ctranslate2==4.7.1
 opencv-python
 accelerate
 compel

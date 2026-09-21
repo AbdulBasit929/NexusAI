@@ -5,10 +5,10 @@ import ThemeToggle from './ThemeToggle'
 import LanguageSwitcher from './LanguageSwitcher'
 import { useAuth } from '../context/AuthContext'
 import { useBranding } from '../contexts/BrandingContext'
-import { useTheme } from '../contexts/ThemeContext'
 import { apiUrl } from '../utils/basePath'
 import { preloadRoute } from '../router'
 import { consoles, firstVisiblePath, consolePaths } from './console/consoleConfig'
+import NexusBrand from './NexusBrand'
 
 const COLLAPSED_KEY = 'localai_sidebar_collapsed'
 const SECTIONS_KEY = 'localai_sidebar_sections'
@@ -18,8 +18,8 @@ const topItems = [
   { path: '/app/models', icon: 'fas fa-download', labelKey: 'items.installModels', adminOnly: true },
 ]
 
-// Create stays inline (frequent, one-click creative destinations). The Build
-// and Operate tiers are single entries that open a secondary console rail —
+// Analyst Tools stays inline (frequent, one-click destinations). Intelligence
+// Tools and System Administration are single entries opening a secondary rail;
 // their items live in console/consoleConfig.js (shared with ConsoleLayout).
 const sections = [
   {
@@ -85,7 +85,6 @@ export default function Sidebar({ isOpen, onClose }) {
   const [openSections, setOpenSections] = useState(loadSectionState)
   const { isAdmin, authEnabled, user, logout, hasFeature } = useAuth()
   const branding = useBranding()
-  const { theme } = useTheme()
   const navigate = useNavigate()
   const location = useLocation()
   const closeBtnRef = useRef(null)
@@ -159,9 +158,6 @@ export default function Sidebar({ isOpen, onClose }) {
   }
 
   const visibleTopItems = topItems.filter(filterItem)
-  const horizontalLogoUrl = theme === 'light'
-    ? '/brand/horizontallogo_lighttheme-removebg-preview.png'
-    : branding.logoHorizontalUrl
   // Shared shape for the console gating helpers (consoleConfig.js).
   const auth = { isAdmin, authEnabled, hasFeature, features }
 
@@ -179,11 +175,11 @@ export default function Sidebar({ isOpen, onClose }) {
       >
         {/* Logo */}
         <div className="sidebar-header">
-          <a href="./" className="sidebar-logo-link">
-            <img src={apiUrl(horizontalLogoUrl)} alt={branding.instanceName} className="sidebar-logo-img" />
+          <a href="./" className="sidebar-logo-link" aria-label={`${branding.instanceName} home`}>
+            <NexusBrand variant="lockup" />
           </a>
-          <a href="./" className="sidebar-logo-icon" title={branding.instanceName}>
-            <img src={apiUrl(branding.logoUrl)} alt={branding.instanceName} className="sidebar-logo-icon-img" />
+          <a href="./" className="sidebar-logo-icon" aria-label={`${branding.instanceName} home`}>
+            <NexusBrand variant="mark" />
           </a>
           <button
             ref={closeBtnRef}
@@ -277,7 +273,12 @@ export default function Sidebar({ isOpen, onClose }) {
                 ) : (
                   <i className="fas fa-user-circle sidebar-user-avatar-icon" />
                 )}
-                <span className="nav-label sidebar-user-name">{user.name || user.email}</span>
+                <span className="nav-label sidebar-user-identity">
+                  <span className="sidebar-user-name">{user.name || user.email}</span>
+                  <span className="sidebar-user-role">
+                    {t(isAdmin ? 'roles.systemAdministrator' : 'roles.analyst')}
+                  </span>
+                </span>
               </button>
               <button className="sidebar-logout-btn" onClick={logout} title={t('logout')}>
                 <i className="fas fa-sign-out-alt" />

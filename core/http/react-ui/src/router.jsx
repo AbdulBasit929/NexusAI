@@ -1,11 +1,12 @@
 import { lazy } from 'react'
-import { createBrowserRouter, Navigate, useParams } from 'react-router-dom'
+import { createBrowserRouter, Navigate, useLocation, useParams } from 'react-router-dom'
 import { routerBasename } from './utils/basePath'
 import App from './App'
 import RequireAdmin from './components/RequireAdmin'
 import RequireAuth from './components/RequireAuth'
 import RequireAuthEnabled from './components/RequireAuthEnabled'
 import RequireFeature from './components/RequireFeature'
+import { ActiveCaseProvider } from './contexts/ActiveCaseContext'
 
 // Pages are code-split: each becomes its own chunk loaded on demand, so a route
 // no longer drags every other page (and its heavy deps — CodeMirror, the MCP
@@ -52,7 +53,8 @@ const AgentChat = page(null, () => import('./pages/AgentChat'))
 const AgentStatus = page(null, () => import('./pages/AgentStatus'))
 const Collections = page('collections', () => import('./pages/Collections'))
 const CollectionDetails = page(null, () => import('./pages/CollectionDetails'))
-const RecordsIntelligence = page('records', () => import('./pages/RecordsIntelligence'))
+const RecordsRedirect = page('records', () => import('./pages/RecordsRedirect'))
+const CaseWorkspace = page('cases', () => import('./pages/CaseWorkspace'))
 const Skills = page('skills', () => import('./pages/Skills'))
 const SkillEdit = page(null, () => import('./pages/SkillEdit'))
 const AgentJobs = page('agent-jobs', () => import('./pages/AgentJobs'))
@@ -78,6 +80,8 @@ const Usage = page('usage', () => import('./pages/Usage'))
 const Users = page('users', () => import('./pages/Users'))
 const Middleware = page('middleware', () => import('./pages/Middleware'))
 const Account = page('account', () => import('./pages/Account'))
+const AnalystPortalLayout = page(null, () => import('./analyst/AnalystPortalLayout'))
+const AnalystWorkspace = page(null, () => import('./analyst/AnalystWorkspace'))
 
 import ConsoleLayout from './components/console/ConsoleLayout'
 import { buildConsole, operateConsole } from './components/console/consoleConfig'
@@ -85,6 +89,15 @@ import { buildConsole, operateConsole } from './components/console/consoleConfig
 function BrowseRedirect() {
   const { '*': splat } = useParams()
   return <Navigate to={`/app/${splat || ''}`} replace />
+}
+
+function AnalystCompatibilityRedirect({ panel = '' }) {
+  const location = useLocation()
+  const params = new URLSearchParams(location.search)
+  if (panel) params.set('panel', panel)
+  else params.delete('panel')
+  const query = params.toString()
+  return <Navigate to={`/analyst${query ? `?${query}` : ''}`} replace />
 }
 
 
@@ -123,7 +136,7 @@ const appChildren = [
       { path: 'agents', element: <Feature feature="agents"><Agents /></Feature> },
       { path: 'skills', element: <Feature feature="skills"><Skills /></Feature> },
       { path: 'collections', element: <Feature feature="collections"><Collections /></Feature> },
-      { path: 'records', element: <Feature feature="records"><RecordsIntelligence /></Feature> },
+      { path: 'records', element: <Feature feature="records"><RecordsRedirect /></Feature> },
       { path: 'agent-jobs', element: <Feature feature="mcp_jobs"><AgentJobs /></Feature> },
       { path: 'fine-tune', element: <Feature feature="fine_tuning"><FineTune /></Feature> },
       { path: 'quantize', element: <Feature feature="quantization"><Quantize /></Feature> },
@@ -139,6 +152,8 @@ const appChildren = [
   { path: 'agents/:name/chat', element: <Feature feature="agents"><AgentChat /></Feature> },
   { path: 'agents/:name/status', element: <Feature feature="agents"><AgentStatus /></Feature> },
   { path: 'collections/:name', element: <Feature feature="collections"><CollectionDetails /></Feature> },
+  { path: 'cases/:caseId', element: <Navigate to="overview" replace /> },
+  { path: 'cases/:caseId/:section', element: <Feature feature="records"><CaseWorkspace /></Feature> },
   { path: 'skills/new', element: <Feature feature="skills"><SkillEdit /></Feature> },
   { path: 'skills/edit/:name', element: <Feature feature="skills"><SkillEdit /></Feature> },
   { path: 'agent-jobs/tasks/new', element: <Feature feature="mcp_jobs"><AgentTaskDetails /></Feature> },
@@ -189,8 +204,21 @@ export const router = createBrowserRouter([
   },
   {
     path: '/app',
-    element: <RequireAuth><App /></RequireAuth>,
+    element: <RequireAuth><ActiveCaseProvider><App /></ActiveCaseProvider></RequireAuth>,
     children: appChildren,
+  },
+  {
+    path: '/analyst',
+    element: <RequireAuth><ActiveCaseProvider><AnalystPortalLayout /></ActiveCaseProvider></RequireAuth>,
+    children: [
+      { index: true, element: <Feature feature="records"><AnalystWorkspace /></Feature> },
+      { path: 'home', element: <AnalystCompatibilityRedirect /> },
+      { path: 'ask', element: <AnalystCompatibilityRedirect /> },
+      { path: 'data', element: <AnalystCompatibilityRedirect panel="evidence" /> },
+      { path: 'activity', element: <AnalystCompatibilityRedirect panel="history" /> },
+      { path: 'history', element: <AnalystCompatibilityRedirect panel="history" /> },
+      { path: '*', element: <AnalystCompatibilityRedirect /> },
+    ],
   },
   // Backward compatibility: redirect /browse/* to /app/*
   {
@@ -199,6 +227,6 @@ export const router = createBrowserRouter([
   },
   {
     path: '/',
-    element: <Navigate to="/app" replace />,
+    element: <Navigate to="/analyst" replace />,
   },
 ], { basename: routerBasename })

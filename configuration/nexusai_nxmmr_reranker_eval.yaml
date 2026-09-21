@@ -1,0 +1,15 @@
+- name: nxmmr-qwen3-reranker-challenger
+  backend: llama-cpp
+  reranking: true
+  known_usecases:
+    - rerank
+  parameters:
+    model: qwen3-reranker-0.6b-q8_0.gguf
+    context_size: 2048
+    mmap: true
+    f16: true
+  threads: 8
+  gpu_layers: 0
+  function:
+    grammar:
+      disable: true

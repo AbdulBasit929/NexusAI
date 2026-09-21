@@ -1,0 +1,240 @@
+{
+  "contract_version": "NEXUSAI_MULTIMODAL_BENCHMARK_MANIFEST_V1",
+  "as_of": "2026-08-30",
+  "phase": "NX-MMR",
+  "status": "authorized_bounded_execution_complete",
+  "governance": {
+    "retained_mutation_authorized": false,
+    "external_download_authorized": true,
+    "external_download_scope": "Only the seven exact artifacts and immutable URLs in proposed_model_acquisition_bundle, maximum 663933265 bytes; no substitutions.",
+    "model_install_authorized": false,
+    "runtime_build_or_deploy_authorized": false,
+    "local_user_evidence_processing_authorized": true,
+    "local_user_evidence_scope": "Read-only, private, non-retained processing of only nxmmr-local-sample-video and nxmmr-local-pakistan-plate-images; originals remain untouched and no raw identifiers enter Git or retained stores.",
+    "ground_truth_rule": "No model output may be reused as its own oracle. Real-world labels require an independent human or publisher ground truth.",
+    "promotion_rule": "A model or operation is promoted only after representative REAL_WORLD_CERTIFIED evidence and integrated PRODUCT_CERTIFIED acceptance.",
+    "privacy_rule": "Sensitive media stays local, is not committed, and is reported only through aggregate or redacted results.",
+    "suggestion_rule": "Ordinary visible suggestions require PRODUCT_CERTIFIED operation status."
+  },
+  "hardware_envelope": {
+    "host": "LENOVO 21BVS0QX00",
+    "cpu": "12th Gen Intel Core i7-1260P",
+    "logical_processors": 16,
+    "ram_bytes": 16871448576,
+    "gpu": "Intel UHD Graphics",
+    "gpu_reported_adapter_ram_bytes": 2147479552,
+    "operating_system": "Windows 11 Pro 10.0.22631",
+    "parallel_heavy_models": 1,
+    "benchmark_resource_policy": {
+      "LIGHT": {
+        "minimum_free_ram_before_run_bytes": 3221225472
+      },
+      "MEDIUM": {
+        "minimum_free_ram_before_run_bytes": 3758096384
+      },
+      "HEAVY": {
+        "minimum_free_ram_before_run_bytes": 4831838208
+      },
+      "VERY_HEAVY": {
+        "default_admission": false
+      },
+      "measured_admission_rule": "After a representative measurement exists, require expected incremental peak RAM plus at least 1610612736 bytes headroom, never below the class floor unless a receipt contains an explicit evidence-based justification.",
+      "emergency_stop_free_ram_bytes": 1073741824,
+      "batch_sequence": [5, 10, 20],
+      "video_policy": "Stream or bound frames; never decode the full video into memory."
+    },
+    "deployment_build_resource_policy": "The existing separate 6 GiB build/deployment gate remains unchanged and is not authorized by this manifest."
+  },
+  "admitted_existing_inputs": [
+    {
+      "input_id": "nxmmr-local-sample-video",
+      "family": "video_audio_anpr_ocr",
+      "path": "C:\\Users\\sheik\\Downloads\\sample.mp4",
+      "size_bytes": 184407144,
+      "sha256": "d470773444dd23bc4b8d446e3fb1e057923e9902b2a2a93e9fafc83762d137ee",
+      "tier": "LOCAL_USER_CONTROLLED_AUTHORIZED_NON_RETAINED",
+      "status": "authorized_benchmark_complete_nonretained",
+      "required_before_use": [
+        "visual privacy review",
+        "independent timestamped ground-truth manifest"
+      ]
+    },
+    {
+      "input_id": "nxmmr-local-pakistan-plate-images",
+      "family": "anpr_image_ocr",
+      "path": "C:\\Users\\sheik\\Downloads\\archive\\Pakistani License Number Plates Data",
+      "size_bytes": 50377210,
+      "sha256": null,
+      "file_count": 108,
+      "tier": "LOCAL_USER_CONTROLLED_AUTHORIZED_NON_RETAINED",
+      "status": "authorized_benchmark_complete_nonretained",
+      "required_before_use": [
+        "license and privacy disposition",
+        "independent image-level plate and negative labels"
+      ]
+    },
+    {
+      "input_id": "nxmmr-retained-workspace",
+      "family": "all_current_families",
+      "tier": "RETAINED_PRODUCT_EVIDENCE",
+      "status": "read_only_replay_only_until_separate_approval",
+      "workspace_tuple": "24|24|9275|426|22",
+      "activity_count": 20
+    },
+    {
+      "input_id": "nxmmr-repository-controlled-fixtures",
+      "family": "all_current_families",
+      "tier": "FIXTURE",
+      "status": "admitted_for_source_tests",
+      "authority_limit": "May establish FIXTURE_CERTIFIED, never REAL_WORLD_CERTIFIED or PRODUCT_CERTIFIED alone."
+    }
+  ],
+  "proposed_external_datasets": [
+    {
+      "dataset_id": "p-lpcd-zenodo-17182320",
+      "family": "anpr_plate_character_ocr",
+      "source": "https://doi.org/10.5281/zenodo.17182320",
+      "version": "1.0.0",
+      "size_bytes": 1235177299,
+      "publisher_checksum": "md5:293f7c2497d13f53ab282b630a362603",
+      "license": "CONFLICT: Zenodo metadata CC BY 4.0; associated repository states CC BY-NC 4.0",
+      "status": "DEFER_DO_NOT_DOWNLOAD",
+      "reason": "Large archive, real plate privacy, license conflict, and 36-versus-37-class schema discrepancy."
+    },
+    {
+      "dataset_id": "mozilla-common-voice-26-urdu",
+      "family": "urdu_audio_asr",
+      "source": "https://commonvoice.mozilla.org/data",
+      "version": "Scripted Speech 26.0 Urdu",
+      "full_size": "5.79 GB",
+      "license": "CC0-1.0 subject to Mozilla dataset terms",
+      "status": "DEFER_DO_NOT_DOWNLOAD",
+      "reason": "Only a bounded clip subset is appropriate; exact selected clip bytes and a no-speaker-identification handling manifest must precede approval."
+    },
+    {
+      "dataset_id": "urdu-handwritten-text-bg2sctsysf-v1",
+      "family": "urdu_handwritten_ocr",
+      "source": "https://data.mendeley.com/datasets/bg2sctsysf/1",
+      "version": "1",
+      "license": "CC BY 4.0",
+      "status": "DEFER_DO_NOT_DOWNLOAD",
+      "reason": "Publisher page is admissible in principle, but the official API requires authorization and exact archive bytes/checksum were not independently resolved; demographics require privacy minimization."
+    },
+    {
+      "dataset_id": "utrnet-utrset-real",
+      "family": "urdu_printed_ocr",
+      "source": "https://github.com/abdur75648/UTRNet-High-Resolution-Urdu-Text-Recognition",
+      "license": "research-only / CC BY-NC-SA 4.0; UrduDoc requires agreement",
+      "status": "RESEARCH_REFERENCE_ONLY",
+      "reason": "Not eligible for product promotion without explicit commercial permission."
+    }
+  ],
+  "proposed_model_acquisition_bundle": {
+    "status": "ACQUIRED_AND_INTEGRITY_VERIFIED",
+    "destination": "local-acceptance-models/nxmmr (isolated cache only)",
+    "total_size_bytes": 663933265,
+    "artifacts": [
+      {
+        "role": "anpr_detector_incumbent_recovery",
+        "name": "yolo-v9-t-384-license-plates-end2end.onnx",
+        "url": "https://github.com/ankandrew/open-image-models/releases/download/assets/yolo-v9-t-384-license-plates-end2end.onnx",
+        "size_bytes": 7771218,
+        "license": "MIT project; asset notice rechecked after acquisition",
+        "sha256": "888397b96d761c89db40bc9c305838e8652660f5e282c2cadebbe8d2951a77a8",
+        "acquisition_method": "approved_https_download"
+      },
+      {
+        "role": "anpr_ocr_incumbent_recovery",
+        "name": "cct_xs_v2_global.onnx",
+        "url": "https://github.com/ankandrew/fast-plate-ocr/releases/download/arg-plates/cct_xs_v2_global.onnx",
+        "size_bytes": 3344292,
+        "license": "MIT project; asset notice rechecked after acquisition",
+        "sha256": "8031afb5fdc6b4d80462c9d542f1284ebd2cfddf5dbacd62609848d7e2855f44",
+        "acquisition_method": "approved_https_download"
+      },
+      {
+        "role": "anpr_ocr_incumbent_config",
+        "name": "cct_xs_v2_global_plate_config.yaml",
+        "url": "https://github.com/ankandrew/fast-plate-ocr/releases/download/arg-plates/cct_xs_v2_global_plate_config.yaml",
+        "size_bytes": 1725,
+        "license": "MIT project",
+        "sha256": "0335c74a305173bb6f393efed0fde03cadeaa0b649ed8e19f431016d8232d0a6",
+        "acquisition_method": "approved_https_download"
+      },
+      {
+        "role": "urdu_english_ocr_resource_floor",
+        "name": "eng.traineddata",
+        "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/65727574dfcd264acbb0c3e07860e4e9e9b22185/eng.traineddata",
+        "size_bytes": 4113088,
+        "license": "Apache-2.0",
+        "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+        "acquisition_method": "exact_bytes_reused_from_cached_nexusai/r8-ocr-eval:3.7.0-cpu"
+      },
+      {
+        "role": "urdu_english_ocr_resource_floor",
+        "name": "urd.traineddata",
+        "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/65727574dfcd264acbb0c3e07860e4e9e9b22185/urd.traineddata",
+        "size_bytes": 1398718,
+        "license": "Apache-2.0",
+        "sha256": "62e8250ce2a994106e313a82e26a516a39e2cf159d0ce3c5b5008387fd0d555f",
+        "acquisition_method": "exact_bytes_reused_from_cached_nexusai/r8-ocr-eval:3.7.0-cpu"
+      },
+      {
+        "role": "urdu_ocr_challenger",
+        "name": "arabic_PP-OCRv5_mobile_rec_infer.tar",
+        "url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/arabic_PP-OCRv5_mobile_rec_infer.tar",
+        "size_bytes": 8151040,
+        "license": "Apache-2.0 project; packaged notices must pass before use",
+        "publisher_etag": "-8f528ee3d359cb26d4e3f3e312b6c685",
+        "sha256": "a25c1f96cd0cda485b942851b5afb4a95bc4041a56c295bb4439190d53ee0a14",
+        "acquisition_method": "approved_https_download",
+        "archive_inspection": "PASS_three_bounded_members_no_path_traversal"
+      },
+      {
+        "role": "knowledge_retrieval_reranker_challenger",
+        "name": "qwen3-reranker-0.6b-q8_0.gguf",
+        "url": "https://huggingface.co/ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF/resolve/a02f48bb4f057028298c21fa033da2b30d7742d5/qwen3-reranker-0.6b-q8_0.gguf",
+        "size_bytes": 639153184,
+        "license": "Apache-2.0",
+        "sha256": "22c9979ce4fbcdc5acdc310c6641c32797eff1aa980b8f7a2db8a8ea23429a48",
+        "acquisition_method": "approved_https_download",
+        "format_inspection": "GGUF_v3_311_tensors"
+      }
+    ]
+  },
+  "benchmark_slices": [
+    {
+      "slice": "MMR-1",
+      "families": ["structured", "documents", "knowledge_retrieval"],
+      "metrics": ["exactness", "citation_precision", "no-answer abstention", "latency", "peak_memory"],
+      "oracle": "deterministic fixture or independently labeled source rows"
+    },
+    {
+      "slice": "MMR-2",
+      "families": ["images", "anpr", "ocr", "face_candidate"],
+      "metrics": ["detection_precision_recall", "full_plate_match", "CER", "false_positive_rate", "latency", "peak_memory"],
+      "oracle": "independent image-level labels; candidate-only face semantics"
+    },
+    {
+      "slice": "MMR-3",
+      "families": ["audio", "video"],
+      "metrics": ["WER", "identifier_preservation", "timestamp_error", "complete_zero_truth", "latency", "peak_memory"],
+      "oracle": "independent transcript and source-time labels"
+    },
+    {
+      "slice": "MMR-4",
+      "families": ["routing", "query_operations", "workspace_ui"],
+      "metrics": ["route_precision", "fallback_truthfulness", "suggestion_eligibility", "source_navigation", "four_viewport_acceptance"],
+      "oracle": "sealed routing matrix plus manual UI script"
+    }
+  ],
+  "stop_conditions": [
+    "pre-run free physical RAM below the applicable workload class floor or measured admission rule",
+    "free physical RAM approaches 1 GiB, severe paging occurs, an evaluator is killed, Docker becomes unstable, or two resource failures occur",
+    "hash, size, license, or notice mismatch",
+    "ground truth is absent or derived from the candidate output",
+    "any attempt to mutate retained state without separate approval",
+    "any P0 security or evidence-integrity failure",
+    "two consecutive resource failures for the same candidate"
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "contract_version": "nexusai.nxmmr.demo-model-admission/v1",
+  "review_date": "2026-08-31",
+  "intended_scope": "private internal development and team-lead demonstration",
+  "legal_disclaimer": "Engineering admission record, not legal advice and not approval for external redistribution or customer delivery.",
+  "overall_demo_admission": "ADMITTED_WITH_NOTICE",
+  "method": "Authoritative upstream project license plus project-published model hub/release evidence; no separate restrictive model term was located.",
+  "assets": [
+    {
+      "asset": "yolo-v9-t-384-license-plates-end2end.onnx",
+      "roles": ["image_anpr", "video_anpr_v3"],
+      "sha256": "888397b96d761c89db40bc9c305838e8652660f5e282c2cadebbe8d2951a77a8",
+      "official_asset_url": "https://github.com/ankandrew/open-image-models/releases/download/assets/yolo-v9-t-384-license-plates-end2end.onnx",
+      "publisher_hub_source": "https://github.com/ankandrew/open-image-models/blob/main/open_image_models/detection/core/hub.py",
+      "project_license": "MIT",
+      "separate_restrictive_model_terms_found": false,
+      "demo_admission": "ADMITTED_WITH_NOTICE",
+      "notice": "Copyright (c) 2024 ankandrew; MIT License",
+      "external_distribution": "SEPARATE_REVIEW_REQUIRED"
+    },
+    {
+      "asset": "cct-xs-v2-global-model ONNX and plate config",
+      "roles": ["image_plate_ocr", "video_plate_ocr"],
+      "sha256": "8031afb5fdc6b4d80462c9d542f1284ebd2cfddf5dbacd62609848d7e2855f44",
+      "config_sha256": "0335c74a305173bb6f393efed0fde03cadeaa0b649ed8e19f431016d8232d0a6",
+      "official_asset_urls": [
+        "https://github.com/ankandrew/fast-plate-ocr/releases/download/arg-plates/cct_xs_v2_global.onnx",
+        "https://github.com/ankandrew/fast-plate-ocr/releases/download/arg-plates/cct_xs_v2_global_plate_config.yaml"
+      ],
+      "publisher_release_evidence": "https://github.com/ankandrew/fast-plate-ocr/releases/tag/v1.1.0",
+      "project_license": "MIT",
+      "separate_restrictive_model_terms_found": false,
+      "demo_admission": "ADMITTED_WITH_NOTICE",
+      "notice": "Copyright (c) 2024 ankandrew; MIT License",
+      "external_distribution": "SEPARATE_REVIEW_REQUIRED"
+    },
+    {
+      "asset": "PP-OCRv5_mobile_det",
+      "role": "printed_text_detection",
+      "tree_sha256": "1771a1ca1af2b1625228d2349849be1ccba507af13753547969c1de1702bdd74",
+      "official_model_documentation": "https://github.com/PaddlePaddle/PaddleOCR/blob/main/docs/version3.x/module_usage/text_detection.en.md",
+      "project_license": "Apache-2.0",
+      "separate_restrictive_model_terms_found": false,
+      "demo_admission": "ADMITTED_WITH_NOTICE",
+      "notice": "Copyright (c) 2016 PaddlePaddle Authors; Apache License 2.0",
+      "external_distribution": "SEPARATE_PACKAGING_REVIEW_REQUIRED"
+    },
+    {
+      "asset": "en_PP-OCRv5_mobile_rec",
+      "role": "printed_english_recognition",
+      "tree_sha256": "9580601f0a93d061d89cd89676be65353a8e81ac760063f5c22788f4fe5673a9",
+      "official_model_documentation": "https://github.com/PaddlePaddle/PaddleOCR/blob/main/docs/version3.x/pipeline_usage/OCR.md",
+      "project_license": "Apache-2.0",
+      "separate_restrictive_model_terms_found": false,
+      "demo_admission": "ADMITTED_WITH_NOTICE",
+      "notice": "Copyright (c) 2016 PaddlePaddle Authors; Apache License 2.0",
+      "external_distribution": "SEPARATE_PACKAGING_REVIEW_REQUIRED"
+    },
+    {
+      "asset": "arabic_PP-OCRv5_mobile_rec",
+      "role": "printed_urdu_arabic_multilingual_recognition",
+      "tree_sha256": "3ee6f2267929b0fae36a6c63565f70f506ced8e133e9e2ed626a89c131d4cd1f",
+      "official_asset_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/arabic_PP-OCRv5_mobile_rec_infer.tar",
+      "official_model_documentation": "https://github.com/PaddlePaddle/PaddleOCR/blob/main/docs/version3.x/pipeline_usage/OCR.md",
+      "archive_sha256": "a25c1f96cd0cda485b942851b5afb4a95bc4041a56c295bb4439190d53ee0a14",
+      "project_license": "Apache-2.0",
+      "separate_restrictive_model_terms_found": false,
+      "demo_admission": "ADMITTED_WITH_NOTICE",
+      "notice": "Copyright (c) 2016 PaddlePaddle Authors; Apache License 2.0",
+      "external_distribution": "SEPARATE_PACKAGING_REVIEW_REQUIRED"
+    }
+  ],
+  "blocked_assets": [
+    {
+      "asset": "Ultralytics runtime, yolov8n.pt and license_plate_detector.pt",
+      "demo_admission": "BLOCKED_NOT_ENABLED",
+      "reason": "No applicable Enterprise/R&D agreement or approved AGPL posture is recorded. Video V3 does not import or require these assets."
+    }
+  ],
+  "required_notice_file": "docs/legal/nxmmr-demo-third-party-notices.md",
+  "product_certification_performed": false
+}

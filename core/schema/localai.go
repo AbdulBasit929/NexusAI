@@ -33,31 +33,31 @@ type GalleryResponse struct {
 
 type VideoRequest struct {
 	BasicModelRequest
-	Prompt         string  `json:"prompt" yaml:"prompt"`                                     // text description of the video to generate
-	NegativePrompt string  `json:"negative_prompt" yaml:"negative_prompt"`                   // things to avoid in the output
-	StartImage     string  `json:"start_image" yaml:"start_image"`                           // URL or base64 of the first frame
-	EndImage       string  `json:"end_image" yaml:"end_image"`                               // URL or base64 of the last frame
-	Width          int32   `json:"width" yaml:"width"`                                       // output width in pixels
-	Height         int32   `json:"height" yaml:"height"`                                     // output height in pixels
-	NumFrames      int32   `json:"num_frames" yaml:"num_frames"`                             // total number of frames to generate
-	FPS            int32   `json:"fps" yaml:"fps"`                                           // frames per second
-	Seconds        string  `json:"seconds,omitempty" yaml:"seconds,omitempty"`               // duration in seconds (alternative to num_frames)
-	Size           string  `json:"size,omitempty" yaml:"size,omitempty"`                     // WxH shorthand (e.g. "512x512")
+	Prompt         string  `json:"prompt" yaml:"prompt"`                                       // text description of the video to generate
+	NegativePrompt string  `json:"negative_prompt" yaml:"negative_prompt"`                     // things to avoid in the output
+	StartImage     string  `json:"start_image" yaml:"start_image"`                             // URL or base64 of the first frame
+	EndImage       string  `json:"end_image" yaml:"end_image"`                                 // URL or base64 of the last frame
+	Width          int32   `json:"width" yaml:"width"`                                         // output width in pixels
+	Height         int32   `json:"height" yaml:"height"`                                       // output height in pixels
+	NumFrames      int32   `json:"num_frames" yaml:"num_frames"`                               // total number of frames to generate
+	FPS            int32   `json:"fps" yaml:"fps"`                                             // frames per second
+	Seconds        string  `json:"seconds,omitempty" yaml:"seconds,omitempty"`                 // duration in seconds (alternative to num_frames)
+	Size           string  `json:"size,omitempty" yaml:"size,omitempty"`                       // WxH shorthand (e.g. "512x512")
 	InputReference string  `json:"input_reference,omitempty" yaml:"input_reference,omitempty"` // reference image or video URL
-	Seed           int32   `json:"seed" yaml:"seed"`                                         // random seed for reproducibility
-	CFGScale       float32 `json:"cfg_scale" yaml:"cfg_scale"`                               // classifier-free guidance scale
-	Step           int32   `json:"step" yaml:"step"`                                         // number of diffusion steps
-	ResponseFormat string  `json:"response_format" yaml:"response_format"`                   // output format (url or b64_json)
+	Seed           int32   `json:"seed" yaml:"seed"`                                           // random seed for reproducibility
+	CFGScale       float32 `json:"cfg_scale" yaml:"cfg_scale"`                                 // classifier-free guidance scale
+	Step           int32   `json:"step" yaml:"step"`                                           // number of diffusion steps
+	ResponseFormat string  `json:"response_format" yaml:"response_format"`                     // output format (url or b64_json)
 }
 
 // @Description TTS request body
 type TTSRequest struct {
 	BasicModelRequest
-	Input    string `json:"input" yaml:"input"` // text input
-	Voice    string `json:"voice" yaml:"voice"` // voice audio file or speaker id
-	Backend  string `json:"backend" yaml:"backend"` // backend engine override
-	Language string `json:"language,omitempty" yaml:"language,omitempty"`               // (optional) language to use with TTS model
-	Format   string `json:"response_format,omitempty" yaml:"response_format,omitempty"` // (optional) output format
+	Input      string `json:"input" yaml:"input"`                                         // text input
+	Voice      string `json:"voice" yaml:"voice"`                                         // voice audio file or speaker id
+	Backend    string `json:"backend" yaml:"backend"`                                     // backend engine override
+	Language   string `json:"language,omitempty" yaml:"language,omitempty"`               // (optional) language to use with TTS model
+	Format     string `json:"response_format,omitempty" yaml:"response_format,omitempty"` // (optional) output format
 	Stream     bool   `json:"stream,omitempty" yaml:"stream,omitempty"`                   // (optional) enable streaming TTS
 	SampleRate int    `json:"sample_rate,omitempty" yaml:"sample_rate,omitempty"`         // (optional) desired output sample rate
 	// Instructions is a free-form, per-request style/voice description. It maps to
@@ -161,10 +161,10 @@ type SystemInformationResponse struct {
 type DetectionRequest struct {
 	BasicModelRequest
 	Image     string    `json:"image"`               // URL or base64-encoded image to analyze
-	Prompt    string    `json:"prompt,omitempty"`     // Text prompt (for SAM 3 PCS mode)
-	Points    []float32 `json:"points,omitempty"`     // Point coordinates as [x,y,label,...] triples (label: 1=pos, 0=neg)
-	Boxes     []float32 `json:"boxes,omitempty"`      // Box coordinates as [x1,y1,x2,y2,...] quads
-	Threshold float32   `json:"threshold,omitempty"`  // Detection confidence threshold
+	Prompt    string    `json:"prompt,omitempty"`    // Text prompt (for SAM 3 PCS mode)
+	Points    []float32 `json:"points,omitempty"`    // Point coordinates as [x,y,label,...] triples (label: 1=pos, 0=neg)
+	Boxes     []float32 `json:"boxes,omitempty"`     // Box coordinates as [x1,y1,x2,y2,...] quads
+	Threshold float32   `json:"threshold,omitempty"` // Detection confidence threshold
 }
 
 type DetectionResponse struct {
@@ -225,6 +225,23 @@ type FacialArea struct {
 	H float32 `json:"h"`
 }
 
+// FaceDetectRequest asks the backend for face regions only. It is deliberately
+// separate from FaceAnalyzeRequest so detection callers cannot accidentally
+// request or receive demographic inferences.
+type FaceDetectRequest struct {
+	BasicModelRequest
+	Img string `json:"img"`
+}
+
+type FaceDetectResponse struct {
+	Faces []FaceDetection `json:"faces"`
+}
+
+type FaceDetection struct {
+	Region     FacialArea `json:"region"`
+	Confidence float32    `json:"confidence"`
+}
+
 // FaceVerifyRequest compares two images to decide whether they depict
 // the same person. Img1 and Img2 accept URL, base64, or data-URI.
 type FaceVerifyRequest struct {
@@ -236,14 +253,14 @@ type FaceVerifyRequest struct {
 }
 
 type FaceVerifyResponse struct {
-	Verified           bool       `json:"verified"`
-	Distance           float32    `json:"distance"`
-	Threshold          float32    `json:"threshold"`
-	Confidence         float32    `json:"confidence"`
-	Model              string     `json:"model"`
-	Img1Area           FacialArea `json:"img1_area"`
-	Img2Area           FacialArea `json:"img2_area"`
-	ProcessingTimeMs   float32    `json:"processing_time_ms,omitempty"`
+	Verified         bool       `json:"verified"`
+	Distance         float32    `json:"distance"`
+	Threshold        float32    `json:"threshold"`
+	Confidence       float32    `json:"confidence"`
+	Model            string     `json:"model"`
+	Img1Area         FacialArea `json:"img1_area"`
+	Img2Area         FacialArea `json:"img2_area"`
+	ProcessingTimeMs float32    `json:"processing_time_ms,omitempty"`
 	// Liveness fields are only populated when the request set
 	// anti_spoofing=true. Pointers keep them fully absent from the
 	// JSON response otherwise, so callers can tell "not checked"

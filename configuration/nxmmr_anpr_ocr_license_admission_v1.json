@@ -1,0 +1,218 @@
+{
+  "contract_version": "nexusai.nxmmr.anpr-ocr-license-admission/v1",
+  "review_date": "2026-08-31",
+  "review_mode": "read_only_no_download_no_install",
+  "legal_disclaimer": "Engineering evidence matrix, not legal advice or a substitute for counsel or a commercial license agreement.",
+  "overall_state": "LEGAL_REVIEW_REQUIRED",
+  "assets": [
+    {
+      "asset": "license_plate_detector.pt",
+      "role": "Video V2.2 plate detector",
+      "source": "https://github.com/Muhammad-Zeerak-Khan/Automatic-License-Plate-Recognition-using-YOLOv8",
+      "local_sha256": "8ec3b254a6c87610f037a90957462cafa11a9c03224e33a28c6a1d1ac2ac51b0",
+      "source_revision": "UNRECOVERABLE_FROM_LOCAL_SNAPSHOT_NO_GIT_METADATA",
+      "code_license": "MIT in surrounding repository",
+      "weight_model_license": "No checkpoint-specific statement found; trained with Ultralytics YOLOv8",
+      "training_source_license": "Roboflow license-plate-recognition-rxg4e v4, CC BY 4.0",
+      "commercial_use": "AMBIGUOUS: repository MIT is insufficient; Ultralytics states trained models default to AGPL-3.0 unless commercial license",
+      "redistribution": "LEGAL_REVIEW_REQUIRED",
+      "notice_attribution": [
+        "Muhammad Zeerak Khan MIT notice",
+        "Roboflow Universe Projects dataset attribution and CC BY 4.0 link",
+        "Ultralytics AGPL-3.0 notice or applicable commercial agreement"
+      ],
+      "production_admission": "LEGAL_REVIEW_REQUIRED",
+      "blocking_issue": "Exact weight rights and Ultralytics commercial/AGPL path are not closed."
+    },
+    {
+      "asset": "yolov8n.pt + ultralytics 8.0.114",
+      "role": "Video vehicle-containment detector/runtime",
+      "source": "https://www.ultralytics.com/license",
+      "local_sha256": "31e20dde3def09e2cf938c7be6fe23d9150bbbe503982af13345706515f2ef95",
+      "code_license": "AGPL-3.0 or commercial Enterprise terms",
+      "weight_model_license": "Ultralytics states trained models are AGPL-3.0 by default",
+      "commercial_use": "AGPL route requires corresponding-source/open-source compliance; proprietary/internal/SaaS use requires applicable commercial license per vendor guidance",
+      "redistribution": "AGPL-3.0 obligations or negotiated commercial terms",
+      "notice_attribution": [
+        "Ultralytics copyright/license",
+        "complete corresponding source under AGPL route as applicable"
+      ],
+      "production_admission": "LEGAL_REVIEW_REQUIRED",
+      "blocking_issue": "No enterprise agreement or approved AGPL compliance posture is recorded."
+    },
+    {
+      "asset": "fast-alpr 0.4.0",
+      "role": "ANPR orchestration library",
+      "source": "https://github.com/ankandrew/fast-alpr",
+      "code_license": "MIT",
+      "weight_model_license": "N/A; library delegates models",
+      "commercial_use": "PERMITTED by MIT for code",
+      "redistribution": "Permitted with copyright and permission notice",
+      "notice_attribution": [
+        "Copyright (c) 2024 ankandrew; MIT License"
+      ],
+      "production_admission": "ADMITTED_WITH_NOTICE",
+      "blocking_issue": null
+    },
+    {
+      "asset": "fast-plate-ocr 1.1.0",
+      "role": "Plate OCR inference library",
+      "source": "https://github.com/ankandrew/fast-plate-ocr",
+      "code_license": "MIT",
+      "weight_model_license": "Separate row for cct-xs-v2-global-model",
+      "commercial_use": "PERMITTED by MIT for code",
+      "redistribution": "Permitted with copyright and permission notice",
+      "notice_attribution": [
+        "Copyright (c) 2024 ankandrew; MIT License"
+      ],
+      "production_admission": "ADMITTED_WITH_NOTICE",
+      "blocking_issue": null
+    },
+    {
+      "asset": "cct-xs-v2-global-model ONNX + YAML",
+      "role": "Image/Video plate OCR weights/config",
+      "source": "https://github.com/ankandrew/fast-plate-ocr/releases",
+      "local_sha256": "8031afb5fdc6b4d80462c9d542f1284ebd2cfddf5dbacd62609848d7e2855f44",
+      "config_sha256": "0335c74a305173bb6f393efed0fde03cadeaa0b649ed8e19f431016d8232d0a6",
+      "code_license": "MIT repository",
+      "weight_model_license": "No separate checkpoint-specific license statement located in the model zoo/release evidence",
+      "commercial_use": "CONDITIONAL",
+      "redistribution": "CONDITIONAL",
+      "notice_attribution": [
+        "ankandrew FastPlateOCR MIT notice if confirmed applicable to release assets"
+      ],
+      "production_admission": "CONDITIONAL",
+      "blocking_issue": "Confirm in writing that repository MIT covers these exact release weights/config and their training-data-derived rights."
+    },
+    {
+      "asset": "open-image-models 0.6.0",
+      "role": "Fresh Image ANPR detector runtime",
+      "source": "https://github.com/ankandrew/open-image-models",
+      "code_license": "MIT",
+      "weight_model_license": "Separate row for yolo-v9 detector",
+      "commercial_use": "PERMITTED by MIT for code",
+      "redistribution": "Permitted with copyright and permission notice",
+      "notice_attribution": [
+        "Copyright (c) 2024 ankandrew; MIT License"
+      ],
+      "production_admission": "ADMITTED_WITH_NOTICE",
+      "blocking_issue": null
+    },
+    {
+      "asset": "yolo-v9-t-384-license-plates-end2end.onnx",
+      "role": "Fresh Image ANPR plate detector weights",
+      "source": "https://github.com/ankandrew/open-image-models/releases/download/assets",
+      "local_sha256": "888397b96d761c89db40bc9c305838e8652660f5e282c2cadebbe8d2951a77a8",
+      "code_license": "MIT repository",
+      "weight_model_license": "No separate model-card/license statement located for the release asset",
+      "commercial_use": "CONDITIONAL",
+      "redistribution": "CONDITIONAL",
+      "notice_attribution": [
+        "ankandrew open-image-models MIT notice if confirmed applicable to release assets",
+        "YOLOv9 paper citation"
+      ],
+      "production_admission": "CONDITIONAL",
+      "blocking_issue": "Checkpoint-specific rights/training-data provenance are not explicit."
+    },
+    {
+      "asset": "PaddleOCR 3.7.0",
+      "role": "Printed OCR orchestration/runtime",
+      "source": "https://github.com/PaddlePaddle/PaddleOCR",
+      "code_license": "Apache-2.0",
+      "weight_model_license": "Separate rows for official PP-OCRv5 weights",
+      "commercial_use": "Permitted by Apache-2.0 for code",
+      "redistribution": "License copy, changed-file notices, retained notices, NOTICE propagation if supplied",
+      "notice_attribution": [
+        "Copyright (c) 2016 PaddlePaddle Authors; Apache License 2.0"
+      ],
+      "production_admission": "ADMITTED_WITH_NOTICE",
+      "blocking_issue": null
+    },
+    {
+      "asset": "PaddlePaddle 3.3.1",
+      "role": "Paddle inference runtime",
+      "source": "https://github.com/PaddlePaddle/Paddle",
+      "code_license": "Apache-2.0",
+      "weight_model_license": "N/A",
+      "commercial_use": "Permitted by Apache-2.0",
+      "redistribution": "Apache-2.0 section 4 obligations",
+      "notice_attribution": [
+        "Copyright (c) 2016 PaddlePaddle Authors; Apache License 2.0"
+      ],
+      "production_admission": "ADMITTED_WITH_NOTICE",
+      "blocking_issue": null
+    },
+    {
+      "asset": "PP-OCRv5_mobile_det",
+      "role": "Printed text detector weights",
+      "source": "Official Paddle model cache / PaddleOCR model zoo",
+      "tree_sha256": "1771a1ca1af2b1625228d2349849be1ccba507af13753547969c1de1702bdd74",
+      "code_license": "Apache-2.0 project",
+      "weight_model_license": "No separate license file accompanies the cached model directory",
+      "commercial_use": "CONDITIONAL",
+      "redistribution": "CONDITIONAL with Apache license/notice package pending model-rights confirmation",
+      "notice_attribution": [
+        "PaddleOCR/PaddlePaddle Apache-2.0 attribution"
+      ],
+      "production_admission": "CONDITIONAL",
+      "blocking_issue": "Confirm official checkpoint payload is distributed under Apache-2.0 and capture its source URL/version receipt."
+    },
+    {
+      "asset": "en_PP-OCRv5_mobile_rec",
+      "role": "Printed English recognizer weights",
+      "source": "Official Paddle model cache / PaddleOCR model zoo",
+      "tree_sha256": "9580601f0a93d061d89cd89676be65353a8e81ac760063f5c22788f4fe5673a9",
+      "code_license": "Apache-2.0 project",
+      "weight_model_license": "No separate license file accompanies the cached model directory",
+      "commercial_use": "CONDITIONAL",
+      "redistribution": "CONDITIONAL",
+      "notice_attribution": [
+        "PaddleOCR/PaddlePaddle Apache-2.0 attribution"
+      ],
+      "production_admission": "CONDITIONAL",
+      "blocking_issue": "Same official-checkpoint license/source-receipt confirmation."
+    },
+    {
+      "asset": "arabic_PP-OCRv5_mobile_rec",
+      "role": "Printed Urdu/Arabic multilingual recognizer weights",
+      "source": "Official Paddle model cache / PaddleOCR model zoo",
+      "tree_sha256": "3ee6f2267929b0fae36a6c63565f70f506ced8e133e9e2ed626a89c131d4cd1f",
+      "code_license": "Apache-2.0 project",
+      "weight_model_license": "No separate license file accompanies the cached model directory",
+      "commercial_use": "CONDITIONAL",
+      "redistribution": "CONDITIONAL",
+      "notice_attribution": [
+        "PaddleOCR/PaddlePaddle Apache-2.0 attribution"
+      ],
+      "production_admission": "CONDITIONAL",
+      "blocking_issue": "Same official-checkpoint license/source-receipt confirmation."
+    },
+    {
+      "asset": "Tesseract + tessdata_fast eng/urd",
+      "role": "Printed OCR fallback/resource floor",
+      "source": "https://github.com/tesseract-ocr/tessdata_fast",
+      "code_license": "Apache-2.0 (Tesseract; Leptonica separate BSD-2-Clause)",
+      "weight_model_license": "tessdata_fast repository states all data Apache-2.0",
+      "commercial_use": "Permitted subject to licenses",
+      "redistribution": "Apache-2.0/BSD notices required",
+      "notice_attribution": [
+        "Tesseract/tessdata_fast Apache-2.0",
+        "Leptonica BSD-2-Clause"
+      ],
+      "production_admission": "ADMITTED_WITH_NOTICE",
+      "blocking_issue": null
+    }
+  ],
+  "module_decisions": {
+    "video_anpr": "LICENSE_BLOCKED_AND_TECHNICALLY_UNMEASURED",
+    "image_anpr": "CONDITIONAL_MODEL_WEIGHT_RIGHTS",
+    "printed_ocr": "CONDITIONAL_OFFICIAL_CHECKPOINT_RIGHTS"
+  },
+  "evidence_limitations": [
+    "Repository code licenses do not by themselves prove checkpoint rights.",
+    "No legal conclusion is made beyond cited primary/source-local evidence.",
+    "The three Paddle cache directories contain inference.yml but no LICENSE or NOTICE file.",
+    "The personal Video detector snapshot has no .git metadata, so its exact source revision cannot be recovered locally."
+  ]
+}
+

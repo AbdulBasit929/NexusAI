@@ -8,8 +8,10 @@ import (
 	"net/http/httptest"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/mudler/LocalAI/core/http/auth"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -54,15 +56,31 @@ var _ = Describe("decodedParam", func() {
 })
 
 var _ = Describe("forensic records KB upload forwarding", func() {
-	DescribeTable("detects structured-looking uploads",
+	DescribeTable("registers every uploaded evidence format",
 		func(filename string, expected bool) {
 			Expect(shouldForwardKBUploadToForensicRecords(filename)).To(Equal(expected))
 		},
 		Entry("csv", "cdr.csv", true),
 		Entry("jsonl", "sessions.jsonl", true),
 		Entry("log", "access.log", true),
-		Entry("pdf", "policy.pdf", false),
-		Entry("image", "photo.png", false),
+		Entry("financial workbook", "transactions.xlsx", true),
+		Entry("pdf", "policy.pdf", true),
+		Entry("image", "photo.png", true),
+		Entry("audio", "interview.wav", true),
+		Entry("video", "camera.mp4", true),
+		Entry("packet capture", "traffic.pcapng", true),
+		Entry("unknown evidence", "device.dump", true),
+		Entry("blank filename", "", false),
+	)
+
+	DescribeTable("honors the sidecar mirror marker",
+		func(filename, skipValue string, expected bool) {
+			Expect(shouldForwardKBUploadRequestToForensicRecords(filename, skipValue)).To(Equal(expected))
+		},
+		Entry("normal structured upload", "cdr.csv", "", true),
+		Entry("sidecar mirror upload", "cdr.csv", "true", false),
+		Entry("non-structured evidence upload", "policy.pdf", "", true),
+		Entry("sidecar non-structured mirror", "interview.wav", "true", false),
 	)
 
 	It("reads opt-in sidecar config from environment", func() {
@@ -71,14 +89,22 @@ var _ = Describe("forensic records KB upload forwarding", func() {
 			_ = os.Unsetenv("LOCALAI_FORENSIC_RECORDS_API_URL")
 			_ = os.Unsetenv("FORENSIC_RECORDS_KB_UPLOAD_ENABLED")
 			_ = os.Unsetenv("FORENSIC_RECORDS_TENANT_ID")
+			_ = os.Unsetenv("FORENSIC_RECORDS_API_KEY")
+			_ = os.Unsetenv("FORENSIC_RECORDS_UPLOAD_TIMEOUT")
 		})
 		Expect(os.Setenv("FORENSIC_RECORDS_API_URL", "http://records-api:8091/")).To(Succeed())
 		Expect(os.Setenv("FORENSIC_RECORDS_TENANT_ID", "tenant-a")).To(Succeed())
+		Expect(os.Setenv("FORENSIC_RECORDS_API_KEY", "service-token")).To(Succeed())
+		Expect(os.Unsetenv("FORENSIC_RECORDS_UPLOAD_TIMEOUT")).To(Succeed())
 
 		cfg := forensicRecordsKBUploadConfigFromEnv()
 		Expect(cfg.Enabled).To(BeTrue())
 		Expect(cfg.APIURL).To(Equal("http://records-api:8091"))
 		Expect(cfg.TenantID).To(Equal("tenant-a"))
+		Expect(cfg.APIKey).To(Equal("service-token"))
+		Expect(cfg.UploadTimeout).To(Equal(5 * time.Minute))
+		Expect(os.Setenv("FORENSIC_RECORDS_UPLOAD_TIMEOUT", "12m")).To(Succeed())
+		Expect(forensicRecordsKBUploadConfigFromEnv().UploadTimeout).To(Equal(12 * time.Minute))
 
 		Expect(os.Setenv("FORENSIC_RECORDS_KB_UPLOAD_ENABLED", "false")).To(Succeed())
 		Expect(forensicRecordsKBUploadConfigFromEnv().Enabled).To(BeFalse())
@@ -90,22 +116,45 @@ var _ = Describe("forensic records KB upload forwarding", func() {
 		Expect(forensicRecordsResultStatus(map[string]any{"job_id": "job-1"})).To(Equal("queued"))
 	})
 
+	It("requires exact authenticated collection ownership for forensic proxy access", func() {
+		collections := []string{"case-a", "case-b"}
+		Expect(forensicCollectionAllowed(collections, " case-a ")).To(BeTrue())
+		Expect(forensicCollectionAllowed(collections, "case-c")).To(BeFalse())
+		Expect(forensicCollectionAllowed(collections, "")).To(BeFalse())
+	})
+
 	It("forwards an existing KB upload to the forensic sidecar without remirroring", func() {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			Expect(r.Method).To(Equal(http.MethodPost))
 			Expect(r.URL.Path).To(Equal("/webhooks/records/upload"))
 			Expect(r.Header.Get("Authorization")).To(Equal("Bearer token"))
+			Expect(r.Header.Get("X-Forensic-Tenant-ID")).To(Equal("default"))
+			Expect(r.Header.Get("X-Forensic-Actor-ID")).To(Equal("actor-1"))
+			Expect(r.Header.Get("X-Forensic-Subject-ID")).To(Equal("user-1"))
+			Expect(r.Header.Get("X-Forensic-Actor-Role")).To(Equal("admin"))
+			Expect(r.Header.Get("X-Forensic-Collection-ID")).To(Equal("records-demo"))
+			Expect(r.Header.Get("X-Forensic-Case-ID")).To(Equal("case-7"))
 			Expect(r.ParseMultipartForm(1 << 20)).To(Succeed())
 			Expect(r.FormValue("tenant_id")).To(Equal("default"))
 			Expect(r.FormValue("collection_id")).To(Equal("records-demo"))
 			Expect(r.FormValue("user_id")).To(Equal("user-1"))
-			Expect(r.FormValue("record_type")).To(Equal("auto"))
+			Expect(r.FormValue("record_type")).To(Equal("cdr"))
 			Expect(r.FormValue("skip_kb_mirror")).To(Equal("true"))
 			Expect(r.FormValue("source_entry")).To(Equal("uuid/cdr.csv"))
+			Expect(r.FormValue("declared_modality")).To(Equal("structured_records"))
+			Expect(r.FormValue("evidence_role")).To(Equal("source"))
+			Expect(r.FormValue("case_id")).To(Equal("case-7"))
+			Expect(r.FormValue("jurisdiction")).To(Equal("PK"))
+			Expect(r.FormValue("source_timezone")).To(Equal("Asia/Karachi"))
+			Expect(r.FormValue("source_timezone_state")).To(Equal("analyst_confirmed"))
+			Expect(r.FormValue("source_date_order")).To(Equal("DMY"))
+			Expect(r.FormValue("source_date_order_state")).To(Equal("analyst_confirmed"))
+			Expect(r.FormValue("asr_language")).To(Equal("ur"))
 			file, header, err := r.FormFile("file")
 			Expect(err).ToNot(HaveOccurred())
 			defer file.Close()
 			Expect(header.Filename).To(Equal("cdr.csv"))
+			Expect(header.Header.Get("Content-Type")).To(Equal("text/csv"))
 			body, err := io.ReadAll(file)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(string(body)).To(Equal("a,b\n1,2\n"))
@@ -119,12 +168,137 @@ var _ = Describe("forensic records KB upload forwarding", func() {
 			forensicRecordsKBUploadConfig{Enabled: true, APIURL: server.URL, APIKey: "token", TenantID: "default"},
 			"records-demo",
 			"user-1",
+			"actor-1",
+			"admin",
 			"cdr.csv",
+			"text/csv",
 			"uuid/cdr.csv",
 			strings.NewReader("a,b\n1,2\n"),
+			map[string]string{
+				"record_type":             "cdr",
+				"declared_modality":       "structured_records",
+				"evidence_role":           "source",
+				"case_id":                 "case-7",
+				"jurisdiction":            "PK",
+				"source_timezone":         "Asia/Karachi",
+				"source_timezone_state":   "analyst_confirmed",
+				"source_date_order":       "DMY",
+				"source_date_order_state": "analyst_confirmed",
+				"asr_language":            "ur",
+			},
 		)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(result).To(HaveKeyWithValue("job_id", "job-1"))
+	})
+
+	It("binds authenticated LocalAI identity to every forensic sidecar proxy request", func() {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			Expect(r.Header.Get("Authorization")).To(Equal("Bearer proxy-token"))
+			Expect(r.Header.Get("X-Forensic-Tenant-ID")).To(Equal("tenant-a"))
+			Expect(r.Header.Get("X-Forensic-Actor-ID")).To(Equal("actor-1"))
+			Expect(r.Header.Get("X-Forensic-Subject-ID")).To(Equal("actor-1"))
+			Expect(r.Header.Get("X-Forensic-Actor-Role")).To(Equal("admin"))
+			Expect(r.Header.Get("X-Forensic-Collection-ID")).To(Equal("collection-a"))
+			Expect(r.Header.Get("X-Forensic-Case-ID")).To(Equal("case-a"))
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"status":"ok"}`))
+		}))
+		defer server.Close()
+		DeferCleanup(func() {
+			_ = os.Unsetenv("FORENSIC_RECORDS_API_URL")
+			_ = os.Unsetenv("FORENSIC_RECORDS_API_KEY")
+			_ = os.Unsetenv("FORENSIC_RECORDS_TENANT_ID")
+		})
+		Expect(os.Setenv("FORENSIC_RECORDS_API_URL", server.URL)).To(Succeed())
+		Expect(os.Setenv("FORENSIC_RECORDS_API_KEY", "proxy-token")).To(Succeed())
+		Expect(os.Setenv("FORENSIC_RECORDS_TENANT_ID", "tenant-a")).To(Succeed())
+
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodGet, "/api/records/forensic/status", nil)
+		recorder := httptest.NewRecorder()
+		ctx := e.NewContext(req, recorder)
+		ctx.Set("auth_user", &auth.User{ID: "actor-1", Role: auth.RoleAdmin})
+		Expect(proxyForensicRecords(ctx, http.MethodGet, "/collections/status", nil, nil, "collection-a", "case-a")).To(Succeed())
+		Expect(recorder.Code).To(Equal(http.StatusOK))
+	})
+
+	It("requires an explicit fallback identity when LocalAI auth is disabled", func() {
+		DeferCleanup(func() {
+			_ = os.Unsetenv("FORENSIC_RECORDS_PROXY_ACTOR_ID")
+			_ = os.Unsetenv("FORENSIC_RECORDS_PROXY_ACTOR_ROLE")
+		})
+		Expect(os.Unsetenv("FORENSIC_RECORDS_PROXY_ACTOR_ID")).To(Succeed())
+		Expect(os.Unsetenv("FORENSIC_RECORDS_PROXY_ACTOR_ROLE")).To(Succeed())
+		e := echo.New()
+		ctx := e.NewContext(httptest.NewRequest(http.MethodGet, "/", nil), httptest.NewRecorder())
+		_, _, _, err := forensicForwardIdentity(ctx)
+		Expect(err).To(MatchError("forensic proxy identity is not configured for unauthenticated LocalAI"))
+	})
+
+	It("uses the configured accountable identity for a local no-auth UI", func() {
+		DeferCleanup(func() {
+			_ = os.Unsetenv("FORENSIC_RECORDS_PROXY_ACTOR_ID")
+			_ = os.Unsetenv("FORENSIC_RECORDS_PROXY_ACTOR_ROLE")
+		})
+		Expect(os.Setenv("FORENSIC_RECORDS_PROXY_ACTOR_ID", "local-operator")).To(Succeed())
+		Expect(os.Setenv("FORENSIC_RECORDS_PROXY_ACTOR_ROLE", "admin")).To(Succeed())
+		e := echo.New()
+		ctx := e.NewContext(httptest.NewRequest(http.MethodGet, "/", nil), httptest.NewRecorder())
+		actorID, subjectID, actorRole, err := forensicForwardIdentity(ctx)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(actorID).To(Equal("local-operator"))
+		Expect(subjectID).To(Equal("local-operator"))
+		Expect(actorRole).To(Equal("admin"))
+	})
+
+	It("forwards stable reprocessing idempotency and trusted evidence scope", func() {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			Expect(r.Method).To(Equal(http.MethodPost))
+			Expect(r.URL.Path).To(Equal("/evidence/evidence-1/reprocess"))
+			Expect(r.Header.Get("Idempotency-Key")).To(Equal("case-a:reprocess-001"))
+			Expect(r.Header.Get("X-Forensic-Collection-ID")).To(Equal("case-a"))
+			Expect(r.Header.Get("X-Forensic-Actor-ID")).To(Equal("user-a"))
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusAccepted)
+			_, _ = w.Write([]byte(`{"status":"queued","job_id":"job-2"}`))
+		}))
+		defer server.Close()
+		DeferCleanup(func() {
+			_ = os.Unsetenv("FORENSIC_RECORDS_API_URL")
+			_ = os.Unsetenv("FORENSIC_RECORDS_API_KEY")
+			_ = os.Unsetenv("FORENSIC_RECORDS_TENANT_ID")
+		})
+		Expect(os.Setenv("FORENSIC_RECORDS_API_URL", server.URL)).To(Succeed())
+		Expect(os.Setenv("FORENSIC_RECORDS_API_KEY", "proxy-token")).To(Succeed())
+		Expect(os.Setenv("FORENSIC_RECORDS_TENANT_ID", "tenant-a")).To(Succeed())
+
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodPost, "/api/records/forensic/evidence/evidence-1/reprocess", strings.NewReader(`{"collection_id":"case-a","reason":"operator-approved retry"}`))
+		req.Header.Set("Idempotency-Key", "case-a:reprocess-001")
+		recorder := httptest.NewRecorder()
+		ctx := e.NewContext(req, recorder)
+		ctx.Set("auth_user", &auth.User{ID: "user-a", Role: auth.RoleUser})
+		Expect(proxyForensicRecords(
+			ctx, http.MethodPost, "/evidence/evidence-1/reprocess", nil,
+			strings.NewReader(`{"collection_id":"case-a","reason":"operator-approved retry"}`),
+			"case-a", "",
+		)).To(Succeed())
+		Expect(recorder.Code).To(Equal(http.StatusAccepted))
+	})
+
+	It("preserves delegated agent-worker provenance", func() {
+		e := echo.New()
+		ctx := e.NewContext(
+			httptest.NewRequest(http.MethodGet, "/api/records/forensic/status?user_id=subject-1", nil),
+			httptest.NewRecorder(),
+		)
+		ctx.Set("auth_user", &auth.User{
+			ID:       "worker-1",
+			Role:     auth.RoleUser,
+			Provider: auth.ProviderAgentWorker,
+		})
+		Expect(effectiveUserID(ctx)).To(Equal("subject-1"))
+		Expect(forensicActorRole(ctx)).To(Equal("agent-worker"))
 	})
 })
 

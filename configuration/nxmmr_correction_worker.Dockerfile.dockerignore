@@ -1,0 +1,4 @@
+**
+!ingestion
+!ingestion/forensic_records
+!ingestion/forensic_records/multilingual_ocr.py

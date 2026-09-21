@@ -1,14 +1,17 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Link, useParams, useOutletContext, useSearchParams } from 'react-router-dom'
+import { useParams, useOutletContext, useSearchParams } from 'react-router-dom'
 import { agentCollectionsApi } from '../utils/api'
 import ConfirmDialog from '../components/ConfirmDialog'
 import PageHeader from '../components/PageHeader'
+import { useActiveCase } from '../contexts/ActiveCaseContext'
 
 export default function CollectionDetails() {
   const { name } = useParams()
   const { addToast } = useOutletContext()
   const [searchParams] = useSearchParams()
   const userId = searchParams.get('user_id') || undefined
+  const { caseOptions, registryState, ensureCaseRegistry, setActiveCase } = useActiveCase()
+  const authorizedCase = !userId ? caseOptions.find(item => item.collectionId === name) : null
   const [activeTab, setActiveTab] = useState('entries')
   const [loading, setLoading] = useState(true)
   const [confirmDialog, setConfirmDialog] = useState(null)
@@ -63,6 +66,10 @@ export default function CollectionDetails() {
     }
     load()
   }, [fetchEntries, fetchSources])
+
+  useEffect(() => {
+    if (!userId && registryState === 'idle') ensureCaseRegistry()
+  }, [ensureCaseRegistry, registryState, userId])
 
   const handleViewContent = async (entry) => {
     setViewEntry(entry)
@@ -368,7 +375,21 @@ export default function CollectionDetails() {
         }
       `}</style>
 
-      <PageHeader title={name} supporting="Collection details and management" />
+      <PageHeader
+        title={name}
+        supporting="Administrative collection details, retrieval, sources, and lifecycle management."
+        actions={authorizedCase ? (
+          <button className="btn btn-primary" type="button" onClick={() => setActiveCase(authorizedCase.caseId, 'overview')}>
+            <i className="fas fa-shield-halved" /> Open authorized case
+          </button>
+        ) : null}
+      />
+
+      <div className="alert alert-info" role="note">
+        <i className="fas fa-circle-info" /> {authorizedCase
+          ? `Authorized case mapping verified: ${authorizedCase.displayName} (${authorizedCase.caseId}).`
+          : 'Administrative collection only. No authorized selectable case mapping is available for this collection.'}
+      </div>
 
       <div className="tabs">
         <button className={`tab ${activeTab === 'entries' ? 'tab-active' : ''}`} onClick={() => setActiveTab('entries')}>
@@ -382,7 +403,9 @@ export default function CollectionDetails() {
         </button>
       </div>
       <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginTop: 0 }}>
-        Collection search retrieves evidence and raw previews. Use <Link to="/app/records">Records Intelligence</Link> for exact counts, filters, rankings, min/max, and joins over structured files.
+        Collection search retrieves evidence and raw previews. {authorizedCase
+          ? <>Use the explicit <button className="btn-link" type="button" onClick={() => setActiveCase(authorizedCase.caseId, 'analyze')}>authorized case analysis</button> for exact counts, filters, rankings, min/max, and joins over structured files.</>
+          : <>Exact records analysis requires an authorized case mapping.</>}
       </p>
 
       {loading ? (

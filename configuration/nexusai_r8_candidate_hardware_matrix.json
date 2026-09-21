@@ -1,0 +1,121 @@
+{
+  "contract_version": "nexusai.r8-candidate-hardware-matrix/v1",
+  "evaluated_at": "2026-08-13",
+  "authority": "research_and_isolated_evaluation_only",
+  "thresholds_changed": false,
+  "automatic_promotion": false,
+  "production_mutation": false,
+  "roles": {
+    "plate_region_detection": [
+      {
+        "candidate_id": "paddle-ppocrv5-mobile-det",
+        "revision": "PaddleOCR 3.7.0 / PaddlePaddle 3.3.1",
+        "decision": "rejected_accuracy_gate_retain_control",
+        "accuracy_state": "failed_T2V",
+        "hardware_support": {"D0": "measured", "D1": "portable_pending", "P1": "portable_pending", "P2": "portable_pending"},
+        "backend": "Paddle Inference CPU in isolated Docker",
+        "format": "Paddle inference model"
+      },
+      {
+        "candidate_id": "omz-vehicle-license-plate-detection-barrier-0106",
+        "revision": "models_bin/1/2023.0 FP32",
+        "decision": "rejected_accuracy_gate",
+        "accuracy_state": "zero_recall_T2V_all_partitions",
+        "hardware_support": {"D0": "measured", "D1": "portable_pending", "P1": "portable_pending", "P2": "portable_pending"},
+        "backend": "OpenVINO 2024.6 CPU",
+        "format": "OpenVINO IR FP32"
+      },
+      {
+        "candidate_id": "omz-vehicle-license-plate-detection-barrier-0123",
+        "revision": "public/2022.1 source archive",
+        "decision": "deferred_no_material_differentiation",
+        "accuracy_state": "not_measured",
+        "hardware_support": {"D0": "conversion_required", "D1": "conversion_required", "P1": "conversion_required", "P2": "conversion_required"},
+        "backend": "legacy TensorFlow source requiring conversion",
+        "format": "TensorFlow source archive",
+        "reason": "Same Chinese front-barrier domain, 96-pixel minimum plate width and small MobileNet-SSD family as the correctly evaluated 0106 zero-recall result; conversion risk is not justified before independent T3."
+      },
+      {
+        "candidate_id": "nvidia-tao-lpdnet",
+        "revision": "pruned_v2.3.1 research target",
+        "decision": "gpu_shortlist_metadata_gate_pending",
+        "accuracy_state": "publisher_domain_evidence_only",
+        "hardware_support": {"D0": "hardware_incompatible", "D1": "pending_exact_gpu_qualification", "P1": "pending_exact_gpu_qualification", "P2": "pending_exact_gpu_qualification"},
+        "backend": "NVIDIA TAO / TensorRT / DeepStream",
+        "format": "ETLT/ONNX/TensorRT depending selected NGC asset",
+        "license": "NVIDIA NGC model card states ready for commercial use; exact asset terms/notices required",
+        "official_source": "https://catalog.ngc.nvidia.com/orgs/nvidia/tao/models/lpdnet",
+        "reason": "Plate-specific, supported GPU deployment and fine-tuning path; exact asset/version/size/digest must be closed before acquisition."
+      },
+      {
+        "candidate_id": "open-image-models-yolov9-license-plate",
+        "revision": "reviewed 2026-08-13",
+        "decision": "rejected_metadata_and_publisher_recall_gate",
+        "accuracy_state": "publisher_recall_below_0.95",
+        "hardware_support": {"D0": "portable", "D1": "portable", "P1": "portable", "P2": "portable"},
+        "reason": "Asset-specific license, disclosed training corpus and publisher checksum are incomplete; reported recall does not meet the unchanged detector gate."
+      }
+    ],
+    "latin_plate_ocr": [
+      {
+        "candidate_id": "paddle-en-ppocrv5-mobile-rec",
+        "revision": "PaddleOCR 3.7.0 / PaddlePaddle 3.3.1",
+        "decision": "rejected_accuracy_gate_retain_control",
+        "accuracy_state": "failed_T2V",
+        "hardware_support": {"D0": "measured", "D1": "portable_pending", "P1": "portable_pending", "P2": "portable_pending"}
+      },
+      {
+        "candidate_id": "parseq-tiny",
+        "revision": "v1.0.0 commit 315d19b",
+        "decision": "rejected_accuracy_gate_retain_reference",
+        "accuracy_state": "T2V_holdout_exact_0.7857_CER_0.2079",
+        "hardware_support": {"D0": "measured", "D1": "portable_pending", "P1": "portable_pending", "P2": "portable_pending"}
+      },
+      {
+        "candidate_id": "fast-plate-ocr-cct-s-v2-global",
+        "revision": "fast-plate-ocr v1.1.0 commit 9ce7a5b; arg-plates release asset updated 2026-03-14",
+        "decision": "rejected_accuracy_and_abstention_gates_retain_best_efficient_latin_reference",
+        "accuracy_state": "T2V_development_exact_0.7949_CER_0.1566_validation_and_holdout_exact_0.7857_CER_0.1683",
+        "hardware_support": {"D0": "CPU_OpenVINO_or_DirectML_candidate", "D1": "CUDA_candidate", "P1": "CUDA_or_TensorRT_candidate", "P2": "CUDA_or_TensorRT_candidate"},
+        "backend": "ONNX Runtime",
+        "format": "ONNX",
+        "model_bytes": 5262230,
+        "model_sha256": "384bbbd2cea3ef54761d3df70822ef3a349ee1a112aeafddbe0e3ba06bc6e47b",
+        "config_bytes": 1725,
+        "config_sha256": "0335c74a305173bb6f393efed0fde03cadeaa0b649ed8e19f431016d8232d0a6",
+        "license": "MIT project; asset-specific notice must be captured before promotion",
+        "official_source": "https://github.com/ankandrew/fast-plate-ocr/releases/tag/v1.1.0",
+        "limitations": "Global Latin/digit plate OCR only; no Urdu/Arabic script claim. D0 latency/resource/calibration and five-image real compatibility diagnostics pass, but unchanged exactness, CER and abstention gates fail."
+      }
+    ],
+    "urdu_arabic_plate_ocr": [
+      {
+        "candidate_id": "paddle-arabic-ppocrv5-mobile-rec",
+        "revision": "PaddleOCR 3.7.0 / PaddlePaddle 3.3.1",
+        "decision": "rejected_accuracy_gate_retain_best_control",
+        "accuracy_state": "T2V_holdout_exact_0.3571_CER_0.1683",
+        "hardware_support": {"D0": "measured", "D1": "portable_pending", "P1": "portable_pending", "P2": "portable_pending"}
+      },
+      {
+        "candidate_id": "easyocr-arabic-g1",
+        "revision": "EasyOCR 1.7.2 / official arabic_g1 weight",
+        "decision": "rejected_accuracy_and_resource_gates",
+        "accuracy_state": "T2V_holdout_exact_0.0714_CER_0.4257",
+        "hardware_support": {"D0": "measured", "D1": "portable_pending", "P1": "portable_pending", "P2": "portable_pending"}
+      },
+      {
+        "candidate_id": "urdu_plate_ocr_finetune_path",
+        "revision": "not_started",
+        "decision": "research_gap_no_download",
+        "accuracy_state": "no reviewed pretrained challenger has both explicit Urdu coverage and adequate plate-domain evidence",
+        "hardware_support": {"D0": "future_inference_candidate", "D1": "future_training_or_inference_candidate", "P1": "future_training_or_inference_candidate", "P2": "future_training_or_inference_candidate"},
+        "reason": "Keep Paddle Arabic as the measured control; do not substitute a generic VLM or train before independent T3 and separate approval."
+      }
+    ]
+  },
+  "script_router": {
+    "decision": "design_only_pending_evidence",
+    "policy": "preserve both raw recognizer outputs; choose only when exactly one output is Unicode-script plausible and above unchanged confidence/abstention policy; otherwise abstain as script_uncertain",
+    "forbidden_normalizations": ["O to 0", "0 to O", "I to 1", "1 to I", "digit-script conversion without explicit governed policy"]
+  }
+}

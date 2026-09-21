@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -18,23 +19,29 @@ import (
 
 // AgentEvent is the NATS message payload for agent SSE events.
 type AgentEvent struct {
-	AgentName      string `json:"agent_name"`
-	UserID         string `json:"user_id"`
-	EventType      string `json:"event_type"`                // "message", "status", "error", "observable"
-	EventSubType   string `json:"event_sub_type,omitempty"`  // e.g. "chat", "tool_result" for observable_update
-	SourceInstance string `json:"source_instance,omitempty"` // instance ID that published the event (for dedup)
-	Sender         string `json:"sender,omitempty"`
-	Content        string `json:"content,omitempty"`
-	MessageID      string `json:"message_id,omitempty"`
-	Metadata       string `json:"metadata,omitempty"` // JSON metadata
-	Timestamp      int64  `json:"timestamp"`                 // Unix milliseconds (set by PublishEvent)
+	AgentName      string         `json:"agent_name"`
+	UserID         string         `json:"user_id"`
+	EventType      string         `json:"event_type"`                // "message", "status", "error", "observable"
+	EventSubType   string         `json:"event_sub_type,omitempty"`  // e.g. "chat", "tool_result" for observable_update
+	SourceInstance string         `json:"source_instance,omitempty"` // instance ID that published the event (for dedup)
+	Sender         string         `json:"sender,omitempty"`
+	Content        string         `json:"content,omitempty"`
+	MessageID      string         `json:"message_id,omitempty"`
+	Metadata       string         `json:"metadata,omitempty"` // JSON metadata
+	AnswerMetadata map[string]any `json:"answer_metadata,omitempty"`
+	Timestamp      int64          `json:"timestamp"` // Unix milliseconds (set by PublishEvent)
 }
 
 // AgentCancelEvent is the NATS message payload for cancelling agent execution.
 type AgentCancelEvent struct {
 	AgentName string `json:"agent_name"`
 	UserID    string `json:"user_id"`
+	CaseID    string `json:"case_id,omitempty"`
 	MessageID string `json:"message_id,omitempty"`
+}
+
+func AgentCancellationKey(agentName, userID, caseID, messageID string) string {
+	return userID + "\x00" + agentName + "\x00" + caseID + "\x00" + messageID
 }
 
 // EventBridge bridges agent events between NATS and SSE connections.
@@ -48,7 +55,9 @@ type EventBridge struct {
 	cancelRegistry messaging.CancelRegistry
 
 	// Background NATS subscriptions owned by this bridge
-	obsPersisterSub messaging.Subscription
+	obsPersisterSub  messaging.Subscription
+	statusTrackerSub messaging.Subscription
+	requestStatuses  RequestStatusRegistry
 }
 
 // NewEventBridge creates a new EventBridge.
@@ -106,27 +115,53 @@ func (b *EventBridge) PersistObservable(agentName, userID, eventType string, obs
 
 // PublishMessage publishes a chat message event via NATS for SSE bridging.
 // Uses "json_message" event type to match the React UI's expected SSE format.
-// Conversation history is managed client-side (browser localStorage), not server-side.
-func (b *EventBridge) PublishMessage(agentName, userID, sender, content, messageID string) error {
+func (b *EventBridge) PublishMessage(agentName, userID, sender, content, messageID string, answerMetadata ...map[string]any) error {
+	var metadata map[string]any
+	if len(answerMetadata) > 0 {
+		metadata = answerMetadata[0]
+	}
+	if b.store != nil && sender == RoleAgent && messageID != "" {
+		requestMessageID := strings.TrimSuffix(messageID, "-agent")
+		if err := b.store.CompleteAnalysis(userID, agentName, requestMessageID, content, metadata); err != nil {
+			xlog.Warn("Failed to retain final agent analysis", "agent", agentName, "message_id", messageID, "error", err)
+		}
+	}
 	return b.PublishEvent(agentName, userID, AgentEvent{
-		AgentName: agentName,
-		UserID:    userID,
-		EventType: "json_message",
-		Sender:    sender,
-		Content:   content,
-		MessageID: messageID,
+		AgentName:      agentName,
+		UserID:         userID,
+		EventType:      "json_message",
+		Sender:         sender,
+		Content:        content,
+		MessageID:      messageID,
+		AnswerMetadata: metadata,
 	})
 }
 
-// PublishStatus publishes a status event (processing, completed, error).
+// PublishStatus publishes a request-correlated status event (processing, completed, error).
 // Uses "json_message_status" event type to match the React UI's expected SSE format.
 // The status value is sent in the Metadata field as {"status": value} so the React UI
 // can read it as data.status (the UI reads data.status, not data.content).
-func (b *EventBridge) PublishStatus(agentName, userID, status string) error {
-	statusJSON, err := json.Marshal(map[string]string{
-		"status":    status,
-		"timestamp": time.Now().Format(time.RFC3339),
-	})
+func (b *EventBridge) PublishStatus(agentName, userID, messageID, status string, caseIDs ...string) error {
+	caseID := ""
+	if len(caseIDs) > 0 {
+		caseID = caseIDs[0]
+	}
+	payload := map[string]string{
+		"status":     status,
+		"message_id": messageID,
+		"timestamp":  time.Now().Format(time.RFC3339),
+	}
+	if caseID != "" {
+		payload["case_id"] = caseID
+		payload["collection_id"] = caseID
+		b.requestStatuses.Record(agentName, userID, caseID, messageID, status)
+	}
+	if b.store != nil && messageID != "" {
+		if err := b.store.UpdateAnalysisStatus(userID, agentName, caseID, messageID, status); err != nil {
+			xlog.Warn("Failed to retain agent analysis status", "agent", agentName, "message_id", messageID, "error", err)
+		}
+	}
+	statusJSON, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("marshaling status JSON: %w", err)
 	}
@@ -134,8 +169,59 @@ func (b *EventBridge) PublishStatus(agentName, userID, status string) error {
 		AgentName: agentName,
 		UserID:    userID,
 		EventType: "json_message_status",
+		MessageID: messageID,
 		Metadata:  string(statusJSON),
 	})
+}
+
+// RequestStatus returns only the exact scoped lifecycle snapshot.
+func (b *EventBridge) RequestStatus(agentName, userID, caseID, messageID string) (AgentRequestStatus, bool) {
+	return b.requestStatuses.Get(agentName, userID, caseID, messageID)
+}
+
+// StartRequestStatusListener tracks scoped lifecycle events independently of
+// SSE clients. This also makes the API-facing bridge the persistence authority
+// when a distributed worker publishes events without direct database access.
+func (b *EventBridge) StartRequestStatusListener() error {
+	sub, err := messaging.SubscribeJSON(b.nats, "agent.*.events.*", func(evt AgentEvent) {
+		switch evt.EventType {
+		case "json_message_status":
+			if evt.Metadata == "" {
+				return
+			}
+			var payload struct {
+				Status    string `json:"status"`
+				MessageID string `json:"message_id"`
+				CaseID    string `json:"case_id"`
+			}
+			if json.Unmarshal([]byte(evt.Metadata), &payload) != nil {
+				return
+			}
+			messageID := payload.MessageID
+			if messageID == "" {
+				messageID = evt.MessageID
+			}
+			b.requestStatuses.Record(evt.AgentName, evt.UserID, payload.CaseID, messageID, payload.Status)
+			if b.store != nil && messageID != "" {
+				if err := b.store.UpdateAnalysisStatus(evt.UserID, evt.AgentName, payload.CaseID, messageID, payload.Status); err != nil {
+					xlog.Warn("Failed to retain distributed analysis status", "agent", evt.AgentName, "message_id", messageID, "error", err)
+				}
+			}
+		case "json_message":
+			if b.store == nil || evt.Sender != RoleAgent || evt.MessageID == "" {
+				return
+			}
+			messageID := strings.TrimSuffix(evt.MessageID, "-agent")
+			if err := b.store.CompleteAnalysis(evt.UserID, evt.AgentName, messageID, evt.Content, evt.AnswerMetadata); err != nil {
+				xlog.Warn("Failed to retain distributed final analysis", "agent", evt.AgentName, "message_id", messageID, "error", err)
+			}
+		}
+	})
+	if err != nil {
+		return err
+	}
+	b.statusTrackerSub = sub
+	return nil
 }
 
 // SubscribeEvents subscribes to agent events for a specific agent+user.
@@ -146,19 +232,26 @@ func (b *EventBridge) SubscribeEvents(agentName, userID string, handler func(Age
 
 // PublishStreamEvent publishes a stream event (reasoning, content, tool_call, done) via NATS.
 // These are forwarded as "stream_event" SSE events matching the React UI's expected format.
-func (b *EventBridge) PublishStreamEvent(agentName, userID string, data map[string]any) error {
+func (b *EventBridge) PublishStreamEvent(agentName, userID, messageID string, data map[string]any) error {
+	payload := make(map[string]any, len(data)+1)
+	for key, value := range data {
+		payload[key] = value
+	}
+	payload["message_id"] = messageID
 	return b.PublishEvent(agentName, userID, AgentEvent{
 		AgentName: agentName,
 		UserID:    userID,
 		EventType: "stream_event",
-		Metadata:  dbutil.MarshalJSON(data),
+		MessageID: messageID,
+		Metadata:  dbutil.MarshalJSON(payload),
 	})
 }
 
 // CancelExecution publishes a cancel event and also checks the local registry.
-func (b *EventBridge) CancelExecution(agentName, userID, messageID string) error {
+func (b *EventBridge) CancelExecution(agentName, userID, caseID, messageID string) error {
+	key := AgentCancellationKey(agentName, userID, caseID, messageID)
 	// Try local cancel first
-	if b.cancelRegistry.Cancel(messageID) {
+	if b.cancelRegistry.Cancel(key) {
 		xlog.Info("Cancelled agent execution locally", "agent", agentName, "user", userID, "messageID", messageID)
 	}
 
@@ -166,6 +259,7 @@ func (b *EventBridge) CancelExecution(agentName, userID, messageID string) error
 	return b.nats.Publish(messaging.SubjectAgentCancel(agentName), AgentCancelEvent{
 		AgentName: agentName,
 		UserID:    userID,
+		CaseID:    caseID,
 		MessageID: messageID,
 	})
 }
@@ -184,7 +278,8 @@ func (b *EventBridge) DeregisterCancel(key string) {
 func (b *EventBridge) StartCancelListener() (messaging.Subscription, error) {
 	return messaging.SubscribeJSON(b.nats, messaging.SubjectAgentCancelWildcard, func(evt AgentCancelEvent) {
 		if evt.MessageID != "" {
-			if b.cancelRegistry.Cancel(evt.MessageID) {
+			key := AgentCancellationKey(evt.AgentName, evt.UserID, evt.CaseID, evt.MessageID)
+			if b.cancelRegistry.Cancel(key) {
 				xlog.Info("Cancelled agent via NATS", "agent", evt.AgentName, "user", evt.UserID, "messageID", evt.MessageID)
 			}
 		}

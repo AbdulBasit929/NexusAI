@@ -1,0 +1,16 @@
+{
+  "contract_version": "forensics.controlled-demo-capture-plan/v1",
+  "generator": "scripts/prepare_nexusai_r8_t2_capture_pack.py",
+  "planned_image_count": 32,
+  "development_count": 28,
+  "holdout_count": 4,
+  "capture_session_target": "one controlled 60-90 minute session",
+  "required_categories": {"positive_or_plate_target": 18, "detector_negatives": 10, "sealed_holdout": 4},
+  "rules": [
+    "Use only owned or explicitly consented scenes and clearly synthetic non-road-use identifiers.",
+    "Never mount a deceptive test target on a vehicle used on public roads.",
+    "Exclude unrelated people, real plates, addresses, house numbers, sensitive documents and screen content.",
+    "Annotator and reviewer must be different people and must not inspect model output.",
+    "Keep original assets outside Git and record SHA-256 before any sanitized derivative is made."
+  ]
+}

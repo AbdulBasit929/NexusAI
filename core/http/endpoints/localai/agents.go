@@ -2,6 +2,7 @@ package localai
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"maps"
@@ -53,6 +54,41 @@ func decodedParam(c echo.Context, name string) string {
 func isAdminUser(c echo.Context) bool {
 	user := auth.GetUser(c)
 	return user != nil && user.Role == auth.RoleAdmin
+}
+
+// forensicActorRole preserves the caller's accountable service role when
+// forwarding evidence operations to the forensic sidecar.
+func forensicActorRole(c echo.Context) string {
+	user := auth.GetUser(c)
+	if user == nil {
+		return ""
+	}
+	if user.Provider == auth.ProviderAgentWorker {
+		return "agent-worker"
+	}
+	if user.Role == auth.RoleAdmin {
+		return "admin"
+	}
+	return "user"
+}
+
+// forensicForwardIdentity binds sidecar requests to an authenticated LocalAI
+// user. Local, intentionally unauthenticated deployments may opt into a fixed
+// operator identity through explicit environment configuration; without that
+// opt-in, the proxy fails closed instead of forwarding an anonymous admin.
+func forensicForwardIdentity(c echo.Context) (actorID, subjectID, actorRole string, err error) {
+	if user := auth.GetUser(c); user != nil {
+		return user.ID, effectiveUserID(c), forensicActorRole(c), nil
+	}
+	actorID = strings.TrimSpace(os.Getenv("FORENSIC_RECORDS_PROXY_ACTOR_ID"))
+	actorRole = strings.ToLower(strings.TrimSpace(os.Getenv("FORENSIC_RECORDS_PROXY_ACTOR_ROLE")))
+	if actorID == "" || actorRole == "" {
+		return "", "", "", fmt.Errorf("forensic proxy identity is not configured for unauthenticated LocalAI")
+	}
+	if actorRole != "user" && actorRole != "admin" && actorRole != "agent-worker" {
+		return "", "", "", fmt.Errorf("FORENSIC_RECORDS_PROXY_ACTOR_ROLE must be user, admin, or agent-worker")
+	}
+	return actorID, actorID, actorRole, nil
 }
 
 // wantsAllUsers returns true if the request has ?all_users=true and the user is admin.
@@ -294,7 +330,11 @@ func ChatWithAgentEndpoint(app *application.Application) echo.HandlerFunc {
 		userID := effectiveUserID(c)
 		name := decodedParam(c, "name")
 		var payload struct {
-			Message string `json:"message"`
+			Message             string                              `json:"message"`
+			CaseID              string                              `json:"case_id"`
+			CollectionID        string                              `json:"collection_id"`
+			ConversationContext *agents.ForensicConversationContext `json:"conversation_context"`
+			QueryScope          *agents.ForensicQueryScope          `json:"query_scope"`
 		}
 		if err := c.Bind(&payload); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
@@ -303,7 +343,42 @@ func ChatWithAgentEndpoint(app *application.Application) echo.HandlerFunc {
 		if message == "" {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Message cannot be empty"})
 		}
-		messageID, err := svc.ChatForUser(userID, name, message)
+		caseID := strings.TrimSpace(payload.CaseID)
+		collectionID := strings.TrimSpace(payload.CollectionID)
+		if caseID != "" && collectionID != "" && caseID != collectionID {
+			return c.JSON(http.StatusConflict, map[string]string{"error": "case_id and collection_id must match"})
+		}
+		forensicScope := defaultString(caseID, collectionID)
+		if forensicScope == "" {
+			if cfg := svc.GetNativeAgentConfigForUser(userID, name); cfg != nil && cfg.EnableForensicRecords {
+				forensicScope = strings.TrimSpace(cfg.ForensicCollectionID)
+				if forensicScope == "" {
+					return c.JSON(http.StatusConflict, map[string]string{"error": "forensic agent has no case scope; case_id is required"})
+				}
+			}
+		}
+		var messageID string
+		var err error
+		if forensicScope != "" {
+			if err = requireForensicCollectionAccess(c, app, forensicScope); err != nil {
+				return err
+			}
+			if payload.QueryScope != nil {
+				if err = payload.QueryScope.Validate(); err != nil {
+					return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+				}
+			}
+			if payload.ConversationContext != nil {
+				if len(payload.ConversationContext.Targets) > 8 || len(payload.ConversationContext.Target) > 128 || len(payload.ConversationContext.Template) > 128 || len(payload.ConversationContext.DateFrom) > 64 || len(payload.ConversationContext.DateTo) > 64 || len(payload.ConversationContext.Direction) > 16 || len(payload.ConversationContext.ConversationID) > 128 || len(payload.ConversationContext.AnalysisID) > 128 || len(payload.ConversationContext.TurnID) > 128 || len(payload.ConversationContext.CollectionID) > 128 || len(payload.ConversationContext.CurrentQuestion) > 4096 {
+					return c.JSON(http.StatusBadRequest, map[string]string{"error": "conversation_context exceeds bounded forensic limits"})
+				}
+				messageID, err = svc.ChatForUserWithForensicScope(userID, name, message, forensicScope, payload.QueryScope, *payload.ConversationContext)
+			} else {
+				messageID, err = svc.ChatForUserWithForensicScope(userID, name, message, forensicScope, payload.QueryScope)
+			}
+		} else {
+			messageID, err = svc.ChatForUser(userID, name, message)
+		}
 		if err != nil {
 			if strings.Contains(err.Error(), "not found") {
 				return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
@@ -313,7 +388,170 @@ func ChatWithAgentEndpoint(app *application.Application) echo.HandlerFunc {
 		return c.JSON(http.StatusAccepted, map[string]any{
 			"status":     "message_received",
 			"message_id": messageID,
+			"case_id":    forensicScope,
 		})
+	}
+}
+
+// CancelAgentChatEndpoint cancels one request owned by the authenticated user.
+// @Summary Cancel an active agent chat request
+// @Tags Agents
+// @Accept json
+// @Produce json
+// @Param name path string true "Agent name"
+// @Param message_id path string true "Chat request message ID"
+// @Success 202 {object} map[string]any
+// @Failure 400 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 409 {object} map[string]string
+// @Router /api/agents/{name}/chat/{message_id}/cancel [post]
+func CancelAgentChatEndpoint(app *application.Application) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		svc := app.AgentPoolService()
+		userID := effectiveUserID(c)
+		name := decodedParam(c, "name")
+		messageID := strings.TrimSpace(decodedParam(c, "message_id"))
+		if messageID == "" {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "message_id is required"})
+		}
+		var payload struct {
+			CaseID       string `json:"case_id"`
+			CollectionID string `json:"collection_id"`
+		}
+		if err := c.Bind(&payload); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
+		}
+		caseID := strings.TrimSpace(payload.CaseID)
+		collectionID := strings.TrimSpace(payload.CollectionID)
+		if caseID == "" || collectionID == "" || caseID != collectionID {
+			return c.JSON(http.StatusConflict, map[string]string{"error": "matching case_id and collection_id are required"})
+		}
+		if err := requireForensicCollectionAccess(c, app, caseID); err != nil {
+			return err
+		}
+		cfg := svc.GetNativeAgentConfigForUser(userID, name)
+		if cfg == nil || !cfg.EnableForensicRecords {
+			return c.JSON(http.StatusConflict, map[string]string{"error": "agent is not enabled for forensic case-scoped chat"})
+		}
+		if err := svc.CancelChatForUser(userID, name, caseID, messageID); err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return c.JSON(http.StatusAccepted, map[string]any{"status": "cancellation_requested", "message_id": messageID, "case_id": caseID})
+	}
+}
+
+// RetryAgentChatEndpoint explicitly retries one terminal forensic request.
+// @Summary Retry a failed forensic agent chat request idempotently
+// @Tags Agents
+// @Accept json
+// @Produce json
+// @Param name path string true "Agent name"
+// @Param message_id path string true "Original chat request message ID"
+// @Success 202 {object} agentpool.ChatRetryResult
+// @Failure 400 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 409 {object} map[string]string
+// @Router /api/agents/{name}/chat/{message_id}/retry [post]
+func RetryAgentChatEndpoint(app *application.Application) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		svc := app.AgentPoolService()
+		userID := effectiveUserID(c)
+		name := decodedParam(c, "name")
+		originalMessageID := strings.TrimSpace(decodedParam(c, "message_id"))
+		if originalMessageID == "" {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "message_id is required"})
+		}
+		var payload struct {
+			Message        string                     `json:"message"`
+			CaseID         string                     `json:"case_id"`
+			CollectionID   string                     `json:"collection_id"`
+			IdempotencyKey string                     `json:"idempotency_key"`
+			QueryScope     *agents.ForensicQueryScope `json:"query_scope"`
+		}
+		if err := c.Bind(&payload); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
+		}
+		message := strings.TrimSpace(payload.Message)
+		key := strings.TrimSpace(payload.IdempotencyKey)
+		caseID := strings.TrimSpace(payload.CaseID)
+		collectionID := strings.TrimSpace(payload.CollectionID)
+		if message == "" {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Message cannot be empty"})
+		}
+		if len(key) < 16 || len(key) > 128 {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "idempotency_key must contain 16 to 128 characters"})
+		}
+		if caseID == "" || collectionID == "" || caseID != collectionID {
+			return c.JSON(http.StatusConflict, map[string]string{"error": "matching case_id and collection_id are required"})
+		}
+		if err := requireForensicCollectionAccess(c, app, caseID); err != nil {
+			return err
+		}
+		if payload.QueryScope != nil {
+			if err := payload.QueryScope.Validate(); err != nil {
+				return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+			}
+		}
+		cfg := svc.GetNativeAgentConfigForUser(userID, name)
+		if cfg == nil || !cfg.EnableForensicRecords {
+			return c.JSON(http.StatusConflict, map[string]string{"error": "agent is not enabled for forensic case-scoped chat"})
+		}
+		result, err := svc.RetryChatForUser(userID, name, caseID, originalMessageID, message, key, payload.QueryScope)
+		if err != nil {
+			switch {
+			case errors.Is(err, agents.ErrRetryPayloadConflict), errors.Is(err, agents.ErrRetryNotEligible):
+				return c.JSON(http.StatusConflict, map[string]string{"error": err.Error()})
+			case strings.Contains(err.Error(), "not found"):
+				return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
+			default:
+				return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			}
+		}
+		return c.JSON(http.StatusAccepted, result)
+	}
+}
+
+// GetAgentChatStatusEndpoint returns one authorized request lifecycle snapshot.
+// @Summary Get an agent chat request status
+// @Tags Agents
+// @Produce json
+// @Param name path string true "Agent name"
+// @Param message_id path string true "Chat request message ID"
+// @Param case_id query string true "Authorized forensic case ID"
+// @Param collection_id query string true "Authorized forensic collection ID"
+// @Success 200 {object} agents.AgentRequestStatus
+// @Failure 400 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 409 {object} map[string]string
+// @Router /api/agents/{name}/chat/{message_id}/status [get]
+func GetAgentChatStatusEndpoint(app *application.Application) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		svc := app.AgentPoolService()
+		userID := effectiveUserID(c)
+		name := decodedParam(c, "name")
+		messageID := strings.TrimSpace(decodedParam(c, "message_id"))
+		if messageID == "" {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "message_id is required"})
+		}
+		caseID := strings.TrimSpace(c.QueryParam("case_id"))
+		collectionID := strings.TrimSpace(c.QueryParam("collection_id"))
+		if caseID == "" || collectionID == "" || caseID != collectionID {
+			return c.JSON(http.StatusConflict, map[string]string{"error": "matching case_id and collection_id are required"})
+		}
+		if err := requireForensicCollectionAccess(c, app, caseID); err != nil {
+			return err
+		}
+		cfg := svc.GetNativeAgentConfigForUser(userID, name)
+		if cfg == nil || !cfg.EnableForensicRecords {
+			return c.JSON(http.StatusConflict, map[string]string{"error": "agent is not enabled for forensic case-scoped chat"})
+		}
+		status, ok := svc.ChatStatusForUser(userID, name, caseID, messageID)
+		if !ok {
+			return c.JSON(http.StatusNotFound, map[string]string{"error": "request status not found"})
+		}
+		return c.JSON(http.StatusOK, status)
 	}
 }
 

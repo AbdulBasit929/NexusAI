@@ -16,6 +16,11 @@
       "multilingual": "Prefer models with broad language and accent coverage."
     }
   },
+  "hardware_tier_policy": {
+    "contract": "configuration/nexusai_hardware_tiers.json",
+    "candidate_matrix": "configuration/nexusai_r8_candidate_hardware_matrix.json",
+    "rule": "Resolve a governed model role by accepted accuracy first and declared hardware fitness second; disclose unavailable/degraded states and never silently fall back to a materially weaker implementation."
+  },
   "evidence_types": {
     "structured_records": {
       "label": "Structured forensic records",
@@ -134,22 +139,36 @@
       ],
       "recommended_models": [
         {
-          "name": "PaddleOCR PP-OCRv6",
-          "role": "OCR for multilingual printed text and messy scans",
+          "name": "PaddleOCR arabic_PP-OCRv5_mobile_rec",
+          "role": "primary lightweight Urdu/Arabic-script and English OCR candidate",
           "priority": 1,
-          "profiles": ["balanced", "throughput", "multilingual"],
+          "profiles": ["cpu", "balanced", "throughput", "multilingual"],
           "backend": "external-adapter",
           "capabilities": ["ocr", "layout-aware-text"],
+          "license": "Apache-2.0 project; verify packaged model notice during promotion",
+          "source": "https://github.com/PaddlePaddle/PaddleOCR/blob/main/docs/version3.x/algorithm/PP-OCRv5/PP-OCRv5_multi_languages.en.md",
           "localai": {
             "gallery_id": "",
-            "match_terms": ["paddleocr", "pp-ocrv6"]
+            "match_terms": ["paddleocr", "pp-ocrv5", "arabic"]
           },
-          "notes": "Use through a document/OCR adapter rather than a chat model."
+          "notes": "Official documentation lists Urdu, Arabic, Persian, Uyghur, Pashto, Kurdish, Sindhi, Balochi and English. Benchmark exact Urdu/English and Pakistan plate/form fixtures through a bounded OCR adapter."
+        },
+        {
+          "name": "Tesseract tessdata_fast urd+eng",
+          "role": "small deterministic CPU OCR baseline",
+          "priority": 2,
+          "profiles": ["cpu", "throughput", "multilingual"],
+          "backend": "external-adapter",
+          "capabilities": ["ocr", "urdu", "english"],
+          "license": "Apache-2.0",
+          "source": "https://github.com/tesseract-ocr/tessdata_fast/blob/main/urd.traineddata",
+          "localai": {"gallery_id": "", "match_terms": ["tesseract", "urd", "eng"]},
+          "notes": "The official fast Urdu data file is about 1.33 MB. Use as the resource floor and compare CER/WER against PP-OCRv5."
         },
         {
           "name": "Docling VLM pipeline",
           "role": "document layout, tables, figures, formulas, and export to structured text",
-          "priority": 2,
+          "priority": 3,
           "profiles": ["balanced", "accuracy"],
           "backend": "external-adapter",
           "capabilities": ["pdf-layout", "table-extraction", "vlm-document-understanding"],
@@ -162,7 +181,7 @@
         {
           "name": "qwen3-vl-8b-instruct",
           "role": "visual document understanding and analyst explanation after OCR/layout extraction",
-          "priority": 3,
+          "priority": 4,
           "profiles": ["accuracy", "multilingual"],
           "backend": "llama-cpp or vllm",
           "capabilities": ["vision-language", "document-question-answering"],
@@ -193,48 +212,66 @@
       ],
       "recommended_models": [
         {
-          "name": "whisper-large-turbo",
-          "role": "fast multilingual transcription baseline",
+          "name": "whisper-tiny",
+          "role": "minimum-resource multilingual Urdu/English ASR smoke candidate",
           "priority": 1,
-          "profiles": ["balanced", "multilingual", "throughput"],
+          "profiles": ["cpu", "throughput", "multilingual"],
           "backend": "whisper",
           "capabilities": ["asr", "translation", "multilingual"],
+          "license": "MIT",
+          "source": "https://huggingface.co/ggerganov/whisper.cpp",
           "localai": {
-            "gallery_id": "whisper-large-turbo",
-            "match_terms": ["whisper", "large", "turbo"]
+            "gallery_id": "whisper-tiny",
+            "match_terms": ["whisper", "tiny"]
           },
-          "notes": "Good first local model for broad language coverage and speed."
+          "notes": "The LocalAI gallery uses the 75 MiB ggml-tiny.bin conversion of OpenAI's 39M-parameter multilingual checkpoint. It is the load/latency smoke candidate, not an accuracy promotion by default."
+        },
+        {
+          "name": "whisper-small",
+          "role": "primary multilingual Urdu/English ASR accuracy candidate",
+          "priority": 2,
+          "profiles": ["cpu", "balanced", "multilingual"],
+          "backend": "whisper",
+          "capabilities": ["asr", "translation", "multilingual"],
+          "license": "Apache-2.0",
+          "source": "https://huggingface.co/openai/whisper-small",
+          "localai": {"gallery_id": "whisper-small", "match_terms": ["whisper", "small"]},
+          "notes": "Official multilingual checkpoint is 244M parameters. Promote only if Urdu-English noisy-call WER and memory gates beat tiny/base on this laptop."
         },
         {
           "name": "qwen3-asr-0.6b",
           "role": "efficient multilingual ASR candidate",
-          "priority": 2,
+          "priority": 3,
           "profiles": ["balanced", "throughput"],
           "backend": "qwen-asr",
           "capabilities": ["asr", "language-detection", "multilingual"],
+          "urdu_eligible": false,
+          "source": "https://huggingface.co/Qwen/Qwen3-ASR-0.6B-hf",
           "localai": {
             "gallery_id": "qwen3-asr-0.6b",
             "match_terms": ["qwen3-asr", "0.6b"]
           },
-          "notes": "Benchmark against Whisper on local accents and noisy call recordings."
+          "notes": "The official supported-language list does not include Urdu. Do not promote this model to the Pakistan Urdu/English primary role; it may be benchmarked only as a non-Urdu comparison candidate."
         },
         {
           "name": "qwen3-asr-1.7b",
           "role": "higher-accuracy multilingual ASR candidate",
-          "priority": 3,
-          "profiles": ["accuracy", "multilingual"],
+          "priority": 4,
+          "profiles": ["accuracy"],
           "backend": "qwen-asr",
           "capabilities": ["asr", "language-detection", "multilingual"],
+          "urdu_eligible": false,
+          "source": "https://huggingface.co/Qwen/Qwen3-ASR-1.7B-hf",
           "localai": {
             "gallery_id": "qwen3-asr-1.7b",
             "match_terms": ["qwen3-asr", "1.7b"]
           },
-          "notes": "Use when local hardware can support the larger model."
+          "notes": "The official supported-language list does not include Urdu. Do not use this as the Pakistan Urdu/English accuracy candidate even if hardware permits it."
         },
         {
           "name": "parakeet-cpp-ctc-0.6b",
           "role": "high-throughput speech recognition candidate",
-          "priority": 4,
+          "priority": 5,
           "profiles": ["throughput"],
           "backend": "parakeet-cpp",
           "capabilities": ["asr", "streaming"],
@@ -308,9 +345,38 @@
       ],
       "recommended_models": [
         {
+          "name": "google/siglip-base-patch16-224",
+          "role": "general semantic image and matched text embedding",
+          "priority": 1,
+          "profiles": ["cpu", "balanced"],
+          "hardware_tiers": ["D0", "D1", "P1", "P2"],
+          "backend": "forensic-worker-transformers-cpu",
+          "capabilities": ["image-embedding", "text-image-retrieval", "bounded-image-similarity"],
+          "source": "https://huggingface.co/google/siglip-base-patch16-224",
+          "revision": "7fd15f0689c79d79e38b1c2e2e2370a7bf2761ed",
+          "sha256": "2c63cb7d1f2e95ba501893cbb8faeb4ea9a3af295498d35097126228659c2af8",
+          "license": "Apache-2.0",
+          "promotion_state": "installed_m1_acceptable_limited_explicit_candidate_set_only",
+          "notes": "768-dimensional CPU role. Image-image and English text-image synthetic checks pass; Urdu text retrieval is LIMITED. Scores are candidates, not identity or evidence facts."
+        },
+        {
+          "name": "Tesseract 5 plus tessdata_fast eng+urd",
+          "role": "general scene-text OCR baseline",
+          "priority": 2,
+          "profiles": ["cpu", "throughput", "multilingual"],
+          "hardware_tiers": ["D0", "D1", "P1", "P2"],
+          "backend": "forensic-worker-tesseract-cpu",
+          "capabilities": ["general-image-ocr", "word-boxes", "confidence", "english", "urdu-script"],
+          "source": "https://github.com/tesseract-ocr/tessdata_fast",
+          "revision": "65727574dfcd264acbb0c3e07860e4e9e9b22185",
+          "license": "Apache-2.0",
+          "promotion_state": "installed_m1_acceptable_limited_manual_review_required",
+          "notes": "Distinct from plate OCR. Synthetic exact accuracy: English 0.6667, mixed 0.75, Urdu 0.5; blank abstention 1.0. Never replaces FastALPR."
+        },
+        {
           "name": "qwen3-vl-8b-instruct",
           "role": "visual question answering and image description",
-          "priority": 1,
+          "priority": 3,
           "profiles": ["balanced", "accuracy"],
           "backend": "llama-cpp or vllm",
           "capabilities": ["vision-language", "image-question-answering", "multilingual"],
@@ -323,7 +389,7 @@
         {
           "name": "qwen3-vl-2b-instruct",
           "role": "small vision-language smoke test model",
-          "priority": 2,
+          "priority": 4,
           "profiles": ["cpu", "throughput"],
           "backend": "llama-cpp or vllm",
           "capabilities": ["vision-language", "image-question-answering"],
@@ -336,7 +402,7 @@
         {
           "name": "rfdetr-cpp",
           "role": "object detection adapter",
-          "priority": 3,
+          "priority": 5,
           "profiles": ["balanced", "throughput"],
           "backend": "rfdetr-cpp",
           "capabilities": ["object-detection"],
@@ -347,9 +413,33 @@
           "notes": "Store bounding boxes, labels, confidences, and image coordinates."
         },
         {
+          "name": "NVIDIA TAO LPDNet",
+          "role": "GPU plate-region detector research candidate",
+          "priority": 6,
+          "profiles": ["accuracy"],
+          "hardware_tiers": ["D1", "P1", "P2"],
+          "backend": "external-adapter",
+          "capabilities": ["plate-region-detection"],
+          "source": "https://catalog.ngc.nvidia.com/orgs/nvidia/tao/models/lpdnet",
+          "promotion_state": "not_installed_exact_asset_and_gpu_qualification_pending",
+          "notes": "NVIDIA-hardware-only TAO/TensorRT/DeepStream path. Keep the plate-region candidate contract stable; do not expose availability on D0."
+        },
+        {
+          "name": "FastPlateOCR cct-s-v2-global",
+          "role": "plate-specific global Latin/digit OCR research candidate",
+          "priority": 7,
+          "profiles": ["cpu", "balanced", "accuracy", "throughput"],
+          "hardware_tiers": ["D0", "D1", "P1", "P2"],
+          "backend": "external-adapter",
+          "capabilities": ["latin-plate-ocr", "region-hint"],
+          "source": "https://github.com/ankandrew/fast-plate-ocr/releases/tag/v1.1.0",
+          "promotion_state": "selected_next_isolated_evaluation_not_installed",
+          "notes": "ONNX Runtime supports CPU, OpenVINO, DirectML and CUDA providers. It has no Urdu/Arabic-script claim and must pass unchanged T2/T3 gates."
+        },
+        {
           "name": "insightface",
           "role": "face embedding or recognition adapter when policy allows",
-          "priority": 4,
+          "priority": 8,
           "profiles": ["accuracy"],
           "backend": "insightface",
           "capabilities": ["face-embedding", "face-recognition"],
@@ -464,6 +554,10 @@
   "source_links": [
     {"name": "LocalAI model gallery", "url": "https://models.localai.io"},
     {"name": "PaddleOCR", "url": "https://github.com/PaddlePaddle/PaddleOCR"},
+    {"name": "PP-OCRv5 multilingual Urdu/Arabic recognition", "url": "https://github.com/PaddlePaddle/PaddleOCR/blob/main/docs/version3.x/algorithm/PP-OCRv5/PP-OCRv5_multi_languages.en.md"},
+    {"name": "Tesseract fast Urdu trained data", "url": "https://github.com/tesseract-ocr/tessdata_fast/blob/main/urd.traineddata"},
+    {"name": "OpenAI Whisper tiny", "url": "https://huggingface.co/openai/whisper-tiny"},
+    {"name": "OpenAI Whisper small", "url": "https://huggingface.co/openai/whisper-small"},
     {"name": "OpenAI Whisper large-v3-turbo", "url": "https://huggingface.co/openai/whisper-large-v3-turbo"},
     {"name": "OpenAI Whisper large-v3", "url": "https://huggingface.co/openai/whisper-large-v3"},
     {"name": "Qwen3-ASR", "url": "https://qwen.ai/blog?id=qwen3asr"},

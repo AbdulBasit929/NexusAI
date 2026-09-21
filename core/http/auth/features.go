@@ -66,6 +66,7 @@ var RouteFeatureRegistry = []RouteFeature{
 	{"POST", "/v1/detection", FeatureDetection},
 
 	// Face recognition
+	{"POST", "/v1/face/detect", FeatureFaceRecognition},
 	{"POST", "/v1/face/verify", FeatureFaceRecognition},
 	{"POST", "/v1/face/analyze", FeatureFaceRecognition},
 	{"POST", "/v1/face/embed", FeatureFaceRecognition},
@@ -152,7 +153,27 @@ var RouteFeatureRegistry = []RouteFeature{
 	{"GET", "/api/records/schema/:record_type", FeatureRecords},
 	{"GET", "/api/records/forensic/status", FeatureRecords},
 	{"GET", "/api/records/forensic/templates", FeatureRecords},
+	{"GET", "/api/records/forensic/capabilities", FeatureRecords},
+	{"GET", "/api/records/forensic/evidence", FeatureRecords},
+	{"GET", "/api/records/forensic/evidence/:id", FeatureRecords},
+	{"POST", "/api/records/forensic/evidence/:id/reprocess", FeatureRecords},
 	{"POST", "/api/records/forensic/query", FeatureRecords},
+	{"GET", "/api/v1/forensics/adapters", FeatureRecords},
+	{"GET", "/api/v1/forensics/operations", FeatureRecords},
+	{"GET", "/api/v1/forensics/agents", FeatureRecords},
+	{"GET", "/api/v1/forensics/contracts", FeatureRecords},
+	{"GET", "/api/v1/forensics/cases", FeatureRecords},
+	{"GET", "/api/v1/forensics/cases/:case_id", FeatureRecords},
+	{"GET", "/api/v1/forensics/cases/:case_id/manifest", FeatureRecords},
+	{"GET", "/api/v1/forensics/cases/:case_id/evidence", FeatureRecords},
+	{"GET", "/api/v1/forensics/cases/:case_id/evidence/compare", FeatureRecords},
+	{"GET", "/api/v1/forensics/cases/:case_id/evidence/:evidence_id", FeatureRecords},
+	{"GET", "/api/v1/forensics/cases/:case_id/evidence/:evidence_id/content", FeatureRecords},
+	{"GET", "/api/v1/forensics/cases/:case_id/evidence/:evidence_id/reprocess-plan", FeatureRecords},
+	{"GET", "/api/v1/forensics/cases/:case_id/faces/similar", FeatureRecords},
+	{"GET", "/api/v1/forensics/cases/:case_id/images/similar", FeatureRecords},
+	{"POST", "/api/v1/forensics/cases/:case_id/query", FeatureRecords},
+	{"POST", "/api/v1/forensics/cases/:case_id/reports", FeatureRecords},
 }
 
 // FeatureMeta describes a feature for the admin API/UI.

@@ -1,0 +1,146 @@
+{
+  "contract_version": "nexusai.nxmmr.reference-parity-adapter-config/v1",
+  "adapter_id": "NX-MMR-REFERENCE-PARITY-ADAPTER-V1",
+  "adapter_version": "1.0.0-development",
+  "activation_state": "source_development_only",
+  "source_commit": "40717b83510c08db25dc26b9d6674bf46db363ac",
+  "output_contracts": [
+    "forensics.anpr-observation/v1",
+    "forensics.video-anpr-plate-group/v1"
+  ],
+  "authority": "model_observation",
+  "models": {
+    "plate_detector": {
+      "filename": "license_plate_detector.pt",
+      "path_environment_variable": "FORENSIC_VIDEO_ANPR_PLATE_DETECTOR_PATH",
+      "sha256": "8ec3b254a6c87610f037a90957462cafa11a9c03224e33a28c6a1d1ac2ac51b0",
+      "format": "pytorch-yolov8",
+      "input_size": 640,
+      "backend": "ultralytics-8.0.114/torch-2.5.1-cpu",
+      "license_state": "unverified_model_license_reference_code_is_mit"
+    },
+    "ocr_detector": {
+      "filename": "craft_mlt_25k.pth",
+      "path_environment_variable": "FORENSIC_VIDEO_ANPR_EASYOCR_CRAFT_PATH",
+      "sha256": "4a5efbfb48b4081100544e75e1e2b57f8de3d84f213004b14b85fd4b3748db17",
+      "format": "pytorch",
+      "backend": "easyocr-1.7.2/torch-2.5.1-cpu",
+      "license_state": "upstream_asset_license_requires_admission_review"
+    },
+    "ocr_recognizer": {
+      "filename": "english_g2.pth",
+      "path_environment_variable": "FORENSIC_VIDEO_ANPR_EASYOCR_RECOGNIZER_PATH",
+      "sha256": "e2272681d9d67a04e2dff396b6e95077bc19001f8f6d3593c307b9852e1c29e8",
+      "format": "pytorch",
+      "backend": "easyocr-1.7.2/torch-2.5.1-cpu",
+      "license_state": "upstream_asset_license_requires_admission_review"
+    },
+    "vehicle_detector": {
+      "filename": "yolov8n.pt",
+      "path_environment_variable": "FORENSIC_VIDEO_ANPR_VEHICLE_DETECTOR_PATH",
+      "sha256": "31e20dde3def09e2cf938c7be6fe23d9150bbbe503982af13345706515f2ef95",
+      "format": "pytorch-yolov8",
+      "input_size": 640,
+      "backend": "ultralytics-8.0.114/torch-2.5.1-cpu",
+      "license_state": "ultralytics_and_checkpoint_admission_review_required",
+      "optional": true
+    }
+  },
+  "normalization": {
+    "revision": "neutral-latin-alphanumeric-v1",
+    "rules": [
+      "uppercase",
+      "remove whitespace and non-alphanumeric separators",
+      "never substitute characters"
+    ],
+    "raw_ocr_preserved": true,
+    "uk_character_substitution": false
+  },
+  "development_candidates": [
+    {
+      "id": "fixed-2fps-plate-only-majority",
+      "base_cadence_fps": 2,
+      "refinement_enabled": false,
+      "vehicle_context_enabled": false,
+      "aggregation": "normalized_majority"
+    },
+    {
+      "id": "fixed-4fps-plate-only-majority",
+      "base_cadence_fps": 4,
+      "refinement_enabled": false,
+      "vehicle_context_enabled": false,
+      "aggregation": "normalized_majority"
+    },
+    {
+      "id": "fixed-4fps-vehicle-majority",
+      "base_cadence_fps": 4,
+      "refinement_enabled": false,
+      "vehicle_context_enabled": true,
+      "aggregation": "normalized_majority",
+      "resource_class": "HEAVY"
+    },
+    {
+      "id": "fixed-4fps-plate-only-majority-support2",
+      "base_cadence_fps": 4,
+      "refinement_enabled": false,
+      "vehicle_context_enabled": false,
+      "aggregation": "normalized_majority",
+      "minimum_selected_support": 2,
+      "one_vote_per_actual_crop": true
+    },
+    {
+      "id": "adaptive-2fps-8fps-burst-plate-only-majority",
+      "base_cadence_fps": 2,
+      "refinement_enabled": true,
+      "refinement_window_seconds": 0.5,
+      "refinement_cadence_fps": 8,
+      "vehicle_context_enabled": false,
+      "aggregation": "normalized_majority"
+    },
+    {
+      "id": "adaptive-2fps-8fps-burst-vehicle-majority",
+      "base_cadence_fps": 2,
+      "refinement_enabled": true,
+      "refinement_window_seconds": 0.5,
+      "refinement_cadence_fps": 8,
+      "vehicle_context_enabled": true,
+      "aggregation": "normalized_majority",
+      "resource_class": "HEAVY"
+    }
+  ],
+  "aggregation_candidates": [
+    "best_confidence",
+    "normalized_majority",
+    "confidence_weighted_support"
+  ],
+  "minimum_group_support_candidates": [1, 2, 3],
+  "bounds": {
+    "maximum_video_duration_seconds": 65,
+    "maximum_analyzed_frames": 300,
+    "maximum_refinement_frames_per_trigger": 9,
+    "maximum_ocr_crops": 256,
+    "maximum_active_groups": 128,
+    "maximum_observations_per_group": 24,
+    "maximum_temporal_gap_seconds": 1.0,
+    "minimum_spatial_iou": 0.05,
+    "maximum_center_distance_ratio": 2.0,
+    "maximum_candidate_edit_distance": 1,
+    "timeout_seconds": 900,
+    "parallel_heavy_models": 1
+  },
+  "thresholds": {
+    "plate_detection_confidence": 0.25,
+    "ocr_confidence": 0.0,
+    "historical_binary_inverse_threshold": 64
+  },
+  "forbidden_semantics": [
+    "persistent_tracking",
+    "interpolated_observation",
+    "cross_source_identity",
+    "trajectory",
+    "journey",
+    "ownership",
+    "driver_identity",
+    "uk_specific_character_substitution"
+  ]
+}

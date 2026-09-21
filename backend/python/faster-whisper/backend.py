@@ -12,6 +12,7 @@ import backend_pb2
 import backend_pb2_grpc
 import torch
 from faster_whisper import WhisperModel
+from faster_whisper.tokenizer import _LANGUAGE_CODES
 
 import grpc
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'common'))
@@ -25,6 +26,27 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 # If MAX_WORKERS are specified in the environment use it, otherwise default to 1
 MAX_WORKERS = int(os.environ.get('PYTHON_GRPC_MAX_WORKERS', '1'))
 COQUI_LANGUAGE = os.environ.get('COQUI_LANGUAGE', None)
+
+
+def normalize_transcription_language(value):
+    """Return a supported Whisper language code or preserve auto detection."""
+
+    normalized = str(value or "").strip().lower()
+    if not normalized:
+        return None
+    if normalized not in _LANGUAGE_CODES:
+        raise ValueError(f"unsupported Whisper language code: {normalized}")
+    return normalized
+
+
+def resolve_local_model_reference(value):
+    """Prefer an existing model directory under the configured local model root."""
+
+    model = str(value or "").strip()
+    if not model or os.path.isabs(model):
+        return model
+    local_model = os.path.join(os.environ.get("MODELS_PATH", "/models"), model)
+    return local_model if os.path.isdir(local_model) else model
 
 # Implement the BackendServicer class with the service methods
 class BackendServicer(backend_pb2_grpc.BackendServicer):
@@ -42,9 +64,17 @@ class BackendServicer(backend_pb2_grpc.BackendServicer):
         mps_available = hasattr(torch.backends, "mps") and torch.backends.mps.is_available()
         if mps_available:
             device = "mps"
+        compute_type = os.environ.get(
+            "FASTER_WHISPER_COMPUTE_TYPE",
+            "int8" if device == "cpu" else "default",
+        )
         try:
             print("Preparing models, please wait", file=sys.stderr)
-            self.model = WhisperModel(request.Model, device=device, compute_type="default")
+            self.model = WhisperModel(
+                resolve_local_model_reference(request.Model),
+                device=device,
+                compute_type=compute_type,
+            )
         except Exception as err:
             return backend_pb2.Result(success=False, message=f"Unexpected {err=}, {type(err)=}")
         # Implement your logic here for the LoadModel service
@@ -55,8 +85,18 @@ class BackendServicer(backend_pb2_grpc.BackendServicer):
         resultSegments = []
         text = ""
         try:
+            language = normalize_transcription_language(request.language)
+        except ValueError as err:
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, str(err))
+        try:
             word_timestamps = "word" in request.timestamp_granularities
-            segments, info = self.model.transcribe(request.dst, beam_size=5, condition_on_previous_text=False, word_timestamps=word_timestamps)
+            segments, info = self.model.transcribe(
+                request.dst,
+                beam_size=5,
+                condition_on_previous_text=False,
+                language=language,
+                word_timestamps=word_timestamps,
+            )
             id = 0
             for segment in segments:
                 print("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
@@ -82,7 +122,12 @@ class BackendServicer(backend_pb2_grpc.BackendServicer):
             print(f"Unexpected {err=}, {type(err)=}", file=sys.stderr)
             raise err
 
-        return backend_pb2.TranscriptResult(segments=resultSegments, text=text)
+        return backend_pb2.TranscriptResult(
+            segments=resultSegments,
+            text=text,
+            language=str(getattr(info, "language", "") or language or ""),
+            duration=float(getattr(info, "duration", 0.0) or 0.0),
+        )
 
 def serve(address):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=MAX_WORKERS),

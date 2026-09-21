@@ -1,0 +1,268 @@
+{
+  "contract_version": "nexusai.nxmmr.anpr-ocr-activation-readiness/v2.2",
+  "state": "PREPARED_NOT_AUTHORIZED_NOT_LICENSE_CLOSED",
+  "deployment_performed": false,
+  "product_certification_performed": false,
+  "video_reserved_state": {
+    "candidate_freeze_digest": "b0caae6d646e9d188ec5bc387585ac43aa7f1e22504d5b2d741699bab8d9f394",
+    "authorization_consumed": true,
+    "reserved_evaluation_count": 1,
+    "scoring_completed": false,
+    "model_load_count": 0,
+    "reserved_frames_decoded": 0,
+    "technical_decision": "NOT_ASSESSABLE",
+    "reason": "Pre-registered evaluator stopped at distribution-fingerprint verification before model load; repeats are forbidden."
+  },
+  "modules": {
+    "A_IMAGE_ANPR": {
+      "technical_state": "INTEGRATION_READY_CANDIDATE",
+      "source_state": "SOURCE_READY_LIVE_MODEL_REQUIRED",
+      "license_state": "CONDITIONAL_MODEL_WEIGHT_RIGHTS",
+      "activation_eligible": false,
+      "assets": [
+        {
+          "source": "local-acceptance-models/nxmmr/yolo-v9-t-384-license-plates-end2end.onnx",
+          "destination": "models/media/open-image-models/yolo-v9-t-384-license-plate-end2end/yolo-v9-t-384-license-plates-end2end.onnx",
+          "size_bytes": 7771218,
+          "sha256": "888397b96d761c89db40bc9c305838e8652660f5e282c2cadebbe8d2951a77a8",
+          "target_owner": "root:root",
+          "target_mode": "0444",
+          "license_state": "CONDITIONAL"
+        },
+        {
+          "source": "local-acceptance-models/nxmmr/cct_xs_v2_global.onnx",
+          "destination": "models/media/fast-plate-ocr/cct-xs-v2-global-model/cct_xs_v2_global.onnx",
+          "size_bytes": 3344292,
+          "sha256": "8031afb5fdc6b4d80462c9d542f1284ebd2cfddf5dbacd62609848d7e2855f44",
+          "target_owner": "root:root",
+          "target_mode": "0444",
+          "license_state": "CONDITIONAL"
+        },
+        {
+          "source": "local-acceptance-models/nxmmr/cct_xs_v2_global_plate_config.yaml",
+          "destination": "models/media/fast-plate-ocr/cct-xs-v2-global-model/cct_xs_v2_global_plate_config.yaml",
+          "size_bytes": 1725,
+          "sha256": "0335c74a305173bb6f393efed0fde03cadeaa0b649ed8e19f431016d8232d0a6",
+          "target_owner": "root:root",
+          "target_mode": "0444",
+          "license_state": "CONDITIONAL"
+        }
+      ],
+      "environment": {
+        "FORENSIC_ANPR_ENABLED": "true",
+        "FORENSIC_ANPR_DETECTOR_MODEL_PATH": "/models/media/open-image-models/yolo-v9-t-384-license-plate-end2end/yolo-v9-t-384-license-plates-end2end.onnx",
+        "FORENSIC_ANPR_OCR_MODEL_PATH": "/models/media/fast-plate-ocr/cct-xs-v2-global-model/cct_xs_v2_global.onnx",
+        "FORENSIC_ANPR_OCR_CONFIG_PATH": "/models/media/fast-plate-ocr/cct-xs-v2-global-model/cct_xs_v2_global_plate_config.yaml",
+        "FORENSIC_ANPR_ONNX_PROVIDERS": "OpenVINOExecutionProvider,CPUExecutionProvider",
+        "FORENSIC_ANPR_MIN_DETECTION_CONFIDENCE": "0.75"
+      }
+    },
+    "B_VIDEO_ANPR_V22": {
+      "technical_state": "RESERVED_UNMEASURED_CONSUMPTION_FAILED",
+      "license_state": "LEGAL_REVIEW_REQUIRED",
+      "activation_eligible": false,
+      "assets": [
+        {
+          "source": "C:/Users/sheik/Workspace/Personal/Vehicle-License-Plate-Detection/src/license_plate_detector.pt",
+          "destination": "models/media/video-anpr-v2/license_plate_detector.pt",
+          "size_bytes": 6241454,
+          "sha256": "8ec3b254a6c87610f037a90957462cafa11a9c03224e33a28c6a1d1ac2ac51b0",
+          "target_owner": "root:root",
+          "target_mode": "0444",
+          "license_state": "LEGAL_REVIEW_REQUIRED"
+        },
+        {
+          "source": "C:/Users/sheik/Workspace/Personal/Vehicle-License-Plate-Detection/src/yolov8n.pt",
+          "destination": "models/media/video-anpr-v2/yolov8n.pt",
+          "size_bytes": 6534387,
+          "sha256": "31e20dde3def09e2cf938c7be6fe23d9150bbbe503982af13345706515f2ef95",
+          "target_owner": "root:root",
+          "target_mode": "0444",
+          "license_state": "LEGAL_REVIEW_REQUIRED"
+        }
+      ],
+      "source_integration_gaps": [
+        "Dockerfile currently copies video_anpr_product_v2.py, not video_anpr_product_v22.py.",
+        "media_pipeline.py currently instantiates VideoANPRProductV2Processor, not the frozen V2.2 RAW_RGB processor.",
+        "No live source change is authorized while reserved technical admission is unmeasured."
+      ],
+      "environment": {
+        "FORENSIC_VIDEO_ANPR_V2_ENABLED": "false",
+        "FORENSIC_VIDEO_ANPR_PLATE_DETECTOR_PATH": "/models/media/video-anpr-v2/license_plate_detector.pt",
+        "FORENSIC_VIDEO_ANPR_VEHICLE_DETECTOR_PATH": "/models/media/video-anpr-v2/yolov8n.pt",
+        "FORENSIC_VIDEO_ANPR_V2_MAX_FRAMES": "300",
+        "FORENSIC_VIDEO_ANPR_V2_MAX_DURATION_SECONDS": "900"
+      }
+    },
+    "C_PRINTED_OCR": {
+      "technical_state": {
+        "english": "FIXTURE_MEASURED_PASS",
+        "urdu": "FIXTURE_MEASURED_WITH_LIMITATION",
+        "mixed": "FIXTURE_MEASURED_WITH_LIMITATION",
+        "identifier_preservation": "PARTIAL_14_OF_15_FIXTURES",
+        "handwriting": "BENCHMARK_DATA_REQUIRED"
+      },
+      "license_state": "CONDITIONAL_OFFICIAL_CHECKPOINT_RIGHTS",
+      "activation_eligible": false,
+      "assets": [
+        {
+          "source": "docker-volume:nexusai_r8_paddlex_model_cache:/official_models/PP-OCRv5_mobile_det",
+          "destination": "models/media/paddleocr/PP-OCRv5_mobile_det",
+          "size_bytes": 4923617,
+          "tree_sha256": "1771a1ca1af2b1625228d2349849be1ccba507af13753547969c1de1702bdd74",
+          "target_owner": "root:root",
+          "target_directory_mode": "0555",
+          "target_file_mode": "0444",
+          "license_state": "CONDITIONAL"
+        },
+        {
+          "source": "docker-volume:nexusai_r8_paddlex_model_cache:/official_models/en_PP-OCRv5_mobile_rec",
+          "destination": "models/media/paddleocr/en_PP-OCRv5_mobile_rec",
+          "size_bytes": 7993991,
+          "tree_sha256": "9580601f0a93d061d89cd89676be65353a8e81ac760063f5c22788f4fe5673a9",
+          "target_owner": "root:root",
+          "target_directory_mode": "0555",
+          "target_file_mode": "0444",
+          "license_state": "CONDITIONAL"
+        },
+        {
+          "source": "docker-volume:nexusai_r8_paddlex_model_cache:/official_models/arabic_PP-OCRv5_mobile_rec",
+          "destination": "models/media/paddleocr/arabic_PP-OCRv5_mobile_rec",
+          "size_bytes": 8146716,
+          "tree_sha256": "3ee6f2267929b0fae36a6c63565f70f506ced8e133e9e2ed626a89c131d4cd1f",
+          "target_owner": "root:root",
+          "target_directory_mode": "0555",
+          "target_file_mode": "0444",
+          "license_state": "CONDITIONAL"
+        }
+      ],
+      "optional_fallback": [
+        {
+          "source": "local-acceptance-models/nxmmr/eng.traineddata",
+          "destination": "models/media/nexusai/models/tessdata-fast/65727574dfcd264acbb0c3e07860e4e9e9b22185/eng.traineddata",
+          "size_bytes": 4113088,
+          "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+          "license_state": "ADMITTED_WITH_NOTICE"
+        },
+        {
+          "source": "local-acceptance-models/nxmmr/urd.traineddata",
+          "destination": "models/media/nexusai/models/tessdata-fast/65727574dfcd264acbb0c3e07860e4e9e9b22185/urd.traineddata",
+          "size_bytes": 1398718,
+          "sha256": "62e8250ce2a994106e313a82e26a516a39e2cf159d0ce3c5b5008387fd0d555f",
+          "license_state": "ADMITTED_WITH_NOTICE"
+        }
+      ],
+      "environment": {
+        "FORENSIC_OCR_ENABLED": "true",
+        "FORENSIC_OCR_BACKEND": "paddle",
+        "FORENSIC_PADDLE_DETECTOR_MODEL_DIR": "/models/media/paddleocr/PP-OCRv5_mobile_det",
+        "FORENSIC_PADDLE_ENGLISH_MODEL_DIR": "/models/media/paddleocr/en_PP-OCRv5_mobile_rec",
+        "FORENSIC_PADDLE_ARABIC_MODEL_DIR": "/models/media/paddleocr/arabic_PP-OCRv5_mobile_rec",
+        "FORENSIC_OCR_TESSERACT_PATH": "/usr/bin/tesseract",
+        "FORENSIC_OCR_TESSDATA_PATH": "/models/media/nexusai/models/tessdata-fast/65727574dfcd264acbb0c3e07860e4e9e9b22185",
+        "FORENSIC_OCR_LANGUAGES": "eng+urd"
+      }
+    }
+  },
+  "options": {
+    "combined": {
+      "name": "IMAGE_ANPR_PLUS_VIDEO_V22_PLUS_PRINTED_OCR",
+      "prepared": true,
+      "activation_ready": false,
+      "blockers": [
+        "Video V2.2 reserved technical decision unavailable",
+        "Video YOLO/plate checkpoint licensing unresolved",
+        "Image detector/FastPlate checkpoint rights conditional",
+        "Paddle official checkpoint license/source receipts conditional"
+      ]
+    },
+    "partial": {
+      "name": "IMAGE_ANPR_PLUS_PRINTED_OCR",
+      "prepared": true,
+      "activation_ready": false,
+      "blockers": [
+        "Image detector/FastPlate checkpoint rights conditional",
+        "Paddle official checkpoint license/source receipts conditional"
+      ],
+      "video_flags_must_remain_disabled": true
+    }
+  },
+  "future_activation_gate": {
+    "minimum_available_ram_gib": 6,
+    "minimum_workspace_disk_gib": 12,
+    "active_jobs_required": 0,
+    "protected_services_healthy": true,
+    "exact_asset_hashes": true,
+    "license_notice_closed": true,
+    "live_activation_explicitly_authorized": true,
+    "no_runtime_auto_download": true
+  },
+  "services": {
+    "build_only_if_later_authorized": [
+      "forensic-records-worker",
+      "forensic-records-api"
+    ],
+    "recreate_no_deps_only_if_later_authorized": [
+      "forensic-records-worker",
+      "forensic-records-api"
+    ],
+    "must_not_recreate": [
+      "api",
+      "forensic-postgres",
+      "forensic-nats"
+    ],
+    "media_mount": "${NEXUSAI_MEDIA_MODEL_DIR:-./models/media}:/models/media:ro"
+  },
+  "rollback": {
+    "worker": {
+      "container": "296e0881d891b421b36da873f902b485669d1df82a258d37aa9db8e5de19e2fd",
+      "image": "sha256:be13dbec4bd9bb62c824140df3777b898d7ad2801a0e68cd512c00dafaf4f9ef"
+    },
+    "forensic_api": {
+      "container": "b5c13f96e67f21f129f477c1b0d1a921a7d761ca528757240ca2ee90a85157d8",
+      "image": "sha256:d2992062b8f55334d602530eb96cec8289dd714f0ae9523d3b27edebb724b5c5"
+    },
+    "actions": [
+      "Restore exact rollback images/tags.",
+      "Recreate only worker and forensic API with --no-deps.",
+      "Restore FORENSIC_ANPR_ENABLED=false, FORENSIC_OCR_ENABLED=false, FORENSIC_VIDEO_ANPR_V2_ENABLED=false.",
+      "Leave retained evidence, Activity, PostgreSQL, NATS, named volumes, LocalAI/UI untouched.",
+      "Quarantine newly placed assets only after validating exact destination paths."
+    ]
+  },
+  "acceptance": {
+    "image": [
+      "Fresh positive: Add Data -> PROCESSING -> COMPLETE_RESULTS with bbox/crop/raw+normalized candidate/confidence/source citation.",
+      "Fresh true negative -> COMPLETE_ZERO_RESULTS.",
+      "Missing asset -> MODEL_REQUIRED before job submission.",
+      "Data, Ask and image-region citation agree."
+    ],
+    "video": [
+      "Not executable until new independent technical evidence and license closure.",
+      "If later admitted: classification/readiness/V2.2 groups/source times/timeline/seek/Data/Ask/citation/coverage/limitations.",
+      "Never expose raw frame noise as confirmed plate identity."
+    ],
+    "printed_ocr": [
+      "One fresh printed English, one Urdu, one mixed image.",
+      "Verify regions, RTL Urdu, LTR English, numbers/dates/identifiers, reading order, Data/Ask/source-region citations.",
+      "Handwriting excluded; Urdu/mixed remain not REAL_WORLD_CERTIFIED until a small independent pack."
+    ],
+    "manual": [
+      "Activity records only fresh authorized runs.",
+      "Responsive UI and error/result states at supported viewports.",
+      "Security/case/evidence scope and no unrestricted SQL.",
+      "No PRODUCT_CERTIFIED promotion before all live/manual gates pass."
+    ]
+  },
+  "readiness": {
+    "data": "SOURCE_READY_LIVE_UNACTIVATED",
+    "ask": "SOURCE_READY_LIVE_UNACTIVATED",
+    "citations": "SOURCE_READY_MANUAL_CLICK_SEEK_PENDING",
+    "activity": "LIVE_ACCEPTANCE_REQUIRED",
+    "ui_manual": "LIVE_ACCEPTANCE_REQUIRED",
+    "visible_suggestions_product_certified_only": "PASS",
+    "no_self_oracle": "PASS",
+    "no_unrestricted_sql": "PASS"
+  }
+}
+

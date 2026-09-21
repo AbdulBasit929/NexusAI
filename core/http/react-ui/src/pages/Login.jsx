@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
-import { useBranding } from '../contexts/BrandingContext'
 import { apiUrl } from '../utils/basePath'
+import NexusBrand from '../components/NexusBrand'
+import NexusLoadingState from '../components/NexusLoadingState'
 import './auth.css'
 
 export default function Login() {
@@ -12,7 +13,6 @@ export default function Login() {
   const { code: urlInviteCode } = useParams()
   const [searchParams] = useSearchParams()
   const { authEnabled, staticApiKeyRequired, user, loading: authLoading, refresh } = useAuth()
-  const branding = useBranding()
   const [providers, setProviders] = useState([])
   const [hasUsers, setHasUsers] = useState(true)
   const [registrationMode, setRegistrationMode] = useState('open')
@@ -77,7 +77,7 @@ export default function Login() {
   // Redirect if auth is disabled or user is already logged in
   useEffect(() => {
     if (!authLoading && ((!authEnabled && !staticApiKeyRequired) || user)) {
-      navigate('/app', { replace: true })
+      navigate('/analyst', { replace: true })
     }
   }, [authLoading, authEnabled, user, navigate])
 
@@ -195,7 +195,9 @@ export default function Login() {
     }
   }
 
-  if (authLoading || statusLoading) return null
+  if (authLoading || statusLoading) {
+    return <NexusLoadingState label="Verifying secure access…" fullScreen />
+  }
 
   // Legacy API key-only mode: show a simplified login with just the token input
   if (staticApiKeyRequired && !authEnabled) {
@@ -203,9 +205,7 @@ export default function Login() {
       <div className="login-page">
         <div className="card login-card">
           <div className="login-header">
-            <img src={apiUrl(branding.logoUrl)} alt={branding.instanceName} className="login-logo" />
-            <h1 className="login-title">{branding.instanceName}</h1>
-            {branding.instanceTagline && <p className="login-tagline">{branding.instanceTagline}</p>}
+            <NexusBrand variant="signature" showContext />
             <p className="login-subtitle">{t('login.tokenSubtitle')}</p>
           </div>
 
@@ -253,9 +253,7 @@ export default function Login() {
     <div className="login-page">
       <div className="card login-card">
         <div className="login-header">
-          <img src={apiUrl(branding.logoUrl)} alt={branding.instanceName} className="login-logo" />
-          <h1 className="login-title">{branding.instanceName}</h1>
-          {branding.instanceTagline && <p className="login-tagline">{branding.instanceTagline}</p>}
+          <NexusBrand variant="signature" showContext />
           <p className="login-subtitle">
             {!hasUsers
               ? t('login.createAdminSubtitle')

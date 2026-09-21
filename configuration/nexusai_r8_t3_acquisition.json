@@ -1,0 +1,73 @@
+{
+  "contract_version": "nexusai.r8-t3-acquisition/v1",
+  "approved_at": "2026-08-13T00:00:00Z",
+  "scope": "isolated_offline_benchmark_only",
+  "default_action": "preflight_only",
+  "production_mutation": false,
+  "retained_case_ingest": false,
+  "automatic_promotion": false,
+  "selected_artifact_id": "ccpd-2019-zenodo-15647076",
+  "selection_reason": "CCPD2019 contains the official base and adverse-condition subsets plus official splits; CCPD2020 is a smaller green-plate supplemental artifact, not a substitute for the full T3-D/T3-O distribution-shift benchmark.",
+  "publisher": {
+    "dataset_repository": "https://github.com/detectRecog/CCPD",
+    "dataset_license": "MIT",
+    "immutable_mirror_record": "https://doi.org/10.5281/zenodo.15647076",
+    "mirror_license": "CC BY 4.0",
+    "governing_download_license": "CC BY 4.0 mirror terms plus attribution; internal evaluation only under this contract"
+  },
+  "privacy_disposition": {
+    "classification": "real_vehicle_identifiers_and_contextual_imagery",
+    "processing_allowed": "isolated local evaluation only",
+    "safe_for_git": false,
+    "safe_for_demo": false,
+    "training_allowed": false,
+    "redistribution_allowed": false,
+    "human_display_allowed": "only to an authorized evaluator when necessary for annotation/error review; never in team-lead demo or generated reports",
+    "derived_output_policy": "metrics, aggregate error classes and non-reversible hashes only; no plate strings, crops, filenames containing encoded plate text or contextual thumbnails",
+    "retention": "outside Git under C:\\NexusAI-Evaluation; deletion requires an explicit operator action",
+    "not_legal_advice": true
+  },
+  "artifacts": [
+    {
+      "artifact_id": "ccpd-2019-zenodo-15647076",
+      "filename": "CCPD2019.tar.xz",
+      "url": "https://zenodo.org/api/records/15647076/files/CCPD2019.tar.xz/content",
+      "size_bytes": 13164924944,
+      "checksum_algorithm": "MD5",
+      "checksum": "0dfbca0e6fcb7cb8ea720b0eae94c735",
+      "minimum_free_disk_gib_for_download": 16,
+      "recommended_free_disk_gib_for_download_and_extraction": 80,
+      "benchmark_role": "primary independent real T3-D detector and T3-O OCR distribution-shift evidence",
+      "contents": "CCPD-Base plus DB, Blur, FN, Rotate, Tilt and Challenge subsets; use official repository splits",
+      "operator_required": true
+    },
+    {
+      "artifact_id": "ccpd-2020-green-zenodo-15647076",
+      "filename": "CCPD2020.zip",
+      "url": "https://zenodo.org/api/records/15647076/files/CCPD2020.zip/content",
+      "size_bytes": 907711344,
+      "checksum_algorithm": "MD5",
+      "checksum": "eb93e88c5988879f8da6f92bbf083324",
+      "minimum_free_disk_gib_for_download": 4,
+      "recommended_free_disk_gib_for_download_and_extraction": 8,
+      "benchmark_role": "supplemental real green-plate T3-D/T3-O evidence only",
+      "contents": "CCPD-Green eight-character energy-vehicle subset",
+      "operator_required": true
+    }
+  ],
+  "acceptance_after_download": [
+    "exact byte size and publisher MD5 pass",
+    "local SHA-256 receipt recorded",
+    "archive lists successfully before extraction",
+    "no path traversal, symlink or unexpected executable members",
+    "official split files are pinned and copied as hashes, not mutated",
+    "filename annotations parse with no unreviewed record drops",
+    "a sealed evaluation partition is established before model comparison",
+    "all outputs follow the privacy disposition"
+  ],
+  "limitations": [
+    "Chinese plates and parking imagery are international T3 evidence, not Pakistan operational agreement.",
+    "A pass does not remove the Pakistan-format limitation and does not satisfy T4.",
+    "No candidate may be tuned on a partition later reported as holdout."
+  ]
+}

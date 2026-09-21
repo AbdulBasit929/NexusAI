@@ -534,11 +534,13 @@ export default function Home() {
       ) : (
         /* No models available (non-admin) */
         <div className="home-wizard">
-          <div className="home-wizard-hero">
-            <img src={apiUrl(branding.logoUrl)} alt={branding.instanceName} className="home-logo" />
-            <h1>{t('wizard.noModelsTitle')}</h1>
-            <p>{t('wizard.noModelsBody')}</p>
-          </div>
+          <EmptyState
+            state="unavailable"
+            eyebrow={branding.instanceName}
+            icon="fa-cubes"
+            title={t('wizard.noModelsTitle')}
+            body={t('wizard.noModelsBody')}
+          />
           <div className="home-wizard-actions">
             <a className="btn btn-secondary" href={apiUrl('/swagger/index.html')} target="_blank" rel="noopener noreferrer">
               <i className="fas fa-book" /> {t('quickLinks.documentation')}

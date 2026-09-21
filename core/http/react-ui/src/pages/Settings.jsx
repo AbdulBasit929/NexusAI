@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { settingsApi, resourcesApi, brandingApi } from '../utils/api'
 import { useBranding } from '../contexts/BrandingContext'
+import NexusBrand from '../components/NexusBrand'
 import LoadingSpinner from '../components/LoadingSpinner'
 import PageHeader from '../components/PageHeader'
 import UnsavedChangesGuard from '../components/UnsavedChangesGuard'
@@ -241,17 +242,20 @@ export default function Settings() {
               {BRANDING_ASSETS.map(asset => {
                 const url = brandingAssetUrl(asset.kind)
                 const isCustom = url && url.startsWith('/branding/asset/')
+                const showCodeNativeIdentity = branding.instanceName.trim().toLowerCase() === 'nexusai' && !isCustom
                 const busy = brandingBusy === asset.kind
                 return (
                   <SettingRow key={asset.kind} label={asset.label} description={asset.description}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
                       <div style={{
-                        width: 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        width: asset.kind === 'logo_horizontal' ? 140 : 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center',
                         background: 'var(--color-surface-elevated)',
                         border: '1px solid var(--color-border)',
                         borderRadius: 'var(--radius-md)', overflow: 'hidden',
                       }}>
-                        {url ? (
+                        {showCodeNativeIdentity ? (
+                          <NexusBrand variant={asset.kind === 'logo_horizontal' ? 'lockup' : 'mark'} />
+                        ) : url ? (
                           <img src={url} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                         ) : (
                           <i className="fas fa-image" style={{ color: 'var(--color-text-muted)' }} />

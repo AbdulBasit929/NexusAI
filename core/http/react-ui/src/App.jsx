@@ -10,7 +10,10 @@ import { useTheme } from './contexts/ThemeContext'
 import { useBranding } from './contexts/BrandingContext'
 import { useAuth } from './context/AuthContext'
 import RouteFallback from './components/RouteFallback'
+import AppShellHeader from './components/AppShellHeader'
+import { getShellRouteContext } from './utils/shellContext'
 import { consoles, consolePaths } from './components/console/consoleConfig'
+import { useActiveCase } from './contexts/ActiveCaseContext'
 
 const COLLAPSED_KEY = 'localai_sidebar_collapsed'
 
@@ -27,8 +30,9 @@ function pageTransitionKey(pathname) {
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const mainContentRef = useRef(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    try { return localStorage.getItem(COLLAPSED_KEY) === 'true' } catch (_) { return false }
+    try { return localStorage.getItem(COLLAPSED_KEY) === 'true' } catch { return false }
   })
   const { toasts, addToast, removeToast } = useToast()
   const [version, setVersion] = useState('')
@@ -37,6 +41,7 @@ export default function App() {
   const { theme, toggleTheme } = useTheme()
   const { authEnabled, user } = useAuth()
   const branding = useBranding()
+  const { activeCase } = useActiveCase()
   const { t } = useTranslation('nav')
   const hamburgerRef = useRef(null)
   const isChatRoute = location.pathname.match(/\/chat(\/|$)/) || location.pathname.match(/\/agents\/[^/]+\/chat/)
@@ -64,6 +69,7 @@ export default function App() {
   useEffect(() => {
     if (!sidebarOpen) return
     const prevOverflow = document.body.style.overflow
+    const hamburger = hamburgerRef.current
     document.body.style.overflow = 'hidden'
     const onKey = (e) => { if (e.key === 'Escape') setSidebarOpen(false) }
     window.addEventListener('keydown', onKey)
@@ -72,7 +78,7 @@ export default function App() {
       window.removeEventListener('keydown', onKey)
       // Restore focus to the trigger so keyboard users land back where
       // they invoked the drawer from.
-      hamburgerRef.current?.focus()
+      hamburger?.focus()
     }
   }, [sidebarOpen])
 
@@ -93,12 +99,21 @@ export default function App() {
   const showAvatar = authEnabled && user
   const accountLabel = user?.name || user?.email || t('account')
   const themeToggleLabel = theme === 'dark' ? t('switchToLightMode') : t('switchToDarkMode')
+  const shellContext = getShellRouteContext(location.pathname, activeCase)
+
+  const focusMainContent = (event) => {
+    event.preventDefault()
+    mainContentRef.current?.focus({ preventScroll: true })
+    mainContentRef.current?.scrollIntoView({ block: 'start' })
+  }
 
   return (
     <div className={layoutClasses}>
+      <a className="skip-link" href="#main-route-content" onClick={focusMainContent}>{t('skipToContent')}</a>
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <main className="main-content" {...(sidebarOpen ? { 'aria-hidden': 'true', inert: '' } : {})}>
         <OperationsBar />
+        <AppShellHeader pathname={location.pathname} />
         {/* Mobile header — primary actions reachable without opening the
             drawer. Hamburger is the only way to expand the nav on phones;
             theme toggle and account avatar are mirrored from the sidebar
@@ -114,7 +129,14 @@ export default function App() {
           >
             <i className="fas fa-bars" aria-hidden="true" />
           </button>
-          <span className="mobile-title">{branding.instanceName}</span>
+          <span className="mobile-title">
+            <span>
+              {branding.instanceName}
+              <span aria-hidden="true"> / </span>
+              <strong>{shellContext.title}</strong>
+            </span>
+            {shellContext.caseId && <small dir="auto">{shellContext.caseId}</small>}
+          </span>
           <div className="mobile-header-actions">
             <button
               type="button"
@@ -142,7 +164,7 @@ export default function App() {
             )}
           </div>
         </header>
-        <div className="main-content-inner">
+        <div ref={mainContentRef} id="main-route-content" className="main-content-inner" tabIndex="-1">
           <div className="page-transition" key={pageTransitionKey(location.pathname)}>
             {/* Per-route Suspense catches React.lazy chunk loads (router.jsx)
                 here, inside the App layout. Without it, suspension would bubble

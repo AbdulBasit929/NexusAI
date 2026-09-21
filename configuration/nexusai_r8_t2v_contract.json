@@ -1,0 +1,91 @@
+{
+  "contract_version": "forensics.controlled-virtual-anpr-pack/v1",
+  "dataset_id": "nexusai-r8-controlled-virtual-t2v",
+  "version": "1.0.0",
+  "generator_version": "nexusai-r8-t2v-generator/1.0.0",
+  "master_seed": "nexusai-r8-t2v-20260813-v1",
+  "image": {
+    "width": 960,
+    "height": 540,
+    "format": "PNG",
+    "color_space": "RGB"
+  },
+  "partitions": {
+    "development": {"positive": 42, "negative": 14},
+    "validation": {"positive": 15, "negative": 5},
+    "sealed_holdout": {"positive": 15, "negative": 5}
+  },
+  "required_positive_conditions": [
+    "single_plate",
+    "multiple_plates",
+    "small_or_far",
+    "edge_position",
+    "horizontal_perspective",
+    "vertical_perspective",
+    "partial_occlusion",
+    "glare",
+    "shadow",
+    "night_like",
+    "overexposure",
+    "underexposure",
+    "motion_blur",
+    "defocus",
+    "compression",
+    "dirty_low_contrast",
+    "busy_background"
+  ],
+  "required_negative_classes": [
+    "street_signage",
+    "billboard",
+    "vehicle_logo",
+    "vehicle_grille",
+    "rectangular_reflector",
+    "document",
+    "screen",
+    "shop_board",
+    "random_text",
+    "house_number_like_text",
+    "road_sign",
+    "plain_vehicle",
+    "multiple_rectangles",
+    "architectural_structure"
+  ],
+  "plate_styles": [
+    "pakistan_oriented_green_band",
+    "pakistan_oriented_white",
+    "pakistan_oriented_sindh_colorway",
+    "pakistan_oriented_kpk_colorway",
+    "pakistan_oriented_generic"
+  ],
+  "claims": {
+    "allowed": [
+      "controlled virtual evidence",
+      "Pakistan-oriented synthetic style",
+      "reproducible non-personal benchmark"
+    ],
+    "prohibited": [
+      "physical T2 evidence",
+      "official provincial plate replica",
+      "public real-world evidence",
+      "Pakistan operational validation",
+      "production authority"
+    ]
+  },
+  "source_asset_policy": {
+    "mode": "repository_owned_procedural_only",
+    "external_photographs": false,
+    "personal_data": false,
+    "internet_assets": false,
+    "font_runtime": [
+      "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+      "/usr/share/fonts/truetype/noto/NotoNaskhArabic-Bold.ttf"
+    ],
+    "font_license_notice": "Covered by the existing isolated evaluator image and THIRD_PARTY_NOTICES.md; no font is copied into the generated pack."
+  },
+  "holdout_policy": {
+    "tuning_allowed": false,
+    "identity_overlap_allowed": false,
+    "seed_overlap_allowed": false,
+    "manifest_seal_required": true
+  }
+}

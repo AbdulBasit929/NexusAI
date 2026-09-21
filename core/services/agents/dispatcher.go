@@ -33,6 +33,13 @@ type AgentChatEvent struct {
 	Message   string `json:"message"`
 	MessageID string `json:"message_id"`
 	Role      string `json:"role,omitempty"` // "user" or "system" (for periodic runs)
+	CaseID    string `json:"case_id,omitempty"`
+	// Request-scoped forensic context is carried beside Config because AgentConfig
+	// intentionally excludes these fields from persistence and configuration export.
+	ForensicConversationContext *ForensicConversationContext `json:"forensic_conversation_context,omitempty"`
+	ForensicQueryScope          *ForensicQueryScope          `json:"forensic_query_scope,omitempty"`
+	// Absolute dispatch deadline so queue time remains part of the governed request.
+	DeadlineUnixMilli int64 `json:"deadline_unix_ms,omitempty"`
 
 	// Enriched payload: set by the frontend/scheduler so that the worker
 	// does not need direct database access.
@@ -158,7 +165,7 @@ func (d *LocalDispatcher) buildLocalCallbacks(writer SSEWriter, messageID string
 		if writer == nil {
 			return
 		}
-		data := map[string]any{"timestamp": time.Now().Format(time.RFC3339)}
+		data := map[string]any{"message_id": messageID, "timestamp": time.Now().Format(time.RFC3339)}
 		switch ev.Type {
 		case cogito.StreamEventReasoning:
 			data["type"] = "reasoning"
@@ -192,6 +199,7 @@ func (d *LocalDispatcher) buildLocalCallbacks(writer SSEWriter, messageID string
 		OnToolResult: func(name, result string) {
 			if writer != nil {
 				writer.SendEvent("stream_event", map[string]any{
+					"message_id":  messageID,
 					"type":        "tool_result",
 					"tool_name":   name,
 					"tool_result": result,
@@ -202,8 +210,9 @@ func (d *LocalDispatcher) buildLocalCallbacks(writer SSEWriter, messageID string
 		OnStatus: func(status string) {
 			if writer != nil {
 				writer.SendEvent("json_message_status", map[string]string{
-					"status":    status,
-					"timestamp": time.Now().Format(time.RFC3339),
+					"status":     status,
+					"message_id": messageID,
+					"timestamp":  time.Now().Format(time.RFC3339),
 				})
 			}
 		},
@@ -214,6 +223,14 @@ func (d *LocalDispatcher) buildLocalCallbacks(writer SSEWriter, messageID string
 					"content":    content,
 					"message_id": msgID,
 					"timestamp":  time.Now().UnixMilli(),
+				})
+			}
+		},
+		OnMessageMetadata: func(sender, content, msgID string, metadata map[string]any) {
+			if writer != nil {
+				writer.SendEvent("json_message", map[string]any{
+					"sender": sender, "content": content, "message_id": msgID,
+					"timestamp": time.Now().UnixMilli(), "answer_metadata": metadata,
 				})
 			}
 		},
@@ -302,15 +319,16 @@ func (d *NATSDispatcher) Dispatch(userID, agentName, message string) (string, er
 	// Send user message to SSE immediately
 	if d.eventBridge != nil {
 		d.eventBridge.PublishMessage(agentName, userID, RoleUser, message, messageID+"-user")
-		d.eventBridge.PublishStatus(agentName, userID, "processing")
+		d.eventBridge.PublishStatus(agentName, userID, messageID, "processing")
 	}
 
 	evt := AgentChatEvent{
-		AgentName: agentName,
-		UserID:    userID,
-		Message:   message,
-		MessageID: messageID,
-		Role:      RoleUser,
+		AgentName:         agentName,
+		UserID:            userID,
+		Message:           message,
+		MessageID:         messageID,
+		Role:              RoleUser,
+		DeadlineUnixMilli: AgentChatDeadlineUnixMilli(),
 	}
 	if err := d.nats.Publish(d.subject, evt); err != nil {
 		return "", fmt.Errorf("failed to dispatch agent chat: %w", err)
@@ -330,7 +348,7 @@ func (d *NATSDispatcher) handleJob(ctx context.Context, evt AgentChatEvent) {
 		if err != nil {
 			xlog.Error("Failed to load agent config", "agent", evt.AgentName, "error", err)
 			if d.eventBridge != nil {
-				d.eventBridge.PublishStatus(evt.AgentName, evt.UserID, "error: agent config not found")
+				d.eventBridge.PublishStatus(evt.AgentName, evt.UserID, evt.MessageID, "error: agent config not found", evt.CaseID)
 			}
 			return
 		}
@@ -338,21 +356,37 @@ func (d *NATSDispatcher) handleJob(ctx context.Context, evt AgentChatEvent) {
 	if cfg == nil {
 		xlog.Error("No agent config available", "agent", evt.AgentName)
 		if d.eventBridge != nil {
-			d.eventBridge.PublishStatus(evt.AgentName, evt.UserID, "error: agent config not found")
+			d.eventBridge.PublishStatus(evt.AgentName, evt.UserID, evt.MessageID, "error: agent config not found", evt.CaseID)
 		}
 		return
 	}
+	cfgCopy := *cfg
+	if evt.ForensicConversationContext != nil {
+		contextCopy := *evt.ForensicConversationContext
+		cfgCopy.ForensicConversationContext = &contextCopy
+	}
+	if evt.ForensicQueryScope != nil {
+		scopeCopy := *evt.ForensicQueryScope
+		scopeCopy.AvailableResultFamilies = append([]string(nil), evt.ForensicQueryScope.AvailableResultFamilies...)
+		cfgCopy.ForensicQueryScope = &scopeCopy
+	}
+	cfg = &cfgCopy
 
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := WithAgentChatDeadline(ctx, evt.DeadlineUnixMilli)
 	defer cancel()
+	caseID := evt.CaseID
+	if caseID == "" {
+		caseID = cfg.ForensicCollectionID
+	}
 
 	// Register cancellation
 	if d.eventBridge != nil {
-		d.eventBridge.RegisterCancel(evt.MessageID, cancel)
-		defer d.eventBridge.DeregisterCancel(evt.MessageID)
+		cancelKey := AgentCancellationKey(evt.AgentName, evt.UserID, caseID, evt.MessageID)
+		d.eventBridge.RegisterCancel(cancelKey, cancel)
+		defer d.eventBridge.DeregisterCancel(cancelKey)
 	}
 
-	cb := d.buildNATSCallbacks(evt)
+	cb := d.buildNATSCallbacks(evt, caseID)
 
 	// Build execution options: skills come from the enriched NATS payload
 	// (workers have no database access).
@@ -375,9 +409,21 @@ func (d *NATSDispatcher) handleJob(ctx context.Context, evt AgentChatEvent) {
 	}
 
 	if execErr != nil {
+		switch ExecutionTerminalStatus(execErr) {
+		case "timed_out":
+			if d.eventBridge != nil {
+				d.eventBridge.PublishStatus(evt.AgentName, evt.UserID, evt.MessageID, "timed_out", caseID)
+			}
+			return
+		case "cancelled":
+			if d.eventBridge != nil {
+				d.eventBridge.PublishStatus(evt.AgentName, evt.UserID, evt.MessageID, "cancelled", caseID)
+			}
+			return
+		}
 		xlog.Error("Distributed agent execution failed", "agent", evt.AgentName, "error", execErr)
 		if d.eventBridge != nil {
-			d.eventBridge.PublishStatus(evt.AgentName, evt.UserID, "error")
+			d.eventBridge.PublishStatus(evt.AgentName, evt.UserID, evt.MessageID, "error", caseID)
 			d.eventBridge.PublishMessage(evt.AgentName, evt.UserID, RoleAgent,
 				fmt.Sprintf("Agent execution failed: %v", execErr), evt.MessageID+"-error")
 		}
@@ -396,7 +442,7 @@ func (p *staticSkillProvider) ListSkills() ([]SkillInfo, error) {
 	return p.skills, nil
 }
 
-func (d *NATSDispatcher) buildNATSCallbacks(evt AgentChatEvent) Callbacks {
+func (d *NATSDispatcher) buildNATSCallbacks(evt AgentChatEvent, caseID string) Callbacks {
 	// Observable tracking: build LocalAGI-compatible observable records
 	// from cogito callbacks so the UI can render them properly.
 	//
@@ -472,7 +518,7 @@ func (d *NATSDispatcher) buildNATSCallbacks(evt AgentChatEvent) Callbacks {
 			default:
 				return
 			}
-			d.eventBridge.PublishStreamEvent(evt.AgentName, evt.UserID, data)
+			d.eventBridge.PublishStreamEvent(evt.AgentName, evt.UserID, evt.MessageID, data)
 		},
 		OnReasoning: func(text string) {
 			// Reasoning is buffered via OnStream
@@ -483,7 +529,7 @@ func (d *NATSDispatcher) buildNATSCallbacks(evt AgentChatEvent) Callbacks {
 		OnToolResult: func(name, result string) {
 			// Emit tool_result stream event for real-time UI display
 			if d.eventBridge != nil {
-				d.eventBridge.PublishStreamEvent(evt.AgentName, evt.UserID, map[string]any{
+				d.eventBridge.PublishStreamEvent(evt.AgentName, evt.UserID, evt.MessageID, map[string]any{
 					"type":        "tool_result",
 					"tool_name":   name,
 					"tool_result": result,
@@ -506,7 +552,7 @@ func (d *NATSDispatcher) buildNATSCallbacks(evt AgentChatEvent) Callbacks {
 		},
 		OnStatus: func(status string) {
 			if d.eventBridge != nil {
-				d.eventBridge.PublishStatus(evt.AgentName, evt.UserID, status)
+				d.eventBridge.PublishStatus(evt.AgentName, evt.UserID, evt.MessageID, status, caseID)
 			}
 		},
 		OnMessage: func(sender, content, msgID string) {
@@ -529,6 +575,15 @@ func (d *NATSDispatcher) buildNATSCallbacks(evt AgentChatEvent) Callbacks {
 						},
 					}
 				}
+				d.eventBridge.PersistObservable(evt.AgentName, evt.UserID, "chat", rootObs)
+			}
+		},
+		OnMessageMetadata: func(sender, content, msgID string, metadata map[string]any) {
+			if d.eventBridge != nil {
+				d.eventBridge.PublishMessage(evt.AgentName, evt.UserID, sender, content, msgID, metadata)
+			}
+			if sender == RoleAgent && d.eventBridge != nil {
+				rootObs.Completion = &coreTypes.Completion{ActionResult: content}
 				d.eventBridge.PersistObservable(evt.AgentName, evt.UserID, "chat", rootObs)
 			}
 		},

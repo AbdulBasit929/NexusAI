@@ -30,6 +30,8 @@ type Callbacks struct {
 	OnStatus func(status string)
 	// OnMessage receives final messages (sender="user"/"agent", content, messageID).
 	OnMessage func(sender, content, messageID string)
+	// OnMessageMetadata delivers a final message with a bounded, typed presentation contract.
+	OnMessageMetadata func(sender, content, messageID string, metadata map[string]any)
 }
 
 // DefaultInnerMonologueTemplate is the prompt used for autonomous/background runs
@@ -81,6 +83,7 @@ func ExecuteChat(ctx context.Context, apiURL, apiKey string, cfg *AgentConfig, m
 	}
 
 	forensicTools := forensicRecordsToolConfig(cfg, o.UserID)
+	forensicTools.Context = ctx
 	if forensicTools.APIURL != "" {
 		if direct, ok, err := runDeterministicForensicRoute(message, forensicTools); ok {
 			return finishDeterministicForensicRoute(cfg, direct, err, cb, opts)
@@ -135,11 +138,13 @@ func ExecuteChatWithLLM(ctx context.Context, llm cogito.LLM, cfg *AgentConfig, m
 		systemPrompt += "\n\n" + RecordsToolsPolicy
 	}
 	forensicTools := forensicRecordsToolConfig(cfg, userID)
+	forensicTools.Context = ctx
 	if forensicTools.APIURL != "" {
 		systemPrompt += "\n\n" + ForensicRecordsToolsPolicy
 		if direct, ok, err := runDeterministicForensicRoute(message, forensicTools); ok {
 			return finishDeterministicForensicRoute(cfg, direct, err, cb, opts)
 		}
+		systemPrompt += "\n\n" + ForensicProductHelpContext(forensicTools)
 	}
 
 	// Inject skills (if enabled)
@@ -235,7 +240,7 @@ func ExecuteChatWithLLM(ctx context.Context, llm cogito.LLM, cfg *AgentConfig, m
 
 	// Records tools complement KB: exact analytics come from structured rows,
 	// while KB remains the source/evidence retrieval layer.
-	if cfg.EnableKnowledgeBase && effectiveURL != "" {
+	if cfg.EnableKnowledgeBase && effectiveURL != "" && !cfg.EnableForensicRecords {
 		cogitoOpts = append(cogitoOpts, cogito.WithTools(
 			cogito.NewToolDefinition(
 				RecordsQueryTool{APIURL: effectiveURL, APIKey: effectiveKey, UserID: userID},
@@ -426,7 +431,8 @@ func ExecuteChatWithLLM(ctx context.Context, llm cogito.LLM, cfg *AgentConfig, m
 	result, err := cogito.ExecuteTools(llm, fragment, cogitoOpts...)
 	if err != nil {
 		if cb.OnStatus != nil {
-			cb.OnStatus("error: " + err.Error())
+			xlog.Warn("Agent execution failed", "error", err)
+			cb.OnStatus("error")
 		}
 		return "", fmt.Errorf("agent execution failed: %w", err)
 	}
@@ -444,6 +450,12 @@ func ExecuteChatWithLLM(ctx context.Context, llm cogito.LLM, cfg *AgentConfig, m
 	}
 	responseForMemory := response
 	response = AppendKBCitations(response, kbCollection, userID, kbCitations.Citations())
+	if strings.TrimSpace(response) == "" {
+		if cb.OnStatus != nil {
+			cb.OnStatus("error")
+		}
+		return "", fmt.Errorf("agent execution returned no answer")
+	}
 
 	// Save conversation to KB when long-term memory is enabled.
 	// Use a detached context: the parent ctx may be cancelled (e.g. in distributed
@@ -482,8 +494,9 @@ func responseMessageID(opts []ExecuteChatOpts) string {
 
 func finishDeterministicForensicRoute(cfg *AgentConfig, direct forensicDirectResult, routeErr error, cb Callbacks, opts []ExecuteChatOpts) (string, error) {
 	if routeErr != nil {
-		if cb.OnStatus != nil {
-			cb.OnStatus("error: " + routeErr.Error())
+		if cb.OnStatus != nil && ExecutionTerminalStatus(routeErr) == "error" {
+			xlog.Warn("Deterministic forensic execution failed", "error", routeErr)
+			cb.OnStatus("error")
 		}
 		return "", fmt.Errorf("deterministic forensic tool failed: %w", routeErr)
 	}
@@ -493,11 +506,21 @@ func finishDeterministicForensicRoute(cfg *AgentConfig, direct forensicDirectRes
 	if cb.OnToolResult != nil {
 		cb.OnToolResult(direct.ToolName, direct.Text)
 	}
-	if cb.OnMessage != nil {
-		cb.OnMessage("agent", direct.Text, responseMessageID(opts))
+	messageID := responseMessageID(opts)
+	metadata := buildForensicPresentationMetadata(direct)
+	if AnalysisOutcomeStatus(direct.Text, metadata) == "error" {
+		if cb.OnStatus != nil {
+			cb.OnStatus("error")
+		}
+		return "", fmt.Errorf("forensic operation did not return a valid analytical outcome")
+	}
+	if cb.OnMessageMetadata != nil {
+		cb.OnMessageMetadata("agent", direct.Text, messageID, metadata)
+	} else if cb.OnMessage != nil {
+		cb.OnMessage("agent", direct.Text, messageID)
 	}
 	if cb.OnStatus != nil {
-		cb.OnStatus("completed")
+		cb.OnStatus(AnalysisOutcomeStatus(direct.Text, metadata))
 	}
 	agentName := ""
 	if cfg != nil {
@@ -556,13 +579,34 @@ func forensicRecordsToolConfig(cfg *AgentConfig, userID string) ForensicRecordsT
 		collectionID = cfg.Name
 	}
 	collectionID = normalizeForensicCollectionID(collectionID)
+	subjectID := strings.TrimSpace(userID)
+	actorID := subjectID
+	actorRole := "agent-worker"
+	if subjectID == "" {
+		// Local deployments can intentionally run without auth, but the forensic
+		// sidecar still requires an accountable subject. Reuse the same explicit
+		// proxy identity required by the HTTP forwarding layer; an absent or
+		// invalid opt-in remains empty and therefore fails closed at the sidecar.
+		actorID = strings.TrimSpace(os.Getenv("FORENSIC_RECORDS_PROXY_ACTOR_ID"))
+		actorRole = strings.ToLower(strings.TrimSpace(os.Getenv("FORENSIC_RECORDS_PROXY_ACTOR_ROLE")))
+		if actorID != "" && (actorRole == "user" || actorRole == "admin" || actorRole == "agent-worker") {
+			subjectID = actorID
+		} else {
+			actorID = ""
+			actorRole = ""
+		}
+	}
 	return ForensicRecordsToolConfig{
-		APIURL:       apiURL,
-		APIKey:       apiKey,
-		UserID:       userID,
-		TenantID:     defaultForensicTenant(cfg.ForensicTenantID),
-		CollectionID: collectionID,
-		Model:        strings.TrimSpace(cfg.Model),
+		APIURL:              apiURL,
+		APIKey:              apiKey,
+		UserID:              subjectID,
+		TenantID:            defaultForensicTenant(cfg.ForensicTenantID),
+		CollectionID:        collectionID,
+		Model:               strings.TrimSpace(cfg.Model),
+		ActorID:             actorID,
+		ActorRole:           actorRole,
+		ConversationContext: cfg.ForensicConversationContext,
+		QueryScope:          cfg.ForensicQueryScope,
 	}
 }
 

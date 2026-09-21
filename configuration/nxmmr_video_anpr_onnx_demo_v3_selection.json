@@ -1,0 +1,59 @@
+{
+  "contract_version": "nexusai.nxmmr.video-anpr-onnx-demo-selection/v3",
+  "candidate_id": "NX-MMR-VIDEO-ANPR-ONNX-DEMO-V3",
+  "state": "DEVELOPMENT_DEMO_CANDIDATE_SELECTED",
+  "development_result_sha256": "3db78b26ff8ae6c1cba395c7b1731f7c17c6960ac0498ca43ae5c4730b4bf14b",
+  "development_only": true,
+  "reserved_evaluation_count": 1,
+  "consumed_reserved_rows_accessed": 0,
+  "post_result_tuning": false,
+  "metrics": {
+    "event_recall": 1.0,
+    "exact_precision": 0.777778,
+    "exact_recall": 0.583333,
+    "exact_f1": 0.666667,
+    "normalized_cer": 0.315476,
+    "group_precision": 0.866667,
+    "group_recall": 0.764706,
+    "group_f1": 0.8125,
+    "final_false_groups": 2,
+    "raw_detector_negative_frame_fpr": 0.875,
+    "ocr_candidate_negative_frame_fpr": 0.805556,
+    "group_selected_negative_frame_fpr": 0.555556,
+    "boundary_mae_seconds": 0.894385,
+    "boundary_median_seconds": 0.5845,
+    "boundary_p95_seconds": 2.67675
+  },
+  "resources": {
+    "frames_analyzed": 133,
+    "ocr_calls": 210,
+    "failed_frames": 0,
+    "wall_seconds": 198.185522,
+    "cpu_seconds": 486.113017,
+    "peak_rss_mib": 550.203125,
+    "safety_stop": false
+  },
+  "utility_gates": {
+    "event_recall": "PASS",
+    "group_precision": "PASS",
+    "group_f1": "PASS",
+    "exact_f1": "PASS"
+  },
+  "implementation": {
+    "detector": "yolo-v9-t-384-license-plate-end2end ONNX",
+    "vehicle_detector": false,
+    "ocr": "cct-xs-v2-global-model via FastALPR DefaultOCR RAW_RGB contract",
+    "ultralytics_used": false,
+    "actual_frame_cadence_fps": 4,
+    "persistent_tracking": false,
+    "interpolation": false,
+    "selected_candidate_observed": true
+  },
+  "decision": "SELECT_384_ONNX_NO_640_ACQUISITION",
+  "certification": "DEVELOPMENT_EVIDENCE_ONLY_NOT_PRODUCT_CERTIFIED",
+  "limitations": [
+    "One source video and 11 development events do not establish real-world or universal Pakistani ANPR accuracy.",
+    "Raw detector and OCR-candidate negative-frame noise is high; only grouped observations are analyst-facing.",
+    "Every plate output is a review-required candidate observation, never confirmed identity or ownership."
+  ]
+}

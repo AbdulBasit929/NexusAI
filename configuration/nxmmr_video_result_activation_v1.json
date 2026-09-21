@@ -1,0 +1,126 @@
+{
+  "contract_version": "nexusai.nxmmr.video-result-activation/v1",
+  "state": "SOURCE_SEALED_AWAITING_OPERATOR",
+  "activation_namespace": "NX-MMR-VIDEO-RESULT-CONTRACT-AND-ACTIVITY-P1-CLOSURE-V1",
+  "previous_activation_receipt": "20260903T050747951Z",
+  "runtime_baseline_reconciliation": {
+    "id": "post-reboot-20260903T063334Z",
+    "user_authorized": true,
+    "verified_utc": "2026-09-03T06:33:34Z",
+    "reason": "User rebooted laptop and restarted Docker. Startup retries encountered dependency DNS/NATS unavailability and PostgreSQL starting up; services subsequently stabilized.",
+    "prior_source_seal_sha256": "0d580a6746425fc23bc0f512189de02c4fe4726a191adcec22b39b943f77956a",
+    "prior_restart_counts": {"api": 0, "forensic-records-api": 0, "forensic-records-worker": 2, "forensic-postgres": 0, "forensic-nats": 0},
+    "container_ids_unchanged": true,
+    "image_ids_unchanged": true,
+    "health_verified": true,
+    "active_jobs": 0,
+    "retained_counts": "63|63|76|22507|827|61",
+    "further_restart_drift_allowed": false
+  },
+  "scope": [
+    "Typed video observation/group projection with plate/time/frame/source/citations",
+    "Null-safe historical Activity table rendering"
+  ],
+  "resource_gates": {
+    "minimum_available_ram_gib": 6,
+    "minimum_workspace_free_disk_gib": 20,
+    "maximum_active_jobs": 0,
+    "initial_ram_wait_minutes": 120,
+    "post_build_ram_wait_minutes": 5,
+    "post_drain_ram_wait_minutes": 120,
+    "safe_build_cache_recovery": "drop_linux_page_cache_mode_1_only_after_dirty_and_writeback_are_zero",
+    "build_timeout_seconds": 7200,
+    "health_timeout_seconds": 300
+  },
+  "services": {
+    "build_and_recreate_no_deps": [
+      "api",
+      "forensic-records-api"
+    ],
+    "preserve_exact_identity": [
+      "forensic-records-worker",
+      "forensic-postgres",
+      "forensic-nats"
+    ],
+    "candidate_images": {
+      "api": "nexusai/localai-forensic:nxmmr-video-result-v1",
+      "forensic-records-api": "nexusai/forensic-records-api:nxmmr-video-result-v1"
+    },
+    "dockerfiles": {
+      "api": "Dockerfile",
+      "forensic-records-api": "api/forensic_records/Dockerfile"
+    },
+    "build_network": "default",
+    "build_dependency_acquisition": "dockerfile_required_only_user_approved",
+    "api_build_args": {
+      "LOCALAI_BUILD_GOMAXPROCS": "4",
+      "LOCALAI_BUILD_GOFLAGS": "-p=2"
+    },
+    "pull_policy": "never"
+  },
+  "starting_runtime": {
+    "api": {
+      "container_id": "0d386b6d6ec30c311a5b2a52f3f47150e00bcdb8b07880c226c45e43e6f5f6b7",
+      "image_id": "sha256:9a7aa295c09cbbed77563fa7f6b95de2ebf57a3fd235c375935ae32b639e288d",
+      "restart_count": 0
+    },
+    "forensic-records-api": {
+      "container_id": "c3e8472715cbaf97fcf0c76da9687d7d61c2dbd1c22af53d63e6d17cad5a5144",
+      "image_id": "sha256:4965aa8054345f0a929be0a79a6ab17cbff7d52b3ceed235581c482bba9445bc",
+      "restart_count": 8
+    },
+    "forensic-records-worker": {
+      "container_id": "40b6e628d586d5d484468120a8591fdb46a2ecc6f5aac228583067b22811d088",
+      "image_id": "sha256:0b22a604dbf97443623258072a71f741111a1033a5e274166ea0f5b2f9968d47",
+      "restart_count": 9
+    },
+    "forensic-postgres": {
+      "container_id": "f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361",
+      "image_id": "sha256:61f891691050da6032023c01ea885730eeeba06b7c17b403e7d0b9c49c37dfe9",
+      "restart_count": 0
+    },
+    "forensic-nats": {
+      "container_id": "5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04",
+      "image_id": "sha256:e4bf19f15fd3218814a4e3c9e0064e1334bd8aa20d5984b9f1a0afd084f8cc00",
+      "restart_count": 0
+    }
+  },
+  "retained_count_baseline": "63|63|76|22507|827|61",
+  "worker_environment_required": {
+    "FORENSIC_ASR_ENABLED": "true",
+    "FORENSIC_ASR_MODEL": "faster-whisper-small-ur",
+    "FORENSIC_IMAGE_EMBEDDING_ENABLED": "true",
+    "FORENSIC_FACE_ENABLED": "true",
+    "FORENSIC_ANPR_ENABLED": "true",
+    "FORENSIC_OCR_ENABLED": "true",
+    "FORENSIC_VIDEO_ANPR_V2_ENABLED": "false",
+    "FORENSIC_VIDEO_ANPR_V3_ENABLED": "true",
+    "FORENSIC_TTS_ENABLED": "false",
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1"
+  },
+  "localai_required_models": [
+    "faster-whisper-small-ur",
+    "face-detect-yunet-sface"
+  ],
+  "prohibitions": [
+    "compose down",
+    "--remove-orphans",
+    "prune",
+    "volume deletion",
+    "model download",
+    "runtime package acquisition",
+    "bulk evidence reprocessing",
+    "database migration",
+    "arbitrary application termination"
+  ],
+  "rollback": "Capture exact runtime topology, then restore only api and forensic-records-api by immutable image ID. Worker, PostgreSQL and NATS must retain exact identity, image and restart count.",
+  "runtime_mutated": false,
+  "database_migration": false,
+  "volumes_changed": false,
+  "retained_evidence_changed": false,
+  "product_certification_performed": false,
+  "nxb2_activation_performed": false,
+  "candidate_image_ids": null,
+  "candidate_image_id_policy": "Not built in this phase; immutable IDs captured in source-bound build-set receipt before later recreation."
+}

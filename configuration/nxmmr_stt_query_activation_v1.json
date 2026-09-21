@@ -1,0 +1,67 @@
+{
+  "contract_version": "nexusai.nxmmr.stt-query-activation/v1",
+  "state": "SOURCE_READY_AWAITING_OPERATOR_ACTIVATION",
+  "scope": [
+    "governed selected-evidence Ask transport and transcript query semantics",
+    "faster-whisper-small-ur worker ASR",
+    "existing SigLIP image embeddings",
+    "existing YuNet/SFace candidate comparison"
+  ],
+  "resource_gates": {
+    "minimum_available_ram_gib": 6,
+    "minimum_workspace_free_disk_gib": 20,
+    "maximum_active_jobs": 0,
+    "post_build_ram_wait_minutes": 30,
+    "safe_build_cache_recovery": "drop_linux_page_cache_mode_1_only_after_dirty_and_writeback_are_zero",
+    "build_timeout_seconds": 5400,
+    "health_timeout_seconds": 300
+  },
+  "services": {
+    "build_and_recreate_no_deps": ["api", "forensic-records-api", "forensic-records-worker"],
+    "must_remain_identical": ["forensic-postgres", "forensic-nats"],
+    "candidate_images": {
+      "api": "nexusai/localai-forensic:nxmmr-stt-query-v1",
+      "forensic-records-api": "nexusai/forensic-records-api:nxmmr-stt-query-v1",
+      "forensic-records-worker": "nexusai/forensic-records-worker:nxmmr-stt-query-v1"
+    },
+    "dockerfiles": {
+      "api": "Dockerfile",
+      "forensic-records-api": "api/forensic_records/Dockerfile",
+      "forensic-records-worker": "ingestion/forensic_records/Dockerfile"
+    }
+  },
+  "worker_environment": {
+    "FORENSIC_ASR_ENABLED": "true",
+    "FORENSIC_ASR_MODEL": "faster-whisper-small-ur",
+    "FORENSIC_IMAGE_EMBEDDING_ENABLED": "true",
+    "FORENSIC_FACE_ENABLED": "true",
+    "FORENSIC_ANPR_ENABLED": "true",
+    "FORENSIC_OCR_ENABLED": "true",
+    "FORENSIC_VIDEO_ANPR_V2_ENABLED": "false",
+    "FORENSIC_VIDEO_ANPR_V3_ENABLED": "true",
+    "FORENSIC_TTS_ENABLED": "false",
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1"
+  },
+  "localai_required_models": ["faster-whisper-small-ur", "face-detect-yunet-sface"],
+  "asset_plan": {
+    "source_root": "C:\\Users\\sheik\\.cache\\nexusai\\models\\google-siglip-base-patch16-224\\7fd15f0689c79d79e38b1c2e2e2370a7bf2761ed",
+    "destination": "models/media/nexusai/models/google-siglip-base-patch16-224/7fd15f0689c79d79e38b1c2e2e2370a7bf2761ed",
+    "files": [
+      {"name": "config.json", "size_bytes": 432, "sha256": "cd85b3d28829722820bcb89a2cfbb4160e55fd359249a3044da724166a8d9688"},
+      {"name": "model.safetensors", "size_bytes": 812672320, "sha256": "2c63cb7d1f2e95ba501893cbb8faeb4ea9a3af295498d35097126228659c2af8"},
+      {"name": "preprocessor_config.json", "size_bytes": 368, "sha256": "d11ccb80f15d358a11bdb070e92e2d889005874b7db15823d5f10d9b2533b14a"},
+      {"name": "special_tokens_map.json", "size_bytes": 409, "sha256": "2b6a1ff67a27e0df9ac0c7d93250fc0d87431c7b366b3d5669217104f9088a26"},
+      {"name": "spiece.model", "size_bytes": 798330, "sha256": "1e5036bed065526c3c212dfbe288752391797c4bb1a284aa18c9a0b23fcaf8ec"},
+      {"name": "tokenizer_config.json", "size_bytes": 711, "sha256": "d6423dae508cc3a129d22ea443841c111832a1a73125b8f25ea8736951698bcb"},
+      {"name": "tokenizer.json", "size_bytes": 2399357, "sha256": "c6e405cb7c670d56636a9402c81023a55bc6c3c53d89cf02b92f5c5005bfe920"}
+    ]
+  },
+  "prohibitions": ["compose down", "--remove-orphans", "prune", "volume deletion", "model download", "bulk evidence reprocessing"],
+  "rollback": "Snapshot exact running images, environment, mounts, ports, commands, healthchecks, network, and named volumes into a private ACL-restricted compose receipt before mutation; restore all three changed services by immutable image ID.",
+  "runtime_mutated": false,
+  "database_migration": false,
+  "volumes_changed": false,
+  "retained_evidence_changed": false,
+  "product_certification_performed": false
+}

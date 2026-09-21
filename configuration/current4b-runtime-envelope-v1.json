@@ -1,0 +1,311 @@
+{
+  "contract_version": "nexusai.current4b-runtime-envelope/v1",
+  "status": "FROZEN_FOR_TESTED_PRODUCT_SHAPES",
+  "model_decision": "KEEP",
+  "model_stage": "ENGLISH_FUNCTIONAL_BASELINE",
+  "english_product_proof": "PENDING",
+  "strict_certification": "PENDING",
+  "multilingual_strict_role": "INSUFFICIENT_HISTORICALLY",
+  "resource_track": "CLOSED_FOR_CURRENT_FUNCTIONAL_BASELINE",
+  "model": {
+    "id": "qwen_qwen3-4b-instruct-2507",
+    "artifact_path": "/models/Qwen_Qwen3-4B-Instruct-2507-Q8_0.gguf",
+    "artifact_bytes": 4280405216,
+    "artifact_sha256": "260b5b5b6ad73e44df81a43ea1f5c11c37007b6bac18eb3cd2016e8667c19662",
+    "profile_path": "/models/qwen_qwen3-4b-instruct-2507.yaml",
+    "profile_sha256": "ef036e0a02cc5e8331dc4dff41c0e0cb68e6e0bda71d92b92f47f673472e666f",
+    "context": 4096,
+    "threads": 8,
+    "parallel": 1,
+    "effective_batch": 512,
+    "gpu_layers": 0
+  },
+  "source_receipt": "local-acceptance-models/nxb21-current4b-final-characterization/run-20260910T052648583Z/resource-lifecycle-receipt-v1.json",
+  "source_receipt_sha256": "d5240ece525a551941e97a741271d2c56aa1e6c26fc9e0ae529e95ef3d471a62",
+  "telemetry_sha256": "7d25a298305f2f4f75ea294023cb7f3fde2597a33fb5497faaa2c0df74ac4092",
+  "cold_admission_gib": 8.627,
+  "reload_envelope": {
+    "contract_version": "nexusai.current4b-model-resource-envelope/v1",
+    "state": "FROZEN_RELOAD_ADMISSION_FOR_TESTED_PROFILE",
+    "measured_peak_delta_gib": 4.677,
+    "measured_load_to_after_delta_gib": 4.609,
+    "measured_steady_noise_gib": 0.068,
+    "selected_reserve_gib": 3.5,
+    "reserve_basis": "Explicit engineering cushion 2 GiB above unchanged 1.5 GiB emergency guard; not a measured minimum",
+    "load_margin_gib": 0.25,
+    "margin_basis": "Three times observed post-load physical range, rounded upward to next quarter GiB",
+    "reload_admission_gib": 8.5,
+    "reload_commit_reserve_gib": 6.9,
+    "commit_basis": "Measured peak commit delta plus existing 2 GiB abort reserve plus load margin, rounded upward to 0.1 GiB",
+    "quiet_paging_pages_per_second": 127,
+    "unloaded_backend_rss_mib": 533.898,
+    "required_samples": 5,
+    "max_first_last_decline_gib": 0.25,
+    "maximum_wait_seconds": 120,
+    "cold_admission_gib": 8.627,
+    "build_recreate_floor_gib": 6,
+    "operating_envelope_adopted": false
+  },
+  "emergency_guards": {
+    "physical_available_gib": 1.5,
+    "commit_reserve_gib": 2.0,
+    "wsl_swap_growth_kib": 262144,
+    "paging_pages_per_second": 1024,
+    "paging_duration_seconds": 15,
+    "maximum_experiment_seconds": 1200,
+    "basis": "Physical headroom reuses the existing isolated evaluator policy. Other limits are conservative experiment abort criteria, not measured model capability or an adopted product floor. No automatic floor adoption."
+  },
+  "build_recreate_gate_gib": 6,
+  "clean_unload_required": true,
+  "retained_state_unchanged_required": true,
+  "protected_service_identity_restart_health_oom_checks": true,
+  "request_timeout_seconds": 180,
+  "maximum_inference_session_seconds": 1200,
+  "latency_classification": "PROMPT_CONTEXT_REUSE_CONSISTENT_NOT_CAUSALLY_PROVEN",
+  "latency_caveat": "First two large bodies identical; 2957 prompt tokens each. Tiny model-load call already occurred. No backend cache-hit counter recorded. Runner times include polling overhead. No tiny-warmup latency claim.",
+  "runtime_integrity": "PASS",
+  "unload": "PASS",
+  "requests": [
+    {
+      "stage": "model_load",
+      "call_index": 1001,
+      "request_bytes": 487,
+      "latency_ms": 14756,
+      "token_usage": {
+        "prompt_tokens": 34,
+        "completion_tokens": 12,
+        "total_tokens": 46
+      }
+    },
+    {
+      "stage": "tiny",
+      "call_index": 1,
+      "request_bytes": 484,
+      "latency_ms": 6809,
+      "token_usage": {
+        "prompt_tokens": 34,
+        "completion_tokens": 9,
+        "total_tokens": 43
+      }
+    },
+    {
+      "stage": "tiny",
+      "call_index": 2,
+      "request_bytes": 484,
+      "latency_ms": 6641,
+      "token_usage": {
+        "prompt_tokens": 34,
+        "completion_tokens": 9,
+        "total_tokens": 43
+      }
+    },
+    {
+      "stage": "tiny",
+      "call_index": 3,
+      "request_bytes": 484,
+      "latency_ms": 6744,
+      "token_usage": {
+        "prompt_tokens": 34,
+        "completion_tokens": 9,
+        "total_tokens": 43
+      }
+    },
+    {
+      "stage": "tiny",
+      "call_index": 4,
+      "request_bytes": 484,
+      "latency_ms": 6047,
+      "token_usage": {
+        "prompt_tokens": 34,
+        "completion_tokens": 9,
+        "total_tokens": 43
+      }
+    },
+    {
+      "stage": "model_load",
+      "call_index": 1002,
+      "request_bytes": 487,
+      "latency_ms": 13794,
+      "token_usage": {
+        "prompt_tokens": 34,
+        "completion_tokens": 12,
+        "total_tokens": 46
+      }
+    },
+    {
+      "stage": "tiny",
+      "call_index": 5,
+      "request_bytes": 484,
+      "latency_ms": 6779,
+      "token_usage": {
+        "prompt_tokens": 34,
+        "completion_tokens": 9,
+        "total_tokens": 43
+      }
+    },
+    {
+      "stage": "tiny",
+      "call_index": 6,
+      "request_bytes": 484,
+      "latency_ms": 6774,
+      "token_usage": {
+        "prompt_tokens": 34,
+        "completion_tokens": 9,
+        "total_tokens": 43
+      }
+    },
+    {
+      "stage": "tiny",
+      "call_index": 7,
+      "request_bytes": 484,
+      "latency_ms": 6786,
+      "token_usage": {
+        "prompt_tokens": 34,
+        "completion_tokens": 9,
+        "total_tokens": 43
+      }
+    },
+    {
+      "stage": "tiny",
+      "call_index": 8,
+      "request_bytes": 484,
+      "latency_ms": 6813,
+      "token_usage": {
+        "prompt_tokens": 34,
+        "completion_tokens": 9,
+        "total_tokens": 43
+      }
+    },
+    {
+      "stage": "model_load",
+      "call_index": 1003,
+      "request_bytes": 487,
+      "latency_ms": 13956,
+      "token_usage": {
+        "prompt_tokens": 34,
+        "completion_tokens": 12,
+        "total_tokens": 46
+      }
+    },
+    {
+      "stage": "payload_shaped",
+      "call_index": 1,
+      "request_bytes": 16334,
+      "latency_ms": 131100,
+      "token_usage": {
+        "prompt_tokens": 2957,
+        "completion_tokens": 12,
+        "total_tokens": 2969
+      }
+    },
+    {
+      "stage": "payload_shaped",
+      "call_index": 2,
+      "request_bytes": 16334,
+      "latency_ms": 6093,
+      "token_usage": {
+        "prompt_tokens": 2957,
+        "completion_tokens": 12,
+        "total_tokens": 2969
+      }
+    },
+    {
+      "stage": "payload_shaped",
+      "call_index": 3,
+      "request_bytes": 16501,
+      "latency_ms": 43724,
+      "token_usage": {
+        "prompt_tokens": 2983,
+        "completion_tokens": 113,
+        "total_tokens": 3096
+      }
+    }
+  ],
+  "observed": {
+    "available_ram_gib": {
+      "minimum": 4.191,
+      "maximum": 8.945,
+      "first": 8.725,
+      "last": 4.653
+    },
+    "commit_reserve_gib": {
+      "minimum": 10.554,
+      "maximum": 15.439,
+      "first": 15.314,
+      "last": 11.109
+    },
+    "committed_bytes": {
+      "minimum": 12502601728,
+      "maximum": 17747345408,
+      "first": 12636532736,
+      "last": 17151418368
+    },
+    "commit_limit_bytes": {
+      "minimum": 29079810048,
+      "maximum": 29079810048,
+      "first": 29079810048,
+      "last": 29079810048
+    },
+    "wsl_swap_used_kib": {
+      "minimum": 793048,
+      "maximum": 793048,
+      "first": 793048,
+      "last": 793048
+    },
+    "pages_input_per_second": {
+      "minimum": 0,
+      "maximum": 347,
+      "first": 0,
+      "last": 0
+    },
+    "pages_output_per_second": {
+      "minimum": 0,
+      "maximum": 29838,
+      "first": 0,
+      "last": 0
+    },
+    "backend_rss_total_mib": {
+      "minimum": 533.898,
+      "maximum": 5394.777,
+      "first": 533.898,
+      "last": 533.898
+    },
+    "api_container_memory_mib": {
+      "minimum": 639.8,
+      "maximum": 1478.656,
+      "first": 639.8,
+      "last": 727.5
+    },
+    "vmmemwsl_working_set_mib": {
+      "minimum": 1105.121,
+      "maximum": 5977.406,
+      "first": 1105.121,
+      "last": 5407.934
+    },
+    "compression_working_set_mib": {
+      "minimum": 156.801,
+      "maximum": 2856.172,
+      "first": 167.449,
+      "last": 267.137
+    },
+    "pagefile_used_mib": {
+      "first": 1101,
+      "last": 1050
+    },
+    "paging_spikes": [
+      {
+        "utc": "2026-09-10T05:28:15.2964193Z",
+        "stage": "post_reload",
+        "pages_input_per_second": 0,
+        "pages_output_per_second": 29838
+      }
+    ]
+  },
+  "limitations": [
+    "Short bounded characterization, not continuous production soak",
+    "No proof below observed physical minimum 4.191 GiB; emergency floor is an abort guard not a certified sustained minimum",
+    "Final unload removes owned backend but immediate WSL physical recovery is incomplete",
+    "One transient paging-output spike; no recorded sustained breach",
+    "Product integration must consume this policy; this file alone does not alter deployed service timeout or guard behavior"
+  ]
+}

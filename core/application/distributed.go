@@ -221,6 +221,11 @@ func initDistributed(cfg *config.ApplicationConfig, authDB *gorm.DB, configLoade
 	} else {
 		xlog.Info("Observable persister started")
 	}
+	if err := agentBridge.StartRequestStatusListener(); err != nil {
+		xlog.Warn("Failed to start agent request status tracker", "error", err)
+	} else {
+		xlog.Info("Agent request status tracker started")
+	}
 
 	// Initialize Phase 4 stores (MCP, Gallery, FineTune, Skills)
 	distStores, err := distributed.InitStores(authDB)

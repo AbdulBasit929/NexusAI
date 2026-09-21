@@ -12,7 +12,9 @@ export default defineConfig({
   workers: process.env.PW_WORKERS ? Number(process.env.PW_WORKERS) : 8,
   reporter: process.env.CI ? 'html' : 'list',
   use: {
-    baseURL: 'http://127.0.0.1:8089',
+    // Runtime acceptance can target the already guarded/deployed UI without
+    // trying to launch the Linux-only embedded test server on Windows.
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:8089',
     trace: 'on-first-retry',
   },
   projects: [
