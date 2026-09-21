@@ -1,0 +1,1230 @@
+{
+ "collection_id": "nexusai-multimodal-product-acceptance",
+ "request_class": "GOVERNED_EVIDENCE_ANALYSIS",
+ "intent": "records",
+ "template": "audio_transcript_search",
+ "query_understanding": {
+  "contract_version": "forensics.query-understanding/v1",
+  "original_question": "Search the audio transcripts for Japanese cuisine",
+  "normalized_question": "search the audio transcripts for japanese cuisine",
+  "language": {
+   "tag": "en",
+   "source": "deterministic_extractor",
+   "confidence": 0.9
+  },
+  "intent": "retrieve",
+  "families": {
+   "kind": "knowledge_only",
+   "primary": "audio_intelligence",
+   "secondary": []
+  },
+  "entities": [],
+  "targets": [],
+  "time_scope": {
+   "timezone": "case_default",
+   "origin": "deterministic_extractor"
+  },
+  "filters": [],
+  "requested_output": {
+   "result_kind": "document",
+   "presentation_type": "cited_evidence_results",
+   "limit": 20
+  },
+  "candidate_capabilities": [
+   "audio.transcript_search"
+  ],
+  "semantic_capability_ids": null,
+  "semantic_operation_refs": null,
+  "clarification": {
+   "required": false,
+   "missing_fields": []
+  },
+  "context": {
+   "used": false,
+   "fields": [],
+   "inherited_fields": null
+  },
+  "confidence": {
+   "overall": 0.72,
+   "routing": 0.72,
+   "entities": 0,
+   "time_scope": 0
+  }
+ },
+ "investigation_context": {
+  "contract_version": "forensics.investigation-context/v1",
+  "workspace": {
+   "tenant_id": "default",
+   "case_id": "nexusai-multimodal-product-acceptance",
+   "collection_id": "nexusai-multimodal-product-acceptance",
+   "subject_id": "live-eval"
+  },
+  "evidence": {
+   "kind": "current_workspace",
+   "collection_id": "nexusai-multimodal-product-acceptance",
+   "evidence_ids": [],
+   "family_ids": [],
+   "source_files": []
+  },
+  "active_entities": null,
+  "current_question": "Search the audio transcripts for Japanese cuisine",
+  "previous_result": {},
+  "time": {
+   "domain": "record_timestamp",
+   "timezone": "case_default",
+   "origin": "deterministic_extractor",
+   "normalizer": "forensics.time-policy/v1"
+  },
+  "available_families": [
+   "audio_intelligence"
+  ],
+  "capability_snapshot_id": "34a3c44a-ec80-4aac-ba14-56a3915ed3a8:capabilities",
+  "permissions": [
+   "query:execute"
+  ],
+  "conversation": {},
+  "context_provenance": {
+   "used": false,
+   "fields": [],
+   "inherited_fields": null
+  }
+ },
+ "capability_snapshot": {
+  "contract_version": "forensics.capability-snapshot/v1",
+  "snapshot_id": "34a3c44a-ec80-4aac-ba14-56a3915ed3a8:capabilities",
+  "tenant_id": "default",
+  "collection_id": "nexusai-multimodal-product-acceptance",
+  "generated_at": "2026-09-18T06:30:31.215232665Z",
+  "entries": [
+   {
+    "operation": {
+     "capability_id": "audio.transcript_search",
+     "operation_id": "audio.transcript_search",
+     "template": "audio_transcript_search",
+     "family_ids": [
+      "audio_intelligence"
+     ],
+     "intent_classes": [
+      "retrieve"
+     ],
+     "required_parameters": [],
+     "optional_parameters": [
+      "target"
+     ],
+     "scope_mode": "case_or_target",
+     "source_scoped": false,
+     "time_scoped": false,
+     "execution_mode": "retrieval",
+     "extension_mode": "knowledge_retrieval",
+     "implementation_key": "derivedTextEvidence",
+     "specialist_id": "Audio_Speech_Analyst",
+     "model_role_ids": null,
+     "result_contract": "forensics.enterprise-response/v1",
+     "result_kind": "document",
+     "presentation_type": "cited_evidence_results",
+     "citation_required": true,
+     "criticality_tier": "B",
+     "certification_status": "bounded_uncertified",
+     "exposure_status": "limited",
+     "suggestion_eligible": false,
+     "limitations": [
+      "ASR and Roman-Urdu text are observations, not verbatim fact; identifiers and unclear speech require source playback review."
+     ],
+     "availability": {
+      "implemented": true,
+      "runtime_available": true,
+      "data_available": true,
+      "authorized": true,
+      "model_available": true,
+      "maturity": "operational",
+      "queryable": true,
+      "executable": true,
+      "reason_codes": null
+     }
+    },
+    "requirement": {
+     "family_ids": [
+      "audio_intelligence"
+     ],
+     "required_parameters": null,
+     "required_fields": null,
+     "model_role_ids": null,
+     "citation_required": true,
+     "certified_required": false
+    },
+    "readiness": "COMPLETE_RESULTS",
+    "reason_codes": null
+   }
+  ]
+ },
+ "execution_plan": {
+  "contract_version": "forensics.execution-plan/v1",
+  "plan_id": "34a3c44a-ec80-4aac-ba14-56a3915ed3a8:plan",
+  "mode": "single_operation",
+  "workspace": {
+   "tenant_id": "default",
+   "case_id": "nexusai-multimodal-product-acceptance",
+   "collection_id": "nexusai-multimodal-product-acceptance",
+   "subject_id": "live-eval"
+  },
+  "steps": [
+   {
+    "step_id": "step-1",
+    "capability_id": "audio.transcript_search",
+    "operation_id": "audio.transcript_search",
+    "dependencies": [],
+    "input_bindings": [],
+    "parameters": {
+     "targets": [],
+     "raw_payload_filters": null,
+     "field_filters": null,
+     "field_exists": [],
+     "field_not_exists": [],
+     "limit": 20,
+     "offset": 0,
+     "max_kb_results": 1,
+     "retrieval_mode": "NONE"
+    },
+    "evidence_scope": {
+     "collection_id": "nexusai-multimodal-product-acceptance"
+    },
+    "expected_result_contract": "forensics.enterprise-response/v1",
+    "result_kind": "document",
+    "presentation_type": "cited_evidence_results",
+    "citation_required": true
+   }
+  ],
+  "output_contract": "forensics.enterprise-response/v1",
+  "resource_policy": {
+   "read_only": true,
+   "maximum_steps": 1,
+   "maximum_rows": 100,
+   "maximum_offset": 100000,
+   "maximum_kb_results": 20,
+   "maximum_targets": 8,
+   "maximum_intermediate_rows": 0,
+   "maximum_retrieval_chunks": 0,
+   "maximum_model_calls": 0,
+   "timeout_milliseconds": 0
+  },
+  "policy_decisions": [
+   "workspace_scope_bound",
+   "known_capability_only",
+   "read_only_executor",
+   "citations_capability_owned"
+  ]
+ },
+ "plan_validation": {
+  "contract_version": "forensics.plan-validation/v1",
+  "plan_id": "34a3c44a-ec80-4aac-ba14-56a3915ed3a8:plan",
+  "valid": true,
+  "scope_authorized": true,
+  "capabilities_ready": true,
+  "dependencies_valid": true,
+  "budget_accepted": true,
+  "authority_preserved": true,
+  "estimated_cost_class": "direct_operation",
+  "issues": []
+ },
+ "tool_results": [
+  {
+   "contract_version": "forensics.tool-result/v1",
+   "invocation_id": "34a3c44a-ec80-4aac-ba14-56a3915ed3a8:plan:step-1",
+   "plan_id": "34a3c44a-ec80-4aac-ba14-56a3915ed3a8:plan",
+   "step_id": "step-1",
+   "operation_id": "audio.transcript_search",
+   "result_contract": "forensics.enterprise-response/v1",
+   "execution_status": "completed",
+   "result_state": "results_present",
+   "authority": "model_observation",
+   "fields": {},
+   "facts": [],
+   "observations": [
+    {
+     "contract_version": "forensics.observation-packet/v1",
+     "packet_id": "34a3c44a-ec80-4aac-ba14-56a3915ed3a8:plan:model-observations",
+     "request_id": "34a3c44a-ec80-4aac-ba14-56a3915ed3a8",
+     "case_id": "nexusai-multimodal-product-acceptance",
+     "collection_id": "nexusai-multimodal-product-acceptance",
+     "operation_id": "audio.transcript_search",
+     "observations": [
+      {
+       "id": "3e373b21-31df-59c4-83cf-78f12b811227",
+       "kind": "forensics.audio-timestamp-segment/v1",
+       "value": {
+        "artifact_id": "3e373b21-31df-59c4-83cf-78f12b811227",
+        "artifact_type": "forensics.audio-timestamp-segment/v1",
+        "chunk_id": "3e373b21-31df-59c4-83cf-78f12b811227",
+        "chunk_sha256": "df4cb5cda8a4f7d56354f6c60427f55b4f816a13319abd3218d6c564068d83b7",
+        "citation_locator": {
+         "end_seconds": 5.5600000000000005,
+         "source_file": "fleurs-en_us-validation-row-01.wav",
+         "start_seconds": 0
+        },
+        "collection_id": "nexusai-multimodal-product-acceptance",
+        "detected_type": "audio",
+        "end_seconds": 5.5600000000000005,
+        "evidence_id": "7b1b6259-5866-4f03-a0d9-624f9c377a73",
+        "match_semantic": "source",
+        "modality": "audio",
+        "observation_id": "3e373b21-31df-59c4-83cf-78f12b811227",
+        "parent_artifact_id": "",
+        "raw_text": "Now widely available throughout the archipelago, Japanese cuisines features an array of simply",
+        "run_id": "8904af64-d742-4878-8b3e-65fa58bb18bc",
+        "source_entry": "98ad71de-1ed6-40d9-a026-a21fd6b6ff76/fleurs-en_us-validation-row-01.wav",
+        "source_family": "audio_transcript",
+        "source_file": "fleurs-en_us-validation-row-01.wav",
+        "source_locator": "{\"end_seconds\":5.5600000000000005,\"source_file\":\"fleurs-en_us-validation-row-01.wav\",\"start_seconds\":0}",
+        "start_seconds": 0,
+        "tenant_id": "default",
+        "text_representation": "raw",
+        "version_id": "9ee016fc-485c-4ffc-ae7e-5e1289ebecce"
+       },
+       "authority": "model_observation",
+       "citation_ids": [
+        "tool-citation-1"
+       ],
+       "limitations": [
+        "Retained model observation only; analyst review is required and the observation does not prove identity, ownership, association, causation, intent, or a continuous real-world event."
+       ]
+      }
+     ],
+     "citations": [
+      {
+       "artifact_id": "3e373b21-31df-59c4-83cf-78f12b811227",
+       "run_id": "8904af64-d742-4878-8b3e-65fa58bb18bc",
+       "id": "tool-citation-1",
+       "tenant_id": "default",
+       "collection_id": "nexusai-multimodal-product-acceptance",
+       "evidence_id": "7b1b6259-5866-4f03-a0d9-624f9c377a73",
+       "version_id": "9ee016fc-485c-4ffc-ae7e-5e1289ebecce",
+       "locator": "{\"end_seconds\":5.5600000000000005,\"source_file\":\"fleurs-en_us-validation-row-01.wav\",\"start_seconds\":0}",
+       "source_name": "fleurs-en_us-validation-row-01.wav"
+      }
+     ],
+     "limitations": [
+      "The packet contains retained model observations for analyst review, not deterministic identity or event facts."
+     ]
+    }
+   ],
+   "rows": [
+    {
+     "citation": "nexusai://evidence/7b1b6259-5866-4f03-a0d9-624f9c377a73/artifacts/3e373b21-31df-59c4-83cf-78f12b811227",
+     "content": "Now widely available throughout the archipelago, Japanese cuisines features an array of simply",
+     "id": "3e373b21-31df-59c4-83cf-78f12b811227",
+     "metadata": {
+      "artifact_id": "3e373b21-31df-59c4-83cf-78f12b811227",
+      "artifact_type": "forensics.audio-timestamp-segment/v1",
+      "chunk_id": "3e373b21-31df-59c4-83cf-78f12b811227",
+      "chunk_sha256": "df4cb5cda8a4f7d56354f6c60427f55b4f816a13319abd3218d6c564068d83b7",
+      "citation_locator": {
+       "end_seconds": 5.5600000000000005,
+       "source_file": "fleurs-en_us-validation-row-01.wav",
+       "start_seconds": 0
+      },
+      "collection_id": "nexusai-multimodal-product-acceptance",
+      "detected_type": "audio",
+      "end_seconds": 5.5600000000000005,
+      "evidence_id": "7b1b6259-5866-4f03-a0d9-624f9c377a73",
+      "match_semantic": "source",
+      "modality": "audio",
+      "observation_id": "3e373b21-31df-59c4-83cf-78f12b811227",
+      "parent_artifact_id": "",
+      "raw_text": "Now widely available throughout the archipelago, Japanese cuisines features an array of simply",
+      "run_id": "8904af64-d742-4878-8b3e-65fa58bb18bc",
+      "source_entry": "98ad71de-1ed6-40d9-a026-a21fd6b6ff76/fleurs-en_us-validation-row-01.wav",
+      "source_family": "audio_transcript",
+      "source_file": "fleurs-en_us-validation-row-01.wav",
+      "source_locator": "{\"end_seconds\":5.5600000000000005,\"source_file\":\"fleurs-en_us-validation-row-01.wav\",\"start_seconds\":0}",
+      "start_seconds": 0,
+      "tenant_id": "default",
+      "text_representation": "raw",
+      "version_id": "9ee016fc-485c-4ffc-ae7e-5e1289ebecce"
+     },
+     "preview": "Now widely available throughout the archipelago, Japanese cuisines features an array of simply",
+     "score": 2
+    }
+   ],
+   "citations": [
+    {
+     "artifact_id": "3e373b21-31df-59c4-83cf-78f12b811227",
+     "run_id": "8904af64-d742-4878-8b3e-65fa58bb18bc",
+     "id": "tool-citation-1",
+     "tenant_id": "default",
+     "collection_id": "nexusai-multimodal-product-acceptance",
+     "evidence_id": "7b1b6259-5866-4f03-a0d9-624f9c377a73",
+     "version_id": "9ee016fc-485c-4ffc-ae7e-5e1289ebecce",
+     "locator": "{\"end_seconds\":5.5600000000000005,\"source_file\":\"fleurs-en_us-validation-row-01.wav\",\"start_seconds\":0}",
+     "source_name": "fleurs-en_us-validation-row-01.wav"
+    }
+   ],
+   "limitations": [
+    "The search is incomplete because its budget was reached or segment adjacency could not be established. Absence of additional matches has not been established.",
+    "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+   ],
+   "row_count": 1,
+   "search_completeness": "TRUNCATED",
+   "truncated": true,
+   "duration_ms": 113
+  }
+ ],
+ "resolved_capability": {
+  "capability_id": "audio.transcript_search",
+  "operation_id": "audio.transcript_search",
+  "template": "audio_transcript_search",
+  "family_ids": [
+   "audio_intelligence"
+  ],
+  "intent_classes": [
+   "retrieve"
+  ],
+  "required_parameters": [],
+  "optional_parameters": [
+   "target"
+  ],
+  "scope_mode": "case_or_target",
+  "source_scoped": false,
+  "time_scoped": false,
+  "execution_mode": "retrieval",
+  "extension_mode": "knowledge_retrieval",
+  "implementation_key": "derivedTextEvidence",
+  "specialist_id": "Audio_Speech_Analyst",
+  "model_role_ids": null,
+  "result_contract": "forensics.enterprise-response/v1",
+  "result_kind": "document",
+  "presentation_type": "cited_evidence_results",
+  "citation_required": true,
+  "criticality_tier": "B",
+  "certification_status": "bounded_uncertified",
+  "exposure_status": "limited",
+  "suggestion_eligible": false,
+  "limitations": [
+   "ASR and Roman-Urdu text are observations, not verbatim fact; identifiers and unclear speech require source playback review."
+  ],
+  "availability": {
+   "implemented": true,
+   "runtime_available": true,
+   "data_available": true,
+   "authorized": true,
+   "model_available": true,
+   "maturity": "operational",
+   "queryable": true,
+   "executable": true,
+   "reason_codes": null
+  }
+ },
+ "route": [
+  "derived_text_lexical"
+ ],
+ "policy": "Exact analytics are computed from parameterized SQL templates. KB content is used only for evidence, source previews, and contextual grounding.",
+ "planner": {
+  "capability_id": "audio.transcript_search",
+  "confidence": 0.72,
+  "date_from": "",
+  "date_to": "",
+  "exact_identifier_authority": null,
+  "execution_plan_id": "34a3c44a-ec80-4aac-ba14-56a3915ed3a8:plan",
+  "extracted_target": "",
+  "field_hints": [],
+  "hybrid_planner": null,
+  "language_assistance": "deterministic_fast_path",
+  "phrase_literal_authority": null,
+  "policy_decisions": [
+   "workspace_scope_bound",
+   "known_capability_only",
+   "read_only_executor",
+   "citations_capability_owned"
+  ],
+  "query_plan": {
+   "interpreted_intent": "records",
+   "selected_template": "audio_transcript_search",
+   "target_identifiers": [],
+   "date_bounds": {},
+   "applied_filters": {
+    "field_hints": [],
+    "target_type": ""
+   },
+   "confidence": 0.72,
+   "coverage_check": {
+    "total_indexed_records": 0,
+    "record_families_present": null,
+    "nearest_activity": {},
+    "valid_target_examples": null
+   },
+   "execution_strategy": "sql_deterministic"
+  },
+  "query_understanding_version": "forensics.query-understanding/v1",
+  "reason": "rule-based runtime query planner",
+  "retrieval_strategy": {
+   "contract_version": "forensics.document-retrieval-strategy/v1",
+   "derived_text": true,
+   "exact_is_semantic": false,
+   "kb_retrieval": false,
+   "retrieval_mode": "NONE",
+   "semantic_frame": "forensics.semantic-frame/v1"
+  },
+  "semantic_operation_planner": null,
+  "source": "runtime_query",
+  "target_type": "",
+  "targets": []
+ },
+ "query_plan": {
+  "interpreted_intent": "records",
+  "selected_template": "audio_transcript_search",
+  "target_identifiers": [],
+  "date_bounds": {},
+  "applied_filters": {
+   "field_hints": [],
+   "target_type": ""
+  },
+  "confidence": 0.72,
+  "coverage_check": {
+   "total_indexed_records": 0,
+   "record_families_present": null,
+   "nearest_activity": {},
+   "valid_target_examples": null
+  },
+  "execution_strategy": "sql_deterministic"
+ },
+ "capability": {
+  "status": "supported_by_selected_route",
+  "requested_families": [],
+  "required_operations": [],
+  "missing_capabilities": [],
+  "explanation": "The selected deterministic or evidence route may run; collection coverage is reported separately.",
+  "suggested_queries": []
+ },
+ "coverage": {
+  "total_indexed_records": 0,
+  "record_families_present": null,
+  "nearest_activity": {},
+  "valid_target_examples": null
+ },
+ "evidence": {
+  "candidate_pages": 1,
+  "candidate_scope": "completed_current_version_observations",
+  "candidates_inspected": 18,
+  "exact_term": "",
+  "maximum_segment_window": 4,
+  "mode": "governed_derived_text_source",
+  "query_mode": "source",
+  "result_state": "RESULTS_TRUNCATED",
+  "results": [
+   {
+    "citation": "nexusai://evidence/7b1b6259-5866-4f03-a0d9-624f9c377a73/artifacts/3e373b21-31df-59c4-83cf-78f12b811227",
+    "content": "Now widely available throughout the archipelago, Japanese cuisines features an array of simply",
+    "id": "3e373b21-31df-59c4-83cf-78f12b811227",
+    "metadata": {
+     "artifact_id": "3e373b21-31df-59c4-83cf-78f12b811227",
+     "artifact_type": "forensics.audio-timestamp-segment/v1",
+     "chunk_id": "3e373b21-31df-59c4-83cf-78f12b811227",
+     "chunk_sha256": "df4cb5cda8a4f7d56354f6c60427f55b4f816a13319abd3218d6c564068d83b7",
+     "citation_locator": {
+      "end_seconds": 5.5600000000000005,
+      "source_file": "fleurs-en_us-validation-row-01.wav",
+      "start_seconds": 0
+     },
+     "collection_id": "nexusai-multimodal-product-acceptance",
+     "detected_type": "audio",
+     "end_seconds": 5.5600000000000005,
+     "evidence_id": "7b1b6259-5866-4f03-a0d9-624f9c377a73",
+     "match_semantic": "source",
+     "modality": "audio",
+     "observation_id": "3e373b21-31df-59c4-83cf-78f12b811227",
+     "parent_artifact_id": "",
+     "raw_text": "Now widely available throughout the archipelago, Japanese cuisines features an array of simply",
+     "run_id": "8904af64-d742-4878-8b3e-65fa58bb18bc",
+     "source_entry": "98ad71de-1ed6-40d9-a026-a21fd6b6ff76/fleurs-en_us-validation-row-01.wav",
+     "source_family": "audio_transcript",
+     "source_file": "fleurs-en_us-validation-row-01.wav",
+     "source_locator": "{\"end_seconds\":5.5600000000000005,\"source_file\":\"fleurs-en_us-validation-row-01.wav\",\"start_seconds\":0}",
+     "start_seconds": 0,
+     "tenant_id": "default",
+     "text_representation": "raw",
+     "version_id": "9ee016fc-485c-4ffc-ae7e-5e1289ebecce"
+    },
+    "preview": "Now widely available throughout the archipelago, Japanese cuisines features an array of simply",
+    "score": 2
+   }
+  ],
+  "retrieval_mode": "NONE",
+  "retrieval_strategy": {
+   "contract_version": "forensics.document-retrieval-strategy/v1",
+   "derived_text": true,
+   "exact_is_semantic": false,
+   "kb_retrieval": false,
+   "retrieval_mode": "NONE",
+   "semantic_frame": "forensics.semantic-frame/v1"
+  },
+  "row_count": 1,
+  "search_completeness": "TRUNCATED"
+ },
+ "answer": {
+  "evidence_count": 1,
+  "evidence_limitation": "The search is incomplete because its budget was reached or segment adjacency could not be established. Absence of additional matches has not been established.",
+  "evidence_status": "search_incomplete",
+  "evidence_summary": "Retrieved Knowledge Base evidence using governed_derived_text_source",
+  "guardrail": "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations.",
+  "search_completeness": "TRUNCATED",
+  "transcript_state": "RESULTS_TRUNCATED",
+  "transcript_text": "Now widely available throughout the archipelago, Japanese cuisines features an array of simply"
+ },
+ "enterprise": {
+  "clarification": "",
+  "contribution_lineage": null,
+  "conversation_context": {
+   "analysis_id": "",
+   "audit_id": "ctx-1789713031223443692",
+   "citation_handles": [
+    {
+     "handle_id": "citation-C1",
+     "kind": "citation",
+     "evidence_id": "7b1b6259-5866-4f03-a0d9-624f9c377a73",
+     "evidence_version_id": "9ee016fc-485c-4ffc-ae7e-5e1289ebecce",
+     "citation_id": "C1"
+    }
+   ],
+   "collection_id": "nexusai-multimodal-product-acceptance",
+   "contract_version": "forensics.follow-up-context/v1",
+   "conversation_id": "",
+   "created_at": "2026-09-18T06:30:31Z",
+   "current_question": "Search the audio transcripts for Japanese cuisine",
+   "date_from": "",
+   "date_to": "",
+   "direction": "",
+   "entity_handles": [],
+   "evidence_id": "",
+   "evidence_version_id": "",
+   "expires_at": "2026-09-18T07:00:31Z",
+   "fact_handles": [
+    {
+     "handle_id": "fact-F1",
+     "kind": "fact",
+     "fact_id": "F1"
+    },
+    {
+     "handle_id": "fact-F2",
+     "kind": "fact",
+     "fact_id": "F2"
+    },
+    {
+     "handle_id": "fact-F3",
+     "kind": "fact",
+     "fact_id": "F3"
+    },
+    {
+     "handle_id": "fact-F4",
+     "kind": "fact",
+     "fact_id": "F4"
+    },
+    {
+     "handle_id": "fact-F5",
+     "kind": "fact",
+     "fact_id": "F5"
+    },
+    {
+     "handle_id": "fact-F6",
+     "kind": "fact",
+     "fact_id": "F6"
+    },
+    {
+     "handle_id": "fact-F7",
+     "kind": "fact",
+     "fact_id": "F7"
+    }
+   ],
+   "inherited_fields": null,
+   "issued_fields": null,
+   "mutation": null,
+   "operation_id": "audio.transcript_search",
+   "result_handles": [
+    {
+     "handle_id": "result-1",
+     "kind": "result",
+     "value": "fleurs-en_us-validation-row-01.wav",
+     "evidence_id": "7b1b6259-5866-4f03-a0d9-624f9c377a73",
+     "evidence_version_id": "9ee016fc-485c-4ffc-ae7e-5e1289ebecce",
+     "citation_id": "nexusai://evidence/7b1b6259-5866-4f03-a0d9-624f9c377a73/artifacts/3e373b21-31df-59c4-83cf-78f12b811227"
+    }
+   ],
+   "source_native": null,
+   "source_set": null,
+   "target": "",
+   "targets": [],
+   "template": "audio_transcript_search",
+   "tenant_id": "default",
+   "turn_id": "",
+   "user_id": "live-eval"
+  },
+  "coverage": {
+   "collection_id": "nexusai-multimodal-product-acceptance",
+   "collection_max_timestamp": "",
+   "collection_min_timestamp": "",
+   "date_from": "",
+   "date_to": "",
+   "direction": "",
+   "nearest_activity": {},
+   "queried_kb": false,
+   "queried_record_sql": false,
+   "record_families_present": null,
+   "route": [
+    "derived_text_lexical"
+   ],
+   "target": "",
+   "template": "audio_transcript_search",
+   "tenant_id": "default",
+   "total_indexed_records": 0,
+   "valid_target_examples": null
+  },
+  "data_grid": {
+   "columns": null,
+   "count": 0,
+   "rows": null
+  },
+  "executive_answer": "The text search is incomplete. Any listed observations are supported matches; absence of further matches has not been established.",
+  "fact_packet": {
+   "contract_version": "forensics.fact-packet/v1",
+   "request_id": "34a3c44a-ec80-4aac-ba14-56a3915ed3a8",
+   "question": "Search the audio transcripts for Japanese cuisine",
+   "language": {
+    "tag": "en",
+    "source": "deterministic_extractor",
+    "confidence": 0.9
+   },
+   "scope": {
+    "tenant_id": "default",
+    "case_id": "nexusai-multimodal-product-acceptance",
+    "collection_id": "nexusai-multimodal-product-acceptance"
+   },
+   "operation_id": "audio.transcript_search",
+   "plan_id": "34a3c44a-ec80-4aac-ba14-56a3915ed3a8:plan",
+   "normalized_parameters": {
+    "date_from": "",
+    "date_to": "",
+    "direction": "",
+    "limit": 20,
+    "retrieval_mode": "NONE",
+    "source_file": "",
+    "source_set": null,
+    "target": "",
+    "targets": []
+   },
+   "execution_mode": "derived_text_lexical",
+   "result_state": "results_present",
+   "facts": [
+    {
+     "fact_id": "F1",
+     "kind": "direct_answer",
+     "text": "The text search is incomplete. Any listed observations are supported matches; absence of further matches has not been established.",
+     "citation_ids": [
+      "C1"
+     ]
+    },
+    {
+     "fact_id": "F2",
+     "kind": "metric",
+     "text": "Template: audio_transcript_search",
+     "value": "audio_transcript_search",
+     "citation_ids": [
+      "C1"
+     ]
+    },
+    {
+     "fact_id": "F3",
+     "kind": "metric",
+     "text": "Route: derived_text_lexical",
+     "value": "derived_text_lexical",
+     "citation_ids": [
+      "C1"
+     ]
+    },
+    {
+     "fact_id": "F4",
+     "kind": "metric",
+     "text": "Planner Confidence: 0.72",
+     "value": 0.72,
+     "citation_ids": [
+      "C1"
+     ]
+    },
+    {
+     "fact_id": "F5",
+     "kind": "metric",
+     "text": "Display Rows: 0",
+     "value": 0,
+     "citation_ids": [
+      "C1"
+     ]
+    },
+    {
+     "fact_id": "F6",
+     "kind": "metric",
+     "text": "Evidence Count: 1",
+     "value": 1,
+     "citation_ids": [
+      "C1"
+     ]
+    },
+    {
+     "fact_id": "F7",
+     "kind": "metric",
+     "text": "Provenance Items: 1",
+     "value": 1,
+     "citation_ids": [
+      "C1"
+     ]
+    }
+   ],
+   "metrics": [
+    {
+     "label": "Template",
+     "source": "planner",
+     "value": "audio_transcript_search"
+    },
+    {
+     "label": "Route",
+     "source": "planner",
+     "value": "derived_text_lexical"
+    },
+    {
+     "label": "Planner Confidence",
+     "source": "planner",
+     "value": 0.72
+    },
+    {
+     "label": "Display Rows",
+     "source": "records_sql",
+     "value": 0
+    },
+    {
+     "label": "Records Row Count",
+     "source": "records_sql",
+     "value": null
+    },
+    {
+     "label": "Evidence Count",
+     "source": "kb_rag",
+     "value": 1
+    },
+    {
+     "label": "Provenance Items",
+     "source": "records_sql+kb_rag",
+     "value": 1
+    }
+   ],
+   "rows": null,
+   "row_set_state": "complete",
+   "relationships": [],
+   "citations": [
+    {
+     "citation_id": "C1",
+     "evidence_id": "7b1b6259-5866-4f03-a0d9-624f9c377a73",
+     "version_id": "9ee016fc-485c-4ffc-ae7e-5e1289ebecce",
+     "source_file": "fleurs-en_us-validation-row-01.wav",
+     "locator": {
+      "end_seconds": 5.5600000000000005,
+      "source_file": "fleurs-en_us-validation-row-01.wav",
+      "start_seconds": 0
+     },
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    }
+   ],
+   "citation_set_state": "complete",
+   "conflicts": [],
+   "limitations": [
+    "The search is incomplete because its budget was reached or segment adjacency could not be established. Absence of additional matches has not been established.",
+    "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+   ],
+   "missingness": [],
+   "quality_warnings": [
+    "The search is incomplete because its budget was reached or segment adjacency could not be established. Absence of additional matches has not been established.",
+    "The search is incomplete because its budget was reached or segment adjacency could not be established. Absence of additional matches has not been established."
+   ],
+   "available_follow_up_capabilities": [
+    {
+     "label": "Audit source files",
+     "query": "which files were ingested?",
+     "reason": "Review traceability and evidence coverage.",
+     "template": "source_file_audit"
+    },
+    {
+     "label": "Check analysis readiness",
+     "query": "is this case ready for analysis?",
+     "reason": "Confirm evidence-processing quality before reporting.",
+     "template": "case_readiness"
+    }
+   ],
+   "presentation_hints": {
+    "direction": "ltr",
+    "language": "en",
+    "presentation_type": "cited_evidence_results",
+    "priority_columns": [],
+    "result_kind": "document"
+   }
+  },
+  "limitations": [
+   "The search is incomplete because its budget was reached or segment adjacency could not be established. Absence of additional matches has not been established.",
+   "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+  ],
+  "metrics": [
+   {
+    "label": "Template",
+    "source": "planner",
+    "value": "audio_transcript_search"
+   },
+   {
+    "label": "Route",
+    "source": "planner",
+    "value": "derived_text_lexical"
+   },
+   {
+    "label": "Planner Confidence",
+    "source": "planner",
+    "value": 0.72
+   },
+   {
+    "label": "Display Rows",
+    "source": "records_sql",
+    "value": 0
+   },
+   {
+    "label": "Records Row Count",
+    "source": "records_sql",
+    "value": null
+   },
+   {
+    "label": "Evidence Count",
+    "source": "kb_rag",
+    "value": 1
+   },
+   {
+    "label": "Provenance Items",
+    "source": "records_sql+kb_rag",
+    "value": 1
+   }
+  ],
+  "narrative": {
+   "contract_version": "forensics.narrative/v1",
+   "locale": "en",
+   "direction": "ltr",
+   "status": "deterministic",
+   "direct_answer": "The text search is incomplete. Any listed observations are supported matches; absence of further matches has not been established.",
+   "key_findings": [
+    {
+     "text": "The text search is incomplete. Any listed observations are supported matches; absence of further matches has not been established.",
+     "claim_type": "direct_answer",
+     "fact_refs": [
+      "F1"
+     ],
+     "citation_refs": [
+      "C1"
+     ]
+    },
+    {
+     "text": "Template: audio_transcript_search",
+     "claim_type": "metric",
+     "fact_refs": [
+      "F2"
+     ],
+     "citation_refs": [
+      "C1"
+     ]
+    },
+    {
+     "text": "Route: derived_text_lexical",
+     "claim_type": "metric",
+     "fact_refs": [
+      "F3"
+     ],
+     "citation_refs": [
+      "C1"
+     ]
+    },
+    {
+     "text": "Planner Confidence: 0.72",
+     "claim_type": "metric",
+     "fact_refs": [
+      "F4"
+     ],
+     "citation_refs": [
+      "C1"
+     ]
+    },
+    {
+     "text": "Display Rows: 0",
+     "claim_type": "metric",
+     "fact_refs": [
+      "F5"
+     ],
+     "citation_refs": [
+      "C1"
+     ]
+    }
+   ],
+   "comparisons": [],
+   "relationship_summary": [],
+   "limitations": [
+    "The search is incomplete because its budget was reached or segment adjacency could not be established. Absence of additional matches has not been established.",
+    "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+   ],
+   "suggested_questions": [
+    "which files were ingested?",
+    "is this case ready for analysis?"
+   ],
+   "fact_refs": [
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6",
+    "F7"
+   ],
+   "citation_refs": [
+    "C1"
+   ],
+   "fallback": true
+  },
+  "operation": {
+   "family_id": "audio_intelligence",
+   "operation_id": "audio.transcript_search",
+   "output_description": "Timestamp-cited transcript observations preserving raw Urdu authority and Roman-Urdu derivation.",
+   "source_access": "derived",
+   "template": "audio_transcript_search"
+  },
+  "plan_validation": {
+   "contract_version": "forensics.plan-validation/v1",
+   "plan_id": "34a3c44a-ec80-4aac-ba14-56a3915ed3a8:plan",
+   "valid": true,
+   "scope_authorized": true,
+   "capabilities_ready": true,
+   "dependencies_valid": true,
+   "budget_accepted": true,
+   "authority_preserved": true,
+   "estimated_cost_class": "direct_operation",
+   "issues": []
+  },
+  "processing_state": "",
+  "proof_state": {
+   "citations": "complete",
+   "rows": "complete"
+  },
+  "provenance": [
+   {
+    "artifact_id": "3e373b21-31df-59c4-83cf-78f12b811227",
+    "artifact_type": "forensics.audio-timestamp-segment/v1",
+    "citation": "nexusai://evidence/7b1b6259-5866-4f03-a0d9-624f9c377a73/artifacts/3e373b21-31df-59c4-83cf-78f12b811227",
+    "citation_locator": {
+     "end_seconds": 5.5600000000000005,
+     "source_file": "fleurs-en_us-validation-row-01.wav",
+     "start_seconds": 0
+    },
+    "collection_id": "nexusai-multimodal-product-acceptance",
+    "evidence_id": "7b1b6259-5866-4f03-a0d9-624f9c377a73",
+    "parent_artifact_id": "",
+    "preview": "Now widely available throughout the archipelago, Japanese cuisines features an array of simply",
+    "run_id": "8904af64-d742-4878-8b3e-65fa58bb18bc",
+    "score": 2,
+    "source": "kb_rag",
+    "source_entry": null,
+    "source_file": "fleurs-en_us-validation-row-01.wav",
+    "source_locator": "{\"end_seconds\":5.5600000000000005,\"source_file\":\"fleurs-en_us-validation-row-01.wav\",\"start_seconds\":0}",
+    "version_id": "9ee016fc-485c-4ffc-ae7e-5e1289ebecce"
+   }
+  ],
+  "recommended_actions": [
+   {
+    "label": "Audit source files",
+    "query": "which files were ingested?",
+    "reason": "Review traceability and evidence coverage.",
+    "template": "source_file_audit"
+   },
+   {
+    "label": "Check analysis readiness",
+    "query": "is this case ready for analysis?",
+    "reason": "Confirm evidence-processing quality before reporting.",
+    "template": "case_readiness"
+   }
+  ],
+  "result_kind": "document",
+  "result_state": "results_present",
+  "row_count": 0,
+  "status": "answered_with_limitations",
+  "summary": "**Deterministic Findings**\n\nThe text search is incomplete. Any listed observations are supported matches; absence of further matches has not been established.\n\n**Limitations**\n\nTranscript text is a review-required model observation. Original Unicode, current evidence version, segment times, and source citation remain authoritative.",
+  "synthesis": {
+   "claims": [
+    {
+     "claim": "Retrieved Knowledge Base evidence using governed_derived_text_source",
+     "source": "Semantic Context (KB)"
+    }
+   ],
+   "policy": "Claims are labeled by source: deterministic SQL facts are computed from records templates; semantic context comes from Knowledge Base retrieval."
+  },
+  "telemetry": {
+   "request_id": "34a3c44a-ec80-4aac-ba14-56a3915ed3a8",
+   "db_latency_ms": 69,
+   "kb_latency_ms": 0,
+   "llm_latency_ms": 0,
+   "total_latency_ms": 113,
+   "planner_confidence": 0.72,
+   "execution_path": "derived_text_lexical"
+  },
+  "tool_results": [
+   {
+    "contract_version": "forensics.tool-result/v1",
+    "invocation_id": "34a3c44a-ec80-4aac-ba14-56a3915ed3a8:plan:step-1",
+    "plan_id": "34a3c44a-ec80-4aac-ba14-56a3915ed3a8:plan",
+    "step_id": "step-1",
+    "operation_id": "audio.transcript_search",
+    "result_contract": "forensics.enterprise-response/v1",
+    "execution_status": "completed",
+    "result_state": "results_present",
+    "authority": "model_observation",
+    "fields": {},
+    "facts": [],
+    "observations": [
+     {
+      "contract_version": "forensics.observation-packet/v1",
+      "packet_id": "34a3c44a-ec80-4aac-ba14-56a3915ed3a8:plan:model-observations",
+      "request_id": "34a3c44a-ec80-4aac-ba14-56a3915ed3a8",
+      "case_id": "nexusai-multimodal-product-acceptance",
+      "collection_id": "nexusai-multimodal-product-acceptance",
+      "operation_id": "audio.transcript_search",
+      "observations": [
+       {
+        "id": "3e373b21-31df-59c4-83cf-78f12b811227",
+        "kind": "forensics.audio-timestamp-segment/v1",
+        "value": {
+         "artifact_id": "3e373b21-31df-59c4-83cf-78f12b811227",
+         "artifact_type": "forensics.audio-timestamp-segment/v1",
+         "chunk_id": "3e373b21-31df-59c4-83cf-78f12b811227",
+         "chunk_sha256": "df4cb5cda8a4f7d56354f6c60427f55b4f816a13319abd3218d6c564068d83b7",
+         "citation_locator": {
+          "end_seconds": 5.5600000000000005,
+          "source_file": "fleurs-en_us-validation-row-01.wav",
+          "start_seconds": 0
+         },
+         "collection_id": "nexusai-multimodal-product-acceptance",
+         "detected_type": "audio",
+         "end_seconds": 5.5600000000000005,
+         "evidence_id": "7b1b6259-5866-4f03-a0d9-624f9c377a73",
+         "match_semantic": "source",
+         "modality": "audio",
+         "observation_id": "3e373b21-31df-59c4-83cf-78f12b811227",
+         "parent_artifact_id": "",
+         "raw_text": "Now widely available throughout the archipelago, Japanese cuisines features an array of simply",
+         "run_id": "8904af64-d742-4878-8b3e-65fa58bb18bc",
+         "source_entry": "98ad71de-1ed6-40d9-a026-a21fd6b6ff76/fleurs-en_us-validation-row-01.wav",
+         "source_family": "audio_transcript",
+         "source_file": "fleurs-en_us-validation-row-01.wav",
+         "source_locator": "{\"end_seconds\":5.5600000000000005,\"source_file\":\"fleurs-en_us-validation-row-01.wav\",\"start_seconds\":0}",
+         "start_seconds": 0,
+         "tenant_id": "default",
+         "text_representation": "raw",
+         "version_id": "9ee016fc-485c-4ffc-ae7e-5e1289ebecce"
+        },
+        "authority": "model_observation",
+        "citation_ids": [
+         "tool-citation-1"
+        ],
+        "limitations": [
+         "Retained model observation only; analyst review is required and the observation does not prove identity, ownership, association, causation, intent, or a continuous real-world event."
+        ]
+       }
+      ],
+      "citations": [
+       {
+        "artifact_id": "3e373b21-31df-59c4-83cf-78f12b811227",
+        "run_id": "8904af64-d742-4878-8b3e-65fa58bb18bc",
+        "id": "tool-citation-1",
+        "tenant_id": "default",
+        "collection_id": "nexusai-multimodal-product-acceptance",
+        "evidence_id": "7b1b6259-5866-4f03-a0d9-624f9c377a73",
+        "version_id": "9ee016fc-485c-4ffc-ae7e-5e1289ebecce",
+        "locator": "{\"end_seconds\":5.5600000000000005,\"source_file\":\"fleurs-en_us-validation-row-01.wav\",\"start_seconds\":0}",
+        "source_name": "fleurs-en_us-validation-row-01.wav"
+       }
+      ],
+      "limitations": [
+       "The packet contains retained model observations for analyst review, not deterministic identity or event facts."
+      ]
+     }
+    ],
+    "rows": [
+     {
+      "citation": "nexusai://evidence/7b1b6259-5866-4f03-a0d9-624f9c377a73/artifacts/3e373b21-31df-59c4-83cf-78f12b811227",
+      "content": "Now widely available throughout the archipelago, Japanese cuisines features an array of simply",
+      "id": "3e373b21-31df-59c4-83cf-78f12b811227",
+      "metadata": {
+       "artifact_id": "3e373b21-31df-59c4-83cf-78f12b811227",
+       "artifact_type": "forensics.audio-timestamp-segment/v1",
+       "chunk_id": "3e373b21-31df-59c4-83cf-78f12b811227",
+       "chunk_sha256": "df4cb5cda8a4f7d56354f6c60427f55b4f816a13319abd3218d6c564068d83b7",
+       "citation_locator": {
+        "end_seconds": 5.5600000000000005,
+        "source_file": "fleurs-en_us-validation-row-01.wav",
+        "start_seconds": 0
+       },
+       "collection_id": "nexusai-multimodal-product-acceptance",
+       "detected_type": "audio",
+       "end_seconds": 5.5600000000000005,
+       "evidence_id": "7b1b6259-5866-4f03-a0d9-624f9c377a73",
+       "match_semantic": "source",
+       "modality": "audio",
+       "observation_id": "3e373b21-31df-59c4-83cf-78f12b811227",
+       "parent_artifact_id": "",
+       "raw_text": "Now widely available throughout the archipelago, Japanese cuisines features an array of simply",
+       "run_id": "8904af64-d742-4878-8b3e-65fa58bb18bc",
+       "source_entry": "98ad71de-1ed6-40d9-a026-a21fd6b6ff76/fleurs-en_us-validation-row-01.wav",
+       "source_family": "audio_transcript",
+       "source_file": "fleurs-en_us-validation-row-01.wav",
+       "source_locator": "{\"end_seconds\":5.5600000000000005,\"source_file\":\"fleurs-en_us-validation-row-01.wav\",\"start_seconds\":0}",
+       "start_seconds": 0,
+       "tenant_id": "default",
+       "text_representation": "raw",
+       "version_id": "9ee016fc-485c-4ffc-ae7e-5e1289ebecce"
+      },
+      "preview": "Now widely available throughout the archipelago, Japanese cuisines features an array of simply",
+      "score": 2
+     }
+    ],
+    "citations": [
+     {
+      "artifact_id": "3e373b21-31df-59c4-83cf-78f12b811227",
+      "run_id": "8904af64-d742-4878-8b3e-65fa58bb18bc",
+      "id": "tool-citation-1",
+      "tenant_id": "default",
+      "collection_id": "nexusai-multimodal-product-acceptance",
+      "evidence_id": "7b1b6259-5866-4f03-a0d9-624f9c377a73",
+      "version_id": "9ee016fc-485c-4ffc-ae7e-5e1289ebecce",
+      "locator": "{\"end_seconds\":5.5600000000000005,\"source_file\":\"fleurs-en_us-validation-row-01.wav\",\"start_seconds\":0}",
+      "source_name": "fleurs-en_us-validation-row-01.wav"
+     }
+    ],
+    "limitations": [
+     "The search is incomplete because its budget was reached or segment adjacency could not be established. Absence of additional matches has not been established.",
+     "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+    ],
+    "row_count": 1,
+    "search_completeness": "TRUNCATED",
+    "truncated": true,
+    "duration_ms": 113
+   }
+  ]
+ },
+ "telemetry": {
+  "request_id": "34a3c44a-ec80-4aac-ba14-56a3915ed3a8",
+  "db_latency_ms": 69,
+  "kb_latency_ms": 0,
+  "llm_latency_ms": 0,
+  "total_latency_ms": 113,
+  "planner_confidence": 0.72,
+  "execution_path": "derived_text_lexical"
+ },
+ "warnings": [
+  "The search is incomplete because its budget was reached or segment adjacency could not be established. Absence of additional matches has not been established.",
+  "The search is incomplete because its budget was reached or segment adjacency could not be established. Absence of additional matches has not been established."
+ ],
+ "generated_at": "2026-09-18T06:30:31.145317863Z"
+}

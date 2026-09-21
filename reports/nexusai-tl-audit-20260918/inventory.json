@@ -1,0 +1,1775 @@
+{
+ "contract": "nexusai.operation-inventory/v0",
+ "generated": "2026-09-18",
+ "summary": {
+  "templates": 79,
+  "platform_operations": 104,
+  "p0_status": {
+   "MISROUTED_OR_WRONG": 14,
+   "INCOMPLETE": 3,
+   "NOT_EXERCISED": 80,
+   "CLARIFY_ONLY": 2,
+   "PASSED_BASELINE_UNCERTIFIED": 5
+  },
+  "declared_template_certified": 5,
+  "declared_operation_CERTIFIED": 52,
+  "certification_label_conflicts": [
+   "anpr_camera_activity",
+   "anpr_camera_sequence",
+   "anpr_co_travel",
+   "anpr_plate_variants",
+   "anpr_route_timing",
+   "anpr_sightings",
+   "anpr_timeline",
+   "call_type_breakdown",
+   "device_identity_changes",
+   "duration_extremes",
+   "entity_timeline",
+   "geospatial_movement",
+   "service_usage",
+   "tower_activity",
+   "ipdr_concurrent_sessions",
+   "ipdr_domain_summary",
+   "ipdr_endpoint_summary",
+   "ipdr_protocol_breakdown",
+   "ipdr_session_volume",
+   "ipdr_subscriber_sessions",
+   "ipdr_timeline",
+   "subscriber_conflict_audit",
+   "subscriber_device_links",
+   "subscriber_identity_lookup",
+   "subscriber_reuse_candidates",
+   "subscriber_status_summary",
+   "subscriber_validity_timeline",
+   "tower_alias_conflicts",
+   "tower_cdr_join",
+   "tower_coordinate_audit",
+   "tower_reference_timeline",
+   "tower_site_lookup",
+   "tower_status_summary"
+  ],
+  "not_yet_inventoried": [
+   "ingestion adapters / format decoders (ingestion/forensic_records/worker.py, media_metadata_*.go)",
+   "UI controls that trigger backend operations (core/http/react-ui)"
+  ]
+ },
+ "items": [
+  {
+   "kind": "template",
+   "name": "access_failed_events",
+   "family": "access_security_logs",
+   "route": "records",
+   "operation_id": "access.failed_events",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [
+    {
+     "id": "DOC-05",
+     "verdict": "WRONG",
+     "question": "What remote access setup does the HP guide describe?"
+    }
+   ],
+   "p0_status": "MISROUTED_OR_WRONG",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "anpr_camera_activity",
+   "family": "anpr_vehicles",
+   "route": "records",
+   "operation_id": "anpr.camera_activity",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [
+    {
+     "id": "ANPR-05",
+     "verdict": "PARTIAL",
+     "question": "How many distinct license plates were captured?"
+    }
+   ],
+   "p0_status": "INCOMPLETE",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "anpr_camera_sequence",
+   "family": "anpr_vehicles",
+   "route": "records",
+   "operation_id": "anpr.camera_sequence",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "anpr_co_travel",
+   "family": "anpr_vehicles",
+   "route": "records",
+   "operation_id": "anpr.co_travel",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "anpr_plate_variants",
+   "family": "anpr_vehicles",
+   "route": "records",
+   "operation_id": "anpr.plate_variants",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "anpr_route_timing",
+   "family": "anpr_vehicles",
+   "route": "records",
+   "operation_id": "anpr.route_timing",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "anpr_sightings",
+   "family": "anpr_vehicles",
+   "route": "records",
+   "operation_id": "anpr.sightings",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [
+    {
+     "id": "ANPR-02",
+     "verdict": "WRONG",
+     "question": "How many times was plate LHR-2026 seen?"
+    },
+    {
+     "id": "ANPR-04",
+     "verdict": "WRONG",
+     "question": "Which camera recorded the most sightings?"
+    },
+    {
+     "id": "ANPR-06",
+     "verdict": "WRONG",
+     "question": "Which vehicle was seen most often?"
+    },
+    {
+     "id": "NEG-02",
+     "verdict": "CORRECT",
+     "question": "Where was plate ZZZ-0000 seen?"
+    }
+   ],
+   "p0_status": "MISROUTED_OR_WRONG",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "anpr_timeline",
+   "family": "anpr_vehicles",
+   "route": "records",
+   "operation_id": "anpr.timeline",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "video_anpr_grouped_timeline",
+   "family": "anpr_vehicles",
+   "route": "records",
+   "operation_id": "video.anpr_grouped_timeline",
+   "required_inputs": [
+    "target",
+    "evidence_id"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [
+    {
+     "id": "VID-01",
+     "verdict": "SAFE_FAIL",
+     "question": "What license plates appear in the videos?"
+    }
+   ],
+   "p0_status": "CLARIFY_ONLY",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "audio_metadata",
+   "family": "audio_intelligence",
+   "route": "records",
+   "operation_id": "audio.metadata",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "audio_transcript_search",
+   "family": "audio_intelligence",
+   "route": "derived",
+   "operation_id": "audio.transcript_search",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [
+    {
+     "id": "AUD-01",
+     "verdict": "CORRECT",
+     "question": "Search the audio transcripts for Japanese cuisine"
+    },
+    {
+     "id": "AUD-02",
+     "verdict": "WRONG",
+     "question": "Which recording mentions coconut sugar and at what time?"
+    },
+    {
+     "id": "AUD-03",
+     "verdict": "WRONG",
+     "question": "Is the number 03001234567 mentioned in any audio?"
+    }
+   ],
+   "p0_status": "MISROUTED_OR_WRONG",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "activity_by_day",
+   "family": "case_cross_family",
+   "route": "records",
+   "operation_id": "forensics.activity_by_day",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "engineering_only",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "anomaly_summary",
+   "family": "case_cross_family",
+   "route": "records",
+   "operation_id": "forensics.anomaly_summary",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "engineering_only",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "canonical_records",
+   "family": "case_cross_family",
+   "route": "records",
+   "operation_id": "forensics.canonical_records",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [
+    {
+     "id": "CDR-01",
+     "verdict": "WRONG",
+     "question": "How many CDR records do we have in this case?"
+    },
+    {
+     "id": "CDR-03",
+     "verdict": "WRONG",
+     "question": "count the cdrs"
+    },
+    {
+     "id": "CDR-11",
+     "verdict": "WRONG",
+     "question": "How many calls did 923001110001 make?"
+    },
+    {
+     "id": "CDR-13",
+     "verdict": "CORRECT",
+     "question": "How many incoming versus outgoing calls are there?"
+    },
+    {
+     "id": "CDR-14",
+     "verdict": "WRONG",
+     "question": "How many call records are from August 2026?"
+    },
+    {
+     "id": "CDR-16",
+     "verdict": "WRONG",
+     "question": "How many CDR records came from each source file?"
+    },
+    {
+     "id": "IPDR-01",
+     "verdict": "CORRECT",
+     "question": "How many IPDR sessions are there?"
+    },
+    {
+     "id": "ANPR-01",
+     "verdict": "CORRECT",
+     "question": "How many ANPR sightings are there in total?"
+    },
+    {
+     "id": "ACC-01",
+     "verdict": "CORRECT",
+     "question": "How many access log entries do we have?"
+    },
+    {
+     "id": "TWR-02",
+     "verdict": "WRONG",
+     "question": "Where is tower PK-LHR-SYN-001 located?"
+    },
+    {
+     "id": "TXN-02",
+     "verdict": "WRONG",
+     "question": "What was the largest transaction?"
+    },
+    {
+     "id": "TXN-03",
+     "verdict": "PARTIAL",
+     "question": "Which account has the most transactions?"
+    },
+    {
+     "id": "CASE-01",
+     "verdict": "WRONG",
+     "question": "How many records do we have for each record type?"
+    },
+    {
+     "id": "NEG-01",
+     "verdict": "WRONG",
+     "question": "How many calls did 03999999999 make?"
+    },
+    {
+     "id": "NEG-04",
+     "verdict": "WRONG",
+     "question": "How many emails are in this case?"
+    },
+    {
+     "id": "IMG-04",
+     "verdict": "WRONG",
+     "question": "How many images are in this case?"
+    }
+   ],
+   "p0_status": "MISROUTED_OR_WRONG",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "case_readiness",
+   "family": "case_cross_family",
+   "route": "records",
+   "operation_id": "forensics.case_readiness",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "co_travel_or_co_presence",
+   "family": "case_cross_family",
+   "route": "records",
+   "operation_id": "forensics.co_travel_or_co_presence",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "engineering_only",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "collection_overview",
+   "family": "case_cross_family",
+   "route": "records",
+   "operation_id": "forensics.collection_overview",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [
+    {
+     "id": "ACC-02",
+     "verdict": "WRONG",
+     "question": "Show the breakdown of HTTP status codes in the access logs"
+    },
+    {
+     "id": "CASE-02",
+     "verdict": "PARTIAL",
+     "question": "Give me an overview of this case"
+    }
+   ],
+   "p0_status": "MISROUTED_OR_WRONG",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "court_ready_source_summary",
+   "family": "case_cross_family",
+   "route": "records",
+   "operation_id": "forensics.court_ready_source_summary",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "engineering_only",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "cross_dataset_entity_summary",
+   "family": "case_cross_family",
+   "route": "records",
+   "operation_id": "forensics.cross_dataset_entity_summary",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "engineering_only",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "cross_family_correlation",
+   "family": "case_cross_family",
+   "route": "records",
+   "operation_id": "forensics.cross_family_correlation",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [
+    {
+     "id": "ANPR-03",
+     "verdict": "CORRECT",
+     "question": "When was LHR-2026 first and last seen?"
+    },
+    {
+     "id": "IMG-02",
+     "verdict": "WRONG",
+     "question": "Which image contains the text REF-2026-02?"
+    }
+   ],
+   "p0_status": "MISROUTED_OR_WRONG",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "data_quality",
+   "family": "case_cross_family",
+   "route": "records",
+   "operation_id": "forensics.data_quality",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [
+    {
+     "id": "ACC-04",
+     "verdict": "WRONG",
+     "question": "How many requests failed with a server error (status 500)?"
+    }
+   ],
+   "p0_status": "MISROUTED_OR_WRONG",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "duplicate_upload_audit",
+   "family": "case_cross_family",
+   "route": "records",
+   "operation_id": "forensics.duplicate_upload_audit",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "engineering_only",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "entity_activity",
+   "family": "case_cross_family",
+   "route": "records",
+   "operation_id": "forensics.entity_activity",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [
+    {
+     "id": "ACC-03",
+     "verdict": "WRONG",
+     "question": "Which IP address made the most requests?"
+    }
+   ],
+   "p0_status": "MISROUTED_OR_WRONG",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "evidence_package_summary",
+   "family": "case_cross_family",
+   "route": "hybrid",
+   "operation_id": "forensics.evidence_package_summary",
+   "required_inputs": [],
+   "declared_certification": "certified",
+   "declared_exposure": "queryable",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "executive_case_brief",
+   "family": "case_cross_family",
+   "route": "hybrid",
+   "operation_id": "forensics.executive_case_brief",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "first_seen_last_seen",
+   "family": "case_cross_family",
+   "route": "records",
+   "operation_id": "forensics.first_seen_last_seen",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "engineering_only",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "limitations_and_data_quality",
+   "family": "case_cross_family",
+   "route": "records",
+   "operation_id": "forensics.limitations_and_data_quality",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "engineering_only",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "relationship_network",
+   "family": "case_cross_family",
+   "route": "records",
+   "operation_id": "forensics.relationship_network",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "schema_profile",
+   "family": "case_cross_family",
+   "route": "records",
+   "operation_id": "forensics.schema_profile",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "engineering_only",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "source_file_audit",
+   "family": "case_cross_family",
+   "route": "records",
+   "operation_id": "forensics.source_file_audit",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "engineering_only",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "source_records",
+   "family": "case_cross_family",
+   "route": "records",
+   "operation_id": "forensics.source_records",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "suspicious_patterns",
+   "family": "case_cross_family",
+   "route": "records",
+   "operation_id": "forensics.suspicious_patterns",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "engineering_only",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "activity_by_hour",
+   "family": "communications_cdr",
+   "route": "records",
+   "operation_id": "forensics.activity_by_hour",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "call_type_breakdown",
+   "family": "communications_cdr",
+   "route": "records",
+   "operation_id": "cdr.call_type_breakdown",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [
+    {
+     "id": "CDR-02",
+     "verdict": "WRONG",
+     "question": "What's the total number of call records?"
+    },
+    {
+     "id": "CDR-04",
+     "verdict": "PARTIAL",
+     "question": "Show the call type breakdown"
+    },
+    {
+     "id": "CDR-05",
+     "verdict": "PARTIAL",
+     "question": "How many calls of each type are there?"
+    }
+   ],
+   "p0_status": "MISROUTED_OR_WRONG",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "device_identity_changes",
+   "family": "communications_cdr",
+   "route": "records",
+   "operation_id": "cdr.device_identity_changes",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "duration_extremes",
+   "family": "communications_cdr",
+   "route": "records",
+   "operation_id": "cdr.duration_extremes",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "entity_timeline",
+   "family": "communications_cdr",
+   "route": "records",
+   "operation_id": "cdr.timeline",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "frequent_contacts",
+   "family": "communications_cdr",
+   "route": "records",
+   "operation_id": "cdr.frequent_contacts",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "certified",
+   "declared_exposure": "queryable",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [
+    {
+     "id": "CDR-06",
+     "verdict": "SAFE_FAIL",
+     "question": "Which phone number made the most calls?"
+    },
+    {
+     "id": "CDR-07",
+     "verdict": "SAFE_FAIL",
+     "question": "Who talked to the most different people?"
+    },
+    {
+     "id": "CDR-08",
+     "verdict": "SAFE_FAIL",
+     "question": "How many unique phone numbers appear as callers in the CDRs?"
+    },
+    {
+     "id": "CDR-10",
+     "verdict": "CORRECT",
+     "question": "Who did 923001110001 contact most frequently?"
+    }
+   ],
+   "p0_status": "PASSED_BASELINE_UNCERTIFIED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "geospatial_movement",
+   "family": "communications_cdr",
+   "route": "records",
+   "operation_id": "cdr.geospatial_movement",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "imei_imsi_usage",
+   "family": "communications_cdr",
+   "route": "records",
+   "operation_id": "forensics.imei_imsi_usage",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "longest_call",
+   "family": "communications_cdr",
+   "route": "records",
+   "operation_id": "forensics.longest_call",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [
+    {
+     "id": "CDR-15",
+     "verdict": "WRONG",
+     "question": "What was the longest call?"
+    }
+   ],
+   "p0_status": "MISROUTED_OR_WRONG",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "multi_cdr_comparison",
+   "family": "communications_cdr",
+   "route": "records",
+   "operation_id": "cdr.multi_source_comparison",
+   "required_inputs": [
+    "target",
+    "source_set"
+   ],
+   "declared_certification": "certified",
+   "declared_exposure": "queryable",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "night_activity",
+   "family": "communications_cdr",
+   "route": "records",
+   "operation_id": "forensics.night_activity",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "repeated_location_visits",
+   "family": "communications_cdr",
+   "route": "records",
+   "operation_id": "forensics.repeated_location_visits",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "service_usage",
+   "family": "communications_cdr",
+   "route": "records",
+   "operation_id": "cdr.service_usage",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "shortest_call",
+   "family": "communications_cdr",
+   "route": "records",
+   "operation_id": "forensics.shortest_call",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "subscriber_profile",
+   "family": "communications_cdr",
+   "route": "records",
+   "operation_id": "forensics.subscriber_profile",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [
+    {
+     "id": "IPDR-05",
+     "verdict": "WRONG",
+     "question": "Which subscriber has the most internet sessions?"
+    }
+   ],
+   "p0_status": "MISROUTED_OR_WRONG",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "temporal_activity",
+   "family": "communications_cdr",
+   "route": "records",
+   "operation_id": "cdr.temporal_activity",
+   "required_inputs": [],
+   "declared_certification": "certified",
+   "declared_exposure": "queryable",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "top_locations",
+   "family": "communications_cdr",
+   "route": "records",
+   "operation_id": "forensics.top_locations",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [
+    {
+     "id": "IPDR-02",
+     "verdict": "WRONG",
+     "question": "Which domain was accessed most often?"
+    },
+    {
+     "id": "TWR-01",
+     "verdict": "WRONG",
+     "question": "How many cell towers are in the case?"
+    },
+    {
+     "id": "X-01",
+     "verdict": "WRONG",
+     "question": "Where does 03001234567 appear across all evidence?"
+    }
+   ],
+   "p0_status": "MISROUTED_OR_WRONG",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "tower_activity",
+   "family": "communications_cdr",
+   "route": "records",
+   "operation_id": "cdr.tower_activity",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [
+    {
+     "id": "CDR-12",
+     "verdict": "SAFE_FAIL",
+     "question": "Which cell site handled the most calls?"
+    }
+   ],
+   "p0_status": "CLARIFY_ONLY",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "document_metadata",
+   "family": "document_intelligence",
+   "route": "records",
+   "operation_id": "document.metadata",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "document_search",
+   "family": "document_intelligence",
+   "route": "derived",
+   "operation_id": "document.search",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [
+    {
+     "id": "DOC-01",
+     "verdict": "CORRECT",
+     "question": "Search the case documents for mentions of plate MN1367"
+    },
+    {
+     "id": "DOC-02",
+     "verdict": "CORRECT",
+     "question": "Which document mentions contact number 03001234567?"
+    },
+    {
+     "id": "DOC-03",
+     "verdict": "CORRECT",
+     "question": "Find the exact phrase \"Scanned-only PDF OCR\" in the documents"
+    },
+    {
+     "id": "DOC-06",
+     "verdict": "CORRECT",
+     "question": "Search documents for the phrase \"quantum encryption key\""
+    }
+   ],
+   "p0_status": "PASSED_BASELINE_UNCERTIFIED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "face_candidate_observations",
+   "family": "face_intelligence",
+   "route": "records",
+   "operation_id": "face.candidate_observations",
+   "required_inputs": [
+    "evidence_id"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "financial_transaction_summary",
+   "family": "financial_transactions",
+   "route": "records",
+   "operation_id": "financial.transaction_summary",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [
+    {
+     "id": "TXN-01",
+     "verdict": "PARTIAL",
+     "question": "What is the total transaction amount?"
+    }
+   ],
+   "p0_status": "INCOMPLETE",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "generic_filter_records",
+   "family": "generic_tabular",
+   "route": "records",
+   "operation_id": "generic.filter_records",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "image_metadata",
+   "family": "image_intelligence",
+   "route": "records",
+   "operation_id": "image.metadata",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "image_ocr_search",
+   "family": "image_intelligence",
+   "route": "derived",
+   "operation_id": "image.ocr_search",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [
+    {
+     "id": "IMG-01",
+     "verdict": "CORRECT",
+     "question": "Find OCR text mentioning Investigation Workspace"
+    }
+   ],
+   "p0_status": "PASSED_BASELINE_UNCERTIFIED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "evidence",
+   "family": "knowledge_evidence",
+   "route": "kb",
+   "operation_id": "forensics.evidence",
+   "required_inputs": [],
+   "declared_certification": "certified",
+   "declared_exposure": "queryable",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [
+    {
+     "id": "DOC-04",
+     "verdict": "WRONG",
+     "question": "What does the case notes document say about plate ABC-123?"
+    }
+   ],
+   "p0_status": "MISROUTED_OR_WRONG",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "ipdr_concurrent_sessions",
+   "family": "network_ipdr",
+   "route": "records",
+   "operation_id": "ipdr.concurrent_sessions",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "ipdr_domain_summary",
+   "family": "network_ipdr",
+   "route": "records",
+   "operation_id": "ipdr.domain_summary",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "ipdr_endpoint_summary",
+   "family": "network_ipdr",
+   "route": "records",
+   "operation_id": "ipdr.endpoint_summary",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "ipdr_protocol_breakdown",
+   "family": "network_ipdr",
+   "route": "records",
+   "operation_id": "ipdr.protocol_breakdown",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [
+    {
+     "id": "IPDR-03",
+     "verdict": "CORRECT",
+     "question": "Break down IPDR sessions by protocol"
+    }
+   ],
+   "p0_status": "PASSED_BASELINE_UNCERTIFIED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "ipdr_session_volume",
+   "family": "network_ipdr",
+   "route": "records",
+   "operation_id": "ipdr.session_volume",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [
+    {
+     "id": "IPDR-04",
+     "verdict": "PARTIAL",
+     "question": "What is the total number of bytes transferred in IPDR sessions?"
+    }
+   ],
+   "p0_status": "INCOMPLETE",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "ipdr_subscriber_sessions",
+   "family": "network_ipdr",
+   "route": "records",
+   "operation_id": "ipdr.subscriber_sessions",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "ipdr_timeline",
+   "family": "network_ipdr",
+   "route": "records",
+   "operation_id": "ipdr.timeline",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "subscriber_conflict_audit",
+   "family": "subscriber_identity",
+   "route": "records",
+   "operation_id": "subscriber.conflict_audit",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "subscriber_device_links",
+   "family": "subscriber_identity",
+   "route": "records",
+   "operation_id": "subscriber.device_links",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "subscriber_identity_lookup",
+   "family": "subscriber_identity",
+   "route": "records",
+   "operation_id": "subscriber.identity_lookup",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [
+    {
+     "id": "SUB-03",
+     "verdict": "CORRECT",
+     "question": "Who is the registered subscriber for PK-SUB-SYN-ALPHA?"
+    }
+   ],
+   "p0_status": "PASSED_BASELINE_UNCERTIFIED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "subscriber_reuse_candidates",
+   "family": "subscriber_identity",
+   "route": "records",
+   "operation_id": "subscriber.reuse_candidates",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "subscriber_status_summary",
+   "family": "subscriber_identity",
+   "route": "records",
+   "operation_id": "subscriber.status_summary",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [
+    {
+     "id": "SUB-01",
+     "verdict": "PARTIAL",
+     "question": "How many subscribers are there?"
+    },
+    {
+     "id": "SUB-02",
+     "verdict": "WRONG",
+     "question": "How many subscribers are active?"
+    }
+   ],
+   "p0_status": "MISROUTED_OR_WRONG",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "subscriber_validity_timeline",
+   "family": "subscriber_identity",
+   "route": "records",
+   "operation_id": "subscriber.validity_timeline",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "tower_alias_conflicts",
+   "family": "tower_location",
+   "route": "records",
+   "operation_id": "tower.alias_conflicts",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "tower_cdr_join",
+   "family": "tower_location",
+   "route": "records",
+   "operation_id": "tower.cdr_join",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "tower_coordinate_audit",
+   "family": "tower_location",
+   "route": "records",
+   "operation_id": "tower.coordinate_audit",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "tower_reference_timeline",
+   "family": "tower_location",
+   "route": "records",
+   "operation_id": "tower.reference_timeline",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "tower_site_lookup",
+   "family": "tower_location",
+   "route": "records",
+   "operation_id": "tower.site_lookup",
+   "required_inputs": [
+    "target"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "tower_status_summary",
+   "family": "tower_location",
+   "route": "records",
+   "operation_id": "tower.status_summary",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "video_metadata",
+   "family": "video_intelligence",
+   "route": "records",
+   "operation_id": "video.metadata",
+   "required_inputs": [],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "template",
+   "name": "video_timeline",
+   "family": "video_intelligence",
+   "route": "records",
+   "operation_id": "video.timeline",
+   "required_inputs": [
+    "evidence_id"
+   ],
+   "declared_certification": "bounded_uncertified",
+   "declared_exposure": "limited",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED",
+   "note": "Template was selected for these golden questions; a WRONG verdict can mean the question was misrouted TO this template, not that its SQL is wrong."
+  },
+  {
+   "kind": "platform_operation",
+   "name": "anpr.detect_schema",
+   "family": "anpr_vehicles",
+   "operation_kind": "deterministic",
+   "implementation": "worker.resolve_adapter",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "anpr.normalize_records",
+   "family": "anpr_vehicles",
+   "operation_kind": "deterministic",
+   "implementation": "worker.normalize_anpr_details",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "audio.roman_urdu",
+   "family": "audio_intelligence",
+   "operation_kind": "deterministic",
+   "implementation": "roman_urdu.roman_urdu_payload",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "cdr.detect_schema",
+   "family": "communications_cdr",
+   "operation_kind": "deterministic",
+   "implementation": "worker.resolve_adapter",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "cdr.normalize_records",
+   "family": "communications_cdr",
+   "operation_kind": "deterministic",
+   "implementation": "worker.normalize_cdr_row",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "document.extract",
+   "family": "document_intelligence",
+   "operation_kind": "deterministic",
+   "implementation": "document_pipeline.extract_document",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "face.detect",
+   "family": "face_intelligence",
+   "operation_kind": "deterministic",
+   "implementation": "media_pipeline.LocalAIFaceProcessor",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "face.search_authorized",
+   "family": "face_intelligence",
+   "operation_kind": "retrieval",
+   "implementation": "GET /faces/similar with explicit_case_evidence_scope and enumerated candidate evidence IDs",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "face.similarity",
+   "family": "face_intelligence",
+   "operation_kind": "deterministic",
+   "implementation": "GET /faces/similar",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "generic.data_quality",
+   "family": "generic_tabular",
+   "operation_kind": "deterministic",
+   "implementation": "query.data_quality",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "generic.detect_schema",
+   "family": "generic_tabular",
+   "operation_kind": "deterministic",
+   "implementation": "worker.resolve_adapter",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "generic.normalize_records",
+   "family": "generic_tabular",
+   "operation_kind": "deterministic",
+   "implementation": "worker.normalize_generic_row",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "generic.schema_profile",
+   "family": "generic_tabular",
+   "operation_kind": "deterministic",
+   "implementation": "query.schema_profile",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "image.anpr",
+   "family": "anpr_vehicles",
+   "operation_kind": "deterministic",
+   "implementation": "media_pipeline.FastALPRImageProcessor",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "image.compare",
+   "family": "image_intelligence",
+   "operation_kind": "deterministic",
+   "implementation": "GET /evidence/compare",
+   "platform_operation_maturity": "ENGINEERING_ONLY",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "image.exact_duplicate",
+   "family": "image_intelligence",
+   "operation_kind": "deterministic",
+   "implementation": "image_compare.sha256",
+   "platform_operation_maturity": "ENGINEERING_ONLY",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "image.near_duplicate",
+   "family": "image_intelligence",
+   "operation_kind": "deterministic",
+   "implementation": "image_compare.dhash64",
+   "platform_operation_maturity": "ENGINEERING_ONLY",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "image.visual_similarity",
+   "family": "image_intelligence",
+   "operation_kind": "retrieval",
+   "implementation": "GET /images/similar with explicit_case_evidence_scope and enumerated candidate evidence IDs",
+   "platform_operation_maturity": "LIMITED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "ipdr.detect_schema",
+   "family": "network_ipdr",
+   "operation_kind": "deterministic",
+   "implementation": "worker.resolve_adapter",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "ipdr.normalize_records",
+   "family": "network_ipdr",
+   "operation_kind": "deterministic",
+   "implementation": "worker.normalize_ipdr_details",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "subscriber.detect_schema",
+   "family": "subscriber_identity",
+   "operation_kind": "deterministic",
+   "implementation": "worker.resolve_adapter",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "subscriber.normalize_records",
+   "family": "subscriber_identity",
+   "operation_kind": "deterministic",
+   "implementation": "worker.normalize_subscriber_details",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "tower.detect_schema",
+   "family": "tower_location",
+   "operation_kind": "deterministic",
+   "implementation": "worker.resolve_adapter",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "tower.normalize_records",
+   "family": "tower_location",
+   "operation_kind": "deterministic",
+   "implementation": "worker.normalize_tower_details",
+   "platform_operation_maturity": "CERTIFIED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  },
+  {
+   "kind": "platform_operation",
+   "name": "video.face_observations",
+   "family": "video_intelligence",
+   "operation_kind": "retrieval",
+   "implementation": "unavailable.model_gate",
+   "platform_operation_maturity": "PLANNED",
+   "baseline_observations": [],
+   "p0_status": "NOT_EXERCISED"
+  }
+ ]
+}

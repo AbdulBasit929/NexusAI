@@ -1,0 +1,4281 @@
+{
+  "schema_version": "nexusai.nxb21d-79-operation-execution-verification-map/v1",
+  "status": "ALL_79_ACCOUNTED_NOT_CERTIFIED",
+  "count": 79,
+  "rows": [
+    {
+      "operation_id": "forensics.collection_overview",
+      "family": "case_cross_family",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "CERTIFY_IN_F",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "cdr.frequent_contacts",
+      "family": "communications_cdr",
+      "tier": "A",
+      "query_capability_ids": [
+        "cdr.frequent_contacts"
+      ],
+      "analyst_facing_disposition": "ANALYST_FACING_CAPABILITY",
+      "canonical_certification": "PRODUCT_CERTIFIED",
+      "planner_coverage": {
+        "historical_variants": 21,
+        "languages": [
+          "english",
+          "mixed",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "semantic_coverage": "C_REFERENCE",
+      "positive_result_proof": "RECORDED",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "RECORDED",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "RECORDED",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english",
+        "mixed",
+        "roman_urdu",
+        "urdu"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [
+        "cdr.frequent_contacts"
+      ],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 21,
+        "languages": [
+          "english",
+          "mixed",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "executor_proof": "C_REFERENCE",
+      "positive_proof": "RECORDED",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": "Show top 10 contacts for {PHONE}"
+    },
+    {
+      "operation_id": "cdr.call_type_breakdown",
+      "family": "communications_cdr",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "cdr.service_usage",
+      "family": "communications_cdr",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 3,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 3,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "cdr.device_identity_changes",
+      "family": "communications_cdr",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "cdr.multi_source_comparison",
+      "family": "communications_cdr",
+      "tier": "A",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "FIXTURE_CERTIFIED",
+      "planner_coverage": {
+        "historical_variants": 6,
+        "languages": [
+          "english",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "RECORDED",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "RECORDED",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "RECORDED",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english",
+        "roman_urdu",
+        "urdu"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 6,
+        "languages": [
+          "english",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "RECORDED",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "ipdr.endpoint_summary",
+      "family": "network_ipdr",
+      "tier": "B",
+      "query_capability_ids": [
+        "ipdr.endpoint"
+      ],
+      "analyst_facing_disposition": "ANALYST_FACING_CAPABILITY",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "semantic_coverage": "C_REFERENCE",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [
+        "ipdr.endpoint"
+      ],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "executor_proof": "C_REFERENCE",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": "Summarize traffic for {IP}"
+    },
+    {
+      "operation_id": "ipdr.domain_summary",
+      "family": "network_ipdr",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "CERTIFY_IN_F",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "ipdr.protocol_breakdown",
+      "family": "network_ipdr",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "ipdr.session_volume",
+      "family": "network_ipdr",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 3,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 3,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "ipdr.subscriber_sessions",
+      "family": "network_ipdr",
+      "tier": "B",
+      "query_capability_ids": [
+        "ipdr.sessions"
+      ],
+      "analyst_facing_disposition": "ANALYST_FACING_CAPABILITY",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "semantic_coverage": "C_REFERENCE",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [
+        "ipdr.sessions"
+      ],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "executor_proof": "C_REFERENCE",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": "Show subscriber sessions for {PHONE}"
+    },
+    {
+      "operation_id": "ipdr.concurrent_sessions",
+      "family": "network_ipdr",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "ipdr.timeline",
+      "family": "network_ipdr",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "CERTIFY_IN_F",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "cdr.temporal_activity",
+      "family": "communications_cdr",
+      "tier": "A",
+      "query_capability_ids": [
+        "cdr.time_activity"
+      ],
+      "analyst_facing_disposition": "ANALYST_FACING_CAPABILITY",
+      "canonical_certification": "PRODUCT_CERTIFIED",
+      "planner_coverage": {
+        "historical_variants": 9,
+        "languages": [
+          "english",
+          "mixed",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "semantic_coverage": "C_REFERENCE",
+      "positive_result_proof": "RECORDED",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "RECORDED",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "RECORDED",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english",
+        "mixed",
+        "roman_urdu",
+        "urdu"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [
+        "cdr.time_activity"
+      ],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 9,
+        "languages": [
+          "english",
+          "mixed",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "executor_proof": "C_REFERENCE",
+      "positive_proof": "RECORDED",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": "Summarize call activity for {PHONE} from {DATE1} to {DATE2}"
+    },
+    {
+      "operation_id": "forensics.top_locations",
+      "family": "communications_cdr",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "CERTIFY_IN_F",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "cdr.geospatial_movement",
+      "family": "communications_cdr",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "DEFER_DEPTH",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "DEFER_DEPTH",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "anpr.sightings",
+      "family": "anpr_vehicles",
+      "tier": "B",
+      "query_capability_ids": [
+        "image.plate"
+      ],
+      "analyst_facing_disposition": "ANALYST_FACING_CAPABILITY",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "semantic_coverage": "C_REFERENCE",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [
+        "image.plate"
+      ],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "executor_proof": "C_REFERENCE",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": "Find exact plate {PLATE} in this image"
+    },
+    {
+      "operation_id": "anpr.camera_sequence",
+      "family": "anpr_vehicles",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 3,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 3,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "anpr.camera_activity",
+      "family": "anpr_vehicles",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "CERTIFY_IN_F",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "anpr.co_travel",
+      "family": "anpr_vehicles",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "DEFER_DEPTH",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "DEFER_DEPTH",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "anpr.route_timing",
+      "family": "anpr_vehicles",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "anpr.plate_variants",
+      "family": "anpr_vehicles",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "anpr.timeline",
+      "family": "anpr_vehicles",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "CERTIFY_IN_F",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "video.anpr_grouped_timeline",
+      "family": "anpr_vehicles",
+      "tier": "B",
+      "query_capability_ids": [
+        "video.group_plate"
+      ],
+      "analyst_facing_disposition": "ANALYST_FACING_CAPABILITY",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "semantic_coverage": "C_REFERENCE",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [
+        "video.group_plate"
+      ],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "executor_proof": "C_REFERENCE",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": "Show grouped timeline for plate {PLATE} in this video"
+    },
+    {
+      "operation_id": "subscriber.identity_lookup",
+      "family": "subscriber_identity",
+      "tier": "B",
+      "query_capability_ids": [
+        "subscriber.lookup"
+      ],
+      "analyst_facing_disposition": "ANALYST_FACING_CAPABILITY",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 8,
+        "languages": [
+          "english",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "semantic_coverage": "C_REFERENCE",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english",
+        "roman_urdu",
+        "urdu"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [
+        "subscriber.lookup"
+      ],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 8,
+        "languages": [
+          "english",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "executor_proof": "C_REFERENCE",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": "Look up subscriber observations for {PHONE}"
+    },
+    {
+      "operation_id": "subscriber.validity_timeline",
+      "family": "subscriber_identity",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 6,
+        "languages": [
+          "english",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english",
+        "roman_urdu",
+        "urdu"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 6,
+        "languages": [
+          "english",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "subscriber.device_links",
+      "family": "subscriber_identity",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 8,
+        "languages": [
+          "english",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english",
+        "roman_urdu",
+        "urdu"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 8,
+        "languages": [
+          "english",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "subscriber.status_summary",
+      "family": "subscriber_identity",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 10,
+        "languages": [
+          "english",
+          "mixed",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english",
+        "mixed",
+        "roman_urdu",
+        "urdu"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 10,
+        "languages": [
+          "english",
+          "mixed",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "subscriber.conflict_audit",
+      "family": "subscriber_identity",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 6,
+        "languages": [
+          "english",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english",
+        "roman_urdu",
+        "urdu"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 6,
+        "languages": [
+          "english",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "subscriber.reuse_candidates",
+      "family": "subscriber_identity",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 6,
+        "languages": [
+          "english",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english",
+        "roman_urdu",
+        "urdu"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 6,
+        "languages": [
+          "english",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "tower.site_lookup",
+      "family": "tower_location",
+      "tier": "B",
+      "query_capability_ids": [
+        "tower.lookup"
+      ],
+      "analyst_facing_disposition": "ANALYST_FACING_CAPABILITY",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "semantic_coverage": "C_REFERENCE",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [
+        "tower.lookup"
+      ],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "executor_proof": "C_REFERENCE",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": "Look up tower {SITE}"
+    },
+    {
+      "operation_id": "tower.reference_timeline",
+      "family": "tower_location",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "tower.coordinate_audit",
+      "family": "tower_location",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 3,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 3,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "tower.status_summary",
+      "family": "tower_location",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "tower.alias_conflicts",
+      "family": "tower_location",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "tower.cdr_join",
+      "family": "tower_location",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "DEFER_DEPTH",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "DEFER_DEPTH",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "financial.transaction_summary",
+      "family": "financial_transactions",
+      "tier": "B",
+      "query_capability_ids": [
+        "financial.summary"
+      ],
+      "analyst_facing_disposition": "ANALYST_FACING_CAPABILITY",
+      "canonical_certification": "SOURCE_VALIDATED",
+      "planner_coverage": {
+        "historical_variants": 6,
+        "languages": [
+          "english",
+          "mixed",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "semantic_coverage": "C_REFERENCE",
+      "positive_result_proof": "RECORDED",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "RECORDED",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "RECORDED",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english",
+        "mixed",
+        "roman_urdu",
+        "urdu"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [
+        "financial.summary"
+      ],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 6,
+        "languages": [
+          "english",
+          "mixed",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "executor_proof": "C_REFERENCE",
+      "positive_proof": "RECORDED",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": "Summarize transactions for {ACCOUNT}"
+    },
+    {
+      "operation_id": "access.failed_events",
+      "family": "access_security_logs",
+      "tier": "B",
+      "query_capability_ids": [
+        "logs.failures"
+      ],
+      "analyst_facing_disposition": "ANALYST_FACING_CAPABILITY",
+      "canonical_certification": "SOURCE_VALIDATED",
+      "planner_coverage": {
+        "historical_variants": 5,
+        "languages": [
+          "english",
+          "mixed",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "semantic_coverage": "C_REFERENCE",
+      "positive_result_proof": "RECORDED",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "RECORDED",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "RECORDED",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english",
+        "mixed",
+        "roman_urdu",
+        "urdu"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [
+        "logs.failures"
+      ],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 5,
+        "languages": [
+          "english",
+          "mixed",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "executor_proof": "C_REFERENCE",
+      "positive_proof": "RECORDED",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": "Show failed events for {USER}"
+    },
+    {
+      "operation_id": "generic.filter_records",
+      "family": "generic_tabular",
+      "tier": "B",
+      "query_capability_ids": [
+        "generic.filter"
+      ],
+      "analyst_facing_disposition": "ANALYST_FACING_CAPABILITY",
+      "canonical_certification": "SOURCE_VALIDATED",
+      "planner_coverage": {
+        "historical_variants": 4,
+        "languages": [
+          "english",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "semantic_coverage": "C_REFERENCE",
+      "positive_result_proof": "RECORDED",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "RECORDED",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "RECORDED",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english",
+        "roman_urdu",
+        "urdu"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [
+        "generic.filter"
+      ],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 4,
+        "languages": [
+          "english",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "executor_proof": "C_REFERENCE",
+      "positive_proof": "RECORDED",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": "Filter rows where {FIELD} equals {VALUE}"
+    },
+    {
+      "operation_id": "document.metadata",
+      "family": "document_intelligence",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "SOURCE_VALIDATED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "RECORDED",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "RECORDED",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "RECORDED",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "RECORDED",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "document.search",
+      "family": "document_intelligence",
+      "tier": "B",
+      "query_capability_ids": [
+        "document.phrase"
+      ],
+      "analyst_facing_disposition": "ANALYST_FACING_CAPABILITY",
+      "canonical_certification": "SOURCE_VALIDATED",
+      "planner_coverage": {
+        "historical_variants": 3,
+        "languages": [
+          "english",
+          "mixed",
+          "roman_urdu"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "semantic_coverage": "C_REFERENCE",
+      "positive_result_proof": "RECORDED",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "RECORDED",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "RECORDED",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english",
+        "mixed",
+        "roman_urdu"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [
+        "document.phrase"
+      ],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 3,
+        "languages": [
+          "english",
+          "mixed",
+          "roman_urdu"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "executor_proof": "C_REFERENCE",
+      "positive_proof": "RECORDED",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": "Find the exact phrase \"{PHRASE}\" in this document"
+    },
+    {
+      "operation_id": "image.metadata",
+      "family": "image_intelligence",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "SOURCE_VALIDATED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "RECORDED",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "RECORDED",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "RECORDED",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "RECORDED",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "image.ocr_search",
+      "family": "image_intelligence",
+      "tier": "B",
+      "query_capability_ids": [
+        "ocr.phrase"
+      ],
+      "analyst_facing_disposition": "ANALYST_FACING_CAPABILITY",
+      "canonical_certification": "SOURCE_VALIDATED",
+      "planner_coverage": {
+        "historical_variants": 3,
+        "languages": [
+          "english",
+          "mixed",
+          "roman_urdu"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "semantic_coverage": "C_REFERENCE",
+      "positive_result_proof": "RECORDED",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "RECORDED",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "RECORDED",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english",
+        "mixed",
+        "roman_urdu"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [
+        "ocr.phrase"
+      ],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 3,
+        "languages": [
+          "english",
+          "mixed",
+          "roman_urdu"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "executor_proof": "C_REFERENCE",
+      "positive_proof": "RECORDED",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": "Find OCR text containing \"{PHRASE}\""
+    },
+    {
+      "operation_id": "face.candidate_observations",
+      "family": "face_intelligence",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "SOURCE_VALIDATED",
+      "planner_coverage": {
+        "historical_variants": 5,
+        "languages": [
+          "english",
+          "mixed",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "RECORDED",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "RECORDED",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "RECORDED",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english",
+        "mixed",
+        "roman_urdu",
+        "urdu"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 5,
+        "languages": [
+          "english",
+          "mixed",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "RECORDED",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "audio.metadata",
+      "family": "audio_intelligence",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "SOURCE_VALIDATED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "RECORDED",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "RECORDED",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "RECORDED",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "RECORDED",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "audio.transcript_search",
+      "family": "audio_intelligence",
+      "tier": "B",
+      "query_capability_ids": [
+        "transcript.phrase",
+        "roman_urdu.phrase"
+      ],
+      "analyst_facing_disposition": "ANALYST_FACING_CAPABILITY",
+      "canonical_certification": "SOURCE_VALIDATED",
+      "planner_coverage": {
+        "historical_variants": 3,
+        "languages": [
+          "english",
+          "mixed",
+          "roman_urdu"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "semantic_coverage": "C_REFERENCE",
+      "positive_result_proof": "RECORDED",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "RECORDED",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "RECORDED",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english",
+        "mixed",
+        "roman_urdu"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [
+        "transcript.phrase",
+        "roman_urdu.phrase"
+      ],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 3,
+        "languages": [
+          "english",
+          "mixed",
+          "roman_urdu"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "executor_proof": "C_REFERENCE",
+      "positive_proof": "RECORDED",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": "Find where the transcript contains \"{PHRASE}\""
+    },
+    {
+      "operation_id": "video.metadata",
+      "family": "video_intelligence",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "SOURCE_VALIDATED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "RECORDED",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "RECORDED",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "RECORDED",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "RECORDED",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "video.timeline",
+      "family": "video_intelligence",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "SOURCE_VALIDATED",
+      "planner_coverage": {
+        "historical_variants": 3,
+        "languages": [
+          "english",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "RECORDED",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "RECORDED",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "RECORDED",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english",
+        "roman_urdu",
+        "urdu"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 3,
+        "languages": [
+          "english",
+          "roman_urdu",
+          "urdu"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "RECORDED",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.entity_activity",
+      "family": "case_cross_family",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "CERTIFY_IN_F",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.relationship_network",
+      "family": "case_cross_family",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "DEFER_DEPTH",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "DEFER_DEPTH",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.cross_family_correlation",
+      "family": "case_cross_family",
+      "tier": "B",
+      "query_capability_ids": [
+        "cross_family.identifiers"
+      ],
+      "analyst_facing_disposition": "ANALYST_FACING_CAPABILITY",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 3,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "semantic_coverage": "C_REFERENCE",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [
+        "cross_family.identifiers"
+      ],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 3,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "executor_proof": "C_REFERENCE",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": "Correlate {PHONE} across authorized evidence families"
+    },
+    {
+      "operation_id": "cdr.timeline",
+      "family": "communications_cdr",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "CERTIFY_IN_F",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.source_records",
+      "family": "case_cross_family",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "CERTIFY_IN_F",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.canonical_records",
+      "family": "case_cross_family",
+      "tier": "B",
+      "query_capability_ids": [
+        "cdr.identifier_lookup"
+      ],
+      "analyst_facing_disposition": "ANALYST_FACING_CAPABILITY",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "semantic_coverage": "C_REFERENCE",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [
+        "cdr.identifier_lookup"
+      ],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "executor_proof": "C_REFERENCE",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": "Find records for {PHONE}"
+    },
+    {
+      "operation_id": "forensics.schema_profile",
+      "family": "case_cross_family",
+      "tier": "C",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "INTERNAL_ONLY",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "INTERNAL_ONLY",
+      "blockers": [],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.data_quality",
+      "family": "case_cross_family",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "CERTIFY_IN_F",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.evidence",
+      "family": "knowledge_evidence",
+      "tier": "A",
+      "query_capability_ids": [
+        "knowledge.semantic"
+      ],
+      "analyst_facing_disposition": "ANALYST_FACING_CAPABILITY",
+      "canonical_certification": "PRODUCT_CERTIFIED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english",
+          "mixed"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "semantic_coverage": "C_REFERENCE",
+      "positive_result_proof": "RECORDED",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "RECORDED",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "RECORDED",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english",
+        "mixed"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [
+        "knowledge.semantic"
+      ],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english",
+          "mixed"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "executor_proof": "C_REFERENCE",
+      "positive_proof": "RECORDED",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": "Find evidence about {TOPIC}"
+    },
+    {
+      "operation_id": "forensics.shortest_call",
+      "family": "communications_cdr",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "CERTIFY_IN_F",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.longest_call",
+      "family": "communications_cdr",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "cdr.duration_extremes",
+      "family": "communications_cdr",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "CERTIFY_IN_F",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.first_seen_last_seen",
+      "family": "case_cross_family",
+      "tier": "C",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.activity_by_day",
+      "family": "case_cross_family",
+      "tier": "C",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "INTERNAL_ONLY",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "INTERNAL_ONLY",
+      "blockers": [],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.activity_by_hour",
+      "family": "communications_cdr",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.night_activity",
+      "family": "communications_cdr",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.repeated_location_visits",
+      "family": "communications_cdr",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "DEFER_DEPTH",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "DEFER_DEPTH",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.co_travel_or_co_presence",
+      "family": "case_cross_family",
+      "tier": "C",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "INTERNAL_ONLY",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "INTERNAL_ONLY",
+      "blockers": [],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.subscriber_profile",
+      "family": "communications_cdr",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "CERTIFY_IN_F",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.imei_imsi_usage",
+      "family": "communications_cdr",
+      "tier": "B",
+      "query_capability_ids": [
+        "device.observations"
+      ],
+      "analyst_facing_disposition": "ANALYST_FACING_CAPABILITY",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "semantic_coverage": "C_REFERENCE",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [
+        "device.observations"
+      ],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "executor_proof": "C_REFERENCE",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": "Group device observations for {IMEI}"
+    },
+    {
+      "operation_id": "cdr.tower_activity",
+      "family": "communications_cdr",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.suspicious_patterns",
+      "family": "case_cross_family",
+      "tier": "C",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "INTERNAL_ONLY",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "INTERNAL_ONLY",
+      "blockers": [],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.anomaly_summary",
+      "family": "case_cross_family",
+      "tier": "C",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "INTERNAL_ONLY",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "INTERNAL_ONLY",
+      "blockers": [],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.cross_dataset_entity_summary",
+      "family": "case_cross_family",
+      "tier": "C",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "INTERNAL_ONLY",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "INTERNAL_ONLY",
+      "blockers": [],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.source_file_audit",
+      "family": "case_cross_family",
+      "tier": "C",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 3,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 3,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.duplicate_upload_audit",
+      "family": "case_cross_family",
+      "tier": "C",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.case_readiness",
+      "family": "case_cross_family",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 3,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 3,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.evidence_package_summary",
+      "family": "case_cross_family",
+      "tier": "A",
+      "query_capability_ids": [
+        "case.evidence_package"
+      ],
+      "analyst_facing_disposition": "ANALYST_FACING_CAPABILITY",
+      "canonical_certification": "PRODUCT_CERTIFIED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "semantic_coverage": "C_REFERENCE",
+      "positive_result_proof": "RECORDED",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "RECORDED",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "RECORDED",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [
+        "case.evidence_package"
+      ],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": true
+      },
+      "executor_proof": "C_REFERENCE",
+      "positive_proof": "RECORDED",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": "Summarize this investigation evidence package"
+    },
+    {
+      "operation_id": "forensics.executive_case_brief",
+      "family": "case_cross_family",
+      "tier": "B",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "DEFER_DEPTH",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "DEFER_DEPTH",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.court_ready_source_summary",
+      "family": "case_cross_family",
+      "tier": "C",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "INTERNAL_ONLY",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "INTERNAL_ONLY",
+      "blockers": [],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 1,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    },
+    {
+      "operation_id": "forensics.limitations_and_data_quality",
+      "family": "case_cross_family",
+      "tier": "C",
+      "query_capability_ids": [],
+      "analyst_facing_disposition": "REGRESSION_ONLY_PENDING_EF_REVIEW",
+      "canonical_certification": "REGISTERED",
+      "planner_coverage": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "semantic_coverage": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_result_proof": "REQUIRED_IN_F",
+      "negative_result_proof": "REQUIRED_IN_F",
+      "oracle_type": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "scope_proof": "REQUIRED_IN_F",
+      "current_version_proof": "REQUIRED_IN_F",
+      "citation_proof": "REQUIRED_IN_F",
+      "navigation_proof": "REQUIRED_IN_F",
+      "activity_proof": "REQUIRED_IN_F",
+      "ui_proof": "REQUIRED_IN_F",
+      "performance_proof": "REQUIRED_IN_F",
+      "security_proof": "RECORDED",
+      "language_applicability": [
+        "english"
+      ],
+      "future_F_disposition": "CERTIFY_IF_ADMITTED",
+      "blockers": [
+        "independent_result_oracle",
+        "positive_and_zero",
+        "scope_current_version",
+        "citation_navigation_activity_ui_performance"
+      ],
+      "query_capability": [],
+      "real_evidence_available": "REQUIRES_F_TARGET_DISCOVERY",
+      "planner_proof": {
+        "historical_variants": 2,
+        "languages": [
+          "english"
+        ],
+        "D_dynamic_capability_reference": false
+      },
+      "executor_proof": "HISTORICAL_EXAMPLES_ONLY",
+      "positive_proof": "REQUIRED_IN_F",
+      "negative_proof": "REQUIRED_IN_F",
+      "oracle_defined": "INDEPENDENT_DB_ARTIFACT_OR_MATH_REQUIRED",
+      "F_certification_required": true,
+      "example_query_pattern": ""
+    }
+  ]
+}

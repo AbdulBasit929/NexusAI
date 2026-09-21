@@ -1,0 +1,39 @@
+{
+  "contract_version": "nexusai.nxb21d-source-truth-ui-deployment-manifest/v1",
+  "prepared_at": "2026-09-17",
+  "scope": "API_CONTAINER_UI_ASSETS_ONLY",
+  "base_image_id": "sha256:327754b7fe958c9d3f33f4ad2188f3c29cac7d9576f775b8eaca4c60b3b10006",
+  "base_image_tag": "nexusai/localai-forensic:nxb21d-premium-ui-20260917",
+  "activation_image": "nexusai/localai-forensic:nxb21d-source-truth-ui-20260917",
+  "rollback_image": "nexusai/localai-forensic:rollback-before-nxb21d-source-truth-ui-20260917",
+  "ui_source_file_count": 391,
+  "ui_source_digest_sha256": "c82530503b60b7190a2ac6627c83faacccca822598eaa1ca4cf46d4c7eafd4df",
+  "ui_dist_file_count": 213,
+  "ui_dist_digest_sha256": "c848483ea2907d69bff75af48b2d03765eadf9bbe0f9878cf2160132b28ca085",
+  "built_index_sha256": "acab62ceb0f83b56364204f7afbc5d6ea2503e7a86f6395ed949a20107c7632d",
+  "wrapper_sha256": "4f813a294fb9f35f1e7591d9ea617e71822f6e440df955df71dd61eb9e396169",
+  "dockerfile_sha256": "7dc879d707c3920c050d1fe80503a769ca139637293b07104296e67e17935dba",
+  "activation_compose_sha256": "c80919452386ea6d07a28098f5bf84f6568961938c4dae6161ad2ef36f3302a0",
+  "rollback_compose_sha256": "ca5f6a7de875f6fb98f3c59e409cff174fc315bc2af7d0c77f7e633b996b5b09",
+  "required_free_ram_gib": 6.0,
+  "protected_services": [
+    "forensic-records-api",
+    "forensic-records-worker",
+    "forensic-postgres",
+    "forensic-nats"
+  ],
+  "database_migration": false,
+  "retained_data_mutation": false,
+  "model_or_profile_change": false,
+  "backend_source_included": false,
+  "query_or_semantic_source_included": false,
+  "d_unqualified_source_included": false,
+  "validation": {
+    "vite_build": "PASS",
+    "focused_unit_tests": "49_PASS",
+    "analyst_portal_playwright": "31_PASS",
+    "case_workspace_playwright": "20_PASS",
+    "focused_eslint_errors": 0,
+    "wrapper_tests": "PASS"
+  }
+}

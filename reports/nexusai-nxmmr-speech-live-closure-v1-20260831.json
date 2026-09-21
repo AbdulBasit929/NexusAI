@@ -1,0 +1,167 @@
+{
+  "schema": "nexusai.speech-live-closure/v1",
+  "as_of": "2026-08-31",
+  "dataset": "google/fleurs",
+  "revision": "70bb2e84b976b7e960aa89f1c648e09c59f894dd",
+  "license": "CC-BY-4.0",
+  "selection_sha256": "629e08abcb4c4eefcc280cb1d8a2bce9e7c8bafa40b99198ad3c7aa9e0bf778e",
+  "selection_method": "fixed validation rows 0-9, selected before inference; no replacement",
+  "audio_bytes": 5120580,
+  "metadata_bytes": 716257,
+  "accounted_dataset_payload_bytes": 5836837,
+  "full_dataset_downloaded": false,
+  "english_clips": [
+    {
+      "row_index": 0,
+      "source_id": 1548,
+      "source_filename": "10010138729160973689.wav",
+      "audio_bytes": 418618,
+      "audio_sha256": "048169439c0328b758349af74aeb54a82a7a476e309709eb791dced06db25d48",
+      "transcript_sha256": "5414588c40aaca6face4fea72a1f5d2a04472de8372c9114edd5a7d303dc57e8",
+      "duration_seconds": 6.54
+    },
+    {
+      "row_index": 1,
+      "source_id": 1620,
+      "source_filename": "10035998729701048400.wav",
+      "audio_bytes": 1048378,
+      "audio_sha256": "5fefdcd12d4c136762cc7841b084126fc60c6d6410f983cc9f82b6cfc45737a2",
+      "transcript_sha256": "102fc1d89de06ba4019292b8e4be8f26ecbb396d9702a84c22390e6b74d37423",
+      "duration_seconds": 16.38
+    },
+    {
+      "row_index": 2,
+      "source_id": 1510,
+      "source_filename": "1009709090964908274.wav",
+      "audio_bytes": 506938,
+      "audio_sha256": "e5664ae10a6273fbe0009068e512f4c416cccbeff19d3d2d11e5fb8d72d03fb7",
+      "transcript_sha256": "0ae8990852abdc14befde5f5a8685276b582990a30ec26df3ad92969fb24bd9d",
+      "duration_seconds": 7.92
+    },
+    {
+      "row_index": 3,
+      "source_id": 1578,
+      "source_filename": "10098964113747380446.wav",
+      "audio_bytes": 265018,
+      "audio_sha256": "7172cc6e8a7b006a8175c57df13bb69db0c6249dc09d7b015c98722d5af9734c",
+      "transcript_sha256": "e3e341fdb66f8c41d1cab291f5c6309be88bee494d2f75770494934390157675",
+      "duration_seconds": 4.14
+    },
+    {
+      "row_index": 4,
+      "source_id": 1652,
+      "source_filename": "10146705666908229607.wav",
+      "audio_bytes": 314938,
+      "audio_sha256": "a7bd6d6d116c534c0d18bfe6eacd83a5616e3024f64c68b878fd6334755e245a",
+      "transcript_sha256": "992c591373981c9ad061384f583cd606a1204cc2ee0d6751c56829ab1e43e513",
+      "duration_seconds": 4.92
+    },
+    {
+      "row_index": 5,
+      "source_id": 1531,
+      "source_filename": "10238777279729691182.wav",
+      "audio_bytes": 284218,
+      "audio_sha256": "0e442fc0aa37a2f0b0a1847bcab7b0cb1ac0d4e9daf600422583da65ae5e474e",
+      "transcript_sha256": "b6c53e5841c03c32489848b7f9d3e8eaeb6994d2d47378697b7f26f3f1a8c90e",
+      "duration_seconds": 4.44
+    },
+    {
+      "row_index": 6,
+      "source_id": 1528,
+      "source_filename": "10280794863324544626.wav",
+      "audio_bytes": 437818,
+      "audio_sha256": "d03181782ddc8d02a19653dd605fe416db520db60325888e908974df034bd3f5",
+      "transcript_sha256": "0d613fbb2d880a5fc830eac90176a232888c81f63818ab77dc1432544b73e538",
+      "duration_seconds": 6.84
+    },
+    {
+      "row_index": 7,
+      "source_id": 1595,
+      "source_filename": "10290896634244679159.wav",
+      "audio_bytes": 641338,
+      "audio_sha256": "39097469197371ff2e4eb4450f3b7b86b65e79b3962c5e8c4eadc77786f4204d",
+      "transcript_sha256": "2cf0b73173308eca99ffffdfeda20192f87d136ad5835fd4ae0d5cfd5cf0f6fa",
+      "duration_seconds": 10.02
+    },
+    {
+      "row_index": 8,
+      "source_id": 1559,
+      "source_filename": "10305808618795196942.wav",
+      "audio_bytes": 596538,
+      "audio_sha256": "97c91f17d0fac2f617510489c1f149371234a16990c1e0b8945ea91611a74c4c",
+      "transcript_sha256": "0213eb78db600a7ab8d0f465a6056ad1a18c9f52f722546cec8662b2bc95fdb0",
+      "duration_seconds": 9.32
+    },
+    {
+      "row_index": 9,
+      "source_id": 1633,
+      "source_filename": "10312254140358477897.wav",
+      "audio_bytes": 606778,
+      "audio_sha256": "d77ccca833f1077b3d0394a701e9cc0be11d5f73b36e60d6449ae1f426c194b9",
+      "transcript_sha256": "7dcc9ca0af2a01c1afd0f7cc2039852da993f89a10d254cb59c6afdfc3395012",
+      "duration_seconds": 9.48
+    }
+  ],
+  "asr_summary": {
+    "en": {
+      "cer": 0.03229398663697105,
+      "character_edits": 29,
+      "clips": 10,
+      "clips_with_complete_segment_timing": 10,
+      "duration_seconds": 79.99999999999999,
+      "failures": 0,
+      "nonempty_transcripts": 10,
+      "normalized_exact_sentence_rate": 0.4,
+      "reference_characters": 898,
+      "reference_words": 176,
+      "wall_seconds": 29.603003099909984,
+      "wer": 0.10795454545454546,
+      "word_edits": 19
+    },
+    "ur": {
+      "cer": 0.16463414634146342,
+      "character_edits": 27,
+      "clips": 2,
+      "clips_with_complete_segment_timing": 2,
+      "duration_seconds": 16.740000000000002,
+      "failures": 0,
+      "nonempty_transcripts": 2,
+      "normalized_exact_sentence_rate": 0,
+      "reference_characters": 164,
+      "reference_words": 44,
+      "wall_seconds": 7.989344399888068,
+      "wer": 0.45454545454545453,
+      "word_edits": 20
+    }
+  },
+  "resources": {
+    "en": {
+      "cpu_seconds": 127.18,
+      "sampled_peak_rss_kib": 1145840
+    },
+    "ur": {
+      "cpu_seconds": 34.02,
+      "sampled_peak_rss_kib": 1146936
+    }
+  },
+  "live": {
+    "new_english_transcript_segments": 0,
+    "existing_urdu_segments": 2,
+    "playback_urdu": "PASS",
+    "retained_state_mutated": true,
+    "existing_urdu_derivatives": 2,
+    "ask_attempts": 5,
+    "new_english_evidence": "22a595a9-bd51-4da0-8cde-dd892b55842e",
+    "playback_english": "PASS",
+    "ask_semantic_passes": 0,
+    "state": "BLOCKED_LIVE_INTEGRATION"
+  },
+  "tts_acquisition_ready": {
+    "en": false,
+    "ur": false
+  },
+  "product_certification_performed": false,
+  "database_migration": false,
+  "volumes_changed": false,
+  "nxb2_activation_performed": false
+}

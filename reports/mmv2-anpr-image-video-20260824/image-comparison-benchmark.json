@@ -1,0 +1,180 @@
+{
+  "contract_version": "nexusai.mmv2.image-comparison-benchmark/v1",
+  "scope": "lawful_local_nonretained",
+  "retained_data_mutated": false,
+  "exact_duplicate_semantics": "source SHA-256 equality only",
+  "exact_controls": {
+    "same_bytes_different_filename": {
+      "sha256_a": "0246798809fc31b51856df9edde694bb19542d6e667f92e5c2214f144671fb4a",
+      "sha256_b": "0246798809fc31b51856df9edde694bb19542d6e667f92e5c2214f144671fb4a",
+      "exact_duplicate": true
+    },
+    "different_bytes": {
+      "sha256_a": "0246798809fc31b51856df9edde694bb19542d6e667f92e5c2214f144671fb4a",
+      "sha256_b": "2c1b88db6873af581ffebdd8fed0978756ed938019b05f1b50ef62fc288a1db6",
+      "exact_duplicate": false
+    }
+  },
+  "perceptual": {
+    "algorithm": "dhash-64-ffmpeg-area-v1",
+    "threshold_evaluated": 10,
+    "threshold_changed": false,
+    "threshold_decision": "Retain 10 as a conservative candidate threshold; this bounded pack is too small for universal calibration and transformations beyond the threshold remain truthfully limited.",
+    "same_source_transforms": [
+      {
+        "source": "pakistan-plate-lef1981",
+        "candidate": "bright_light",
+        "sha256_equal": false,
+        "hamming_distance": 7
+      },
+      {
+        "source": "pakistan-plate-lef1981",
+        "candidate": "gaussian_blur",
+        "sha256_equal": false,
+        "hamming_distance": 1
+      },
+      {
+        "source": "pakistan-plate-lef1981",
+        "candidate": "jpeg_quality_45",
+        "sha256_equal": false,
+        "hamming_distance": 1
+      },
+      {
+        "source": "pakistan-plate-lef1981",
+        "candidate": "low_light",
+        "sha256_equal": false,
+        "hamming_distance": 5
+      },
+      {
+        "source": "pakistan-plate-lef1981",
+        "candidate": "partial_obstruction",
+        "sha256_equal": false,
+        "hamming_distance": 6
+      },
+      {
+        "source": "pakistan-plate-lef1981",
+        "candidate": "resize_50_percent",
+        "sha256_equal": false,
+        "hamming_distance": 1
+      }
+    ],
+    "unrelated_images": [
+      {
+        "source": "pakistan-plate-lef1981",
+        "candidate": "pakistan-plate-lec4800",
+        "sha256_equal": false,
+        "hamming_distance": 22
+      },
+      {
+        "source": "pakistan-plate-lef1981",
+        "candidate": "pakistan-plate-lea4861a",
+        "sha256_equal": false,
+        "hamming_distance": 25
+      },
+      {
+        "source": "pakistan-plate-lef1981",
+        "candidate": "pakistan-plate-ly55",
+        "sha256_equal": false,
+        "hamming_distance": 19
+      },
+      {
+        "source": "pakistan-plate-lef1981",
+        "candidate": "synthetic-mn1367",
+        "sha256_equal": false,
+        "hamming_distance": 26
+      },
+      {
+        "source": "pakistan-plate-lef1981",
+        "candidate": "wikimedia-islamabad-road-negative",
+        "sha256_equal": false,
+        "hamming_distance": 23
+      },
+      {
+        "source": "pakistan-plate-lef1981",
+        "candidate": "synthetic-street-negative",
+        "sha256_equal": false,
+        "hamming_distance": 35
+      }
+    ],
+    "distribution": {
+      "same_source_min": 1,
+      "same_source_max": 7,
+      "unrelated_min": 19,
+      "unrelated_max": 35,
+      "same_source_within_threshold": 6,
+      "same_source_total": 6,
+      "unrelated_within_threshold": 0,
+      "unrelated_total": 6
+    },
+    "semantics": "pixel-layout resemblance candidate; not semantic similarity or identity"
+  },
+  "signals": {
+    "pakistan-plate-lec4800": {
+      "path": "/tmp/mmv2-images/DSC_0346.jpg",
+      "sha256": "2c1b88db6873af581ffebdd8fed0978756ed938019b05f1b50ef62fc288a1db6",
+      "dhash": "82b0b13130303897"
+    },
+    "pakistan-plate-lea4861a": {
+      "path": "/tmp/mmv2-images/DSC_0367.jpg",
+      "sha256": "a7adec167bb9ca87cdd187dc0055bc9e8fada7724b51dac8faa76bfbd966e505",
+      "dhash": "864a0a229292b280"
+    },
+    "pakistan-plate-lef1981": {
+      "path": "/tmp/mmv2-images/DSC_0427.jpg",
+      "sha256": "0246798809fc31b51856df9edde694bb19542d6e667f92e5c2214f144671fb4a",
+      "dhash": "929b9ba399311901"
+    },
+    "pakistan-plate-ly55": {
+      "path": "/tmp/mmv2-images/DSC_0557.jpg",
+      "sha256": "bbae0639385b14da114cdb1a133a9b078a7455e10cc6410c96f04658ddfbc96f",
+      "dhash": "8a8a2e231313130d"
+    },
+    "synthetic-mn1367": {
+      "path": "/tmp/mmv2-images/image-test-plate-test_plate.jpg",
+      "sha256": "a15a7ec947fdb2c5a08a70243a62ed66e4dddd89defaba9d135f6c5ac67559f6",
+      "dhash": "96e391114dac14c0"
+    },
+    "wikimedia-islamabad-road-negative": {
+      "path": "/tmp/mmv2-images/wikimedia-road-cars-islamabad.jpg",
+      "sha256": "ba1aa5a7e28e18bdd78b2cba132a6fe1cd87612d930be91fa6db22194cae0038",
+      "dhash": "df9e2a3b3dd10b07"
+    },
+    "synthetic-street-negative": {
+      "path": "/tmp/mmv2-images/no-face-street.png",
+      "sha256": "2ccf02c6a96f5c646697258c36bcaf0dfd2aec0052ee06eef81789a040f8892d",
+      "dhash": "f06868f0e3b8c208"
+    },
+    "bright_light": {
+      "path": "/tmp/mmv2-images/derived/bright_light.png",
+      "sha256": "bfa022f8d1e3954196bf8acca7f5905cb48749bd3e757028d3d10378bcb585cd",
+      "dhash": "809a98a389311903"
+    },
+    "gaussian_blur": {
+      "path": "/tmp/mmv2-images/derived/gaussian_blur.png",
+      "sha256": "1a6636b46bcbe8676b292fba8b3151f716ef5a68b88163521c49ae1f9438ca20",
+      "dhash": "909b9ba399311901"
+    },
+    "jpeg_quality_45": {
+      "path": "/tmp/mmv2-images/derived/jpeg_quality_45.jpg",
+      "sha256": "c74151a2c49308c2f5865e299ef07c2f30b705634f5e6f4519d922412faead51",
+      "dhash": "909b9ba399311901"
+    },
+    "low_light": {
+      "path": "/tmp/mmv2-images/derived/low_light.png",
+      "sha256": "b1ecfda3f088fb265866def44b15351762a09087897f394b5ee3157d6b5b0ddc",
+      "dhash": "809a99a389311901"
+    },
+    "partial_obstruction": {
+      "path": "/tmp/mmv2-images/derived/partial_obstruction.png",
+      "sha256": "83c4f0e8f0b02472968c4272c9199f3b8e0f30ed34dbecc08905e77cddfc7254",
+      "dhash": "909b99b999391901"
+    },
+    "resize_50_percent": {
+      "path": "/tmp/mmv2-images/derived/resize_50_percent.png",
+      "sha256": "aebc5c2c8cde2d08c7a4e3325f0bde0a151e84cb273048d4acc4b0690d6b9ba2",
+      "dhash": "909b9ba399311901"
+    }
+  },
+  "elapsed_ms": 1624.73,
+  "verdict": "PASS_OR_TRUTHFULLY_LIMITED"
+}

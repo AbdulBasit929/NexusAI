@@ -1,0 +1,50 @@
+{
+  "contract_version": "nexusai.model-role-development-attempt/v1",
+  "attempt_id": "nxb21d-model-role-development-attempt-1-20260916",
+  "state": "ABORTED_NO_INFERENCE",
+  "sealed_at": "2026-09-16T17:16:30.4148578Z",
+  "model_id": "qwen_qwen3-4b-instruct-2507",
+  "ram_admission": {
+    "state": "PASS",
+    "required_gib": 8.627,
+    "stable_samples_gib": [8.819, 8.82, 8.817, 8.818, 8.825],
+    "observation_count": 12,
+    "artifact": "reports/nxb21/model-role-ram-admission-20260916.ndjson",
+    "artifact_sha256": "e97d6082d6a46c66f168c31e9a7f2ceca8ad1eca14af2dfb19dd5e3ed0d6a374"
+  },
+  "execution": {
+    "go_test_exit_code": 1,
+    "failure_stage": "GO_TEST_FLAG_PARSE",
+    "failure": "flag provided but not defined: -ginkgo",
+    "model_requests_dispatched": 0,
+    "model_inference": false,
+    "raw_evidence_created": false,
+    "adjudication_receipt_created": false,
+    "model_quality_evidence": "NONE"
+  },
+  "post_state": {
+    "target_model_loaded": false,
+    "loaded_models": ["qwen3-embedding-0.6b"],
+    "embedding_runtime_restored": true
+  },
+  "operator_transcript_sha256": "15ad900cf150b5ffe571f7709f86f726469486a96bcd550f9297c51abfb0fde1",
+  "remediation": {
+    "cause": "Windows PowerShell split an unquoted dotted Ginkgo flag before the live spec could run",
+    "corrected_argument": "-ginkgo.focus=runs one opt-in installed-model development adjudication",
+    "corrected_wrapper": "scripts/nxb21-english-functional-qualification/run_model_role_development_adjudication.ps1",
+    "corrected_wrapper_sha256": "7afd9f88535cfb70bf748fa3154143b983522754dd9d694a59a946f232e66044",
+    "parser_validation": "PASS",
+    "offline_focused_go_test": "PASS",
+    "offline_focused_go_test_seconds": 0.32,
+    "final_validate_only": "PASS"
+  },
+  "decision": {
+    "wp3_state": "WAITING_EXECUTION_AUTHORIZATION",
+    "rerun_authorized": false,
+    "overwrite_ram_artifact": false,
+    "permitted_next_choices": [
+      "AUTHORIZE_ONE_NEWLY_IDENTIFIED_Q8_EXECUTION",
+      "AUTHORIZE_Q4_K_M_OR_Q5_K_M_PIVOT"
+    ]
+  }
+}

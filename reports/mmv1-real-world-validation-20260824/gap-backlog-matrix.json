@@ -1,0 +1,117 @@
+{
+  "contract_version": "nexusai.mmv1.gap-backlog/v1",
+  "counts": {
+    "P0": 0,
+    "foundational_P1": 0,
+    "P2": 9,
+    "P3": 4
+  },
+  "rows": [
+    {
+      "id": "MMV-P1-VIDEO-ZERO-LIMITATION",
+      "priority": "P1",
+      "status": "source_fixed",
+      "phase": "MMV-1",
+      "finding": "per-frame zero limitations contradicted later positive video results"
+    },
+    {
+      "id": "MMV-P1-AUDIO-PRESENTATION",
+      "priority": "P1",
+      "status": "source_fixed",
+      "phase": "MMV-1",
+      "finding": "audio icon/readiness ignored MIME/family and persisted results"
+    },
+    {
+      "id": "MMV-P2-ANPR-ROBUSTNESS",
+      "priority": "P2",
+      "status": "open",
+      "phase": "MMV-2",
+      "finding": "one positive 60-second video does not establish Pakistan robustness"
+    },
+    {
+      "id": "MMV-P2-VIDEO-SAMPLING",
+      "priority": "P2",
+      "status": "open",
+      "phase": "MMV-2",
+      "finding": "six-frame 0-25 second sampling omits the remaining 35 seconds"
+    },
+    {
+      "id": "MMV-P2-URDU-OCR",
+      "priority": "P2",
+      "status": "open",
+      "phase": "MMV-3",
+      "finding": "aggregate non-negative CER 0.436842 is inadequate"
+    },
+    {
+      "id": "MMV-P2-ASR-IDENTIFIERS",
+      "priority": "P2",
+      "status": "open",
+      "phase": "MMV-3",
+      "finding": "spoken plate MN1367 was not preserved"
+    },
+    {
+      "id": "MMV-P2-AUDIO-CORPUS",
+      "priority": "P2",
+      "status": "approval_gated",
+      "phase": "MMV-3",
+      "finding": "natural code switch, Pakistani English, spontaneous Urdu and noise are absent"
+    },
+    {
+      "id": "MMV-P2-FACE-DIVERSITY",
+      "priority": "P2",
+      "status": "open",
+      "phase": "MMV-4",
+      "finding": "lawful diverse real-world face quality corpus absent"
+    },
+    {
+      "id": "MMV-P2-DOCUMENT-URDU",
+      "priority": "P2",
+      "status": "open",
+      "phase": "MMV-5",
+      "finding": "scanned Urdu layout/page corpus absent"
+    },
+    {
+      "id": "MMV-P2-OPERATION-GAPS",
+      "priority": "P2",
+      "status": "open",
+      "phase": "MMV-6",
+      "finding": "requested family operations are aliases or missing, not certified"
+    },
+    {
+      "id": "MMV-P2-QUERY-CERTIFICATION",
+      "priority": "P2",
+      "status": "open",
+      "phase": "MMV-7",
+      "finding": "MMV target multilingual templates lack fresh runtime certification"
+    },
+    {
+      "id": "MMV-P3-VIDEO-TRACKING",
+      "priority": "P3",
+      "status": "deferred",
+      "phase": "MMV-12",
+      "finding": "cross-frame tracking and deduplication"
+    },
+    {
+      "id": "MMV-P3-DIARIZATION",
+      "priority": "P3",
+      "status": "deferred",
+      "phase": "MMV-12",
+      "finding": "speaker diarization is not implemented"
+    },
+    {
+      "id": "MMV-P3-CROSS-MODAL-TIMELINE",
+      "priority": "P3",
+      "status": "deferred",
+      "phase": "MMV-9",
+      "finding": "typed cross-family timeline composition"
+    },
+    {
+      "id": "MMV-P3-VLM",
+      "priority": "P3",
+      "status": "deferred",
+      "phase": "MMV-12",
+      "finding": "advanced general video reasoning is not justified yet"
+    }
+  ],
+  "note": "The two P1 findings are corrected in source and are deployment/browser acceptance gates, not open foundational design defects."
+}

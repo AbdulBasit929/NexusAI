@@ -1,0 +1,66 @@
+{
+  "manage": {
+    "title": "Sistema",
+    "subtitle": "Administra modelos y backends instalados"
+  },
+  "settings": {
+    "title": "ConfiguraciÃ³n",
+    "subtitle": "Configura los ajustes de tiempo de ejecuciÃ³n de NexusAI",
+    "saved": "ConfiguraciÃ³n guardada con Ã©xito",
+    "saveFailed": "Error al guardar: {{message}}",
+    "loadFailed": "Error al cargar configuraciÃ³n: {{message}}",
+    "sections": {
+      "branding": "Branding",
+      "watchdog": "Watchdog",
+      "memory": "Memoria",
+      "backends": "Backends",
+      "performance": "Rendimiento",
+      "tracing": "Tracing",
+      "api": "API y CORS",
+      "p2p": "P2P",
+      "galleries": "GalerÃ­as",
+      "apikeys": "Claves API",
+      "agents": "Trabajos de agentes",
+      "agentpool": "Pool de agentes",
+      "assistant": "NexusAI Assistant",
+      "responses": "Respuestas"
+    }
+  },
+  "backends": {
+    "title": "AdministraciÃ³n de backends",
+    "subtitle": "Descubre e instala backends de IA para tus modelos"
+  },
+  "backendLogs": {
+    "title": "Logs de backends",
+    "subtitle": "Visualiza logs de los backends en ejecuciÃ³n",
+    "empty": "No hay logs disponibles"
+  },
+  "traces": {
+    "title": "Trazas",
+    "subtitle": "Visualiza peticiones API, respuestas y operaciones de backend registradas"
+  },
+  "nodes": {
+    "title": "Nodos distribuidos",
+    "subtitle": "Administra nodos worker de backends y agentes"
+  },
+  "scheduling": {
+    "title": "PlanificaciÃ³n",
+    "subtitle": "Reglas de ubicaciÃ³n de modelos y rÃ©plicas en el clÃºster"
+  },
+  "p2p": {
+    "title": "ComputaciÃ³n de IA distribuida",
+    "subtitle": "Escala tus cargas de trabajo de IA en mÃºltiples dispositivos con distribuciÃ³n peer-to-peer"
+  },
+  "users": {
+    "title": "Usuarios",
+    "subtitle": "Administra usuarios registrados, roles e invitaciones"
+  },
+  "usage": {
+    "title": "Uso",
+    "subtitle": "EstadÃ­sticas de uso de tokens API"
+  },
+  "explorer": {
+    "title": "Explorador",
+    "subtitle": "Explora archivos y configuraciÃ³n"
+  }
+}

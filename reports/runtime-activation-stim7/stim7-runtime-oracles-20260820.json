@@ -1,0 +1,78 @@
+﻿{
+    "contract_version":  "nexusai.stim7-runtime-oracles/v1",
+    "generated_utc":  "2026-08-20T07:52:45.7114851Z",
+    "collection_id":  "nexusai-runtime-acceptance-20260730",
+    "case_id":  "runtime-acceptance-20260730",
+    "oracle_contract":  "api/forensic_records/contracts/stim4-runtime-acceptance-oracle-v1.json",
+    "database_mutated":  false,
+    "models_changed":  false,
+    "checks":  [
+                   {
+                       "name":  "retained_evidence.identity_and_accounting",
+                       "passed":  true,
+                       "detail":  "completed=7; total=21; accepted=20; duplicate=1; rejected=0; mismatches=",
+                       "latency_ms":  76.1
+                   },
+                   {
+                       "name":  "multi_cdr.independent_oracle",
+                       "passed":  true,
+                       "detail":  "sources=3; events=7; missing=; direct_citations=7",
+                       "latency_ms":  205.9
+                   },
+                   {
+                       "name":  "multi_cdr.tampered_membership_rejected",
+                       "passed":  true,
+                       "detail":  "http=400; code=invalid_source_membership; stable_error=selected source set is invalid for the authorized collection",
+                       "latency_ms":  74.3
+                   },
+                   {
+                       "name":  "cross_family.positive",
+                       "passed":  true,
+                       "detail":  "target=923001234567; families=cdr,ipdr,subscriber; matches=4; citations=True",
+                       "latency_ms":  65.1
+                   },
+                   {
+                       "name":  "cross_family.future_invalid",
+                       "passed":  true,
+                       "detail":  "target=923008888888; families=ipdr,subscriber; matches=2; citations=True",
+                       "latency_ms":  192.9
+                   },
+                   {
+                       "name":  "cross_family.wrong_entity_type",
+                       "passed":  true,
+                       "detail":  "target=10.0.0.10; families=ipdr,subscriber; matches=2; citations=True",
+                       "latency_ms":  85.9
+                   },
+                   {
+                       "name":  "cross_family.no_subscriber_match",
+                       "passed":  true,
+                       "detail":  "target=923007777777; families=ipdr; matches=1; citations=True",
+                       "latency_ms":  75.8
+                   },
+                   {
+                       "name":  "cross_family.no_ipdr_match",
+                       "passed":  true,
+                       "detail":  "target=923006666666; families=subscriber; matches=1; citations=True",
+                       "latency_ms":  85.4
+                   },
+                   {
+                       "name":  "anpr.cross_source_sequence",
+                       "passed":  true,
+                       "detail":  "rows=2; cameras=STIM-CAM-EAST,STIM-CAM-WEST; sources=anpr_east.csv,anpr_west.csv",
+                       "latency_ms":  84.8
+                   },
+                   {
+                       "name":  "anpr.route_timing",
+                       "passed":  true,
+                       "detail":  "rows=1; elapsed_seconds=480; route=STIM-CAM-EAST-\u003eSTIM-CAM-WEST",
+                       "latency_ms":  85.2
+                   },
+                   {
+                       "name":  "anpr.lookalike_non_match",
+                       "passed":  true,
+                       "detail":  "LOOK777=1:anpr_east.csv; LOOK778=1:anpr_west.csv",
+                       "latency_ms":  200
+                   }
+               ],
+    "passed":  true
+}

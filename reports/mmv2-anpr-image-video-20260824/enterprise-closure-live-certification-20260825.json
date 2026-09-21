@@ -1,0 +1,169 @@
+{
+  "contract_version": "nexusai.mmv2.enterprise-closure-live-certification/v1",
+  "recorded_at": "2026-08-25T11:32:58+05:00",
+  "scope": {
+    "tenant_id": "default",
+    "case_id": "nexusai-multimodal-product-acceptance",
+    "retained_upload_performed": false,
+    "retained_reprocessing_performed": false,
+    "model_change_performed": false,
+    "database_migration_performed": false,
+    "mmv3_started": false
+  },
+  "activation": {
+    "verdict": "PASS",
+    "localai_container_id": "c4495d82b714077626724263498c8f07d677c78d6e3a160582f8d08059f4ee65",
+    "localai_image_id": "sha256:f255f18897577a553b0ad64ce9980c21bd69c912f90414f35135c49c7eda9f95",
+    "forensic_api_container_id": "4aad366462784110b4217ec500ed561cca0bceada3e8184a48b4a43423afc178",
+    "forensic_api_image_id": "sha256:c0f07382ab7d30ba1538b44f8cfca8d25cab41ec954cb978c19d10632e3ca5f6",
+    "rollback_tags_verified": true
+  },
+  "protected_runtime": {
+    "worker_container_id": "1846f558941f583467976ad8e74a44e9063c8a1a50e870951c7e479ecce3fb66",
+    "nats_container_id": "5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04",
+    "postgres_container_id": "f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361",
+    "preserved": true,
+    "health": "PASS"
+  },
+  "public_query_certification": {
+    "english": {"query": "Where was plate MN1367 seen?", "operation_id": "anpr.sightings", "result_state": "results_present", "row_count": 1, "citations": 1, "verdict": "PASS"},
+    "natural_english": {"query": "Show me when and where plate MN1367 was observed.", "operation_id": "anpr.sightings", "result_state": "results_present", "row_count": 1, "citations": 1, "verdict": "PASS"},
+    "roman_urdu": {"query": "MN1367 number plate kahan nazar ayi?", "operation_id": "anpr.sightings", "result_state": "results_present", "row_count": 1, "citations": 1, "verdict": "PASS"},
+    "urdu_script": {"query": "نمبر پلیٹ MN1367 کب نظر آئی دکھائیں", "operation_id": "anpr.sightings", "result_state": "results_present", "row_count": 1, "citations": 1, "verdict": "PASS"},
+    "terse_variants": {
+      "Find MN1367.": "needs_input_invalid_request",
+      "MN1367 kab aur kahan nazar ayi?": "needs_input_invalid_request",
+      "verdict": "BOUNDED_VARIANT_GAP"
+    }
+  },
+  "positive_summary_and_citation": {
+    "verdict": "PASS",
+    "false_no_match_regression": false,
+    "evidence_id": "a0ff7b18-129f-4a8a-82cf-48887f98bd9e",
+    "version_id": "3dc6b0f6-8d2b-426d-93c5-12059005549b",
+    "locator": "row_number:3,row_hash:6c3b26cf304b705aca3079f7ab94e65c1260baf7b7b0103dc856db34d9b898fb,timestamp:2026-08-23T13:43:53Z",
+    "source_name": "image-test-plate-test_plate.jpg"
+  },
+  "negative_semantics": {
+    "legacy_row_count": 0,
+    "public_status": "no_results",
+    "public_result_state": "no_match_for_filter",
+    "public_row_count": 1,
+    "public_citation_count": 1,
+    "summary_truthful": true,
+    "verdict": "PARTIAL_PUBLIC_ADAPTER_ROW_COUNT_CONTRADICTION"
+  },
+  "grouped_video_complete_zero": {
+    "evidence_id": "50057921-4f1f-4ab8-bab0-47bcdc957822",
+    "legacy": {
+      "status": "complete_zero",
+      "result_state": "complete_zero_results",
+      "processing_state": "completed",
+      "row_count": 0,
+      "group_count": 0,
+      "summary": "ANPR processing complete, 0 plate groups detected.",
+      "verdict": "PASS"
+    },
+    "public_api": {
+      "status": "answered_with_limitations",
+      "result_state": "complete_zero_results",
+      "processing_state": "completed",
+      "operation_id": "video.anpr_grouped_timeline",
+      "tool_id_present": true,
+      "row_count": 1,
+      "summary_truthful": true,
+      "verdict": "PARTIAL_PUBLIC_ADAPTER_ROW_COUNT_CONTRADICTION"
+    },
+    "analyst_portal": {
+      "data_quick_action_present": true,
+      "data_presentation": "Plate processing complete — 0 detections",
+      "quick_action_answer": "Deterministic records result",
+      "quick_action_result_state_visible": false,
+      "history_result_state_visible": false,
+      "raw_uuid_prompt_misrouted_target": "BAB0",
+      "raw_uuid_prompt_misrouted_template": "anpr_timeline",
+      "verdict": "FAIL_TYPED_STATE_NOT_PROPAGATED"
+    }
+  },
+  "history_certification": {
+    "positive_analysis_id": "e604ec64-77ca-4a58-a038-0f186eed1dc0",
+    "positive_saved": true,
+    "positive_reopen": "PASS",
+    "positive_row_count": 1,
+    "positive_citation_reopen": "PASS",
+    "complete_zero_analysis_id": "7b8f9572-a3f2-4cc4-8823-e8e96141fffc",
+    "complete_zero_saved": true,
+    "complete_zero_reopen": "FAIL_GENERIC_COMPLETE_WITHOUT_TYPED_ZERO_STATE",
+    "overall": "PARTIAL"
+  },
+  "browser_acceptance": {
+    "390": {"horizontal_overflow": false, "main_visible": true, "positive_history_visible": true, "verdict": "PASS"},
+    "820": {"horizontal_overflow": false, "main_visible": true, "positive_history_visible": true, "verdict": "PASS"},
+    "1024": {"horizontal_overflow": false, "main_visible": true, "positive_history_visible": true, "verdict": "PASS"},
+    "1440": {"horizontal_overflow": false, "main_visible": true, "positive_history_visible": true, "verdict": "PASS"},
+    "console_errors": 0,
+    "responsive_layout": "PASS",
+    "complete_zero_presentation": "FAIL",
+    "overall": "PARTIAL"
+  },
+  "media_presentation": {
+    "video_data_state": "PASS_COMPLETE_ZERO_VISIBLE",
+    "audio_row_type": "Audio",
+    "audio_ready": true,
+    "audio_player_controls": true,
+    "audio_player_source_present": true,
+    "audio_player_ready_state": 4,
+    "audio_verdict": "PASS"
+  },
+  "retained_counts_after": {
+    "evidence": 51,
+    "versions": 51,
+    "jobs": 64,
+    "active_jobs": 0,
+    "canonical_records": 22207,
+    "artifacts": 441,
+    "kb_assets": 47
+  },
+  "open_foundational_p1": [
+    {
+      "id": "MMV2-ENTERPRISE-P1-1",
+      "component": "public case-query compatibility adapter",
+      "finding": "Authoritative legacy zero/no-match results have row_count 0, but the public enterprise response reports row_count 1 after flattening metadata as a result row."
+    },
+    {
+      "id": "MMV2-ENTERPRISE-P1-2",
+      "component": "Analyst Portal grouped-video presentation and History",
+      "finding": "The Data quick action executes but Ask and History collapse the typed complete-zero result into generic Complete/Deterministic records result without the truthful zero-state presentation."
+    },
+    {
+      "id": "MMV2-ENTERPRISE-P1-3",
+      "component": "Analyst Ask video UUID routing",
+      "finding": "A natural grouped-video prompt containing the retained evidence UUID can extract UUID segment BAB0 as a plate and route to anpr_timeline instead of video.anpr_grouped_timeline."
+    }
+  ],
+  "final_markers": {
+    "MMV2EnterpriseClosureActivation": "PASS",
+    "PositiveEnterpriseSummary": "PASS",
+    "CompleteZeroEnterpriseSemantics": "PARTIAL",
+    "PublicANPROperations": "PARTIAL",
+    "PublicVideoANPROperation": "PARTIAL",
+    "MediaQueryCertification": "PARTIAL",
+    "EnglishQueries": "PASS",
+    "RomanUrduQueries": "PASS",
+    "UrduQueries": "PASS",
+    "NoMatchSemantics": "PARTIAL",
+    "CompleteZeroSemantics": "PARTIAL",
+    "CitationCertification": "PASS",
+    "HistoryCertification": "PARTIAL",
+    "BrowserAcceptance": "PARTIAL",
+    "AudioPresentation": "PASS",
+    "ProtectedServicesPreserved": true,
+    "RetainedDataMutated": false,
+    "ModelsChanged": false,
+    "DatabaseMigration": false,
+    "OpenP0": 0,
+    "OpenFoundationalP1": 3,
+    "MMV2FinalVerdict": "ACTIVATION_PASS_LIVE_ENTERPRISE_CLOSURE_PARTIAL_SEPARATE_SOURCE_AND_DEPLOYMENT_APPROVAL_REQUIRED",
+    "MMV3Started": false
+  }
+}

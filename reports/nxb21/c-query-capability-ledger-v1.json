@@ -1,0 +1,282 @@
+{
+  "schema_version": "nexusai.nxb21.c-capability-review/v1",
+  "status": "SOURCE_CANDIDATE",
+  "canonical_reference_source": "api/forensic_records/contracts/query-capability-references-v1.json",
+  "reference_sha256": "085982f58e9f3560f9f7291db45e520c4008ed9c492005e8e9f542cd9aa35ca0",
+  "not_an_executable_registry": true,
+  "capability_count": 22,
+  "reference_map": [
+    {
+      "query_capability_id": "cdr.identifier_lookup",
+      "operation_ref": "forensics.canonical_records",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "REGISTERED"
+    },
+    {
+      "query_capability_id": "cdr.frequent_contacts",
+      "operation_ref": "cdr.frequent_contacts",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "PRODUCT_CERTIFIED"
+    },
+    {
+      "query_capability_id": "cdr.time_activity",
+      "operation_ref": "cdr.temporal_activity",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "PRODUCT_CERTIFIED"
+    },
+    {
+      "query_capability_id": "ipdr.endpoint",
+      "operation_ref": "ipdr.endpoint_summary",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "REGISTERED"
+    },
+    {
+      "query_capability_id": "ipdr.sessions",
+      "operation_ref": "ipdr.subscriber_sessions",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "REGISTERED"
+    },
+    {
+      "query_capability_id": "subscriber.lookup",
+      "operation_ref": "subscriber.identity_lookup",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "REGISTERED"
+    },
+    {
+      "query_capability_id": "device.observations",
+      "operation_ref": "forensics.imei_imsi_usage",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "REGISTERED"
+    },
+    {
+      "query_capability_id": "tower.lookup",
+      "operation_ref": "tower.site_lookup",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "REGISTERED"
+    },
+    {
+      "query_capability_id": "financial.summary",
+      "operation_ref": "financial.transaction_summary",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "SOURCE_VALIDATED"
+    },
+    {
+      "query_capability_id": "logs.failures",
+      "operation_ref": "access.failed_events",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "SOURCE_VALIDATED"
+    },
+    {
+      "query_capability_id": "generic.filter",
+      "operation_ref": "generic.filter_records",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "SOURCE_VALIDATED"
+    },
+    {
+      "query_capability_id": "document.phrase",
+      "operation_ref": "document.search",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "SOURCE_VALIDATED"
+    },
+    {
+      "query_capability_id": "knowledge.semantic",
+      "operation_ref": "forensics.evidence",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "PRODUCT_CERTIFIED"
+    },
+    {
+      "query_capability_id": "ocr.phrase",
+      "operation_ref": "image.ocr_search",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "SOURCE_VALIDATED"
+    },
+    {
+      "query_capability_id": "transcript.phrase",
+      "operation_ref": "audio.transcript_search",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "SOURCE_VALIDATED"
+    },
+    {
+      "query_capability_id": "roman_urdu.phrase",
+      "operation_ref": "audio.transcript_search",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "SOURCE_VALIDATED"
+    },
+    {
+      "query_capability_id": "image.plate",
+      "operation_ref": "anpr.sightings",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "REGISTERED"
+    },
+    {
+      "query_capability_id": "video.group_plate",
+      "operation_ref": "video.anpr_grouped_timeline",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "REGISTERED"
+    },
+    {
+      "query_capability_id": "image.similarity",
+      "operation_ref": "image.visual_similarity",
+      "reference_kind": "DIRECT_DESCRIPTOR",
+      "canonical_certification": "DIRECT_DESCRIPTOR_NOT_IN_QUERY_CERTIFICATION_REGISTRY"
+    },
+    {
+      "query_capability_id": "face.candidates",
+      "operation_ref": "face.similarity",
+      "reference_kind": "DIRECT_DESCRIPTOR",
+      "canonical_certification": "DIRECT_DESCRIPTOR_NOT_IN_QUERY_CERTIFICATION_REGISTRY"
+    },
+    {
+      "query_capability_id": "cross_family.identifiers",
+      "operation_ref": "forensics.cross_family_correlation",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "REGISTERED"
+    },
+    {
+      "query_capability_id": "case.evidence_package",
+      "operation_ref": "forensics.evidence_package_summary",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "PRODUCT_CERTIFIED"
+    }
+  ],
+  "design_reconciliation": [
+    {
+      "design_id": "cdr.identifier_lookup",
+      "capability_id": "cdr.identifier_lookup",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "cdr.frequent_contacts",
+      "capability_id": "cdr.frequent_contacts",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "cdr.time_activity",
+      "capability_id": "cdr.time_activity",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "ipdr.endpoint",
+      "capability_id": "ipdr.endpoint",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "ipdr.sessions",
+      "capability_id": "ipdr.sessions",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "subscriber.lookup",
+      "capability_id": "subscriber.lookup",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "device.observations",
+      "capability_id": "device.observations",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "tower.lookup",
+      "capability_id": "tower.lookup",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "financial.summary",
+      "capability_id": "financial.summary",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "logs.failures",
+      "capability_id": "logs.failures",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "generic.filter",
+      "capability_id": "generic.filter",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "document.phrase",
+      "capability_id": "document.phrase",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "knowledge.semantic",
+      "capability_id": "knowledge.semantic",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "ocr.whole_value",
+      "capability_id": "ocr.phrase",
+      "disposition": "MERGED"
+    },
+    {
+      "design_id": "ocr.phrase",
+      "capability_id": "ocr.phrase",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "transcript.source",
+      "capability_id": "transcript.phrase",
+      "disposition": "MERGED"
+    },
+    {
+      "design_id": "transcript.phrase",
+      "capability_id": "transcript.phrase",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "transcript.source_time",
+      "capability_id": "transcript.phrase",
+      "disposition": "MERGED"
+    },
+    {
+      "design_id": "roman_urdu.phrase",
+      "capability_id": "roman_urdu.phrase",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "image.plate",
+      "capability_id": "image.plate",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "video.raw_plate",
+      "capability_id": "video.group_plate",
+      "disposition": "MERGED"
+    },
+    {
+      "design_id": "video.group_plate",
+      "capability_id": "video.group_plate",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "image.similarity",
+      "capability_id": "image.similarity",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "face.candidates",
+      "capability_id": "face.candidates",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "cross_family.identifiers",
+      "capability_id": "cross_family.identifiers",
+      "disposition": "RECONCILED"
+    }
+  ],
+  "added_capabilities": [
+    "case.evidence_package"
+  ],
+  "unavailable_intents": [
+    {
+      "id": "tts.generation",
+      "category": "tts_artifacts",
+      "reason": "NO_REGISTERED_GENERATION_DESCRIPTOR",
+      "query_existing_results": false,
+      "process_new_input": false,
+      "generate_new_output": false
+    }
+  ]
+}

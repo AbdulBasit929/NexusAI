@@ -1,0 +1,4335 @@
+{
+ "contract_version": "forensics.query-template-catalog/v1",
+ "template_count": 79,
+ "templates": [
+  {
+   "name": "collection_overview",
+   "description": "Collection-level ingest, KB asset, and record-family summary.",
+   "record_types": [
+    "all"
+   ],
+   "route": "records",
+   "operation_id": "forensics.collection_overview",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized collection overview operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=collection_overview; limit=20",
+   "output_description": "Bounded deterministic collection overview result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "frequent_contacts",
+   "description": "CDR frequent contacts matrix with incoming/outgoing counts and first/last contact.",
+   "record_types": [
+    "cdr"
+   ],
+   "route": "records",
+   "operation_id": "cdr.frequent_contacts",
+   "family_id": "communications_cdr",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "MSISDN",
+      "originating number",
+      "dialed number"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "total interactions",
+    "incoming count",
+    "outgoing count",
+    "first contact",
+    "last contact"
+   ],
+   "group_by": [
+    "counterparty"
+   ],
+   "calculation": "Filters one exact participant, excludes data/service labels from counterparties, and counts explicit CDR interactions by counterparty and direction; first/last timestamps are MIN/MAX over cited rows.",
+   "example_query": "Rank frequent contacts for {target} from {date_from} to {date_to}",
+   "output_description": "Ranked phone-counterparty matrix for one explicit participant, with interaction counts and time coverage.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "A",
+   "certification_status": "certified",
+   "exposure_status": "queryable",
+   "suggestion_eligible": true
+  },
+  {
+   "name": "call_type_breakdown",
+   "description": "CDR event counts by call type and direction.",
+   "record_types": [
+    "cdr"
+   ],
+   "route": "records",
+   "operation_id": "cdr.call_type_breakdown",
+   "family_id": "communications_cdr",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "MSISDN",
+      "originating number",
+      "dialed number",
+      "call type"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "event count",
+    "total duration"
+   ],
+   "group_by": [
+    "call type",
+    "direction"
+   ],
+   "calculation": "Groups explicit normalized CDR rows by supplied call type and deterministic direction.",
+   "example_query": "Show CDR call-type and direction breakdown from {date_from} to {date_to}",
+   "output_description": "Call-type/direction distribution with exact counts and duration totals.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "service_usage",
+   "description": "CDR service classification for voice, SMS, USSD, and packet-data activity.",
+   "record_types": [
+    "cdr"
+   ],
+   "route": "records",
+   "operation_id": "cdr.service_usage",
+   "family_id": "communications_cdr",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "MSISDN",
+      "IMSI",
+      "IMEI"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "event count",
+    "total duration"
+   ],
+   "group_by": [
+    "explicit service class",
+    "direction"
+   ],
+   "calculation": "Groups only supplied or deterministically normalized service classes; unknown services remain unknown.",
+   "example_query": "Show voice, SMS, USSD, and data usage for {target}",
+   "output_description": "Service-class usage table with exact counts and duration.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "device_identity_changes",
+   "description": "Chronological IMEI/IMSI baselines and exact identifier changes with source-row provenance.",
+   "record_types": [
+    "cdr"
+   ],
+   "route": "records",
+   "operation_id": "cdr.device_identity_changes",
+   "family_id": "communications_cdr",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "MSISDN"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "device change count",
+    "SIM change count",
+    "first seen",
+    "last seen"
+   ],
+   "group_by": [
+    "originating subscriber",
+    "IMEI",
+    "IMSI"
+   ],
+   "calculation": "Partitions rows by the exact originating subscriber, orders by call time, and compares IMEI/IMSI with the preceding cited row.",
+   "example_query": "Show IMEI and IMSI changes for {target} from {date_from} to {date_to}",
+   "output_description": "Chronological device/SIM changes with source-row provenance.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "multi_cdr_comparison",
+   "description": "Source-aware common/unique contacts, direction, frequency, duration, shared identifier, overlap, duplicate, and conflict comparison for one exact target.",
+   "record_types": [
+    "cdr"
+   ],
+   "route": "records",
+   "operation_id": "cdr.multi_source_comparison",
+   "family_id": "communications_cdr",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "MSISDN"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    },
+    {
+     "name": "source_set",
+     "label": "Exact CDR sources",
+     "required": true,
+     "accepted_kinds": [
+      "forensics.structured-source-set/v1"
+     ],
+     "description": "Two to eight exact source identities; collection scope remains server-authoritative."
+    }
+   ],
+   "measures": [
+    "common contacts",
+    "unique contacts",
+    "incoming count",
+    "outgoing count",
+    "duration sum",
+    "shared IMEI",
+    "shared IMSI",
+    "shared tower",
+    "exact-instant overlap",
+    "duplicate candidates",
+    "conflicts"
+   ],
+   "group_by": [
+    "source",
+    "counterparty",
+    "typed identifier",
+    "event signature"
+   ],
+   "calculation": "Compares two to eight explicitly selected CDR sources for one exact phone target without merging sources; missing duration is excluded while explicit zero remains a value, and cross-source duplicates/conflicts remain visible.",
+   "example_query": "Compare the selected CDR sources for {target}",
+   "output_description": "Source-aware comparison, relationship table, bounded graph, timeline overlaps, conflicts, limitations, and complete contributing-row citations.",
+   "scope_mode": "source_set_and_target_required",
+   "presentation": "multi_source_relationship_comparison",
+   "limitations": [
+    "Shared observations do not prove identity, ownership, presence, association, causation, or intent.",
+    "Temporal overlap is restricted to the exact same normalized event instant; it is not proof of a meeting."
+   ],
+   "criticality_tier": "A",
+   "certification_status": "certified",
+   "exposure_status": "queryable",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "ipdr_endpoint_summary",
+   "description": "Exact IP/NAT/port endpoint combinations with session counts and byte totals.",
+   "record_types": [
+    "ipdr"
+   ],
+   "route": "records",
+   "operation_id": "ipdr.endpoint_summary",
+   "family_id": "network_ipdr",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "subscriber ID",
+      "MSISDN",
+      "IMSI",
+      "IPv4",
+      "IPv6",
+      "NAT IP",
+      "domain"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "session count",
+    "uploaded bytes",
+    "downloaded bytes",
+    "first seen",
+    "last seen"
+   ],
+   "group_by": [
+    "source/destination IP",
+    "NAT IP",
+    "ports",
+    "protocol"
+   ],
+   "calculation": "Groups explicit normalized IPDR endpoint tuples and sums non-negative source byte values.",
+   "example_query": "Show IPDR endpoint, NAT, port, and protocol combinations",
+   "output_description": "Ranked network endpoint combinations with volume and time coverage.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "ipdr_domain_summary",
+   "description": "Explicit normalized IPDR domain observations with counts, bytes, and first/last times.",
+   "record_types": [
+    "ipdr"
+   ],
+   "route": "records",
+   "operation_id": "ipdr.domain_summary",
+   "family_id": "network_ipdr",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "subscriber ID",
+      "IPv4",
+      "IPv6",
+      "NAT IP",
+      "domain"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "session count",
+    "byte totals",
+    "first seen",
+    "last seen"
+   ],
+   "group_by": [
+    "explicit normalized domain"
+   ],
+   "calculation": "Groups only domains present in source records; no reverse DNS lookup is performed.",
+   "example_query": "Show explicitly observed IPDR domains and byte totals",
+   "output_description": "Observed-domain summary with exact sessions, bytes, and timestamps.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "A domain observation does not establish ownership, content, or maliciousness."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "ipdr_protocol_breakdown",
+   "description": "Explicit IPDR protocol counts, byte totals, and duration totals.",
+   "record_types": [
+    "ipdr"
+   ],
+   "route": "records",
+   "operation_id": "ipdr.protocol_breakdown",
+   "family_id": "network_ipdr",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "subscriber ID",
+      "IPv4",
+      "IPv6",
+      "NAT IP",
+      "domain"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "session count",
+    "byte totals",
+    "duration total"
+   ],
+   "group_by": [
+    "explicit protocol"
+   ],
+   "calculation": "Groups normalized sessions by the protocol value supplied by the source.",
+   "example_query": "Show IPDR protocol counts, bytes, and durations",
+   "output_description": "Protocol distribution with exact counts, volume, and duration.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "ipdr_session_volume",
+   "description": "Hourly IPDR session and byte-volume totals.",
+   "record_types": [
+    "ipdr"
+   ],
+   "route": "records",
+   "operation_id": "ipdr.session_volume",
+   "family_id": "network_ipdr",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "subscriber ID",
+      "IPv4",
+      "IPv6",
+      "NAT IP",
+      "domain"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "session count",
+    "uploaded bytes",
+    "downloaded bytes"
+   ],
+   "group_by": [
+    "hour"
+   ],
+   "calculation": "Buckets explicit session timestamps by hour and sums non-negative source byte fields.",
+   "example_query": "Show hourly IPDR session and byte volume from {date_from} to {date_to}",
+   "output_description": "Hourly network-session and traffic-volume series.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "ipdr_subscriber_sessions",
+   "description": "Source-provenance IPDR sessions linked by explicit subscriber identifiers.",
+   "record_types": [
+    "ipdr"
+   ],
+   "route": "records",
+   "operation_id": "ipdr.subscriber_sessions",
+   "family_id": "network_ipdr",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "subscriber ID",
+      "MSISDN",
+      "IMSI",
+      "IPv4",
+      "IPv6",
+      "NAT IP"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "session count",
+    "duration",
+    "uploaded bytes",
+    "downloaded bytes"
+   ],
+   "calculation": "Filters exact explicit subscriber or endpoint identifiers and returns source-bound sessions.",
+   "example_query": "Show cited IPDR sessions for {target}",
+   "output_description": "Chronological, provenance-bearing IPDR sessions for one exact target.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "ipdr_concurrent_sessions",
+   "description": "Chronological explicit session overlaps for one subscriber.",
+   "record_types": [
+    "ipdr"
+   ],
+   "route": "records",
+   "operation_id": "ipdr.concurrent_sessions",
+   "family_id": "network_ipdr",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "subscriber ID",
+      "MSISDN",
+      "IMSI"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "overlap count",
+    "overlap start",
+    "overlap end",
+    "overlap seconds"
+   ],
+   "calculation": "Compares explicit session intervals for one subscriber and returns pairs whose time ranges overlap.",
+   "example_query": "Show overlapping IPDR sessions for {target}",
+   "output_description": "Cited concurrent-session pairs and exact overlap duration.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "ipdr_timeline",
+   "description": "Chronological IPDR sessions for an explicit subscriber or endpoint target.",
+   "record_types": [
+    "ipdr"
+   ],
+   "route": "records",
+   "operation_id": "ipdr.timeline",
+   "family_id": "network_ipdr",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "subscriber ID",
+      "MSISDN",
+      "IMSI",
+      "IPv4",
+      "IPv6",
+      "NAT IP"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "session count",
+    "duration",
+    "byte totals"
+   ],
+   "group_by": [
+    "session start"
+   ],
+   "calculation": "Filters exact normalized target matches and orders source-bound sessions chronologically.",
+   "example_query": "Build the IPDR session timeline for {target}",
+   "output_description": "Chronological network-session timeline for one exact target.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "temporal_activity",
+   "description": "Hourly baselines, nocturnal activity, non-zero duration statistics, and shortest/longest audited duration rows.",
+   "record_types": [
+    "cdr"
+   ],
+   "route": "records",
+   "operation_id": "cdr.temporal_activity",
+   "family_id": "communications_cdr",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "MSISDN",
+      "originating number",
+      "dialed number"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "event count",
+    "non-zero duration",
+    "average duration"
+   ],
+   "group_by": [
+    "day",
+    "hour"
+   ],
+   "calculation": "Buckets source timestamps in the requested timezone and calculates counts and non-zero duration statistics.",
+   "example_query": "Show hourly and daily CDR activity from {date_from} to {date_to}",
+   "output_description": "Hourly/daily activity baseline and cited duration outliers.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "A",
+   "certification_status": "certified",
+   "exposure_status": "queryable",
+   "suggestion_eligible": true
+  },
+  {
+   "name": "top_locations",
+   "description": "Most frequent CDR locations and cells.",
+   "record_types": [
+    "cdr"
+   ],
+   "route": "records",
+   "operation_id": "forensics.top_locations",
+   "family_id": "communications_cdr",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized top locations operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=top_locations; limit=20",
+   "output_description": "Bounded deterministic top locations result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "geospatial_movement",
+   "description": "Chronological CDR movement and primary off-peak base location.",
+   "record_types": [
+    "cdr"
+   ],
+   "route": "records",
+   "operation_id": "cdr.geospatial_movement",
+   "family_id": "communications_cdr",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "MSISDN",
+      "IMSI",
+      "IMEI"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "observation count",
+    "first seen",
+    "last seen",
+    "off-peak frequency"
+   ],
+   "group_by": [
+    "cell site",
+    "supplied location"
+   ],
+   "calculation": "Orders explicit CDR cell/location observations and ranks off-peak locations; it does not reconstruct travel between events.",
+   "example_query": "Show cited CDR cell and location sequence for {target} from {date_from} to {date_to}",
+   "output_description": "Cited observation sequence and off-peak location candidates.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "Cell observations are not continuous device location and do not prove the user was present."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "anpr_sightings",
+   "description": "ANPR sightings by plate, camera, and location.",
+   "record_types": [
+    "anpr"
+   ],
+   "route": "records",
+   "operation_id": "anpr.sightings",
+   "family_id": "anpr_vehicles",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "plate",
+      "camera ID",
+      "location"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "sighting count",
+    "first seen",
+    "last seen"
+   ],
+   "calculation": "Filters explicit normalized plate/camera/location observations and preserves the raw plate and source locator.",
+   "example_query": "Show exact ANPR sightings for {target} from {date_from} to {date_to}",
+   "output_description": "Exact cited sightings; target is optional for a bounded case-wide preview.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "anpr_camera_sequence",
+   "description": "Chronological camera sequence for one exact plate search key.",
+   "record_types": [
+    "anpr"
+   ],
+   "route": "records",
+   "operation_id": "anpr.camera_sequence",
+   "family_id": "anpr_vehicles",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "plate"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "sighting count",
+    "elapsed time"
+   ],
+   "group_by": [
+    "observation time",
+    "camera"
+   ],
+   "calculation": "Orders exact observations for one plate by supplied timestamp and camera.",
+   "example_query": "Show the chronological camera sequence for plate {target}",
+   "output_description": "Cited camera observation sequence for an exact plate.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "anpr_camera_activity",
+   "description": "Exact sighting and distinct-plate counts by camera.",
+   "record_types": [
+    "anpr"
+   ],
+   "route": "records",
+   "operation_id": "anpr.camera_activity",
+   "family_id": "anpr_vehicles",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "camera ID",
+      "location"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "sighting count",
+    "distinct observed plates",
+    "first seen",
+    "last seen"
+   ],
+   "group_by": [
+    "camera ID",
+    "supplied location"
+   ],
+   "calculation": "Groups explicit structured ANPR observations by camera and location.",
+   "example_query": "Show ANPR sighting and distinct-plate counts by camera",
+   "output_description": "Ranked camera activity without a plate filter.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "anpr_co_travel",
+   "description": "Same-camera observations of other plates within five minutes of one exact plate; proximity is not association.",
+   "record_types": [
+    "anpr"
+   ],
+   "route": "records",
+   "operation_id": "anpr.co_travel",
+   "family_id": "anpr_vehicles",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "plate"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "co-observation count",
+    "time difference"
+   ],
+   "group_by": [
+    "other plate",
+    "camera"
+   ],
+   "calculation": "Finds other plates observed at the same camera within the fixed five-minute window around each target sighting.",
+   "example_query": "Show same-camera observations within five minutes of plate {target}",
+   "output_description": "Same-camera temporal co-observations with cited timestamps.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "Temporal proximity is not proof of association, shared travel, ownership, or occupants."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "anpr_route_timing",
+   "description": "Consecutive exact sightings with elapsed time and optional straight-line distance; no road route is inferred.",
+   "record_types": [
+    "anpr"
+   ],
+   "route": "records",
+   "operation_id": "anpr.route_timing",
+   "family_id": "anpr_vehicles",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "plate"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "elapsed seconds",
+    "straight-line distance"
+   ],
+   "group_by": [
+    "consecutive observation pair"
+   ],
+   "calculation": "Pairs consecutive exact sightings and computes elapsed time plus WGS84 straight-line distance when both source coordinates exist.",
+   "example_query": "Show consecutive sighting timing for plate {target}",
+   "output_description": "Consecutive observation timing and optional straight-line distance.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "No road route, speed, continuous movement, driver, or occupant is inferred."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "anpr_plate_variants",
+   "description": "Observed raw plate variants grouped by the exact normalized search key and supplied OCR confidence.",
+   "record_types": [
+    "anpr"
+   ],
+   "route": "records",
+   "operation_id": "anpr.plate_variants",
+   "family_id": "anpr_vehicles",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "plate"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "observation count",
+    "minimum confidence",
+    "maximum confidence"
+   ],
+   "group_by": [
+    "normalized search key",
+    "raw plate text"
+   ],
+   "calculation": "Groups preserved raw plate strings by the exact deterministic NFKC alphanumeric search key.",
+   "example_query": "Show raw observed plate variants for {target}",
+   "output_description": "Observed raw variants and supplied confidence range.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "anpr_timeline",
+   "description": "Source-bound chronological ANPR sightings for one exact plate.",
+   "record_types": [
+    "anpr"
+   ],
+   "route": "records",
+   "operation_id": "anpr.timeline",
+   "family_id": "anpr_vehicles",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "plate"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "sighting count"
+   ],
+   "group_by": [
+    "observation timestamp"
+   ],
+   "calculation": "Filters one exact normalized plate key and orders source-bound observations chronologically.",
+   "example_query": "Build the cited ANPR timeline for plate {target}",
+   "output_description": "Chronological plate sighting timeline with source locators.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "video_anpr_grouped_timeline",
+   "description": "Grouped ANPR model observations for one retained video, using exact source timestamps.",
+   "record_types": [
+    "video",
+    "anpr"
+   ],
+   "route": "records",
+   "operation_id": "video.anpr_grouped_timeline",
+   "family_id": "anpr_vehicles",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "video evidence UUID"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    },
+    {
+     "name": "evidence_id",
+     "label": "Retained video evidence",
+     "required": true,
+     "accepted_kinds": [
+      "UUID"
+     ],
+     "description": "Exact authorized retained-video evidence UUID."
+    },
+    {
+     "name": "plate",
+     "label": "Plate filter",
+     "required": false,
+     "accepted_kinds": [
+      "plate_search_key"
+     ],
+     "description": "Optional independently supplied exact normalized plate constraint."
+    },
+    {
+     "name": "start_seconds",
+     "label": "Source start",
+     "required": false,
+     "description": "Optional inclusive non-negative source-second lower bound."
+    },
+    {
+     "name": "end_seconds",
+     "label": "Source end",
+     "required": false,
+     "description": "Optional inclusive non-negative source-second upper bound."
+    }
+   ],
+   "measures": [
+    "group count",
+    "sighting count",
+    "first source timestamp",
+    "last source timestamp",
+    "best observation"
+   ],
+   "group_by": [
+    "equal normalized model observation"
+   ],
+   "calculation": "Reads completed forensics.video-anpr-plate-group/v1 artifacts for one authorized retained video and filters optional plate and source-second bounds without reprocessing evidence.",
+   "example_query": "Show grouped ANPR observations for retained video evidence {target}",
+   "output_description": "Grouped observations with raw variants, source timestamps, observation IDs, model/revision, crop/bounds, review state, citations, and truthful complete-zero semantics.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "Grouping means equal normalized OCR model output; it is not tracking, identity, ownership, association, or a population-accuracy claim.",
+    "A completed video with no group artifacts is reported as ANPR processing complete with zero plate groups detected, not as unavailable or failed."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "subscriber_identity_lookup",
+   "description": "Privacy-safe exact subscriber identifier lookup with masked CNIC and row provenance.",
+   "record_types": [
+    "subscriber"
+   ],
+   "route": "records",
+   "operation_id": "subscriber.identity_lookup",
+   "family_id": "subscriber_identity",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "MSISDN",
+      "subscriber reference",
+      "service reference",
+      "IMSI",
+      "ICCID",
+      "IMEI"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "matching rows",
+    "first explicit validity start",
+    "last explicit validity end"
+   ],
+   "calculation": "Matches only exact normalized MSISDN, subscriber-reference, IMSI, or IMEI values. CNIC is masked and subscriber names are not returned.",
+   "example_query": "Look up subscriber identity observations for {target}",
+   "output_description": "Privacy-safe exact identity observations with source-row provenance.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "An identifier match is an evidence observation, not proof of a person's identity, ownership, or current control."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "subscriber_validity_timeline",
+   "description": "Explicit subscriber activation, deactivation, and validity-window observations for one exact identifier.",
+   "record_types": [
+    "subscriber"
+   ],
+   "route": "records",
+   "operation_id": "subscriber.validity_timeline",
+   "family_id": "subscriber_identity",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "MSISDN",
+      "subscriber reference",
+      "service reference",
+      "IMSI",
+      "ICCID",
+      "IMEI"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "activation time",
+    "deactivation time",
+    "valid from",
+    "valid to",
+    "status"
+   ],
+   "group_by": [
+    "source row"
+   ],
+   "calculation": "Orders explicit source validity fields for the exact target. Missing boundaries remain missing and the latest row is not promoted to historical ownership.",
+   "example_query": "Show the subscriber validity timeline for {target} from {date_from} to {date_to}",
+   "output_description": "Chronological, cited validity observations for one exact identifier.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "Open or missing validity bounds do not prove uninterrupted service or current ownership."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "subscriber_device_links",
+   "description": "Explicit subscriber, SIM, device, and service-role co-observations without ownership inference.",
+   "record_types": [
+    "subscriber"
+   ],
+   "route": "records",
+   "operation_id": "subscriber.device_links",
+   "family_id": "subscriber_identity",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "MSISDN",
+      "subscriber reference",
+      "service reference",
+      "IMSI",
+      "ICCID",
+      "IMEI"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "MSISDN observations",
+    "IMSI observations",
+    "ICCID observations",
+    "IMEI observations",
+    "service observations",
+    "first seen",
+    "last seen"
+   ],
+   "group_by": [
+    "source row"
+   ],
+   "calculation": "Returns separately typed subscriber, SIM, device, service, provider, and validity values co-present in cited subscriber rows.",
+   "example_query": "Show explicit subscriber, SIM, device, and service links for {target}",
+   "output_description": "Explicit role-separated subscriber/SIM/device/service observations with source locators.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "Co-presence in a subscriber row does not prove ownership, current control, physical SIM insertion, device use, or service entitlement outside the supplied validity window."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "subscriber_status_summary",
+   "description": "Subscriber row counts by explicit status and manual-review state.",
+   "record_types": [
+    "subscriber"
+   ],
+   "route": "records",
+   "operation_id": "subscriber.status_summary",
+   "family_id": "subscriber_identity",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "MSISDN",
+      "subscriber reference",
+      "service reference",
+      "IMSI",
+      "ICCID",
+      "IMEI"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "row count",
+    "first validity start",
+    "last validity end"
+   ],
+   "group_by": [
+    "explicit status",
+    "manual-review state"
+   ],
+   "calculation": "Groups explicit subscriber rows by supplied status and deterministic adapter review state.",
+   "example_query": "Summarize subscriber statuses and review flags",
+   "output_description": "Status distribution and data-quality review posture.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "subscriber_conflict_audit",
+   "description": "Deterministic conflicting-attribute counts for stable subscriber identifiers.",
+   "record_types": [
+    "subscriber"
+   ],
+   "route": "records",
+   "operation_id": "subscriber.conflict_audit",
+   "family_id": "subscriber_identity",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "MSISDN",
+      "subscriber reference",
+      "service reference",
+      "IMSI",
+      "ICCID",
+      "IMEI"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "distinct MSISDN count",
+    "distinct IMSI count",
+    "distinct ICCID count",
+    "distinct IMEI count",
+    "distinct service count",
+    "distinct provider count",
+    "distinct status count",
+    "distinct CNIC count"
+   ],
+   "group_by": [
+    "stable explicit subscriber reference or MSISDN"
+   ],
+   "calculation": "Counts distinct explicit attributes for each stable identifier and returns only groups with a conflict signal; full CNIC and names are never returned.",
+   "example_query": "Audit conflicting subscriber attributes",
+   "output_description": "Conflict-review queue with counts and provenance coverage.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "Conflicting attributes require human review and are not automatically reconciled."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "subscriber_reuse_candidates",
+   "description": "Identifiers explicitly observed with more than one MSISDN, reported as review candidates rather than ownership conclusions.",
+   "record_types": [
+    "subscriber"
+   ],
+   "route": "records",
+   "operation_id": "subscriber.reuse_candidates",
+   "family_id": "subscriber_identity",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "subscriber reference",
+      "service reference",
+      "IMSI",
+      "ICCID",
+      "IMEI"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "distinct MSISDN count",
+    "observation count",
+    "first seen",
+    "last seen"
+   ],
+   "group_by": [
+    "identifier kind",
+    "identifier value"
+   ],
+   "calculation": "Finds explicit subscriber/service references, IMSIs, ICCIDs, or IMEIs observed with more than one canonical MSISDN.",
+   "example_query": "Show subscriber identifier reuse candidates",
+   "output_description": "Bounded identifier-reuse review candidates.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "Reuse candidates do not prove reassignment, SIM swap, device sharing, fraud, or ownership."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "tower_site_lookup",
+   "description": "Exact tower/site reference observations with supplied coordinates, uncertainty, validity, and provenance.",
+   "record_types": [
+    "tower_location"
+   ],
+   "route": "records",
+   "operation_id": "tower.site_lookup",
+   "family_id": "tower_location",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "site ID",
+      "sector ID",
+      "provider code",
+      "reference ID",
+      "LAC",
+      "TAC",
+      "CGI",
+      "ECGI",
+      "eNodeB ID",
+      "gNodeB ID"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "reference observations",
+    "coordinates",
+    "uncertainty radius",
+    "validity bounds"
+   ],
+   "calculation": "Matches exact supplied site and radio-area aliases and returns only cited reference rows.",
+   "example_query": "Look up tower/site reference observations for {target}",
+   "output_description": "Exact time-aware tower/site reference observations.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "A reference coordinate is not proof of RF coverage, device presence, or subscriber location."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "tower_reference_timeline",
+   "description": "Chronological reference history for one exact tower/site alias.",
+   "record_types": [
+    "tower_location"
+   ],
+   "route": "records",
+   "operation_id": "tower.reference_timeline",
+   "family_id": "tower_location",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "site ID",
+      "sector ID",
+      "provider code",
+      "reference ID",
+      "LAC",
+      "TAC",
+      "CGI",
+      "ECGI",
+      "eNodeB ID",
+      "gNodeB ID"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "valid from",
+    "valid to",
+    "validity basis",
+    "status",
+    "technology",
+    "coordinates",
+    "uncertainty"
+   ],
+   "group_by": [
+    "provider/site/sector history key",
+    "reference observation"
+   ],
+   "calculation": "Orders exact provider/site/sector reference rows by supplied validity start, preserves validity basis, version and uncertainty, and does not fill missing end bounds.",
+   "example_query": "Show tower/site reference history for {target}",
+   "output_description": "Chronological supplied reference history for one exact alias.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "Missing validity bounds remain unknown; recency does not establish current operational truth."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "tower_coordinate_audit",
+   "description": "Coordinate, datum, uncertainty, and screening-quality audit for tower/site references.",
+   "record_types": [
+    "tower_location"
+   ],
+   "route": "records",
+   "operation_id": "tower.coordinate_audit",
+   "family_id": "tower_location",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "site ID",
+      "sector ID",
+      "LAC",
+      "TAC"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "latitude",
+    "longitude",
+    "datum",
+    "uncertainty radius",
+    "quality flags"
+   ],
+   "calculation": "Returns supplied coordinates and deterministic adapter flags; no coordinate is silently transformed.",
+   "example_query": "Audit tower coordinates, datums, uncertainty, and review flags",
+   "output_description": "Cited coordinate-quality review table and map inputs.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "Coordinates and uncertainty are supplied reference facts, not measured RF coverage or device position."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "tower_status_summary",
+   "description": "Tower/site reference counts by explicit status, technology, and review state.",
+   "record_types": [
+    "tower_location"
+   ],
+   "route": "records",
+   "operation_id": "tower.status_summary",
+   "family_id": "tower_location",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "reference row count",
+    "first reference",
+    "last reference"
+   ],
+   "group_by": [
+    "status",
+    "technology",
+    "manual-review state"
+   ],
+   "calculation": "Groups explicit reference rows by supplied operational status, technology, and deterministic review state.",
+   "example_query": "Summarize tower/site statuses, technologies, and review flags",
+   "output_description": "Reference-status and technology distribution.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "A supplied status is not independently verified network availability or coverage."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "tower_alias_conflicts",
+   "description": "Exact alias groups with conflicting supplied coordinates, sectors, technologies, or statuses.",
+   "record_types": [
+    "tower_location"
+   ],
+   "route": "records",
+   "operation_id": "tower.alias_conflicts",
+   "family_id": "tower_location",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "site ID",
+      "sector ID",
+      "LAC",
+      "TAC"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "overlapping validity pairs",
+    "distinct coordinates",
+    "distinct technologies",
+    "distinct statuses",
+    "distinct datums",
+    "distinct uncertainty radii"
+   ],
+   "group_by": [
+    "provider/site/sector history key"
+   ],
+   "calculation": "Counts half-open validity-window overlaps and distinct supplied reference facts per exact provider/site/sector history key.",
+   "example_query": "Audit conflicting tower/site aliases and reference facts",
+   "output_description": "Bounded tower-history overlap and conflict review queue.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "Conflicts are preserved for human review and are not automatically reconciled."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "tower_cdr_join",
+   "description": "Time-aware exact cell/site join from CDR observations to the latest eligible supplied tower reference.",
+   "record_types": [
+    "cdr",
+    "tower_location"
+   ],
+   "route": "records",
+   "operation_id": "tower.cdr_join",
+   "family_id": "tower_location",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "cell ID",
+      "site ID"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "CDR observations",
+    "reference candidates",
+    "eligible references",
+    "match status",
+    "reference age",
+    "coordinates",
+    "uncertainty radius"
+   ],
+   "calculation": "Matches one exact CDR cell/site value against supplied tower references, counts all exact candidates and timestamp-eligible candidates, selects the latest eligible reference for display, and explicitly classifies absent, out-of-window, or overlapping references.",
+   "example_query": "Join CDR observations to eligible tower references for {target}",
+   "output_description": "Cited time-aware CDR-to-tower reference matches with visible ambiguous and unmatched outcomes.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "An exact reference join supplies location context only; it does not prove RF coverage, handset position, or continuous movement.",
+    "Overlapping eligible references remain ambiguous and unmatched observations remain visible; neither condition is silently reconciled."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "financial_transaction_summary",
+   "description": "Currency-separated transaction counts and exact amount totals with complete bounded contribution lineage.",
+   "record_types": [
+    "transaction"
+   ],
+   "route": "records",
+   "operation_id": "financial.transaction_summary",
+   "family_id": "financial_transactions",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "account",
+      "transaction reference"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "transaction count",
+    "exact amount total",
+    "first seen",
+    "last seen"
+   ],
+   "group_by": [
+    "currency",
+    "explicit status",
+    "amount role"
+   ],
+   "calculation": "Groups canonical transaction rows by exact supplied currency, explicit status, and amount role; sums normalized decimal amounts only within each currency and preserves complete bounded contribution lineage.",
+   "example_query": "Summarize exact transaction totals by currency and status",
+   "output_description": "Currency-separated transaction summary with source contribution proof.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "No exchange-rate conversion, cross-currency total, account ownership, fraud, beneficial-control, or intent inference is performed."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "access_failed_events",
+   "description": "Explicit access/security failures from HTTP status or source-declared outcome fields.",
+   "record_types": [
+    "access_log"
+   ],
+   "route": "records",
+   "operation_id": "access.failed_events",
+   "family_id": "access_security_logs",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "IP address",
+      "user or principal",
+      "request path"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "failed event count"
+   ],
+   "group_by": [
+    "source event"
+   ],
+   "calculation": "Returns canonical access-log rows whose explicit HTTP status is 4xx/5xx or whose source-declared outcome is a bounded failure token, ordered by event time and source locator.",
+   "example_query": "Show explicit failed access events",
+   "output_description": "Cited failed access/security events and their explicit failure basis.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "A failed event is not proof of compromise, malicious intent, or the human identity of a source principal."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "generic_filter_records",
+   "description": "Bounded parameterized source-of-truth query over canonical generic structured rows.",
+   "record_types": [
+    "generic"
+   ],
+   "route": "records",
+   "operation_id": "generic.filter_records",
+   "family_id": "generic_tabular",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "exact source value"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "matching row count"
+   ],
+   "calculation": "Reuses the parameterized canonical-record executor with the server-authoritative record type fixed to generic.",
+   "example_query": "Show bounded canonical generic structured records",
+   "output_description": "Bounded generic rows with preserved raw/canonical values and source provenance.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "Generic rows retain source meaning; NexusAI does not invent family semantics from field names."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "document_metadata",
+   "description": "Registered document/text evidence, processing state, and completed derived-artifact inventory.",
+   "record_types": [
+    "document",
+    "text"
+   ],
+   "route": "records",
+   "operation_id": "document.metadata",
+   "family_id": "document_intelligence",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "evidence UUID",
+      "source filename"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "evidence count",
+    "completed artifact count",
+    "size bytes"
+   ],
+   "calculation": "Reads authorized document/text evidence registry rows and completed artifact counts without extracting or reprocessing content.",
+   "example_query": "Show registered document evidence and processing status",
+   "output_description": "Document evidence inventory with version, processing, format, and completed-artifact state.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "document_search",
+   "description": "Family-scoped lexical retrieval over completed native document passages with source citations.",
+   "record_types": [
+    "document",
+    "text"
+   ],
+   "route": "derived",
+   "operation_id": "document.search",
+   "family_id": "document_intelligence",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "search phrase",
+      "exact identifier"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "source_set",
+     "label": "Selected document sources",
+     "required": false,
+     "accepted_kinds": [
+      "forensics.structured-source-set/v1"
+     ],
+     "description": "Optional two-to-eight exact authorized document selection; required by a comparison request."
+    }
+   ],
+   "calculation": "Scores only completed forensics.document-native-text-passage/v1 artifacts using bounded case-scoped lexical retrieval.",
+   "example_query": "Find cited document passages about {target}",
+   "output_description": "Cited native document passages with evidence, version, source and page/section locator.",
+   "scope_mode": "case_or_target",
+   "presentation": "cited_evidence_results",
+   "limitations": [
+    "A passage is retrieved context, not a deterministic analytical fact; scanned pages, tables and unsupported formats may remain unprocessed."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "image_metadata",
+   "description": "Registered image evidence, processing state, and completed derived-artifact inventory.",
+   "record_types": [
+    "image"
+   ],
+   "route": "records",
+   "operation_id": "image.metadata",
+   "family_id": "image_intelligence",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "evidence UUID",
+      "source filename"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "evidence count",
+    "completed artifact count",
+    "size bytes"
+   ],
+   "calculation": "Reads authorized image evidence registry rows and completed artifact counts without invoking a model.",
+   "example_query": "Show registered image evidence and processing status",
+   "output_description": "Image evidence inventory with version, processing, format, and completed-artifact state.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "image_ocr_search",
+   "description": "Family-scoped lexical retrieval over completed image OCR observations with region citations.",
+   "record_types": [
+    "image"
+   ],
+   "route": "derived",
+   "operation_id": "image.ocr_search",
+   "family_id": "image_intelligence",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "search phrase",
+      "exact identifier"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    }
+   ],
+   "calculation": "Scores only completed forensics.image-ocr-observation/v1 artifacts using bounded case-scoped lexical retrieval.",
+   "example_query": "Find cited OCR observations in images for {target}",
+   "output_description": "Cited OCR observation candidates with evidence, version and region locator.",
+   "scope_mode": "case_or_target",
+   "presentation": "cited_evidence_results",
+   "limitations": [
+    "OCR text is a model observation requiring review; no text, identity, ownership, or event is promoted to fact."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "face_candidate_observations",
+   "description": "Candidate-only face observations for one exact retained image without identity inference.",
+   "record_types": [
+    "image"
+   ],
+   "route": "records",
+   "operation_id": "face.candidate_observations",
+   "family_id": "face_intelligence",
+   "inputs": [
+    {
+     "name": "evidence_id",
+     "label": "Retained image evidence",
+     "required": true,
+     "accepted_kinds": [
+      "UUID"
+     ],
+     "description": "Exact authorized retained-image evidence UUID."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded candidate-observation limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "candidate observation count",
+    "model confidence when supplied",
+    "source region"
+   ],
+   "calculation": "Reads only completed current-version forensics.face-observation/v1 artifacts for one exact authorized retained image, removes embeddings from public rows, and orders candidates by artifact creation time and artifact ID.",
+   "example_query": "Show face candidate observations for retained image evidence {target}",
+   "output_description": "Cited candidate-only face observations with model/review metadata and source-region locators.",
+   "scope_mode": "evidence_required",
+   "presentation": "candidate_observation_table",
+   "limitations": [
+    "Face observations are model candidates, never identity determinations; no name, identity, demographic attribute, ownership, association, intent, or real-world presence is inferred."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "audio_metadata",
+   "description": "Registered audio evidence, processing state, and completed derived-artifact inventory.",
+   "record_types": [
+    "audio"
+   ],
+   "route": "records",
+   "operation_id": "audio.metadata",
+   "family_id": "audio_intelligence",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "evidence UUID",
+      "source filename"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "evidence count",
+    "completed artifact count",
+    "size bytes"
+   ],
+   "calculation": "Reads authorized audio evidence registry rows and completed artifact counts without invoking ASR.",
+   "example_query": "Show registered audio evidence and processing status",
+   "output_description": "Audio evidence inventory with version, processing, format, and completed-artifact state.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "audio_transcript_search",
+   "description": "Family-scoped lexical retrieval over completed timestamped ASR and Roman-Urdu transcript observations.",
+   "record_types": [
+    "audio"
+   ],
+   "route": "derived",
+   "operation_id": "audio.transcript_search",
+   "family_id": "audio_intelligence",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "Urdu phrase",
+      "Roman Urdu phrase",
+      "exact identifier"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    }
+   ],
+   "calculation": "Scores only completed raw timestamped ASR and Roman-Urdu derivative segment artifacts using bounded case-scoped lexical retrieval.",
+   "example_query": "Find cited audio transcript observations for {target}",
+   "output_description": "Timestamp-cited transcript observations preserving raw Urdu authority and Roman-Urdu derivation.",
+   "scope_mode": "case_or_target",
+   "presentation": "cited_evidence_results",
+   "limitations": [
+    "ASR and Roman-Urdu text are observations, not verbatim fact; identifiers and unclear speech require source playback review."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "video_metadata",
+   "description": "Registered video evidence, processing state, and completed derived-artifact inventory.",
+   "record_types": [
+    "video"
+   ],
+   "route": "records",
+   "operation_id": "video.metadata",
+   "family_id": "video_intelligence",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "evidence UUID",
+      "source filename"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "evidence count",
+    "completed artifact count",
+    "size bytes"
+   ],
+   "calculation": "Reads authorized video evidence registry rows and completed artifact counts without sampling or reprocessing.",
+   "example_query": "Show registered video evidence and processing status",
+   "output_description": "Video evidence inventory with version, processing, format, and completed-artifact state.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "video_timeline",
+   "description": "Bounded source-time timeline of completed retained-video observations without reprocessing.",
+   "record_types": [
+    "video"
+   ],
+   "route": "records",
+   "operation_id": "video.timeline",
+   "family_id": "video_intelligence",
+   "inputs": [
+    {
+     "name": "evidence_id",
+     "label": "Retained video evidence",
+     "required": true,
+     "accepted_kinds": [
+      "UUID"
+     ],
+     "description": "Exact authorized retained-video evidence UUID."
+    },
+    {
+     "name": "start_seconds",
+     "label": "Source start",
+     "required": false,
+     "description": "Optional inclusive non-negative source-second lower bound."
+    },
+    {
+     "name": "end_seconds",
+     "label": "Source end",
+     "required": false,
+     "description": "Optional inclusive non-negative source-second upper bound."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded observation limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "observation count",
+    "source start seconds",
+    "source end seconds"
+   ],
+   "group_by": [
+    "source time",
+    "observation contract"
+   ],
+   "calculation": "Reads only completed allowlisted derived artifacts for one authorized retained video, applies optional source-second bounds, and orders by source time without reprocessing.",
+   "example_query": "Show the observation timeline for retained video evidence {target}",
+   "output_description": "Bounded sampled-observation timeline with artifact authority, review metadata, and source-time citations.",
+   "scope_mode": "evidence_required",
+   "presentation": "source_time_observation_timeline",
+   "limitations": [
+    "The timeline is sampled and incomplete by design; model observations do not prove identity, ownership, association, intent, continuous activity, or events between samples."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "entity_activity",
+   "description": "Cross-record entity observation summary across all indexed structured record families.",
+   "record_types": [
+    "cdr",
+    "ipdr",
+    "anpr",
+    "subscriber",
+    "tower_location",
+    "transaction",
+    "access_log",
+    "generic"
+   ],
+   "route": "records",
+   "operation_id": "forensics.entity_activity",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized entity activity operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=entity_activity; limit=20",
+   "output_description": "Bounded deterministic entity activity result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "relationship_network",
+   "description": "Entities observed in the same source rows as a target entity.",
+   "record_types": [
+    "cdr",
+    "ipdr",
+    "anpr",
+    "subscriber",
+    "tower_location",
+    "transaction",
+    "access_log",
+    "generic"
+   ],
+   "route": "records",
+   "operation_id": "forensics.relationship_network",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized relationship network operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=relationship_network; limit=20",
+   "output_description": "Bounded deterministic relationship network result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "cross_family_correlation",
+   "description": "Exact normalized target matches and cited related entities across every canonical structured record family.",
+   "record_types": [
+    "cdr",
+    "ipdr",
+    "anpr",
+    "subscriber",
+    "tower_location",
+    "transaction",
+    "access_log",
+    "generic"
+   ],
+   "route": "records",
+   "operation_id": "forensics.cross_family_correlation",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "MSISDN",
+      "IMSI",
+      "IMEI",
+      "IP address",
+      "plate",
+      "account",
+      "entity"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "matching observations",
+    "related entities",
+    "source families"
+   ],
+   "group_by": [
+    "record family",
+    "explicit normalized entity"
+   ],
+   "calculation": "Matches one exact normalized target across authorized case families and returns only cited co-observations and explicit source-row relations.",
+   "example_query": "Correlate {target} across available record families",
+   "output_description": "Cross-family exact-match summary and cited related observations for one target.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "Cross-family co-observation does not establish identity, ownership, association, causation, or intent."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "entity_timeline",
+   "description": "Chronological evidence timeline across all structured record families.",
+   "record_types": [
+    "cdr",
+    "ipdr",
+    "anpr",
+    "subscriber",
+    "tower_location",
+    "transaction",
+    "access_log",
+    "generic"
+   ],
+   "route": "records",
+   "operation_id": "cdr.timeline",
+   "family_id": "communications_cdr",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "MSISDN",
+      "IMSI",
+      "IMEI",
+      "IP address",
+      "plate",
+      "account",
+      "entity"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "event count"
+   ],
+   "group_by": [
+    "event timestamp",
+    "record family"
+   ],
+   "calculation": "Filters exact normalized entity matches across case families and orders cited events chronologically.",
+   "example_query": "Build the evidence timeline for {target} from {date_from} to {date_to}",
+   "output_description": "Cross-family chronological evidence timeline for one exact case identifier.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "source_records",
+   "description": "Small capped set of source rows for audit and manual review.",
+   "record_types": [
+    "cdr",
+    "ipdr",
+    "anpr",
+    "subscriber",
+    "tower_location",
+    "transaction",
+    "access_log",
+    "generic"
+   ],
+   "route": "records",
+   "operation_id": "forensics.source_records",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized source records operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=source_records; limit=20",
+   "output_description": "Bounded deterministic source records result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "canonical_records",
+   "description": "Parameterized source-of-truth query over forensic.records with JSONB filters, provenance, paging, totals, and sort controls.",
+   "record_types": [
+    "all"
+   ],
+   "route": "records",
+   "operation_id": "forensics.canonical_records",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    },
+    {
+     "name": "group",
+     "label": "Bounded canonical count",
+     "required": false,
+     "accepted_kinds": [
+      "object"
+     ],
+     "description": "Optional field record_type or source_file with measure count; complete input at most 1000 rows and 100 groups. Nulls retained, count descending with deterministic ties, exact row lineage. Source implementation only; this extension is not live-qualified."
+    },
+    {
+     "name": "projection",
+     "label": "Canonical fields",
+     "required": false,
+     "accepted_kinds": [
+      "string_array"
+     ],
+     "description": "Optional unique subset of record_type, timestamp, primary_target, secondary_target, source_file, row_number, ingested_at. Provenance is always retained; payload fields and expressions are rejected."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized canonical records operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=canonical_records; limit=20",
+   "output_description": "Bounded deterministic canonical records result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "schema_profile",
+   "description": "Detected headers, normalized schemas, and structured/RAG asset status.",
+   "record_types": [
+    "all"
+   ],
+   "route": "records",
+   "operation_id": "forensics.schema_profile",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized schema profile operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=schema_profile; limit=20",
+   "output_description": "Bounded deterministic schema profile result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "C",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "engineering_only",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "data_quality",
+   "description": "Ingest quality, duplicate counts, rejected rows, and parser error samples.",
+   "record_types": [
+    "all"
+   ],
+   "route": "records",
+   "operation_id": "forensics.data_quality",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized data quality operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=data_quality; limit=20",
+   "output_description": "Bounded deterministic data quality result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "evidence",
+   "description": "Knowledge Base evidence search with raw-entry fallback.",
+   "record_types": [
+    "all"
+   ],
+   "route": "kb",
+   "operation_id": "forensics.evidence",
+   "family_id": "knowledge_evidence",
+   "calculation": "Executes the accepted parameterized evidence operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=evidence; limit=20",
+   "output_description": "Bounded deterministic evidence result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "cited_evidence_results",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "A",
+   "certification_status": "certified",
+   "exposure_status": "queryable",
+   "suggestion_eligible": true
+  },
+  {
+   "name": "shortest_call",
+   "description": "Shortest non-zero CDR call duration with source row provenance.",
+   "record_types": [
+    "cdr"
+   ],
+   "route": "records",
+   "operation_id": "forensics.shortest_call",
+   "family_id": "communications_cdr",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized shortest call operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=shortest_call; limit=20",
+   "output_description": "Bounded deterministic shortest call result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "longest_call",
+   "description": "Longest CDR call duration with source row provenance.",
+   "record_types": [
+    "cdr"
+   ],
+   "route": "records",
+   "operation_id": "forensics.longest_call",
+   "family_id": "communications_cdr",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized longest call operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=longest_call; limit=20",
+   "output_description": "Bounded deterministic longest call result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "duration_extremes",
+   "description": "Shortest, longest, and aggregate non-zero CDR duration statistics.",
+   "record_types": [
+    "cdr"
+   ],
+   "route": "records",
+   "operation_id": "cdr.duration_extremes",
+   "family_id": "communications_cdr",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": false,
+     "accepted_kinds": [
+      "MSISDN",
+      "originating number",
+      "dialed number"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "minimum non-zero duration",
+    "maximum duration",
+    "average non-zero duration",
+    "audited row count"
+   ],
+   "calculation": "Uses MIN, MAX, AVG, and COUNT only over explicit non-zero CDR duration values and returns cited extreme rows.",
+   "example_query": "Show shortest, longest, and average non-zero CDR durations",
+   "output_description": "Duration statistics plus the exact shortest/longest source rows.",
+   "scope_mode": "case_or_target",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "first_seen_last_seen",
+   "description": "First and last observation per entity across indexed records.",
+   "record_types": [
+    "cdr",
+    "ipdr",
+    "anpr",
+    "subscriber",
+    "tower_location",
+    "transaction",
+    "access_log",
+    "generic"
+   ],
+   "route": "records",
+   "operation_id": "forensics.first_seen_last_seen",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized first seen last seen operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=first_seen_last_seen; limit=20",
+   "output_description": "Bounded deterministic first seen last seen result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "C",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "engineering_only",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "activity_by_day",
+   "description": "Daily activity counts by record family.",
+   "record_types": [
+    "cdr",
+    "ipdr",
+    "anpr",
+    "subscriber",
+    "tower_location",
+    "transaction",
+    "access_log",
+    "generic"
+   ],
+   "route": "records",
+   "operation_id": "forensics.activity_by_day",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized activity by day operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=activity_by_day; limit=20",
+   "output_description": "Bounded deterministic activity by day result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "C",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "engineering_only",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "activity_by_hour",
+   "description": "Hourly CDR activity counts.",
+   "record_types": [
+    "cdr"
+   ],
+   "route": "records",
+   "operation_id": "forensics.activity_by_hour",
+   "family_id": "communications_cdr",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized activity by hour operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=activity_by_hour; limit=20",
+   "output_description": "Bounded deterministic activity by hour result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "night_activity",
+   "description": "Nocturnal CDR activity and duration outliers.",
+   "record_types": [
+    "cdr"
+   ],
+   "route": "records",
+   "operation_id": "forensics.night_activity",
+   "family_id": "communications_cdr",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized night activity operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=night_activity; limit=20",
+   "output_description": "Bounded deterministic night activity result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "repeated_location_visits",
+   "description": "Repeated location and cell-site visits.",
+   "record_types": [
+    "cdr"
+   ],
+   "route": "records",
+   "operation_id": "forensics.repeated_location_visits",
+   "family_id": "communications_cdr",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized repeated location visits operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=repeated_location_visits; limit=20",
+   "output_description": "Bounded deterministic repeated location visits result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "co_travel_or_co_presence",
+   "description": "Entities co-present in the same source rows as a target.",
+   "record_types": [
+    "cdr",
+    "ipdr",
+    "anpr",
+    "subscriber",
+    "tower_location",
+    "transaction",
+    "access_log",
+    "generic"
+   ],
+   "route": "records",
+   "operation_id": "forensics.co_travel_or_co_presence",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized co travel or co presence operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=co_travel_or_co_presence; limit=20",
+   "output_description": "Bounded deterministic co travel or co presence result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "C",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "engineering_only",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "subscriber_profile",
+   "description": "Subscriber, IMSI, IMEI, and source-row profile for a target.",
+   "record_types": [
+    "subscriber",
+    "cdr",
+    "generic"
+   ],
+   "route": "records",
+   "operation_id": "forensics.subscriber_profile",
+   "family_id": "communications_cdr",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized subscriber profile operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=subscriber_profile; limit=20",
+   "output_description": "Bounded deterministic subscriber profile result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "imei_imsi_usage",
+   "description": "IMEI/IMSI usage activity for a target.",
+   "record_types": [
+    "cdr"
+   ],
+   "route": "records",
+   "operation_id": "forensics.imei_imsi_usage",
+   "family_id": "communications_cdr",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized imei imsi usage operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=imei_imsi_usage; limit=20",
+   "output_description": "Bounded deterministic imei imsi usage result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "tower_activity",
+   "description": "Tower, cell-site, and location activity for a target.",
+   "record_types": [
+    "cdr",
+    "tower_location"
+   ],
+   "route": "records",
+   "operation_id": "cdr.tower_activity",
+   "family_id": "communications_cdr",
+   "inputs": [
+    {
+     "name": "target",
+     "label": "Exact target",
+     "required": true,
+     "accepted_kinds": [
+      "MSISDN",
+      "IMSI",
+      "IMEI",
+      "cell ID",
+      "site ID"
+     ],
+     "description": "Use an exact identifier returned by case entity discovery; masked coverage hints are not executable targets."
+    },
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "measures": [
+    "observation count",
+    "first seen",
+    "last seen"
+   ],
+   "group_by": [
+    "cell site",
+    "tower/site",
+    "supplied location"
+   ],
+   "calculation": "Groups exact CDR tower/cell/location fields without inferring coordinates or RF coverage.",
+   "example_query": "Show tower and cell activity for {target}",
+   "output_description": "Ranked tower/cell observations with first/last timestamps.",
+   "scope_mode": "target_required",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "suspicious_patterns",
+   "description": "Rule-based anomaly summary covering night activity, duration extremes, and quality warnings.",
+   "record_types": [
+    "all"
+   ],
+   "route": "records",
+   "operation_id": "forensics.suspicious_patterns",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized suspicious patterns operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=suspicious_patterns; limit=20",
+   "output_description": "Bounded deterministic suspicious patterns result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "C",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "engineering_only",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "anomaly_summary",
+   "description": "Rule-based anomaly summary covering night activity, duration extremes, and quality warnings.",
+   "record_types": [
+    "all"
+   ],
+   "route": "records",
+   "operation_id": "forensics.anomaly_summary",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized anomaly summary operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=anomaly_summary; limit=20",
+   "output_description": "Bounded deterministic anomaly summary result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "C",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "engineering_only",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "cross_dataset_entity_summary",
+   "description": "Cross-dataset entity observation summary.",
+   "record_types": [
+    "all"
+   ],
+   "route": "records",
+   "operation_id": "forensics.cross_dataset_entity_summary",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized cross dataset entity summary operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=cross_dataset_entity_summary; limit=20",
+   "output_description": "Bounded deterministic cross dataset entity summary result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "C",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "engineering_only",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "source_file_audit",
+   "description": "Ingested source files, KB asset state, and record-family counts.",
+   "record_types": [
+    "all"
+   ],
+   "route": "records",
+   "operation_id": "forensics.source_file_audit",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized source file audit operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=source_file_audit; limit=20",
+   "output_description": "Bounded deterministic source file audit result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "C",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "engineering_only",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "duplicate_upload_audit",
+   "description": "Duplicate upload counts and ingest status.",
+   "record_types": [
+    "all"
+   ],
+   "route": "records",
+   "operation_id": "forensics.duplicate_upload_audit",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized duplicate upload audit operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=duplicate_upload_audit; limit=20",
+   "output_description": "Bounded deterministic duplicate upload audit result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "C",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "engineering_only",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "case_readiness",
+   "description": "Operational readiness score across ingest completion, duplicates, rejected rows, record families, and KB asset coverage.",
+   "record_types": [
+    "all"
+   ],
+   "route": "records",
+   "operation_id": "forensics.case_readiness",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized case readiness operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=case_readiness; limit=20",
+   "output_description": "Bounded deterministic case readiness result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "evidence_package_summary",
+   "description": "Collection overview, source files, data quality, and KB evidence route.",
+   "record_types": [
+    "all"
+   ],
+   "route": "hybrid",
+   "operation_id": "forensics.evidence_package_summary",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized evidence package summary operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=evidence_package_summary; limit=20",
+   "output_description": "Bounded deterministic evidence package summary result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "executive_brief_with_sources",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "A",
+   "certification_status": "certified",
+   "exposure_status": "queryable",
+   "suggestion_eligible": true
+  },
+  {
+   "name": "executive_case_brief",
+   "description": "Collection-level executive brief inputs from deterministic analytics.",
+   "record_types": [
+    "all"
+   ],
+   "route": "hybrid",
+   "operation_id": "forensics.executive_case_brief",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized executive case brief operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=executive_case_brief; limit=20",
+   "output_description": "Bounded deterministic executive case brief result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "executive_brief_with_sources",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "B",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "limited",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "court_ready_source_summary",
+   "description": "Auditable source rows, source files, and data-quality limitations.",
+   "record_types": [
+    "all"
+   ],
+   "route": "records",
+   "operation_id": "forensics.court_ready_source_summary",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized court ready source summary operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=court_ready_source_summary; limit=20",
+   "output_description": "Bounded deterministic court ready source summary result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "C",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "engineering_only",
+   "suggestion_eligible": false
+  },
+  {
+   "name": "limitations_and_data_quality",
+   "description": "Known limitations, rejected rows, duplicate counts, and parser errors.",
+   "record_types": [
+    "all"
+   ],
+   "route": "records",
+   "operation_id": "forensics.limitations_and_data_quality",
+   "family_id": "case_cross_family",
+   "inputs": [
+    {
+     "name": "date_from",
+     "label": "Start time",
+     "required": false,
+     "description": "Optional inclusive ISO-8601 lower bound in the case timezone."
+    },
+    {
+     "name": "date_to",
+     "label": "End time",
+     "required": false,
+     "description": "Optional exclusive ISO-8601 upper bound in the case timezone."
+    },
+    {
+     "name": "limit",
+     "label": "Result limit",
+     "required": false,
+     "description": "Optional bounded row/group limit; server policy remains authoritative."
+    }
+   ],
+   "calculation": "Executes the accepted parameterized limitations and data quality operation over the authorized case scope.",
+   "example_query": "Run deterministic forensic query; template=limitations_and_data_quality; limit=20",
+   "output_description": "Bounded deterministic limitations and data quality result with source traceability.",
+   "scope_mode": "case_wide",
+   "presentation": "bounded_records_table",
+   "limitations": [
+    "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+   ],
+   "criticality_tier": "C",
+   "certification_status": "bounded_uncertified",
+   "exposure_status": "engineering_only",
+   "suggestion_eligible": false
+  }
+ ]
+}

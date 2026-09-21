@@ -1,0 +1,10 @@
+import{a as e}from"./chunk-Cyuzqnbw.js";import{n as t,t as n}from"./jsx-runtime-xIJTzhZo.js";var r=e(t(),1),i=n(),a=[{text:`Loading models...`,icon:`fa-brain`},{text:`Fetching gallery...`,icon:`fa-download`},{text:`Checking availability...`,icon:`fa-circle-check`},{text:`Almost ready...`,icon:`fa-hourglass-half`},{text:`Preparing gallery...`,icon:`fa-store`}];function o(){let[e,t]=(0,r.useState)(()=>Math.floor(Math.random()*a.length)),[n,o]=(0,r.useState)(!0);(0,r.useEffect)(()=>{let e=setInterval(()=>{o(!1),setTimeout(()=>{t(e=>(e+1)%a.length),o(!0)},300)},2800);return()=>clearInterval(e)},[]);let s=a[e];return(0,i.jsxs)(`div`,{style:{display:`flex`,flexDirection:`column`,alignItems:`center`,justifyContent:`center`,padding:`var(--spacing-xl) var(--spacing-md)`,minHeight:`280px`,gap:`var(--spacing-lg)`},children:[(0,i.jsx)(`div`,{style:{display:`flex`,gap:`var(--spacing-sm)`},children:[0,1,2,3,4].map(e=>(0,i.jsx)(`div`,{style:{width:10,height:10,borderRadius:`50%`,background:`var(--color-primary)`,animation:`galleryDot 1.4s ease-in-out ${e*.15}s infinite`}},e))}),(0,i.jsxs)(`div`,{style:{display:`flex`,alignItems:`center`,gap:`var(--spacing-sm)`,opacity:+!!n,transition:`opacity 300ms ease`,color:`var(--color-text-secondary)`,fontSize:`0.9375rem`,fontWeight:500},children:[(0,i.jsx)(`i`,{className:`fas ${s.icon}`,style:{color:`var(--color-accent)`,fontSize:`1.125rem`}}),s.text]}),(0,i.jsx)(`div`,{style:{width:`100%`,maxWidth:`700px`,display:`flex`,flexDirection:`column`,gap:`12px`},children:[.9,.7,.5].map((e,t)=>(0,i.jsx)(`div`,{style:{height:`48px`,borderRadius:`var(--radius-md)`,background:`var(--color-bg-tertiary)`,opacity:e,animation:`galleryShimmer 1.8s ease-in-out ${t*.2}s infinite`}},t))}),(0,i.jsx)(`style`,{children:`
+        @keyframes galleryDot {
+          0%, 80%, 100% { transform: scale(0.4); opacity: 0.3; }
+          40% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes galleryShimmer {
+          0%, 100% { opacity: var(--shimmer-base, 0.15); }
+          50% { opacity: var(--shimmer-peak, 0.3); }
+        }
+      `})]})}export{o as t};

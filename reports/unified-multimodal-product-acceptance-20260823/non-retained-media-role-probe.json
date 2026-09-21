@@ -1,0 +1,531 @@
+{
+  "contract_version": "nexusai.media-role-non-retained-probe/v1",
+  "retained_mutation": false,
+  "probes": [
+    {
+      "path": "/inputs/unified-source-copies/image-test-plate-test_plate.jpg",
+      "sha256": "a15a7ec947fdb2c5a08a70243a62ed66e4dddd89defaba9d135f6c5ac67559f6",
+      "modality": "image",
+      "readiness": "READY",
+      "processor": "nexusai-composite-image",
+      "processor_revision": "post-bf-a-v2",
+      "limitations": [
+        "OCR accuracy is not certified for Pakistani plates",
+        "model region classification is intentionally ignored",
+        "face 1 candidate embedding unavailable: LocalAI face embed failed: HTTP Error 500: Internal Server Error",
+        "English WebLI pretraining limits Urdu and Roman-Urdu text-to-image reliability",
+        "runtime retrieval is bounded to explicitly authorized candidate evidence",
+        "general scene OCR is LIMITED and does not replace FastALPR plate OCR",
+        "Urdu, mixed-script, blur, rotation and stylized text require analyst review"
+      ],
+      "observation_count": 27,
+      "observations": [
+        {
+          "contract_version": "forensics.image-observation/v1",
+          "observation_type": "image_technical_observation",
+          "confidence": null,
+          "summary": {},
+          "warnings": []
+        },
+        {
+          "contract_version": "forensics.image-fingerprint/v1",
+          "observation_type": "image_fingerprint_observation",
+          "confidence": null,
+          "summary": {},
+          "warnings": []
+        },
+        {
+          "contract_version": "forensics.anpr-observation/v1",
+          "observation_type": "anpr_ocr_observation",
+          "confidence": 0.9997855305671692,
+          "summary": {},
+          "warnings": [
+            "OCR is a model observation and requires analyst review"
+          ]
+        },
+        {
+          "contract_version": "forensics.face-observation/v1",
+          "observation_type": "face_detection_observation",
+          "confidence": 0.8153,
+          "summary": {},
+          "warnings": [
+            "Face output is a model observation and requires analyst review",
+            "Candidate visual similarity is not identity",
+            "LocalAI face embed failed: HTTP Error 500: Internal Server Error"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-embedding-observation/v1",
+          "observation_type": "semantic_image_embedding_observation",
+          "confidence": null,
+          "summary": {
+            "embedding_dimension": 768
+          },
+          "warnings": [
+            "Semantic similarity is a model observation and requires analyst review",
+            "Similarity does not establish duplicate identity, object identity, event identity, or truth"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.5789383699999999,
+          "summary": {
+            "raw_text": "7٤6"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.54206356,
+          "summary": {
+            "raw_text": "2 ہے"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.27057968,
+          "summary": {
+            "raw_text": "es"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.45682316,
+          "summary": {
+            "raw_text": "رر"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.67636871,
+          "summary": {
+            "raw_text": "BR"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.14464119,
+          "summary": {
+            "raw_text": "A"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.90301773,
+          "summary": {
+            "raw_text": "/"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.0,
+          "summary": {
+            "raw_text": "—"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.85889145,
+          "summary": {
+            "raw_text": "حہ"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.0,
+          "summary": {
+            "raw_text": "019039 و9٤.٤‎"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.41499786,
+          "summary": {
+            "raw_text": "ص7ض"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.66917801,
+          "summary": {
+            "raw_text": "وج"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.31373878,
+          "summary": {
+            "raw_text": "7)"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.78541473,
+          "summary": {
+            "raw_text": "1"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.40768245999999997,
+          "summary": {
+            "raw_text": "ہت"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.78722778,
+          "summary": {
+            "raw_text": "۳7"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.31006691,
+          "summary": {
+            "raw_text": "کے ا ہے"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.65178207,
+          "summary": {
+            "raw_text": "٭"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.477018738,
+          "summary": {
+            "raw_text": "ap‏ === 3 ہے مت"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.37714508,
+          "summary": {
+            "raw_text": "mm"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.46656559000000003,
+          "summary": {
+            "raw_text": "ta ہچ‎"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.11091957000000001,
+          "summary": {
+            "raw_text": "ici."
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/fixtures/faces/nexusai-synthetic/subject-a-frontal.png",
+      "sha256": "aed3e4b16fe9560d25840961f615673e4af0ccd28f8695b46dc1ad34776dc387",
+      "modality": "image",
+      "readiness": "READY_WITH_WARNINGS",
+      "processor": "nexusai-composite-image",
+      "processor_revision": "post-bf-a-v2",
+      "limitations": [
+        "OCR accuracy is not certified for Pakistani plates",
+        "model region classification is intentionally ignored",
+        "no plate observation passed the configured detection threshold",
+        "English WebLI pretraining limits Urdu and Roman-Urdu text-to-image reliability",
+        "runtime retrieval is bounded to explicitly authorized candidate evidence",
+        "general scene OCR is LIMITED and does not replace FastALPR plate OCR",
+        "Urdu, mixed-script, blur, rotation and stylized text require analyst review"
+      ],
+      "observation_count": 9,
+      "observations": [
+        {
+          "contract_version": "forensics.image-observation/v1",
+          "observation_type": "image_technical_observation",
+          "confidence": null,
+          "summary": {},
+          "warnings": []
+        },
+        {
+          "contract_version": "forensics.image-fingerprint/v1",
+          "observation_type": "image_fingerprint_observation",
+          "confidence": null,
+          "summary": {},
+          "warnings": []
+        },
+        {
+          "contract_version": "forensics.face-observation/v1",
+          "observation_type": "face_detection_observation",
+          "confidence": 0.9517,
+          "summary": {
+            "embedding_dimension": 128
+          },
+          "warnings": [
+            "Face output is a model observation and requires analyst review",
+            "Candidate visual similarity is not identity"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-embedding-observation/v1",
+          "observation_type": "semantic_image_embedding_observation",
+          "confidence": null,
+          "summary": {
+            "embedding_dimension": 768
+          },
+          "warnings": [
+            "Semantic similarity is a model observation and requires analyst review",
+            "Similarity does not establish duplicate identity, object identity, event identity, or truth"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.42513966000000003,
+          "summary": {
+            "raw_text": "aa"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.7021166999999999,
+          "summary": {
+            "raw_text": "=="
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.18370018000000002,
+          "summary": {
+            "raw_text": "ee"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.77312614,
+          "summary": {
+            "raw_text": "Or"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        },
+        {
+          "contract_version": "forensics.image-ocr-observation/v1",
+          "observation_type": "general_image_ocr_observation",
+          "confidence": 0.62945801,
+          "summary": {
+            "raw_text": "—"
+          },
+          "warnings": [
+            "OCR text is a model observation and requires comparison with source pixels",
+            "Detected script family is not a language-identification claim"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/inputs/pakistan-audio/clear-urdu.wav",
+      "sha256": "c499e06e26b8cbf37386b88bba26f37045439a775e964bdad8634376435a056e",
+      "modality": "audio",
+      "readiness": "READY_WITH_WARNINGS",
+      "processor": "nexusai-deterministic-media",
+      "processor_revision": "bf-media-v1",
+      "limitations": [
+        "diarization unavailable"
+      ],
+      "observation_count": 5,
+      "observations": [
+        {
+          "contract_version": "forensics.audio-observation/v1",
+          "observation_type": "audio_technical_observation",
+          "confidence": null,
+          "summary": {},
+          "warnings": []
+        },
+        {
+          "contract_version": "forensics.audio-timestamp-segment/v1",
+          "observation_type": "audio_transcript_segment",
+          "confidence": null,
+          "summary": {
+            "text": "فیل پائنی فورٹو گرافروں کے ساتھ چھے اگوا شدگان کو جل رہا کر دیا گیا تھا",
+            "language": "ur",
+            "requested_language": "ur",
+            "start_seconds": 0.0,
+            "end_seconds": 4.42
+          },
+          "warnings": [
+            "Transcript is a model observation and requires analyst review"
+          ]
+        },
+        {
+          "contract_version": "forensics.audio-roman-urdu-segment/v1",
+          "observation_type": "audio_roman_urdu_segment",
+          "confidence": null,
+          "summary": {
+            "start_seconds": 0.0,
+            "end_seconds": 4.42
+          },
+          "warnings": [
+            "Roman Urdu is a deterministic derived representation; raw Urdu remains authoritative",
+            "Human review is required for transliteration quality"
+          ]
+        },
+        {
+          "contract_version": "forensics.audio-timestamp-segment/v1",
+          "observation_type": "audio_transcript_segment",
+          "confidence": null,
+          "summary": {
+            "text": "چھن میں بچوں اور بڑے شاہوں ملتے",
+            "language": "ur",
+            "requested_language": "ur",
+            "start_seconds": 4.42,
+            "end_seconds": 6.12
+          },
+          "warnings": [
+            "Transcript is a model observation and requires analyst review"
+          ]
+        },
+        {
+          "contract_version": "forensics.audio-roman-urdu-segment/v1",
+          "observation_type": "audio_roman_urdu_segment",
+          "confidence": null,
+          "summary": {
+            "start_seconds": 4.42,
+            "end_seconds": 6.12
+          },
+          "warnings": [
+            "Roman Urdu is a deterministic derived representation; raw Urdu remains authoritative",
+            "Human review is required for transliteration quality"
+          ]
+        }
+      ]
+    }
+  ]
+}

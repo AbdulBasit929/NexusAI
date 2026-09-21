@@ -1,0 +1,2188 @@
+{
+  "phase": 2,
+  "recorded_at": "2026-08-23T13:17:23.1478685Z",
+  "evidence_count": 9,
+  "completed_source_ids": [
+    "structured-cdr",
+    "structured-ipdr",
+    "structured-subscriber",
+    "structured-tower",
+    "structured-anpr",
+    "structured-access-log",
+    "structured-transactions",
+    "image-test-plate",
+    "image-islamabad-road"
+  ],
+  "capabilities": {
+    "answer_policy": {
+      "exact_facts": "Computed only from deterministic stores and parameterized query templates.",
+      "no_data": "Reported as no collection coverage, never converted into a negative real-world finding.",
+      "pending_operations": "Blocked with an unavailable result; the planner must not simulate an adapter or model.",
+      "semantic_facts": "Returned only from retrieved KB evidence with citations and explicit limitations."
+    },
+    "catalog_version": "2026-08-23.post-bfa-runtime.1",
+    "collection_id": "nexusai-multimodal-product-acceptance",
+    "coverage": {
+      "collection_min_timestamp": "2021-06-29T19:00:00Z",
+      "collection_max_timestamp": "2026-08-23T13:04:32Z",
+      "total_indexed_records": 9264,
+      "record_families_present": [
+        {
+          "record_type": "cdr",
+          "count": 5000
+        },
+        {
+          "record_type": "ipdr",
+          "count": 2500
+        },
+        {
+          "record_type": "access_log",
+          "count": 1000
+        },
+        {
+          "record_type": "anpr",
+          "count": 750
+        },
+        {
+          "record_type": "subscriber",
+          "count": 5
+        },
+        {
+          "record_type": "tower_location",
+          "count": 5
+        },
+        {
+          "record_type": "transaction",
+          "count": 4
+        }
+      ],
+      "nearest_activity": {},
+      "valid_target_examples": [
+        "9230******01",
+        "9233******67",
+        "9230******02",
+        "9234******83",
+        "9234******33"
+      ]
+    },
+    "families": [
+      {
+        "id": "plain_text_notes",
+        "label": "Plain text and notes",
+        "formats": [
+          "txt",
+          "md",
+          "yaml",
+          "yml"
+        ],
+        "support_level": "limited",
+        "adapter": "native_document_worker_txt_v1",
+        "record_types": null,
+        "evidence_modalities": [
+          "text"
+        ],
+        "evidence_types": [
+          "text"
+        ],
+        "deterministic_operations": [
+          "hash equality",
+          "byte size",
+          "bounded native-text extraction",
+          "section-passage citation",
+          "source and version lookup"
+        ],
+        "semantic_operations": [
+          "retrieval",
+          "citation",
+          "bounded summary",
+          "no-answer abstention"
+        ],
+        "next_gate": "Run separately approved retained multilingual/noisy-note extraction, retrieval, citation and abstention acceptance.",
+        "suggested_queries": [
+          "which text files were ingested?"
+        ],
+        "availability": "no_data",
+        "indexed_records": 0,
+        "registered_evidence": 0,
+        "kb_ready_evidence": 0,
+        "normalized_evidence": 0,
+        "derived_artifacts": 0,
+        "availability_reason": "No matching evidence or normalized records are present in this collection."
+      },
+      {
+        "id": "logs_access_security",
+        "label": "Logs and access/security events",
+        "formats": [
+          "log",
+          "txt",
+          "csv",
+          "jsonl",
+          "ndjson",
+          "evtx"
+        ],
+        "support_level": "operational",
+        "adapter": "access_log",
+        "record_types": [
+          "access_log"
+        ],
+        "evidence_types": [
+          "access_log"
+        ],
+        "deterministic_operations": [
+          "event counts",
+          "user/IP/path filters",
+          "time ranges",
+          "failed-access sequences",
+          "exact cross-family correlation with cited source rows"
+        ],
+        "semantic_operations": [
+          "explain returned events",
+          "correlate with case notes"
+        ],
+        "next_gate": "EVTX, clock-drift, late-arrival, redaction, and incident-timeline goldens.",
+        "suggested_queries": [
+          "show failed access events",
+          "show access-log activity by hour",
+          "correlate this IP across record families"
+        ],
+        "availability": "queryable",
+        "indexed_records": 1000,
+        "registered_evidence": 7,
+        "kb_ready_evidence": 7,
+        "normalized_evidence": 7,
+        "derived_artifacts": 0,
+        "availability_reason": "This collection has normalized records available for deterministic queries."
+      },
+      {
+        "id": "cdr",
+        "label": "Call detail records",
+        "formats": [
+          "csv",
+          "json",
+          "jsonl",
+          "ndjson",
+          "parquet"
+        ],
+        "support_level": "operational",
+        "adapter": "cdr",
+        "record_types": [
+          "cdr"
+        ],
+        "evidence_types": [
+          "cdr"
+        ],
+        "deterministic_operations": [
+          "raw and canonical Pakistan number roles",
+          "source-timezone provenance",
+          "service and sentinel classification",
+          "exact call counts",
+          "duration extrema",
+          "frequent contacts",
+          "time and cell filters",
+          "direction and disposition",
+          "exact cross-family correlation with cited source rows"
+        ],
+        "semantic_operations": [
+          "bounded pattern explanation",
+          "policy-context retrieval"
+        ],
+        "next_gate": "Provider/sector reference history and deeper time-valid tower semantics.",
+        "suggested_queries": [
+          "show frequent contacts",
+          "show longest call duration",
+          "show CDR records where call type is GPRS",
+          "correlate this number across record families"
+        ],
+        "availability": "queryable",
+        "indexed_records": 5000,
+        "registered_evidence": 7,
+        "kb_ready_evidence": 7,
+        "normalized_evidence": 7,
+        "derived_artifacts": 0,
+        "availability_reason": "This collection has normalized records available for deterministic queries."
+      },
+      {
+        "id": "ipdr_network_sessions",
+        "label": "IPDR and network sessions",
+        "formats": [
+          "csv",
+          "json",
+          "jsonl",
+          "ndjson",
+          "parquet",
+          "pcap",
+          "pcapng"
+        ],
+        "support_level": "operational",
+        "adapter": "ipdr",
+        "record_types": [
+          "ipdr"
+        ],
+        "evidence_types": [
+          "ipdr"
+        ],
+        "deterministic_operations": [
+          "IPv4/IPv6 and NAT normalization",
+          "session counts and durations",
+          "IP/domain/port filters",
+          "exact non-negative byte totals",
+          "time overlap",
+          "subscriber correlation",
+          "exact cross-family correlation with cited source rows"
+        ],
+        "semantic_operations": [
+          "bounded traffic-pattern explanation"
+        ],
+        "next_gate": "Add provider-specific DNS/NAT schema packs, clock-drift/late-arrival cases, and accepted capture-to-session derivation.",
+        "suggested_queries": [
+          "show IPDR records for this IP",
+          "show network-session activity by hour",
+          "correlate this IP across record families"
+        ],
+        "availability": "queryable",
+        "indexed_records": 2500,
+        "registered_evidence": 7,
+        "kb_ready_evidence": 7,
+        "normalized_evidence": 7,
+        "derived_artifacts": 0,
+        "availability_reason": "This collection has normalized records available for deterministic queries."
+      },
+      {
+        "id": "anpr_vehicle_sightings",
+        "label": "ANPR and vehicle sightings",
+        "formats": [
+          "csv",
+          "json",
+          "jsonl",
+          "ndjson",
+          "parquet",
+          "tsv",
+          "xlsx",
+          "png",
+          "jpg",
+          "jpeg",
+          "webp",
+          "bmp",
+          "tif",
+          "tiff"
+        ],
+        "support_level": "operational",
+        "adapter": "anpr_and_optional_fastalpr_image_observer",
+        "record_types": [
+          "anpr"
+        ],
+        "evidence_types": [
+          "anpr",
+          "image"
+        ],
+        "deterministic_operations": [
+          "exact cited sightings",
+          "exact plate/camera/time filters",
+          "camera sequence and activity",
+          "five-minute same-camera co-observations",
+          "consecutive-sighting elapsed time and straight-line distance",
+          "observed plate variants",
+          "formatting-only plate normalization",
+          "image/version/crop provenance",
+          "exact cross-family correlation with cited source rows"
+        ],
+        "semantic_operations": [
+          "bounded movement narrative with explicit limitations"
+        ],
+        "next_gate": "Deploy the opt-in FastALPR worker with explicitly mounted approved local models, then run representative adverse-condition imagery, camera clock-drift, throughput, and review-workflow goldens. Image OCR remains a review-required derived observation, not source truth.",
+        "suggested_queries": [
+          "where was plate ABC-123 seen?",
+          "show camera sequence for ABC-123",
+          "show co-travel for ABC-123",
+          "show route timing for ABC-123",
+          "show plate variants for ABC-123"
+        ],
+        "availability": "queryable",
+        "indexed_records": 750,
+        "registered_evidence": 9,
+        "kb_ready_evidence": 9,
+        "normalized_evidence": 9,
+        "derived_artifacts": 2,
+        "derived_artifact_types": [
+          "forensics.image-fingerprint/v1"
+        ],
+        "availability_reason": "This collection has normalized records available for deterministic queries."
+      },
+      {
+        "id": "subscriber_identity",
+        "label": "Subscriber and identity records",
+        "formats": [
+          "csv",
+          "json",
+          "jsonl",
+          "ndjson",
+          "parquet",
+          "tsv",
+          "xlsx"
+        ],
+        "support_level": "operational",
+        "adapter": "subscriber",
+        "record_types": [
+          "subscriber"
+        ],
+        "evidence_types": [
+          "subscriber"
+        ],
+        "deterministic_operations": [
+          "privacy-safe exact identifier lookup",
+          "explicit validity timeline",
+          "role-separated MSISDN/subscriber, IMSI/ICCID SIM, IMEI device, and service observations",
+          "status and review summary",
+          "conflict audit",
+          "identifier reuse candidates",
+          "exact cross-family correlation with cited source rows"
+        ],
+        "semantic_operations": [
+          "bounded explanation of returned identity observations and conflicts"
+        ],
+        "next_gate": "R7.6 adds synchronized family presentation; authorized provider-format benchmarks and field-level authorization remain before expanded PII display.",
+        "suggested_queries": [
+          "look up subscriber identity observations for this MSISDN",
+          "show subscriber validity timeline",
+          "show subscriber device and service links",
+          "show subscriber status summary",
+          "show subscriber identity conflicts",
+          "show subscriber identifier reuse candidates"
+        ],
+        "availability": "queryable",
+        "indexed_records": 5,
+        "registered_evidence": 7,
+        "kb_ready_evidence": 7,
+        "normalized_evidence": 7,
+        "derived_artifacts": 0,
+        "availability_reason": "This collection has normalized records available for deterministic queries."
+      },
+      {
+        "id": "tower_location",
+        "label": "Tower and location reference data",
+        "formats": [
+          "csv",
+          "json",
+          "jsonl",
+          "ndjson",
+          "geojson",
+          "parquet",
+          "tsv",
+          "xlsx"
+        ],
+        "support_level": "operational",
+        "adapter": "tower_location",
+        "record_types": [
+          "tower_location"
+        ],
+        "evidence_types": [
+          "tower_location"
+        ],
+        "deterministic_operations": [
+          "exact site/sector/LAC/TAC lookup",
+          "time-aware reference timeline",
+          "coordinate/datum/uncertainty audit",
+          "status summary",
+          "alias conflict audit",
+          "exact time-aware CDR join",
+          "exact cross-family correlation with cited source rows"
+        ],
+        "semantic_operations": [
+          "bounded location-context explanation with RF and physical-presence limitations"
+        ],
+        "next_gate": "Authorized provider drift packs, non-WGS84 transform validation, retained-data joins, map UI, and live specialist acceptance.",
+        "suggested_queries": [
+          "look up tower/site reference observations",
+          "show tower reference history",
+          "audit tower coordinates and uncertainty",
+          "show tower status summary",
+          "audit tower alias conflicts",
+          "join CDR observations to eligible tower references"
+        ],
+        "availability": "queryable",
+        "indexed_records": 5,
+        "registered_evidence": 7,
+        "kb_ready_evidence": 7,
+        "normalized_evidence": 7,
+        "derived_artifacts": 0,
+        "availability_reason": "This collection has normalized records available for deterministic queries."
+      },
+      {
+        "id": "financial_transactions",
+        "label": "Financial transactions",
+        "formats": [
+          "csv",
+          "json",
+          "jsonl",
+          "parquet",
+          "xlsx",
+          "ofx",
+          "mt940"
+        ],
+        "support_level": "operational",
+        "adapter": "transaction",
+        "record_types": [
+          "transaction"
+        ],
+        "evidence_types": [
+          "transaction"
+        ],
+        "deterministic_operations": [
+          "exact sums",
+          "currency-separated totals",
+          "account flows",
+          "time filters",
+          "counterparty ranking",
+          "duplicate transaction checks",
+          "exact cross-family correlation with cited source rows"
+        ],
+        "semantic_operations": [
+          "bounded anomaly explanation based on returned transactions"
+        ],
+        "next_gate": "Authorized bank/wallet profiles, multi-currency provenance, reconciliation, OFX, MT940, and spreadsheet goldens.",
+        "suggested_queries": [
+          "show transactions for this account",
+          "show duplicate transaction records",
+          "correlate this account across record families"
+        ],
+        "availability": "queryable",
+        "indexed_records": 4,
+        "registered_evidence": 7,
+        "kb_ready_evidence": 7,
+        "normalized_evidence": 7,
+        "derived_artifacts": 0,
+        "availability_reason": "This collection has normalized records available for deterministic queries."
+      },
+      {
+        "id": "generic_tabular",
+        "label": "Generic tabular records",
+        "formats": [
+          "csv",
+          "json",
+          "jsonl",
+          "ndjson",
+          "parquet",
+          "tsv",
+          "xlsx",
+          "xml",
+          "avro",
+          "orc",
+          "arrow",
+          "feather"
+        ],
+        "support_level": "foundation",
+        "adapter": "generic",
+        "record_types": [
+          "generic"
+        ],
+        "evidence_types": [
+          "generic",
+          "tabular_data"
+        ],
+        "deterministic_operations": [
+          "schema discovery",
+          "typed filters",
+          "exact counts",
+          "null profiling",
+          "drift comparison",
+          "exact cross-family correlation with cited source rows"
+        ],
+        "semantic_operations": [
+          "schema explanation",
+          "clarification"
+        ],
+        "next_gate": "Schema-drift, encoding, delimiter, nested JSON, Parquet, and unknown-column goldens.",
+        "suggested_queries": [
+          "show detected headers and schema",
+          "show generic records where field exists",
+          "correlate this identifier across record families"
+        ],
+        "availability": "queryable",
+        "indexed_records": 0,
+        "registered_evidence": 7,
+        "kb_ready_evidence": 7,
+        "normalized_evidence": 7,
+        "derived_artifacts": 0,
+        "availability_reason": "This collection has normalized records available for deterministic queries."
+      },
+      {
+        "id": "spreadsheets_and_columnar",
+        "label": "Spreadsheets and columnar files",
+        "formats": [
+          "tsv",
+          "xls",
+          "xlsx",
+          "xlsm",
+          "ods",
+          "parquet",
+          "arrow",
+          "feather",
+          "avro",
+          "orc",
+          "xml"
+        ],
+        "support_level": "foundation",
+        "adapter": "tsv_xlsx_per_sheet_read_only_adapter_v1_then_spreadsheet_columnar_pending",
+        "record_types": null,
+        "evidence_modalities": [
+          "tabular"
+        ],
+        "evidence_types": [
+          "delimited_text",
+          "tabular_data",
+          "spreadsheet"
+        ],
+        "deterministic_operations": [
+          "TSV typed row extraction",
+          "bounded read-only XLSX row extraction",
+          "per-sheet typed mapping with generic preservation",
+          "multi-sheet inventory and provenance",
+          "hidden row/column/sheet markers",
+          "merged-range inventory",
+          "formula text and cached-value distinction",
+          "exact source-value preservation"
+        ],
+        "semantic_operations": [
+          "workbook structure explanation over normalized evidence"
+        ],
+        "next_gate": "Add multi-provider schema-drift goldens, benchmark ODS and columnar formats, and keep formula recalculation/macros prohibited.",
+        "suggested_queries": [
+          "show XLSX records with sheet and row provenance",
+          "show each worksheet's mapping decision",
+          "show spreadsheet inventory",
+          "show formulas without evaluating them"
+        ],
+        "availability": "no_data",
+        "indexed_records": 0,
+        "registered_evidence": 0,
+        "kb_ready_evidence": 0,
+        "normalized_evidence": 0,
+        "derived_artifacts": 0,
+        "availability_reason": "No matching evidence or normalized records are present in this collection."
+      },
+      {
+        "id": "pdf_office_email_documents",
+        "label": "PDF, office, email, and ebook documents",
+        "formats": [
+          "pdf",
+          "doc",
+          "docx",
+          "rtf",
+          "odt",
+          "ppt",
+          "pptx",
+          "odp",
+          "html",
+          "htm",
+          "epub",
+          "eml",
+          "msg"
+        ],
+        "support_level": "limited",
+        "adapter": "native_document_worker_txt_pdf_docx_v1",
+        "record_types": null,
+        "evidence_modalities": [
+          "document"
+        ],
+        "evidence_types": [
+          "pdf",
+          "office_document",
+          "email"
+        ],
+        "deterministic_operations": [
+          "file/page count",
+          "metadata",
+          "attachment inventory",
+          "bounded native-text extraction",
+          "page/paragraph/section passage citation"
+        ],
+        "semantic_operations": [
+          "retrieval",
+          "grounded summary",
+          "document comparison"
+        ],
+        "next_gate": "Run separately approved retained TXT/PDF/DOCX extraction and cited retrieval. Scanned-document OCR, tables, geometry, active content, attachments, and other office formats remain unavailable.",
+        "suggested_queries": [
+          "show document metadata"
+        ],
+        "availability": "no_data",
+        "indexed_records": 0,
+        "registered_evidence": 0,
+        "kb_ready_evidence": 0,
+        "normalized_evidence": 0,
+        "derived_artifacts": 0,
+        "availability_reason": "No matching evidence or normalized records are present in this collection."
+      },
+      {
+        "id": "images_and_ocr",
+        "label": "Images and OCR",
+        "formats": [
+          "png",
+          "jpg",
+          "jpeg",
+          "webp",
+          "gif",
+          "bmp",
+          "tif",
+          "tiff",
+          "heic",
+          "heif",
+          "dng",
+          "raw",
+          "svg"
+        ],
+        "support_level": "limited",
+        "adapter": "unified_media_worker_with_optional_fastalpr_face_siglip_tesseract_roles",
+        "record_types": null,
+        "evidence_modalities": [
+          "image"
+        ],
+        "evidence_types": [
+          "image"
+        ],
+        "deterministic_operations": [
+          "immutable hash and byte accounting",
+          "bounded signature and header validation",
+          "dimensions and pixel budget",
+          "orientation-only EXIF projection",
+          "authorized retained-source preview",
+          "exact SHA-256 comparison",
+          "bounded dHash near-duplicate comparison",
+          "typed original-pixel plate/face/OCR regions",
+          "lossless crop hash and parent/version provenance",
+          "explicit manual-review state"
+        ],
+        "semantic_operations": [
+          "retrieval over persisted ANPR and OCR observations",
+          "bounded explicit-candidate semantic image similarity",
+          "English text-image evaluation with Urdu limitation",
+          "questions over stored derived artifacts"
+        ],
+        "next_gate": "Run separately approved retained image/OCR/semantic acceptance. General OCR and SigLIP remain LIMITED; Urdu text-image retrieval failed its first top-1 check. HEIC, raw and SVG decoding remains manual-review only.",
+        "suggested_queries": [
+          "show image metadata"
+        ],
+        "availability": "queryable",
+        "indexed_records": 0,
+        "registered_evidence": 2,
+        "kb_ready_evidence": 2,
+        "normalized_evidence": 2,
+        "derived_artifacts": 2,
+        "derived_artifact_types": [
+          "forensics.image-fingerprint/v1"
+        ],
+        "availability_reason": "This collection has normalized records available for deterministic queries."
+      },
+      {
+        "id": "audio_and_stt",
+        "label": "Audio and speech-to-text",
+        "formats": [
+          "wav",
+          "mp3",
+          "m4a",
+          "flac",
+          "ogg",
+          "aac",
+          "opus",
+          "wma",
+          "amr"
+        ],
+        "support_level": "limited",
+        "adapter": "unified_media_worker_ffprobe_localai_asr_roman_urdu_v1",
+        "record_types": null,
+        "evidence_modalities": [
+          "audio"
+        ],
+        "evidence_types": [
+          "audio"
+        ],
+        "deterministic_operations": [
+          "duration",
+          "codec",
+          "sample rate",
+          "channel count",
+          "authorized retained-source playback",
+          "timestamp-segment lineage",
+          "raw-Urdu-authoritative Roman Urdu derivative",
+          "identifier-preservation audit",
+          "derived-artifact lineage"
+        ],
+        "semantic_operations": [
+          "retrieval over persisted timestamped ASR and Roman Urdu observations",
+          "grounded summary with time-range citations"
+        ],
+        "next_gate": "Run separately approved retained Roman Urdu search/Ask/citation acceptance. Identifier speech remains an M2 limitation and diarization remains unavailable.",
+        "suggested_queries": [
+          "show audio metadata"
+        ],
+        "availability": "no_data",
+        "indexed_records": 0,
+        "registered_evidence": 0,
+        "kb_ready_evidence": 0,
+        "normalized_evidence": 0,
+        "derived_artifacts": 0,
+        "availability_reason": "No matching evidence or normalized records are present in this collection."
+      },
+      {
+        "id": "tts_artifacts",
+        "label": "Text-to-speech artifacts",
+        "formats": [
+          "wav",
+          "mp3",
+          "m4a",
+          "flac",
+          "ogg",
+          "opus"
+        ],
+        "support_level": "foundation",
+        "adapter": "tts_artifact_registry_with_deterministic_wav_metadata_v1",
+        "record_types": null,
+        "evidence_types": [
+          "tts_artifact"
+        ],
+        "deterministic_operations": [
+          "parent linkage",
+          "text hash",
+          "duration",
+          "codec",
+          "backend/version lookup"
+        ],
+        "semantic_operations": [
+          "optional accessibility playback"
+        ],
+        "next_gate": "Consent/voice policy, pronunciation goldens, round-trip intelligibility, CPU latency, and accessible playback.",
+        "suggested_queries": [
+          "show registered TTS artifacts"
+        ],
+        "availability": "no_data",
+        "indexed_records": 0,
+        "registered_evidence": 0,
+        "kb_ready_evidence": 0,
+        "normalized_evidence": 0,
+        "derived_artifacts": 0,
+        "availability_reason": "No matching evidence or normalized records are present in this collection."
+      },
+      {
+        "id": "transcripts_and_subtitles",
+        "label": "Transcripts and subtitles",
+        "formats": [
+          "txt",
+          "json",
+          "srt",
+          "vtt",
+          "ass",
+          "ssa"
+        ],
+        "support_level": "foundation",
+        "adapter": "transcript_index_pending",
+        "record_types": null,
+        "evidence_types": [
+          "transcript",
+          "subtitle"
+        ],
+        "deterministic_operations": [
+          "cue count",
+          "timestamp range",
+          "speaker label filter",
+          "parent evidence lookup"
+        ],
+        "semantic_operations": [
+          "retrieval",
+          "citation by cue and time range",
+          "bounded summary"
+        ],
+        "next_gate": "Subtitle parsing and cue-level KB indexing with parent evidence and time-range citations.",
+        "suggested_queries": [
+          "show registered transcript evidence"
+        ],
+        "availability": "no_data",
+        "indexed_records": 0,
+        "registered_evidence": 0,
+        "kb_ready_evidence": 0,
+        "normalized_evidence": 0,
+        "derived_artifacts": 0,
+        "availability_reason": "No matching evidence or normalized records are present in this collection."
+      },
+      {
+        "id": "video",
+        "label": "Video",
+        "formats": [
+          "mp4",
+          "mov",
+          "mkv",
+          "avi",
+          "webm",
+          "m4v",
+          "mpg",
+          "mpeg",
+          "mts",
+          "m2ts",
+          "3gp"
+        ],
+        "support_level": "foundation",
+        "adapter": "unified_media_worker_ffprobe_bounded_frames",
+        "record_types": null,
+        "evidence_modalities": [
+          "video"
+        ],
+        "evidence_types": [
+          "video"
+        ],
+        "deterministic_operations": [
+          "duration",
+          "stream inventory",
+          "bounded frame sampling",
+          "frame/time/evidence mapping",
+          "optional image and ANPR observations",
+          "authorized retained-source playback",
+          "artifact timeline query"
+        ],
+        "semantic_operations": [
+          "persisted observation retrieval; no event or transcript inference"
+        ],
+        "next_gate": "Deploy and validate real-codec, corrupt and long-video goldens; add separately governed ASR, tracking/deduplication and timeline-query contracts.",
+        "suggested_queries": [
+          "show video metadata",
+          "show registered video evidence"
+        ],
+        "availability": "no_data",
+        "indexed_records": 0,
+        "registered_evidence": 0,
+        "kb_ready_evidence": 0,
+        "normalized_evidence": 0,
+        "derived_artifacts": 0,
+        "availability_reason": "No matching evidence or normalized records are present in this collection."
+      },
+      {
+        "id": "network_system_captures",
+        "label": "Network and system captures",
+        "formats": [
+          "pcap",
+          "pcapng",
+          "cap",
+          "evtx"
+        ],
+        "support_level": "foundation",
+        "adapter": "deterministic_pcap_pcapng_inventory_v1_4_then_capture_adapter_pending",
+        "record_types": null,
+        "evidence_modalities": [
+          "capture"
+        ],
+        "evidence_types": [
+          "pcap",
+          "pcapng",
+          "evtx"
+        ],
+        "deterministic_operations": [
+          "safe metadata inventory",
+          "packet/event counts",
+          "session reconstruction",
+          "protocol and time filters"
+        ],
+        "semantic_operations": [
+          "bounded explanation over normalized sessions/events"
+        ],
+        "next_gate": "Real capture goldens and bounded Ethernet/IP/TCP/UDP/DNS session derivatives; separate EVTX adapter.",
+        "suggested_queries": [
+          "show capture inventory",
+          "show registered capture evidence"
+        ],
+        "availability": "no_data",
+        "indexed_records": 0,
+        "registered_evidence": 0,
+        "kb_ready_evidence": 0,
+        "normalized_evidence": 0,
+        "derived_artifacts": 0,
+        "availability_reason": "No matching evidence or normalized records are present in this collection."
+      },
+      {
+        "id": "databases_and_sql",
+        "label": "Databases and SQL dumps",
+        "formats": [
+          "sqlite",
+          "sqlite3",
+          "db",
+          "sql"
+        ],
+        "support_level": "foundation",
+        "adapter": "deterministic_sqlite_inventory_v1_3_then_database_adapter_pending",
+        "record_types": null,
+        "evidence_modalities": [
+          "database"
+        ],
+        "evidence_types": [
+          "sqlite",
+          "sql_dump"
+        ],
+        "deterministic_operations": [
+          "read-only schema inventory",
+          "table counts",
+          "bounded queries",
+          "foreign-key relationship extraction"
+        ],
+        "semantic_operations": [
+          "schema explanation",
+          "query clarification"
+        ],
+        "next_gate": "Real SQLite encoding/WAL/schema/corruption goldens before a query adapter or SQL dump support.",
+        "suggested_queries": [
+          "show database schema inventory",
+          "show registered database evidence"
+        ],
+        "availability": "no_data",
+        "indexed_records": 0,
+        "registered_evidence": 0,
+        "kb_ready_evidence": 0,
+        "normalized_evidence": 0,
+        "derived_artifacts": 0,
+        "availability_reason": "No matching evidence or normalized records are present in this collection."
+      },
+      {
+        "id": "archives_and_bundles",
+        "label": "Archives and bundles",
+        "formats": [
+          "zip",
+          "7z",
+          "rar",
+          "tar",
+          "gz",
+          "tgz",
+          "bz2",
+          "xz"
+        ],
+        "support_level": "foundation",
+        "adapter": "deterministic_zip_tar_inventory_v1_2_then_archive_extraction_pending",
+        "record_types": null,
+        "evidence_modalities": [
+          "archive"
+        ],
+        "evidence_types": [
+          "archive",
+          "zip",
+          "tar"
+        ],
+        "deterministic_operations": [
+          "member inventory",
+          "member hash",
+          "size and compression checks",
+          "recursive child registration"
+        ],
+        "semantic_operations": [
+          "bundle overview over registered children"
+        ],
+        "next_gate": "ZIP64/PAX/GNU fixtures, bounded member hashing, and safe child registration before more formats.",
+        "suggested_queries": [
+          "show archive member inventory",
+          "show registered archive evidence"
+        ],
+        "availability": "no_data",
+        "indexed_records": 0,
+        "registered_evidence": 0,
+        "kb_ready_evidence": 0,
+        "normalized_evidence": 0,
+        "derived_artifacts": 0,
+        "availability_reason": "No matching evidence or normalized records are present in this collection."
+      },
+      {
+        "id": "unknown_and_mixed",
+        "label": "Unknown and mixed evidence",
+        "formats": [
+          "unknown extension",
+          "binary dump",
+          "mixed export",
+          "unsupported MIME"
+        ],
+        "support_level": "planned",
+        "adapter": "manual_review",
+        "record_types": null,
+        "evidence_modalities": [
+          "unknown"
+        ],
+        "evidence_types": [
+          "unknown"
+        ],
+        "deterministic_operations": [
+          "hash",
+          "size",
+          "signature sampling",
+          "duplicate detection",
+          "operator disposition"
+        ],
+        "semantic_operations": [
+          "classification explanation after deterministic inspection"
+        ],
+        "next_gate": "Ambiguous-signature, renamed-extension, polyglot, corrupt, and mixed-bundle safety fixtures.",
+        "suggested_queries": [
+          "show unclassified evidence",
+          "show evidence requiring manual review"
+        ],
+        "availability": "manual_review",
+        "indexed_records": 0,
+        "registered_evidence": 0,
+        "kb_ready_evidence": 0,
+        "normalized_evidence": 0,
+        "derived_artifacts": 0,
+        "availability_reason": "The format requires deterministic inspection and operator disposition."
+      }
+    ],
+    "generated_at": "2026-08-23T13:17:23.134427463Z",
+    "query_corpus": {
+      "contract_version": "forensics.family-query-answer-corpus/v1",
+      "corpus_version": "2026-08-11.r6.6",
+      "entries": [
+        {
+          "id": "anpr-sequence-en",
+          "family_id": "anpr_vehicle_sightings",
+          "locale": "en",
+          "query": "show camera sequence for plate ABC-123",
+          "expected_template": "anpr_camera_sequence",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "suggested": true
+        },
+        {
+          "id": "cdr-duration-en",
+          "family_id": "cdr",
+          "locale": "en",
+          "query": "show longest call duration",
+          "expected_template": "longest_call",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "suggested": true
+        },
+        {
+          "id": "cdr-frequent-contacts-en",
+          "family_id": "cdr",
+          "locale": "en",
+          "query": "who does 923001110001 contact most?",
+          "expected_template": "frequent_contacts",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "suggested": true
+        },
+        {
+          "id": "cross-family-en",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "correlate 923001110001 across record families",
+          "expected_template": "cross_family_correlation",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "suggested": true
+        },
+        {
+          "id": "financial-records-en",
+          "family_id": "financial_transactions",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=canonical_records; record_type=transaction; limit=20",
+          "expected_template": "canonical_records",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "suggested": true
+        },
+        {
+          "id": "ipdr-activity-en",
+          "family_id": "ipdr_network_sessions",
+          "locale": "en",
+          "query": "show network session volume",
+          "expected_template": "ipdr_session_volume",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "suggested": true
+        },
+        {
+          "id": "subscriber-status-en",
+          "family_id": "subscriber_identity",
+          "locale": "en",
+          "query": "show subscriber status summary",
+          "expected_template": "subscriber_status_summary",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "suggested": true
+        },
+        {
+          "id": "subscriber-status-roman-ur",
+          "family_id": "subscriber_identity",
+          "locale": "ur-Latn",
+          "query": "subscriber status ka khulasa",
+          "expected_template": "subscriber_status_summary",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "suggested": true
+        },
+        {
+          "id": "tower-audit-en",
+          "family_id": "tower_location",
+          "locale": "en",
+          "query": "audit tower coordinates and uncertainty",
+          "expected_template": "tower_coordinate_audit",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "suggested": true
+        },
+        {
+          "id": "catalog-activity-by-day",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=activity_by_day; limit=20",
+          "expected_template": "activity_by_day",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.activity_by_day",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-activity-by-hour",
+          "family_id": "cdr",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=activity_by_hour; limit=20",
+          "expected_template": "activity_by_hour",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.activity_by_hour",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-anomaly-summary",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=anomaly_summary; limit=20",
+          "expected_template": "anomaly_summary",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.anomaly_summary",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-anpr-camera-activity",
+          "family_id": "anpr_vehicle_sightings",
+          "locale": "en",
+          "query": "Show ANPR sighting and distinct-plate counts by camera",
+          "expected_template": "anpr_camera_activity",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "anpr.camera_activity",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-anpr-co-travel",
+          "family_id": "anpr_vehicle_sightings",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=anpr_co_travel; limit=20",
+          "expected_template": "anpr_co_travel",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "anpr.co_travel",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-anpr-plate-variants",
+          "family_id": "anpr_vehicle_sightings",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=anpr_plate_variants; limit=20",
+          "expected_template": "anpr_plate_variants",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "anpr.plate_variants",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-anpr-route-timing",
+          "family_id": "anpr_vehicle_sightings",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=anpr_route_timing; limit=20",
+          "expected_template": "anpr_route_timing",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "anpr.route_timing",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-anpr-sightings",
+          "family_id": "anpr_vehicle_sightings",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=anpr_sightings; limit=20",
+          "expected_template": "anpr_sightings",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "anpr.sightings",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-anpr-timeline",
+          "family_id": "anpr_vehicle_sightings",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=anpr_timeline; limit=20",
+          "expected_template": "anpr_timeline",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "anpr.timeline",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-call-type-breakdown",
+          "family_id": "cdr",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=call_type_breakdown; limit=20",
+          "expected_template": "call_type_breakdown",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "cdr.call_type_breakdown",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-case-readiness",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=case_readiness; limit=20",
+          "expected_template": "case_readiness",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.case_readiness",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-co-travel-or-co-presence",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=co_travel_or_co_presence; limit=20",
+          "expected_template": "co_travel_or_co_presence",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.co_travel_or_co_presence",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-collection-overview",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=collection_overview; limit=20",
+          "expected_template": "collection_overview",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.collection_overview",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-court-ready-source-summary",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=court_ready_source_summary; limit=20",
+          "expected_template": "court_ready_source_summary",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.court_ready_source_summary",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-cross-dataset-entity-summary",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=cross_dataset_entity_summary; limit=20",
+          "expected_template": "cross_dataset_entity_summary",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.cross_dataset_entity_summary",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-data-quality",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=data_quality; limit=20",
+          "expected_template": "data_quality",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.data_quality",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-device-identity-changes",
+          "family_id": "cdr",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=device_identity_changes; limit=20",
+          "expected_template": "device_identity_changes",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "cdr.device_identity_changes",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-duplicate-upload-audit",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=duplicate_upload_audit; limit=20",
+          "expected_template": "duplicate_upload_audit",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.duplicate_upload_audit",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-duration-extremes",
+          "family_id": "cdr",
+          "locale": "en",
+          "query": "Show shortest, longest, and average non-zero CDR durations",
+          "expected_template": "duration_extremes",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "cdr.duration_extremes",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-entity-activity",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=entity_activity; limit=20",
+          "expected_template": "entity_activity",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.entity_activity",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-entity-timeline",
+          "family_id": "cdr",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=entity_timeline; limit=20",
+          "expected_template": "entity_timeline",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "cdr.timeline",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-evidence",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=evidence; limit=20",
+          "expected_template": "evidence",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.evidence",
+          "source_access": "kb",
+          "suggested": false
+        },
+        {
+          "id": "catalog-evidence-package-summary",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=evidence_package_summary; limit=20",
+          "expected_template": "evidence_package_summary",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.evidence_package_summary",
+          "source_access": "hybrid",
+          "suggested": false
+        },
+        {
+          "id": "catalog-executive-case-brief",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=executive_case_brief; limit=20",
+          "expected_template": "executive_case_brief",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.executive_case_brief",
+          "source_access": "hybrid",
+          "suggested": false
+        },
+        {
+          "id": "catalog-first-seen-last-seen",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=first_seen_last_seen; limit=20",
+          "expected_template": "first_seen_last_seen",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.first_seen_last_seen",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-geospatial-movement",
+          "family_id": "cdr",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=geospatial_movement; limit=20",
+          "expected_template": "geospatial_movement",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "cdr.geospatial_movement",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-imei-imsi-usage",
+          "family_id": "cdr",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=imei_imsi_usage; limit=20",
+          "expected_template": "imei_imsi_usage",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.imei_imsi_usage",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-ipdr-concurrent-sessions",
+          "family_id": "ipdr_network_sessions",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=ipdr_concurrent_sessions; limit=20",
+          "expected_template": "ipdr_concurrent_sessions",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "ipdr.concurrent_sessions",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-ipdr-domain-summary",
+          "family_id": "ipdr_network_sessions",
+          "locale": "en",
+          "query": "Show explicitly observed IPDR domains and byte totals",
+          "expected_template": "ipdr_domain_summary",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "ipdr.domain_summary",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-ipdr-endpoint-summary",
+          "family_id": "ipdr_network_sessions",
+          "locale": "en",
+          "query": "Show IPDR endpoint, NAT, port, and protocol combinations",
+          "expected_template": "ipdr_endpoint_summary",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "ipdr.endpoint_summary",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-ipdr-protocol-breakdown",
+          "family_id": "ipdr_network_sessions",
+          "locale": "en",
+          "query": "Show IPDR protocol counts, bytes, and durations",
+          "expected_template": "ipdr_protocol_breakdown",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "ipdr.protocol_breakdown",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-ipdr-subscriber-sessions",
+          "family_id": "ipdr_network_sessions",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=ipdr_subscriber_sessions; limit=20",
+          "expected_template": "ipdr_subscriber_sessions",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "ipdr.subscriber_sessions",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-ipdr-timeline",
+          "family_id": "ipdr_network_sessions",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=ipdr_timeline; limit=20",
+          "expected_template": "ipdr_timeline",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "ipdr.timeline",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-limitations-and-data-quality",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=limitations_and_data_quality; limit=20",
+          "expected_template": "limitations_and_data_quality",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.limitations_and_data_quality",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-multi-cdr-comparison",
+          "family_id": "cdr",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=multi_cdr_comparison; limit=20",
+          "expected_template": "multi_cdr_comparison",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "cdr.multi_source_comparison",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-night-activity",
+          "family_id": "cdr",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=night_activity; limit=20",
+          "expected_template": "night_activity",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.night_activity",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-relationship-network",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=relationship_network; limit=20",
+          "expected_template": "relationship_network",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.relationship_network",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-repeated-location-visits",
+          "family_id": "cdr",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=repeated_location_visits; limit=20",
+          "expected_template": "repeated_location_visits",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.repeated_location_visits",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-schema-profile",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=schema_profile; limit=20",
+          "expected_template": "schema_profile",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.schema_profile",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-service-usage",
+          "family_id": "cdr",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=service_usage; limit=20",
+          "expected_template": "service_usage",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "cdr.service_usage",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-shortest-call",
+          "family_id": "cdr",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=shortest_call; limit=20",
+          "expected_template": "shortest_call",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.shortest_call",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-source-file-audit",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=source_file_audit; limit=20",
+          "expected_template": "source_file_audit",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.source_file_audit",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-source-records",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=source_records; limit=20",
+          "expected_template": "source_records",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.source_records",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-subscriber-conflict-audit",
+          "family_id": "subscriber_identity",
+          "locale": "en",
+          "query": "Audit conflicting subscriber attributes",
+          "expected_template": "subscriber_conflict_audit",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "subscriber.conflict_audit",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-subscriber-device-links",
+          "family_id": "subscriber_identity",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=subscriber_device_links; limit=20",
+          "expected_template": "subscriber_device_links",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "subscriber.device_links",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-subscriber-identity-lookup",
+          "family_id": "subscriber_identity",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=subscriber_identity_lookup; limit=20",
+          "expected_template": "subscriber_identity_lookup",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "subscriber.identity_lookup",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-subscriber-profile",
+          "family_id": "cdr",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=subscriber_profile; limit=20",
+          "expected_template": "subscriber_profile",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.subscriber_profile",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-subscriber-reuse-candidates",
+          "family_id": "subscriber_identity",
+          "locale": "en",
+          "query": "Show subscriber identifier reuse candidates",
+          "expected_template": "subscriber_reuse_candidates",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "subscriber.reuse_candidates",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-subscriber-validity-timeline",
+          "family_id": "subscriber_identity",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=subscriber_validity_timeline; limit=20",
+          "expected_template": "subscriber_validity_timeline",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "subscriber.validity_timeline",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-suspicious-patterns",
+          "family_id": "cross_family",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=suspicious_patterns; limit=20",
+          "expected_template": "suspicious_patterns",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.suspicious_patterns",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-temporal-activity",
+          "family_id": "cdr",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=temporal_activity; limit=20",
+          "expected_template": "temporal_activity",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "cdr.temporal_activity",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-top-locations",
+          "family_id": "cdr",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=top_locations; limit=20",
+          "expected_template": "top_locations",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "forensics.top_locations",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-tower-activity",
+          "family_id": "cdr",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=tower_activity; limit=20",
+          "expected_template": "tower_activity",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "cdr.tower_activity",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-tower-alias-conflicts",
+          "family_id": "tower_location",
+          "locale": "en",
+          "query": "Audit conflicting tower/site aliases and reference facts",
+          "expected_template": "tower_alias_conflicts",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "tower.alias_conflicts",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-tower-cdr-join",
+          "family_id": "tower_location",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=tower_cdr_join; limit=20",
+          "expected_template": "tower_cdr_join",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "tower.cdr_join",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-tower-reference-timeline",
+          "family_id": "tower_location",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=tower_reference_timeline; limit=20",
+          "expected_template": "tower_reference_timeline",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "tower.reference_timeline",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-tower-site-lookup",
+          "family_id": "tower_location",
+          "locale": "en",
+          "query": "Run deterministic forensic query; template=tower_site_lookup; limit=20",
+          "expected_template": "tower_site_lookup",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "tower.site_lookup",
+          "source_access": "records",
+          "suggested": false
+        },
+        {
+          "id": "catalog-tower-status-summary",
+          "family_id": "tower_location",
+          "locale": "en",
+          "query": "Summarize tower/site statuses, technologies, and review flags",
+          "expected_template": "tower_status_summary",
+          "required_sections": [
+            "executive_answer",
+            "deterministic_findings",
+            "citations",
+            "limitations"
+          ],
+          "operation_id": "tower.status_summary",
+          "source_access": "records",
+          "suggested": false
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "cdr-frequent-contacts-missing-target",
+          "kind": "ambiguity",
+          "query": "who are the frequent contacts?",
+          "expected_outcome": "needs_input",
+          "assertions": [
+            "no case-wide substitution",
+            "no fixture target selected",
+            "clarification requests number or subscriber",
+            "no SQL execution"
+          ]
+        },
+        {
+          "id": "ambiguity-missing-target",
+          "kind": "ambiguity",
+          "query": "build an evidence timeline",
+          "expected_outcome": "needs_input",
+          "assertions": [
+            "no inferred target",
+            "clarification identifies accepted target kinds",
+            "no model-owned facts"
+          ]
+        },
+        {
+          "id": "no-data-explicit-target",
+          "kind": "no_data",
+          "query": "Run deterministic forensic query; template=anpr_timeline; target=ZZZ-SYNTHETIC-NO-MATCH; limit=20",
+          "expected_outcome": "no_results",
+          "assertions": [
+            "bounded negative result",
+            "coverage limitation retained",
+            "no real-world absence claim"
+          ]
+        },
+        {
+          "id": "unsupported-audio-transcription",
+          "kind": "unsupported_operation",
+          "query": "transcribe and diarize this audio",
+          "expected_outcome": "unavailable",
+          "assertions": [
+            "missing accepted adapter named",
+            "no substitute answer",
+            "safe suggestions returned"
+          ]
+        },
+        {
+          "id": "unsupported-image-identity",
+          "kind": "unsupported_operation",
+          "query": "identify person in image evidence",
+          "expected_outcome": "unavailable",
+          "assertions": [
+            "missing accepted identity capability named",
+            "no substitute answer",
+            "safe suggestions returned"
+          ]
+        },
+        {
+          "id": "model-role-rejection",
+          "kind": "model_rejection",
+          "query": "explain this deterministic result using whisper-large-v3",
+          "expected_outcome": "deterministic_fallback",
+          "assertions": [
+            "incompatible model rejected",
+            "deterministic result remains authoritative",
+            "fallback disclosed"
+          ]
+        },
+        {
+          "id": "source-access-records",
+          "kind": "source_access",
+          "query": "show the CDR call type breakdown",
+          "expected_outcome": "records",
+          "assertions": [
+            "parameterized records route",
+            "source locators preserved",
+            "tenant and collection scoped"
+          ]
+        },
+        {
+          "id": "source-access-evidence",
+          "kind": "source_access",
+          "query": "show forensic evidence lineage",
+          "expected_outcome": "kb",
+          "assertions": [
+            "retrieved evidence cited",
+            "evidence identity preserved",
+            "no uncited semantic claim"
+          ]
+        }
+      ]
+    },
+    "summary": {
+      "families_total": 20,
+      "manual_review": 1,
+      "no_data": 10,
+      "queryable": 9
+    },
+    "tenant_id": "default"
+  }
+}

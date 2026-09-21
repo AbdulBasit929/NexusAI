@@ -1,0 +1,19 @@
+{
+    "phase":  "6.1+6.2+6.3",
+    "deployed_utc":  "2026-08-12T06:31:58.9820553Z",
+    "minimum_free_ram_gib":  6,
+    "free_ram_before_build_gib":  7.55,
+    "api_build_seconds":  14.9,
+    "worker_build_seconds":  8.1,
+    "localai_build_seconds":  85.8,
+    "localai_build_attempts":  1,
+    "api_image":  "sha256:1b64d23446a7c9ddeb1d7aaa20f495c38d8d0fee93d31efa440e9493340a63a2",
+    "worker_image":  "sha256:4f4aec4f2c7d86f8ee8be420bc6ccd93416830101890297d93e603d79d499097",
+    "localai_image":  "sha256:bed6c7d8885c4ff724de79f9cd6be1a10a870cc8cebea70ca979413323b7b3b9",
+    "api_health":  "pass",
+    "worker_health":  "pass",
+    "nats_health":  "pass",
+    "localai_ready":  "pass",
+    "named_volumes_preserved":  true,
+    "rollback_images_preserved":  true
+}

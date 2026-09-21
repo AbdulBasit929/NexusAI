@@ -1,0 +1,320 @@
+{
+  "contract_version": "nexusai.post-bfa.image-ocr-benchmark/v1",
+  "scope": "synthetic_nonretained_disposable",
+  "verdict": "M1_ACCEPTABLE_LIMITED",
+  "semantic_image_embedding": {
+    "model": "google/siglip-base-patch16-224",
+    "revision": "7fd15f0689c79d79e38b1c2e2e2370a7bf2761ed",
+    "sha256": "2c63cb7d1f2e95ba501893cbb8faeb4ea9a3af295498d35097126228659c2af8",
+    "model_bytes": 812672320,
+    "complete_role_bytes": 815871927,
+    "license": "Apache-2.0",
+    "embedding_dimension": 768,
+    "constructor_checksum_latency_ms": 14301.756,
+    "image_latency_ms": {
+      "subject-a-frontal.png": 13782.983,
+      "subject-a-blur.png": 881.797,
+      "subject-a-pose.png": 844.003,
+      "subject-b-frontal.png": 787.258,
+      "group-four.png": 1237.367,
+      "no-face-street.png": 881.163
+    },
+    "pair_cosine": {
+      "same_subject_blur": 0.9357892062354922,
+      "same_subject_pose": 0.9668380917126206,
+      "different_subject": 0.7851776739897274,
+      "portrait_vs_street": 0.4630320558678394
+    },
+    "text_to_image_rankings": {
+      "a close portrait photograph of one person": [
+        {
+          "fixture": "subject-a-blur.png",
+          "cosine": 0.12643153151517367
+        },
+        {
+          "fixture": "subject-a-frontal.png",
+          "cosine": 0.12470837967782218
+        },
+        {
+          "fixture": "subject-a-pose.png",
+          "cosine": 0.12033333633728228
+        },
+        {
+          "fixture": "subject-b-frontal.png",
+          "cosine": 0.10725052067889576
+        },
+        {
+          "fixture": "group-four.png",
+          "cosine": 0.05173155846989001
+        },
+        {
+          "fixture": "no-face-street.png",
+          "cosine": -0.009575791331295616
+        }
+      ],
+      "a street scene with no people": [
+        {
+          "fixture": "no-face-street.png",
+          "cosine": 0.07648226918712883
+        },
+        {
+          "fixture": "group-four.png",
+          "cosine": -0.03596406540323566
+        },
+        {
+          "fixture": "subject-a-blur.png",
+          "cosine": -0.0669133504947661
+        },
+        {
+          "fixture": "subject-a-frontal.png",
+          "cosine": -0.0751830579586059
+        },
+        {
+          "fixture": "subject-a-pose.png",
+          "cosine": -0.07610174150474237
+        },
+        {
+          "fixture": "subject-b-frontal.png",
+          "cosine": -0.09320475609610689
+        }
+      ],
+      "پاکستان کی سڑک": [
+        {
+          "fixture": "subject-a-frontal.png",
+          "cosine": 0.015325826401715096
+        },
+        {
+          "fixture": "no-face-street.png",
+          "cosine": 0.014789859369904543
+        },
+        {
+          "fixture": "subject-a-pose.png",
+          "cosine": 0.012859556701253475
+        },
+        {
+          "fixture": "subject-a-blur.png",
+          "cosine": 0.007207260334167986
+        },
+        {
+          "fixture": "subject-b-frontal.png",
+          "cosine": 0.0006066740994102579
+        },
+        {
+          "fixture": "group-four.png",
+          "cosine": -0.004326088365770426
+        }
+      ]
+    },
+    "english_text_to_image_top1_accuracy": 1.0,
+    "urdu_street_query_top1_correct": false,
+    "limitations": [
+      "Scores are candidate semantic visual similarity, not evidence identity or fact.",
+      "English WebLI pretraining makes Urdu and Roman-Urdu text queries LIMITED.",
+      "Production API text-to-image execution is not exposed in this slice."
+    ]
+  },
+  "general_image_ocr": {
+    "runtime": "tesseract 5.5.0",
+    "tessdata_revision": "65727574dfcd264acbb0c3e07860e4e9e9b22185",
+    "tessdata_sha256": {
+      "eng": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+      "urd": "62e8250ce2a994106e313a82e26a516a39e2cf159d0ce3c5b5008387fd0d555f"
+    },
+    "license": "Apache-2.0",
+    "pillow_raqm_available": true,
+    "fixtures": {
+      "english-scene.png": {
+        "latency_ms": 372.809,
+        "readiness": "READY",
+        "observation_count": 3,
+        "raw_text": [
+          "NEXUS Al EVIDENCE",
+          "Islamabad Case 2026",
+          "REVIEW REQUIRED"
+        ],
+        "gold_text": [
+          "NEXUS AI EVIDENCE",
+          "Islamabad Case 2026",
+          "REVIEW REQUIRED"
+        ],
+        "normalized_exact_accuracy": 0.6666666666666666,
+        "normalized_character_error_rate": 0.018867924528301886,
+        "script_families": [
+          "latin_script_candidate",
+          "latin_script_candidate",
+          "latin_script_candidate"
+        ],
+        "bounds": [
+          {
+            "x": 60,
+            "y": 70,
+            "width": 519,
+            "height": 40
+          },
+          {
+            "x": 59,
+            "y": 167,
+            "width": 447,
+            "height": 32
+          },
+          {
+            "x": 59,
+            "y": 257,
+            "width": 392,
+            "height": 37
+          }
+        ],
+        "confidences": [
+          0.9607340499999999,
+          0.9621856700000001,
+          0.95684212
+        ],
+        "limitations": [
+          "general scene OCR is LIMITED and does not replace FastALPR plate OCR",
+          "Urdu, mixed-script, blur, rotation and stylized text require analyst review"
+        ]
+      },
+      "mixed-english-urdu.png": {
+        "latency_ms": 368.775,
+        "readiness": "READY",
+        "observation_count": 4,
+        "raw_text": [
+          "NEXUS Al EVIDENCE",
+          "Islamabad Case 2026",
+          "REVIEW REQUIRED",
+          "پاکستان"
+        ],
+        "gold_text": [
+          "NEXUS AI EVIDENCE",
+          "Islamabad Case 2026",
+          "REVIEW REQUIRED",
+          "پاکستان"
+        ],
+        "normalized_exact_accuracy": 0.75,
+        "normalized_character_error_rate": 0.01639344262295082,
+        "script_families": [
+          "latin_script_candidate",
+          "latin_script_candidate",
+          "latin_script_candidate",
+          "arabic_script_candidate"
+        ],
+        "bounds": [
+          {
+            "x": 60,
+            "y": 70,
+            "width": 519,
+            "height": 40
+          },
+          {
+            "x": 59,
+            "y": 167,
+            "width": 447,
+            "height": 32
+          },
+          {
+            "x": 59,
+            "y": 257,
+            "width": 392,
+            "height": 37
+          },
+          {
+            "x": 868,
+            "y": 420,
+            "width": 226,
+            "height": 67
+          }
+        ],
+        "confidences": [
+          0.9607340499999999,
+          0.9621856700000001,
+          0.95684212,
+          0.91681747
+        ],
+        "limitations": [
+          "general scene OCR is LIMITED and does not replace FastALPR plate OCR",
+          "Urdu, mixed-script, blur, rotation and stylized text require analyst review"
+        ]
+      },
+      "urdu-scene.png": {
+        "latency_ms": 311.96,
+        "readiness": "READY",
+        "observation_count": 2,
+        "raw_text": [
+          "پاکستان زند[] باد",
+          "اسلام آباد"
+        ],
+        "gold_text": [
+          "پاکستان زندہ باد",
+          "اسلام آباد"
+        ],
+        "normalized_exact_accuracy": 0.5,
+        "normalized_character_error_rate": 0.07407407407407407,
+        "script_families": [
+          "arabic_script_candidate",
+          "arabic_script_candidate"
+        ],
+        "bounds": [
+          {
+            "x": 611,
+            "y": 220,
+            "width": 487,
+            "height": 73
+          },
+          {
+            "x": 819,
+            "y": 358,
+            "width": 274,
+            "height": 84
+          }
+        ],
+        "confidences": [
+          0.9061406699999999,
+          0.92583237
+        ],
+        "limitations": [
+          "general scene OCR is LIMITED and does not replace FastALPR plate OCR",
+          "Urdu, mixed-script, blur, rotation and stylized text require analyst review"
+        ]
+      },
+      "blank.png": {
+        "latency_ms": 427.792,
+        "readiness": "READY_WITH_WARNINGS",
+        "observation_count": 0,
+        "raw_text": [],
+        "gold_text": [],
+        "normalized_exact_accuracy": 1.0,
+        "normalized_character_error_rate": 0.0,
+        "script_families": [],
+        "bounds": [],
+        "confidences": [],
+        "limitations": [
+          "general scene OCR is LIMITED and does not replace FastALPR plate OCR",
+          "Urdu, mixed-script, blur, rotation and stylized text require analyst review",
+          "no non-empty OCR region was returned"
+        ]
+      },
+      "corrupt.png": {
+        "error": "Tesseract general OCR exited 1: Leptonica Error in fopenReadStream: file not found: not-an-image\nLeptonica Error in pixRead: image file not found: not-an-image\nImage file not-an-image cannot be read!\nError during processing."
+      },
+      "oversized_control": {
+        "error": "OCR input exceeds configured maximum of 10 bytes"
+      }
+    },
+    "limitations": [
+      "General scene OCR is LIMITED and does not replace FastALPR plate OCR.",
+      "Script family is not a language identification claim."
+    ]
+  },
+  "resources": {
+    "peak_rss_before_mib": 35.27734375,
+    "peak_rss_after_mib": 1094.19140625,
+    "cpu_threads": 1,
+    "package_versions": {
+      "torch": "2.6.0+cpu",
+      "transformers": "4.49.0",
+      "safetensors": "0.5.3",
+      "sentencepiece": "0.2.0",
+      "Pillow": "11.1.0"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "contract_version": "nexusai.mmv2.media-query-template-matrix/v1",
+  "production_hardcoded_plate_logic": false,
+  "retained_data_mutated": false,
+  "cases": [
+    {"input": "Find LN15ZZC.", "language": "en", "expected": "current authorized evidence only", "status": "NOT_CERTIFIED_MMVI_RESULT_SUPERSEDED_AS_EXACT_TIMESTAMP"},
+    {"input": "Which plates appear in this video?", "language": "en", "expected": "video.anpr_grouped_timeline; artifact-backed groups or complete-zero", "status": "SOURCE_ROUTING_PASS_LIVE_GATED"},
+    {"input": "When did LN15ZZC appear?", "language": "en", "expected": "source timestamps only", "status": "ASK_OPEN"},
+    {"input": "Show plate sightings between 20 and 30 seconds.", "language": "en", "expected": "time-constrained source observations", "status": "ASK_OPEN"},
+    {"input": "Show all plates in this image.", "language": "en", "expected": "current image ANPR artifacts", "status": "UI_ARTIFACT_BACKED_ASK_OPEN"},
+    {"input": "Find ZZZ9999.", "language": "en", "expected": "no_match_for_filter; no fabricated observation", "status": "SOURCE_SEMANTICS_PASS_LIVE_CERTIFICATION_OPEN"},
+    {"input": "is video mein konsi number plates hain", "language": "roman_urdu", "expected": "video.anpr_grouped_timeline", "status": "SOURCE_ROUTING_PASS_LIVE_GATED"},
+    {"input": "LN15ZZC kab nazar ayi", "language": "roman_urdu", "expected": "exact identifier preserved and source-time result/no-result", "status": "OPEN"},
+    {"input": "is image mein number plate kya hai", "language": "roman_urdu", "expected": "image ANPR artifacts", "status": "OPEN"},
+    {"input": "اس ویڈیو میں کون سی نمبر پلیٹیں ہیں", "language": "ur", "expected": "video.anpr_grouped_timeline; plate identifiers unchanged", "status": "SOURCE_ROUTING_PASS_LIVE_GATED"},
+    {"input": "نمبر پلیٹ PKX4821 کب نظر آئی دکھائیں", "language": "ur", "expected": "anpr.sightings; exact ASCII plate PKX4821", "status": "SOURCE_ROUTING_AND_IDENTIFIER_PASS_LIVE_GATED"},
+    {"input": "اس ویڈیو کی نمبر پلیٹ ٹائم لائن دکھائیں", "language": "ur", "expected": "video.anpr_grouped_timeline", "status": "SOURCE_ROUTING_PASS_LIVE_GATED"}
+  ],
+  "missing_parameter": "OPEN",
+  "follow_up": "OPEN",
+  "result_state_taxonomy": "SOURCE_PASS_RESULTS_PRESENT_COMPLETE_ZERO_NO_MATCH_NOT_PROCESSED_PROCESSING_FAILED_UNAVAILABLE_UNAUTHORIZED_INVALID_REQUEST",
+  "positive_summary": "SOURCE_PASS_ONE_AND_MULTI_ROW_LIVE_GATED",
+  "history_reopen": "SOURCE_PRESENTATION_PASS_COMPLETE_ZERO_AND_NO_MATCH_FOUR_VIEWPORT_LIVE_DEPLOYMENT_GATED",
+  "verdict": "SOURCE_FINAL_ENTERPRISE_SEMANTICS_PASS_LIVE_CERTIFICATION_GATED"
+}

@@ -1,0 +1,368 @@
+{
+  "schema_version": "nexusai.nxb21d-model-evaluation-receipt/v1",
+  "completed_at": "2026-09-04T07:12:16.820011Z",
+  "source_digest": "34c69067628a58373d471aa8e75d7a17a2c4a7f789b521f62c5baa38f8a5478d",
+  "evaluation_status": "INVALID_ABORTED_CONFIGURATION_MISMATCH_AND_SUITE_TIMEOUT",
+  "holdout_consumed": true,
+  "holdout_completion": "PARTIAL_81_OF_168",
+  "cases_attempted": 81,
+  "cases_completed": 81,
+  "cases_not_attempted": 87,
+  "model_calls": 81,
+  "structured_valid": {
+    "count": 0,
+    "total": 81,
+    "percent": 0.0
+  },
+  "overall_observed": {
+    "passed": 0,
+    "attempted": 81,
+    "percent": 0.0
+  },
+  "overall_maximum_possible": {
+    "passed": 87,
+    "total": 168,
+    "percent": 51.785714
+  },
+  "statuses": {
+    "malformed_proposal": 80,
+    "timeout_or_unavailable": 1
+  },
+  "language": {
+    "en": {
+      "passed": 0,
+      "attempted": 21,
+      "attempted_percent": 0.0,
+      "corpus_total": 65,
+      "not_attempted": 44,
+      "maximum_possible_passed": 44,
+      "maximum_possible_percent": 67.692308,
+      "frozen_required_percent": 95,
+      "allowed_failures": 3,
+      "threshold_still_mathematically_reachable": false
+    },
+    "ur": {
+      "passed": 0,
+      "attempted": 20,
+      "attempted_percent": 0.0,
+      "corpus_total": 37,
+      "not_attempted": 17,
+      "maximum_possible_passed": 17,
+      "maximum_possible_percent": 45.945946,
+      "frozen_required_percent": 95,
+      "allowed_failures": 1,
+      "threshold_still_mathematically_reachable": false
+    },
+    "roman_ur": {
+      "passed": 0,
+      "attempted": 20,
+      "attempted_percent": 0.0,
+      "corpus_total": 36,
+      "not_attempted": 16,
+      "maximum_possible_passed": 16,
+      "maximum_possible_percent": 44.444444,
+      "frozen_required_percent": 95,
+      "allowed_failures": 1,
+      "threshold_still_mathematically_reachable": false
+    },
+    "mixed": {
+      "passed": 0,
+      "attempted": 20,
+      "attempted_percent": 0.0,
+      "corpus_total": 30,
+      "not_attempted": 10,
+      "maximum_possible_passed": 10,
+      "maximum_possible_percent": 33.333333,
+      "frozen_required_percent": 95,
+      "allowed_failures": 1,
+      "threshold_still_mathematically_reachable": false
+    }
+  },
+  "critical": {
+    "passed": 0,
+    "attempted": 0,
+    "corpus_total": 80,
+    "percent": null,
+    "status": "NOT_REACHED_UNMEASURED",
+    "frozen_required_percent": 100
+  },
+  "breakdowns_observed": {
+    "capability": {
+      "cdr.frequent_contacts": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      },
+      "cdr.identifier_lookup": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      },
+      "cdr.time_activity": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      },
+      "cross_family.identifiers": {
+        "passed": 0,
+        "attempted": 1,
+        "percent": 0.0
+      },
+      "device.observations": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      },
+      "document.phrase": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      },
+      "face.candidates": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      },
+      "financial.summary": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      },
+      "generic.filter": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      },
+      "image.plate": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      },
+      "image.similarity": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      },
+      "ipdr.endpoint": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      },
+      "ipdr.sessions": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      },
+      "knowledge.semantic": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      },
+      "logs.failures": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      },
+      "ocr.phrase": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      },
+      "roman_urdu.phrase": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      },
+      "subscriber.lookup": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      },
+      "tower.lookup": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      },
+      "transcript.phrase": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      },
+      "video.group_plate": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      }
+    },
+    "semantic": {
+      "AGGREGATE": {
+        "passed": 0,
+        "attempted": 12,
+        "percent": 0.0
+      },
+      "COMPOSE": {
+        "passed": 0,
+        "attempted": 1,
+        "percent": 0.0
+      },
+      "EXACT_VALUE": {
+        "passed": 0,
+        "attempted": 16,
+        "percent": 0.0
+      },
+      "FILTER": {
+        "passed": 0,
+        "attempted": 12,
+        "percent": 0.0
+      },
+      "GROUP": {
+        "passed": 0,
+        "attempted": 8,
+        "percent": 0.0
+      },
+      "PHRASE_CONTAINS": {
+        "passed": 0,
+        "attempted": 16,
+        "percent": 0.0
+      },
+      "SEMANTIC_RETRIEVAL": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      },
+      "SIMILARITY": {
+        "passed": 0,
+        "attempted": 8,
+        "percent": 0.0
+      },
+      "TOP_K": {
+        "passed": 0,
+        "attempted": 4,
+        "percent": 0.0
+      }
+    },
+    "dimension": {
+      "unseen_natural": {
+        "passed": 0,
+        "attempted": 81,
+        "percent": 0.0
+      }
+    },
+    "critical_class": {
+      "noncritical": {
+        "passed": 0,
+        "attempted": 81,
+        "percent": 0.0
+      }
+    }
+  },
+  "latency": {
+    "sum_case_latency_ms": 3584769,
+    "median_ms": 42814,
+    "p95_ms": 58108,
+    "minimum_ms": 40558,
+    "maximum_ms": 60003,
+    "suite_elapsed_ms": 3600018,
+    "go_command_elapsed_ms": 3602893
+  },
+  "resources": {
+    "sample_count": 576,
+    "first_sample_utc": "2026-09-04T05:40:13.8510220Z",
+    "last_sample_utc": "2026-09-04T06:41:23.4494190Z",
+    "minimum_host_available_ram_gib": 1.412,
+    "maximum_api_container_cpu_percent": 810.52,
+    "maximum_api_container_memory_mib": 5951.488,
+    "last_api_container_memory_mib": 5263.36,
+    "severe_memory_pressure_observed": true
+  },
+  "configuration": {
+    "frozen_manifest": {
+      "model": "qwen_qwen3-4b-instruct-2507",
+      "artifact": "Qwen_Qwen3-4B-Instruct-2507-Q8_0.gguf",
+      "artifact_sha256": "260b5b5b6ad73e44df81a43ea1f5c11c37007b6bac18eb3cd2016e8667c19662",
+      "quantization": "Q8_0",
+      "context": 8192,
+      "threads": 8,
+      "gpu_layers": 0,
+      "temperature": 0,
+      "max_tokens": 192
+    },
+    "observed_live_yaml": {
+      "sha256": "ef036e0a02cc5e8331dc4dff41c0e0cb68e6e0bda71d92b92f47f673472e666f",
+      "top_level_context_size": 4096,
+      "parameters_context_size": 8192,
+      "effective_runtime_context_size": 4096,
+      "top_level_temperature": 0.6,
+      "request_level_temperature": 0,
+      "function_grammar_disabled": true,
+      "threads": 8,
+      "gpu_layers": 0
+    },
+    "matches_frozen_manifest": false,
+    "mismatches": [
+      "effective context_size 4096 != frozen 8192"
+    ],
+    "observations_not_proven_mismatches": [
+      "live YAML top-level temperature is 0.6, but the planner request set temperature 0; no runtime decoding-temperature mismatch was observed",
+      "function.grammar.disable is true, but LocalAI handles response_format JSON-schema grammar on a separate path from generated function-call grammar"
+    ]
+  },
+  "structured_output_diagnostics": {
+    "response_format_json_schema_requested": true,
+    "localai_response_format_grammar_path": "core/http/endpoints/openai/chat.go:275-310",
+    "function_grammar_disable_scope": "Disables LocalAI-generated function-call grammar; it does not disable the separate response_format JSON-schema grammar path",
+    "grammar_generation_errors_in_localai_log": 0,
+    "raw_completion_content_preserved_by_original_evaluator": false,
+    "malformed_proposal_root_cause": "UNRESOLVED: the immutable evidence cannot distinguish backend schema enforcement, chat-template or stopword behavior, prompt behavior, or another response-content failure because the original evaluator discarded malformed raw completions"
+  },
+  "failure_classification": [
+    "MODEL_PROFILE_CONTEXT_MISMATCH",
+    "MALFORMED_RESPONSE_CAUSE_UNRESOLVED",
+    "SUITE_TIMEOUT",
+    "SEVERE_MEMORY_PRESSURE"
+  ],
+  "current_deployed_profile_suitability": "INSUFFICIENT",
+  "intrinsic_base_model_suitability": "NOT_CLASSIFIABLE_FROM_INVALID_RUN",
+  "suitability": "INSUFFICIENT",
+  "DExitDecision": "FAIL",
+  "model_admission_required": true,
+  "activation_allowed": false,
+  "holdout_may_be_used_for_tuning": false,
+  "independent_retest_requirement": "Correct and qualify the planner/profile on a development corpus, then freeze a new independent 168-case holdout before any new suitability claim.",
+  "runtime_postcheck": {
+    "status": "PASS_AFTER_DOCUMENTED_MANUAL_SAFE_UNLOAD",
+    "model_unloaded": true,
+    "loaded_models": [
+      "qwen3-embedding-0.6b"
+    ],
+    "containers_healthy": true,
+    "container_id_image_restart_parity": true,
+    "retained_tuple": "64|64|77|22507|828|61",
+    "active_jobs": 0,
+    "activity_count": 303,
+    "newest_activity_created_at": "2026-09-03T06:55:39.934170Z",
+    "new_activity_created_by_evaluation": false,
+    "available_ram_gib_after_manual_unload_and_cache_recovery": 2.275,
+    "available_ram_gib_at_finalization": 4.921
+  },
+  "runtime_impact": {
+    "new_model_downloaded": false,
+    "model_changed_permanently": false,
+    "deployment_performed": false,
+    "database_migration": false,
+    "retained_evidence_mutated": false,
+    "retained_activity_mutated": false,
+    "volumes_changed": false,
+    "product_certification_performed": false,
+    "nxb2_activation_performed": false
+  },
+  "evidence": {
+    "evaluation_manifest_sha256": "9e9507fb174cef2f356c452c793e2905329af5de19c2791d8ae0bb46332e42bb",
+    "frozen_holdout_sha256": "eb102cdd1f1fa1d9da02c5dce4c8c9e216a523ba78d4468ce9802f880170283f",
+    "go_evaluator_log_sha256": "ad07f86e9f72962856cd9aa8c05a275a53444553c2111387014d0e4c3b05c5df",
+    "operator_log_sha256": "46e2ab3e256b127250e92b86cdde595254c23b535d66b4f279096d2357e2c445",
+    "resource_samples_sha256": "5808e71229be42e307733a0b941b66489ee59ff06869229068128c0a6ba72065",
+    "observed_model_yaml_sha256": "ef036e0a02cc5e8331dc4dff41c0e0cb68e6e0bda71d92b92f47f673472e666f",
+    "private_partial_result_sha256": "d66d0cb627f94541f0c89cad9d78f9aa14eea4bf11f2bb7ddd9051c87fad9b6b"
+  }
+}

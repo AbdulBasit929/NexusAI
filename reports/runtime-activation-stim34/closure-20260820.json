@@ -1,0 +1,98 @@
+{
+  "contract_version": "nexusai.stim34-runtime-closure/v1",
+  "captured_date": "2026-08-20",
+  "status": "accepted",
+  "activation_marker": "R7.10APIActivation=PASS BuildSeconds=21.2 ServicesRecreated=forensic-records-api ProfilesChanged=false VolumesPreserved=true RollbackImage=preserved",
+  "health": "PASS",
+  "retained_acceptance_accounting": {
+    "fixtures": 7,
+    "total_rows": 21,
+    "accepted_rows": 20,
+    "duplicate_rows": 1,
+    "rejected_rows": 0
+  },
+  "multi_cdr": {
+    "status": "PASS",
+    "http_status": 200,
+    "route": "records_sql",
+    "source_count": 3,
+    "matched_event_count": 7,
+    "common_contacts": ["923110000001"],
+    "unique_contacts": {
+      "cdr_alpha.csv": ["923220000002"],
+      "cdr_bravo.csv": ["923330000003"],
+      "cdr_charlie.tsv": ["923440000004"]
+    },
+    "shared_imei": ["490154203237518"],
+    "shared_imsi": ["410010123456789"],
+    "shared_tower": ["LHR-001"],
+    "duplicate_candidate_sources": ["cdr_alpha.csv", "cdr_charlie.tsv"],
+    "conflict_candidate_sources": ["cdr_alpha.csv", "cdr_bravo.csv", "cdr_charlie.tsv"],
+    "exact_overlap_utc": "2026-08-18T05:00:00Z",
+    "overlap_pair_count": 3,
+    "db_latency_ms": 76,
+    "total_latency_ms": 95,
+    "wall_ms": 152
+  },
+  "invalid_membership": {
+    "status": "PASS",
+    "http_status": 400,
+    "error_code": "invalid_source_membership",
+    "error": "selected source set is invalid for the authorized collection",
+    "wall_ms": 47
+  },
+  "cross_family_phone": {
+    "status": "PASS",
+    "http_status": 200,
+    "route": "records_sql",
+    "matched_record_count": 4,
+    "family_coverage": ["cdr", "ipdr", "subscriber"],
+    "ipdr_subscriber_valid_pair_count": 1,
+    "future_pair_time_valid": false,
+    "ipdr_only_target_subscriber_rows": 0,
+    "subscriber_only_target_ipdr_rows": 0,
+    "relations_may_be_truncated": false,
+    "db_latency_ms": 25,
+    "total_latency_ms": 42,
+    "wall_ms": 55
+  },
+  "cross_family_anpr": {
+    "status": "PASS",
+    "http_status": 200,
+    "route": "records_sql",
+    "source_count": 2,
+    "matched_record_count": 2,
+    "camera_sequence": ["STIM-CAM-EAST", "STIM-CAM-WEST"],
+    "source_files": ["anpr_east.csv", "anpr_west.csv"],
+    "elapsed_seconds": 480,
+    "relations_may_be_truncated": false,
+    "db_latency_ms": 19,
+    "total_latency_ms": 35,
+    "wall_ms": 43
+  },
+  "source_validation": {
+    "forensic_api_specs": 279,
+    "intentional_skips": 2,
+    "go_test": "PASS",
+    "go_vet": "PASS",
+    "diff_check": "PASS"
+  },
+  "semantic_limits": [
+    "Shared observations do not prove identity, ownership, association, causation, intent, guilt, or physical presence.",
+    "Exact-instant overlap does not establish a meeting or shared activity.",
+    "ANPR sequence is cited observation timing, not ownership or continuous movement.",
+    "Absent links remain no evidence, not evidence of absence."
+  ],
+  "closure": {
+    "stim_3_runtime_status": "accepted",
+    "stim_4_runtime_status": "accepted",
+    "stim_3_final_status": "closed",
+    "stim_4_final_status": "closed",
+    "open_p0": 0,
+    "open_p1": 0,
+    "database_migration_needed": false,
+    "deployment_needed": false,
+    "acceptance_data_ingest_needed": false,
+    "next_phase": "STIM-5_NOT_STARTED"
+  }
+}

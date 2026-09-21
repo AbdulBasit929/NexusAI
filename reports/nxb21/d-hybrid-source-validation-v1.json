@@ -1,0 +1,35 @@
+{
+  "status": "PASS",
+  "api_duration_seconds": 40.333,
+  "api_go_tests": {
+    "pass": 304,
+    "fail": 0,
+    "skip": 2
+  },
+  "ginkgo": {
+    "pass_count": 526,
+    "fail_count": 0,
+    "skip_count": 29
+  },
+  "focused": {
+    "pass_count": 42,
+    "fail_count": 0,
+    "skip_count": 513,
+    "duration_seconds": 3.724
+  },
+  "agent_routing_seconds": 0.377,
+  "agent_source_seconds": 0.478,
+  "agent_db_infrastructure": "ENVIRONMENT_BLOCKED: rootless Docker is not supported on Windows; 15 previously observed PostgreSQL/Testcontainers setup failures, excluded from final source-only suite",
+  "live_inference": false,
+  "logs": {
+    "hybrid-api-final.jsonl": "4b74abd5f3f5ba950686c35e79984b95896e200f75162ae5c0dbdd8ce9d553dc",
+    "hybrid-focused-final.log": "b114a599269d8b60e0671127a8ca5591be4d819fb84d5a286c83abda88c43200",
+    "hybrid-dynamic-language-final.log": "ac463db057c5ee5806dfc541acf136e4d32747ecf72b8291babdaa8c31d13e65",
+    "hybrid-agents-routing-final.log": "fedbebd5dbbc143cc5e43cf0000c1d755d96d35397b9f9a715d6596dc8cf6798",
+    "hybrid-agents-source-final.log": "6b1ac7d5206414465652f5cc4344a625752777daaa130197d26d1261caf6514e",
+    "hybrid-forensictext-final.log": "76e2b454badbcd38f87c939b5128535080e926df3b96f3d3938ea8617aed3bd2",
+    "hybrid-transport-final.log": "4c8d492e9921f68eb8b69d104e0265323f3809a7ca39b4287cf9aa9123983302",
+    "hybrid-guards-final.log": "5b6425c6d73f19fc8f11b85584231e47fe4343f8f82acd692e1ee732a8492832",
+    "hybrid-framework-final.log": "a8f3154939cb2c3e488cb36719bc80bc932b33f146d920178e0e436cfb0575b9"
+  }
+}

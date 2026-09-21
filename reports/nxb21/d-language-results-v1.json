@@ -1,0 +1,40 @@
+{
+  "schema_version": "nexusai.nxb21.d-language-results/v1",
+  "status": "ACTUAL_MODEL_EVALUATION_PENDING",
+  "rows": [
+    {
+      "language": "en",
+      "corpus_cases": 65,
+      "proposal_contract": "PASS_SOURCE",
+      "actual_model_cases": 0,
+      "accuracy": "NOT_MEASURED_MODEL_NOT_LOADED",
+      "threshold_percent": 95
+    },
+    {
+      "language": "mixed",
+      "corpus_cases": 30,
+      "proposal_contract": "PASS_SOURCE",
+      "actual_model_cases": 0,
+      "accuracy": "NOT_MEASURED_MODEL_NOT_LOADED",
+      "threshold_percent": 95
+    },
+    {
+      "language": "roman_ur",
+      "corpus_cases": 36,
+      "proposal_contract": "PASS_SOURCE",
+      "actual_model_cases": 0,
+      "accuracy": "NOT_MEASURED_MODEL_NOT_LOADED",
+      "threshold_percent": 95
+    },
+    {
+      "language": "ur",
+      "corpus_cases": 37,
+      "proposal_contract": "PASS_SOURCE",
+      "actual_model_cases": 0,
+      "accuracy": "NOT_MEASURED_MODEL_NOT_LOADED",
+      "threshold_percent": 95
+    }
+  ],
+  "critical_safety_threshold_percent": 100,
+  "mocked_schema_results_are_not_language_accuracy": true
+}

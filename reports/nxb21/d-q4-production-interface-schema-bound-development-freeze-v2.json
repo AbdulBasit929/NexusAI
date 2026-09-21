@@ -1,0 +1,54 @@
+{
+  "schema_version": "nexusai.nxb21d-q4-production-interface-schema-bound-development-freeze/v2",
+  "frozen_at": "2026-09-05T17:23:24.8077331Z",
+  "freeze_id": "nxb21d-q4-production-interface-schema-bound-dev-r2",
+  "identity_sha256": "ae5ff08e090a4c23b10f6dca2d1e6a8c4549ab13059fc51dcf34d70926b0c4db",
+  "identity_algorithm": "sha256 of ordered LF-terminated key=value tuple",
+  "development_only": true,
+  "qualification_candidate": false,
+  "state": "FROZEN_NOT_EXECUTED",
+  "source_change": {
+    "query_language_sha256": "58b1540f4b63e7a569f48bed6a9f1bd6f211e8a869858531ebaf0f1073463846",
+    "query_language_test_sha256": "866e988b243f1aadc1e0ca9a3b318fe0fa6ca6273e67d9a7debb60d36cf8f447",
+    "completion_budget": 512,
+    "contract": "Request-derived constants bind unused source time to null, top-k to a bounded source value, date and direction to deterministic extraction, non-text capabilities exclude text_query, and quoted text binds literal plus semantic to the shared parser."
+  },
+  "model": {
+    "artifact_sha256": "2fde00ce69dd4899c70d020845e2638353015bba0fdf161b3eb965f2bca4464e",
+    "q4_profile_sha256": "30d3bcd8c92684e191277dad992354323b7e46c7d30d3c69149010e90f117129",
+    "q8_profile_sha256": "ef036e0a02cc5e8331dc4dff41c0e0cb68e6e0bda71d92b92f47f673472e666f"
+  },
+  "development_corpus": {
+    "path": "scripts/nxb21d-interface-remediation-v2/nxb21d-q4-production-interface-24case-development-corpus-v2.json",
+    "sha256": "3eb69ae6284e38cfc4e3f4c68514d0ad2ef5ed5081908faf389fc4a60122dbb0",
+    "cases": 24,
+    "model_calls": 20,
+    "languages": {"en": 6, "ur": 6, "roman_ur": 6, "mixed": 6},
+    "freshness": "PASS_AGAINST_7_PRIOR_CORPORA_AND_87_CAPTURED_PROBES"
+  },
+  "framework": {
+    "evaluator_sha256": "46223447730de86d06c2b455110075b720e6d0ee2c35105b008def4551f6c4e7",
+    "runner_sha256": "ba495653adb35f1f459efe585de20bbd5f3a5ac575139884039579a8dc3bbc45",
+    "validator_sha256": "db482a3d05f03b94ddb1b7d86b49fe9bb52fc2fd58af7c5ef966cb62d2ef79ff",
+    "fail_fast": "four_consecutive_model_failures_with_sealed_receipt"
+  },
+  "retired_predecessor": {
+    "freeze_id": "nxb21d-q4-production-interface-remediation-dev-r1",
+    "corpus_sha256": "c9b71b7e27669b257a145ad5dd94ab1dd5576e718600f1c90ffefbb5cbca281e",
+    "attempt_receipt": "reports/nxb21/d-q4-production-interface-development-attempt-1-incomplete-v1.json",
+    "state": "INVALID_INCOMPLETE_DO_NOT_RERUN"
+  },
+  "retired_qualification_attempt": {
+    "state": "INVALID_INCOMPLETE_CONSUMED",
+    "holdout_sha256": "aaa8517983ea4523e235c4b3de31e5562bfaeada21ef24a7b23065a567d31d13",
+    "incident_receipt_sha256": "94f8554098bd8cfb012bd7726644c7d16bae8d08ef6b30d53d52ce86dbcdbd3c"
+  },
+  "program_state": {
+    "development_diagnostic_24_v2": "FROZEN_NOT_EXECUTED",
+    "final_replacement_qualification_candidate": "NOT_YET_FROZEN",
+    "replacement_independent_holdout": "NOT_CREATED",
+    "q4_suitability": "UNCLASSIFIED",
+    "D": "OPEN",
+    "activation": "BLOCKED"
+  }
+}

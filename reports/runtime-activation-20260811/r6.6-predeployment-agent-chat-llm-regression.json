@@ -1,0 +1,16 @@
+﻿{
+    "agent":  "Communications_CDR_Analyst",
+    "template":  "frequent_contacts",
+    "prompt":  "Explain how an analyst should use the deterministic frequent contacts analysis for 923001110001. Do not restate values or infer relationships or communication content.",
+    "message_id":  "1786516995384194420",
+    "completed":  true,
+    "latency_ms":  42318.1,
+    "content_length":  1778,
+    "has_deterministic_findings":  true,
+    "has_model_interpretation":  true,
+    "has_safe_model_fallback":  false,
+    "selected_template_visible":  false,
+    "internal_template_hidden":  true,
+    "professional_heading_visible":  true,
+    "answer":  "## Frequent contacts\n\n### Answer\n\nRanked the explicitly selected participant\u0027s phone contacts from matching CDR events. It returned 8 exact structured result rows. The exact target was 923001110001.\n\n### Plain-language interpretation  \nThe analysis identifies recurring contact patterns based on call or message events. Analysts should review these patterns to assess behavioral consistency and potential network structures, focusing on frequency and timing without inferring personal relationships or content.  \n\n### What the result does not establish  \nThe result does not establish communication content, intent, personal relationships, or device ownership. It only reflects event-based frequency and does not confirm interaction purpose or context.\n\nReview the 1 evidence limit below before using this result in a decision or report.\n\n### At a glance\n\n- **Records Row Count:** 8\n- **Target:** 923001110001\n\n### Key results\n\n| Counterparty | Total Interactions | Incoming Count | Outgoing Count | First Contact |\n| --- | --- | --- | --- | --- |\n| 923009998887 | 121 | 53 | 68 | 2026-04-01T19:02:57Z |\n| 923009998883 | 121 | 54 | 67 | 2026-04-01T20:45:33Z |\n| 923009998882 | 117 | 56 | 61 | 2026-04-01T19:45:15Z |\n| 923009998885 | 109 | 48 | 61 | 2026-04-01T19:00:02Z |\n| 923009998886 | 105 | 53 | 52 | 2026-04-01T20:09:12Z |\n\nShowing 5 of 8 rows. Open the Records Intelligence data grid for the complete result.\n\n\u003cdetails\u003e\n\u003csummary\u003eTechnical details and source traceability\u003c/summary\u003e\n\n- **Case:** nexusai-forensic-demo\n- **Analysis:** Frequent contacts\n- **Target:** 923001110001\n- **Execution route:** records_sql\n\n**All limitations**\n\n- No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations.\n\n\u003c/details\u003e"
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": "nexusai.nxb21d-q4-production-interface-development-incomplete/v1",
+  "recorded_at": "2026-09-05T17:23:24.8077331Z",
+  "state": "INVALID_INCOMPLETE_DEVELOPMENT",
+  "development_only": true,
+  "qualification_holdout": false,
+  "candidate": {
+    "freeze_id": "nxb21d-q4-production-interface-remediation-dev-r1",
+    "identity_sha256": "032234bf2717965e6afe20135c61e8ff8907f2e3393771c7b7280c1c395cdfcb",
+    "corpus_sha256": "c9b71b7e27669b257a145ad5dd94ab1dd5576e718600f1c90ffefbb5cbca281e",
+    "reusable": false
+  },
+  "run": {
+    "directory": "local-acceptance-models/nxb21-d/interface-remediation-development-runs/run-20260905T161347181Z",
+    "cases_completed": 4,
+    "model_calls": 4,
+    "remaining_cases_may_run": false,
+    "aggregate_receipt_present": false,
+    "partial_checkpoint_sha256": "d9502b0e8979d2e53ec257b536ce7f2cbb9db6768ac38be8bc3b750c9a419cb1",
+    "operator_log_sha256": "c03a881c3c5588348228df87c231fb3caed59a6d025bf42375d06d542e7c5e69",
+    "go_evaluator_log_sha256": "bddfdee2e37b066d9fe461f05fcdc315e1fda9b165425ab81a309dfa3d389a5",
+    "resource_samples_sha256": "e2c3160494c3d2270e13baee94a3b369e9befdcdc75c484dca51d6e7a35e4a2a",
+    "terminal_condition": "PowerShell pipeline stopped after case 4; no final aggregate was written"
+  },
+  "completed_evidence": {
+    "http_200": "4/4",
+    "strict_utf8": "4/4",
+    "envelope_json_parse": "4/4",
+    "planner_json_parse": "4/4",
+    "finish_reason_stop": "4/4",
+    "finish_reason_length": "0/4",
+    "completion_tokens": [231, 241, 174, 266],
+    "completion_utilization_percent": [45.1171875, 47.0703125, 33.984375, 51.953125],
+    "production_validator_status": "rejected_proposal_4_of_4"
+  },
+  "diagnosis": {
+    "completion_budget_remediation": "PASS_FOR_OBSERVED_SAMPLE",
+    "transport_corruption": false,
+    "malformed_json": false,
+    "primary_class": "PRODUCTION_SCHEMA_VALIDATOR_CONTRACT_MISMATCH",
+    "findings": [
+      "The strict schema permitted numeric zero for unused start_seconds and end_seconds, but the validator interpreted any non-null number as an asserted recording source-time bound.",
+      "The strict schema permitted text_query for non-derived-text capabilities, but downstream application rejects that parameter for those capabilities.",
+      "The top-k validator trusted only numeric source text, while the English query explicitly requested five and the model returned 5.",
+      "Case if24-en-003 used the explicit words exact phrase, which the shared deterministic parser classifies as EXACT_PHRASE; its frozen oracle incorrectly expected PHRASE_CONTAINS.",
+      "The evaluator label SCHEMA_INVALID conflated a server validation rejection with malformed or schema-shaped output. The replacement evaluator reports VALIDATION_REJECTED."
+    ]
+  },
+  "runtime_post_state": {
+    "q4_model_loaded": false
+  },
+  "program_state": {
+    "development_attempt_1": "INVALID_INCOMPLETE",
+    "q4_suitability": "UNCLASSIFIED",
+    "D": "OPEN",
+    "activation": "BLOCKED"
+  },
+  "next_gate": "Use only the fresh request-bound-schema development v2 bundle. Do not rerun or resume this v1 corpus."
+}

@@ -1,0 +1,40 @@
+﻿{
+    "contract_version":  "nexusai.nxb21d-premium-ui-activation-receipt/v1",
+    "activated_at_utc":  "2026-09-17T06:21:49.1305330Z",
+    "status":  "LIVE_VERIFIED",
+    "route":  "/analyst",
+    "manifest_sha256":  "e307629dd69bb2cf345d4035b8f3e6662ad9b06e8892a656c7f8885eda341c8c",
+    "ui_source_digest_sha256":  "cc104c23d83ffaa0a52a1786594cb9e1845d5cfcf8811ca47b1e526aef004dc6",
+    "ui_dist_digest_sha256":  "5349ccd32de9c21c500f65641bd3091d96ecd4b712ddd88a6481d4e18b7b180b",
+    "live_index_sha256":  "b2e3db447862825bec56fd765cd430743365078ccb0545fd6359255f1f2c4192",
+    "api_container_before":  "fb3d8fd761690364d070da2f01561a85a6722832ec7112a3c3f47024c9c1c2d9",
+    "api_image_before":  "sha256:91620e4c932764c46931dd4eecb47f9f72408e2387da3189f8fcd4ab4d7506be",
+    "api_container_after":  "99c9d982ff7d210f0241c49f06a7f327cf826b3f93b4fcd5a587275640a1b789",
+    "api_image_after":  "sha256:327754b7fe958c9d3f33f4ad2188f3c29cac7d9576f775b8eaca4c60b3b10006",
+    "activation_image":  "nexusai/localai-forensic:nxb21d-premium-ui-20260917",
+    "rollback_image":  "nexusai/localai-forensic:rollback-before-nxb21d-premium-ui-20260917",
+    "ram_gate_samples_gib":  [
+                                 7.925,
+                                 7.924,
+                                 8.527
+                             ],
+    "retained_tuple_before":  "69|69|82|0|22512|876|69",
+    "retained_tuple_after":  "69|69|82|0|22512|876|69",
+    "activity_count_before":  354,
+    "activity_count_after":  354,
+    "active_jobs_before":  0,
+    "active_jobs_after":  0,
+    "protected_services_preserved":  true,
+    "loaded_models_before":  [
+                                 "qwen3-embedding-0.6b"
+                             ],
+    "loaded_models_after":  [
+                                "qwen3-embedding-0.6b"
+                            ],
+    "embedding_runtime_restored":  true,
+    "q8_model_remained_unloaded":  true,
+    "retained_data_mutated":  false,
+    "database_migration":  false,
+    "backend_source_activated":  false,
+    "model_or_profile_changed":  false
+}

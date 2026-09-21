@@ -1,0 +1,11 @@
+{
+  "job_id": "92d81704-c291-4598-a0ee-4d145c900bf4",
+  "evidence_id": "a0ff7b18-129f-4a8a-82cf-48887f98bd9e",
+  "reprocess_of_job_id": "2e527cd5-02b4-4745-b847-4f31dad83c57",
+  "reprocess_generation": 1,
+  "status": "completed",
+  "attempt_count": 1,
+  "accepted_rows": 2,
+  "duplicate_rows": 0,
+  "rejected_rows": 0
+}

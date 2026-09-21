@@ -1,0 +1,102 @@
+{
+  "local-acceptance-models\\nxb21-d\\hybrid-development-runs\\run-20260906T105600096Z\\go-evaluator.log": {
+    "sha256": "935c07d06fac07be91f7f7645fca6fdc6a6ba57b6e50cf2349dad416663e0f99",
+    "bytes": 20404,
+    "mtime_ns": 1788692196224839600
+  },
+  "local-acceptance-models\\nxb21-d\\hybrid-development-runs\\run-20260906T105600096Z\\hybrid-development-summary-v1.json": {
+    "sha256": "38684c2f1e9b1cb128ded3693c1778498480034eec560daf34c0e37fa06f36be",
+    "bytes": 11943,
+    "mtime_ns": 1788692200784860600
+  },
+  "local-acceptance-models\\nxb21-d\\hybrid-development-runs\\run-20260906T105600096Z\\hybrid-development-summary-v1.json.sha256": {
+    "sha256": "aa736eb73f4df1f35d474b7190b15fb95ca90e5bc2236d6d4c0fa26a29257a27",
+    "bytes": 65,
+    "mtime_ns": 1788692200793988200
+  },
+  "local-acceptance-models\\nxb21-d\\hybrid-development-runs\\run-20260906T105600096Z\\operator.log": {
+    "sha256": "9c73a316dd862f492ea9fa57ded77caed4ae4eeb5ce75273731844964761d2fb",
+    "bytes": 12167,
+    "mtime_ns": 1788692200804386000
+  },
+  "local-acceptance-models\\nxb21-d\\hybrid-development-runs\\run-20260906T105600096Z\\resource-samples.jsonl": {
+    "sha256": "d141f8653b29f3b54392d9a950bfc9112d81ce1071c80a5ddb81e7ff87618110",
+    "bytes": 1967,
+    "mtime_ns": 1788692196209232900
+  },
+  "local-acceptance-models\\nxb21-d\\hybrid-development-runs\\run-20260906T105600096Z\\hyb32-en-001\\case-result.json": {
+    "sha256": "9e4eaeb1cee65bae94f7e807a6dc01a594489a8b75c362e2e4b18c93d0743ee6",
+    "bytes": 752,
+    "mtime_ns": 1788692163086407200
+  },
+  "local-acceptance-models\\nxb21-d\\hybrid-development-runs\\run-20260906T105600096Z\\hyb32-en-001\\three-layer-audit.json": {
+    "sha256": "6c15a6501d254dfd69c7fbaa74a619c0470278de958bbba8ea4751a0a8c30b10",
+    "bytes": 1997,
+    "mtime_ns": 1788692163085880100
+  },
+  "local-acceptance-models\\nxb21-d\\hybrid-development-runs\\run-20260906T105600096Z\\hyb32-en-002\\case-result.json": {
+    "sha256": "60d665bd0ed4966a572e7db3dd9468c18e4f3f4f4e45739ab40b8cd1613d6112",
+    "bytes": 939,
+    "mtime_ns": 1788692163150921600
+  },
+  "local-acceptance-models\\nxb21-d\\hybrid-development-runs\\run-20260906T105600096Z\\hyb32-en-002\\three-layer-audit.json": {
+    "sha256": "8bbf54482d5319b1b41b44b73b0e97f670c365eff8bf15f4e87bb8485944a75d",
+    "bytes": 2223,
+    "mtime_ns": 1788692163149911000
+  },
+  "local-acceptance-models\\nxb21-d\\hybrid-development-runs\\run-20260906T105600096Z\\hyb32-en-003\\case-result.json": {
+    "sha256": "a2dde3ba66e661b8e5ee55264ecf91cb973b637c26a1873b526f352631f0c1d9",
+    "bytes": 799,
+    "mtime_ns": 1788692163165485700
+  },
+  "local-acceptance-models\\nxb21-d\\hybrid-development-runs\\run-20260906T105600096Z\\hyb32-en-003\\three-layer-audit.json": {
+    "sha256": "c667ed627f611443a8196bc674e571dc51bff469f4eda30a914e92995f2e2c06",
+    "bytes": 2112,
+    "mtime_ns": 1788692163164975600
+  },
+  "local-acceptance-models\\nxb21-d\\hybrid-development-runs\\run-20260906T105600096Z\\hyb32-en-004\\case-result.json": {
+    "sha256": "c7747bd123219be13be049871eb66511167fe435902b15865675357e3b3d4185",
+    "bytes": 814,
+    "mtime_ns": 1788692163264150100
+  },
+  "local-acceptance-models\\nxb21-d\\hybrid-development-runs\\run-20260906T105600096Z\\hyb32-en-004\\three-layer-audit.json": {
+    "sha256": "605d7179368efdd7eebc569052426a8a45499a47c43035af5542bd3528cd013b",
+    "bytes": 2104,
+    "mtime_ns": 1788692163264150100
+  },
+  "local-acceptance-models\\nxb21-d\\hybrid-development-runs\\run-20260906T105600096Z\\hyb32-en-005\\case-result.json": {
+    "sha256": "9d3e4b620fa4f84ad9ab2a7975053387157899ba3cc5d1f7411855f78d3002c2",
+    "bytes": 1487,
+    "mtime_ns": 1788692196207580600
+  },
+  "local-acceptance-models\\nxb21-d\\hybrid-development-runs\\run-20260906T105600096Z\\hyb32-en-005\\ram-precheck.txt": {
+    "sha256": "3c2e053977055650d1d6936deeffaa637564157a06ca7e26637fce8cfd951b2b",
+    "bytes": 76,
+    "mtime_ns": 1788692163739489800
+  },
+  "local-acceptance-models\\nxb21-d\\hybrid-development-runs\\run-20260906T105600096Z\\hyb32-en-005\\request-utf8-no-bom.json": {
+    "sha256": "172a2e3c391668f594db78b6bfd200297b2897b2faf25358f8143c6a2a6d2394",
+    "bytes": 2569,
+    "mtime_ns": 1788692163775865100
+  },
+  "local-acceptance-models\\nxb21-d\\hybrid-development-runs\\run-20260906T105600096Z\\hyb32-en-005\\response-body-raw.bin": {
+    "sha256": "1a58d33650a629ff3bd3f286bd9e94457d9927c210adffc1f701bc46902a0d12",
+    "bytes": 521,
+    "mtime_ns": 1788692196204916900
+  },
+  "local-acceptance-models\\nxb21-d\\hybrid-development-runs\\run-20260906T105600096Z\\hyb32-en-005\\response-body-strict-utf8.json": {
+    "sha256": "1a58d33650a629ff3bd3f286bd9e94457d9927c210adffc1f701bc46902a0d12",
+    "bytes": 521,
+    "mtime_ns": 1788692196205458300
+  },
+  "local-acceptance-models\\nxb21-d\\hybrid-development-runs\\run-20260906T105600096Z\\hyb32-en-005\\three-layer-audit.json": {
+    "sha256": "d6d28025db6dc916e454920d8320a98fa130f46e43a2c1cf1a960cf86fa73716",
+    "bytes": 2979,
+    "mtime_ns": 1788692196207062800
+  },
+  "local-acceptance-models\\nxb21-d\\hybrid-development-runs\\development-dispatched.lock": {
+    "sha256": "260727013c65698bd2021ec06abfc7d5f31824c1c241c6cfc7a8f32e2b759e23",
+    "bytes": 128,
+    "mtime_ns": 1788692160191561400
+  }
+}

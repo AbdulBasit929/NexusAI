@@ -1,0 +1,9 @@
+{
+    "gate":  4,
+    "completed_utc":  "2026-07-30T05:52:02.7362070Z",
+    "backup_file":  "phase3-pre-010-runtime-rls-20260730T054541Z.dump",
+    "backup_sha256":  "f690323d0c2b16f6f4df12bc0b72891a26b053c23f836fa47287181880e543c5",
+    "migration":  "010_runtime_rls_policies",
+    "runtime_role":  "forensic_runtime",
+    "role_flags":  "all_false"
+}

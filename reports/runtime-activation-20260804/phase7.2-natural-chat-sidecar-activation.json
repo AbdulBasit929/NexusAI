@@ -1,0 +1,18 @@
+{
+    "phase":  "phase7.2-sidecars",
+    "activation_label":  "phase7.2-natural-chat",
+    "deployed_utc":  "2026-08-04T11:15:10.3510948Z",
+    "minimum_free_ram_gib":  2,
+    "free_ram_before_build_gib":  2.02,
+    "api_build_seconds":  26.7,
+    "worker_build_seconds":  4.2,
+    "api_image":  "sha256:456ce70a35a76ffba93df59bb239e6bf4c7eaed5b00a7f00712e7b8bfeb4b7c2",
+    "worker_image":  "sha256:66f6ea291abc402a8641f73369110a2297938a24a026cc544a947bf6069b57c7",
+    "localai_image_unchanged":  true,
+    "api_health":  "pass",
+    "worker_health":  "pass",
+    "nats_health":  "pass",
+    "localai_ready":  "pass",
+    "named_volumes_preserved":  true,
+    "rollback_images_preserved":  true
+}

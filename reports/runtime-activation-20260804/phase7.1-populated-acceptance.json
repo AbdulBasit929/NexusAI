@@ -1,0 +1,79 @@
+﻿{
+    "phase":  "7.1-populated-subscriber",
+    "completed_utc":  "2026-08-04T07:40:53.6565555Z",
+    "collection_id":  "phase7-subscriber-populated-acceptance-v1",
+    "case_id":  "phase7-subscriber-populated-acceptance-v1",
+    "fixture_sha256":  "a5edc8f2658b12e8564b49560fe40959be397de6e086eaa1bfe2aa11bad912b0",
+    "evidence_id":  "1b1f27f7-d8cc-4dc1-b33e-758885e1ca8a",
+    "version_id":  "cc83458d-e17d-4d66-98a6-a670d40467ab",
+    "batch_id":  "d57c9b68-d34d-4134-9953-bcd2fc185d68",
+    "job_id":  "d57c9b68-d34d-4134-9953-bcd2fc185d68",
+    "accounting":  {
+                       "total_rows":  15,
+                       "accepted_rows":  11,
+                       "duplicate_rows":  1,
+                       "rejected_rows":  3,
+                       "status":  "pass"
+                   },
+    "privacy":  {
+                    "raw_cnic_value_matches":  0,
+                    "raw_name_value_matches":  0,
+                    "masked_preview_matches":  22,
+                    "status":  "pass"
+                },
+    "operations":  [
+                       {
+                           "operation":  "subscriber.identity_lookup",
+                           "rows":  2,
+                           "latency_ms":  44.1,
+                           "request_id":  "6a32d1be-8b57-465f-b6fa-b1e723fae9b9"
+                       },
+                       {
+                           "operation":  "subscriber.validity_timeline",
+                           "rows":  2,
+                           "latency_ms":  64.2,
+                           "request_id":  "9fba80a6-ff42-46cc-ab2d-86bb0f8a4260"
+                       },
+                       {
+                           "operation":  "subscriber.device_links",
+                           "rows":  2,
+                           "latency_ms":  56.8,
+                           "request_id":  "132caa2c-cbfe-4b57-b7f5-3829d91e30ec"
+                       },
+                       {
+                           "operation":  "subscriber.status_summary",
+                           "groups":  6,
+                           "rows":  11,
+                           "latency_ms":  49.4,
+                           "request_id":  "a39ce246-4abf-4575-bc41-5e8422a9c867"
+                       },
+                       {
+                           "operation":  "subscriber.conflict_audit",
+                           "rows":  2,
+                           "latency_ms":  68.4,
+                           "request_id":  "6a6bff16-edf4-4a8e-8e55-c05f19a75272"
+                       },
+                       {
+                           "operation":  "subscriber.reuse_candidates",
+                           "rows":  3,
+                           "latency_ms":  71.6,
+                           "request_id":  "dd564a30-69e9-4bb0-9f7f-61e6c86ca0ce"
+                       }
+                   ],
+    "pagination":  "pass",
+    "raw_cnic_guard":  "pass",
+    "typed_cnic_guard":  "pass",
+    "model_synthesis":  {
+                            "requested":  true,
+                            "model":  "qwen_qwen3-4b-instruct-2507",
+                            "status":  "deterministic_fallback",
+                            "latency_ms":  70104,
+                            "summary":  "",
+                            "fallback_reason":  "LLM synthesis rejected by forensic policy (unsupported validity overlap) - defaulted to deterministic engine",
+                            "deterministic_group_count":  6,
+                            "deterministic_row_count":  11,
+                            "request_id":  "e7ca74fd-ddc1-4f6a-9a3b-10717f22afc6"
+                        },
+    "governed_collections_touched":  false,
+    "legacy_subscriber_collections_touched":  false
+}

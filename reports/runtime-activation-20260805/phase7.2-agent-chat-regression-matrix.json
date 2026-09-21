@@ -1,0 +1,74 @@
+﻿[
+    {
+        "agent":  "Forensic_Records_Analyst",
+        "template":  "collection_overview",
+        "question":  "Show me an overview of this case",
+        "message_id":  "1785920462085344638",
+        "completed":  true,
+        "latency_ms":  8052.7,
+        "selected_template_visible":  true,
+        "selected_collection_visible":  true,
+        "error":  "",
+        "answer_length":  2011
+    },
+    {
+        "agent":  "Communications_CDR_Analyst",
+        "template":  "call_type_breakdown",
+        "question":  "How are the CDR events divided by call type?",
+        "message_id":  "1785920470181527053",
+        "completed":  true,
+        "latency_ms":  8632.7,
+        "selected_template_visible":  true,
+        "selected_collection_visible":  true,
+        "error":  "",
+        "answer_length":  2403
+    },
+    {
+        "agent":  "Forensic_Records_Analyst",
+        "template":  "cross_family_correlation",
+        "question":  "Correlate 923001110001 across the available evidence families",
+        "message_id":  "1785920478928295427",
+        "completed":  true,
+        "latency_ms":  32193.3,
+        "selected_template_visible":  true,
+        "selected_collection_visible":  true,
+        "error":  "",
+        "answer_length":  3269
+    },
+    {
+        "agent":  "Forensic_Records_Analyst",
+        "template":  "entity_timeline",
+        "question":  "What happened involving 923001110001 over time?",
+        "message_id":  "1785920511191770736",
+        "completed":  true,
+        "latency_ms":  7949.8,
+        "selected_template_visible":  true,
+        "selected_collection_visible":  true,
+        "error":  "",
+        "answer_length":  2964
+    },
+    {
+        "agent":  "Forensic_Records_Analyst",
+        "template":  "evidence",
+        "question":  "Show the evidence inventory and lineage",
+        "message_id":  "1785920519244264876",
+        "completed":  true,
+        "latency_ms":  7784.9,
+        "selected_template_visible":  true,
+        "selected_collection_visible":  true,
+        "error":  "",
+        "answer_length":  1185
+    },
+    {
+        "agent":  "Forensic_Records_Analyst",
+        "template":  "executive_case_brief",
+        "question":  "Prepare an executive case brief from deterministic findings",
+        "message_id":  "1785920527115998980",
+        "completed":  true,
+        "latency_ms":  10042,
+        "selected_template_visible":  true,
+        "selected_collection_visible":  true,
+        "error":  "",
+        "answer_length":  15431
+    }
+]

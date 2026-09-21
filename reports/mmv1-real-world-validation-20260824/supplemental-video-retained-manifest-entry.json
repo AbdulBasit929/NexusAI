@@ -1,0 +1,86 @@
+{
+  "contract_version": "nexusai.mmv2.supplemental-retained-manifest-entry/v2",
+  "logical_id": "mmv2-positive-video-anpr-sample",
+  "path": "C:/Users/sheik/Downloads/sample.mp4",
+  "sha256": "d470773444dd23bc4b8d446e3fb1e057923e9902b2a2a93e9fafc83762d137ee",
+  "size_bytes": 184407144,
+  "duration_seconds": 60.01,
+  "codec": "H.264",
+  "resolution": "3840x2160",
+  "fps": 60,
+  "audio": "AAC",
+  "ownership_license_provenance": {
+    "source": "user-provided local file",
+    "status": "OWNER_ATTESTATION_REQUIRED_BEFORE_RETENTION",
+    "license": null,
+    "redistribution_authorized": false,
+    "retention_authorized": false
+  },
+  "purpose": "one normal retained positive video ANPR acceptance run after separate approval",
+  "target": {
+    "tenant": "default",
+    "collection": "nexusai-multimodal-product-acceptance",
+    "case": "nexusai-multimodal-product-acceptance"
+  },
+  "expected_processors": [
+    "video metadata and source-time frame sampling",
+    "FastALPR ONNX CPU",
+    "general image OCR",
+    "face detection",
+    "SigLIP image embedding",
+    "embedded-audio ASR",
+    "Roman-Urdu derivative only when an Urdu-script transcript segment exists",
+    "deterministic equal-normalized-OCR video plate grouping"
+  ],
+  "expected_sampling": {
+    "anpr": "one-second cadence, default maximum 60 frames, hard maximum 120; longer videos widen the interval",
+    "secondary_roles": "five-second cadence over the ANPR-sampled frame stream",
+    "expected_anpr_frames_for_this_source": 60,
+    "expected_secondary_frames_for_this_source": 12
+  },
+  "ground_truth_review_truth": {
+    "state": "MODEL_OBSERVATIONS_NOT_HUMAN_VERIFIED",
+    "historical_index_timing": "LN15ZZC at relabeled 25 seconds is historical and superseded as an exact source-time claim",
+    "current_source_time_candidates": [
+      {"timestamp_seconds": 0, "raw_ocr": "MW51VSU", "normalized_ocr": "MW51VSU", "review_state": "VISUAL_REVIEW_PENDING"},
+      {"timestamp_seconds": 19, "raw_ocr": "AK64DMV", "normalized_ocr": "AK64DMV", "review_state": "VISUAL_REVIEW_PENDING"},
+      {"timestamp_seconds": 20, "raw_ocr": "EF10DZT", "normalized_ocr": "EF10DZT", "review_state": "VISUAL_REVIEW_PENDING"},
+      {"timestamp_seconds": 43, "raw_ocr": "WG65ZFX", "normalized_ocr": "WG65ZFX", "review_state": "VISUAL_REVIEW_PENDING"}
+    ],
+    "review_blocker": "The benchmark preserved reconstructable crop locators but not crop bytes; Windows has no approved local decoder and browser local-file access is blocked. Do not treat OCR confidence as human confirmation."
+  },
+  "known_limitations": [
+    "Pakistan plate OCR accuracy is not certified",
+    "grouping means equal normalized OCR observations, not tracking or identity",
+    "model-dependent OCR, face, ASR and Roman-Urdu observation counts cannot be predicted exactly without executing the authorized retained job",
+    "ownership and retention authority must be attested before upload"
+  ],
+  "live_preflight_counts_2026_08_24": {
+    "evidence": 51,
+    "versions": 51,
+    "jobs": 64,
+    "active_jobs": 0,
+    "canonical_records": 22207,
+    "artifacts": 441,
+    "kb_assets": 47
+  },
+  "expected_after_one_normal_upload": {
+    "evidence": 52,
+    "versions": 52,
+    "jobs": 65,
+    "active_jobs_during_processing": 1,
+    "active_jobs_after_completion": 0,
+    "canonical_records": "22207 + N_raw_anpr_observations; current non-retained ANPR benchmark predicts N_raw_anpr_observations=4",
+    "artifacts": "441 + N_persisted_media_observations",
+    "artifact_delta_formula": "82 + N_asr_segments + N_general_ocr_lines + N_face_observations + N_roman_urdu_segments, assuming 60 frame observations, 12 successful embeddings, 4 raw ANPR observations and 4 plate-group observations",
+    "artifact_delta_exactness": "MODEL_DEPENDENT_RECONCILE_AFTER_AUTHORIZED_JOB; no honest exact scalar is available without executing the current full pipeline",
+    "kb_assets": 48
+  },
+  "expected_temporary_data": {
+    "latest_anpr_only_benchmark_bytes": 548928525,
+    "state": "ephemeral processing derivatives",
+    "cleanup": "sampled frames and embedded-audio derivative removed by worker finally blocks; verify zero leaks after the job"
+  },
+  "approval_state": "NOT_AUTHORIZED",
+  "retained_mutation_performed": false
+}

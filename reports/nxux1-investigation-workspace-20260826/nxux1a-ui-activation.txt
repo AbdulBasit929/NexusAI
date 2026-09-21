@@ -1,0 +1,129 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260826194323
+Username: ABDULBASIT\sheik
+RunAs User: ABDULBASIT\sheik
+Configuration Name: 
+Machine: ABDULBASIT (Microsoft Windows NT 10.0.22631.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\activate_nexusai_nxux1a_ui.ps1
+Process ID: 1820
+PSVersion: 5.1.22621.6133
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.22621.6133
+BuildVersion: 10.0.22621.6133
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+=== 3. DOCKER READINESS ===
+DockerServerVersion=29.6.2
+
+=== 4. RAM GATE ===
+TotalPhysicalRAMGiB=15.713
+FreePhysicalRAMGiB=7.521
+RequiredFreeRAMGiB=6.000
+RAMGate=PASS
+
+=== 5. REPOSITORY STATE ===
+GitBranch=codex/forensic-hybrid-checkpoint-20260723
+GitHEAD=40717b83510c08db25dc26b9d6674bf46db363ac
+DirtyWorktreeEntries=589
+GitMutation=false
+
+=== 6. CURRENT RUNTIME ===
+UIContainerBefore=ddfa8e0d4d2c0dc1b14ef112c91ac4bfeb6bb3fb4800ff722aa022ba5c7c0f23
+UIImageBefore=sha256:71b63e0ef454f29f44430798f547c09edbd6b2a3c2b809b82833237eb4914cd5
+UIConfiguredImage=nexusai/localai-forensic:phase3-runtime
+ForensicApiBefore=d8ce6868f51d990ae51f95d48637c5b771411a917076262f58a47263a30096af
+WorkerBefore=1846f558941f583467976ad8e74a44e9063c8a1a50e870951c7e479ecce3fb66
+NatsBefore=5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04
+PostgresBefore=f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361
+UIBefore=RUNNING
+ForensicApiBefore=RUNNING
+WorkerBefore=RUNNING
+NatsBefore=RUNNING
+PostgresBefore=RUNNING
+
+=== 7. COMPOSE DISCOVERY ===
+ComposeWorkingDir=C:\Users\sheik\Workspace\Office\Projects\NexusAI
+ComposeConfigFile=C:\Users\sheik\Workspace\Office\Projects\NexusAI\docker-compose.yaml
+ComposeConfigFile=C:\Users\sheik\Workspace\Office\Projects\NexusAI\docker-compose.forensic-runtime.localai.yaml
+ComposeRequiredEnv:FORENSIC_RECORDS_API_KEY=RECOVERED
+ComposeRequiredEnv:NEXUSAI_AGENT_HISTORY_DATABASE_URL=ALREADY_AVAILABLE
+RequiredComposeEnvironment=PASS
+ComposeConfig=PASS
+
+=== 8. RETAINED STATE ===
+RetainedTupleBefore=51|51|64|0|22207|441|47
+ActiveJobs=0
+KnownRetainedBaseline=CONFIRMED
+
+=== 9. CURRENT UI HEALTH ===
+HTTP200=http://localhost:8080/readyz
+CurrentUIReady=PASS
+
+=== 11. CREATE UI ROLLBACK TAG ===
+
+RollbackTag=nexusai/localai-forensic:rollback-before-nxux1a-20260826
+RollbackImage=sha256:71b63e0ef454f29f44430798f547c09edbd6b2a3c2b809b82833237eb4914cd5
+RollbackTagVerified=PASS
+
+=== 12. BUILD UI/API SERVICE ONLY ===
+
+NXUX1ABuild=PASS
+UIImageBefore=sha256:71b63e0ef454f29f44430798f547c09edbd6b2a3c2b809b82833237eb4914cd5
+UIImageBuilt=sha256:5d6cf265ae6f0209201339516eb589cc9b38da8490fbb8a40a2343c0d529d4d3
+BuiltUIImageVerification=PASS
+
+=== 13. ACTIVATE UI/API SERVICE ONLY ===
+
+
+=== 14. UI HEALTH ===
+PS>TerminatingError(Invoke-WebRequest): "The underlying connection was closed: The connection was closed unexpectedly."
+HTTP200=http://localhost:8080/readyz
+UIReady=PASS
+HTTP200=http://localhost:8080/analyst/home
+AnalystHomeHTTP=200
+AnalystHomeRoute=PASS
+
+=== 15. VERIFY UI ACTIVATION ===
+UIContainerBefore=ddfa8e0d4d2c0dc1b14ef112c91ac4bfeb6bb3fb4800ff722aa022ba5c7c0f23
+UIContainerAfter=8fd05d6827aae3923eb998a2f7f27888434b9f5358f171c40120b6797a584d83
+UIImageBefore=sha256:71b63e0ef454f29f44430798f547c09edbd6b2a3c2b809b82833237eb4914cd5
+UIImageAfter=sha256:5d6cf265ae6f0209201339516eb589cc9b38da8490fbb8a40a2343c0d529d4d3
+UIActivationImage=PASS
+
+=== 16. PROTECTED SERVICES ===
+ProtectedServicesPreserved=true
+
+=== 17. RETAINED STATE AFTER ACTIVATION ===
+RetainedTupleBefore=51|51|64|0|22207|441|47
+RetainedTupleAfter=51|51|64|0|22207|441|47
+RetainedDataMutated=false
+
+=== 18. FINAL DOCKER STATUS ===
+
+
+============================================================
+NX-UX1A UI ACTIVATION SUCCESS
+============================================================
+NXUX1AActivation=PASS
+UIServiceOnly=true
+ForensicApiPreserved=true
+WorkerPreserved=true
+NatsPreserved=true
+PostgresPreserved=true
+RetainedDataMutated=false
+ModelsChanged=false
+ProfilesChanged=false
+BackendsChanged=false
+NamedVolumesPreserved=true
+DatabaseMigration=false
+InvestigationWorkspaceURL=http://localhost:8080/analyst/home
+NextAction=VISUALLY_REVIEW_NXUX1A
+**********************
+Windows PowerShell transcript end
+End time: 20260826194512
+**********************

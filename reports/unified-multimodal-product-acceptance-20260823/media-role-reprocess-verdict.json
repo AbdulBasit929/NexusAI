@@ -1,0 +1,25 @@
+{
+  "verdict": "RECOVERY_COMPLETE_PENDING_PRODUCT_ACCEPTANCE",
+  "recorded_at": "2026-08-23T13:46:06.2728434Z",
+  "tenant_id": "default",
+  "collection_id": "nexusai-multimodal-product-acceptance",
+  "case_id": "nexusai-multimodal-product-acceptance",
+  "actor_id": "nexusai-breadth-acceptance-operator",
+  "reprocess_jobs": 12,
+  "evidence_ids": [
+    "a0ff7b18-129f-4a8a-82cf-48887f98bd9e",
+    "d4b9daf1-da54-4c66-923c-c725bec4400c",
+    "c23c3e10-a7a6-435a-ae64-c411a7cd0e14",
+    "3fff8296-ee69-4283-a498-7a0000887072",
+    "769f6124-5b06-4c73-9122-39ef4423e0c4",
+    "273bc132-74b5-4633-b8f9-bf0a812ef3ff",
+    "3ffc0eae-f030-4e62-835f-100682b99b1c",
+    "2097c6df-c0ad-4886-b0e7-ea4f4856a220",
+    "a33c5848-2cda-457e-950b-d86e88960f51",
+    "a2755d7d-05d2-4bc9-8e95-7e8992b53ada",
+    "50057921-4f1f-4ab8-bab0-47bcdc957822",
+    "ee48bd0b-acde-4b51-b8c6-d9194278efda"
+  ],
+  "all_completed": true,
+  "results_path": "reports/unified-multimodal-product-acceptance-20260823/media-role-reprocess-results.json"
+}

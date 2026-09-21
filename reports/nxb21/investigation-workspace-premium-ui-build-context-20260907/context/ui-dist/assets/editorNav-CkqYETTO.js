@@ -1,0 +1,1 @@
+function e(e,t){return{from:e.pathname+e.search,fromLabel:t}}export{e as t};

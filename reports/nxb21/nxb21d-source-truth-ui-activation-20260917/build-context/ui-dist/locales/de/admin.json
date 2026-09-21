@@ -1,0 +1,66 @@
+{
+  "manage": {
+    "title": "System",
+    "subtitle": "Verwalten Sie installierte Modelle und Backends"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "subtitle": "Konfigurieren Sie die Laufzeiteinstellungen von NexusAI",
+    "saved": "Einstellungen erfolgreich gespeichert",
+    "saveFailed": "Speichern fehlgeschlagen: {{message}}",
+    "loadFailed": "Laden der Einstellungen fehlgeschlagen: {{message}}",
+    "sections": {
+      "branding": "Branding",
+      "watchdog": "Watchdog",
+      "memory": "Speicher",
+      "backends": "Backends",
+      "performance": "Leistung",
+      "tracing": "Tracing",
+      "api": "API & CORS",
+      "p2p": "P2P",
+      "galleries": "Galerien",
+      "apikeys": "API-SchlÃ¼ssel",
+      "agents": "Agentenaufgaben",
+      "agentpool": "Agenten-Pool",
+      "assistant": "NexusAI Assistant",
+      "responses": "Antworten"
+    }
+  },
+  "backends": {
+    "title": "Backend-Verwaltung",
+    "subtitle": "Entdecken und installieren Sie KI-Backends fÃ¼r Ihre Modelle"
+  },
+  "backendLogs": {
+    "title": "Backend-Logs",
+    "subtitle": "Logs laufender Backends anzeigen",
+    "empty": "Keine Logs verfÃ¼gbar"
+  },
+  "traces": {
+    "title": "Traces",
+    "subtitle": "Protokollierte API-Anfragen, Antworten und Backend-Operationen anzeigen"
+  },
+  "nodes": {
+    "title": "Verteilte Knoten",
+    "subtitle": "Backend- und Agenten-Worker-Knoten verwalten"
+  },
+  "scheduling": {
+    "title": "Planung",
+    "subtitle": "Modellplatzierung und Replikat-Regeln im gesamten Cluster"
+  },
+  "p2p": {
+    "title": "Verteilte KI-Berechnung",
+    "subtitle": "Skalieren Sie Ihre KI-Workloads Ã¼ber mehrere GerÃ¤te mit Peer-to-Peer-Verteilung"
+  },
+  "users": {
+    "title": "Benutzer",
+    "subtitle": "Registrierte Benutzer, Rollen und Einladungen verwalten"
+  },
+  "usage": {
+    "title": "Nutzung",
+    "subtitle": "API-Token-Nutzungsstatistiken"
+  },
+  "explorer": {
+    "title": "Explorer",
+    "subtitle": "Dateien und Konfiguration durchsuchen"
+  }
+}

@@ -201,11 +201,26 @@ All agent endpoints are grouped under `/api/agents/`:
 | `PUT` | `/api/agents/:name/resume` | Resume a paused agent |
 | `GET` | `/api/agents/:name/status` | Get agent status and observables |
 | `POST` | `/api/agents/:name/chat` | Send a message to an agent |
+| `POST` | `/api/agents/:name/chat/:message_id/cancel` | Stop an active forensic chat request with matching authorized `case_id` and `collection_id` |
+| `POST` | `/api/agents/:name/chat/:message_id/retry` | Explicitly retry a failed, timed-out, or cancelled forensic request with a caller idempotency key; duplicate submissions do not execute twice |
+| `GET` | `/api/agents/:name/chat/:message_id/status` | Read the scoped lifecycle state after reconnect without replaying or retrying work |
+| `GET` | `/api/agents/:name/history` | List retained final analyses for an authorized forensic case, with opaque cursor pagination and optional saved-only filtering |
+| `GET` | `/api/agents/:name/history/:analysis_id` | Read one retained analysis within the same authorized case scope |
+| `PUT` | `/api/agents/:name/history/:analysis_id/saved` | Idempotently save or unsave an analysis with an optional bounded title |
+| `POST` | `/api/agents/:name/history/import` | Explicitly import versioned browser-local history; imports are never automatic |
+| `DELETE` | `/api/agents/:name/history/imports/:import_id` | Roll back only unsaved, non-held rows created by one browser import |
 | `GET` | `/api/agents/:name/sse` | SSE stream for real-time agent events |
 | `GET` | `/api/agents/:name/export` | Export agent configuration as JSON |
 | `POST` | `/api/agents/import` | Import an agent from JSON |
 | `GET` | `/api/agents/:name/files?path=...` | Serve a generated file from the outputs directory |
 | `GET` | `/api/agents/config/metadata` | Get dynamic config form metadata (includes `outputsDir`) |
+
+Forensic retained history uses the `forensics.case-analysis-history/v1`
+contract and requires matching authorized `case_id` and `collection_id`. It
+stores queries, final answers, lifecycle state, citations/answer metadata and
+save provenance. Hidden reasoning and transient tool streams are not retained.
+Browser history remains local until a user explicitly confirms import; import
+rollback never deletes runtime analyses, saved entries, or legal-hold entries.
 
 ### Skills
 
@@ -314,6 +329,39 @@ The SSE stream emits the following event types:
 - `json_message_status` — processing status updates (`processing` / `completed`)
 - `status` — system messages (reasoning steps, action results)
 - `json_error` — error notifications
+
+### Forensic analyst result contract
+
+The case-bound `Forensic_Records_Analyst` uses a typed
+`forensics.agent-presentation/v1` payload for deterministic results. It includes
+the operation and specialist identity, records/KB/hybrid source access,
+execution authority, elapsed time, model status, findings, accessible tabular
+records, typed telecom timeline/coordinate views, synchronized evidence detail,
+citations, limitations and bounded next questions. The React UI uses
+this payload for both live answers and retained history; raw execution details
+remain available in a collapsed trace.
+
+Starter questions come from the versioned
+`forensics.family-query-answer-corpus/v1` capability response. The UI displays
+only curated `suggested` entries whose family is usable for the active case,
+while the read-only template catalog remains the complete 65-operation API
+contract. Models may explain an exact result only under the configured forensic
+synthesis policy; an incompatible model produces a disclosed deterministic
+fallback rather than silently changing execution authority.
+
+For frequent-contact analysis, the participant is required. A targetless
+question returns a clarification and does not run a case-wide ranking. Ranked
+counterparties must be phone-like identifiers; service labels and the selected
+participant are excluded. Ask NexusAI leads common inventory and readiness
+responses with a direct answer, keeps platform-production claims separate from
+case-analysis readiness, shows only useful metrics and columns initially, and
+places raw planner/provenance diagnostics in the collapsed technical trace.
+Retained presentations are normalized at render time so historical results use
+the same analyst-facing hierarchy without altering their system-of-record data.
+An authorized answer may also return a bounded target/template/date/direction
+context packet for an explicit follow-up such as `Only outgoing`. The packet is
+request-scoped, same-case, non-persistent, contains no findings and is ignored
+for unrelated questions; it never replaces a required target in a fresh chat.
 
 ## Generated Files and Outputs
 

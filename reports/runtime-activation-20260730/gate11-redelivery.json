@@ -1,0 +1,8 @@
+{
+    "gate":  11,
+    "completed_utc":  "2026-07-30T06:18:43.2371783Z",
+    "completed_redelivery_ack":  "pass",
+    "duplicate_effects":  0,
+    "stream_drained":  true,
+    "real_evidence_used":  false
+}

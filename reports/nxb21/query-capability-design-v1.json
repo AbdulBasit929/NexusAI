@@ -1,0 +1,243 @@
+{
+  "schema_version": "nexusai.nxb21.query-capability-design/v1",
+  "status": "SUPERSEDED_BY_C_SOURCE_REFERENCES",
+  "not_an_executable_registry": true,
+  "no_canonical_certification_changes": true,
+  "canonical_operation_source": "supportedQueryTemplates() plus explicitly identified platform-only discovery/tool descriptors",
+  "operation_certification_source": "api/forensic_records/contracts/operation-certification-v1.json",
+  "semantic_taxonomy": [
+    "EXACT_VALUE",
+    "EXACT_PHRASE",
+    "PHRASE_CONTAINS",
+    "TOKEN_SEARCH",
+    "TIME_RANGE",
+    "FILTER",
+    "COUNT",
+    "AGGREGATE",
+    "GROUP",
+    "TOP_K",
+    "RANK",
+    "SEMANTIC_RETRIEVAL",
+    "SIMILARITY",
+    "SUMMARY",
+    "COMPARE",
+    "COMPOSE"
+  ],
+  "normalization_proposal": {
+    "version": "derived-text-search/v1",
+    "raw_immutable": true,
+    "form": "NFC",
+    "whitespace": "Unicode whitespace and line breaks collapse",
+    "script_variant_mapping": "none proposed without stored-form evidence",
+    "punctuation": "preserve by default; legacy exact alias retains documented old normalization",
+    "joiners": "preserve ZWJ/ZWNJ; no blind Arabic-letter or diacritic substitutions",
+    "retrieval": "search-only representation and raw span map; no DB migration in first slice"
+  },
+  "cross_segment_proposal": {
+    "group_key": [
+      "tenant",
+      "case/collection",
+      "evidence",
+      "current_version",
+      "run",
+      "raw_or_derivative_representation"
+    ],
+    "order": "verified source ordinal, otherwise touching valid source times; reject duplicate/overlap/unknown adjacency",
+    "budget": "initial 2-4 segments; incomplete candidate scan cannot produce exhaustive no-match",
+    "output": "all contributing original observations/citations plus observed union range; no invented timing"
+  },
+  "proof_dimensions": [
+    "CONTRACT_VALIDATED",
+    "PLANNER_VALIDATED",
+    "EXECUTOR_VALIDATED",
+    "DB_OR_ARTIFACT_VALIDATED",
+    "RESULT_VALIDATOR_VALIDATED",
+    "LIVE_POSITIVE",
+    "LIVE_ZERO",
+    "LIVE_SCOPE",
+    "LIVE_CURRENT_VERSION",
+    "LIVE_CITATION",
+    "LIVE_NAVIGATION",
+    "LIVE_ACTIVITY",
+    "LIVE_UI",
+    "MULTILINGUAL_VALIDATED",
+    "PERFORMANCE_VALIDATED",
+    "SECURITY_VALIDATED",
+    "ANTI_HARDCODE_VALIDATED"
+  ],
+  "promotion_gate": "All applicable proof dimensions require immutable evidence references, source seal, current runtime receipt, oracle and reviewer; then existing canonical product gate. No automatic promotion.",
+  "test_case_schema": {
+    "case_id": "required",
+    "family": "required",
+    "query_capability": "required",
+    "question": "required",
+    "language": "required",
+    "runtime_target_selection_method": "required",
+    "scope": "required",
+    "expected_typed_plan": "required",
+    "expected_authority": "required",
+    "oracle_method": "required",
+    "positive_zero": "required",
+    "expected_citations": "required",
+    "expected_activity_state": "required",
+    "performance_budget": "required",
+    "source_seal": "required",
+    "runtime_receipt": "required"
+  },
+  "b1_implemented_shared_contract": {
+    "status": "SOURCE_VALIDATED_NOT_DEPLOYED",
+    "implementation": "pkg/forensictext/query.go",
+    "request_field": "text_query",
+    "semantic_modes": [
+      "EXACT_VALUE",
+      "EXACT_PHRASE",
+      "PHRASE_CONTAINS",
+      "TOKEN_SEARCH",
+      "SOURCE",
+      "TIME_RANGE",
+      "SOURCE_TIME"
+    ],
+    "normalization": "nfc-whitespace/v1",
+    "legacy_exact": "preserved NFKC/lowercase/punctuation-space/token-boundary policy",
+    "proof_matrix": "reports/nxb21/b1-query-semantics-matrix-v1.json",
+    "report": "reports/nxb21/nexusai-nxb21-b1-shared-derived-text-semantics-closure-v1-20260903.md",
+    "candidate_page_size": 500,
+    "candidate_maximum_pages": 20,
+    "text_budget_bytes": 16777216,
+    "retrieval_timeout_seconds": 5,
+    "maximum_segment_window": 4,
+    "capability_registry_created": false,
+    "canonical_certification_changed": false,
+    "c_not_started": true
+  },
+  "canonical_reference_source": "api/forensic_records/contracts/query-capability-references-v1.json",
+  "c_review_artifact": "reports/nxb21/c-query-capability-ledger-v1.json",
+  "design_reconciliation": [
+    {
+      "design_id": "cdr.identifier_lookup",
+      "capability_id": "cdr.identifier_lookup",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "cdr.frequent_contacts",
+      "capability_id": "cdr.frequent_contacts",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "cdr.time_activity",
+      "capability_id": "cdr.time_activity",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "ipdr.endpoint",
+      "capability_id": "ipdr.endpoint",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "ipdr.sessions",
+      "capability_id": "ipdr.sessions",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "subscriber.lookup",
+      "capability_id": "subscriber.lookup",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "device.observations",
+      "capability_id": "device.observations",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "tower.lookup",
+      "capability_id": "tower.lookup",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "financial.summary",
+      "capability_id": "financial.summary",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "logs.failures",
+      "capability_id": "logs.failures",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "generic.filter",
+      "capability_id": "generic.filter",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "document.phrase",
+      "capability_id": "document.phrase",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "knowledge.semantic",
+      "capability_id": "knowledge.semantic",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "ocr.whole_value",
+      "capability_id": "ocr.phrase",
+      "disposition": "MERGED"
+    },
+    {
+      "design_id": "ocr.phrase",
+      "capability_id": "ocr.phrase",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "transcript.source",
+      "capability_id": "transcript.phrase",
+      "disposition": "MERGED"
+    },
+    {
+      "design_id": "transcript.phrase",
+      "capability_id": "transcript.phrase",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "transcript.source_time",
+      "capability_id": "transcript.phrase",
+      "disposition": "MERGED"
+    },
+    {
+      "design_id": "roman_urdu.phrase",
+      "capability_id": "roman_urdu.phrase",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "image.plate",
+      "capability_id": "image.plate",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "video.raw_plate",
+      "capability_id": "video.group_plate",
+      "disposition": "MERGED"
+    },
+    {
+      "design_id": "video.group_plate",
+      "capability_id": "video.group_plate",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "image.similarity",
+      "capability_id": "image.similarity",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "face.candidates",
+      "capability_id": "face.candidates",
+      "disposition": "RECONCILED"
+    },
+    {
+      "design_id": "cross_family.identifiers",
+      "capability_id": "cross_family.identifiers",
+      "disposition": "RECONCILED"
+    }
+  ],
+  "family_gap_matrix_source": "reports/nxb21/c-input-boundaries-v1.json"
+}

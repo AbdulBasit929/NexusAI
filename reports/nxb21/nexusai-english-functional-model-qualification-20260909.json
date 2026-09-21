@@ -1,0 +1,73 @@
+{
+  "contract_version": "nexusai.english-functional-model-qualification-adjudication/v1",
+  "as_of": "2026-09-09",
+  "corpus_id": "nxb21-english-functional-current-4b-fresh-r1-20260909",
+  "prior_english_corpus": "CONSUMED_DO_NOT_RERUN",
+  "prior_english_qualification": "INCOMPLETE_RESOURCE_RUNTIME_FAILURE",
+  "current_4b_semantic_quality": "INSUFFICIENT_EVIDENCE_FROM_THIS_RUN",
+  "semantic_model_failure_claimed": false,
+  "prompt_tuning_from_consumed_questions_allowed": false,
+  "model": {
+    "id": "qwen_qwen3-4b-instruct-2507",
+    "artifact": "/models/Qwen_Qwen3-4B-Instruct-2507-Q8_0.gguf",
+    "artifact_sha256": "260b5b5b6ad73e44df81a43ea1f5c11c37007b6bac18eb3cd2016e8667c19662",
+    "profile": "/models/qwen_qwen3-4b-instruct-2507.yaml",
+    "profile_sha256": "ef036e0a02cc5e8331dc4dff41c0e0cb68e6e0bda71d92b92f47f673472e666f"
+  },
+  "freeze": {
+    "corpus_sha256": "fa9dac24d2c779c02da53d41c9142b8ec7028dc7200b5e66696f9443bc4cf2be",
+    "oracle_sha256": "86611bd55f120d827e176a1837d52700ab450690bb96e392048f313da00e123f",
+    "evaluator_sha256": "462084d7a76c35dc3d295b8a43139a18e5bb040d28d80a9a6d933996a13c448a",
+    "contract_sha256": "83206635cffd30e0e2a37887f444adc969db406dcd505b6b9d31190f33b6c2d1",
+    "freeze_receipt_sha256": "16ce46fa946c22bf3a576473a47143c193770671113df85dcfd2292e2843bd25"
+  },
+  "coverage": {
+    "total_cases": 149,
+    "semantic_cases": 101,
+    "supported_unambiguous_cases": 86,
+    "workspace_operations_in_corpus": 66,
+    "router_cases": 32,
+    "synthesis_cases": 16,
+    "qualification_calls_completed": 1,
+    "router_calls_completed": 0,
+    "synthesis_calls_completed": 0
+  },
+  "resource_evidence": {
+    "preload_ram_gib": 6.72,
+    "loaded_ram_gib": 2.093,
+    "required_loaded_ram_gib": 4.0,
+    "observed_load_delta_gib": 4.627,
+    "first_call_latency_ms": 60056,
+    "first_call_state": "timeout_or_unavailable",
+    "evaluator_peak_working_set_mib": 21.484,
+    "api_container_observed_memory": "1.402GiB / 7.611GiB",
+    "model_unload": "PASS"
+  },
+  "quality_results": {
+    "direct_correct_selection_rate": null,
+    "safe_outcome_rate": null,
+    "schema_valid_rate": null,
+    "router_accuracy": null,
+    "synthesis_product_safety_rate": null,
+    "reason": "The run stopped on the frozen loaded-state RAM floor after one timed-out call; no representative semantic, router, or synthesis rate can be computed."
+  },
+  "runtime_integrity": {
+    "retained_tuple_before": "68|68|81|22511|870|68",
+    "retained_tuple_after": "68|68|81|22511|870|68",
+    "activity_before": 353,
+    "activity_after": 353,
+    "active_jobs_after": 0,
+    "protected_services_unchanged": true,
+    "analyst_index_sha256_before": "a0f1e4288c1b9ee46b4fa3c3c94870fef46b12d7c1718c36eee2e905d14ae7de",
+    "analyst_index_sha256_after": "a0f1e4288c1b9ee46b4fa3c3c94870fef46b12d7c1718c36eee2e905d14ae7de"
+  },
+  "immutable_run": {
+    "directory": "local-acceptance-models/nxb21-english-functional-qualification/run-20260909T092931616Z",
+    "dispatch_lock_sha256": "d91999fcd4159b0402d7a65ad3abf688a9328cb8625937873f0dc2065745557f",
+    "operator_receipt_sha256": "93fe4c7358da8bd381367e05cd9e29efea9eb9aa655a008fce582cf99eeae10d",
+    "partial_result_sha256": "af9757ff7ebf13baa054fea0fff95a50ee95f2b1220d2f03293408257da8c488",
+    "resource_observations_sha256": "bc9fc2ea251f71d18ca3e4d534017302cdd734d9d87ccc0cde547b826fb78c37",
+    "stdout_sha256": "e175f76efc6dc83128ec1651f8bf55cf1237ab1ca7dd8261cdfb3e324fe89a26"
+  },
+  "next_gate": "STANDALONE_CURRENT_4B_RESOURCE_PROOF_BEFORE_ANY_NEW_CORPUS_DISPATCH"
+}

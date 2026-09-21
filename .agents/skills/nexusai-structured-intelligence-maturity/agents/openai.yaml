@@ -1,0 +1,4 @@
+interface:
+  display_name: "NexusAI Structured Intelligence Maturity"
+  short_description: "Govern trustworthy structured forensic intelligence"
+  default_prompt: "Use $nexusai-structured-intelligence-maturity to implement the next bounded STIM slice with source-to-answer traceability."

@@ -1,0 +1,53 @@
+{
+  "title": "Knowledge",
+  "subtitle": "Organize authorized reference material for analyst tools",
+  "newPlaceholder": "New collection name...",
+  "actions": {
+    "create": "Create",
+    "creating": "Creating...",
+    "retry": "Try again",
+    "details": "Details",
+    "reset": "Reset",
+    "delete": "Delete",
+    "viewDetails": "View details",
+    "resetCollection": "Reset collection",
+    "deleteCollection": "Delete collection"
+  },
+  "sections": {
+    "yourCollections": "Your Collections",
+    "otherUsersCollections": "Other Users' Collections"
+  },
+  "empty": {
+    "title": "No collections yet",
+    "text": "Create a collection to organize authorized reference material for analyst tools.",
+    "noPersonal": "You have no collections yet."
+  },
+  "states": {
+    "eyebrow": "Knowledge",
+    "loading": "Loading authorized knowledge collections..."
+  },
+  "errors": {
+    "title": "Knowledge is temporarily unavailable",
+    "body": "NexusAI could not load the collections you are authorized to view.",
+    "unavailable": "Collection service unavailable"
+  },
+  "deleteDialog": {
+    "title": "Delete Collection",
+    "message": "Delete collection \"{{name}}\"? This will remove all entries and cannot be undone.",
+    "confirm": "Delete"
+  },
+  "resetDialog": {
+    "title": "Reset Collection",
+    "message": "Reset collection \"{{name}}\"? This will remove all entries but keep the collection.",
+    "confirm": "Reset"
+  },
+  "toasts": {
+    "loadFailed": "Failed to load collections: {{message}}",
+    "created": "Collection \"{{name}}\" created",
+    "createFailed": "Failed to create collection: {{message}}",
+    "deleted": "Collection \"{{name}}\" deleted",
+    "deleteFailed": "Failed to delete collection: {{message}}",
+    "reset": "Collection \"{{name}}\" reset",
+    "resetFailed": "Failed to reset collection: {{message}}"
+  }
+}

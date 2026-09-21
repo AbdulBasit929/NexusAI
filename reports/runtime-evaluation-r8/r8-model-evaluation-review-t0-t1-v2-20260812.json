@@ -1,0 +1,573 @@
+{
+  "contract_version": "forensics.r8-model-evaluation-review/v1",
+  "reviewed_at_utc": "2026-08-12T17:15:21.454233+00:00",
+  "original_bundle": "reports/runtime-evaluation-r8/r8-model-evaluation-20260812T163225Z.json",
+  "original_bundle_sha256": "8b236af6ce3d11616aa8f854ee15042c89ce4f9e0158726087e3d6568d8d3e85",
+  "fixtures_sha256": "e847542ad12f4eec0731e66f9f5361affbda310e24b2f479b18a6d3226ef24f3",
+  "fixture_contract": "forensics.image-fixture-taxonomy/v2",
+  "production_containers_unchanged": true,
+  "offline_benchmark": true,
+  "production_role_assignment": null,
+  "decision": "no_promotion",
+  "candidates": [
+    {
+      "candidate": "tesseract",
+      "predictions_sha256": "41194aed502fdde3a6c06ece4f45ea96639f180d90286db34e60ff1ef8aec117",
+      "corrected_score_sha256": "e3fe1e11dfb2d1e700730bd0192b42dbfe9ba9789038991c96acea6ac606b884",
+      "corrected_score": {
+        "candidate": "tesseract",
+        "contract_version": "forensics.anpr-model-benchmark/v2",
+        "evaluation_role": "ocr_only_annotated_crop",
+        "fixture_contract": "forensics.image-fixture-taxonomy/v2",
+        "gate": {
+          "blocked_reasons": [
+            "one or more quantitative promotion thresholds failed"
+          ],
+          "failed_thresholds": [
+            "minimum_normalized_exact_plate_accuracy",
+            "maximum_normalized_character_error_rate",
+            "minimum_abstention_precision",
+            "maximum_brier_score"
+          ],
+          "production_promotion_allowed": false,
+          "state": "blocked_no_promotion"
+        },
+        "metrics": {
+          "abstention": {
+            "abstained_count": 4,
+            "accuracy": 0.7058823529411765,
+            "evaluated_count": 17,
+            "precision": 0.0
+          },
+          "fixture_count": 29,
+          "fixture_coverage": {
+            "complete": true,
+            "missing_classes": [],
+            "present_classes": [
+              "blur",
+              "clear_single_plate",
+              "empty_scene",
+              "extension_signature_mismatch",
+              "glare",
+              "malformed_image",
+              "multiple_vehicles",
+              "night",
+              "occlusion",
+              "oversized_dimensions",
+              "polyglot_or_trailing_payload",
+              "pre_cropped_plate",
+              "regional_style",
+              "skew"
+            ],
+            "required_classes": [
+              "clear_single_plate",
+              "regional_style",
+              "night",
+              "glare",
+              "blur",
+              "skew",
+              "occlusion",
+              "multiple_vehicles",
+              "pre_cropped_plate",
+              "empty_scene",
+              "malformed_image",
+              "oversized_dimensions",
+              "extension_signature_mismatch",
+              "polyglot_or_trailing_payload"
+            ]
+          },
+          "latency_ms": {
+            "evaluated_count": 17,
+            "p50": 165.116,
+            "p95": 241.767,
+            "zero_noop_excluded": true
+          },
+          "localization": {
+            "state": "not_applicable_ocr_uses_annotated_truth_crop"
+          },
+          "missing_fixture_predictions": [],
+          "ocr": {
+            "confidence_calibration": {
+              "brier_score": 0.21061432086569407,
+              "evaluated_count": 12
+            },
+            "evaluated_text_count": 16,
+            "normalization_policy": "Unicode NFKC, uppercase, retain alphanumeric code points; never infer missing characters",
+            "normalized_character_error_rate": 0.3137254901960784,
+            "normalized_exact_plate_accuracy": 0.5,
+            "raw_character_error_rate": 0.3277310924369748,
+            "raw_exact_plate_accuracy": 0.4375
+          },
+          "resources": {
+            "package_size_basis": "read_only_installed_asset_measurement",
+            "package_size_mib": 15.477,
+            "peak_process_rss_mib": 19.105
+          },
+          "role_evaluated_fixture_count": 17
+        },
+        "threshold_checks": [
+          {
+            "actual": 0.5,
+            "metric": "minimum_normalized_exact_plate_accuracy",
+            "operator": ">=",
+            "passed": false,
+            "target": 0.9
+          },
+          {
+            "actual": 0.3137254901960784,
+            "metric": "maximum_normalized_character_error_rate",
+            "operator": "<=",
+            "passed": false,
+            "target": 0.05
+          },
+          {
+            "actual": 0.0,
+            "metric": "minimum_abstention_precision",
+            "operator": ">=",
+            "passed": false,
+            "target": 0.95
+          },
+          {
+            "actual": 0.21061432086569407,
+            "metric": "maximum_brier_score",
+            "operator": "<=",
+            "passed": false,
+            "target": 0.15
+          },
+          {
+            "actual": 241.767,
+            "metric": "maximum_p95_latency_ms",
+            "operator": "<=",
+            "passed": true,
+            "target": 500
+          },
+          {
+            "actual": 19.105,
+            "metric": "maximum_peak_process_rss_mib",
+            "operator": "<=",
+            "passed": true,
+            "target": 1536
+          }
+        ]
+      }
+    },
+    {
+      "candidate": "paddle-detector",
+      "predictions_sha256": "20e56dbe07f547cfefc29c4bb6cac141c41cc1dd8294ccc1de55c34175bd672d",
+      "corrected_score_sha256": "6bf949d93a7fa38621fab5c455187f6d493c729839428c1bb9106fa4c7cf56d9",
+      "corrected_score": {
+        "candidate": "paddle-detector",
+        "contract_version": "forensics.anpr-model-benchmark/v2",
+        "evaluation_role": "localization_baseline_text_detector_adapter",
+        "fixture_contract": "forensics.image-fixture-taxonomy/v2",
+        "gate": {
+          "blocked_reasons": [
+            "one or more quantitative promotion thresholds failed"
+          ],
+          "failed_thresholds": [
+            "minimum_localization_precision",
+            "minimum_localization_recall",
+            "maximum_brier_score"
+          ],
+          "production_promotion_allowed": false,
+          "state": "blocked_no_promotion"
+        },
+        "metrics": {
+          "abstention": {
+            "abstained_count": 3,
+            "accuracy": 0.8333333333333334,
+            "evaluated_count": 24,
+            "precision": 1.0
+          },
+          "fixture_count": 29,
+          "fixture_coverage": {
+            "complete": true,
+            "missing_classes": [],
+            "present_classes": [
+              "blur",
+              "clear_single_plate",
+              "empty_scene",
+              "extension_signature_mismatch",
+              "glare",
+              "malformed_image",
+              "multiple_vehicles",
+              "night",
+              "occlusion",
+              "oversized_dimensions",
+              "polyglot_or_trailing_payload",
+              "pre_cropped_plate",
+              "regional_style",
+              "skew"
+            ],
+            "required_classes": [
+              "clear_single_plate",
+              "regional_style",
+              "night",
+              "glare",
+              "blur",
+              "skew",
+              "occlusion",
+              "multiple_vehicles",
+              "pre_cropped_plate",
+              "empty_scene",
+              "malformed_image",
+              "oversized_dimensions",
+              "extension_signature_mismatch",
+              "polyglot_or_trailing_payload"
+            ]
+          },
+          "latency_ms": {
+            "evaluated_count": 24,
+            "p50": 658.1804999999999,
+            "p95": 940.336,
+            "zero_noop_excluded": true
+          },
+          "localization": {
+            "confidence_calibration": {
+              "brier_score": 0.22350869660519798,
+              "evaluated_count": 28
+            },
+            "false_negative": 1,
+            "false_positive": 11,
+            "iou_threshold": 0.5,
+            "precision": 0.6071428571428571,
+            "recall": 0.9444444444444444,
+            "true_positive": 17
+          },
+          "missing_fixture_predictions": [],
+          "ocr": {
+            "state": "not_applicable_detector_only"
+          },
+          "resources": {
+            "package_size_basis": "read_only_installed_asset_measurement",
+            "package_size_mib": 4.707,
+            "peak_process_rss_mib": 649.848
+          },
+          "role_evaluated_fixture_count": 24
+        },
+        "threshold_checks": [
+          {
+            "actual": 0.6071428571428571,
+            "metric": "minimum_localization_precision",
+            "operator": ">=",
+            "passed": false,
+            "target": 0.95
+          },
+          {
+            "actual": 0.9444444444444444,
+            "metric": "minimum_localization_recall",
+            "operator": ">=",
+            "passed": false,
+            "target": 0.95
+          },
+          {
+            "actual": 1.0,
+            "metric": "minimum_abstention_precision",
+            "operator": ">=",
+            "passed": true,
+            "target": 0.95
+          },
+          {
+            "actual": 0.22350869660519798,
+            "metric": "maximum_brier_score",
+            "operator": "<=",
+            "passed": false,
+            "target": 0.15
+          },
+          {
+            "actual": 940.336,
+            "metric": "maximum_p95_latency_ms",
+            "operator": "<=",
+            "passed": true,
+            "target": 1500
+          },
+          {
+            "actual": 649.848,
+            "metric": "maximum_peak_process_rss_mib",
+            "operator": "<=",
+            "passed": true,
+            "target": 1536
+          }
+        ]
+      }
+    },
+    {
+      "candidate": "paddle-en",
+      "predictions_sha256": "5742a7ac559d82acd1bfc44fc56c4a4618f29cc5737af25365ccf034b55e7608",
+      "corrected_score_sha256": "43fee4c976b878d8a404f8d0d59a4c54d8de60900c56eece3d8e0fd6f8b89db0",
+      "corrected_score": {
+        "candidate": "paddle-en",
+        "contract_version": "forensics.anpr-model-benchmark/v2",
+        "evaluation_role": "ocr_only_annotated_crop",
+        "fixture_contract": "forensics.image-fixture-taxonomy/v2",
+        "gate": {
+          "blocked_reasons": [
+            "one or more quantitative promotion thresholds failed"
+          ],
+          "failed_thresholds": [
+            "minimum_normalized_exact_plate_accuracy",
+            "maximum_normalized_character_error_rate"
+          ],
+          "production_promotion_allowed": false,
+          "state": "blocked_no_promotion"
+        },
+        "metrics": {
+          "abstention": {
+            "abstained_count": 1,
+            "accuracy": 1.0,
+            "evaluated_count": 17,
+            "precision": 1.0
+          },
+          "fixture_count": 29,
+          "fixture_coverage": {
+            "complete": true,
+            "missing_classes": [],
+            "present_classes": [
+              "blur",
+              "clear_single_plate",
+              "empty_scene",
+              "extension_signature_mismatch",
+              "glare",
+              "malformed_image",
+              "multiple_vehicles",
+              "night",
+              "occlusion",
+              "oversized_dimensions",
+              "polyglot_or_trailing_payload",
+              "pre_cropped_plate",
+              "regional_style",
+              "skew"
+            ],
+            "required_classes": [
+              "clear_single_plate",
+              "regional_style",
+              "night",
+              "glare",
+              "blur",
+              "skew",
+              "occlusion",
+              "multiple_vehicles",
+              "pre_cropped_plate",
+              "empty_scene",
+              "malformed_image",
+              "oversized_dimensions",
+              "extension_signature_mismatch",
+              "polyglot_or_trailing_payload"
+            ]
+          },
+          "latency_ms": {
+            "evaluated_count": 17,
+            "p50": 143.147,
+            "p95": 185.42,
+            "zero_noop_excluded": true
+          },
+          "localization": {
+            "state": "not_applicable_ocr_uses_annotated_truth_crop"
+          },
+          "missing_fixture_predictions": [],
+          "ocr": {
+            "confidence_calibration": {
+              "brier_score": 0.07993476676288647,
+              "evaluated_count": 16
+            },
+            "evaluated_text_count": 16,
+            "normalization_policy": "Unicode NFKC, uppercase, retain alphanumeric code points; never infer missing characters",
+            "normalized_character_error_rate": 0.14705882352941177,
+            "normalized_exact_plate_accuracy": 0.875,
+            "raw_character_error_rate": 0.14285714285714285,
+            "raw_exact_plate_accuracy": 0.875
+          },
+          "resources": {
+            "package_size_basis": "read_only_installed_asset_measurement",
+            "package_size_mib": 7.633,
+            "peak_process_rss_mib": 449.125
+          },
+          "role_evaluated_fixture_count": 17
+        },
+        "threshold_checks": [
+          {
+            "actual": 0.875,
+            "metric": "minimum_normalized_exact_plate_accuracy",
+            "operator": ">=",
+            "passed": false,
+            "target": 0.9
+          },
+          {
+            "actual": 0.14705882352941177,
+            "metric": "maximum_normalized_character_error_rate",
+            "operator": "<=",
+            "passed": false,
+            "target": 0.05
+          },
+          {
+            "actual": 1.0,
+            "metric": "minimum_abstention_precision",
+            "operator": ">=",
+            "passed": true,
+            "target": 0.95
+          },
+          {
+            "actual": 0.07993476676288647,
+            "metric": "maximum_brier_score",
+            "operator": "<=",
+            "passed": true,
+            "target": 0.15
+          },
+          {
+            "actual": 185.42,
+            "metric": "maximum_p95_latency_ms",
+            "operator": "<=",
+            "passed": true,
+            "target": 500
+          },
+          {
+            "actual": 449.125,
+            "metric": "maximum_peak_process_rss_mib",
+            "operator": "<=",
+            "passed": true,
+            "target": 1536
+          }
+        ]
+      }
+    },
+    {
+      "candidate": "paddle-arabic",
+      "predictions_sha256": "da023876f43aae073a80484bff7ebce71c0a1d102aec830657f78f36a19fe4f2",
+      "corrected_score_sha256": "783e746c57a45dd143134c69711e99d4372d01cfe21fb7f5b778d20f7255d5e0",
+      "corrected_score": {
+        "candidate": "paddle-arabic",
+        "contract_version": "forensics.anpr-model-benchmark/v2",
+        "evaluation_role": "ocr_only_annotated_crop",
+        "fixture_contract": "forensics.image-fixture-taxonomy/v2",
+        "gate": {
+          "blocked_reasons": [
+            "one or more quantitative promotion thresholds failed"
+          ],
+          "failed_thresholds": [
+            "minimum_normalized_exact_plate_accuracy",
+            "maximum_normalized_character_error_rate"
+          ],
+          "production_promotion_allowed": false,
+          "state": "blocked_no_promotion"
+        },
+        "metrics": {
+          "abstention": {
+            "abstained_count": 1,
+            "accuracy": 1.0,
+            "evaluated_count": 17,
+            "precision": 1.0
+          },
+          "fixture_count": 29,
+          "fixture_coverage": {
+            "complete": true,
+            "missing_classes": [],
+            "present_classes": [
+              "blur",
+              "clear_single_plate",
+              "empty_scene",
+              "extension_signature_mismatch",
+              "glare",
+              "malformed_image",
+              "multiple_vehicles",
+              "night",
+              "occlusion",
+              "oversized_dimensions",
+              "polyglot_or_trailing_payload",
+              "pre_cropped_plate",
+              "regional_style",
+              "skew"
+            ],
+            "required_classes": [
+              "clear_single_plate",
+              "regional_style",
+              "night",
+              "glare",
+              "blur",
+              "skew",
+              "occlusion",
+              "multiple_vehicles",
+              "pre_cropped_plate",
+              "empty_scene",
+              "malformed_image",
+              "oversized_dimensions",
+              "extension_signature_mismatch",
+              "polyglot_or_trailing_payload"
+            ]
+          },
+          "latency_ms": {
+            "evaluated_count": 17,
+            "p50": 148.759,
+            "p95": 184.602,
+            "zero_noop_excluded": true
+          },
+          "localization": {
+            "state": "not_applicable_ocr_uses_annotated_truth_crop"
+          },
+          "missing_fixture_predictions": [],
+          "ocr": {
+            "confidence_calibration": {
+              "brier_score": 0.07340475555871029,
+              "evaluated_count": 16
+            },
+            "evaluated_text_count": 16,
+            "normalization_policy": "Unicode NFKC, uppercase, retain alphanumeric code points; never infer missing characters",
+            "normalized_character_error_rate": 0.06862745098039216,
+            "normalized_exact_plate_accuracy": 0.875,
+            "raw_character_error_rate": 0.06722689075630252,
+            "raw_exact_plate_accuracy": 0.875
+          },
+          "resources": {
+            "package_size_basis": "read_only_installed_asset_measurement",
+            "package_size_mib": 7.781,
+            "peak_process_rss_mib": 448.117
+          },
+          "role_evaluated_fixture_count": 17
+        },
+        "threshold_checks": [
+          {
+            "actual": 0.875,
+            "metric": "minimum_normalized_exact_plate_accuracy",
+            "operator": ">=",
+            "passed": false,
+            "target": 0.9
+          },
+          {
+            "actual": 0.06862745098039216,
+            "metric": "maximum_normalized_character_error_rate",
+            "operator": "<=",
+            "passed": false,
+            "target": 0.05
+          },
+          {
+            "actual": 1.0,
+            "metric": "minimum_abstention_precision",
+            "operator": ">=",
+            "passed": true,
+            "target": 0.95
+          },
+          {
+            "actual": 0.07340475555871029,
+            "metric": "maximum_brier_score",
+            "operator": "<=",
+            "passed": true,
+            "target": 0.15
+          },
+          {
+            "actual": 184.602,
+            "metric": "maximum_p95_latency_ms",
+            "operator": "<=",
+            "passed": true,
+            "target": 500
+          },
+          {
+            "actual": 448.117,
+            "metric": "maximum_peak_process_rss_mib",
+            "operator": "<=",
+            "passed": true,
+            "target": 1536
+          }
+        ]
+      }
+    }
+  ]
+}

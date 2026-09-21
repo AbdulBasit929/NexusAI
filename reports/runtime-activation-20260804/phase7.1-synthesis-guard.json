@@ -1,0 +1,10 @@
+{
+    "phase":  "7.1-subscriber-synthesis-guard",
+    "deployed_utc":  "2026-08-04T07:33:52.5502192Z",
+    "api_image":  "sha256:df903cbc77fb48eb5a41a879c210098f68a751cc806dce7e609ff9018ebfe05a",
+    "rollback_image":  "nexusai/forensic-records-api:rollback-before-phase7.1-synthesis-guard-20260804",
+    "api_health":  "pass",
+    "worker_image_unchanged":  true,
+    "localai_image_unchanged":  true,
+    "named_volumes_preserved":  true
+}

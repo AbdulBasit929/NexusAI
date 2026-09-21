@@ -1,0 +1,26 @@
+{
+  "contract_version": "nexusai.nxmmr-acquisition-receipt/v1",
+  "date": "2026-08-29",
+  "status": "PASS",
+  "destination": "local-acceptance-models/nxmmr",
+  "destination_git_disposition": "ignored_by_repository",
+  "authorized_maximum_bytes": 663933265,
+  "file_count": 7,
+  "total_bytes": 663933265,
+  "network_downloaded_files": 5,
+  "cache_reused_files": 2,
+  "unlisted_files_downloaded": 0,
+  "artifacts": [
+    {"name":"yolo-v9-t-384-license-plates-end2end.onnx","size_bytes":7771218,"sha256":"888397b96d761c89db40bc9c305838e8652660f5e282c2cadebbe8d2951a77a8","method":"approved_https_download"},
+    {"name":"cct_xs_v2_global.onnx","size_bytes":3344292,"sha256":"8031afb5fdc6b4d80462c9d542f1284ebd2cfddf5dbacd62609848d7e2855f44","method":"approved_https_download"},
+    {"name":"cct_xs_v2_global_plate_config.yaml","size_bytes":1725,"sha256":"0335c74a305173bb6f393efed0fde03cadeaa0b649ed8e19f431016d8232d0a6","method":"approved_https_download"},
+    {"name":"eng.traineddata","size_bytes":4113088,"sha256":"7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2","method":"exact_cached_evaluator_copy"},
+    {"name":"urd.traineddata","size_bytes":1398718,"sha256":"62e8250ce2a994106e313a82e26a516a39e2cf159d0ce3c5b5008387fd0d555f","method":"exact_cached_evaluator_copy"},
+    {"name":"arabic_PP-OCRv5_mobile_rec_infer.tar","size_bytes":8151040,"sha256":"a25c1f96cd0cda485b942851b5afb4a95bc4041a56c295bb4439190d53ee0a14","method":"approved_https_download","publisher_etag":"-8f528ee3d359cb26d4e3f3e312b6c685"},
+    {"name":"qwen3-reranker-0.6b-q8_0.gguf","size_bytes":639153184,"sha256":"22c9979ce4fbcdc5acdc310c6641c32797eff1aa980b8f7a2db8a8ea23429a48","method":"approved_https_download"}
+  ],
+  "live_model_install_performed": false,
+  "container_image_pull_or_build_performed": false,
+  "runtime_mutated": false,
+  "retained_state_mutated": false
+}

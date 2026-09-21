@@ -1,0 +1,112 @@
+{
+  "contract_version": "nexusai.mmv2.post-activation-certification/v1",
+  "recorded_at": "2026-08-24T14:45:43+05:00",
+  "scope": {
+    "tenant_id": "default",
+    "collection_id": "nexusai-multimodal-product-acceptance",
+    "case_id": "nexusai-multimodal-product-acceptance",
+    "retained_reprocessing_authorized": false,
+    "sample_mp4_upload_authorized": false
+  },
+  "activation": {
+    "verdict": "PASS",
+    "transcript": "reports/mmv2-anpr-image-video-20260824/manual-narrow-activation-20260824-142418.log",
+    "transcript_sha256": "c0ce43a437a430d6162769e86db6ee2f833dea578ce4d543b0b443bbbf5fec03",
+    "localai_container_id": "0405fef3a5c57fa761c702db7a29e78374c4ff31ee0dd23cfc3a702167a48c28",
+    "localai_image_id": "sha256:f08bb832d18eacfd679855d9dc4ea72a611a13fda88ad813135f7221edbe26e8",
+    "worker_container_id": "1846f558941f583467976ad8e74a44e9063c8a1a50e870951c7e479ecce3fb66",
+    "worker_image_id": "sha256:be13dbec4bd9bb62c824140df3777b898d7ad2801a0e68cd512c00dafaf4f9ef",
+    "deployed_media_pipeline_sha256": "76abd76a8d6cfc1322d90088a4705010920e7338bbc277c7a857d3e9bc8a8c4e"
+  },
+  "protected_runtime": {
+    "forensic_api_container_id": "a97e545b83561affd743032c5998e9d65088cc1466a59f4b05eda950ff4c5c45",
+    "nats_container_id": "5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04",
+    "postgres_container_id": "f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361",
+    "worker_restart_count": 0,
+    "preserved": true
+  },
+  "health": {
+    "localai_readyz": 200,
+    "forensic_api_healthz": 200,
+    "worker_metrics": 200,
+    "nats_healthz": 200,
+    "localai_ui_root": 200,
+    "analyst_portal_html": 200,
+    "postgres": "accepting connections"
+  },
+  "public_media_operations": {
+    "case_scoped_face_similarity": {"contract": "forensics.face-candidate-similarity/v1", "result_count": 2, "citation_count": 2, "verdict": "PASS"},
+    "case_scoped_image_similarity": {"contract": "forensics.semantic-image-candidate-similarity/v1", "result_count": 3, "citation_count": 3, "verdict": "PASS"},
+    "case_scoped_image_comparison": {"contract": "forensics.image-comparison/v1", "result_count": 1, "verdict": "PASS"},
+    "case_scoped_image_content_range": {"http_status": 206, "bytes": 32, "content_type": "image/jpeg", "verdict": "PASS"},
+    "case_scoped_audio_content_range": {"http_status": 206, "bytes": 32, "content_type": "audio/wave", "verdict": "PASS"},
+    "case_scoped_video_content_range": {"http_status": 206, "bytes": 32, "content_type": "video/mp4", "verdict": "PASS"},
+    "retained_video_detail": {"derived_artifact_count": 44, "ocr_observation_count": 40, "anpr_group_count": 0, "observed_timestamps_seconds": [0, 5], "verdict": "PASS_CURRENT_RETAINED_DATA"},
+    "public_grouped_video_anpr_operation": {"verdict": "OPEN", "reason": "No independently executable public grouped-video ANPR operation is registered; the current retained video has zero ANPR groups and retained reprocessing was not authorized."},
+    "overall": "PARTIAL"
+  },
+  "query_certification": {
+    "positive_target": "MN1367",
+    "english": {"route": "records_sql", "tool": "anpr.sightings", "rows": 1, "citations": 1, "verdict": "PASS"},
+    "natural_english": {"route": "records_sql", "tool": "anpr.sightings", "rows": 1, "citations": 1, "verdict": "PASS"},
+    "roman_urdu": {"route": "records_sql", "tool": "anpr.sightings", "rows": 1, "citations": 1, "verdict": "PASS"},
+    "urdu_script": {"route": "clarification", "status": "needs_input", "tool": null, "verdict": "FAIL"},
+    "typed_negative": {"target": "ZZZNORESULT999", "route": "records_sql", "tool": "anpr.sightings", "status": "no_results", "verdict": "PASS"},
+    "overall": "PARTIAL"
+  },
+  "citation_certification": {
+    "positive_anpr_evidence_id": "a0ff7b18-129f-4a8a-82cf-48887f98bd9e",
+    "positive_anpr_version_id": "3dc6b0f6-8d2b-426d-93c5-12059005549b",
+    "positive_anpr_locator": "row_number:3,row_hash:6c3b26cf304b705aca3079f7ab94e65c1260baf7b7b0103dc856db34d9b898fb,timestamp:2026-08-23T13:43:53Z",
+    "source_name": "image-test-plate-test_plate.jpg",
+    "verdict": "PASS"
+  },
+  "history_certification": {
+    "analysis_id": "95a61f9d-a03b-4d96-8802-16f8fe987d6e",
+    "saved": true,
+    "saved_title": "MMV-2 retained ANPR citation certification",
+    "status": "completed",
+    "citation_count": 1,
+    "browser_reopen": true,
+    "verdict": "PASS"
+  },
+  "browser_acceptance": {
+    "390": {"horizontal_overflow": false, "main_visible": true, "mobile_navigation_visible": true, "workspace_selected": true, "ready_24_visible": true, "verdict": "PASS"},
+    "820": {"horizontal_overflow": false, "main_visible": true, "desktop_navigation_visible": true, "workspace_selected": true, "ready_24_visible": true, "verdict": "PASS"},
+    "1024": {"horizontal_overflow": false, "main_visible": true, "desktop_navigation_visible": true, "workspace_selected": true, "ready_24_visible": true, "verdict": "PASS"},
+    "1440": {"horizontal_overflow": false, "main_visible": true, "desktop_navigation_visible": true, "workspace_selected": true, "ready_24_visible": true, "verdict": "PASS"},
+    "overall": "PASS"
+  },
+  "audio_presentation": {
+    "row_icon_class": "fas fa-waveform-lines",
+    "player_controls_visible": true,
+    "player_ready_state": 4,
+    "duration_seconds": 6.24,
+    "playback_exercised": true,
+    "player_error": null,
+    "timestamped_urdu_count": 2,
+    "roman_urdu_derivative_count": 2,
+    "verdict": "PASS"
+  },
+  "retained_counts_before": {"evidence": 51, "versions": 51, "jobs": 64, "active_jobs": 0, "canonical_records": 22207, "artifacts": 441, "kb_assets": 47},
+  "retained_counts_after": {"evidence": 51, "versions": 51, "jobs": 64, "active_jobs": 0, "canonical_records": 22207, "artifacts": 441, "kb_assets": 47},
+  "final_markers": {
+    "MMV2Activation": "PASS",
+    "PublicMediaOperations": "PARTIAL",
+    "MediaQueryCertification": "PARTIAL",
+    "CitationCertification": "PASS",
+    "HistoryCertification": "PASS",
+    "BrowserAcceptance": "PASS",
+    "AudioPresentation": "PASS",
+    "ProtectedServicesPreserved": true,
+    "RetainedDataMutated": false,
+    "ModelsChanged": false,
+    "DatabaseMigration": false,
+    "OpenP0": 0,
+    "OpenFoundationalP1": 2
+  },
+  "open_foundational_p1": [
+    "Urdu-script ANPR natural-language routing returns clarification instead of anpr.sightings for an explicit retained plate target.",
+    "The grouped video ANPR timeline is not exposed as an independently executable public case operation; current retained video cannot provide a positive grouped result without separately authorized reprocessing."
+  ]
+}

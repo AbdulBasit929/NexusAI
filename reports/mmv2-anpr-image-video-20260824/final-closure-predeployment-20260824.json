@@ -1,0 +1,91 @@
+{
+  "contract_version": "nexusai.mmv2.final-closure-predeployment/v1",
+  "date": "2026-08-24",
+  "scope": "MMV-2 P1-1 Urdu ANPR routing and P1-2 public grouped-video ANPR operation",
+  "git": {
+    "branch": "codex/forensic-hybrid-checkpoint-20260723",
+    "head": "40717b83510c08db25dc26b9d6674bf46db363ac",
+    "worktree": "materially dirty before this slice; unrelated changes preserved",
+    "stage_commit_push_pr": false
+  },
+  "runtime": {
+    "deployment_performed": false,
+    "containers": {
+      "localai": {"id": "0405fef3a5c5", "image": "sha256:f08bb832d18eacfd679855d9dc4ea72a611a13fda88ad813135f7221edbe26e8"},
+      "forensic_api": {"id": "a97e545b8356", "image": "sha256:9814cdf0e215070eafc640cedcc78ff0482dcb7b990369180fdba9334a420516"},
+      "worker": {"id": "1846f558941f"},
+      "nats": {"id": "5c49e70d132a"},
+      "postgres": {"id": "f66e05a3b179"}
+    },
+    "retained_counts": {"evidence": 51, "versions": 51, "jobs": 64, "active_jobs": 0, "canonical_records": 22207, "artifacts": 441, "kb_assets": 47},
+    "current_zero_video": {
+      "evidence_id": "50057921-4f1f-4ab8-bab0-47bcdc957822",
+      "version_id": "1696e47d-75e2-4977-a637-501068dc97ac",
+      "processing_status": "completed",
+      "observation_count": 48,
+      "sampled_frame_count": 2,
+      "video_anpr_group_artifacts": 0,
+      "required_public_state": "ANPR processing complete, 0 plate groups detected."
+    }
+  },
+  "p1_1": {
+    "status": "SOURCE_PASS_DEPLOYMENT_GATED",
+    "root_cause": "generic Urdu video/plate/sighting vocabulary was absent from deterministic normalization and agent routing",
+    "fix": "generic Urdu-script intent normalization and governed routing with original ASCII target extraction preserved",
+    "anti_hardcode_production_search": "PASS_NONE_FOUND",
+    "arbitrary_identifier_test": "PKX4821"
+  },
+  "p1_2": {
+    "status": "SOURCE_PASS_DEPLOYMENT_GATED",
+    "public_operation": "video.anpr_grouped_timeline",
+    "public_template": "video_anpr_grouped_timeline",
+    "operation_count_delta": 1,
+    "parameters": ["tenant", "collection/case", "evidence_id", "plate", "start_seconds", "end_seconds"],
+    "semantics": "Grouped observations; never tracking, identity, ownership, association or continuous movement",
+    "zero_result": "complete_zero",
+    "quick_actions_per_video": 1,
+    "certification_tier": "bounded_uncertified until live deployment certification"
+  },
+  "source_tests": {
+    "go_forensic_full": "PASS",
+    "go_forensic_focused": "PASS",
+    "go_agent_focused": "PASS",
+    "go_vet_forensic_and_agents": "PASS",
+    "react_node_tests": "PASS_10_OF_10",
+    "react_eslint_focused": "PASS",
+    "react_production_build": "PASS_WITH_EXISTING_CHUNK_SIZE_WARNING",
+    "git_diff_check": "PASS"
+  },
+  "sample": {
+    "path": "C:/Users/sheik/Downloads/sample.mp4",
+    "exists": true,
+    "sha256": "d470773444dd23bc4b8d446e3fb1e057923e9902b2a2a93e9fafc83762d137ee",
+    "size_bytes": 184407144,
+    "retained": false,
+    "visual_review": "PENDING_NO_PERSISTED_CROP_BYTES_AND_NO_APPROVED_LOCAL_DECODER",
+    "ownership_retention_attestation": "REQUIRED"
+  },
+  "deployment_gate": {
+    "required_services": ["forensic-records-api", "LocalAI/UI"],
+    "worker_rebuild_required": false,
+    "new_rollback_tags_required": true,
+    "reason": "existing rollback tags do not reference the currently running API and LocalAI/UI images",
+    "mandatory_free_physical_ram_gib": 6,
+    "approval": "NOT_GRANTED"
+  },
+  "prohibited_actions_performed": {
+    "retained_upload": false,
+    "retained_reprocess": false,
+    "model_download_or_change": false,
+    "database_migration": false,
+    "service_build_restart_or_recreation": false,
+    "cleanup_or_deletion": false,
+    "stage_commit_push_pr": false
+  },
+  "final": {
+    "OpenP0": 0,
+    "OpenFoundationalP1": 2,
+    "MMV2FinalVerdict": "SOURCE_P1_FIXES_PASS_DEPLOYMENT_AND_LIVE_CERTIFICATION_GATED",
+    "MMV3Started": false
+  }
+}

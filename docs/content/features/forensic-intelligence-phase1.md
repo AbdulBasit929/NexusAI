@@ -2,6 +2,27 @@
 
 Phase 1 introduces an enterprise ingestion path for structured forensic telemetry. It is additive to the existing LocalAI Knowledge Base and the current lightweight Records UI.
 
+## Current speech provenance boundary (source-ready, 2026-08-31)
+
+ASR transcripts are review-required model observations. Reported segment times
+are preserved; a text-only response does not acquire an artificial range from
+zero to recording duration. Missing/invalid timing displays as unavailable.
+Roman Urdu is a secondary representation linked to its parent observation;
+raw Urdu and exact identifiers remain primary. Data filters disclose when
+they cover only loaded sources, not the complete workspace.
+
+Completed audio technical inspection is not transcript readiness. Detail copy
+requires completed transcript artifacts; list cards without those artifacts
+invite the analyst to inspect availability. Missing/invalid duration remains
+unknown; valid source `duration_ms` is converted to seconds without inventing
+transcript time bounds. Fresh 2026-08-31 checks found worker ASR disabled and
+scoped transcript Ask unresolved, so backend accuracy is not live STT closure.
+
+These corrections are not deployed. TTS is not connected; future Read aloud
+output must be disclosed as generated accessibility audio, never source truth.
+The current demo boundary is in the repository's
+`docs/demo/nexusai-team-lead-multimodal-demo-v3.md`.
+
 ## Architecture Decision
 
 The existing Knowledge Base remains the RAG/evidence layer. It is good for source lookup, semantic retrieval, and contextual grounding, but it is not sufficient for exact analytical questions over millions of rows.
@@ -178,6 +199,28 @@ Future record families should be added through typed adapters:
 
 Phase 2 makes the Knowledge Base collection the analyst-facing boundary. Every upload has a `collection_id`; the system then classifies the file and chooses the right internal execution path.
 
+### Phase 2 completion status (2026-07-27)
+
+Phase 2A and 2B acceptance is complete. The machine-readable matrix contains 20
+of 20 versioned ready fixture contracts across structured records, text,
+spreadsheets, documents, images, audio/STT, TTS, transcripts, video, captures,
+databases, archives, and unknown/mixed inputs. The final isolated collection
+contains 20 evidence items and 20 KB source links with zero failures or missing
+assets. Its eight supported structured jobs account exactly for 59 source rows:
+34 unique accepted, 6 exact duplicates, and 19 visible rejects.
+
+The protected `records-demo-verified` collection remains at 9,250 accepted
+structured rows. Its four historical KB-only source entries were reconciled,
+after a verified scoped backup, into two content-addressed evidence objects while
+preserving all four distinct source links. The collection now reconciles to eight
+KB entries, six evidence objects, and eight KB asset/source links.
+
+The unchanged three-round CPU baseline passes 18 of 18 chat guardrail checks,
+27 of 27 deterministic query-route checks, and three 8-vector embedding runs at
+1,024 dimensions. Ready fixtures do not change the truthfulness of processing
+states: OCR, STT, deep document/video/capture/database/archive work remains on
+explicit pending/manual routes until later vertical slices meet their own gates.
+
 | File family | KB/RAG behavior | Structured behavior |
 | --- | --- | --- |
 | PDF, docs, policies, notes | chunk, embed, cite | optional metadata only |
@@ -243,7 +286,52 @@ docker compose -f docker-compose.forensic-records.yaml exec forensic-postgres `
   -c "SELECT entity_type, entity_value, observation_count, record_types FROM forensic.entity_activity_summary ORDER BY observation_count DESC LIMIT 20;"
 ```
 
-## Phase 3 Hybrid Query Router
+## Phase 3 evidence control-plane source completion (2026-07-29)
+
+The next additive schema has been implemented and validated in disposable
+TimescaleDB/PostgreSQL only. It normalizes immutable storage references, evidence
+versions, distinct source links, idempotent processing runs, append-only run
+events, typed derived artifacts, and hash-chained custody events. Existing Phase
+2 rows are linked rather than rewritten or deleted.
+
+The migration includes a read-only compatibility preflight, all-or-nothing
+forward transaction, relationship verification, native-ingest smoke test,
+repeat-apply drift assertions, and an explicitly gated destructive rollback.
+The current local registry passed preflight for 110 evidence items, 104 linked KB
+assets and 41 linked jobs. The schema has not been applied to that registry;
+backup and application still require separate approval. Authenticated tenant/case
+binding and non-owner RLS permission tests are now implemented and isolated-test
+clean: LocalAI verifies collection ownership, the sidecar rejects caller scope
+switches and limits repair to administrators, and a real non-bypass database role
+can access only its tenant. This security configuration is not deployed and the
+migration is not applied. The next source slice also replaces job-named mutable
+spool files with scoped `sha256-scope-v1` content addresses, create-only
+publication, full-read hash/size re-verification, read-only receipts, integrity
+quarantine, and independent worker verification from a read-only mount. Its
+source tests and full disposable migration/storage acceptance pass, but it is
+likewise not deployed and is not claimed as infrastructure WORM.
+
+The final queue-lifecycle source slice is now complete and isolated-test clean.
+Evidence registration and the publication outbox commit atomically; JetStream
+uses file-backed work-queue retention and stable message identity; the worker
+claims a database lease, retries transient failures with bounded backoff,
+publishes terminal diagnostics to a bounded DLQ, commits before `AckSync`, and
+turns lost acknowledgements into ack-only redeliveries. Migration 009 makes
+attempts monotonic and terminal state/lineage immutable. Explicit reprocessing
+is authenticated and collection-scoped, requires an idempotency key, serializes
+per evidence, and creates a linked generation without erasing earlier outputs.
+
+A disposable 001-009 TimescaleDB chain and a real disposable NATS restart test
+passed, including duplicate publication, persisted unacknowledged recovery and
+synchronous acknowledgement. The retained registry and services remain
+unchanged. Before production activation, run the resource-heavy focused LocalAI
+proxy package on CI/higher-memory hardware, verify a fresh backup, approve and
+apply migrations 008/009, provision runtime grants and persistent NATS storage,
+activate service authentication, then perform a targeted deployment smoke. See
+`docs/design/forensic-queue-lifecycle.md` and
+`reports/forensic-phase3-queue-lifecycle-completion-20260729.md`.
+
+## Hybrid Query Router
 
 The forensic API exposes a safe hybrid query gateway:
 
@@ -263,9 +351,10 @@ Supported templates:
 | `top_locations` | Most frequent CDR locations and cell sites |
 | `geospatial_movement` | Chronological movement and off-peak base-location candidates |
 | `anpr_sightings` | ANPR sightings by plate, camera, and location |
-| `entity_activity` | Cross-record entity summary across CDR, ANPR, IPDR, and generic uploads |
+| `entity_activity` | Cross-record entity summary across canonical structured record families |
+| `cross_family_correlation` | Exact normalized target matches, family coverage, cited source rows, and bounded related entities across eight canonical record families |
 | `relationship_network` | Co-observed entities that appear in the same rows as a target |
-| `entity_timeline` | Chronological timeline across CDR and generic record families |
+| `entity_timeline` | Chronological timeline across canonical structured record families |
 | `source_records` | Small capped set of matching source rows for audit review |
 | `schema_profile` | Detected headers, normalized schemas, routing status, and quality reports |
 | `data_quality` | Ingest quality, duplicate counts, rejected rows, and parser error samples |
@@ -280,6 +369,8 @@ The `template` field is optional. For raw analyst questions, the router extracts
 | `show top locations for 923461678183` | `top_locations` |
 | `where was ABC-123 seen` | `anpr_sightings` |
 | `summarize evidence for ABC-123 and show related entities` | `entity_activity` + KB evidence |
+| `correlate 923461678183 across record families` | `cross_family_correlation` |
+| `connect ABC-123 across datasets` | `cross_family_correlation` |
 | `show relationship network for ABC-123` | `relationship_network` |
 | `build timeline for ABC-123` | `entity_timeline` |
 | `show source rows for ABC-123` | `source_records` |
@@ -338,6 +429,8 @@ Invoke-RestMethod -Uri "http://localhost:8091/query/hybrid" `
   -ContentType "application/json" `
   -Body $body
 ```
+
+Hybrid responses can optionally use a role-compatible LocalAI chat model for bounded narrative explanation. Set `FORENSIC_SYNTHESIS_MODEL` to an installed chat/instruct model and tune `FORENSIC_SYNTHESIS_TIMEOUT` as a Go duration such as `120s`. Both synthesis paths default to 120 seconds and cap configuration at 180 seconds; the LocalAI proxy and agent caller share a 405-second transport ceiling for sequential planning, execution and synthesis, with earlier parent deadlines and cancellation preserved, and any timeout or model failure safely falls back to the deterministic response. Embedding, reranking, OCR, speech, audio, vision, image, and video model names are rejected for this role. The synthesis payload includes only a capped structured-row sample and up to four retrieved KB excerpts, each capped at 1,200 characters. KB excerpts retain the request tenant and collection plus available evidence, version, source, chunk, page, time-range, and citation locators. They are treated as untrusted source text rather than prompt instructions; exact values and citation objects must still come from deterministic Records results.
 
 ## Phase 4 Deterministic Report Synthesis
 
@@ -434,24 +527,208 @@ Example agent questions:
 
 ## Phase 6 Unified KB Upload Routing
 
-The normal Knowledge Base upload endpoint can now act as the analyst-facing ingestion boundary. When configured, `POST /api/agents/collections/{collection}/upload` still stores the file in the KB first, then forwards structured-looking files to the forensic records sidecar for deterministic parsing.
+The normal Knowledge Base upload endpoint can now act as the analyst-facing evidence boundary. When configured, `POST /api/agents/collections/{collection}/upload` stores the source in the KB and forwards every valid filename to the forensic sidecar for universal evidence registration. Registration and processing are separate decisions: only formats the current records worker can parse are queued for deterministic records ingestion; every other format is preserved with an explicit pending or manual-review route.
+
+Uploads mirrored from the forensic sidecar carry an internal `skip_forensic_records=true` multipart marker so the unified KB route does not forward the same file back to the sidecar.
 
 This avoids a duplicate KB copy by forwarding:
 
 - `skip_kb_mirror=true`
 - `source_entry=<existing KB entry key>`
 
-Supported automatic forwarding extensions:
+The data-driven registration catalog covers:
 
-- `.csv`
-- `.tsv`
-- `.json`
-- `.jsonl`
-- `.ndjson`
-- `.log`
-- `.txt`
+- CDR, IPDR, ANPR, subscriber, tower, transaction, and access-log records.
+- CSV, JSON, JSONL, NDJSON, Parquet, TSV, Excel, ODS, Arrow, Feather, Avro, ORC, and XML.
+- PDF, Word, PowerPoint, OpenDocument, HTML, email, Markdown, and text evidence.
+- PNG/JPEG/WebP/GIF/BMP/TIFF/HEIC/RAW/SVG images.
+- WAV/MP3/M4A/FLAC/OGG/AAC/Opus/WMA/AMR audio.
+- MP4/MOV/MKV/AVI/WebM/MPEG/MTS video.
+- STT transcript artifacts and TTS audio outputs.
+- PCAP/PCAPNG/EVTX captures, SQLite/database exports, archives, and unknown binary evidence.
 
-Documents such as PDFs, Word files, images, and other ordinary KB evidence remain KB/RAG-only until a document-specific structured adapter is added.
+Current worker execution is deliberately narrower than registration. CSV, JSON/JSONL/NDJSON, Parquet, accepted TSV/XLSX, and supported raster/audio/video formats can be queued. Specialized `.log` or `.txt` inputs can be queued when their headers identify a supported record family. Media uses the unified media route; captures, databases, archives, documents, unsupported image formats, and unknown formats remain on explicit pending/manual-review routes until their adapters are accepted. This prevents binary or unsupported evidence from being misparsed as CSV.
+
+The breadth-first media source path preserves original evidence and writes only
+source-linked derived observations. Image processing always emits technical
+metadata and may run opt-in FastALPR when explicit read-only local model paths
+are configured; OCR remains review-required and retains raw plus formatting-only
+normalized text. Audio emits ffprobe metadata but does not fabricate a transcript
+without ASR. Video composes ffprobe metadata, bounded sampled frames, embedded
+audio extraction, and the same optional image/ANPR processor. Authorized case
+routes provide range-capable image/audio/video preview without exposing storage
+paths. Runtime availability depends on deploying the media worker and its exact
+dependencies; this source statement is not a runtime acceptance claim.
+
+Header inspection is restricted to formats understood by the records worker and rejects NUL-bearing, invalid UTF-8, overlong, or excessive-column schemas. Binary formats are classified from their extension/content signature without placing arbitrary payload bytes in PostgreSQL JSONB metadata. This keeps XLSX/DOCX, media, captures, SQLite, archives, and unknown evidence registrable while preserving the raw source unchanged.
+
+The isolated `forensic-phase2a-acceptance-20260724` acceptance run exercises all 20 declared evidence families with 21 source objects (PDF and DOCX are separate document cases). Its verified state is 21 evidence records, 21 KB asset links, 7 completed structured jobs, 20 accepted rows, 0 rejected rows, 0 duplicate rows, 0 failures, and 13 adapter-pending/manual-review items with no records batch. STT and TTS cases retain their parent evidence IDs. These results validate registration and safe routing only; they do not claim that pending OCR, STT, video, capture, database, archive, or spreadsheet adapters are implemented.
+
+### Pakistan deployment profile
+
+The versioned profile in `configuration/forensic_country_profiles/pakistan.json`
+defines the deployment defaults and evidence-handling rules for Pakistan. Uploads
+carry `jurisdiction` and `source_timezone`; the Compose default is `PK` and
+`Asia/Karachi`. Explicit offsets remain authoritative, while naïve timestamps are
+interpreted in the declared source timezone and converted to UTC for canonical
+storage. Raw values remain in immutable source records.
+
+The profile covers Pakistan telephone and IMSI recognition, provider-specific
+14/15/16-digit device identifiers, CNIC and PK IBAN, province/series-specific
+ANPR, Urdu/English and other configured local-language scripts, data protection,
+chain of custody, and source maintenance. Pattern checks are quality signals:
+unknown, historic, short-code, USSD, service-label, or sentinel values are
+preserved and flagged rather than silently discarded.
+
+### Pakistan structured goldens v1.1
+
+The first Pakistan-specific structured expansion adds fixed, fully synthetic
+messy-data goldens for ANPR and PKR transactions. The companion manifest is
+`ingestion/forensic_records/tests/fixtures/pakistan_structured_goldens_v1.json`.
+It records exact row accounting and field expectations so a parser change cannot
+silently alter accepted, rejected, or duplicate results.
+
+- ANPR: 10 rows produce 6 valid normalized observations, including 1 exact
+  duplicate, so 5 unique rows are insertable; 4 rows are visibly rejected for
+  an invalid timestamp, invalid confidence, invalid coordinate, or missing plate.
+  Raw Urdu/Latin text is preserved separately from a Unicode-normalized search
+  key. Confidence, script, camera, province/rule version and crop-hash review
+  remain explicit metadata. Plate patterns are quality signals, not a single
+  national rejection expression.
+- Financial transactions: 11 rows produce 7 valid normalized observations,
+  including 1 exact duplicate, so 6 unique rows are insertable; 4 rows are
+  visibly rejected for malformed grouping, excess minor-unit precision, an
+  invalid timestamp, or conflicting amount columns. PKR values use exact decimal
+  text, accounting parentheses remain negative reversals, and Pakistan IBAN
+  structure/MOD-97 results are review metadata rather than guessed corrections.
+
+Both adapters retain the exact source row and hash, apply the row-declared or
+upload-declared timezone before canonical UTC conversion, and store derived
+values in `metadata.normalized_fields`. The implementation uses the existing
+generic records table and therefore requires no database migration. These
+fixtures are synthetic and safe to commit; authorized real evidence must remain
+outside the repository and can be used only to derive shape-preserving cases.
+
+### Deterministic evidence metadata v1.5
+
+The first Phase 2B media slice runs during evidence registration without an OCR,
+speech, or vision model. It stores versioned `media_metadata` on the evidence:
+
+- PNG, JPEG and GIF: bounded header decoding, detected format, width, height,
+  pixel count, and an explicit decode-review flag above 100 million pixels.
+- BMP: bounded file/DIB header validation, dimensions, bit depth, compression
+  code, and top-down row orientation.
+- TIFF: bounded primary-IFD parsing with a 512-entry ceiling, dimensions, and
+  orientation. JPEG EXIF parsing reads only orientation from the bounded APP1
+  header; GPS, camera identity, timestamps, comments, and other free text are
+  intentionally not retained by this extractor.
+- WebP: bounded RIFF/chunk validation, canvas dimensions, animation, alpha,
+  EXIF, XMP, and ICC-presence flags. Embedded metadata payloads are not copied.
+- RIFF/WAVE: audio format code, channels, sample rate, byte rate, bit depth,
+  audio data bytes and duration, with chunk sizes checked against the declared
+  RIFF boundary.
+- FLAC: the mandatory 34-byte STREAMINFO block supplies channel count, sample
+  rate, bit depth, sample count, block/frame bounds, and duration when the total
+  sample count is known.
+- MP3: validates every MPEG audio frame header and declared frame boundary,
+  MPEG version/layer, sample rate, channel mode, CRC presence, CBR/VBR bitrate
+  range, exact frame/sample counts, and duration. ID3v2 header/footer boundaries
+  and ID3v1 presence are recorded, but tag values and compressed audio payloads
+  are not read or retained. Free-format bitrate streams currently fail closed.
+- MP4/M4A/M4V/MOV/3GP: validates complete ISO Base Media box boundaries,
+  including 64-bit sizes, and inventories file brands, movie/track timescales
+  and durations, handler types, registered codec codes, video dimensions and
+  rotation, audio channels/sample rate, and media-data byte totals. Media-data
+  payloads, user metadata, compressed samples, frames, and embedded audio are
+  not read or decoded.
+- PDF: a bounded structural lexer inventories the declared version, page-tree
+  count, visible page objects, EOF/startxref, linearization, encryption,
+  embedded-file, JavaScript/action, AcroForm/XFA, signature, and object-stream
+  indicators. It skips literal/hex strings and stream bodies, extracts no text,
+  and never executes document actions.
+- ZIP and ZIP64: the end record and central-directory bounds are preflighted
+  before allocation. Inventory records member/type/extension counts, declared
+  compressed and expanded sizes, maximum compression ratio, encryption,
+  duplicate names, nested archives, unsafe paths, and bounded symlink targets.
+- TAR: a constant-memory 512-byte header scanner validates checksums, declared
+  sizes, terminal blocks, paths, links, special files, nesting, and expansion
+  bounds without reading regular-file bodies.
+- SQLite: raw read-only page inspection validates the 100-byte SQLite format 3
+  header, page size/counts, format versions, encoding, schema cookie/format,
+  freelist declarations, application/user versions, and bounded
+  `sqlite_schema` B-tree records. It retains bounded object names, types, table
+  associations, root pages, and exact row counts for fully traversed ordinary
+  and `WITHOUT ROWID` table B-trees. It does not execute SQL or schema
+  definitions, load extensions, open journal/WAL sidecars, read data values, or
+  retain schema SQL text.
+- PCAP: validates classic little/big-endian microsecond and nanosecond headers,
+  version, snapshot length, link type/FCS flags, every packet-record boundary,
+  captured/original byte totals, truncation, timestamp order, and UTC bounds.
+- PCAPNG: validates every leading/trailing block length, per-section byte order
+  and declared length, interfaces, link types, snapshot lengths, decimal/binary
+  timestamp resolution and offset, packet-to-interface references, enhanced,
+  simple and obsolete packet blocks, and counts for statistics, name-resolution,
+  custom, unknown, and decryption-secrets blocks. Concatenated sections may use
+  different byte order.
+
+Image signatures are compared with their filename extensions. A disagreement
+keeps the immutable evidence registered and preserves the detected technical
+metadata, but adds an explicit warning for investigation. The extractor caps
+image-header reads at 4 MiB, media chunk/segment walks at 512 entries, and TIFF
+primary IFDs at 512 entries. PDF inventory reads at most the first 64 MiB plus
+the final 128 KiB and retains at most 500,000 structural tokens. Archive policy
+limits inventory to 10,000 members and a 64 MiB ZIP central directory; archives
+above 10 GiB declared expansion, 2 GiB per member, or 100:1 compression require
+review. Nested archives, links, unsafe paths, encrypted members, duplicates, and
+special files block automatic extraction. Member names are inspected in memory
+but not persisted in metadata.
+
+SQLite inspection reads at most 4,096 distinct pages or 64 MiB, whichever is
+reached first; accepts at most 2,048 schema objects, 1 MiB per schema record,
+8 MiB of aggregate schema payload, 512 bytes per retained object name, a B-tree
+depth of 64, and bounded row counts for at most 256 tables. Page cycles,
+out-of-range/reused root pages, malformed records, impossible sizes, and budget
+exhaustion are rejected or surfaced as incomplete. A WAL-mode header produces
+an explicit warning because an uploaded main database alone cannot prove that
+separate uncheckpointed `-wal` frames were included.
+
+Packet-capture inspection is capped at 1,000,000 packets, 1,250,000 blocks,
+1,024 sections, 10,000 interfaces, 4,096 interfaces per section, 64 MiB of
+header/technical-option reads, 16 MiB per captured packet, 32 MiB per PCAPNG
+block, and 64 KiB of interface options. Packet payload bytes are never read.
+Interface names/addresses, capture filters, name-resolution values, and
+decryption-secret values are never retained. Oversized, truncated, cyclic,
+misaligned, cross-interface, or inconsistent structures fail closed while the
+immutable evidence remains registered with a warning.
+
+MP3 inspection is capped at 1,000,000 frames, 4,096 bytes per declared frame,
+and 8 MiB of aggregate technical-header reads. It seeks across compressed frame
+payloads and reads only four-byte frame headers plus bounded ID3 signatures and
+boundaries. ISO Base Media inspection is capped at 100,000 boxes, 4,096 tracks,
+256 sample descriptions per track, 64 compatible brands, nesting depth 12, and
+8 MiB of aggregate technical-header reads. Arbitrarily large `mdat` payloads are
+accounted from validated box sizes without being read.
+
+Corrupt or unsupported media remains registered with the immutable source hash
+and an explicit warning. Metadata success does not change the higher-level route:
+images remain `image_ocr_vision_pending`, audio remains `audio_stt_pending`, PDF
+remains `document_extraction_pending`, archives remain `archive_inventory_pending`,
+SQLite remains `database_adapter_pending`, packet captures remain
+`capture_adapter_pending`, MP4/MOV remains `video_analysis_pending`, and TTS
+remains a derived artifact.
+This prevents technical inventory from being
+mistaken for completed OCR, attachment extraction, transcription, diarization,
+visual analysis, archive unpacking, recursive child registration, SQL-dump
+execution, column/foreign-key extraction, selected-row normalization, protocol
+decoding, endpoint extraction, or network-session reconstruction.
+
+Extractor warnings are merged without duplicates into the immediate upload
+response, the persisted evidence item, and the linked KB asset
+`quality_report.warnings`. Callers therefore receive the same active-content,
+attachment, unsafe-path, nesting, and expansion-risk findings at registration
+time that later reviewers see in the evidence catalog.
+
+Forwarding uses streaming multipart I/O instead of buffering the entire upload in memory. Configure the sidecar upload deadline with `FORENSIC_RECORDS_UPLOAD_TIMEOUT`; the default is `5m` for large evidence.
 
 Enable the unified route for a LocalAI process:
 
@@ -459,6 +736,7 @@ Enable the unified route for a LocalAI process:
 $env:FORENSIC_RECORDS_API_URL="http://host.docker.internal:8091"
 $env:FORENSIC_RECORDS_KB_UPLOAD_ENABLED="true"
 $env:FORENSIC_RECORDS_TENANT_ID="default"
+$env:FORENSIC_RECORDS_UPLOAD_TIMEOUT="5m"
 ```
 
 If the sidecar is protected:
@@ -471,15 +749,30 @@ For Docker, pass the same variables into the LocalAI container. The sidecar URL 
 
 Resulting behavior:
 
-| Upload path | File type | KB behavior | Records behavior |
+| Upload path | File type | Evidence registration | Processing behavior |
 | --- | --- | --- | --- |
-| KB collection upload | PDF/doc/policy/image | Stored and searchable in KB | Not forwarded |
-| KB collection upload | CSV/TSV/JSON/JSONL/log/txt | Stored and searchable in KB | Forwarded to sidecar with existing KB source entry |
-| Forensic sidecar upload | Structured record file | Mirrors to KB if enabled | Parses into deterministic Records tables |
+| KB collection upload | Supported structured CSV/JSON/Parquet | Registered with hash, evidence/version IDs, KB source entry, and audit event | Queued to deterministic records worker |
+| KB collection upload | PDF/document/text | Registered as document/text evidence | Existing KB indexing plus document/text extraction route |
+| KB collection upload | Image/audio/video | Registered with immutable source lineage | OCR/vision, STT, or video-analysis pending route; not sent to records worker |
+| KB collection upload | TSV/Excel/financial workbook | Registered and record family retained when recognizable | Typed spreadsheet/delimiter adapter pending |
+| KB collection upload | PCAP/database/archive/unknown | Registered and preserved | Explicit capture/database/archive/manual-review route |
+| Forensic sidecar upload | Any evidence type | Registers directly and mirrors to KB when enabled | Queues only when the active adapter supports the source format |
+
+Optional multipart lineage hints:
+
+- `declared_modality`: caller-declared modality, validated against the supported vocabulary.
+- `evidence_role=source`: default source evidence.
+- `evidence_role=stt_transcript`: derived STT transcript.
+- `evidence_role=tts_output`: derived TTS audio.
+- `evidence_role=derived_artifact`: another derived artifact.
+- `parent_evidence_id`: source evidence for a transcript, TTS output, thumbnail, OCR result, or other derivative.
+- `case_id`: optional case association.
 
 The upload response may include:
 
 - `records_status=queued`: forwarded to sidecar successfully.
+- `evidence_status=registered`: preserved as evidence without records-worker execution.
+- `evidence_registration`: evidence ID, version ID, hash, modality, route, and warnings.
 - `records_status=failed`: KB upload succeeded, but structured sidecar ingest failed.
 - `records_warning`: warning text for sidecar forwarding failures.
 
@@ -498,6 +791,107 @@ Required capabilities:
 - Performance: bulk ingestion should stream files, use queues, avoid loading full datasets into memory, and expose job progress.
 - Governance: tenant isolation, audit logs, PII handling, retention/deletion, source hash verification, and role-based access.
 - Agent routing: agents must decide between KB search, Records SQL, or both based on the user question.
+
+## Capability-aware answers
+
+The Phase 4 capability endpoint reports support for every registered evidence
+family in the selected collection:
+
+```text
+GET /api/records/forensic/capabilities?collection_id=<collection>
+```
+
+Each family is reported as `queryable`, `semantic_only`, `registered_pending`,
+`no_data`, or `manual_review`. A query that directly requires an adapter or model
+which has not passed acceptance returns `capability.status=unavailable` before
+SQL, Knowledge Base retrieval, or model synthesis. Metadata, hash, inventory and
+registered-evidence questions remain available where their deterministic parser
+exists. This prevents a chat model from pretending it performed OCR, STT, video,
+packet, archive, database, spreadsheet, or document extraction.
+
+Records Intelligence displays the same 20-family map and offers immutable,
+idempotent evidence reprocessing. Reprocessing creates a linked job generation;
+it does not reset prior terminal jobs or erase outputs.
+
+TSV streams rows, detects UTF-8/UTF-16/CP1252 and delimiter information,
+preserves exact source strings, disambiguates duplicate/blank headers, and
+retains overflow columns. Bounded read-only XLSX processing is also accepted in
+source: it preserves sheet/row/cell lineage, raw and cached values, formula text,
+hidden state, dates, errors, and merged ranges without executing workbook
+content. Phase 4D classifies every non-empty worksheet independently. A unique
+typed-header match is promoted to its CDR, IPDR, ANPR, subscriber,
+tower/location, transaction, or access-log adapter; ambiguous and unrelated
+sheets remain generic with a recorded mapping decision and review state. An
+explicit typed upload still preserves non-matching worksheets rather than
+silently dropping them. ODS and deeper columnar formats remain explicitly
+pending.
+
+The Records Intelligence source UI now opens as an analyst-first three-step
+workflow: ask and analyze, review evidence, or manage data. The primary query
+keeps collection, natural-language question, and Analyze visible; deterministic
+templates, synthesis model selection, result limits, and runtime field examples
+are progressively disclosed under Advanced options. Capability/evidence and
+batch-management panels are closed until requested. This is the first
+simplification slice; later UI work will separate analyst, evidence, ingestion,
+and administration workspaces and add automated accessibility/usability gates.
+
+Phase 4C adds `cross_family_correlation` for exact target correlation over CDR,
+IPDR, ANPR, subscriber, tower/location, transaction, access-log, and generic
+canonical records. It is tenant/collection scoped, supports optional date and
+record-family filters, caps targets and result expansion, and returns
+`evidence_id`, `version_id`, `record_id`, source file, source row/hash, timestamp,
+and XLSX sheet/row locators where available. Phone punctuation is normalized
+only for targets with at least eight digits; mixed letter/digit identifiers such
+as plates can use an alphanumeric compact key. Substring matching is prohibited.
+Displayed source rows and related-entity scans are bounded, and truncation is
+reported as an explicit limitation rather than presented as exhaustive.
+
+Phase 4E closes the structured-data v1 source boundary with a privacy-safe
+offline provider audit and typed IPDR depth. `worker.py audit-source` uses the
+production profiler/normalizers but emits only source hash, schema/dialect,
+adapter decision, total/accepted/rejected/duplicate/overflow accounting, stable
+rejection categories, UTC bounds and privacy assertions. It performs no upload,
+database/queue write, DNS request or raw-identifier output. The supplied
+real-format CDR CSV passes 3,931/3,931 production normalization rows with zero
+rejects, 297 exact duplicates and 3,634 unique normalized rows. Typed IPDR adds
+IPv4/IPv6, NAT, ports, exact non-negative bytes, session duration/order, IDNA
+domain form, subscriber/session IDs and declared timezone validation.
+
+The versioned Phase 4 structured acceptance matrix covers CDR, IPDR, ANPR,
+transaction, subscriber, tower/location and access/security families; generic,
+TSV and per-sheet XLSX behavior remain covered by their existing goldens. This
+is a source-complete v1 boundary, not an exhaustive claim about every private
+provider export. New vendor aliases and schema drift become additive compatibility
+packs and cannot weaken the existing exact accounting/provenance gates.
+
+## Versioned Family Platform Contracts
+
+Phase 5A introduces a source-only, versioned platform catalog for family
+adapters, deterministic operations, specialist-agent manifests, model roles,
+typed query plans, and enterprise responses. Authenticated read-only discovery
+is available in source at:
+
+- `/api/v1/forensics/adapters`
+- `/api/v1/forensics/operations`
+- `/api/v1/forensics/agents`
+- `/api/v1/forensics/contracts`
+
+The current CDR and generic-tabular worker implementations are compatibility
+wrapped by the registry. Their existing normalization, row accounting,
+Timescale/PostgreSQL persistence, KB linkage, and provenance paths are unchanged.
+The catalog declares the future case orchestrator and evidence-domain
+specialists, but it labels them as contract-only, compatibility, or pending as
+appropriate. It does not create additional runtime agents or claim that OCR,
+ASR, vision, video, archive extraction, or database query adapters are deployed.
+
+The `forensics.query-plan/v1` contract carries tenant, case and collection scope;
+families; entities; timezone-aware time bounds; filters; measures; grouping;
+sorting; limits; required tools; and clarifications. The
+`forensics.enterprise-response/v1` contract keeps deterministic findings, cited
+semantic evidence, inferred relationships with confidence, model interpretation,
+unsupported operations, limitations, typed tables/visualizations, and execution
+trace in separate fields. Existing `/query/hybrid` response JSON remains the
+compatibility contract until a later bounded migration.
 
 ## Seed Lab And Large-Case Testing
 

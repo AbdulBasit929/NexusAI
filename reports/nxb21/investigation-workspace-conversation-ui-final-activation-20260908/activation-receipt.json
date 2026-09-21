@@ -1,0 +1,62 @@
+﻿{
+    "schema_version":  "nexusai.investigation-workspace-conversation-ui-final-activation-receipt/v1",
+    "activated_at_utc":  "2026-09-08T11:24:34.8566359Z",
+    "status":  "LIVE_VERIFIED",
+    "canonical_route":  "/analyst",
+    "source_manifest_sha256":  "6f142a28622e430a26e1451ba191ce2735132a15d8ba186fbd6940a198707f25",
+    "source_digest_sha256":  "17b49764f4e8d4225a18ab95b4577595d0ea84daa0e764c83e901cb1d2b89344",
+    "base_image_id":  "sha256:bed2eec364ca8c65151625685f79f5ab7a606a8223af88d1696504751b4a03a1",
+    "api_container_before":  "12f466fea0acbbbb48770e3ffd3630df01112ddb83369321fb2f1af1f1318f76",
+    "api_image_before":  "sha256:bed2eec364ca8c65151625685f79f5ab7a606a8223af88d1696504751b4a03a1",
+    "api_restart_count_before":  0,
+    "analyst_index_before_sha256":  "780fdefe6522e65371ff092004df933a99a1daaf6b6191e453b30cde43bec963",
+    "api_container_after":  "fb3d8fd761690364d070da2f01561a85a6722832ec7112a3c3f47024c9c1c2d9",
+    "api_image_after":  "sha256:91620e4c932764c46931dd4eecb47f9f72408e2387da3189f8fcd4ab4d7506be",
+    "api_restart_count_after":  0,
+    "built_image_id":  "sha256:91620e4c932764c46931dd4eecb47f9f72408e2387da3189f8fcd4ab4d7506be",
+    "activation_image":  "nexusai/localai-forensic:conversation-ui-final-20260908",
+    "rollback_image":  "nexusai/localai-forensic:rollback-before-conversation-ui-final-20260908",
+    "retained_tuple_before":  "67|67|80|22510|863|66",
+    "retained_tuple_after":  "67|67|80|22510|863|66",
+    "activity_count_before":  344,
+    "activity_count_after":  344,
+    "protected_services_before":  {
+                                      "forensic-records-api":  {
+                                                                   "container_id":  "ffd93bf51ecad0bc61271dfad0576b852057cd85f85aa8221534e3250ef1c11b",
+                                                                   "image_id":  "sha256:828e4b03e02979c3fc25dd6b6896e74fb97a2e59b8c17300a3efadce1236ace8",
+                                                                   "restart_count":  6
+                                                               },
+                                      "forensic-records-worker":  {
+                                                                      "container_id":  "40b6e628d586d5d484468120a8591fdb46a2ecc6f5aac228583067b22811d088",
+                                                                      "image_id":  "sha256:0b22a604dbf97443623258072a71f741111a1033a5e274166ea0f5b2f9968d47",
+                                                                      "restart_count":  4
+                                                                  },
+                                      "forensic-nats":  {
+                                                            "container_id":  "5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04",
+                                                            "image_id":  "sha256:e4bf19f15fd3218814a4e3c9e0064e1334bd8aa20d5984b9f1a0afd084f8cc00",
+                                                            "restart_count":  0
+                                                        },
+                                      "forensic-postgres":  {
+                                                                "container_id":  "f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361",
+                                                                "image_id":  "sha256:61f891691050da6032023c01ea885730eeeba06b7c17b403e7d0b9c49c37dfe9",
+                                                                "restart_count":  0
+                                                            }
+                                  },
+    "protected_services_preserved":  true,
+    "retained_data_mutated":  false,
+    "database_migration":  false,
+    "loaded_models_before":  [
+                                 "qwen3-embedding-0.6b"
+                             ],
+    "loaded_models_after":  [
+                                "qwen3-embedding-0.6b"
+                            ],
+    "transient_model_runtime_reset_expected":  true,
+    "d_owned_model_state_preserved_unloaded":  true,
+    "configured_models_changed":  false,
+    "d_unqualified_source_included":  false,
+    "d_activation":  "BLOCKED",
+    "live_index_sha256":  "a0f1e4288c1b9ee46b4fa3c3c94870fef46b12d7c1718c36eee2e905d14ae7de",
+    "live_route_acceptance":  "PASS",
+    "live_backend_acceptance":  "PASS"
+}

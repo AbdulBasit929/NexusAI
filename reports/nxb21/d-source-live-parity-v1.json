@@ -1,0 +1,14 @@
+{
+  "schema_version": "nexusai.nxb21.d-source-live-parity/v1",
+  "status": "EXPLICIT",
+  "activation_receipt": "20260903T063719719Z",
+  "activation_rerun": false,
+  "live_catalog": "2026-08-28.nxb1.1",
+  "source_candidate": "B1+C+D_SOURCE_ONLY",
+  "live_has_D_dynamic_capability_proposal": false,
+  "source_has_D_dynamic_capability_proposal": true,
+  "current_model_loaded": false,
+  "retained_baseline_exception": "64|64|77|22507|828|61 observed at C closure; no D retained write",
+  "deployment_performed": false,
+  "model_state_changed": false
+}

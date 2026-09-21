@@ -1,0 +1,392 @@
+{
+  "schema_version": "nexusai.demo-readiness/v1",
+  "as_of": "2026-09-03",
+  "work_item": "NX-MMR-VIDEO-RESULT-FINAL-LIVE-ACCEPTANCE",
+  "overall": "PARTIAL",
+  "nxb21_reconciliation": {
+    "as_of": "2026-09-03",
+    "phase": "NX-B2.1A_COMPLETE_B_SOURCE_NEXT",
+    "report": "reports/nxb21/nexusai-nxb21-all-family-query-productization-reconciliation-v1-20260903.md",
+    "prior_nxmmr_live_acceptance_preserved": true,
+    "new_b21_grouped_p1_areas": 4,
+    "current_artifact_api_probes": 14,
+    "new_browser_demo_acceptance": false,
+    "product_certification_performed": false,
+    "note": "Shared literal modes, Urdu/English cross-segment search, workspace transcript state and capability readiness require correction. This does not reopen accepted selected-video/Activity projection or recognition tuning. TTS remains disabled; v4 demo pending."
+  },
+  "source_report": "reports/nexusai-nxmmr-post-activation-live-p1-acceptance-v1-20260902.md",
+  "runbook": "docs/demo/nexusai-team-lead-multimodal-demo-v3.md",
+  "live_acceptance_override": {
+    "authoritative": true,
+    "activation_receipt": "20260903T063719719Z",
+    "activation_already_complete": true,
+    "replay_completed": true,
+    "replay_status": "PASS_WITH_LIMITATIONS",
+    "replay_scope": "Final video/Activity replay: four fresh selected-video Ask queries, raw citations seeking to 1s/2s, fresh positive/negative/group Activity and safe historical null-column reopen. Prior other-family passes carried forward; no broad recertification.",
+    "workspace_counts": {"total": 36, "ready": 35, "failed": 1},
+    "states": {
+      "shared_ask": "LIVE_DEMO_READY_WITH_LIMITATION",
+      "english_stt": "LIVE_DEMO_READY_WITH_LIMITATION",
+      "urdu_stt": "LIVE_DEMO_READY_WITH_LIMITATION",
+      "roman_urdu": "LIVE_DEMO_READY_WITH_LIMITATION",
+      "structured_cdr": "LIVE_DEMO_READY",
+      "image_anpr_exact": "INTEGRATION_READY",
+      "ocr_exact": "LIVE_DEMO_READY_WITH_LIMITATION",
+      "selected_video_anpr": "LIVE_DEMO_READY_WITH_LIMITATION",
+      "image_similarity": "LIVE_DEMO_READY_WITH_LIMITATION",
+      "face_candidate_comparison": "LIVE_DEMO_READY_WITH_LIMITATION",
+      "cross_evidence": "LIVE_DEMO_READY_WITH_LIMITATION",
+      "tts_english": "BLOCKED",
+      "tts_urdu": "BLOCKED"
+    },
+    "open_p0": 0,
+    "open_p1": 0,
+    "open_p1_scope": "Demonstrated defects within this bounded replay; not a repository-wide defect count",
+    "open_p1_areas": [],
+    "fresh_passes": ["raw MM51VSU: two typed rows at 1s/frame60 and 2s/frame120, group MW51VSU separate", "QZ99XYZ explicit plate-named no-match, zero rows/citations", "MW51VSU exact-target five raw readings", "bounded grouped rows preserve MW51VSU 0–2.25s and sightings5", "Ask and Activity citations open correct retained source times", "fresh positive/negative/grouped Activity reopens", "historical null-column entry reports unavailable details without crash or rewrite"],
+    "carried_forward_prior_passes": ["selected-image OCR positive/negative, source and Activity", "image/face Ask and Activity ranking/scores/friendly citations", "real Urdu script", "Urdu/English timing anaphora", "audio citation seek", "selected-audio plate intent isolation", "cross-family citation fairness and Activity reopen"],
+    "partial_passes": ["Data image-ranking panel still uses UUIDs for off-page candidates; Ask/Activity names pass", "face Ask Target UUID and Current evidence scope label remain P2 polish gaps", "bounded retained observation acceptance is not OCR/STT population accuracy or all-family certification"],
+    "status_failure_injection": "NOT_PERFORMED_LIVE; prior DB-backed source tests retained, no manufactured production fault",
+    "fresh_analysis_ids": ["d395b197-96ec-44be-ba78-6b5ef850c6ae", "9818a434-2f2a-44f1-91ad-c8230f9daba9", "92a2c795-7c1c-4d76-affc-fb94c762670e", "14531d53-870b-45a3-a15f-be461e5a364d"],
+    "retained_tuple": "63|63|76|22507|827|61",
+    "active_jobs": 0,
+    "runtime_mutated": false,
+    "retained_evidence_mutated": false,
+    "expected_ask_activity_entries_added": 4,
+    "history_accounting_snapshot": {"full_history_count_measured": false, "replay_entries": 4, "historical_null_columns_and_four_bbox_rows_unchanged": true},
+    "next_gate": "NX-B2.1 scope/preflight planning; deployment/runtime boundary requires separate approval",
+    "ram_gib_observed": {"before": 3.493, "after": 3.114, "replay_ram_failure": false, "build_gate_gib_unchanged": 6},
+    "product_certification_performed": false,
+    "nxb2_activation_performed": false
+  },
+  "source_activation_candidate": {
+    "state": "DEPLOYED_VERIFIED_BOUNDED_LIVE_ACCEPTANCE_PASS",
+    "work_item": "NX-MMR-VIDEO-RESULT-CONTRACT-AND-ACTIVITY-P1-CLOSURE-V1",
+    "previous_activation_receipt": "20260903T050747951Z",
+    "activation_receipt": "20260903T063719719Z",
+    "activation_verification": "PASS",
+    "post_activation_read_only_verification": "PASS",
+    "live_image_ids": {"api": "sha256:feb935b42a93c1810394cb270a809189ca240a225253159a47b8daa72a799171", "forensic-records-api": "sha256:828e4b03e02979c3fc25dd6b6896e74fb97a2e59b8c17300a3efadce1236ace8"},
+    "manifest": "configuration/nxmmr_video_result_activation_v1.json",
+    "source_seal": "configuration/nxmmr_video_result_operator_integrity_v1.json",
+    "source_seal_sha256": "0b11a1b6cf1b27dc890dd17ceb306cbc255a00ef3f7ba16b5e216d293fcf3127",
+    "runtime_baseline_reconciliation": "post-reboot-20260903T063334Z",
+    "sealed_file_count": 428,
+    "build_and_recreate": [
+      "api",
+      "forensic-records-api"
+    ],
+    "preserve_exact_identity": [
+      "forensic-records-worker",
+      "forensic-postgres",
+      "forensic-nats"
+    ],
+    "operator_selftests": {
+      "passed": 52,
+      "failed": 0
+    },
+    "frontend_tests": {
+      "passed": 45,
+      "failed": 0,
+      "skipped": 0
+    },
+    "focused_go_tests": "PASS",
+    "go_vet": "PASS",
+    "preflight": {
+      "historical_pre_operator_snapshot": true,
+      "utc": "2026-09-03T06:35:00Z",
+      "status": "BLOCKED_RAM_ONLY",
+      "available_ram_gib": 4.7279815673828125,
+      "required_ram_gib": 6,
+      "active_jobs": 0,
+      "health": "PASS",
+      "models": "PASS",
+      "integrity": "PASS",
+      "rollback": "PASS",
+      "compose": "PASS",
+      "retained_counts": "63|63|76|22507|827|61"
+    },
+    "live_acceptance": "PASS_WITH_LIMITATIONS",
+    "open_live_p1": 0,
+    "deployment_performed": true,
+    "deployment_actor": "user operator",
+    "retained_state_mutated": false,
+    "fully_airgapped_build_readiness": "NOT_PROVEN",
+    "report": "reports/nexusai-nxmmr-video-result-contract-activity-p1-closure-v1-20260903.md"
+  },
+  "state_meanings": {
+    "NOT_CONNECTED": "No integrated path",
+    "SOURCE_READY": "Source contracts exist; runtime proof incomplete",
+    "FUNCTIONAL_LOCAL": "Bounded local inference works; end-to-end acceptance incomplete",
+    "INTEGRATION_READY": "Existing integration proof supports replay, not fresh full acceptance",
+    "LIVE_DEMO_READY": "Named live scope accepted",
+    "LIVE_DEMO_READY_WITH_LIMITATION": "Named live scope accepted with disclosed limitations",
+    "BLOCKED": "Missing authority, asset, evidence or dependency",
+    "BLOCKED_LIVE_INTEGRATION": "Measured backend works; a required live product stage failed or is unavailable"
+  },
+  "workspace": {
+    "tenant": "default",
+    "collection": "nexusai-multimodal-product-acceptance",
+    "evidence_count": 33,
+    "completed": 32,
+    "failed": 1,
+    "by_modality": {
+      "audio": 4,
+      "document": 2,
+      "image": 17,
+      "structured": 8,
+      "video": 2
+    },
+    "proof": "Historical baseline only; live_acceptance_override controls current counts and states. Completed includes technical inspection without transcript."
+  },
+  "capabilities": [
+    {
+      "id": "image_anpr",
+      "state": "LIVE_DEMO_READY_WITH_LIMITATION",
+      "basis": "Owner-observed baseline; fresh ready source visible; source regression",
+      "limits": "Review-required plate observations; failed negative source is not a zero result; no retuning",
+      "fresh_end_to_end": false
+    },
+    {
+      "id": "video_anpr_v3",
+      "state": "LIVE_DEMO_READY_WITH_LIMITATION",
+      "basis": "Owner-observed baseline; fresh ready source visible; 4 V3 regression tests",
+      "limits": "Actual decoded frames at 4 FPS; source-time plate groups, not tracking; no V2/Ultralytics activation",
+      "fresh_end_to_end": false
+    },
+    {
+      "id": "ocr_english_printed",
+      "state": "LIVE_DEMO_READY_WITH_LIMITATION",
+      "basis": "Owner-observed baseline; fresh ready source visible; shared OCR regression",
+      "limits": "Printed baseline only; no handwriting or population accuracy certification",
+      "fresh_end_to_end": false
+    },
+    {
+      "id": "ocr_urdu_printed",
+      "state": "LIVE_DEMO_READY_WITH_LIMITATION",
+      "basis": "Owner-observed baseline; fresh ready source visible; shared OCR regression",
+      "limits": "Unicode/RTL review required; no retuning",
+      "fresh_end_to_end": false
+    },
+    {
+      "id": "ocr_mixed_printed",
+      "state": "LIVE_DEMO_READY_WITH_LIMITATION",
+      "basis": "Owner-observed baseline; fresh ready source visible; mixed-script regression",
+      "limits": "Review-required reading order and identifiers; no retuning",
+      "fresh_end_to_end": false
+    },
+    {
+      "id": "stt_english",
+      "state": "BLOCKED_LIVE_INTEGRATION",
+      "basis": "10 preregistered official natural-English FLEURS clips",
+      "processing": "Live backend PASS; worker ASR disabled",
+      "transcript": "WER 0.1079545455 / CER 0.0322939866; 0 failures",
+      "timing": "12 backend segments across 10 clips; all reported, alignment unqualified",
+      "data": "One new evidence source, zero transcripts; false-ready live label source-fixed only",
+      "ask": "FAIL: explicit audio question returned unrelated document citations",
+      "citation": "No valid fresh STT answer citation/time seek",
+      "activity": "Fresh failed-semantics answer retained and reopened",
+      "limits": "Small read-speech sample; no accent/noise/identifier qualification",
+      "fresh_end_to_end": false
+    },
+    {
+      "id": "stt_urdu",
+      "state": "BLOCKED_LIVE_INTEGRATION",
+      "basis": "Fresh installed-ASR evaluation of separate two-clip historical FLEURS cohort",
+      "processing": "Live backend PASS; worker ASR disabled",
+      "transcript": "WER 0.4545454545 / CER 0.1646341463; 0 failures",
+      "timing": "3 backend segments; retained two-segment source lineage separately verified",
+      "data": "Raw Urdu RTL and native playback completion verified",
+      "ask": "FAIL: generated phrase misrouted; native Urdu/Roman questions capability unavailable; time question clarification",
+      "citation": "Retained raw/derivative locators valid; citation-to-time seek unproven",
+      "activity": "Fresh questions stored; job completion is not semantic acceptance",
+      "limits": "Substantial raw-text errors; tiny read-speech set, not conversational qualification",
+      "fresh_end_to_end": false
+    },
+    {
+      "id": "roman_urdu",
+      "state": "INTEGRATION_READY",
+      "basis": "Two retained raw/derivative parent-ID, raw text and exact times verified; Urdu primary",
+      "limits": "Reading aid only; new pairing implementation source-only",
+      "fresh_end_to_end": false
+    },
+    {
+      "id": "tts_english",
+      "state": "BLOCKED",
+      "basis": "No installed model/backend",
+      "candidate": "Piper en_US-ljspeech-medium",
+      "limits": "Voice and backend digest/transfer bytes pinned; packaged dependency SBOM/GPL notices/extracted size/RAM admission incomplete",
+      "fresh_end_to_end": false
+    },
+    {
+      "id": "tts_urdu",
+      "state": "BLOCKED",
+      "basis": "No installed model/backend",
+      "candidate": "AhsanTalal/urdu-matcha-tts",
+      "limits": "Acoustic revision/hash/size pinned; documented vocoder API 401; runnable dependency/license/size chain incomplete",
+      "fresh_end_to_end": false
+    },
+    {
+      "id": "image_similarity",
+      "state": "INTEGRATION_READY",
+      "basis": "Fresh three-candidate current-version stored ranking with citations",
+      "embedding": "768-dimensional matched image/text space",
+      "search": "PASS stored embeddings only",
+      "data": "Existing reference image and candidate panel inspected",
+      "ask": "General semantic image ranking not ordinary certified Ask",
+      "citation": "Existing evidence/version contract; fresh navigation pending",
+      "limits": "Worker embedding role false; configured SigLIP path missing; dependencies installed; no fresh generation or Ask pass",
+      "fresh_end_to_end": false
+    },
+    {
+      "id": "face_candidates",
+      "state": "INTEGRATION_READY",
+      "basis": "Fresh direct installed detector 1/0 synthetic checks plus stored scoped ranking",
+      "detection": "Direct primitive PASS; worker disabled",
+      "comparison": "Fresh exact three-candidate API ranking PASS",
+      "search": "Explicit bounded candidate set",
+      "data": "Face crop and candidate-only UI inspected",
+      "ask": "Limited operation; not product promotion",
+      "citation": "Existing evidence/region contract",
+      "limits": "No identity, no raw vectors in analyst UI; no fresh worker processing or natural Ask pass",
+      "fresh_end_to_end": false
+    },
+    {
+      "id": "documents_kb",
+      "state": "INTEGRATION_READY",
+      "basis": "Historical TXT/PDF/DOCX retrieval proof; fresh visible DOCX passage count",
+      "limits": "No new retrieval replay, scanned-PDF/layout/handwriting certification",
+      "fresh_end_to_end": false
+    },
+    {
+      "id": "structured_families",
+      "state": "INTEGRATION_READY",
+      "basis": "Historical 65-operation matrix; existing source contracts unchanged",
+      "limits": "No new retained analytics; family-specific certification ceilings unchanged",
+      "fresh_end_to_end": false
+    },
+    {
+      "id": "cross_evidence",
+      "state": "SOURCE_READY",
+      "basis": "NX-A1 typed tools and Fact/Observation boundaries",
+      "limits": "No new end-to-end composed operation; no co-occurrence-to-identity claim",
+      "fresh_end_to_end": false
+    },
+    {
+      "id": "auto_routing",
+      "state": "SOURCE_READY",
+      "basis": "Existing processors; historical 16/16 shadow route-plan checks",
+      "limits": "No broad live route-plan activation",
+      "fresh_end_to_end": false
+    }
+  ],
+  "cross_cutting": {
+    "data": "PARTIAL: source/playback/RTL pass; false transcript-ready label source-fixed only",
+    "ask": "FAIL STT semantic acceptance: five terminal attempts, zero semantic passes",
+    "citations": "PARTIAL: stored lineage valid; new STT questions misrouted/unavailable, seek unproven",
+    "activity": "Fresh histories and result reopen PASS; failed semantics retained truthfully",
+    "visible_suggestions": "PARTIAL: catalog gate present; media quick actions and historical suggestions not proven compliant",
+    "manual_ui": "One English Add Data, English/Urdu playback, Urdu RTL, Activity reopen, existing image/face panels; not responsive/full closure"
+  },
+  "certification": {
+    "authoritative_source": "api/forensic_records/contracts/operation-certification-v1.json",
+    "counts": {
+      "REGISTERED": 62,
+      "SOURCE_VALIDATED": 12,
+      "FIXTURE_CERTIFIED": 1,
+      "REAL_WORLD_CERTIFIED": 0,
+      "PRODUCT_CERTIFIED": 4
+    },
+    "promotions": 0,
+    "demo_state_is_not_certification": true
+  },
+  "validation": {
+    "asr_timing_unit_tests": {
+      "passed": 9,
+      "failed": 0
+    },
+    "video_v3_unit_tests": {
+      "passed": 4,
+      "failed": 0
+    },
+    "anpr_ocr_vertical_selftests": {
+      "passed": 19,
+      "failed": 0
+    },
+    "analyst_presentation_tests": {
+      "passed": 31,
+      "failed": 0,
+      "suites": "four existing Data/Media/Ask/Activity files"
+    },
+    "eslint": "0 errors; 9 existing JSX unused-symbol warnings",
+    "git_diff_check": "PASS for tracked diff; most target files already untracked",
+    "artifact_validation": "See speech closure report; current source and private/public separation validated",
+    "full_pytest": "NOT_RUN: pytest absent; no installation performed",
+    "full_build": "NOT_RUN: separate approval boundary",
+    "optional_jsx_transform": "BLOCKED: esbuild absent; ESLint JSX parsing passed; no installation",
+    "new_source_live_acceptance": "NOT_RUN: no deployment",
+    "acquisition_scorer_tests": {
+      "passed": 9,
+      "failed": 0
+    },
+    "focused_go": "PASS NXB1/derived-text/face/image/scope/citation source regressions; not live STT acceptance",
+    "independent_speech": "PASS per-clip and micro WER/CER, ten hashes, two retained Urdu derivative parent/time checks"
+  },
+  "approval_pack": {
+    "ready_to_execute": true,
+    "natural_english": "Acquisition/evaluation COMPLETE under bounded owner authority",
+    "english_tts": "Voice/runtime pinned; full packaged dependency/license/notices/extracted size/resource admission unclosed",
+    "urdu_tts": "Documented Vocos API 401; no total runnable chain",
+    "activation": "Run the repaired source-sealed two-service operator with internet for approved build dependencies after closing nonessential apps; unchanged 6-GiB gate, no model downloads or reprocessing"
+  },
+  "markers": {
+    "ExistingANPRFineTuningDeferred": true,
+    "ExistingOCRFineTuningDeferred": true,
+    "LocalAIUpstreamReconciled": "FRESH_AUDIO_V4_9_0_REVIEW_COMPLETE_NO_MERGE",
+    "ProductCertificationPerformed": false,
+    "RetainedStateMutated": true,
+    "DatabaseMigration": false,
+    "VolumesChanged": false,
+    "DeploymentPerformed": false,
+    "NXB2ActivationPerformed": false,
+    "FleursBoundedAcquisition": "PASS",
+    "FleursFullDatasetDownloaded": false,
+    "EnglishSpeechClips": 10,
+    "UrduSpeechClips": 2
+  },
+  "open_issues": [
+    {
+      "id": "NEXT-P1-ASR-TIME",
+      "status": "SOURCE_FIXED_LIVE_GATED"
+    },
+    {
+      "id": "NEXT-P1-DATA-PAGE",
+      "status": "SOURCE_FIXED_LIVE_GATED"
+    },
+    {
+      "id": "NEXT-P1-SUGGESTIONS",
+      "status": "OPEN_RECONCILIATION"
+    },
+    {
+      "id": "NEXT-P2-LEGACY-ACTIVITY",
+      "status": "OPEN_PRESENTATION"
+    },
+    {
+      "id": "NEXT-DEPLOY-AUTH",
+      "status": "OPEN_DEPLOYMENT_REVIEW"
+    },
+    {
+      "id": "SPEECH-P1-WORKER",
+      "status": "OPEN"
+    },
+    {
+      "id": "SPEECH-P1-READY",
+      "status": "SOURCE_FIXED_LIVE_GATED"
+    },
+    {
+      "id": "SPEECH-P1-SCOPE-QUERY",
+      "status": "OPEN"
+    }
+  ],
+  "p0": "No new P0 reproduced in bounded checks; no comprehensive security certification"
+}

@@ -1,0 +1,639 @@
+{
+  "schema_version": "nexusai.nxb21.b1-source-semantics-matrix/v1",
+  "status": "B1_SOURCE_VALIDATED_NOT_DEPLOYED",
+  "created_at": "2026-09-03T10:49:30.649839+00:00",
+  "cases": [
+    {
+      "id": 1,
+      "case": "Historical-style short quoted Urdu routing",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "core/services/agents/b1_literal_routing_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 2,
+      "case": "Equivalent typed literal routing",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "reports/nxb21/b1-derived-text-probes-v1.json",
+        "core/services/agents/b1_literal_routing_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; frozen A artifact IDs",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 3,
+      "case": "Full Urdu transcript-style request",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "reports/nxb21/b1-derived-text-probes-v1.json",
+        "core/services/agents/b1_literal_routing_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; frozen A artifact IDs",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 4,
+      "case": "Quoted English transcript routing",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "core/services/agents/b1_literal_routing_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 5,
+      "case": "OCR literal routing",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "core/services/agents/b1_literal_routing_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 6,
+      "case": "Native document literal routing",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "core/services/agents/b1_literal_routing_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 7,
+      "case": "Unresolvable literal family clarifies",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "core/services/agents/b1_literal_routing_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 8,
+      "case": "Selected audio positive",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "api/forensic_records/b1_derived_text_db_ginkgo_test.go",
+        "reports/nxb21/b1-derived-text-probes-v1.json"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; frozen A artifact IDs; actual isolated PostgreSQL tenant-policy query",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 9,
+      "case": "Selected audio absent",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "api/forensic_records/b1_derived_text_db_ginkgo_test.go",
+        "reports/nxb21/b1-derived-text-probes-v1.json"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; frozen A artifact IDs; actual isolated PostgreSQL tenant-policy query",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 10,
+      "case": "Workspace audio positive",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "api/forensic_records/b1_derived_text_db_ginkgo_test.go",
+        "reports/nxb21/b1-derived-text-probes-v1.json"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; frozen A artifact IDs; actual isolated PostgreSQL tenant-policy query",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 11,
+      "case": "Workspace audio exhaustive absence",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "api/forensic_records/b1_derived_text_db_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; actual isolated PostgreSQL tenant-policy query",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 12,
+      "case": "Selected OCR positive",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "api/forensic_records/b1_derived_text_db_ginkgo_test.go",
+        "reports/nxb21/b1-derived-text-probes-v1.json"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; frozen A artifact IDs; actual isolated PostgreSQL tenant-policy query",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 13,
+      "case": "Workspace OCR positive",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "api/forensic_records/b1_derived_text_db_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; actual isolated PostgreSQL tenant-policy query",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 14,
+      "case": "Whole-value equality",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 15,
+      "case": "Exact phrase",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 16,
+      "case": "Phrase contains",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 17,
+      "case": "Token search",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 18,
+      "case": "Inside-word substring policy",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "reports/nxb21/b1-derived-text-probes-v1.json"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; frozen A artifact IDs",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 19,
+      "case": "Too-short literal",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 20,
+      "case": "Punctuation preserved",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 21,
+      "case": "Repeated Unicode whitespace/newline",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 22,
+      "case": "Unicode Urdu phrase",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "reports/nxb21/b1-derived-text-probes-v1.json"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; frozen A artifact IDs",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 23,
+      "case": "Urdu two-segment positive",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "api/forensic_records/b1_derived_text_db_ginkgo_test.go",
+        "reports/nxb21/b1-derived-text-probes-v1.json"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; frozen A artifact IDs; actual isolated PostgreSQL tenant-policy query",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 24,
+      "case": "English two-segment positive",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "reports/nxb21/b1-derived-text-probes-v1.json"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; frozen A artifact IDs",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 25,
+      "case": "Three-segment positive",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 26,
+      "case": "Absent cross-segment phrase",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "api/forensic_records/b1_derived_text_db_ginkgo_test.go",
+        "reports/nxb21/b1-derived-text-probes-v1.json"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; frozen A artifact IDs; actual isolated PostgreSQL tenant-policy query",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 27,
+      "case": "Different runs never join",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 28,
+      "case": "Different evidence never joins",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 29,
+      "case": "Raw and Roman derivative never join",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 30,
+      "case": "Missing or ambiguous timing never invents adjacency",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 31,
+      "case": "Nonempty workspace never NOT_RUN",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 32,
+      "case": "Exhaustive zero is truthful",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "api/forensic_records/b1_derived_text_db_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; actual isolated PostgreSQL tenant-policy query",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 33,
+      "case": "Authoritative selected NOT_RUN",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 34,
+      "case": "Execution failure",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "api/forensic_records/b1_derived_text_db_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; actual isolated PostgreSQL tenant-policy query",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 35,
+      "case": "Incomplete zero never exhaustive no-match",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "api/forensic_records/b1_derived_text_db_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; actual isolated PostgreSQL tenant-policy query",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 36,
+      "case": "First candidate page positive",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "api/forensic_records/b1_derived_text_db_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; actual isolated PostgreSQL tenant-policy query",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 37,
+      "case": "Beyond first candidate page positive",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "api/forensic_records/b1_derived_text_db_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; actual isolated PostgreSQL tenant-policy query",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 38,
+      "case": "Exhaustive paginated zero",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "api/forensic_records/b1_derived_text_db_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; actual isolated PostgreSQL tenant-policy query",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 39,
+      "case": "Candidate budget exhaustion",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "api/forensic_records/b1_derived_text_db_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; actual isolated PostgreSQL tenant-policy query",
+      "live_acceptance_performed": false
+    },
+    {
+      "id": 40,
+      "case": "Show-all truncation disclosure",
+      "status": "PASS_SOURCE",
+      "evidence": [
+        "api/forensic_records/b1_derived_text_ginkgo_test.go",
+        "api/forensic_records/b1_derived_text_db_ginkgo_test.go"
+      ],
+      "oracle": "Independently specified synthetic expected outcome; actual isolated PostgreSQL tenant-policy query",
+      "live_acceptance_performed": false
+    }
+  ],
+  "passed": 40,
+  "total": 40,
+  "tests": {
+    "final-forensic-tests.log": {
+      "status": "PASS",
+      "ginkgo_passed": 391,
+      "ginkgo_failed": 0,
+      "ginkgo_skipped": 5,
+      "log_sha256": "fd667bca46c83ca8e652ba31195dcc882457371e4b98150208f5a8a17fec71e9",
+      "note": "Focus-excluded specs are not failures; full runs have explicit optional/environment skips."
+    },
+    "final-agent-tests.log": {
+      "status": "PASS",
+      "ginkgo_passed": 145,
+      "ginkgo_failed": 0,
+      "ginkgo_skipped": 1,
+      "log_sha256": "0264daf6fff666ff97b2c5bafa3040db6263d6d810d6eb82ebc89dac57ddef85",
+      "note": "Focus-excluded specs are not failures; full runs have explicit optional/environment skips."
+    },
+    "final-b1-tests.log": {
+      "status": "PASS",
+      "ginkgo_passed": 63,
+      "ginkgo_failed": 0,
+      "ginkgo_skipped": 334,
+      "log_sha256": "4800e28312e38ec257fe6852e346593845bd0c980518a76987837b1d52d49688",
+      "note": "Focus-excluded specs are not failures; full runs have explicit optional/environment skips."
+    },
+    "final-video-bridge-tests.log": {
+      "status": "PASS",
+      "ginkgo_passed": 10,
+      "ginkgo_failed": 0,
+      "ginkgo_skipped": 136,
+      "log_sha256": "5d95f479fe8d2eaa922f5cdcf4dda05e02f4da3b5fb407a2afab6e81d0c5082b",
+      "note": "Focus-excluded specs are not failures; full runs have explicit optional/environment skips."
+    }
+  },
+  "runtime": {
+    "verified_at": "2026-09-03T10:44:52.2113726Z",
+    "receipt": "20260903T063719719Z",
+    "containers": [
+      {
+        "name": "/nexusai-api-1",
+        "id": "d62021a0a4fc258ff3ce6fc4140090c6d9862dcc04863a065e6e842f62d769de",
+        "image": "sha256:feb935b42a93c1810394cb270a809189ca240a225253159a47b8daa72a799171",
+        "restart_count": 0,
+        "oom_killed": false,
+        "state": "running"
+      },
+      {
+        "name": "/nexusai-forensic-records-api-1",
+        "id": "ffd93bf51ecad0bc61271dfad0576b852057cd85f85aa8221534e3250ef1c11b",
+        "image": "sha256:828e4b03e02979c3fc25dd6b6896e74fb97a2e59b8c17300a3efadce1236ace8",
+        "restart_count": 0,
+        "oom_killed": false,
+        "state": "running"
+      },
+      {
+        "name": "/nexusai-forensic-records-worker-1",
+        "id": "40b6e628d586d5d484468120a8591fdb46a2ecc6f5aac228583067b22811d088",
+        "image": "sha256:0b22a604dbf97443623258072a71f741111a1033a5e274166ea0f5b2f9968d47",
+        "restart_count": 9,
+        "oom_killed": false,
+        "state": "running"
+      },
+      {
+        "name": "/nexusai-forensic-postgres-1",
+        "id": "f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361",
+        "image": "sha256:61f891691050da6032023c01ea885730eeeba06b7c17b403e7d0b9c49c37dfe9",
+        "restart_count": 0,
+        "oom_killed": false,
+        "state": "running"
+      },
+      {
+        "name": "/nexusai-forensic-nats-1",
+        "id": "5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04",
+        "image": "sha256:e4bf19f15fd3218814a4e3c9e0064e1334bd8aa20d5984b9f1a0afd084f8cc00",
+        "restart_count": 0,
+        "oom_killed": false,
+        "state": "running"
+      }
+    ],
+    "database_read_only_output": [
+      "BEGIN",
+      "63|63|76|22507|827|61",
+      "completed|71",
+      "dead_letter|5",
+      "completed|35",
+      "failed|1",
+      "COMMIT"
+    ],
+    "api_health": 200,
+    "sidecar_health": {
+      "status": "ok"
+    },
+    "installed_models": [
+      "face-detect-yunet-sface",
+      "faster-whisper-small-ur",
+      "qwen3-embedding-0.6b",
+      "qwen_qwen3-4b-instruct-2507",
+      "whisper-tiny"
+    ],
+    "deployment_performed": false
+  },
+  "runtime_identity_parity": true,
+  "isolated_database": "nxb21_b1_test created, fixtures and role cleaned, empty database dropped",
+  "retained_tuple": "63|63|76|22507|827|61",
+  "active_jobs": 0,
+  "source_p0": 0,
+  "source_b1_p1": 0,
+  "remaining_b21_source_p1": [
+    "NXB21-P1-004"
+  ],
+  "private_replay_passed": 14,
+  "source_digest_sha256": "bdd008f05c76c92721503ef078e850aa4ab461ef8fc41039a82cc5f4079ad965",
+  "product_certification_performed": false,
+  "deployment_performed": false,
+  "b_source_exit": "PASS; no B-2/B-3 justified by current evidence; C not started",
+  "next_implementation_slice": "NX-B2.1C capability references/readiness, after explicit phase selection",
+  "validation_checks": {
+    "gofmt": "PASS",
+    "git_diff_check": "PASS",
+    "privacy": "PASS",
+    "anti_hardcode": "PASS",
+    "source_digest_verification": "PASS",
+    "private_oracles_ignored": true
+  },
+  "limitations": [
+    "No live B1 activation or browser/Activity acceptance",
+    "Frozen artifact replay is not complete live population certification",
+    "Source-time gaps, missing timing, and overlaps remain explicit incomplete coverage",
+    "Cross-segment windows contain at most four observations",
+    "Five unrelated optional/environment Ginkgo skips in full forensic suite; two certification/ledger generators intentionally skipped",
+    "Agent optional video serialization fixture was subsequently executed and passed"
+  ],
+  "audit_checks": {
+    "source_digest_matches": true,
+    "source_digest_root_matches": true,
+    "old_seal_file_unchanged": true,
+    "gofmt": true,
+    "private_ignored": true,
+    "no_production_fixture_identifiers": true,
+    "no_private_literal_copy": true,
+    "json_valid": true
+  },
+  "markers": {
+    "LiteralIntentPreRouting": "PASS",
+    "HistoricalStyleUrduShortQueryRouting": "PASS",
+    "TypedNaturalLiteralParity": "PASS",
+    "EnglishLiteralRouting": "PASS",
+    "ExplicitLiteralPreserved": "PASS",
+    "DeterministicLiteralFastPath": "PASS",
+    "ExactValueSemantics": "PASS",
+    "ExactPhraseSemantics": "PASS",
+    "PhraseContainsSemantics": "PASS",
+    "TokenSearchSemantics": "PASS",
+    "LegacyExactCompatibility": "PASS",
+    "SearchNormalizationV1": "PASS",
+    "RawTextImmutable": "PASS",
+    "UrduPartialPhrasePositive": "PASS",
+    "UrduPartialPhraseNegative": "PASS",
+    "EnglishPartialPhrasePositive": "PASS",
+    "EnglishPartialPhraseNegative": "PASS",
+    "UrduCrossSegment": "PASS",
+    "EnglishCrossSegment": "PASS",
+    "CrossRunJoinRejected": "PASS",
+    "CrossEvidenceJoinRejected": "PASS",
+    "RawDerivativeJoinRejected": "PASS",
+    "AmbiguousAdjacencyRejected": "PASS",
+    "OCRPhraseRegression": "PASS",
+    "DocumentLiteralSemantics": "PASS",
+    "WorkspaceTranscriptState": "PASS",
+    "SelectedTranscriptState": "PASS",
+    "ExhaustiveNoMatch": "PASS",
+    "IncompleteSearchNoMatchProtection": "PASS",
+    "CandidateCapCompleteness": "PASS",
+    "CrossSegmentCitationOwnership": "PASS",
+    "CurrentVersionIsolation": "PASS",
+    "NoUnrestrictedSQL": "PASS",
+    "NoHardcodedAnalyticalAnswers": "PASS",
+    "NoSelfOracle": "PASS",
+    "Private14CaseReplay": "PASS",
+    "NXB21AReconciliationReused": true,
+    "CurrentRuntimeUnchanged": true,
+    "CurrentActivationReceipt": "20260903T063719719Z",
+    "UsedActivationRerun": false,
+    "ProductionSourceCorrectionPerformed": true,
+    "NonemptyNotRunContradiction": "NONE",
+    "CrossCaseLeakage": "NONE",
+    "DeploymentPerformed": false,
+    "DatabaseMigration": false,
+    "RetainedEvidenceMutated": false,
+    "RetainedActivityMutated": false,
+    "ModelsChanged": false,
+    "VolumesChanged": false,
+    "ProductCertificationPerformed": false,
+    "NXB2ActivationPerformed": false
+  },
+  "marker_scope": "Bounded source/isolated DB/frozen artifact proof only; private replay uses explicit semantic migration; deployed behavior unchanged."
+}

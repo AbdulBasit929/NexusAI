@@ -1,0 +1,8 @@
+{
+    "gate":  "13b",
+    "deployed_utc":  "2026-07-30T09:41:32.7583584Z",
+    "records_preview_opt_out":  "pass",
+    "api_health":  "pass",
+    "rollback_image":  "nexusai/forensic-records-api:rollback-before-phase4-preview-fix-20260730",
+    "named_volumes_preserved":  true
+}

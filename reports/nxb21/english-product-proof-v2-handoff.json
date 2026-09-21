@@ -1,0 +1,110 @@
+{
+  "contract_version": "nexusai.english-product-proof-handoff/v2",
+  "proof_id": "nxb21-english-product-proof-v2-20260911",
+  "current_branch": "codex/forensic-hybrid-checkpoint-20260723",
+  "current_head": "40717b83510c08db25dc26b9d6674bf46db363ac",
+  "state": "FROZEN_VALIDATED_OPERATOR_HANDOFF",
+  "group_acceptance": {
+    "GROUP_SQL_ACCEPTANCE": "PASS",
+    "GROUP_API_ACCEPTANCE": "PASS",
+    "GROUP_PRESENTATION_ACCEPTANCE": "PASS",
+    "GROUP_ZERO_RESULT": "PASS",
+    "GROUP_NULL_BUCKET": "PASS",
+    "GROUP_LINEAGE": "PASS",
+    "GROUP_ROW_TOTAL_SEMANTICS": "PASS",
+    "GROUP_GROUP_COUNT_SEMANTICS": "PASS",
+    "GROUP_BOUNDS": "PASS",
+    "GROUP_SCOPE_ISOLATION": "PASS",
+    "GROUP_NEGATIVE_CASES": "PASS"
+  },
+  "regressions": {
+    "forensic_full": {
+      "seconds": 60.63,
+      "command": "go test ./api/forensic_records -count=1",
+      "state": "PASS"
+    },
+    "agents_full": {
+      "seconds": 47.737,
+      "command": "go test ./core/services/agents -count=1",
+      "state": "PASS"
+    },
+    "proxy": {
+      "seconds": 0.298,
+      "command": "go test ./core/http/endpoints/localai -run ^TestForensicRecordsProxyTimeout$ -count=1",
+      "state": "PASS"
+    },
+    "ask_presentation": {
+      "state": "PASS",
+      "cases": 8
+    },
+    "group_sql_api": {
+      "seconds": 46.722,
+      "focused_specs": 8,
+      "state": "PASS"
+    },
+    "evaluator_selftests": {
+      "synthetic_only": true,
+      "seconds": 31.517,
+      "state": "PASS"
+    },
+    "powershell_51": {
+      "version": "5.1.22621.6133",
+      "checks": 13,
+      "state": "PASS"
+    },
+    "powershell_7": {
+      "version": "7.6.5",
+      "checks": 13,
+      "state": "PASS"
+    }
+  },
+  "cases": 48,
+  "stage_counts": {
+    "A": 20,
+    "B": 6,
+    "C": 14,
+    "D": 8
+  },
+  "sha256": {
+    "corpus": "7065d5cf8168fcd6d5d9ea2917ee7f68cd5efdab162e02842d914bcf7b831f0b",
+    "oracle": "398d49d0960ad96f654a92ea91539cf5bb80d9c908ff00addc0519c3f3f6e389",
+    "evaluator": "56477a40e9130980e9930142eeb937021d61eb079ec192f19708450adf3b246f",
+    "runner": "d59f0a864f0b9ba4d353e4767b0127555c64dc6bc97cda2a7b464448debbf5d3",
+    "freeze": "ec52d2f10a8730c62a7ea22b8e0e653639bb047a621f87e5d1dac6d59dcebae9",
+    "model": "260b5b5b6ad73e44df81a43ea1f5c11c37007b6bac18eb3cd2016e8667c19662",
+    "profile": "ef036e0a02cc5e8331dc4dff41c0e0cb68e6e0bda71d92b92f47f673472e666f",
+    "envelope": "32b272ca5347028833fa3e98125da35e7c5c994ae6c68ef2c3ee2d5c01b7525d",
+    "planner_contract": "a167be9a9ccfbd832ccf1a84716f220e34dd1ddf7fb9535ef090ee40978430d6",
+    "synthesis_contract": "b2f8d399e76381d6ef3858d0a5495c128fb38e5c36a6dbe8d44d2db366e02438",
+    "help_contract": "0576a0801069b9de1a7ed89a8a2769de3670dcaec33c4610f7934706d8046f96",
+    "product_context": "c5ec12e850a191caf5a9593a8d11ca409febab4b8e054e9b86529bd7bd546ac2"
+  },
+  "freshness_state": "PASS",
+  "files_scanned": 15845,
+  "normalized_exact_overlap": 0,
+  "prior_corpus_overlap": 0,
+  "dispatch_created": false,
+  "proof_consumed": false,
+  "live_inference": false,
+  "powershell_51": "PASS",
+  "powershell_7": "PASS",
+  "validate_only": "PASS_NO_INFERENCE_BOTH_SHELLS",
+  "memory_state": "OPERATOR_MEMORY_CLEANUP_REQUIRED",
+  "preflight_receipts": [
+    {
+      "path": "local-acceptance-models\\nxb21-english-product-proof-v2-20260911\\run-20260911T052131222Z-8a4a0226\\product-proof-receipt.json",
+      "sha256": "a6c9c82b0db72c7c08fa74dce13c7c040ffceecd4e848cc2b6ca010c1151b9c4"
+    },
+    {
+      "path": "local-acceptance-models\\nxb21-english-product-proof-v2-20260911\\run-20260911T052226204Z-86bdcd05\\product-proof-receipt.json",
+      "sha256": "7f6426286a7a74030a113e2e990a35271ad42e4b37baf0a380f01bb69a2e156a"
+    }
+  ],
+  "retained_tuple": "68|68|81|22511|870|68",
+  "activity_count": 353,
+  "active_jobs": 0,
+  "nx_b21d": "OPEN",
+  "strict_certification": "PENDING",
+  "resource_track": "CLOSED_UNCHANGED",
+  "operator_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"C:\\Users\\sheik\\Workspace\\Office\\Projects\\NexusAI\\scripts\\nxb21-english-functional-qualification\\run_english_product_proof_v2.ps1\""
+}

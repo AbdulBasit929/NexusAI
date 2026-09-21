@@ -1,0 +1,11 @@
+{
+    "migration":  "011_r5_custody_chain_tail",
+    "status":  "verified",
+    "applied_utc":  "2026-08-10T05:47:03.7869041Z",
+    "backup_file":  "r5-pre-migration-011-20260810T054652Z.dump",
+    "backup_bytes":  5707090,
+    "backup_sha256":  "030208fbeed598d82ec91dca73a7522c81821a6396a49387222ef66040c2998b",
+    "retained_rows_rewritten":  0,
+    "api_health":  "pass",
+    "worker_health":  "pass"
+}

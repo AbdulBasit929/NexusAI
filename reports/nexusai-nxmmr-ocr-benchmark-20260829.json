@@ -1,0 +1,21 @@
+{
+  "contract_version": "nexusai.nxmmr.ocr-benchmark-summary/v1",
+  "date": "2026-08-29",
+  "evidence_tier": "FIXTURE",
+  "fixture_count": 8,
+  "same_samples_and_truth_crops": true,
+  "runs": [
+    {"run_id":"NXMMR-OCR-TESSERACT-20260829-01","status":"INVALID","reason":"custom_tessdata_path_hid_native_tsv_config","metrics_admitted":false},
+    {"run_id":"NXMMR-OCR-TESSERACT-20260829-02","status":"PASS","resource_class":"LIGHT","free_ram_before_bytes":4983746560,"free_ram_after_bytes":4947988480,"host_wall_seconds":2.066,"peak_process_rss_mib":19.746,"english":{"samples":6,"line_exact":0.5,"identifier_exact":0.5,"cer":0.14285714285714285,"wer":0.5,"mean_latency_ms":120.147},"urdu":{"samples":1,"line_exact":0.0,"identifier_exact":0.0,"cer":0.21428571428571427,"wer":0.3333333333333333,"mean_latency_ms":172.17},"negative_control_pass":true},
+    {"run_id":"NXMMR-OCR-PADDLE-20260829-B5","status":"PASS","resource_class":"HEAVY","batch":5,"free_ram_before_bytes":4966068224,"free_ram_after_bytes":4825305088,"host_wall_seconds":8.423,"peak_process_rss_mib":445.945,"process_cpu_seconds":8.392175,"english_exact":1.0,"english_cer":0.0},
+    {"run_id":"NXMMR-OCR-PADDLE-20260829-FULL8","status":"PASS","resource_class":"HEAVY","batch":8,"measured_admission_bytes":4831838208,"free_ram_before_bytes":5041774592,"free_ram_after_bytes":4936826880,"host_wall_seconds":6.759,"peak_process_rss_mib":446.605,"process_cpu_seconds":6.450896,"english":{"samples":6,"line_exact":0.8333333333333334,"identifier_exact":0.8333333333333334,"cer":0.07142857142857142,"wer":0.16666666666666666,"mean_latency_ms":105.08},"urdu":{"samples":1,"line_exact":0.0,"identifier_exact":0.0,"cer":0.35714285714285715,"wer":0.6666666666666666,"mean_latency_ms":87.022},"negative_control_pass":true}
+  ],
+  "decisions": {
+    "printed_english_ocr": "FIXTURE_CERTIFIED_PADDLE_LEADS_REAL_WORLD_DATA_REQUIRED",
+    "printed_urdu_ocr": "LIMITED_BENCHMARK_DATA_REQUIRED_TESSERACT_LEADS_SINGLE_FIXTURE",
+    "handwritten_english_ocr": "BENCHMARK_DATA_REQUIRED",
+    "handwritten_urdu_ocr": "BENCHMARK_DATA_REQUIRED"
+  },
+  "retained_state_mutated": false,
+  "live_models_changed": false
+}

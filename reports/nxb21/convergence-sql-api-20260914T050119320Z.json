@@ -1,0 +1,12 @@
+﻿{
+    "contract":  "nexusai.convergence-sql-acceptance/v1",
+    "database":  "nxb21_group_v2_869ce89e3d184d3c",
+    "passed":  true,
+    "cleanup":  true,
+    "retained_before":  "68|68|81|22511|870|68",
+    "retained_after":  "68|68|81|22511|870|68",
+    "retained_unchanged":  true,
+    "live_inference":  false,
+    "null_fixture":  "source_file temporarily nullable only in owned scratch database",
+    "log":  "C:\\Users\\sheik\\Workspace\\Office\\Projects\\NexusAI\\reports\\nxb21\\convergence-sql-api-20260914T050119320Z.json.log"
+}

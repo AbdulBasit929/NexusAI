@@ -1,0 +1,1684 @@
+{
+  "schema_version": "nexusai.nxb21.c-input-boundaries/v1",
+  "source": "api/forensic_records/contracts/query-capability-references-v1.json",
+  "qualification_scope": "Existing bounded source pipelines, not universal codec or format certification.",
+  "boundaries": [
+    {
+      "category": "plain_text_notes",
+      "input_type": "txt",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "native_document",
+      "limitation": "Native text only; scanned PDF needs a separately supported OCR path."
+    },
+    {
+      "category": "plain_text_notes",
+      "input_type": "md",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "plain_text_notes",
+      "input_type": "yaml",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "plain_text_notes",
+      "input_type": "yml",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "logs_access_security",
+      "input_type": "log",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "logs_access_security",
+      "input_type": "txt",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "native_document",
+      "limitation": "Native text only; scanned PDF needs a separately supported OCR path."
+    },
+    {
+      "category": "logs_access_security",
+      "input_type": "csv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "logs_access_security",
+      "input_type": "jsonl",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "logs_access_security",
+      "input_type": "ndjson",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "logs_access_security",
+      "input_type": "evtx",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "cdr",
+      "input_type": "csv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "cdr",
+      "input_type": "json",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "cdr",
+      "input_type": "jsonl",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "cdr",
+      "input_type": "ndjson",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "cdr",
+      "input_type": "parquet",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "ipdr_network_sessions",
+      "input_type": "csv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "ipdr_network_sessions",
+      "input_type": "json",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "ipdr_network_sessions",
+      "input_type": "jsonl",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "ipdr_network_sessions",
+      "input_type": "ndjson",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "ipdr_network_sessions",
+      "input_type": "parquet",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "ipdr_network_sessions",
+      "input_type": "pcap",
+      "state": "SUPPORTED_INGEST_INVENTORY_ONLY",
+      "pipeline": "bounded_inventory",
+      "limitation": "No full sessions, general SQL or child-ingest analytics."
+    },
+    {
+      "category": "ipdr_network_sessions",
+      "input_type": "pcapng",
+      "state": "SUPPORTED_INGEST_INVENTORY_ONLY",
+      "pipeline": "bounded_inventory",
+      "limitation": "No full sessions, general SQL or child-ingest analytics."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "csv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "json",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "jsonl",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "ndjson",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "parquet",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "tsv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "xlsx",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "png",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "jpg",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "jpeg",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "webp",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "bmp",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "tif",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "anpr_vehicle_sightings",
+      "input_type": "tiff",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "subscriber_identity",
+      "input_type": "csv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "subscriber_identity",
+      "input_type": "json",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "subscriber_identity",
+      "input_type": "jsonl",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "subscriber_identity",
+      "input_type": "ndjson",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "subscriber_identity",
+      "input_type": "parquet",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "subscriber_identity",
+      "input_type": "tsv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "subscriber_identity",
+      "input_type": "xlsx",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "tower_location",
+      "input_type": "csv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "tower_location",
+      "input_type": "json",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "tower_location",
+      "input_type": "jsonl",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "tower_location",
+      "input_type": "ndjson",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "tower_location",
+      "input_type": "geojson",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "tower_location",
+      "input_type": "parquet",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "tower_location",
+      "input_type": "tsv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "tower_location",
+      "input_type": "xlsx",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "financial_transactions",
+      "input_type": "csv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "financial_transactions",
+      "input_type": "json",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "financial_transactions",
+      "input_type": "jsonl",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "financial_transactions",
+      "input_type": "parquet",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "financial_transactions",
+      "input_type": "xlsx",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "financial_transactions",
+      "input_type": "ofx",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "financial_transactions",
+      "input_type": "mt940",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "csv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "json",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "jsonl",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "ndjson",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "parquet",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "tsv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "xlsx",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "xml",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "avro",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "orc",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "arrow",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "generic_tabular",
+      "input_type": "feather",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "tsv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "xls",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "xlsx",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "xlsm",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "ods",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "parquet",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "arrow",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "feather",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "avro",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "orc",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "spreadsheets_and_columnar",
+      "input_type": "xml",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "pdf",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "native_document",
+      "limitation": "Native text only; scanned PDF needs a separately supported OCR path."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "doc",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "docx",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "native_document",
+      "limitation": "Native text only; scanned PDF needs a separately supported OCR path."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "rtf",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "odt",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "ppt",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "pptx",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "odp",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "html",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "htm",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "epub",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "eml",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "pdf_office_email_documents",
+      "input_type": "msg",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "png",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "jpg",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "jpeg",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "webp",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "gif",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "bmp",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "tif",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "tiff",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "image_media",
+      "limitation": "Applicable role and retained artifact contract required; file existence is insufficient."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "heic",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "heif",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "dng",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "raw",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "images_and_ocr",
+      "input_type": "svg",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "audio_and_stt",
+      "input_type": "wav",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "audio_and_stt",
+      "input_type": "mp3",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "audio_and_stt",
+      "input_type": "m4a",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "audio_and_stt",
+      "input_type": "flac",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "audio_and_stt",
+      "input_type": "ogg",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "audio_and_stt",
+      "input_type": "aac",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "audio_and_stt",
+      "input_type": "opus",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "audio_and_stt",
+      "input_type": "wma",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "audio_and_stt",
+      "input_type": "amr",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "tts_artifacts",
+      "input_type": "wav",
+      "state": "UNAVAILABLE",
+      "pipeline": "none",
+      "limitation": "No registered generation descriptor or admitted live generation role; audio inventory is unrelated."
+    },
+    {
+      "category": "tts_artifacts",
+      "input_type": "mp3",
+      "state": "UNAVAILABLE",
+      "pipeline": "none",
+      "limitation": "No registered generation descriptor or admitted live generation role; audio inventory is unrelated."
+    },
+    {
+      "category": "tts_artifacts",
+      "input_type": "m4a",
+      "state": "UNAVAILABLE",
+      "pipeline": "none",
+      "limitation": "No registered generation descriptor or admitted live generation role; audio inventory is unrelated."
+    },
+    {
+      "category": "tts_artifacts",
+      "input_type": "flac",
+      "state": "UNAVAILABLE",
+      "pipeline": "none",
+      "limitation": "No registered generation descriptor or admitted live generation role; audio inventory is unrelated."
+    },
+    {
+      "category": "tts_artifacts",
+      "input_type": "ogg",
+      "state": "UNAVAILABLE",
+      "pipeline": "none",
+      "limitation": "No registered generation descriptor or admitted live generation role; audio inventory is unrelated."
+    },
+    {
+      "category": "tts_artifacts",
+      "input_type": "opus",
+      "state": "UNAVAILABLE",
+      "pipeline": "none",
+      "limitation": "No registered generation descriptor or admitted live generation role; audio inventory is unrelated."
+    },
+    {
+      "category": "transcripts_and_subtitles",
+      "input_type": "txt",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "native_document",
+      "limitation": "Native text only; scanned PDF needs a separately supported OCR path."
+    },
+    {
+      "category": "transcripts_and_subtitles",
+      "input_type": "json",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "existing_structured_decoders",
+      "limitation": "Family detection and schema validation still required; no formulas, macros or arbitrary database queries."
+    },
+    {
+      "category": "transcripts_and_subtitles",
+      "input_type": "srt",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "transcripts_and_subtitles",
+      "input_type": "vtt",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "transcripts_and_subtitles",
+      "input_type": "ass",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "transcripts_and_subtitles",
+      "input_type": "ssa",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "video",
+      "input_type": "mp4",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "video",
+      "input_type": "mov",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "video",
+      "input_type": "mkv",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "video",
+      "input_type": "avi",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "video",
+      "input_type": "webm",
+      "state": "SUPPORTED_INGEST_AND_ANALYSIS",
+      "pipeline": "media",
+      "limitation": "Bounded decoder/processor path; individual codec and model qualification remains separate."
+    },
+    {
+      "category": "video",
+      "input_type": "m4v",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "video",
+      "input_type": "mpg",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "video",
+      "input_type": "mpeg",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "video",
+      "input_type": "mts",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "video",
+      "input_type": "m2ts",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "video",
+      "input_type": "3gp",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "network_system_captures",
+      "input_type": "pcap",
+      "state": "SUPPORTED_INGEST_INVENTORY_ONLY",
+      "pipeline": "bounded_inventory",
+      "limitation": "No full sessions, general SQL or child-ingest analytics."
+    },
+    {
+      "category": "network_system_captures",
+      "input_type": "pcapng",
+      "state": "SUPPORTED_INGEST_INVENTORY_ONLY",
+      "pipeline": "bounded_inventory",
+      "limitation": "No full sessions, general SQL or child-ingest analytics."
+    },
+    {
+      "category": "network_system_captures",
+      "input_type": "cap",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "network_system_captures",
+      "input_type": "evtx",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "databases_and_sql",
+      "input_type": "sqlite",
+      "state": "SUPPORTED_INGEST_INVENTORY_ONLY",
+      "pipeline": "bounded_inventory",
+      "limitation": "No full sessions, general SQL or child-ingest analytics."
+    },
+    {
+      "category": "databases_and_sql",
+      "input_type": "sqlite3",
+      "state": "SUPPORTED_INGEST_INVENTORY_ONLY",
+      "pipeline": "bounded_inventory",
+      "limitation": "No full sessions, general SQL or child-ingest analytics."
+    },
+    {
+      "category": "databases_and_sql",
+      "input_type": "db",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "databases_and_sql",
+      "input_type": "sql",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "archives_and_bundles",
+      "input_type": "zip",
+      "state": "SUPPORTED_INGEST_INVENTORY_ONLY",
+      "pipeline": "bounded_inventory",
+      "limitation": "No full sessions, general SQL or child-ingest analytics."
+    },
+    {
+      "category": "archives_and_bundles",
+      "input_type": "7z",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "archives_and_bundles",
+      "input_type": "rar",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "archives_and_bundles",
+      "input_type": "tar",
+      "state": "SUPPORTED_INGEST_INVENTORY_ONLY",
+      "pipeline": "bounded_inventory",
+      "limitation": "No full sessions, general SQL or child-ingest analytics."
+    },
+    {
+      "category": "archives_and_bundles",
+      "input_type": "gz",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "archives_and_bundles",
+      "input_type": "tgz",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "archives_and_bundles",
+      "input_type": "bz2",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "archives_and_bundles",
+      "input_type": "xz",
+      "state": "NOT_QUALIFIED",
+      "pipeline": "none",
+      "limitation": "Advertised extension is not parser qualification."
+    },
+    {
+      "category": "unknown_and_mixed",
+      "input_type": "unknown extension",
+      "state": "MANUAL_REVIEW",
+      "pipeline": "preserve_inspect",
+      "limitation": "Preserve and inspect; no analytical capability inferred."
+    },
+    {
+      "category": "unknown_and_mixed",
+      "input_type": "binary dump",
+      "state": "MANUAL_REVIEW",
+      "pipeline": "preserve_inspect",
+      "limitation": "Preserve and inspect; no analytical capability inferred."
+    },
+    {
+      "category": "unknown_and_mixed",
+      "input_type": "mixed export",
+      "state": "MANUAL_REVIEW",
+      "pipeline": "preserve_inspect",
+      "limitation": "Preserve and inspect; no analytical capability inferred."
+    },
+    {
+      "category": "unknown_and_mixed",
+      "input_type": "unsupported MIME",
+      "state": "MANUAL_REVIEW",
+      "pipeline": "preserve_inspect",
+      "limitation": "Preserve and inspect; no analytical capability inferred."
+    }
+  ],
+  "family_matrix": [
+    {
+      "advertised_category": "plain_text_notes",
+      "actual_adapter_or_pipeline": "native_document_worker_txt_v1",
+      "advertised_formats": [
+        "txt",
+        "md",
+        "yaml",
+        "yml"
+      ],
+      "live_evidence_inventory": {
+        "registered_evidence": 1,
+        "indexed_records": 0,
+        "derived_artifacts": 1
+      },
+      "counts_overlap_do_not_sum": true,
+      "executable_families": [
+        "document_intelligence"
+      ],
+      "query_capability_refs": [
+        "document.phrase"
+      ],
+      "readiness_authority": "Authorized current-version artifacts/records and separate current processor receipt; format overlap does not imply capability.",
+      "limitations": "Run separately approved retained multilingual/noisy-note extraction, retrieval, citation and abstention acceptance."
+    },
+    {
+      "advertised_category": "logs_access_security",
+      "actual_adapter_or_pipeline": "access_log",
+      "advertised_formats": [
+        "log",
+        "txt",
+        "csv",
+        "jsonl",
+        "ndjson",
+        "evtx"
+      ],
+      "live_evidence_inventory": {
+        "registered_evidence": 8,
+        "indexed_records": 1000,
+        "derived_artifacts": 1
+      },
+      "counts_overlap_do_not_sum": true,
+      "executable_families": [
+        "access_security_logs"
+      ],
+      "query_capability_refs": [
+        "logs.failures"
+      ],
+      "readiness_authority": "Authorized current-version artifacts/records and separate current processor receipt; format overlap does not imply capability.",
+      "limitations": "EVTX, clock-drift, late-arrival, redaction, and incident-timeline goldens."
+    },
+    {
+      "advertised_category": "cdr",
+      "actual_adapter_or_pipeline": "cdr",
+      "advertised_formats": [
+        "csv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "parquet"
+      ],
+      "live_evidence_inventory": {
+        "registered_evidence": 7,
+        "indexed_records": 5000,
+        "derived_artifacts": 0
+      },
+      "counts_overlap_do_not_sum": true,
+      "executable_families": [
+        "communications_cdr"
+      ],
+      "query_capability_refs": [
+        "cdr.frequent_contacts",
+        "cdr.time_activity",
+        "device.observations"
+      ],
+      "readiness_authority": "Authorized current-version artifacts/records and separate current processor receipt; format overlap does not imply capability.",
+      "limitations": "Provider/sector reference history and deeper time-valid tower semantics."
+    },
+    {
+      "advertised_category": "ipdr_network_sessions",
+      "actual_adapter_or_pipeline": "ipdr",
+      "advertised_formats": [
+        "csv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "parquet",
+        "pcap",
+        "pcapng"
+      ],
+      "live_evidence_inventory": {
+        "registered_evidence": 7,
+        "indexed_records": 2500,
+        "derived_artifacts": 0
+      },
+      "counts_overlap_do_not_sum": true,
+      "executable_families": [
+        "network_ipdr"
+      ],
+      "query_capability_refs": [
+        "ipdr.endpoint",
+        "ipdr.sessions"
+      ],
+      "readiness_authority": "Authorized current-version artifacts/records and separate current processor receipt; format overlap does not imply capability.",
+      "limitations": "Add provider-specific DNS/NAT schema packs, clock-drift/late-arrival cases, and accepted capture-to-session derivation."
+    },
+    {
+      "advertised_category": "anpr_vehicle_sightings",
+      "actual_adapter_or_pipeline": "anpr_and_optional_fastalpr_image_observer",
+      "advertised_formats": [
+        "csv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "parquet",
+        "tsv",
+        "xlsx",
+        "png",
+        "jpg",
+        "jpeg",
+        "webp",
+        "bmp",
+        "tif",
+        "tiff"
+      ],
+      "live_evidence_inventory": {
+        "registered_evidence": 24,
+        "indexed_records": 750,
+        "derived_artifacts": 281
+      },
+      "counts_overlap_do_not_sum": true,
+      "executable_families": [
+        "anpr_vehicles"
+      ],
+      "query_capability_refs": [
+        "image.plate"
+      ],
+      "readiness_authority": "Authorized current-version artifacts/records and separate current processor receipt; format overlap does not imply capability.",
+      "limitations": "Deploy the opt-in FastALPR worker with explicitly mounted approved local models, then run representative adverse-condition imagery, camera clock-drift, throughput, and review-workflow goldens. Image OCR remains a review-required derived observation, not source truth."
+    },
+    {
+      "advertised_category": "subscriber_identity",
+      "actual_adapter_or_pipeline": "subscriber",
+      "advertised_formats": [
+        "csv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "parquet",
+        "tsv",
+        "xlsx"
+      ],
+      "live_evidence_inventory": {
+        "registered_evidence": 7,
+        "indexed_records": 5,
+        "derived_artifacts": 0
+      },
+      "counts_overlap_do_not_sum": true,
+      "executable_families": [
+        "subscriber_identity"
+      ],
+      "query_capability_refs": [
+        "subscriber.lookup"
+      ],
+      "readiness_authority": "Authorized current-version artifacts/records and separate current processor receipt; format overlap does not imply capability.",
+      "limitations": "R7.6 adds synchronized family presentation; authorized provider-format benchmarks and field-level authorization remain before expanded PII display."
+    },
+    {
+      "advertised_category": "tower_location",
+      "actual_adapter_or_pipeline": "tower_location",
+      "advertised_formats": [
+        "csv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "geojson",
+        "parquet",
+        "tsv",
+        "xlsx"
+      ],
+      "live_evidence_inventory": {
+        "registered_evidence": 7,
+        "indexed_records": 5,
+        "derived_artifacts": 0
+      },
+      "counts_overlap_do_not_sum": true,
+      "executable_families": [
+        "tower_location"
+      ],
+      "query_capability_refs": [
+        "tower.lookup"
+      ],
+      "readiness_authority": "Authorized current-version artifacts/records and separate current processor receipt; format overlap does not imply capability.",
+      "limitations": "Authorized provider drift packs, non-WGS84 transform validation, retained-data joins, map UI, and live specialist acceptance."
+    },
+    {
+      "advertised_category": "financial_transactions",
+      "actual_adapter_or_pipeline": "transaction",
+      "advertised_formats": [
+        "csv",
+        "json",
+        "jsonl",
+        "parquet",
+        "xlsx",
+        "ofx",
+        "mt940"
+      ],
+      "live_evidence_inventory": {
+        "registered_evidence": 7,
+        "indexed_records": 4,
+        "derived_artifacts": 0
+      },
+      "counts_overlap_do_not_sum": true,
+      "executable_families": [
+        "financial_transactions"
+      ],
+      "query_capability_refs": [
+        "financial.summary"
+      ],
+      "readiness_authority": "Authorized current-version artifacts/records and separate current processor receipt; format overlap does not imply capability.",
+      "limitations": "Authorized bank/wallet profiles, multi-currency provenance, reconciliation, OFX, MT940, and spreadsheet goldens."
+    },
+    {
+      "advertised_category": "generic_tabular",
+      "actual_adapter_or_pipeline": "generic",
+      "advertised_formats": [
+        "csv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "parquet",
+        "tsv",
+        "xlsx",
+        "xml",
+        "avro",
+        "orc",
+        "arrow",
+        "feather"
+      ],
+      "live_evidence_inventory": {
+        "registered_evidence": 8,
+        "indexed_records": 9,
+        "derived_artifacts": 1
+      },
+      "counts_overlap_do_not_sum": true,
+      "executable_families": [
+        "generic_tabular"
+      ],
+      "query_capability_refs": [
+        "generic.filter"
+      ],
+      "readiness_authority": "Authorized current-version artifacts/records and separate current processor receipt; format overlap does not imply capability.",
+      "limitations": "Schema-drift, encoding, delimiter, nested JSON, Parquet, and unknown-column goldens."
+    },
+    {
+      "advertised_category": "spreadsheets_and_columnar",
+      "actual_adapter_or_pipeline": "tsv_xlsx_per_sheet_read_only_adapter_v1_then_spreadsheet_columnar_pending",
+      "advertised_formats": [
+        "tsv",
+        "xls",
+        "xlsx",
+        "xlsm",
+        "ods",
+        "parquet",
+        "arrow",
+        "feather",
+        "avro",
+        "orc",
+        "xml"
+      ],
+      "live_evidence_inventory": {
+        "registered_evidence": 0,
+        "indexed_records": 0,
+        "derived_artifacts": 0
+      },
+      "counts_overlap_do_not_sum": true,
+      "executable_families": [
+        "communications_cdr",
+        "network_ipdr",
+        "anpr_vehicles",
+        "subscriber_identity",
+        "tower_location",
+        "financial_transactions",
+        "access_security_logs",
+        "generic_tabular"
+      ],
+      "query_capability_refs": [
+        "cdr.frequent_contacts",
+        "cdr.time_activity",
+        "ipdr.endpoint",
+        "ipdr.sessions",
+        "subscriber.lookup",
+        "device.observations",
+        "tower.lookup",
+        "financial.summary",
+        "logs.failures",
+        "generic.filter"
+      ],
+      "readiness_authority": "Authorized current-version artifacts/records and separate current processor receipt; format overlap does not imply capability.",
+      "limitations": "Add multi-provider schema-drift goldens, benchmark ODS and columnar formats, and keep formula recalculation/macros prohibited."
+    },
+    {
+      "advertised_category": "pdf_office_email_documents",
+      "actual_adapter_or_pipeline": "native_document_worker_txt_pdf_docx_v1",
+      "advertised_formats": [
+        "pdf",
+        "doc",
+        "docx",
+        "rtf",
+        "odt",
+        "ppt",
+        "pptx",
+        "odp",
+        "html",
+        "htm",
+        "epub",
+        "eml",
+        "msg"
+      ],
+      "live_evidence_inventory": {
+        "registered_evidence": 2,
+        "indexed_records": 0,
+        "derived_artifacts": 113
+      },
+      "counts_overlap_do_not_sum": true,
+      "executable_families": [
+        "document_intelligence"
+      ],
+      "query_capability_refs": [
+        "document.phrase"
+      ],
+      "readiness_authority": "Authorized current-version artifacts/records and separate current processor receipt; format overlap does not imply capability.",
+      "limitations": "Run separately approved retained TXT/PDF/DOCX extraction and cited retrieval. Scanned-document OCR, tables, geometry, active content, attachments, and other office formats remain unavailable."
+    },
+    {
+      "advertised_category": "images_and_ocr",
+      "actual_adapter_or_pipeline": "unified_media_worker_with_optional_fastalpr_face_siglip_tesseract_roles",
+      "advertised_formats": [
+        "png",
+        "jpg",
+        "jpeg",
+        "webp",
+        "gif",
+        "bmp",
+        "tif",
+        "tiff",
+        "heic",
+        "heif",
+        "dng",
+        "raw",
+        "svg"
+      ],
+      "live_evidence_inventory": {
+        "registered_evidence": 17,
+        "indexed_records": 0,
+        "derived_artifacts": 281
+      },
+      "counts_overlap_do_not_sum": true,
+      "executable_families": [
+        "image_intelligence",
+        "face_intelligence",
+        "anpr_vehicles"
+      ],
+      "query_capability_refs": [
+        "ocr.phrase",
+        "image.plate",
+        "image.similarity",
+        "face.candidates"
+      ],
+      "readiness_authority": "Authorized current-version artifacts/records and separate current processor receipt; format overlap does not imply capability.",
+      "limitations": "Run separately approved retained image/OCR/semantic acceptance. General OCR and SigLIP remain LIMITED; Urdu text-image retrieval failed its first top-1 check. HEIC, raw and SVG decoding remains manual-review only."
+    },
+    {
+      "advertised_category": "audio_and_stt",
+      "actual_adapter_or_pipeline": "unified_media_worker_ffprobe_localai_asr_roman_urdu_v1",
+      "advertised_formats": [
+        "wav",
+        "mp3",
+        "m4a",
+        "flac",
+        "ogg",
+        "aac",
+        "opus",
+        "wma",
+        "amr"
+      ],
+      "live_evidence_inventory": {
+        "registered_evidence": 7,
+        "indexed_records": 0,
+        "derived_artifacts": 20
+      },
+      "counts_overlap_do_not_sum": true,
+      "executable_families": [
+        "audio_intelligence"
+      ],
+      "query_capability_refs": [
+        "transcript.phrase",
+        "roman_urdu.phrase"
+      ],
+      "readiness_authority": "Authorized current-version artifacts/records and separate current processor receipt; format overlap does not imply capability.",
+      "limitations": "Run separately approved retained Roman Urdu search/Ask/citation acceptance. Identifier speech remains an M2 limitation and diarization remains unavailable."
+    },
+    {
+      "advertised_category": "tts_artifacts",
+      "actual_adapter_or_pipeline": "tts_artifact_registry_with_deterministic_wav_metadata_v1",
+      "advertised_formats": [
+        "wav",
+        "mp3",
+        "m4a",
+        "flac",
+        "ogg",
+        "opus"
+      ],
+      "live_evidence_inventory": {
+        "registered_evidence": 7,
+        "indexed_records": 0,
+        "derived_artifacts": 20
+      },
+      "counts_overlap_do_not_sum": true,
+      "executable_families": [],
+      "query_capability_refs": [],
+      "readiness_authority": "Authorized current-version artifacts/records and separate current processor receipt; format overlap does not imply capability.",
+      "limitations": "Consent/voice policy, pronunciation goldens, round-trip intelligibility, CPU latency, and accessible playback."
+    },
+    {
+      "advertised_category": "transcripts_and_subtitles",
+      "actual_adapter_or_pipeline": "transcript_index_pending",
+      "advertised_formats": [
+        "txt",
+        "json",
+        "srt",
+        "vtt",
+        "ass",
+        "ssa"
+      ],
+      "live_evidence_inventory": {
+        "registered_evidence": 1,
+        "indexed_records": 0,
+        "derived_artifacts": 1
+      },
+      "counts_overlap_do_not_sum": true,
+      "executable_families": [],
+      "query_capability_refs": [],
+      "readiness_authority": "Authorized current-version artifacts/records and separate current processor receipt; format overlap does not imply capability.",
+      "limitations": "Subtitle parsing and cue-level KB indexing with parent evidence and time-range citations."
+    },
+    {
+      "advertised_category": "video",
+      "actual_adapter_or_pipeline": "unified_media_worker_ffprobe_bounded_frames",
+      "advertised_formats": [
+        "mp4",
+        "mov",
+        "mkv",
+        "avi",
+        "webm",
+        "m4v",
+        "mpg",
+        "mpeg",
+        "mts",
+        "m2ts",
+        "3gp"
+      ],
+      "live_evidence_inventory": {
+        "registered_evidence": 2,
+        "indexed_records": 0,
+        "derived_artifacts": 397
+      },
+      "counts_overlap_do_not_sum": true,
+      "executable_families": [
+        "video_intelligence",
+        "audio_intelligence"
+      ],
+      "query_capability_refs": [
+        "transcript.phrase",
+        "roman_urdu.phrase"
+      ],
+      "readiness_authority": "Authorized current-version artifacts/records and separate current processor receipt; format overlap does not imply capability.",
+      "limitations": "Deploy and validate real-codec, corrupt and long-video goldens; add separately governed ASR, tracking/deduplication and timeline-query contracts."
+    },
+    {
+      "advertised_category": "network_system_captures",
+      "actual_adapter_or_pipeline": "deterministic_pcap_pcapng_inventory_v1_4_then_capture_adapter_pending",
+      "advertised_formats": [
+        "pcap",
+        "pcapng",
+        "cap",
+        "evtx"
+      ],
+      "live_evidence_inventory": {
+        "registered_evidence": 0,
+        "indexed_records": 0,
+        "derived_artifacts": 0
+      },
+      "counts_overlap_do_not_sum": true,
+      "executable_families": [],
+      "query_capability_refs": [],
+      "readiness_authority": "Authorized current-version artifacts/records and separate current processor receipt; format overlap does not imply capability.",
+      "limitations": "Real capture goldens and bounded Ethernet/IP/TCP/UDP/DNS session derivatives; separate EVTX adapter."
+    },
+    {
+      "advertised_category": "databases_and_sql",
+      "actual_adapter_or_pipeline": "deterministic_sqlite_inventory_v1_3_then_database_adapter_pending",
+      "advertised_formats": [
+        "sqlite",
+        "sqlite3",
+        "db",
+        "sql"
+      ],
+      "live_evidence_inventory": {
+        "registered_evidence": 0,
+        "indexed_records": 0,
+        "derived_artifacts": 0
+      },
+      "counts_overlap_do_not_sum": true,
+      "executable_families": [],
+      "query_capability_refs": [],
+      "readiness_authority": "Authorized current-version artifacts/records and separate current processor receipt; format overlap does not imply capability.",
+      "limitations": "Real SQLite encoding/WAL/schema/corruption goldens before a query adapter or SQL dump support."
+    },
+    {
+      "advertised_category": "archives_and_bundles",
+      "actual_adapter_or_pipeline": "deterministic_zip_tar_inventory_v1_2_then_archive_extraction_pending",
+      "advertised_formats": [
+        "zip",
+        "7z",
+        "rar",
+        "tar",
+        "gz",
+        "tgz",
+        "bz2",
+        "xz"
+      ],
+      "live_evidence_inventory": {
+        "registered_evidence": 0,
+        "indexed_records": 0,
+        "derived_artifacts": 0
+      },
+      "counts_overlap_do_not_sum": true,
+      "executable_families": [],
+      "query_capability_refs": [],
+      "readiness_authority": "Authorized current-version artifacts/records and separate current processor receipt; format overlap does not imply capability.",
+      "limitations": "ZIP64/PAX/GNU fixtures, bounded member hashing, and safe child registration before more formats."
+    },
+    {
+      "advertised_category": "unknown_and_mixed",
+      "actual_adapter_or_pipeline": "manual_review",
+      "advertised_formats": [
+        "unknown extension",
+        "binary dump",
+        "mixed export",
+        "unsupported MIME"
+      ],
+      "live_evidence_inventory": {
+        "registered_evidence": 0,
+        "indexed_records": 0,
+        "derived_artifacts": 0
+      },
+      "counts_overlap_do_not_sum": true,
+      "executable_families": [],
+      "query_capability_refs": [],
+      "readiness_authority": "Authorized current-version artifacts/records and separate current processor receipt; format overlap does not imply capability.",
+      "limitations": "Ambiguous-signature, renamed-extension, polyglot, corrupt, and mixed-bundle safety fixtures."
+    }
+  ]
+}

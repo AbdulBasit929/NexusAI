@@ -1,0 +1,4133 @@
+{
+ "collection_id": "nexusai-forensic-demo",
+ "request_class": "GOVERNED_EVIDENCE_ANALYSIS",
+ "intent": "records",
+ "template": "longest_call",
+ "query_understanding": {
+  "contract_version": "forensics.query-understanding/v1",
+  "original_question": "What was the longest call?",
+  "normalized_question": "what was the longest call?",
+  "language": {
+   "tag": "en",
+   "source": "deterministic_extractor",
+   "confidence": 0.9
+  },
+  "intent": "rank",
+  "families": {
+   "kind": "single",
+   "primary": "communications_cdr",
+   "secondary": []
+  },
+  "entities": [],
+  "targets": [],
+  "time_scope": {
+   "timezone": "case_default",
+   "origin": "deterministic_extractor"
+  },
+  "filters": [],
+  "requested_output": {
+   "result_kind": "table",
+   "presentation_type": "bounded_records_table",
+   "limit": 20
+  },
+  "candidate_capabilities": [
+   "forensics.longest_call"
+  ],
+  "semantic_capability_ids": null,
+  "semantic_operation_refs": null,
+  "clarification": {
+   "required": false,
+   "missing_fields": []
+  },
+  "context": {
+   "used": false,
+   "fields": [],
+   "inherited_fields": null
+  },
+  "confidence": {
+   "overall": 0.74,
+   "routing": 0.74,
+   "entities": 0,
+   "time_scope": 0
+  }
+ },
+ "investigation_context": {
+  "contract_version": "forensics.investigation-context/v1",
+  "workspace": {
+   "tenant_id": "default",
+   "case_id": "nexusai-forensic-demo",
+   "collection_id": "nexusai-forensic-demo",
+   "subject_id": "live-eval"
+  },
+  "evidence": {
+   "kind": "current_workspace",
+   "collection_id": "nexusai-forensic-demo",
+   "evidence_ids": [],
+   "family_ids": [],
+   "source_files": []
+  },
+  "active_entities": null,
+  "current_question": "What was the longest call?",
+  "previous_result": {},
+  "time": {
+   "domain": "record_timestamp",
+   "timezone": "case_default",
+   "origin": "deterministic_extractor",
+   "normalizer": "forensics.time-policy/v1"
+  },
+  "available_families": [
+   "communications_cdr"
+  ],
+  "capability_snapshot_id": "7e100df4-8f47-4f78-828d-de12ce9be6b7:capabilities",
+  "permissions": [
+   "query:execute"
+  ],
+  "conversation": {},
+  "context_provenance": {
+   "used": false,
+   "fields": [],
+   "inherited_fields": null
+  }
+ },
+ "capability_snapshot": {
+  "contract_version": "forensics.capability-snapshot/v1",
+  "snapshot_id": "7e100df4-8f47-4f78-828d-de12ce9be6b7:capabilities",
+  "tenant_id": "default",
+  "collection_id": "nexusai-forensic-demo",
+  "generated_at": "2026-09-18T06:28:12.242151859Z",
+  "entries": [
+   {
+    "operation": {
+     "capability_id": "forensics.longest_call",
+     "operation_id": "forensics.longest_call",
+     "template": "longest_call",
+     "family_ids": [
+      "communications_cdr"
+     ],
+     "intent_classes": [
+      "rank"
+     ],
+     "required_parameters": [],
+     "optional_parameters": [
+      "date_from",
+      "date_to",
+      "limit"
+     ],
+     "scope_mode": "case_wide",
+     "source_scoped": false,
+     "time_scoped": true,
+     "execution_mode": "deterministic",
+     "extension_mode": "deterministic_operation",
+     "implementation_key": "runAnalyticalTemplate",
+     "specialist_id": "Communications_CDR_Analyst",
+     "model_role_ids": null,
+     "result_contract": "forensics.enterprise-response/v1",
+     "result_kind": "table",
+     "presentation_type": "bounded_records_table",
+     "citation_required": true,
+     "criticality_tier": "B",
+     "certification_status": "bounded_uncertified",
+     "exposure_status": "limited",
+     "suggestion_eligible": false,
+     "limitations": [
+      "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+     ],
+     "availability": {
+      "implemented": true,
+      "runtime_available": true,
+      "data_available": true,
+      "authorized": true,
+      "model_available": true,
+      "maturity": "operational",
+      "queryable": true,
+      "executable": true,
+      "reason_codes": null
+     }
+    },
+    "requirement": {
+     "family_ids": [
+      "communications_cdr"
+     ],
+     "required_parameters": null,
+     "required_fields": null,
+     "model_role_ids": null,
+     "citation_required": true,
+     "certified_required": false
+    },
+    "readiness": "COMPLETE_RESULTS",
+    "reason_codes": null
+   }
+  ]
+ },
+ "execution_plan": {
+  "contract_version": "forensics.execution-plan/v1",
+  "plan_id": "7e100df4-8f47-4f78-828d-de12ce9be6b7:plan",
+  "mode": "single_operation",
+  "workspace": {
+   "tenant_id": "default",
+   "case_id": "nexusai-forensic-demo",
+   "collection_id": "nexusai-forensic-demo",
+   "subject_id": "live-eval"
+  },
+  "steps": [
+   {
+    "step_id": "step-1",
+    "capability_id": "forensics.longest_call",
+    "operation_id": "forensics.longest_call",
+    "dependencies": [],
+    "input_bindings": [],
+    "parameters": {
+     "targets": [],
+     "raw_payload_filters": null,
+     "field_filters": null,
+     "field_exists": [],
+     "field_not_exists": [],
+     "limit": 20,
+     "offset": 0,
+     "max_kb_results": 1,
+     "retrieval_mode": "NONE"
+    },
+    "evidence_scope": {
+     "collection_id": "nexusai-forensic-demo"
+    },
+    "expected_result_contract": "forensics.enterprise-response/v1",
+    "result_kind": "table",
+    "presentation_type": "bounded_records_table",
+    "citation_required": true
+   }
+  ],
+  "output_contract": "forensics.enterprise-response/v1",
+  "resource_policy": {
+   "read_only": true,
+   "maximum_steps": 1,
+   "maximum_rows": 100,
+   "maximum_offset": 100000,
+   "maximum_kb_results": 20,
+   "maximum_targets": 8,
+   "maximum_intermediate_rows": 0,
+   "maximum_retrieval_chunks": 0,
+   "maximum_model_calls": 0,
+   "timeout_milliseconds": 0
+  },
+  "policy_decisions": [
+   "workspace_scope_bound",
+   "known_capability_only",
+   "read_only_executor",
+   "citations_capability_owned"
+  ]
+ },
+ "plan_validation": {
+  "contract_version": "forensics.plan-validation/v1",
+  "plan_id": "7e100df4-8f47-4f78-828d-de12ce9be6b7:plan",
+  "valid": true,
+  "scope_authorized": true,
+  "capabilities_ready": true,
+  "dependencies_valid": true,
+  "budget_accepted": true,
+  "authority_preserved": true,
+  "estimated_cost_class": "direct_operation",
+  "issues": []
+ },
+ "tool_results": [
+  {
+   "contract_version": "forensics.tool-result/v1",
+   "invocation_id": "7e100df4-8f47-4f78-828d-de12ce9be6b7:plan:step-1",
+   "plan_id": "7e100df4-8f47-4f78-828d-de12ce9be6b7:plan",
+   "step_id": "step-1",
+   "operation_id": "forensics.longest_call",
+   "result_contract": "forensics.enterprise-response/v1",
+   "execution_status": "completed",
+   "result_state": "results_present",
+   "authority": "deterministic_fact",
+   "fields": {},
+   "facts": [
+    {
+     "id": "step-1:row_count",
+     "value": 100,
+     "authority": "deterministic_derivation",
+     "citation_ids": [
+      "tool-citation-1",
+      "tool-citation-2"
+     ]
+    }
+   ],
+   "observations": [],
+   "rows": [
+    {
+     "day_start": "2026-04-01T00:00:00Z",
+     "event_count": 120,
+     "section": "daily_activity",
+     "total_duration_seconds": 17245
+    },
+    {
+     "day_start": "2026-04-02T00:00:00Z",
+     "event_count": 533,
+     "section": "daily_activity",
+     "total_duration_seconds": 117453
+    },
+    {
+     "day_start": "2026-04-03T00:00:00Z",
+     "event_count": 542,
+     "section": "daily_activity",
+     "total_duration_seconds": 134992
+    },
+    {
+     "day_start": "2026-04-04T00:00:00Z",
+     "event_count": 540,
+     "section": "daily_activity",
+     "total_duration_seconds": 116369
+    },
+    {
+     "day_start": "2026-04-05T00:00:00Z",
+     "event_count": 391,
+     "section": "daily_activity",
+     "total_duration_seconds": 90420
+    },
+    {
+     "day_start": "2026-04-06T00:00:00Z",
+     "event_count": 306,
+     "section": "daily_activity",
+     "total_duration_seconds": 77481
+    },
+    {
+     "day_start": "2026-04-07T00:00:00Z",
+     "event_count": 301,
+     "section": "daily_activity",
+     "total_duration_seconds": 60786
+    },
+    {
+     "day_start": "2026-04-08T00:00:00Z",
+     "event_count": 317,
+     "section": "daily_activity",
+     "total_duration_seconds": 60905
+    },
+    {
+     "day_start": "2026-04-09T00:00:00Z",
+     "event_count": 232,
+     "section": "daily_activity",
+     "total_duration_seconds": 50765
+    },
+    {
+     "day_start": "2026-04-10T00:00:00Z",
+     "event_count": 254,
+     "section": "daily_activity",
+     "total_duration_seconds": 56089
+    },
+    {
+     "day_start": "2026-04-11T00:00:00Z",
+     "event_count": 244,
+     "section": "daily_activity",
+     "total_duration_seconds": 45146
+    },
+    {
+     "day_start": "2026-04-12T00:00:00Z",
+     "event_count": 194,
+     "section": "daily_activity",
+     "total_duration_seconds": 37124
+    },
+    {
+     "day_start": "2026-04-13T00:00:00Z",
+     "event_count": 196,
+     "section": "daily_activity",
+     "total_duration_seconds": 42254
+    },
+    {
+     "day_start": "2026-04-14T00:00:00Z",
+     "event_count": 151,
+     "section": "daily_activity",
+     "total_duration_seconds": 31669
+    },
+    {
+     "day_start": "2026-04-15T00:00:00Z",
+     "event_count": 143,
+     "section": "daily_activity",
+     "total_duration_seconds": 28316
+    },
+    {
+     "day_start": "2026-04-16T00:00:00Z",
+     "event_count": 120,
+     "section": "daily_activity",
+     "total_duration_seconds": 27893
+    },
+    {
+     "day_start": "2026-04-17T00:00:00Z",
+     "event_count": 91,
+     "section": "daily_activity",
+     "total_duration_seconds": 25829
+    },
+    {
+     "day_start": "2026-04-18T00:00:00Z",
+     "event_count": 105,
+     "section": "daily_activity",
+     "total_duration_seconds": 31693
+    },
+    {
+     "day_start": "2026-04-19T00:00:00Z",
+     "event_count": 61,
+     "section": "daily_activity",
+     "total_duration_seconds": 13514
+    },
+    {
+     "day_start": "2026-04-20T00:00:00Z",
+     "event_count": 60,
+     "section": "daily_activity",
+     "total_duration_seconds": 13424
+    },
+    {
+     "day_start": "2026-04-21T00:00:00Z",
+     "event_count": 62,
+     "section": "daily_activity",
+     "total_duration_seconds": 16607
+    },
+    {
+     "day_start": "2026-04-22T00:00:00Z",
+     "event_count": 53,
+     "section": "daily_activity",
+     "total_duration_seconds": 16008
+    },
+    {
+     "day_start": "2026-04-23T00:00:00Z",
+     "event_count": 35,
+     "section": "daily_activity",
+     "total_duration_seconds": 10398
+    },
+    {
+     "day_start": "2026-04-24T00:00:00Z",
+     "event_count": 37,
+     "section": "daily_activity",
+     "total_duration_seconds": 9229
+    },
+    {
+     "day_start": "2026-04-25T00:00:00Z",
+     "event_count": 34,
+     "section": "daily_activity",
+     "total_duration_seconds": 11269
+    },
+    {
+     "day_start": "2026-04-26T00:00:00Z",
+     "event_count": 11,
+     "section": "daily_activity",
+     "total_duration_seconds": 1262
+    },
+    {
+     "day_start": "2026-04-27T00:00:00Z",
+     "event_count": 17,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-04-28T00:00:00Z",
+     "event_count": 5,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-04-29T00:00:00Z",
+     "event_count": 17,
+     "section": "daily_activity",
+     "total_duration_seconds": 67
+    },
+    {
+     "day_start": "2026-04-30T00:00:00Z",
+     "event_count": 9,
+     "section": "daily_activity",
+     "total_duration_seconds": 18
+    },
+    {
+     "day_start": "2026-05-01T00:00:00Z",
+     "event_count": 17,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-05-02T00:00:00Z",
+     "event_count": 8,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-05-03T00:00:00Z",
+     "event_count": 7,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-05-04T00:00:00Z",
+     "event_count": 12,
+     "section": "daily_activity",
+     "total_duration_seconds": 28
+    },
+    {
+     "day_start": "2026-05-05T00:00:00Z",
+     "event_count": 4,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-05-06T00:00:00Z",
+     "event_count": 3,
+     "section": "daily_activity",
+     "total_duration_seconds": 24
+    },
+    {
+     "day_start": "2026-05-07T00:00:00Z",
+     "event_count": 5,
+     "section": "daily_activity",
+     "total_duration_seconds": 37
+    },
+    {
+     "day_start": "2026-05-08T00:00:00Z",
+     "event_count": 6,
+     "section": "daily_activity",
+     "total_duration_seconds": 20
+    },
+    {
+     "day_start": "2026-05-09T00:00:00Z",
+     "event_count": 3,
+     "section": "daily_activity",
+     "total_duration_seconds": 29
+    },
+    {
+     "day_start": "2026-05-13T00:00:00Z",
+     "event_count": 13,
+     "section": "daily_activity",
+     "total_duration_seconds": 30
+    },
+    {
+     "day_start": "2026-05-14T00:00:00Z",
+     "event_count": 126,
+     "section": "daily_activity",
+     "total_duration_seconds": 1722
+    },
+    {
+     "day_start": "2026-05-15T00:00:00Z",
+     "event_count": 15,
+     "section": "daily_activity",
+     "total_duration_seconds": 394
+    },
+    {
+     "day_start": "2026-05-16T00:00:00Z",
+     "event_count": 8,
+     "section": "daily_activity",
+     "total_duration_seconds": 61
+    },
+    {
+     "day_start": "2026-05-17T00:00:00Z",
+     "event_count": 26,
+     "section": "daily_activity",
+     "total_duration_seconds": 728
+    },
+    {
+     "day_start": "2026-05-18T00:00:00Z",
+     "event_count": 62,
+     "section": "daily_activity",
+     "total_duration_seconds": 36
+    },
+    {
+     "day_start": "2026-05-19T00:00:00Z",
+     "event_count": 26,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-05-20T00:00:00Z",
+     "event_count": 46,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-05-21T00:00:00Z",
+     "event_count": 75,
+     "section": "daily_activity",
+     "total_duration_seconds": 74
+    },
+    {
+     "day_start": "2026-05-22T00:00:00Z",
+     "event_count": 59,
+     "section": "daily_activity",
+     "total_duration_seconds": 72
+    },
+    {
+     "day_start": "2026-05-23T00:00:00Z",
+     "event_count": 40,
+     "section": "daily_activity",
+     "total_duration_seconds": 180
+    },
+    {
+     "day_start": "2026-05-24T00:00:00Z",
+     "event_count": 46,
+     "section": "daily_activity",
+     "total_duration_seconds": 87
+    },
+    {
+     "day_start": "2026-05-25T00:00:00Z",
+     "event_count": 14,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-05-26T00:00:00Z",
+     "event_count": 99,
+     "section": "daily_activity",
+     "total_duration_seconds": 244
+    },
+    {
+     "day_start": "2026-05-27T00:00:00Z",
+     "event_count": 58,
+     "section": "daily_activity",
+     "total_duration_seconds": 779
+    },
+    {
+     "day_start": "2026-05-28T00:00:00Z",
+     "event_count": 34,
+     "section": "daily_activity",
+     "total_duration_seconds": 302
+    },
+    {
+     "day_start": "2026-05-29T00:00:00Z",
+     "event_count": 41,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-05-30T00:00:00Z",
+     "event_count": 98,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-05-31T00:00:00Z",
+     "event_count": 47,
+     "section": "daily_activity",
+     "total_duration_seconds": 514
+    },
+    {
+     "day_start": "2026-06-01T00:00:00Z",
+     "event_count": 88,
+     "section": "daily_activity",
+     "total_duration_seconds": 269
+    },
+    {
+     "day_start": "2026-06-02T00:00:00Z",
+     "event_count": 127,
+     "section": "daily_activity",
+     "total_duration_seconds": 677
+    },
+    {
+     "day_start": "2026-06-03T00:00:00Z",
+     "event_count": 103,
+     "section": "daily_activity",
+     "total_duration_seconds": 280
+    },
+    {
+     "day_start": "2026-06-04T00:00:00Z",
+     "event_count": 128,
+     "section": "daily_activity",
+     "total_duration_seconds": 195
+    },
+    {
+     "day_start": "2026-06-05T00:00:00Z",
+     "event_count": 225,
+     "section": "daily_activity",
+     "total_duration_seconds": 58
+    },
+    {
+     "day_start": "2026-06-06T00:00:00Z",
+     "event_count": 247,
+     "section": "daily_activity",
+     "total_duration_seconds": 73
+    },
+    {
+     "day_start": "2026-06-07T00:00:00Z",
+     "event_count": 170,
+     "section": "daily_activity",
+     "total_duration_seconds": 92
+    },
+    {
+     "day_start": "2026-06-08T00:00:00Z",
+     "event_count": 53,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-06-09T00:00:00Z",
+     "event_count": 152,
+     "section": "daily_activity",
+     "total_duration_seconds": 118
+    },
+    {
+     "day_start": "2026-06-10T00:00:00Z",
+     "event_count": 173,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-06-11T00:00:00Z",
+     "event_count": 70,
+     "section": "daily_activity",
+     "total_duration_seconds": 61
+    },
+    {
+     "day_start": "2026-06-12T00:00:00Z",
+     "event_count": 193,
+     "section": "daily_activity",
+     "total_duration_seconds": 297
+    },
+    {
+     "day_start": "2026-06-13T00:00:00Z",
+     "event_count": 168,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-06-14T00:00:00Z",
+     "event_count": 504,
+     "section": "daily_activity",
+     "total_duration_seconds": 449
+    },
+    {
+     "day_start": "2026-06-15T00:00:00Z",
+     "event_count": 9,
+     "section": "daily_activity",
+     "total_duration_seconds": 123
+    },
+    {
+     "day_start": "2026-06-16T00:00:00Z",
+     "event_count": 3,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-06-17T00:00:00Z",
+     "event_count": 2,
+     "section": "daily_activity",
+     "total_duration_seconds": 36
+    },
+    {
+     "day_start": "2026-06-18T00:00:00Z",
+     "event_count": 1,
+     "section": "daily_activity",
+     "total_duration_seconds": 42
+    },
+    {
+     "day_start": "2026-06-19T00:00:00Z",
+     "event_count": 19,
+     "section": "daily_activity",
+     "total_duration_seconds": 23
+    },
+    {
+     "day_start": "2026-06-20T00:00:00Z",
+     "event_count": 20,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-07-10T00:00:00Z",
+     "event_count": 4,
+     "section": "daily_activity",
+     "total_duration_seconds": 55
+    },
+    {
+     "day_start": "2026-07-21T00:00:00Z",
+     "event_count": 2,
+     "section": "daily_activity",
+     "total_duration_seconds": 50
+    },
+    {
+     "day_start": "2026-08-10T00:00:00Z",
+     "event_count": 2,
+     "section": "daily_activity",
+     "total_duration_seconds": 60
+    },
+    {
+     "call_dialed_num": "923001110001",
+     "call_org_num": "923009998882",
+     "call_type": "CALL",
+     "direction": "INCOMING",
+     "duration_seconds": 1798,
+     "location": "Model Town",
+     "metric": "longest_call",
+     "msisdn": "923001110001",
+     "observed_at": "2026-04-02T16:30:42Z",
+     "row_number": 432,
+     "section": "duration_extremes",
+     "source_file": "seed_cdr_large.csv"
+    },
+    {
+     "average_nonzero_duration": "789.95",
+     "longest_duration": 1798,
+     "nonzero_duration_events": 1459,
+     "section": "duration_stats",
+     "shortest_nonzero_duration": 1
+    },
+    {
+     "event_count": 254,
+     "hour_of_day": 0,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 283,
+     "hour_of_day": 1,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 295,
+     "hour_of_day": 2,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 317,
+     "hour_of_day": 3,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 413,
+     "hour_of_day": 4,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 424,
+     "hour_of_day": 5,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 463,
+     "hour_of_day": 6,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 305,
+     "hour_of_day": 7,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 348,
+     "hour_of_day": 8,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 370,
+     "hour_of_day": 9,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 310,
+     "hour_of_day": 10,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 328,
+     "hour_of_day": 11,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 409,
+     "hour_of_day": 12,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 335,
+     "hour_of_day": 13,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 411,
+     "hour_of_day": 14,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 454,
+     "hour_of_day": 15,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 449,
+     "hour_of_day": 16,
+     "section": "hourly_activity"
+    }
+   ],
+   "citations": [
+    {
+     "id": "tool-citation-1",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "",
+     "source_name": ""
+    },
+    {
+     "id": "tool-citation-2",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "row_number:432,timestamp:2026-04-02T16:30:42Z",
+     "source_name": "seed_cdr_large.csv"
+    }
+   ],
+   "limitations": [
+    "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations.",
+    "Data grid is capped at 100 displayed rows from 106 matching records."
+   ],
+   "row_count": 100,
+   "truncated": true,
+   "duration_ms": 414
+  }
+ ],
+ "resolved_capability": {
+  "capability_id": "forensics.longest_call",
+  "operation_id": "forensics.longest_call",
+  "template": "longest_call",
+  "family_ids": [
+   "communications_cdr"
+  ],
+  "intent_classes": [
+   "rank"
+  ],
+  "required_parameters": [],
+  "optional_parameters": [
+   "date_from",
+   "date_to",
+   "limit"
+  ],
+  "scope_mode": "case_wide",
+  "source_scoped": false,
+  "time_scoped": true,
+  "execution_mode": "deterministic",
+  "extension_mode": "deterministic_operation",
+  "implementation_key": "runAnalyticalTemplate",
+  "specialist_id": "Communications_CDR_Analyst",
+  "model_role_ids": null,
+  "result_contract": "forensics.enterprise-response/v1",
+  "result_kind": "table",
+  "presentation_type": "bounded_records_table",
+  "citation_required": true,
+  "criticality_tier": "B",
+  "certification_status": "bounded_uncertified",
+  "exposure_status": "limited",
+  "suggestion_eligible": false,
+  "limitations": [
+   "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+  ],
+  "availability": {
+   "implemented": true,
+   "runtime_available": true,
+   "data_available": true,
+   "authorized": true,
+   "model_available": true,
+   "maturity": "operational",
+   "queryable": true,
+   "executable": true,
+   "reason_codes": null
+  }
+ },
+ "route": [
+  "records_sql"
+ ],
+ "policy": "Exact analytics are computed from parameterized SQL templates. KB content is used only for evidence, source previews, and contextual grounding.",
+ "planner": {
+  "capability_id": "forensics.longest_call",
+  "confidence": 0.74,
+  "date_from": "",
+  "date_to": "",
+  "exact_identifier_authority": null,
+  "execution_plan_id": "7e100df4-8f47-4f78-828d-de12ce9be6b7:plan",
+  "extracted_target": "",
+  "field_hints": [
+   "duration"
+  ],
+  "hybrid_planner": null,
+  "language_assistance": "deterministic_fast_path",
+  "phrase_literal_authority": null,
+  "policy_decisions": [
+   "workspace_scope_bound",
+   "known_capability_only",
+   "read_only_executor",
+   "citations_capability_owned"
+  ],
+  "query_plan": {
+   "interpreted_intent": "records",
+   "selected_template": "longest_call",
+   "target_identifiers": [],
+   "date_bounds": {},
+   "applied_filters": {
+    "field_hints": [
+     "duration"
+    ],
+    "target_type": ""
+   },
+   "confidence": 0.74,
+   "coverage_check": {
+    "total_indexed_records": 0,
+    "record_families_present": null,
+    "nearest_activity": {},
+    "valid_target_examples": null
+   },
+   "execution_strategy": "sql_deterministic"
+  },
+  "query_understanding_version": "forensics.query-understanding/v1",
+  "reason": "rule-based runtime query planner; field hints extracted",
+  "retrieval_strategy": {
+   "contract_version": "forensics.document-retrieval-strategy/v1",
+   "derived_text": false,
+   "exact_is_semantic": false,
+   "kb_retrieval": false,
+   "retrieval_mode": "NONE",
+   "semantic_frame": "forensics.semantic-frame/v1"
+  },
+  "semantic_operation_planner": null,
+  "source": "runtime_query",
+  "target_type": "",
+  "targets": []
+ },
+ "query_plan": {
+  "interpreted_intent": "records",
+  "selected_template": "longest_call",
+  "target_identifiers": [],
+  "date_bounds": {},
+  "applied_filters": {
+   "field_hints": [
+    "duration"
+   ],
+   "target_type": ""
+  },
+  "confidence": 0.74,
+  "coverage_check": {
+   "total_indexed_records": 0,
+   "record_families_present": null,
+   "nearest_activity": {},
+   "valid_target_examples": null
+  },
+  "execution_strategy": "sql_deterministic"
+ },
+ "capability": {
+  "status": "supported_by_selected_route",
+  "requested_families": [],
+  "required_operations": [],
+  "missing_capabilities": [],
+  "explanation": "The selected deterministic or evidence route may run; collection coverage is reported separately.",
+  "suggested_queries": []
+ },
+ "coverage": {
+  "total_indexed_records": 0,
+  "record_families_present": null,
+  "nearest_activity": {},
+  "valid_target_examples": null
+ },
+ "records": {
+  "contribution_lineage": [
+   {
+    "contract_version": "forensics.contribution-lineage/v1",
+    "operation_id": "cdr.temporal_activity",
+    "contribution_count": 8642,
+    "source_group_count": 5,
+    "sources": [
+     {
+      "evidence_id": "ddd78d1b-3edf-4ed2-bc18-945c0a61fc3f",
+      "version_id": "60756c7e-ca5d-4e1c-ba82-b550840bc4d7",
+      "source_file": "seed_cdr_large.csv",
+      "contribution_count": 5000,
+      "first_row": 2,
+      "last_row": 5001,
+      "row_group_digest": "109334b71e5fac1206e32745da6563bce8c396df09aa928545d26aed5b201a95"
+     },
+     {
+      "evidence_id": "e82e2f89-ee26-4787-8f8a-2940db6ad61d",
+      "version_id": "eb551aea-fa05-46e4-9670-dcdf2cb1877c",
+      "source_file": "923461678183.csv",
+      "contribution_count": 3634,
+      "first_row": 2,
+      "last_row": 3932,
+      "row_group_digest": "5ecf79376798a7a02c3f7d9b423a313c909cc32b432a1e938d0cd7f004512583"
+     },
+     {
+      "evidence_id": "4320772b-febe-4af2-b9e3-92cea114da0b",
+      "version_id": "ad4b97c9-54eb-4657-afa7-5f06f52ba695",
+      "source_file": "pakistan_cdr_messy_synthetic.csv",
+      "contribution_count": 4,
+      "first_row": 2,
+      "last_row": 5,
+      "row_group_digest": "a31d84a057284bb6dc70a4949f9a1bf9bf5706f74f9648e2a3ecd2ec4c8526cb"
+     },
+     {
+      "evidence_id": "0b211c02-a666-4a56-8102-ec7536c0d7df",
+      "version_id": "8178e4f0-dc8e-4055-aeca-3cbeba8a0704",
+      "source_file": "pakistan_cdr_tsv_synthetic.tsv",
+      "contribution_count": 2,
+      "first_row": 2,
+      "last_row": 3,
+      "row_group_digest": "a75ced5a88e35ad58c1074f3b9094fa29b6522b28d8096e323ed15292137740d"
+     },
+     {
+      "evidence_id": "85a4e63e-9409-442c-a056-068d4c065f54",
+      "version_id": "e3359aeb-c8c6-4980-bcf4-bbd7ebe6859b",
+      "source_file": "r5_live_intake_ready_20260810.csv",
+      "contribution_count": 2,
+      "first_row": 2,
+      "last_row": 3,
+      "row_group_digest": "2adca19a47779904c0a043d22ebc076826ca8c232279654a6cb268905420ef40"
+     }
+    ],
+    "sources_complete": true,
+    "lineage_complete": true,
+    "lineage_digest": "sha256:2fe4ecaa05f811e05df8701a00c946b219358cec42c353a5b1c28683f91bcbb9",
+    "parameters": {
+     "collection_id": "nexusai-forensic-demo",
+     "date_from": "",
+     "date_to": "",
+     "direction": "",
+     "target": ""
+    }
+   }
+  ],
+  "daily_activity": [
+   {
+    "day_start": "2026-04-01T00:00:00Z",
+    "event_count": 120,
+    "total_duration_seconds": 17245
+   },
+   {
+    "day_start": "2026-04-02T00:00:00Z",
+    "event_count": 533,
+    "total_duration_seconds": 117453
+   },
+   {
+    "day_start": "2026-04-03T00:00:00Z",
+    "event_count": 542,
+    "total_duration_seconds": 134992
+   },
+   {
+    "day_start": "2026-04-04T00:00:00Z",
+    "event_count": 540,
+    "total_duration_seconds": 116369
+   },
+   {
+    "day_start": "2026-04-05T00:00:00Z",
+    "event_count": 391,
+    "total_duration_seconds": 90420
+   },
+   {
+    "day_start": "2026-04-06T00:00:00Z",
+    "event_count": 306,
+    "total_duration_seconds": 77481
+   },
+   {
+    "day_start": "2026-04-07T00:00:00Z",
+    "event_count": 301,
+    "total_duration_seconds": 60786
+   },
+   {
+    "day_start": "2026-04-08T00:00:00Z",
+    "event_count": 317,
+    "total_duration_seconds": 60905
+   },
+   {
+    "day_start": "2026-04-09T00:00:00Z",
+    "event_count": 232,
+    "total_duration_seconds": 50765
+   },
+   {
+    "day_start": "2026-04-10T00:00:00Z",
+    "event_count": 254,
+    "total_duration_seconds": 56089
+   },
+   {
+    "day_start": "2026-04-11T00:00:00Z",
+    "event_count": 244,
+    "total_duration_seconds": 45146
+   },
+   {
+    "day_start": "2026-04-12T00:00:00Z",
+    "event_count": 194,
+    "total_duration_seconds": 37124
+   },
+   {
+    "day_start": "2026-04-13T00:00:00Z",
+    "event_count": 196,
+    "total_duration_seconds": 42254
+   },
+   {
+    "day_start": "2026-04-14T00:00:00Z",
+    "event_count": 151,
+    "total_duration_seconds": 31669
+   },
+   {
+    "day_start": "2026-04-15T00:00:00Z",
+    "event_count": 143,
+    "total_duration_seconds": 28316
+   },
+   {
+    "day_start": "2026-04-16T00:00:00Z",
+    "event_count": 120,
+    "total_duration_seconds": 27893
+   },
+   {
+    "day_start": "2026-04-17T00:00:00Z",
+    "event_count": 91,
+    "total_duration_seconds": 25829
+   },
+   {
+    "day_start": "2026-04-18T00:00:00Z",
+    "event_count": 105,
+    "total_duration_seconds": 31693
+   },
+   {
+    "day_start": "2026-04-19T00:00:00Z",
+    "event_count": 61,
+    "total_duration_seconds": 13514
+   },
+   {
+    "day_start": "2026-04-20T00:00:00Z",
+    "event_count": 60,
+    "total_duration_seconds": 13424
+   },
+   {
+    "day_start": "2026-04-21T00:00:00Z",
+    "event_count": 62,
+    "total_duration_seconds": 16607
+   },
+   {
+    "day_start": "2026-04-22T00:00:00Z",
+    "event_count": 53,
+    "total_duration_seconds": 16008
+   },
+   {
+    "day_start": "2026-04-23T00:00:00Z",
+    "event_count": 35,
+    "total_duration_seconds": 10398
+   },
+   {
+    "day_start": "2026-04-24T00:00:00Z",
+    "event_count": 37,
+    "total_duration_seconds": 9229
+   },
+   {
+    "day_start": "2026-04-25T00:00:00Z",
+    "event_count": 34,
+    "total_duration_seconds": 11269
+   },
+   {
+    "day_start": "2026-04-26T00:00:00Z",
+    "event_count": 11,
+    "total_duration_seconds": 1262
+   },
+   {
+    "day_start": "2026-04-27T00:00:00Z",
+    "event_count": 17,
+    "total_duration_seconds": 0
+   },
+   {
+    "day_start": "2026-04-28T00:00:00Z",
+    "event_count": 5,
+    "total_duration_seconds": 0
+   },
+   {
+    "day_start": "2026-04-29T00:00:00Z",
+    "event_count": 17,
+    "total_duration_seconds": 67
+   },
+   {
+    "day_start": "2026-04-30T00:00:00Z",
+    "event_count": 9,
+    "total_duration_seconds": 18
+   },
+   {
+    "day_start": "2026-05-01T00:00:00Z",
+    "event_count": 17,
+    "total_duration_seconds": 0
+   },
+   {
+    "day_start": "2026-05-02T00:00:00Z",
+    "event_count": 8,
+    "total_duration_seconds": 0
+   },
+   {
+    "day_start": "2026-05-03T00:00:00Z",
+    "event_count": 7,
+    "total_duration_seconds": 0
+   },
+   {
+    "day_start": "2026-05-04T00:00:00Z",
+    "event_count": 12,
+    "total_duration_seconds": 28
+   },
+   {
+    "day_start": "2026-05-05T00:00:00Z",
+    "event_count": 4,
+    "total_duration_seconds": 0
+   },
+   {
+    "day_start": "2026-05-06T00:00:00Z",
+    "event_count": 3,
+    "total_duration_seconds": 24
+   },
+   {
+    "day_start": "2026-05-07T00:00:00Z",
+    "event_count": 5,
+    "total_duration_seconds": 37
+   },
+   {
+    "day_start": "2026-05-08T00:00:00Z",
+    "event_count": 6,
+    "total_duration_seconds": 20
+   },
+   {
+    "day_start": "2026-05-09T00:00:00Z",
+    "event_count": 3,
+    "total_duration_seconds": 29
+   },
+   {
+    "day_start": "2026-05-13T00:00:00Z",
+    "event_count": 13,
+    "total_duration_seconds": 30
+   },
+   {
+    "day_start": "2026-05-14T00:00:00Z",
+    "event_count": 126,
+    "total_duration_seconds": 1722
+   },
+   {
+    "day_start": "2026-05-15T00:00:00Z",
+    "event_count": 15,
+    "total_duration_seconds": 394
+   },
+   {
+    "day_start": "2026-05-16T00:00:00Z",
+    "event_count": 8,
+    "total_duration_seconds": 61
+   },
+   {
+    "day_start": "2026-05-17T00:00:00Z",
+    "event_count": 26,
+    "total_duration_seconds": 728
+   },
+   {
+    "day_start": "2026-05-18T00:00:00Z",
+    "event_count": 62,
+    "total_duration_seconds": 36
+   },
+   {
+    "day_start": "2026-05-19T00:00:00Z",
+    "event_count": 26,
+    "total_duration_seconds": 0
+   },
+   {
+    "day_start": "2026-05-20T00:00:00Z",
+    "event_count": 46,
+    "total_duration_seconds": 0
+   },
+   {
+    "day_start": "2026-05-21T00:00:00Z",
+    "event_count": 75,
+    "total_duration_seconds": 74
+   },
+   {
+    "day_start": "2026-05-22T00:00:00Z",
+    "event_count": 59,
+    "total_duration_seconds": 72
+   },
+   {
+    "day_start": "2026-05-23T00:00:00Z",
+    "event_count": 40,
+    "total_duration_seconds": 180
+   },
+   {
+    "day_start": "2026-05-24T00:00:00Z",
+    "event_count": 46,
+    "total_duration_seconds": 87
+   },
+   {
+    "day_start": "2026-05-25T00:00:00Z",
+    "event_count": 14,
+    "total_duration_seconds": 0
+   },
+   {
+    "day_start": "2026-05-26T00:00:00Z",
+    "event_count": 99,
+    "total_duration_seconds": 244
+   },
+   {
+    "day_start": "2026-05-27T00:00:00Z",
+    "event_count": 58,
+    "total_duration_seconds": 779
+   },
+   {
+    "day_start": "2026-05-28T00:00:00Z",
+    "event_count": 34,
+    "total_duration_seconds": 302
+   },
+   {
+    "day_start": "2026-05-29T00:00:00Z",
+    "event_count": 41,
+    "total_duration_seconds": 0
+   },
+   {
+    "day_start": "2026-05-30T00:00:00Z",
+    "event_count": 98,
+    "total_duration_seconds": 0
+   },
+   {
+    "day_start": "2026-05-31T00:00:00Z",
+    "event_count": 47,
+    "total_duration_seconds": 514
+   },
+   {
+    "day_start": "2026-06-01T00:00:00Z",
+    "event_count": 88,
+    "total_duration_seconds": 269
+   },
+   {
+    "day_start": "2026-06-02T00:00:00Z",
+    "event_count": 127,
+    "total_duration_seconds": 677
+   },
+   {
+    "day_start": "2026-06-03T00:00:00Z",
+    "event_count": 103,
+    "total_duration_seconds": 280
+   },
+   {
+    "day_start": "2026-06-04T00:00:00Z",
+    "event_count": 128,
+    "total_duration_seconds": 195
+   },
+   {
+    "day_start": "2026-06-05T00:00:00Z",
+    "event_count": 225,
+    "total_duration_seconds": 58
+   },
+   {
+    "day_start": "2026-06-06T00:00:00Z",
+    "event_count": 247,
+    "total_duration_seconds": 73
+   },
+   {
+    "day_start": "2026-06-07T00:00:00Z",
+    "event_count": 170,
+    "total_duration_seconds": 92
+   },
+   {
+    "day_start": "2026-06-08T00:00:00Z",
+    "event_count": 53,
+    "total_duration_seconds": 0
+   },
+   {
+    "day_start": "2026-06-09T00:00:00Z",
+    "event_count": 152,
+    "total_duration_seconds": 118
+   },
+   {
+    "day_start": "2026-06-10T00:00:00Z",
+    "event_count": 173,
+    "total_duration_seconds": 0
+   },
+   {
+    "day_start": "2026-06-11T00:00:00Z",
+    "event_count": 70,
+    "total_duration_seconds": 61
+   },
+   {
+    "day_start": "2026-06-12T00:00:00Z",
+    "event_count": 193,
+    "total_duration_seconds": 297
+   },
+   {
+    "day_start": "2026-06-13T00:00:00Z",
+    "event_count": 168,
+    "total_duration_seconds": 0
+   },
+   {
+    "day_start": "2026-06-14T00:00:00Z",
+    "event_count": 504,
+    "total_duration_seconds": 449
+   },
+   {
+    "day_start": "2026-06-15T00:00:00Z",
+    "event_count": 9,
+    "total_duration_seconds": 123
+   },
+   {
+    "day_start": "2026-06-16T00:00:00Z",
+    "event_count": 3,
+    "total_duration_seconds": 0
+   },
+   {
+    "day_start": "2026-06-17T00:00:00Z",
+    "event_count": 2,
+    "total_duration_seconds": 36
+   },
+   {
+    "day_start": "2026-06-18T00:00:00Z",
+    "event_count": 1,
+    "total_duration_seconds": 42
+   },
+   {
+    "day_start": "2026-06-19T00:00:00Z",
+    "event_count": 19,
+    "total_duration_seconds": 23
+   },
+   {
+    "day_start": "2026-06-20T00:00:00Z",
+    "event_count": 20,
+    "total_duration_seconds": 0
+   },
+   {
+    "day_start": "2026-07-10T00:00:00Z",
+    "event_count": 4,
+    "total_duration_seconds": 55
+   },
+   {
+    "day_start": "2026-07-21T00:00:00Z",
+    "event_count": 2,
+    "total_duration_seconds": 50
+   },
+   {
+    "day_start": "2026-08-10T00:00:00Z",
+    "event_count": 2,
+    "total_duration_seconds": 60
+   }
+  ],
+  "date_from": "",
+  "date_to": "",
+  "duration_extremes": [
+   {
+    "call_dialed_num": "923001110001",
+    "call_org_num": "923009998882",
+    "call_type": "CALL",
+    "direction": "INCOMING",
+    "duration_seconds": 1798,
+    "location": "Model Town",
+    "metric": "longest_call",
+    "msisdn": "923001110001",
+    "observed_at": "2026-04-02T16:30:42Z",
+    "row_number": 432,
+    "source_file": "seed_cdr_large.csv"
+   }
+  ],
+  "duration_stats": {
+   "average_nonzero_duration": "789.95",
+   "longest_duration": 1798,
+   "nonzero_duration_events": 1459,
+   "shortest_nonzero_duration": 1
+  },
+  "hourly_activity": [
+   {
+    "event_count": 254,
+    "hour_of_day": 0
+   },
+   {
+    "event_count": 283,
+    "hour_of_day": 1
+   },
+   {
+    "event_count": 295,
+    "hour_of_day": 2
+   },
+   {
+    "event_count": 317,
+    "hour_of_day": 3
+   },
+   {
+    "event_count": 413,
+    "hour_of_day": 4
+   },
+   {
+    "event_count": 424,
+    "hour_of_day": 5
+   },
+   {
+    "event_count": 463,
+    "hour_of_day": 6
+   },
+   {
+    "event_count": 305,
+    "hour_of_day": 7
+   },
+   {
+    "event_count": 348,
+    "hour_of_day": 8
+   },
+   {
+    "event_count": 370,
+    "hour_of_day": 9
+   },
+   {
+    "event_count": 310,
+    "hour_of_day": 10
+   },
+   {
+    "event_count": 328,
+    "hour_of_day": 11
+   },
+   {
+    "event_count": 409,
+    "hour_of_day": 12
+   },
+   {
+    "event_count": 335,
+    "hour_of_day": 13
+   },
+   {
+    "event_count": 411,
+    "hour_of_day": 14
+   },
+   {
+    "event_count": 454,
+    "hour_of_day": 15
+   },
+   {
+    "event_count": 449,
+    "hour_of_day": 16
+   },
+   {
+    "event_count": 444,
+    "hour_of_day": 17
+   },
+   {
+    "event_count": 516,
+    "hour_of_day": 18
+   },
+   {
+    "event_count": 590,
+    "hour_of_day": 19
+   },
+   {
+    "event_count": 260,
+    "hour_of_day": 20
+   },
+   {
+    "event_count": 246,
+    "hour_of_day": 21
+   },
+   {
+    "event_count": 207,
+    "hour_of_day": 22
+   },
+   {
+    "event_count": 211,
+    "hour_of_day": 23
+   }
+  ],
+  "nocturnal": {
+   "nocturnal_events": 1308
+  },
+  "row_count": 1,
+  "target": ""
+ },
+ "answer": {
+  "guardrail": "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations.",
+  "records_row_count": 106,
+  "records_status": "matched",
+  "records_summary": "Computed deterministic records result."
+ },
+ "enterprise": {
+  "clarification": "",
+  "contribution_lineage": [
+   {
+    "contract_version": "forensics.contribution-lineage/v1",
+    "operation_id": "cdr.temporal_activity",
+    "contribution_count": 8642,
+    "source_group_count": 5,
+    "sources": [
+     {
+      "evidence_id": "ddd78d1b-3edf-4ed2-bc18-945c0a61fc3f",
+      "version_id": "60756c7e-ca5d-4e1c-ba82-b550840bc4d7",
+      "source_file": "seed_cdr_large.csv",
+      "contribution_count": 5000,
+      "first_row": 2,
+      "last_row": 5001,
+      "row_group_digest": "109334b71e5fac1206e32745da6563bce8c396df09aa928545d26aed5b201a95"
+     },
+     {
+      "evidence_id": "e82e2f89-ee26-4787-8f8a-2940db6ad61d",
+      "version_id": "eb551aea-fa05-46e4-9670-dcdf2cb1877c",
+      "source_file": "923461678183.csv",
+      "contribution_count": 3634,
+      "first_row": 2,
+      "last_row": 3932,
+      "row_group_digest": "5ecf79376798a7a02c3f7d9b423a313c909cc32b432a1e938d0cd7f004512583"
+     },
+     {
+      "evidence_id": "4320772b-febe-4af2-b9e3-92cea114da0b",
+      "version_id": "ad4b97c9-54eb-4657-afa7-5f06f52ba695",
+      "source_file": "pakistan_cdr_messy_synthetic.csv",
+      "contribution_count": 4,
+      "first_row": 2,
+      "last_row": 5,
+      "row_group_digest": "a31d84a057284bb6dc70a4949f9a1bf9bf5706f74f9648e2a3ecd2ec4c8526cb"
+     },
+     {
+      "evidence_id": "0b211c02-a666-4a56-8102-ec7536c0d7df",
+      "version_id": "8178e4f0-dc8e-4055-aeca-3cbeba8a0704",
+      "source_file": "pakistan_cdr_tsv_synthetic.tsv",
+      "contribution_count": 2,
+      "first_row": 2,
+      "last_row": 3,
+      "row_group_digest": "a75ced5a88e35ad58c1074f3b9094fa29b6522b28d8096e323ed15292137740d"
+     },
+     {
+      "evidence_id": "85a4e63e-9409-442c-a056-068d4c065f54",
+      "version_id": "e3359aeb-c8c6-4980-bcf4-bbd7ebe6859b",
+      "source_file": "r5_live_intake_ready_20260810.csv",
+      "contribution_count": 2,
+      "first_row": 2,
+      "last_row": 3,
+      "row_group_digest": "2adca19a47779904c0a043d22ebc076826ca8c232279654a6cb268905420ef40"
+     }
+    ],
+    "sources_complete": true,
+    "lineage_complete": true,
+    "lineage_digest": "sha256:2fe4ecaa05f811e05df8701a00c946b219358cec42c353a5b1c28683f91bcbb9",
+    "parameters": {
+     "collection_id": "nexusai-forensic-demo",
+     "date_from": "",
+     "date_to": "",
+     "direction": "",
+     "target": ""
+    }
+   }
+  ],
+  "conversation_context": {
+   "analysis_id": "",
+   "audit_id": "ctx-1789712892431546255",
+   "citation_handles": [
+    {
+     "handle_id": "citation-C1",
+     "kind": "citation",
+     "citation_id": "C1"
+    },
+    {
+     "handle_id": "citation-C2",
+     "kind": "citation",
+     "citation_id": "C2"
+    }
+   ],
+   "collection_id": "nexusai-forensic-demo",
+   "contract_version": "forensics.follow-up-context/v1",
+   "conversation_id": "",
+   "created_at": "2026-09-18T06:28:12Z",
+   "current_question": "What was the longest call?",
+   "date_from": "",
+   "date_to": "",
+   "direction": "",
+   "entity_handles": [],
+   "evidence_id": "",
+   "evidence_version_id": "",
+   "expires_at": "2026-09-18T06:58:12Z",
+   "fact_handles": [
+    {
+     "handle_id": "fact-F1",
+     "kind": "fact",
+     "fact_id": "F1"
+    },
+    {
+     "handle_id": "fact-F2",
+     "kind": "fact",
+     "fact_id": "F2"
+    },
+    {
+     "handle_id": "fact-F3",
+     "kind": "fact",
+     "fact_id": "F3"
+    },
+    {
+     "handle_id": "fact-F4",
+     "kind": "fact",
+     "fact_id": "F4"
+    },
+    {
+     "handle_id": "fact-F5",
+     "kind": "fact",
+     "fact_id": "F5"
+    },
+    {
+     "handle_id": "fact-F6",
+     "kind": "fact",
+     "fact_id": "F6"
+    },
+    {
+     "handle_id": "fact-F7",
+     "kind": "fact",
+     "fact_id": "F7"
+    },
+    {
+     "handle_id": "fact-F8",
+     "kind": "fact",
+     "fact_id": "F8"
+    },
+    {
+     "handle_id": "fact-F9",
+     "kind": "fact",
+     "fact_id": "F9"
+    }
+   ],
+   "inherited_fields": null,
+   "issued_fields": null,
+   "mutation": null,
+   "operation_id": "forensics.longest_call",
+   "result_handles": [
+    {
+     "handle_id": "result-1",
+     "kind": "result"
+    },
+    {
+     "handle_id": "result-2",
+     "kind": "result",
+     "value": "seed_cdr_large.csv"
+    }
+   ],
+   "source_native": null,
+   "source_set": null,
+   "target": "",
+   "targets": [],
+   "template": "longest_call",
+   "tenant_id": "default",
+   "turn_id": "",
+   "user_id": "live-eval"
+  },
+  "coverage": {
+   "collection_id": "nexusai-forensic-demo",
+   "collection_max_timestamp": "",
+   "collection_min_timestamp": "",
+   "date_from": "",
+   "date_to": "",
+   "direction": "",
+   "nearest_activity": {},
+   "queried_kb": false,
+   "queried_record_sql": true,
+   "record_families_present": null,
+   "route": [
+    "records_sql"
+   ],
+   "target": "",
+   "template": "longest_call",
+   "tenant_id": "default",
+   "total_indexed_records": 0,
+   "valid_target_examples": null
+  },
+  "data_grid": {
+   "columns": [
+    {
+     "header": "DAY Start",
+     "key": "day_start"
+    },
+    {
+     "header": "Event Count",
+     "key": "event_count"
+    },
+    {
+     "header": "Section",
+     "key": "section"
+    },
+    {
+     "header": "Total Duration Seconds",
+     "key": "total_duration_seconds"
+    },
+    {
+     "header": "Call Dialed NUM",
+     "key": "call_dialed_num"
+    },
+    {
+     "header": "Call ORG NUM",
+     "key": "call_org_num"
+    },
+    {
+     "header": "Call Type",
+     "key": "call_type"
+    },
+    {
+     "header": "Direction",
+     "key": "direction"
+    },
+    {
+     "header": "Duration Seconds",
+     "key": "duration_seconds"
+    },
+    {
+     "header": "Location",
+     "key": "location"
+    },
+    {
+     "header": "Metric",
+     "key": "metric"
+    },
+    {
+     "header": "Msisdn",
+     "key": "msisdn"
+    },
+    {
+     "header": "Observed AT",
+     "key": "observed_at"
+    },
+    {
+     "header": "ROW Number",
+     "key": "row_number"
+    },
+    {
+     "header": "Source File",
+     "key": "source_file"
+    },
+    {
+     "header": "Average Nonzero Duration",
+     "key": "average_nonzero_duration"
+    },
+    {
+     "header": "Longest Duration",
+     "key": "longest_duration"
+    },
+    {
+     "header": "Nonzero Duration Events",
+     "key": "nonzero_duration_events"
+    },
+    {
+     "header": "Shortest Nonzero Duration",
+     "key": "shortest_nonzero_duration"
+    },
+    {
+     "header": "Hour OF DAY",
+     "key": "hour_of_day"
+    }
+   ],
+   "count": 100,
+   "rows": [
+    {
+     "day_start": "2026-04-01T00:00:00Z",
+     "event_count": 120,
+     "section": "daily_activity",
+     "total_duration_seconds": 17245
+    },
+    {
+     "day_start": "2026-04-02T00:00:00Z",
+     "event_count": 533,
+     "section": "daily_activity",
+     "total_duration_seconds": 117453
+    },
+    {
+     "day_start": "2026-04-03T00:00:00Z",
+     "event_count": 542,
+     "section": "daily_activity",
+     "total_duration_seconds": 134992
+    },
+    {
+     "day_start": "2026-04-04T00:00:00Z",
+     "event_count": 540,
+     "section": "daily_activity",
+     "total_duration_seconds": 116369
+    },
+    {
+     "day_start": "2026-04-05T00:00:00Z",
+     "event_count": 391,
+     "section": "daily_activity",
+     "total_duration_seconds": 90420
+    },
+    {
+     "day_start": "2026-04-06T00:00:00Z",
+     "event_count": 306,
+     "section": "daily_activity",
+     "total_duration_seconds": 77481
+    },
+    {
+     "day_start": "2026-04-07T00:00:00Z",
+     "event_count": 301,
+     "section": "daily_activity",
+     "total_duration_seconds": 60786
+    },
+    {
+     "day_start": "2026-04-08T00:00:00Z",
+     "event_count": 317,
+     "section": "daily_activity",
+     "total_duration_seconds": 60905
+    },
+    {
+     "day_start": "2026-04-09T00:00:00Z",
+     "event_count": 232,
+     "section": "daily_activity",
+     "total_duration_seconds": 50765
+    },
+    {
+     "day_start": "2026-04-10T00:00:00Z",
+     "event_count": 254,
+     "section": "daily_activity",
+     "total_duration_seconds": 56089
+    },
+    {
+     "day_start": "2026-04-11T00:00:00Z",
+     "event_count": 244,
+     "section": "daily_activity",
+     "total_duration_seconds": 45146
+    },
+    {
+     "day_start": "2026-04-12T00:00:00Z",
+     "event_count": 194,
+     "section": "daily_activity",
+     "total_duration_seconds": 37124
+    },
+    {
+     "day_start": "2026-04-13T00:00:00Z",
+     "event_count": 196,
+     "section": "daily_activity",
+     "total_duration_seconds": 42254
+    },
+    {
+     "day_start": "2026-04-14T00:00:00Z",
+     "event_count": 151,
+     "section": "daily_activity",
+     "total_duration_seconds": 31669
+    },
+    {
+     "day_start": "2026-04-15T00:00:00Z",
+     "event_count": 143,
+     "section": "daily_activity",
+     "total_duration_seconds": 28316
+    },
+    {
+     "day_start": "2026-04-16T00:00:00Z",
+     "event_count": 120,
+     "section": "daily_activity",
+     "total_duration_seconds": 27893
+    },
+    {
+     "day_start": "2026-04-17T00:00:00Z",
+     "event_count": 91,
+     "section": "daily_activity",
+     "total_duration_seconds": 25829
+    },
+    {
+     "day_start": "2026-04-18T00:00:00Z",
+     "event_count": 105,
+     "section": "daily_activity",
+     "total_duration_seconds": 31693
+    },
+    {
+     "day_start": "2026-04-19T00:00:00Z",
+     "event_count": 61,
+     "section": "daily_activity",
+     "total_duration_seconds": 13514
+    },
+    {
+     "day_start": "2026-04-20T00:00:00Z",
+     "event_count": 60,
+     "section": "daily_activity",
+     "total_duration_seconds": 13424
+    },
+    {
+     "day_start": "2026-04-21T00:00:00Z",
+     "event_count": 62,
+     "section": "daily_activity",
+     "total_duration_seconds": 16607
+    },
+    {
+     "day_start": "2026-04-22T00:00:00Z",
+     "event_count": 53,
+     "section": "daily_activity",
+     "total_duration_seconds": 16008
+    },
+    {
+     "day_start": "2026-04-23T00:00:00Z",
+     "event_count": 35,
+     "section": "daily_activity",
+     "total_duration_seconds": 10398
+    },
+    {
+     "day_start": "2026-04-24T00:00:00Z",
+     "event_count": 37,
+     "section": "daily_activity",
+     "total_duration_seconds": 9229
+    },
+    {
+     "day_start": "2026-04-25T00:00:00Z",
+     "event_count": 34,
+     "section": "daily_activity",
+     "total_duration_seconds": 11269
+    },
+    {
+     "day_start": "2026-04-26T00:00:00Z",
+     "event_count": 11,
+     "section": "daily_activity",
+     "total_duration_seconds": 1262
+    },
+    {
+     "day_start": "2026-04-27T00:00:00Z",
+     "event_count": 17,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-04-28T00:00:00Z",
+     "event_count": 5,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-04-29T00:00:00Z",
+     "event_count": 17,
+     "section": "daily_activity",
+     "total_duration_seconds": 67
+    },
+    {
+     "day_start": "2026-04-30T00:00:00Z",
+     "event_count": 9,
+     "section": "daily_activity",
+     "total_duration_seconds": 18
+    },
+    {
+     "day_start": "2026-05-01T00:00:00Z",
+     "event_count": 17,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-05-02T00:00:00Z",
+     "event_count": 8,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-05-03T00:00:00Z",
+     "event_count": 7,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-05-04T00:00:00Z",
+     "event_count": 12,
+     "section": "daily_activity",
+     "total_duration_seconds": 28
+    },
+    {
+     "day_start": "2026-05-05T00:00:00Z",
+     "event_count": 4,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-05-06T00:00:00Z",
+     "event_count": 3,
+     "section": "daily_activity",
+     "total_duration_seconds": 24
+    },
+    {
+     "day_start": "2026-05-07T00:00:00Z",
+     "event_count": 5,
+     "section": "daily_activity",
+     "total_duration_seconds": 37
+    },
+    {
+     "day_start": "2026-05-08T00:00:00Z",
+     "event_count": 6,
+     "section": "daily_activity",
+     "total_duration_seconds": 20
+    },
+    {
+     "day_start": "2026-05-09T00:00:00Z",
+     "event_count": 3,
+     "section": "daily_activity",
+     "total_duration_seconds": 29
+    },
+    {
+     "day_start": "2026-05-13T00:00:00Z",
+     "event_count": 13,
+     "section": "daily_activity",
+     "total_duration_seconds": 30
+    },
+    {
+     "day_start": "2026-05-14T00:00:00Z",
+     "event_count": 126,
+     "section": "daily_activity",
+     "total_duration_seconds": 1722
+    },
+    {
+     "day_start": "2026-05-15T00:00:00Z",
+     "event_count": 15,
+     "section": "daily_activity",
+     "total_duration_seconds": 394
+    },
+    {
+     "day_start": "2026-05-16T00:00:00Z",
+     "event_count": 8,
+     "section": "daily_activity",
+     "total_duration_seconds": 61
+    },
+    {
+     "day_start": "2026-05-17T00:00:00Z",
+     "event_count": 26,
+     "section": "daily_activity",
+     "total_duration_seconds": 728
+    },
+    {
+     "day_start": "2026-05-18T00:00:00Z",
+     "event_count": 62,
+     "section": "daily_activity",
+     "total_duration_seconds": 36
+    },
+    {
+     "day_start": "2026-05-19T00:00:00Z",
+     "event_count": 26,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-05-20T00:00:00Z",
+     "event_count": 46,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-05-21T00:00:00Z",
+     "event_count": 75,
+     "section": "daily_activity",
+     "total_duration_seconds": 74
+    },
+    {
+     "day_start": "2026-05-22T00:00:00Z",
+     "event_count": 59,
+     "section": "daily_activity",
+     "total_duration_seconds": 72
+    },
+    {
+     "day_start": "2026-05-23T00:00:00Z",
+     "event_count": 40,
+     "section": "daily_activity",
+     "total_duration_seconds": 180
+    },
+    {
+     "day_start": "2026-05-24T00:00:00Z",
+     "event_count": 46,
+     "section": "daily_activity",
+     "total_duration_seconds": 87
+    },
+    {
+     "day_start": "2026-05-25T00:00:00Z",
+     "event_count": 14,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-05-26T00:00:00Z",
+     "event_count": 99,
+     "section": "daily_activity",
+     "total_duration_seconds": 244
+    },
+    {
+     "day_start": "2026-05-27T00:00:00Z",
+     "event_count": 58,
+     "section": "daily_activity",
+     "total_duration_seconds": 779
+    },
+    {
+     "day_start": "2026-05-28T00:00:00Z",
+     "event_count": 34,
+     "section": "daily_activity",
+     "total_duration_seconds": 302
+    },
+    {
+     "day_start": "2026-05-29T00:00:00Z",
+     "event_count": 41,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-05-30T00:00:00Z",
+     "event_count": 98,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-05-31T00:00:00Z",
+     "event_count": 47,
+     "section": "daily_activity",
+     "total_duration_seconds": 514
+    },
+    {
+     "day_start": "2026-06-01T00:00:00Z",
+     "event_count": 88,
+     "section": "daily_activity",
+     "total_duration_seconds": 269
+    },
+    {
+     "day_start": "2026-06-02T00:00:00Z",
+     "event_count": 127,
+     "section": "daily_activity",
+     "total_duration_seconds": 677
+    },
+    {
+     "day_start": "2026-06-03T00:00:00Z",
+     "event_count": 103,
+     "section": "daily_activity",
+     "total_duration_seconds": 280
+    },
+    {
+     "day_start": "2026-06-04T00:00:00Z",
+     "event_count": 128,
+     "section": "daily_activity",
+     "total_duration_seconds": 195
+    },
+    {
+     "day_start": "2026-06-05T00:00:00Z",
+     "event_count": 225,
+     "section": "daily_activity",
+     "total_duration_seconds": 58
+    },
+    {
+     "day_start": "2026-06-06T00:00:00Z",
+     "event_count": 247,
+     "section": "daily_activity",
+     "total_duration_seconds": 73
+    },
+    {
+     "day_start": "2026-06-07T00:00:00Z",
+     "event_count": 170,
+     "section": "daily_activity",
+     "total_duration_seconds": 92
+    },
+    {
+     "day_start": "2026-06-08T00:00:00Z",
+     "event_count": 53,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-06-09T00:00:00Z",
+     "event_count": 152,
+     "section": "daily_activity",
+     "total_duration_seconds": 118
+    },
+    {
+     "day_start": "2026-06-10T00:00:00Z",
+     "event_count": 173,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-06-11T00:00:00Z",
+     "event_count": 70,
+     "section": "daily_activity",
+     "total_duration_seconds": 61
+    },
+    {
+     "day_start": "2026-06-12T00:00:00Z",
+     "event_count": 193,
+     "section": "daily_activity",
+     "total_duration_seconds": 297
+    },
+    {
+     "day_start": "2026-06-13T00:00:00Z",
+     "event_count": 168,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-06-14T00:00:00Z",
+     "event_count": 504,
+     "section": "daily_activity",
+     "total_duration_seconds": 449
+    },
+    {
+     "day_start": "2026-06-15T00:00:00Z",
+     "event_count": 9,
+     "section": "daily_activity",
+     "total_duration_seconds": 123
+    },
+    {
+     "day_start": "2026-06-16T00:00:00Z",
+     "event_count": 3,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-06-17T00:00:00Z",
+     "event_count": 2,
+     "section": "daily_activity",
+     "total_duration_seconds": 36
+    },
+    {
+     "day_start": "2026-06-18T00:00:00Z",
+     "event_count": 1,
+     "section": "daily_activity",
+     "total_duration_seconds": 42
+    },
+    {
+     "day_start": "2026-06-19T00:00:00Z",
+     "event_count": 19,
+     "section": "daily_activity",
+     "total_duration_seconds": 23
+    },
+    {
+     "day_start": "2026-06-20T00:00:00Z",
+     "event_count": 20,
+     "section": "daily_activity",
+     "total_duration_seconds": 0
+    },
+    {
+     "day_start": "2026-07-10T00:00:00Z",
+     "event_count": 4,
+     "section": "daily_activity",
+     "total_duration_seconds": 55
+    },
+    {
+     "day_start": "2026-07-21T00:00:00Z",
+     "event_count": 2,
+     "section": "daily_activity",
+     "total_duration_seconds": 50
+    },
+    {
+     "day_start": "2026-08-10T00:00:00Z",
+     "event_count": 2,
+     "section": "daily_activity",
+     "total_duration_seconds": 60
+    },
+    {
+     "call_dialed_num": "923001110001",
+     "call_org_num": "923009998882",
+     "call_type": "CALL",
+     "direction": "INCOMING",
+     "duration_seconds": 1798,
+     "location": "Model Town",
+     "metric": "longest_call",
+     "msisdn": "923001110001",
+     "observed_at": "2026-04-02T16:30:42Z",
+     "row_number": 432,
+     "section": "duration_extremes",
+     "source_file": "seed_cdr_large.csv"
+    },
+    {
+     "average_nonzero_duration": "789.95",
+     "longest_duration": 1798,
+     "nonzero_duration_events": 1459,
+     "section": "duration_stats",
+     "shortest_nonzero_duration": 1
+    },
+    {
+     "event_count": 254,
+     "hour_of_day": 0,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 283,
+     "hour_of_day": 1,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 295,
+     "hour_of_day": 2,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 317,
+     "hour_of_day": 3,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 413,
+     "hour_of_day": 4,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 424,
+     "hour_of_day": 5,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 463,
+     "hour_of_day": 6,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 305,
+     "hour_of_day": 7,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 348,
+     "hour_of_day": 8,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 370,
+     "hour_of_day": 9,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 310,
+     "hour_of_day": 10,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 328,
+     "hour_of_day": 11,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 409,
+     "hour_of_day": 12,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 335,
+     "hour_of_day": 13,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 411,
+     "hour_of_day": 14,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 454,
+     "hour_of_day": 15,
+     "section": "hourly_activity"
+    },
+    {
+     "event_count": 449,
+     "hour_of_day": 16,
+     "section": "hourly_activity"
+    }
+   ]
+  },
+  "executive_answer": "Computed deterministic records result.",
+  "fact_packet": {
+   "contract_version": "forensics.fact-packet/v1",
+   "request_id": "7e100df4-8f47-4f78-828d-de12ce9be6b7",
+   "question": "What was the longest call?",
+   "language": {
+    "tag": "en",
+    "source": "deterministic_extractor",
+    "confidence": 0.9
+   },
+   "scope": {
+    "tenant_id": "default",
+    "case_id": "nexusai-forensic-demo",
+    "collection_id": "nexusai-forensic-demo"
+   },
+   "operation_id": "forensics.longest_call",
+   "plan_id": "7e100df4-8f47-4f78-828d-de12ce9be6b7:plan",
+   "normalized_parameters": {
+    "date_from": "",
+    "date_to": "",
+    "direction": "",
+    "limit": 20,
+    "retrieval_mode": "NONE",
+    "source_file": "",
+    "source_set": null,
+    "target": "",
+    "targets": []
+   },
+   "execution_mode": "records_sql",
+   "result_state": "results_present",
+   "facts": [
+    {
+     "fact_id": "F1",
+     "kind": "direct_answer",
+     "text": "Computed deterministic records result.",
+     "citation_ids": [
+      "C1",
+      "C2"
+     ]
+    },
+    {
+     "fact_id": "F2",
+     "kind": "deterministic_fact",
+     "text": "Computed deterministic records result.",
+     "citation_ids": [
+      "C1",
+      "C2"
+     ]
+    },
+    {
+     "fact_id": "F3",
+     "kind": "deterministic_fact",
+     "text": "Structured records row count computed.",
+     "value": 106,
+     "citation_ids": [
+      "C1",
+      "C2"
+     ]
+    },
+    {
+     "fact_id": "F4",
+     "kind": "metric",
+     "text": "Template: longest_call",
+     "value": "longest_call",
+     "citation_ids": [
+      "C1",
+      "C2"
+     ]
+    },
+    {
+     "fact_id": "F5",
+     "kind": "metric",
+     "text": "Route: records_sql",
+     "value": "records_sql",
+     "citation_ids": [
+      "C1",
+      "C2"
+     ]
+    },
+    {
+     "fact_id": "F6",
+     "kind": "metric",
+     "text": "Planner Confidence: 0.74",
+     "value": 0.74,
+     "citation_ids": [
+      "C1",
+      "C2"
+     ]
+    },
+    {
+     "fact_id": "F7",
+     "kind": "metric",
+     "text": "Display Rows: 100",
+     "value": 100,
+     "citation_ids": [
+      "C1",
+      "C2"
+     ]
+    },
+    {
+     "fact_id": "F8",
+     "kind": "metric",
+     "text": "Records Row Count: 106",
+     "value": 106,
+     "citation_ids": [
+      "C1",
+      "C2"
+     ]
+    },
+    {
+     "fact_id": "F9",
+     "kind": "metric",
+     "text": "Provenance Items: 2",
+     "value": 2,
+     "citation_ids": [
+      "C1",
+      "C2"
+     ]
+    }
+   ],
+   "metrics": [
+    {
+     "label": "Template",
+     "source": "planner",
+     "value": "longest_call"
+    },
+    {
+     "label": "Route",
+     "source": "planner",
+     "value": "records_sql"
+    },
+    {
+     "label": "Planner Confidence",
+     "source": "planner",
+     "value": 0.74
+    },
+    {
+     "label": "Display Rows",
+     "source": "records_sql",
+     "value": 100
+    },
+    {
+     "label": "Records Row Count",
+     "source": "records_sql",
+     "value": 106
+    },
+    {
+     "label": "Evidence Count",
+     "source": "kb_rag",
+     "value": null
+    },
+    {
+     "label": "Provenance Items",
+     "source": "records_sql+kb_rag",
+     "value": 2
+    }
+   ],
+   "rows": [
+    {
+     "day_start": "2026-04-01T00:00:00Z",
+     "event_count": 120,
+     "section": "daily_activity",
+     "total_duration_seconds": 17245
+    },
+    {
+     "day_start": "2026-04-02T00:00:00Z",
+     "event_count": 533,
+     "section": "daily_activity",
+     "total_duration_seconds": 117453
+    },
+    {
+     "day_start": "2026-04-03T00:00:00Z",
+     "event_count": 542,
+     "section": "daily_activity",
+     "total_duration_seconds": 134992
+    },
+    {
+     "day_start": "2026-04-04T00:00:00Z",
+     "event_count": 540,
+     "section": "daily_activity",
+     "total_duration_seconds": 116369
+    },
+    {
+     "day_start": "2026-04-05T00:00:00Z",
+     "event_count": 391,
+     "section": "daily_activity",
+     "total_duration_seconds": 90420
+    },
+    {
+     "day_start": "2026-04-06T00:00:00Z",
+     "event_count": 306,
+     "section": "daily_activity",
+     "total_duration_seconds": 77481
+    },
+    {
+     "day_start": "2026-04-07T00:00:00Z",
+     "event_count": 301,
+     "section": "daily_activity",
+     "total_duration_seconds": 60786
+    },
+    {
+     "day_start": "2026-04-08T00:00:00Z",
+     "event_count": 317,
+     "section": "daily_activity",
+     "total_duration_seconds": 60905
+    },
+    {
+     "day_start": "2026-04-09T00:00:00Z",
+     "event_count": 232,
+     "section": "daily_activity",
+     "total_duration_seconds": 50765
+    },
+    {
+     "day_start": "2026-04-10T00:00:00Z",
+     "event_count": 254,
+     "section": "daily_activity",
+     "total_duration_seconds": 56089
+    },
+    {
+     "day_start": "2026-04-11T00:00:00Z",
+     "event_count": 244,
+     "section": "daily_activity",
+     "total_duration_seconds": 45146
+    },
+    {
+     "day_start": "2026-04-12T00:00:00Z",
+     "event_count": 194,
+     "section": "daily_activity",
+     "total_duration_seconds": 37124
+    },
+    {
+     "day_start": "2026-04-13T00:00:00Z",
+     "event_count": 196,
+     "section": "daily_activity",
+     "total_duration_seconds": 42254
+    },
+    {
+     "day_start": "2026-04-14T00:00:00Z",
+     "event_count": 151,
+     "section": "daily_activity",
+     "total_duration_seconds": 31669
+    },
+    {
+     "day_start": "2026-04-15T00:00:00Z",
+     "event_count": 143,
+     "section": "daily_activity",
+     "total_duration_seconds": 28316
+    },
+    {
+     "day_start": "2026-04-16T00:00:00Z",
+     "event_count": 120,
+     "section": "daily_activity",
+     "total_duration_seconds": 27893
+    },
+    {
+     "day_start": "2026-04-17T00:00:00Z",
+     "event_count": 91,
+     "section": "daily_activity",
+     "total_duration_seconds": 25829
+    },
+    {
+     "day_start": "2026-04-18T00:00:00Z",
+     "event_count": 105,
+     "section": "daily_activity",
+     "total_duration_seconds": 31693
+    },
+    {
+     "day_start": "2026-04-19T00:00:00Z",
+     "event_count": 61,
+     "section": "daily_activity",
+     "total_duration_seconds": 13514
+    },
+    {
+     "day_start": "2026-04-20T00:00:00Z",
+     "event_count": 60,
+     "section": "daily_activity",
+     "total_duration_seconds": 13424
+    }
+   ],
+   "row_set_state": "bounded",
+   "relationships": [],
+   "citations": [
+    {
+     "citation_id": "C1",
+     "proof_role": "aggregate_contribution_lineage",
+     "completeness": "complete"
+    },
+    {
+     "citation_id": "C2",
+     "source_file": "seed_cdr_large.csv",
+     "source_row": 432,
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    }
+   ],
+   "citation_set_state": "complete",
+   "aggregate_lineage": [
+    {
+     "contract_version": "forensics.contribution-lineage/v1",
+     "operation_id": "cdr.temporal_activity",
+     "contribution_count": 8642,
+     "source_group_count": 5,
+     "sources": [
+      {
+       "evidence_id": "ddd78d1b-3edf-4ed2-bc18-945c0a61fc3f",
+       "version_id": "60756c7e-ca5d-4e1c-ba82-b550840bc4d7",
+       "source_file": "seed_cdr_large.csv",
+       "contribution_count": 5000,
+       "first_row": 2,
+       "last_row": 5001,
+       "row_group_digest": "109334b71e5fac1206e32745da6563bce8c396df09aa928545d26aed5b201a95"
+      },
+      {
+       "evidence_id": "e82e2f89-ee26-4787-8f8a-2940db6ad61d",
+       "version_id": "eb551aea-fa05-46e4-9670-dcdf2cb1877c",
+       "source_file": "923461678183.csv",
+       "contribution_count": 3634,
+       "first_row": 2,
+       "last_row": 3932,
+       "row_group_digest": "5ecf79376798a7a02c3f7d9b423a313c909cc32b432a1e938d0cd7f004512583"
+      },
+      {
+       "evidence_id": "4320772b-febe-4af2-b9e3-92cea114da0b",
+       "version_id": "ad4b97c9-54eb-4657-afa7-5f06f52ba695",
+       "source_file": "pakistan_cdr_messy_synthetic.csv",
+       "contribution_count": 4,
+       "first_row": 2,
+       "last_row": 5,
+       "row_group_digest": "a31d84a057284bb6dc70a4949f9a1bf9bf5706f74f9648e2a3ecd2ec4c8526cb"
+      },
+      {
+       "evidence_id": "0b211c02-a666-4a56-8102-ec7536c0d7df",
+       "version_id": "8178e4f0-dc8e-4055-aeca-3cbeba8a0704",
+       "source_file": "pakistan_cdr_tsv_synthetic.tsv",
+       "contribution_count": 2,
+       "first_row": 2,
+       "last_row": 3,
+       "row_group_digest": "a75ced5a88e35ad58c1074f3b9094fa29b6522b28d8096e323ed15292137740d"
+      },
+      {
+       "evidence_id": "85a4e63e-9409-442c-a056-068d4c065f54",
+       "version_id": "e3359aeb-c8c6-4980-bcf4-bbd7ebe6859b",
+       "source_file": "r5_live_intake_ready_20260810.csv",
+       "contribution_count": 2,
+       "first_row": 2,
+       "last_row": 3,
+       "row_group_digest": "2adca19a47779904c0a043d22ebc076826ca8c232279654a6cb268905420ef40"
+      }
+     ],
+     "sources_complete": true,
+     "lineage_complete": true,
+     "lineage_digest": "sha256:2fe4ecaa05f811e05df8701a00c946b219358cec42c353a5b1c28683f91bcbb9",
+     "parameters": {
+      "collection_id": "nexusai-forensic-demo",
+      "date_from": "",
+      "date_to": "",
+      "direction": "",
+      "target": ""
+     }
+    }
+   ],
+   "conflicts": [],
+   "limitations": [
+    "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations.",
+    "Data grid is capped at 100 displayed rows from 106 matching records."
+   ],
+   "missingness": [],
+   "quality_warnings": null,
+   "available_follow_up_capabilities": [
+    {
+     "label": "Audit source files",
+     "query": "which files were ingested?",
+     "reason": "Review traceability and evidence coverage.",
+     "template": "source_file_audit"
+    },
+    {
+     "label": "Check analysis readiness",
+     "query": "is this case ready for analysis?",
+     "reason": "Confirm evidence-processing quality before reporting.",
+     "template": "case_readiness"
+    }
+   ],
+   "presentation_hints": {
+    "direction": "ltr",
+    "language": "en",
+    "presentation_type": "bounded_records_table",
+    "priority_columns": [
+     "day_start",
+     "event_count",
+     "section",
+     "total_duration_seconds",
+     "call_dialed_num",
+     "call_org_num",
+     "call_type",
+     "direction"
+    ],
+    "result_kind": "table"
+   }
+  },
+  "limitations": [
+   "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations.",
+   "Data grid is capped at 100 displayed rows from 106 matching records."
+  ],
+  "metrics": [
+   {
+    "label": "Template",
+    "source": "planner",
+    "value": "longest_call"
+   },
+   {
+    "label": "Route",
+    "source": "planner",
+    "value": "records_sql"
+   },
+   {
+    "label": "Planner Confidence",
+    "source": "planner",
+    "value": 0.74
+   },
+   {
+    "label": "Display Rows",
+    "source": "records_sql",
+    "value": 100
+   },
+   {
+    "label": "Records Row Count",
+    "source": "records_sql",
+    "value": 106
+   },
+   {
+    "label": "Evidence Count",
+    "source": "kb_rag",
+    "value": null
+   },
+   {
+    "label": "Provenance Items",
+    "source": "records_sql+kb_rag",
+    "value": 2
+   }
+  ],
+  "narrative": {
+   "contract_version": "forensics.narrative/v1",
+   "locale": "en",
+   "direction": "ltr",
+   "status": "deterministic",
+   "direct_answer": "Computed deterministic records result.",
+   "key_findings": [
+    {
+     "text": "Computed deterministic records result.",
+     "claim_type": "direct_answer",
+     "fact_refs": [
+      "F1"
+     ],
+     "citation_refs": [
+      "C1",
+      "C2"
+     ]
+    },
+    {
+     "text": "Computed deterministic records result.",
+     "claim_type": "deterministic_fact",
+     "fact_refs": [
+      "F2"
+     ],
+     "citation_refs": [
+      "C1",
+      "C2"
+     ]
+    },
+    {
+     "text": "Structured records row count computed.",
+     "claim_type": "deterministic_fact",
+     "fact_refs": [
+      "F3"
+     ],
+     "citation_refs": [
+      "C1",
+      "C2"
+     ]
+    },
+    {
+     "text": "Template: longest_call",
+     "claim_type": "metric",
+     "fact_refs": [
+      "F4"
+     ],
+     "citation_refs": [
+      "C1",
+      "C2"
+     ]
+    },
+    {
+     "text": "Route: records_sql",
+     "claim_type": "metric",
+     "fact_refs": [
+      "F5"
+     ],
+     "citation_refs": [
+      "C1",
+      "C2"
+     ]
+    }
+   ],
+   "comparisons": [],
+   "relationship_summary": [],
+   "limitations": [
+    "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations.",
+    "Data grid is capped at 100 displayed rows from 106 matching records."
+   ],
+   "suggested_questions": [
+    "which files were ingested?",
+    "is this case ready for analysis?"
+   ],
+   "fact_refs": [
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6",
+    "F7",
+    "F8",
+    "F9"
+   ],
+   "citation_refs": [
+    "C1",
+    "C2"
+   ],
+   "fallback": true
+  },
+  "operation": {
+   "family_id": "communications_cdr",
+   "operation_id": "forensics.longest_call",
+   "output_description": "Bounded deterministic longest call result with source traceability.",
+   "source_access": "records",
+   "template": "longest_call"
+  },
+  "plan_validation": {
+   "contract_version": "forensics.plan-validation/v1",
+   "plan_id": "7e100df4-8f47-4f78-828d-de12ce9be6b7:plan",
+   "valid": true,
+   "scope_authorized": true,
+   "capabilities_ready": true,
+   "dependencies_valid": true,
+   "budget_accepted": true,
+   "authority_preserved": true,
+   "estimated_cost_class": "direct_operation",
+   "issues": []
+  },
+  "processing_state": "",
+  "proof_state": {
+   "citations": "complete",
+   "rows": "bounded"
+  },
+  "provenance": [
+   {
+    "contract_version": "forensics.contribution-lineage/v1",
+    "contribution_count": 8642,
+    "contribution_sources": [
+     {
+      "evidence_id": "ddd78d1b-3edf-4ed2-bc18-945c0a61fc3f",
+      "version_id": "60756c7e-ca5d-4e1c-ba82-b550840bc4d7",
+      "source_file": "seed_cdr_large.csv",
+      "contribution_count": 5000,
+      "first_row": 2,
+      "last_row": 5001,
+      "row_group_digest": "109334b71e5fac1206e32745da6563bce8c396df09aa928545d26aed5b201a95"
+     },
+     {
+      "evidence_id": "e82e2f89-ee26-4787-8f8a-2940db6ad61d",
+      "version_id": "eb551aea-fa05-46e4-9670-dcdf2cb1877c",
+      "source_file": "923461678183.csv",
+      "contribution_count": 3634,
+      "first_row": 2,
+      "last_row": 3932,
+      "row_group_digest": "5ecf79376798a7a02c3f7d9b423a313c909cc32b432a1e938d0cd7f004512583"
+     },
+     {
+      "evidence_id": "4320772b-febe-4af2-b9e3-92cea114da0b",
+      "version_id": "ad4b97c9-54eb-4657-afa7-5f06f52ba695",
+      "source_file": "pakistan_cdr_messy_synthetic.csv",
+      "contribution_count": 4,
+      "first_row": 2,
+      "last_row": 5,
+      "row_group_digest": "a31d84a057284bb6dc70a4949f9a1bf9bf5706f74f9648e2a3ecd2ec4c8526cb"
+     },
+     {
+      "evidence_id": "0b211c02-a666-4a56-8102-ec7536c0d7df",
+      "version_id": "8178e4f0-dc8e-4055-aeca-3cbeba8a0704",
+      "source_file": "pakistan_cdr_tsv_synthetic.tsv",
+      "contribution_count": 2,
+      "first_row": 2,
+      "last_row": 3,
+      "row_group_digest": "a75ced5a88e35ad58c1074f3b9094fa29b6522b28d8096e323ed15292137740d"
+     },
+     {
+      "evidence_id": "85a4e63e-9409-442c-a056-068d4c065f54",
+      "version_id": "e3359aeb-c8c6-4980-bcf4-bbd7ebe6859b",
+      "source_file": "r5_live_intake_ready_20260810.csv",
+      "contribution_count": 2,
+      "first_row": 2,
+      "last_row": 3,
+      "row_group_digest": "2adca19a47779904c0a043d22ebc076826ca8c232279654a6cb268905420ef40"
+     }
+    ],
+    "lineage_complete": true,
+    "lineage_digest": "sha256:2fe4ecaa05f811e05df8701a00c946b219358cec42c353a5b1c28683f91bcbb9",
+    "operation_id": "cdr.temporal_activity",
+    "result_key": "",
+    "source": "records_aggregate",
+    "source_group_count": 5,
+    "sources_complete": true
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": null,
+    "row_hash": null,
+    "row_number": 432,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_cdr_large.csv",
+    "timestamp": "2026-04-02T16:30:42Z",
+    "version_id": null
+   }
+  ],
+  "recommended_actions": [
+   {
+    "label": "Audit source files",
+    "query": "which files were ingested?",
+    "reason": "Review traceability and evidence coverage.",
+    "template": "source_file_audit"
+   },
+   {
+    "label": "Check analysis readiness",
+    "query": "is this case ready for analysis?",
+    "reason": "Confirm evidence-processing quality before reporting.",
+    "template": "case_readiness"
+   }
+  ],
+  "result_kind": "table",
+  "result_state": "results_present",
+  "row_count": 1,
+  "status": "answered_with_limitations",
+  "summary": "**Deterministic Findings**\n\nComputed deterministic records result. It returned 106 exact structured result rows.\n\nReview the 2 evidence limits below before using this result in a decision or report.",
+  "synthesis": {
+   "claims": [
+    {
+     "claim": "Computed deterministic records result.",
+     "source": "Deterministic Fact (SQL)",
+     "template": "longest_call"
+    },
+    {
+     "claim": "Structured records row count computed.",
+     "source": "Deterministic Fact (SQL)",
+     "template": "longest_call",
+     "value": 106
+    }
+   ],
+   "policy": "Claims are labeled by source: deterministic SQL facts are computed from records templates; semantic context comes from Knowledge Base retrieval."
+  },
+  "telemetry": {
+   "request_id": "7e100df4-8f47-4f78-828d-de12ce9be6b7",
+   "db_latency_ms": 301,
+   "kb_latency_ms": 0,
+   "llm_latency_ms": 0,
+   "total_latency_ms": 414,
+   "planner_confidence": 0.74,
+   "execution_path": "records_sql"
+  },
+  "tool_results": [
+   {
+    "contract_version": "forensics.tool-result/v1",
+    "invocation_id": "7e100df4-8f47-4f78-828d-de12ce9be6b7:plan:step-1",
+    "plan_id": "7e100df4-8f47-4f78-828d-de12ce9be6b7:plan",
+    "step_id": "step-1",
+    "operation_id": "forensics.longest_call",
+    "result_contract": "forensics.enterprise-response/v1",
+    "execution_status": "completed",
+    "result_state": "results_present",
+    "authority": "deterministic_fact",
+    "fields": {},
+    "facts": [
+     {
+      "id": "step-1:row_count",
+      "value": 100,
+      "authority": "deterministic_derivation",
+      "citation_ids": [
+       "tool-citation-1",
+       "tool-citation-2"
+      ]
+     }
+    ],
+    "observations": [],
+    "rows": [
+     {
+      "day_start": "2026-04-01T00:00:00Z",
+      "event_count": 120,
+      "section": "daily_activity",
+      "total_duration_seconds": 17245
+     },
+     {
+      "day_start": "2026-04-02T00:00:00Z",
+      "event_count": 533,
+      "section": "daily_activity",
+      "total_duration_seconds": 117453
+     },
+     {
+      "day_start": "2026-04-03T00:00:00Z",
+      "event_count": 542,
+      "section": "daily_activity",
+      "total_duration_seconds": 134992
+     },
+     {
+      "day_start": "2026-04-04T00:00:00Z",
+      "event_count": 540,
+      "section": "daily_activity",
+      "total_duration_seconds": 116369
+     },
+     {
+      "day_start": "2026-04-05T00:00:00Z",
+      "event_count": 391,
+      "section": "daily_activity",
+      "total_duration_seconds": 90420
+     },
+     {
+      "day_start": "2026-04-06T00:00:00Z",
+      "event_count": 306,
+      "section": "daily_activity",
+      "total_duration_seconds": 77481
+     },
+     {
+      "day_start": "2026-04-07T00:00:00Z",
+      "event_count": 301,
+      "section": "daily_activity",
+      "total_duration_seconds": 60786
+     },
+     {
+      "day_start": "2026-04-08T00:00:00Z",
+      "event_count": 317,
+      "section": "daily_activity",
+      "total_duration_seconds": 60905
+     },
+     {
+      "day_start": "2026-04-09T00:00:00Z",
+      "event_count": 232,
+      "section": "daily_activity",
+      "total_duration_seconds": 50765
+     },
+     {
+      "day_start": "2026-04-10T00:00:00Z",
+      "event_count": 254,
+      "section": "daily_activity",
+      "total_duration_seconds": 56089
+     },
+     {
+      "day_start": "2026-04-11T00:00:00Z",
+      "event_count": 244,
+      "section": "daily_activity",
+      "total_duration_seconds": 45146
+     },
+     {
+      "day_start": "2026-04-12T00:00:00Z",
+      "event_count": 194,
+      "section": "daily_activity",
+      "total_duration_seconds": 37124
+     },
+     {
+      "day_start": "2026-04-13T00:00:00Z",
+      "event_count": 196,
+      "section": "daily_activity",
+      "total_duration_seconds": 42254
+     },
+     {
+      "day_start": "2026-04-14T00:00:00Z",
+      "event_count": 151,
+      "section": "daily_activity",
+      "total_duration_seconds": 31669
+     },
+     {
+      "day_start": "2026-04-15T00:00:00Z",
+      "event_count": 143,
+      "section": "daily_activity",
+      "total_duration_seconds": 28316
+     },
+     {
+      "day_start": "2026-04-16T00:00:00Z",
+      "event_count": 120,
+      "section": "daily_activity",
+      "total_duration_seconds": 27893
+     },
+     {
+      "day_start": "2026-04-17T00:00:00Z",
+      "event_count": 91,
+      "section": "daily_activity",
+      "total_duration_seconds": 25829
+     },
+     {
+      "day_start": "2026-04-18T00:00:00Z",
+      "event_count": 105,
+      "section": "daily_activity",
+      "total_duration_seconds": 31693
+     },
+     {
+      "day_start": "2026-04-19T00:00:00Z",
+      "event_count": 61,
+      "section": "daily_activity",
+      "total_duration_seconds": 13514
+     },
+     {
+      "day_start": "2026-04-20T00:00:00Z",
+      "event_count": 60,
+      "section": "daily_activity",
+      "total_duration_seconds": 13424
+     },
+     {
+      "day_start": "2026-04-21T00:00:00Z",
+      "event_count": 62,
+      "section": "daily_activity",
+      "total_duration_seconds": 16607
+     },
+     {
+      "day_start": "2026-04-22T00:00:00Z",
+      "event_count": 53,
+      "section": "daily_activity",
+      "total_duration_seconds": 16008
+     },
+     {
+      "day_start": "2026-04-23T00:00:00Z",
+      "event_count": 35,
+      "section": "daily_activity",
+      "total_duration_seconds": 10398
+     },
+     {
+      "day_start": "2026-04-24T00:00:00Z",
+      "event_count": 37,
+      "section": "daily_activity",
+      "total_duration_seconds": 9229
+     },
+     {
+      "day_start": "2026-04-25T00:00:00Z",
+      "event_count": 34,
+      "section": "daily_activity",
+      "total_duration_seconds": 11269
+     },
+     {
+      "day_start": "2026-04-26T00:00:00Z",
+      "event_count": 11,
+      "section": "daily_activity",
+      "total_duration_seconds": 1262
+     },
+     {
+      "day_start": "2026-04-27T00:00:00Z",
+      "event_count": 17,
+      "section": "daily_activity",
+      "total_duration_seconds": 0
+     },
+     {
+      "day_start": "2026-04-28T00:00:00Z",
+      "event_count": 5,
+      "section": "daily_activity",
+      "total_duration_seconds": 0
+     },
+     {
+      "day_start": "2026-04-29T00:00:00Z",
+      "event_count": 17,
+      "section": "daily_activity",
+      "total_duration_seconds": 67
+     },
+     {
+      "day_start": "2026-04-30T00:00:00Z",
+      "event_count": 9,
+      "section": "daily_activity",
+      "total_duration_seconds": 18
+     },
+     {
+      "day_start": "2026-05-01T00:00:00Z",
+      "event_count": 17,
+      "section": "daily_activity",
+      "total_duration_seconds": 0
+     },
+     {
+      "day_start": "2026-05-02T00:00:00Z",
+      "event_count": 8,
+      "section": "daily_activity",
+      "total_duration_seconds": 0
+     },
+     {
+      "day_start": "2026-05-03T00:00:00Z",
+      "event_count": 7,
+      "section": "daily_activity",
+      "total_duration_seconds": 0
+     },
+     {
+      "day_start": "2026-05-04T00:00:00Z",
+      "event_count": 12,
+      "section": "daily_activity",
+      "total_duration_seconds": 28
+     },
+     {
+      "day_start": "2026-05-05T00:00:00Z",
+      "event_count": 4,
+      "section": "daily_activity",
+      "total_duration_seconds": 0
+     },
+     {
+      "day_start": "2026-05-06T00:00:00Z",
+      "event_count": 3,
+      "section": "daily_activity",
+      "total_duration_seconds": 24
+     },
+     {
+      "day_start": "2026-05-07T00:00:00Z",
+      "event_count": 5,
+      "section": "daily_activity",
+      "total_duration_seconds": 37
+     },
+     {
+      "day_start": "2026-05-08T00:00:00Z",
+      "event_count": 6,
+      "section": "daily_activity",
+      "total_duration_seconds": 20
+     },
+     {
+      "day_start": "2026-05-09T00:00:00Z",
+      "event_count": 3,
+      "section": "daily_activity",
+      "total_duration_seconds": 29
+     },
+     {
+      "day_start": "2026-05-13T00:00:00Z",
+      "event_count": 13,
+      "section": "daily_activity",
+      "total_duration_seconds": 30
+     },
+     {
+      "day_start": "2026-05-14T00:00:00Z",
+      "event_count": 126,
+      "section": "daily_activity",
+      "total_duration_seconds": 1722
+     },
+     {
+      "day_start": "2026-05-15T00:00:00Z",
+      "event_count": 15,
+      "section": "daily_activity",
+      "total_duration_seconds": 394
+     },
+     {
+      "day_start": "2026-05-16T00:00:00Z",
+      "event_count": 8,
+      "section": "daily_activity",
+      "total_duration_seconds": 61
+     },
+     {
+      "day_start": "2026-05-17T00:00:00Z",
+      "event_count": 26,
+      "section": "daily_activity",
+      "total_duration_seconds": 728
+     },
+     {
+      "day_start": "2026-05-18T00:00:00Z",
+      "event_count": 62,
+      "section": "daily_activity",
+      "total_duration_seconds": 36
+     },
+     {
+      "day_start": "2026-05-19T00:00:00Z",
+      "event_count": 26,
+      "section": "daily_activity",
+      "total_duration_seconds": 0
+     },
+     {
+      "day_start": "2026-05-20T00:00:00Z",
+      "event_count": 46,
+      "section": "daily_activity",
+      "total_duration_seconds": 0
+     },
+     {
+      "day_start": "2026-05-21T00:00:00Z",
+      "event_count": 75,
+      "section": "daily_activity",
+      "total_duration_seconds": 74
+     },
+     {
+      "day_start": "2026-05-22T00:00:00Z",
+      "event_count": 59,
+      "section": "daily_activity",
+      "total_duration_seconds": 72
+     },
+     {
+      "day_start": "2026-05-23T00:00:00Z",
+      "event_count": 40,
+      "section": "daily_activity",
+      "total_duration_seconds": 180
+     },
+     {
+      "day_start": "2026-05-24T00:00:00Z",
+      "event_count": 46,
+      "section": "daily_activity",
+      "total_duration_seconds": 87
+     },
+     {
+      "day_start": "2026-05-25T00:00:00Z",
+      "event_count": 14,
+      "section": "daily_activity",
+      "total_duration_seconds": 0
+     },
+     {
+      "day_start": "2026-05-26T00:00:00Z",
+      "event_count": 99,
+      "section": "daily_activity",
+      "total_duration_seconds": 244
+     },
+     {
+      "day_start": "2026-05-27T00:00:00Z",
+      "event_count": 58,
+      "section": "daily_activity",
+      "total_duration_seconds": 779
+     },
+     {
+      "day_start": "2026-05-28T00:00:00Z",
+      "event_count": 34,
+      "section": "daily_activity",
+      "total_duration_seconds": 302
+     },
+     {
+      "day_start": "2026-05-29T00:00:00Z",
+      "event_count": 41,
+      "section": "daily_activity",
+      "total_duration_seconds": 0
+     },
+     {
+      "day_start": "2026-05-30T00:00:00Z",
+      "event_count": 98,
+      "section": "daily_activity",
+      "total_duration_seconds": 0
+     },
+     {
+      "day_start": "2026-05-31T00:00:00Z",
+      "event_count": 47,
+      "section": "daily_activity",
+      "total_duration_seconds": 514
+     },
+     {
+      "day_start": "2026-06-01T00:00:00Z",
+      "event_count": 88,
+      "section": "daily_activity",
+      "total_duration_seconds": 269
+     },
+     {
+      "day_start": "2026-06-02T00:00:00Z",
+      "event_count": 127,
+      "section": "daily_activity",
+      "total_duration_seconds": 677
+     },
+     {
+      "day_start": "2026-06-03T00:00:00Z",
+      "event_count": 103,
+      "section": "daily_activity",
+      "total_duration_seconds": 280
+     },
+     {
+      "day_start": "2026-06-04T00:00:00Z",
+      "event_count": 128,
+      "section": "daily_activity",
+      "total_duration_seconds": 195
+     },
+     {
+      "day_start": "2026-06-05T00:00:00Z",
+      "event_count": 225,
+      "section": "daily_activity",
+      "total_duration_seconds": 58
+     },
+     {
+      "day_start": "2026-06-06T00:00:00Z",
+      "event_count": 247,
+      "section": "daily_activity",
+      "total_duration_seconds": 73
+     },
+     {
+      "day_start": "2026-06-07T00:00:00Z",
+      "event_count": 170,
+      "section": "daily_activity",
+      "total_duration_seconds": 92
+     },
+     {
+      "day_start": "2026-06-08T00:00:00Z",
+      "event_count": 53,
+      "section": "daily_activity",
+      "total_duration_seconds": 0
+     },
+     {
+      "day_start": "2026-06-09T00:00:00Z",
+      "event_count": 152,
+      "section": "daily_activity",
+      "total_duration_seconds": 118
+     },
+     {
+      "day_start": "2026-06-10T00:00:00Z",
+      "event_count": 173,
+      "section": "daily_activity",
+      "total_duration_seconds": 0
+     },
+     {
+      "day_start": "2026-06-11T00:00:00Z",
+      "event_count": 70,
+      "section": "daily_activity",
+      "total_duration_seconds": 61
+     },
+     {
+      "day_start": "2026-06-12T00:00:00Z",
+      "event_count": 193,
+      "section": "daily_activity",
+      "total_duration_seconds": 297
+     },
+     {
+      "day_start": "2026-06-13T00:00:00Z",
+      "event_count": 168,
+      "section": "daily_activity",
+      "total_duration_seconds": 0
+     },
+     {
+      "day_start": "2026-06-14T00:00:00Z",
+      "event_count": 504,
+      "section": "daily_activity",
+      "total_duration_seconds": 449
+     },
+     {
+      "day_start": "2026-06-15T00:00:00Z",
+      "event_count": 9,
+      "section": "daily_activity",
+      "total_duration_seconds": 123
+     },
+     {
+      "day_start": "2026-06-16T00:00:00Z",
+      "event_count": 3,
+      "section": "daily_activity",
+      "total_duration_seconds": 0
+     },
+     {
+      "day_start": "2026-06-17T00:00:00Z",
+      "event_count": 2,
+      "section": "daily_activity",
+      "total_duration_seconds": 36
+     },
+     {
+      "day_start": "2026-06-18T00:00:00Z",
+      "event_count": 1,
+      "section": "daily_activity",
+      "total_duration_seconds": 42
+     },
+     {
+      "day_start": "2026-06-19T00:00:00Z",
+      "event_count": 19,
+      "section": "daily_activity",
+      "total_duration_seconds": 23
+     },
+     {
+      "day_start": "2026-06-20T00:00:00Z",
+      "event_count": 20,
+      "section": "daily_activity",
+      "total_duration_seconds": 0
+     },
+     {
+      "day_start": "2026-07-10T00:00:00Z",
+      "event_count": 4,
+      "section": "daily_activity",
+      "total_duration_seconds": 55
+     },
+     {
+      "day_start": "2026-07-21T00:00:00Z",
+      "event_count": 2,
+      "section": "daily_activity",
+      "total_duration_seconds": 50
+     },
+     {
+      "day_start": "2026-08-10T00:00:00Z",
+      "event_count": 2,
+      "section": "daily_activity",
+      "total_duration_seconds": 60
+     },
+     {
+      "call_dialed_num": "923001110001",
+      "call_org_num": "923009998882",
+      "call_type": "CALL",
+      "direction": "INCOMING",
+      "duration_seconds": 1798,
+      "location": "Model Town",
+      "metric": "longest_call",
+      "msisdn": "923001110001",
+      "observed_at": "2026-04-02T16:30:42Z",
+      "row_number": 432,
+      "section": "duration_extremes",
+      "source_file": "seed_cdr_large.csv"
+     },
+     {
+      "average_nonzero_duration": "789.95",
+      "longest_duration": 1798,
+      "nonzero_duration_events": 1459,
+      "section": "duration_stats",
+      "shortest_nonzero_duration": 1
+     },
+     {
+      "event_count": 254,
+      "hour_of_day": 0,
+      "section": "hourly_activity"
+     },
+     {
+      "event_count": 283,
+      "hour_of_day": 1,
+      "section": "hourly_activity"
+     },
+     {
+      "event_count": 295,
+      "hour_of_day": 2,
+      "section": "hourly_activity"
+     },
+     {
+      "event_count": 317,
+      "hour_of_day": 3,
+      "section": "hourly_activity"
+     },
+     {
+      "event_count": 413,
+      "hour_of_day": 4,
+      "section": "hourly_activity"
+     },
+     {
+      "event_count": 424,
+      "hour_of_day": 5,
+      "section": "hourly_activity"
+     },
+     {
+      "event_count": 463,
+      "hour_of_day": 6,
+      "section": "hourly_activity"
+     },
+     {
+      "event_count": 305,
+      "hour_of_day": 7,
+      "section": "hourly_activity"
+     },
+     {
+      "event_count": 348,
+      "hour_of_day": 8,
+      "section": "hourly_activity"
+     },
+     {
+      "event_count": 370,
+      "hour_of_day": 9,
+      "section": "hourly_activity"
+     },
+     {
+      "event_count": 310,
+      "hour_of_day": 10,
+      "section": "hourly_activity"
+     },
+     {
+      "event_count": 328,
+      "hour_of_day": 11,
+      "section": "hourly_activity"
+     },
+     {
+      "event_count": 409,
+      "hour_of_day": 12,
+      "section": "hourly_activity"
+     },
+     {
+      "event_count": 335,
+      "hour_of_day": 13,
+      "section": "hourly_activity"
+     },
+     {
+      "event_count": 411,
+      "hour_of_day": 14,
+      "section": "hourly_activity"
+     },
+     {
+      "event_count": 454,
+      "hour_of_day": 15,
+      "section": "hourly_activity"
+     },
+     {
+      "event_count": 449,
+      "hour_of_day": 16,
+      "section": "hourly_activity"
+     }
+    ],
+    "citations": [
+     {
+      "id": "tool-citation-1",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "",
+      "source_name": ""
+     },
+     {
+      "id": "tool-citation-2",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "row_number:432,timestamp:2026-04-02T16:30:42Z",
+      "source_name": "seed_cdr_large.csv"
+     }
+    ],
+    "limitations": [
+     "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations.",
+     "Data grid is capped at 100 displayed rows from 106 matching records."
+    ],
+    "row_count": 100,
+    "truncated": true,
+    "duration_ms": 414
+   }
+  ],
+  "visualizations": [
+   {
+    "id": "cdr-duration-extremes",
+    "type": "bar",
+    "title": "Call duration extremes",
+    "spec": {
+     "category_field": "metric",
+     "rows": [
+      {
+       "day_start": "2026-04-01T00:00:00Z",
+       "event_count": 120,
+       "section": "daily_activity",
+       "total_duration_seconds": 17245
+      },
+      {
+       "day_start": "2026-04-02T00:00:00Z",
+       "event_count": 533,
+       "section": "daily_activity",
+       "total_duration_seconds": 117453
+      },
+      {
+       "day_start": "2026-04-03T00:00:00Z",
+       "event_count": 542,
+       "section": "daily_activity",
+       "total_duration_seconds": 134992
+      },
+      {
+       "day_start": "2026-04-04T00:00:00Z",
+       "event_count": 540,
+       "section": "daily_activity",
+       "total_duration_seconds": 116369
+      },
+      {
+       "day_start": "2026-04-05T00:00:00Z",
+       "event_count": 391,
+       "section": "daily_activity",
+       "total_duration_seconds": 90420
+      },
+      {
+       "day_start": "2026-04-06T00:00:00Z",
+       "event_count": 306,
+       "section": "daily_activity",
+       "total_duration_seconds": 77481
+      },
+      {
+       "day_start": "2026-04-07T00:00:00Z",
+       "event_count": 301,
+       "section": "daily_activity",
+       "total_duration_seconds": 60786
+      },
+      {
+       "day_start": "2026-04-08T00:00:00Z",
+       "event_count": 317,
+       "section": "daily_activity",
+       "total_duration_seconds": 60905
+      },
+      {
+       "day_start": "2026-04-09T00:00:00Z",
+       "event_count": 232,
+       "section": "daily_activity",
+       "total_duration_seconds": 50765
+      },
+      {
+       "day_start": "2026-04-10T00:00:00Z",
+       "event_count": 254,
+       "section": "daily_activity",
+       "total_duration_seconds": 56089
+      },
+      {
+       "day_start": "2026-04-11T00:00:00Z",
+       "event_count": 244,
+       "section": "daily_activity",
+       "total_duration_seconds": 45146
+      },
+      {
+       "day_start": "2026-04-12T00:00:00Z",
+       "event_count": 194,
+       "section": "daily_activity",
+       "total_duration_seconds": 37124
+      },
+      {
+       "day_start": "2026-04-13T00:00:00Z",
+       "event_count": 196,
+       "section": "daily_activity",
+       "total_duration_seconds": 42254
+      },
+      {
+       "day_start": "2026-04-14T00:00:00Z",
+       "event_count": 151,
+       "section": "daily_activity",
+       "total_duration_seconds": 31669
+      },
+      {
+       "day_start": "2026-04-15T00:00:00Z",
+       "event_count": 143,
+       "section": "daily_activity",
+       "total_duration_seconds": 28316
+      },
+      {
+       "day_start": "2026-04-16T00:00:00Z",
+       "event_count": 120,
+       "section": "daily_activity",
+       "total_duration_seconds": 27893
+      },
+      {
+       "day_start": "2026-04-17T00:00:00Z",
+       "event_count": 91,
+       "section": "daily_activity",
+       "total_duration_seconds": 25829
+      },
+      {
+       "day_start": "2026-04-18T00:00:00Z",
+       "event_count": 105,
+       "section": "daily_activity",
+       "total_duration_seconds": 31693
+      },
+      {
+       "day_start": "2026-04-19T00:00:00Z",
+       "event_count": 61,
+       "section": "daily_activity",
+       "total_duration_seconds": 13514
+      },
+      {
+       "day_start": "2026-04-20T00:00:00Z",
+       "event_count": 60,
+       "section": "daily_activity",
+       "total_duration_seconds": 13424
+      },
+      {
+       "day_start": "2026-04-21T00:00:00Z",
+       "event_count": 62,
+       "section": "daily_activity",
+       "total_duration_seconds": 16607
+      },
+      {
+       "day_start": "2026-04-22T00:00:00Z",
+       "event_count": 53,
+       "section": "daily_activity",
+       "total_duration_seconds": 16008
+      },
+      {
+       "day_start": "2026-04-23T00:00:00Z",
+       "event_count": 35,
+       "section": "daily_activity",
+       "total_duration_seconds": 10398
+      },
+      {
+       "day_start": "2026-04-24T00:00:00Z",
+       "event_count": 37,
+       "section": "daily_activity",
+       "total_duration_seconds": 9229
+      },
+      {
+       "day_start": "2026-04-25T00:00:00Z",
+       "event_count": 34,
+       "section": "daily_activity",
+       "total_duration_seconds": 11269
+      },
+      {
+       "day_start": "2026-04-26T00:00:00Z",
+       "event_count": 11,
+       "section": "daily_activity",
+       "total_duration_seconds": 1262
+      },
+      {
+       "day_start": "2026-04-27T00:00:00Z",
+       "event_count": 17,
+       "section": "daily_activity",
+       "total_duration_seconds": 0
+      },
+      {
+       "day_start": "2026-04-28T00:00:00Z",
+       "event_count": 5,
+       "section": "daily_activity",
+       "total_duration_seconds": 0
+      },
+      {
+       "day_start": "2026-04-29T00:00:00Z",
+       "event_count": 17,
+       "section": "daily_activity",
+       "total_duration_seconds": 67
+      },
+      {
+       "day_start": "2026-04-30T00:00:00Z",
+       "event_count": 9,
+       "section": "daily_activity",
+       "total_duration_seconds": 18
+      },
+      {
+       "day_start": "2026-05-01T00:00:00Z",
+       "event_count": 17,
+       "section": "daily_activity",
+       "total_duration_seconds": 0
+      },
+      {
+       "day_start": "2026-05-02T00:00:00Z",
+       "event_count": 8,
+       "section": "daily_activity",
+       "total_duration_seconds": 0
+      },
+      {
+       "day_start": "2026-05-03T00:00:00Z",
+       "event_count": 7,
+       "section": "daily_activity",
+       "total_duration_seconds": 0
+      },
+      {
+       "day_start": "2026-05-04T00:00:00Z",
+       "event_count": 12,
+       "section": "daily_activity",
+       "total_duration_seconds": 28
+      },
+      {
+       "day_start": "2026-05-05T00:00:00Z",
+       "event_count": 4,
+       "section": "daily_activity",
+       "total_duration_seconds": 0
+      },
+      {
+       "day_start": "2026-05-06T00:00:00Z",
+       "event_count": 3,
+       "section": "daily_activity",
+       "total_duration_seconds": 24
+      },
+      {
+       "day_start": "2026-05-07T00:00:00Z",
+       "event_count": 5,
+       "section": "daily_activity",
+       "total_duration_seconds": 37
+      },
+      {
+       "day_start": "2026-05-08T00:00:00Z",
+       "event_count": 6,
+       "section": "daily_activity",
+       "total_duration_seconds": 20
+      },
+      {
+       "day_start": "2026-05-09T00:00:00Z",
+       "event_count": 3,
+       "section": "daily_activity",
+       "total_duration_seconds": 29
+      },
+      {
+       "day_start": "2026-05-13T00:00:00Z",
+       "event_count": 13,
+       "section": "daily_activity",
+       "total_duration_seconds": 30
+      },
+      {
+       "day_start": "2026-05-14T00:00:00Z",
+       "event_count": 126,
+       "section": "daily_activity",
+       "total_duration_seconds": 1722
+      },
+      {
+       "day_start": "2026-05-15T00:00:00Z",
+       "event_count": 15,
+       "section": "daily_activity",
+       "total_duration_seconds": 394
+      },
+      {
+       "day_start": "2026-05-16T00:00:00Z",
+       "event_count": 8,
+       "section": "daily_activity",
+       "total_duration_seconds": 61
+      },
+      {
+       "day_start": "2026-05-17T00:00:00Z",
+       "event_count": 26,
+       "section": "daily_activity",
+       "total_duration_seconds": 728
+      },
+      {
+       "day_start": "2026-05-18T00:00:00Z",
+       "event_count": 62,
+       "section": "daily_activity",
+       "total_duration_seconds": 36
+      },
+      {
+       "day_start": "2026-05-19T00:00:00Z",
+       "event_count": 26,
+       "section": "daily_activity",
+       "total_duration_seconds": 0
+      },
+      {
+       "day_start": "2026-05-20T00:00:00Z",
+       "event_count": 46,
+       "section": "daily_activity",
+       "total_duration_seconds": 0
+      },
+      {
+       "day_start": "2026-05-21T00:00:00Z",
+       "event_count": 75,
+       "section": "daily_activity",
+       "total_duration_seconds": 74
+      },
+      {
+       "day_start": "2026-05-22T00:00:00Z",
+       "event_count": 59,
+       "section": "daily_activity",
+       "total_duration_seconds": 72
+      },
+      {
+       "day_start": "2026-05-23T00:00:00Z",
+       "event_count": 40,
+       "section": "daily_activity",
+       "total_duration_seconds": 180
+      }
+     ],
+     "value_field": "duration_seconds"
+    },
+    "citation_ids": [
+     "citation-1",
+     "citation-2"
+    ]
+   }
+  ]
+ },
+ "telemetry": {
+  "request_id": "7e100df4-8f47-4f78-828d-de12ce9be6b7",
+  "db_latency_ms": 301,
+  "kb_latency_ms": 0,
+  "llm_latency_ms": 0,
+  "total_latency_ms": 414,
+  "planner_confidence": 0.74,
+  "execution_path": "records_sql"
+ },
+ "generated_at": "2026-09-18T06:28:12.110830308Z"
+}

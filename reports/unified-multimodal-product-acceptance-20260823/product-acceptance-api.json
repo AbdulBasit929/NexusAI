@@ -1,0 +1,1913 @@
+{
+  "contract_version": "nexusai.unified-multimodal-product-acceptance/v1",
+  "recorded_at": "2026-08-23T14:14:45.2191247Z",
+  "scope": {
+    "actor_id": "nexusai-breadth-acceptance-operator",
+    "collection_id": "nexusai-multimodal-product-acceptance",
+    "case_id": "nexusai-multimodal-product-acceptance",
+    "tenant_id": "default"
+  },
+  "inventory": {
+    "authoritative_reconciliation": {
+      "versions": 21,
+      "active_jobs": 0,
+      "derived_artifacts": 372,
+      "canonical_records": 9274,
+      "jobs": 34,
+      "evidence": 21,
+      "completed_jobs": 33,
+      "dead_letter_jobs": 1,
+      "kb_assets": 19
+    },
+    "ready_count": 21,
+    "detail_preview_artifact_counts": {
+      "forensics.document-native-text-passage/v1": 27,
+      "forensics.audio-timestamp-segment/v1": 5,
+      "forensics.image-fingerprint/v1": 4,
+      "forensics.image-observation/v1": 4,
+      "forensics.face-observation/v1": 5,
+      "forensics.image-embedding-observation/v1": 6,
+      "forensics.anpr-observation/v1": 1,
+      "forensics.audio-roman-urdu-segment/v1": 6,
+      "forensics.image-ocr-observation/v1": 114
+    },
+    "items": [
+      {
+        "evidence_id": "b7608931-046a-4b29-9eef-241c7315f38f",
+        "version_id": "8eeab703-adf8-4b0b-ac9c-ce693199d22b",
+        "original_filename": "document-docx-hp-guide-HP_EliteDesk_LocalAI_Remote_Setup_Guide.docx",
+        "sha256": "85b1ab53150a556f84391a222b7fb4dbf69aa80d1c4d7d7a7b54d5f283ea4865",
+        "modality": "document",
+        "detected_type": "document",
+        "processing_status": "completed"
+      },
+      {
+        "evidence_id": "88eedb87-658a-4f3e-a89c-8b5740e4a248",
+        "version_id": "70fc7e8c-983f-4c36-bd84-caed8701eb64",
+        "original_filename": "nexusai-multimodal-acceptance-brief.pdf",
+        "sha256": "ae8432898f694e5452500f0fbe9e4a988acb601377aedcf74419cce352eac2fc",
+        "modality": "document",
+        "detected_type": "pdf",
+        "processing_status": "completed"
+      },
+      {
+        "evidence_id": "ee48bd0b-acde-4b51-b8c6-d9194278efda",
+        "version_id": "36a503c0-1192-44a8-8256-a148912ed4b1",
+        "original_filename": "case_notes_records_demo.txt",
+        "sha256": "11c370e9f4564786ebee8d76d894ffba52ea1a26918e3470f0a9e096cac47216",
+        "modality": "structured_records",
+        "detected_type": "generic",
+        "processing_status": "completed"
+      },
+      {
+        "evidence_id": "50057921-4f1f-4ab8-bab0-47bcdc957822",
+        "version_id": "1696e47d-75e2-4977-a637-501068dc97ac",
+        "original_filename": "pakistan-short-video.mp4",
+        "sha256": "94be8b97d62f28eb0349b1eaea02e8073a669d60ffbd3da6511f7f7d27004a26",
+        "modality": "video",
+        "detected_type": "video",
+        "processing_status": "completed"
+      },
+      {
+        "evidence_id": "a2755d7d-05d2-4bc9-8e95-7e8992b53ada",
+        "version_id": "ee7a4393-c26a-4f01-a340-fca1fb0c4b0e",
+        "original_filename": "urdu-english-identifier.wav",
+        "sha256": "606ffc7e281940b1b175fff98169a83a6a6ab7744ffd49f05849ac94318fd314",
+        "modality": "audio",
+        "detected_type": "audio",
+        "processing_status": "completed"
+      },
+      {
+        "evidence_id": "a33c5848-2cda-457e-950b-d86e88960f51",
+        "version_id": "a9c8a626-2726-4fd4-b349-9499c145d3d2",
+        "original_filename": "conversational-urdu.wav",
+        "sha256": "f016076b153c2ed6be21fa5f7a4bbc22b3e391d40080b9fa3de3b8a2dd517550",
+        "modality": "audio",
+        "detected_type": "audio",
+        "processing_status": "completed"
+      },
+      {
+        "evidence_id": "2097c6df-c0ad-4886-b0e7-ea4f4856a220",
+        "version_id": "f88f7f9d-3de8-4748-bf72-ea47bfe159e7",
+        "original_filename": "clear-urdu.wav",
+        "sha256": "c499e06e26b8cbf37386b88bba26f37045439a775e964bdad8634376435a056e",
+        "modality": "audio",
+        "detected_type": "audio",
+        "processing_status": "completed"
+      },
+      {
+        "evidence_id": "3ffc0eae-f030-4e62-835f-100682b99b1c",
+        "version_id": "7266a4df-df92-4464-a068-39894367ec71",
+        "original_filename": "no-face-street.png",
+        "sha256": "2ccf02c6a96f5c646697258c36bcaf0dfd2aec0052ee06eef81789a040f8892d",
+        "modality": "image",
+        "detected_type": "image",
+        "processing_status": "completed"
+      },
+      {
+        "evidence_id": "273bc132-74b5-4633-b8f9-bf0a812ef3ff",
+        "version_id": "7603fd46-a242-4a84-b081-23e4b1d225f1",
+        "original_filename": "subject-b-frontal.png",
+        "sha256": "d69848db8e4332f02a544dd6a5339dd49f187dadd3203a365cff1d91f8e27885",
+        "modality": "image",
+        "detected_type": "image",
+        "processing_status": "completed"
+      },
+      {
+        "evidence_id": "769f6124-5b06-4c73-9122-39ef4423e0c4",
+        "version_id": "08fb361a-5e26-4dea-afdf-0047c6cd3bfd",
+        "original_filename": "subject-a-blur.png",
+        "sha256": "44b6f48e761d431b70cdb362b472a798aac8b442a7d8e638d47019aea05cae57",
+        "modality": "image",
+        "detected_type": "image",
+        "processing_status": "completed"
+      },
+      {
+        "evidence_id": "3fff8296-ee69-4283-a498-7a0000887072",
+        "version_id": "1a9c7888-d61c-4076-96c4-d8c6fa292cdb",
+        "original_filename": "subject-a-pose.png",
+        "sha256": "2ccb36c968b6d73fd33401932a4f8650d7c2becffabf2e5ca2b613835ea9b518",
+        "modality": "image",
+        "detected_type": "image",
+        "processing_status": "completed"
+      },
+      {
+        "evidence_id": "c23c3e10-a7a6-435a-ae64-c411a7cd0e14",
+        "version_id": "56cb1d0c-24ed-4996-9307-b59df0e66d4b",
+        "original_filename": "subject-a-frontal.png",
+        "sha256": "aed3e4b16fe9560d25840961f615673e4af0ccd28f8695b46dc1ad34776dc387",
+        "modality": "image",
+        "detected_type": "image",
+        "processing_status": "completed"
+      },
+      {
+        "evidence_id": "d4b9daf1-da54-4c66-923c-c725bec4400c",
+        "version_id": "b1171a5a-ae10-47fb-b491-25f839875162",
+        "original_filename": "wikimedia-road-cars-islamabad.jpg",
+        "sha256": "ba1aa5a7e28e18bdd78b2cba132a6fe1cd87612d930be91fa6db22194cae0038",
+        "modality": "image",
+        "detected_type": "image",
+        "processing_status": "completed"
+      },
+      {
+        "evidence_id": "a0ff7b18-129f-4a8a-82cf-48887f98bd9e",
+        "version_id": "3dc6b0f6-8d2b-426d-93c5-12059005549b",
+        "original_filename": "image-test-plate-test_plate.jpg",
+        "sha256": "a15a7ec947fdb2c5a08a70243a62ed66e4dddd89defaba9d135f6c5ac67559f6",
+        "modality": "image",
+        "detected_type": "image",
+        "processing_status": "completed"
+      },
+      {
+        "evidence_id": "c83ab9eb-91da-4f8c-9880-94a00c923146",
+        "version_id": "e83a1bf4-b6dc-46f7-9c4c-d5e46dd44ad4",
+        "original_filename": "seed_transactions.csv",
+        "sha256": "c7d4526183017893b2d84fd97e144da537d5267eb99a5e40783456c3d62d33ac",
+        "modality": "structured_records",
+        "detected_type": "transaction",
+        "processing_status": "completed"
+      },
+      {
+        "evidence_id": "0fadf3a4-0521-4042-8ee6-72ec1880ec8d",
+        "version_id": "03288bf9-e363-4249-9a52-fccdbf106762",
+        "original_filename": "seed_access_log.csv",
+        "sha256": "b73dadbbed702ee7d28e98562eec361be9b1c33dca9ec2b04a73f23acbd713d7",
+        "modality": "structured_records",
+        "detected_type": "access_log",
+        "processing_status": "completed"
+      },
+      {
+        "evidence_id": "d4b2be86-874c-476e-9554-d731b9dc4f59",
+        "version_id": "36eb42df-b21e-4588-8abe-833ee42167fb",
+        "original_filename": "seed_anpr.csv",
+        "sha256": "b39d6046f949b117c826f96503030c5573592e58ca954a7fa2abc6663d47067a",
+        "modality": "structured_records",
+        "detected_type": "anpr",
+        "processing_status": "completed"
+      },
+      {
+        "evidence_id": "0b41a599-c091-4395-a585-ad66e1e8d0be",
+        "version_id": "d4bdd9ea-a50d-4942-9696-e05104d155db",
+        "original_filename": "tower_reference.csv",
+        "sha256": "c805a1a70e9c4aaebbc4f1dae066a993e609bc547ecd7f00cdf1660ac559b1a9",
+        "modality": "structured_records",
+        "detected_type": "tower_location",
+        "processing_status": "completed"
+      },
+      {
+        "evidence_id": "acb5eba6-5c64-427f-bfaa-868a0a759706",
+        "version_id": "3e419dd0-998e-4ba3-9402-c396c0f76379",
+        "original_filename": "subscriber_registry.csv",
+        "sha256": "4681021647a0c0638bc76e0a4196d407a39acf863703903755837fd49cb100c8",
+        "modality": "structured_records",
+        "detected_type": "subscriber",
+        "processing_status": "completed"
+      },
+      {
+        "evidence_id": "a910c6d3-edaa-4d5a-9a7e-4f02797859d1",
+        "version_id": "220aa168-8727-468e-aa93-36baf39f5b16",
+        "original_filename": "seed_ipdr.csv",
+        "sha256": "92701de89595af4749ac8a386e145d1fbc99835dc298813da63f05a8ee264dc0",
+        "modality": "structured_records",
+        "detected_type": "ipdr",
+        "processing_status": "completed"
+      },
+      {
+        "evidence_id": "f94eaf02-3d0d-4b02-90ba-55bfb8a12480",
+        "version_id": "e54ee3d4-a10f-4729-8a1a-75b9b742f5af",
+        "original_filename": "seed_cdr_large.csv",
+        "sha256": "bf6dcedabb58ad206b820745e2c628c6c68174d20f1c551d09518ee6097e2ab4",
+        "modality": "structured_records",
+        "detected_type": "cdr",
+        "processing_status": "completed"
+      }
+    ],
+    "authoritative_artifact_counts": {
+      "forensics.image-ocr-observation/v1": 219,
+      "forensics.document-native-text-passage/v1": 114,
+      "forensics.audio-timestamp-segment/v1": 6,
+      "forensics.image-observation/v1": 5,
+      "forensics.image-fingerprint/v1": 7,
+      "forensics.image-embedding-observation/v1": 9,
+      "forensics.anpr-observation/v1": 1,
+      "forensics.audio-roman-urdu-segment/v1": 6,
+      "forensics.face-observation/v1": 5
+    },
+    "evidence_count": 21,
+    "jobs": {
+      "completed": 33,
+      "dead_letter": 1,
+      "total": 34,
+      "active": 0
+    }
+  },
+  "structured_operations": {
+    "passed": 0,
+    "report": "structured-65-operation-matrix.json",
+    "total": 65
+  },
+  "image_intelligence": {
+    "comparison_same_subject": {
+      "anpr": {
+        "available": false,
+        "jaccard": null,
+        "shared": []
+      },
+      "contract_version": "forensics.image-comparison/v1",
+      "dimensions": {
+        "match": true,
+        "source_a": {
+          "height_pixels": 1254,
+          "width_pixels": 1254
+        },
+        "source_b": {
+          "height_pixels": 1254,
+          "width_pixels": 1254
+        }
+      },
+      "exact_duplicate": false,
+      "faces": {
+        "similarity": null,
+        "source_a_count": 1,
+        "source_b_count": 1
+      },
+      "limitations": [
+        "Perceptual similarity is a near-duplicate signal, not scene understanding or identity.",
+        "Missing OCR, ANPR, or face observations are reported as unavailable rather than inferred."
+      ],
+      "ocr": {
+        "available": true,
+        "jaccard": 0,
+        "shared": []
+      },
+      "perceptual": {
+        "algorithm": "dhash-64-ffmpeg-area-v1",
+        "hamming_distance": 14,
+        "hash_a": "72684c4d5569dc8e",
+        "hash_b": "71684c55783954cc",
+        "near_duplicate_candidate": false,
+        "near_duplicate_max_distance": 10,
+        "semantics": "pixel-layout resemblance; not semantic visual similarity",
+        "similarity": 0.78125
+      },
+      "sha256_match": false,
+      "source_a": {
+        "artifact_refs": [
+          "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14/artifacts/b7fd9035-ea7c-58c3-a2c9-38cf522c4285",
+          "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14/artifacts/ebafad52-adec-5a01-9102-83c1eedc6dab",
+          "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14/artifacts/0d4cfc13-dbe0-5672-aeb3-1aa78fd09dd0",
+          "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14/artifacts/8b26475a-c153-5fcb-a377-6bc3a242d941",
+          "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14/artifacts/9c873ee7-a694-5f6f-98c0-c0b7f26cd3c1",
+          "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14/artifacts/9eb8a7c6-06c8-5a2c-92f7-96689a86550c",
+          "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14/artifacts/bead3bea-d339-5caf-9a9c-251ff397bcf7",
+          "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14/artifacts/c1ef32f5-770c-5894-93a7-dd31e822cbe3",
+          "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14/artifacts/feffde17-7e4e-59c9-97c0-aec9be1a107a"
+        ],
+        "citation_ref": "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14",
+        "evidence_id": "c23c3e10-a7a6-435a-ae64-c411a7cd0e14",
+        "sha256": "aed3e4b16fe9560d25840961f615673e4af0ccd28f8695b46dc1ad34776dc387",
+        "source_file": "subject-a-frontal.png",
+        "version_id": "56cb1d0c-24ed-4996-9307-b59df0e66d4b"
+      },
+      "source_b": {
+        "artifact_refs": [
+          "nexusai://evidence/3fff8296-ee69-4283-a498-7a0000887072/artifacts/87d38cc6-461d-5f8f-95ed-3744df1704e9",
+          "nexusai://evidence/3fff8296-ee69-4283-a498-7a0000887072/artifacts/99a33ea0-38c8-50db-8bef-bc62867c6865",
+          "nexusai://evidence/3fff8296-ee69-4283-a498-7a0000887072/artifacts/0734fc6d-c7b8-5aa8-a646-17dd2459b238",
+          "nexusai://evidence/3fff8296-ee69-4283-a498-7a0000887072/artifacts/16b62d3f-0e50-5ddf-9ac4-4fd9376b6c95",
+          "nexusai://evidence/3fff8296-ee69-4283-a498-7a0000887072/artifacts/18320487-8553-5c61-abe0-31d413b6b431",
+          "nexusai://evidence/3fff8296-ee69-4283-a498-7a0000887072/artifacts/4e6a2bef-4b76-59a7-9418-1c3880c9ccbb",
+          "nexusai://evidence/3fff8296-ee69-4283-a498-7a0000887072/artifacts/607f987b-f112-51f4-bdb6-f53d956a72e8",
+          "nexusai://evidence/3fff8296-ee69-4283-a498-7a0000887072/artifacts/7fd287ec-af7e-5f06-a767-03837e623002",
+          "nexusai://evidence/3fff8296-ee69-4283-a498-7a0000887072/artifacts/b250668f-f90c-5925-a31c-b924b17aed45",
+          "nexusai://evidence/3fff8296-ee69-4283-a498-7a0000887072/artifacts/b9efd8bd-2612-52f0-b5b4-e099e7f99955",
+          "nexusai://evidence/3fff8296-ee69-4283-a498-7a0000887072/artifacts/eeb6ca26-8841-5d35-b79f-ba4f375dbbf7",
+          "nexusai://evidence/3fff8296-ee69-4283-a498-7a0000887072/artifacts/f80ed0d3-a864-5462-854a-9e0cfc4f42b8"
+        ],
+        "citation_ref": "nexusai://evidence/3fff8296-ee69-4283-a498-7a0000887072",
+        "evidence_id": "3fff8296-ee69-4283-a498-7a0000887072",
+        "sha256": "2ccb36c968b6d73fd33401932a4f8650d7c2becffabf2e5ca2b613835ea9b518",
+        "source_file": "subject-a-pose.png",
+        "version_id": "1a9c7888-d61c-4076-96c4-d8c6fa292cdb"
+      },
+      "visual_similarity": {
+        "available": true,
+        "distance_metric": "cosine_similarity",
+        "embedding_dimension": 768,
+        "model": "google/siglip-base-patch16-224",
+        "model_revision": "7fd15f0689c79d79e38b1c2e2e2370a7bf2761ed",
+        "model_sha256": "2c63cb7d1f2e95ba501893cbb8faeb4ea9a3af295498d35097126228659c2af8",
+        "score": 0.9668380917126206,
+        "semantics": "candidate semantic visual similarity; not evidence identity or fact"
+      }
+    },
+    "comparison_different_subject": {
+      "anpr": {
+        "available": false,
+        "jaccard": null,
+        "shared": []
+      },
+      "contract_version": "forensics.image-comparison/v1",
+      "dimensions": {
+        "match": true,
+        "source_a": {
+          "height_pixels": 1254,
+          "width_pixels": 1254
+        },
+        "source_b": {
+          "height_pixels": 1254,
+          "width_pixels": 1254
+        }
+      },
+      "exact_duplicate": false,
+      "faces": {
+        "similarity": null,
+        "source_a_count": 1,
+        "source_b_count": 1
+      },
+      "limitations": [
+        "Perceptual similarity is a near-duplicate signal, not scene understanding or identity.",
+        "Missing OCR, ANPR, or face observations are reported as unavailable rather than inferred."
+      ],
+      "ocr": {
+        "available": true,
+        "jaccard": 0,
+        "shared": []
+      },
+      "perceptual": {
+        "algorithm": "dhash-64-ffmpeg-area-v1",
+        "hamming_distance": 13,
+        "hash_a": "72684c4d5569dc8e",
+        "hash_b": "30684dccdccccc8e",
+        "near_duplicate_candidate": false,
+        "near_duplicate_max_distance": 10,
+        "semantics": "pixel-layout resemblance; not semantic visual similarity",
+        "similarity": 0.796875
+      },
+      "sha256_match": false,
+      "source_a": {
+        "artifact_refs": [
+          "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14/artifacts/b7fd9035-ea7c-58c3-a2c9-38cf522c4285",
+          "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14/artifacts/ebafad52-adec-5a01-9102-83c1eedc6dab",
+          "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14/artifacts/0d4cfc13-dbe0-5672-aeb3-1aa78fd09dd0",
+          "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14/artifacts/8b26475a-c153-5fcb-a377-6bc3a242d941",
+          "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14/artifacts/9c873ee7-a694-5f6f-98c0-c0b7f26cd3c1",
+          "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14/artifacts/9eb8a7c6-06c8-5a2c-92f7-96689a86550c",
+          "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14/artifacts/bead3bea-d339-5caf-9a9c-251ff397bcf7",
+          "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14/artifacts/c1ef32f5-770c-5894-93a7-dd31e822cbe3",
+          "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14/artifacts/feffde17-7e4e-59c9-97c0-aec9be1a107a"
+        ],
+        "citation_ref": "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14",
+        "evidence_id": "c23c3e10-a7a6-435a-ae64-c411a7cd0e14",
+        "sha256": "aed3e4b16fe9560d25840961f615673e4af0ccd28f8695b46dc1ad34776dc387",
+        "source_file": "subject-a-frontal.png",
+        "version_id": "56cb1d0c-24ed-4996-9307-b59df0e66d4b"
+      },
+      "source_b": {
+        "artifact_refs": [
+          "nexusai://evidence/273bc132-74b5-4633-b8f9-bf0a812ef3ff/artifacts/dc8a6cce-d2e7-5141-89d9-e92c2e583ad9",
+          "nexusai://evidence/273bc132-74b5-4633-b8f9-bf0a812ef3ff/artifacts/fc430fcb-6596-533b-b502-89e61851ec98",
+          "nexusai://evidence/273bc132-74b5-4633-b8f9-bf0a812ef3ff/artifacts/6fde5ce2-b848-5e23-8f34-5aeac5301f1f",
+          "nexusai://evidence/273bc132-74b5-4633-b8f9-bf0a812ef3ff/artifacts/8757434b-3b00-58fd-96e7-7d7962591eeb",
+          "nexusai://evidence/273bc132-74b5-4633-b8f9-bf0a812ef3ff/artifacts/a7ffd48b-35c1-5ce9-99d3-79240ae9c7f0",
+          "nexusai://evidence/273bc132-74b5-4633-b8f9-bf0a812ef3ff/artifacts/ce4759d8-3f6a-535a-828c-3e1a7a57f3dc",
+          "nexusai://evidence/273bc132-74b5-4633-b8f9-bf0a812ef3ff/artifacts/cf9520be-3c2f-5b0b-96aa-3095d38fd155",
+          "nexusai://evidence/273bc132-74b5-4633-b8f9-bf0a812ef3ff/artifacts/f16dfe51-b9f3-5c98-a858-642431a2422c"
+        ],
+        "citation_ref": "nexusai://evidence/273bc132-74b5-4633-b8f9-bf0a812ef3ff",
+        "evidence_id": "273bc132-74b5-4633-b8f9-bf0a812ef3ff",
+        "sha256": "d69848db8e4332f02a544dd6a5339dd49f187dadd3203a365cff1d91f8e27885",
+        "source_file": "subject-b-frontal.png",
+        "version_id": "7603fd46-a242-4a84-b081-23e4b1d225f1"
+      },
+      "visual_similarity": {
+        "available": true,
+        "distance_metric": "cosine_similarity",
+        "embedding_dimension": 768,
+        "model": "google/siglip-base-patch16-224",
+        "model_revision": "7fd15f0689c79d79e38b1c2e2e2370a7bf2761ed",
+        "model_sha256": "2c63cb7d1f2e95ba501893cbb8faeb4ea9a3af295498d35097126228659c2af8",
+        "score": 0.7851776739897274,
+        "semantics": "candidate semantic visual similarity; not evidence identity or fact"
+      }
+    },
+    "face_similarity": {
+      "contract_version": "forensics.face-candidate-similarity/v1",
+      "limitations": [
+        "Results are limited to the explicitly supplied current-version evidence set.",
+        "A similarity score is a review candidate and never an identity conclusion."
+      ],
+      "model": {
+        "backend_digest": "sha256:8d303ecedb5e6f4dd2c5a0023da806ac3f8ceef369ff83628f24d99d1a0f3f19",
+        "embedding_dimension": 128,
+        "id": "face-detect-yunet-sface",
+        "sha256": "9ce78d4ba0ae9d5e8c91a0e145d511558d1d90f5d9c1f4131cca9bb4bce60902",
+        "version": "nexusai-post-bf-a-v1"
+      },
+      "query": {
+        "citation_locator": {
+          "bbox": {
+            "height": 694,
+            "width": 535,
+            "x": 355,
+            "y": 296
+          },
+          "coordinate_space": "original_image_pixels",
+          "face_crop": {
+            "face_observation_id": "bead3bea-d339-5caf-9a9c-251ff397bcf7"
+          },
+          "source_file": "subject-a-frontal.png"
+        },
+        "citation_ref": "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14/artifacts/bead3bea-d339-5caf-9a9c-251ff397bcf7",
+        "evidence_id": "c23c3e10-a7a6-435a-ae64-c411a7cd0e14",
+        "query_face_observation_id": "bead3bea-d339-5caf-9a9c-251ff397bcf7",
+        "version_id": "56cb1d0c-24ed-4996-9307-b59df0e66d4b"
+      },
+      "results": [
+        {
+          "candidate_evidence_id": "769f6124-5b06-4c73-9122-39ef4423e0c4",
+          "candidate_face_observation_id": "62925337-be12-5cc9-9a16-1565d24c9142",
+          "candidate_quality": {
+            "crop_height_pixels": 660,
+            "crop_width_pixels": 511,
+            "minimum_dimension_pixels": 511
+          },
+          "candidate_version_id": "08fb361a-5e26-4dea-afdf-0047c6cd3bfd",
+          "citation_locator": {
+            "bbox": {
+              "height": 660,
+              "width": 511,
+              "x": 362,
+              "y": 303
+            },
+            "coordinate_space": "original_image_pixels",
+            "face_crop": {
+              "face_observation_id": "62925337-be12-5cc9-9a16-1565d24c9142"
+            },
+            "source_file": "subject-a-blur.png"
+          },
+          "citation_ref": "nexusai://evidence/769f6124-5b06-4c73-9122-39ef4423e0c4/artifacts/62925337-be12-5cc9-9a16-1565d24c9142",
+          "created_at": "2026-08-23T13:44:52Z",
+          "distance_metric": "cosine_similarity",
+          "limitation": "candidate face similarity; not identity",
+          "query_quality": {
+            "crop_height_pixels": 694,
+            "crop_width_pixels": 535,
+            "minimum_dimension_pixels": 535
+          },
+          "rank": 1,
+          "review_state": "model_candidate",
+          "score": 0.877458566861689,
+          "similarity_score": 0.877458566861689,
+          "source_evidence_id": "769f6124-5b06-4c73-9122-39ef4423e0c4",
+          "source_frame_time": null
+        },
+        {
+          "candidate_evidence_id": "3fff8296-ee69-4283-a498-7a0000887072",
+          "candidate_face_observation_id": "b250668f-f90c-5925-a31c-b924b17aed45",
+          "candidate_quality": {
+            "crop_height_pixels": 668,
+            "crop_width_pixels": 518,
+            "minimum_dimension_pixels": 518
+          },
+          "candidate_version_id": "1a9c7888-d61c-4076-96c4-d8c6fa292cdb",
+          "citation_locator": {
+            "bbox": {
+              "height": 668,
+              "width": 518,
+              "x": 332,
+              "y": 289
+            },
+            "coordinate_space": "original_image_pixels",
+            "face_crop": {
+              "face_observation_id": "b250668f-f90c-5925-a31c-b924b17aed45"
+            },
+            "source_file": "subject-a-pose.png"
+          },
+          "citation_ref": "nexusai://evidence/3fff8296-ee69-4283-a498-7a0000887072/artifacts/b250668f-f90c-5925-a31c-b924b17aed45",
+          "created_at": "2026-08-23T13:44:45Z",
+          "distance_metric": "cosine_similarity",
+          "limitation": "candidate face similarity; not identity",
+          "query_quality": {
+            "crop_height_pixels": 694,
+            "crop_width_pixels": 535,
+            "minimum_dimension_pixels": 535
+          },
+          "rank": 2,
+          "review_state": "model_candidate",
+          "score": 0.8419142154574298,
+          "similarity_score": 0.8419142154574298,
+          "source_evidence_id": "3fff8296-ee69-4283-a498-7a0000887072",
+          "source_frame_time": null
+        },
+        {
+          "candidate_evidence_id": "273bc132-74b5-4633-b8f9-bf0a812ef3ff",
+          "candidate_face_observation_id": "8757434b-3b00-58fd-96e7-7d7962591eeb",
+          "candidate_quality": {
+            "crop_height_pixels": 662,
+            "crop_width_pixels": 464,
+            "minimum_dimension_pixels": 464
+          },
+          "candidate_version_id": "7603fd46-a242-4a84-b081-23e4b1d225f1",
+          "citation_locator": {
+            "bbox": {
+              "height": 662,
+              "width": 464,
+              "x": 374,
+              "y": 305
+            },
+            "coordinate_space": "original_image_pixels",
+            "face_crop": {
+              "face_observation_id": "8757434b-3b00-58fd-96e7-7d7962591eeb"
+            },
+            "source_file": "subject-b-frontal.png"
+          },
+          "citation_ref": "nexusai://evidence/273bc132-74b5-4633-b8f9-bf0a812ef3ff/artifacts/8757434b-3b00-58fd-96e7-7d7962591eeb",
+          "created_at": "2026-08-23T13:44:58Z",
+          "distance_metric": "cosine_similarity",
+          "limitation": "candidate face similarity; not identity",
+          "query_quality": {
+            "crop_height_pixels": 694,
+            "crop_width_pixels": 535,
+            "minimum_dimension_pixels": 535
+          },
+          "rank": 3,
+          "review_state": "model_candidate",
+          "score": 0.30929836004097305,
+          "similarity_score": 0.30929836004097305,
+          "source_evidence_id": "273bc132-74b5-4633-b8f9-bf0a812ef3ff",
+          "source_frame_time": null
+        }
+      ],
+      "scope": {
+        "candidate_evidence_ids": [
+          "3fff8296-ee69-4283-a498-7a0000887072",
+          "769f6124-5b06-4c73-9122-39ef4423e0c4",
+          "273bc132-74b5-4633-b8f9-bf0a812ef3ff"
+        ],
+        "case_id": "nexusai-multimodal-product-acceptance",
+        "collection_id": "nexusai-multimodal-product-acceptance",
+        "tenant_id": "default"
+      },
+      "semantics": "candidate visual similarity; not identity"
+    },
+    "siglip_similarity": {
+      "contract_version": "forensics.semantic-image-candidate-similarity/v1",
+      "limitations": [
+        "Results are limited to the explicitly supplied current-version evidence set.",
+        "Scores are review candidates and do not establish duplicate identity, object identity, event identity, or truth.",
+        "Text-to-image query execution is not exposed by this API slice."
+      ],
+      "model": {
+        "embedding_dimension": 768,
+        "id": "google/siglip-base-patch16-224",
+        "revision": "7fd15f0689c79d79e38b1c2e2e2370a7bf2761ed",
+        "sha256": "2c63cb7d1f2e95ba501893cbb8faeb4ea9a3af295498d35097126228659c2af8"
+      },
+      "query": {
+        "citation_locator": {
+          "scope": "full_image",
+          "source_file": "subject-a-frontal.png"
+        },
+        "citation_ref": "nexusai://evidence/c23c3e10-a7a6-435a-ae64-c411a7cd0e14/artifacts/9eb8a7c6-06c8-5a2c-92f7-96689a86550c",
+        "evidence_id": "c23c3e10-a7a6-435a-ae64-c411a7cd0e14",
+        "query_image_observation_id": "9eb8a7c6-06c8-5a2c-92f7-96689a86550c",
+        "version_id": "56cb1d0c-24ed-4996-9307-b59df0e66d4b"
+      },
+      "results": [
+        {
+          "candidate_evidence_id": "3fff8296-ee69-4283-a498-7a0000887072",
+          "candidate_image_observation_id": "7fd287ec-af7e-5f06-a767-03837e623002",
+          "candidate_version_id": "1a9c7888-d61c-4076-96c4-d8c6fa292cdb",
+          "citation_locator": {
+            "scope": "full_image",
+            "source_file": "subject-a-pose.png"
+          },
+          "citation_ref": "nexusai://evidence/3fff8296-ee69-4283-a498-7a0000887072/artifacts/7fd287ec-af7e-5f06-a767-03837e623002",
+          "created_at": "2026-08-23T13:44:45Z",
+          "distance_metric": "cosine_similarity",
+          "limitation": "candidate semantic visual similarity; not evidence identity or fact",
+          "rank": 1,
+          "review_state": "model_candidate",
+          "score": 0.9668380917126206,
+          "similarity_score": 0.9668380917126206,
+          "source_frame_time": null
+        },
+        {
+          "candidate_evidence_id": "769f6124-5b06-4c73-9122-39ef4423e0c4",
+          "candidate_image_observation_id": "04ecfde0-1e9f-513c-83a1-d25e3f9ecd85",
+          "candidate_version_id": "08fb361a-5e26-4dea-afdf-0047c6cd3bfd",
+          "citation_locator": {
+            "scope": "full_image",
+            "source_file": "subject-a-blur.png"
+          },
+          "citation_ref": "nexusai://evidence/769f6124-5b06-4c73-9122-39ef4423e0c4/artifacts/04ecfde0-1e9f-513c-83a1-d25e3f9ecd85",
+          "created_at": "2026-08-23T13:44:52Z",
+          "distance_metric": "cosine_similarity",
+          "limitation": "candidate semantic visual similarity; not evidence identity or fact",
+          "rank": 2,
+          "review_state": "model_candidate",
+          "score": 0.9357892062354922,
+          "similarity_score": 0.9357892062354922,
+          "source_frame_time": null
+        },
+        {
+          "candidate_evidence_id": "273bc132-74b5-4633-b8f9-bf0a812ef3ff",
+          "candidate_image_observation_id": "6fde5ce2-b848-5e23-8f34-5aeac5301f1f",
+          "candidate_version_id": "7603fd46-a242-4a84-b081-23e4b1d225f1",
+          "citation_locator": {
+            "scope": "full_image",
+            "source_file": "subject-b-frontal.png"
+          },
+          "citation_ref": "nexusai://evidence/273bc132-74b5-4633-b8f9-bf0a812ef3ff/artifacts/6fde5ce2-b848-5e23-8f34-5aeac5301f1f",
+          "created_at": "2026-08-23T13:44:58Z",
+          "distance_metric": "cosine_similarity",
+          "limitation": "candidate semantic visual similarity; not evidence identity or fact",
+          "rank": 3,
+          "review_state": "model_candidate",
+          "score": 0.7851776739897274,
+          "similarity_score": 0.7851776739897274,
+          "source_frame_time": null
+        },
+        {
+          "candidate_evidence_id": "3ffc0eae-f030-4e62-835f-100682b99b1c",
+          "candidate_image_observation_id": "5750edbb-7243-56d5-af07-7250f70d5adc",
+          "candidate_version_id": "7266a4df-df92-4464-a068-39894367ec71",
+          "citation_locator": {
+            "scope": "full_image",
+            "source_file": "no-face-street.png"
+          },
+          "citation_ref": "nexusai://evidence/3ffc0eae-f030-4e62-835f-100682b99b1c/artifacts/5750edbb-7243-56d5-af07-7250f70d5adc",
+          "created_at": "2026-08-23T13:45:01Z",
+          "distance_metric": "cosine_similarity",
+          "limitation": "candidate semantic visual similarity; not evidence identity or fact",
+          "rank": 4,
+          "review_state": "model_candidate",
+          "score": 0.4630320558678394,
+          "similarity_score": 0.4630320558678394,
+          "source_frame_time": null
+        },
+        {
+          "candidate_evidence_id": "d4b9daf1-da54-4c66-923c-c725bec4400c",
+          "candidate_image_observation_id": "c82f237a-1ac3-5fe6-bf60-9506bfeadecb",
+          "candidate_version_id": "b1171a5a-ae10-47fb-b491-25f839875162",
+          "citation_locator": {
+            "scope": "full_image",
+            "source_file": "wikimedia-road-cars-islamabad.jpg"
+          },
+          "citation_ref": "nexusai://evidence/d4b9daf1-da54-4c66-923c-c725bec4400c/artifacts/c82f237a-1ac3-5fe6-bf60-9506bfeadecb",
+          "created_at": "2026-08-23T13:44:33Z",
+          "distance_metric": "cosine_similarity",
+          "limitation": "candidate semantic visual similarity; not evidence identity or fact",
+          "rank": 5,
+          "review_state": "model_candidate",
+          "score": 0.43841070960997996,
+          "similarity_score": 0.43841070960997996,
+          "source_frame_time": null
+        }
+      ],
+      "scope": {
+        "candidate_evidence_ids": [
+          "3fff8296-ee69-4283-a498-7a0000887072",
+          "769f6124-5b06-4c73-9122-39ef4423e0c4",
+          "273bc132-74b5-4633-b8f9-bf0a812ef3ff",
+          "3ffc0eae-f030-4e62-835f-100682b99b1c",
+          "d4b9daf1-da54-4c66-923c-c725bec4400c"
+        ],
+        "case_id": "nexusai-multimodal-product-acceptance",
+        "collection_id": "nexusai-multimodal-product-acceptance",
+        "tenant_id": "default"
+      },
+      "semantics": "candidate semantic visual similarity; not evidence identity or fact"
+    }
+  },
+  "source_access": {
+    "plate": {
+      "full": {
+        "status": 200,
+        "content_type": "image/jpeg",
+        "content_disposition": "inline; filename=image-test-plate-test_plate.jpg",
+        "content_range": "",
+        "evidence_sha256": "a15a7ec947fdb2c5a08a70243a62ed66e4dddd89defaba9d135f6c5ac67559f6",
+        "bytes": 235572
+      },
+      "range": {
+        "status": 206,
+        "content_type": "image/jpeg",
+        "content_disposition": "inline; filename=image-test-plate-test_plate.jpg",
+        "content_range": "bytes 0-31/235572",
+        "evidence_sha256": "a15a7ec947fdb2c5a08a70243a62ed66e4dddd89defaba9d135f6c5ac67559f6",
+        "bytes": 32
+      }
+    },
+    "audio": {
+      "full": {
+        "status": 200,
+        "content_type": "audio/wave",
+        "content_disposition": "inline; filename=clear-urdu.wav",
+        "content_range": "",
+        "evidence_sha256": "c499e06e26b8cbf37386b88bba26f37045439a775e964bdad8634376435a056e",
+        "bytes": 199758
+      },
+      "range": {
+        "status": 206,
+        "content_type": "audio/wave",
+        "content_disposition": "inline; filename=clear-urdu.wav",
+        "content_range": "bytes 0-31/199758",
+        "evidence_sha256": "c499e06e26b8cbf37386b88bba26f37045439a775e964bdad8634376435a056e",
+        "bytes": 32
+      }
+    },
+    "video": {
+      "full": {
+        "status": 200,
+        "content_type": "video/mp4",
+        "content_disposition": "inline; filename=pakistan-short-video.mp4",
+        "content_range": "",
+        "evidence_sha256": "94be8b97d62f28eb0349b1eaea02e8073a669d60ffbd3da6511f7f7d27004a26",
+        "bytes": 477174
+      },
+      "range": {
+        "status": 206,
+        "content_type": "video/mp4",
+        "content_disposition": "inline; filename=pakistan-short-video.mp4",
+        "content_range": "bytes 0-31/477174",
+        "evidence_sha256": "94be8b97d62f28eb0349b1eaea02e8073a669d60ffbd3da6511f7f7d27004a26",
+        "bytes": 32
+      }
+    },
+    "txt": {
+      "full": {
+        "status": 200,
+        "content_type": "text/plain; charset=utf-8",
+        "content_disposition": "inline; filename=case_notes_records_demo.txt",
+        "content_range": "",
+        "evidence_sha256": "11c370e9f4564786ebee8d76d894ffba52ea1a26918e3470f0a9e096cac47216",
+        "bytes": 429
+      },
+      "range": {
+        "status": 206,
+        "content_type": "text/plain; charset=utf-8",
+        "content_disposition": "inline; filename=case_notes_records_demo.txt",
+        "content_range": "bytes 0-31/429",
+        "evidence_sha256": "11c370e9f4564786ebee8d76d894ffba52ea1a26918e3470f0a9e096cac47216",
+        "bytes": 32
+      }
+    },
+    "pdf": {
+      "full": {
+        "status": 200,
+        "content_type": "application/pdf",
+        "content_disposition": "inline; filename=nexusai-multimodal-acceptance-brief.pdf",
+        "content_range": "",
+        "evidence_sha256": "ae8432898f694e5452500f0fbe9e4a988acb601377aedcf74419cce352eac2fc",
+        "bytes": 2934
+      },
+      "range": {
+        "status": 206,
+        "content_type": "application/pdf",
+        "content_disposition": "inline; filename=nexusai-multimodal-acceptance-brief.pdf",
+        "content_range": "bytes 0-31/2934",
+        "evidence_sha256": "ae8432898f694e5452500f0fbe9e4a988acb601377aedcf74419cce352eac2fc",
+        "bytes": 32
+      }
+    },
+    "docx": {
+      "full": {
+        "status": 200,
+        "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "content_disposition": "attachment; filename=document-docx-hp-guide-HP_EliteDesk_LocalAI_Remote_Setup_Guide.docx",
+        "content_range": "",
+        "evidence_sha256": "85b1ab53150a556f84391a222b7fb4dbf69aa80d1c4d7d7a7b54d5f283ea4865",
+        "bytes": 34352
+      },
+      "range": {
+        "status": 206,
+        "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "content_disposition": "attachment; filename=document-docx-hp-guide-HP_EliteDesk_LocalAI_Remote_Setup_Guide.docx",
+        "content_range": "bytes 0-31/34352",
+        "evidence_sha256": "85b1ab53150a556f84391a222b7fb4dbf69aa80d1c4d7d7a7b54d5f283ea4865",
+        "bytes": 32
+      }
+    }
+  },
+  "security": {
+    "face_missing_explicit_authorization": {
+      "status": 403,
+      "content_type": "application/json",
+      "content_disposition": "",
+      "content_range": "",
+      "evidence_sha256": "",
+      "bytes": 67
+    },
+    "image_missing_candidate_scope": {
+      "status": 400,
+      "content_type": "application/json",
+      "content_disposition": "",
+      "content_range": "",
+      "evidence_sha256": "",
+      "bytes": 72
+    },
+    "cross_tenant_query_mismatch": {
+      "status": 403,
+      "content_type": "application/json",
+      "content_disposition": "",
+      "content_range": "",
+      "evidence_sha256": "",
+      "bytes": 70
+    },
+    "wrong_case": {
+      "status": 404,
+      "content_type": "application/json",
+      "content_disposition": "",
+      "content_range": "",
+      "evidence_sha256": "",
+      "bytes": 59
+    },
+    "missing_evidence": {
+      "status": 404,
+      "content_type": "application/json",
+      "content_disposition": "",
+      "content_range": "",
+      "evidence_sha256": "",
+      "bytes": 59
+    }
+  },
+  "knowledge_base": {
+    "governed_retrieval": {
+      "collection_id": "nexusai-multimodal-product-acceptance",
+      "intent": "hybrid",
+      "template": "evidence",
+      "query_understanding": {
+        "contract_version": "forensics.query-understanding/v1",
+        "original_question": "Find records and source passages mentioning NEXUS-DEMO-2026",
+        "normalized_question": "find records and source passages mentioning nexus-demo-2026",
+        "language": {
+          "tag": "en",
+          "source": "deterministic_extractor",
+          "confidence": 0.9
+        },
+        "intent": "retrieve",
+        "families": {
+          "kind": "knowledge_only",
+          "primary": "knowledge_evidence",
+          "secondary": []
+        },
+        "entities": [
+          {
+            "type": "identifier",
+            "original": "NEXUS-DEMO-2026",
+            "normalized": "NEXUS-DEMO-2026",
+            "origin": "current_question",
+            "normalizer": "legacy_family_normalizer"
+          },
+          {
+            "type": "identifier",
+            "original": "DEMO-2026",
+            "normalized": "DEMO-2026",
+            "origin": "current_question",
+            "normalizer": "legacy_family_normalizer"
+          }
+        ],
+        "targets": [
+          {
+            "entity_index": 0,
+            "parameter": "target",
+            "value": "NEXUS-DEMO-2026",
+            "origin": "current_question"
+          },
+          {
+            "entity_index": 1,
+            "parameter": "target",
+            "value": "DEMO-2026",
+            "origin": "current_question"
+          }
+        ],
+        "time_scope": {
+          "timezone": "case_default",
+          "origin": "current_question"
+        },
+        "filters": [],
+        "requested_output": {
+          "result_kind": "document",
+          "presentation_type": "cited_evidence_results",
+          "limit": 10
+        },
+        "candidate_capabilities": [
+          "forensics.evidence"
+        ],
+        "clarification": {
+          "required": false,
+          "missing_fields": []
+        },
+        "context": {
+          "used": false,
+          "fields": [],
+          "inherited_fields": null
+        },
+        "confidence": {
+          "overall": 0.95,
+          "routing": 0.95,
+          "entities": 1,
+          "time_scope": 0
+        }
+      },
+      "execution_plan": {
+        "contract_version": "forensics.execution-plan/v1",
+        "plan_id": "a359f54f-99f7-4f78-9d70-f36f6d021f2e:plan",
+        "mode": "single_operation",
+        "workspace": {
+          "tenant_id": "default",
+          "case_id": "nexusai-multimodal-product-acceptance",
+          "collection_id": "nexusai-multimodal-product-acceptance",
+          "subject_id": "nexusai-local-operator"
+        },
+        "steps": [
+          {
+            "step_id": "step-1",
+            "capability_id": "forensics.evidence",
+            "operation_id": "forensics.evidence",
+            "dependencies": [],
+            "input_bindings": [],
+            "parameters": {
+              "target": "NEXUS-DEMO-2026",
+              "targets": [
+                "NEXUS-DEMO-2026",
+                "DEMO-2026"
+              ],
+              "raw_payload_filters": null,
+              "field_filters": null,
+              "field_exists": [],
+              "field_not_exists": [],
+              "limit": 10,
+              "offset": 0,
+              "max_kb_results": 5
+            },
+            "evidence_scope": {
+              "collection_id": "nexusai-multimodal-product-acceptance"
+            },
+            "expected_result_contract": "forensics.enterprise-response/v1",
+            "result_kind": "document",
+            "presentation_type": "cited_evidence_results",
+            "citation_required": true
+          }
+        ],
+        "output_contract": "forensics.enterprise-response/v1",
+        "resource_policy": {
+          "read_only": true,
+          "maximum_steps": 1,
+          "maximum_rows": 100,
+          "maximum_offset": 100000,
+          "maximum_kb_results": 20,
+          "maximum_targets": 8,
+          "maximum_intermediate_rows": 0,
+          "maximum_retrieval_chunks": 0,
+          "maximum_model_calls": 0,
+          "timeout_milliseconds": 0
+        },
+        "policy_decisions": [
+          "workspace_scope_bound",
+          "known_capability_only",
+          "read_only_executor",
+          "citations_capability_owned"
+        ]
+      },
+      "resolved_capability": {
+        "capability_id": "forensics.evidence",
+        "operation_id": "forensics.evidence",
+        "template": "evidence",
+        "family_ids": [
+          "knowledge_evidence"
+        ],
+        "intent_classes": [
+          "retrieve"
+        ],
+        "required_parameters": [],
+        "optional_parameters": [],
+        "scope_mode": "case_wide",
+        "source_scoped": false,
+        "time_scoped": false,
+        "execution_mode": "retrieval",
+        "extension_mode": "knowledge_retrieval",
+        "implementation_key": "queryKnowledgeBaseEvidence",
+        "specialist_id": "Evidence_Integrity_And_Provenance_Analyst",
+        "model_role_ids": null,
+        "result_contract": "forensics.enterprise-response/v1",
+        "result_kind": "document",
+        "presentation_type": "cited_evidence_results",
+        "citation_required": true,
+        "criticality_tier": "A",
+        "certification_status": "certified",
+        "exposure_status": "queryable",
+        "suggestion_eligible": true,
+        "limitations": [
+          "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+        ],
+        "availability": {
+          "implemented": true,
+          "runtime_available": true,
+          "data_available": true,
+          "authorized": true,
+          "model_available": true,
+          "maturity": "operational",
+          "queryable": true,
+          "executable": true,
+          "reason_codes": null
+        }
+      },
+      "target": "NEXUS-DEMO-2026",
+      "route": [
+        "derived_text_lexical",
+        "kb_rag"
+      ],
+      "policy": "Exact analytics are computed from parameterized SQL templates. KB content is used only for evidence, source previews, and contextual grounding.",
+      "planner": {
+        "capability_id": "forensics.evidence",
+        "confidence": 0.95,
+        "date_from": "",
+        "date_to": "",
+        "execution_plan_id": "a359f54f-99f7-4f78-9d70-f36f6d021f2e:plan",
+        "extracted_target": "NEXUS-DEMO-2026",
+        "field_hints": [],
+        "language_assistance": "deterministic_fast_path",
+        "policy_decisions": [
+          "workspace_scope_bound",
+          "known_capability_only",
+          "read_only_executor",
+          "citations_capability_owned"
+        ],
+        "query_plan": {
+          "interpreted_intent": "hybrid",
+          "selected_template": "evidence",
+          "target_identifiers": [
+            "NEXUS-DEMO-2026",
+            "DEMO-2026"
+          ],
+          "date_bounds": {},
+          "applied_filters": {
+            "field_hints": [],
+            "pagination": {
+              "limit": 10,
+              "offset": 0
+            },
+            "target": "NEXUS-DEMO-2026",
+            "target_type": "identifier",
+            "targets": [
+              "NEXUS-DEMO-2026",
+              "DEMO-2026"
+            ]
+          },
+          "confidence": 0.95,
+          "coverage_check": {
+            "total_indexed_records": 0,
+            "record_families_present": null,
+            "nearest_activity": {},
+            "valid_target_examples": null
+          },
+          "execution_strategy": "hybrid_llm",
+          "fallback_reason": "Grounded explanation timed out; deterministic result retained"
+        },
+        "query_understanding_version": "forensics.query-understanding/v1",
+        "reason": "rule-based runtime query planner; target extracted; multiple targets extracted",
+        "source": "runtime_query",
+        "target_type": "identifier",
+        "targets": [
+          "NEXUS-DEMO-2026",
+          "DEMO-2026"
+        ]
+      },
+      "query_plan": {
+        "interpreted_intent": "hybrid",
+        "selected_template": "evidence",
+        "target_identifiers": [
+          "NEXUS-DEMO-2026",
+          "DEMO-2026"
+        ],
+        "date_bounds": {},
+        "applied_filters": {
+          "field_hints": [],
+          "pagination": {
+            "limit": 10,
+            "offset": 0
+          },
+          "target": "NEXUS-DEMO-2026",
+          "target_type": "identifier",
+          "targets": [
+            "NEXUS-DEMO-2026",
+            "DEMO-2026"
+          ]
+        },
+        "confidence": 0.95,
+        "coverage_check": {
+          "total_indexed_records": 0,
+          "record_families_present": null,
+          "nearest_activity": {},
+          "valid_target_examples": null
+        },
+        "execution_strategy": "hybrid_llm",
+        "fallback_reason": "Grounded explanation timed out; deterministic result retained"
+      },
+      "capability": {
+        "status": "supported_by_selected_route",
+        "requested_families": [],
+        "required_operations": [],
+        "missing_capabilities": [],
+        "explanation": "The selected deterministic or evidence route may run; collection coverage is reported separately.",
+        "suggested_queries": []
+      },
+      "coverage": {
+        "total_indexed_records": 0,
+        "record_families_present": null,
+        "nearest_activity": {},
+        "valid_target_examples": null
+      },
+      "evidence": {
+        "mode": "kb_plus_derived_text",
+        "results": [
+          {
+            "content": "NexusAI Multimodal Acceptance Brief Synthetic acceptance fixture - not natural evidence. This document exists only to verify deterministic PDF extraction, retrieval, citations, and authorized source preview behavior. Reference facts Field Ground-truth value Case reference NEXUS-DEMO-2026 Plate candidate MN1367 Contact number 03001234567 Observed time 10:35 PKT Location Islamabad, Pakistan Review",
+            "id": "3",
+            "metadata": {
+              "chunk_id": "3",
+              "chunk_sha256": "eeda9c190718fcf0d8a7668ef11d95ff1dae072c25b788da590c5b9a097dcb58",
+              "collection_id": "nexusai-multimodal-product-acceptance",
+              "created_at": "2026-08-23T13:18:03Z",
+              "file_name": "nexusai-multimodal-acceptance-brief.pdf",
+              "source": "12aec697-233a-462a-a973-ec4695bfcd4e/nexusai-multimodal-acceptance-brief.pdf",
+              "source_entry": "12aec697-233a-462a-a973-ec4695bfcd4e/nexusai-multimodal-acceptance-brief.pdf",
+              "source_file": "nexusai-multimodal-acceptance-brief.pdf",
+              "tenant_id": "default",
+              "type": "file"
+            },
+            "similarity": 0.87135375
+          },
+          {
+            "content": "state Synthetic and review-required Expected analyst question Which source mentions plate MN1367, contact 03001234567, and time 10:35, and what limitation applies? Expected grounded answer This PDF mentions all three identifiers. The source is a synthetic acceptance fixture and must not be represented as natural evidence. Any answer must cite the retained document passage and source version.",
+            "id": "4",
+            "metadata": {
+              "chunk_id": "4",
+              "chunk_sha256": "e1c89579ff0a5e01ce77e13f971e7b99949da05cf84d9375a95c0111be399063",
+              "collection_id": "nexusai-multimodal-product-acceptance",
+              "created_at": "2026-08-23T13:18:03Z",
+              "file_name": "nexusai-multimodal-acceptance-brief.pdf",
+              "source": "12aec697-233a-462a-a973-ec4695bfcd4e/nexusai-multimodal-acceptance-brief.pdf",
+              "source_entry": "12aec697-233a-462a-a973-ec4695bfcd4e/nexusai-multimodal-acceptance-brief.pdf",
+              "source_file": "nexusai-multimodal-acceptance-brief.pdf",
+              "tenant_id": "default",
+              "type": "file"
+            },
+            "similarity": 0.7970335
+          },
+          {
+            "content": "Case notes for records-demo Targets of interest: - Phone number 923461678183 appears in CDR records. - Plate ABC-123 appears near Gate 4 and North Road. - Cross-source timeline should combine structured observations with this narrative note. Analyst question examples: - Summarize evidence for ABC-123 with source citations. - Show call type breakdown for 923461678183. - Show data quality and",
+            "id": "1",
+            "metadata": {
+              "chunk_id": "1",
+              "chunk_sha256": "6c3b7cf5c28d3e0d26c2ca3c10ddec738be73ec20346b0b341c6f2e1e850fc22",
+              "collection_id": "nexusai-multimodal-product-acceptance",
+              "created_at": "2026-08-23T13:17:56Z",
+              "evidence_id": "ee48bd0b-acde-4b51-b8c6-d9194278efda",
+              "file_name": "case_notes_records_demo.txt",
+              "source": "b5e8a247-5260-40b3-9985-317b606910c3/case_notes_records_demo.txt",
+              "source_entry": "b5e8a247-5260-40b3-9985-317b606910c3/case_notes_records_demo.txt",
+              "source_file": "case_notes_records_demo.txt",
+              "tenant_id": "default",
+              "type": "file",
+              "version_id": "36a503c0-1192-44a8-8256-a148912ed4b1"
+            },
+            "similarity": 0.78616375
+          },
+          {
+            "content": "Acceptance boundaries Passing behavior requires source-bound extraction, deterministic identifier preservation, case-scoped retrieval, visible citations, History persistence, and an authorized PDF source action. Scanned-only PDF OCR is outside this fixture's claim.",
+            "id": "5",
+            "metadata": {
+              "chunk_id": "5",
+              "chunk_sha256": "1698c2e45c0241e0a4ef0ff56c3a0ada9542108ddedf300318109c8bb4cf9984",
+              "collection_id": "nexusai-multimodal-product-acceptance",
+              "created_at": "2026-08-23T13:18:03Z",
+              "file_name": "nexusai-multimodal-acceptance-brief.pdf",
+              "source": "12aec697-233a-462a-a973-ec4695bfcd4e/nexusai-multimodal-acceptance-brief.pdf",
+              "source_entry": "12aec697-233a-462a-a973-ec4695bfcd4e/nexusai-multimodal-acceptance-brief.pdf",
+              "source_file": "nexusai-multimodal-acceptance-brief.pdf",
+              "tenant_id": "default",
+              "type": "file"
+            },
+            "similarity": 0.72098833
+          },
+          {
+            "content": "duplicate-row counts.",
+            "id": "2",
+            "metadata": {
+              "chunk_id": "2",
+              "chunk_sha256": "7ce4d2371cb227225be01000ea7716c23dd17c9d945f602bbbc347bdabc79c1d",
+              "collection_id": "nexusai-multimodal-product-acceptance",
+              "created_at": "2026-08-23T13:17:56Z",
+              "evidence_id": "ee48bd0b-acde-4b51-b8c6-d9194278efda",
+              "file_name": "case_notes_records_demo.txt",
+              "source": "b5e8a247-5260-40b3-9985-317b606910c3/case_notes_records_demo.txt",
+              "source_entry": "b5e8a247-5260-40b3-9985-317b606910c3/case_notes_records_demo.txt",
+              "source_file": "case_notes_records_demo.txt",
+              "tenant_id": "default",
+              "type": "file",
+              "version_id": "36a503c0-1192-44a8-8256-a148912ed4b1"
+            },
+            "similarity": 0.66675377
+          }
+        ]
+      },
+      "answer": {
+        "evidence_count": 5,
+        "evidence_status": "matched",
+        "evidence_summary": "Retrieved Knowledge Base evidence using kb_plus_derived_text",
+        "guardrail": "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations.",
+        "llm_fallback_reason": "Grounded explanation timed out; deterministic result retained"
+      },
+      "enterprise": {
+        "clarification": "",
+        "contribution_lineage": null,
+        "conversation_context": {
+          "analysis_id": "",
+          "collection_id": "nexusai-multimodal-product-acceptance",
+          "contract_version": "forensics.follow-up-context/v1",
+          "conversation_id": "",
+          "created_at": "2026-08-23T14:14:45Z",
+          "current_question": "Find records and source passages mentioning NEXUS-DEMO-2026",
+          "date_from": "",
+          "date_to": "",
+          "direction": "",
+          "expires_at": "2026-08-23T14:44:45Z",
+          "inherited_fields": null,
+          "source_set": null,
+          "target": "NEXUS-DEMO-2026",
+          "targets": [
+            "NEXUS-DEMO-2026",
+            "DEMO-2026"
+          ],
+          "template": "evidence",
+          "tenant_id": "default",
+          "turn_id": "",
+          "user_id": "nexusai-local-operator"
+        },
+        "coverage": {
+          "collection_id": "nexusai-multimodal-product-acceptance",
+          "collection_max_timestamp": "",
+          "collection_min_timestamp": "",
+          "date_from": "",
+          "date_to": "",
+          "direction": "",
+          "nearest_activity": {},
+          "queried_kb": true,
+          "queried_record_sql": false,
+          "record_families_present": null,
+          "route": [
+            "derived_text_lexical",
+            "kb_rag"
+          ],
+          "target": "NEXUS-DEMO-2026",
+          "template": "evidence",
+          "tenant_id": "default",
+          "total_indexed_records": 0,
+          "valid_target_examples": null
+        },
+        "data_grid": {
+          "columns": null,
+          "count": 0,
+          "rows": null
+        },
+        "executive_answer": "Retrieved 5 cited evidence results from the selected case scope.",
+        "fact_packet": {
+          "contract_version": "forensics.fact-packet/v1",
+          "request_id": "a359f54f-99f7-4f78-9d70-f36f6d021f2e",
+          "question": "Find records and source passages mentioning NEXUS-DEMO-2026",
+          "language": {
+            "tag": "en",
+            "source": "deterministic_extractor",
+            "confidence": 0.9
+          },
+          "scope": {
+            "tenant_id": "default",
+            "case_id": "nexusai-multimodal-product-acceptance",
+            "collection_id": "nexusai-multimodal-product-acceptance"
+          },
+          "operation_id": "forensics.evidence",
+          "plan_id": "a359f54f-99f7-4f78-9d70-f36f6d021f2e:plan",
+          "normalized_parameters": {
+            "date_from": "",
+            "date_to": "",
+            "direction": "",
+            "limit": 10,
+            "source_file": "",
+            "source_set": null,
+            "target": "NEXUS-DEMO-2026",
+            "targets": [
+              "NEXUS-DEMO-2026",
+              "DEMO-2026"
+            ]
+          },
+          "execution_mode": "derived_text_lexical+kb_rag",
+          "result_state": "answered_with_limitations",
+          "facts": [
+            {
+              "fact_id": "F1",
+              "kind": "direct_answer",
+              "text": "Retrieved 5 cited evidence results from the selected case scope.",
+              "citation_ids": [
+                "C1",
+                "C2",
+                "C3",
+                "C4",
+                "C5"
+              ]
+            },
+            {
+              "fact_id": "F2",
+              "kind": "metric",
+              "text": "Template: evidence",
+              "value": "evidence",
+              "citation_ids": [
+                "C1",
+                "C2",
+                "C3",
+                "C4",
+                "C5"
+              ]
+            },
+            {
+              "fact_id": "F3",
+              "kind": "metric",
+              "text": "Route: derived_text_lexical + kb_rag",
+              "value": "derived_text_lexical + kb_rag",
+              "citation_ids": [
+                "C1",
+                "C2",
+                "C3",
+                "C4",
+                "C5"
+              ]
+            },
+            {
+              "fact_id": "F4",
+              "kind": "metric",
+              "text": "Planner Confidence: 0.95",
+              "value": 0.95,
+              "citation_ids": [
+                "C1",
+                "C2",
+                "C3",
+                "C4",
+                "C5"
+              ]
+            },
+            {
+              "fact_id": "F5",
+              "kind": "metric",
+              "text": "Display Rows: 0",
+              "value": 0,
+              "citation_ids": [
+                "C1",
+                "C2",
+                "C3",
+                "C4",
+                "C5"
+              ]
+            },
+            {
+              "fact_id": "F6",
+              "kind": "metric",
+              "text": "Evidence Count: 5",
+              "value": 5,
+              "citation_ids": [
+                "C1",
+                "C2",
+                "C3",
+                "C4",
+                "C5"
+              ]
+            },
+            {
+              "fact_id": "F7",
+              "kind": "metric",
+              "text": "Provenance Items: 5",
+              "value": 5,
+              "citation_ids": [
+                "C1",
+                "C2",
+                "C3",
+                "C4",
+                "C5"
+              ]
+            },
+            {
+              "fact_id": "F8",
+              "kind": "metric",
+              "text": "Target: NEXUS-DEMO-2026",
+              "value": "NEXUS-DEMO-2026",
+              "citation_ids": [
+                "C1",
+                "C2",
+                "C3",
+                "C4",
+                "C5"
+              ]
+            }
+          ],
+          "metrics": [
+            {
+              "label": "Template",
+              "source": "planner",
+              "value": "evidence"
+            },
+            {
+              "label": "Route",
+              "source": "planner",
+              "value": "derived_text_lexical + kb_rag"
+            },
+            {
+              "label": "Planner Confidence",
+              "source": "planner",
+              "value": 0.95
+            },
+            {
+              "label": "Display Rows",
+              "source": "records_sql",
+              "value": 0
+            },
+            {
+              "label": "Records Row Count",
+              "source": "records_sql",
+              "value": null
+            },
+            {
+              "label": "Evidence Count",
+              "source": "kb_rag",
+              "value": 5
+            },
+            {
+              "label": "Provenance Items",
+              "source": "records_sql+kb_rag",
+              "value": 5
+            },
+            {
+              "label": "Target",
+              "source": "planner",
+              "value": "NEXUS-DEMO-2026"
+            }
+          ],
+          "rows": null,
+          "row_set_state": "complete",
+          "relationships": [],
+          "citations": [
+            {
+              "citation_id": "C1",
+              "source_file": "nexusai-multimodal-acceptance-brief.pdf",
+              "locator": "3",
+              "proof_role": "representative_evidence",
+              "completeness": "representative"
+            },
+            {
+              "citation_id": "C2",
+              "source_file": "nexusai-multimodal-acceptance-brief.pdf",
+              "locator": "4",
+              "proof_role": "representative_evidence",
+              "completeness": "representative"
+            },
+            {
+              "citation_id": "C3",
+              "source_file": "case_notes_records_demo.txt",
+              "locator": "1",
+              "proof_role": "representative_evidence",
+              "completeness": "representative"
+            },
+            {
+              "citation_id": "C4",
+              "source_file": "nexusai-multimodal-acceptance-brief.pdf",
+              "locator": "5",
+              "proof_role": "representative_evidence",
+              "completeness": "representative"
+            },
+            {
+              "citation_id": "C5",
+              "source_file": "case_notes_records_demo.txt",
+              "locator": "2",
+              "proof_role": "representative_evidence",
+              "completeness": "representative"
+            }
+          ],
+          "citation_set_state": "complete",
+          "conflicts": [],
+          "limitations": [
+            "Grounded explanation timed out; deterministic result retained",
+            "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+          ],
+          "missingness": [],
+          "quality_warnings": null,
+          "available_follow_up_capabilities": [
+            {
+              "label": "Audit source files",
+              "query": "which files were ingested?",
+              "reason": "Review traceability and evidence coverage.",
+              "template": "source_file_audit"
+            },
+            {
+              "label": "Check analysis readiness",
+              "query": "is this case ready for analysis?",
+              "reason": "Confirm evidence-processing quality before reporting.",
+              "template": "case_readiness"
+            }
+          ],
+          "presentation_hints": {
+            "direction": "ltr",
+            "language": "en",
+            "presentation_type": "cited_evidence_results",
+            "priority_columns": [],
+            "result_kind": "document"
+          }
+        },
+        "limitations": [
+          "Grounded explanation timed out; deterministic result retained",
+          "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+        ],
+        "metrics": [
+          {
+            "label": "Template",
+            "source": "planner",
+            "value": "evidence"
+          },
+          {
+            "label": "Route",
+            "source": "planner",
+            "value": "derived_text_lexical + kb_rag"
+          },
+          {
+            "label": "Planner Confidence",
+            "source": "planner",
+            "value": 0.95
+          },
+          {
+            "label": "Display Rows",
+            "source": "records_sql",
+            "value": 0
+          },
+          {
+            "label": "Records Row Count",
+            "source": "records_sql",
+            "value": null
+          },
+          {
+            "label": "Evidence Count",
+            "source": "kb_rag",
+            "value": 5
+          },
+          {
+            "label": "Provenance Items",
+            "source": "records_sql+kb_rag",
+            "value": 5
+          },
+          {
+            "label": "Target",
+            "source": "planner",
+            "value": "NEXUS-DEMO-2026"
+          }
+        ],
+        "narrative": {
+          "contract_version": "forensics.narrative/v1",
+          "locale": "en",
+          "direction": "ltr",
+          "status": "model_unavailable_fallback",
+          "direct_answer": "Retrieved 5 cited evidence results from the selected case scope.",
+          "key_findings": [
+            {
+              "text": "Retrieved 5 cited evidence results from the selected case scope.",
+              "claim_type": "direct_answer",
+              "fact_refs": [
+                "F1"
+              ],
+              "citation_refs": [
+                "C1",
+                "C2",
+                "C3",
+                "C4",
+                "C5"
+              ]
+            },
+            {
+              "text": "Template: evidence",
+              "claim_type": "metric",
+              "fact_refs": [
+                "F2"
+              ],
+              "citation_refs": [
+                "C1",
+                "C2",
+                "C3",
+                "C4",
+                "C5"
+              ]
+            },
+            {
+              "text": "Route: derived_text_lexical + kb_rag",
+              "claim_type": "metric",
+              "fact_refs": [
+                "F3"
+              ],
+              "citation_refs": [
+                "C1",
+                "C2",
+                "C3",
+                "C4",
+                "C5"
+              ]
+            },
+            {
+              "text": "Planner Confidence: 0.95",
+              "claim_type": "metric",
+              "fact_refs": [
+                "F4"
+              ],
+              "citation_refs": [
+                "C1",
+                "C2",
+                "C3",
+                "C4",
+                "C5"
+              ]
+            },
+            {
+              "text": "Display Rows: 0",
+              "claim_type": "metric",
+              "fact_refs": [
+                "F5"
+              ],
+              "citation_refs": [
+                "C1",
+                "C2",
+                "C3",
+                "C4",
+                "C5"
+              ]
+            }
+          ],
+          "comparisons": [],
+          "relationship_summary": [],
+          "limitations": [
+            "Grounded explanation timed out; deterministic result retained",
+            "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+          ],
+          "suggested_questions": [
+            "which files were ingested?",
+            "is this case ready for analysis?"
+          ],
+          "fact_refs": [
+            "F1",
+            "F2",
+            "F3",
+            "F4",
+            "F5",
+            "F6",
+            "F7",
+            "F8"
+          ],
+          "citation_refs": [
+            "C1",
+            "C2",
+            "C3",
+            "C4",
+            "C5"
+          ],
+          "fallback": true
+        },
+        "operation": {
+          "family_id": "knowledge_evidence",
+          "operation_id": "forensics.evidence",
+          "output_description": "Bounded deterministic evidence result with source traceability.",
+          "source_access": "kb",
+          "template": "evidence"
+        },
+        "proof_state": {
+          "citations": "complete",
+          "rows": "complete"
+        },
+        "provenance": [
+          {
+            "citation": "3",
+            "collection_id": "nexusai-multimodal-product-acceptance",
+            "preview": "NexusAI Multimodal Acceptance Brief Synthetic acceptance fixture - not natural evidence. This document exists only to verify deterministic PDF extraction, retrieval, citations, and authorized source preview behavior. Reference facts Field Ground-truth value Case reference NEXUS-DEMO-2026 Plate candidate MN1367 Contact number 03001234567 Observed time 10:35 PKT Location Islamabad, Pakistan Review",
+            "score": 0.87135375,
+            "source": "kb_rag",
+            "source_entry": null,
+            "source_file": "nexusai-multimodal-acceptance-brief.pdf"
+          },
+          {
+            "citation": "4",
+            "collection_id": "nexusai-multimodal-product-acceptance",
+            "preview": "state Synthetic and review-required Expected analyst question Which source mentions plate MN1367, contact 03001234567, and time 10:35, and what limitation applies? Expected grounded answer This PDF mentions all three identifiers. The source is a synthetic acceptance fixture and must not be represented as natural evidence. Any answer must cite the retained document passage and source version.",
+            "score": 0.7970335,
+            "source": "kb_rag",
+            "source_entry": null,
+            "source_file": "nexusai-multimodal-acceptance-brief.pdf"
+          },
+          {
+            "citation": "1",
+            "collection_id": "nexusai-multimodal-product-acceptance",
+            "preview": "Case notes for records-demo Targets of interest: - Phone number 923461678183 appears in CDR records. - Plate ABC-123 appears near Gate 4 and North Road. - Cross-source timeline should combine structured observations with this narrative note. Analyst question examples: - Summarize evidence for ABC-123 with source citations. - Show call type breakdown for 923461678183. - Show data quality and",
+            "score": 0.78616375,
+            "source": "kb_rag",
+            "source_entry": null,
+            "source_file": "case_notes_records_demo.txt"
+          },
+          {
+            "citation": "5",
+            "collection_id": "nexusai-multimodal-product-acceptance",
+            "preview": "Acceptance boundaries Passing behavior requires source-bound extraction, deterministic identifier preservation, case-scoped retrieval, visible citations, History persistence, and an authorized PDF source action. Scanned-only PDF OCR is outside this fixture's claim.",
+            "score": 0.72098833,
+            "source": "kb_rag",
+            "source_entry": null,
+            "source_file": "nexusai-multimodal-acceptance-brief.pdf"
+          },
+          {
+            "citation": "2",
+            "collection_id": "nexusai-multimodal-product-acceptance",
+            "preview": "duplicate-row counts.",
+            "score": 0.66675377,
+            "source": "kb_rag",
+            "source_entry": null,
+            "source_file": "case_notes_records_demo.txt"
+          }
+        ],
+        "recommended_actions": [
+          {
+            "label": "Audit source files",
+            "query": "which files were ingested?",
+            "reason": "Review traceability and evidence coverage.",
+            "template": "source_file_audit"
+          },
+          {
+            "label": "Check analysis readiness",
+            "query": "is this case ready for analysis?",
+            "reason": "Confirm evidence-processing quality before reporting.",
+            "template": "case_readiness"
+          }
+        ],
+        "result_kind": "document",
+        "status": "answered_with_limitations",
+        "summary": "**Deterministic Findings**\n\nThe evidence analysis completed for case nexusai-multimodal-product-acceptance. The exact target was NEXUS-DEMO-2026.\n\nRelated cited evidence: Retrieved Knowledge Base evidence using kb_plus_derived_text\n\nReview the 2 evidence limits below before using this result in a decision or report.\n\nSynthesis fallback: Grounded explanation timed out; deterministic result retained",
+        "synthesis": {
+          "claims": [
+            {
+              "claim": "Retrieved Knowledge Base evidence using kb_plus_derived_text",
+              "source": "Semantic Context (KB)"
+            }
+          ],
+          "policy": "Claims are labeled by source: deterministic SQL facts are computed from records templates; semantic context comes from Knowledge Base retrieval."
+        },
+        "telemetry": {
+          "request_id": "a359f54f-99f7-4f78-9d70-f36f6d021f2e",
+          "db_latency_ms": 253,
+          "kb_latency_ms": 903,
+          "llm_latency_ms": 8022,
+          "total_latency_ms": 9262,
+          "planner_confidence": 0.95,
+          "execution_path": "derived_text_lexical+kb_rag"
+        }
+      },
+      "telemetry": {
+        "request_id": "a359f54f-99f7-4f78-9d70-f36f6d021f2e",
+        "db_latency_ms": 253,
+        "kb_latency_ms": 903,
+        "llm_latency_ms": 8022,
+        "total_latency_ms": 9262,
+        "planner_confidence": 0.95,
+        "execution_path": "derived_text_lexical+kb_rag"
+      },
+      "generated_at": "2026-08-23T14:14:35.801822968Z"
+    },
+    "direct_search": {
+      "NEXUS-DEMO-2026": {
+        "count": 5,
+        "top_source": "nexusai-multimodal-acceptance-brief.pdf",
+        "top_content": "NexusAI Multimodal Acceptance Brief Synthetic acceptance fixture - not natural evidence. This document exists only to verify deterministic PDF extraction, retrieval, citations, and authorized source preview behavior. Reference facts Field Ground-truth value Case reference NEXUS-DEMO-2026 Plate candidate MN1367 Contact number 03001234567 Observed time 10:35 PKT Location Islamabad, Pakistan Review"
+      },
+      "03001234567": {
+        "count": 5,
+        "top_source": "nexusai-multimodal-acceptance-brief.pdf",
+        "top_content": "NexusAI Multimodal Acceptance Brief Synthetic acceptance fixture - not natural evidence. This document exists only to verify deterministic PDF extraction, retrieval, citations, and authorized source preview behavior. Reference facts Field Ground-truth value Case reference NEXUS-DEMO-2026 Plate candidate MN1367 Contact number 03001234567 Observed time 10:35 PKT Location Islamabad, Pakistan Review"
+      },
+      "case notes": {
+        "count": 5,
+        "top_source": "nexusai-multimodal-acceptance-brief.pdf",
+        "top_content": "NexusAI Multimodal Acceptance Brief Synthetic acceptance fixture - not natural evidence. This document exists only to verify deterministic PDF extraction, retrieval, citations, and authorized source preview behavior. Reference facts Field Ground-truth value Case reference NEXUS-DEMO-2026 Plate candidate MN1367 Contact number 03001234567 Observed time 10:35 PKT Location Islamabad, Pakistan Review"
+      }
+    }
+  },
+  "analyst_history": {
+    "count": 6,
+    "items": [
+      {
+        "analysis_id": "bb6ee65e-103f-4c02-9011-8e3d51cab775",
+        "status": "completed",
+        "question": "",
+        "citation_count": 1,
+        "answer_preview": "## Evidence inventory and lineage\n\n### Answer\n\nThe evidence analysis completed for case nexusai-multimodal-product-acceptance. The exact target was NEXUS-DEMO-2026.\n\nRelated cited evidence: Retrieved Knowledge Base evidence using kb_plus_derived_text\n\nReview the 1 evidence limit below before using t"
+      },
+      {
+        "analysis_id": "d71ac920-c2cb-42cf-b62c-4f08dce4f993",
+        "status": "completed",
+        "question": "",
+        "citation_count": 1,
+        "answer_preview": "## Evidence inventory and lineage\n\n### Answer\n\nThe evidence analysis completed for case nexusai-multimodal-product-acceptance. The exact target was NEXUS-DEMO-2026.\n\nRelated cited evidence: Retrieved Knowledge Base evidence using kb_plus_derived_text\n\nReview the 1 evidence limit below before using t"
+      },
+      {
+        "analysis_id": "7f656345-b19a-4e3a-bd52-2a9a581243e4",
+        "status": "completed",
+        "question": "",
+        "citation_count": 1,
+        "answer_preview": "## Vehicle sightings\n\n### Answer\n\nNo matching structured records were found for the anpr sightings analysis. The exact target was ZZZ9999. This is a bounded negative result, not proof that the event never occurred. Review source coverage or broaden the filters before drawing a case conclusion. Revie"
+      },
+      {
+        "analysis_id": "2652822c-f5eb-44c6-8356-f7e7cc66d2e7",
+        "status": "completed",
+        "question": "",
+        "citation_count": 1,
+        "answer_preview": "## Evidence details\n\n- **Source:** nexusai-multimodal-acceptance-brief.pdf\n- **Evidence type:** pdf\n- **Processing status:** completed\n\n**Linked ingest jobs**\n\n| Source File | Record Type | Status | Total Rows | Accepted Rows |\n| --- | --- | --- | --- | --- |\n| nexusai-multimodal-acceptance-brief.pd"
+      },
+      {
+        "analysis_id": "1cdf3c2c-6954-40c1-8703-39ce48aee895",
+        "status": "completed",
+        "question": "",
+        "citation_count": 1,
+        "answer_preview": "## Evidence details\n\n- **Source:** clear-urdu.wav\n- **Evidence type:** audio\n- **Processing status:** completed\n\n**Linked ingest jobs**\n\n| Source File | Record Type | Status | Total Rows | Accepted Rows |\n| --- | --- | --- | --- | --- |\n| clear-urdu.wav | generic | completed | 5 | 5 |\n| clear-urdu.w"
+      },
+      {
+        "analysis_id": "95a61f9d-a03b-4d96-8802-16f8fe987d6e",
+        "status": "completed",
+        "question": "",
+        "citation_count": 1,
+        "answer_preview": "## Vehicle sightings\n\n### Answer\n\nRetrieved exact ANPR observations with canonical evidence, version, row, and hash provenance. It returned 1 exact structured result row. The exact target was MN1367.\n\nReview the 1 evidence limit below before using this result in a decision or report.\n\n### At a glanc"
+      }
+    ]
+  },
+  "browser_acceptance": {
+    "image_preview_and_regions": true,
+    "observed_ui_inconsistencies": [
+      "Audio detail reports capability unavailable although timestamped Urdu and Roman Urdu artifacts are visible.",
+      "Audio/video elements fall back to unsupported in the in-app browser while authenticated full and range source endpoints are operational.",
+      "Earlier immutable processing notes remain visible alongside current readiness and can look like current failures without careful reading."
+    ],
+    "workspace_selected": true,
+    "history_reopen": true,
+    "data_catalog_sources": 21,
+    "home_available_areas": 15,
+    "video_preview": "browser_reports_unsupported",
+    "audio_preview": "browser_reports_unsupported",
+    "ask_surface": true,
+    "home_ready_sources": 21
+  },
+  "known_limitations": [
+    "Candidate face similarity is not identity.",
+    "SigLIP similarity is candidate semantic visual similarity, not evidence identity or fact.",
+    "No exact-duplicate or threshold-positive near-duplicate pair exists in the approved 21-source manifest; no positive claim is fabricated.",
+    "General OCR and media observations remain review-required.",
+    "Spoken plate punctuation/format preservation remains an M2 limitation.",
+    "The retained case contains one historical dead-letter job and 33 completed jobs; no latest job is active or failed."
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "manifest_version": "2026-08-23.unified-multimodal-product-acceptance.p1-recovery.v1",
+  "status": "EXECUTED_COMPLETE",
+  "approval_recorded_at": "2026-08-23T18:13:43.4580137+05:00",
+  "result": {
+    "job_id": "92d81704-c291-4598-a0ee-4d145c900bf4",
+    "reprocess_of_job_id": "2e527cd5-02b4-4745-b847-4f31dad83c57",
+    "reprocess_generation": 1,
+    "status": "completed",
+    "attempt_count": 1,
+    "accepted_rows": 2,
+    "duplicate_rows": 0,
+    "rejected_rows": 0
+  },
+  "tenant_id": "default",
+  "collection_id": "nexusai-multimodal-product-acceptance",
+  "case_id": "nexusai-multimodal-product-acceptance",
+  "actor_id": "nexusai-breadth-acceptance-operator",
+  "recovery_scope": {
+    "maximum_new_evidence": 0,
+    "maximum_reprocess_jobs": 1,
+    "evidence_id": "a0ff7b18-129f-4a8a-82cf-48887f98bd9e",
+    "evidence_sha256": "a15a7ec947fdb2c5a08a70243a62ed66e4dddd89defaba9d135f6c5ac67559f6",
+    "source_filename": "image-test-plate-test_plate.jpg",
+    "dead_letter_job_id": "2e527cd5-02b4-4745-b847-4f31dad83c57",
+    "normal_endpoint_only": true,
+    "resume_remaining_original_manifest_after_success": true
+  },
+  "cause": {
+    "error": "could not determine data type of parameter $12",
+    "component": "persist_anpr_media_observation",
+    "correction": "cast derived_observation_id parameter explicitly as PostgreSQL text",
+    "focused_tests": "2 passed",
+    "active_worker_image": "sha256:f338458e0830319481f1b4b0d6f567c22f066f03f3b65636903b0b956e8f1eeb",
+    "rollback_worker_image": "sha256:376bbf162777bc8aeff6d28e2d48cf6d92edc63fb08bf9d5a2a20add57de2477",
+    "worker_container_id": "b1a695631a3fa6a2358def9ca115c07172d9c50e9ec3c2cc5eda398f159a579c"
+  },
+  "partial_state": {
+    "evidence": 8,
+    "versions": 8,
+    "jobs": 8,
+    "completed_jobs": 7,
+    "dead_letter_jobs": 1,
+    "records": 9264,
+    "derived_artifacts": 0,
+    "kb_assets": 7,
+    "remaining_original_manifest_sources": 13
+  },
+  "prohibitions": [
+    "no additional evidence",
+    "no upload or force upload of the failed source",
+    "no broad replay",
+    "no database update or migration",
+    "no model download",
+    "no unrelated deployment",
+    "no deletion or cleanup"
+  ],
+  "retention": "preserve the dead-letter job, the immutable reprocess generation, all old and new evidence, versions, jobs, artifacts, KB assets, histories and manifests until separately reviewed",
+  "approval_phrase": "APPROVE UNIFIED MULTIMODAL P1 RECOVERY: tenant=default; collection=case=nexusai-multimodal-product-acceptance; actor=nexusai-breadth-acceptance-operator; authorize exactly one immutable normal-endpoint reprocess job for evidence a0ff7b18-129f-4a8a-82cf-48887f98bd9e after the tested ANPR PostgreSQL text-cast correction, then resume only the remaining sources and acceptance work in the original approved 21-source manifest; no new evidence beyond that manifest, force upload, broad replay, database update/migration, model download, unrelated deployment, deletion or cleanup."
+}

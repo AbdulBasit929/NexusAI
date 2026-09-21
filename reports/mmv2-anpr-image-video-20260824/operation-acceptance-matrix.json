@@ -1,0 +1,67 @@
+{
+  "contract_version": "nexusai.mmv2.operation-acceptance-matrix/v1",
+  "retained_data_mutated": false,
+  "entries": [
+    {
+      "operation_id": "image.compare",
+      "family": "image",
+      "parameters": ["evidence_id_a", "evidence_id_b", "collection_id", "case_id"],
+      "required_artifacts": ["current image evidence", "fingerprint; optional OCR/ANPR/face/SigLIP"],
+      "runtime_role": "deterministic read-only comparison",
+      "authorization": "tenant + collection + optional case; two explicit image IDs",
+      "positive_fixture": "same bytes/different name and LEF1981 transforms",
+      "negative_fixture": "different/unrelated images",
+      "expected_facts": "separate SHA, dHash, dimensions, overlap and compatible embedding scores",
+      "actual_facts": "exact controls pass; transforms 1-7; unrelated 19-35",
+      "citation": "source and artifact refs in response contract",
+      "history": "retained ANPR analysis save/reopen and cited-source rendering live-certified after activation",
+      "latency": "bounded dHash matrix 0.82s total",
+      "ui": "side-by-side typed comparison source exists",
+      "maturity": "LIMITED",
+      "verdict": "LIVE_PUBLIC_OPERATION_PASS"
+    },
+    {
+      "operation_id": "image.visual_similarity",
+      "family": "image",
+      "parameters": ["query_image_observation_id", "candidate_evidence_id", "top_k"],
+      "required_artifacts": ["compatible pinned SigLIP embeddings"],
+      "runtime_role": "explicit-case candidate ranking",
+      "authorization": "explicit_case_evidence_scope with enumerated candidate evidence IDs",
+      "positive_fixture": "same-scene and same-person transforms",
+      "negative_fixture": "portrait/street and vehicle-crop/street",
+      "expected_facts": "ranked cosine candidates without identity or fact claim",
+      "actual_facts": "same-scene resize 0.9741; portrait/street 0.4630",
+      "citation": "candidate evidence/version/artifact refs",
+      "history": "case-scoped History save/reopen infrastructure live-certified; no fabricated similarity identity claim",
+      "latency": "mean 1277.5ms/image",
+      "ui": "explicit candidate ranking source exists",
+      "maturity": "LIMITED",
+      "verdict": "LIVE_PUBLIC_OPERATION_PASS_LIMITED"
+    },
+    {
+      "operation_id": "video.anpr_grouped_timeline",
+      "family": "video/anpr",
+      "parameters": ["evidence_id", "version_id", "optional time range", "optional normalized plate"],
+      "required_artifacts": ["raw ANPR observations", "video ANPR plate groups"],
+      "runtime_role": "source-time sampled FastALPR plus deterministic grouping",
+      "authorization": "current authorized evidence/version",
+      "positive_fixture": "sample.mp4 non-retained",
+      "negative_fixture": "pakistan-short-video.mp4 non-retained",
+      "expected_facts": "plate/count/first/last/best/all IDs with frame citation",
+      "actual_facts": "four 1s-cadence candidate groups; negative control zero",
+      "citation": "source video hash, timestamp, frame estimate, source-frame hash, bbox/crop",
+      "history": "governed Ask/Data/History source path exists; live save/reopen remains deployment-gated",
+      "latency": "41.676s for 60s 4K/60 positive control",
+      "ui": "grouped cards and seekable timeline source exists",
+      "enterprise_result_state": "complete_zero_results preserved separately from no_match_for_filter",
+      "public_contract": "result_state + processing_state + row_count + operation_id + execution_trace.tool_ids",
+      "maturity": "PUBLIC_SOURCE_ENTERPRISE_SEMANTICS_ACCEPTED_PREDEPLOYMENT",
+      "verdict": "SOURCE_PUBLIC_OPERATION_AND_COMPLETE_ZERO_PASS_LIVE_CERTIFICATION_GATED"
+    }
+  ],
+  "requested_public_set_status": {
+    "anpr": "LIVE_STRUCTURED_SIGHTINGS_PASS_URDU_SCRIPT_SOURCE_FIXED_LIVE_CERTIFICATION_GATED",
+    "image": "LIVE_PUBLIC_PASS_LIMITED",
+    "video": "LIVE_DETAIL_PLAYBACK_PASS_GROUPED_PUBLIC_OPERATION_AND_ENTERPRISE_COMPLETE_ZERO_SOURCE_PASS_LIVE_CERTIFICATION_GATED"
+  }
+}

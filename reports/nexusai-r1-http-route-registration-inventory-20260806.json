@@ -1,0 +1,3443 @@
+{
+  "generated_at": "2026-08-06",
+  "scope": "Non-test Echo HTTP registration expressions in core/http/routes plus cross-service/static registrations in core/http/app.go.",
+  "limitations": [
+    "Group prefixes and globally applied middleware remain defined by source registrars and core/http/app.go; path_expression is registration-local.",
+    "POST can be inference or mutation; operation semantics remain handler-defined."
+  ],
+  "api_route_registration_count": 371,
+  "app_cross_service_or_static_registration_count": 10,
+  "total_registration_count": 381,
+  "registrations": [
+    {
+      "source_file": "core/http/app.go",
+      "source_line": 252,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/favicon.svg",
+      "disposition": "shell_static_or_cross_service_registration",
+      "registration_expression": "e.GET(\"/favicon.svg\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/app.go",
+      "source_line": 468,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/agent/jobs/:id/progress",
+      "disposition": "shell_static_or_cross_service_registration",
+      "registration_expression": "e.GET(\"/api/agent/jobs/:id/progress\", d.Dispatcher.SSEHandler(), mcpJobsMw)"
+    },
+    {
+      "source_file": "core/http/app.go",
+      "source_line": 471,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/agents/:name/sse/distributed",
+      "disposition": "shell_static_or_cross_service_registration",
+      "registration_expression": "e.GET(\"/api/agents/:name/sse/distributed\", d.AgentBridge.SSEHandler(), agentsMw)"
+    },
+    {
+      "source_file": "core/http/app.go",
+      "source_line": 529,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/app",
+      "disposition": "shell_static_or_cross_service_registration",
+      "registration_expression": "e.GET(\"/app\", serveIndex)"
+    },
+    {
+      "source_file": "core/http/app.go",
+      "source_line": 530,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/app/*",
+      "disposition": "shell_static_or_cross_service_registration",
+      "registration_expression": "e.GET(\"/app/*\", serveIndex)"
+    },
+    {
+      "source_file": "core/http/app.go",
+      "source_line": 543,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/",
+      "disposition": "shell_static_or_cross_service_registration",
+      "registration_expression": "e.GET(\"/\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/app.go",
+      "source_line": 548,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/browse",
+      "disposition": "shell_static_or_cross_service_registration",
+      "registration_expression": "e.GET(\"/browse\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/app.go",
+      "source_line": 551,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/browse/*",
+      "disposition": "shell_static_or_cross_service_registration",
+      "registration_expression": "e.GET(\"/browse/*\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/app.go",
+      "source_line": 576,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/assets/*",
+      "disposition": "shell_static_or_cross_service_registration",
+      "registration_expression": "e.GET(\"/assets/*\", serveReactSubdir(\"assets\"))"
+    },
+    {
+      "source_file": "core/http/app.go",
+      "source_line": 577,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/locales/*",
+      "disposition": "shell_static_or_cross_service_registration",
+      "registration_expression": "e.GET(\"/locales/*\", serveReactSubdir(\"locales\"))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 31,
+      "registrar": "ag",
+      "method": "GET",
+      "path_expression": "",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "ag.GET(\"\", localai.ListAgentsEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 32,
+      "registrar": "ag",
+      "method": "POST",
+      "path_expression": "",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "ag.POST(\"\", localai.CreateAgentEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 33,
+      "registrar": "ag",
+      "method": "GET",
+      "path_expression": "/config/metadata",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "ag.GET(\"/config/metadata\", localai.GetAgentConfigMetaEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 34,
+      "registrar": "ag",
+      "method": "POST",
+      "path_expression": "/import",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "ag.POST(\"/import\", localai.ImportAgentEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 35,
+      "registrar": "ag",
+      "method": "GET",
+      "path_expression": "/:name",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "ag.GET(\"/:name\", localai.GetAgentEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 36,
+      "registrar": "ag",
+      "method": "PUT",
+      "path_expression": "/:name",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "ag.PUT(\"/:name\", localai.UpdateAgentEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 37,
+      "registrar": "ag",
+      "method": "DELETE",
+      "path_expression": "/:name",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "ag.DELETE(\"/:name\", localai.DeleteAgentEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 38,
+      "registrar": "ag",
+      "method": "GET",
+      "path_expression": "/:name/config",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "ag.GET(\"/:name/config\", localai.GetAgentConfigEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 39,
+      "registrar": "ag",
+      "method": "PUT",
+      "path_expression": "/:name/pause",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "ag.PUT(\"/:name/pause\", localai.PauseAgentEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 40,
+      "registrar": "ag",
+      "method": "PUT",
+      "path_expression": "/:name/resume",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "ag.PUT(\"/:name/resume\", localai.ResumeAgentEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 41,
+      "registrar": "ag",
+      "method": "GET",
+      "path_expression": "/:name/status",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "ag.GET(\"/:name/status\", localai.GetAgentStatusEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 42,
+      "registrar": "ag",
+      "method": "GET",
+      "path_expression": "/:name/observables",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "ag.GET(\"/:name/observables\", localai.GetAgentObservablesEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 43,
+      "registrar": "ag",
+      "method": "DELETE",
+      "path_expression": "/:name/observables",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "ag.DELETE(\"/:name/observables\", localai.ClearAgentObservablesEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 44,
+      "registrar": "ag",
+      "method": "POST",
+      "path_expression": "/:name/chat",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "ag.POST(\"/:name/chat\", localai.ChatWithAgentEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 45,
+      "registrar": "ag",
+      "method": "GET",
+      "path_expression": "/:name/sse",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "ag.GET(\"/:name/sse\", localai.AgentSSEEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 46,
+      "registrar": "ag",
+      "method": "GET",
+      "path_expression": "/:name/export",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "ag.GET(\"/:name/export\", localai.ExportAgentEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 47,
+      "registrar": "ag",
+      "method": "GET",
+      "path_expression": "/:name/files",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "ag.GET(\"/:name/files\", localai.AgentFileEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 50,
+      "registrar": "ag",
+      "method": "GET",
+      "path_expression": "/actions",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "ag.GET(\"/actions\", localai.ListActionsEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 51,
+      "registrar": "ag",
+      "method": "POST",
+      "path_expression": "/actions/:name/definition",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "ag.POST(\"/actions/:name/definition\", localai.GetActionDefinitionEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 52,
+      "registrar": "ag",
+      "method": "POST",
+      "path_expression": "/actions/:name/run",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "ag.POST(\"/actions/:name/run\", localai.ExecuteActionEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 56,
+      "registrar": "sg",
+      "method": "GET",
+      "path_expression": "",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "sg.GET(\"\", localai.ListSkillsEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 57,
+      "registrar": "sg",
+      "method": "GET",
+      "path_expression": "/config",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "sg.GET(\"/config\", localai.GetSkillsConfigEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 58,
+      "registrar": "sg",
+      "method": "GET",
+      "path_expression": "/search",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "sg.GET(\"/search\", localai.SearchSkillsEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 59,
+      "registrar": "sg",
+      "method": "POST",
+      "path_expression": "",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "sg.POST(\"\", localai.CreateSkillEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 60,
+      "registrar": "sg",
+      "method": "GET",
+      "path_expression": "/export/*",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "sg.GET(\"/export/*\", localai.ExportSkillEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 61,
+      "registrar": "sg",
+      "method": "POST",
+      "path_expression": "/import",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "sg.POST(\"/import\", localai.ImportSkillEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 62,
+      "registrar": "sg",
+      "method": "GET",
+      "path_expression": "/:name",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "sg.GET(\"/:name\", localai.GetSkillEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 63,
+      "registrar": "sg",
+      "method": "PUT",
+      "path_expression": "/:name",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "sg.PUT(\"/:name\", localai.UpdateSkillEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 64,
+      "registrar": "sg",
+      "method": "DELETE",
+      "path_expression": "/:name",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "sg.DELETE(\"/:name\", localai.DeleteSkillEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 65,
+      "registrar": "sg",
+      "method": "GET",
+      "path_expression": "/:name/resources",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "sg.GET(\"/:name/resources\", localai.ListSkillResourcesEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 66,
+      "registrar": "sg",
+      "method": "GET",
+      "path_expression": "/:name/resources/*",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "sg.GET(\"/:name/resources/*\", localai.GetSkillResourceEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 67,
+      "registrar": "sg",
+      "method": "POST",
+      "path_expression": "/:name/resources",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "sg.POST(\"/:name/resources\", localai.CreateSkillResourceEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 68,
+      "registrar": "sg",
+      "method": "PUT",
+      "path_expression": "/:name/resources/*",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "sg.PUT(\"/:name/resources/*\", localai.UpdateSkillResourceEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 69,
+      "registrar": "sg",
+      "method": "DELETE",
+      "path_expression": "/:name/resources/*",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "sg.DELETE(\"/:name/resources/*\", localai.DeleteSkillResourceEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 73,
+      "registrar": "gg",
+      "method": "GET",
+      "path_expression": "",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "gg.GET(\"\", localai.ListGitReposEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 74,
+      "registrar": "gg",
+      "method": "POST",
+      "path_expression": "",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "gg.POST(\"\", localai.AddGitRepoEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 75,
+      "registrar": "gg",
+      "method": "PUT",
+      "path_expression": "/:id",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "gg.PUT(\"/:id\", localai.UpdateGitRepoEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 76,
+      "registrar": "gg",
+      "method": "DELETE",
+      "path_expression": "/:id",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "gg.DELETE(\"/:id\", localai.DeleteGitRepoEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 77,
+      "registrar": "gg",
+      "method": "POST",
+      "path_expression": "/:id/sync",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "gg.POST(\"/:id/sync\", localai.SyncGitRepoEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 78,
+      "registrar": "gg",
+      "method": "POST",
+      "path_expression": "/:id/toggle",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "gg.POST(\"/:id/toggle\", localai.ToggleGitRepoEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 82,
+      "registrar": "cg",
+      "method": "GET",
+      "path_expression": "",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "cg.GET(\"\", localai.ListCollectionsEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 83,
+      "registrar": "cg",
+      "method": "POST",
+      "path_expression": "",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "cg.POST(\"\", localai.CreateCollectionEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 84,
+      "registrar": "cg",
+      "method": "POST",
+      "path_expression": "/:name/upload",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "cg.POST(\"/:name/upload\", localai.UploadToCollectionEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 85,
+      "registrar": "cg",
+      "method": "GET",
+      "path_expression": "/:name/entries",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "cg.GET(\"/:name/entries\", localai.ListCollectionEntriesEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 86,
+      "registrar": "cg",
+      "method": "GET",
+      "path_expression": "/:name/entries/*",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "cg.GET(\"/:name/entries/*\", localai.GetCollectionEntryContentEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 87,
+      "registrar": "cg",
+      "method": "GET",
+      "path_expression": "/:name/entries-raw/*",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "cg.GET(\"/:name/entries-raw/*\", localai.GetCollectionEntryRawFileEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 88,
+      "registrar": "cg",
+      "method": "POST",
+      "path_expression": "/:name/search",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "cg.POST(\"/:name/search\", localai.SearchCollectionEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 89,
+      "registrar": "cg",
+      "method": "POST",
+      "path_expression": "/:name/reset",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "cg.POST(\"/:name/reset\", localai.ResetCollectionEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 90,
+      "registrar": "cg",
+      "method": "DELETE",
+      "path_expression": "/:name/entry/delete",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "cg.DELETE(\"/:name/entry/delete\", localai.DeleteCollectionEntryEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 91,
+      "registrar": "cg",
+      "method": "POST",
+      "path_expression": "/:name/sources",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "cg.POST(\"/:name/sources\", localai.AddCollectionSourceEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 92,
+      "registrar": "cg",
+      "method": "DELETE",
+      "path_expression": "/:name/sources",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "cg.DELETE(\"/:name/sources\", localai.RemoveCollectionSourceEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/agents.go",
+      "source_line": 93,
+      "registrar": "cg",
+      "method": "GET",
+      "path_expression": "/:name/sources",
+      "disposition": "agent_kb_skill_api_mixed",
+      "registration_expression": "cg.GET(\"/:name/sources\", localai.ListCollectionSourcesEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/anthropic.go",
+      "source_line": 74,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/messages",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/messages\", messagesHandler, messagesMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/anthropic.go",
+      "source_line": 77,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/messages",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/messages\", messagesHandler, messagesMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 130,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/auth/status",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/auth/status\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 218,
+      "registrar": "e",
+      "method": "POST",
+      "path_expression": "/api/auth/token-login",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.POST(\"/api/auth/token-login\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 282,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/auth/github/login",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/auth/github/login\", oauthMgr.LoginHandler(auth.ProviderGitHub))"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 283,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/auth/github/callback",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/auth/github/callback\", oauthMgr.CallbackHandler("
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 288,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/auth/oidc/login",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/auth/oidc/login\", oauthMgr.LoginHandler(auth.ProviderOIDC))"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 289,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/auth/oidc/callback",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/auth/oidc/callback\", oauthMgr.CallbackHandler("
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 297,
+      "registrar": "e",
+      "method": "POST",
+      "path_expression": "/api/auth/register",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.POST(\"/api/auth/register\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 436,
+      "registrar": "e",
+      "method": "POST",
+      "path_expression": "/api/auth/login",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.POST(\"/api/auth/login\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 488,
+      "registrar": "e",
+      "method": "POST",
+      "path_expression": "/api/auth/logout",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.POST(\"/api/auth/logout\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 504,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/auth/me",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/auth/me\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 526,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/auth/quota",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/auth/quota\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 539,
+      "registrar": "e",
+      "method": "PUT",
+      "path_expression": "/api/auth/profile",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.PUT(\"/api/auth/profile\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 580,
+      "registrar": "e",
+      "method": "PUT",
+      "path_expression": "/api/auth/password",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.PUT(\"/api/auth/password\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 635,
+      "registrar": "e",
+      "method": "DELETE",
+      "path_expression": "/api/auth/sessions",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.DELETE(\"/api/auth/sessions\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 656,
+      "registrar": "e",
+      "method": "POST",
+      "path_expression": "/api/auth/api-keys",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.POST(\"/api/auth/api-keys\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 715,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/auth/api-keys",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/auth/api-keys\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 746,
+      "registrar": "e",
+      "method": "DELETE",
+      "path_expression": "/api/auth/api-keys/:id",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.DELETE(\"/api/auth/api-keys/:id\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 762,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/auth/usage",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/auth/usage\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 793,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/auth/usage/sources",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/auth/usage/sources\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 820,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/auth/admin/features",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/auth/admin/features\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 841,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/auth/admin/users",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/auth/admin/users\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 871,
+      "registrar": "e",
+      "method": "PUT",
+      "path_expression": "/api/auth/admin/users/:id/role",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.PUT(\"/api/auth/admin/users/:id/role\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 895,
+      "registrar": "e",
+      "method": "PUT",
+      "path_expression": "/api/auth/admin/users/:id/status",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.PUT(\"/api/auth/admin/users/:id/status\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 919,
+      "registrar": "e",
+      "method": "PUT",
+      "path_expression": "/api/auth/admin/users/:id/password",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.PUT(\"/api/auth/admin/users/:id/password\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 963,
+      "registrar": "e",
+      "method": "DELETE",
+      "path_expression": "/api/auth/admin/users/:id",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.DELETE(\"/api/auth/admin/users/:id\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 982,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/auth/admin/users/:id/permissions",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/auth/admin/users/:id/permissions\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 996,
+      "registrar": "e",
+      "method": "PUT",
+      "path_expression": "/api/auth/admin/users/:id/permissions",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.PUT(\"/api/auth/admin/users/:id/permissions\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 1020,
+      "registrar": "e",
+      "method": "PUT",
+      "path_expression": "/api/auth/admin/users/:id/models",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.PUT(\"/api/auth/admin/users/:id/models\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 1044,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/auth/admin/users/:id/quotas",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/auth/admin/users/:id/quotas\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 1058,
+      "registrar": "e",
+      "method": "PUT",
+      "path_expression": "/api/auth/admin/users/:id/quotas",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.PUT(\"/api/auth/admin/users/:id/quotas\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 1095,
+      "registrar": "e",
+      "method": "DELETE",
+      "path_expression": "/api/auth/admin/users/:id/quotas/:quota_id",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.DELETE(\"/api/auth/admin/users/:id/quotas/:quota_id\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 1105,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/auth/admin/usage",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/auth/admin/usage\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 1132,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/auth/admin/usage/sources",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/auth/admin/usage/sources\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 1155,
+      "registrar": "e",
+      "method": "POST",
+      "path_expression": "/api/auth/admin/invites",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.POST(\"/api/auth/admin/invites\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 1196,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/auth/admin/invites",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/auth/admin/invites\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/auth.go",
+      "source_line": 1230,
+      "registrar": "e",
+      "method": "DELETE",
+      "path_expression": "/api/auth/admin/invites/:id",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.DELETE(\"/api/auth/admin/invites/:id\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/elevenlabs.go",
+      "source_line": 20,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/text-to-speech/:voice-id",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/text-to-speech/:voice-id\","
+    },
+    {
+      "source_file": "core/http/routes/elevenlabs.go",
+      "source_line": 26,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/sound-generation",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/sound-generation\","
+    },
+    {
+      "source_file": "core/http/routes/explorer.go",
+      "source_line": 10,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/\", explorer.Dashboard())"
+    },
+    {
+      "source_file": "core/http/routes/explorer.go",
+      "source_line": 11,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/network/add",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.POST(\"/network/add\", explorer.AddNetwork(db))"
+    },
+    {
+      "source_file": "core/http/routes/explorer.go",
+      "source_line": 12,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/networks",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/networks\", explorer.ShowNetworks(db))"
+    },
+    {
+      "source_file": "core/http/routes/finetuning.go",
+      "source_line": 31,
+      "registrar": "ft",
+      "method": "GET",
+      "path_expression": "/backends",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "ft.GET(\"/backends\", localai.ListFineTuneBackendsEndpoint(appConfig))"
+    },
+    {
+      "source_file": "core/http/routes/finetuning.go",
+      "source_line": 32,
+      "registrar": "ft",
+      "method": "POST",
+      "path_expression": "/jobs",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "ft.POST(\"/jobs\", localai.StartFineTuneJobEndpoint(ftService))"
+    },
+    {
+      "source_file": "core/http/routes/finetuning.go",
+      "source_line": 33,
+      "registrar": "ft",
+      "method": "GET",
+      "path_expression": "/jobs",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "ft.GET(\"/jobs\", localai.ListFineTuneJobsEndpoint(ftService))"
+    },
+    {
+      "source_file": "core/http/routes/finetuning.go",
+      "source_line": 34,
+      "registrar": "ft",
+      "method": "GET",
+      "path_expression": "/jobs/:id",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "ft.GET(\"/jobs/:id\", localai.GetFineTuneJobEndpoint(ftService))"
+    },
+    {
+      "source_file": "core/http/routes/finetuning.go",
+      "source_line": 35,
+      "registrar": "ft",
+      "method": "POST",
+      "path_expression": "/jobs/:id/stop",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "ft.POST(\"/jobs/:id/stop\", localai.StopFineTuneJobEndpoint(ftService))"
+    },
+    {
+      "source_file": "core/http/routes/finetuning.go",
+      "source_line": 36,
+      "registrar": "ft",
+      "method": "DELETE",
+      "path_expression": "/jobs/:id",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "ft.DELETE(\"/jobs/:id\", localai.DeleteFineTuneJobEndpoint(ftService))"
+    },
+    {
+      "source_file": "core/http/routes/finetuning.go",
+      "source_line": 37,
+      "registrar": "ft",
+      "method": "GET",
+      "path_expression": "/jobs/:id/progress",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "ft.GET(\"/jobs/:id/progress\", localai.FineTuneProgressEndpoint(ftService))"
+    },
+    {
+      "source_file": "core/http/routes/finetuning.go",
+      "source_line": 38,
+      "registrar": "ft",
+      "method": "GET",
+      "path_expression": "/jobs/:id/checkpoints",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "ft.GET(\"/jobs/:id/checkpoints\", localai.ListCheckpointsEndpoint(ftService))"
+    },
+    {
+      "source_file": "core/http/routes/finetuning.go",
+      "source_line": 39,
+      "registrar": "ft",
+      "method": "POST",
+      "path_expression": "/jobs/:id/export",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "ft.POST(\"/jobs/:id/export\", localai.ExportModelEndpoint(ftService))"
+    },
+    {
+      "source_file": "core/http/routes/finetuning.go",
+      "source_line": 40,
+      "registrar": "ft",
+      "method": "GET",
+      "path_expression": "/jobs/:id/download",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "ft.GET(\"/jobs/:id/download\", localai.DownloadExportedModelEndpoint(ftService))"
+    },
+    {
+      "source_file": "core/http/routes/finetuning.go",
+      "source_line": 41,
+      "registrar": "ft",
+      "method": "POST",
+      "path_expression": "/datasets",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "ft.POST(\"/datasets\", localai.UploadDatasetEndpoint(ftService))"
+    },
+    {
+      "source_file": "core/http/routes/health.go",
+      "source_line": 13,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/healthz",
+      "disposition": "health_api",
+      "registration_expression": "app.GET(\"/healthz\", ok)"
+    },
+    {
+      "source_file": "core/http/routes/health.go",
+      "source_line": 14,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/readyz",
+      "disposition": "health_api",
+      "registration_expression": "app.GET(\"/readyz\", ok)"
+    },
+    {
+      "source_file": "core/http/routes/jina.go",
+      "source_line": 21,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/rerank",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/rerank\","
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 32,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/swagger/*",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/swagger/*\", echoswagger.EchoWrapHandler(func(c *echoswagger.Config) {"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 39,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/import-model",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/import-model\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 49,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/models/edit/:name",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/models/edit/:name\", localai.GetEditModelPage(cl, appConfig), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 51,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/models/apply",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/models/apply\", modelGalleryEndpointService.ApplyModelGalleryEndpoint(), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 52,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/models/delete/:name",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/models/delete/:name\", modelGalleryEndpointService.DeleteModelGalleryEndpoint(), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 54,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/models/available",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/models/available\", modelGalleryEndpointService.ListModelFromGalleryEndpoint(appConfig.SystemState), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 55,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/models/galleries",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/models/galleries\", modelGalleryEndpointService.ListModelGalleriesEndpoint(), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 56,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/models/jobs/:uuid",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/models/jobs/:uuid\", modelGalleryEndpointService.GetOpStatusEndpoint(), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 57,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/models/jobs",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/models/jobs\", modelGalleryEndpointService.GetAllStatusEndpoint(), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 64,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/backends/apply",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/backends/apply\", backendGalleryEndpointService.ApplyBackendEndpoint(appConfig.SystemState), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 65,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/backends/delete/:name",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/backends/delete/:name\", backendGalleryEndpointService.DeleteBackendEndpoint(), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 66,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/backends",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/backends\", backendGalleryEndpointService.ListBackendsEndpoint(), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 67,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/backends/available",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/backends/available\", backendGalleryEndpointService.ListAvailableBackendsEndpoint(appConfig.SystemState), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 68,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/backends/known",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/backends/known\", backendGalleryEndpointService.ListKnownBackendsEndpoint(appConfig.SystemState), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 69,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/backends/galleries",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/backends/galleries\", backendGalleryEndpointService.ListBackendGalleriesEndpoint(), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 70,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/backends/jobs/:uuid",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/backends/jobs/:uuid\", backendGalleryEndpointService.GetOpStatusEndpoint(), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 71,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/backends/upgrades",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/backends/upgrades\", backendGalleryEndpointService.GetUpgradesEndpoint(), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 72,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/backends/upgrades/check",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/backends/upgrades/check\", backendGalleryEndpointService.CheckUpgradesEndpoint(), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 73,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/backends/upgrade/:name",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/backends/upgrade/:name\", backendGalleryEndpointService.UpgradeBackendEndpoint(), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 75,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/models/import",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/models/import\", localai.ImportModelEndpoint(cl, galleryService, appConfig), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 78,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/models/import-uri",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/models/import-uri\", localai.ImportModelURIEndpoint(cl, appConfig, galleryService, opcache), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 81,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/models/edit/:name",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/models/edit/:name\", localai.EditModelEndpoint(cl, ml, galleryService, appConfig), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 84,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/api/aliases",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/api/aliases\", localai.ListAliasesEndpoint(cl), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 87,
+      "registrar": "router",
+      "method": "PUT",
+      "path_expression": "/models/toggle-state/:name/:action",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.PUT(\"/models/toggle-state/:name/:action\", localai.ToggleStateModelEndpoint(cl, ml, galleryService, appConfig), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 90,
+      "registrar": "router",
+      "method": "PUT",
+      "path_expression": "/models/toggle-pinned/:name/:action",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.PUT(\"/models/toggle-pinned/:name/:action\", localai.TogglePinnedModelEndpoint(cl, appConfig, func() {"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 95,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/models/reload",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/models/reload\", localai.ReloadModelsEndpoint(cl, appConfig), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 99,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/v1/detection",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/v1/detection\","
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 105,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/v1/depth",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/v1/depth\","
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 114,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/v1/face/verify",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/v1/face/verify\","
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 117,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/v1/face/analyze",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/v1/face/analyze\","
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 120,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/v1/face/embed",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/v1/face/embed\","
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 123,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/v1/face/register",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/v1/face/register\","
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 126,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/v1/face/identify",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/v1/face/identify\","
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 130,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/v1/face/forget",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/v1/face/forget\", localai.FaceForgetEndpoint(app.FaceRegistry()))"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 136,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/v1/voice/verify",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/v1/voice/verify\","
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 139,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/v1/voice/analyze",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/v1/voice/analyze\","
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 142,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/v1/voice/embed",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/v1/voice/embed\","
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 145,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/v1/voice/register",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/v1/voice/register\","
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 148,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/v1/voice/identify",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/v1/voice/identify\","
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 152,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/v1/voice/forget",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/v1/voice/forget\", localai.VoiceForgetEndpoint(app.VoiceRegistry()))"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 155,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/tts",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/tts\","
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 167,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/audio/transformations",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/audio/transformations\", audioTransformHandler, audioTransformMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 168,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/audio/transform",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/audio/transform\", audioTransformHandler, audioTransformMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 172,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/audio/transformations/stream",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/audio/transformations/stream\","
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 178,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/vad",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/vad\","
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 183,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/v1/vad",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/v1/vad\","
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 190,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/stores/set",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/stores/set\", localai.StoresSetEndpoint(ml, appConfig))"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 191,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/stores/delete",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/stores/delete\", localai.StoresDeleteEndpoint(ml, appConfig))"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 192,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/stores/get",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/stores/get\", localai.StoresGetEndpoint(ml, appConfig))"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 193,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/stores/find",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/stores/find\", localai.StoresFindEndpoint(ml, appConfig))"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 196,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/metrics",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/metrics\", localai.LocalAIMetricsEndpoint(), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 200,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/video",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/video\","
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 208,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/backend/monitor",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/backend/monitor\", localai.BackendMonitorEndpoint(backendMonitorService), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 209,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/backend/shutdown",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/backend/shutdown\", localai.BackendShutdownEndpoint(backendMonitorService), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 211,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/v1/backend/monitor",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/v1/backend/monitor\", localai.BackendMonitorEndpoint(backendMonitorService), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 212,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/v1/backend/shutdown",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/v1/backend/shutdown\", localai.BackendShutdownEndpoint(backendMonitorService), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 215,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/api/traces",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/api/traces\", localai.GetAPITracesEndpoint(), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 216,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/api/traces/clear",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/api/traces/clear\", localai.ClearAPITracesEndpoint(), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 217,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/api/backend-traces",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/api/backend-traces\", localai.GetBackendTracesEndpoint(), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 218,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/api/backend-traces/clear",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/api/backend-traces/clear\", localai.ClearBackendTracesEndpoint(), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 221,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/api/backend-logs",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/api/backend-logs\", localai.ListBackendLogsEndpoint(ml), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 222,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/api/backend-logs/:modelId",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/api/backend-logs/:modelId\", localai.GetBackendLogsEndpoint(ml), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 223,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/api/backend-logs/:modelId/clear",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/api/backend-logs/:modelId/clear\", localai.ClearBackendLogsEndpoint(ml), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 224,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/ws/backend-logs/:modelId",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/ws/backend-logs/:modelId\", localai.BackendLogsWebSocketEndpoint(ml), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 228,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/api/p2p",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/api/p2p\", localai.ShowP2PNodes(appConfig), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 229,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/api/p2p/token",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/api/p2p/token\", localai.ShowP2PToken(appConfig), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 234,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/api/score",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/api/score\", localai.ScoreEndpoint(cl, ml, appConfig), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 236,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/version",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/version\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 243,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/.well-known/localai.json",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/.well-known/localai.json\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 381,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/api/instructions",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/api/instructions\", localai.ListAPIInstructionsEndpoint())"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 382,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/api/instructions/:name",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/api/instructions/:name\", localai.GetAPIInstructionEndpoint())"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 384,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/api/features",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/api/features\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 396,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/system",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/system\", localai.SystemInformations(ml, appConfig), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 400,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/v1/tokenize",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/v1/tokenize\","
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 425,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/v1/mcp/chat/completions",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/v1/mcp/chat/completions\", mcpStreamHandler, mcpStreamMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 426,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/mcp/v1/chat/completions",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/mcp/v1/chat/completions\", mcpStreamHandler, mcpStreamMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 427,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/mcp/chat/completions",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/mcp/chat/completions\", mcpStreamHandler, mcpStreamMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 430,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/v1/mcp/servers/:model",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/v1/mcp/servers/:model\", localai.MCPServersEndpoint(cl, appConfig, mcpNATS), mcpMw)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 433,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/v1/mcp/prompts/:model",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/v1/mcp/prompts/:model\", localai.MCPPromptsEndpoint(cl, appConfig), mcpMw)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 434,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/v1/mcp/prompts/:model/:prompt",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/v1/mcp/prompts/:model/:prompt\", localai.MCPGetPromptEndpoint(cl, appConfig), mcpMw)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 437,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/v1/mcp/resources/:model",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/v1/mcp/resources/:model\", localai.MCPResourcesEndpoint(cl, appConfig), mcpMw)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 438,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/v1/mcp/resources/:model/read",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/v1/mcp/resources/:model/read\", localai.MCPReadResourceEndpoint(cl, appConfig), mcpMw)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 441,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/api/cors-proxy",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/api/cors-proxy\", localai.CORSProxyEndpoint(appConfig), mcpMw)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 442,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/api/cors-proxy",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/api/cors-proxy\", localai.CORSProxyEndpoint(appConfig), mcpMw)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 443,
+      "registrar": "router",
+      "method": "OPTIONS",
+      "path_expression": "/api/cors-proxy",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.OPTIONS(\"/api/cors-proxy\", localai.CORSProxyOptionsEndpoint())"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 448,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/api/agent/tasks",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/api/agent/tasks\", localai.CreateTaskEndpoint(app), mcpJobsMw)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 449,
+      "registrar": "router",
+      "method": "PUT",
+      "path_expression": "/api/agent/tasks/:id",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.PUT(\"/api/agent/tasks/:id\", localai.UpdateTaskEndpoint(app), mcpJobsMw)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 450,
+      "registrar": "router",
+      "method": "DELETE",
+      "path_expression": "/api/agent/tasks/:id",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.DELETE(\"/api/agent/tasks/:id\", localai.DeleteTaskEndpoint(app), mcpJobsMw)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 451,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/api/agent/tasks",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/api/agent/tasks\", localai.ListTasksEndpoint(app), mcpJobsMw)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 452,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/api/agent/tasks/:id",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/api/agent/tasks/:id\", localai.GetTaskEndpoint(app), mcpJobsMw)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 454,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/api/agent/jobs/execute",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/api/agent/jobs/execute\", localai.ExecuteJobEndpoint(app), mcpJobsMw)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 455,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/api/agent/jobs/:id",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/api/agent/jobs/:id\", localai.GetJobEndpoint(app), mcpJobsMw)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 456,
+      "registrar": "router",
+      "method": "GET",
+      "path_expression": "/api/agent/jobs",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.GET(\"/api/agent/jobs\", localai.ListJobsEndpoint(app), mcpJobsMw)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 457,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/api/agent/jobs/:id/cancel",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/api/agent/jobs/:id/cancel\", localai.CancelJobEndpoint(app), mcpJobsMw)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 458,
+      "registrar": "router",
+      "method": "DELETE",
+      "path_expression": "/api/agent/jobs/:id",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.DELETE(\"/api/agent/jobs/:id\", localai.DeleteJobEndpoint(app), mcpJobsMw)"
+    },
+    {
+      "source_file": "core/http/routes/localai.go",
+      "source_line": 460,
+      "registrar": "router",
+      "method": "POST",
+      "path_expression": "/api/agent/tasks/:name/execute",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "router.POST(\"/api/agent/tasks/:name/execute\", localai.ExecuteTaskByNameEndpoint(app), mcpJobsMw)"
+    },
+    {
+      "source_file": "core/http/routes/middleware.go",
+      "source_line": 32,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/middleware/status",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "e.GET(\"/api/middleware/status\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/middleware.go",
+      "source_line": 54,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/router/status",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "e.GET(\"/api/router/status\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/middleware.go",
+      "source_line": 60,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/middleware/proxy-ca.crt",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "e.GET(\"/api/middleware/proxy-ca.crt\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/middleware.go",
+      "source_line": 77,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/router/decisions",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "e.GET(\"/api/router/decisions\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/middleware.go",
+      "source_line": 116,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/router/cache/stats",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "e.GET(\"/api/router/cache/stats\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/middleware.go",
+      "source_line": 148,
+      "registrar": "e",
+      "method": "POST",
+      "path_expression": "/api/router/decide",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "e.POST(\"/api/router/decide\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 48,
+      "registrar": "node",
+      "method": "POST",
+      "path_expression": "/register",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "node.POST(\"/register\", localai.RegisterNodeEndpoint(registry, registrationToken, autoApprove, authDB, hmacSecret, natsCfg))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 49,
+      "registrar": "node",
+      "method": "POST",
+      "path_expression": "/:id/heartbeat",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "node.POST(\"/:id/heartbeat\", localai.HeartbeatEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 50,
+      "registrar": "node",
+      "method": "POST",
+      "path_expression": "/:id/drain",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "node.POST(\"/:id/drain\", localai.DrainNodeEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 51,
+      "registrar": "node",
+      "method": "POST",
+      "path_expression": "/:id/resume",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "node.POST(\"/:id/resume\", localai.ResumeNodeEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 52,
+      "registrar": "node",
+      "method": "POST",
+      "path_expression": "/:id/deregister",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "node.POST(\"/:id/deregister\", localai.DeactivateNodeEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 53,
+      "registrar": "node",
+      "method": "GET",
+      "path_expression": "/:id/models",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "node.GET(\"/:id/models\", localai.GetNodeModelsEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 54,
+      "registrar": "node",
+      "method": "DELETE",
+      "path_expression": "/:id",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "node.DELETE(\"/:id\", localai.DeactivateNodeEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 72,
+      "registrar": "admin",
+      "method": "GET",
+      "path_expression": "",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.GET(\"\", localai.ListNodesEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 75,
+      "registrar": "admin",
+      "method": "GET",
+      "path_expression": "/models",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.GET(\"/models\", localai.ListAllNodeModelsEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 78,
+      "registrar": "admin",
+      "method": "GET",
+      "path_expression": "/scheduling",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.GET(\"/scheduling\", localai.ListSchedulingEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 79,
+      "registrar": "admin",
+      "method": "GET",
+      "path_expression": "/scheduling/:model",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.GET(\"/scheduling/:model\", localai.GetSchedulingEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 80,
+      "registrar": "admin",
+      "method": "POST",
+      "path_expression": "/scheduling",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.POST(\"/scheduling\", localai.SetSchedulingEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 81,
+      "registrar": "admin",
+      "method": "DELETE",
+      "path_expression": "/scheduling/:model",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.DELETE(\"/scheduling/:model\", localai.DeleteSchedulingEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 83,
+      "registrar": "admin",
+      "method": "GET",
+      "path_expression": "/:id",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.GET(\"/:id\", localai.GetNodeEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 84,
+      "registrar": "admin",
+      "method": "GET",
+      "path_expression": "/:id/models",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.GET(\"/:id/models\", localai.GetNodeModelsEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 85,
+      "registrar": "admin",
+      "method": "DELETE",
+      "path_expression": "/:id",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.DELETE(\"/:id\", localai.DeregisterNodeEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 86,
+      "registrar": "admin",
+      "method": "POST",
+      "path_expression": "/:id/drain",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.POST(\"/:id/drain\", localai.DrainNodeEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 87,
+      "registrar": "admin",
+      "method": "POST",
+      "path_expression": "/:id/resume",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.POST(\"/:id/resume\", localai.ResumeNodeEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 88,
+      "registrar": "admin",
+      "method": "POST",
+      "path_expression": "/:id/approve",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.POST(\"/:id/approve\", localai.ApproveNodeEndpoint(registry, authDB, hmacSecret, natsCfg))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 91,
+      "registrar": "admin",
+      "method": "GET",
+      "path_expression": "/:id/backends",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.GET(\"/:id/backends\", localai.ListBackendsOnNodeEndpoint(unloader, registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 92,
+      "registrar": "admin",
+      "method": "POST",
+      "path_expression": "/:id/backends/install",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.POST(\"/:id/backends/install\", localai.InstallBackendOnNodeEndpoint(unloader, galleryService, opcache, appConfig))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 93,
+      "registrar": "admin",
+      "method": "POST",
+      "path_expression": "/:id/backends/delete",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.POST(\"/:id/backends/delete\", localai.DeleteBackendOnNodeEndpoint(unloader))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 96,
+      "registrar": "admin",
+      "method": "POST",
+      "path_expression": "/:id/models/unload",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.POST(\"/:id/models/unload\", localai.UnloadModelOnNodeEndpoint(unloader, registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 97,
+      "registrar": "admin",
+      "method": "POST",
+      "path_expression": "/:id/models/delete",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.POST(\"/:id/models/delete\", localai.DeleteModelOnNodeEndpoint(unloader, registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 100,
+      "registrar": "admin",
+      "method": "GET",
+      "path_expression": "/:id/backend-logs",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.GET(\"/:id/backend-logs\", localai.NodeBackendLogsListEndpoint(registry, registrationToken))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 101,
+      "registrar": "admin",
+      "method": "GET",
+      "path_expression": "/:id/backend-logs/:modelId",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.GET(\"/:id/backend-logs/:modelId\", localai.NodeBackendLogsLinesEndpoint(registry, registrationToken))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 104,
+      "registrar": "admin",
+      "method": "GET",
+      "path_expression": "/:id/labels",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.GET(\"/:id/labels\", localai.GetNodeLabelsEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 105,
+      "registrar": "admin",
+      "method": "PUT",
+      "path_expression": "/:id/labels",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.PUT(\"/:id/labels\", localai.SetNodeLabelsEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 106,
+      "registrar": "admin",
+      "method": "PATCH",
+      "path_expression": "/:id/labels",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.PATCH(\"/:id/labels\", localai.MergeNodeLabelsEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 107,
+      "registrar": "admin",
+      "method": "DELETE",
+      "path_expression": "/:id/labels/:key",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.DELETE(\"/:id/labels/:key\", localai.DeleteNodeLabelEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 112,
+      "registrar": "admin",
+      "method": "PUT",
+      "path_expression": "/:id/max-replicas-per-model",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.PUT(\"/:id/max-replicas-per-model\", localai.UpdateMaxReplicasPerModelEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 113,
+      "registrar": "admin",
+      "method": "DELETE",
+      "path_expression": "/:id/max-replicas-per-model",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "admin.DELETE(\"/:id/max-replicas-per-model\", localai.ResetMaxReplicasPerModelEndpoint(registry))"
+    },
+    {
+      "source_file": "core/http/routes/nodes.go",
+      "source_line": 116,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/ws/nodes/:id/backend-logs/:modelId",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "e.GET(\"/ws/nodes/:id/backend-logs/:modelId\", localai.NodeBackendLogsWSEndpoint(registry, registrationToken), readyMw, adminMw)"
+    },
+    {
+      "source_file": "core/http/routes/ollama.go",
+      "source_line": 42,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/api/chat",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/api/chat\", chatHandler, chatMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/ollama.go",
+      "source_line": 60,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/api/generate",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/api/generate\", generateHandler, generateMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/ollama.go",
+      "source_line": 76,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/api/embed",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/api/embed\", embedHandler, embedMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/ollama.go",
+      "source_line": 77,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/api/embeddings",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/api/embeddings\", embedHandler, embedMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/ollama.go",
+      "source_line": 80,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/tags",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.GET(\"/api/tags\", ollama.ListModelsEndpoint(application.ModelConfigLoader(), application.ModelLoader()))"
+    },
+    {
+      "source_file": "core/http/routes/ollama.go",
+      "source_line": 81,
+      "registrar": "app",
+      "method": "HEAD",
+      "path_expression": "/api/tags",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.HEAD(\"/api/tags\", ollama.ListModelsEndpoint(application.ModelConfigLoader(), application.ModelLoader()))"
+    },
+    {
+      "source_file": "core/http/routes/ollama.go",
+      "source_line": 82,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/api/show",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/api/show\", ollama.ShowModelEndpoint(application.ModelConfigLoader()))"
+    },
+    {
+      "source_file": "core/http/routes/ollama.go",
+      "source_line": 83,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/ps",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.GET(\"/api/ps\", ollama.ListRunningEndpoint(application.ModelConfigLoader(), application.ModelLoader()))"
+    },
+    {
+      "source_file": "core/http/routes/ollama.go",
+      "source_line": 84,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/version",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.GET(\"/api/version\", ollama.VersionEndpoint())"
+    },
+    {
+      "source_file": "core/http/routes/ollama.go",
+      "source_line": 85,
+      "registrar": "app",
+      "method": "HEAD",
+      "path_expression": "/api/version",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.HEAD(\"/api/version\", ollama.VersionEndpoint())"
+    },
+    {
+      "source_file": "core/http/routes/ollama.go",
+      "source_line": 91,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.GET(\"/\", ollama.HeartbeatEndpoint())"
+    },
+    {
+      "source_file": "core/http/routes/ollama.go",
+      "source_line": 92,
+      "registrar": "app",
+      "method": "HEAD",
+      "path_expression": "/",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.HEAD(\"/\", ollama.HeartbeatEndpoint())"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 34,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/v1/realtime",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.GET(\"/v1/realtime\", openai.Realtime(application))"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 35,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/realtime/sessions",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/realtime/sessions\", openai.RealtimeTranscriptionSession(application), traceMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 36,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/realtime/transcription_session",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/realtime/transcription_session\", openai.RealtimeTranscriptionSession(application), traceMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 37,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/realtime/calls",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/realtime/calls\", openai.RealtimeCalls(application), traceMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 97,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/chat/completions",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/chat/completions\", chatHandler, chatMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 98,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/chat/completions",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/chat/completions\", chatHandler, chatMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 118,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/edits",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/edits\", editHandler, editMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 119,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/edits",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/edits\", editHandler, editMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 140,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/completions",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/completions\", completionHandler, completionMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 141,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/completions",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/completions\", completionHandler, completionMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 142,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/engines/:model/completions",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/engines/:model/completions\", completionHandler, completionMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 163,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/embeddings",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/embeddings\", embeddingHandler, embeddingMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 164,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/embeddings",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/embeddings\", embeddingHandler, embeddingMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 165,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/engines/:model/embeddings",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/engines/:model/embeddings\", embeddingHandler, embeddingMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 183,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/audio/transcriptions",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/audio/transcriptions\", audioHandler, audioMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 184,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/audio/transcriptions",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/audio/transcriptions\", audioHandler, audioMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 200,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/audio/diarization",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/audio/diarization\", diarizationHandler, diarizationMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 201,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/audio/diarization",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/audio/diarization\", diarizationHandler, diarizationMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 217,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/audio/classification",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/audio/classification\", soundClassificationHandler, soundClassificationMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 218,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/audio/classification",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/audio/classification\", soundClassificationHandler, soundClassificationMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 228,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/audio/speech",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/audio/speech\", audioSpeechHandler, audioSpeechMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 229,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/audio/speech",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/audio/speech\", audioSpeechHandler, audioSpeechMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 249,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/images/generations",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/images/generations\", imageHandler, imageMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 250,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/images/generations",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/images/generations\", imageHandler, imageMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 254,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/images/inpainting",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/images/inpainting\", inpaintingHandler, imageMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 255,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/images/inpainting",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/images/inpainting\", inpaintingHandler, imageMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 258,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/v1/models",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.GET(\"/v1/models\", openai.ListModelsEndpoint(application.ModelConfigLoader(), application.ModelLoader(), application.ApplicationConfig(), application.AuthDB()))"
+    },
+    {
+      "source_file": "core/http/routes/openai.go",
+      "source_line": 259,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/models",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.GET(\"/models\", openai.ListModelsEndpoint(application.ModelConfigLoader(), application.ModelLoader(), application.ApplicationConfig(), application.AuthDB()))"
+    },
+    {
+      "source_file": "core/http/routes/openresponses.go",
+      "source_line": 45,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/responses",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/responses\", responsesHandler, responsesMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openresponses.go",
+      "source_line": 48,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/responses",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/responses\", responsesHandler, responsesMiddleware...)"
+    },
+    {
+      "source_file": "core/http/routes/openresponses.go",
+      "source_line": 52,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/v1/responses",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.GET(\"/v1/responses\", wsHandler, middleware.UsageMiddleware(application.StatsRecorder(), application.FallbackUser()), middleware.TraceMiddleware(application))"
+    },
+    {
+      "source_file": "core/http/routes/openresponses.go",
+      "source_line": 53,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/responses",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.GET(\"/responses\", wsHandler, middleware.UsageMiddleware(application.StatsRecorder(), application.FallbackUser()), middleware.TraceMiddleware(application))"
+    },
+    {
+      "source_file": "core/http/routes/openresponses.go",
+      "source_line": 57,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/v1/responses/:id",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.GET(\"/v1/responses/:id\", getResponseHandler, middleware.TraceMiddleware(application))"
+    },
+    {
+      "source_file": "core/http/routes/openresponses.go",
+      "source_line": 58,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/responses/:id",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.GET(\"/responses/:id\", getResponseHandler, middleware.TraceMiddleware(application))"
+    },
+    {
+      "source_file": "core/http/routes/openresponses.go",
+      "source_line": 62,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/v1/responses/:id/cancel",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/v1/responses/:id/cancel\", cancelResponseHandler, middleware.TraceMiddleware(application))"
+    },
+    {
+      "source_file": "core/http/routes/openresponses.go",
+      "source_line": 63,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/responses/:id/cancel",
+      "disposition": "compatibility_api",
+      "registration_expression": "app.POST(\"/responses/:id/cancel\", cancelResponseHandler, middleware.TraceMiddleware(application))"
+    },
+    {
+      "source_file": "core/http/routes/pii.go",
+      "source_line": 25,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/pii/events",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "e.GET(\"/api/pii/events\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/pii.go",
+      "source_line": 46,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/pii/events",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "e.GET(\"/api/pii/events\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/pii.go",
+      "source_line": 81,
+      "registrar": "e",
+      "method": "POST",
+      "path_expression": "/api/pii/analyze",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "e.POST(\"/api/pii/analyze\", localai.PIIAnalyzeEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/pii.go",
+      "source_line": 82,
+      "registrar": "e",
+      "method": "POST",
+      "path_expression": "/api/pii/redact",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "e.POST(\"/api/pii/redact\", localai.PIIRedactEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/quantization.go",
+      "source_line": 31,
+      "registrar": "q",
+      "method": "GET",
+      "path_expression": "/backends",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "q.GET(\"/backends\", localai.ListQuantizationBackendsEndpoint(appConfig))"
+    },
+    {
+      "source_file": "core/http/routes/quantization.go",
+      "source_line": 32,
+      "registrar": "q",
+      "method": "POST",
+      "path_expression": "/jobs",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "q.POST(\"/jobs\", localai.StartQuantizationJobEndpoint(qService))"
+    },
+    {
+      "source_file": "core/http/routes/quantization.go",
+      "source_line": 33,
+      "registrar": "q",
+      "method": "GET",
+      "path_expression": "/jobs",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "q.GET(\"/jobs\", localai.ListQuantizationJobsEndpoint(qService))"
+    },
+    {
+      "source_file": "core/http/routes/quantization.go",
+      "source_line": 34,
+      "registrar": "q",
+      "method": "GET",
+      "path_expression": "/jobs/:id",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "q.GET(\"/jobs/:id\", localai.GetQuantizationJobEndpoint(qService))"
+    },
+    {
+      "source_file": "core/http/routes/quantization.go",
+      "source_line": 35,
+      "registrar": "q",
+      "method": "POST",
+      "path_expression": "/jobs/:id/stop",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "q.POST(\"/jobs/:id/stop\", localai.StopQuantizationJobEndpoint(qService))"
+    },
+    {
+      "source_file": "core/http/routes/quantization.go",
+      "source_line": 36,
+      "registrar": "q",
+      "method": "DELETE",
+      "path_expression": "/jobs/:id",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "q.DELETE(\"/jobs/:id\", localai.DeleteQuantizationJobEndpoint(qService))"
+    },
+    {
+      "source_file": "core/http/routes/quantization.go",
+      "source_line": 37,
+      "registrar": "q",
+      "method": "GET",
+      "path_expression": "/jobs/:id/progress",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "q.GET(\"/jobs/:id/progress\", localai.QuantizationProgressEndpoint(qService))"
+    },
+    {
+      "source_file": "core/http/routes/quantization.go",
+      "source_line": 38,
+      "registrar": "q",
+      "method": "POST",
+      "path_expression": "/jobs/:id/import",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "q.POST(\"/jobs/:id/import\", localai.ImportQuantizedModelEndpoint(qService))"
+    },
+    {
+      "source_file": "core/http/routes/quantization.go",
+      "source_line": 39,
+      "registrar": "q",
+      "method": "GET",
+      "path_expression": "/jobs/:id/download",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "q.GET(\"/jobs/:id/download\", localai.DownloadQuantizedModelEndpoint(qService))"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 11,
+      "registrar": "g",
+      "method": "POST",
+      "path_expression": "/ingest",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "g.POST(\"/ingest\", localai.IngestRecordsEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 12,
+      "registrar": "g",
+      "method": "GET",
+      "path_expression": "/batches",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "g.GET(\"/batches\", localai.ListRecordBatchesEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 13,
+      "registrar": "g",
+      "method": "GET",
+      "path_expression": "/batches/:id",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "g.GET(\"/batches/:id\", localai.GetRecordBatchEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 14,
+      "registrar": "g",
+      "method": "DELETE",
+      "path_expression": "/batches/:id",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "g.DELETE(\"/batches/:id\", localai.DeleteRecordBatchEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 15,
+      "registrar": "g",
+      "method": "POST",
+      "path_expression": "/query",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "g.POST(\"/query\", localai.QueryRecordsEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 16,
+      "registrar": "g",
+      "method": "POST",
+      "path_expression": "/aggregate",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "g.POST(\"/aggregate\", localai.AggregateRecordsEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 17,
+      "registrar": "g",
+      "method": "POST",
+      "path_expression": "/correlate",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "g.POST(\"/correlate\", localai.CorrelateRecordsEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 18,
+      "registrar": "g",
+      "method": "GET",
+      "path_expression": "/schema/:record_type",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "g.GET(\"/schema/:record_type\", localai.GetRecordSchemaEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 19,
+      "registrar": "g",
+      "method": "GET",
+      "path_expression": "/forensic/status",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "g.GET(\"/forensic/status\", localai.GetForensicRecordsStatusEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 20,
+      "registrar": "g",
+      "method": "GET",
+      "path_expression": "/forensic/templates",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "g.GET(\"/forensic/templates\", localai.GetForensicRecordsTemplatesEndpoint())"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 21,
+      "registrar": "g",
+      "method": "GET",
+      "path_expression": "/forensic/capabilities",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "g.GET(\"/forensic/capabilities\", localai.GetForensicRecordsCapabilitiesEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 22,
+      "registrar": "g",
+      "method": "GET",
+      "path_expression": "/forensic/evidence",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "g.GET(\"/forensic/evidence\", localai.ListForensicEvidenceEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 23,
+      "registrar": "g",
+      "method": "GET",
+      "path_expression": "/forensic/evidence/:id",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "g.GET(\"/forensic/evidence/:id\", localai.GetForensicEvidenceEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 24,
+      "registrar": "g",
+      "method": "POST",
+      "path_expression": "/forensic/evidence/:id/reprocess",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "g.POST(\"/forensic/evidence/:id/reprocess\", localai.ReprocessForensicEvidenceEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 25,
+      "registrar": "g",
+      "method": "POST",
+      "path_expression": "/forensic/query",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "g.POST(\"/forensic/query\", localai.QueryForensicRecordsEndpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 28,
+      "registrar": "v1",
+      "method": "GET",
+      "path_expression": "/adapters",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "v1.GET(\"/adapters\", localai.ListForensicAdaptersV1Endpoint())"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 29,
+      "registrar": "v1",
+      "method": "GET",
+      "path_expression": "/operations",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "v1.GET(\"/operations\", localai.ListForensicOperationsV1Endpoint())"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 30,
+      "registrar": "v1",
+      "method": "GET",
+      "path_expression": "/agents",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "v1.GET(\"/agents\", localai.ListForensicSpecialistsV1Endpoint())"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 31,
+      "registrar": "v1",
+      "method": "GET",
+      "path_expression": "/contracts",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "v1.GET(\"/contracts\", localai.ListForensicContractsV1Endpoint())"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 32,
+      "registrar": "v1",
+      "method": "GET",
+      "path_expression": "/cases",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "v1.GET(\"/cases\", localai.ListForensicCasesV1Endpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 33,
+      "registrar": "v1",
+      "method": "GET",
+      "path_expression": "/cases/:case_id",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "v1.GET(\"/cases/:case_id\", localai.GetForensicCaseV1Endpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 34,
+      "registrar": "v1",
+      "method": "GET",
+      "path_expression": "/cases/:case_id/manifest",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "v1.GET(\"/cases/:case_id/manifest\", localai.GetForensicCaseManifestV1Endpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 35,
+      "registrar": "v1",
+      "method": "GET",
+      "path_expression": "/cases/:case_id/evidence",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "v1.GET(\"/cases/:case_id/evidence\", localai.ListForensicCaseEvidenceV1Endpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 36,
+      "registrar": "v1",
+      "method": "POST",
+      "path_expression": "/cases/:case_id/query",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "v1.POST(\"/cases/:case_id/query\", localai.QueryForensicCaseV1Endpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/records.go",
+      "source_line": 37,
+      "registrar": "v1",
+      "method": "POST",
+      "path_expression": "/cases/:case_id/reports",
+      "disposition": "nexusai_product_api",
+      "registration_expression": "v1.POST(\"/cases/:case_id/reports\", localai.GenerateForensicCaseReportV1Endpoint(app))"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 158,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/operations",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/api/operations\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 344,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/api/operations/:jobID/cancel",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.POST(\"/api/operations/:jobID/cancel\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 366,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/api/operations/:jobID/dismiss",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.POST(\"/api/operations/:jobID/dismiss\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 380,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/models",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/api/models\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 589,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/models/capabilities",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/api/models/capabilities\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 707,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/backends/usecases",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/api/backends/usecases\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 728,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/models/estimate/:id",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/api/models/estimate/:id\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 763,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/api/models/install/:id",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.POST(\"/api/models/install/:id\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 805,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/api/models/delete/:id",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.POST(\"/api/models/delete/:id\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 855,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/api/models/config/:id",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.POST(\"/api/models/config/:id\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 900,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/models/config-json/:name",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/api/models/config-json/:name\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 919,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/models/config-metadata",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/api/models/config-metadata\", localai.ConfigMetadataEndpoint(), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 922,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/models/config-metadata/autocomplete/:provider",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/api/models/config-metadata/autocomplete/:provider\", localai.AutocompleteEndpoint(cl, ml, appConfig), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 925,
+      "registrar": "app",
+      "method": "PATCH",
+      "path_expression": "/api/models/config-json/:name",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.PATCH(\"/api/models/config-json/:name\", localai.PatchConfigEndpoint(cl, ml, galleryService, appConfig), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 928,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/api/models/vram-estimate",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.POST(\"/api/models/vram-estimate\", localai.VRAMEstimateEndpoint(cl, appConfig), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 931,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/models/edit/:name",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/api/models/edit/:name\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 969,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/models/job/:uid",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/api/models/job/:uid\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 1007,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/backends",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/api/backends\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 1218,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/api/backends/install/:id",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.POST(\"/api/backends/install/:id\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 1263,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/api/backends/install-external",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.POST(\"/api/backends/install-external\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 1326,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/api/backends/delete/:id",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.POST(\"/api/backends/delete/:id\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 1374,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/backends/job/:uid",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/api/backends/job/:uid\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 1412,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/api/backends/system/delete/:name",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.POST(\"/api/backends/system/delete/:name\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 1439,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/backends/upgrades",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/api/backends/upgrades\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 1446,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/api/backends/upgrades/check",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.POST(\"/api/backends/upgrades/check\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 1454,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/api/backends/upgrade/:name",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.POST(\"/api/backends/upgrade/:name\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 1500,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/p2p/workers",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/api/p2p/workers\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 1540,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/p2p/federation",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/api/p2p/federation\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 1560,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/p2p/stats",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/api/p2p/stats\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 1603,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/resources",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/api/resources\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 1631,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/settings",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/api/settings\", localai.GetSettingsEndpoint(applicationInstance), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 1632,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/api/settings",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.POST(\"/api/settings\", localai.UpdateSettingsEndpoint(applicationInstance), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 1639,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/branding",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/api/branding\", localai.GetBrandingEndpoint(appConfig))"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 1640,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/branding/asset/:kind",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/branding/asset/:kind\", localai.ServeBrandingAssetEndpoint(appConfig))"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 1641,
+      "registrar": "app",
+      "method": "POST",
+      "path_expression": "/api/branding/asset/:kind",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.POST(\"/api/branding/asset/:kind\", localai.UploadBrandingAssetEndpoint(appConfig), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/ui_api.go",
+      "source_line": 1642,
+      "registrar": "app",
+      "method": "DELETE",
+      "path_expression": "/api/branding/asset/:kind",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.DELETE(\"/api/branding/asset/:kind\", localai.DeleteBrandingAssetEndpoint(appConfig), adminMiddleware)"
+    },
+    {
+      "source_file": "core/http/routes/ui.go",
+      "source_line": 26,
+      "registrar": "app",
+      "method": "GET",
+      "path_expression": "/api/pipeline-models",
+      "disposition": "engine_admin_or_internal",
+      "registration_expression": "app.GET(\"/api/pipeline-models\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/usage.go",
+      "source_line": 41,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/usage",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/usage\", stub)"
+    },
+    {
+      "source_file": "core/http/routes/usage.go",
+      "source_line": 42,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/usage/all",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/usage/all\", stub)"
+    },
+    {
+      "source_file": "core/http/routes/usage.go",
+      "source_line": 54,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/usage",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/usage\", func(c echo.Context) error {"
+    },
+    {
+      "source_file": "core/http/routes/usage.go",
+      "source_line": 89,
+      "registrar": "e",
+      "method": "GET",
+      "path_expression": "/api/usage/all",
+      "disposition": "security_and_usage_api",
+      "registration_expression": "e.GET(\"/api/usage/all\", func(c echo.Context) error {"
+    }
+  ]
+}
+

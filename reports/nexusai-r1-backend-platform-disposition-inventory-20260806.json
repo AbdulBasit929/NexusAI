@@ -1,0 +1,1747 @@
+{
+  "generated_at": "2026-08-06",
+  "source": ".github/backend-matrix.yml",
+  "matrix_entry_count": 261,
+  "unique_backend_count": 64,
+  "acceptance_rule": "Build-matrix presence proves source/build intent only. Install, configuration, live status, NexusAI testing and acceptance remain separate.",
+  "backends": [
+    {
+      "backend": "ace-step",
+      "family": "image_or_audio_generation",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "hidden_from_forensic_fact_workflows",
+      "target_phase": "R3/R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "acestep-cpp",
+      "family": "image_or_audio_generation",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default",
+        "hipblas",
+        "sycl_f16",
+        "sycl_f32",
+        "vulkan"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "hidden_from_forensic_fact_workflows",
+      "target_phase": "R3/R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "ced",
+      "family": "audio_processing_or_biometrics",
+      "platform_sections": [
+        "darwin"
+      ],
+      "platforms": [],
+      "build_types": [
+        "darwin/default"
+      ],
+      "dockerfiles": [],
+      "disposition": "policy_or_benchmark_gated",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "chatterbox",
+      "family": "speech_generation",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default",
+        "l4t"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "derived_artifact_only_benchmark",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "coqui",
+      "family": "speech_generation",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "build_types": [
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "derived_artifact_only_benchmark",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "crispasr",
+      "family": "speech_recognition",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "build_types": [
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "benchmark_gated",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "depth-anything-cpp",
+      "family": "visual_detection_segmentation_depth",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "build_types": [
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "benchmark_gated",
+      "target_phase": "R8/R9",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "diffusers",
+      "family": "image_or_audio_generation",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default",
+        "l4t"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "hidden_from_forensic_fact_workflows",
+      "target_phase": "R3/R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "ds4",
+      "family": "alternative_inference_engine",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.ds4"
+      ],
+      "disposition": "defer_to_hardware_compatibility_benchmark",
+      "target_phase": "R16",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "face-detect",
+      "family": "face_biometrics",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default",
+        "hipblas",
+        "sycl_f16",
+        "sycl_f32",
+        "vulkan"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "disabled_pending_legal_privacy_bias_gate",
+      "target_phase": "R9",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "faster-qwen3-tts",
+      "family": "speech_generation",
+      "platform_sections": [
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cublas",
+        "l4t"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "derived_artifact_only_benchmark",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "faster-whisper",
+      "family": "speech_recognition",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default",
+        "l4t"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "benchmark_gated",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "fish-speech",
+      "family": "speech_generation",
+      "platform_sections": [
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "l4t"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "derived_artifact_only_benchmark",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "ik-llama-cpp",
+      "family": "general_llm_alternative",
+      "platform_sections": [
+        "matrix_unspecified"
+      ],
+      "platforms": [],
+      "build_types": [
+        "unspecified"
+      ],
+      "dockerfiles": [],
+      "disposition": "defer_to_compatibility_benchmark",
+      "target_phase": "R16",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "insightface",
+      "family": "face_biometrics",
+      "platform_sections": [
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "disabled_pending_legal_privacy_bias_gate",
+      "target_phase": "R9",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "kitten-tts",
+      "family": "speech_generation",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "derived_artifact_only_benchmark",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "kokoro",
+      "family": "speech_generation",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "build_types": [
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "derived_artifact_only_benchmark",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "kokoros",
+      "family": "speech_generation",
+      "platform_sections": [
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "build_types": [
+        "cpu/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.rust"
+      ],
+      "disposition": "derived_artifact_only_benchmark",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "liquid-audio",
+      "family": "audio_processing_or_biometrics",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default",
+        "l4t"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "policy_or_benchmark_gated",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "llama-cpp",
+      "family": "general_llm_and_embeddings",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.llama-cpp"
+      ],
+      "disposition": "reuse_current_approved_roles_only",
+      "target_phase": "R1/R16",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "llama-cpp-quantization",
+      "family": "model_quantization",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "administrator_only_defer",
+      "target_phase": "R16",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "local-store",
+      "family": "model_or_embedding_store",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "administrator_only_evaluate_for_private_deployment",
+      "target_phase": "R13/R16",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "localvqe",
+      "family": "audio_processing_or_biometrics",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "darwin/default",
+        "vulkan"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "policy_or_benchmark_gated",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "locate-anything-cpp",
+      "family": "visual_detection_segmentation_depth",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "build_types": [
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "benchmark_gated",
+      "target_phase": "R8/R9",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "mlx",
+      "family": "alternative_inference_engine",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default",
+        "l4t"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "defer_to_hardware_compatibility_benchmark",
+      "target_phase": "R16",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "mlx-audio",
+      "family": "alternative_inference_engine",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default",
+        "l4t"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "defer_to_hardware_compatibility_benchmark",
+      "target_phase": "R16",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "mlx-distributed",
+      "family": "alternative_inference_engine",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default",
+        "l4t"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "defer_to_hardware_compatibility_benchmark",
+      "target_phase": "R16",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "mlx-vlm",
+      "family": "alternative_inference_engine",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default",
+        "l4t"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "defer_to_hardware_compatibility_benchmark",
+      "target_phase": "R16",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "moonshine",
+      "family": "speech_recognition",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "benchmark_gated",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "nemo",
+      "family": "specialized_engine",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "defer_until_mapped_to_accepted_forensic_task",
+      "target_phase": "R8-R16",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "neutts",
+      "family": "speech_generation",
+      "platform_sections": [
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "hipblas"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "derived_artifact_only_benchmark",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "omnivoice-cpp",
+      "family": "specialized_engine",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default",
+        "hipblas",
+        "sycl_f16",
+        "sycl_f32",
+        "vulkan"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "defer_until_mapped_to_accepted_forensic_task",
+      "target_phase": "R8-R16",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "opus",
+      "family": "audio_processing_or_biometrics",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "policy_or_benchmark_gated",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "outetts",
+      "family": "speech_generation",
+      "platform_sections": [
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "derived_artifact_only_benchmark",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "parakeet-cpp",
+      "family": "speech_recognition",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "build_types": [
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "benchmark_gated",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "piper",
+      "family": "speech_generation",
+      "platform_sections": [
+        "darwin"
+      ],
+      "platforms": [],
+      "build_types": [
+        "darwin/default"
+      ],
+      "dockerfiles": [],
+      "disposition": "derived_artifact_only_benchmark",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "pocket-tts",
+      "family": "speech_generation",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default",
+        "l4t"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "derived_artifact_only_benchmark",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "privacy-filter",
+      "family": "privacy_filter",
+      "platform_sections": [
+        "darwin"
+      ],
+      "platforms": [],
+      "build_types": [
+        "darwin/default"
+      ],
+      "dockerfiles": [],
+      "disposition": "administrator_policy_evaluation",
+      "target_phase": "R16",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "qwen-asr",
+      "family": "speech_recognition",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default",
+        "l4t"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "benchmark_gated",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "qwen-tts",
+      "family": "speech_generation",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default",
+        "l4t"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "derived_artifact_only_benchmark",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "qwen3-tts-cpp",
+      "family": "speech_generation",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default",
+        "hipblas",
+        "sycl_f16",
+        "sycl_f32",
+        "vulkan"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "derived_artifact_only_benchmark",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "rerankers",
+      "family": "retrieval_reranking",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "build_types": [
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "benchmark_gated",
+      "target_phase": "R13",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "rfdetr",
+      "family": "visual_detection_segmentation_depth",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default",
+        "intel",
+        "l4t"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "benchmark_gated",
+      "target_phase": "R8/R9",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "rfdetr-cpp",
+      "family": "visual_detection_segmentation_depth",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "build_types": [
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "benchmark_gated",
+      "target_phase": "R8/R9",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "sam3-cpp",
+      "family": "visual_detection_segmentation_depth",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "build_types": [
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "benchmark_gated",
+      "target_phase": "R8/R9",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "sglang",
+      "family": "alternative_inference_engine",
+      "platform_sections": [
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "l4t"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "defer_to_hardware_compatibility_benchmark",
+      "target_phase": "R16",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "sherpa-onnx",
+      "family": "speech_recognition",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "benchmark_gated",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "silero-vad",
+      "family": "audio_processing_or_biometrics",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "policy_or_benchmark_gated",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "speaker-recognition",
+      "family": "audio_processing_or_biometrics",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "policy_or_benchmark_gated",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "stablediffusion-ggml",
+      "family": "image_or_audio_generation",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "build_types": [
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "hidden_from_forensic_fact_workflows",
+      "target_phase": "R3/R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "supertonic",
+      "family": "speech_generation",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "derived_artifact_only_benchmark",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "tinygrad",
+      "family": "alternative_inference_engine",
+      "platform_sections": [
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "build_types": [
+        "cpu/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "defer_to_hardware_compatibility_benchmark",
+      "target_phase": "R16",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "transformers",
+      "family": "alternative_inference_engine",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "build_types": [
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "defer_to_hardware_compatibility_benchmark",
+      "target_phase": "R16",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "trl",
+      "family": "specialized_engine",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "defer_until_mapped_to_accepted_forensic_task",
+      "target_phase": "R8-R16",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "turboquant",
+      "family": "alternative_inference_engine",
+      "platform_sections": [
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cublas"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.turboquant"
+      ],
+      "disposition": "defer_to_hardware_compatibility_benchmark",
+      "target_phase": "R16",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "vibevoice",
+      "family": "speech_generation",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default",
+        "l4t"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "derived_artifact_only_benchmark",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "vibevoice-cpp",
+      "family": "speech_generation",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default",
+        "hipblas",
+        "sycl_f16",
+        "sycl_f32",
+        "vulkan"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "derived_artifact_only_benchmark",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "vllm",
+      "family": "alternative_inference_engine",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default",
+        "l4t"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "defer_to_hardware_compatibility_benchmark",
+      "target_phase": "R16",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "vllm-omni",
+      "family": "alternative_inference_engine",
+      "platform_sections": [
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cublas",
+        "l4t"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "defer_to_hardware_compatibility_benchmark",
+      "target_phase": "R16",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "voice-detect",
+      "family": "audio_processing_or_biometrics",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cublas",
+        "darwin/default",
+        "hipblas",
+        "vulkan"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "policy_or_benchmark_gated",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "voxcpm",
+      "family": "speech_generation",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "derived_artifact_only_benchmark",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "voxtral",
+      "family": "speech_recognition",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "benchmark_gated",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "whisper",
+      "family": "speech_recognition",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "build_types": [
+        "cublas",
+        "darwin/default"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.golang"
+      ],
+      "disposition": "benchmark_gated",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    },
+    {
+      "backend": "whisperx",
+      "family": "speech_recognition",
+      "platform_sections": [
+        "darwin",
+        "linux"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "build_types": [
+        "cpu/default",
+        "cublas",
+        "darwin/default",
+        "l4t"
+      ],
+      "dockerfiles": [
+        "./backend/Dockerfile.python"
+      ],
+      "disposition": "benchmark_gated",
+      "target_phase": "R10",
+      "source_presence": true,
+      "installed": "not_proven_by_build_matrix",
+      "configured": "not_proven_by_build_matrix",
+      "live": "not_proven_by_build_matrix",
+      "tested_for_nexusai": false,
+      "license_review": "required_before_promotion"
+    }
+  ]
+}
+

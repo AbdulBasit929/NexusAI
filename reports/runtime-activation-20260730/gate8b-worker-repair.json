@@ -1,0 +1,8 @@
+{
+    "gate":  "8b",
+    "repaired_utc":  "2026-07-30T06:08:56.5573690Z",
+    "defect":  "xlsx_reader_missing_from_worker_image",
+    "worker_health":  "pass",
+    "rollback_image":  "nexusai/forensic-records-worker:rollback-before-xlsx-package-fix-20260730",
+    "named_volumes_preserved":  true
+}

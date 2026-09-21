@@ -1,0 +1,403 @@
+{
+  "query": "Give me a roll-up of network use associated with 198.51.100.211.",
+  "deterministic_facts": {
+    "contract_version": "forensics.hybrid-facts/v1",
+    "tenant_id": "hybrid-eval",
+    "user_id": "operator",
+    "collection_id": "synthetic",
+    "evidence_id": "",
+    "scope": "authorized_workspace",
+    "identifiers": [
+      {
+        "raw_span": "198.51.100.211",
+        "canonical": "198.51.100.211",
+        "identifier_type": "ip",
+        "start_byte": 49,
+        "end_byte": 63
+      }
+    ],
+    "target": "198.51.100.211",
+    "targets": [
+      "198.51.100.211"
+    ],
+    "family": "",
+    "date_from": "",
+    "date_to": "",
+    "direction": "",
+    "top_k": 0,
+    "start_seconds": null,
+    "end_seconds": null,
+    "filters": null,
+    "prior_capability": "",
+    "prior_semantic": "",
+    "prior_targets": null,
+    "inherited_fields": [],
+    "transition": "NONE",
+    "explicit_capability": "",
+    "state": ""
+  },
+  "candidate_tuples": [
+    {
+      "tuple_id": "cross_family.identifiers/COMPOSE/authorized_workspace",
+      "capability_id": "cross_family.identifiers",
+      "semantic": "COMPOSE",
+      "allowed_scope": "authorized_workspace",
+      "family": "case_cross_family",
+      "operation_ref": "forensics.cross_family_correlation",
+      "text_representation_rule": "",
+      "required_fact_types": [
+        "scope"
+      ],
+      "optional_fact_types": [
+        "identifiers",
+        "dates",
+        "direction",
+        "top_k",
+        "source_time",
+        "filters"
+      ]
+    },
+    {
+      "tuple_id": "ipdr.endpoint/AGGREGATE/authorized_workspace",
+      "capability_id": "ipdr.endpoint",
+      "semantic": "AGGREGATE",
+      "allowed_scope": "authorized_workspace",
+      "family": "network_ipdr",
+      "operation_ref": "ipdr.endpoint_summary",
+      "text_representation_rule": "",
+      "required_fact_types": [
+        "scope",
+        "identifiers"
+      ],
+      "optional_fact_types": [
+        "identifiers",
+        "dates",
+        "direction",
+        "top_k",
+        "source_time",
+        "filters"
+      ]
+    },
+    {
+      "tuple_id": "ipdr.sessions/FILTER/authorized_workspace",
+      "capability_id": "ipdr.sessions",
+      "semantic": "FILTER",
+      "allowed_scope": "authorized_workspace",
+      "family": "network_ipdr",
+      "operation_ref": "ipdr.subscriber_sessions",
+      "text_representation_rule": "",
+      "required_fact_types": [
+        "scope",
+        "identifiers"
+      ],
+      "optional_fact_types": [
+        "identifiers",
+        "dates",
+        "direction",
+        "top_k",
+        "source_time",
+        "filters"
+      ]
+    }
+  ],
+  "expected": {
+    "capability": "ipdr.endpoint",
+    "scope": "authorized_workspace",
+    "semantic": "AGGREGATE",
+    "target": "198.51.100.211"
+  },
+  "expected_decision": "ipdr.endpoint/AGGREGATE/authorized_workspace",
+  "expected_ambiguity": "RESOLVED",
+  "exact_system_prompt": "Choose one server-issued tuple matching the analyst's residual intent. Return only the five-field residual JSON. Never generate facts, parameters, scope, tools or operations. Use NEEDS_CLARIFICATION and an empty tuple if intent is ambiguous.",
+  "exact_user_model_prompt": "Give me a roll-up of network use associated with 198.51.100.211.\nValid tuples:\n[{\"tuple_id\":\"cross_family.identifiers/COMPOSE/authorized_workspace\",\"capability_id\":\"cross_family.identifiers\",\"semantic\":\"COMPOSE\",\"allowed_scope\":\"authorized_workspace\",\"family\":\"case_cross_family\",\"operation_ref\":\"forensics.cross_family_correlation\",\"text_representation_rule\":\"\",\"required_fact_types\":[\"scope\"],\"optional_fact_types\":[\"identifiers\",\"dates\",\"direction\",\"top_k\",\"source_time\",\"filters\"]},{\"tuple_id\":\"ipdr.endpoint/AGGREGATE/authorized_workspace\",\"capability_id\":\"ipdr.endpoint\",\"semantic\":\"AGGREGATE\",\"allowed_scope\":\"authorized_workspace\",\"family\":\"network_ipdr\",\"operation_ref\":\"ipdr.endpoint_summary\",\"text_representation_rule\":\"\",\"required_fact_types\":[\"scope\",\"identifiers\"],\"optional_fact_types\":[\"identifiers\",\"dates\",\"direction\",\"top_k\",\"source_time\",\"filters\"]},{\"tuple_id\":\"ipdr.sessions/FILTER/authorized_workspace\",\"capability_id\":\"ipdr.sessions\",\"semantic\":\"FILTER\",\"allowed_scope\":\"authorized_workspace\",\"family\":\"network_ipdr\",\"operation_ref\":\"ipdr.subscriber_sessions\",\"text_representation_rule\":\"\",\"required_fact_types\":[\"scope\",\"identifiers\"],\"optional_fact_types\":[\"identifiers\",\"dates\",\"direction\",\"top_k\",\"source_time\",\"filters\"]}]",
+  "residual_schema": {
+    "additionalProperties": false,
+    "properties": {
+      "ambiguity_state": {
+        "enum": [
+          "RESOLVED",
+          "NEEDS_CLARIFICATION"
+        ],
+        "type": "string"
+      },
+      "clarification_code": {
+        "enum": [
+          "",
+          "AMBIGUOUS_INTENT",
+          "INSUFFICIENT_FACTS"
+        ],
+        "type": "string"
+      },
+      "confidence": {
+        "maximum": 1,
+        "minimum": 0,
+        "type": "number"
+      },
+      "contract_version": {
+        "const": "forensics.hybrid-residual/v1",
+        "type": "string"
+      },
+      "selected_tuple_id": {
+        "enum": [
+          "",
+          "cross_family.identifiers/COMPOSE/authorized_workspace",
+          "ipdr.endpoint/AGGREGATE/authorized_workspace",
+          "ipdr.sessions/FILTER/authorized_workspace"
+        ],
+        "type": "string"
+      }
+    },
+    "required": [
+      "contract_version",
+      "selected_tuple_id",
+      "ambiguity_state",
+      "clarification_code",
+      "confidence"
+    ],
+    "type": "object"
+  },
+  "request_bytes": 2569,
+  "request_sha256": "172a2e3c391668f594db78b6bfd200297b2897b2faf25358f8143c6a2a6d2394",
+  "request_base64": "eyJtYXhfdG9rZW5zIjo1MTIsIm1lc3NhZ2VzIjpbeyJjb250ZW50IjoiQ2hvb3NlIG9uZSBzZXJ2ZXItaXNzdWVkIHR1cGxlIG1hdGNoaW5nIHRoZSBhbmFseXN0J3MgcmVzaWR1YWwgaW50ZW50LiBSZXR1cm4gb25seSB0aGUgZml2ZS1maWVsZCByZXNpZHVhbCBKU09OLiBOZXZlciBnZW5lcmF0ZSBmYWN0cywgcGFyYW1ldGVycywgc2NvcGUsIHRvb2xzIG9yIG9wZXJhdGlvbnMuIFVzZSBORUVEU19DTEFSSUZJQ0FUSU9OIGFuZCBhbiBlbXB0eSB0dXBsZSBpZiBpbnRlbnQgaXMgYW1iaWd1b3VzLiIsInJvbGUiOiJzeXN0ZW0ifSx7ImNvbnRlbnQiOiJHaXZlIG1lIGEgcm9sbC11cCBvZiBuZXR3b3JrIHVzZSBhc3NvY2lhdGVkIHdpdGggMTk4LjUxLjEwMC4yMTEuXG5WYWxpZCB0dXBsZXM6XG5be1widHVwbGVfaWRcIjpcImNyb3NzX2ZhbWlseS5pZGVudGlmaWVycy9DT01QT1NFL2F1dGhvcml6ZWRfd29ya3NwYWNlXCIsXCJjYXBhYmlsaXR5X2lkXCI6XCJjcm9zc19mYW1pbHkuaWRlbnRpZmllcnNcIixcInNlbWFudGljXCI6XCJDT01QT1NFXCIsXCJhbGxvd2VkX3Njb3BlXCI6XCJhdXRob3JpemVkX3dvcmtzcGFjZVwiLFwiZmFtaWx5XCI6XCJjYXNlX2Nyb3NzX2ZhbWlseVwiLFwib3BlcmF0aW9uX3JlZlwiOlwiZm9yZW5zaWNzLmNyb3NzX2ZhbWlseV9jb3JyZWxhdGlvblwiLFwidGV4dF9yZXByZXNlbnRhdGlvbl9ydWxlXCI6XCJcIixcInJlcXVpcmVkX2ZhY3RfdHlwZXNcIjpbXCJzY29wZVwiXSxcIm9wdGlvbmFsX2ZhY3RfdHlwZXNcIjpbXCJpZGVudGlmaWVyc1wiLFwiZGF0ZXNcIixcImRpcmVjdGlvblwiLFwidG9wX2tcIixcInNvdXJjZV90aW1lXCIsXCJmaWx0ZXJzXCJdfSx7XCJ0dXBsZV9pZFwiOlwiaXBkci5lbmRwb2ludC9BR0dSRUdBVEUvYXV0aG9yaXplZF93b3Jrc3BhY2VcIixcImNhcGFiaWxpdHlfaWRcIjpcImlwZHIuZW5kcG9pbnRcIixcInNlbWFudGljXCI6XCJBR0dSRUdBVEVcIixcImFsbG93ZWRfc2NvcGVcIjpcImF1dGhvcml6ZWRfd29ya3NwYWNlXCIsXCJmYW1pbHlcIjpcIm5ldHdvcmtfaXBkclwiLFwib3BlcmF0aW9uX3JlZlwiOlwiaXBkci5lbmRwb2ludF9zdW1tYXJ5XCIsXCJ0ZXh0X3JlcHJlc2VudGF0aW9uX3J1bGVcIjpcIlwiLFwicmVxdWlyZWRfZmFjdF90eXBlc1wiOltcInNjb3BlXCIsXCJpZGVudGlmaWVyc1wiXSxcIm9wdGlvbmFsX2ZhY3RfdHlwZXNcIjpbXCJpZGVudGlmaWVyc1wiLFwiZGF0ZXNcIixcImRpcmVjdGlvblwiLFwidG9wX2tcIixcInNvdXJjZV90aW1lXCIsXCJmaWx0ZXJzXCJdfSx7XCJ0dXBsZV9pZFwiOlwiaXBkci5zZXNzaW9ucy9GSUxURVIvYXV0aG9yaXplZF93b3Jrc3BhY2VcIixcImNhcGFiaWxpdHlfaWRcIjpcImlwZHIuc2Vzc2lvbnNcIixcInNlbWFudGljXCI6XCJGSUxURVJcIixcImFsbG93ZWRfc2NvcGVcIjpcImF1dGhvcml6ZWRfd29ya3NwYWNlXCIsXCJmYW1pbHlcIjpcIm5ldHdvcmtfaXBkclwiLFwib3BlcmF0aW9uX3JlZlwiOlwiaXBkci5zdWJzY3JpYmVyX3Nlc3Npb25zXCIsXCJ0ZXh0X3JlcHJlc2VudGF0aW9uX3J1bGVcIjpcIlwiLFwicmVxdWlyZWRfZmFjdF90eXBlc1wiOltcInNjb3BlXCIsXCJpZGVudGlmaWVyc1wiXSxcIm9wdGlvbmFsX2ZhY3RfdHlwZXNcIjpbXCJpZGVudGlmaWVyc1wiLFwiZGF0ZXNcIixcImRpcmVjdGlvblwiLFwidG9wX2tcIixcInNvdXJjZV90aW1lXCIsXCJmaWx0ZXJzXCJdfV0iLCJyb2xlIjoidXNlciJ9XSwibW9kZWwiOiJxd2VuMy00Yi1pbnN0cnVjdC0yNTA3LXE0a20tbnhiMjFkLWRldiIsInJlc3BvbnNlX2Zvcm1hdCI6eyJqc29uX3NjaGVtYSI6eyJuYW1lIjoiZm9yZW5zaWNfaHlicmlkX3Jlc2lkdWFsIiwic2NoZW1hIjp7ImFkZGl0aW9uYWxQcm9wZXJ0aWVzIjpmYWxzZSwicHJvcGVydGllcyI6eyJhbWJpZ3VpdHlfc3RhdGUiOnsiZW51bSI6WyJSRVNPTFZFRCIsIk5FRURTX0NMQVJJRklDQVRJT04iXSwidHlwZSI6InN0cmluZyJ9LCJjbGFyaWZpY2F0aW9uX2NvZGUiOnsiZW51bSI6WyIiLCJBTUJJR1VPVVNfSU5URU5UIiwiSU5TVUZGSUNJRU5UX0ZBQ1RTIl0sInR5cGUiOiJzdHJpbmcifSwiY29uZmlkZW5jZSI6eyJtYXhpbXVtIjoxLCJtaW5pbXVtIjowLCJ0eXBlIjoibnVtYmVyIn0sImNvbnRyYWN0X3ZlcnNpb24iOnsiY29uc3QiOiJmb3JlbnNpY3MuaHlicmlkLXJlc2lkdWFsL3YxIiwidHlwZSI6InN0cmluZyJ9LCJzZWxlY3RlZF90dXBsZV9pZCI6eyJlbnVtIjpbIiIsImNyb3NzX2ZhbWlseS5pZGVudGlmaWVycy9DT01QT1NFL2F1dGhvcml6ZWRfd29ya3NwYWNlIiwiaXBkci5lbmRwb2ludC9BR0dSRUdBVEUvYXV0aG9yaXplZF93b3Jrc3BhY2UiLCJpcGRyLnNlc3Npb25zL0ZJTFRFUi9hdXRob3JpemVkX3dvcmtzcGFjZSJdLCJ0eXBlIjoic3RyaW5nIn19LCJyZXF1aXJlZCI6WyJjb250cmFjdF92ZXJzaW9uIiwic2VsZWN0ZWRfdHVwbGVfaWQiLCJhbWJpZ3VpdHlfc3RhdGUiLCJjbGFyaWZpY2F0aW9uX2NvZGUiLCJjb25maWRlbmNlIl0sInR5cGUiOiJvYmplY3QifSwic3RyaWN0Ijp0cnVlfSwidHlwZSI6Impzb25fc2NoZW1hIn0sInRlbXBlcmF0dXJlIjowfQ==",
+  "request_utf8": "{\"max_tokens\":512,\"messages\":[{\"content\":\"Choose one server-issued tuple matching the analyst's residual intent. Return only the five-field residual JSON. Never generate facts, parameters, scope, tools or operations. Use NEEDS_CLARIFICATION and an empty tuple if intent is ambiguous.\",\"role\":\"system\"},{\"content\":\"Give me a roll-up of network use associated with 198.51.100.211.\\nValid tuples:\\n[{\\\"tuple_id\\\":\\\"cross_family.identifiers/COMPOSE/authorized_workspace\\\",\\\"capability_id\\\":\\\"cross_family.identifiers\\\",\\\"semantic\\\":\\\"COMPOSE\\\",\\\"allowed_scope\\\":\\\"authorized_workspace\\\",\\\"family\\\":\\\"case_cross_family\\\",\\\"operation_ref\\\":\\\"forensics.cross_family_correlation\\\",\\\"text_representation_rule\\\":\\\"\\\",\\\"required_fact_types\\\":[\\\"scope\\\"],\\\"optional_fact_types\\\":[\\\"identifiers\\\",\\\"dates\\\",\\\"direction\\\",\\\"top_k\\\",\\\"source_time\\\",\\\"filters\\\"]},{\\\"tuple_id\\\":\\\"ipdr.endpoint/AGGREGATE/authorized_workspace\\\",\\\"capability_id\\\":\\\"ipdr.endpoint\\\",\\\"semantic\\\":\\\"AGGREGATE\\\",\\\"allowed_scope\\\":\\\"authorized_workspace\\\",\\\"family\\\":\\\"network_ipdr\\\",\\\"operation_ref\\\":\\\"ipdr.endpoint_summary\\\",\\\"text_representation_rule\\\":\\\"\\\",\\\"required_fact_types\\\":[\\\"scope\\\",\\\"identifiers\\\"],\\\"optional_fact_types\\\":[\\\"identifiers\\\",\\\"dates\\\",\\\"direction\\\",\\\"top_k\\\",\\\"source_time\\\",\\\"filters\\\"]},{\\\"tuple_id\\\":\\\"ipdr.sessions/FILTER/authorized_workspace\\\",\\\"capability_id\\\":\\\"ipdr.sessions\\\",\\\"semantic\\\":\\\"FILTER\\\",\\\"allowed_scope\\\":\\\"authorized_workspace\\\",\\\"family\\\":\\\"network_ipdr\\\",\\\"operation_ref\\\":\\\"ipdr.subscriber_sessions\\\",\\\"text_representation_rule\\\":\\\"\\\",\\\"required_fact_types\\\":[\\\"scope\\\",\\\"identifiers\\\"],\\\"optional_fact_types\\\":[\\\"identifiers\\\",\\\"dates\\\",\\\"direction\\\",\\\"top_k\\\",\\\"source_time\\\",\\\"filters\\\"]}]\",\"role\":\"user\"}],\"model\":\"qwen3-4b-instruct-2507-q4km-nxb21d-dev\",\"response_format\":{\"json_schema\":{\"name\":\"forensic_hybrid_residual\",\"schema\":{\"additionalProperties\":false,\"properties\":{\"ambiguity_state\":{\"enum\":[\"RESOLVED\",\"NEEDS_CLARIFICATION\"],\"type\":\"string\"},\"clarification_code\":{\"enum\":[\"\",\"AMBIGUOUS_INTENT\",\"INSUFFICIENT_FACTS\"],\"type\":\"string\"},\"confidence\":{\"maximum\":1,\"minimum\":0,\"type\":\"number\"},\"contract_version\":{\"const\":\"forensics.hybrid-residual/v1\",\"type\":\"string\"},\"selected_tuple_id\":{\"enum\":[\"\",\"cross_family.identifiers/COMPOSE/authorized_workspace\",\"ipdr.endpoint/AGGREGATE/authorized_workspace\",\"ipdr.sessions/FILTER/authorized_workspace\"],\"type\":\"string\"}},\"required\":[\"contract_version\",\"selected_tuple_id\",\"ambiguity_state\",\"clarification_code\",\"confidence\"],\"type\":\"object\"},\"strict\":true},\"type\":\"json_schema\"},\"temperature\":0}",
+  "http_status": 200,
+  "http_status_basis": "saved transport_pass requires response.StatusCode == 200 in evaluator; no separate raw HTTP header file",
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 331,
+    "completion_tokens": 66,
+    "total_tokens": 397
+  },
+  "latency_ms": 32466,
+  "response_bytes": 521,
+  "response_sha256": "1a58d33650a629ff3bd3f286bd9e94457d9927c210adffc1f701bc46902a0d12",
+  "response_base64": "eyJjcmVhdGVkIjoxNzg4NjkyMTYzLCJvYmplY3QiOiJjaGF0LmNvbXBsZXRpb24iLCJpZCI6IjJmNTQ5YjQ1LTU4ZTYtNDYwOS1hYmFmLWE2MTc0NzIwZTAxYyIsIm1vZGVsIjoicXdlbjMtNGItaW5zdHJ1Y3QtMjUwNy1xNGttLW54YjIxZC1kZXYiLCJjaG9pY2VzIjpbeyJpbmRleCI6MCwiZmluaXNoX3JlYXNvbiI6InN0b3AiLCJtZXNzYWdlIjp7InJvbGUiOiJhc3Npc3RhbnQiLCJjb250ZW50Ijoie1wiYW1iaWd1aXR5X3N0YXRlXCI6XCJORUVEU19DTEFSSUZJQ0FUSU9OXCIsXCJjbGFyaWZpY2F0aW9uX2NvZGVcIjpcIlwiLFwiY29uZmlkZW5jZVwiOjAsXCJjb250cmFjdF92ZXJzaW9uXCI6XCJmb3JlbnNpY3MuaHlicmlkLXJlc2lkdWFsL3YxXCIsXCJzZWxlY3RlZF90dXBsZV9pZFwiOlwiaXBkci5lbmRwb2ludC9BR0dSRUdBVEUvYXV0aG9yaXplZF93b3Jrc3BhY2VcIn0ifX1dLCJ1c2FnZSI6eyJwcm9tcHRfdG9rZW5zIjozMzEsImNvbXBsZXRpb25fdG9rZW5zIjo2NiwidG90YWxfdG9rZW5zIjozOTd9fQo=",
+  "strict_utf8_response": "{\"created\":1788692163,\"object\":\"chat.completion\",\"id\":\"2f549b45-58e6-4609-abaf-a6174720e01c\",\"model\":\"qwen3-4b-instruct-2507-q4km-nxb21d-dev\",\"choices\":[{\"index\":0,\"finish_reason\":\"stop\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\\"ambiguity_state\\\":\\\"NEEDS_CLARIFICATION\\\",\\\"clarification_code\\\":\\\"\\\",\\\"confidence\\\":0,\\\"contract_version\\\":\\\"forensics.hybrid-residual/v1\\\",\\\"selected_tuple_id\\\":\\\"ipdr.endpoint/AGGREGATE/authorized_workspace\\\"}\"}}],\"usage\":{\"prompt_tokens\":331,\"completion_tokens\":66,\"total_tokens\":397}}\n",
+  "model_message": "{\"ambiguity_state\":\"NEEDS_CLARIFICATION\",\"clarification_code\":\"\",\"confidence\":0,\"contract_version\":\"forensics.hybrid-residual/v1\",\"selected_tuple_id\":\"ipdr.endpoint/AGGREGATE/authorized_workspace\"}",
+  "json_parse": "PASS",
+  "wire_schema_validation": "PASS: all five required fields; no extras; const, enums and numeric bounds satisfied",
+  "semantic_decoder": "FAIL: contradictory residual state",
+  "exact_defect": "NEEDS_CLARIFICATION with nonempty tuple and empty clarification_code",
+  "final_typed_plan": null,
+  "prior_successful_request": {
+    "max_tokens": 512,
+    "messages": [
+      {
+        "content": "Select one allowlisted forensic query capability and semantic. Return only schema-valid compact JSON. Copy every literal and identifier exactly from the user. Obey the server-bounded constants for literals, counts, time, direction, and nested parameters. Keep clarification empty unless the request cannot be resolved. Calendar time and recording source-time are distinct. Never widen scope or add filters. The server owns authorization and derives the operation.",
+        "role": "system"
+      },
+      {
+        "content": "Locate case communications tied to 03097645218 across all authorized evidence.\nAllowed capabilities:\ncdr.identifier_lookup | EXACT_VALUE | DETERMINISTIC_STRUCTURED_FACT\ncdr.frequent_contacts | TOP_K | DETERMINISTIC_STRUCTURED_FACT\ncdr.time_activity | AGGREGATE | DETERMINISTIC_STRUCTURED_FACT\nsubscriber.lookup | EXACT_VALUE | DETERMINISTIC_STRUCTURED_FACT\ndevice.observations | GROUP | DETERMINISTIC_STRUCTURED_FACT\ncross_family.identifiers | COMPOSE | COMPOSED_VALIDATED_RESULT",
+        "role": "user"
+      }
+    ],
+    "model": "qwen3-4b-instruct-2507-q4km-nxb21d-dev",
+    "response_format": {
+      "json_schema": {
+        "name": "forensic_dynamic_capability_plan",
+        "schema": {
+          "additionalProperties": false,
+          "properties": {
+            "clarification": {
+              "maxLength": 256,
+              "type": "string"
+            },
+            "confidence": {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            "contract_version": {
+              "const": "forensics.dynamic-capability-proposal/v1",
+              "type": "string"
+            },
+            "end_seconds": {
+              "const": null,
+              "type": "null"
+            },
+            "literal_text": {
+              "const": "",
+              "type": "string"
+            },
+            "parameters": {
+              "additionalProperties": false,
+              "properties": {
+                "date_from": {
+                  "const": "",
+                  "type": "string"
+                },
+                "date_to": {
+                  "const": "",
+                  "type": "string"
+                },
+                "direction": {
+                  "const": "",
+                  "type": "string"
+                },
+                "target": {
+                  "enum": [
+                    "",
+                    "03097645218"
+                  ],
+                  "type": "string"
+                },
+                "targets": {
+                  "items": {
+                    "enum": [
+                      "",
+                      "03097645218"
+                    ],
+                    "type": "string"
+                  },
+                  "maxItems": 8,
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            },
+            "query_capability_id": {
+              "enum": [
+                "cdr.frequent_contacts",
+                "cdr.identifier_lookup",
+                "cdr.time_activity",
+                "cross_family.identifiers",
+                "device.observations",
+                "subscriber.lookup"
+              ],
+              "type": "string"
+            },
+            "scope_intent": {
+              "const": "authorized_workspace",
+              "type": "string"
+            },
+            "semantic": {
+              "enum": [
+                "AGGREGATE",
+                "COMPOSE",
+                "EXACT_VALUE",
+                "GROUP",
+                "TOP_K"
+              ],
+              "type": "string"
+            },
+            "start_seconds": {
+              "const": null,
+              "type": "null"
+            },
+            "target": {
+              "enum": [
+                "",
+                "03097645218"
+              ],
+              "type": "string"
+            },
+            "top_k": {
+              "const": 0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "contract_version",
+            "query_capability_id",
+            "semantic",
+            "literal_text",
+            "target",
+            "scope_intent",
+            "top_k",
+            "start_seconds",
+            "end_seconds",
+            "clarification",
+            "parameters",
+            "confidence"
+          ],
+          "type": "object"
+        },
+        "strict": true
+      },
+      "type": "json_schema"
+    },
+    "temperature": 0
+  },
+  "prior_successful_response": {
+    "created": 1788629715,
+    "object": "chat.completion",
+    "id": "3224899e-b846-49ca-bcfa-1dd1d5b530cc",
+    "model": "qwen3-4b-instruct-2507-q4km-nxb21d-dev",
+    "choices": [
+      {
+        "index": 0,
+        "finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "{\"clarification\": \"\",\"confidence\": 0.99,\"contract_version\": \"forensics.dynamic-capability-proposal/v1\",\"end_seconds\": null,\"literal_text\": \"\",\"parameters\": {\"date_from\": \"\",\"date_to\": \"\",\"direction\": \"\",\"target\": \"03097645218\",\"targets\": [\"03097645218\"]},\"query_capability_id\": \"cdr.identifier_lookup\",\"scope_intent\": \"authorized_workspace\",\"semantic\": \"EXACT_VALUE\",\"start_seconds\": null,\"target\": \"03097645218\",\"top_k\": 0}"
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 213,
+      "completion_tokens": 163,
+      "total_tokens": 376
+    }
+  },
+  "prior_successful_result": {
+    "ID": "if24b-en-001",
+    "Query": "Locate case communications tied to 03097645218 across all authorized evidence.",
+    "Language": "en",
+    "Dimension": "exact_identifier",
+    "Critical": false,
+    "ModelCalled": true,
+    "StructuredValid": true,
+    "ModelProposalPassed": true,
+    "Passed": true,
+    "Status": "validated_model_proposal",
+    "LatencyMS": 34964,
+    "Expected": {
+      "capability": "cdr.identifier_lookup",
+      "literal": null,
+      "scope": "authorized_workspace",
+      "semantic": "EXACT_VALUE",
+      "target": "03097645218"
+    },
+    "ModelActual": {
+      "capability": "cdr.identifier_lookup",
+      "literal": null,
+      "scope": "authorized_workspace",
+      "semantic": "EXACT_VALUE",
+      "target": "03097645218"
+    },
+    "Actual": {
+      "capability": "cdr.identifier_lookup",
+      "literal": null,
+      "scope": "authorized_workspace",
+      "semantic": "EXACT_VALUE",
+      "target": "03097645218"
+    },
+    "RawRequestSHA256": "28c9a5f84531a36778a12b0456f2c3b82d1c25799bd13a4ee5bcfd9c9002fa4d",
+    "RawResponseSHA256": "8c884d95623192e2df86e6a0f05aaf33ee1d1a2687819afce03bacc8683a7984",
+    "RequestUTF8NoBOM": true,
+    "ResponseStrictUTF8": true,
+    "EnvelopeJSONParse": true,
+    "PlannerJSONParse": true,
+    "EvidencePaths": {
+      "raw_response": "C:\\Users\\sheik\\Workspace\\Office\\Projects\\NexusAI\\local-acceptance-models\\nxb21-d\\interface-remediation-v2-development-runs\\run-20260905T173444320Z\\if24b-en-001\\response-body-raw.bin",
+      "request": "C:\\Users\\sheik\\Workspace\\Office\\Projects\\NexusAI\\local-acceptance-models\\nxb21-d\\interface-remediation-v2-development-runs\\run-20260905T173444320Z\\if24b-en-001\\request-utf8-no-bom.json",
+      "strict_response": "C:\\Users\\sheik\\Workspace\\Office\\Projects\\NexusAI\\local-acceptance-models\\nxb21-d\\interface-remediation-v2-development-runs\\run-20260905T173444320Z\\if24b-en-001\\response-body-strict-utf8.json"
+    },
+    "ExactIdentifierReconciled": false,
+    "PhraseLiteralReconciled": false,
+    "HTTPStatus": 200,
+    "FinishReason": "stop",
+    "Classification": "PASS",
+    "PromptTokens": 213,
+    "CompletionTokens": 163,
+    "TotalTokens": 376,
+    "ResponseBytes": 789,
+    "InnerPlannerJSONBytes": 424,
+    "CompletionUtilizationPercent": 31.8359375
+  },
+  "current_receipt_sha256": "38684c2f1e9b1cb128ded3693c1778498480034eec560daf34c0e37fa06f36be",
+  "sidecar_value": "38684c2f1e9b1cb128ded3693c1778498480034eec560daf34c0e37fa06f36be",
+  "first_receipt_reconstruction_sha256": "c68bdb939e936453348b023804fbb365ac58d0c767d38048f40e23100c6b3321",
+  "receipt_immutability_violated": true,
+  "all_original_run_hashes_preserved": true
+}

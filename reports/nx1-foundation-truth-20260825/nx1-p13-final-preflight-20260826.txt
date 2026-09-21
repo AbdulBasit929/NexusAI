@@ -1,0 +1,94 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260826175202
+Username: ABDULBASIT\sheik
+RunAs User: ABDULBASIT\sheik
+Configuration Name: 
+Machine: ABDULBASIT (Microsoft Windows NT 10.0.22631.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\activate_nexusai_nx1_p13_final.ps1 -PreflightOnly
+Process ID: 7580
+PSVersion: 5.1.22621.6133
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.22621.6133
+BuildVersion: 10.0.22621.6133
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+ASRComposeOverlay=INCLUDED
+
+=== 1. DOCKER READINESS ===
+DockerServerVersion=29.6.2
+
+=== 2. PHYSICAL RAM GATE ===
+TotalPhysicalRAMGiB=15.713
+FreePhysicalRAMGiB=7.614
+RequiredFreeRAMGiB=6.000
+RAMGate=PASS
+
+=== 3. REPOSITORY PREFLIGHT ===
+RequiredRepositoryFiles=PASS
+GitBranch=codex/forensic-hybrid-checkpoint-20260723
+GitHEAD=40717b83510c08db25dc26b9d6674bf46db363ac
+DirtyWorktreeEntries=585
+GitMutation=false
+
+Source hashes:
+
+Path                                                                                                    Hash
+----                                                                                                    ----
+C:\Users\sheik\Workspace\Office\Projects\NexusAI\api\forensic_records\query.go                          197C48473C2C...
+C:\Users\sheik\Workspace\Office\Projects\NexusAI\api\forensic_records\query_language_normalization.go   0161361840AF...
+C:\Users\sheik\Workspace\Office\Projects\NexusAI\api\forensic_records\query_intelligence_contracts.go   06513EEAFA7E...
+C:\Users\sheik\Workspace\Office\Projects\NexusAI\api\forensic_records\query_intelligence_composition.go A8A444964E3B...
+C:\Users\sheik\Workspace\Office\Projects\NexusAI\api\forensic_records\query_intelligence_planner.go     EFE96355F232...
+C:\Users\sheik\Workspace\Office\Projects\NexusAI\api\forensic_records\mmv2_query_test.go                69308F929532...
+
+
+
+=== 4. COMPOSE VALIDATION ===
+ComposeConfig=PASS
+
+=== 5. CURRENT RUNTIME ===
+ForensicApiContainerBefore=df9d069ad51f6b4ea60c5469a682af77c55a4d69fdb38925fae68b717ecf81ea
+ForensicApiImageBefore=sha256:74c07cce1225d0694ca8342419af9f1994801aeacdb1c048a54ef9af854ed8a7
+WorkerContainerBefore=1846f558941f583467976ad8e74a44e9063c8a1a50e870951c7e479ecce3fb66
+WorkerImageBefore=sha256:be13dbec4bd9bb62c824140df3777b898d7ad2801a0e68cd512c00dafaf4f9ef
+NatsContainerBefore=5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04
+NatsImageBefore=sha256:e4bf19f15fd3218814a4e3c9e0064e1334bd8aa20d5984b9f1a0afd084f8cc00
+PostgresContainerBefore=f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361
+PostgresImageBefore=sha256:61f891691050da6032023c01ea885730eeeba06b7c17b403e7d0b9c49c37dfe9
+LocalAIContainerBefore=ddfa8e0d4d2c0dc1b14ef112c91ac4bfeb6bb3fb4800ff722aa022ba5c7c0f23
+LocalAIImageBefore=sha256:71b63e0ef454f29f44430798f547c09edbd6b2a3c2b809b82833237eb4914cd5
+ForensicApiBefore=RUNNING
+WorkerBefore=RUNNING
+NatsBefore=RUNNING
+PostgresBefore=RUNNING
+LocalAIBefore=RUNNING
+
+=== 6. CURRENT API BASELINE ===
+ReportedExpectedApiBaseline=sha256:74c07cce1225d0694ca8342419af9f1994801aeacdb1c048a54ef9af854ed8a7
+ActualCurrentApiBaseline=sha256:74c07cce1225d0694ca8342419af9f1994801aeacdb1c048a54ef9af854ed8a7
+CurrentApiBaseline=PASS
+
+=== 7. RETAINED STATE ===
+RetainedTupleBefore=51|51|64|0|22207|441|47
+ActiveJobs=0
+KnownRetainedBaseline=CONFIRMED
+
+=== 8. SOURCE TEST GATE ===
+
+FocusedApiTests=PASS
+
+FullForensicApiTests=PASS
+
+GoVet=PASS
+
+NX1P13Preflight=PASS
+MutationPerformed=false
+NextAction=RUN_NORMAL_ACTIVATION
+**********************
+Windows PowerShell transcript end
+End time: 20260826175312
+**********************

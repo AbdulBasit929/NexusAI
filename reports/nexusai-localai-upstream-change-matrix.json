@@ -1,0 +1,24 @@
+{
+  "schema_version":"1.0",
+  "as_of":"2026-08-25",
+  "upstream":"v4.9.0",
+  "local":"semantic version unknown; snapshot 40717b8",
+  "changes":[
+    {"surface":"deny-by-default authentication","introduced":"v4.9","local_state":"unproven","risk":"high","action":"auth/config compatibility slice"},
+    {"surface":"context compression","introduced":"v4.9","local_state":"unproven","risk":"medium","action":"conversation-only evaluation"},
+    {"surface":"canonical Models/Backends UI","introduced":"v4.9","local_state":"gallery/backends API exists","risk":"low","action":"compare; do not replace analyst UI"},
+    {"surface":"vllm-cpp video modality","introduced":"v4.9","local_state":"not admitted","risk":"high","action":"research benchmark only"},
+    {"surface":"Qwen3 TTS","introduced":"v4.9","local_state":"not admitted","risk":"medium","action":"defer until need"},
+    {"surface":"KNN router","introduced":"v4.9","local_state":"unproven","risk":"high","action":"never replace deterministic router"},
+    {"surface":"global admission controls/backend traces","introduced":"v4.9","local_state":"partial tracing advertised","risk":"medium","action":"evaluate for resource governance"},
+    {"surface":"PII pseudonyms","introduced":"v4.9","local_state":"unproven","risk":"high","action":"privacy/export semantics review"},
+    {"surface":"parallel HF downloads","introduced":"v4.9","local_state":"unproven","risk":"medium","action":"keep disabled during admission"},
+    {"surface":"vllm-cpp alpha","introduced":"v4.8","local_state":"not installed","risk":"high","action":"no install without model/hardware gate"},
+    {"surface":"VRAM budgets","introduced":"v4.8","local_state":"well-known VRAM estimate only","risk":"medium","action":"admission-control proof"},
+    {"surface":"persistent traces/activity","introduced":"v4.8","local_state":"tracing advertised","risk":"medium","action":"redaction/audit correlation tests"},
+    {"surface":"Valkey stores","introduced":"v4.8","local_state":"stores advertised; backend unverified","risk":"medium","action":"non-authoritative state only"},
+    {"surface":"Open Responses","introduced":"current docs","local_state":"route present; lifecycle uncertified","risk":"medium","action":"contract certification"},
+    {"surface":"model capabilities endpoint","introduced":"current docs","local_state":"404","risk":"high","action":"provenance/version reconciliation"},
+    {"surface":"MCP/Agents","introduced":"current docs","local_state":"advertised and agents listed","risk":"high","action":"tool allowlist and privilege separation"}
+  ]
+}

@@ -1,0 +1,1377 @@
+{
+  "schema_version": "nexusai.nxb21.c-language-coverage/v1",
+  "records": [
+    {
+      "query_capability_id": "cdr.identifier_lookup",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 2,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "cdr.frequent_contacts",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 17,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 2,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "cdr.time_activity",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 4,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 2,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 2,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "ipdr.endpoint",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "ipdr.sessions",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 2,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "subscriber.lookup",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 3,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 2,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 3,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "device.observations",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 2,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "tower.lookup",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "financial.summary",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 3,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "logs.failures",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 2,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "generic.filter",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 2,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "document.phrase",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [
+            "reports/nxb21/b1-query-semantics-matrix-v1.json"
+          ],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [
+            "reports/nxb21/b1-query-semantics-matrix-v1.json"
+          ],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [
+            "reports/nxb21/b1-query-semantics-matrix-v1.json"
+          ],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [
+            "reports/nxb21/b1-query-semantics-matrix-v1.json"
+          ],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "knowledge.semantic",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "ocr.phrase",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [
+            "reports/nxb21/b1-query-semantics-matrix-v1.json"
+          ],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [
+            "reports/nxb21/b1-query-semantics-matrix-v1.json"
+          ],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [
+            "reports/nxb21/b1-query-semantics-matrix-v1.json"
+          ],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [
+            "reports/nxb21/b1-query-semantics-matrix-v1.json"
+          ],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "transcript.phrase",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [
+            "reports/nxb21/b1-query-semantics-matrix-v1.json"
+          ],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [
+            "reports/nxb21/b1-query-semantics-matrix-v1.json"
+          ],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [
+            "reports/nxb21/b1-query-semantics-matrix-v1.json"
+          ],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [
+            "reports/nxb21/b1-query-semantics-matrix-v1.json"
+          ],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "roman_urdu.phrase",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [
+            "reports/nxb21/b1-query-semantics-matrix-v1.json"
+          ],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [
+            "reports/nxb21/b1-query-semantics-matrix-v1.json"
+          ],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [
+            "reports/nxb21/b1-query-semantics-matrix-v1.json"
+          ],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [
+            "reports/nxb21/b1-query-semantics-matrix-v1.json"
+          ],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "image.plate",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 2,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "video.group_plate",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 2,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "image.similarity",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "face.candidates",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "cross_family.identifiers",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 3,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        }
+      }
+    },
+    {
+      "query_capability_id": "case.evidence_package",
+      "typed_target": "LANGUAGE_INDEPENDENT",
+      "languages": {
+        "english": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 1,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "roman_urdu": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        },
+        "mixed": {
+          "applicability": "APPLICABLE",
+          "natural_query_validation": "UNTESTED",
+          "existing_ledger_entries": 0,
+          "literal_payload_proof_refs": [],
+          "next_phase": "D/E/F"
+        }
+      }
+    }
+  ],
+  "legacy_variant_count": 214,
+  "legacy_duplicate_count": 12,
+  "natural_language_coverage_is_not_literal_matching": true,
+  "proof_dimensions": [
+    {
+      "query_capability_id": "cdr.identifier_lookup",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "NOT_RUN_IN_C",
+      "locators": [
+        "row",
+        "evidence"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "cdr.frequent_contacts",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "NOT_RUN_IN_C",
+      "locators": [
+        "row",
+        "evidence"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "cdr.time_activity",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "NOT_RUN_IN_C",
+      "locators": [
+        "row",
+        "evidence"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "ipdr.endpoint",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "NOT_RUN_IN_C",
+      "locators": [
+        "row",
+        "evidence"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "ipdr.sessions",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "NOT_RUN_IN_C",
+      "locators": [
+        "row",
+        "evidence"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "subscriber.lookup",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "NOT_RUN_IN_C",
+      "locators": [
+        "row",
+        "evidence"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "device.observations",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "NOT_RUN_IN_C",
+      "locators": [
+        "row",
+        "evidence"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "tower.lookup",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "NOT_RUN_IN_C",
+      "locators": [
+        "row",
+        "evidence"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "financial.summary",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "NOT_RUN_IN_C",
+      "locators": [
+        "row",
+        "evidence"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "logs.failures",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "NOT_RUN_IN_C",
+      "locators": [
+        "row",
+        "evidence"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "generic.filter",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "NOT_RUN_IN_C",
+      "locators": [
+        "row",
+        "evidence"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "document.phrase",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [
+        "reports/nxb21/b1-query-semantics-matrix-v1.json"
+      ],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "B1_BOUNDED_SOURCE_PROOF",
+      "locators": [
+        "page",
+        "artifact",
+        "evidence"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "knowledge.semantic",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "NOT_RUN_IN_C",
+      "locators": [
+        "evidence",
+        "page"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "ocr.phrase",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [
+        "reports/nxb21/b1-query-semantics-matrix-v1.json"
+      ],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "B1_BOUNDED_SOURCE_PROOF",
+      "locators": [
+        "region",
+        "artifact",
+        "evidence"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "transcript.phrase",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [
+        "reports/nxb21/b1-query-semantics-matrix-v1.json"
+      ],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "B1_BOUNDED_SOURCE_PROOF",
+      "locators": [
+        "source_time",
+        "artifact",
+        "evidence"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "roman_urdu.phrase",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [
+        "reports/nxb21/b1-query-semantics-matrix-v1.json"
+      ],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "B1_BOUNDED_SOURCE_PROOF",
+      "locators": [
+        "source_time",
+        "artifact",
+        "evidence"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "image.plate",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "NOT_RUN_IN_C",
+      "locators": [
+        "region",
+        "artifact",
+        "evidence"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "video.group_plate",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "NOT_RUN_IN_C",
+      "locators": [
+        "frame",
+        "source_time",
+        "artifact",
+        "evidence"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "image.similarity",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "NOT_RUN_IN_C",
+      "locators": [
+        "region",
+        "artifact",
+        "evidence"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "face.candidates",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "NOT_RUN_IN_C",
+      "locators": [
+        "region",
+        "artifact",
+        "evidence"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "cross_family.identifiers",
+      "required_cases": [
+        "positive",
+        "zero",
+        "not_run",
+        "unavailable",
+        "incomplete",
+        "clarification",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "NOT_RUN_IN_C",
+      "locators": [
+        "row",
+        "evidence"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    },
+    {
+      "query_capability_id": "case.evidence_package",
+      "required_cases": [
+        "positive",
+        "zero",
+        "unavailable",
+        "incomplete",
+        "citation",
+        "navigation",
+        "activity"
+      ],
+      "proof_refs": [],
+      "readiness_source_tests": "C query capability references; C database capability isolation",
+      "positive_zero_execution": "NOT_RUN_IN_C",
+      "locators": [
+        "evidence",
+        "row"
+      ],
+      "citation_contract": "EXPECTED",
+      "navigation": "NOT_CERTIFIED_BY_C",
+      "activity": "ADDITIVE_SOURCE_SERIALIZATION_ONLY",
+      "live_reopen": "NOT_RUN_IN_C",
+      "certification_source": "api/forensic_records/contracts/operation-certification-v1.json"
+    }
+  ]
+}

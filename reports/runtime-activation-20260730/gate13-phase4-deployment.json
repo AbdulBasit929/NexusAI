@@ -1,0 +1,11 @@
+{
+    "gate":  13,
+    "deployed_utc":  "2026-07-30T09:35:48.2245220Z",
+    "api_build_seconds":  5.5,
+    "localai_build_seconds":  454.7,
+    "api_health":  "pass",
+    "localai_ready":  "pass",
+    "explicit_local_proxy_identity":  "pass",
+    "named_volumes_preserved":  true,
+    "rollback_images_preserved":  true
+}

@@ -1,0 +1,23 @@
+{
+    "phase":  "R5",
+    "status":  "live_accepted",
+    "deployed_utc":  "2026-08-10T05:55:44.3055892Z",
+    "contract_version":  "forensics.evidence-reprocess-plan/v1",
+    "case_id":  "nexusai-forensic-demo",
+    "evidence_id":  "85a4e63e-9409-442c-a056-068d4c065f54",
+    "eligible":  true,
+    "approval_required":  true,
+    "execution_permitted":  false,
+    "custody_event_count":  3,
+    "custody_chain_valid":  true,
+    "source_contract":  "pass",
+    "localai_ready":  "pass",
+    "records_health":  "pass",
+    "app_shell":  "pass",
+    "contract_catalog":  "pass",
+    "evidence_catalog":  "pass",
+    "reprocess_plan_get":  "pass",
+    "mutating_requests_sent":  0,
+    "named_volumes_preserved":  true,
+    "rollback_images_preserved":  true
+}

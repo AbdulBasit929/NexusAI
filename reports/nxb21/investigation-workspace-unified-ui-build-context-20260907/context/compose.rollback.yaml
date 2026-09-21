@@ -1,0 +1,10 @@
+services:
+  api:
+    image: nexusai/localai-forensic:rollback-before-unified-workspace-ui-20260907
+    entrypoint: /entrypoint.sh
+    command: phi-2
+    ports: !override
+      - name: http
+        target: 8080
+        published: "8080"
+        protocol: tcp

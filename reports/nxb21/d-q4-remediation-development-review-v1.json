@@ -1,0 +1,97 @@
+{
+  "schema_version": "nexusai.nxb21.d-q4-remediation-development-review/v1",
+  "created_on": "2026-09-05",
+  "decision": "DEVELOPMENT_FAIL_DO_NOT_ADVANCE_TO_QUALIFICATION",
+  "candidate_id": "nxb21d-q4-atomic-identifier-authority-r1",
+  "candidate_identity_sha256": "1ccc03ab44a25cb20ec28053b898c2f975b6373829303e8265833164a89e2ccc",
+  "run": {
+    "path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/localai-dev-results/16case-remediation/run-20260905T054458677Z",
+    "summary": "remediation-16case-development-summary-v1.json",
+    "summary_sha256": "83ac55c7cd9627f0d37e21f33c556245bc6e7e62f35fb267d66f95b6872c23f3",
+    "sidecar_verified": true,
+    "case_receipt_count": 16,
+    "saved_request_response_hashes_verified": true
+  },
+  "results": {
+    "total": 16,
+    "executed": 16,
+    "model_proposal_pass": 11,
+    "model_proposal_fail": 5,
+    "final_typed_plan_pass": 13,
+    "final_typed_plan_fail": 3,
+    "deterministic_reconciliation_count": 2,
+    "authority_rejection_count": 0,
+    "image_plate_final": "8_OF_8_PASS",
+    "document_phrase_final": "3_OF_4_PASS",
+    "transcript_phrase_final": "2_OF_4_PASS",
+    "english_final": "4_OF_4_PASS",
+    "urdu_script_final": "2_OF_4_PASS",
+    "roman_urdu_final": "3_OF_4_PASS",
+    "mixed_final": "4_OF_4_PASS"
+  },
+  "exact_identifier_remediation": {
+    "development_result": "PASS_8_OF_8",
+    "model_weakness_disclosed": true,
+    "reconciled_cases": [
+      {
+        "case_id": "rem16-en-plate-002",
+        "authoritative_identifier": "TRV-2048",
+        "model_defect": "entity_count_zero",
+        "final_result": "PASS_DETERMINISTIC_AUTHORITY"
+      },
+      {
+        "case_id": "rem16-ur-plate-002",
+        "authoritative_identifier": "ZXA-615",
+        "model_defect": "entity_count_zero",
+        "final_result": "PASS_DETERMINISTIC_AUTHORITY"
+      }
+    ]
+  },
+  "control_failures": [
+    {
+      "case_id": "rem16-ur-document-001",
+      "class": "MODEL_LITERAL_CODEPOINT_SUBSTITUTION",
+      "expected_literal": "سامان کی دوبارہ گنتی",
+      "observed_literal": "س\u0430\u043cان کی دوبارہ گنتی",
+      "detail": "Arabic alef/meem U+0627/U+0645 were replaced by Cyrillic a/em U+0430/U+043C; observed literal is not a source substring"
+    },
+    {
+      "case_id": "rem16-ur-transcript-001",
+      "class": "MODEL_LITERAL_OMISSION_AND_FALSE_CLARIFICATION",
+      "expected_literal": "دروازہ بند رکھو",
+      "observed_literal": "",
+      "observed_clarification_required": true
+    },
+    {
+      "case_id": "rem16-roman-transcript-001",
+      "class": "MODEL_LITERAL_OMISSION_AND_FALSE_CLARIFICATION",
+      "expected_literal": "darwaza khula rakho",
+      "observed_literal": "",
+      "observed_clarification_required": true
+    }
+  ],
+  "transport_and_runtime": {
+    "http_failures": 0,
+    "invalid_utf8": 0,
+    "malformed_planner_responses": 0,
+    "model_schema_incompatible": 0,
+    "final_schema_incompatible": 0,
+    "runtime_integrity": "PASS",
+    "minimum_available_host_ram_gib": 4.902,
+    "maximum_localai_memory_mib": 4313.088,
+    "latency_minimum_ms": 7299,
+    "latency_median_ms": 9864,
+    "latency_p95_ms": 16396,
+    "latency_maximum_ms": 16396
+  },
+  "classification": {
+    "exact_identifier_authority": "DEVELOPMENT_VALIDATED",
+    "phrase_control_path": "FAILED_MODEL_LITERAL_PRESERVATION",
+    "candidate_overall": "DEVELOPMENT_FAIL",
+    "rerun_allowed": false,
+    "qualification_holdout": "NOT_FROZEN",
+    "D_status": "OPEN",
+    "activation": "BLOCKED"
+  },
+  "next_action": "Preserve this run. Open a separate bounded phrase-literal preservation remediation or reassess model admission using new development data; do not rerun this corpus or freeze a qualification holdout."
+}

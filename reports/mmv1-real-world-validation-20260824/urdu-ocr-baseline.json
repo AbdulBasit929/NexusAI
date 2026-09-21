@@ -1,0 +1,253 @@
+{
+  "contract_version": "nexusai.mmv1.urdu-ocr-baseline/v1",
+  "scope": "synthetic_nonretained_repository_owned",
+  "retained_data_mutated": false,
+  "baseline_recorded_before_tuning": true,
+  "fixture_rendering": {
+    "pillow_raqm_available": true,
+    "font": "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "ground_truth_separate_from_processor_output": true
+  },
+  "processor": {
+    "processor_id": "tesseract-general-image-ocr-cpu",
+    "processor_revision": "nexusai-post-bf-a-v1",
+    "runtime_version": "tesseract 5.5.0",
+    "languages": [
+      "eng",
+      "urd"
+    ],
+    "page_segmentation_mode": 11,
+    "tessdata_revision": "65727574dfcd264acbb0c3e07860e4e9e9b22185",
+    "tessdata_sha256": {
+      "eng": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+      "urd": "62e8250ce2a994106e313a82e26a516a39e2cf159d0ce3c5b5008387fd0d555f"
+    }
+  },
+  "fixtures": {
+    "urdu-heading.png": {
+      "fixture_path": "/tmp/mmv1-urdu-ocr/urdu-ocr-fixtures/urdu-heading.png",
+      "fixture_sha256": "06b451639e404a13ab780d24a71d4589e6626cecc574202f0c32ae88cd56437e",
+      "license": "NexusAI repository-owned generated benchmark fixture",
+      "ground_truth": [
+        "پاکستان فرانزک انٹیلی جنس"
+      ],
+      "recognized_text": [
+        "پاکستان فرانزک انٹیلی جنس"
+      ],
+      "character_error_rate": 0.0,
+      "latency_ms": 569.127,
+      "readiness": "READY",
+      "observation_count": 1,
+      "script_families": [
+        "arabic_script_candidate"
+      ],
+      "confidences": [
+        0.8835184675
+      ],
+      "bboxes": [
+        {
+          "x": 618,
+          "y": 233,
+          "width": 889,
+          "height": 77
+        }
+      ],
+      "bbox_within_source": true,
+      "limitations": [
+        "general scene OCR is LIMITED and does not replace FastALPR plate OCR",
+        "Urdu, mixed-script, blur, rotation and stylized text require analyst review"
+      ]
+    },
+    "urdu-paragraph.png": {
+      "fixture_path": "/tmp/mmv1-urdu-ocr/urdu-ocr-fixtures/urdu-paragraph.png",
+      "fixture_sha256": "5fece35df78e48a7a50b29b9c9e4b04d792f7d4b573ae2d6de1f221a3467d857",
+      "license": "NexusAI repository-owned generated benchmark fixture",
+      "ground_truth": [
+        "یہ ایک واضح اردو عبارت ہے",
+        "تمام نتائج کا انسانی جائزہ ضروری ہے"
+      ],
+      "recognized_text": [
+        "ی[] ایک واضح اردو عبارت OH‏"
+      ],
+      "character_error_rate": 0.6557377049180327,
+      "latency_ms": 585.476,
+      "readiness": "READY",
+      "observation_count": 1,
+      "script_families": [
+        "mixed_arabic_latin_candidate"
+      ],
+      "confidences": [
+        0.7874919516666666
+      ],
+      "bboxes": [
+        {
+          "x": 1082,
+          "y": 230,
+          "width": 626,
+          "height": 54
+        }
+      ],
+      "bbox_within_source": true,
+      "limitations": [
+        "general scene OCR is LIMITED and does not replace FastALPR plate OCR",
+        "Urdu, mixed-script, blur, rotation and stylized text require analyst review"
+      ]
+    },
+    "urdu-english.png": {
+      "fixture_path": "/tmp/mmv1-urdu-ocr/urdu-ocr-fixtures/urdu-english.png",
+      "fixture_sha256": "079ff5f549f1203316d4abad5944f289798989c58cbe9cf62d4e92afdbace94e",
+      "license": "NexusAI repository-owned generated benchmark fixture",
+      "ground_truth": [
+        "NexusAI",
+        "کیس Islamabad",
+        "رپورٹ 2026"
+      ],
+      "recognized_text": [
+        "NexuSAl",
+        "Islamabad کیس‎"
+      ],
+      "character_error_rate": 0.46875,
+      "latency_ms": 601.611,
+      "readiness": "READY",
+      "observation_count": 2,
+      "script_families": [
+        "latin_script_candidate",
+        "mixed_arabic_latin_candidate"
+      ],
+      "confidences": [
+        0.8264630099999999,
+        0.916646465
+      ],
+      "bboxes": [
+        {
+          "x": 95,
+          "y": 110,
+          "width": 185,
+          "height": 36
+        },
+        {
+          "x": 1307,
+          "y": 270,
+          "width": 403,
+          "height": 54
+        }
+      ],
+      "bbox_within_source": true,
+      "limitations": [
+        "general scene OCR is LIMITED and does not replace FastALPR plate OCR",
+        "Urdu, mixed-script, blur, rotation and stylized text require analyst review"
+      ]
+    },
+    "urdu-numbers.png": {
+      "fixture_path": "/tmp/mmv1-urdu-ocr/urdu-ocr-fixtures/urdu-numbers.png",
+      "fixture_sha256": "080309415d5f3aa702e0ca0d8a7f941b0e42833fb242362c105c931f1718954c",
+      "license": "NexusAI repository-owned generated benchmark fixture",
+      "ground_truth": [
+        "تاریخ 24-08-2026",
+        "وقت 10:35",
+        "نمبر 03001234567"
+      ],
+      "recognized_text": [
+        "تاریخ 2026-08-24",
+        "نمبر 03001234567"
+      ],
+      "character_error_rate": 0.37209302325581395,
+      "latency_ms": 859.634,
+      "readiness": "READY",
+      "observation_count": 2,
+      "script_families": [
+        "arabic_script_candidate",
+        "arabic_script_candidate"
+      ],
+      "confidences": [
+        0.79947849,
+        0.8914242899999999
+      ],
+      "bboxes": [
+        {
+          "x": 1276,
+          "y": 180,
+          "width": 432,
+          "height": 54
+        },
+        {
+          "x": 1227,
+          "y": 521,
+          "width": 478,
+          "height": 53
+        }
+      ],
+      "bbox_within_source": true,
+      "limitations": [
+        "general scene OCR is LIMITED and does not replace FastALPR plate OCR",
+        "Urdu, mixed-script, blur, rotation and stylized text require analyst review"
+      ]
+    },
+    "urdu-scene.png": {
+      "fixture_path": "/tmp/mmv1-urdu-ocr/urdu-ocr-fixtures/urdu-scene.png",
+      "fixture_sha256": "9a0585c8b743af92d7efab6913fee085b9bc832a4ebe53fc7401865ddd0b4c4c",
+      "license": "NexusAI repository-owned generated benchmark fixture",
+      "ground_truth": [
+        "اسلام آباد",
+        "شواہد کا جائزہ"
+      ],
+      "recognized_text": [
+        "اسلام آباد",
+        "Lil کا‎ دا١اوش‎"
+      ],
+      "character_error_rate": 0.48,
+      "latency_ms": 673.846,
+      "readiness": "READY",
+      "observation_count": 2,
+      "script_families": [
+        "arabic_script_candidate",
+        "mixed_arabic_latin_candidate"
+      ],
+      "confidences": [
+        0.930321615,
+        0.7329401166666666
+      ],
+      "bboxes": [
+        {
+          "x": 1023,
+          "y": 350,
+          "width": 290,
+          "height": 89
+        },
+        {
+          "x": 971,
+          "y": 540,
+          "width": 345,
+          "height": 54
+        }
+      ],
+      "bbox_within_source": true,
+      "limitations": [
+        "general scene OCR is LIMITED and does not replace FastALPR plate OCR",
+        "Urdu, mixed-script, blur, rotation and stylized text require analyst review"
+      ]
+    },
+    "negative-no-text.png": {
+      "fixture_path": "/tmp/mmv1-urdu-ocr/urdu-ocr-fixtures/negative-no-text.png",
+      "fixture_sha256": "a680849491a203b0dd62005bd22f248124b26de93e09438205da8825c7e0f286",
+      "license": "NexusAI repository-owned generated benchmark fixture",
+      "ground_truth": [],
+      "recognized_text": [],
+      "character_error_rate": 0.0,
+      "latency_ms": 568.619,
+      "readiness": "READY_WITH_WARNINGS",
+      "observation_count": 0,
+      "script_families": [],
+      "confidences": [],
+      "bboxes": [],
+      "bbox_within_source": true,
+      "limitations": [
+        "general scene OCR is LIMITED and does not replace FastALPR plate OCR",
+        "Urdu, mixed-script, blur, rotation and stylized text require analyst review",
+        "no non-empty OCR region was returned"
+      ]
+    }
+  },
+  "aggregate_nonnegative_character_error_rate": 0.4368421052631579,
+  "negative_control_pass": true
+}

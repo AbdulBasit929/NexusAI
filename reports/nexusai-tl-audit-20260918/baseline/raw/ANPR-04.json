@@ -1,0 +1,5375 @@
+{
+ "collection_id": "nexusai-forensic-demo",
+ "request_class": "GOVERNED_EVIDENCE_ANALYSIS",
+ "intent": "records",
+ "template": "anpr_sightings",
+ "query_understanding": {
+  "contract_version": "forensics.query-understanding/v1",
+  "original_question": "Which camera recorded the most sightings?",
+  "normalized_question": "which camera recorded the most sightings?",
+  "language": {
+   "tag": "en",
+   "source": "deterministic_extractor",
+   "confidence": 0.9
+  },
+  "intent": "lookup",
+  "families": {
+   "kind": "single",
+   "primary": "anpr_vehicles",
+   "secondary": []
+  },
+  "entities": [],
+  "targets": [],
+  "time_scope": {
+   "timezone": "case_default",
+   "origin": "deterministic_extractor"
+  },
+  "filters": [],
+  "requested_output": {
+   "result_kind": "table",
+   "presentation_type": "bounded_records_table",
+   "limit": 20
+  },
+  "candidate_capabilities": [
+   "anpr.sightings"
+  ],
+  "semantic_capability_ids": null,
+  "semantic_operation_refs": null,
+  "clarification": {
+   "required": false,
+   "missing_fields": []
+  },
+  "context": {
+   "used": false,
+   "fields": [],
+   "inherited_fields": null
+  },
+  "confidence": {
+   "overall": 0.74,
+   "routing": 0.74,
+   "entities": 0,
+   "time_scope": 0
+  }
+ },
+ "investigation_context": {
+  "contract_version": "forensics.investigation-context/v1",
+  "workspace": {
+   "tenant_id": "default",
+   "case_id": "nexusai-forensic-demo",
+   "collection_id": "nexusai-forensic-demo",
+   "subject_id": "live-eval"
+  },
+  "evidence": {
+   "kind": "current_workspace",
+   "collection_id": "nexusai-forensic-demo",
+   "evidence_ids": [],
+   "family_ids": [],
+   "source_files": []
+  },
+  "active_entities": null,
+  "current_question": "Which camera recorded the most sightings?",
+  "previous_result": {},
+  "time": {
+   "domain": "record_timestamp",
+   "timezone": "case_default",
+   "origin": "deterministic_extractor",
+   "normalizer": "forensics.time-policy/v1"
+  },
+  "available_families": [
+   "anpr_vehicles"
+  ],
+  "capability_snapshot_id": "f2c12abd-137a-4718-a886-661827fab4c3:capabilities",
+  "permissions": [
+   "query:execute"
+  ],
+  "conversation": {},
+  "context_provenance": {
+   "used": false,
+   "fields": [],
+   "inherited_fields": null
+  }
+ },
+ "capability_snapshot": {
+  "contract_version": "forensics.capability-snapshot/v1",
+  "snapshot_id": "f2c12abd-137a-4718-a886-661827fab4c3:capabilities",
+  "tenant_id": "default",
+  "collection_id": "nexusai-forensic-demo",
+  "generated_at": "2026-09-18T06:28:26.021893347Z",
+  "entries": [
+   {
+    "operation": {
+     "capability_id": "anpr.sightings",
+     "operation_id": "anpr.sightings",
+     "template": "anpr_sightings",
+     "family_ids": [
+      "anpr_vehicles"
+     ],
+     "intent_classes": [
+      "lookup"
+     ],
+     "required_parameters": [],
+     "optional_parameters": [
+      "target",
+      "date_from",
+      "date_to",
+      "limit"
+     ],
+     "scope_mode": "case_or_target",
+     "source_scoped": false,
+     "time_scoped": true,
+     "execution_mode": "deterministic",
+     "extension_mode": "deterministic_operation",
+     "implementation_key": "runAnalyticalTemplate",
+     "specialist_id": "Vehicle_ANPR_Geospatial_Analyst",
+     "model_role_ids": null,
+     "result_contract": "forensics.enterprise-response/v1",
+     "result_kind": "table",
+     "presentation_type": "bounded_records_table",
+     "citation_required": true,
+     "criticality_tier": "B",
+     "certification_status": "bounded_uncertified",
+     "exposure_status": "limited",
+     "suggestion_eligible": false,
+     "limitations": [
+      "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+     ],
+     "availability": {
+      "implemented": true,
+      "runtime_available": true,
+      "data_available": true,
+      "authorized": true,
+      "model_available": true,
+      "maturity": "operational",
+      "queryable": true,
+      "executable": true,
+      "reason_codes": null
+     }
+    },
+    "requirement": {
+     "family_ids": [
+      "anpr_vehicles"
+     ],
+     "required_parameters": null,
+     "required_fields": null,
+     "model_role_ids": null,
+     "citation_required": true,
+     "certified_required": false
+    },
+    "readiness": "COMPLETE_RESULTS",
+    "reason_codes": null
+   }
+  ]
+ },
+ "execution_plan": {
+  "contract_version": "forensics.execution-plan/v1",
+  "plan_id": "f2c12abd-137a-4718-a886-661827fab4c3:plan",
+  "mode": "single_operation",
+  "workspace": {
+   "tenant_id": "default",
+   "case_id": "nexusai-forensic-demo",
+   "collection_id": "nexusai-forensic-demo",
+   "subject_id": "live-eval"
+  },
+  "steps": [
+   {
+    "step_id": "step-1",
+    "capability_id": "anpr.sightings",
+    "operation_id": "anpr.sightings",
+    "dependencies": [],
+    "input_bindings": [],
+    "parameters": {
+     "targets": [],
+     "raw_payload_filters": null,
+     "field_filters": null,
+     "field_exists": [],
+     "field_not_exists": [],
+     "limit": 20,
+     "offset": 0,
+     "max_kb_results": 1,
+     "retrieval_mode": "NONE"
+    },
+    "evidence_scope": {
+     "collection_id": "nexusai-forensic-demo"
+    },
+    "expected_result_contract": "forensics.enterprise-response/v1",
+    "result_kind": "table",
+    "presentation_type": "bounded_records_table",
+    "citation_required": true
+   }
+  ],
+  "output_contract": "forensics.enterprise-response/v1",
+  "resource_policy": {
+   "read_only": true,
+   "maximum_steps": 1,
+   "maximum_rows": 100,
+   "maximum_offset": 100000,
+   "maximum_kb_results": 20,
+   "maximum_targets": 8,
+   "maximum_intermediate_rows": 0,
+   "maximum_retrieval_chunks": 0,
+   "maximum_model_calls": 0,
+   "timeout_milliseconds": 0
+  },
+  "policy_decisions": [
+   "workspace_scope_bound",
+   "known_capability_only",
+   "read_only_executor",
+   "citations_capability_owned"
+  ]
+ },
+ "plan_validation": {
+  "contract_version": "forensics.plan-validation/v1",
+  "plan_id": "f2c12abd-137a-4718-a886-661827fab4c3:plan",
+  "valid": true,
+  "scope_authorized": true,
+  "capabilities_ready": true,
+  "dependencies_valid": true,
+  "budget_accepted": true,
+  "authority_preserved": true,
+  "estimated_cost_class": "direct_operation",
+  "issues": []
+ },
+ "tool_results": [
+  {
+   "contract_version": "forensics.tool-result/v1",
+   "invocation_id": "f2c12abd-137a-4718-a886-661827fab4c3:plan:step-1",
+   "plan_id": "f2c12abd-137a-4718-a886-661827fab4c3:plan",
+   "step_id": "step-1",
+   "operation_id": "anpr.sightings",
+   "result_contract": "forensics.enterprise-response/v1",
+   "execution_status": "completed",
+   "result_state": "results_present",
+   "authority": "deterministic_fact",
+   "fields": {},
+   "facts": [
+    {
+     "id": "step-1:row_count",
+     "value": 20,
+     "authority": "deterministic_derivation",
+     "citation_ids": [
+      "tool-citation-1",
+      "tool-citation-2",
+      "tool-citation-3",
+      "tool-citation-4",
+      "tool-citation-5",
+      "tool-citation-6",
+      "tool-citation-7",
+      "tool-citation-8",
+      "tool-citation-9",
+      "tool-citation-10",
+      "tool-citation-11",
+      "tool-citation-12",
+      "tool-citation-13",
+      "tool-citation-14",
+      "tool-citation-15",
+      "tool-citation-16",
+      "tool-citation-17",
+      "tool-citation-18",
+      "tool-citation-19",
+      "tool-citation-20"
+     ]
+    }
+   ],
+   "observations": [],
+   "rows": [
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.484383,
+     "location": "Model Town",
+     "longitude": 74.321701,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:00:00Z",
+     "ocr_confidence": "0.864",
+     "plate_number": "LHR-2026",
+     "plate_script": "latin",
+     "plate_search_key": "LHR2026",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "185124fd7a17681234c1fe2ddcb06cbcb4556577a0fa7e3dea5ad983c389978f",
+     "row_number": 2,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-12",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "4",
+     "latitude": 31.520356,
+     "location": "Gulberg",
+     "longitude": 74.35754,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:06:00Z",
+     "ocr_confidence": "0.897",
+     "plate_number": "LEA-447",
+     "plate_script": "latin",
+     "plate_search_key": "LEA447",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "307a11eef1ba6eaaf4d3e645c0c70b09e969fd72e0052cd4b077b385b7ab5883",
+     "row_number": 4,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-9",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.560292,
+     "location": "North Road",
+     "longitude": 74.327779,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:07:00Z",
+     "ocr_confidence": "0.794",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "ad24686c2607e7964d2e1252859c1cb2b572d08e9c87b0c28ad352b9dc550513",
+     "row_number": 3,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-12",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "4",
+     "latitude": 31.521832,
+     "location": "Gulberg",
+     "longitude": 74.356927,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:15:00Z",
+     "ocr_confidence": "0.966",
+     "plate_number": "XYZ-789",
+     "plate_script": "latin",
+     "plate_search_key": "XYZ789",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "f7f08b76e7ada9b77c7e86819c62bfe7646216491f74da6fe039d2a4c70df00a",
+     "row_number": 7,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-9",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "1",
+     "latitude": 31.502831,
+     "location": "Gate 4",
+     "longitude": 74.352974,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:18:00Z",
+     "ocr_confidence": "0.752",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "d6dc92b1e1965be74138af8334307afb1d3a19a51e897e12f27823b0eefdc933",
+     "row_number": 8,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "4",
+     "latitude": 31.521508,
+     "location": "Gulberg",
+     "longitude": 74.35797,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:20:00Z",
+     "ocr_confidence": "0.797",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "195446ece84e86a6943b158079cd2a4fbda09e2177515c554250cc7f81c408dc",
+     "row_number": 6,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "1",
+     "latitude": 31.557655,
+     "location": "North Road",
+     "longitude": 74.328968,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:27:00Z",
+     "ocr_confidence": "0.773",
+     "plate_number": "KHI-777",
+     "plate_script": "latin",
+     "plate_search_key": "KHI777",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "155e34226e7bff4fbbe2acad6ba867d39f411239f599180db56b493af6c2c5b7",
+     "row_number": 5,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-12",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.482155,
+     "location": "Model Town",
+     "longitude": 74.323411,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:27:00Z",
+     "ocr_confidence": "0.775",
+     "plate_number": "LEA-447",
+     "plate_script": "latin",
+     "plate_search_key": "LEA447",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "ca851d2a790d71d4ffa11033621e12a480a079c6a557d108ac2506e849a211c8",
+     "row_number": 11,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-12",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.519392,
+     "location": "Gulberg",
+     "longitude": 74.359543,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:28:00Z",
+     "ocr_confidence": "0.973",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "986502312242bec1ccfd5274bcc432b26612bb4cdceed31e841e53dc4c207d92",
+     "row_number": 9,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-9",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "2",
+     "latitude": 31.522091,
+     "location": "Gulberg",
+     "longitude": 74.359248,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:30:00Z",
+     "ocr_confidence": "0.756",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "497bef013e27e7344d6ffd01349d6d611a46d0c3391c6aaf68d26e7881b72f10",
+     "row_number": 12,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-9",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "4",
+     "latitude": 31.499709,
+     "location": "Gate 4",
+     "longitude": 74.350285,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:36:00Z",
+     "ocr_confidence": "0.874",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "9cdd28512fab32c8d153cc0ddc5e7dd15c45a1fe49116c40b7f14c50a429e6df",
+     "row_number": 20,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "2",
+     "latitude": 31.499893,
+     "location": "Gate 4",
+     "longitude": 74.35086,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:40:00Z",
+     "ocr_confidence": "0.764",
+     "plate_number": "XYZ-789",
+     "plate_script": "latin",
+     "plate_search_key": "XYZ789",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "5ea56ecb874fb5400c43e40362e397cb1767c3768073ed25ec718719c79223e0",
+     "row_number": 10,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-9",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "2",
+     "latitude": 31.468841,
+     "location": "DHA Phase 5",
+     "longitude": 74.410395,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:48:00Z",
+     "ocr_confidence": "0.84",
+     "plate_number": "ICT-404",
+     "plate_script": "latin",
+     "plate_search_key": "ICT404",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "ef2a8e697b50cf21ddf12377e278d010adf4f99162150adae991ac37d0758186",
+     "row_number": 18,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "1",
+     "latitude": 31.557516,
+     "location": "North Road",
+     "longitude": 74.327763,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:56:00Z",
+     "ocr_confidence": "0.95",
+     "plate_number": "XYZ-789",
+     "plate_script": "latin",
+     "plate_search_key": "XYZ789",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "5bc68326e2c18d88660173182825a1d92698b573eceb6cbc2fca0842bae53505",
+     "row_number": 16,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.521974,
+     "location": "Gulberg",
+     "longitude": 74.357244,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T07:05:00Z",
+     "ocr_confidence": "0.901",
+     "plate_number": "ICT-404",
+     "plate_script": "latin",
+     "plate_search_key": "ICT404",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "b1433d3292334e92ca0c11f41100e36e8c64a0b9f235290e0d84102a0d19ba8d",
+     "row_number": 15,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-21",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.468716,
+     "location": "DHA Phase 5",
+     "longitude": 74.408446,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T07:15:00Z",
+     "ocr_confidence": "0.792",
+     "plate_number": "XYZ-789",
+     "plate_script": "latin",
+     "plate_search_key": "XYZ789",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "7cfb43105e7ca31c2562579f1e4c881c6e5ed6d7692ecf322f77ffd96caa46c6",
+     "row_number": 17,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "1",
+     "latitude": 31.467942,
+     "location": "DHA Phase 5",
+     "longitude": 74.410672,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T07:24:00Z",
+     "ocr_confidence": "0.956",
+     "plate_number": "LEA-447",
+     "plate_script": "latin",
+     "plate_search_key": "LEA447",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "5c7a6d7d1dfb0c1a779dba2b6f2511b23a113a38ab96aa0812cce4009107a830",
+     "row_number": 14,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-9",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.4997,
+     "location": "Gate 4",
+     "longitude": 74.350168,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T07:50:00Z",
+     "ocr_confidence": "0.798",
+     "plate_number": "LHR-2026",
+     "plate_script": "latin",
+     "plate_search_key": "LHR2026",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "18a6119afa9a7256781d5b00f7a03f1c522be145bf5dc185917da987ef63dd57",
+     "row_number": 13,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-12",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "2",
+     "latitude": 31.519104,
+     "location": "Gulberg",
+     "longitude": 74.357342,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T07:51:00Z",
+     "ocr_confidence": "0.961",
+     "plate_number": "XYZ-789",
+     "plate_script": "latin",
+     "plate_search_key": "XYZ789",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "44663b1d924b8437d15f0db03b9a8ad585a1269ba59a25c311bfc598b3dc2df5",
+     "row_number": 39,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.50074,
+     "location": "Gate 4",
+     "longitude": 74.352979,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T07:52:00Z",
+     "ocr_confidence": "0.867",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "8132b6961a2d42e9eb4a1cafbdba6aa348a9157da850e4a557f5bcf0f67c677d",
+     "row_number": 30,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    }
+   ],
+   "citations": [
+    {
+     "id": "tool-citation-1",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "locator": "row_number:2,row_hash:185124fd7a17681234c1fe2ddcb06cbcb4556577a0fa7e3dea5ad983c389978f,timestamp:2026-07-14T06:00:00Z",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-2",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "locator": "row_number:4,row_hash:307a11eef1ba6eaaf4d3e645c0c70b09e969fd72e0052cd4b077b385b7ab5883,timestamp:2026-07-14T06:06:00Z",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-3",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "locator": "row_number:3,row_hash:ad24686c2607e7964d2e1252859c1cb2b572d08e9c87b0c28ad352b9dc550513,timestamp:2026-07-14T06:07:00Z",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-4",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "locator": "row_number:7,row_hash:f7f08b76e7ada9b77c7e86819c62bfe7646216491f74da6fe039d2a4c70df00a,timestamp:2026-07-14T06:15:00Z",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-5",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "locator": "row_number:8,row_hash:d6dc92b1e1965be74138af8334307afb1d3a19a51e897e12f27823b0eefdc933,timestamp:2026-07-14T06:18:00Z",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-6",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "locator": "row_number:6,row_hash:195446ece84e86a6943b158079cd2a4fbda09e2177515c554250cc7f81c408dc,timestamp:2026-07-14T06:20:00Z",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-7",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "locator": "row_number:5,row_hash:155e34226e7bff4fbbe2acad6ba867d39f411239f599180db56b493af6c2c5b7,timestamp:2026-07-14T06:27:00Z",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-8",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "locator": "row_number:11,row_hash:ca851d2a790d71d4ffa11033621e12a480a079c6a557d108ac2506e849a211c8,timestamp:2026-07-14T06:27:00Z",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-9",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "locator": "row_number:9,row_hash:986502312242bec1ccfd5274bcc432b26612bb4cdceed31e841e53dc4c207d92,timestamp:2026-07-14T06:28:00Z",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-10",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "locator": "row_number:12,row_hash:497bef013e27e7344d6ffd01349d6d611a46d0c3391c6aaf68d26e7881b72f10,timestamp:2026-07-14T06:30:00Z",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-11",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "locator": "row_number:20,row_hash:9cdd28512fab32c8d153cc0ddc5e7dd15c45a1fe49116c40b7f14c50a429e6df,timestamp:2026-07-14T06:36:00Z",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-12",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "locator": "row_number:10,row_hash:5ea56ecb874fb5400c43e40362e397cb1767c3768073ed25ec718719c79223e0,timestamp:2026-07-14T06:40:00Z",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-13",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "locator": "row_number:18,row_hash:ef2a8e697b50cf21ddf12377e278d010adf4f99162150adae991ac37d0758186,timestamp:2026-07-14T06:48:00Z",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-14",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "locator": "row_number:16,row_hash:5bc68326e2c18d88660173182825a1d92698b573eceb6cbc2fca0842bae53505,timestamp:2026-07-14T06:56:00Z",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-15",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "locator": "row_number:15,row_hash:b1433d3292334e92ca0c11f41100e36e8c64a0b9f235290e0d84102a0d19ba8d,timestamp:2026-07-14T07:05:00Z",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-16",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "locator": "row_number:17,row_hash:7cfb43105e7ca31c2562579f1e4c881c6e5ed6d7692ecf322f77ffd96caa46c6,timestamp:2026-07-14T07:15:00Z",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-17",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "locator": "row_number:14,row_hash:5c7a6d7d1dfb0c1a779dba2b6f2511b23a113a38ab96aa0812cce4009107a830,timestamp:2026-07-14T07:24:00Z",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-18",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "locator": "row_number:13,row_hash:18a6119afa9a7256781d5b00f7a03f1c522be145bf5dc185917da987ef63dd57,timestamp:2026-07-14T07:50:00Z",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-19",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "locator": "row_number:39,row_hash:44663b1d924b8437d15f0db03b9a8ad585a1269ba59a25c311bfc598b3dc2df5,timestamp:2026-07-14T07:51:00Z",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-20",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "locator": "row_number:30,row_hash:8132b6961a2d42e9eb4a1cafbdba6aa348a9157da850e4a557f5bcf0f67c677d,timestamp:2026-07-14T07:52:00Z",
+     "source_name": "seed_anpr.csv"
+    }
+   ],
+   "limitations": [
+    "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+   ],
+   "row_count": 20,
+   "truncated": false,
+   "duration_ms": 280
+  }
+ ],
+ "resolved_capability": {
+  "capability_id": "anpr.sightings",
+  "operation_id": "anpr.sightings",
+  "template": "anpr_sightings",
+  "family_ids": [
+   "anpr_vehicles"
+  ],
+  "intent_classes": [
+   "lookup"
+  ],
+  "required_parameters": [],
+  "optional_parameters": [
+   "target",
+   "date_from",
+   "date_to",
+   "limit"
+  ],
+  "scope_mode": "case_or_target",
+  "source_scoped": false,
+  "time_scoped": true,
+  "execution_mode": "deterministic",
+  "extension_mode": "deterministic_operation",
+  "implementation_key": "runAnalyticalTemplate",
+  "specialist_id": "Vehicle_ANPR_Geospatial_Analyst",
+  "model_role_ids": null,
+  "result_contract": "forensics.enterprise-response/v1",
+  "result_kind": "table",
+  "presentation_type": "bounded_records_table",
+  "citation_required": true,
+  "criticality_tier": "B",
+  "certification_status": "bounded_uncertified",
+  "exposure_status": "limited",
+  "suggestion_eligible": false,
+  "limitations": [
+   "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+  ],
+  "availability": {
+   "implemented": true,
+   "runtime_available": true,
+   "data_available": true,
+   "authorized": true,
+   "model_available": true,
+   "maturity": "operational",
+   "queryable": true,
+   "executable": true,
+   "reason_codes": null
+  }
+ },
+ "route": [
+  "records_sql"
+ ],
+ "policy": "Exact analytics are computed from parameterized SQL templates. KB content is used only for evidence, source previews, and contextual grounding.",
+ "planner": {
+  "capability_id": "anpr.sightings",
+  "confidence": 0.74,
+  "date_from": "",
+  "date_to": "",
+  "exact_identifier_authority": null,
+  "execution_plan_id": "f2c12abd-137a-4718-a886-661827fab4c3:plan",
+  "extracted_target": "",
+  "field_hints": [
+   "location"
+  ],
+  "hybrid_planner": null,
+  "language_assistance": "deterministic_fast_path",
+  "phrase_literal_authority": null,
+  "policy_decisions": [
+   "workspace_scope_bound",
+   "known_capability_only",
+   "read_only_executor",
+   "citations_capability_owned"
+  ],
+  "query_plan": {
+   "interpreted_intent": "records",
+   "selected_template": "anpr_sightings",
+   "target_identifiers": [],
+   "date_bounds": {},
+   "applied_filters": {
+    "field_hints": [
+     "location"
+    ],
+    "target_type": ""
+   },
+   "confidence": 0.74,
+   "coverage_check": {
+    "total_indexed_records": 0,
+    "record_families_present": null,
+    "nearest_activity": {},
+    "valid_target_examples": null
+   },
+   "execution_strategy": "sql_deterministic"
+  },
+  "query_understanding_version": "forensics.query-understanding/v1",
+  "reason": "rule-based runtime query planner; field hints extracted",
+  "retrieval_strategy": {
+   "contract_version": "forensics.document-retrieval-strategy/v1",
+   "derived_text": false,
+   "exact_is_semantic": false,
+   "kb_retrieval": false,
+   "retrieval_mode": "NONE",
+   "semantic_frame": "forensics.semantic-frame/v1"
+  },
+  "semantic_operation_planner": null,
+  "source": "runtime_query",
+  "target_type": "",
+  "targets": []
+ },
+ "query_plan": {
+  "interpreted_intent": "records",
+  "selected_template": "anpr_sightings",
+  "target_identifiers": [],
+  "date_bounds": {},
+  "applied_filters": {
+   "field_hints": [
+    "location"
+   ],
+   "target_type": ""
+  },
+  "confidence": 0.74,
+  "coverage_check": {
+   "total_indexed_records": 0,
+   "record_families_present": null,
+   "nearest_activity": {},
+   "valid_target_examples": null
+  },
+  "execution_strategy": "sql_deterministic"
+ },
+ "capability": {
+  "status": "supported_by_selected_route",
+  "requested_families": [],
+  "required_operations": [],
+  "missing_capabilities": [],
+  "explanation": "The selected deterministic or evidence route may run; collection coverage is reported separately.",
+  "suggested_queries": []
+ },
+ "coverage": {
+  "total_indexed_records": 0,
+  "record_families_present": null,
+  "nearest_activity": {},
+  "valid_target_examples": null
+ },
+ "records": {
+  "anpr_sightings": [
+   {
+    "camera_id": "CAM-7",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "lane": "3",
+    "latitude": 31.484383,
+    "location": "Model Town",
+    "longitude": 74.321701,
+    "manual_review_required": true,
+    "observed_at": "2026-07-14T06:00:00Z",
+    "ocr_confidence": "0.864",
+    "plate_number": "LHR-2026",
+    "plate_script": "latin",
+    "plate_search_key": "LHR2026",
+    "province": null,
+    "quality_flags": [
+     "province_unconfirmed",
+     "series_rule_version_missing"
+    ],
+    "row_hash": "185124fd7a17681234c1fe2ddcb06cbcb4556577a0fa7e3dea5ad983c389978f",
+    "row_number": 2,
+    "source_file": "seed_anpr.csv",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "camera_id": "CAM-12",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "lane": "4",
+    "latitude": 31.520356,
+    "location": "Gulberg",
+    "longitude": 74.35754,
+    "manual_review_required": true,
+    "observed_at": "2026-07-14T06:06:00Z",
+    "ocr_confidence": "0.897",
+    "plate_number": "LEA-447",
+    "plate_script": "latin",
+    "plate_search_key": "LEA447",
+    "province": null,
+    "quality_flags": [
+     "province_unconfirmed",
+     "series_rule_version_missing"
+    ],
+    "row_hash": "307a11eef1ba6eaaf4d3e645c0c70b09e969fd72e0052cd4b077b385b7ab5883",
+    "row_number": 4,
+    "source_file": "seed_anpr.csv",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "camera_id": "CAM-9",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "lane": "3",
+    "latitude": 31.560292,
+    "location": "North Road",
+    "longitude": 74.327779,
+    "manual_review_required": true,
+    "observed_at": "2026-07-14T06:07:00Z",
+    "ocr_confidence": "0.794",
+    "plate_number": "ABC-123",
+    "plate_script": "latin",
+    "plate_search_key": "ABC123",
+    "province": null,
+    "quality_flags": [
+     "low_ocr_confidence",
+     "province_unconfirmed",
+     "series_rule_version_missing"
+    ],
+    "row_hash": "ad24686c2607e7964d2e1252859c1cb2b572d08e9c87b0c28ad352b9dc550513",
+    "row_number": 3,
+    "source_file": "seed_anpr.csv",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "camera_id": "CAM-12",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "lane": "4",
+    "latitude": 31.521832,
+    "location": "Gulberg",
+    "longitude": 74.356927,
+    "manual_review_required": true,
+    "observed_at": "2026-07-14T06:15:00Z",
+    "ocr_confidence": "0.966",
+    "plate_number": "XYZ-789",
+    "plate_script": "latin",
+    "plate_search_key": "XYZ789",
+    "province": null,
+    "quality_flags": [
+     "province_unconfirmed",
+     "series_rule_version_missing"
+    ],
+    "row_hash": "f7f08b76e7ada9b77c7e86819c62bfe7646216491f74da6fe039d2a4c70df00a",
+    "row_number": 7,
+    "source_file": "seed_anpr.csv",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "camera_id": "CAM-9",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "lane": "1",
+    "latitude": 31.502831,
+    "location": "Gate 4",
+    "longitude": 74.352974,
+    "manual_review_required": true,
+    "observed_at": "2026-07-14T06:18:00Z",
+    "ocr_confidence": "0.752",
+    "plate_number": "ABC-123",
+    "plate_script": "latin",
+    "plate_search_key": "ABC123",
+    "province": null,
+    "quality_flags": [
+     "low_ocr_confidence",
+     "province_unconfirmed",
+     "series_rule_version_missing"
+    ],
+    "row_hash": "d6dc92b1e1965be74138af8334307afb1d3a19a51e897e12f27823b0eefdc933",
+    "row_number": 8,
+    "source_file": "seed_anpr.csv",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "camera_id": "CAM-7",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "lane": "4",
+    "latitude": 31.521508,
+    "location": "Gulberg",
+    "longitude": 74.35797,
+    "manual_review_required": true,
+    "observed_at": "2026-07-14T06:20:00Z",
+    "ocr_confidence": "0.797",
+    "plate_number": "ABC-123",
+    "plate_script": "latin",
+    "plate_search_key": "ABC123",
+    "province": null,
+    "quality_flags": [
+     "low_ocr_confidence",
+     "province_unconfirmed",
+     "series_rule_version_missing"
+    ],
+    "row_hash": "195446ece84e86a6943b158079cd2a4fbda09e2177515c554250cc7f81c408dc",
+    "row_number": 6,
+    "source_file": "seed_anpr.csv",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "camera_id": "CAM-7",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "lane": "1",
+    "latitude": 31.557655,
+    "location": "North Road",
+    "longitude": 74.328968,
+    "manual_review_required": true,
+    "observed_at": "2026-07-14T06:27:00Z",
+    "ocr_confidence": "0.773",
+    "plate_number": "KHI-777",
+    "plate_script": "latin",
+    "plate_search_key": "KHI777",
+    "province": null,
+    "quality_flags": [
+     "low_ocr_confidence",
+     "province_unconfirmed",
+     "series_rule_version_missing"
+    ],
+    "row_hash": "155e34226e7bff4fbbe2acad6ba867d39f411239f599180db56b493af6c2c5b7",
+    "row_number": 5,
+    "source_file": "seed_anpr.csv",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "camera_id": "CAM-12",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "lane": "3",
+    "latitude": 31.482155,
+    "location": "Model Town",
+    "longitude": 74.323411,
+    "manual_review_required": true,
+    "observed_at": "2026-07-14T06:27:00Z",
+    "ocr_confidence": "0.775",
+    "plate_number": "LEA-447",
+    "plate_script": "latin",
+    "plate_search_key": "LEA447",
+    "province": null,
+    "quality_flags": [
+     "low_ocr_confidence",
+     "province_unconfirmed",
+     "series_rule_version_missing"
+    ],
+    "row_hash": "ca851d2a790d71d4ffa11033621e12a480a079c6a557d108ac2506e849a211c8",
+    "row_number": 11,
+    "source_file": "seed_anpr.csv",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "camera_id": "CAM-12",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "lane": "3",
+    "latitude": 31.519392,
+    "location": "Gulberg",
+    "longitude": 74.359543,
+    "manual_review_required": true,
+    "observed_at": "2026-07-14T06:28:00Z",
+    "ocr_confidence": "0.973",
+    "plate_number": "ABC-123",
+    "plate_script": "latin",
+    "plate_search_key": "ABC123",
+    "province": null,
+    "quality_flags": [
+     "province_unconfirmed",
+     "series_rule_version_missing"
+    ],
+    "row_hash": "986502312242bec1ccfd5274bcc432b26612bb4cdceed31e841e53dc4c207d92",
+    "row_number": 9,
+    "source_file": "seed_anpr.csv",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "camera_id": "CAM-9",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "lane": "2",
+    "latitude": 31.522091,
+    "location": "Gulberg",
+    "longitude": 74.359248,
+    "manual_review_required": true,
+    "observed_at": "2026-07-14T06:30:00Z",
+    "ocr_confidence": "0.756",
+    "plate_number": "ABC-123",
+    "plate_script": "latin",
+    "plate_search_key": "ABC123",
+    "province": null,
+    "quality_flags": [
+     "low_ocr_confidence",
+     "province_unconfirmed",
+     "series_rule_version_missing"
+    ],
+    "row_hash": "497bef013e27e7344d6ffd01349d6d611a46d0c3391c6aaf68d26e7881b72f10",
+    "row_number": 12,
+    "source_file": "seed_anpr.csv",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "camera_id": "CAM-9",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "lane": "4",
+    "latitude": 31.499709,
+    "location": "Gate 4",
+    "longitude": 74.350285,
+    "manual_review_required": true,
+    "observed_at": "2026-07-14T06:36:00Z",
+    "ocr_confidence": "0.874",
+    "plate_number": "ABC-123",
+    "plate_script": "latin",
+    "plate_search_key": "ABC123",
+    "province": null,
+    "quality_flags": [
+     "province_unconfirmed",
+     "series_rule_version_missing"
+    ],
+    "row_hash": "9cdd28512fab32c8d153cc0ddc5e7dd15c45a1fe49116c40b7f14c50a429e6df",
+    "row_number": 20,
+    "source_file": "seed_anpr.csv",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "camera_id": "CAM-7",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "lane": "2",
+    "latitude": 31.499893,
+    "location": "Gate 4",
+    "longitude": 74.35086,
+    "manual_review_required": true,
+    "observed_at": "2026-07-14T06:40:00Z",
+    "ocr_confidence": "0.764",
+    "plate_number": "XYZ-789",
+    "plate_script": "latin",
+    "plate_search_key": "XYZ789",
+    "province": null,
+    "quality_flags": [
+     "low_ocr_confidence",
+     "province_unconfirmed",
+     "series_rule_version_missing"
+    ],
+    "row_hash": "5ea56ecb874fb5400c43e40362e397cb1767c3768073ed25ec718719c79223e0",
+    "row_number": 10,
+    "source_file": "seed_anpr.csv",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "camera_id": "CAM-9",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "lane": "2",
+    "latitude": 31.468841,
+    "location": "DHA Phase 5",
+    "longitude": 74.410395,
+    "manual_review_required": true,
+    "observed_at": "2026-07-14T06:48:00Z",
+    "ocr_confidence": "0.84",
+    "plate_number": "ICT-404",
+    "plate_script": "latin",
+    "plate_search_key": "ICT404",
+    "province": null,
+    "quality_flags": [
+     "low_ocr_confidence",
+     "province_unconfirmed",
+     "series_rule_version_missing"
+    ],
+    "row_hash": "ef2a8e697b50cf21ddf12377e278d010adf4f99162150adae991ac37d0758186",
+    "row_number": 18,
+    "source_file": "seed_anpr.csv",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "camera_id": "CAM-7",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "lane": "1",
+    "latitude": 31.557516,
+    "location": "North Road",
+    "longitude": 74.327763,
+    "manual_review_required": true,
+    "observed_at": "2026-07-14T06:56:00Z",
+    "ocr_confidence": "0.95",
+    "plate_number": "XYZ-789",
+    "plate_script": "latin",
+    "plate_search_key": "XYZ789",
+    "province": null,
+    "quality_flags": [
+     "province_unconfirmed",
+     "series_rule_version_missing"
+    ],
+    "row_hash": "5bc68326e2c18d88660173182825a1d92698b573eceb6cbc2fca0842bae53505",
+    "row_number": 16,
+    "source_file": "seed_anpr.csv",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "camera_id": "CAM-7",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "lane": "3",
+    "latitude": 31.521974,
+    "location": "Gulberg",
+    "longitude": 74.357244,
+    "manual_review_required": true,
+    "observed_at": "2026-07-14T07:05:00Z",
+    "ocr_confidence": "0.901",
+    "plate_number": "ICT-404",
+    "plate_script": "latin",
+    "plate_search_key": "ICT404",
+    "province": null,
+    "quality_flags": [
+     "province_unconfirmed",
+     "series_rule_version_missing"
+    ],
+    "row_hash": "b1433d3292334e92ca0c11f41100e36e8c64a0b9f235290e0d84102a0d19ba8d",
+    "row_number": 15,
+    "source_file": "seed_anpr.csv",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "camera_id": "CAM-21",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "lane": "3",
+    "latitude": 31.468716,
+    "location": "DHA Phase 5",
+    "longitude": 74.408446,
+    "manual_review_required": true,
+    "observed_at": "2026-07-14T07:15:00Z",
+    "ocr_confidence": "0.792",
+    "plate_number": "XYZ-789",
+    "plate_script": "latin",
+    "plate_search_key": "XYZ789",
+    "province": null,
+    "quality_flags": [
+     "low_ocr_confidence",
+     "province_unconfirmed",
+     "series_rule_version_missing"
+    ],
+    "row_hash": "7cfb43105e7ca31c2562579f1e4c881c6e5ed6d7692ecf322f77ffd96caa46c6",
+    "row_number": 17,
+    "source_file": "seed_anpr.csv",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "camera_id": "CAM-7",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "lane": "1",
+    "latitude": 31.467942,
+    "location": "DHA Phase 5",
+    "longitude": 74.410672,
+    "manual_review_required": true,
+    "observed_at": "2026-07-14T07:24:00Z",
+    "ocr_confidence": "0.956",
+    "plate_number": "LEA-447",
+    "plate_script": "latin",
+    "plate_search_key": "LEA447",
+    "province": null,
+    "quality_flags": [
+     "province_unconfirmed",
+     "series_rule_version_missing"
+    ],
+    "row_hash": "5c7a6d7d1dfb0c1a779dba2b6f2511b23a113a38ab96aa0812cce4009107a830",
+    "row_number": 14,
+    "source_file": "seed_anpr.csv",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "camera_id": "CAM-9",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "lane": "3",
+    "latitude": 31.4997,
+    "location": "Gate 4",
+    "longitude": 74.350168,
+    "manual_review_required": true,
+    "observed_at": "2026-07-14T07:50:00Z",
+    "ocr_confidence": "0.798",
+    "plate_number": "LHR-2026",
+    "plate_script": "latin",
+    "plate_search_key": "LHR2026",
+    "province": null,
+    "quality_flags": [
+     "low_ocr_confidence",
+     "province_unconfirmed",
+     "series_rule_version_missing"
+    ],
+    "row_hash": "18a6119afa9a7256781d5b00f7a03f1c522be145bf5dc185917da987ef63dd57",
+    "row_number": 13,
+    "source_file": "seed_anpr.csv",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "camera_id": "CAM-12",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "lane": "2",
+    "latitude": 31.519104,
+    "location": "Gulberg",
+    "longitude": 74.357342,
+    "manual_review_required": true,
+    "observed_at": "2026-07-14T07:51:00Z",
+    "ocr_confidence": "0.961",
+    "plate_number": "XYZ-789",
+    "plate_script": "latin",
+    "plate_search_key": "XYZ789",
+    "province": null,
+    "quality_flags": [
+     "province_unconfirmed",
+     "series_rule_version_missing"
+    ],
+    "row_hash": "44663b1d924b8437d15f0db03b9a8ad585a1269ba59a25c311bfc598b3dc2df5",
+    "row_number": 39,
+    "source_file": "seed_anpr.csv",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "camera_id": "CAM-7",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "lane": "3",
+    "latitude": 31.50074,
+    "location": "Gate 4",
+    "longitude": 74.352979,
+    "manual_review_required": true,
+    "observed_at": "2026-07-14T07:52:00Z",
+    "ocr_confidence": "0.867",
+    "plate_number": "ABC-123",
+    "plate_script": "latin",
+    "plate_search_key": "ABC123",
+    "province": null,
+    "quality_flags": [
+     "province_unconfirmed",
+     "series_rule_version_missing"
+    ],
+    "row_hash": "8132b6961a2d42e9eb4a1cafbdba6aa348a9157da850e4a557f5bcf0f67c677d",
+    "row_number": 30,
+    "source_file": "seed_anpr.csv",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   }
+  ],
+  "date_from": "",
+  "date_to": "",
+  "evidence_id": "",
+  "row_count": 20,
+  "target": ""
+ },
+ "answer": {
+  "guardrail": "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations.",
+  "records_row_count": 20,
+  "records_status": "matched",
+  "records_summary": "Retrieved exact ANPR observations with canonical evidence, version, row, and hash provenance."
+ },
+ "enterprise": {
+  "clarification": "",
+  "contribution_lineage": null,
+  "conversation_context": {
+   "analysis_id": "",
+   "audit_id": "ctx-1789712906045090819",
+   "citation_handles": [
+    {
+     "handle_id": "citation-C1",
+     "kind": "citation",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "citation_id": "C1"
+    },
+    {
+     "handle_id": "citation-C2",
+     "kind": "citation",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "citation_id": "C2"
+    },
+    {
+     "handle_id": "citation-C3",
+     "kind": "citation",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "citation_id": "C3"
+    },
+    {
+     "handle_id": "citation-C4",
+     "kind": "citation",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "citation_id": "C4"
+    },
+    {
+     "handle_id": "citation-C5",
+     "kind": "citation",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "citation_id": "C5"
+    },
+    {
+     "handle_id": "citation-C6",
+     "kind": "citation",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "citation_id": "C6"
+    },
+    {
+     "handle_id": "citation-C7",
+     "kind": "citation",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "citation_id": "C7"
+    },
+    {
+     "handle_id": "citation-C8",
+     "kind": "citation",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "citation_id": "C8"
+    },
+    {
+     "handle_id": "citation-C9",
+     "kind": "citation",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "citation_id": "C9"
+    },
+    {
+     "handle_id": "citation-C10",
+     "kind": "citation",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "citation_id": "C10"
+    },
+    {
+     "handle_id": "citation-C11",
+     "kind": "citation",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "citation_id": "C11"
+    },
+    {
+     "handle_id": "citation-C12",
+     "kind": "citation",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "citation_id": "C12"
+    },
+    {
+     "handle_id": "citation-C13",
+     "kind": "citation",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "citation_id": "C13"
+    },
+    {
+     "handle_id": "citation-C14",
+     "kind": "citation",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "citation_id": "C14"
+    },
+    {
+     "handle_id": "citation-C15",
+     "kind": "citation",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "citation_id": "C15"
+    },
+    {
+     "handle_id": "citation-C16",
+     "kind": "citation",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "citation_id": "C16"
+    },
+    {
+     "handle_id": "citation-C17",
+     "kind": "citation",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "citation_id": "C17"
+    },
+    {
+     "handle_id": "citation-C18",
+     "kind": "citation",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "citation_id": "C18"
+    },
+    {
+     "handle_id": "citation-C19",
+     "kind": "citation",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "citation_id": "C19"
+    },
+    {
+     "handle_id": "citation-C20",
+     "kind": "citation",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "citation_id": "C20"
+    }
+   ],
+   "collection_id": "nexusai-forensic-demo",
+   "contract_version": "forensics.follow-up-context/v1",
+   "conversation_id": "",
+   "created_at": "2026-09-18T06:28:26Z",
+   "current_question": "Which camera recorded the most sightings?",
+   "date_from": "",
+   "date_to": "",
+   "direction": "",
+   "entity_handles": [],
+   "evidence_id": "",
+   "evidence_version_id": "",
+   "expires_at": "2026-09-18T06:58:26Z",
+   "fact_handles": [
+    {
+     "handle_id": "fact-F1",
+     "kind": "fact",
+     "fact_id": "F1"
+    },
+    {
+     "handle_id": "fact-F2",
+     "kind": "fact",
+     "fact_id": "F2"
+    },
+    {
+     "handle_id": "fact-F3",
+     "kind": "fact",
+     "fact_id": "F3"
+    },
+    {
+     "handle_id": "fact-F4",
+     "kind": "fact",
+     "fact_id": "F4"
+    },
+    {
+     "handle_id": "fact-F5",
+     "kind": "fact",
+     "fact_id": "F5"
+    },
+    {
+     "handle_id": "fact-F6",
+     "kind": "fact",
+     "fact_id": "F6"
+    },
+    {
+     "handle_id": "fact-F7",
+     "kind": "fact",
+     "fact_id": "F7"
+    },
+    {
+     "handle_id": "fact-F8",
+     "kind": "fact",
+     "fact_id": "F8"
+    },
+    {
+     "handle_id": "fact-F9",
+     "kind": "fact",
+     "fact_id": "F9"
+    }
+   ],
+   "inherited_fields": null,
+   "issued_fields": null,
+   "mutation": null,
+   "operation_id": "anpr.sightings",
+   "result_handles": [
+    {
+     "handle_id": "result-1",
+     "kind": "result",
+     "value": "seed_anpr.csv",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "handle_id": "result-2",
+     "kind": "result",
+     "value": "seed_anpr.csv",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "handle_id": "result-3",
+     "kind": "result",
+     "value": "seed_anpr.csv",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "handle_id": "result-4",
+     "kind": "result",
+     "value": "seed_anpr.csv",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "handle_id": "result-5",
+     "kind": "result",
+     "value": "seed_anpr.csv",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "handle_id": "result-6",
+     "kind": "result",
+     "value": "seed_anpr.csv",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "handle_id": "result-7",
+     "kind": "result",
+     "value": "seed_anpr.csv",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "handle_id": "result-8",
+     "kind": "result",
+     "value": "seed_anpr.csv",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "handle_id": "result-9",
+     "kind": "result",
+     "value": "seed_anpr.csv",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "handle_id": "result-10",
+     "kind": "result",
+     "value": "seed_anpr.csv",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "handle_id": "result-11",
+     "kind": "result",
+     "value": "seed_anpr.csv",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "handle_id": "result-12",
+     "kind": "result",
+     "value": "seed_anpr.csv",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "handle_id": "result-13",
+     "kind": "result",
+     "value": "seed_anpr.csv",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "handle_id": "result-14",
+     "kind": "result",
+     "value": "seed_anpr.csv",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "handle_id": "result-15",
+     "kind": "result",
+     "value": "seed_anpr.csv",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "handle_id": "result-16",
+     "kind": "result",
+     "value": "seed_anpr.csv",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "evidence_version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    }
+   ],
+   "source_native": null,
+   "source_set": null,
+   "target": "",
+   "targets": [],
+   "template": "anpr_sightings",
+   "tenant_id": "default",
+   "turn_id": "",
+   "user_id": "live-eval"
+  },
+  "coverage": {
+   "collection_id": "nexusai-forensic-demo",
+   "collection_max_timestamp": "",
+   "collection_min_timestamp": "",
+   "date_from": "",
+   "date_to": "",
+   "direction": "",
+   "nearest_activity": {},
+   "queried_kb": false,
+   "queried_record_sql": true,
+   "record_families_present": null,
+   "route": [
+    "records_sql"
+   ],
+   "target": "",
+   "template": "anpr_sightings",
+   "tenant_id": "default",
+   "total_indexed_records": 0,
+   "valid_target_examples": null
+  },
+  "data_grid": {
+   "columns": [
+    {
+     "header": "Camera ID",
+     "key": "camera_id"
+    },
+    {
+     "header": "Evidence ID",
+     "key": "evidence_id"
+    },
+    {
+     "header": "Lane",
+     "key": "lane"
+    },
+    {
+     "header": "Latitude",
+     "key": "latitude"
+    },
+    {
+     "header": "Location",
+     "key": "location"
+    },
+    {
+     "header": "Longitude",
+     "key": "longitude"
+    },
+    {
+     "header": "Manual Review Required",
+     "key": "manual_review_required"
+    },
+    {
+     "header": "Observed AT",
+     "key": "observed_at"
+    },
+    {
+     "header": "OCR Confidence",
+     "key": "ocr_confidence"
+    },
+    {
+     "header": "Plate Number",
+     "key": "plate_number"
+    },
+    {
+     "header": "Plate Script",
+     "key": "plate_script"
+    },
+    {
+     "header": "Plate Search KEY",
+     "key": "plate_search_key"
+    },
+    {
+     "header": "Province",
+     "key": "province"
+    },
+    {
+     "header": "Quality Flags",
+     "key": "quality_flags"
+    },
+    {
+     "header": "ROW Hash",
+     "key": "row_hash"
+    },
+    {
+     "header": "ROW Number",
+     "key": "row_number"
+    },
+    {
+     "header": "Section",
+     "key": "section"
+    },
+    {
+     "header": "Source File",
+     "key": "source_file"
+    },
+    {
+     "header": "Version ID",
+     "key": "version_id"
+    }
+   ],
+   "count": 20,
+   "rows": [
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.484383,
+     "location": "Model Town",
+     "longitude": 74.321701,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:00:00Z",
+     "ocr_confidence": "0.864",
+     "plate_number": "LHR-2026",
+     "plate_script": "latin",
+     "plate_search_key": "LHR2026",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "185124fd7a17681234c1fe2ddcb06cbcb4556577a0fa7e3dea5ad983c389978f",
+     "row_number": 2,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-12",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "4",
+     "latitude": 31.520356,
+     "location": "Gulberg",
+     "longitude": 74.35754,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:06:00Z",
+     "ocr_confidence": "0.897",
+     "plate_number": "LEA-447",
+     "plate_script": "latin",
+     "plate_search_key": "LEA447",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "307a11eef1ba6eaaf4d3e645c0c70b09e969fd72e0052cd4b077b385b7ab5883",
+     "row_number": 4,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-9",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.560292,
+     "location": "North Road",
+     "longitude": 74.327779,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:07:00Z",
+     "ocr_confidence": "0.794",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "ad24686c2607e7964d2e1252859c1cb2b572d08e9c87b0c28ad352b9dc550513",
+     "row_number": 3,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-12",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "4",
+     "latitude": 31.521832,
+     "location": "Gulberg",
+     "longitude": 74.356927,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:15:00Z",
+     "ocr_confidence": "0.966",
+     "plate_number": "XYZ-789",
+     "plate_script": "latin",
+     "plate_search_key": "XYZ789",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "f7f08b76e7ada9b77c7e86819c62bfe7646216491f74da6fe039d2a4c70df00a",
+     "row_number": 7,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-9",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "1",
+     "latitude": 31.502831,
+     "location": "Gate 4",
+     "longitude": 74.352974,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:18:00Z",
+     "ocr_confidence": "0.752",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "d6dc92b1e1965be74138af8334307afb1d3a19a51e897e12f27823b0eefdc933",
+     "row_number": 8,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "4",
+     "latitude": 31.521508,
+     "location": "Gulberg",
+     "longitude": 74.35797,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:20:00Z",
+     "ocr_confidence": "0.797",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "195446ece84e86a6943b158079cd2a4fbda09e2177515c554250cc7f81c408dc",
+     "row_number": 6,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "1",
+     "latitude": 31.557655,
+     "location": "North Road",
+     "longitude": 74.328968,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:27:00Z",
+     "ocr_confidence": "0.773",
+     "plate_number": "KHI-777",
+     "plate_script": "latin",
+     "plate_search_key": "KHI777",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "155e34226e7bff4fbbe2acad6ba867d39f411239f599180db56b493af6c2c5b7",
+     "row_number": 5,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-12",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.482155,
+     "location": "Model Town",
+     "longitude": 74.323411,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:27:00Z",
+     "ocr_confidence": "0.775",
+     "plate_number": "LEA-447",
+     "plate_script": "latin",
+     "plate_search_key": "LEA447",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "ca851d2a790d71d4ffa11033621e12a480a079c6a557d108ac2506e849a211c8",
+     "row_number": 11,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-12",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.519392,
+     "location": "Gulberg",
+     "longitude": 74.359543,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:28:00Z",
+     "ocr_confidence": "0.973",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "986502312242bec1ccfd5274bcc432b26612bb4cdceed31e841e53dc4c207d92",
+     "row_number": 9,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-9",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "2",
+     "latitude": 31.522091,
+     "location": "Gulberg",
+     "longitude": 74.359248,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:30:00Z",
+     "ocr_confidence": "0.756",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "497bef013e27e7344d6ffd01349d6d611a46d0c3391c6aaf68d26e7881b72f10",
+     "row_number": 12,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-9",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "4",
+     "latitude": 31.499709,
+     "location": "Gate 4",
+     "longitude": 74.350285,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:36:00Z",
+     "ocr_confidence": "0.874",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "9cdd28512fab32c8d153cc0ddc5e7dd15c45a1fe49116c40b7f14c50a429e6df",
+     "row_number": 20,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "2",
+     "latitude": 31.499893,
+     "location": "Gate 4",
+     "longitude": 74.35086,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:40:00Z",
+     "ocr_confidence": "0.764",
+     "plate_number": "XYZ-789",
+     "plate_script": "latin",
+     "plate_search_key": "XYZ789",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "5ea56ecb874fb5400c43e40362e397cb1767c3768073ed25ec718719c79223e0",
+     "row_number": 10,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-9",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "2",
+     "latitude": 31.468841,
+     "location": "DHA Phase 5",
+     "longitude": 74.410395,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:48:00Z",
+     "ocr_confidence": "0.84",
+     "plate_number": "ICT-404",
+     "plate_script": "latin",
+     "plate_search_key": "ICT404",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "ef2a8e697b50cf21ddf12377e278d010adf4f99162150adae991ac37d0758186",
+     "row_number": 18,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "1",
+     "latitude": 31.557516,
+     "location": "North Road",
+     "longitude": 74.327763,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:56:00Z",
+     "ocr_confidence": "0.95",
+     "plate_number": "XYZ-789",
+     "plate_script": "latin",
+     "plate_search_key": "XYZ789",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "5bc68326e2c18d88660173182825a1d92698b573eceb6cbc2fca0842bae53505",
+     "row_number": 16,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.521974,
+     "location": "Gulberg",
+     "longitude": 74.357244,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T07:05:00Z",
+     "ocr_confidence": "0.901",
+     "plate_number": "ICT-404",
+     "plate_script": "latin",
+     "plate_search_key": "ICT404",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "b1433d3292334e92ca0c11f41100e36e8c64a0b9f235290e0d84102a0d19ba8d",
+     "row_number": 15,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-21",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.468716,
+     "location": "DHA Phase 5",
+     "longitude": 74.408446,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T07:15:00Z",
+     "ocr_confidence": "0.792",
+     "plate_number": "XYZ-789",
+     "plate_script": "latin",
+     "plate_search_key": "XYZ789",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "7cfb43105e7ca31c2562579f1e4c881c6e5ed6d7692ecf322f77ffd96caa46c6",
+     "row_number": 17,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "1",
+     "latitude": 31.467942,
+     "location": "DHA Phase 5",
+     "longitude": 74.410672,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T07:24:00Z",
+     "ocr_confidence": "0.956",
+     "plate_number": "LEA-447",
+     "plate_script": "latin",
+     "plate_search_key": "LEA447",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "5c7a6d7d1dfb0c1a779dba2b6f2511b23a113a38ab96aa0812cce4009107a830",
+     "row_number": 14,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-9",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.4997,
+     "location": "Gate 4",
+     "longitude": 74.350168,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T07:50:00Z",
+     "ocr_confidence": "0.798",
+     "plate_number": "LHR-2026",
+     "plate_script": "latin",
+     "plate_search_key": "LHR2026",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "18a6119afa9a7256781d5b00f7a03f1c522be145bf5dc185917da987ef63dd57",
+     "row_number": 13,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-12",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "2",
+     "latitude": 31.519104,
+     "location": "Gulberg",
+     "longitude": 74.357342,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T07:51:00Z",
+     "ocr_confidence": "0.961",
+     "plate_number": "XYZ-789",
+     "plate_script": "latin",
+     "plate_search_key": "XYZ789",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "44663b1d924b8437d15f0db03b9a8ad585a1269ba59a25c311bfc598b3dc2df5",
+     "row_number": 39,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.50074,
+     "location": "Gate 4",
+     "longitude": 74.352979,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T07:52:00Z",
+     "ocr_confidence": "0.867",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "8132b6961a2d42e9eb4a1cafbdba6aa348a9157da850e4a557f5bcf0f67c677d",
+     "row_number": 30,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    }
+   ]
+  },
+  "executive_answer": "Retrieved exact ANPR observations with canonical evidence, version, row, and hash provenance.",
+  "fact_packet": {
+   "contract_version": "forensics.fact-packet/v1",
+   "request_id": "f2c12abd-137a-4718-a886-661827fab4c3",
+   "question": "Which camera recorded the most sightings?",
+   "language": {
+    "tag": "en",
+    "source": "deterministic_extractor",
+    "confidence": 0.9
+   },
+   "scope": {
+    "tenant_id": "default",
+    "case_id": "nexusai-forensic-demo",
+    "collection_id": "nexusai-forensic-demo"
+   },
+   "operation_id": "anpr.sightings",
+   "plan_id": "f2c12abd-137a-4718-a886-661827fab4c3:plan",
+   "normalized_parameters": {
+    "date_from": "",
+    "date_to": "",
+    "direction": "",
+    "limit": 20,
+    "retrieval_mode": "NONE",
+    "source_file": "",
+    "source_set": null,
+    "target": "",
+    "targets": []
+   },
+   "execution_mode": "records_sql",
+   "result_state": "results_present",
+   "facts": [
+    {
+     "fact_id": "F1",
+     "kind": "direct_answer",
+     "text": "Retrieved exact ANPR observations with canonical evidence, version, row, and hash provenance.",
+     "citation_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20"
+     ]
+    },
+    {
+     "fact_id": "F2",
+     "kind": "deterministic_fact",
+     "text": "Retrieved exact ANPR observations with canonical evidence, version, row, and hash provenance.",
+     "citation_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20"
+     ]
+    },
+    {
+     "fact_id": "F3",
+     "kind": "deterministic_fact",
+     "text": "Structured records row count computed.",
+     "value": 20,
+     "citation_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20"
+     ]
+    },
+    {
+     "fact_id": "F4",
+     "kind": "metric",
+     "text": "Template: anpr_sightings",
+     "value": "anpr_sightings",
+     "citation_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20"
+     ]
+    },
+    {
+     "fact_id": "F5",
+     "kind": "metric",
+     "text": "Route: records_sql",
+     "value": "records_sql",
+     "citation_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20"
+     ]
+    },
+    {
+     "fact_id": "F6",
+     "kind": "metric",
+     "text": "Planner Confidence: 0.74",
+     "value": 0.74,
+     "citation_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20"
+     ]
+    },
+    {
+     "fact_id": "F7",
+     "kind": "metric",
+     "text": "Display Rows: 20",
+     "value": 20,
+     "citation_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20"
+     ]
+    },
+    {
+     "fact_id": "F8",
+     "kind": "metric",
+     "text": "Records Row Count: 20",
+     "value": 20,
+     "citation_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20"
+     ]
+    },
+    {
+     "fact_id": "F9",
+     "kind": "metric",
+     "text": "Provenance Items: 20",
+     "value": 20,
+     "citation_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20"
+     ]
+    }
+   ],
+   "metrics": [
+    {
+     "label": "Template",
+     "source": "planner",
+     "value": "anpr_sightings"
+    },
+    {
+     "label": "Route",
+     "source": "planner",
+     "value": "records_sql"
+    },
+    {
+     "label": "Planner Confidence",
+     "source": "planner",
+     "value": 0.74
+    },
+    {
+     "label": "Display Rows",
+     "source": "records_sql",
+     "value": 20
+    },
+    {
+     "label": "Records Row Count",
+     "source": "records_sql",
+     "value": 20
+    },
+    {
+     "label": "Evidence Count",
+     "source": "kb_rag",
+     "value": null
+    },
+    {
+     "label": "Provenance Items",
+     "source": "records_sql+kb_rag",
+     "value": 20
+    }
+   ],
+   "rows": [
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.484383,
+     "location": "Model Town",
+     "longitude": 74.321701,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:00:00Z",
+     "ocr_confidence": "0.864",
+     "plate_number": "LHR-2026",
+     "plate_script": "latin",
+     "plate_search_key": "LHR2026",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "185124fd7a17681234c1fe2ddcb06cbcb4556577a0fa7e3dea5ad983c389978f",
+     "row_number": 2,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-12",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "4",
+     "latitude": 31.520356,
+     "location": "Gulberg",
+     "longitude": 74.35754,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:06:00Z",
+     "ocr_confidence": "0.897",
+     "plate_number": "LEA-447",
+     "plate_script": "latin",
+     "plate_search_key": "LEA447",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "307a11eef1ba6eaaf4d3e645c0c70b09e969fd72e0052cd4b077b385b7ab5883",
+     "row_number": 4,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-9",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.560292,
+     "location": "North Road",
+     "longitude": 74.327779,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:07:00Z",
+     "ocr_confidence": "0.794",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "ad24686c2607e7964d2e1252859c1cb2b572d08e9c87b0c28ad352b9dc550513",
+     "row_number": 3,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-12",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "4",
+     "latitude": 31.521832,
+     "location": "Gulberg",
+     "longitude": 74.356927,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:15:00Z",
+     "ocr_confidence": "0.966",
+     "plate_number": "XYZ-789",
+     "plate_script": "latin",
+     "plate_search_key": "XYZ789",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "f7f08b76e7ada9b77c7e86819c62bfe7646216491f74da6fe039d2a4c70df00a",
+     "row_number": 7,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-9",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "1",
+     "latitude": 31.502831,
+     "location": "Gate 4",
+     "longitude": 74.352974,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:18:00Z",
+     "ocr_confidence": "0.752",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "d6dc92b1e1965be74138af8334307afb1d3a19a51e897e12f27823b0eefdc933",
+     "row_number": 8,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "4",
+     "latitude": 31.521508,
+     "location": "Gulberg",
+     "longitude": 74.35797,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:20:00Z",
+     "ocr_confidence": "0.797",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "195446ece84e86a6943b158079cd2a4fbda09e2177515c554250cc7f81c408dc",
+     "row_number": 6,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "1",
+     "latitude": 31.557655,
+     "location": "North Road",
+     "longitude": 74.328968,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:27:00Z",
+     "ocr_confidence": "0.773",
+     "plate_number": "KHI-777",
+     "plate_script": "latin",
+     "plate_search_key": "KHI777",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "155e34226e7bff4fbbe2acad6ba867d39f411239f599180db56b493af6c2c5b7",
+     "row_number": 5,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-12",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.482155,
+     "location": "Model Town",
+     "longitude": 74.323411,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:27:00Z",
+     "ocr_confidence": "0.775",
+     "plate_number": "LEA-447",
+     "plate_script": "latin",
+     "plate_search_key": "LEA447",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "ca851d2a790d71d4ffa11033621e12a480a079c6a557d108ac2506e849a211c8",
+     "row_number": 11,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-12",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.519392,
+     "location": "Gulberg",
+     "longitude": 74.359543,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:28:00Z",
+     "ocr_confidence": "0.973",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "986502312242bec1ccfd5274bcc432b26612bb4cdceed31e841e53dc4c207d92",
+     "row_number": 9,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-9",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "2",
+     "latitude": 31.522091,
+     "location": "Gulberg",
+     "longitude": 74.359248,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:30:00Z",
+     "ocr_confidence": "0.756",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "497bef013e27e7344d6ffd01349d6d611a46d0c3391c6aaf68d26e7881b72f10",
+     "row_number": 12,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-9",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "4",
+     "latitude": 31.499709,
+     "location": "Gate 4",
+     "longitude": 74.350285,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:36:00Z",
+     "ocr_confidence": "0.874",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "9cdd28512fab32c8d153cc0ddc5e7dd15c45a1fe49116c40b7f14c50a429e6df",
+     "row_number": 20,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "2",
+     "latitude": 31.499893,
+     "location": "Gate 4",
+     "longitude": 74.35086,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:40:00Z",
+     "ocr_confidence": "0.764",
+     "plate_number": "XYZ-789",
+     "plate_script": "latin",
+     "plate_search_key": "XYZ789",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "5ea56ecb874fb5400c43e40362e397cb1767c3768073ed25ec718719c79223e0",
+     "row_number": 10,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-9",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "2",
+     "latitude": 31.468841,
+     "location": "DHA Phase 5",
+     "longitude": 74.410395,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:48:00Z",
+     "ocr_confidence": "0.84",
+     "plate_number": "ICT-404",
+     "plate_script": "latin",
+     "plate_search_key": "ICT404",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "ef2a8e697b50cf21ddf12377e278d010adf4f99162150adae991ac37d0758186",
+     "row_number": 18,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "1",
+     "latitude": 31.557516,
+     "location": "North Road",
+     "longitude": 74.327763,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T06:56:00Z",
+     "ocr_confidence": "0.95",
+     "plate_number": "XYZ-789",
+     "plate_script": "latin",
+     "plate_search_key": "XYZ789",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "5bc68326e2c18d88660173182825a1d92698b573eceb6cbc2fca0842bae53505",
+     "row_number": 16,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.521974,
+     "location": "Gulberg",
+     "longitude": 74.357244,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T07:05:00Z",
+     "ocr_confidence": "0.901",
+     "plate_number": "ICT-404",
+     "plate_script": "latin",
+     "plate_search_key": "ICT404",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "b1433d3292334e92ca0c11f41100e36e8c64a0b9f235290e0d84102a0d19ba8d",
+     "row_number": 15,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-21",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.468716,
+     "location": "DHA Phase 5",
+     "longitude": 74.408446,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T07:15:00Z",
+     "ocr_confidence": "0.792",
+     "plate_number": "XYZ-789",
+     "plate_script": "latin",
+     "plate_search_key": "XYZ789",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "7cfb43105e7ca31c2562579f1e4c881c6e5ed6d7692ecf322f77ffd96caa46c6",
+     "row_number": 17,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "1",
+     "latitude": 31.467942,
+     "location": "DHA Phase 5",
+     "longitude": 74.410672,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T07:24:00Z",
+     "ocr_confidence": "0.956",
+     "plate_number": "LEA-447",
+     "plate_script": "latin",
+     "plate_search_key": "LEA447",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "5c7a6d7d1dfb0c1a779dba2b6f2511b23a113a38ab96aa0812cce4009107a830",
+     "row_number": 14,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-9",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.4997,
+     "location": "Gate 4",
+     "longitude": 74.350168,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T07:50:00Z",
+     "ocr_confidence": "0.798",
+     "plate_number": "LHR-2026",
+     "plate_script": "latin",
+     "plate_search_key": "LHR2026",
+     "province": null,
+     "quality_flags": [
+      "low_ocr_confidence",
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "18a6119afa9a7256781d5b00f7a03f1c522be145bf5dc185917da987ef63dd57",
+     "row_number": 13,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-12",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "2",
+     "latitude": 31.519104,
+     "location": "Gulberg",
+     "longitude": 74.357342,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T07:51:00Z",
+     "ocr_confidence": "0.961",
+     "plate_number": "XYZ-789",
+     "plate_script": "latin",
+     "plate_search_key": "XYZ789",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "44663b1d924b8437d15f0db03b9a8ad585a1269ba59a25c311bfc598b3dc2df5",
+     "row_number": 39,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    },
+    {
+     "camera_id": "CAM-7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "lane": "3",
+     "latitude": 31.50074,
+     "location": "Gate 4",
+     "longitude": 74.352979,
+     "manual_review_required": true,
+     "observed_at": "2026-07-14T07:52:00Z",
+     "ocr_confidence": "0.867",
+     "plate_number": "ABC-123",
+     "plate_script": "latin",
+     "plate_search_key": "ABC123",
+     "province": null,
+     "quality_flags": [
+      "province_unconfirmed",
+      "series_rule_version_missing"
+     ],
+     "row_hash": "8132b6961a2d42e9eb4a1cafbdba6aa348a9157da850e4a557f5bcf0f67c677d",
+     "row_number": 30,
+     "section": "anpr_sightings",
+     "source_file": "seed_anpr.csv",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+    }
+   ],
+   "row_set_state": "complete",
+   "relationships": [],
+   "citations": [
+    {
+     "citation_id": "C1",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "source_file": "seed_anpr.csv",
+     "source_row": 2,
+     "source_hash": "185124fd7a17681234c1fe2ddcb06cbcb4556577a0fa7e3dea5ad983c389978f",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C2",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "source_file": "seed_anpr.csv",
+     "source_row": 4,
+     "source_hash": "307a11eef1ba6eaaf4d3e645c0c70b09e969fd72e0052cd4b077b385b7ab5883",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C3",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "source_file": "seed_anpr.csv",
+     "source_row": 3,
+     "source_hash": "ad24686c2607e7964d2e1252859c1cb2b572d08e9c87b0c28ad352b9dc550513",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C4",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "source_file": "seed_anpr.csv",
+     "source_row": 7,
+     "source_hash": "f7f08b76e7ada9b77c7e86819c62bfe7646216491f74da6fe039d2a4c70df00a",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C5",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "source_file": "seed_anpr.csv",
+     "source_row": 8,
+     "source_hash": "d6dc92b1e1965be74138af8334307afb1d3a19a51e897e12f27823b0eefdc933",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C6",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "source_file": "seed_anpr.csv",
+     "source_row": 6,
+     "source_hash": "195446ece84e86a6943b158079cd2a4fbda09e2177515c554250cc7f81c408dc",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C7",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "source_file": "seed_anpr.csv",
+     "source_row": 5,
+     "source_hash": "155e34226e7bff4fbbe2acad6ba867d39f411239f599180db56b493af6c2c5b7",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C8",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "source_file": "seed_anpr.csv",
+     "source_row": 11,
+     "source_hash": "ca851d2a790d71d4ffa11033621e12a480a079c6a557d108ac2506e849a211c8",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C9",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "source_file": "seed_anpr.csv",
+     "source_row": 9,
+     "source_hash": "986502312242bec1ccfd5274bcc432b26612bb4cdceed31e841e53dc4c207d92",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C10",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "source_file": "seed_anpr.csv",
+     "source_row": 12,
+     "source_hash": "497bef013e27e7344d6ffd01349d6d611a46d0c3391c6aaf68d26e7881b72f10",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C11",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "source_file": "seed_anpr.csv",
+     "source_row": 20,
+     "source_hash": "9cdd28512fab32c8d153cc0ddc5e7dd15c45a1fe49116c40b7f14c50a429e6df",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C12",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "source_file": "seed_anpr.csv",
+     "source_row": 10,
+     "source_hash": "5ea56ecb874fb5400c43e40362e397cb1767c3768073ed25ec718719c79223e0",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C13",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "source_file": "seed_anpr.csv",
+     "source_row": 18,
+     "source_hash": "ef2a8e697b50cf21ddf12377e278d010adf4f99162150adae991ac37d0758186",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C14",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "source_file": "seed_anpr.csv",
+     "source_row": 16,
+     "source_hash": "5bc68326e2c18d88660173182825a1d92698b573eceb6cbc2fca0842bae53505",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C15",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "source_file": "seed_anpr.csv",
+     "source_row": 15,
+     "source_hash": "b1433d3292334e92ca0c11f41100e36e8c64a0b9f235290e0d84102a0d19ba8d",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C16",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "source_file": "seed_anpr.csv",
+     "source_row": 17,
+     "source_hash": "7cfb43105e7ca31c2562579f1e4c881c6e5ed6d7692ecf322f77ffd96caa46c6",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C17",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "source_file": "seed_anpr.csv",
+     "source_row": 14,
+     "source_hash": "5c7a6d7d1dfb0c1a779dba2b6f2511b23a113a38ab96aa0812cce4009107a830",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C18",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "source_file": "seed_anpr.csv",
+     "source_row": 13,
+     "source_hash": "18a6119afa9a7256781d5b00f7a03f1c522be145bf5dc185917da987ef63dd57",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C19",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "source_file": "seed_anpr.csv",
+     "source_row": 39,
+     "source_hash": "44663b1d924b8437d15f0db03b9a8ad585a1269ba59a25c311bfc598b3dc2df5",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C20",
+     "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+     "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+     "source_file": "seed_anpr.csv",
+     "source_row": 30,
+     "source_hash": "8132b6961a2d42e9eb4a1cafbdba6aa348a9157da850e4a557f5bcf0f67c677d",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    }
+   ],
+   "citation_set_state": "complete",
+   "conflicts": [],
+   "limitations": [
+    "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+   ],
+   "missingness": [],
+   "quality_warnings": null,
+   "available_follow_up_capabilities": [
+    {
+     "label": "Show source rows",
+     "query": "show source records",
+     "reason": "Audit the records behind the timeline or movement view.",
+     "template": "source_records"
+    },
+    {
+     "label": "Check relationships",
+     "query": "show relationship network",
+     "reason": "Look for co-observed entities and links.",
+     "template": "relationship_network"
+    }
+   ],
+   "presentation_hints": {
+    "direction": "ltr",
+    "language": "en",
+    "presentation_type": "bounded_records_table",
+    "priority_columns": [
+     "camera_id",
+     "evidence_id",
+     "lane",
+     "latitude",
+     "location",
+     "longitude",
+     "manual_review_required",
+     "observed_at"
+    ],
+    "result_kind": "table"
+   }
+  },
+  "limitations": [
+   "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+  ],
+  "metrics": [
+   {
+    "label": "Template",
+    "source": "planner",
+    "value": "anpr_sightings"
+   },
+   {
+    "label": "Route",
+    "source": "planner",
+    "value": "records_sql"
+   },
+   {
+    "label": "Planner Confidence",
+    "source": "planner",
+    "value": 0.74
+   },
+   {
+    "label": "Display Rows",
+    "source": "records_sql",
+    "value": 20
+   },
+   {
+    "label": "Records Row Count",
+    "source": "records_sql",
+    "value": 20
+   },
+   {
+    "label": "Evidence Count",
+    "source": "kb_rag",
+    "value": null
+   },
+   {
+    "label": "Provenance Items",
+    "source": "records_sql+kb_rag",
+    "value": 20
+   }
+  ],
+  "narrative": {
+   "contract_version": "forensics.narrative/v1",
+   "locale": "en",
+   "direction": "ltr",
+   "status": "deterministic",
+   "direct_answer": "Retrieved exact ANPR observations with canonical evidence, version, row, and hash provenance.",
+   "key_findings": [
+    {
+     "text": "Retrieved exact ANPR observations with canonical evidence, version, row, and hash provenance.",
+     "claim_type": "direct_answer",
+     "fact_refs": [
+      "F1"
+     ],
+     "citation_refs": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20"
+     ]
+    },
+    {
+     "text": "Retrieved exact ANPR observations with canonical evidence, version, row, and hash provenance.",
+     "claim_type": "deterministic_fact",
+     "fact_refs": [
+      "F2"
+     ],
+     "citation_refs": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20"
+     ]
+    },
+    {
+     "text": "Structured records row count computed.",
+     "claim_type": "deterministic_fact",
+     "fact_refs": [
+      "F3"
+     ],
+     "citation_refs": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20"
+     ]
+    },
+    {
+     "text": "Template: anpr_sightings",
+     "claim_type": "metric",
+     "fact_refs": [
+      "F4"
+     ],
+     "citation_refs": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20"
+     ]
+    },
+    {
+     "text": "Route: records_sql",
+     "claim_type": "metric",
+     "fact_refs": [
+      "F5"
+     ],
+     "citation_refs": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20"
+     ]
+    }
+   ],
+   "comparisons": [],
+   "relationship_summary": [],
+   "limitations": [
+    "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+   ],
+   "suggested_questions": [
+    "show source records",
+    "show relationship network"
+   ],
+   "fact_refs": [
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6",
+    "F7",
+    "F8",
+    "F9"
+   ],
+   "citation_refs": [
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "C5",
+    "C6",
+    "C7",
+    "C8",
+    "C9",
+    "C10",
+    "C11",
+    "C12",
+    "C13",
+    "C14",
+    "C15",
+    "C16",
+    "C17",
+    "C18",
+    "C19",
+    "C20"
+   ],
+   "fallback": true
+  },
+  "operation": {
+   "family_id": "anpr_vehicles",
+   "operation_id": "anpr.sightings",
+   "output_description": "Exact cited sightings; target is optional for a bounded case-wide preview.",
+   "source_access": "records",
+   "template": "anpr_sightings"
+  },
+  "plan_validation": {
+   "contract_version": "forensics.plan-validation/v1",
+   "plan_id": "f2c12abd-137a-4718-a886-661827fab4c3:plan",
+   "valid": true,
+   "scope_authorized": true,
+   "capabilities_ready": true,
+   "dependencies_valid": true,
+   "budget_accepted": true,
+   "authority_preserved": true,
+   "estimated_cost_class": "direct_operation",
+   "issues": []
+  },
+  "processing_state": "",
+  "proof_state": {
+   "citations": "complete",
+   "rows": "complete"
+  },
+  "provenance": [
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "record_type": null,
+    "row_hash": "185124fd7a17681234c1fe2ddcb06cbcb4556577a0fa7e3dea5ad983c389978f",
+    "row_number": 2,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-07-14T06:00:00Z",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "record_type": null,
+    "row_hash": "307a11eef1ba6eaaf4d3e645c0c70b09e969fd72e0052cd4b077b385b7ab5883",
+    "row_number": 4,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-07-14T06:06:00Z",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "record_type": null,
+    "row_hash": "ad24686c2607e7964d2e1252859c1cb2b572d08e9c87b0c28ad352b9dc550513",
+    "row_number": 3,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-07-14T06:07:00Z",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "record_type": null,
+    "row_hash": "f7f08b76e7ada9b77c7e86819c62bfe7646216491f74da6fe039d2a4c70df00a",
+    "row_number": 7,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-07-14T06:15:00Z",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "record_type": null,
+    "row_hash": "d6dc92b1e1965be74138af8334307afb1d3a19a51e897e12f27823b0eefdc933",
+    "row_number": 8,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-07-14T06:18:00Z",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "record_type": null,
+    "row_hash": "195446ece84e86a6943b158079cd2a4fbda09e2177515c554250cc7f81c408dc",
+    "row_number": 6,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-07-14T06:20:00Z",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "record_type": null,
+    "row_hash": "155e34226e7bff4fbbe2acad6ba867d39f411239f599180db56b493af6c2c5b7",
+    "row_number": 5,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-07-14T06:27:00Z",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "record_type": null,
+    "row_hash": "ca851d2a790d71d4ffa11033621e12a480a079c6a557d108ac2506e849a211c8",
+    "row_number": 11,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-07-14T06:27:00Z",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "record_type": null,
+    "row_hash": "986502312242bec1ccfd5274bcc432b26612bb4cdceed31e841e53dc4c207d92",
+    "row_number": 9,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-07-14T06:28:00Z",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "record_type": null,
+    "row_hash": "497bef013e27e7344d6ffd01349d6d611a46d0c3391c6aaf68d26e7881b72f10",
+    "row_number": 12,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-07-14T06:30:00Z",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "record_type": null,
+    "row_hash": "9cdd28512fab32c8d153cc0ddc5e7dd15c45a1fe49116c40b7f14c50a429e6df",
+    "row_number": 20,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-07-14T06:36:00Z",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "record_type": null,
+    "row_hash": "5ea56ecb874fb5400c43e40362e397cb1767c3768073ed25ec718719c79223e0",
+    "row_number": 10,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-07-14T06:40:00Z",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "record_type": null,
+    "row_hash": "ef2a8e697b50cf21ddf12377e278d010adf4f99162150adae991ac37d0758186",
+    "row_number": 18,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-07-14T06:48:00Z",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "record_type": null,
+    "row_hash": "5bc68326e2c18d88660173182825a1d92698b573eceb6cbc2fca0842bae53505",
+    "row_number": 16,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-07-14T06:56:00Z",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "record_type": null,
+    "row_hash": "b1433d3292334e92ca0c11f41100e36e8c64a0b9f235290e0d84102a0d19ba8d",
+    "row_number": 15,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-07-14T07:05:00Z",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "record_type": null,
+    "row_hash": "7cfb43105e7ca31c2562579f1e4c881c6e5ed6d7692ecf322f77ffd96caa46c6",
+    "row_number": 17,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-07-14T07:15:00Z",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "record_type": null,
+    "row_hash": "5c7a6d7d1dfb0c1a779dba2b6f2511b23a113a38ab96aa0812cce4009107a830",
+    "row_number": 14,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-07-14T07:24:00Z",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "record_type": null,
+    "row_hash": "18a6119afa9a7256781d5b00f7a03f1c522be145bf5dc185917da987ef63dd57",
+    "row_number": 13,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-07-14T07:50:00Z",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "record_type": null,
+    "row_hash": "44663b1d924b8437d15f0db03b9a8ad585a1269ba59a25c311bfc598b3dc2df5",
+    "row_number": 39,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-07-14T07:51:00Z",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+    "record_type": null,
+    "row_hash": "8132b6961a2d42e9eb4a1cafbdba6aa348a9157da850e4a557f5bcf0f67c677d",
+    "row_number": 30,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-07-14T07:52:00Z",
+    "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+   }
+  ],
+  "recommended_actions": [
+   {
+    "label": "Show source rows",
+    "query": "show source records",
+    "reason": "Audit the records behind the timeline or movement view.",
+    "template": "source_records"
+   },
+   {
+    "label": "Check relationships",
+    "query": "show relationship network",
+    "reason": "Look for co-observed entities and links.",
+    "template": "relationship_network"
+   }
+  ],
+  "result_kind": "table",
+  "result_state": "results_present",
+  "row_count": 20,
+  "status": "answered_with_limitations",
+  "summary": "**Deterministic Findings**\n\nRetrieved exact ANPR observations with canonical evidence, version, row, and hash provenance. It returned 20 exact structured result rows.\n\nReview the 1 evidence limit below before using this result in a decision or report.",
+  "synthesis": {
+   "claims": [
+    {
+     "claim": "Retrieved exact ANPR observations with canonical evidence, version, row, and hash provenance.",
+     "source": "Deterministic Fact (SQL)",
+     "template": "anpr_sightings"
+    },
+    {
+     "claim": "Structured records row count computed.",
+     "source": "Deterministic Fact (SQL)",
+     "template": "anpr_sightings",
+     "value": 20
+    }
+   ],
+   "policy": "Claims are labeled by source: deterministic SQL facts are computed from records templates; semantic context comes from Knowledge Base retrieval."
+  },
+  "telemetry": {
+   "request_id": "f2c12abd-137a-4718-a886-661827fab4c3",
+   "db_latency_ms": 164,
+   "kb_latency_ms": 0,
+   "llm_latency_ms": 0,
+   "total_latency_ms": 280,
+   "planner_confidence": 0.74,
+   "execution_path": "records_sql"
+  },
+  "tool_results": [
+   {
+    "contract_version": "forensics.tool-result/v1",
+    "invocation_id": "f2c12abd-137a-4718-a886-661827fab4c3:plan:step-1",
+    "plan_id": "f2c12abd-137a-4718-a886-661827fab4c3:plan",
+    "step_id": "step-1",
+    "operation_id": "anpr.sightings",
+    "result_contract": "forensics.enterprise-response/v1",
+    "execution_status": "completed",
+    "result_state": "results_present",
+    "authority": "deterministic_fact",
+    "fields": {},
+    "facts": [
+     {
+      "id": "step-1:row_count",
+      "value": 20,
+      "authority": "deterministic_derivation",
+      "citation_ids": [
+       "tool-citation-1",
+       "tool-citation-2",
+       "tool-citation-3",
+       "tool-citation-4",
+       "tool-citation-5",
+       "tool-citation-6",
+       "tool-citation-7",
+       "tool-citation-8",
+       "tool-citation-9",
+       "tool-citation-10",
+       "tool-citation-11",
+       "tool-citation-12",
+       "tool-citation-13",
+       "tool-citation-14",
+       "tool-citation-15",
+       "tool-citation-16",
+       "tool-citation-17",
+       "tool-citation-18",
+       "tool-citation-19",
+       "tool-citation-20"
+      ]
+     }
+    ],
+    "observations": [],
+    "rows": [
+     {
+      "camera_id": "CAM-7",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "lane": "3",
+      "latitude": 31.484383,
+      "location": "Model Town",
+      "longitude": 74.321701,
+      "manual_review_required": true,
+      "observed_at": "2026-07-14T06:00:00Z",
+      "ocr_confidence": "0.864",
+      "plate_number": "LHR-2026",
+      "plate_script": "latin",
+      "plate_search_key": "LHR2026",
+      "province": null,
+      "quality_flags": [
+       "province_unconfirmed",
+       "series_rule_version_missing"
+      ],
+      "row_hash": "185124fd7a17681234c1fe2ddcb06cbcb4556577a0fa7e3dea5ad983c389978f",
+      "row_number": 2,
+      "section": "anpr_sightings",
+      "source_file": "seed_anpr.csv",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+     },
+     {
+      "camera_id": "CAM-12",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "lane": "4",
+      "latitude": 31.520356,
+      "location": "Gulberg",
+      "longitude": 74.35754,
+      "manual_review_required": true,
+      "observed_at": "2026-07-14T06:06:00Z",
+      "ocr_confidence": "0.897",
+      "plate_number": "LEA-447",
+      "plate_script": "latin",
+      "plate_search_key": "LEA447",
+      "province": null,
+      "quality_flags": [
+       "province_unconfirmed",
+       "series_rule_version_missing"
+      ],
+      "row_hash": "307a11eef1ba6eaaf4d3e645c0c70b09e969fd72e0052cd4b077b385b7ab5883",
+      "row_number": 4,
+      "section": "anpr_sightings",
+      "source_file": "seed_anpr.csv",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+     },
+     {
+      "camera_id": "CAM-9",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "lane": "3",
+      "latitude": 31.560292,
+      "location": "North Road",
+      "longitude": 74.327779,
+      "manual_review_required": true,
+      "observed_at": "2026-07-14T06:07:00Z",
+      "ocr_confidence": "0.794",
+      "plate_number": "ABC-123",
+      "plate_script": "latin",
+      "plate_search_key": "ABC123",
+      "province": null,
+      "quality_flags": [
+       "low_ocr_confidence",
+       "province_unconfirmed",
+       "series_rule_version_missing"
+      ],
+      "row_hash": "ad24686c2607e7964d2e1252859c1cb2b572d08e9c87b0c28ad352b9dc550513",
+      "row_number": 3,
+      "section": "anpr_sightings",
+      "source_file": "seed_anpr.csv",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+     },
+     {
+      "camera_id": "CAM-12",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "lane": "4",
+      "latitude": 31.521832,
+      "location": "Gulberg",
+      "longitude": 74.356927,
+      "manual_review_required": true,
+      "observed_at": "2026-07-14T06:15:00Z",
+      "ocr_confidence": "0.966",
+      "plate_number": "XYZ-789",
+      "plate_script": "latin",
+      "plate_search_key": "XYZ789",
+      "province": null,
+      "quality_flags": [
+       "province_unconfirmed",
+       "series_rule_version_missing"
+      ],
+      "row_hash": "f7f08b76e7ada9b77c7e86819c62bfe7646216491f74da6fe039d2a4c70df00a",
+      "row_number": 7,
+      "section": "anpr_sightings",
+      "source_file": "seed_anpr.csv",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+     },
+     {
+      "camera_id": "CAM-9",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "lane": "1",
+      "latitude": 31.502831,
+      "location": "Gate 4",
+      "longitude": 74.352974,
+      "manual_review_required": true,
+      "observed_at": "2026-07-14T06:18:00Z",
+      "ocr_confidence": "0.752",
+      "plate_number": "ABC-123",
+      "plate_script": "latin",
+      "plate_search_key": "ABC123",
+      "province": null,
+      "quality_flags": [
+       "low_ocr_confidence",
+       "province_unconfirmed",
+       "series_rule_version_missing"
+      ],
+      "row_hash": "d6dc92b1e1965be74138af8334307afb1d3a19a51e897e12f27823b0eefdc933",
+      "row_number": 8,
+      "section": "anpr_sightings",
+      "source_file": "seed_anpr.csv",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+     },
+     {
+      "camera_id": "CAM-7",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "lane": "4",
+      "latitude": 31.521508,
+      "location": "Gulberg",
+      "longitude": 74.35797,
+      "manual_review_required": true,
+      "observed_at": "2026-07-14T06:20:00Z",
+      "ocr_confidence": "0.797",
+      "plate_number": "ABC-123",
+      "plate_script": "latin",
+      "plate_search_key": "ABC123",
+      "province": null,
+      "quality_flags": [
+       "low_ocr_confidence",
+       "province_unconfirmed",
+       "series_rule_version_missing"
+      ],
+      "row_hash": "195446ece84e86a6943b158079cd2a4fbda09e2177515c554250cc7f81c408dc",
+      "row_number": 6,
+      "section": "anpr_sightings",
+      "source_file": "seed_anpr.csv",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+     },
+     {
+      "camera_id": "CAM-7",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "lane": "1",
+      "latitude": 31.557655,
+      "location": "North Road",
+      "longitude": 74.328968,
+      "manual_review_required": true,
+      "observed_at": "2026-07-14T06:27:00Z",
+      "ocr_confidence": "0.773",
+      "plate_number": "KHI-777",
+      "plate_script": "latin",
+      "plate_search_key": "KHI777",
+      "province": null,
+      "quality_flags": [
+       "low_ocr_confidence",
+       "province_unconfirmed",
+       "series_rule_version_missing"
+      ],
+      "row_hash": "155e34226e7bff4fbbe2acad6ba867d39f411239f599180db56b493af6c2c5b7",
+      "row_number": 5,
+      "section": "anpr_sightings",
+      "source_file": "seed_anpr.csv",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+     },
+     {
+      "camera_id": "CAM-12",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "lane": "3",
+      "latitude": 31.482155,
+      "location": "Model Town",
+      "longitude": 74.323411,
+      "manual_review_required": true,
+      "observed_at": "2026-07-14T06:27:00Z",
+      "ocr_confidence": "0.775",
+      "plate_number": "LEA-447",
+      "plate_script": "latin",
+      "plate_search_key": "LEA447",
+      "province": null,
+      "quality_flags": [
+       "low_ocr_confidence",
+       "province_unconfirmed",
+       "series_rule_version_missing"
+      ],
+      "row_hash": "ca851d2a790d71d4ffa11033621e12a480a079c6a557d108ac2506e849a211c8",
+      "row_number": 11,
+      "section": "anpr_sightings",
+      "source_file": "seed_anpr.csv",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+     },
+     {
+      "camera_id": "CAM-12",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "lane": "3",
+      "latitude": 31.519392,
+      "location": "Gulberg",
+      "longitude": 74.359543,
+      "manual_review_required": true,
+      "observed_at": "2026-07-14T06:28:00Z",
+      "ocr_confidence": "0.973",
+      "plate_number": "ABC-123",
+      "plate_script": "latin",
+      "plate_search_key": "ABC123",
+      "province": null,
+      "quality_flags": [
+       "province_unconfirmed",
+       "series_rule_version_missing"
+      ],
+      "row_hash": "986502312242bec1ccfd5274bcc432b26612bb4cdceed31e841e53dc4c207d92",
+      "row_number": 9,
+      "section": "anpr_sightings",
+      "source_file": "seed_anpr.csv",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+     },
+     {
+      "camera_id": "CAM-9",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "lane": "2",
+      "latitude": 31.522091,
+      "location": "Gulberg",
+      "longitude": 74.359248,
+      "manual_review_required": true,
+      "observed_at": "2026-07-14T06:30:00Z",
+      "ocr_confidence": "0.756",
+      "plate_number": "ABC-123",
+      "plate_script": "latin",
+      "plate_search_key": "ABC123",
+      "province": null,
+      "quality_flags": [
+       "low_ocr_confidence",
+       "province_unconfirmed",
+       "series_rule_version_missing"
+      ],
+      "row_hash": "497bef013e27e7344d6ffd01349d6d611a46d0c3391c6aaf68d26e7881b72f10",
+      "row_number": 12,
+      "section": "anpr_sightings",
+      "source_file": "seed_anpr.csv",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+     },
+     {
+      "camera_id": "CAM-9",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "lane": "4",
+      "latitude": 31.499709,
+      "location": "Gate 4",
+      "longitude": 74.350285,
+      "manual_review_required": true,
+      "observed_at": "2026-07-14T06:36:00Z",
+      "ocr_confidence": "0.874",
+      "plate_number": "ABC-123",
+      "plate_script": "latin",
+      "plate_search_key": "ABC123",
+      "province": null,
+      "quality_flags": [
+       "province_unconfirmed",
+       "series_rule_version_missing"
+      ],
+      "row_hash": "9cdd28512fab32c8d153cc0ddc5e7dd15c45a1fe49116c40b7f14c50a429e6df",
+      "row_number": 20,
+      "section": "anpr_sightings",
+      "source_file": "seed_anpr.csv",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+     },
+     {
+      "camera_id": "CAM-7",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "lane": "2",
+      "latitude": 31.499893,
+      "location": "Gate 4",
+      "longitude": 74.35086,
+      "manual_review_required": true,
+      "observed_at": "2026-07-14T06:40:00Z",
+      "ocr_confidence": "0.764",
+      "plate_number": "XYZ-789",
+      "plate_script": "latin",
+      "plate_search_key": "XYZ789",
+      "province": null,
+      "quality_flags": [
+       "low_ocr_confidence",
+       "province_unconfirmed",
+       "series_rule_version_missing"
+      ],
+      "row_hash": "5ea56ecb874fb5400c43e40362e397cb1767c3768073ed25ec718719c79223e0",
+      "row_number": 10,
+      "section": "anpr_sightings",
+      "source_file": "seed_anpr.csv",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+     },
+     {
+      "camera_id": "CAM-9",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "lane": "2",
+      "latitude": 31.468841,
+      "location": "DHA Phase 5",
+      "longitude": 74.410395,
+      "manual_review_required": true,
+      "observed_at": "2026-07-14T06:48:00Z",
+      "ocr_confidence": "0.84",
+      "plate_number": "ICT-404",
+      "plate_script": "latin",
+      "plate_search_key": "ICT404",
+      "province": null,
+      "quality_flags": [
+       "low_ocr_confidence",
+       "province_unconfirmed",
+       "series_rule_version_missing"
+      ],
+      "row_hash": "ef2a8e697b50cf21ddf12377e278d010adf4f99162150adae991ac37d0758186",
+      "row_number": 18,
+      "section": "anpr_sightings",
+      "source_file": "seed_anpr.csv",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+     },
+     {
+      "camera_id": "CAM-7",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "lane": "1",
+      "latitude": 31.557516,
+      "location": "North Road",
+      "longitude": 74.327763,
+      "manual_review_required": true,
+      "observed_at": "2026-07-14T06:56:00Z",
+      "ocr_confidence": "0.95",
+      "plate_number": "XYZ-789",
+      "plate_script": "latin",
+      "plate_search_key": "XYZ789",
+      "province": null,
+      "quality_flags": [
+       "province_unconfirmed",
+       "series_rule_version_missing"
+      ],
+      "row_hash": "5bc68326e2c18d88660173182825a1d92698b573eceb6cbc2fca0842bae53505",
+      "row_number": 16,
+      "section": "anpr_sightings",
+      "source_file": "seed_anpr.csv",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+     },
+     {
+      "camera_id": "CAM-7",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "lane": "3",
+      "latitude": 31.521974,
+      "location": "Gulberg",
+      "longitude": 74.357244,
+      "manual_review_required": true,
+      "observed_at": "2026-07-14T07:05:00Z",
+      "ocr_confidence": "0.901",
+      "plate_number": "ICT-404",
+      "plate_script": "latin",
+      "plate_search_key": "ICT404",
+      "province": null,
+      "quality_flags": [
+       "province_unconfirmed",
+       "series_rule_version_missing"
+      ],
+      "row_hash": "b1433d3292334e92ca0c11f41100e36e8c64a0b9f235290e0d84102a0d19ba8d",
+      "row_number": 15,
+      "section": "anpr_sightings",
+      "source_file": "seed_anpr.csv",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+     },
+     {
+      "camera_id": "CAM-21",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "lane": "3",
+      "latitude": 31.468716,
+      "location": "DHA Phase 5",
+      "longitude": 74.408446,
+      "manual_review_required": true,
+      "observed_at": "2026-07-14T07:15:00Z",
+      "ocr_confidence": "0.792",
+      "plate_number": "XYZ-789",
+      "plate_script": "latin",
+      "plate_search_key": "XYZ789",
+      "province": null,
+      "quality_flags": [
+       "low_ocr_confidence",
+       "province_unconfirmed",
+       "series_rule_version_missing"
+      ],
+      "row_hash": "7cfb43105e7ca31c2562579f1e4c881c6e5ed6d7692ecf322f77ffd96caa46c6",
+      "row_number": 17,
+      "section": "anpr_sightings",
+      "source_file": "seed_anpr.csv",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+     },
+     {
+      "camera_id": "CAM-7",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "lane": "1",
+      "latitude": 31.467942,
+      "location": "DHA Phase 5",
+      "longitude": 74.410672,
+      "manual_review_required": true,
+      "observed_at": "2026-07-14T07:24:00Z",
+      "ocr_confidence": "0.956",
+      "plate_number": "LEA-447",
+      "plate_script": "latin",
+      "plate_search_key": "LEA447",
+      "province": null,
+      "quality_flags": [
+       "province_unconfirmed",
+       "series_rule_version_missing"
+      ],
+      "row_hash": "5c7a6d7d1dfb0c1a779dba2b6f2511b23a113a38ab96aa0812cce4009107a830",
+      "row_number": 14,
+      "section": "anpr_sightings",
+      "source_file": "seed_anpr.csv",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+     },
+     {
+      "camera_id": "CAM-9",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "lane": "3",
+      "latitude": 31.4997,
+      "location": "Gate 4",
+      "longitude": 74.350168,
+      "manual_review_required": true,
+      "observed_at": "2026-07-14T07:50:00Z",
+      "ocr_confidence": "0.798",
+      "plate_number": "LHR-2026",
+      "plate_script": "latin",
+      "plate_search_key": "LHR2026",
+      "province": null,
+      "quality_flags": [
+       "low_ocr_confidence",
+       "province_unconfirmed",
+       "series_rule_version_missing"
+      ],
+      "row_hash": "18a6119afa9a7256781d5b00f7a03f1c522be145bf5dc185917da987ef63dd57",
+      "row_number": 13,
+      "section": "anpr_sightings",
+      "source_file": "seed_anpr.csv",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+     },
+     {
+      "camera_id": "CAM-12",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "lane": "2",
+      "latitude": 31.519104,
+      "location": "Gulberg",
+      "longitude": 74.357342,
+      "manual_review_required": true,
+      "observed_at": "2026-07-14T07:51:00Z",
+      "ocr_confidence": "0.961",
+      "plate_number": "XYZ-789",
+      "plate_script": "latin",
+      "plate_search_key": "XYZ789",
+      "province": null,
+      "quality_flags": [
+       "province_unconfirmed",
+       "series_rule_version_missing"
+      ],
+      "row_hash": "44663b1d924b8437d15f0db03b9a8ad585a1269ba59a25c311bfc598b3dc2df5",
+      "row_number": 39,
+      "section": "anpr_sightings",
+      "source_file": "seed_anpr.csv",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+     },
+     {
+      "camera_id": "CAM-7",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "lane": "3",
+      "latitude": 31.50074,
+      "location": "Gate 4",
+      "longitude": 74.352979,
+      "manual_review_required": true,
+      "observed_at": "2026-07-14T07:52:00Z",
+      "ocr_confidence": "0.867",
+      "plate_number": "ABC-123",
+      "plate_script": "latin",
+      "plate_search_key": "ABC123",
+      "province": null,
+      "quality_flags": [
+       "province_unconfirmed",
+       "series_rule_version_missing"
+      ],
+      "row_hash": "8132b6961a2d42e9eb4a1cafbdba6aa348a9157da850e4a557f5bcf0f67c677d",
+      "row_number": 30,
+      "section": "anpr_sightings",
+      "source_file": "seed_anpr.csv",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+     }
+    ],
+    "citations": [
+     {
+      "id": "tool-citation-1",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+      "locator": "row_number:2,row_hash:185124fd7a17681234c1fe2ddcb06cbcb4556577a0fa7e3dea5ad983c389978f,timestamp:2026-07-14T06:00:00Z",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-2",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+      "locator": "row_number:4,row_hash:307a11eef1ba6eaaf4d3e645c0c70b09e969fd72e0052cd4b077b385b7ab5883,timestamp:2026-07-14T06:06:00Z",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-3",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+      "locator": "row_number:3,row_hash:ad24686c2607e7964d2e1252859c1cb2b572d08e9c87b0c28ad352b9dc550513,timestamp:2026-07-14T06:07:00Z",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-4",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+      "locator": "row_number:7,row_hash:f7f08b76e7ada9b77c7e86819c62bfe7646216491f74da6fe039d2a4c70df00a,timestamp:2026-07-14T06:15:00Z",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-5",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+      "locator": "row_number:8,row_hash:d6dc92b1e1965be74138af8334307afb1d3a19a51e897e12f27823b0eefdc933,timestamp:2026-07-14T06:18:00Z",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-6",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+      "locator": "row_number:6,row_hash:195446ece84e86a6943b158079cd2a4fbda09e2177515c554250cc7f81c408dc,timestamp:2026-07-14T06:20:00Z",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-7",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+      "locator": "row_number:5,row_hash:155e34226e7bff4fbbe2acad6ba867d39f411239f599180db56b493af6c2c5b7,timestamp:2026-07-14T06:27:00Z",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-8",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+      "locator": "row_number:11,row_hash:ca851d2a790d71d4ffa11033621e12a480a079c6a557d108ac2506e849a211c8,timestamp:2026-07-14T06:27:00Z",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-9",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+      "locator": "row_number:9,row_hash:986502312242bec1ccfd5274bcc432b26612bb4cdceed31e841e53dc4c207d92,timestamp:2026-07-14T06:28:00Z",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-10",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+      "locator": "row_number:12,row_hash:497bef013e27e7344d6ffd01349d6d611a46d0c3391c6aaf68d26e7881b72f10,timestamp:2026-07-14T06:30:00Z",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-11",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+      "locator": "row_number:20,row_hash:9cdd28512fab32c8d153cc0ddc5e7dd15c45a1fe49116c40b7f14c50a429e6df,timestamp:2026-07-14T06:36:00Z",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-12",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+      "locator": "row_number:10,row_hash:5ea56ecb874fb5400c43e40362e397cb1767c3768073ed25ec718719c79223e0,timestamp:2026-07-14T06:40:00Z",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-13",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+      "locator": "row_number:18,row_hash:ef2a8e697b50cf21ddf12377e278d010adf4f99162150adae991ac37d0758186,timestamp:2026-07-14T06:48:00Z",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-14",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+      "locator": "row_number:16,row_hash:5bc68326e2c18d88660173182825a1d92698b573eceb6cbc2fca0842bae53505,timestamp:2026-07-14T06:56:00Z",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-15",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+      "locator": "row_number:15,row_hash:b1433d3292334e92ca0c11f41100e36e8c64a0b9f235290e0d84102a0d19ba8d,timestamp:2026-07-14T07:05:00Z",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-16",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+      "locator": "row_number:17,row_hash:7cfb43105e7ca31c2562579f1e4c881c6e5ed6d7692ecf322f77ffd96caa46c6,timestamp:2026-07-14T07:15:00Z",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-17",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+      "locator": "row_number:14,row_hash:5c7a6d7d1dfb0c1a779dba2b6f2511b23a113a38ab96aa0812cce4009107a830,timestamp:2026-07-14T07:24:00Z",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-18",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+      "locator": "row_number:13,row_hash:18a6119afa9a7256781d5b00f7a03f1c522be145bf5dc185917da987ef63dd57,timestamp:2026-07-14T07:50:00Z",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-19",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+      "locator": "row_number:39,row_hash:44663b1d924b8437d15f0db03b9a8ad585a1269ba59a25c311bfc598b3dc2df5,timestamp:2026-07-14T07:51:00Z",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-20",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+      "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c",
+      "locator": "row_number:30,row_hash:8132b6961a2d42e9eb4a1cafbdba6aa348a9157da850e4a557f5bcf0f67c677d,timestamp:2026-07-14T07:52:00Z",
+      "source_name": "seed_anpr.csv"
+     }
+    ],
+    "limitations": [
+     "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+    ],
+    "row_count": 20,
+    "truncated": false,
+    "duration_ms": 280
+   }
+  ],
+  "visualizations": [
+   {
+    "id": "anpr-sighting-timeline",
+    "type": "timeline",
+    "title": "ANPR sighting timeline",
+    "spec": {
+     "label_fields": [
+      "plate_number",
+      "camera_id",
+      "location"
+     ],
+     "rows": [
+      {
+       "camera_id": "CAM-7",
+       "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+       "lane": "3",
+       "latitude": 31.484383,
+       "location": "Model Town",
+       "longitude": 74.321701,
+       "manual_review_required": true,
+       "observed_at": "2026-07-14T06:00:00Z",
+       "ocr_confidence": "0.864",
+       "plate_number": "LHR-2026",
+       "plate_script": "latin",
+       "plate_search_key": "LHR2026",
+       "province": null,
+       "quality_flags": [
+        "province_unconfirmed",
+        "series_rule_version_missing"
+       ],
+       "row_hash": "185124fd7a17681234c1fe2ddcb06cbcb4556577a0fa7e3dea5ad983c389978f",
+       "row_number": 2,
+       "section": "anpr_sightings",
+       "source_file": "seed_anpr.csv",
+       "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+      },
+      {
+       "camera_id": "CAM-12",
+       "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+       "lane": "4",
+       "latitude": 31.520356,
+       "location": "Gulberg",
+       "longitude": 74.35754,
+       "manual_review_required": true,
+       "observed_at": "2026-07-14T06:06:00Z",
+       "ocr_confidence": "0.897",
+       "plate_number": "LEA-447",
+       "plate_script": "latin",
+       "plate_search_key": "LEA447",
+       "province": null,
+       "quality_flags": [
+        "province_unconfirmed",
+        "series_rule_version_missing"
+       ],
+       "row_hash": "307a11eef1ba6eaaf4d3e645c0c70b09e969fd72e0052cd4b077b385b7ab5883",
+       "row_number": 4,
+       "section": "anpr_sightings",
+       "source_file": "seed_anpr.csv",
+       "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+      },
+      {
+       "camera_id": "CAM-9",
+       "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+       "lane": "3",
+       "latitude": 31.560292,
+       "location": "North Road",
+       "longitude": 74.327779,
+       "manual_review_required": true,
+       "observed_at": "2026-07-14T06:07:00Z",
+       "ocr_confidence": "0.794",
+       "plate_number": "ABC-123",
+       "plate_script": "latin",
+       "plate_search_key": "ABC123",
+       "province": null,
+       "quality_flags": [
+        "low_ocr_confidence",
+        "province_unconfirmed",
+        "series_rule_version_missing"
+       ],
+       "row_hash": "ad24686c2607e7964d2e1252859c1cb2b572d08e9c87b0c28ad352b9dc550513",
+       "row_number": 3,
+       "section": "anpr_sightings",
+       "source_file": "seed_anpr.csv",
+       "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+      },
+      {
+       "camera_id": "CAM-12",
+       "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+       "lane": "4",
+       "latitude": 31.521832,
+       "location": "Gulberg",
+       "longitude": 74.356927,
+       "manual_review_required": true,
+       "observed_at": "2026-07-14T06:15:00Z",
+       "ocr_confidence": "0.966",
+       "plate_number": "XYZ-789",
+       "plate_script": "latin",
+       "plate_search_key": "XYZ789",
+       "province": null,
+       "quality_flags": [
+        "province_unconfirmed",
+        "series_rule_version_missing"
+       ],
+       "row_hash": "f7f08b76e7ada9b77c7e86819c62bfe7646216491f74da6fe039d2a4c70df00a",
+       "row_number": 7,
+       "section": "anpr_sightings",
+       "source_file": "seed_anpr.csv",
+       "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+      },
+      {
+       "camera_id": "CAM-9",
+       "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+       "lane": "1",
+       "latitude": 31.502831,
+       "location": "Gate 4",
+       "longitude": 74.352974,
+       "manual_review_required": true,
+       "observed_at": "2026-07-14T06:18:00Z",
+       "ocr_confidence": "0.752",
+       "plate_number": "ABC-123",
+       "plate_script": "latin",
+       "plate_search_key": "ABC123",
+       "province": null,
+       "quality_flags": [
+        "low_ocr_confidence",
+        "province_unconfirmed",
+        "series_rule_version_missing"
+       ],
+       "row_hash": "d6dc92b1e1965be74138af8334307afb1d3a19a51e897e12f27823b0eefdc933",
+       "row_number": 8,
+       "section": "anpr_sightings",
+       "source_file": "seed_anpr.csv",
+       "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+      },
+      {
+       "camera_id": "CAM-7",
+       "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+       "lane": "4",
+       "latitude": 31.521508,
+       "location": "Gulberg",
+       "longitude": 74.35797,
+       "manual_review_required": true,
+       "observed_at": "2026-07-14T06:20:00Z",
+       "ocr_confidence": "0.797",
+       "plate_number": "ABC-123",
+       "plate_script": "latin",
+       "plate_search_key": "ABC123",
+       "province": null,
+       "quality_flags": [
+        "low_ocr_confidence",
+        "province_unconfirmed",
+        "series_rule_version_missing"
+       ],
+       "row_hash": "195446ece84e86a6943b158079cd2a4fbda09e2177515c554250cc7f81c408dc",
+       "row_number": 6,
+       "section": "anpr_sightings",
+       "source_file": "seed_anpr.csv",
+       "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+      },
+      {
+       "camera_id": "CAM-7",
+       "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+       "lane": "1",
+       "latitude": 31.557655,
+       "location": "North Road",
+       "longitude": 74.328968,
+       "manual_review_required": true,
+       "observed_at": "2026-07-14T06:27:00Z",
+       "ocr_confidence": "0.773",
+       "plate_number": "KHI-777",
+       "plate_script": "latin",
+       "plate_search_key": "KHI777",
+       "province": null,
+       "quality_flags": [
+        "low_ocr_confidence",
+        "province_unconfirmed",
+        "series_rule_version_missing"
+       ],
+       "row_hash": "155e34226e7bff4fbbe2acad6ba867d39f411239f599180db56b493af6c2c5b7",
+       "row_number": 5,
+       "section": "anpr_sightings",
+       "source_file": "seed_anpr.csv",
+       "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+      },
+      {
+       "camera_id": "CAM-12",
+       "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+       "lane": "3",
+       "latitude": 31.482155,
+       "location": "Model Town",
+       "longitude": 74.323411,
+       "manual_review_required": true,
+       "observed_at": "2026-07-14T06:27:00Z",
+       "ocr_confidence": "0.775",
+       "plate_number": "LEA-447",
+       "plate_script": "latin",
+       "plate_search_key": "LEA447",
+       "province": null,
+       "quality_flags": [
+        "low_ocr_confidence",
+        "province_unconfirmed",
+        "series_rule_version_missing"
+       ],
+       "row_hash": "ca851d2a790d71d4ffa11033621e12a480a079c6a557d108ac2506e849a211c8",
+       "row_number": 11,
+       "section": "anpr_sightings",
+       "source_file": "seed_anpr.csv",
+       "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+      },
+      {
+       "camera_id": "CAM-12",
+       "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+       "lane": "3",
+       "latitude": 31.519392,
+       "location": "Gulberg",
+       "longitude": 74.359543,
+       "manual_review_required": true,
+       "observed_at": "2026-07-14T06:28:00Z",
+       "ocr_confidence": "0.973",
+       "plate_number": "ABC-123",
+       "plate_script": "latin",
+       "plate_search_key": "ABC123",
+       "province": null,
+       "quality_flags": [
+        "province_unconfirmed",
+        "series_rule_version_missing"
+       ],
+       "row_hash": "986502312242bec1ccfd5274bcc432b26612bb4cdceed31e841e53dc4c207d92",
+       "row_number": 9,
+       "section": "anpr_sightings",
+       "source_file": "seed_anpr.csv",
+       "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+      },
+      {
+       "camera_id": "CAM-9",
+       "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+       "lane": "2",
+       "latitude": 31.522091,
+       "location": "Gulberg",
+       "longitude": 74.359248,
+       "manual_review_required": true,
+       "observed_at": "2026-07-14T06:30:00Z",
+       "ocr_confidence": "0.756",
+       "plate_number": "ABC-123",
+       "plate_script": "latin",
+       "plate_search_key": "ABC123",
+       "province": null,
+       "quality_flags": [
+        "low_ocr_confidence",
+        "province_unconfirmed",
+        "series_rule_version_missing"
+       ],
+       "row_hash": "497bef013e27e7344d6ffd01349d6d611a46d0c3391c6aaf68d26e7881b72f10",
+       "row_number": 12,
+       "section": "anpr_sightings",
+       "source_file": "seed_anpr.csv",
+       "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+      },
+      {
+       "camera_id": "CAM-9",
+       "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+       "lane": "4",
+       "latitude": 31.499709,
+       "location": "Gate 4",
+       "longitude": 74.350285,
+       "manual_review_required": true,
+       "observed_at": "2026-07-14T06:36:00Z",
+       "ocr_confidence": "0.874",
+       "plate_number": "ABC-123",
+       "plate_script": "latin",
+       "plate_search_key": "ABC123",
+       "province": null,
+       "quality_flags": [
+        "province_unconfirmed",
+        "series_rule_version_missing"
+       ],
+       "row_hash": "9cdd28512fab32c8d153cc0ddc5e7dd15c45a1fe49116c40b7f14c50a429e6df",
+       "row_number": 20,
+       "section": "anpr_sightings",
+       "source_file": "seed_anpr.csv",
+       "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+      },
+      {
+       "camera_id": "CAM-7",
+       "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+       "lane": "2",
+       "latitude": 31.499893,
+       "location": "Gate 4",
+       "longitude": 74.35086,
+       "manual_review_required": true,
+       "observed_at": "2026-07-14T06:40:00Z",
+       "ocr_confidence": "0.764",
+       "plate_number": "XYZ-789",
+       "plate_script": "latin",
+       "plate_search_key": "XYZ789",
+       "province": null,
+       "quality_flags": [
+        "low_ocr_confidence",
+        "province_unconfirmed",
+        "series_rule_version_missing"
+       ],
+       "row_hash": "5ea56ecb874fb5400c43e40362e397cb1767c3768073ed25ec718719c79223e0",
+       "row_number": 10,
+       "section": "anpr_sightings",
+       "source_file": "seed_anpr.csv",
+       "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+      },
+      {
+       "camera_id": "CAM-9",
+       "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+       "lane": "2",
+       "latitude": 31.468841,
+       "location": "DHA Phase 5",
+       "longitude": 74.410395,
+       "manual_review_required": true,
+       "observed_at": "2026-07-14T06:48:00Z",
+       "ocr_confidence": "0.84",
+       "plate_number": "ICT-404",
+       "plate_script": "latin",
+       "plate_search_key": "ICT404",
+       "province": null,
+       "quality_flags": [
+        "low_ocr_confidence",
+        "province_unconfirmed",
+        "series_rule_version_missing"
+       ],
+       "row_hash": "ef2a8e697b50cf21ddf12377e278d010adf4f99162150adae991ac37d0758186",
+       "row_number": 18,
+       "section": "anpr_sightings",
+       "source_file": "seed_anpr.csv",
+       "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+      },
+      {
+       "camera_id": "CAM-7",
+       "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+       "lane": "1",
+       "latitude": 31.557516,
+       "location": "North Road",
+       "longitude": 74.327763,
+       "manual_review_required": true,
+       "observed_at": "2026-07-14T06:56:00Z",
+       "ocr_confidence": "0.95",
+       "plate_number": "XYZ-789",
+       "plate_script": "latin",
+       "plate_search_key": "XYZ789",
+       "province": null,
+       "quality_flags": [
+        "province_unconfirmed",
+        "series_rule_version_missing"
+       ],
+       "row_hash": "5bc68326e2c18d88660173182825a1d92698b573eceb6cbc2fca0842bae53505",
+       "row_number": 16,
+       "section": "anpr_sightings",
+       "source_file": "seed_anpr.csv",
+       "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+      },
+      {
+       "camera_id": "CAM-7",
+       "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+       "lane": "3",
+       "latitude": 31.521974,
+       "location": "Gulberg",
+       "longitude": 74.357244,
+       "manual_review_required": true,
+       "observed_at": "2026-07-14T07:05:00Z",
+       "ocr_confidence": "0.901",
+       "plate_number": "ICT-404",
+       "plate_script": "latin",
+       "plate_search_key": "ICT404",
+       "province": null,
+       "quality_flags": [
+        "province_unconfirmed",
+        "series_rule_version_missing"
+       ],
+       "row_hash": "b1433d3292334e92ca0c11f41100e36e8c64a0b9f235290e0d84102a0d19ba8d",
+       "row_number": 15,
+       "section": "anpr_sightings",
+       "source_file": "seed_anpr.csv",
+       "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+      },
+      {
+       "camera_id": "CAM-21",
+       "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+       "lane": "3",
+       "latitude": 31.468716,
+       "location": "DHA Phase 5",
+       "longitude": 74.408446,
+       "manual_review_required": true,
+       "observed_at": "2026-07-14T07:15:00Z",
+       "ocr_confidence": "0.792",
+       "plate_number": "XYZ-789",
+       "plate_script": "latin",
+       "plate_search_key": "XYZ789",
+       "province": null,
+       "quality_flags": [
+        "low_ocr_confidence",
+        "province_unconfirmed",
+        "series_rule_version_missing"
+       ],
+       "row_hash": "7cfb43105e7ca31c2562579f1e4c881c6e5ed6d7692ecf322f77ffd96caa46c6",
+       "row_number": 17,
+       "section": "anpr_sightings",
+       "source_file": "seed_anpr.csv",
+       "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+      },
+      {
+       "camera_id": "CAM-7",
+       "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+       "lane": "1",
+       "latitude": 31.467942,
+       "location": "DHA Phase 5",
+       "longitude": 74.410672,
+       "manual_review_required": true,
+       "observed_at": "2026-07-14T07:24:00Z",
+       "ocr_confidence": "0.956",
+       "plate_number": "LEA-447",
+       "plate_script": "latin",
+       "plate_search_key": "LEA447",
+       "province": null,
+       "quality_flags": [
+        "province_unconfirmed",
+        "series_rule_version_missing"
+       ],
+       "row_hash": "5c7a6d7d1dfb0c1a779dba2b6f2511b23a113a38ab96aa0812cce4009107a830",
+       "row_number": 14,
+       "section": "anpr_sightings",
+       "source_file": "seed_anpr.csv",
+       "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+      },
+      {
+       "camera_id": "CAM-9",
+       "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+       "lane": "3",
+       "latitude": 31.4997,
+       "location": "Gate 4",
+       "longitude": 74.350168,
+       "manual_review_required": true,
+       "observed_at": "2026-07-14T07:50:00Z",
+       "ocr_confidence": "0.798",
+       "plate_number": "LHR-2026",
+       "plate_script": "latin",
+       "plate_search_key": "LHR2026",
+       "province": null,
+       "quality_flags": [
+        "low_ocr_confidence",
+        "province_unconfirmed",
+        "series_rule_version_missing"
+       ],
+       "row_hash": "18a6119afa9a7256781d5b00f7a03f1c522be145bf5dc185917da987ef63dd57",
+       "row_number": 13,
+       "section": "anpr_sightings",
+       "source_file": "seed_anpr.csv",
+       "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+      },
+      {
+       "camera_id": "CAM-12",
+       "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+       "lane": "2",
+       "latitude": 31.519104,
+       "location": "Gulberg",
+       "longitude": 74.357342,
+       "manual_review_required": true,
+       "observed_at": "2026-07-14T07:51:00Z",
+       "ocr_confidence": "0.961",
+       "plate_number": "XYZ-789",
+       "plate_script": "latin",
+       "plate_search_key": "XYZ789",
+       "province": null,
+       "quality_flags": [
+        "province_unconfirmed",
+        "series_rule_version_missing"
+       ],
+       "row_hash": "44663b1d924b8437d15f0db03b9a8ad585a1269ba59a25c311bfc598b3dc2df5",
+       "row_number": 39,
+       "section": "anpr_sightings",
+       "source_file": "seed_anpr.csv",
+       "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+      },
+      {
+       "camera_id": "CAM-7",
+       "evidence_id": "e5b9c29c-09aa-41ba-8d48-38544fe3b233",
+       "lane": "3",
+       "latitude": 31.50074,
+       "location": "Gate 4",
+       "longitude": 74.352979,
+       "manual_review_required": true,
+       "observed_at": "2026-07-14T07:52:00Z",
+       "ocr_confidence": "0.867",
+       "plate_number": "ABC-123",
+       "plate_script": "latin",
+       "plate_search_key": "ABC123",
+       "province": null,
+       "quality_flags": [
+        "province_unconfirmed",
+        "series_rule_version_missing"
+       ],
+       "row_hash": "8132b6961a2d42e9eb4a1cafbdba6aa348a9157da850e4a557f5bcf0f67c677d",
+       "row_number": 30,
+       "section": "anpr_sightings",
+       "source_file": "seed_anpr.csv",
+       "version_id": "7a6a4951-e9d2-48cf-87d1-bc9a9f48de8c"
+      }
+     ],
+     "time_fields": [
+      "observed_at"
+     ]
+    },
+    "citation_ids": [
+     "citation-1",
+     "citation-2",
+     "citation-3",
+     "citation-4",
+     "citation-5",
+     "citation-6",
+     "citation-7",
+     "citation-8",
+     "citation-9",
+     "citation-10",
+     "citation-11",
+     "citation-12",
+     "citation-13",
+     "citation-14",
+     "citation-15",
+     "citation-16",
+     "citation-17",
+     "citation-18",
+     "citation-19",
+     "citation-20"
+    ]
+   }
+  ]
+ },
+ "telemetry": {
+  "request_id": "f2c12abd-137a-4718-a886-661827fab4c3",
+  "db_latency_ms": 164,
+  "kb_latency_ms": 0,
+  "llm_latency_ms": 0,
+  "total_latency_ms": 280,
+  "planner_confidence": 0.74,
+  "execution_path": "records_sql"
+ },
+ "generated_at": "2026-09-18T06:28:25.865794301Z"
+}

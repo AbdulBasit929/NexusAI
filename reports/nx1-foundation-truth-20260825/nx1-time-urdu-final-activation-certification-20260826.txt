@@ -1,0 +1,212 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260826182515
+Username: ABDULBASIT\sheik
+RunAs User: ABDULBASIT\sheik
+Configuration Name: 
+Machine: ABDULBASIT (Microsoft Windows NT 10.0.22631.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\activate_nexusai_nx1_time_urdu_final.ps1
+Process ID: 15064
+PSVersion: 5.1.22621.6133
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.22621.6133
+BuildVersion: 10.0.22621.6133
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+ASRComposeOverlay=INCLUDED
+
+=== 3. DOCKER READINESS ===
+DockerServerVersion=29.6.2
+
+=== 4. RAM GATE ===
+TotalPhysicalRAMGiB=15.713
+FreePhysicalRAMGiB=7.374
+RequiredFreeRAMGiB=6.000
+RAMGate=PASS
+
+=== 5. REPOSITORY PREFLIGHT ===
+RequiredFiles=PASS
+GitBranch=codex/forensic-hybrid-checkpoint-20260723
+GitHEAD=40717b83510c08db25dc26b9d6674bf46db363ac
+DirtyWorktreeEntries=586
+GitMutation=false
+
+Relevant source hashes:
+
+Path                                                                                                  Hash
+----                                                                                                  ----
+C:\Users\sheik\Workspace\Office\Projects\NexusAI\api\forensic_records\query_language_normalization.go 2DF254F471C826...
+C:\Users\sheik\Workspace\Office\Projects\NexusAI\api\forensic_records\video_anpr.go                   BC38DA01541822...
+C:\Users\sheik\Workspace\Office\Projects\NexusAI\api\forensic_records\mmv2_query_test.go              C486653E8429B0...
+
+
+
+=== 6. COMPOSE VALIDATION ===
+ComposeConfig=PASS
+
+=== 7. CURRENT RUNTIME ===
+ForensicApiContainerBefore=8879e5d6da3ee8ab529c0b4da58fd9b15fa88d4839ebbf2a8e8d9db93629069e
+ForensicApiImageBefore=sha256:0ef44346e74478a8d0775db19350f674a4f7089fefe4f6fd7374cf93d4b3a454
+WorkerContainerBefore=1846f558941f583467976ad8e74a44e9063c8a1a50e870951c7e479ecce3fb66
+NatsContainerBefore=5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04
+PostgresContainerBefore=f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361
+LocalAIContainerBefore=ddfa8e0d4d2c0dc1b14ef112c91ac4bfeb6bb3fb4800ff722aa022ba5c7c0f23
+ForensicApiBefore=RUNNING
+WorkerBefore=RUNNING
+NatsBefore=RUNNING
+PostgresBefore=RUNNING
+LocalAIBefore=RUNNING
+
+=== 8. CURRENT API BASELINE ===
+ExpectedCurrentApiImage=sha256:0ef44346e74478a8d0775db19350f674a4f7089fefe4f6fd7374cf93d4b3a454
+ActualCurrentApiImage=sha256:0ef44346e74478a8d0775db19350f674a4f7089fefe4f6fd7374cf93d4b3a454
+CurrentApiBaseline=PASS
+
+=== 9. RETAINED STATE ===
+RetainedTupleBefore=51|51|64|0|22207|441|47
+ActiveJobs=0
+KnownRetainedBaseline=PASS
+
+=== 10. SOURCE TEST GATE ===
+
+FocusedTimeUrduTests=PASS
+
+FullForensicApiTests=PASS
+
+GoVet=PASS
+
+=== 12. CREATE FRESH ROLLBACK TAG ===
+
+RollbackTag=nexusai/forensic-records-api:rollback-before-nx1-time-urdu-final-20260826
+RollbackImage=sha256:0ef44346e74478a8d0775db19350f674a4f7089fefe4f6fd7374cf93d4b3a454
+RollbackTagVerified=PASS
+
+=== 13. BUILD FORENSIC API ONLY ===
+
+ForensicApiBuild=PASS
+ForensicApiImageBefore=sha256:0ef44346e74478a8d0775db19350f674a4f7089fefe4f6fd7374cf93d4b3a454
+ForensicApiImageBuilt=sha256:d2992062b8f55334d602530eb96cec8289dd714f0ae9523d3b27edebb724b5c5
+BuiltImageVerification=PASS
+
+=== 14. ACTIVATE FORENSIC API ONLY ===
+
+
+=== 15. FORENSIC API HEALTH ===
+HTTP200=http://localhost:8091/healthz
+ForensicApiHealth=PASS
+
+=== 16. VERIFY ACTIVE API IMAGE ===
+ForensicApiContainerAfter=d8ce6868f51d990ae51f95d48637c5b771411a917076262f58a47263a30096af
+ForensicApiImageAfter=sha256:d2992062b8f55334d602530eb96cec8289dd714f0ae9523d3b27edebb724b5c5
+ForensicApiImageActivation=PASS
+
+=== 17. PROTECTED SERVICES ===
+ProtectedServicesPreserved=true
+
+=== 18. RETAINED STATE AFTER DEPLOYMENT ===
+RetainedTupleBefore=51|51|64|0|22207|441|47
+RetainedTupleAfter=51|51|64|0|22207|441|47
+RetainedDataMutated=false
+
+=== 19. LIVE: UUID ONLY ===
+
+
+template    : video_anpr_grouped_timeline
+target      : 50057921-4f1f-4ab8-bab0-47bcdc957822
+Operation   : video.anpr_grouped_timeline
+ResultState : complete_zero_results
+RowCount    : 0
+
+
+
+UUIDOnlyLivePASS=True
+
+=== 20. LIVE: UUID + PLATE ===
+
+
+template    : video_anpr_grouped_timeline
+target      : 50057921-4f1f-4ab8-bab0-47bcdc957822
+Operation   : video.anpr_grouped_timeline
+ResultState : no_match_for_filter
+RowCount    : 0
+
+
+
+UUIDPlateLivePASS=True
+
+=== 21. LIVE: UUID + TIME ===
+UUIDTimeStart10PASS=True
+UUIDTimeEnd30PASS=True
+UUIDTimeLivePASS=True
+
+=== 22. LIVE: UUID + PLATE + TIME ===
+CombinedEvidencePASS=True
+CombinedPlatePASS=True
+CombinedStart10PASS=True
+CombinedEnd30PASS=True
+UUIDPlateTimeLivePASS=True
+
+=== 23. LIVE: POSITIVE ANPR ===
+PositiveANPRLivePASS=True
+
+=== 24. LIVE: NEGATIVE ANPR ===
+NegativeANPRLivePASS=True
+
+=== 25. LIVE: ENGLISH GROUPED VIDEO ===
+EnglishGroupedVideoLivePASS=True
+
+=== 26. LIVE: ROMAN URDU ===
+RomanUrduGroupedVideoLivePASS=True
+
+=== 27. LIVE: NATIVE URDU ===
+UrduTemplate=video_anpr_grouped_timeline
+UrduOperation=video.anpr_grouped_timeline
+NativeUrduGroupedVideoLivePASS=True
+
+=== 28. FINAL PRESERVATION CHECK ===
+FinalRetainedTuple=51|51|64|0|22207|441|47
+ProtectedServicesFinalPASS=True
+RetainedStateFinalPASS=True
+
+============================================================
+NX-1 FINAL LIVE CERTIFICATION
+============================================================
+UUIDOnly=True
+UUIDPlate=True
+UUIDTime=True
+UUIDPlateTime=True
+PositiveANPR=True
+NegativeANPR=True
+EnglishGroupedVideo=True
+RomanUrduGroupedVideo=True
+NativeUrduGroupedVideo=True
+ProtectedServices=True
+RetainedState=True
+
+============================================================
+NX-1 FINAL STATUS: CLOSED
+============================================================
+NX1TimeUrduActivation=PASS
+NX1FinalLiveCertification=PASS
+P1_1=CLOSED
+P1_2=CLOSED
+P1_3=CLOSED
+OpenP0=0
+OpenFoundationP1Source=0
+OpenFoundationP1Live=0
+ProtectedServicesPreserved=true
+RetainedDataMutated=false
+ModelsChanged=false
+ProfilesChanged=false
+BackendsChanged=false
+NamedVolumesPreserved=true
+DatabaseMigration=false
+NX1FinalStatus=CLOSED
+NextPhase=NX-UX1
+**********************
+Windows PowerShell transcript end
+End time: 20260826182655
+**********************

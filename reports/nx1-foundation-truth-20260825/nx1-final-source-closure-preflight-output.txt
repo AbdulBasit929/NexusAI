@@ -1,0 +1,149 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260825161717
+Username: ABDULBASIT\sheik
+RunAs User: ABDULBASIT\sheik
+Configuration Name: 
+Machine: ABDULBASIT (Microsoft Windows NT 10.0.22631.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\activate_nexusai_nx1_foundation_truth.ps1 -PreflightOnly
+Process ID: 22504
+PSVersion: 5.1.22621.6133
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.22621.6133
+BuildVersion: 10.0.22621.6133
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+=== 1 REPOSITORY AND DOCKER DESKTOP ===
+Repository=C:\Users\sheik\Workspace\Office\Projects\NexusAI
+PowerShellVersion=5.1.22621.6133
+Client:
+ Version:           29.6.2
+ API version:       1.55
+ Go version:        go1.26.5
+ Git commit:        dfc4efb
+ Built:             Thu Jul 16 16:14:59 2026
+ OS/Arch:           windows/amd64
+ Context:           desktop-linux
+
+Server: Docker Desktop 4.83.0 (234302)
+ Engine:
+  Version:          29.6.2
+  API version:      1.55 (minimum version 1.40)
+  Go version:       go1.26.5
+  Git commit:       3d80467
+  Built:            Thu Jul 16 16:12:20 2026
+  OS/Arch:          linux/amd64
+  Experimental:     false
+ containerd:
+  Version:          v2.2.5
+  GitCommit:        e53c7c1516c3b2bff98eb76f1f4117477e6f4e66
+ runc:
+  Version:          1.3.6
+  GitCommit:        v1.3.6-0-g491b69ba
+ docker-init:
+  Version:          0.19.0
+  GitCommit:        de40ad0
+DockerLinuxEngine=ready
+GitBranch=codex/forensic-hybrid-checkpoint-20260723
+GitHead=40717b83510c08db25dc26b9d6674bf46db363ac
+DirtyWorktreeEntries=19671
+SourceHash=PASS core\services\agents\forensic_direct.go 300fba20e33ce70c124e4cbddc3998dc5a5aa56f29a38f9ca6d9a05cbdcfabef
+SourceHash=PASS core\services\agents\forensic_direct_test.go 8dcf736e937577efce35e99435567555f4652a1a6f04f01785abbcdda1a42c5e
+SourceHash=PASS core\services\agents\analysis_history.go 180f0fbf87f41d875ad5f2e58ed04edf684ca50e5de92c5c7cb4ade8cfff0055
+SourceHash=PASS core\services\agents\analysis_history_test.go 4914e5372190da790d48e155c6cdcac1c6efa2489e196d5d0759f32f2a38acc3
+SourceHash=PASS api\forensic_records\query.go a92691a9505c1c850cc89cf40208a823322912a223ecabd142f4cba625c1557b
+SourceHash=PASS api\forensic_records\cases.go 9886c1bfe682353833cbe66236c79df31f367656dd381e182a0ea71b33b6321c
+SourceHash=PASS api\forensic_records\mmv2_query_test.go 768ba5a877d4236979fca23277d428f04367ec1e69376035566af4367d20c9a4
+SourceHash=PASS core\services\agents\forensic_presentation.go ca4778904c1418f9ad3cdebaf78b2ce09210931e0fb34fdd46f221e7b400fc64
+SourceHash=PASS core\services\agents\forensic_presentation_test.go 7785149faebc75ed0e4037645ff890c80531352ca2efefc4ebb62c16b27f77af
+SourceHash=PASS core\http\react-ui\src\pages\AgentChat.jsx 0ce908036028f59f917f8d80e7b2fbe5cb3df7f9ea16efc3c3218235c9ed3bbe
+SourceHash=PASS core\http\react-ui\src\analyst\AnalystHistory.jsx aafe288016d38e9dd69e6f066d6113bd2d79262a962b44b6b78a40a95cce6a8c
+SourceHash=PASS Dockerfile 167f93165728a31b554751c2a100120eca34ffdcc8509ecb3ac5e393efe48a94
+SourceHash=PASS api\forensic_records\Dockerfile 3a54a1fa363db2ca14e00fb03cdb42b80c1bbdb493e53191c9b185c98fa69a1d
+SourceHash=PASS docker-compose.yaml 0ef74ce958237dbe66552dcb3e36a02def568eb1a179bcd04828cf54af4dc72d
+SourceHash=PASS docker-compose.forensic-runtime.localai.yaml a4a10aca68a9291e9696d86f392a33e53df64992a31cca896c7c99492ce5ec5b
+SourceHash=PASS docker-compose.forensic-records.yaml b0f724ea34bea80bfadf8491d03bf2ddc9a8cfcbc0f2982d1a5374b968e75dd6
+SourceHash=PASS docker-compose.forensic-records.runtime.yaml 8793dff4a5980dc0d8dd6a453967cb6512daf13301f22039c770ab9d4410d923
+SourceHash=PASS docker-compose.forensic-records.asr-small.yaml 4f39dfe6d572d1ffcddbe81339389167534f4b0f8b20e1d5915b0532827c11f0
+SourceHash=PASS .env e6e974b1c197e56722c03fd7092acaeb1ef9a98e37aff8197bb88904007c024d
+SourceHash=PASS .env.forensic-runtime.local 82bb4660ef9615f821f3ef3157652054d6b338fa5324cb894f53ea6e9e5de726
+SourceHash=PASS reports\nexusai-nx1-activation-manifest-20260825.json 6907d1dac803e4eb6906bb0d94e0eb1626bf7e23a4c94b54e82ef8105dd64d46
+CheckpointState=PASS
+ExactRebuildServices=forensic-records-api,api
+
+=== 2 CURRENT RUNTIME AND BEFORE STATE ===
+CurrentRuntimeImages=PASS
+BeforeContainer.localai=77d0f172f0ca56bd40d8dd2d8a3777a1984997c3bf09899faab4709e6c708aa9
+BeforeImage.localai=sha256:11549bad5bf378cb3cfee20fcbc7a384767a98eab2d07dd490c970fddc68cb2f
+BeforeContainer.forensic_api=1bdf4f77087ebf8870a640704d95fea36e152bf198175f782bd451bcb526b074
+BeforeImage.forensic_api=sha256:4eb2db0af60d80a1ea75733cc5db559d508197cd2504006f77ccad4ff708e14b
+BeforeContainer.worker=1846f558941f583467976ad8e74a44e9063c8a1a50e870951c7e479ecce3fb66
+BeforeImage.worker=sha256:be13dbec4bd9bb62c824140df3777b898d7ad2801a0e68cd512c00dafaf4f9ef
+BeforeContainer.nats=5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04
+BeforeImage.nats=sha256:e4bf19f15fd3218814a4e3c9e0064e1334bd8aa20d5984b9f1a0afd084f8cc00
+BeforeContainer.postgres=f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361
+BeforeImage.postgres=sha256:61f891691050da6032023c01ea885730eeeba06b7c17b403e7d0b9c49c37dfe9
+ComposeConfiguration=PASS
+LocalAIContainer=healthy
+ForensicApiContainer=running
+WorkerContainer=healthy
+NatsContainer=healthy
+PostgreSQLContainer=healthy
+LocalAIReadyz=200
+AnalystUtilityHTML=200
+ForensicApiHealthz=200
+WorkerMetrics=200
+NatsHealthz=200
+/var/run/postgresql:5432 - accepting connections
+PostgreSQL=ready
+
+=== 3 RETAINED DATA, MODELS, PROFILES, MOUNTS, AND VOLUMES ===
+BeforeRetained.evidence=51
+BeforeRetained.versions=51
+BeforeRetained.jobs=64
+BeforeRetained.active_jobs=0
+BeforeRetained.canonical_records=22207
+BeforeRetained.artifacts=441
+BeforeRetained.kb_assets=47
+BeforeRetained.Tuple=51|51|64|0|22207|441|47
+ActiveForensicProcessingJobs=0
+BeforeModels.Count=5
+BeforeModels.SHA256=9c7f93d9dc327c1086fa0e3618fe9f1fc50b77080ab3ef39bdc3175a4c09da1f
+BeforeProfileHash..env=e6e974b1c197e56722c03fd7092acaeb1ef9a98e37aff8197bb88904007c024d
+BeforeProfileHash..env.forensic-runtime.local=82bb4660ef9615f821f3ef3157652054d6b338fa5324cb894f53ea6e9e5de726
+BeforeProfileHash.docker-compose.forensic-records.yaml=b0f724ea34bea80bfadf8491d03bf2ddc9a8cfcbc0f2982d1a5374b968e75dd6
+BeforeProfileHash.docker-compose.forensic-records.runtime.yaml=8793dff4a5980dc0d8dd6a453967cb6512daf13301f22039c770ab9d4410d923
+BeforeProfileHash.docker-compose.forensic-records.asr-small.yaml=4f39dfe6d572d1ffcddbe81339389167534f4b0f8b20e1d5915b0532827c11f0
+BeforeProfileHash.docker-compose.yaml=0ef74ce958237dbe66552dcb3e36a02def568eb1a179bcd04828cf54af4dc72d
+BeforeProfileHash.docker-compose.forensic-runtime.localai.yaml=a4a10aca68a9291e9696d86f392a33e53df64992a31cca896c7c99492ce5ec5b
+ModelsProfilesVolumes=CAPTURED
+
+=== 4 DISK AND MANDATORY PHYSICAL RAM GATE ===
+BuildDrive=C:
+BuildDriveFreeGiB=1654.08
+BuildDriveUsedGiB=252.77
+DiskPolicy=No mandatory deployment minimum is defined by the current guarded activation policy.
+DiskGate=PASS_CURRENT_PROJECT_POLICY
+TotalPhysicalRAMGiB=15.713
+FreePhysicalRAMGiB=7.082
+RequiredFreeRAMGiB=6.000
+PreferredLaunchFreeRAMGiB=6.5
+RAMGate=PASS
+PreferredLaunchRAM=PASS
+
+=== 5 ROLLBACK PLAN ===
+LocalAIRollbackPlanned=nexusai/localai-forensic:rollback-before-nx1-final-source-closure-20260825 sha256:11549bad5bf378cb3cfee20fcbc7a384767a98eab2d07dd490c970fddc68cb2f
+ForensicApiRollbackPlanned=nexusai/forensic-records-api:rollback-before-nx1-final-source-closure-20260825 sha256:4eb2db0af60d80a1ea75733cc5db559d508197cd2504006f77ccad4ff708e14b
+NX1Preflight=PASS
+NX1Activation=NOT_STARTED_PREFLIGHT_ONLY
+ExactRebuildServices=forensic-records-api,api
+RuntimeServiceMutation=false
+RetainedDataMutated=false
+**********************
+Windows PowerShell transcript end
+End time: 20260825161721
+**********************

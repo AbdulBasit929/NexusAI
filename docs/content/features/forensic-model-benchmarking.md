@@ -103,6 +103,44 @@ The report records:
 - optional embedding latency and vector dimensions
 - catalog recommendations for the selected hardware profile
 
+## Modality Acceptance Matrix
+
+The machine-readable acceptance contract lives at
+`configuration/forensic_modality_evaluation_matrix.json`. It covers 20 required
+evidence families, including CDR, IPDR, ANPR, subscriber and tower data,
+financial transactions, logs, generic tabular and spreadsheet data, documents,
+images/OCR, audio/STT, TTS artifacts, transcripts, video, captures, databases,
+archives, and unknown or mixed evidence.
+
+The matrix deliberately distinguishes three support levels:
+
+- `operational`: an adapter and real fixture-backed deterministic checks exist.
+- `foundation`: registration/classification exists, but part of the vertical
+  slice still requires an adapter, UI, query, or benchmark gate.
+- `planned`: the file is safely registered with a visible pending/manual-review
+  route and is not claimed as processed.
+
+Every profile defines formats, fixture state, the executable classifier result,
+the authoritative store, deterministic and semantic operations, entities,
+relationships, metrics, thresholds, failure behavior, and its next rollout gate.
+The forensic API Ginkgo suite loads this JSON and fails when a required family is
+missing, a ready fixture does not exist, a classifier route drifts, a metric is
+undefined, or a planned format is accidentally queued to the records worker.
+
+Phase 2 coverage is 20 of 20 real, versioned, fixture-backed profiles. The twelve
+formerly planned packs are now represented by deterministic generators and exact
+SHA-256, classifier, metadata, warning, abstention, and provenance expectations.
+Foundation and planned support levels still describe processing depth: a ready
+fixture proves registration/classification/inventory behavior, not that pending
+OCR, STT, video, packet-session, archive-extraction, or database-query adapters
+are operational.
+
+The unchanged CPU baseline is recorded in
+`reports/forensic-phase2-unchanged-baseline-20260727.json`. It uses the installed
+`qwen_qwen3-4b-instruct-2507` chat model and `qwen3-embedding-0.6b` embedding
+model for three rounds, while deterministic sidecar routing is scored fail-closed:
+HTTP errors and wrong templates both count as failed routes.
+
 ## Recommended Starting Stack
 
 For local development, start with:
@@ -115,15 +153,16 @@ For local development, start with:
 
 ## Team Lead Brief
 
-Current phase completed the foundation: evidence items are registered, linked to Knowledge Base assets and structured records, exposed through APIs/UI/agent tools, and processed through auditable status transitions.
+Phase 2 is complete: all 20 evidence families have executable fixture contracts,
+the unchanged installed models have a reproducible baseline, and the isolated
+live acceptance proves exact structured row accounting plus truthful pending
+routes for unsupported deeper analysis.
 
-The next phase is model evaluation and routing:
-
-- Build a representative test pack for every evidence family.
-- Run deterministic ingestion first and verify hashes, classifications, routes, row counts, and provenance.
-- Benchmark candidate models per evidence type with the same fixtures.
-- Select default profiles for CPU, balanced local GPU, accuracy, throughput, and multilingual workflows.
-- Promote only measured winners into agent/model configuration.
+The next phase is the evidence control plane: normalized versions and processing
+runs, append-only custody events, immutable source retention, authenticated
+tenant/case binding, reviewed RLS, idempotent retry/acknowledgement/DLQ behavior,
+and typed derived artifacts. Candidate models remain unpromoted until a later
+single-change evaluation beats this fixed baseline.
 
 ## Sources
 

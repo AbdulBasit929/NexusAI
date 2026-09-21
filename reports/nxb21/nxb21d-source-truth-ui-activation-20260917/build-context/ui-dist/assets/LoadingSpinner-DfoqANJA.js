@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-xIJTzhZo.js";var t=e();function n({size:e=`md`,className:n=``}){return(0,t.jsx)(`div`,{className:`spinner ${e===`sm`?`spinner-sm`:e===`lg`||e===`boot`?`spinner-lg`:`spinner-md`} ${n}`,role:`status`,"aria-label":`Loading`,children:(0,t.jsx)(`div`,{className:`spinner-ring`})})}export{n as t};

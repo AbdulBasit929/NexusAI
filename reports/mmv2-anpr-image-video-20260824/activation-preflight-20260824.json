@@ -1,0 +1,62 @@
+{
+  "contract_version": "nexusai.mmv2.activation-preflight/v1",
+  "attempt_date": "2026-08-24",
+  "verdict": "SAFE_STOP_RAM_GATE_NOT_MET_NO_BUILD",
+  "authorized_scope": ["forensic-records-worker", "localai-ui"],
+  "rebuild_scope_after_source_diff_reverification": ["forensic-records-worker", "localai-ui"],
+  "forensic_api_rebuild_needed": false,
+  "rollback_images": {
+    "localai": {
+      "tag": "nexusai/localai-forensic:rollback-before-mmv2-activation-20260824",
+      "image_id": "sha256:afc6ac795e0c16eca293c765c23caf08fa768b961c774409324664ad320fd7b6"
+    },
+    "worker": {
+      "tag": "nexusai/forensic-records-worker:rollback-before-mmv2-activation-20260824",
+      "image_id": "sha256:4b345f8f3a503a9e54c32a07089a2313b19a368ab4120edb610648d592f8764f"
+    }
+  },
+  "ram_gate": {
+    "required_free_gib": 6.0,
+    "initial_free_gib": 2.68,
+    "maximum_observed_after_bounded_service_stop_gib": 2.56,
+    "final_observed_gib": 2.08,
+    "passed": false
+  },
+  "actions": {
+    "containers_stopped_reversibly": true,
+    "containers_removed": false,
+    "build_started": false,
+    "image_replaced": false,
+    "container_recreated": false,
+    "deployment_started": false,
+    "retained_mutation": false,
+    "database_migration": false,
+    "model_download": false
+  },
+  "protected_container_ids_after_restore": {
+    "localai": "e04dae4cbd44",
+    "forensic_api": "a97e545b8356",
+    "worker": "0b2418d90cbd",
+    "nats": "5c49e70d132a",
+    "postgres": "f66e05a3b179"
+  },
+  "health_after_restore": {
+    "localai_readyz": 200,
+    "forensic_api_healthz": 200,
+    "worker_metrics": 200,
+    "nats_healthz": 200,
+    "postgres_health": "healthy"
+  },
+  "retained_counts_after_restore": {
+    "evidence": 51,
+    "versions": 51,
+    "jobs": 64,
+    "jobs_completed": 60,
+    "jobs_dead_letter": 4,
+    "jobs_active": 0,
+    "canonical_records": 22207,
+    "artifacts": 441,
+    "kb_assets": 47
+  },
+  "resume_condition": "At least 6 GiB free physical RAM with Docker Linux engine ready; rerun narrow worker and LocalAI/UI activation only."
+}

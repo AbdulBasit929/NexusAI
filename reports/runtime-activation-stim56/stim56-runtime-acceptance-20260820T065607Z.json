@@ -1,0 +1,95 @@
+﻿{
+    "contract_version":  "nexusai.stim56-runtime-acceptance/v1",
+    "generated_utc":  "2026-08-20T06:56:07.7388364Z",
+    "collection_id":  "nexusai-forensic-demo",
+    "localai_url":  "http://localhost:8080",
+    "database_mutated":  false,
+    "models_changed":  false,
+    "checks":  [
+                   {
+                       "name":  "runtime.readyz",
+                       "passed":  true,
+                       "detail":  "HTTP 200",
+                       "latency_ms":  233.7
+                   },
+                   {
+                       "name":  "runtime.model_inventory",
+                       "passed":  true,
+                       "detail":  "qwen_qwen3-4b-instruct-2507, qwen3-embedding-0.6b",
+                       "latency_ms":  0
+                   },
+                   {
+                       "name":  "query.english",
+                       "passed":  true,
+                       "detail":  "frequent_contacts; language=en; target=923001110001",
+                       "latency_ms":  358.5
+                   },
+                   {
+                       "name":  "query.messy_english",
+                       "passed":  true,
+                       "detail":  "frequent_contacts; language=en; target=923001110001",
+                       "latency_ms":  229.7
+                   },
+                   {
+                       "name":  "query.roman_urdu",
+                       "passed":  true,
+                       "detail":  "temporal_activity; language=ur-Latn; target=923001110001",
+                       "latency_ms":  204.1
+                   },
+                   {
+                       "name":  "query.urdu",
+                       "passed":  false,
+                       "detail":  "template was , expected temporal_activity",
+                       "latency_ms":  42.5
+                   },
+                   {
+                       "name":  "query.mixed",
+                       "passed":  false,
+                       "detail":  "Fact Packet language was en, expected mixed",
+                       "latency_ms":  203.9
+                   },
+                   {
+                       "name":  "query.clarification",
+                       "passed":  true,
+                       "detail":  "intent=clarification; model_ms=0",
+                       "latency_ms":  47.4
+                   },
+                   {
+                       "name":  "query.follow_up",
+                       "passed":  true,
+                       "detail":  "template=frequent_contacts; target=923001110001; direction=OUTGOING; inherited=target,template",
+                       "latency_ms":  253.5
+                   },
+                   {
+                       "name":  "query.unsupported_fast_path",
+                       "passed":  true,
+                       "detail":  "route=capability_guard; db_ms=0; kb_ms=0; model_ms=0",
+                       "latency_ms":  37.4
+                   },
+                   {
+                       "name":  "query.assisted_validated_or_fallback",
+                       "passed":  true,
+                       "detail":  "narrative_status=model_unavailable_fallback; model_ms=8006",
+                       "latency_ms":  9580.3
+                   },
+                   {
+                       "name":  "ui/app/analyst/data",
+                       "passed":  true,
+                       "detail":  "HTTP 200; app_root=True",
+                       "latency_ms":  110.6
+                   },
+                   {
+                       "name":  "ui/app/analyst/ask",
+                       "passed":  true,
+                       "detail":  "HTTP 200; app_root=True",
+                       "latency_ms":  76.9
+                   },
+                   {
+                       "name":  "ui/app/analyst/history",
+                       "passed":  true,
+                       "detail":  "HTTP 200; app_root=True",
+                       "latency_ms":  103.4
+                   }
+               ],
+    "passed":  false
+}

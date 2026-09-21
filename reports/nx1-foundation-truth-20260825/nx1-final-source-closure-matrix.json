@@ -1,0 +1,116 @@
+{
+  "contract_version": "nexusai.nx1-final-source-closure-matrix/v1",
+  "recorded_at": "2026-08-26",
+  "prior_activation_performed": true,
+  "current_source_change_deployed": false,
+  "open_p0_source": 0,
+  "open_foundation_p1_source": 0,
+  "open_foundation_p1_live": 1,
+  "public_row_count_matrix": [
+    {"case": "positive_one", "authoritative_rows": 1, "expected_public_row_count": 1, "source_verdict": "PASS"},
+    {"case": "positive_multi", "authoritative_rows": 3, "expected_public_row_count": 3, "source_verdict": "PASS"},
+    {"case": "no_match_metadata_wrapper", "authoritative_rows": 0, "expected_public_row_count": 0, "result_state": "no_match_for_filter", "source_verdict": "PASS"},
+    {"case": "complete_zero_metadata_wrapper", "authoritative_rows": 0, "expected_public_row_count": 0, "result_state": "complete_zero_results", "source_verdict": "PASS"},
+    {"case": "not_processed_failed_unavailable", "expected_public_row_count": 0, "source_verdict": "PASS"},
+    {"case": "retained_history_reopen", "expected_public_row_count": 0, "result_state": "complete_zero_results", "source_verdict": "PASS"}
+  ],
+  "grouped_video_operation_matrix": [
+    {"case": "natural_grouped_timeline", "expected_operation": "video.anpr_grouped_timeline", "expected_template": "video_anpr_grouped_timeline", "full_uuid": true, "plate": "", "source_verdict": "PASS"},
+    {"case": "uuid_only", "expected_operation": "video.anpr_grouped_timeline", "full_uuid": true, "uuid_fragment_target": false, "plate": "", "source_verdict": "PASS"},
+    {"case": "uuid_plus_plate", "expected_operation": "video.anpr_grouped_timeline", "full_uuid": true, "independent_plate": true, "source_verdict": "PASS"},
+    {"case": "uuid_plus_time_range", "expected_operation": "video.anpr_grouped_timeline", "full_uuid": true, "dedicated_source_second_bounds": true, "plate": "", "source_verdict": "PASS"},
+    {"case": "uuid_plus_plate_plus_time_range", "expected_operation": "video.anpr_grouped_timeline", "full_uuid": true, "independent_plate": true, "dedicated_source_second_bounds": true, "source_verdict": "PASS"},
+    {"case": "english_roman_urdu_urdu", "expected_operation": "video.anpr_grouped_timeline", "typed_scope_preserved": true, "source_verdict": "PASS"}
+  ],
+  "protected_identifier_matrix": [
+    {"case": "uuid_only", "query_entities": ["evidence_id"], "query_targets": ["evidence_id"], "uuid_fragment_entities": 0, "source_verdict": "PASS"},
+    {"case": "uuid_plus_plate", "query_entities": ["evidence_id", "plate"], "query_targets": ["evidence_id", "plate"], "uuid_fragment_entities": 0, "source_verdict": "PASS"},
+    {"case": "uuid_plus_time", "query_entities": ["evidence_id"], "query_targets": ["evidence_id"], "source_second_parameters": ["start_seconds", "end_seconds"], "source_verdict": "PASS"},
+    {"case": "uuid_plus_plate_plus_time", "query_entities": ["evidence_id", "plate"], "query_targets": ["evidence_id", "plate"], "source_second_parameters": ["start_seconds", "end_seconds"], "source_verdict": "PASS"},
+    {"case": "uuid_with_phone_length_digits", "phone_from_uuid": false, "source_verdict": "PASS"},
+    {"case": "uuid_with_plate_looking_groups", "plate_or_entity_from_uuid": false, "source_verdict": "PASS"},
+    {"case": "standalone_phone", "typed_value_preserved": true, "source_verdict": "PASS"},
+    {"case": "standalone_plate", "typed_value_preserved": true, "source_verdict": "PASS"},
+    {"case": "randomized_valid_uuid_shapes", "count": 12, "source_verdict": "PASS"}
+  ],
+  "operation_parameter_matrix": {
+    "operation": "video.anpr_grouped_timeline",
+    "template": "video_anpr_grouped_timeline",
+    "required": ["target", "evidence_id"],
+    "optional": ["plate", "start_seconds", "end_seconds", "limit"],
+    "execution_target_rule": "target and targets contain only the authoritative evidence UUID; plate is carried only by the dedicated plate parameter",
+    "source_verdict": "PASS"
+  },
+  "live_replay_after_typed_identifier_activation": {
+    "current_container": "8879e5d6da3ee8ab529c0b4da58fd9b15fa88d4839ebbf2a8e8d9db93629069e",
+    "current_image": "sha256:0ef44346e74478a8d0775db19350f674a4f7089fefe4f6fd7374cf93d4b3a454",
+    "uuid_protected_span": "PASS",
+    "explicit_plate_binding": "PASS",
+    "english_grouped_video": "PASS",
+    "roman_urdu_grouped_video": "PASS",
+    "positive_row_count": "PASS_1",
+    "negative_row_count": "PASS_0",
+    "source_time_binding": "OPEN_LIVE",
+    "urdu_grouped_video": "OPEN_LIVE"
+  },
+  "source_time_contract_matrix": [
+    {"case": "from_seconds_to_seconds", "query_understanding": "PASS", "execution_parameters": "PASS", "final_records": "PASS"},
+    {"case": "between_seconds_and_seconds", "query_understanding": "PASS", "execution_parameters": "PASS", "final_records": "PASS"},
+    {"case": "uuid_plus_time", "exact_uuid": true, "source_verdict": "PASS"},
+    {"case": "uuid_plus_plate_plus_time", "exact_uuid": true, "independent_plate": true, "source_verdict": "PASS"},
+    {"case": "time_only_with_explicit_operation_contract", "source_verdict": "PASS"},
+    {"case": "reversed_range", "executor_contract": "REJECT_INVALID_RANGE", "source_verdict": "PASS"},
+    {"case": "outside_source_duration", "result_state": "no_match_for_filter", "source_verdict": "PASS"},
+    {"case": "hyphenated_phone", "source_time_extracted": false, "source_verdict": "PASS"}
+  ],
+  "urdu_variant_matrix": {
+    "semantic_concepts": ["video evidence", "ANPR", "plate", "grouped observations", "timeline", "show", "find", "LTR UUID target"],
+    "english": "PASS",
+    "roman_urdu": "PASS",
+    "urdu_native_variants": 4,
+    "urdu": "PASS",
+    "expected_operation": "video.anpr_grouped_timeline",
+    "expected_template": "video_anpr_grouped_timeline"
+  },
+  "source_validation": {
+    "focused_public_adapter": "PASS_15_285_SECONDS",
+    "full_forensic_api": "PASS_68_503_SECONDS",
+    "focused_agent_routing": "PASS",
+    "focused_agent_ginkgo_history": "PASS",
+    "changed_package_vet": "PASS",
+    "anti_hardcode": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "independent_oracle": {
+    "row_count_basis": "literal expected analytical result cardinality in synthetic raw-operation fixtures, independent of display-row flattening",
+    "routing_basis": "literal expected existing operation identity and typed argument tuple, independent of the production route-selection helper",
+    "positive_retained_truth_basis": "prior read-only PostgreSQL oracle remains unchanged in nx1-live-certification-20260825.json",
+    "verdict": "PASS_SOURCE"
+  },
+  "prepared_live_replay_matrix": [
+    {"case": "positive_anpr", "assert": ["results_present", "row_count=1", "table_rows=1", "citation", "oracle_agreement"]},
+    {"case": "multi_row_public_contract", "assert": ["row_count=N", "table_rows=N"]},
+    {"case": "no_match", "assert": ["no_match_for_filter", "row_count=0", "table_rows=0"]},
+    {"case": "complete_zero", "assert": ["complete_zero_results", "processing_state=completed", "row_count=0", "table_rows=0", "video.anpr_grouped_timeline"]},
+    {"case": "natural_grouped_video_uuid", "assert": ["video.anpr_grouped_timeline", "full evidence UUID", "no UUID-fragment plate"]},
+    {"case": "uuid_plus_plate", "assert": ["full evidence UUID", "exact separate plate"]},
+    {"case": "uuid_plus_time_range", "assert": ["full evidence UUID", "correct source-second bounds"]},
+    {"case": "uuid_plus_plate_plus_time_range", "assert": ["all typed parameters", "authorized case scope"]},
+    {"case": "multilingual", "assert": ["English", "natural English", "Roman Urdu", "Urdu"]},
+    {"case": "history", "assert": ["Activity list", "Activity reopen", "same row_count/result_state/operation/parameters"]},
+    {"case": "browser", "assert": ["390", "820", "1024", "1440", "no horizontal overflow", "no console errors"]},
+    {"case": "runtime_protection", "assert": ["worker ID unchanged", "NATS ID unchanged", "PostgreSQL ID unchanged", "retained counts unchanged", "models unchanged"]}
+  ],
+  "deployment_gate": {
+    "exact_service_scope": ["forensic-records-api"],
+    "current_container": "8879e5d6da3ee8ab529c0b4da58fd9b15fa88d4839ebbf2a8e8d9db93629069e",
+    "current_image": "sha256:0ef44346e74478a8d0775db19350f674a4f7089fefe4f6fd7374cf93d4b3a454",
+    "rollback_image_required": "sha256:0ef44346e74478a8d0775db19350f674a4f7089fefe4f6fd7374cf93d4b3a454",
+    "existing_prior_rollback_tag": "nexusai/forensic-records-api:rollback-before-nx1-p13-final-20260826",
+    "existing_prior_rollback_image": "sha256:74c07cce1225d0694ca8342419af9f1994801aeacdb1c048a54ef9af854ed8a7",
+    "required_free_physical_ram_gib": 6,
+    "observed_free_physical_ram_gib": 5.13,
+    "verdict": "STOP_BEFORE_DEPLOYMENT_RAM_GATE_FAILED"
+  },
+  "live_replay_status": "P1_1_P1_2_AND_P1_3_UUID_PLATE_LANGUAGE_PARTIAL_LIVE_CLOSED_TIME_URDU_SOURCE_CLOSED_API_ONLY_ACTIVATION_NOT_RUN"
+}

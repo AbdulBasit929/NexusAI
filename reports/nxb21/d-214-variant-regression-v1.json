@@ -1,0 +1,2153 @@
+{
+  "classification_scope": "QUESTION_TO_TYPED_PLAN_SOURCE; not result certification",
+  "records": [
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.collection_overview",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "aggregate",
+      "expected_operation": "forensics.collection_overview",
+      "language": "english",
+      "variant_id": "qv-001"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "english",
+      "variant_id": "qv-002"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.call_type_breakdown",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "aggregate",
+      "expected_operation": "cdr.call_type_breakdown",
+      "language": "english",
+      "variant_id": "qv-003"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.service_usage",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "aggregate",
+      "expected_operation": "cdr.service_usage",
+      "language": "english",
+      "variant_id": "qv-004"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.device_identity_changes",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "cdr.device_identity_changes",
+      "language": "english",
+      "variant_id": "qv-005"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.multi_source_comparison",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "compare",
+      "expected_operation": "cdr.multi_source_comparison",
+      "language": "english",
+      "variant_id": "qv-006"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "ipdr.endpoint_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "ipdr.endpoint_summary",
+      "language": "english",
+      "variant_id": "qv-007"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "ipdr.domain_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "ipdr.domain_summary",
+      "language": "english",
+      "variant_id": "qv-008"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "ipdr.protocol_breakdown",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "aggregate",
+      "expected_operation": "ipdr.protocol_breakdown",
+      "language": "english",
+      "variant_id": "qv-009"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "ipdr.session_volume",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "ipdr.session_volume",
+      "language": "english",
+      "variant_id": "qv-010"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "ipdr.subscriber_sessions",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "ipdr.subscriber_sessions",
+      "language": "english",
+      "variant_id": "qv-011"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "ipdr.concurrent_sessions",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "ipdr.concurrent_sessions",
+      "language": "english",
+      "variant_id": "qv-012"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "ipdr.timeline",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "ipdr.timeline",
+      "language": "english",
+      "variant_id": "qv-013"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.temporal_activity",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "cdr.temporal_activity",
+      "language": "english",
+      "variant_id": "qv-014"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.top_locations",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "forensics.top_locations",
+      "language": "english",
+      "variant_id": "qv-015"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.geospatial_movement",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "cdr.geospatial_movement",
+      "language": "english",
+      "variant_id": "qv-016"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "anpr.sightings",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "anpr.sightings",
+      "language": "english",
+      "variant_id": "qv-017"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "anpr.camera_sequence",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "anpr.camera_sequence",
+      "language": "english",
+      "variant_id": "qv-018"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "anpr.camera_activity",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "aggregate",
+      "expected_operation": "anpr.camera_activity",
+      "language": "english",
+      "variant_id": "qv-019"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "anpr.co_travel",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "correlate",
+      "expected_operation": "anpr.co_travel",
+      "language": "english",
+      "variant_id": "qv-020"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "anpr.route_timing",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "anpr.route_timing",
+      "language": "english",
+      "variant_id": "qv-021"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "anpr.plate_variants",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "compare",
+      "expected_operation": "anpr.plate_variants",
+      "language": "english",
+      "variant_id": "qv-022"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "anpr.timeline",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "anpr.timeline",
+      "language": "english",
+      "variant_id": "qv-023"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "video.anpr_grouped_timeline",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "video.anpr_grouped_timeline",
+      "language": "english",
+      "variant_id": "qv-024"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.identity_lookup",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "subscriber.identity_lookup",
+      "language": "english",
+      "variant_id": "qv-025"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.validity_timeline",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "subscriber.validity_timeline",
+      "language": "english",
+      "variant_id": "qv-026"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.device_links",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "relationship",
+      "expected_operation": "subscriber.device_links",
+      "language": "english",
+      "variant_id": "qv-027"
+    },
+    {
+      "actual_intent": "hybrid",
+      "actual_operation": "subscriber.status_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "subscriber.status_summary",
+      "language": "english",
+      "variant_id": "qv-028"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.conflict_audit",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "compare",
+      "expected_operation": "subscriber.conflict_audit",
+      "language": "english",
+      "variant_id": "qv-029"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.reuse_candidates",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "subscriber.reuse_candidates",
+      "language": "english",
+      "variant_id": "qv-030"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "tower.site_lookup",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "tower.site_lookup",
+      "language": "english",
+      "variant_id": "qv-031"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "tower.reference_timeline",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "tower.reference_timeline",
+      "language": "english",
+      "variant_id": "qv-032"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "tower.coordinate_audit",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "inspect",
+      "expected_operation": "tower.coordinate_audit",
+      "language": "english",
+      "variant_id": "qv-033"
+    },
+    {
+      "actual_intent": "hybrid",
+      "actual_operation": "tower.status_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "tower.status_summary",
+      "language": "english",
+      "variant_id": "qv-034"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "tower.alias_conflicts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "compare",
+      "expected_operation": "tower.alias_conflicts",
+      "language": "english",
+      "variant_id": "qv-035"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "tower.cdr_join",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "tower.cdr_join",
+      "language": "english",
+      "variant_id": "qv-036"
+    },
+    {
+      "actual_intent": "hybrid",
+      "actual_operation": "financial.transaction_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "financial.transaction_summary",
+      "language": "english",
+      "variant_id": "qv-037"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "access.failed_events",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "access.failed_events",
+      "language": "english",
+      "variant_id": "qv-038"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "generic.filter_records",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "generic.filter_records",
+      "language": "english",
+      "variant_id": "qv-039"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "document.metadata",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "document.metadata",
+      "language": "english",
+      "variant_id": "qv-040"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "document.search",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "retrieve",
+      "expected_operation": "document.search",
+      "language": "english",
+      "variant_id": "qv-041"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "image.metadata",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "image.metadata",
+      "language": "english",
+      "variant_id": "qv-042"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "image.ocr_search",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "retrieve",
+      "expected_operation": "image.ocr_search",
+      "language": "english",
+      "variant_id": "qv-043"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "face.candidate_observations",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "face.candidate_observations",
+      "language": "english",
+      "variant_id": "qv-044"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "audio.metadata",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "audio.metadata",
+      "language": "english",
+      "variant_id": "qv-045"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "audio.transcript_search",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "retrieve",
+      "expected_operation": "audio.transcript_search",
+      "language": "english",
+      "variant_id": "qv-046"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "video.metadata",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "video.metadata",
+      "language": "english",
+      "variant_id": "qv-047"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "video.timeline",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "video.timeline",
+      "language": "english",
+      "variant_id": "qv-048"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.entity_activity",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "aggregate",
+      "expected_operation": "forensics.entity_activity",
+      "language": "english",
+      "variant_id": "qv-049"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.relationship_network",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "relationship",
+      "expected_operation": "forensics.relationship_network",
+      "language": "english",
+      "variant_id": "qv-050"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.cross_family_correlation",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "correlate",
+      "expected_operation": "forensics.cross_family_correlation",
+      "language": "english",
+      "variant_id": "qv-051"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.timeline",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "cdr.timeline",
+      "language": "english",
+      "variant_id": "qv-052"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.source_records",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "inspect",
+      "expected_operation": "forensics.source_records",
+      "language": "english",
+      "variant_id": "qv-053"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.canonical_records",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "inspect",
+      "expected_operation": "forensics.canonical_records",
+      "language": "english",
+      "variant_id": "qv-054"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.schema_profile",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "inspect",
+      "expected_operation": "forensics.schema_profile",
+      "language": "english",
+      "variant_id": "qv-055"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.data_quality",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "inspect",
+      "expected_operation": "forensics.data_quality",
+      "language": "english",
+      "variant_id": "qv-056"
+    },
+    {
+      "actual_intent": "semantic",
+      "actual_operation": "forensics.evidence",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "retrieve",
+      "expected_operation": "forensics.evidence",
+      "language": "english",
+      "variant_id": "qv-057"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.shortest_call",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "forensics.shortest_call",
+      "language": "english",
+      "variant_id": "qv-058"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.longest_call",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "forensics.longest_call",
+      "language": "english",
+      "variant_id": "qv-059"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.duration_extremes",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.duration_extremes",
+      "language": "english",
+      "variant_id": "qv-060"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.first_seen_last_seen",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "forensics.first_seen_last_seen",
+      "language": "english",
+      "variant_id": "qv-061"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.activity_by_day",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "forensics.activity_by_day",
+      "language": "english",
+      "variant_id": "qv-062"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.activity_by_hour",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "forensics.activity_by_hour",
+      "language": "english",
+      "variant_id": "qv-063"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.night_activity",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "forensics.night_activity",
+      "language": "english",
+      "variant_id": "qv-064"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.repeated_location_visits",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "forensics.repeated_location_visits",
+      "language": "english",
+      "variant_id": "qv-065"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.co_travel_or_co_presence",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "correlate",
+      "expected_operation": "forensics.co_travel_or_co_presence",
+      "language": "english",
+      "variant_id": "qv-066"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.subscriber_profile",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "forensics.subscriber_profile",
+      "language": "english",
+      "variant_id": "qv-067"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.imei_imsi_usage",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "aggregate",
+      "expected_operation": "forensics.imei_imsi_usage",
+      "language": "english",
+      "variant_id": "qv-068"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.tower_activity",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "aggregate",
+      "expected_operation": "cdr.tower_activity",
+      "language": "english",
+      "variant_id": "qv-069"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.suspicious_patterns",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "aggregate",
+      "expected_operation": "forensics.suspicious_patterns",
+      "language": "english",
+      "variant_id": "qv-070"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.anomaly_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "forensics.anomaly_summary",
+      "language": "english",
+      "variant_id": "qv-071"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.cross_dataset_entity_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "forensics.cross_dataset_entity_summary",
+      "language": "english",
+      "variant_id": "qv-072"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.source_file_audit",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "inspect",
+      "expected_operation": "forensics.source_file_audit",
+      "language": "english",
+      "variant_id": "qv-073"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.duplicate_upload_audit",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "inspect",
+      "expected_operation": "forensics.duplicate_upload_audit",
+      "language": "english",
+      "variant_id": "qv-074"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.case_readiness",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "readiness",
+      "expected_operation": "forensics.case_readiness",
+      "language": "english",
+      "variant_id": "qv-075"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.evidence_package_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "forensics.evidence_package_summary",
+      "language": "english",
+      "variant_id": "qv-076"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.executive_case_brief",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "forensics.executive_case_brief",
+      "language": "english",
+      "variant_id": "qv-077"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.court_ready_source_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "forensics.court_ready_source_summary",
+      "language": "english",
+      "variant_id": "qv-078"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.limitations_and_data_quality",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "inspect",
+      "expected_operation": "forensics.limitations_and_data_quality",
+      "language": "english",
+      "variant_id": "qv-079"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.source_file_audit",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "inspect",
+      "expected_operation": "forensics.source_file_audit",
+      "language": "english",
+      "variant_id": "qv-080"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.source_file_audit",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "inspect",
+      "expected_operation": "forensics.source_file_audit",
+      "language": "english",
+      "variant_id": "qv-081"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.case_readiness",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "readiness",
+      "expected_operation": "forensics.case_readiness",
+      "language": "english",
+      "variant_id": "qv-082"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.case_readiness",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "readiness",
+      "expected_operation": "forensics.case_readiness",
+      "language": "english",
+      "variant_id": "qv-083"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.limitations_and_data_quality",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "inspect",
+      "expected_operation": "forensics.limitations_and_data_quality",
+      "language": "english",
+      "variant_id": "qv-084"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "english",
+      "variant_id": "qv-085"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "english",
+      "variant_id": "qv-086"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "mixed",
+      "variant_id": "qv-087"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.call_type_breakdown",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "aggregate",
+      "expected_operation": "cdr.call_type_breakdown",
+      "language": "english",
+      "variant_id": "qv-088"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.service_usage",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "aggregate",
+      "expected_operation": "cdr.service_usage",
+      "language": "english",
+      "variant_id": "qv-089"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.device_identity_changes",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "cdr.device_identity_changes",
+      "language": "english",
+      "variant_id": "qv-090"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.imei_imsi_usage",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "aggregate",
+      "expected_operation": "forensics.imei_imsi_usage",
+      "language": "english",
+      "variant_id": "qv-091"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.tower_activity",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "aggregate",
+      "expected_operation": "cdr.tower_activity",
+      "language": "english",
+      "variant_id": "qv-092"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.first_seen_last_seen",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "forensics.first_seen_last_seen",
+      "language": "english",
+      "variant_id": "qv-093"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.activity_by_hour",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "forensics.activity_by_hour",
+      "language": "english",
+      "variant_id": "qv-094"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.night_activity",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "forensics.night_activity",
+      "language": "english",
+      "variant_id": "qv-095"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "ipdr.session_volume",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "ipdr.session_volume",
+      "language": "english",
+      "variant_id": "qv-096"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "ipdr.protocol_breakdown",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "aggregate",
+      "expected_operation": "ipdr.protocol_breakdown",
+      "language": "english",
+      "variant_id": "qv-097"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "ipdr.subscriber_sessions",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "ipdr.subscriber_sessions",
+      "language": "english",
+      "variant_id": "qv-098"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "ipdr.concurrent_sessions",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "ipdr.concurrent_sessions",
+      "language": "english",
+      "variant_id": "qv-099"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "anpr.camera_sequence",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "anpr.camera_sequence",
+      "language": "english",
+      "variant_id": "qv-100"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "anpr.sightings",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "anpr.sightings",
+      "language": "english",
+      "variant_id": "qv-101"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "anpr.route_timing",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "anpr.route_timing",
+      "language": "english",
+      "variant_id": "qv-102"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "anpr.plate_variants",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "compare",
+      "expected_operation": "anpr.plate_variants",
+      "language": "english",
+      "variant_id": "qv-103"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.status_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "subscriber.status_summary",
+      "language": "english",
+      "variant_id": "qv-104"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.status_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "subscriber.status_summary",
+      "language": "mixed",
+      "variant_id": "qv-105"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "tower.coordinate_audit",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "inspect",
+      "expected_operation": "tower.coordinate_audit",
+      "language": "english",
+      "variant_id": "qv-106"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "tower.status_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "tower.status_summary",
+      "language": "english",
+      "variant_id": "qv-107"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "tower.reference_timeline",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "tower.reference_timeline",
+      "language": "english",
+      "variant_id": "qv-108"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "tower.alias_conflicts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "compare",
+      "expected_operation": "tower.alias_conflicts",
+      "language": "english",
+      "variant_id": "qv-109"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.device_links",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "relationship",
+      "expected_operation": "subscriber.device_links",
+      "language": "english",
+      "variant_id": "qv-110"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.device_links",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "relationship",
+      "expected_operation": "subscriber.device_links",
+      "language": "english",
+      "variant_id": "qv-111"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.service_usage",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "aggregate",
+      "expected_operation": "cdr.service_usage",
+      "language": "english",
+      "variant_id": "qv-112"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.cross_family_correlation",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "correlate",
+      "expected_operation": "forensics.cross_family_correlation",
+      "language": "english",
+      "variant_id": "qv-113"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.duplicate_upload_audit",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "inspect",
+      "expected_operation": "forensics.duplicate_upload_audit",
+      "language": "english",
+      "variant_id": "qv-114"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.identity_lookup",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "subscriber.identity_lookup",
+      "language": "english",
+      "variant_id": "qv-115"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.identity_lookup",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "subscriber.identity_lookup",
+      "language": "roman_urdu",
+      "variant_id": "qv-116"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.identity_lookup",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "subscriber.identity_lookup",
+      "language": "urdu",
+      "variant_id": "qv-117"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.identity_lookup",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "subscriber.identity_lookup",
+      "language": "roman_urdu",
+      "variant_id": "qv-118"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.validity_timeline",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "subscriber.validity_timeline",
+      "language": "english",
+      "variant_id": "qv-119"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.validity_timeline",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "subscriber.validity_timeline",
+      "language": "roman_urdu",
+      "variant_id": "qv-120"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.validity_timeline",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "subscriber.validity_timeline",
+      "language": "urdu",
+      "variant_id": "qv-121"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.validity_timeline",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "subscriber.validity_timeline",
+      "language": "roman_urdu",
+      "variant_id": "qv-122"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.device_links",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "relationship",
+      "expected_operation": "subscriber.device_links",
+      "language": "english",
+      "variant_id": "qv-123"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.device_links",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "relationship",
+      "expected_operation": "subscriber.device_links",
+      "language": "roman_urdu",
+      "variant_id": "qv-124"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.device_links",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "relationship",
+      "expected_operation": "subscriber.device_links",
+      "language": "urdu",
+      "variant_id": "qv-125"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.device_links",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "relationship",
+      "expected_operation": "subscriber.device_links",
+      "language": "roman_urdu",
+      "variant_id": "qv-126"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.status_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "subscriber.status_summary",
+      "language": "english",
+      "variant_id": "qv-127"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.status_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "subscriber.status_summary",
+      "language": "roman_urdu",
+      "variant_id": "qv-128"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.status_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "subscriber.status_summary",
+      "language": "urdu",
+      "variant_id": "qv-129"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.status_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "subscriber.status_summary",
+      "language": "english",
+      "variant_id": "qv-130"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.conflict_audit",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "compare",
+      "expected_operation": "subscriber.conflict_audit",
+      "language": "english",
+      "variant_id": "qv-131"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.conflict_audit",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "compare",
+      "expected_operation": "subscriber.conflict_audit",
+      "language": "roman_urdu",
+      "variant_id": "qv-132"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.conflict_audit",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "compare",
+      "expected_operation": "subscriber.conflict_audit",
+      "language": "urdu",
+      "variant_id": "qv-133"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.conflict_audit",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "compare",
+      "expected_operation": "subscriber.conflict_audit",
+      "language": "english",
+      "variant_id": "qv-134"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.reuse_candidates",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "subscriber.reuse_candidates",
+      "language": "english",
+      "variant_id": "qv-135"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.reuse_candidates",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "subscriber.reuse_candidates",
+      "language": "roman_urdu",
+      "variant_id": "qv-136"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.reuse_candidates",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "subscriber.reuse_candidates",
+      "language": "urdu",
+      "variant_id": "qv-137"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.reuse_candidates",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "subscriber.reuse_candidates",
+      "language": "english",
+      "variant_id": "qv-138"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "english",
+      "variant_id": "qv-139"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.longest_call",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "forensics.longest_call",
+      "language": "english",
+      "variant_id": "qv-140"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "ipdr.session_volume",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "ipdr.session_volume",
+      "language": "english",
+      "variant_id": "qv-141"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "anpr.camera_sequence",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "anpr.camera_sequence",
+      "language": "english",
+      "variant_id": "qv-142"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "video.anpr_grouped_timeline",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "video.anpr_grouped_timeline",
+      "language": "english",
+      "variant_id": "qv-143"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.status_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "subscriber.status_summary",
+      "language": "english",
+      "variant_id": "qv-144"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.status_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "subscriber.status_summary",
+      "language": "roman_urdu",
+      "variant_id": "qv-145"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "tower.coordinate_audit",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "inspect",
+      "expected_operation": "tower.coordinate_audit",
+      "language": "english",
+      "variant_id": "qv-146"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.canonical_records",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "inspect",
+      "expected_operation": "forensics.canonical_records",
+      "language": "english",
+      "variant_id": "qv-147"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "forensics.cross_family_correlation",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "correlate",
+      "expected_operation": "forensics.cross_family_correlation",
+      "language": "english",
+      "variant_id": "qv-148"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "english",
+      "variant_id": "qv-149"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.identity_lookup",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "subscriber.identity_lookup",
+      "language": "roman_urdu",
+      "variant_id": "qv-150"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.identity_lookup",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "subscriber.identity_lookup",
+      "language": "urdu",
+      "variant_id": "qv-151"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.identity_lookup",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "subscriber.identity_lookup",
+      "language": "english",
+      "variant_id": "qv-152"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.validity_timeline",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "subscriber.validity_timeline",
+      "language": "english",
+      "variant_id": "qv-153"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.device_links",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "relationship",
+      "expected_operation": "subscriber.device_links",
+      "language": "english",
+      "variant_id": "qv-154"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.status_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "subscriber.status_summary",
+      "language": "english",
+      "variant_id": "qv-155"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.conflict_audit",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "compare",
+      "expected_operation": "subscriber.conflict_audit",
+      "language": "english",
+      "variant_id": "qv-156"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "subscriber.reuse_candidates",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "subscriber.reuse_candidates",
+      "language": "english",
+      "variant_id": "qv-157"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "english",
+      "variant_id": "qv-158"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "english",
+      "variant_id": "qv-159"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "english",
+      "variant_id": "qv-160"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "english",
+      "variant_id": "qv-161"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "english",
+      "variant_id": "qv-162"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "english",
+      "variant_id": "qv-163"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "english",
+      "variant_id": "qv-164"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "english",
+      "variant_id": "qv-165"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.temporal_activity",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "cdr.temporal_activity",
+      "language": "english",
+      "variant_id": "qv-166"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "english",
+      "variant_id": "qv-167"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.temporal_activity",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "cdr.temporal_activity",
+      "language": "english",
+      "variant_id": "qv-168"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.temporal_activity",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "cdr.temporal_activity",
+      "language": "roman_urdu",
+      "variant_id": "qv-169"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.temporal_activity",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "cdr.temporal_activity",
+      "language": "urdu",
+      "variant_id": "qv-170"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.temporal_activity",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "cdr.temporal_activity",
+      "language": "english",
+      "variant_id": "qv-171"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "english",
+      "variant_id": "qv-172"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "english",
+      "variant_id": "qv-173"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "english",
+      "variant_id": "qv-174"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.multi_source_comparison",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "compare",
+      "expected_operation": "cdr.multi_source_comparison",
+      "language": "english",
+      "variant_id": "qv-175"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.multi_source_comparison",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "compare",
+      "expected_operation": "cdr.multi_source_comparison",
+      "language": "english",
+      "variant_id": "qv-176"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "roman_urdu",
+      "variant_id": "qv-177"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.temporal_activity",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "cdr.temporal_activity",
+      "language": "roman_urdu",
+      "variant_id": "qv-178"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.multi_source_comparison",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "compare",
+      "expected_operation": "cdr.multi_source_comparison",
+      "language": "roman_urdu",
+      "variant_id": "qv-179"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.multi_source_comparison",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "compare",
+      "expected_operation": "cdr.multi_source_comparison",
+      "language": "roman_urdu",
+      "variant_id": "qv-180"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.temporal_activity",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "cdr.temporal_activity",
+      "language": "urdu",
+      "variant_id": "qv-181"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "urdu",
+      "variant_id": "qv-182"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.frequent_contacts",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "rank",
+      "expected_operation": "cdr.frequent_contacts",
+      "language": "urdu",
+      "variant_id": "qv-183"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.multi_source_comparison",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "compare",
+      "expected_operation": "cdr.multi_source_comparison",
+      "language": "urdu",
+      "variant_id": "qv-184"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "cdr.temporal_activity",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "cdr.temporal_activity",
+      "language": "mixed",
+      "variant_id": "qv-185"
+    },
+    {
+      "actual_intent": "semantic",
+      "actual_operation": "forensics.evidence",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "retrieve",
+      "expected_operation": "forensics.evidence",
+      "language": "mixed",
+      "variant_id": "qv-186"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "financial.transaction_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "financial.transaction_summary",
+      "language": "english",
+      "variant_id": "qv-187"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "financial.transaction_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "financial.transaction_summary",
+      "language": "english",
+      "variant_id": "qv-188"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "financial.transaction_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "financial.transaction_summary",
+      "language": "roman_urdu",
+      "variant_id": "qv-189"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "financial.transaction_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "financial.transaction_summary",
+      "language": "urdu",
+      "variant_id": "qv-190"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "financial.transaction_summary",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "summarize",
+      "expected_operation": "financial.transaction_summary",
+      "language": "mixed",
+      "variant_id": "qv-191"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "access.failed_events",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "access.failed_events",
+      "language": "english",
+      "variant_id": "qv-192"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "access.failed_events",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "access.failed_events",
+      "language": "roman_urdu",
+      "variant_id": "qv-193"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "access.failed_events",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "access.failed_events",
+      "language": "urdu",
+      "variant_id": "qv-194"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "access.failed_events",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "access.failed_events",
+      "language": "mixed",
+      "variant_id": "qv-195"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "generic.filter_records",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "generic.filter_records",
+      "language": "english",
+      "variant_id": "qv-196"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "generic.filter_records",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "generic.filter_records",
+      "language": "roman_urdu",
+      "variant_id": "qv-197"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "generic.filter_records",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "generic.filter_records",
+      "language": "urdu",
+      "variant_id": "qv-198"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "document.metadata",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "document.metadata",
+      "language": "english",
+      "variant_id": "qv-199"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "document.search",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "retrieve",
+      "expected_operation": "document.search",
+      "language": "roman_urdu",
+      "variant_id": "qv-200"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "document.search",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "retrieve",
+      "expected_operation": "document.search",
+      "language": "mixed",
+      "variant_id": "qv-201"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "image.metadata",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "image.metadata",
+      "language": "english",
+      "variant_id": "qv-202"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "image.ocr_search",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "retrieve",
+      "expected_operation": "image.ocr_search",
+      "language": "roman_urdu",
+      "variant_id": "qv-203"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "image.ocr_search",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "retrieve",
+      "expected_operation": "image.ocr_search",
+      "language": "mixed",
+      "variant_id": "qv-204"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "face.candidate_observations",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "face.candidate_observations",
+      "language": "english",
+      "variant_id": "qv-205"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "face.candidate_observations",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "face.candidate_observations",
+      "language": "roman_urdu",
+      "variant_id": "qv-206"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "face.candidate_observations",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "face.candidate_observations",
+      "language": "urdu",
+      "variant_id": "qv-207"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "face.candidate_observations",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "face.candidate_observations",
+      "language": "mixed",
+      "variant_id": "qv-208"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "audio.metadata",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "audio.metadata",
+      "language": "english",
+      "variant_id": "qv-209"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "audio.transcript_search",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "retrieve",
+      "expected_operation": "audio.transcript_search",
+      "language": "roman_urdu",
+      "variant_id": "qv-210"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "audio.transcript_search",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "retrieve",
+      "expected_operation": "audio.transcript_search",
+      "language": "mixed",
+      "variant_id": "qv-211"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "video.metadata",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "lookup",
+      "expected_operation": "video.metadata",
+      "language": "english",
+      "variant_id": "qv-212"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "video.timeline",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "video.timeline",
+      "language": "roman_urdu",
+      "variant_id": "qv-213"
+    },
+    {
+      "actual_intent": "records",
+      "actual_operation": "video.timeline",
+      "classification": "COMPATIBLE_PLAN_PARITY",
+      "duplicate_or_history_preserved": true,
+      "expected_intent": "timeline",
+      "expected_operation": "video.timeline",
+      "language": "urdu",
+      "variant_id": "qv-214"
+    }
+  ],
+  "schema_version": "nexusai.nxb21.d-214-variant-regression/v1",
+  "status": "PASS_CLASSIFIED_NOT_RESULT_CERTIFIED",
+  "variant_count": 214,
+  "classification_counts": {
+    "COMPATIBLE_PLAN_PARITY": 214
+  },
+  "actual_planner_executed": true,
+  "retained_queries": false
+}

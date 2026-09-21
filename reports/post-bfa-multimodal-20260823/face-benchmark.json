@@ -1,0 +1,279 @@
+{
+  "contract_version": "nexusai.face-model-benchmark/v1",
+  "generated_utc": "2026-08-23T09:11:51.1093877Z",
+  "retained_mutation": false,
+  "natural_evidence": false,
+  "model": {
+    "id": "face-detect-yunet-sface",
+    "role": "CPU face detection and evidence-scoped candidate visual similarity",
+    "embedding_dimension_expected": 128,
+    "identity_claims_authorized": false,
+    "demographics_authorized": false,
+    "global_gallery_authorized": false
+  },
+  "fixtures": [
+    {
+      "filename": "subject-a-frontal.png",
+      "source": "OpenAI ImageGen synthetic project fixture",
+      "url": null,
+      "publisher": "OpenAI ImageGen",
+      "license": "synthetic user-authorized project output; not third-party natural evidence",
+      "attribution": "Synthetic fixture generated for NexusAI model acceptance; never represent as natural evidence.",
+      "sha256": "aed3e4b16fe9560d25840961f615673e4af0ccd28f8695b46dc1ad34776dc387",
+      "bytes": 2234099,
+      "purpose": "single clear frontal face and positive-pair anchor",
+      "ground_truth": "SAME_FIXTURE_SUBJECT:A",
+      "derivative_command": null,
+      "expected_face_count": 1,
+      "detected_face_count": 1,
+      "detection_count_pass": true,
+      "detection_latency_ms": 3028,
+      "faces": [
+        {
+          "bbox": {
+            "x": 355.51,
+            "y": 296.16,
+            "width": 534.12,
+            "height": 693.08997
+          },
+          "bbox_positive": true,
+          "confidence": 0.9517
+        }
+      ],
+      "embedding": {
+        "generated": true,
+        "dimension": 128,
+        "model": "face-detect-yunet-sface",
+        "latency_ms": 761
+      }
+    },
+    {
+      "filename": "subject-a-pose.png",
+      "source": "OpenAI ImageGen synthetic project fixture",
+      "url": null,
+      "publisher": "OpenAI ImageGen",
+      "license": "synthetic user-authorized project output; not third-party natural evidence",
+      "attribution": "Synthetic fixture generated for NexusAI model acceptance; never represent as natural evidence.",
+      "sha256": "2ccb36c968b6d73fd33401932a4f8650d7c2becffabf2e5ca2b613835ea9b518",
+      "bytes": 2020934,
+      "purpose": "moderate pose and same-subject positive",
+      "ground_truth": "SAME_FIXTURE_SUBJECT:A",
+      "derivative_command": "ImageGen edit of subject-a-frontal.png: approximately 20 degree pose, slight smile, softer focus",
+      "expected_face_count": 1,
+      "detected_face_count": 1,
+      "detection_count_pass": true,
+      "detection_latency_ms": 622,
+      "faces": [
+        {
+          "bbox": {
+            "x": 332.3,
+            "y": 289.87,
+            "width": 517.27,
+            "height": 666.9
+          },
+          "bbox_positive": true,
+          "confidence": 0.9523
+        }
+      ],
+      "embedding": {
+        "generated": true,
+        "dimension": 128,
+        "model": "face-detect-yunet-sface",
+        "latency_ms": 1008
+      }
+    },
+    {
+      "filename": "subject-a-blur.png",
+      "source": "OpenAI ImageGen synthetic project fixture",
+      "url": null,
+      "publisher": "OpenAI ImageGen",
+      "license": "synthetic user-authorized project output; not third-party natural evidence",
+      "attribution": "Synthetic fixture generated for NexusAI model acceptance; never represent as natural evidence.",
+      "sha256": "44b6f48e761d431b70cdb362b472a798aac8b442a7d8e638d47019aea05cae57",
+      "bytes": 843107,
+      "purpose": "moderate blur",
+      "ground_truth": "SAME_FIXTURE_SUBJECT:A",
+      "derivative_command": "cv2.GaussianBlur(input, (21,21), 7)",
+      "expected_face_count": 1,
+      "detected_face_count": 1,
+      "detection_count_pass": true,
+      "detection_latency_ms": 585,
+      "faces": [
+        {
+          "bbox": {
+            "x": 362.81,
+            "y": 303.94,
+            "width": 509.49,
+            "height": 658.55
+          },
+          "bbox_positive": true,
+          "confidence": 0.9451
+        }
+      ],
+      "embedding": {
+        "generated": true,
+        "dimension": 128,
+        "model": "face-detect-yunet-sface",
+        "latency_ms": 675
+      }
+    },
+    {
+      "filename": "subject-b-frontal.png",
+      "source": "OpenAI ImageGen synthetic project fixture",
+      "url": null,
+      "publisher": "OpenAI ImageGen",
+      "license": "synthetic user-authorized project output; not third-party natural evidence",
+      "attribution": "Synthetic fixture generated for NexusAI model acceptance; never represent as natural evidence.",
+      "sha256": "d69848db8e4332f02a544dd6a5339dd49f187dadd3203a365cff1d91f8e27885",
+      "bytes": 1950487,
+      "purpose": "different-subject comparison",
+      "ground_truth": "DIFFERENT_FIXTURE_SUBJECT:B",
+      "derivative_command": null,
+      "expected_face_count": 1,
+      "detected_face_count": 1,
+      "detection_count_pass": true,
+      "detection_latency_ms": 377,
+      "faces": [
+        {
+          "bbox": {
+            "x": 374.99,
+            "y": 305.86,
+            "width": 462.24,
+            "height": 660.98004
+          },
+          "bbox_positive": true,
+          "confidence": 0.9509
+        }
+      ],
+      "embedding": {
+        "generated": true,
+        "dimension": 128,
+        "model": "face-detect-yunet-sface",
+        "latency_ms": 398
+      }
+    },
+    {
+      "filename": "group-four.png",
+      "source": "OpenAI ImageGen synthetic project fixture",
+      "url": null,
+      "publisher": "OpenAI ImageGen",
+      "license": "synthetic user-authorized project output; not third-party natural evidence",
+      "attribution": "Synthetic fixture generated for NexusAI model acceptance; never represent as natural evidence.",
+      "sha256": "3c69425bd40e67e5e2e9ec64457bc930419ba890e11bd7386433e477852811a5",
+      "bytes": 2258182,
+      "purpose": "multiple faces including one smaller face",
+      "ground_truth": "SYNTHETIC_GROUP_COUNT:4",
+      "derivative_command": null,
+      "expected_face_count": 4,
+      "detected_face_count": 4,
+      "detection_count_pass": true,
+      "detection_latency_ms": 335,
+      "faces": [
+        {
+          "bbox": {
+            "x": 167.57,
+            "y": 225.11,
+            "width": 201.54999,
+            "height": 217.43999
+          },
+          "bbox_positive": true,
+          "confidence": 0.9318
+        },
+        {
+          "bbox": {
+            "x": 1155.18,
+            "y": 323.18,
+            "width": 207.5199,
+            "height": 225.84003
+          },
+          "bbox_positive": true,
+          "confidence": 0.9279
+        },
+        {
+          "bbox": {
+            "x": 556.55,
+            "y": 362.37,
+            "width": 222.48999,
+            "height": 242.51001
+          },
+          "bbox_positive": true,
+          "confidence": 0.9217
+        },
+        {
+          "bbox": {
+            "x": 879.28,
+            "y": 326.49,
+            "width": 119.5,
+            "height": 144.79001
+          },
+          "bbox_positive": true,
+          "confidence": 0.9162
+        }
+      ],
+      "embedding": {
+        "generated": false,
+        "reason": "not applicable to multi-face/no-face fixture"
+      }
+    },
+    {
+      "filename": "no-face-street.png",
+      "source": "OpenAI ImageGen synthetic project fixture",
+      "url": null,
+      "publisher": "OpenAI ImageGen",
+      "license": "synthetic user-authorized project output; not third-party natural evidence",
+      "attribution": "Synthetic fixture generated for NexusAI model acceptance; never represent as natural evidence.",
+      "sha256": "2ccf02c6a96f5c646697258c36bcaf0dfd2aec0052ee06eef81789a040f8892d",
+      "bytes": 3179397,
+      "purpose": "no-face negative",
+      "ground_truth": "NO_FACE",
+      "derivative_command": null,
+      "expected_face_count": 0,
+      "detected_face_count": 0,
+      "detection_count_pass": true,
+      "detection_latency_ms": 556,
+      "faces": [],
+      "embedding": {
+        "generated": false,
+        "reason": "not applicable to multi-face/no-face fixture"
+      }
+    }
+  ],
+  "similarity": {
+    "label": "candidate visual similarity; not identity",
+    "same_fixture_subject_cosine": 0.8367589429086335,
+    "blurred_same_fixture_subject_cosine": 0.899803851629348,
+    "different_fixture_subject_cosine": 0.28379574097055027,
+    "relative_ranking_pass": true,
+    "same_fixture_verify": {
+      "verified": true,
+      "distance": 0.16324109,
+      "threshold": 0.363,
+      "confidence": 55.030003,
+      "latency_ms": 1390
+    },
+    "different_fixture_verify": {
+      "verified": false,
+      "distance": 0.7162043,
+      "threshold": 0.363,
+      "confidence": 0,
+      "latency_ms": 1064
+    }
+  },
+  "runtime": {
+    "container": "nexusai-face-benchmark",
+    "memory_before": "42.38MiB / 7.611GiB|0.54%",
+    "memory_after": "338.3MiB / 7.611GiB|4.34%"
+  },
+  "acceptance": {
+    "detection_counts_pass": true,
+    "returned_bboxes_positive": true,
+    "embeddings_are_128d": true,
+    "same_subject_ranks_above_different_subject": true,
+    "verdict": "M1_ACCEPTABLE_LIMITED",
+    "limitations": [
+      "Synthetic fixtures test only basic M1 behavior and do not establish operational biometric accuracy.",
+      "Similarity is candidate visual similarity, never identity.",
+      "Bounding boxes require analyst visual review; this gate checks counts and positive coordinates only."
+    ]
+  }
+}

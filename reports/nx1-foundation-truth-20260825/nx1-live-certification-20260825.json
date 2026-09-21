@@ -1,0 +1,288 @@
+{
+  "contract_version": "nexusai.nx1.foundation-truth-live-certification/v1",
+  "recorded_at": "2026-08-25T15:40:12.4641162+05:00",
+  "scope": {
+    "tenant_id": "default",
+    "case_id": "nexusai-multimodal-product-acceptance",
+    "collection_id": "nexusai-multimodal-product-acceptance",
+    "retained_upload_performed": false,
+    "retained_reprocessing_performed": false,
+    "model_change_performed": false,
+    "database_migration_performed": false,
+    "rebuild_during_certification": false,
+    "nx_ux1_started": false
+  },
+  "activation": {
+    "verdict": "PASS",
+    "output": "reports/nx1-foundation-truth-20260825/nx1-local-activation-output.txt",
+    "output_sha256": "8246e43607e32d8439688b768f505419d6054f04727dc41f3e750b7b4fc8b694",
+    "output_bytes": 33100,
+    "localai_container_id": "77d0f172f0ca56bd40d8dd2d8a3777a1984997c3bf09899faab4709e6c708aa9",
+    "localai_image_id": "sha256:11549bad5bf378cb3cfee20fcbc7a384767a98eab2d07dd490c970fddc68cb2f",
+    "forensic_api_container_id": "1bdf4f77087ebf8870a640704d95fea36e152bf198175f782bd451bcb526b074",
+    "forensic_api_image_id": "sha256:4eb2db0af60d80a1ea75733cc5db559d508197cd2504006f77ccad4ff708e14b",
+    "rollback_images_verified": true
+  },
+  "protected_runtime": {
+    "worker_container_id": "1846f558941f583467976ad8e74a44e9063c8a1a50e870951c7e479ecce3fb66",
+    "worker_image_id": "sha256:be13dbec4bd9bb62c824140df3777b898d7ad2801a0e68cd512c00dafaf4f9ef",
+    "nats_container_id": "5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04",
+    "postgres_container_id": "f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361",
+    "preserved": true,
+    "health": "PASS"
+  },
+  "retained_state": {
+    "counts": {
+      "evidence": 51,
+      "versions": 51,
+      "jobs": 64,
+      "active_jobs": 0,
+      "canonical_records": 22207,
+      "artifacts": 441,
+      "kb_assets": 47
+    },
+    "model_count": 5,
+    "model_contract_sha256": "9c7f93d9dc327c1086fa0e3618fe9f1fc50b77080ab3ef39bdc3175a4c09da1f",
+    "mutated": false
+  },
+  "independent_anpr_oracle": {
+    "method": "independent read-only PostgreSQL query over retained canonical ANPR fields",
+    "target": "MN1367",
+    "row_count": 1,
+    "evidence_id": "a0ff7b18-129f-4a8a-82cf-48887f98bd9e",
+    "version_id": "3dc6b0f6-8d2b-426d-93c5-12059005549b",
+    "source_file": "image-test-plate-test_plate.jpg",
+    "row_number": 3,
+    "row_hash": "6c3b26cf304b705aca3079f7ab94e65c1260baf7b7b0103dc856db34d9b898fb",
+    "observed_at": "2026-08-23T13:43:53.249394Z",
+    "verdict": "PASS"
+  },
+  "positive_truth": {
+    "english": "PASS",
+    "natural_english": "PASS",
+    "roman_urdu": "PASS",
+    "urdu_script": "PASS",
+    "operation_id": "anpr.sightings",
+    "result_state": "results_present",
+    "row_count": 1,
+    "citation_count": 1,
+    "analysis_id": "897aac86-d706-4a25-8bd9-29c17911f4a1",
+    "ask_presentation": "PASS",
+    "activity_reopen": "PASS",
+    "oracle_agreement": "PASS"
+  },
+  "public_zero_and_negative_contract": {
+    "raw_no_match": {
+      "target": "ZZZ9999",
+      "result_state": "no_match_for_filter",
+      "authoritative_row_count": 0
+    },
+    "public_no_match": {
+      "result_state": "no_match_for_filter",
+      "reported_row_count": 1,
+      "table_rows": 0,
+      "verdict": "FAIL_ROW_COUNT_CONTRADICTION"
+    },
+    "raw_complete_zero": {
+      "evidence_id": "50057921-4f1f-4ab8-bab0-47bcdc957822",
+      "result_state": "complete_zero_results",
+      "processing_state": "completed",
+      "authoritative_row_count": 0,
+      "plate_filter": "",
+      "executive_answer": "ANPR processing complete, 0 plate groups detected."
+    },
+    "public_complete_zero": {
+      "result_state": "complete_zero_results",
+      "processing_state": "completed",
+      "operation_id": "video.anpr_grouped_timeline",
+      "reported_row_count": 1,
+      "table_rows": 0,
+      "english": "PASS_STATE_FAIL_COUNT",
+      "roman_urdu": "PASS_STATE_FAIL_COUNT",
+      "urdu_script": "PASS_STATE_FAIL_COUNT",
+      "verdict": "FAIL_ROW_COUNT_CONTRADICTION"
+    },
+    "root_cause_evidence": "legacyHybridToEnterpriseV1 calls enterpriseAuthoritativeRowCount over flattenEnterpriseRows(legacy.Records); live metadata arrays make the flattened count one even when records.row_count and data rows are zero."
+  },
+  "ask_and_activity_complete_zero": {
+    "query": "show plates in this video evidence 50057921-4f1f-4ab8-bab0-47bcdc957822",
+    "analysis_id": "6c5e7b29-5de7-4ce9-ad12-fd5fb006a430",
+    "operation_id": "video.anpr_grouped_timeline",
+    "result_state": "complete_zero_results",
+    "processing_state": "completed",
+    "row_count": 0,
+    "executive_answer": "ANPR processing complete, 0 plate groups detected.",
+    "ask_presentation": "PASS",
+    "activity_list": "PASS",
+    "activity_reopen": "PASS",
+    "verdict": "PASS_P1_2_CLOSED_LIVE"
+  },
+  "uuid_and_plate_routing": {
+    "canonical_uuid_only": {
+      "query": "show plates in this video evidence 50057921-4f1f-4ab8-bab0-47bcdc957822",
+      "operation_id": "video.anpr_grouped_timeline",
+      "evidence_id": "50057921-4f1f-4ab8-bab0-47bcdc957822",
+      "plate_filter": "",
+      "verdict": "PASS"
+    },
+    "canonical_uuid_plus_explicit_plate": {
+      "query": "show plates in this video for plate MN1367 evidence 50057921-4f1f-4ab8-bab0-47bcdc957822",
+      "analysis_id": "6f0aa01b-5baa-4d64-bb2e-7dd260a7873f",
+      "operation_id": "video.anpr_grouped_timeline",
+      "evidence_target": "50057921-4F1F-4AB8-BAB0-47BCDC957822",
+      "explicit_plate_present_in_targets": true,
+      "result_state": "no_match_for_filter",
+      "verdict": "PASS_BOUNDED_CANONICAL_PATH"
+    },
+    "natural_grouped_timeline_wording": {
+      "query": "Show the grouped ANPR timeline for retained video evidence 50057921-4f1f-4ab8-bab0-47bcdc957822.",
+      "analysis_id": "0920ac57-92d9-4418-9bb7-0c0565edfbbc",
+      "actual_operation_id": "anpr.timeline",
+      "actual_target": "50057921",
+      "expected_operation_id": "video.anpr_grouped_timeline",
+      "expected_evidence_id": "50057921-4f1f-4ab8-bab0-47bcdc957822",
+      "verdict": "FAIL_NATURAL_WORDING_LOSES_TYPED_UUID_ROUTE"
+    },
+    "overall": "PARTIAL"
+  },
+  "browser_acceptance": {
+    "390": {"horizontal_overflow": false, "main_visible": true, "complete_zero_visible": true, "result_zero_visible": true, "verdict": "PASS"},
+    "820": {"horizontal_overflow": false, "main_visible": true, "complete_zero_visible": true, "result_zero_visible": true, "verdict": "PASS"},
+    "1024": {"horizontal_overflow": false, "main_visible": true, "complete_zero_visible": true, "result_zero_visible": true, "verdict": "PASS"},
+    "1440": {"horizontal_overflow": false, "main_visible": true, "complete_zero_visible": true, "result_zero_visible": true, "verdict": "PASS"},
+    "console_errors": 0,
+    "overall": "PASS"
+  },
+  "open_foundational_p1": [
+    {
+      "id": "NX1-P1-1",
+      "component": "public case-query compatibility adapter",
+      "finding": "Authoritative no-match and complete-zero operations have zero rows, but the public enterprise response reports row_count 1 while returning no table rows.",
+      "acceptance": "Public row_count must equal the authoritative operation/data-row count for positive, no-match, and complete-zero results under the real retained response shape."
+    },
+    {
+      "id": "NX1-P1-3",
+      "component": "normal analyst grouped-video query routing",
+      "finding": "Canonical 'show plates in this video evidence UUID' preserves the full UUID, but ordinary 'grouped ANPR timeline for retained video evidence UUID' still routes to anpr.timeline with target 50057921.",
+      "acceptance": "Representative natural, messy, Roman Urdu, Urdu, and follow-up grouped-video wording must preserve the full typed evidence UUID and keep an explicit plate separate."
+    }
+  ],
+  "closed_foundational_p1": [
+    {
+      "id": "NX1-P1-2",
+      "verdict": "PASS",
+      "evidence": "Canonical complete-zero is preserved through operation, Ask, Activity list, Activity reopen, and all four responsive viewport checks."
+    }
+  ],
+  "final_source_closure_addendum": {
+    "recorded_at": "2026-08-25",
+    "historical_live_observations_above_unchanged": true,
+    "deployment_performed": false,
+    "p1_1_source": "PASS",
+    "p1_3_source": "PASS",
+    "positive_row_count_source": "PASS",
+    "multi_row_count_source": "PASS",
+    "no_match_row_count_source": "PASS",
+    "complete_zero_row_count_source": "PASS",
+    "history_contract_source": "PASS",
+    "natural_grouped_video_uuid_routing_source": "PASS",
+    "explicit_plate_plus_uuid_source": "PASS",
+    "source_second_range_and_scope_source": "PASS",
+    "anti_hardcode": "PASS",
+    "full_forensic_api_tests": "PASS",
+    "focused_agent_ginkgo": "PASS",
+    "changed_package_vet": "PASS",
+    "git_diff_check": "PASS",
+    "open_p0_source": 0,
+    "open_foundational_p1_source": 0,
+    "open_foundational_p1_live": 2,
+    "matrix": "reports/nx1-foundation-truth-20260825/nx1-final-source-closure-matrix.json",
+    "activation_scope": ["forensic-records-api", "api (LocalAI/UI)"],
+    "activation_status": "NOT_APPROVED_NOT_RUN"
+  },
+  "typed_identifier_source_closure_addendum": {
+    "recorded_at": "2026-08-26",
+    "historical_live_observations_above_unchanged": true,
+    "p1_1_live": "PASS",
+    "p1_2_live": "PASS",
+    "p1_3_live": "OPEN",
+    "p1_3_source": "PASS",
+    "root_cause": "complete UUID spans were not protected before phone/plate/entity extraction and the legacy adapter flattened all surviving values into generic targets",
+    "typed_span_rule": "recognize and preserve complete UUID first; exclude every overlapping extractor match; preserve independently written plate and explicit source-second bounds",
+    "operation_contract": "video.anpr_grouped_timeline already supports evidence_id, optional plate, start_seconds, and end_seconds",
+    "focused_regressions": "PASS",
+    "randomized_valid_uuid_count": 12,
+    "full_forensic_api_tests": "PASS_68_010_SECONDS_285_GINKGO_SPECS",
+    "query_variant_ledger": "PASS_REGENERATED_AND_RECONCILED",
+    "go_vet": "PASS",
+    "anti_hardcode": "PASS_PRODUCTION_SOURCE",
+    "git_diff_check": "PASS",
+    "deployment_performed_this_turn": false,
+    "required_service_scope": ["forensic-records-api"],
+    "observed_free_physical_ram_gib": 4.555,
+    "required_free_physical_ram_gib": 6,
+    "rollback_image_required": "sha256:74c07cce1225d0694ca8342419af9f1994801aeacdb1c048a54ef9af854ed8a7",
+    "open_p0_source": 0,
+    "open_foundational_p1_source": 0,
+    "open_foundational_p1_live": 1,
+    "matrix": "reports/nx1-foundation-truth-20260825/nx1-final-source-closure-matrix.json"
+  },
+  "time_urdu_source_closure_addendum": {
+    "recorded_at": "2026-08-26",
+    "historical_live_observations_above_unchanged": true,
+    "current_forensic_api_container": "8879e5d6da3ee8ab529c0b4da58fd9b15fa88d4839ebbf2a8e8d9db93629069e",
+    "current_forensic_api_image": "sha256:0ef44346e74478a8d0775db19350f674a4f7089fefe4f6fd7374cf93d4b3a454",
+    "typed_identifier_activation": "PASS_HEALTHY",
+    "p1_1_live": "PASS",
+    "p1_2_live": "PASS",
+    "uuid_protected_span_live": "PASS",
+    "explicit_plate_binding_live": "PASS",
+    "english_grouped_video_live": "PASS",
+    "roman_urdu_grouped_video_live": "PASS",
+    "positive_and_negative_row_count_live": "PASS",
+    "source_time_binding_source": "PASS_LIVE_OPEN",
+    "urdu_grouped_video_source": "PASS_LIVE_OPEN",
+    "source_time_rule": "explicit seconds phrases bind start_seconds and end_seconds without populating date_from or date_to; reversed ranges are rejected by the existing executor contract",
+    "urdu_rule": "bounded semantic normalization preserves exact LTR UUIDs and maps video evidence, ANPR, plate, grouped observations/timeline, and show/find variants",
+    "focused_regressions": "PASS_15_285_SECONDS",
+    "full_forensic_api_tests": "PASS_68_503_SECONDS",
+    "go_vet": "PASS",
+    "anti_hardcode": "PASS_PRODUCTION_SOURCE",
+    "json_validation": "PASS",
+    "git_diff_check": "PASS",
+    "deployment_performed_this_turn": false,
+    "required_service_scope": ["forensic-records-api"],
+    "observed_free_physical_ram_gib": 5.13,
+    "required_free_physical_ram_gib": 6,
+    "rollback_image_required": "sha256:0ef44346e74478a8d0775db19350f674a4f7089fefe4f6fd7374cf93d4b3a454",
+    "existing_prior_rollback_tag": "nexusai/forensic-records-api:rollback-before-nx1-p13-final-20260826",
+    "existing_prior_rollback_image": "sha256:74c07cce1225d0694ca8342419af9f1994801aeacdb1c048a54ef9af854ed8a7",
+    "open_p0_source": 0,
+    "open_foundational_p1_source": 0,
+    "open_foundational_p1_live": 1,
+    "matrix": "reports/nx1-foundation-truth-20260825/nx1-final-source-closure-matrix.json"
+  },
+  "final_markers": {
+    "NX1Activation": "PASS",
+    "NX1LiveCertification": "PARTIAL",
+    "PositiveAuthoritativeTruth": "PASS",
+    "CompleteZeroAskActivity": "PASS",
+    "PublicEnterpriseRowCount": "PASS",
+    "TypedUUIDRouting": "PASS_LIVE",
+    "PlateBinding": "PASS_LIVE",
+    "SourceTimeBinding": "PASS_SOURCE_LIVE_OPEN",
+    "UrduGroupedVideoRouting": "PASS_SOURCE_LIVE_OPEN",
+    "MultilingualPositive": "PASS",
+    "MultilingualCompleteZeroState": "PASS",
+    "HistoryCertification": "PASS",
+    "BrowserAcceptance": "PASS",
+    "ProtectedServicesPreserved": true,
+    "RetainedDataMutated": false,
+    "ModelsChanged": false,
+    "DatabaseMigration": false,
+    "OpenP0": 0,
+    "OpenFoundationalP1": 1,
+    "NX1FinalVerdict": "P1_1_P1_2_AND_P1_3_UUID_PLATE_LIVE_CLOSED_TIME_URDU_SOURCE_CLOSED_STOPPED_BEFORE_API_ONLY_DEPLOYMENT",
+    "NXUX1Started": false
+  }
+}

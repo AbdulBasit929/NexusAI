@@ -1,0 +1,611 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260825152623
+Username: ABDULBASIT\sheik
+RunAs User: ABDULBASIT\sheik
+Configuration Name: 
+Machine: ABDULBASIT (Microsoft Windows NT 10.0.22631.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\activate_nexusai_nx1_foundation_truth.ps1
+Process ID: 22252
+PSVersion: 5.1.22621.6133
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.22621.6133
+BuildVersion: 10.0.22621.6133
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+=== 1 REPOSITORY AND DOCKER DESKTOP ===
+Repository=C:\Users\sheik\Workspace\Office\Projects\NexusAI
+PowerShellVersion=5.1.22621.6133
+Client:
+ Version:           29.6.2
+ API version:       1.55
+ Go version:        go1.26.5
+ Git commit:        dfc4efb
+ Built:             Thu Jul 16 16:14:59 2026
+ OS/Arch:           windows/amd64
+ Context:           desktop-linux
+
+Server: Docker Desktop 4.83.0 (234302)
+ Engine:
+  Version:          29.6.2
+  API version:      1.55 (minimum version 1.40)
+  Go version:       go1.26.5
+  Git commit:       3d80467
+  Built:            Thu Jul 16 16:12:20 2026
+  OS/Arch:          linux/amd64
+  Experimental:     false
+ containerd:
+  Version:          v2.2.5
+  GitCommit:        e53c7c1516c3b2bff98eb76f1f4117477e6f4e66
+ runc:
+  Version:          1.3.6
+  GitCommit:        v1.3.6-0-g491b69ba
+ docker-init:
+  Version:          0.19.0
+  GitCommit:        de40ad0
+DockerLinuxEngine=ready
+GitBranch=codex/forensic-hybrid-checkpoint-20260723
+GitHead=40717b83510c08db25dc26b9d6674bf46db363ac
+DirtyWorktreeEntries=19668
+SourceHash=PASS core\services\agents\forensic_direct.go 5fe0fcbc10e703b3eaf573b40399e4132fc8c3473e21c70757dedf1fd1b688de
+SourceHash=PASS core\services\agents\forensic_direct_test.go f520e45d6d2d99faafe5b6993dfb864f6d196ad9824e4cc86e4d9af64b20b51f
+SourceHash=PASS api\forensic_records\query.go e1a7ce5dd83f33d308091ccdb7900034c1dd5fac4b733e9fa40614871dbda08c
+SourceHash=PASS api\forensic_records\mmv2_query_test.go fc4d61ba9c4e9175b65ce528444a318e4d6eee9a4dd20679e88741f4d294e4c7
+SourceHash=PASS core\services\agents\forensic_presentation.go ca4778904c1418f9ad3cdebaf78b2ce09210931e0fb34fdd46f221e7b400fc64
+SourceHash=PASS core\services\agents\forensic_presentation_test.go 7785149faebc75ed0e4037645ff890c80531352ca2efefc4ebb62c16b27f77af
+SourceHash=PASS core\http\react-ui\src\pages\AgentChat.jsx 0ce908036028f59f917f8d80e7b2fbe5cb3df7f9ea16efc3c3218235c9ed3bbe
+SourceHash=PASS core\http\react-ui\src\analyst\AnalystHistory.jsx aafe288016d38e9dd69e6f066d6113bd2d79262a962b44b6b78a40a95cce6a8c
+SourceHash=PASS Dockerfile 167f93165728a31b554751c2a100120eca34ffdcc8509ecb3ac5e393efe48a94
+SourceHash=PASS api\forensic_records\Dockerfile 3a54a1fa363db2ca14e00fb03cdb42b80c1bbdb493e53191c9b185c98fa69a1d
+SourceHash=PASS docker-compose.yaml 0ef74ce958237dbe66552dcb3e36a02def568eb1a179bcd04828cf54af4dc72d
+SourceHash=PASS docker-compose.forensic-runtime.localai.yaml a4a10aca68a9291e9696d86f392a33e53df64992a31cca896c7c99492ce5ec5b
+SourceHash=PASS docker-compose.forensic-records.yaml b0f724ea34bea80bfadf8491d03bf2ddc9a8cfcbc0f2982d1a5374b968e75dd6
+SourceHash=PASS docker-compose.forensic-records.runtime.yaml 8793dff4a5980dc0d8dd6a453967cb6512daf13301f22039c770ab9d4410d923
+SourceHash=PASS docker-compose.forensic-records.asr-small.yaml 4f39dfe6d572d1ffcddbe81339389167534f4b0f8b20e1d5915b0532827c11f0
+SourceHash=PASS .env e6e974b1c197e56722c03fd7092acaeb1ef9a98e37aff8197bb88904007c024d
+SourceHash=PASS .env.forensic-runtime.local 82bb4660ef9615f821f3ef3157652054d6b338fa5324cb894f53ea6e9e5de726
+SourceHash=PASS reports\nexusai-nx1-activation-manifest-20260825.json 54afe2f7b39fc76562d5b146186213e19aa6bf654c4330d927b3ea867425bcd8
+CheckpointState=PASS
+ExactRebuildServices=forensic-records-api,api
+
+=== 2 CURRENT RUNTIME AND BEFORE STATE ===
+CurrentRuntimeImages=PASS
+BeforeContainer.localai=c4495d82b714077626724263498c8f07d677c78d6e3a160582f8d08059f4ee65
+BeforeImage.localai=sha256:f255f18897577a553b0ad64ce9980c21bd69c912f90414f35135c49c7eda9f95
+BeforeContainer.forensic_api=4aad366462784110b4217ec500ed561cca0bceada3e8184a48b4a43423afc178
+BeforeImage.forensic_api=sha256:c0f07382ab7d30ba1538b44f8cfca8d25cab41ec954cb978c19d10632e3ca5f6
+BeforeContainer.worker=1846f558941f583467976ad8e74a44e9063c8a1a50e870951c7e479ecce3fb66
+BeforeImage.worker=sha256:be13dbec4bd9bb62c824140df3777b898d7ad2801a0e68cd512c00dafaf4f9ef
+BeforeContainer.nats=5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04
+BeforeImage.nats=sha256:e4bf19f15fd3218814a4e3c9e0064e1334bd8aa20d5984b9f1a0afd084f8cc00
+BeforeContainer.postgres=f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361
+BeforeImage.postgres=sha256:61f891691050da6032023c01ea885730eeeba06b7c17b403e7d0b9c49c37dfe9
+ComposeConfiguration=PASS
+LocalAIContainer=healthy
+ForensicApiContainer=running
+WorkerContainer=healthy
+NatsContainer=healthy
+PostgreSQLContainer=healthy
+LocalAIReadyz=200
+AnalystUtilityHTML=200
+ForensicApiHealthz=200
+WorkerMetrics=200
+NatsHealthz=200
+/var/run/postgresql:5432 - accepting connections
+PostgreSQL=ready
+
+=== 3 RETAINED DATA, MODELS, PROFILES, MOUNTS, AND VOLUMES ===
+BeforeRetained.evidence=51
+BeforeRetained.versions=51
+BeforeRetained.jobs=64
+BeforeRetained.active_jobs=0
+BeforeRetained.canonical_records=22207
+BeforeRetained.artifacts=441
+BeforeRetained.kb_assets=47
+BeforeRetained.Tuple=51|51|64|0|22207|441|47
+ActiveForensicProcessingJobs=0
+BeforeModels.Count=5
+BeforeModels.SHA256=9c7f93d9dc327c1086fa0e3618fe9f1fc50b77080ab3ef39bdc3175a4c09da1f
+BeforeProfileHash..env=e6e974b1c197e56722c03fd7092acaeb1ef9a98e37aff8197bb88904007c024d
+BeforeProfileHash..env.forensic-runtime.local=82bb4660ef9615f821f3ef3157652054d6b338fa5324cb894f53ea6e9e5de726
+BeforeProfileHash.docker-compose.forensic-records.yaml=b0f724ea34bea80bfadf8491d03bf2ddc9a8cfcbc0f2982d1a5374b968e75dd6
+BeforeProfileHash.docker-compose.forensic-records.runtime.yaml=8793dff4a5980dc0d8dd6a453967cb6512daf13301f22039c770ab9d4410d923
+BeforeProfileHash.docker-compose.forensic-records.asr-small.yaml=4f39dfe6d572d1ffcddbe81339389167534f4b0f8b20e1d5915b0532827c11f0
+BeforeProfileHash.docker-compose.yaml=0ef74ce958237dbe66552dcb3e36a02def568eb1a179bcd04828cf54af4dc72d
+BeforeProfileHash.docker-compose.forensic-runtime.localai.yaml=a4a10aca68a9291e9696d86f392a33e53df64992a31cca896c7c99492ce5ec5b
+ModelsProfilesVolumes=CAPTURED
+
+=== 4 DISK AND MANDATORY PHYSICAL RAM GATE ===
+BuildDrive=C:
+BuildDriveFreeGiB=1655.35
+BuildDriveUsedGiB=251.51
+DiskPolicy=No mandatory deployment minimum is defined by the current guarded activation policy.
+DiskGate=PASS_CURRENT_PROJECT_POLICY
+TotalPhysicalRAMGiB=15.713
+FreePhysicalRAMGiB=8.298
+RequiredFreeRAMGiB=6.000
+PreferredLaunchFreeRAMGiB=6.5
+RAMGate=PASS
+PreferredLaunchRAM=PASS
+
+=== 5 ROLLBACK PLAN ===
+LocalAIRollbackPlanned=nexusai/localai-forensic:rollback-before-nx1-foundation-truth-20260825 sha256:f255f18897577a553b0ad64ce9980c21bd69c912f90414f35135c49c7eda9f95
+ForensicApiRollbackPlanned=nexusai/forensic-records-api:rollback-before-nx1-foundation-truth-20260825 sha256:c0f07382ab7d30ba1538b44f8cfca8d25cab41ec954cb978c19d10632e3ca5f6
+
+=== 6 CREATE AND VERIFY FRESH ROLLBACK TAGS ===
+LocalAIRollback=nexusai/localai-forensic:rollback-before-nx1-foundation-truth-20260825 sha256:f255f18897577a553b0ad64ce9980c21bd69c912f90414f35135c49c7eda9f95
+ForensicApiRollback=nexusai/forensic-records-api:rollback-before-nx1-foundation-truth-20260825 sha256:c0f07382ab7d30ba1538b44f8cfca8d25cab41ec954cb978c19d10632e3ca5f6
+RollbackImages=PASS
+
+=== 7 SOURCE TESTS AND TWO CACHED BUILDS ===
+ok  	github.com/mudler/LocalAI/core/services/agents	4.444s
+ok  	github.com/mudler/LocalAI/api/forensic_records	3.429s
+TotalPhysicalRAMGiB=15.713
+FreePhysicalRAMGiB=8.276
+RequiredFreeRAMGiB=6.000
+PreferredLaunchFreeRAMGiB=6.5
+RAMGate=PASS
+PreferredLaunchRAM=PASS
+ Image nexusai/forensic-records-api:phase3-runtime Building
+#1 [internal] load local bake definitions
+#1 reading from stdin 655B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 506B 0.0s done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/golang:1.26-bookworm
+#3 DONE 0.1s
+
+#4 [internal] load metadata for gcr.io/distroless/static-debian12:nonroot
+#4 DONE 1.2s
+
+#5 [internal] load .dockerignore
+#5 transferring context:
+#5 transferring context: 2.51kB 0.0s done
+#5 DONE 0.7s
+
+#6 [stage-1 1/2] FROM gcr.io/distroless/static-debian12:nonroot@sha256:afa5c872c891853ca7fcf1f12c3edb23f7eeef36189728842dd51042ff57f7ab
+#6 resolve gcr.io/distroless/static-debian12:nonroot@sha256:afa5c872c891853ca7fcf1f12c3edb23f7eeef36189728842dd51042ff57f7ab 0.0s done
+#6 DONE 0.0s
+
+#7 [builder 1/7] FROM docker.io/library/golang:1.26-bookworm@sha256:1ecb7edf62a0408027bd5729dfd6b1b8766e578e8df93995b225dfd0944eb651
+#7 resolve docker.io/library/golang:1.26-bookworm@sha256:1ecb7edf62a0408027bd5729dfd6b1b8766e578e8df93995b225dfd0944eb651 0.0s done
+#7 DONE 0.0s
+
+#8 [internal] load build context
+#8 transferring context: 7.41kB 0.4s done
+#8 DONE 0.5s
+
+#9 [builder 4/7] RUN go mod download
+#9 CACHED
+
+#10 [builder 5/7] COPY pkg/httpclient ./pkg/httpclient
+#10 CACHED
+
+#11 [builder 6/7] COPY api/forensic_records ./api/forensic_records
+#11 CACHED
+
+#12 [builder 7/7] RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/forensic-records-api ./api/forensic_records
+#12 CACHED
+
+#13 [builder 2/7] WORKDIR /src
+#13 CACHED
+
+#14 [builder 3/7] COPY go.mod go.sum ./
+#14 CACHED
+
+#15 [stage-1 2/2] COPY --from=builder /out/forensic-records-api /forensic-records-api
+#15 CACHED
+
+#16 exporting to image
+#16 exporting layers 0.0s done
+#16 exporting manifest sha256:f2997f1864101ad256c245e6da85ee96782d2b206a73e167d47879f4c038c06a done
+#16 exporting config sha256:30ef12aeff508c9c9c8777210b33879816404339be801484d4835614466a9400 done
+#16 exporting attestation manifest sha256:49bae2d1a8a84f8b786061dd928a5b37184d389c54ffdc99315593005325647e 0.0s done
+#16 exporting manifest list sha256:4eb2db0af60d80a1ea75733cc5db559d508197cd2504006f77ccad4ff708e14b
+#16 exporting manifest list sha256:4eb2db0af60d80a1ea75733cc5db559d508197cd2504006f77ccad4ff708e14b 0.0s done
+#16 naming to docker.io/nexusai/forensic-records-api:phase3-runtime done
+#16 unpacking to docker.io/nexusai/forensic-records-api:phase3-runtime 0.0s done
+#16 DONE 0.2s
+
+#17 resolving provenance for metadata file
+#17 DONE 0.0s
+ Image nexusai/forensic-records-api:phase3-runtime Built
+TotalPhysicalRAMGiB=15.713
+FreePhysicalRAMGiB=8.213
+RequiredFreeRAMGiB=6.000
+PreferredLaunchFreeRAMGiB=6.5
+RAMGate=PASS
+PreferredLaunchRAM=PASS
+ Image nexusai/localai-forensic:phase3-runtime Building
+#1 [internal] load local bake definitions
+#1 reading from stdin 751B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 16.83kB done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/node:26-slim
+#3 DONE 2.4s
+
+#4 [internal] load metadata for docker.io/library/ubuntu:24.04
+#4 DONE 2.4s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 2.51kB done
+#5 DONE 0.0s
+
+#6 [internal] load build context
+#6 DONE 0.0s
+
+#7 [requirements 1/2] FROM docker.io/library/ubuntu:24.04@sha256:33ceb71981b602c1a7443a53469e4dba065f7503eab3078a2d7a57a2ab987517
+#7 resolve docker.io/library/ubuntu:24.04@sha256:33ceb71981b602c1a7443a53469e4dba065f7503eab3078a2d7a57a2ab987517 0.0s done
+#7 DONE 0.0s
+
+#8 [react-ui-builder 1/6] FROM docker.io/library/node:26-slim@sha256:5758d367d7b4f48b73a9bb3530e687e47efb289f3b43f9c0450a25225ae0db5d
+#8 resolve docker.io/library/node:26-slim@sha256:5758d367d7b4f48b73a9bb3530e687e47efb289f3b43f9c0450a25225ae0db5d 0.0s done
+#8 DONE 0.1s
+
+#6 [internal] load build context
+#6 transferring context: 12.37MB 4.9s
+#6 transferring context: 23.47MB 9.9s
+#6 transferring context: 35.38MB 15.0s
+#6 transferring context: 46.15MB 20.0s
+#6 transferring context: 59.52MB 25.1s
+#6 transferring context: 75.83MB 30.3s
+#6 transferring context: 105.76MB 35.3s
+#6 transferring context: 119.65MB 40.4s
+#6 transferring context: 123.94MB 45.4s
+#6 transferring context: 150.77MB 50.5s
+#6 transferring context: 169.85MB 55.5s
+#6 transferring context: 185.16MB 60.0s done
+#6 DONE 60.0s
+
+#9 [build-requirements 10/10] WORKDIR /build
+#9 CACHED
+
+#10 [builder-base 1/3] RUN echo "GO_TAGS: auth" && echo "TARGETARCH: amd64"
+#10 CACHED
+
+#11 [builder-backends  3/10] COPY ./backend ./backend
+#11 CACHED
+
+#12 [build-requirements  7/10] RUN test -n "amd64"     || (echo 'warn: missing $TARGETARCH, either set this `ARG` manually, or run using `docker buildkit`')
+#12 CACHED
+
+#13 [build-requirements  4/10] RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.2 &&     go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@1958fcbe2ca8bd93af633f11e97d44e567e945af
+#13 CACHED
+
+#14 [requirements-drivers 11/11] RUN expr "" = intel && echo "intel" > /run/localai/capability || echo "not intel"
+#14 CACHED
+
+#15 [build-requirements  8/10] RUN echo "Target Architecture: amd64"
+#15 CACHED
+
+#16 [builder-base 2/3] WORKDIR /build
+#16 CACHED
+
+#17 [builder-backends  2/10] COPY ./Makefile .
+#17 CACHED
+
+#18 [build-requirements  6/10] RUN update-ca-certificates
+#18 CACHED
+
+#19 [requirements-drivers  6/11] RUN <<EOT bash
+#19 CACHED
+
+#20 [requirements-drivers  8/11] RUN if [ "" = "hipblas" ] && [ "false" = "false" ]; then         apt-get update &&         apt-get install -y --no-install-recommends             hipblas-dev             hipblaslt-dev             rocblas-dev &&         apt-get clean &&         rm -rf /var/lib/apt/lists/* &&         echo "amd" > /run/localai/capability &&         ldconfig     ; fi
+#20 CACHED
+
+#21 [requirements-drivers  7/11] RUN if [ "" = "clblas" ] && [ "false" = "false" ]; then         apt-get update &&         apt-get install -y --no-install-recommends             libclblast-dev &&         apt-get clean &&         rm -rf /var/lib/apt/lists/*     ; fi
+#21 CACHED
+
+#22 [builder-backends  4/10] COPY ./go.mod .
+#22 CACHED
+
+#23 [requirements-drivers  2/11] RUN echo "default" > /run/localai/capability
+#23 CACHED
+
+#24 [requirements-drivers  5/11] RUN <<EOT bash
+#24 CACHED
+
+#25 [build-requirements  1/10] RUN apt-get update &&     apt-get install -y --no-install-recommends         build-essential         ccache         ca-certificates espeak-ng         curl libssl-dev         git         git-lfs         libopus-dev pkg-config         unzip upx-ucl python3 python-is-python3 &&     apt-get clean &&     rm -rf /var/lib/apt/lists/*
+#25 CACHED
+
+#26 [requirements 2/2] RUN --mount=type=bind,source=.docker/apt-mirror.sh,target=/usr/local/sbin/apt-mirror     APT_MIRROR="" APT_PORTS_MIRROR="" sh /usr/local/sbin/apt-mirror &&     apt-get update &&     apt-get install -y --no-install-recommends         ca-certificates curl wget espeak-ng libgomp1         ffmpeg libopenblas0 libopenblas-dev libopus0 sox &&     apt-get clean &&     rm -rf /var/lib/apt/lists/*
+#26 CACHED
+
+#27 [requirements-drivers  3/11] RUN <<EOT bash
+#27 CACHED
+
+#28 [requirements-drivers 10/11] RUN if [ "" = "hipblas" ] && [ -f /usr/share/libdrm/amdgpu.ids ] && [ ! -e /opt/amdgpu/share/libdrm/amdgpu.ids ]; then     mkdir -p /opt/amdgpu/share/libdrm &&     ln -s /usr/share/libdrm/amdgpu.ids /opt/amdgpu/share/libdrm/amdgpu.ids     ; fi
+#28 CACHED
+
+#29 [build-requirements  2/10] RUN <<EOT bash
+#29 CACHED
+
+#30 [build-requirements  3/10] RUN curl -L -s https://go.dev/dl/go1.26.0.linux-amd64.tar.gz | tar -C /usr/local -xz
+#30 CACHED
+
+#31 [builder-base 3/3] RUN <<EOT bash
+#31 CACHED
+
+#32 [build-requirements  5/10] COPY --chmod=644 custom-ca-certs/* /usr/local/share/ca-certificates/
+#32 CACHED
+
+#33 [requirements-drivers  9/11] RUN if [ "" = "hipblas" ]; then     ln -s /opt/rocm-**/lib/llvm/lib/libomp.so /usr/lib/libomp.so     ; fi
+#33 CACHED
+
+#34 [build-requirements  9/10] RUN echo "Target Variant: "
+#34 CACHED
+
+#35 [requirements-drivers  4/11] RUN <<EOT bash
+#35 CACHED
+
+#36 [requirements-drivers  1/11] RUN mkdir -p /run/localai
+#36 CACHED
+
+#37 [builder-backends  1/10] WORKDIR /build
+#37 CACHED
+
+#38 [builder-backends  5/10] COPY ./go.sum .
+#38 CACHED
+
+#39 [builder-backends  6/10] COPY ./.git ./.git
+#39 ...
+
+#40 [react-ui-builder 2/6] WORKDIR /app
+#40 CACHED
+
+#41 [react-ui-builder 3/6] COPY core/http/react-ui/package*.json ./
+#41 CACHED
+
+#42 [react-ui-builder 4/6] RUN npm install
+#42 CACHED
+
+#43 [react-ui-builder 5/6] COPY core/http/react-ui/ ./
+#43 CACHED
+
+#44 [react-ui-builder 6/6] RUN npm run build
+#44 CACHED
+
+#39 [builder-backends  6/10] COPY ./.git ./.git
+#39 DONE 0.9s
+
+#45 [builder-backends  7/10] COPY ./pkg/grpc ./pkg/grpc
+#45 DONE 0.1s
+
+#46 [builder-backends  8/10] COPY ./pkg/utils ./pkg/utils
+#46 DONE 0.3s
+
+#47 [builder-backends  9/10] RUN ls -l ./
+#47 0.417 total 304
+#47 0.417 -rwxr-xr-x 1 root root  78046 Jul 23 04:39 Makefile
+#47 0.417 drwxr-xr-x 6 root root   4096 Jul 23 04:39 backend
+#47 0.417 -rwxr-xr-x 1 root root  26323 Jul 23 04:39 go.mod
+#47 0.417 -rwxr-xr-x 1 root root 189871 Jul 23 04:39 go.sum
+#47 0.417 drwxr-xr-x 1 root root   4096 Aug 25 10:27 pkg
+#47 DONE 0.4s
+
+#48 [builder-backends 10/10] RUN make protogen-go
+#48 0.380   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+#48 0.380                                  Dload  Upload   Total   Spent    Left  Speed
+#48 0.380
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+  0     0    0     0    0     0      0      0 --:--:--  0:00:01 --:--:--     0
+  0     0    0     0    0     0      0      0 --:--:--  0:00:01 --:--:--     0
+  0     0    0     0    0     0      0      0 --:--:--  0:00:02 --:--:--     0
+#48 3.133
+  0     0    0     0    0     0      0      0 --:--:--  0:00:02 --:--:--     0
+  1 3439k    1 38557    0     0  10695      0  0:05:29  0:00:03  0:05:26 45201
+  1 3439k    1 52328    0     0   9620      0  0:06:06  0:00:05  0:06:01 19481
+  1 3439k    1 63529    0     0  10671      0  0:05:30  0:00:05  0:05:25 19852
+  2 3439k    2 79904    0     0  11486      0  0:05:06  0:00:06  0:05:00 19011
+  2 3439k    2 79904    0     0  10599      0  0:05:32  0:00:07  0:05:25 16695
+  4 3439k    4  139k    0     0  16752      0  0:03:30  0:00:08  0:03:22 21203
+  5 3439k    5  187k    0     0  19465      0  0:03:00  0:00:09  0:02:51 31611
+  6 3439k    6  219k    0     0  21145      0  0:02:46  0:00:10  0:02:36 34517
+  6 3439k    6  219k    0     0  19250      0  0:03:02  0:00:11  0:02:51 30728
+  9 3439k    9  315k    0     0  24746      0  0:02:22  0:00:13  0:02:09 44125
+ 11 3439k   11  379k    0     0  27902      0  0:02:06  0:00:13  0:01:53 45445
+ 12 3439k   12  443k    0     0  30299      0  0:01:56  0:00:14  0:01:42 51100
+ 14 3439k   14  491k    0     0  31854      0  0:01:50  0:00:15  0:01:35 53820
+ 14 3439k   14  507k    0     0  31458      0  0:01:51  0:00:16  0:01:35 60797
+ 16 3439k   16  555k    0     0  31324      0  0:01:52  0:00:18  0:01:34 48126
+ 17 3439k   17  603k    0     0  32806      0  0:01:47  0:00:18  0:01:29 46693
+ 18 3439k   18  635k    0     0  33333      0  0:01:45  0:00:19  0:01:26 43353
+ 19 3439k   19  683k    0     0  33902      0  0:01:43  0:00:20  0:01:23 40571
+ 22 3439k   22  779k    0     0  37013      0  0:01:35  0:00:21  0:01:14 55185
+ 23 3439k   23  811k    0     0  36262      0  0:01:37  0:00:22  0:01:15 55095
+ 24 3439k   24  843k    0     0  36031      0  0:01:37  0:00:23  0:01:14 47861
+ 25 3439k   25  891k    0     0  35873      0  0:01:38  0:00:25  0:01:13 44236
+ 25 3439k   25  891k    0     0  34754      0  0:01:41  0:00:26  0:01:15 37883
+ 27 3439k   27  939k    0     0  35701      0  0:01:38  0:00:26  0:01:12 30450
+ 29 3439k   29 1003k    0     0  37315      0  0:01:34  0:00:27  0:01:07 42537
+ 34 3439k   34 1179k    0     0  42220      0  0:01:23  0:00:28  0:00:55 74197
+ 36 3439k   36 1243k    0     0  43133      0  0:01:21  0:00:29  0:00:52 88449
+ 37 3439k   37 1291k    0     0  42585      0  0:01:22  0:00:31  0:00:51 85527
+ 38 3439k   38 1339k    0     0  43491      0  0:01:20  0:00:31  0:00:49 89165
+ 44 3439k   44 1515k    0     0  47712      0  0:01:13  0:00:32  0:00:41  102k
+ 56 3439k   56 1931k    0     0  58879      0  0:00:59  0:00:33  0:00:26  150k
+ 58 3439k   58 2011k    0     0  59662      0  0:00:59  0:00:34  0:00:25  153k
+ 60 3439k   60 2091k    0     0  59341      0  0:00:59  0:00:36  0:00:23  158k
+ 61 3439k   61 2123k    0     0  59484      0  0:00:59  0:00:36  0:00:23  156k
+ 64 3439k   64 2219k    0     0  60584      0  0:00:58  0:00:37  0:00:21  141k
+ 75 3439k   75 2603k    0     0  69222      0  0:00:50  0:00:38  0:00:12  136k
+ 97 3439k   97 3355k    0     0  86963      0  0:00:40  0:00:39  0:00:01  269k
+100 3439k  100 3439k    0     0  88974      0  0:00:39  0:00:39 --:--:--  385k
+#48 39.98 Archive:  protoc.zip
+#48 39.98   inflating: /build/protoc
+#48 40.04 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@1958fcbe2ca8bd93af633f11e97d44e567e945af
+#48 42.23 go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.2
+#48 44.83 mkdir -p pkg/grpc/proto
+#48 44.83 # install-go-tools writes protoc-gen-go and protoc-gen-go-grpc into
+#48 44.83 # /root/go/bin, which isn't on every dev's PATH. protoc
+#48 44.83 # resolves its code-gen plugins via PATH, so without this prefix the
+#48 44.84 # generate step fails with "protoc-gen-go: program not found". Prepend
+#48 44.84 # GOPATH/bin so the freshly-installed plugins win without requiring a
+#48 44.84 # shell-profile change.
+#48 44.84 PATH="$(go env GOPATH)/bin:$PATH" ./protoc --experimental_allow_proto3_optional -Ibackend/ --go_out=pkg/grpc/proto/ --go_opt=paths=source_relative --go-grpc_out=pkg/grpc/proto/ --go-grpc_opt=paths=source_relative \
+#48 44.84     backend/backend.proto
+#48 DONE 44.9s
+
+#49 [builder 1/4] WORKDIR /build
+#49 DONE 0.1s
+
+#50 [builder 2/4] COPY . .
+#50 DONE 0.9s
+
+#51 [builder 3/4] COPY --from=react-ui-builder /app/dist ./core/http/react-ui/dist
+#51 DONE 0.2s
+
+#52 [builder 4/4] RUN --mount=type=cache,target=/root/go/pkg/mod     --mount=type=cache,target=/root/.cache/go-build     GOMAXPROCS="4" GOFLAGS="-p=2" make build
+#52 0.220 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@1958fcbe2ca8bd93af633f11e97d44e567e945af
+#52 0.853 go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.2
+#52 1.409 mkdir -p pkg/grpc/proto
+#52 1.415 # install-go-tools writes protoc-gen-go and protoc-gen-go-grpc into
+#52 1.416 # /root/go/bin, which isn't on every dev's PATH. protoc
+#52 1.416 # resolves its code-gen plugins via PATH, so without this prefix the
+#52 1.417 # generate step fails with "protoc-gen-go: program not found". Prepend
+#52 1.418 # GOPATH/bin so the freshly-installed plugins win without requiring a
+#52 1.419 # shell-profile change.
+#52 1.421 PATH="$(go env GOPATH)/bin:$PATH" ./protoc --experimental_allow_proto3_optional -Ibackend/ --go_out=pkg/grpc/proto/ --go_opt=paths=source_relative --go-grpc_out=pkg/grpc/proto/ --go-grpc_opt=paths=source_relative \
+#52 1.421     backend/backend.proto
+#52 1.522 react-ui dist already exists, skipping build
+#52 1.522 [32mI local-ai build info:(B[m
+#52 1.522 [32mI BUILD_TYPE: [33m(B[m
+#52 1.522 [32mI GO_TAGS: [33mauth(B[m
+#52 1.528 [32mI LD_FLAGS: [33m-s -w -X "github.com/mudler/LocalAI/internal.Version=40717b8" -X "github.com/mudler/LocalAI/internal.Commit=40717b83510c08db25dc26b9d6674bf46db363ac"(B[m
+#52 1.528 [32mI UPX: [33m(B[m
+#52 1.533 rm -rf local-ai || true
+#52 1.539 CGO_LDFLAGS="" go build -ldflags "-s -w -X "github.com/mudler/LocalAI/internal.Version=40717b8" -X "github.com/mudler/LocalAI/internal.Commit=40717b83510c08db25dc26b9d6674bf46db363ac"" -tags "auth" -o local-ai ./cmd/local-ai
+#52 DONE 15.8s
+
+#53 [stage-9 1/5] COPY ./entrypoint.sh .
+#53 CACHED
+
+#54 [stage-9 2/5] COPY --from=builder /build/local-ai ./
+#54 DONE 0.2s
+
+#55 [stage-9 3/5] RUN --mount=from=builder,src=/build/,dst=/mnt/build     if [ -f /mnt/build/libopusshim.so ]; then cp /mnt/build/libopusshim.so ./; fi
+#55 DONE 0.3s
+
+#56 [stage-9 4/5] RUN mkdir -p /models /backends /data
+#56 DONE 0.3s
+
+#57 exporting to image
+#57 exporting layers
+#57 exporting layers 4.7s done
+#57 exporting manifest sha256:c4d6ff918b3695e00bb8736bf80474bd4e6704d522efa659b5ffeff9d7d4a217 0.0s done
+#57 exporting config sha256:4f28450019d115fc74ad3e826e40d8576f5ead82c8c67af99504807e1abdbdd1 0.0s done
+#57 exporting attestation manifest sha256:b2667dc1c6fa67252b8a578d24200e04336f5a288fb4cc24de6d8907eaf036be 0.1s done
+#57 exporting manifest list sha256:11549bad5bf378cb3cfee20fcbc7a384767a98eab2d07dd490c970fddc68cb2f
+#57 exporting manifest list sha256:11549bad5bf378cb3cfee20fcbc7a384767a98eab2d07dd490c970fddc68cb2f 0.0s done
+#57 naming to docker.io/nexusai/localai-forensic:phase3-runtime done
+#57 unpacking to docker.io/nexusai/localai-forensic:phase3-runtime
+#57 unpacking to docker.io/nexusai/localai-forensic:phase3-runtime 0.9s done
+#57 DONE 5.8s
+
+#58 resolving provenance for metadata file
+#58 DONE 0.0s
+ Image nexusai/localai-forensic:phase3-runtime Built
+BuiltForensicApiImage=sha256:4eb2db0af60d80a1ea75733cc5db559d508197cd2504006f77ccad4ff708e14b
+BuiltLocalAIImage=sha256:11549bad5bf378cb3cfee20fcbc7a384767a98eab2d07dd490c970fddc68cb2f
+40717b8
+PreReplacementSmokeChecks=PASS
+ProtectedServicesPreserved=true
+RetainedDataMutated=false
+
+=== 8 RECREATE ONLY FORENSIC API AND LOCALAI/UI ===
+time="2026-08-25T15:29:02+05:00" level=warning msg="Found orphan containers (nexusai-api-1) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up."
+ Container nexusai-forensic-records-api-1 Recreate
+ Container nexusai-forensic-records-api-1 Recreated
+ Container nexusai-forensic-records-api-1 Starting
+ Container nexusai-forensic-records-api-1 Started
+PS>TerminatingError(Invoke-WebRequest): "The underlying connection was closed: The connection was closed unexpectedly."
+ForensicApiHealthz=200
+time="2026-08-25T15:29:04+05:00" level=warning msg="volume \"nexusai_models\" already exists but was not created by Docker Compose. Use `external: true` to use an existing volume"
+time="2026-08-25T15:29:04+05:00" level=warning msg="volume \"nexusai_images\" already exists but was not created by Docker Compose. Use `external: true` to use an existing volume"
+time="2026-08-25T15:29:04+05:00" level=warning msg="volume \"nexusai_data\" already exists but was not created by Docker Compose. Use `external: true` to use an existing volume"
+time="2026-08-25T15:29:04+05:00" level=warning msg="volume \"nexusai_backends\" already exists but was not created by Docker Compose. Use `external: true` to use an existing volume"
+time="2026-08-25T15:29:04+05:00" level=warning msg="volume \"nexusai_configuration\" already exists but was not created by Docker Compose. Use `external: true` to use an existing volume"
+time="2026-08-25T15:29:05+05:00" level=warning msg="Found orphan containers (nexusai-forensic-records-api-1, nexusai-forensic-records-worker-1, nexusai-forensic-nats-1, nexusai-forensic-postgres-1, nexusai-forensic-spool-init-1) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up."
+ Container nexusai-api-1 Recreate
+ Container nexusai-api-1 Recreated
+ Container nexusai-api-1 Starting
+ Container nexusai-api-1 Started
+
+=== 9 HEALTH AND PRESERVATION VERIFICATION ===
+ProtectedServicesPreserved=true
+LocalAIContainer=healthy
+ForensicApiContainer=running
+WorkerContainer=healthy
+NatsContainer=healthy
+PostgreSQLContainer=healthy
+LocalAIReadyz=200
+AnalystUtilityHTML=200
+ForensicApiHealthz=200
+WorkerMetrics=200
+NatsHealthz=200
+/var/run/postgresql:5432 - accepting connections
+PostgreSQL=ready
+NamedVolumesPreserved=true
+ProfilesChanged=false
+ModelsChanged=false
+AfterRetained.evidence=51
+AfterRetained.versions=51
+AfterRetained.jobs=64
+AfterRetained.active_jobs=0
+AfterRetained.canonical_records=22207
+AfterRetained.artifacts=441
+AfterRetained.kb_assets=47
+AfterRetained.Tuple=51|51|64|0|22207|441|47
+RetainedDataMutated=false
+
+=== 10 FINAL EVIDENCE AND SUCCESS MARKERS ===
+CONTAINER ID                                                       IMAGE                                            COMMAND                                                  CREATED              STATUS                        PORTS                                                                                      NAMES
+77d0f172f0ca56bd40d8dd2d8a3777a1984997c3bf09899faab4709e6c708aa9   nexusai/localai-forensic:phase3-runtime          "/entrypoint.sh phi-2"                                   About a minute ago   Up About a minute (healthy)   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp                                                nexusai-api-1
+1bdf4f77087ebf8870a640704d95fea36e152bf198175f782bd451bcb526b074   nexusai/forensic-records-api:phase3-runtime      "/forensic-records-api"                                  About a minute ago   Up About a minute             0.0.0.0:8091->8091/tcp, [::]:8091->8091/tcp                                                nexusai-forensic-records-api-1
+1846f558941f583467976ad8e74a44e9063c8a1a50e870951c7e479ecce3fb66   nexusai/forensic-records-worker:phase3-runtime   "python /app/worker.py"                                  25 hours ago         Up 4 hours (healthy)          0.0.0.0:9109->9109/tcp, [::]:9109->9109/tcp                                                nexusai-forensic-records-worker-1
+5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04   nats:2.11-alpine                                 "docker-entrypoint.sh -js -sd /data/jetstream -m 8222"   3 weeks ago          Up 4 hours (healthy)          0.0.0.0:4222->4222/tcp, [::]:4222->4222/tcp, 0.0.0.0:8222->8222/tcp, [::]:8222->8222/tcp   nexusai-forensic-nats-1
+f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361   timescale/timescaledb:latest-pg16                "docker-entrypoint.sh postgres"                          4 weeks ago          Up 4 hours (healthy)          0.0.0.0:5433->5432/tcp, [::]:5433->5432/tcp                                                nexusai-forensic-postgres-1
+sha256:11549bad5bf378cb3cfee20fcbc7a384767a98eab2d07dd490c970fddc68cb2f|["nexusai/localai-forensic:phase3-runtime"]
+sha256:4eb2db0af60d80a1ea75733cc5db559d508197cd2504006f77ccad4ff708e14b|["nexusai/forensic-records-api:phase3-runtime"]
+sha256:be13dbec4bd9bb62c824140df3777b898d7ad2801a0e68cd512c00dafaf4f9ef|["nexusai/forensic-records-worker:phase3-runtime"]
+sha256:f255f18897577a553b0ad64ce9980c21bd69c912f90414f35135c49c7eda9f95|["nexusai/localai-forensic:rollback-before-nx1-foundation-truth-20260825"]
+sha256:c0f07382ab7d30ba1538b44f8cfca8d25cab41ec954cb978c19d10632e3ca5f6|["nexusai/forensic-records-api:rollback-before-nx1-foundation-truth-20260825"]
+ContainerBefore.localai=c4495d82b714077626724263498c8f07d677c78d6e3a160582f8d08059f4ee65
+ContainerAfter.localai=77d0f172f0ca56bd40d8dd2d8a3777a1984997c3bf09899faab4709e6c708aa9
+FinalImage.localai=sha256:11549bad5bf378cb3cfee20fcbc7a384767a98eab2d07dd490c970fddc68cb2f
+ContainerBefore.forensic_api=4aad366462784110b4217ec500ed561cca0bceada3e8184a48b4a43423afc178
+ContainerAfter.forensic_api=1bdf4f77087ebf8870a640704d95fea36e152bf198175f782bd451bcb526b074
+FinalImage.forensic_api=sha256:4eb2db0af60d80a1ea75733cc5db559d508197cd2504006f77ccad4ff708e14b
+ContainerBefore.worker=1846f558941f583467976ad8e74a44e9063c8a1a50e870951c7e479ecce3fb66
+ContainerAfter.worker=1846f558941f583467976ad8e74a44e9063c8a1a50e870951c7e479ecce3fb66
+FinalImage.worker=sha256:be13dbec4bd9bb62c824140df3777b898d7ad2801a0e68cd512c00dafaf4f9ef
+ContainerBefore.nats=5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04
+ContainerAfter.nats=5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04
+FinalImage.nats=sha256:e4bf19f15fd3218814a4e3c9e0064e1334bd8aa20d5984b9f1a0afd084f8cc00
+ContainerBefore.postgres=f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361
+ContainerAfter.postgres=f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361
+FinalImage.postgres=sha256:61f891691050da6032023c01ea885730eeeba06b7c17b403e7d0b9c49c37dfe9
+NX1Activation=PASS
+NX1ServicesChanged=forensic-records-api,api
+ProtectedServicesPreserved=true
+RetainedDataMutated=false
+ModelsChanged=false
+ProfilesChanged=false
+NamedVolumesPreserved=true
+DatabaseMigration=false
+NX1LiveCertification=REQUIRED_AFTER_CODEX_REOPENS
+**********************
+Windows PowerShell transcript end
+End time: 20260825153008
+**********************

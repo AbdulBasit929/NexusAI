@@ -1,0 +1,11 @@
+{
+    "gate":  9,
+    "verified_utc":  "2026-07-30T06:21:16.4773054Z",
+    "forensic_health":  "pass",
+    "worker_liveness":  "pass",
+    "localai_ready":  "pass",
+    "auth_401":  "pass",
+    "authenticated_scope":  "pass",
+    "cross_tenant_403":  "pass",
+    "jetstream":  "pass"
+}

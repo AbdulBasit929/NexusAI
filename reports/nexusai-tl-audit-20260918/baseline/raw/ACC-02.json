@@ -1,0 +1,3831 @@
+{
+ "collection_id": "nexusai-forensic-demo",
+ "request_class": "GOVERNED_EVIDENCE_ANALYSIS",
+ "intent": "records",
+ "template": "collection_overview",
+ "query_understanding": {
+  "contract_version": "forensics.query-understanding/v1",
+  "original_question": "Show the breakdown of HTTP status codes in the access logs",
+  "normalized_question": "show the breakdown of http status codes in the access logs",
+  "language": {
+   "tag": "en",
+   "source": "deterministic_extractor",
+   "confidence": 0.9
+  },
+  "intent": "aggregate",
+  "families": {
+   "kind": "multiple",
+   "primary": "case_cross_family",
+   "secondary": []
+  },
+  "entities": [],
+  "targets": [],
+  "time_scope": {
+   "timezone": "case_default",
+   "origin": "deterministic_extractor"
+  },
+  "filters": [],
+  "requested_output": {
+   "result_kind": "aggregate",
+   "presentation_type": "bounded_records_table",
+   "limit": 20
+  },
+  "candidate_capabilities": [
+   "forensics.collection_overview"
+  ],
+  "semantic_capability_ids": null,
+  "semantic_operation_refs": null,
+  "clarification": {
+   "required": false,
+   "missing_fields": []
+  },
+  "context": {
+   "used": false,
+   "fields": [],
+   "inherited_fields": null
+  },
+  "confidence": {
+   "overall": 0.72,
+   "routing": 0.72,
+   "entities": 0,
+   "time_scope": 0
+  }
+ },
+ "investigation_context": {
+  "contract_version": "forensics.investigation-context/v1",
+  "workspace": {
+   "tenant_id": "default",
+   "case_id": "nexusai-forensic-demo",
+   "collection_id": "nexusai-forensic-demo",
+   "subject_id": "live-eval"
+  },
+  "evidence": {
+   "kind": "current_workspace",
+   "collection_id": "nexusai-forensic-demo",
+   "evidence_ids": [],
+   "family_ids": [],
+   "source_files": []
+  },
+  "active_entities": null,
+  "current_question": "Show the breakdown of HTTP status codes in the access logs",
+  "previous_result": {},
+  "time": {
+   "domain": "record_timestamp",
+   "timezone": "case_default",
+   "origin": "deterministic_extractor",
+   "normalizer": "forensics.time-policy/v1"
+  },
+  "available_families": [
+   "case_cross_family"
+  ],
+  "capability_snapshot_id": "079b0b34-d1d4-40b4-a02f-b9b0a3fc2446:capabilities",
+  "permissions": [
+   "query:execute"
+  ],
+  "conversation": {},
+  "context_provenance": {
+   "used": false,
+   "fields": [],
+   "inherited_fields": null
+  }
+ },
+ "capability_snapshot": {
+  "contract_version": "forensics.capability-snapshot/v1",
+  "snapshot_id": "079b0b34-d1d4-40b4-a02f-b9b0a3fc2446:capabilities",
+  "tenant_id": "default",
+  "collection_id": "nexusai-forensic-demo",
+  "generated_at": "2026-09-18T06:28:31.574299403Z",
+  "entries": [
+   {
+    "operation": {
+     "capability_id": "forensics.collection_overview",
+     "operation_id": "forensics.collection_overview",
+     "template": "collection_overview",
+     "family_ids": [
+      "case_cross_family"
+     ],
+     "intent_classes": [
+      "aggregate"
+     ],
+     "required_parameters": [],
+     "optional_parameters": [
+      "date_from",
+      "date_to",
+      "limit"
+     ],
+     "scope_mode": "case_wide",
+     "source_scoped": false,
+     "time_scoped": true,
+     "execution_mode": "deterministic",
+     "extension_mode": "deterministic_operation",
+     "implementation_key": "runAnalyticalTemplate",
+     "specialist_id": "Forensic_Records_Analyst",
+     "model_role_ids": null,
+     "result_contract": "forensics.enterprise-response/v1",
+     "result_kind": "aggregate",
+     "presentation_type": "bounded_records_table",
+     "citation_required": true,
+     "criticality_tier": "B",
+     "certification_status": "bounded_uncertified",
+     "exposure_status": "limited",
+     "suggestion_eligible": false,
+     "limitations": [
+      "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+     ],
+     "availability": {
+      "implemented": true,
+      "runtime_available": true,
+      "data_available": true,
+      "authorized": true,
+      "model_available": true,
+      "maturity": "operational",
+      "queryable": true,
+      "executable": true,
+      "reason_codes": null
+     }
+    },
+    "requirement": {
+     "family_ids": [
+      "case_cross_family"
+     ],
+     "required_parameters": null,
+     "required_fields": null,
+     "model_role_ids": null,
+     "citation_required": true,
+     "certified_required": false
+    },
+    "readiness": "COMPLETE_RESULTS",
+    "reason_codes": null
+   }
+  ]
+ },
+ "execution_plan": {
+  "contract_version": "forensics.execution-plan/v1",
+  "plan_id": "079b0b34-d1d4-40b4-a02f-b9b0a3fc2446:plan",
+  "mode": "single_operation",
+  "workspace": {
+   "tenant_id": "default",
+   "case_id": "nexusai-forensic-demo",
+   "collection_id": "nexusai-forensic-demo",
+   "subject_id": "live-eval"
+  },
+  "steps": [
+   {
+    "step_id": "step-1",
+    "capability_id": "forensics.collection_overview",
+    "operation_id": "forensics.collection_overview",
+    "dependencies": [],
+    "input_bindings": [],
+    "parameters": {
+     "targets": [],
+     "raw_payload_filters": null,
+     "field_filters": null,
+     "field_exists": [],
+     "field_not_exists": [],
+     "limit": 20,
+     "offset": 0,
+     "max_kb_results": 1,
+     "retrieval_mode": "NONE"
+    },
+    "evidence_scope": {
+     "collection_id": "nexusai-forensic-demo"
+    },
+    "expected_result_contract": "forensics.enterprise-response/v1",
+    "result_kind": "aggregate",
+    "presentation_type": "bounded_records_table",
+    "citation_required": true
+   }
+  ],
+  "output_contract": "forensics.enterprise-response/v1",
+  "resource_policy": {
+   "read_only": true,
+   "maximum_steps": 1,
+   "maximum_rows": 100,
+   "maximum_offset": 100000,
+   "maximum_kb_results": 20,
+   "maximum_targets": 8,
+   "maximum_intermediate_rows": 0,
+   "maximum_retrieval_chunks": 0,
+   "maximum_model_calls": 0,
+   "timeout_milliseconds": 0
+  },
+  "policy_decisions": [
+   "workspace_scope_bound",
+   "known_capability_only",
+   "read_only_executor",
+   "citations_capability_owned"
+  ]
+ },
+ "plan_validation": {
+  "contract_version": "forensics.plan-validation/v1",
+  "plan_id": "079b0b34-d1d4-40b4-a02f-b9b0a3fc2446:plan",
+  "valid": true,
+  "scope_authorized": true,
+  "capabilities_ready": true,
+  "dependencies_valid": true,
+  "budget_accepted": true,
+  "authority_preserved": true,
+  "estimated_cost_class": "direct_operation",
+  "issues": []
+ },
+ "tool_results": [
+  {
+   "contract_version": "forensics.tool-result/v1",
+   "invocation_id": "079b0b34-d1d4-40b4-a02f-b9b0a3fc2446:plan:step-1",
+   "plan_id": "079b0b34-d1d4-40b4-a02f-b9b0a3fc2446:plan",
+   "step_id": "step-1",
+   "operation_id": "forensics.collection_overview",
+   "result_contract": "forensics.enterprise-response/v1",
+   "execution_status": "completed",
+   "result_state": "results_present",
+   "authority": "deterministic_fact",
+   "fields": {},
+   "facts": [
+    {
+     "id": "step-1:row_count",
+     "value": 30,
+     "authority": "deterministic_derivation",
+     "citation_ids": [
+      "tool-citation-1",
+      "tool-citation-2",
+      "tool-citation-3",
+      "tool-citation-4",
+      "tool-citation-5",
+      "tool-citation-6",
+      "tool-citation-7",
+      "tool-citation-8",
+      "tool-citation-9",
+      "tool-citation-10",
+      "tool-citation-11",
+      "tool-citation-12",
+      "tool-citation-13",
+      "tool-citation-14",
+      "tool-citation-15",
+      "tool-citation-16",
+      "tool-citation-17",
+      "tool-citation-18",
+      "tool-citation-19",
+      "tool-citation-20",
+      "tool-citation-21",
+      "tool-citation-22",
+      "tool-citation-23"
+     ]
+    }
+   ],
+   "observations": [],
+   "rows": [
+    {
+     "detected_record_type": "cdr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 828259,
+     "source_entry": "876f1b40-b96d-4be3-99da-b85a2953a97c/923461678183.csv",
+     "source_file": "923461678183.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "cdr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 1020,
+     "source_entry": "e9b5129b-bfcc-49fa-ae4a-9d7dc7d2c7d5/pakistan_cdr_messy_synthetic.csv",
+     "source_file": "pakistan_cdr_messy_synthetic.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "cdr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 309,
+     "source_entry": "16797df4-f7bd-4b23-9497-e46e40019fb7/r5_live_intake_ready_20260810.csv",
+     "source_file": "r5_live_intake_ready_20260810.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "cdr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 448,
+     "source_entry": "fc3f1565-f348-44ef-aa66-e025043b7de9/pakistan_cdr_tsv_synthetic.tsv",
+     "source_file": "pakistan_cdr_tsv_synthetic.tsv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "tower_location",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 1365,
+     "source_entry": "5186e892-7bd6-493f-beb9-99316da148e1/pakistan_tower_sector_messy_synthetic.csv",
+     "source_file": "pakistan_tower_sector_messy_synthetic.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "subscriber",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 4044,
+     "source_entry": "56e0b799-4073-4755-97a9-8f9aa40523bf/pakistan_subscriber_populated_acceptance_v1.jsonl",
+     "source_file": "pakistan_subscriber_populated_acceptance_v1.jsonl",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "transaction",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 482,
+     "source_entry": "11308b49-0a37-4969-af60-36a65c991064/seed_transactions.csv",
+     "source_file": "seed_transactions.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "access_log",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 73750,
+     "source_entry": "d7daf00d-7335-456b-ac92-563ec71313d2/seed_access_log.csv",
+     "source_file": "seed_access_log.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "ipdr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 255721,
+     "source_entry": "74bd6ee7-06fc-43fa-9fbf-40a22d79d293/seed_ipdr.csv",
+     "source_file": "seed_ipdr.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "anpr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 55629,
+     "source_entry": "afc89486-f9af-40b5-a796-d13908d161fe/seed_anpr.csv",
+     "source_file": "seed_anpr.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "cdr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 911751,
+     "source_entry": "6a4ae200-3e6a-4ba2-a151-4d120c4396d5/seed_cdr_large.csv",
+     "source_file": "seed_cdr_large.csv",
+     "structured_status": "completed"
+    },
+    {
+     "accepted_rows": 3634,
+     "completed_at": "2026-08-20T07:25:25Z",
+     "duplicate_rows": 297,
+     "queued_at": "2026-08-20T07:25:24Z",
+     "record_type": "cdr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "923461678183.csv",
+     "status": "completed",
+     "total_rows": 3931
+    },
+    {
+     "accepted_rows": 4,
+     "completed_at": "2026-08-17T09:01:36Z",
+     "duplicate_rows": 1,
+     "queued_at": "2026-08-17T09:01:35Z",
+     "record_type": "cdr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "pakistan_cdr_messy_synthetic.csv",
+     "status": "completed",
+     "total_rows": 5
+    },
+    {
+     "accepted_rows": 2,
+     "completed_at": "2026-08-10T05:36:06Z",
+     "duplicate_rows": 0,
+     "queued_at": "2026-08-10T05:36:06Z",
+     "record_type": "cdr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "r5_live_intake_ready_20260810.csv",
+     "status": "completed",
+     "total_rows": 2
+    },
+    {
+     "accepted_rows": 0,
+     "completed_at": "2026-08-10T05:35:04Z",
+     "duplicate_rows": 0,
+     "queued_at": "2026-08-10T05:35:03Z",
+     "record_type": "cdr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "r5_live_intake_acceptance_20260810.csv",
+     "status": "dead_letter",
+     "total_rows": 0
+    },
+    {
+     "accepted_rows": 2,
+     "completed_at": "2026-08-04T10:54:16Z",
+     "duplicate_rows": 1,
+     "queued_at": "2026-08-04T10:53:49Z",
+     "record_type": "cdr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "pakistan_cdr_tsv_synthetic.tsv",
+     "status": "completed",
+     "total_rows": 3
+    },
+    {
+     "accepted_rows": 5,
+     "completed_at": "2026-08-04T10:54:15Z",
+     "duplicate_rows": 1,
+     "queued_at": "2026-08-04T10:53:48Z",
+     "record_type": "tower_location",
+     "rejected_rows": 4,
+     "section": "jobs",
+     "source_file": "pakistan_tower_sector_messy_synthetic.csv",
+     "status": "completed",
+     "total_rows": 10
+    },
+    {
+     "accepted_rows": 11,
+     "completed_at": "2026-08-04T10:54:14Z",
+     "duplicate_rows": 1,
+     "queued_at": "2026-08-04T10:53:46Z",
+     "record_type": "subscriber",
+     "rejected_rows": 3,
+     "section": "jobs",
+     "source_file": "pakistan_subscriber_populated_acceptance_v1.jsonl",
+     "status": "completed",
+     "total_rows": 15
+    },
+    {
+     "accepted_rows": 4,
+     "completed_at": "2026-08-04T10:54:13Z",
+     "duplicate_rows": 0,
+     "queued_at": "2026-08-04T10:53:45Z",
+     "record_type": "transaction",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "seed_transactions.csv",
+     "status": "completed",
+     "total_rows": 4
+    },
+    {
+     "accepted_rows": 1000,
+     "completed_at": "2026-08-04T10:54:11Z",
+     "duplicate_rows": 0,
+     "queued_at": "2026-08-04T10:53:45Z",
+     "record_type": "access_log",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "seed_access_log.csv",
+     "status": "completed",
+     "total_rows": 1000
+    },
+    {
+     "accepted_rows": 2500,
+     "completed_at": "2026-08-04T10:54:04Z",
+     "duplicate_rows": 0,
+     "queued_at": "2026-08-04T10:53:44Z",
+     "record_type": "ipdr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "seed_ipdr.csv",
+     "status": "completed",
+     "total_rows": 2500
+    },
+    {
+     "accepted_rows": 750,
+     "completed_at": "2026-08-04T10:54:01Z",
+     "duplicate_rows": 0,
+     "queued_at": "2026-08-04T10:53:43Z",
+     "record_type": "anpr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "seed_anpr.csv",
+     "status": "completed",
+     "total_rows": 750
+    },
+    {
+     "accepted_rows": 5000,
+     "completed_at": "2026-08-04T10:53:43Z",
+     "duplicate_rows": 0,
+     "queued_at": "2026-08-04T10:53:41Z",
+     "record_type": "cdr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "seed_cdr_large.csv",
+     "status": "completed",
+     "total_rows": 5000
+    },
+    {
+     "batch_count": 5,
+     "duplicate_rows": "299",
+     "inserted_rows": "8642",
+     "record_type": "cdr",
+     "rejected_rows": "0",
+     "section": "record_families",
+     "total_rows": "8941"
+    },
+    {
+     "batch_count": 1,
+     "duplicate_rows": "0",
+     "inserted_rows": "2500",
+     "record_type": "ipdr",
+     "rejected_rows": "0",
+     "section": "record_families",
+     "total_rows": "2500"
+    },
+    {
+     "batch_count": 1,
+     "duplicate_rows": "0",
+     "inserted_rows": "1000",
+     "record_type": "access_log",
+     "rejected_rows": "0",
+     "section": "record_families",
+     "total_rows": "1000"
+    },
+    {
+     "batch_count": 1,
+     "duplicate_rows": "0",
+     "inserted_rows": "750",
+     "record_type": "anpr",
+     "rejected_rows": "0",
+     "section": "record_families",
+     "total_rows": "750"
+    },
+    {
+     "batch_count": 1,
+     "duplicate_rows": "1",
+     "inserted_rows": "11",
+     "record_type": "subscriber",
+     "rejected_rows": "3",
+     "section": "record_families",
+     "total_rows": "15"
+    },
+    {
+     "batch_count": 1,
+     "duplicate_rows": "1",
+     "inserted_rows": "5",
+     "record_type": "tower_location",
+     "rejected_rows": "4",
+     "section": "record_families",
+     "total_rows": "10"
+    },
+    {
+     "batch_count": 1,
+     "duplicate_rows": "0",
+     "inserted_rows": "4",
+     "record_type": "transaction",
+     "rejected_rows": "0",
+     "section": "record_families",
+     "total_rows": "4"
+    }
+   ],
+   "citations": [
+    {
+     "id": "tool-citation-1",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "source_entry:876f1b40-b96d-4be3-99da-b85a2953a97c/923461678183.csv",
+     "source_name": "923461678183.csv"
+    },
+    {
+     "id": "tool-citation-2",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "source_entry:e9b5129b-bfcc-49fa-ae4a-9d7dc7d2c7d5/pakistan_cdr_messy_synthetic.csv",
+     "source_name": "pakistan_cdr_messy_synthetic.csv"
+    },
+    {
+     "id": "tool-citation-3",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "source_entry:16797df4-f7bd-4b23-9497-e46e40019fb7/r5_live_intake_ready_20260810.csv",
+     "source_name": "r5_live_intake_ready_20260810.csv"
+    },
+    {
+     "id": "tool-citation-4",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "source_entry:fc3f1565-f348-44ef-aa66-e025043b7de9/pakistan_cdr_tsv_synthetic.tsv",
+     "source_name": "pakistan_cdr_tsv_synthetic.tsv"
+    },
+    {
+     "id": "tool-citation-5",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "source_entry:5186e892-7bd6-493f-beb9-99316da148e1/pakistan_tower_sector_messy_synthetic.csv",
+     "source_name": "pakistan_tower_sector_messy_synthetic.csv"
+    },
+    {
+     "id": "tool-citation-6",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "source_entry:56e0b799-4073-4755-97a9-8f9aa40523bf/pakistan_subscriber_populated_acceptance_v1.jsonl",
+     "source_name": "pakistan_subscriber_populated_acceptance_v1.jsonl"
+    },
+    {
+     "id": "tool-citation-7",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "source_entry:11308b49-0a37-4969-af60-36a65c991064/seed_transactions.csv",
+     "source_name": "seed_transactions.csv"
+    },
+    {
+     "id": "tool-citation-8",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "source_entry:d7daf00d-7335-456b-ac92-563ec71313d2/seed_access_log.csv",
+     "source_name": "seed_access_log.csv"
+    },
+    {
+     "id": "tool-citation-9",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "source_entry:74bd6ee7-06fc-43fa-9fbf-40a22d79d293/seed_ipdr.csv",
+     "source_name": "seed_ipdr.csv"
+    },
+    {
+     "id": "tool-citation-10",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "source_entry:afc89486-f9af-40b5-a796-d13908d161fe/seed_anpr.csv",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-11",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "source_entry:6a4ae200-3e6a-4ba2-a151-4d120c4396d5/seed_cdr_large.csv",
+     "source_name": "seed_cdr_large.csv"
+    },
+    {
+     "id": "tool-citation-12",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "timestamp:2026-08-20T07:25:24Z",
+     "source_name": "923461678183.csv"
+    },
+    {
+     "id": "tool-citation-13",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "timestamp:2026-08-17T09:01:35Z",
+     "source_name": "pakistan_cdr_messy_synthetic.csv"
+    },
+    {
+     "id": "tool-citation-14",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "timestamp:2026-08-10T05:36:06Z",
+     "source_name": "r5_live_intake_ready_20260810.csv"
+    },
+    {
+     "id": "tool-citation-15",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "timestamp:2026-08-10T05:35:03Z",
+     "source_name": "r5_live_intake_acceptance_20260810.csv"
+    },
+    {
+     "id": "tool-citation-16",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "timestamp:2026-08-04T10:53:49Z",
+     "source_name": "pakistan_cdr_tsv_synthetic.tsv"
+    },
+    {
+     "id": "tool-citation-17",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "timestamp:2026-08-04T10:53:48Z",
+     "source_name": "pakistan_tower_sector_messy_synthetic.csv"
+    },
+    {
+     "id": "tool-citation-18",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "timestamp:2026-08-04T10:53:46Z",
+     "source_name": "pakistan_subscriber_populated_acceptance_v1.jsonl"
+    },
+    {
+     "id": "tool-citation-19",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "timestamp:2026-08-04T10:53:45Z",
+     "source_name": "seed_transactions.csv"
+    },
+    {
+     "id": "tool-citation-20",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "timestamp:2026-08-04T10:53:45Z",
+     "source_name": "seed_access_log.csv"
+    },
+    {
+     "id": "tool-citation-21",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "timestamp:2026-08-04T10:53:44Z",
+     "source_name": "seed_ipdr.csv"
+    },
+    {
+     "id": "tool-citation-22",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "timestamp:2026-08-04T10:53:43Z",
+     "source_name": "seed_anpr.csv"
+    },
+    {
+     "id": "tool-citation-23",
+     "tenant_id": "default",
+     "collection_id": "nexusai-forensic-demo",
+     "evidence_id": "",
+     "version_id": "",
+     "locator": "timestamp:2026-08-04T10:53:41Z",
+     "source_name": "seed_cdr_large.csv"
+    }
+   ],
+   "limitations": [
+    "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+   ],
+   "row_count": 30,
+   "truncated": false,
+   "duration_ms": 267
+  }
+ ],
+ "resolved_capability": {
+  "capability_id": "forensics.collection_overview",
+  "operation_id": "forensics.collection_overview",
+  "template": "collection_overview",
+  "family_ids": [
+   "case_cross_family"
+  ],
+  "intent_classes": [
+   "aggregate"
+  ],
+  "required_parameters": [],
+  "optional_parameters": [
+   "date_from",
+   "date_to",
+   "limit"
+  ],
+  "scope_mode": "case_wide",
+  "source_scoped": false,
+  "time_scoped": true,
+  "execution_mode": "deterministic",
+  "extension_mode": "deterministic_operation",
+  "implementation_key": "runAnalyticalTemplate",
+  "specialist_id": "Forensic_Records_Analyst",
+  "model_role_ids": null,
+  "result_contract": "forensics.enterprise-response/v1",
+  "result_kind": "aggregate",
+  "presentation_type": "bounded_records_table",
+  "citation_required": true,
+  "criticality_tier": "B",
+  "certification_status": "bounded_uncertified",
+  "exposure_status": "limited",
+  "suggestion_eligible": false,
+  "limitations": [
+   "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+  ],
+  "availability": {
+   "implemented": true,
+   "runtime_available": true,
+   "data_available": true,
+   "authorized": true,
+   "model_available": true,
+   "maturity": "operational",
+   "queryable": true,
+   "executable": true,
+   "reason_codes": null
+  }
+ },
+ "route": [
+  "records_sql"
+ ],
+ "policy": "Exact analytics are computed from parameterized SQL templates. KB content is used only for evidence, source previews, and contextual grounding.",
+ "planner": {
+  "capability_id": "forensics.collection_overview",
+  "confidence": 0.72,
+  "date_from": "",
+  "date_to": "",
+  "exact_identifier_authority": null,
+  "execution_plan_id": "079b0b34-d1d4-40b4-a02f-b9b0a3fc2446:plan",
+  "extracted_target": "",
+  "field_hints": [],
+  "hybrid_planner": null,
+  "language_assistance": "deterministic_fast_path",
+  "phrase_literal_authority": null,
+  "policy_decisions": [
+   "workspace_scope_bound",
+   "known_capability_only",
+   "read_only_executor",
+   "citations_capability_owned"
+  ],
+  "query_plan": {
+   "interpreted_intent": "records",
+   "selected_template": "collection_overview",
+   "target_identifiers": [],
+   "date_bounds": {},
+   "applied_filters": {
+    "field_hints": [],
+    "target_type": ""
+   },
+   "confidence": 0.72,
+   "coverage_check": {
+    "total_indexed_records": 0,
+    "record_families_present": null,
+    "nearest_activity": {},
+    "valid_target_examples": null
+   },
+   "execution_strategy": "sql_deterministic"
+  },
+  "query_understanding_version": "forensics.query-understanding/v1",
+  "reason": "rule-based runtime query planner",
+  "retrieval_strategy": {
+   "contract_version": "forensics.document-retrieval-strategy/v1",
+   "derived_text": false,
+   "exact_is_semantic": false,
+   "kb_retrieval": false,
+   "retrieval_mode": "NONE",
+   "semantic_frame": "forensics.semantic-frame/v1"
+  },
+  "semantic_operation_planner": null,
+  "source": "runtime_query",
+  "target_type": "",
+  "targets": []
+ },
+ "query_plan": {
+  "interpreted_intent": "records",
+  "selected_template": "collection_overview",
+  "target_identifiers": [],
+  "date_bounds": {},
+  "applied_filters": {
+   "field_hints": [],
+   "target_type": ""
+  },
+  "confidence": 0.72,
+  "coverage_check": {
+   "total_indexed_records": 0,
+   "record_families_present": null,
+   "nearest_activity": {},
+   "valid_target_examples": null
+  },
+  "execution_strategy": "sql_deterministic"
+ },
+ "capability": {
+  "status": "supported_by_selected_route",
+  "requested_families": [],
+  "required_operations": [],
+  "missing_capabilities": [],
+  "explanation": "The selected deterministic or evidence route may run; collection coverage is reported separately.",
+  "suggested_queries": []
+ },
+ "coverage": {
+  "total_indexed_records": 0,
+  "record_families_present": null,
+  "nearest_activity": {},
+  "valid_target_examples": null
+ },
+ "records": {
+  "assets": [
+   {
+    "detected_record_type": "cdr",
+    "rag_status": "mirrored",
+    "size_bytes": 828259,
+    "source_entry": "876f1b40-b96d-4be3-99da-b85a2953a97c/923461678183.csv",
+    "source_file": "923461678183.csv",
+    "structured_status": "completed"
+   },
+   {
+    "detected_record_type": "cdr",
+    "rag_status": "mirrored",
+    "size_bytes": 1020,
+    "source_entry": "e9b5129b-bfcc-49fa-ae4a-9d7dc7d2c7d5/pakistan_cdr_messy_synthetic.csv",
+    "source_file": "pakistan_cdr_messy_synthetic.csv",
+    "structured_status": "completed"
+   },
+   {
+    "detected_record_type": "cdr",
+    "rag_status": "mirrored",
+    "size_bytes": 309,
+    "source_entry": "16797df4-f7bd-4b23-9497-e46e40019fb7/r5_live_intake_ready_20260810.csv",
+    "source_file": "r5_live_intake_ready_20260810.csv",
+    "structured_status": "completed"
+   },
+   {
+    "detected_record_type": "cdr",
+    "rag_status": "mirrored",
+    "size_bytes": 448,
+    "source_entry": "fc3f1565-f348-44ef-aa66-e025043b7de9/pakistan_cdr_tsv_synthetic.tsv",
+    "source_file": "pakistan_cdr_tsv_synthetic.tsv",
+    "structured_status": "completed"
+   },
+   {
+    "detected_record_type": "tower_location",
+    "rag_status": "mirrored",
+    "size_bytes": 1365,
+    "source_entry": "5186e892-7bd6-493f-beb9-99316da148e1/pakistan_tower_sector_messy_synthetic.csv",
+    "source_file": "pakistan_tower_sector_messy_synthetic.csv",
+    "structured_status": "completed"
+   },
+   {
+    "detected_record_type": "subscriber",
+    "rag_status": "mirrored",
+    "size_bytes": 4044,
+    "source_entry": "56e0b799-4073-4755-97a9-8f9aa40523bf/pakistan_subscriber_populated_acceptance_v1.jsonl",
+    "source_file": "pakistan_subscriber_populated_acceptance_v1.jsonl",
+    "structured_status": "completed"
+   },
+   {
+    "detected_record_type": "transaction",
+    "rag_status": "mirrored",
+    "size_bytes": 482,
+    "source_entry": "11308b49-0a37-4969-af60-36a65c991064/seed_transactions.csv",
+    "source_file": "seed_transactions.csv",
+    "structured_status": "completed"
+   },
+   {
+    "detected_record_type": "access_log",
+    "rag_status": "mirrored",
+    "size_bytes": 73750,
+    "source_entry": "d7daf00d-7335-456b-ac92-563ec71313d2/seed_access_log.csv",
+    "source_file": "seed_access_log.csv",
+    "structured_status": "completed"
+   },
+   {
+    "detected_record_type": "ipdr",
+    "rag_status": "mirrored",
+    "size_bytes": 255721,
+    "source_entry": "74bd6ee7-06fc-43fa-9fbf-40a22d79d293/seed_ipdr.csv",
+    "source_file": "seed_ipdr.csv",
+    "structured_status": "completed"
+   },
+   {
+    "detected_record_type": "anpr",
+    "rag_status": "mirrored",
+    "size_bytes": 55629,
+    "source_entry": "afc89486-f9af-40b5-a796-d13908d161fe/seed_anpr.csv",
+    "source_file": "seed_anpr.csv",
+    "structured_status": "completed"
+   },
+   {
+    "detected_record_type": "cdr",
+    "rag_status": "mirrored",
+    "size_bytes": 911751,
+    "source_entry": "6a4ae200-3e6a-4ba2-a151-4d120c4396d5/seed_cdr_large.csv",
+    "source_file": "seed_cdr_large.csv",
+    "structured_status": "completed"
+   }
+  ],
+  "jobs": [
+   {
+    "accepted_rows": 3634,
+    "completed_at": "2026-08-20T07:25:25Z",
+    "duplicate_rows": 297,
+    "queued_at": "2026-08-20T07:25:24Z",
+    "record_type": "cdr",
+    "rejected_rows": 0,
+    "source_file": "923461678183.csv",
+    "status": "completed",
+    "total_rows": 3931
+   },
+   {
+    "accepted_rows": 4,
+    "completed_at": "2026-08-17T09:01:36Z",
+    "duplicate_rows": 1,
+    "queued_at": "2026-08-17T09:01:35Z",
+    "record_type": "cdr",
+    "rejected_rows": 0,
+    "source_file": "pakistan_cdr_messy_synthetic.csv",
+    "status": "completed",
+    "total_rows": 5
+   },
+   {
+    "accepted_rows": 2,
+    "completed_at": "2026-08-10T05:36:06Z",
+    "duplicate_rows": 0,
+    "queued_at": "2026-08-10T05:36:06Z",
+    "record_type": "cdr",
+    "rejected_rows": 0,
+    "source_file": "r5_live_intake_ready_20260810.csv",
+    "status": "completed",
+    "total_rows": 2
+   },
+   {
+    "accepted_rows": 0,
+    "completed_at": "2026-08-10T05:35:04Z",
+    "duplicate_rows": 0,
+    "queued_at": "2026-08-10T05:35:03Z",
+    "record_type": "cdr",
+    "rejected_rows": 0,
+    "source_file": "r5_live_intake_acceptance_20260810.csv",
+    "status": "dead_letter",
+    "total_rows": 0
+   },
+   {
+    "accepted_rows": 2,
+    "completed_at": "2026-08-04T10:54:16Z",
+    "duplicate_rows": 1,
+    "queued_at": "2026-08-04T10:53:49Z",
+    "record_type": "cdr",
+    "rejected_rows": 0,
+    "source_file": "pakistan_cdr_tsv_synthetic.tsv",
+    "status": "completed",
+    "total_rows": 3
+   },
+   {
+    "accepted_rows": 5,
+    "completed_at": "2026-08-04T10:54:15Z",
+    "duplicate_rows": 1,
+    "queued_at": "2026-08-04T10:53:48Z",
+    "record_type": "tower_location",
+    "rejected_rows": 4,
+    "source_file": "pakistan_tower_sector_messy_synthetic.csv",
+    "status": "completed",
+    "total_rows": 10
+   },
+   {
+    "accepted_rows": 11,
+    "completed_at": "2026-08-04T10:54:14Z",
+    "duplicate_rows": 1,
+    "queued_at": "2026-08-04T10:53:46Z",
+    "record_type": "subscriber",
+    "rejected_rows": 3,
+    "source_file": "pakistan_subscriber_populated_acceptance_v1.jsonl",
+    "status": "completed",
+    "total_rows": 15
+   },
+   {
+    "accepted_rows": 4,
+    "completed_at": "2026-08-04T10:54:13Z",
+    "duplicate_rows": 0,
+    "queued_at": "2026-08-04T10:53:45Z",
+    "record_type": "transaction",
+    "rejected_rows": 0,
+    "source_file": "seed_transactions.csv",
+    "status": "completed",
+    "total_rows": 4
+   },
+   {
+    "accepted_rows": 1000,
+    "completed_at": "2026-08-04T10:54:11Z",
+    "duplicate_rows": 0,
+    "queued_at": "2026-08-04T10:53:45Z",
+    "record_type": "access_log",
+    "rejected_rows": 0,
+    "source_file": "seed_access_log.csv",
+    "status": "completed",
+    "total_rows": 1000
+   },
+   {
+    "accepted_rows": 2500,
+    "completed_at": "2026-08-04T10:54:04Z",
+    "duplicate_rows": 0,
+    "queued_at": "2026-08-04T10:53:44Z",
+    "record_type": "ipdr",
+    "rejected_rows": 0,
+    "source_file": "seed_ipdr.csv",
+    "status": "completed",
+    "total_rows": 2500
+   },
+   {
+    "accepted_rows": 750,
+    "completed_at": "2026-08-04T10:54:01Z",
+    "duplicate_rows": 0,
+    "queued_at": "2026-08-04T10:53:43Z",
+    "record_type": "anpr",
+    "rejected_rows": 0,
+    "source_file": "seed_anpr.csv",
+    "status": "completed",
+    "total_rows": 750
+   },
+   {
+    "accepted_rows": 5000,
+    "completed_at": "2026-08-04T10:53:43Z",
+    "duplicate_rows": 0,
+    "queued_at": "2026-08-04T10:53:41Z",
+    "record_type": "cdr",
+    "rejected_rows": 0,
+    "source_file": "seed_cdr_large.csv",
+    "status": "completed",
+    "total_rows": 5000
+   }
+  ],
+  "record_families": [
+   {
+    "batch_count": 5,
+    "duplicate_rows": "299",
+    "inserted_rows": "8642",
+    "record_type": "cdr",
+    "rejected_rows": "0",
+    "total_rows": "8941"
+   },
+   {
+    "batch_count": 1,
+    "duplicate_rows": "0",
+    "inserted_rows": "2500",
+    "record_type": "ipdr",
+    "rejected_rows": "0",
+    "total_rows": "2500"
+   },
+   {
+    "batch_count": 1,
+    "duplicate_rows": "0",
+    "inserted_rows": "1000",
+    "record_type": "access_log",
+    "rejected_rows": "0",
+    "total_rows": "1000"
+   },
+   {
+    "batch_count": 1,
+    "duplicate_rows": "0",
+    "inserted_rows": "750",
+    "record_type": "anpr",
+    "rejected_rows": "0",
+    "total_rows": "750"
+   },
+   {
+    "batch_count": 1,
+    "duplicate_rows": "1",
+    "inserted_rows": "11",
+    "record_type": "subscriber",
+    "rejected_rows": "3",
+    "total_rows": "15"
+   },
+   {
+    "batch_count": 1,
+    "duplicate_rows": "1",
+    "inserted_rows": "5",
+    "record_type": "tower_location",
+    "rejected_rows": "4",
+    "total_rows": "10"
+   },
+   {
+    "batch_count": 1,
+    "duplicate_rows": "0",
+    "inserted_rows": "4",
+    "record_type": "transaction",
+    "rejected_rows": "0",
+    "total_rows": "4"
+   }
+  ]
+ },
+ "answer": {
+  "guardrail": "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations.",
+  "records_row_count": 30,
+  "records_status": "matched",
+  "records_summary": "Computed collection ingest, KB asset, and record-family overview."
+ },
+ "enterprise": {
+  "clarification": "",
+  "contribution_lineage": null,
+  "conversation_context": {
+   "analysis_id": "",
+   "audit_id": "ctx-1789712911599229514",
+   "citation_handles": [
+    {
+     "handle_id": "citation-C1",
+     "kind": "citation",
+     "citation_id": "C1"
+    },
+    {
+     "handle_id": "citation-C2",
+     "kind": "citation",
+     "citation_id": "C2"
+    },
+    {
+     "handle_id": "citation-C3",
+     "kind": "citation",
+     "citation_id": "C3"
+    },
+    {
+     "handle_id": "citation-C4",
+     "kind": "citation",
+     "citation_id": "C4"
+    },
+    {
+     "handle_id": "citation-C5",
+     "kind": "citation",
+     "citation_id": "C5"
+    },
+    {
+     "handle_id": "citation-C6",
+     "kind": "citation",
+     "citation_id": "C6"
+    },
+    {
+     "handle_id": "citation-C7",
+     "kind": "citation",
+     "citation_id": "C7"
+    },
+    {
+     "handle_id": "citation-C8",
+     "kind": "citation",
+     "citation_id": "C8"
+    },
+    {
+     "handle_id": "citation-C9",
+     "kind": "citation",
+     "citation_id": "C9"
+    },
+    {
+     "handle_id": "citation-C10",
+     "kind": "citation",
+     "citation_id": "C10"
+    },
+    {
+     "handle_id": "citation-C11",
+     "kind": "citation",
+     "citation_id": "C11"
+    },
+    {
+     "handle_id": "citation-C12",
+     "kind": "citation",
+     "citation_id": "C12"
+    },
+    {
+     "handle_id": "citation-C13",
+     "kind": "citation",
+     "citation_id": "C13"
+    },
+    {
+     "handle_id": "citation-C14",
+     "kind": "citation",
+     "citation_id": "C14"
+    },
+    {
+     "handle_id": "citation-C15",
+     "kind": "citation",
+     "citation_id": "C15"
+    },
+    {
+     "handle_id": "citation-C16",
+     "kind": "citation",
+     "citation_id": "C16"
+    },
+    {
+     "handle_id": "citation-C17",
+     "kind": "citation",
+     "citation_id": "C17"
+    },
+    {
+     "handle_id": "citation-C18",
+     "kind": "citation",
+     "citation_id": "C18"
+    },
+    {
+     "handle_id": "citation-C19",
+     "kind": "citation",
+     "citation_id": "C19"
+    },
+    {
+     "handle_id": "citation-C20",
+     "kind": "citation",
+     "citation_id": "C20"
+    },
+    {
+     "handle_id": "citation-C21",
+     "kind": "citation",
+     "citation_id": "C21"
+    },
+    {
+     "handle_id": "citation-C22",
+     "kind": "citation",
+     "citation_id": "C22"
+    },
+    {
+     "handle_id": "citation-C23",
+     "kind": "citation",
+     "citation_id": "C23"
+    }
+   ],
+   "collection_id": "nexusai-forensic-demo",
+   "contract_version": "forensics.follow-up-context/v1",
+   "conversation_id": "",
+   "created_at": "2026-09-18T06:28:31Z",
+   "current_question": "Show the breakdown of HTTP status codes in the access logs",
+   "date_from": "",
+   "date_to": "",
+   "direction": "",
+   "entity_handles": [],
+   "evidence_id": "",
+   "evidence_version_id": "",
+   "expires_at": "2026-09-18T06:58:31Z",
+   "fact_handles": [
+    {
+     "handle_id": "fact-F1",
+     "kind": "fact",
+     "fact_id": "F1"
+    },
+    {
+     "handle_id": "fact-F2",
+     "kind": "fact",
+     "fact_id": "F2"
+    },
+    {
+     "handle_id": "fact-F3",
+     "kind": "fact",
+     "fact_id": "F3"
+    },
+    {
+     "handle_id": "fact-F4",
+     "kind": "fact",
+     "fact_id": "F4"
+    },
+    {
+     "handle_id": "fact-F5",
+     "kind": "fact",
+     "fact_id": "F5"
+    },
+    {
+     "handle_id": "fact-F6",
+     "kind": "fact",
+     "fact_id": "F6"
+    },
+    {
+     "handle_id": "fact-F7",
+     "kind": "fact",
+     "fact_id": "F7"
+    },
+    {
+     "handle_id": "fact-F8",
+     "kind": "fact",
+     "fact_id": "F8"
+    },
+    {
+     "handle_id": "fact-F9",
+     "kind": "fact",
+     "fact_id": "F9"
+    }
+   ],
+   "inherited_fields": null,
+   "issued_fields": null,
+   "mutation": null,
+   "operation_id": "forensics.collection_overview",
+   "result_handles": [
+    {
+     "handle_id": "result-1",
+     "kind": "result",
+     "value": "923461678183.csv"
+    },
+    {
+     "handle_id": "result-2",
+     "kind": "result",
+     "value": "pakistan_cdr_messy_synthetic.csv"
+    },
+    {
+     "handle_id": "result-3",
+     "kind": "result",
+     "value": "r5_live_intake_ready_20260810.csv"
+    },
+    {
+     "handle_id": "result-4",
+     "kind": "result",
+     "value": "pakistan_cdr_tsv_synthetic.tsv"
+    },
+    {
+     "handle_id": "result-5",
+     "kind": "result",
+     "value": "pakistan_tower_sector_messy_synthetic.csv"
+    },
+    {
+     "handle_id": "result-6",
+     "kind": "result",
+     "value": "pakistan_subscriber_populated_acceptance_v1.jsonl"
+    },
+    {
+     "handle_id": "result-7",
+     "kind": "result",
+     "value": "seed_transactions.csv"
+    },
+    {
+     "handle_id": "result-8",
+     "kind": "result",
+     "value": "seed_access_log.csv"
+    },
+    {
+     "handle_id": "result-9",
+     "kind": "result",
+     "value": "seed_ipdr.csv"
+    },
+    {
+     "handle_id": "result-10",
+     "kind": "result",
+     "value": "seed_anpr.csv"
+    },
+    {
+     "handle_id": "result-11",
+     "kind": "result",
+     "value": "seed_cdr_large.csv"
+    },
+    {
+     "handle_id": "result-12",
+     "kind": "result",
+     "value": "923461678183.csv"
+    },
+    {
+     "handle_id": "result-13",
+     "kind": "result",
+     "value": "pakistan_cdr_messy_synthetic.csv"
+    },
+    {
+     "handle_id": "result-14",
+     "kind": "result",
+     "value": "r5_live_intake_ready_20260810.csv"
+    },
+    {
+     "handle_id": "result-15",
+     "kind": "result",
+     "value": "r5_live_intake_acceptance_20260810.csv"
+    },
+    {
+     "handle_id": "result-16",
+     "kind": "result",
+     "value": "pakistan_cdr_tsv_synthetic.tsv"
+    }
+   ],
+   "source_native": null,
+   "source_set": null,
+   "target": "",
+   "targets": [],
+   "template": "collection_overview",
+   "tenant_id": "default",
+   "turn_id": "",
+   "user_id": "live-eval"
+  },
+  "coverage": {
+   "collection_id": "nexusai-forensic-demo",
+   "collection_max_timestamp": "",
+   "collection_min_timestamp": "",
+   "date_from": "",
+   "date_to": "",
+   "direction": "",
+   "nearest_activity": {},
+   "queried_kb": false,
+   "queried_record_sql": true,
+   "record_families_present": null,
+   "route": [
+    "records_sql"
+   ],
+   "target": "",
+   "template": "collection_overview",
+   "tenant_id": "default",
+   "total_indexed_records": 0,
+   "valid_target_examples": null
+  },
+  "data_grid": {
+   "columns": [
+    {
+     "header": "Detected Record Type",
+     "key": "detected_record_type"
+    },
+    {
+     "header": "RAG Status",
+     "key": "rag_status"
+    },
+    {
+     "header": "Section",
+     "key": "section"
+    },
+    {
+     "header": "Size Bytes",
+     "key": "size_bytes"
+    },
+    {
+     "header": "Source Entry",
+     "key": "source_entry"
+    },
+    {
+     "header": "Source File",
+     "key": "source_file"
+    },
+    {
+     "header": "Structured Status",
+     "key": "structured_status"
+    },
+    {
+     "header": "Accepted Rows",
+     "key": "accepted_rows"
+    },
+    {
+     "header": "Completed AT",
+     "key": "completed_at"
+    },
+    {
+     "header": "Duplicate Rows",
+     "key": "duplicate_rows"
+    },
+    {
+     "header": "Queued AT",
+     "key": "queued_at"
+    },
+    {
+     "header": "Record Type",
+     "key": "record_type"
+    },
+    {
+     "header": "Rejected Rows",
+     "key": "rejected_rows"
+    },
+    {
+     "header": "Status",
+     "key": "status"
+    },
+    {
+     "header": "Total Rows",
+     "key": "total_rows"
+    },
+    {
+     "header": "Batch Count",
+     "key": "batch_count"
+    },
+    {
+     "header": "Inserted Rows",
+     "key": "inserted_rows"
+    }
+   ],
+   "count": 30,
+   "rows": [
+    {
+     "detected_record_type": "cdr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 828259,
+     "source_entry": "876f1b40-b96d-4be3-99da-b85a2953a97c/923461678183.csv",
+     "source_file": "923461678183.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "cdr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 1020,
+     "source_entry": "e9b5129b-bfcc-49fa-ae4a-9d7dc7d2c7d5/pakistan_cdr_messy_synthetic.csv",
+     "source_file": "pakistan_cdr_messy_synthetic.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "cdr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 309,
+     "source_entry": "16797df4-f7bd-4b23-9497-e46e40019fb7/r5_live_intake_ready_20260810.csv",
+     "source_file": "r5_live_intake_ready_20260810.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "cdr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 448,
+     "source_entry": "fc3f1565-f348-44ef-aa66-e025043b7de9/pakistan_cdr_tsv_synthetic.tsv",
+     "source_file": "pakistan_cdr_tsv_synthetic.tsv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "tower_location",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 1365,
+     "source_entry": "5186e892-7bd6-493f-beb9-99316da148e1/pakistan_tower_sector_messy_synthetic.csv",
+     "source_file": "pakistan_tower_sector_messy_synthetic.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "subscriber",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 4044,
+     "source_entry": "56e0b799-4073-4755-97a9-8f9aa40523bf/pakistan_subscriber_populated_acceptance_v1.jsonl",
+     "source_file": "pakistan_subscriber_populated_acceptance_v1.jsonl",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "transaction",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 482,
+     "source_entry": "11308b49-0a37-4969-af60-36a65c991064/seed_transactions.csv",
+     "source_file": "seed_transactions.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "access_log",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 73750,
+     "source_entry": "d7daf00d-7335-456b-ac92-563ec71313d2/seed_access_log.csv",
+     "source_file": "seed_access_log.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "ipdr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 255721,
+     "source_entry": "74bd6ee7-06fc-43fa-9fbf-40a22d79d293/seed_ipdr.csv",
+     "source_file": "seed_ipdr.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "anpr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 55629,
+     "source_entry": "afc89486-f9af-40b5-a796-d13908d161fe/seed_anpr.csv",
+     "source_file": "seed_anpr.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "cdr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 911751,
+     "source_entry": "6a4ae200-3e6a-4ba2-a151-4d120c4396d5/seed_cdr_large.csv",
+     "source_file": "seed_cdr_large.csv",
+     "structured_status": "completed"
+    },
+    {
+     "accepted_rows": 3634,
+     "completed_at": "2026-08-20T07:25:25Z",
+     "duplicate_rows": 297,
+     "queued_at": "2026-08-20T07:25:24Z",
+     "record_type": "cdr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "923461678183.csv",
+     "status": "completed",
+     "total_rows": 3931
+    },
+    {
+     "accepted_rows": 4,
+     "completed_at": "2026-08-17T09:01:36Z",
+     "duplicate_rows": 1,
+     "queued_at": "2026-08-17T09:01:35Z",
+     "record_type": "cdr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "pakistan_cdr_messy_synthetic.csv",
+     "status": "completed",
+     "total_rows": 5
+    },
+    {
+     "accepted_rows": 2,
+     "completed_at": "2026-08-10T05:36:06Z",
+     "duplicate_rows": 0,
+     "queued_at": "2026-08-10T05:36:06Z",
+     "record_type": "cdr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "r5_live_intake_ready_20260810.csv",
+     "status": "completed",
+     "total_rows": 2
+    },
+    {
+     "accepted_rows": 0,
+     "completed_at": "2026-08-10T05:35:04Z",
+     "duplicate_rows": 0,
+     "queued_at": "2026-08-10T05:35:03Z",
+     "record_type": "cdr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "r5_live_intake_acceptance_20260810.csv",
+     "status": "dead_letter",
+     "total_rows": 0
+    },
+    {
+     "accepted_rows": 2,
+     "completed_at": "2026-08-04T10:54:16Z",
+     "duplicate_rows": 1,
+     "queued_at": "2026-08-04T10:53:49Z",
+     "record_type": "cdr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "pakistan_cdr_tsv_synthetic.tsv",
+     "status": "completed",
+     "total_rows": 3
+    },
+    {
+     "accepted_rows": 5,
+     "completed_at": "2026-08-04T10:54:15Z",
+     "duplicate_rows": 1,
+     "queued_at": "2026-08-04T10:53:48Z",
+     "record_type": "tower_location",
+     "rejected_rows": 4,
+     "section": "jobs",
+     "source_file": "pakistan_tower_sector_messy_synthetic.csv",
+     "status": "completed",
+     "total_rows": 10
+    },
+    {
+     "accepted_rows": 11,
+     "completed_at": "2026-08-04T10:54:14Z",
+     "duplicate_rows": 1,
+     "queued_at": "2026-08-04T10:53:46Z",
+     "record_type": "subscriber",
+     "rejected_rows": 3,
+     "section": "jobs",
+     "source_file": "pakistan_subscriber_populated_acceptance_v1.jsonl",
+     "status": "completed",
+     "total_rows": 15
+    },
+    {
+     "accepted_rows": 4,
+     "completed_at": "2026-08-04T10:54:13Z",
+     "duplicate_rows": 0,
+     "queued_at": "2026-08-04T10:53:45Z",
+     "record_type": "transaction",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "seed_transactions.csv",
+     "status": "completed",
+     "total_rows": 4
+    },
+    {
+     "accepted_rows": 1000,
+     "completed_at": "2026-08-04T10:54:11Z",
+     "duplicate_rows": 0,
+     "queued_at": "2026-08-04T10:53:45Z",
+     "record_type": "access_log",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "seed_access_log.csv",
+     "status": "completed",
+     "total_rows": 1000
+    },
+    {
+     "accepted_rows": 2500,
+     "completed_at": "2026-08-04T10:54:04Z",
+     "duplicate_rows": 0,
+     "queued_at": "2026-08-04T10:53:44Z",
+     "record_type": "ipdr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "seed_ipdr.csv",
+     "status": "completed",
+     "total_rows": 2500
+    },
+    {
+     "accepted_rows": 750,
+     "completed_at": "2026-08-04T10:54:01Z",
+     "duplicate_rows": 0,
+     "queued_at": "2026-08-04T10:53:43Z",
+     "record_type": "anpr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "seed_anpr.csv",
+     "status": "completed",
+     "total_rows": 750
+    },
+    {
+     "accepted_rows": 5000,
+     "completed_at": "2026-08-04T10:53:43Z",
+     "duplicate_rows": 0,
+     "queued_at": "2026-08-04T10:53:41Z",
+     "record_type": "cdr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "seed_cdr_large.csv",
+     "status": "completed",
+     "total_rows": 5000
+    },
+    {
+     "batch_count": 5,
+     "duplicate_rows": "299",
+     "inserted_rows": "8642",
+     "record_type": "cdr",
+     "rejected_rows": "0",
+     "section": "record_families",
+     "total_rows": "8941"
+    },
+    {
+     "batch_count": 1,
+     "duplicate_rows": "0",
+     "inserted_rows": "2500",
+     "record_type": "ipdr",
+     "rejected_rows": "0",
+     "section": "record_families",
+     "total_rows": "2500"
+    },
+    {
+     "batch_count": 1,
+     "duplicate_rows": "0",
+     "inserted_rows": "1000",
+     "record_type": "access_log",
+     "rejected_rows": "0",
+     "section": "record_families",
+     "total_rows": "1000"
+    },
+    {
+     "batch_count": 1,
+     "duplicate_rows": "0",
+     "inserted_rows": "750",
+     "record_type": "anpr",
+     "rejected_rows": "0",
+     "section": "record_families",
+     "total_rows": "750"
+    },
+    {
+     "batch_count": 1,
+     "duplicate_rows": "1",
+     "inserted_rows": "11",
+     "record_type": "subscriber",
+     "rejected_rows": "3",
+     "section": "record_families",
+     "total_rows": "15"
+    },
+    {
+     "batch_count": 1,
+     "duplicate_rows": "1",
+     "inserted_rows": "5",
+     "record_type": "tower_location",
+     "rejected_rows": "4",
+     "section": "record_families",
+     "total_rows": "10"
+    },
+    {
+     "batch_count": 1,
+     "duplicate_rows": "0",
+     "inserted_rows": "4",
+     "record_type": "transaction",
+     "rejected_rows": "0",
+     "section": "record_families",
+     "total_rows": "4"
+    }
+   ]
+  },
+  "executive_answer": "Computed collection ingest, KB asset, and record-family overview.",
+  "fact_packet": {
+   "contract_version": "forensics.fact-packet/v1",
+   "request_id": "079b0b34-d1d4-40b4-a02f-b9b0a3fc2446",
+   "question": "Show the breakdown of HTTP status codes in the access logs",
+   "language": {
+    "tag": "en",
+    "source": "deterministic_extractor",
+    "confidence": 0.9
+   },
+   "scope": {
+    "tenant_id": "default",
+    "case_id": "nexusai-forensic-demo",
+    "collection_id": "nexusai-forensic-demo"
+   },
+   "operation_id": "forensics.collection_overview",
+   "plan_id": "079b0b34-d1d4-40b4-a02f-b9b0a3fc2446:plan",
+   "normalized_parameters": {
+    "date_from": "",
+    "date_to": "",
+    "direction": "",
+    "limit": 20,
+    "retrieval_mode": "NONE",
+    "source_file": "",
+    "source_set": null,
+    "target": "",
+    "targets": []
+   },
+   "execution_mode": "records_sql",
+   "result_state": "results_present",
+   "facts": [
+    {
+     "fact_id": "F1",
+     "kind": "direct_answer",
+     "text": "Computed collection ingest, KB asset, and record-family overview.",
+     "citation_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20",
+      "C21",
+      "C22",
+      "C23"
+     ]
+    },
+    {
+     "fact_id": "F2",
+     "kind": "deterministic_fact",
+     "text": "Computed collection ingest, KB asset, and record-family overview.",
+     "citation_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20",
+      "C21",
+      "C22",
+      "C23"
+     ]
+    },
+    {
+     "fact_id": "F3",
+     "kind": "deterministic_fact",
+     "text": "Structured records row count computed.",
+     "value": 30,
+     "citation_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20",
+      "C21",
+      "C22",
+      "C23"
+     ]
+    },
+    {
+     "fact_id": "F4",
+     "kind": "metric",
+     "text": "Template: collection_overview",
+     "value": "collection_overview",
+     "citation_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20",
+      "C21",
+      "C22",
+      "C23"
+     ]
+    },
+    {
+     "fact_id": "F5",
+     "kind": "metric",
+     "text": "Route: records_sql",
+     "value": "records_sql",
+     "citation_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20",
+      "C21",
+      "C22",
+      "C23"
+     ]
+    },
+    {
+     "fact_id": "F6",
+     "kind": "metric",
+     "text": "Planner Confidence: 0.72",
+     "value": 0.72,
+     "citation_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20",
+      "C21",
+      "C22",
+      "C23"
+     ]
+    },
+    {
+     "fact_id": "F7",
+     "kind": "metric",
+     "text": "Display Rows: 30",
+     "value": 30,
+     "citation_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20",
+      "C21",
+      "C22",
+      "C23"
+     ]
+    },
+    {
+     "fact_id": "F8",
+     "kind": "metric",
+     "text": "Records Row Count: 30",
+     "value": 30,
+     "citation_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20",
+      "C21",
+      "C22",
+      "C23"
+     ]
+    },
+    {
+     "fact_id": "F9",
+     "kind": "metric",
+     "text": "Provenance Items: 23",
+     "value": 23,
+     "citation_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20",
+      "C21",
+      "C22",
+      "C23"
+     ]
+    }
+   ],
+   "metrics": [
+    {
+     "label": "Template",
+     "source": "planner",
+     "value": "collection_overview"
+    },
+    {
+     "label": "Route",
+     "source": "planner",
+     "value": "records_sql"
+    },
+    {
+     "label": "Planner Confidence",
+     "source": "planner",
+     "value": 0.72
+    },
+    {
+     "label": "Display Rows",
+     "source": "records_sql",
+     "value": 30
+    },
+    {
+     "label": "Records Row Count",
+     "source": "records_sql",
+     "value": 30
+    },
+    {
+     "label": "Evidence Count",
+     "source": "kb_rag",
+     "value": null
+    },
+    {
+     "label": "Provenance Items",
+     "source": "records_sql+kb_rag",
+     "value": 23
+    }
+   ],
+   "rows": [
+    {
+     "detected_record_type": "cdr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 828259,
+     "source_entry": "876f1b40-b96d-4be3-99da-b85a2953a97c/923461678183.csv",
+     "source_file": "923461678183.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "cdr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 1020,
+     "source_entry": "e9b5129b-bfcc-49fa-ae4a-9d7dc7d2c7d5/pakistan_cdr_messy_synthetic.csv",
+     "source_file": "pakistan_cdr_messy_synthetic.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "cdr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 309,
+     "source_entry": "16797df4-f7bd-4b23-9497-e46e40019fb7/r5_live_intake_ready_20260810.csv",
+     "source_file": "r5_live_intake_ready_20260810.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "cdr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 448,
+     "source_entry": "fc3f1565-f348-44ef-aa66-e025043b7de9/pakistan_cdr_tsv_synthetic.tsv",
+     "source_file": "pakistan_cdr_tsv_synthetic.tsv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "tower_location",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 1365,
+     "source_entry": "5186e892-7bd6-493f-beb9-99316da148e1/pakistan_tower_sector_messy_synthetic.csv",
+     "source_file": "pakistan_tower_sector_messy_synthetic.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "subscriber",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 4044,
+     "source_entry": "56e0b799-4073-4755-97a9-8f9aa40523bf/pakistan_subscriber_populated_acceptance_v1.jsonl",
+     "source_file": "pakistan_subscriber_populated_acceptance_v1.jsonl",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "transaction",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 482,
+     "source_entry": "11308b49-0a37-4969-af60-36a65c991064/seed_transactions.csv",
+     "source_file": "seed_transactions.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "access_log",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 73750,
+     "source_entry": "d7daf00d-7335-456b-ac92-563ec71313d2/seed_access_log.csv",
+     "source_file": "seed_access_log.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "ipdr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 255721,
+     "source_entry": "74bd6ee7-06fc-43fa-9fbf-40a22d79d293/seed_ipdr.csv",
+     "source_file": "seed_ipdr.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "anpr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 55629,
+     "source_entry": "afc89486-f9af-40b5-a796-d13908d161fe/seed_anpr.csv",
+     "source_file": "seed_anpr.csv",
+     "structured_status": "completed"
+    },
+    {
+     "detected_record_type": "cdr",
+     "rag_status": "mirrored",
+     "section": "assets",
+     "size_bytes": 911751,
+     "source_entry": "6a4ae200-3e6a-4ba2-a151-4d120c4396d5/seed_cdr_large.csv",
+     "source_file": "seed_cdr_large.csv",
+     "structured_status": "completed"
+    },
+    {
+     "accepted_rows": 3634,
+     "completed_at": "2026-08-20T07:25:25Z",
+     "duplicate_rows": 297,
+     "queued_at": "2026-08-20T07:25:24Z",
+     "record_type": "cdr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "923461678183.csv",
+     "status": "completed",
+     "total_rows": 3931
+    },
+    {
+     "accepted_rows": 4,
+     "completed_at": "2026-08-17T09:01:36Z",
+     "duplicate_rows": 1,
+     "queued_at": "2026-08-17T09:01:35Z",
+     "record_type": "cdr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "pakistan_cdr_messy_synthetic.csv",
+     "status": "completed",
+     "total_rows": 5
+    },
+    {
+     "accepted_rows": 2,
+     "completed_at": "2026-08-10T05:36:06Z",
+     "duplicate_rows": 0,
+     "queued_at": "2026-08-10T05:36:06Z",
+     "record_type": "cdr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "r5_live_intake_ready_20260810.csv",
+     "status": "completed",
+     "total_rows": 2
+    },
+    {
+     "accepted_rows": 0,
+     "completed_at": "2026-08-10T05:35:04Z",
+     "duplicate_rows": 0,
+     "queued_at": "2026-08-10T05:35:03Z",
+     "record_type": "cdr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "r5_live_intake_acceptance_20260810.csv",
+     "status": "dead_letter",
+     "total_rows": 0
+    },
+    {
+     "accepted_rows": 2,
+     "completed_at": "2026-08-04T10:54:16Z",
+     "duplicate_rows": 1,
+     "queued_at": "2026-08-04T10:53:49Z",
+     "record_type": "cdr",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "pakistan_cdr_tsv_synthetic.tsv",
+     "status": "completed",
+     "total_rows": 3
+    },
+    {
+     "accepted_rows": 5,
+     "completed_at": "2026-08-04T10:54:15Z",
+     "duplicate_rows": 1,
+     "queued_at": "2026-08-04T10:53:48Z",
+     "record_type": "tower_location",
+     "rejected_rows": 4,
+     "section": "jobs",
+     "source_file": "pakistan_tower_sector_messy_synthetic.csv",
+     "status": "completed",
+     "total_rows": 10
+    },
+    {
+     "accepted_rows": 11,
+     "completed_at": "2026-08-04T10:54:14Z",
+     "duplicate_rows": 1,
+     "queued_at": "2026-08-04T10:53:46Z",
+     "record_type": "subscriber",
+     "rejected_rows": 3,
+     "section": "jobs",
+     "source_file": "pakistan_subscriber_populated_acceptance_v1.jsonl",
+     "status": "completed",
+     "total_rows": 15
+    },
+    {
+     "accepted_rows": 4,
+     "completed_at": "2026-08-04T10:54:13Z",
+     "duplicate_rows": 0,
+     "queued_at": "2026-08-04T10:53:45Z",
+     "record_type": "transaction",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "seed_transactions.csv",
+     "status": "completed",
+     "total_rows": 4
+    },
+    {
+     "accepted_rows": 1000,
+     "completed_at": "2026-08-04T10:54:11Z",
+     "duplicate_rows": 0,
+     "queued_at": "2026-08-04T10:53:45Z",
+     "record_type": "access_log",
+     "rejected_rows": 0,
+     "section": "jobs",
+     "source_file": "seed_access_log.csv",
+     "status": "completed",
+     "total_rows": 1000
+    }
+   ],
+   "row_set_state": "bounded",
+   "relationships": [],
+   "citations": [
+    {
+     "citation_id": "C1",
+     "source_file": "923461678183.csv",
+     "locator": "876f1b40-b96d-4be3-99da-b85a2953a97c/923461678183.csv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C2",
+     "source_file": "pakistan_cdr_messy_synthetic.csv",
+     "locator": "e9b5129b-bfcc-49fa-ae4a-9d7dc7d2c7d5/pakistan_cdr_messy_synthetic.csv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C3",
+     "source_file": "r5_live_intake_ready_20260810.csv",
+     "locator": "16797df4-f7bd-4b23-9497-e46e40019fb7/r5_live_intake_ready_20260810.csv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C4",
+     "source_file": "pakistan_cdr_tsv_synthetic.tsv",
+     "locator": "fc3f1565-f348-44ef-aa66-e025043b7de9/pakistan_cdr_tsv_synthetic.tsv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C5",
+     "source_file": "pakistan_tower_sector_messy_synthetic.csv",
+     "locator": "5186e892-7bd6-493f-beb9-99316da148e1/pakistan_tower_sector_messy_synthetic.csv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C6",
+     "source_file": "pakistan_subscriber_populated_acceptance_v1.jsonl",
+     "locator": "56e0b799-4073-4755-97a9-8f9aa40523bf/pakistan_subscriber_populated_acceptance_v1.jsonl",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C7",
+     "source_file": "seed_transactions.csv",
+     "locator": "11308b49-0a37-4969-af60-36a65c991064/seed_transactions.csv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C8",
+     "source_file": "seed_access_log.csv",
+     "locator": "d7daf00d-7335-456b-ac92-563ec71313d2/seed_access_log.csv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C9",
+     "source_file": "seed_ipdr.csv",
+     "locator": "74bd6ee7-06fc-43fa-9fbf-40a22d79d293/seed_ipdr.csv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C10",
+     "source_file": "seed_anpr.csv",
+     "locator": "afc89486-f9af-40b5-a796-d13908d161fe/seed_anpr.csv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C11",
+     "source_file": "seed_cdr_large.csv",
+     "locator": "6a4ae200-3e6a-4ba2-a151-4d120c4396d5/seed_cdr_large.csv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C12",
+     "source_file": "923461678183.csv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C13",
+     "source_file": "pakistan_cdr_messy_synthetic.csv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C14",
+     "source_file": "r5_live_intake_ready_20260810.csv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C15",
+     "source_file": "r5_live_intake_acceptance_20260810.csv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C16",
+     "source_file": "pakistan_cdr_tsv_synthetic.tsv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C17",
+     "source_file": "pakistan_tower_sector_messy_synthetic.csv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C18",
+     "source_file": "pakistan_subscriber_populated_acceptance_v1.jsonl",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C19",
+     "source_file": "seed_transactions.csv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C20",
+     "source_file": "seed_access_log.csv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C21",
+     "source_file": "seed_ipdr.csv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C22",
+     "source_file": "seed_anpr.csv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    },
+    {
+     "citation_id": "C23",
+     "source_file": "seed_cdr_large.csv",
+     "proof_role": "representative_evidence",
+     "completeness": "representative"
+    }
+   ],
+   "citation_set_state": "complete",
+   "conflicts": [],
+   "limitations": [
+    "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+   ],
+   "missingness": [],
+   "quality_warnings": null,
+   "available_follow_up_capabilities": [
+    {
+     "label": "Assess analysis readiness",
+     "query": "is this case ready for analysis?",
+     "reason": "Turn inventory into an evidence-processing readiness review.",
+     "template": "case_readiness"
+    },
+    {
+     "label": "Find entities",
+     "query": "show available entities",
+     "reason": "Identify usable numbers, plates, IPs, and related identifiers.",
+     "template": "entity_activity"
+    }
+   ],
+   "presentation_hints": {
+    "direction": "ltr",
+    "language": "en",
+    "presentation_type": "bounded_records_table",
+    "priority_columns": [
+     "detected_record_type",
+     "rag_status",
+     "section",
+     "size_bytes",
+     "source_entry",
+     "source_file",
+     "structured_status",
+     "accepted_rows"
+    ],
+    "result_kind": "aggregate"
+   }
+  },
+  "limitations": [
+   "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+  ],
+  "metrics": [
+   {
+    "label": "Template",
+    "source": "planner",
+    "value": "collection_overview"
+   },
+   {
+    "label": "Route",
+    "source": "planner",
+    "value": "records_sql"
+   },
+   {
+    "label": "Planner Confidence",
+    "source": "planner",
+    "value": 0.72
+   },
+   {
+    "label": "Display Rows",
+    "source": "records_sql",
+    "value": 30
+   },
+   {
+    "label": "Records Row Count",
+    "source": "records_sql",
+    "value": 30
+   },
+   {
+    "label": "Evidence Count",
+    "source": "kb_rag",
+    "value": null
+   },
+   {
+    "label": "Provenance Items",
+    "source": "records_sql+kb_rag",
+    "value": 23
+   }
+  ],
+  "narrative": {
+   "contract_version": "forensics.narrative/v1",
+   "locale": "en",
+   "direction": "ltr",
+   "status": "deterministic",
+   "direct_answer": "Computed collection ingest, KB asset, and record-family overview.",
+   "key_findings": [
+    {
+     "text": "Computed collection ingest, KB asset, and record-family overview.",
+     "claim_type": "direct_answer",
+     "fact_refs": [
+      "F1"
+     ],
+     "citation_refs": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20",
+      "C21",
+      "C22",
+      "C23"
+     ]
+    },
+    {
+     "text": "Computed collection ingest, KB asset, and record-family overview.",
+     "claim_type": "deterministic_fact",
+     "fact_refs": [
+      "F2"
+     ],
+     "citation_refs": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20",
+      "C21",
+      "C22",
+      "C23"
+     ]
+    },
+    {
+     "text": "Structured records row count computed.",
+     "claim_type": "deterministic_fact",
+     "fact_refs": [
+      "F3"
+     ],
+     "citation_refs": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20",
+      "C21",
+      "C22",
+      "C23"
+     ]
+    },
+    {
+     "text": "Template: collection_overview",
+     "claim_type": "metric",
+     "fact_refs": [
+      "F4"
+     ],
+     "citation_refs": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20",
+      "C21",
+      "C22",
+      "C23"
+     ]
+    },
+    {
+     "text": "Route: records_sql",
+     "claim_type": "metric",
+     "fact_refs": [
+      "F5"
+     ],
+     "citation_refs": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20",
+      "C21",
+      "C22",
+      "C23"
+     ]
+    }
+   ],
+   "comparisons": [],
+   "relationship_summary": [],
+   "limitations": [
+    "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+   ],
+   "suggested_questions": [
+    "is this case ready for analysis?",
+    "show available entities"
+   ],
+   "fact_refs": [
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6",
+    "F7",
+    "F8",
+    "F9"
+   ],
+   "citation_refs": [
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "C5",
+    "C6",
+    "C7",
+    "C8",
+    "C9",
+    "C10",
+    "C11",
+    "C12",
+    "C13",
+    "C14",
+    "C15",
+    "C16",
+    "C17",
+    "C18",
+    "C19",
+    "C20",
+    "C21",
+    "C22",
+    "C23"
+   ],
+   "fallback": true
+  },
+  "operation": {
+   "family_id": "case_cross_family",
+   "operation_id": "forensics.collection_overview",
+   "output_description": "Bounded deterministic collection overview result with source traceability.",
+   "source_access": "records",
+   "template": "collection_overview"
+  },
+  "plan_validation": {
+   "contract_version": "forensics.plan-validation/v1",
+   "plan_id": "079b0b34-d1d4-40b4-a02f-b9b0a3fc2446:plan",
+   "valid": true,
+   "scope_authorized": true,
+   "capabilities_ready": true,
+   "dependencies_valid": true,
+   "budget_accepted": true,
+   "authority_preserved": true,
+   "estimated_cost_class": "direct_operation",
+   "issues": []
+  },
+  "processing_state": "",
+  "proof_state": {
+   "citations": "complete",
+   "rows": "bounded"
+  },
+  "provenance": [
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "cdr",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": "876f1b40-b96d-4be3-99da-b85a2953a97c/923461678183.csv",
+    "source_file": "923461678183.csv",
+    "timestamp": null,
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "cdr",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": "e9b5129b-bfcc-49fa-ae4a-9d7dc7d2c7d5/pakistan_cdr_messy_synthetic.csv",
+    "source_file": "pakistan_cdr_messy_synthetic.csv",
+    "timestamp": null,
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "cdr",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": "16797df4-f7bd-4b23-9497-e46e40019fb7/r5_live_intake_ready_20260810.csv",
+    "source_file": "r5_live_intake_ready_20260810.csv",
+    "timestamp": null,
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "cdr",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": "fc3f1565-f348-44ef-aa66-e025043b7de9/pakistan_cdr_tsv_synthetic.tsv",
+    "source_file": "pakistan_cdr_tsv_synthetic.tsv",
+    "timestamp": null,
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "tower_location",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": "5186e892-7bd6-493f-beb9-99316da148e1/pakistan_tower_sector_messy_synthetic.csv",
+    "source_file": "pakistan_tower_sector_messy_synthetic.csv",
+    "timestamp": null,
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "subscriber",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": "56e0b799-4073-4755-97a9-8f9aa40523bf/pakistan_subscriber_populated_acceptance_v1.jsonl",
+    "source_file": "pakistan_subscriber_populated_acceptance_v1.jsonl",
+    "timestamp": null,
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "transaction",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": "11308b49-0a37-4969-af60-36a65c991064/seed_transactions.csv",
+    "source_file": "seed_transactions.csv",
+    "timestamp": null,
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "access_log",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": "d7daf00d-7335-456b-ac92-563ec71313d2/seed_access_log.csv",
+    "source_file": "seed_access_log.csv",
+    "timestamp": null,
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "ipdr",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": "74bd6ee7-06fc-43fa-9fbf-40a22d79d293/seed_ipdr.csv",
+    "source_file": "seed_ipdr.csv",
+    "timestamp": null,
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "anpr",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": "afc89486-f9af-40b5-a796-d13908d161fe/seed_anpr.csv",
+    "source_file": "seed_anpr.csv",
+    "timestamp": null,
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "cdr",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": "6a4ae200-3e6a-4ba2-a151-4d120c4396d5/seed_cdr_large.csv",
+    "source_file": "seed_cdr_large.csv",
+    "timestamp": null,
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "cdr",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "923461678183.csv",
+    "timestamp": "2026-08-20T07:25:24Z",
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "cdr",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "pakistan_cdr_messy_synthetic.csv",
+    "timestamp": "2026-08-17T09:01:35Z",
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "cdr",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "r5_live_intake_ready_20260810.csv",
+    "timestamp": "2026-08-10T05:36:06Z",
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "cdr",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "r5_live_intake_acceptance_20260810.csv",
+    "timestamp": "2026-08-10T05:35:03Z",
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "cdr",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "pakistan_cdr_tsv_synthetic.tsv",
+    "timestamp": "2026-08-04T10:53:49Z",
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "tower_location",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "pakistan_tower_sector_messy_synthetic.csv",
+    "timestamp": "2026-08-04T10:53:48Z",
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "subscriber",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "pakistan_subscriber_populated_acceptance_v1.jsonl",
+    "timestamp": "2026-08-04T10:53:46Z",
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "transaction",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_transactions.csv",
+    "timestamp": "2026-08-04T10:53:45Z",
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "access_log",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_access_log.csv",
+    "timestamp": "2026-08-04T10:53:45Z",
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "ipdr",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_ipdr.csv",
+    "timestamp": "2026-08-04T10:53:44Z",
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "anpr",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_anpr.csv",
+    "timestamp": "2026-08-04T10:53:43Z",
+    "version_id": null
+   },
+   {
+    "collection_id": "nexusai-forensic-demo",
+    "evidence_id": null,
+    "record_type": "cdr",
+    "row_hash": null,
+    "row_number": null,
+    "source": "records_sql",
+    "source_entry": null,
+    "source_file": "seed_cdr_large.csv",
+    "timestamp": "2026-08-04T10:53:41Z",
+    "version_id": null
+   }
+  ],
+  "recommended_actions": [
+   {
+    "label": "Assess analysis readiness",
+    "query": "is this case ready for analysis?",
+    "reason": "Turn inventory into an evidence-processing readiness review.",
+    "template": "case_readiness"
+   },
+   {
+    "label": "Find entities",
+    "query": "show available entities",
+    "reason": "Identify usable numbers, plates, IPs, and related identifiers.",
+    "template": "entity_activity"
+   }
+  ],
+  "result_kind": "aggregate",
+  "result_state": "results_present",
+  "row_count": 30,
+  "status": "answered_with_limitations",
+  "summary": "**Deterministic Findings**\n\nComputed collection ingest, KB asset, and record-family overview. It returned 30 exact structured result rows.\n\nReview the 1 evidence limit below before using this result in a decision or report.",
+  "synthesis": {
+   "claims": [
+    {
+     "claim": "Computed collection ingest, KB asset, and record-family overview.",
+     "source": "Deterministic Fact (SQL)",
+     "template": "collection_overview"
+    },
+    {
+     "claim": "Structured records row count computed.",
+     "source": "Deterministic Fact (SQL)",
+     "template": "collection_overview",
+     "value": 30
+    }
+   ],
+   "policy": "Claims are labeled by source: deterministic SQL facts are computed from records templates; semantic context comes from Knowledge Base retrieval."
+  },
+  "telemetry": {
+   "request_id": "079b0b34-d1d4-40b4-a02f-b9b0a3fc2446",
+   "db_latency_ms": 141,
+   "kb_latency_ms": 0,
+   "llm_latency_ms": 0,
+   "total_latency_ms": 267,
+   "planner_confidence": 0.72,
+   "execution_path": "records_sql"
+  },
+  "tool_results": [
+   {
+    "contract_version": "forensics.tool-result/v1",
+    "invocation_id": "079b0b34-d1d4-40b4-a02f-b9b0a3fc2446:plan:step-1",
+    "plan_id": "079b0b34-d1d4-40b4-a02f-b9b0a3fc2446:plan",
+    "step_id": "step-1",
+    "operation_id": "forensics.collection_overview",
+    "result_contract": "forensics.enterprise-response/v1",
+    "execution_status": "completed",
+    "result_state": "results_present",
+    "authority": "deterministic_fact",
+    "fields": {},
+    "facts": [
+     {
+      "id": "step-1:row_count",
+      "value": 30,
+      "authority": "deterministic_derivation",
+      "citation_ids": [
+       "tool-citation-1",
+       "tool-citation-2",
+       "tool-citation-3",
+       "tool-citation-4",
+       "tool-citation-5",
+       "tool-citation-6",
+       "tool-citation-7",
+       "tool-citation-8",
+       "tool-citation-9",
+       "tool-citation-10",
+       "tool-citation-11",
+       "tool-citation-12",
+       "tool-citation-13",
+       "tool-citation-14",
+       "tool-citation-15",
+       "tool-citation-16",
+       "tool-citation-17",
+       "tool-citation-18",
+       "tool-citation-19",
+       "tool-citation-20",
+       "tool-citation-21",
+       "tool-citation-22",
+       "tool-citation-23"
+      ]
+     }
+    ],
+    "observations": [],
+    "rows": [
+     {
+      "detected_record_type": "cdr",
+      "rag_status": "mirrored",
+      "section": "assets",
+      "size_bytes": 828259,
+      "source_entry": "876f1b40-b96d-4be3-99da-b85a2953a97c/923461678183.csv",
+      "source_file": "923461678183.csv",
+      "structured_status": "completed"
+     },
+     {
+      "detected_record_type": "cdr",
+      "rag_status": "mirrored",
+      "section": "assets",
+      "size_bytes": 1020,
+      "source_entry": "e9b5129b-bfcc-49fa-ae4a-9d7dc7d2c7d5/pakistan_cdr_messy_synthetic.csv",
+      "source_file": "pakistan_cdr_messy_synthetic.csv",
+      "structured_status": "completed"
+     },
+     {
+      "detected_record_type": "cdr",
+      "rag_status": "mirrored",
+      "section": "assets",
+      "size_bytes": 309,
+      "source_entry": "16797df4-f7bd-4b23-9497-e46e40019fb7/r5_live_intake_ready_20260810.csv",
+      "source_file": "r5_live_intake_ready_20260810.csv",
+      "structured_status": "completed"
+     },
+     {
+      "detected_record_type": "cdr",
+      "rag_status": "mirrored",
+      "section": "assets",
+      "size_bytes": 448,
+      "source_entry": "fc3f1565-f348-44ef-aa66-e025043b7de9/pakistan_cdr_tsv_synthetic.tsv",
+      "source_file": "pakistan_cdr_tsv_synthetic.tsv",
+      "structured_status": "completed"
+     },
+     {
+      "detected_record_type": "tower_location",
+      "rag_status": "mirrored",
+      "section": "assets",
+      "size_bytes": 1365,
+      "source_entry": "5186e892-7bd6-493f-beb9-99316da148e1/pakistan_tower_sector_messy_synthetic.csv",
+      "source_file": "pakistan_tower_sector_messy_synthetic.csv",
+      "structured_status": "completed"
+     },
+     {
+      "detected_record_type": "subscriber",
+      "rag_status": "mirrored",
+      "section": "assets",
+      "size_bytes": 4044,
+      "source_entry": "56e0b799-4073-4755-97a9-8f9aa40523bf/pakistan_subscriber_populated_acceptance_v1.jsonl",
+      "source_file": "pakistan_subscriber_populated_acceptance_v1.jsonl",
+      "structured_status": "completed"
+     },
+     {
+      "detected_record_type": "transaction",
+      "rag_status": "mirrored",
+      "section": "assets",
+      "size_bytes": 482,
+      "source_entry": "11308b49-0a37-4969-af60-36a65c991064/seed_transactions.csv",
+      "source_file": "seed_transactions.csv",
+      "structured_status": "completed"
+     },
+     {
+      "detected_record_type": "access_log",
+      "rag_status": "mirrored",
+      "section": "assets",
+      "size_bytes": 73750,
+      "source_entry": "d7daf00d-7335-456b-ac92-563ec71313d2/seed_access_log.csv",
+      "source_file": "seed_access_log.csv",
+      "structured_status": "completed"
+     },
+     {
+      "detected_record_type": "ipdr",
+      "rag_status": "mirrored",
+      "section": "assets",
+      "size_bytes": 255721,
+      "source_entry": "74bd6ee7-06fc-43fa-9fbf-40a22d79d293/seed_ipdr.csv",
+      "source_file": "seed_ipdr.csv",
+      "structured_status": "completed"
+     },
+     {
+      "detected_record_type": "anpr",
+      "rag_status": "mirrored",
+      "section": "assets",
+      "size_bytes": 55629,
+      "source_entry": "afc89486-f9af-40b5-a796-d13908d161fe/seed_anpr.csv",
+      "source_file": "seed_anpr.csv",
+      "structured_status": "completed"
+     },
+     {
+      "detected_record_type": "cdr",
+      "rag_status": "mirrored",
+      "section": "assets",
+      "size_bytes": 911751,
+      "source_entry": "6a4ae200-3e6a-4ba2-a151-4d120c4396d5/seed_cdr_large.csv",
+      "source_file": "seed_cdr_large.csv",
+      "structured_status": "completed"
+     },
+     {
+      "accepted_rows": 3634,
+      "completed_at": "2026-08-20T07:25:25Z",
+      "duplicate_rows": 297,
+      "queued_at": "2026-08-20T07:25:24Z",
+      "record_type": "cdr",
+      "rejected_rows": 0,
+      "section": "jobs",
+      "source_file": "923461678183.csv",
+      "status": "completed",
+      "total_rows": 3931
+     },
+     {
+      "accepted_rows": 4,
+      "completed_at": "2026-08-17T09:01:36Z",
+      "duplicate_rows": 1,
+      "queued_at": "2026-08-17T09:01:35Z",
+      "record_type": "cdr",
+      "rejected_rows": 0,
+      "section": "jobs",
+      "source_file": "pakistan_cdr_messy_synthetic.csv",
+      "status": "completed",
+      "total_rows": 5
+     },
+     {
+      "accepted_rows": 2,
+      "completed_at": "2026-08-10T05:36:06Z",
+      "duplicate_rows": 0,
+      "queued_at": "2026-08-10T05:36:06Z",
+      "record_type": "cdr",
+      "rejected_rows": 0,
+      "section": "jobs",
+      "source_file": "r5_live_intake_ready_20260810.csv",
+      "status": "completed",
+      "total_rows": 2
+     },
+     {
+      "accepted_rows": 0,
+      "completed_at": "2026-08-10T05:35:04Z",
+      "duplicate_rows": 0,
+      "queued_at": "2026-08-10T05:35:03Z",
+      "record_type": "cdr",
+      "rejected_rows": 0,
+      "section": "jobs",
+      "source_file": "r5_live_intake_acceptance_20260810.csv",
+      "status": "dead_letter",
+      "total_rows": 0
+     },
+     {
+      "accepted_rows": 2,
+      "completed_at": "2026-08-04T10:54:16Z",
+      "duplicate_rows": 1,
+      "queued_at": "2026-08-04T10:53:49Z",
+      "record_type": "cdr",
+      "rejected_rows": 0,
+      "section": "jobs",
+      "source_file": "pakistan_cdr_tsv_synthetic.tsv",
+      "status": "completed",
+      "total_rows": 3
+     },
+     {
+      "accepted_rows": 5,
+      "completed_at": "2026-08-04T10:54:15Z",
+      "duplicate_rows": 1,
+      "queued_at": "2026-08-04T10:53:48Z",
+      "record_type": "tower_location",
+      "rejected_rows": 4,
+      "section": "jobs",
+      "source_file": "pakistan_tower_sector_messy_synthetic.csv",
+      "status": "completed",
+      "total_rows": 10
+     },
+     {
+      "accepted_rows": 11,
+      "completed_at": "2026-08-04T10:54:14Z",
+      "duplicate_rows": 1,
+      "queued_at": "2026-08-04T10:53:46Z",
+      "record_type": "subscriber",
+      "rejected_rows": 3,
+      "section": "jobs",
+      "source_file": "pakistan_subscriber_populated_acceptance_v1.jsonl",
+      "status": "completed",
+      "total_rows": 15
+     },
+     {
+      "accepted_rows": 4,
+      "completed_at": "2026-08-04T10:54:13Z",
+      "duplicate_rows": 0,
+      "queued_at": "2026-08-04T10:53:45Z",
+      "record_type": "transaction",
+      "rejected_rows": 0,
+      "section": "jobs",
+      "source_file": "seed_transactions.csv",
+      "status": "completed",
+      "total_rows": 4
+     },
+     {
+      "accepted_rows": 1000,
+      "completed_at": "2026-08-04T10:54:11Z",
+      "duplicate_rows": 0,
+      "queued_at": "2026-08-04T10:53:45Z",
+      "record_type": "access_log",
+      "rejected_rows": 0,
+      "section": "jobs",
+      "source_file": "seed_access_log.csv",
+      "status": "completed",
+      "total_rows": 1000
+     },
+     {
+      "accepted_rows": 2500,
+      "completed_at": "2026-08-04T10:54:04Z",
+      "duplicate_rows": 0,
+      "queued_at": "2026-08-04T10:53:44Z",
+      "record_type": "ipdr",
+      "rejected_rows": 0,
+      "section": "jobs",
+      "source_file": "seed_ipdr.csv",
+      "status": "completed",
+      "total_rows": 2500
+     },
+     {
+      "accepted_rows": 750,
+      "completed_at": "2026-08-04T10:54:01Z",
+      "duplicate_rows": 0,
+      "queued_at": "2026-08-04T10:53:43Z",
+      "record_type": "anpr",
+      "rejected_rows": 0,
+      "section": "jobs",
+      "source_file": "seed_anpr.csv",
+      "status": "completed",
+      "total_rows": 750
+     },
+     {
+      "accepted_rows": 5000,
+      "completed_at": "2026-08-04T10:53:43Z",
+      "duplicate_rows": 0,
+      "queued_at": "2026-08-04T10:53:41Z",
+      "record_type": "cdr",
+      "rejected_rows": 0,
+      "section": "jobs",
+      "source_file": "seed_cdr_large.csv",
+      "status": "completed",
+      "total_rows": 5000
+     },
+     {
+      "batch_count": 5,
+      "duplicate_rows": "299",
+      "inserted_rows": "8642",
+      "record_type": "cdr",
+      "rejected_rows": "0",
+      "section": "record_families",
+      "total_rows": "8941"
+     },
+     {
+      "batch_count": 1,
+      "duplicate_rows": "0",
+      "inserted_rows": "2500",
+      "record_type": "ipdr",
+      "rejected_rows": "0",
+      "section": "record_families",
+      "total_rows": "2500"
+     },
+     {
+      "batch_count": 1,
+      "duplicate_rows": "0",
+      "inserted_rows": "1000",
+      "record_type": "access_log",
+      "rejected_rows": "0",
+      "section": "record_families",
+      "total_rows": "1000"
+     },
+     {
+      "batch_count": 1,
+      "duplicate_rows": "0",
+      "inserted_rows": "750",
+      "record_type": "anpr",
+      "rejected_rows": "0",
+      "section": "record_families",
+      "total_rows": "750"
+     },
+     {
+      "batch_count": 1,
+      "duplicate_rows": "1",
+      "inserted_rows": "11",
+      "record_type": "subscriber",
+      "rejected_rows": "3",
+      "section": "record_families",
+      "total_rows": "15"
+     },
+     {
+      "batch_count": 1,
+      "duplicate_rows": "1",
+      "inserted_rows": "5",
+      "record_type": "tower_location",
+      "rejected_rows": "4",
+      "section": "record_families",
+      "total_rows": "10"
+     },
+     {
+      "batch_count": 1,
+      "duplicate_rows": "0",
+      "inserted_rows": "4",
+      "record_type": "transaction",
+      "rejected_rows": "0",
+      "section": "record_families",
+      "total_rows": "4"
+     }
+    ],
+    "citations": [
+     {
+      "id": "tool-citation-1",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "source_entry:876f1b40-b96d-4be3-99da-b85a2953a97c/923461678183.csv",
+      "source_name": "923461678183.csv"
+     },
+     {
+      "id": "tool-citation-2",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "source_entry:e9b5129b-bfcc-49fa-ae4a-9d7dc7d2c7d5/pakistan_cdr_messy_synthetic.csv",
+      "source_name": "pakistan_cdr_messy_synthetic.csv"
+     },
+     {
+      "id": "tool-citation-3",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "source_entry:16797df4-f7bd-4b23-9497-e46e40019fb7/r5_live_intake_ready_20260810.csv",
+      "source_name": "r5_live_intake_ready_20260810.csv"
+     },
+     {
+      "id": "tool-citation-4",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "source_entry:fc3f1565-f348-44ef-aa66-e025043b7de9/pakistan_cdr_tsv_synthetic.tsv",
+      "source_name": "pakistan_cdr_tsv_synthetic.tsv"
+     },
+     {
+      "id": "tool-citation-5",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "source_entry:5186e892-7bd6-493f-beb9-99316da148e1/pakistan_tower_sector_messy_synthetic.csv",
+      "source_name": "pakistan_tower_sector_messy_synthetic.csv"
+     },
+     {
+      "id": "tool-citation-6",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "source_entry:56e0b799-4073-4755-97a9-8f9aa40523bf/pakistan_subscriber_populated_acceptance_v1.jsonl",
+      "source_name": "pakistan_subscriber_populated_acceptance_v1.jsonl"
+     },
+     {
+      "id": "tool-citation-7",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "source_entry:11308b49-0a37-4969-af60-36a65c991064/seed_transactions.csv",
+      "source_name": "seed_transactions.csv"
+     },
+     {
+      "id": "tool-citation-8",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "source_entry:d7daf00d-7335-456b-ac92-563ec71313d2/seed_access_log.csv",
+      "source_name": "seed_access_log.csv"
+     },
+     {
+      "id": "tool-citation-9",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "source_entry:74bd6ee7-06fc-43fa-9fbf-40a22d79d293/seed_ipdr.csv",
+      "source_name": "seed_ipdr.csv"
+     },
+     {
+      "id": "tool-citation-10",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "source_entry:afc89486-f9af-40b5-a796-d13908d161fe/seed_anpr.csv",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-11",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "source_entry:6a4ae200-3e6a-4ba2-a151-4d120c4396d5/seed_cdr_large.csv",
+      "source_name": "seed_cdr_large.csv"
+     },
+     {
+      "id": "tool-citation-12",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "timestamp:2026-08-20T07:25:24Z",
+      "source_name": "923461678183.csv"
+     },
+     {
+      "id": "tool-citation-13",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "timestamp:2026-08-17T09:01:35Z",
+      "source_name": "pakistan_cdr_messy_synthetic.csv"
+     },
+     {
+      "id": "tool-citation-14",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "timestamp:2026-08-10T05:36:06Z",
+      "source_name": "r5_live_intake_ready_20260810.csv"
+     },
+     {
+      "id": "tool-citation-15",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "timestamp:2026-08-10T05:35:03Z",
+      "source_name": "r5_live_intake_acceptance_20260810.csv"
+     },
+     {
+      "id": "tool-citation-16",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "timestamp:2026-08-04T10:53:49Z",
+      "source_name": "pakistan_cdr_tsv_synthetic.tsv"
+     },
+     {
+      "id": "tool-citation-17",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "timestamp:2026-08-04T10:53:48Z",
+      "source_name": "pakistan_tower_sector_messy_synthetic.csv"
+     },
+     {
+      "id": "tool-citation-18",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "timestamp:2026-08-04T10:53:46Z",
+      "source_name": "pakistan_subscriber_populated_acceptance_v1.jsonl"
+     },
+     {
+      "id": "tool-citation-19",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "timestamp:2026-08-04T10:53:45Z",
+      "source_name": "seed_transactions.csv"
+     },
+     {
+      "id": "tool-citation-20",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "timestamp:2026-08-04T10:53:45Z",
+      "source_name": "seed_access_log.csv"
+     },
+     {
+      "id": "tool-citation-21",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "timestamp:2026-08-04T10:53:44Z",
+      "source_name": "seed_ipdr.csv"
+     },
+     {
+      "id": "tool-citation-22",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "timestamp:2026-08-04T10:53:43Z",
+      "source_name": "seed_anpr.csv"
+     },
+     {
+      "id": "tool-citation-23",
+      "tenant_id": "default",
+      "collection_id": "nexusai-forensic-demo",
+      "evidence_id": "",
+      "version_id": "",
+      "locator": "timestamp:2026-08-04T10:53:41Z",
+      "source_name": "seed_cdr_large.csv"
+     }
+    ],
+    "limitations": [
+     "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+    ],
+    "row_count": 30,
+    "truncated": false,
+    "duration_ms": 267
+   }
+  ]
+ },
+ "telemetry": {
+  "request_id": "079b0b34-d1d4-40b4-a02f-b9b0a3fc2446",
+  "db_latency_ms": 141,
+  "kb_latency_ms": 0,
+  "llm_latency_ms": 0,
+  "total_latency_ms": 267,
+  "planner_confidence": 0.72,
+  "execution_path": "records_sql"
+ },
+ "generated_at": "2026-09-18T06:28:31.439071243Z"
+}

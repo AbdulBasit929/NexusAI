@@ -1,0 +1,45 @@
+﻿{
+    "schema_version":  "nexusai.investigation-workspace-ui-activation-receipt/v1",
+    "activated_at_utc":  "2026-09-07T07:17:39.0131692Z",
+    "status":  "LIVE_VERIFIED",
+    "canonical_route":  "/analyst",
+    "source_manifest_sha256":  "4df69db9cc0321f3d2731ea9da865d958c571be33f2cad761be68c86aeb8e8fe",
+    "source_digest_sha256":  "60693bfc560e22834a57a77db3eccc2ce1961dd7d74e8fe19eb1377711450476",
+    "base_image_id":  "sha256:feb935b42a93c1810394cb270a809189ca240a225253159a47b8daa72a799171",
+    "api_container_before":  "d62021a0a4fc258ff3ce6fc4140090c6d9862dcc04863a065e6e842f62d769de",
+    "api_image_before":  "sha256:feb935b42a93c1810394cb270a809189ca240a225253159a47b8daa72a799171",
+    "api_container_after":  "2a4b5b96985fe439a502cb07c6d1f6e67863e120c8fa8a21589106d8724255be",
+    "api_image_after":  "sha256:5e056478ae0f1823cfe0fc453f1c26a60c2eb86cc173958c6537fc064b0420d9",
+    "built_image_id":  "sha256:5e056478ae0f1823cfe0fc453f1c26a60c2eb86cc173958c6537fc064b0420d9",
+    "activation_image":  "nexusai/localai-forensic:unified-workspace-ui-20260907",
+    "rollback_image":  "nexusai/localai-forensic:rollback-before-unified-workspace-ui-20260907",
+    "retained_tuple_before":  "66|66|79|0|22509|850|63",
+    "retained_tuple_after":  "66|66|79|0|22509|850|63",
+    "protected_services_before":  {
+                                      "forensic-records-api":  {
+                                                                   "container_id":  "ffd93bf51ecad0bc61271dfad0576b852057cd85f85aa8221534e3250ef1c11b",
+                                                                   "image_id":  "sha256:828e4b03e02979c3fc25dd6b6896e74fb97a2e59b8c17300a3efadce1236ace8"
+                                                               },
+                                      "forensic-records-worker":  {
+                                                                      "container_id":  "40b6e628d586d5d484468120a8591fdb46a2ecc6f5aac228583067b22811d088",
+                                                                      "image_id":  "sha256:0b22a604dbf97443623258072a71f741111a1033a5e274166ea0f5b2f9968d47"
+                                                                  },
+                                      "forensic-nats":  {
+                                                            "container_id":  "5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04",
+                                                            "image_id":  "sha256:e4bf19f15fd3218814a4e3c9e0064e1334bd8aa20d5984b9f1a0afd084f8cc00"
+                                                        },
+                                      "forensic-postgres":  {
+                                                                "container_id":  "f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361",
+                                                                "image_id":  "sha256:61f891691050da6032023c01ea885730eeeba06b7c17b403e7d0b9c49c37dfe9"
+                                                            }
+                                  },
+    "protected_services_preserved":  true,
+    "retained_data_mutated":  false,
+    "database_migration":  false,
+    "models_changed":  false,
+    "d_unqualified_source_included":  false,
+    "d_activation":  "BLOCKED",
+    "live_index_sha256":  "d4ba168793cd696488ce5ab76e3c68bb5b3017657435e5ed8b51d6a683bc1c60",
+    "live_route_acceptance":  "PASS",
+    "live_backend_acceptance":  "PASS"
+}

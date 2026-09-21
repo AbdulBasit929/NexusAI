@@ -1,0 +1,652 @@
+﻿[
+    {
+        "template":  "collection_overview",
+        "question":  "Show me an overview of this case",
+        "target":  null,
+        "rows":  17,
+        "latency_ms":  182.5,
+        "model_used":  false,
+        "selected_template":  "collection_overview",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "frequent_contacts",
+        "question":  "Who does 923001110001 contact most?",
+        "target":  "923001110001",
+        "rows":  15,
+        "latency_ms":  199.6,
+        "model_used":  false,
+        "selected_template":  "frequent_contacts",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "call_type_breakdown",
+        "question":  "How are the CDR events divided by call type?",
+        "target":  null,
+        "rows":  9,
+        "latency_ms":  132,
+        "model_used":  false,
+        "selected_template":  "call_type_breakdown",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "service_usage",
+        "question":  "What services were used by 923001110001?",
+        "target":  "923001110001",
+        "rows":  9,
+        "latency_ms":  93.7,
+        "model_used":  false,
+        "selected_template":  "service_usage",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "device_identity_changes",
+        "question":  "Did 923001110001 change IMEI or IMSI?",
+        "target":  "923001110001",
+        "rows":  9,
+        "latency_ms":  97,
+        "model_used":  false,
+        "selected_template":  "device_identity_changes",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "ipdr_endpoint_summary",
+        "question":  "Which network endpoints appear in the IPDR data?",
+        "target":  null,
+        "rows":  9,
+        "latency_ms":  454.9,
+        "model_used":  false,
+        "selected_template":  "ipdr_endpoint_summary",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "ipdr_domain_summary",
+        "question":  "Which domains appear in the network records?",
+        "target":  null,
+        "rows":  8,
+        "latency_ms":  209.8,
+        "model_used":  false,
+        "selected_template":  "ipdr_domain_summary",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "ipdr_protocol_breakdown",
+        "question":  "How is the network traffic divided by protocol?",
+        "target":  null,
+        "rows":  8,
+        "latency_ms":  206.5,
+        "model_used":  false,
+        "selected_template":  "ipdr_protocol_breakdown",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "ipdr_session_volume",
+        "question":  "What is the IPDR session and byte volume?",
+        "target":  null,
+        "rows":  9,
+        "latency_ms":  157.6,
+        "model_used":  false,
+        "selected_template":  "ipdr_session_volume",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "ipdr_subscriber_sessions",
+        "question":  "Show network sessions for subscriber 923001110002",
+        "target":  "923001110002",
+        "rows":  9,
+        "latency_ms":  117.4,
+        "model_used":  false,
+        "selected_template":  "ipdr_subscriber_sessions",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "ipdr_concurrent_sessions",
+        "question":  "Were there overlapping sessions for 923001110002?",
+        "target":  "923001110002",
+        "rows":  4,
+        "latency_ms":  135.4,
+        "model_used":  false,
+        "selected_template":  "ipdr_concurrent_sessions",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "ipdr_timeline",
+        "question":  "Build the network session timeline for 923001110002",
+        "target":  "923001110002",
+        "rows":  9,
+        "latency_ms":  124.4,
+        "model_used":  false,
+        "selected_template":  "ipdr_timeline",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "temporal_activity",
+        "question":  "When was 923001110001 active in the CDR data?",
+        "target":  "923001110001",
+        "rows":  58,
+        "latency_ms":  234.9,
+        "model_used":  false,
+        "selected_template":  "temporal_activity",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "top_locations",
+        "question":  "Which supplied locations appear most often for 923001110001?",
+        "target":  "923001110001",
+        "rows":  6,
+        "latency_ms":  155.3,
+        "model_used":  false,
+        "selected_template":  "top_locations",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "geospatial_movement",
+        "question":  "Show the chronological supplied locations for 923001110001",
+        "target":  "923001110001",
+        "rows":  13,
+        "latency_ms":  150.5,
+        "model_used":  false,
+        "selected_template":  "geospatial_movement",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "anpr_sightings",
+        "question":  "Where and when was plate ABC-123 observed?",
+        "target":  "ABC-123",
+        "rows":  9,
+        "latency_ms":  119.1,
+        "model_used":  false,
+        "selected_template":  "anpr_sightings",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "anpr_camera_sequence",
+        "question":  "Which cameras observed ABC-123 in time order?",
+        "target":  "ABC-123",
+        "rows":  7,
+        "latency_ms":  80.6,
+        "model_used":  false,
+        "selected_template":  "anpr_camera_sequence",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "anpr_camera_activity",
+        "question":  "Which ANPR cameras have the most observations?",
+        "target":  null,
+        "rows":  7,
+        "latency_ms":  163.7,
+        "model_used":  false,
+        "selected_template":  "anpr_camera_activity",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "anpr_co_travel",
+        "question":  "Which plates were observed at the same camera near ABC-123?",
+        "target":  "ABC-123",
+        "rows":  8,
+        "latency_ms":  214.8,
+        "model_used":  false,
+        "selected_template":  "anpr_co_travel",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "anpr_route_timing",
+        "question":  "What were the time gaps between consecutive sightings of ABC-123?",
+        "target":  "ABC-123",
+        "rows":  8,
+        "latency_ms":  141.1,
+        "model_used":  false,
+        "selected_template":  "anpr_route_timing",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "anpr_plate_variants",
+        "question":  "What plate variants were recorded for ABC-123?",
+        "target":  "ABC-123",
+        "rows":  3,
+        "latency_ms":  182.7,
+        "model_used":  false,
+        "selected_template":  "anpr_plate_variants",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "anpr_timeline",
+        "question":  "Build the ANPR timeline for ABC-123",
+        "target":  "ABC-123",
+        "rows":  7,
+        "latency_ms":  149.6,
+        "model_used":  false,
+        "selected_template":  "anpr_timeline",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "subscriber_identity_lookup",
+        "question":  "What subscriber observations exist for 923000000001?",
+        "target":  "923000000001",
+        "rows":  6,
+        "latency_ms":  160.8,
+        "model_used":  false,
+        "selected_template":  "subscriber_identity_lookup",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "subscriber_validity_timeline",
+        "question":  "When was subscriber PK-SUB-SYN-ALPHA valid?",
+        "target":  "PK-SUB-SYN-ALPHA",
+        "rows":  6,
+        "latency_ms":  139.9,
+        "model_used":  false,
+        "selected_template":  "subscriber_validity_timeline",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "subscriber_device_links",
+        "question":  "Which SIM and device identifiers are linked to 923000000001?",
+        "target":  "923000000001",
+        "rows":  6,
+        "latency_ms":  142.9,
+        "model_used":  false,
+        "selected_template":  "subscriber_device_links",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "subscriber_status_summary",
+        "question":  "How many subscriber records are active, inactive or suspended?",
+        "target":  null,
+        "rows":  9,
+        "latency_ms":  117.3,
+        "model_used":  false,
+        "selected_template":  "subscriber_status_summary",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "subscriber_conflict_audit",
+        "question":  "Are there conflicting subscriber identity attributes?",
+        "target":  null,
+        "rows":  6,
+        "latency_ms":  150.9,
+        "model_used":  false,
+        "selected_template":  "subscriber_conflict_audit",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "subscriber_reuse_candidates",
+        "question":  "Which subscriber identifiers appear with multiple phone numbers?",
+        "target":  null,
+        "rows":  7,
+        "latency_ms":  149.4,
+        "model_used":  false,
+        "selected_template":  "subscriber_reuse_candidates",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "entity_activity",
+        "question":  "What activity exists for 923001110001?",
+        "target":  "923001110001",
+        "rows":  3,
+        "latency_ms":  145.8,
+        "model_used":  false,
+        "selected_template":  "entity_activity",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "relationship_network",
+        "question":  "What evidence-backed relationships exist for 923001110001?",
+        "target":  "923001110001",
+        "rows":  7,
+        "latency_ms":  139.9,
+        "model_used":  false,
+        "selected_template":  "relationship_network",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "cross_family_correlation",
+        "question":  "Correlate 923001110001 across the available evidence families",
+        "target":  "923001110001",
+        "rows":  58,
+        "latency_ms":  1621.5,
+        "model_used":  false,
+        "selected_template":  "cross_family_correlation",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "entity_timeline",
+        "question":  "What happened involving 923001110001 over time?",
+        "target":  "923001110001",
+        "rows":  9,
+        "latency_ms":  98.9,
+        "model_used":  false,
+        "selected_template":  "entity_timeline",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "source_records",
+        "question":  "Show the source rows involving 923001110001",
+        "target":  "923001110001",
+        "rows":  14,
+        "latency_ms":  102.4,
+        "model_used":  false,
+        "selected_template":  "source_records",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "canonical_records",
+        "question":  "Show normalized CDR records",
+        "target":  null,
+        "rows":  18,
+        "latency_ms":  113.5,
+        "model_used":  false,
+        "selected_template":  "canonical_records",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "schema_profile",
+        "question":  "What schemas and fields were detected?",
+        "target":  null,
+        "rows":  11,
+        "latency_ms":  95.3,
+        "model_used":  false,
+        "selected_template":  "schema_profile",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "data_quality",
+        "question":  "What data quality, rejection or duplicate issues exist?",
+        "target":  null,
+        "rows":  11,
+        "latency_ms":  123.9,
+        "model_used":  false,
+        "selected_template":  "data_quality",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "evidence",
+        "question":  "Show the evidence inventory and lineage",
+        "target":  null,
+        "rows":  0,
+        "latency_ms":  631.6,
+        "model_used":  false,
+        "selected_template":  "evidence",
+        "outcome":  "accepted_no_results"
+    },
+    {
+        "template":  "shortest_call",
+        "question":  "What is the shortest call?",
+        "target":  null,
+        "rows":  61,
+        "latency_ms":  112.8,
+        "model_used":  false,
+        "selected_template":  "shortest_call",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "longest_call",
+        "question":  "What is the longest call?",
+        "target":  null,
+        "rows":  61,
+        "latency_ms":  109.2,
+        "model_used":  false,
+        "selected_template":  "longest_call",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "duration_extremes",
+        "question":  "Show both the shortest and longest calls",
+        "target":  null,
+        "rows":  62,
+        "latency_ms":  140.7,
+        "model_used":  false,
+        "selected_template":  "duration_extremes",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "first_seen_last_seen",
+        "question":  "When was 923001110001 first and last observed?",
+        "target":  "923001110001",
+        "rows":  4,
+        "latency_ms":  178.7,
+        "model_used":  false,
+        "selected_template":  "first_seen_last_seen",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "activity_by_day",
+        "question":  "Show daily activity for 923001110001",
+        "target":  "923001110001",
+        "rows":  9,
+        "latency_ms":  141.4,
+        "model_used":  false,
+        "selected_template":  "activity_by_day",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "activity_by_hour",
+        "question":  "Show hourly activity for 923001110001",
+        "target":  "923001110001",
+        "rows":  58,
+        "latency_ms":  157.4,
+        "model_used":  false,
+        "selected_template":  "activity_by_hour",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "night_activity",
+        "question":  "Show night-time activity for 923001110001",
+        "target":  "923001110001",
+        "rows":  58,
+        "latency_ms":  220.7,
+        "model_used":  false,
+        "selected_template":  "night_activity",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "repeated_location_visits",
+        "question":  "Which supplied locations recur for 923001110001?",
+        "target":  "923001110001",
+        "rows":  6,
+        "latency_ms":  165,
+        "model_used":  false,
+        "selected_template":  "repeated_location_visits",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "co_travel_or_co_presence",
+        "question":  "Is there cross-family co-presence involving 923001110001?",
+        "target":  "923001110001",
+        "rows":  7,
+        "latency_ms":  167.1,
+        "model_used":  false,
+        "selected_template":  "co_travel_or_co_presence",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "subscriber_profile",
+        "question":  "What identifiers does the CDR show for 923001110001?",
+        "target":  "923001110001",
+        "rows":  3,
+        "latency_ms":  130.2,
+        "model_used":  false,
+        "selected_template":  "subscriber_profile",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "imei_imsi_usage",
+        "question":  "How were IMEI and IMSI identifiers used by 923001110001?",
+        "target":  "923001110001",
+        "rows":  3,
+        "latency_ms":  111.1,
+        "model_used":  false,
+        "selected_template":  "imei_imsi_usage",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "tower_activity",
+        "question":  "Which CDR cells or sites observed 923221110001?",
+        "target":  "923221110001",
+        "rows":  6,
+        "latency_ms":  698.1,
+        "model_used":  false,
+        "selected_template":  "tower_activity",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "suspicious_patterns",
+        "question":  "Which deterministic patterns should an analyst review?",
+        "target":  null,
+        "rows":  10,
+        "latency_ms":  141.8,
+        "model_used":  false,
+        "selected_template":  "suspicious_patterns",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "anomaly_summary",
+        "question":  "Summarize the deterministic anomalies",
+        "target":  null,
+        "rows":  10,
+        "latency_ms":  128,
+        "model_used":  false,
+        "selected_template":  "anomaly_summary",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "cross_dataset_entity_summary",
+        "question":  "Summarize 923001110001 across datasets",
+        "target":  "923001110001",
+        "rows":  3,
+        "latency_ms":  95.7,
+        "model_used":  false,
+        "selected_template":  "cross_dataset_entity_summary",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "source_file_audit",
+        "question":  "Which files were ingested and did their row counts reconcile?",
+        "target":  null,
+        "rows":  6,
+        "latency_ms":  74.9,
+        "model_used":  false,
+        "selected_template":  "source_file_audit",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "duplicate_upload_audit",
+        "question":  "Were any source files uploaded more than once?",
+        "target":  null,
+        "rows":  17,
+        "latency_ms":  100.8,
+        "model_used":  false,
+        "selected_template":  "duplicate_upload_audit",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "case_readiness",
+        "question":  "Is this case ready for analyst demonstration?",
+        "target":  null,
+        "rows":  27,
+        "latency_ms":  110,
+        "model_used":  false,
+        "selected_template":  "case_readiness",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "evidence_package_summary",
+        "question":  "What is included in the evidence package?",
+        "target":  null,
+        "rows":  17,
+        "latency_ms":  108.4,
+        "model_used":  false,
+        "selected_template":  "evidence_package_summary",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "executive_case_brief",
+        "question":  "Prepare an executive case brief from deterministic findings",
+        "target":  null,
+        "rows":  17,
+        "latency_ms":  84,
+        "model_used":  false,
+        "selected_template":  "executive_case_brief",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "court_ready_source_summary",
+        "question":  "Prepare a court-ready source and provenance summary",
+        "target":  null,
+        "rows":  4,
+        "latency_ms":  140.6,
+        "model_used":  false,
+        "selected_template":  "court_ready_source_summary",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "limitations_and_data_quality",
+        "question":  "What limitations and missing data affect this case?",
+        "target":  null,
+        "rows":  11,
+        "latency_ms":  110.3,
+        "model_used":  false,
+        "selected_template":  "limitations_and_data_quality",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "tower_site_lookup",
+        "question":  "What reference facts exist for tower PK-LHR-SYN-001?",
+        "target":  "PK-LHR-SYN-001",
+        "rows":  5,
+        "latency_ms":  140.8,
+        "model_used":  false,
+        "selected_template":  "tower_site_lookup",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "tower_reference_timeline",
+        "question":  "Show the reference history for PK-LHR-SYN-001",
+        "target":  "PK-LHR-SYN-001",
+        "rows":  5,
+        "latency_ms":  141.5,
+        "model_used":  false,
+        "selected_template":  "tower_reference_timeline",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "tower_coordinate_audit",
+        "question":  "Which tower coordinates, datums or uncertainty values require review?",
+        "target":  null,
+        "rows":  9,
+        "latency_ms":  146.2,
+        "model_used":  false,
+        "selected_template":  "tower_coordinate_audit",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "tower_status_summary",
+        "question":  "How are tower references divided by status and technology?",
+        "target":  null,
+        "rows":  8,
+        "latency_ms":  125.4,
+        "model_used":  false,
+        "selected_template":  "tower_status_summary",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "tower_alias_conflicts",
+        "question":  "Are any tower aliases associated with conflicting supplied facts?",
+        "target":  null,
+        "rows":  4,
+        "latency_ms":  138.8,
+        "model_used":  false,
+        "selected_template":  "tower_alias_conflicts",
+        "outcome":  "answered"
+    },
+    {
+        "template":  "tower_cdr_join",
+        "question":  "Join CDR observations to the valid tower reference for PK-LHR-SYN-001",
+        "target":  "PK-LHR-SYN-001",
+        "rows":  7,
+        "latency_ms":  267.6,
+        "model_used":  false,
+        "selected_template":  "tower_cdr_join",
+        "outcome":  "answered"
+    }
+]

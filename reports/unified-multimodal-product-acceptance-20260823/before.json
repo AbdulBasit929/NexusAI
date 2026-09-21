@@ -1,0 +1,10 @@
+{
+  "recorded_at": "2026-08-23T13:17:16.9602395Z",
+  "tenant_id": "default",
+  "collection_id": "nexusai-multimodal-product-acceptance",
+  "case_id": "nexusai-multimodal-product-acceptance",
+  "actor_id": "nexusai-breadth-acceptance-operator",
+  "manifest_version": "2026-08-23.unified-multimodal-product-acceptance.v1",
+  "source_count": 21,
+  "source_hashes_verified": true
+}

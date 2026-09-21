@@ -1,0 +1,18 @@
+{
+    "phase":  "phase7.2-sidecars",
+    "activation_label":  "phase7.2-deterministic-intent",
+    "deployed_utc":  "2026-08-04T12:03:10.0903372Z",
+    "minimum_free_ram_gib":  2,
+    "free_ram_before_build_gib":  2.15,
+    "api_build_seconds":  33,
+    "worker_build_seconds":  7.6,
+    "api_image":  "sha256:28d35b46e343e030985af618eff820ab504e113fb234389ce187b1e3c0bd61dc",
+    "worker_image":  "sha256:212546276fd882019e2606be21d258868342353253ae645affdca89cd8e68132",
+    "localai_image_unchanged":  true,
+    "api_health":  "pass",
+    "worker_health":  "pass",
+    "nats_health":  "pass",
+    "localai_ready":  "pass",
+    "named_volumes_preserved":  true,
+    "rollback_images_preserved":  true
+}

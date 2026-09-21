@@ -1,0 +1,95 @@
+﻿{
+    "contract_version":  "nexusai.stim56-runtime-acceptance/v1",
+    "generated_utc":  "2026-08-20T06:53:37.6342539Z",
+    "collection_id":  "nexusai-forensic-demo",
+    "localai_url":  "http://localhost:8080",
+    "database_mutated":  false,
+    "models_changed":  false,
+    "checks":  [
+                   {
+                       "name":  "runtime.readyz",
+                       "passed":  true,
+                       "detail":  "HTTP 200",
+                       "latency_ms":  156.8
+                   },
+                   {
+                       "name":  "runtime.model_inventory",
+                       "passed":  true,
+                       "detail":  "qwen3-embedding-0.6b, qwen_qwen3-4b-instruct-2507",
+                       "latency_ms":  0
+                   },
+                   {
+                       "name":  "query.english",
+                       "passed":  true,
+                       "detail":  "frequent_contacts; language=en; target=923001110001",
+                       "latency_ms":  312
+                   },
+                   {
+                       "name":  "query.messy_english",
+                       "passed":  true,
+                       "detail":  "frequent_contacts; language=en; target=923001110001",
+                       "latency_ms":  193.2
+                   },
+                   {
+                       "name":  "query.roman_urdu",
+                       "passed":  true,
+                       "detail":  "temporal_activity; language=ur-Latn; target=923001110001",
+                       "latency_ms":  212.3
+                   },
+                   {
+                       "name":  "query.urdu",
+                       "passed":  false,
+                       "detail":  "template was , expected temporal_activity",
+                       "latency_ms":  38.7
+                   },
+                   {
+                       "name":  "query.mixed",
+                       "passed":  false,
+                       "detail":  "direction was , expected OUTGOING",
+                       "latency_ms":  236.1
+                   },
+                   {
+                       "name":  "query.clarification",
+                       "passed":  true,
+                       "detail":  "intent=clarification; model_ms=0",
+                       "latency_ms":  35.8
+                   },
+                   {
+                       "name":  "query.follow_up",
+                       "passed":  false,
+                       "detail":  "template=frequent_contacts; target=923001110001; direction=; inherited=target,template",
+                       "latency_ms":  186.3
+                   },
+                   {
+                       "name":  "query.unsupported_fast_path",
+                       "passed":  true,
+                       "detail":  "route=capability_guard; db_ms=0; kb_ms=0; model_ms=0",
+                       "latency_ms":  26.6
+                   },
+                   {
+                       "name":  "query.assisted_validated_or_fallback",
+                       "passed":  false,
+                       "detail":  "narrative_status=model_unavailable_fallback; model_ms=8013",
+                       "latency_ms":  8895.9
+                   },
+                   {
+                       "name":  "ui/analyst/data",
+                       "passed":  false,
+                       "detail":  "The remote server returned an error: (404) Not Found.",
+                       "latency_ms":  0
+                   },
+                   {
+                       "name":  "ui/analyst/ask",
+                       "passed":  false,
+                       "detail":  "The remote server returned an error: (404) Not Found.",
+                       "latency_ms":  0
+                   },
+                   {
+                       "name":  "ui/analyst/history",
+                       "passed":  false,
+                       "detail":  "The remote server returned an error: (404) Not Found.",
+                       "latency_ms":  0
+                   }
+               ],
+    "passed":  false
+}

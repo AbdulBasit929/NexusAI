@@ -1,0 +1,78 @@
+{
+  "contract_version": "nexusai.nx1-activation-manifest/v1",
+  "created_at": "2026-08-25",
+  "status": "final_source_closure_pass_activation_not_approved",
+  "approval_needed": "Approve NX-1 final source-closure activation of only forensic-records-api and api (LocalAI/UI) under the fresh 6 GiB RAM and rollback gates.",
+  "source": {
+    "branch": "codex/forensic-hybrid-checkpoint-20260723",
+    "head": "40717b83510c08db25dc26b9d6674bf46db363ac",
+    "p1_1": "final_source_resolved_activation_required",
+    "p1_2": "closed_live_unchanged",
+    "p1_3": "final_source_resolved_activation_required",
+    "open_p0_source": 0,
+    "open_foundation_truth_p1_source": 0,
+    "open_foundation_truth_p1_live": 2,
+    "focused_tests": "pass",
+    "full_forensic_api_tests": "pass",
+    "focused_agent_ginkgo": "pass",
+    "focused_vet": "pass",
+    "git_diff_check": "pass"
+  },
+  "preflight": {
+    "required_free_physical_ram_kib": 6291456,
+    "final_source_closure_ram_gate": "pending_fresh_preflight_after_approval",
+    "last_successful_activation_free_physical_ram_gib": 8.298,
+    "last_successful_activation_ram_gate": "pass_historical_not_reused_as_current_gate",
+    "retained_counts": "51|51|64|0|22207|441|47"
+  },
+  "current_runtime": {
+    "localai_ui": {"container":"77d0f172f0ca56bd40d8dd2d8a3777a1984997c3bf09899faab4709e6c708aa9","image":"sha256:11549bad5bf378cb3cfee20fcbc7a384767a98eab2d07dd490c970fddc68cb2f","tag":"nexusai/localai-forensic:phase3-runtime"},
+    "forensic_api": {"container":"1bdf4f77087ebf8870a640704d95fea36e152bf198175f782bd451bcb526b074","image":"sha256:4eb2db0af60d80a1ea75733cc5db559d508197cd2504006f77ccad4ff708e14b","tag":"nexusai/forensic-records-api:phase3-runtime"},
+    "protected_worker": {"container":"1846f558941f","image":"sha256:be13dbec4bd9bb62c824140df3777b898d7ad2801a0e68cd512c00dafaf4f9ef"},
+    "protected_nats": {"container":"5c49e70d132a"},
+    "protected_postgres": {"container":"f66e05a3b179"}
+  },
+  "required_new_rollback_tags_before_build": [
+    "nexusai/localai-forensic:rollback-before-nx1-final-source-closure-20260825",
+    "nexusai/forensic-records-api:rollback-before-nx1-final-source-closure-20260825"
+  ],
+  "deployment_scope": {
+    "rebuild": ["forensic-records-api", "api (LocalAI/UI)"],
+    "must_not_rebuild": ["forensic-records-worker", "forensic-nats", "forensic-postgres"],
+    "models_changed": false,
+    "profiles_changed": false,
+    "volumes_changed": false,
+    "database_migration": false,
+    "retained_mutation": false
+  },
+  "compose_sets": {
+    "localai_ui": ["docker-compose.yaml", "docker-compose.forensic-runtime.localai.yaml"],
+    "forensic_api": ["docker-compose.forensic-records.yaml", "docker-compose.forensic-records.runtime.yaml", "docker-compose.forensic-records.asr-small.yaml"]
+  },
+  "operator_commands_after_approval_and_passing_ram_gate": {
+    "tag_current_rollback": [
+      "docker image tag nexusai/localai-forensic:phase3-runtime nexusai/localai-forensic:rollback-before-nx1-final-source-closure-20260825",
+      "docker image tag nexusai/forensic-records-api:phase3-runtime nexusai/forensic-records-api:rollback-before-nx1-final-source-closure-20260825"
+    ],
+    "build": [
+      "docker compose -f docker-compose.forensic-records.yaml -f docker-compose.forensic-records.runtime.yaml -f docker-compose.forensic-records.asr-small.yaml build forensic-records-api",
+      "docker compose -f docker-compose.yaml -f docker-compose.forensic-runtime.localai.yaml build api"
+    ],
+    "activate": [
+      "docker compose -f docker-compose.forensic-records.yaml -f docker-compose.forensic-records.runtime.yaml -f docker-compose.forensic-records.asr-small.yaml up -d --no-deps --force-recreate forensic-records-api",
+      "docker compose -f docker-compose.yaml -f docker-compose.forensic-runtime.localai.yaml up -d --no-deps --force-recreate api"
+    ],
+    "rollback_if_any_gate_fails": [
+      "docker image tag nexusai/forensic-records-api:rollback-before-nx1-final-source-closure-20260825 nexusai/forensic-records-api:phase3-runtime",
+      "docker image tag nexusai/localai-forensic:rollback-before-nx1-final-source-closure-20260825 nexusai/localai-forensic:phase3-runtime",
+      "docker compose -f docker-compose.forensic-records.yaml -f docker-compose.forensic-records.runtime.yaml -f docker-compose.forensic-records.asr-small.yaml up -d --no-deps --force-recreate forensic-records-api",
+      "docker compose -f docker-compose.yaml -f docker-compose.forensic-runtime.localai.yaml up -d --no-deps --force-recreate api"
+    ]
+  },
+  "live_exit": {
+    "OpenP0": 0,
+    "OpenFoundationTruthP1": 0,
+    "required": ["PositiveState=PASS", "CompleteZeroState=PASS", "NoMatchState=PASS", "TypedUUID=PASS", "PlateExtraction=PASS", "Citation=PASS", "ActivityHistory=PASS", "ProtectedServicesPreserved=true", "RetainedDataMutated=false", "ModelsChanged=false", "DatabaseMigration=false"],
+    "widths": [390, 820, 1024, 1440]
+  }
+}

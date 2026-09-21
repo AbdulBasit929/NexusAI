@@ -1,0 +1,542 @@
+{
+  "schema_version": "nexusai.nxb21.c-readiness-validation/v1",
+  "status": "SOURCE_VALIDATED_NOT_DEPLOYED",
+  "passed": 74,
+  "database_cases": 14,
+  "cases": [
+    {
+      "id": "C-001",
+      "test": "C database capability isolation / queries current retained transcript without an available processing role",
+      "status": "PASS_SOURCE",
+      "duration_ms": 94.558,
+      "database_backed": true
+    },
+    {
+      "id": "C-002",
+      "test": "C database capability isolation / does not infer transcript from ordinary audio metadata",
+      "status": "PASS_SOURCE",
+      "duration_ms": 33.15,
+      "database_backed": true
+    },
+    {
+      "id": "C-003",
+      "test": "C database capability isolation / rejects stale artifacts and missing run lineage",
+      "status": "PASS_SOURCE",
+      "duration_ms": 31.424,
+      "database_backed": true
+    },
+    {
+      "id": "C-004",
+      "test": "C database capability isolation / keeps tenant case and collection predicates independent",
+      "status": "PASS_SOURCE",
+      "duration_ms": 41.531,
+      "database_backed": true
+    },
+    {
+      "id": "C-005",
+      "test": "C database capability isolation / keeps workspace readiness independent of the selected source",
+      "status": "PASS_SOURCE",
+      "duration_ms": 37.852,
+      "database_backed": true
+    },
+    {
+      "id": "C-006",
+      "test": "C database capability isolation / proves complete zero through current artifact run and job",
+      "status": "PASS_SOURCE",
+      "duration_ms": 31.688,
+      "database_backed": true
+    },
+    {
+      "id": "C-007",
+      "test": "C database capability isolation / does not inherit stale zero receipts",
+      "status": "PASS_SOURCE",
+      "duration_ms": 32.478,
+      "database_backed": true
+    },
+    {
+      "id": "C-008",
+      "test": "C database capability isolation / does not call a partially processed workspace complete zero",
+      "status": "PASS_SOURCE",
+      "duration_ms": 32.525,
+      "database_backed": true
+    },
+    {
+      "id": "C-009",
+      "test": "C database capability isolation / distinguishes failed current processing while preserving valid current observations",
+      "status": "PASS_SOURCE",
+      "duration_ms": 37.314,
+      "database_backed": true
+    },
+    {
+      "id": "C-010",
+      "test": "C database capability isolation / keeps OCR raw and Roman derivative artifact readiness independent",
+      "status": "PASS_SOURCE",
+      "duration_ms": 53.248,
+      "database_backed": true
+    },
+    {
+      "id": "C-011",
+      "test": "C database capability isolation / requires records from the current source batch",
+      "status": "PASS_SOURCE",
+      "duration_ms": 47.477,
+      "database_backed": true
+    },
+    {
+      "id": "C-012",
+      "test": "C database capability isolation / rejects cross-case scope headers before reading any capability state",
+      "status": "PASS_SOURCE",
+      "duration_ms": 23.612,
+      "database_backed": true
+    },
+    {
+      "id": "C-013",
+      "test": "C database capability isolation / serves the complete API snapshot with selected version and case boundaries",
+      "status": "PASS_SOURCE",
+      "duration_ms": 98.993,
+      "database_backed": true
+    },
+    {
+      "id": "C-014",
+      "test": "C database capability isolation / requires both current image ANPR artifacts and canonical rows for the mixed-source executor",
+      "status": "PASS_SOURCE",
+      "duration_ms": 53.096,
+      "database_backed": true
+    },
+    {
+      "id": "C-015",
+      "test": "C query capability references / preserves independent operation descriptor variant and certification counts",
+      "status": "PASS_SOURCE",
+      "duration_ms": 11.167,
+      "database_backed": false
+    },
+    {
+      "id": "C-016",
+      "test": "C query capability references / rejects invalid reference metadata / duplicate id",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.058,
+      "database_backed": false
+    },
+    {
+      "id": "C-017",
+      "test": "C query capability references / rejects invalid reference metadata / deleted operation",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.526,
+      "database_backed": false
+    },
+    {
+      "id": "C-018",
+      "test": "C query capability references / rejects invalid reference metadata / wrong family",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.149,
+      "database_backed": false
+    },
+    {
+      "id": "C-019",
+      "test": "C query capability references / rejects invalid reference metadata / unknown semantic",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.508,
+      "database_backed": false
+    },
+    {
+      "id": "C-020",
+      "test": "C query capability references / rejects invalid reference metadata / duplicate semantic alias",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.107,
+      "database_backed": false
+    },
+    {
+      "id": "C-021",
+      "test": "C query capability references / rejects invalid reference metadata / wrong direct descriptor",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.565,
+      "database_backed": false
+    },
+    {
+      "id": "C-022",
+      "test": "C query capability references / rejects invalid reference metadata / unknown authority",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.028,
+      "database_backed": false
+    },
+    {
+      "id": "C-023",
+      "test": "C query capability references / rejects invalid reference metadata / unqualified input",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.621,
+      "database_backed": false
+    },
+    {
+      "id": "C-024",
+      "test": "C query capability references / rejects invalid reference metadata / unknown language",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.561,
+      "database_backed": false
+    },
+    {
+      "id": "C-025",
+      "test": "C query capability references / rejects invalid reference metadata / unknown scope",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.093,
+      "database_backed": false
+    },
+    {
+      "id": "C-026",
+      "test": "C query capability references / rejects invalid reference metadata / unknown locator",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.506,
+      "database_backed": false
+    },
+    {
+      "id": "C-027",
+      "test": "C query capability references / rejects invalid reference metadata / unknown role",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.531,
+      "database_backed": false
+    },
+    {
+      "id": "C-028",
+      "test": "C query capability references / rejects invalid reference metadata / proof traversal",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.068,
+      "database_backed": false
+    },
+    {
+      "id": "C-029",
+      "test": "C query capability references / rejects invalid reference metadata / missing B1 semantic reference",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.072,
+      "database_backed": false
+    },
+    {
+      "id": "C-030",
+      "test": "C query capability references / separates retained results from processor readiness / current result",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.369,
+      "database_backed": false
+    },
+    {
+      "id": "C-031",
+      "test": "C query capability references / separates retained results from processor readiness / not run",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.211,
+      "database_backed": false
+    },
+    {
+      "id": "C-032",
+      "test": "C query capability references / separates retained results from processor readiness / complete zero",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.585,
+      "database_backed": false
+    },
+    {
+      "id": "C-033",
+      "test": "C query capability references / separates retained results from processor readiness / failed",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.444,
+      "database_backed": false
+    },
+    {
+      "id": "C-034",
+      "test": "C query capability references / separates retained results from processor readiness / failed after valid artifact",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.059,
+      "database_backed": false
+    },
+    {
+      "id": "C-035",
+      "test": "C query capability references / separates retained results from processor readiness / failed invalidates zero",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.534,
+      "database_backed": false
+    },
+    {
+      "id": "C-036",
+      "test": "C query capability references / separates retained results from processor readiness / partial",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.114,
+      "database_backed": false
+    },
+    {
+      "id": "C-037",
+      "test": "C query capability references / separates retained results from processor readiness / unsupported input",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.506,
+      "database_backed": false
+    },
+    {
+      "id": "C-038",
+      "test": "C query capability references / does not claim undeployed B1 semantics in a live baseline context",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.529,
+      "database_backed": false
+    },
+    {
+      "id": "C-039",
+      "test": "C query capability references / accounts for every catalog-only operation without widening suggestions",
+      "status": "PASS_SOURCE",
+      "duration_ms": 4.248,
+      "database_backed": false
+    },
+    {
+      "id": "C-040",
+      "test": "C query capability references / requires all existing worker receipt predicates for fresh processing",
+      "status": "PASS_SOURCE",
+      "duration_ms": 3.241,
+      "database_backed": false
+    },
+    {
+      "id": "C-041",
+      "test": "C query capability references / does not make TTS ready from ordinary normalized audio while ASR independently queries retained text",
+      "status": "PASS_SOURCE",
+      "duration_ms": 50.572,
+      "database_backed": false
+    },
+    {
+      "id": "C-042",
+      "test": "C query capability references / fails closed for engineering descriptors and unauthorized contexts",
+      "status": "PASS_SOURCE",
+      "duration_ms": 2.211,
+      "database_backed": false
+    },
+    {
+      "id": "C-043",
+      "test": "C query capability references / requires the governed query and compatible candidate set for image and face similarity",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.73,
+      "database_backed": false
+    },
+    {
+      "id": "C-044",
+      "test": "C query capability references / projects OCR image ANPR and video ANPR independently including completed zero",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.033,
+      "database_backed": false
+    },
+    {
+      "id": "C-045",
+      "test": "C query capability references / does not use selected NOT_RUN for workspace readiness",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.518,
+      "database_backed": false
+    },
+    {
+      "id": "C-046",
+      "test": "C query capability references / does not use unrelated artifacts in the existing planner projection",
+      "status": "PASS_SOURCE",
+      "duration_ms": 6.081,
+      "database_backed": false
+    },
+    {
+      "id": "C-047",
+      "test": "C query capability references / serializes additive source metadata without claiming live deployment or writing Activity",
+      "status": "PASS_SOURCE",
+      "duration_ms": 54.44,
+      "database_backed": false
+    },
+    {
+      "id": "C-048",
+      "test": "C query capability references / rejects malformed selected scope before database access",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.0,
+      "database_backed": false
+    },
+    {
+      "id": "C-049",
+      "test": "C query capability references / measures metadata projection without inference",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.277,
+      "database_backed": false
+    },
+    {
+      "id": "C-050",
+      "test": "C query capability references / classifies advertised formats without parser promotion / DOCX",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.37,
+      "database_backed": false
+    },
+    {
+      "id": "C-051",
+      "test": "C query capability references / classifies advertised formats without parser promotion / PDF",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.547,
+      "database_backed": false
+    },
+    {
+      "id": "C-052",
+      "test": "C query capability references / classifies advertised formats without parser promotion / TXT",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.119,
+      "database_backed": false
+    },
+    {
+      "id": "C-053",
+      "test": "C query capability references / classifies advertised formats without parser promotion / CSV",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.843,
+      "database_backed": false
+    },
+    {
+      "id": "C-054",
+      "test": "C query capability references / classifies advertised formats without parser promotion / MD",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.895,
+      "database_backed": false
+    },
+    {
+      "id": "C-055",
+      "test": "C query capability references / classifies advertised formats without parser promotion / Parquet",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.358,
+      "database_backed": false
+    },
+    {
+      "id": "C-056",
+      "test": "C query capability references / classifies advertised formats without parser promotion / TSV",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.28,
+      "database_backed": false
+    },
+    {
+      "id": "C-057",
+      "test": "C query capability references / classifies advertised formats without parser promotion / XLSX",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.787,
+      "database_backed": false
+    },
+    {
+      "id": "C-058",
+      "test": "C query capability references / classifies advertised formats without parser promotion / YAML",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.727,
+      "database_backed": false
+    },
+    {
+      "id": "C-059",
+      "test": "C query capability references / classifies advertised formats without parser promotion / ASS",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.76,
+      "database_backed": false
+    },
+    {
+      "id": "C-060",
+      "test": "C query capability references / classifies advertised formats without parser promotion / EVTX",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.736,
+      "database_backed": false
+    },
+    {
+      "id": "C-061",
+      "test": "C query capability references / classifies advertised formats without parser promotion / MT940",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.761,
+      "database_backed": false
+    },
+    {
+      "id": "C-062",
+      "test": "C query capability references / classifies advertised formats without parser promotion / OFX",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.582,
+      "database_backed": false
+    },
+    {
+      "id": "C-063",
+      "test": "C query capability references / classifies advertised formats without parser promotion / SRT",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.895,
+      "database_backed": false
+    },
+    {
+      "id": "C-064",
+      "test": "C query capability references / classifies advertised formats without parser promotion / VTT",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.733,
+      "database_backed": false
+    },
+    {
+      "id": "C-065",
+      "test": "C query capability references / classifies advertised formats without parser promotion / PCAP",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.727,
+      "database_backed": false
+    },
+    {
+      "id": "C-066",
+      "test": "C query capability references / classifies advertised formats without parser promotion / SQLite",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.753,
+      "database_backed": false
+    },
+    {
+      "id": "C-067",
+      "test": "C query capability references / classifies advertised formats without parser promotion / TAR",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.749,
+      "database_backed": false
+    },
+    {
+      "id": "C-068",
+      "test": "C query capability references / classifies advertised formats without parser promotion / ZIP",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.196,
+      "database_backed": false
+    },
+    {
+      "id": "C-069",
+      "test": "C query capability references / classifies advertised formats without parser promotion / HEIC",
+      "status": "PASS_SOURCE",
+      "duration_ms": 1.294,
+      "database_backed": false
+    },
+    {
+      "id": "C-070",
+      "test": "C query capability references / classifies advertised formats without parser promotion / MP4",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.506,
+      "database_backed": false
+    },
+    {
+      "id": "C-071",
+      "test": "C query capability references / classifies advertised formats without parser promotion / PNG",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.955,
+      "database_backed": false
+    },
+    {
+      "id": "C-072",
+      "test": "C query capability references / classifies advertised formats without parser promotion / SVG",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.726,
+      "database_backed": false
+    },
+    {
+      "id": "C-073",
+      "test": "C query capability references / classifies advertised formats without parser promotion / WAV",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.802,
+      "database_backed": false
+    },
+    {
+      "id": "C-074",
+      "test": "C query capability references / classifies advertised formats without parser promotion / raw",
+      "status": "PASS_SOURCE",
+      "duration_ms": 0.0,
+      "database_backed": false
+    }
+  ],
+  "test_log_sha256": {
+    "c-tests.log": "eb9303c2fd60fdab96f9f3fbae037904a05d241b7f818737f394fa0933a95f83",
+    "c-ginkgo.json": "a78b24ca25bc7d6f3fac8734d111fa5144ebe0a059a14dcc1d2a24b7afabbf1d",
+    "full-forensic-tests.log": "9c7aed7205609f9c3a383b3deb8e4423e86ee60ec97e5c3fb31345bee6622a9c",
+    "full-agent-tests.log": "858a4e41049858c506fd66badbed09d3d64b3df2250c2e2e3c5cc3d2e4d21c08",
+    "api-tests-final.log": "fdb4306da03a37f3364be511de00d3e9997e9e8a05ecabbb33fb8ae526ab1276"
+  },
+  "performance_diagnostics": "C DB existence projection: 17.0035ms\n\nC DB existence projection: 8.0393ms\n\nC DB existence projection: 5.6506ms\n\nC DB existence projection: 5.542ms\n\nC DB existence projection: 5.4965ms\nC DB existence projection: 4.7775ms\n\nC DB existence projection: 4.9416ms\n\nC DB existence projection: 4.6978ms\n\nC DB existence projection: 5.4243ms\n\nC DB existence projection: 6.0138ms\nC DB existence projection: 3.4111ms\n\nC DB existence projection: 5.2231ms\nC DB existence projection: 3.152ms\nC DB existence projection: 3.5201ms\nC DB existence projection: 3.8372ms\nC DB existence projection: 4.0318ms\n\nC DB existence projection: 6.3067ms\nC DB existence projection: 4.1358ms\n\n\n\nC DB existence projection: 5.7694ms\nC DB existence projection: 3.2902ms\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nC projection 22 capabilities: 0s (diagnostic, no SLA)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+  "retained_readonly_projection_ms": 134.969,
+  "jit_correction": "414 JIT functions exceeded 2s. JIT disabled only within the read-only readiness transaction; 2s deadline preserved.",
+  "source_review_digest": "9985d71d894631e6c730c6c7ffa9caf85215427ca076e12e8bb0edc545a91c02",
+  "canonical_certification_preserved": true,
+  "suggestion_gate_preserved": true,
+  "anti_hardcode": "PASS_BOUNDED_SOURCE_SCAN",
+  "privacy": "PASS_NO_PRIVATE_ANALYTICAL_VALUES_IN_STATIC_REFERENCES",
+  "git_diff_check": "PASS"
+}

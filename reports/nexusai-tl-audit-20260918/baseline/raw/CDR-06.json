@@ -1,0 +1,4259 @@
+{
+ "collection_id": "nexusai-forensic-demo",
+ "request_class": "GOVERNED_EVIDENCE_ANALYSIS",
+ "intent": "clarification",
+ "template": "frequent_contacts",
+ "query_understanding": {
+  "contract_version": "forensics.query-understanding/v1",
+  "original_question": "Which phone number made the most calls?",
+  "normalized_question": "which phone number made the most calls?",
+  "language": {
+   "tag": "en",
+   "source": "deterministic_extractor",
+   "confidence": 0.9
+  },
+  "intent": "rank",
+  "families": {
+   "kind": "single",
+   "primary": "communications_cdr",
+   "secondary": []
+  },
+  "entities": [],
+  "targets": [],
+  "time_scope": {
+   "timezone": "case_default",
+   "origin": "deterministic_extractor"
+  },
+  "filters": [],
+  "requested_output": {
+   "result_kind": "ranked",
+   "presentation_type": "bounded_records_table",
+   "limit": 20
+  },
+  "candidate_capabilities": [
+   "cdr.frequent_contacts"
+  ],
+  "semantic_capability_ids": null,
+  "semantic_operation_refs": null,
+  "clarification": {
+   "required": true,
+   "reason_code": "missing_required_parameter",
+   "question": "Which number or subscriber should I analyze for frequent contacts?",
+   "missing_fields": [
+    "target"
+   ]
+  },
+  "context": {
+   "used": false,
+   "fields": [],
+   "inherited_fields": null
+  },
+  "confidence": {
+   "overall": 1,
+   "routing": 1,
+   "entities": 0,
+   "time_scope": 0
+  }
+ },
+ "clarification": {
+  "contract_version": "forensics.clarification-request/v1",
+  "reason_code": "missing_required_parameter",
+  "question": "Which number or subscriber should I analyze for frequent contacts?",
+  "missing_fields": [
+   "target"
+  ],
+  "options": [],
+  "execution_held": true
+ },
+ "route": [
+  "clarification"
+ ],
+ "policy": "Exact analytics are computed from parameterized SQL templates. KB content is used only for evidence, source previews, and contextual grounding.",
+ "planner": {
+  "confidence": 1,
+  "date_from": "",
+  "date_to": "",
+  "exact_identifier_authority": null,
+  "extracted_target": "",
+  "field_hints": [],
+  "hybrid_planner": null,
+  "language_assistance": "semantic_deterministic_registered",
+  "phrase_literal_authority": null,
+  "query_plan": {
+   "interpreted_intent": "records",
+   "selected_template": "frequent_contacts",
+   "target_identifiers": [],
+   "date_bounds": {},
+   "applied_filters": {
+    "field_hints": [],
+    "target_type": ""
+   },
+   "confidence": 1,
+   "coverage_check": {
+    "total_indexed_records": 0,
+    "record_families_present": null,
+    "nearest_activity": {},
+    "valid_target_examples": null
+   },
+   "execution_strategy": "sql_deterministic"
+  },
+  "reason": "template was provided by caller",
+  "retrieval_strategy": {
+   "contract_version": "forensics.document-retrieval-strategy/v1",
+   "derived_text": false,
+   "exact_is_semantic": false,
+   "kb_retrieval": false,
+   "retrieval_mode": "NONE",
+   "semantic_frame": "forensics.semantic-frame/v1"
+  },
+  "semantic_operation_planner": {
+   "family_latency_ms": 0,
+   "operation_latency_ms": 2209,
+   "registry_candidate_count": 66,
+   "eligible_operation_count": 66,
+   "retrieved_candidates": [
+    {
+     "operation_id": "forensics.top_locations",
+     "family_id": "communications_cdr",
+     "intent": "rank",
+     "description": "Most frequent CDR locations and cells.",
+     "required_parameters": [],
+     "optional_parameters": [
+      "date_from",
+      "date_to",
+      "limit"
+     ],
+     "measures": null,
+     "group_by": null,
+     "result_kind": "geo",
+     "presentation": "bounded_records_table",
+     "scope_mode": "case_wide",
+     "exposure_status": "limited"
+    },
+    {
+     "operation_id": "cdr.frequent_contacts",
+     "family_id": "communications_cdr",
+     "intent": "rank",
+     "description": "CDR frequent contacts matrix with incoming/outgoing counts and first/last contact.",
+     "required_parameters": [
+      "target"
+     ],
+     "optional_parameters": [
+      "date_from",
+      "date_to",
+      "limit"
+     ],
+     "measures": [
+      "total interactions",
+      "incoming count",
+      "outgoing count",
+      "first contact",
+      "last contact"
+     ],
+     "group_by": [
+      "counterparty"
+     ],
+     "result_kind": "ranked",
+     "presentation": "bounded_records_table",
+     "scope_mode": "target_required",
+     "exposure_status": "queryable"
+    },
+    {
+     "operation_id": "cdr.multi_source_comparison",
+     "family_id": "communications_cdr",
+     "intent": "compare",
+     "description": "Source-aware common/unique contacts, direction, frequency, duration, shared identifier, overlap, duplicate, and conflict comparison for one exact target.",
+     "required_parameters": [
+      "target",
+      "source_set"
+     ],
+     "optional_parameters": [
+      "date_from",
+      "date_to",
+      "limit"
+     ],
+     "measures": [
+      "common contacts",
+      "unique contacts",
+      "incoming count",
+      "outgoing count",
+      "duration sum",
+      "shared IMEI",
+      "shared IMSI",
+      "shared tower",
+      "exact-instant overlap",
+      "duplicate candidates",
+      "conflicts"
+     ],
+     "group_by": [
+      "source",
+      "counterparty",
+      "typed identifier",
+      "event signature"
+     ],
+     "result_kind": "table",
+     "presentation": "multi_source_relationship_comparison",
+     "scope_mode": "source_set_and_target_required",
+     "exposure_status": "queryable"
+    },
+    {
+     "operation_id": "forensics.canonical_records",
+     "family_id": "case_cross_family",
+     "intent": "inspect",
+     "description": "Parameterized source-of-truth query over forensic.records with JSONB filters, provenance, paging, totals, and sort controls.",
+     "required_parameters": [],
+     "optional_parameters": [
+      "date_from",
+      "date_to",
+      "limit",
+      "group",
+      "projection"
+     ],
+     "measures": null,
+     "group_by": null,
+     "result_kind": "table",
+     "presentation": "bounded_records_table",
+     "scope_mode": "case_wide",
+     "exposure_status": "limited"
+    },
+    {
+     "operation_id": "forensics.longest_call",
+     "family_id": "communications_cdr",
+     "intent": "rank",
+     "description": "Longest CDR call duration with source row provenance.",
+     "required_parameters": [],
+     "optional_parameters": [
+      "date_from",
+      "date_to",
+      "limit"
+     ],
+     "measures": null,
+     "group_by": null,
+     "result_kind": "table",
+     "presentation": "bounded_records_table",
+     "scope_mode": "case_wide",
+     "exposure_status": "limited"
+    }
+   ],
+   "retrieval_scores": [
+    {
+     "operation_id": "forensics.top_locations",
+     "rank": 1,
+     "score": 8.181190842355797
+    },
+    {
+     "operation_id": "cdr.frequent_contacts",
+     "rank": 2,
+     "score": 6.1069313336746145
+    },
+    {
+     "operation_id": "cdr.multi_source_comparison",
+     "rank": 3,
+     "score": 5.397233326810334
+    },
+    {
+     "operation_id": "forensics.canonical_records",
+     "rank": 4,
+     "score": 4.602176489451911
+    },
+    {
+     "operation_id": "forensics.longest_call",
+     "rank": 5,
+     "score": 3.8897484848849473
+    }
+   ],
+   "top_k": 5,
+   "selected_decision": "EXECUTE_REGISTERED",
+   "dynamic_selected": false,
+   "request_class": "GOVERNED_EVIDENCE_ANALYSIS",
+   "scope_filter_reason": "authorized_workspace_registry",
+   "contract_version": "forensics.retrieval-first-semantic-planner/v1",
+   "language": "en",
+   "candidate_count": 5,
+   "candidates": [
+    {
+     "operation_id": "forensics.top_locations",
+     "family_id": "communications_cdr",
+     "intent": "rank",
+     "description": "Most frequent CDR locations and cells.",
+     "required_parameters": [],
+     "optional_parameters": [
+      "date_from",
+      "date_to",
+      "limit"
+     ],
+     "measures": null,
+     "group_by": null,
+     "result_kind": "geo",
+     "presentation": "bounded_records_table",
+     "scope_mode": "case_wide",
+     "exposure_status": "limited"
+    },
+    {
+     "operation_id": "cdr.frequent_contacts",
+     "family_id": "communications_cdr",
+     "intent": "rank",
+     "description": "CDR frequent contacts matrix with incoming/outgoing counts and first/last contact.",
+     "required_parameters": [
+      "target"
+     ],
+     "optional_parameters": [
+      "date_from",
+      "date_to",
+      "limit"
+     ],
+     "measures": [
+      "total interactions",
+      "incoming count",
+      "outgoing count",
+      "first contact",
+      "last contact"
+     ],
+     "group_by": [
+      "counterparty"
+     ],
+     "result_kind": "ranked",
+     "presentation": "bounded_records_table",
+     "scope_mode": "target_required",
+     "exposure_status": "queryable"
+    },
+    {
+     "operation_id": "cdr.multi_source_comparison",
+     "family_id": "communications_cdr",
+     "intent": "compare",
+     "description": "Source-aware common/unique contacts, direction, frequency, duration, shared identifier, overlap, duplicate, and conflict comparison for one exact target.",
+     "required_parameters": [
+      "target",
+      "source_set"
+     ],
+     "optional_parameters": [
+      "date_from",
+      "date_to",
+      "limit"
+     ],
+     "measures": [
+      "common contacts",
+      "unique contacts",
+      "incoming count",
+      "outgoing count",
+      "duration sum",
+      "shared IMEI",
+      "shared IMSI",
+      "shared tower",
+      "exact-instant overlap",
+      "duplicate candidates",
+      "conflicts"
+     ],
+     "group_by": [
+      "source",
+      "counterparty",
+      "typed identifier",
+      "event signature"
+     ],
+     "result_kind": "table",
+     "presentation": "multi_source_relationship_comparison",
+     "scope_mode": "source_set_and_target_required",
+     "exposure_status": "queryable"
+    },
+    {
+     "operation_id": "forensics.canonical_records",
+     "family_id": "case_cross_family",
+     "intent": "inspect",
+     "description": "Parameterized source-of-truth query over forensic.records with JSONB filters, provenance, paging, totals, and sort controls.",
+     "required_parameters": [],
+     "optional_parameters": [
+      "date_from",
+      "date_to",
+      "limit",
+      "group",
+      "projection"
+     ],
+     "measures": null,
+     "group_by": null,
+     "result_kind": "table",
+     "presentation": "bounded_records_table",
+     "scope_mode": "case_wide",
+     "exposure_status": "limited"
+    },
+    {
+     "operation_id": "forensics.longest_call",
+     "family_id": "communications_cdr",
+     "intent": "rank",
+     "description": "Longest CDR call duration with source row provenance.",
+     "required_parameters": [],
+     "optional_parameters": [
+      "date_from",
+      "date_to",
+      "limit"
+     ],
+     "measures": null,
+     "group_by": null,
+     "result_kind": "table",
+     "presentation": "bounded_records_table",
+     "scope_mode": "case_wide",
+     "exposure_status": "limited"
+    }
+   ],
+   "raw_model_proposal": "",
+   "selected_operation": {
+    "operation_id": "cdr.frequent_contacts",
+    "family_id": "communications_cdr",
+    "intent": "rank",
+    "description": "CDR frequent contacts matrix with incoming/outgoing counts and first/last contact.",
+    "required_parameters": [
+     "target"
+    ],
+    "optional_parameters": [
+     "date_from",
+     "date_to",
+     "limit"
+    ],
+    "measures": [
+     "total interactions",
+     "incoming count",
+     "outgoing count",
+     "first contact",
+     "last contact"
+    ],
+    "group_by": [
+     "counterparty"
+    ],
+    "result_kind": "ranked",
+    "presentation": "bounded_records_table",
+    "scope_mode": "target_required",
+    "exposure_status": "queryable"
+   },
+   "fact_authority": "SERVER_DETERMINISTIC_ONLY",
+   "state": "semantic_deterministic_registered",
+   "binding_state": "USER_FACT_REQUIRED",
+   "missing_fact_kinds": [
+    "target"
+   ],
+   "semantic_frame": {
+    "contract_version": "forensics.semantic-frame/v1",
+    "request_class": "GOVERNED_EVIDENCE_ANALYSIS",
+    "family_hint": "communications_cdr",
+    "goal": "rank",
+    "measure": "max",
+    "group_by_hints": [
+     "counterparty"
+    ],
+    "order_intent": "descending",
+    "limit_hint": 20,
+    "filters": [],
+    "time_intent": {
+     "kind": "none"
+    },
+    "retrieval_mode": "NONE",
+    "identifiers": [],
+    "explicit_scope": "authorized_workspace",
+    "confidence": {
+     "overall": 0.78,
+     "slots": {
+      "family_hint": 0.95,
+      "goal": 0.95,
+      "identifiers": 0.5,
+      "request_class": 1
+     },
+     "degradations": []
+    }
+   },
+   "capability_snapshot": {
+    "contract_version": "forensics.semantic-capability-snapshot/v1",
+    "families": [
+     {
+      "family": "access_security_logs",
+      "readiness": "authorized_registry_available"
+     },
+     {
+      "family": "anpr_vehicles",
+      "readiness": "authorized_registry_available"
+     },
+     {
+      "family": "audio_intelligence",
+      "readiness": "authorized_registry_available"
+     },
+     {
+      "family": "case_cross_family",
+      "readiness": "authorized_registry_available"
+     },
+     {
+      "family": "communications_cdr",
+      "readiness": "authorized_registry_available"
+     },
+     {
+      "family": "document_intelligence",
+      "readiness": "authorized_registry_available"
+     },
+     {
+      "family": "financial_transactions",
+      "readiness": "authorized_registry_available"
+     },
+     {
+      "family": "generic_tabular",
+      "readiness": "authorized_registry_available"
+     },
+     {
+      "family": "image_intelligence",
+      "readiness": "authorized_registry_available"
+     },
+     {
+      "family": "knowledge_evidence",
+      "readiness": "authorized_registry_available"
+     },
+     {
+      "family": "network_ipdr",
+      "readiness": "authorized_registry_available"
+     },
+     {
+      "family": "subscriber_identity",
+      "readiness": "authorized_registry_available"
+     },
+     {
+      "family": "tower_location",
+      "readiness": "authorized_registry_available"
+     },
+     {
+      "family": "video_intelligence",
+      "readiness": "authorized_registry_available"
+     }
+    ],
+    "issued_fields": [],
+    "retrieval_modes": [
+     "EXACT_PHRASE",
+     "EXACT_TERM",
+     "FULL_TEXT",
+     "HYBRID",
+     "METADATA_FILTERED",
+     "NONE",
+     "SEMANTIC",
+     "SOURCE_SCOPED"
+    ],
+    "output_forms": [
+     "aggregate",
+     "document",
+     "geo",
+     "ranked",
+     "table",
+     "timeline"
+    ],
+    "limits": {
+     "ast_complexity": 16,
+     "input_rows": 1000,
+     "result_groups": 100,
+     "result_rows": 100
+    },
+    "operations": [
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "access.failed_events",
+      "family": "access_security_logs",
+      "accepted_evidence_families": [
+       "access_security_logs"
+      ],
+      "intent_class": "lookup",
+      "measures": [
+       "failed event count"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": [
+       "source event"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "anpr.camera_activity",
+      "family": "anpr_vehicles",
+      "accepted_evidence_families": [
+       "anpr_vehicles"
+      ],
+      "intent_class": "aggregate",
+      "measures": [
+       "sighting count",
+       "distinct observed plates",
+       "first seen",
+       "last seen"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": [
+       "camera ID",
+       "supplied location"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "aggregate",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "anpr.camera_sequence",
+      "family": "anpr_vehicles",
+      "accepted_evidence_families": [
+       "anpr_vehicles"
+      ],
+      "intent_class": "lookup",
+      "measures": [
+       "sighting count",
+       "elapsed time"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": [
+       "observation time",
+       "camera"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "anpr.co_travel",
+      "family": "anpr_vehicles",
+      "accepted_evidence_families": [
+       "anpr_vehicles"
+      ],
+      "intent_class": "correlate",
+      "measures": [
+       "co-observation count",
+       "time difference"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": [
+       "other plate",
+       "camera"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "anpr.plate_variants",
+      "family": "anpr_vehicles",
+      "accepted_evidence_families": [
+       "anpr_vehicles"
+      ],
+      "intent_class": "compare",
+      "measures": [
+       "observation count",
+       "minimum confidence",
+       "maximum confidence"
+      ],
+      "aggregations": [
+       "COUNT",
+       "MAX",
+       "MIN"
+      ],
+      "grouping_dimensions": [
+       "normalized search key",
+       "raw plate text"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "anpr.route_timing",
+      "family": "anpr_vehicles",
+      "accepted_evidence_families": [
+       "anpr_vehicles"
+      ],
+      "intent_class": "lookup",
+      "measures": [
+       "elapsed seconds",
+       "straight-line distance"
+      ],
+      "aggregations": [],
+      "grouping_dimensions": [
+       "consecutive observation pair"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "geo",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "anpr.sightings",
+      "family": "anpr_vehicles",
+      "accepted_evidence_families": [
+       "anpr_vehicles"
+      ],
+      "intent_class": "lookup",
+      "measures": [
+       "sighting count",
+       "first seen",
+       "last seen"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "anpr.timeline",
+      "family": "anpr_vehicles",
+      "accepted_evidence_families": [
+       "anpr_vehicles"
+      ],
+      "intent_class": "timeline",
+      "measures": [
+       "sighting count"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": [
+       "observation timestamp"
+      ],
+      "ordering_semantics": [
+       "stable",
+       "chronological"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "timeline",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "audio.metadata",
+      "family": "audio_intelligence",
+      "accepted_evidence_families": [
+       "audio_intelligence"
+      ],
+      "intent_class": "lookup",
+      "measures": [
+       "evidence count",
+       "completed artifact count",
+       "size bytes"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "audio.transcript_search",
+      "family": "audio_intelligence",
+      "accepted_evidence_families": [
+       "audio_intelligence"
+      ],
+      "intent_class": "retrieve",
+      "measures": null,
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "EXACT_TERM",
+       "EXACT_PHRASE",
+       "FULL_TEXT",
+       "SOURCE_SCOPED"
+      ],
+      "result_kind": "document",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": false
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "cdr.call_type_breakdown",
+      "family": "communications_cdr",
+      "accepted_evidence_families": [
+       "communications_cdr"
+      ],
+      "intent_class": "aggregate",
+      "measures": [
+       "event count",
+       "total duration"
+      ],
+      "aggregations": [
+       "COUNT",
+       "SUM"
+      ],
+      "grouping_dimensions": [
+       "call type",
+       "direction"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "aggregate",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "cdr.device_identity_changes",
+      "family": "communications_cdr",
+      "accepted_evidence_families": [
+       "communications_cdr"
+      ],
+      "intent_class": "lookup",
+      "measures": [
+       "device change count",
+       "SIM change count",
+       "first seen",
+       "last seen"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": [
+       "originating subscriber",
+       "IMEI",
+       "IMSI"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "cdr.duration_extremes",
+      "family": "communications_cdr",
+      "accepted_evidence_families": [
+       "communications_cdr"
+      ],
+      "intent_class": "rank",
+      "measures": [
+       "minimum non-zero duration",
+       "maximum duration",
+       "average non-zero duration",
+       "audited row count"
+      ],
+      "aggregations": [
+       "AVG",
+       "COUNT",
+       "MAX",
+       "MIN"
+      ],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable",
+       "ascending",
+       "descending",
+       "top_k"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "ranked",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "cdr.frequent_contacts",
+      "family": "communications_cdr",
+      "accepted_evidence_families": [
+       "communications_cdr"
+      ],
+      "intent_class": "rank",
+      "measures": [
+       "total interactions",
+       "incoming count",
+       "outgoing count",
+       "first contact",
+       "last contact"
+      ],
+      "aggregations": [
+       "COUNT",
+       "SUM"
+      ],
+      "grouping_dimensions": [
+       "counterparty"
+      ],
+      "ordering_semantics": [
+       "stable",
+       "ascending",
+       "descending",
+       "top_k"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "ranked",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "cdr.geospatial_movement",
+      "family": "communications_cdr",
+      "accepted_evidence_families": [
+       "communications_cdr"
+      ],
+      "intent_class": "lookup",
+      "measures": [
+       "observation count",
+       "first seen",
+       "last seen",
+       "off-peak frequency"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": [
+       "cell site",
+       "supplied location"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "geo",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "cdr.multi_source_comparison",
+      "family": "communications_cdr",
+      "accepted_evidence_families": [
+       "communications_cdr"
+      ],
+      "intent_class": "compare",
+      "measures": [
+       "common contacts",
+       "unique contacts",
+       "incoming count",
+       "outgoing count",
+       "duration sum",
+       "shared IMEI",
+       "shared IMSI",
+       "shared tower",
+       "exact-instant overlap",
+       "duplicate candidates",
+       "conflicts"
+      ],
+      "aggregations": [
+       "COUNT",
+       "SUM"
+      ],
+      "grouping_dimensions": [
+       "source",
+       "counterparty",
+       "typed identifier",
+       "event signature"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [
+       "source_set",
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "source_set",
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "cdr.service_usage",
+      "family": "communications_cdr",
+      "accepted_evidence_families": [
+       "communications_cdr"
+      ],
+      "intent_class": "aggregate",
+      "measures": [
+       "event count",
+       "total duration"
+      ],
+      "aggregations": [
+       "COUNT",
+       "SUM"
+      ],
+      "grouping_dimensions": [
+       "explicit service class",
+       "direction"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "cdr.temporal_activity",
+      "family": "communications_cdr",
+      "accepted_evidence_families": [
+       "communications_cdr"
+      ],
+      "intent_class": "timeline",
+      "measures": [
+       "event count",
+       "non-zero duration",
+       "average duration"
+      ],
+      "aggregations": [
+       "AVG",
+       "COUNT"
+      ],
+      "grouping_dimensions": [
+       "day",
+       "hour"
+      ],
+      "ordering_semantics": [
+       "stable",
+       "chronological"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "timeline",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "cdr.timeline",
+      "family": "communications_cdr",
+      "accepted_evidence_families": [
+       "access_security_logs",
+       "anpr_vehicles",
+       "communications_cdr",
+       "financial_transactions",
+       "generic_tabular",
+       "network_ipdr",
+       "subscriber_identity",
+       "tower_location"
+      ],
+      "intent_class": "timeline",
+      "measures": [
+       "event count"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": [
+       "event timestamp",
+       "record family"
+      ],
+      "ordering_semantics": [
+       "stable",
+       "chronological"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "timeline",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "cdr.tower_activity",
+      "family": "communications_cdr",
+      "accepted_evidence_families": [
+       "communications_cdr",
+       "tower_location"
+      ],
+      "intent_class": "aggregate",
+      "measures": [
+       "observation count",
+       "first seen",
+       "last seen"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": [
+       "cell site",
+       "tower/site",
+       "supplied location"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "aggregate",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "document.metadata",
+      "family": "document_intelligence",
+      "accepted_evidence_families": [
+       "document_intelligence"
+      ],
+      "intent_class": "lookup",
+      "measures": [
+       "evidence count",
+       "completed artifact count",
+       "size bytes"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "document.search",
+      "family": "document_intelligence",
+      "accepted_evidence_families": [
+       "document_intelligence"
+      ],
+      "intent_class": "retrieve",
+      "measures": null,
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "EXACT_TERM",
+       "EXACT_PHRASE",
+       "FULL_TEXT",
+       "SEMANTIC",
+       "HYBRID",
+       "METADATA_FILTERED",
+       "SOURCE_SCOPED"
+      ],
+      "result_kind": "document",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "source_set",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": false
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "financial.transaction_summary",
+      "family": "financial_transactions",
+      "accepted_evidence_families": [
+       "financial_transactions"
+      ],
+      "intent_class": "summarize",
+      "measures": [
+       "transaction count",
+       "exact amount total",
+       "first seen",
+       "last seen"
+      ],
+      "aggregations": [
+       "COUNT",
+       "SUM"
+      ],
+      "grouping_dimensions": [
+       "currency",
+       "explicit status",
+       "amount role"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "aggregate",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "forensics.activity_by_hour",
+      "family": "communications_cdr",
+      "accepted_evidence_families": [
+       "communications_cdr"
+      ],
+      "intent_class": "timeline",
+      "measures": null,
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable",
+       "chronological"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "timeline",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "forensics.canonical_records",
+      "family": "case_cross_family",
+      "accepted_evidence_families": [
+       "all"
+      ],
+      "intent_class": "inspect",
+      "measures": null,
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "group",
+       "limit",
+       "projection"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": false
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "forensics.case_readiness",
+      "family": "case_cross_family",
+      "accepted_evidence_families": [
+       "all"
+      ],
+      "intent_class": "readiness",
+      "measures": null,
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "forensics.collection_overview",
+      "family": "case_cross_family",
+      "accepted_evidence_families": [
+       "all"
+      ],
+      "intent_class": "aggregate",
+      "measures": null,
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "aggregate",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "forensics.cross_family_correlation",
+      "family": "case_cross_family",
+      "accepted_evidence_families": [
+       "access_security_logs",
+       "anpr_vehicles",
+       "communications_cdr",
+       "financial_transactions",
+       "generic_tabular",
+       "network_ipdr",
+       "subscriber_identity",
+       "tower_location"
+      ],
+      "intent_class": "correlate",
+      "measures": [
+       "matching observations",
+       "related entities",
+       "source families"
+      ],
+      "aggregations": [],
+      "grouping_dimensions": [
+       "record family",
+       "explicit normalized entity"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "forensics.data_quality",
+      "family": "case_cross_family",
+      "accepted_evidence_families": [
+       "all"
+      ],
+      "intent_class": "inspect",
+      "measures": null,
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "forensics.entity_activity",
+      "family": "case_cross_family",
+      "accepted_evidence_families": [
+       "access_security_logs",
+       "anpr_vehicles",
+       "communications_cdr",
+       "financial_transactions",
+       "generic_tabular",
+       "network_ipdr",
+       "subscriber_identity",
+       "tower_location"
+      ],
+      "intent_class": "aggregate",
+      "measures": null,
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "aggregate",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "forensics.evidence",
+      "family": "knowledge_evidence",
+      "accepted_evidence_families": [
+       "all"
+      ],
+      "intent_class": "retrieve",
+      "measures": null,
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "SEMANTIC",
+       "HYBRID",
+       "METADATA_FILTERED",
+       "SOURCE_SCOPED"
+      ],
+      "result_kind": "document",
+      "required_semantic_slots": [],
+      "optional_slots": [],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": false
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "forensics.evidence_package_summary",
+      "family": "case_cross_family",
+      "accepted_evidence_families": [
+       "all"
+      ],
+      "intent_class": "summarize",
+      "measures": null,
+      "aggregations": [
+       "SUM"
+      ],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "EXACT_TERM",
+       "SEMANTIC",
+       "HYBRID",
+       "METADATA_FILTERED",
+       "SOURCE_SCOPED"
+      ],
+      "result_kind": "aggregate",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": false
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "forensics.executive_case_brief",
+      "family": "case_cross_family",
+      "accepted_evidence_families": [
+       "all"
+      ],
+      "intent_class": "summarize",
+      "measures": null,
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "EXACT_TERM",
+       "SEMANTIC",
+       "HYBRID",
+       "METADATA_FILTERED",
+       "SOURCE_SCOPED"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": false
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "forensics.imei_imsi_usage",
+      "family": "communications_cdr",
+      "accepted_evidence_families": [
+       "communications_cdr"
+      ],
+      "intent_class": "aggregate",
+      "measures": null,
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "forensics.longest_call",
+      "family": "communications_cdr",
+      "accepted_evidence_families": [
+       "communications_cdr"
+      ],
+      "intent_class": "rank",
+      "measures": null,
+      "aggregations": [
+       "MAX"
+      ],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable",
+       "ascending",
+       "descending",
+       "top_k"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "forensics.night_activity",
+      "family": "communications_cdr",
+      "accepted_evidence_families": [
+       "communications_cdr"
+      ],
+      "intent_class": "timeline",
+      "measures": null,
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable",
+       "chronological"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "aggregate",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "forensics.relationship_network",
+      "family": "case_cross_family",
+      "accepted_evidence_families": [
+       "access_security_logs",
+       "anpr_vehicles",
+       "communications_cdr",
+       "financial_transactions",
+       "generic_tabular",
+       "network_ipdr",
+       "subscriber_identity",
+       "tower_location"
+      ],
+      "intent_class": "relationship",
+      "measures": null,
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "forensics.repeated_location_visits",
+      "family": "communications_cdr",
+      "accepted_evidence_families": [
+       "communications_cdr"
+      ],
+      "intent_class": "lookup",
+      "measures": null,
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "geo",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "forensics.shortest_call",
+      "family": "communications_cdr",
+      "accepted_evidence_families": [
+       "communications_cdr"
+      ],
+      "intent_class": "rank",
+      "measures": null,
+      "aggregations": [
+       "MIN"
+      ],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable",
+       "ascending",
+       "descending",
+       "top_k"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "forensics.source_records",
+      "family": "case_cross_family",
+      "accepted_evidence_families": [
+       "access_security_logs",
+       "anpr_vehicles",
+       "communications_cdr",
+       "financial_transactions",
+       "generic_tabular",
+       "network_ipdr",
+       "subscriber_identity",
+       "tower_location"
+      ],
+      "intent_class": "inspect",
+      "measures": null,
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "forensics.subscriber_profile",
+      "family": "communications_cdr",
+      "accepted_evidence_families": [
+       "communications_cdr",
+       "generic_tabular",
+       "subscriber_identity"
+      ],
+      "intent_class": "lookup",
+      "measures": null,
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "forensics.top_locations",
+      "family": "communications_cdr",
+      "accepted_evidence_families": [
+       "communications_cdr"
+      ],
+      "intent_class": "rank",
+      "measures": null,
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable",
+       "ascending",
+       "descending",
+       "top_k"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "geo",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "generic.filter_records",
+      "family": "generic_tabular",
+      "accepted_evidence_families": [
+       "generic_tabular"
+      ],
+      "intent_class": "lookup",
+      "measures": [
+       "matching row count"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "image.metadata",
+      "family": "image_intelligence",
+      "accepted_evidence_families": [
+       "image_intelligence"
+      ],
+      "intent_class": "lookup",
+      "measures": [
+       "evidence count",
+       "completed artifact count",
+       "size bytes"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "image.ocr_search",
+      "family": "image_intelligence",
+      "accepted_evidence_families": [
+       "image_intelligence"
+      ],
+      "intent_class": "retrieve",
+      "measures": null,
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "EXACT_TERM",
+       "EXACT_PHRASE",
+       "FULL_TEXT",
+       "SOURCE_SCOPED"
+      ],
+      "result_kind": "document",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": false
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "ipdr.concurrent_sessions",
+      "family": "network_ipdr",
+      "accepted_evidence_families": [
+       "network_ipdr"
+      ],
+      "intent_class": "lookup",
+      "measures": [
+       "overlap count",
+       "overlap start",
+       "overlap end",
+       "overlap seconds"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "ipdr.domain_summary",
+      "family": "network_ipdr",
+      "accepted_evidence_families": [
+       "network_ipdr"
+      ],
+      "intent_class": "summarize",
+      "measures": [
+       "session count",
+       "byte totals",
+       "first seen",
+       "last seen"
+      ],
+      "aggregations": [
+       "COUNT",
+       "SUM"
+      ],
+      "grouping_dimensions": [
+       "explicit normalized domain"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "aggregate",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "ipdr.endpoint_summary",
+      "family": "network_ipdr",
+      "accepted_evidence_families": [
+       "network_ipdr"
+      ],
+      "intent_class": "summarize",
+      "measures": [
+       "session count",
+       "uploaded bytes",
+       "downloaded bytes",
+       "first seen",
+       "last seen"
+      ],
+      "aggregations": [
+       "COUNT",
+       "SUM"
+      ],
+      "grouping_dimensions": [
+       "source/destination IP",
+       "NAT IP",
+       "ports",
+       "protocol"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "aggregate",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "ipdr.protocol_breakdown",
+      "family": "network_ipdr",
+      "accepted_evidence_families": [
+       "network_ipdr"
+      ],
+      "intent_class": "aggregate",
+      "measures": [
+       "session count",
+       "byte totals",
+       "duration total"
+      ],
+      "aggregations": [
+       "COUNT",
+       "SUM"
+      ],
+      "grouping_dimensions": [
+       "explicit protocol"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "aggregate",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "ipdr.session_volume",
+      "family": "network_ipdr",
+      "accepted_evidence_families": [
+       "network_ipdr"
+      ],
+      "intent_class": "lookup",
+      "measures": [
+       "session count",
+       "uploaded bytes",
+       "downloaded bytes"
+      ],
+      "aggregations": [
+       "COUNT",
+       "SUM"
+      ],
+      "grouping_dimensions": [
+       "hour"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "ipdr.subscriber_sessions",
+      "family": "network_ipdr",
+      "accepted_evidence_families": [
+       "network_ipdr"
+      ],
+      "intent_class": "lookup",
+      "measures": [
+       "session count",
+       "duration",
+       "uploaded bytes",
+       "downloaded bytes"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "ipdr.timeline",
+      "family": "network_ipdr",
+      "accepted_evidence_families": [
+       "network_ipdr"
+      ],
+      "intent_class": "timeline",
+      "measures": [
+       "session count",
+       "duration",
+       "byte totals"
+      ],
+      "aggregations": [
+       "COUNT",
+       "SUM"
+      ],
+      "grouping_dimensions": [
+       "session start"
+      ],
+      "ordering_semantics": [
+       "stable",
+       "chronological"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "timeline",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "subscriber.conflict_audit",
+      "family": "subscriber_identity",
+      "accepted_evidence_families": [
+       "subscriber_identity"
+      ],
+      "intent_class": "compare",
+      "measures": [
+       "distinct MSISDN count",
+       "distinct IMSI count",
+       "distinct ICCID count",
+       "distinct IMEI count",
+       "distinct service count",
+       "distinct provider count",
+       "distinct status count",
+       "distinct CNIC count"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": [
+       "stable explicit subscriber reference or MSISDN"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "subscriber.device_links",
+      "family": "subscriber_identity",
+      "accepted_evidence_families": [
+       "subscriber_identity"
+      ],
+      "intent_class": "relationship",
+      "measures": [
+       "MSISDN observations",
+       "IMSI observations",
+       "ICCID observations",
+       "IMEI observations",
+       "service observations",
+       "first seen",
+       "last seen"
+      ],
+      "aggregations": [],
+      "grouping_dimensions": [
+       "source row"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "subscriber.identity_lookup",
+      "family": "subscriber_identity",
+      "accepted_evidence_families": [
+       "subscriber_identity"
+      ],
+      "intent_class": "lookup",
+      "measures": [
+       "matching rows",
+       "first explicit validity start",
+       "last explicit validity end"
+      ],
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "subscriber.reuse_candidates",
+      "family": "subscriber_identity",
+      "accepted_evidence_families": [
+       "subscriber_identity"
+      ],
+      "intent_class": "lookup",
+      "measures": [
+       "distinct MSISDN count",
+       "observation count",
+       "first seen",
+       "last seen"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": [
+       "identifier kind",
+       "identifier value"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "subscriber.status_summary",
+      "family": "subscriber_identity",
+      "accepted_evidence_families": [
+       "subscriber_identity"
+      ],
+      "intent_class": "summarize",
+      "measures": [
+       "row count",
+       "first validity start",
+       "last validity end"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": [
+       "explicit status",
+       "manual-review state"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "aggregate",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "subscriber.validity_timeline",
+      "family": "subscriber_identity",
+      "accepted_evidence_families": [
+       "subscriber_identity"
+      ],
+      "intent_class": "timeline",
+      "measures": [
+       "activation time",
+       "deactivation time",
+       "valid from",
+       "valid to",
+       "status"
+      ],
+      "aggregations": [],
+      "grouping_dimensions": [
+       "source row"
+      ],
+      "ordering_semantics": [
+       "stable",
+       "chronological"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "timeline",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "tower.alias_conflicts",
+      "family": "tower_location",
+      "accepted_evidence_families": [
+       "tower_location"
+      ],
+      "intent_class": "compare",
+      "measures": [
+       "overlapping validity pairs",
+       "distinct coordinates",
+       "distinct technologies",
+       "distinct statuses",
+       "distinct datums",
+       "distinct uncertainty radii"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": [
+       "provider/site/sector history key"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "tower.cdr_join",
+      "family": "tower_location",
+      "accepted_evidence_families": [
+       "communications_cdr",
+       "tower_location"
+      ],
+      "intent_class": "lookup",
+      "measures": [
+       "CDR observations",
+       "reference candidates",
+       "eligible references",
+       "match status",
+       "reference age",
+       "coordinates",
+       "uncertainty radius"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "geo",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "tower.coordinate_audit",
+      "family": "tower_location",
+      "accepted_evidence_families": [
+       "tower_location"
+      ],
+      "intent_class": "inspect",
+      "measures": [
+       "latitude",
+       "longitude",
+       "datum",
+       "uncertainty radius",
+       "quality flags"
+      ],
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "tower.reference_timeline",
+      "family": "tower_location",
+      "accepted_evidence_families": [
+       "tower_location"
+      ],
+      "intent_class": "timeline",
+      "measures": [
+       "valid from",
+       "valid to",
+       "validity basis",
+       "status",
+       "technology",
+       "coordinates",
+       "uncertainty"
+      ],
+      "aggregations": [],
+      "grouping_dimensions": [
+       "provider/site/sector history key",
+       "reference observation"
+      ],
+      "ordering_semantics": [
+       "stable",
+       "chronological"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "timeline",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "tower.site_lookup",
+      "family": "tower_location",
+      "accepted_evidence_families": [
+       "tower_location"
+      ],
+      "intent_class": "lookup",
+      "measures": [
+       "reference observations",
+       "coordinates",
+       "uncertainty radius",
+       "validity bounds"
+      ],
+      "aggregations": [],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "tower.status_summary",
+      "family": "tower_location",
+      "accepted_evidence_families": [
+       "tower_location"
+      ],
+      "intent_class": "summarize",
+      "measures": [
+       "reference row count",
+       "first reference",
+       "last reference"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": [
+       "status",
+       "technology",
+       "manual-review state"
+      ],
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "aggregate",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "video.anpr_grouped_timeline",
+      "family": "anpr_vehicles",
+      "accepted_evidence_families": [
+       "anpr_vehicles",
+       "video_intelligence"
+      ],
+      "intent_class": "timeline",
+      "measures": [
+       "group count",
+       "sighting count",
+       "first source timestamp",
+       "last source timestamp",
+       "best observation"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": [
+       "equal normalized model observation"
+      ],
+      "ordering_semantics": [
+       "stable",
+       "chronological"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "timeline",
+      "required_semantic_slots": [
+       "evidence_id",
+       "target"
+      ],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "end_seconds",
+       "limit",
+       "plate",
+       "start_seconds"
+      ],
+      "server_bindable_slots": [
+       "evidence_id"
+      ],
+      "user_supplied_required_slots": [
+       "target"
+      ],
+      "dynamic_equivalent": true
+     },
+     {
+      "contract_version": "forensics.operation-applicability/v1",
+      "operation_id": "video.metadata",
+      "family": "video_intelligence",
+      "accepted_evidence_families": [
+       "video_intelligence"
+      ],
+      "intent_class": "lookup",
+      "measures": [
+       "evidence count",
+       "completed artifact count",
+       "size bytes"
+      ],
+      "aggregations": [
+       "COUNT"
+      ],
+      "grouping_dimensions": null,
+      "ordering_semantics": [
+       "stable"
+      ],
+      "retrieval_modes": [
+       "NONE"
+      ],
+      "result_kind": "table",
+      "required_semantic_slots": [],
+      "optional_slots": [
+       "date_from",
+       "date_to",
+       "limit",
+       "target"
+      ],
+      "server_bindable_slots": [],
+      "user_supplied_required_slots": [],
+      "dynamic_equivalent": true
+     }
+    ]
+   },
+   "embedding_resolution": {
+    "contract_version": "forensics.semantic-embedding-resolution/v1",
+    "model_id": "qwen3-embedding-0.6b",
+    "call_path": "/v1/embeddings",
+    "catalog_hash": "d3846787f7ac6b0c08a2caa755801ae0eb7b719f932a16ebab11131e6e5067b7",
+    "descriptor_count": 66,
+    "descriptor_cache_hit": true,
+    "question_embedding_calls": 0,
+    "state": "LEXICAL_FALLBACK",
+    "ranking_signal_only": true
+   },
+   "operation_resolution_scores": [
+    {
+     "operation_id": "cdr.frequent_contacts",
+     "rank": 1,
+     "bm25_score": 6.1069313336746145,
+     "exact_metadata": 0,
+     "family_compatibility": 6,
+     "intent_compatibility": 5,
+     "grouping_compatibility": 6,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 23.106931333674616
+    },
+    {
+     "operation_id": "forensics.top_locations",
+     "rank": 2,
+     "bm25_score": 8.181190842355797,
+     "exact_metadata": 0,
+     "family_compatibility": 6,
+     "intent_compatibility": 5,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 19.181190842355797
+    },
+    {
+     "operation_id": "cdr.multi_source_comparison",
+     "rank": 3,
+     "bm25_score": 5.397233326810334,
+     "exact_metadata": 0,
+     "family_compatibility": 6,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 6,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 17.397233326810333
+    },
+    {
+     "operation_id": "forensics.longest_call",
+     "rank": 4,
+     "bm25_score": 3.8897484848849473,
+     "exact_metadata": 0,
+     "family_compatibility": 6,
+     "intent_compatibility": 5,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 14.889748484884947
+    },
+    {
+     "operation_id": "forensics.shortest_call",
+     "rank": 5,
+     "bm25_score": 3.8683464446985196,
+     "exact_metadata": 0,
+     "family_compatibility": 6,
+     "intent_compatibility": 5,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 14.86834644469852
+    },
+    {
+     "operation_id": "cdr.call_type_breakdown",
+     "rank": 6,
+     "bm25_score": 3.791406851015841,
+     "exact_metadata": 0,
+     "family_compatibility": 6,
+     "intent_compatibility": 5,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 14.791406851015841
+    },
+    {
+     "operation_id": "forensics.imei_imsi_usage",
+     "rank": 7,
+     "bm25_score": 3.2662120584266745,
+     "exact_metadata": 0,
+     "family_compatibility": 6,
+     "intent_compatibility": 5,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 14.266212058426675
+    },
+    {
+     "operation_id": "cdr.service_usage",
+     "rank": 8,
+     "bm25_score": 3.0531519372496225,
+     "exact_metadata": 0,
+     "family_compatibility": 6,
+     "intent_compatibility": 5,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 14.053151937249623
+    },
+    {
+     "operation_id": "cdr.tower_activity",
+     "rank": 9,
+     "bm25_score": 3.0403912173548377,
+     "exact_metadata": 0,
+     "family_compatibility": 6,
+     "intent_compatibility": 5,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 14.040391217354838
+    },
+    {
+     "operation_id": "cdr.duration_extremes",
+     "rank": 10,
+     "bm25_score": 3.0027635634481626,
+     "exact_metadata": 0,
+     "family_compatibility": 6,
+     "intent_compatibility": 5,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 14.002763563448163
+    },
+    {
+     "operation_id": "forensics.activity_by_hour",
+     "rank": 11,
+     "bm25_score": 3.3110823158926777,
+     "exact_metadata": 0,
+     "family_compatibility": 6,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 9.311082315892678
+    },
+    {
+     "operation_id": "forensics.night_activity",
+     "rank": 12,
+     "bm25_score": 3.2959833510567864,
+     "exact_metadata": 0,
+     "family_compatibility": 6,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 9.295983351056787
+    },
+    {
+     "operation_id": "forensics.repeated_location_visits",
+     "rank": 13,
+     "bm25_score": 3.2662120584266745,
+     "exact_metadata": 0,
+     "family_compatibility": 6,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 9.266212058426675
+    },
+    {
+     "operation_id": "forensics.subscriber_profile",
+     "rank": 14,
+     "bm25_score": 3.251535573787158,
+     "exact_metadata": 0,
+     "family_compatibility": 6,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 9.251535573787159
+    },
+    {
+     "operation_id": "cdr.device_identity_changes",
+     "rank": 15,
+     "bm25_score": 3.2269303212059093,
+     "exact_metadata": 0,
+     "family_compatibility": 6,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 9.22693032120591
+    },
+    {
+     "operation_id": "cdr.timeline",
+     "rank": 16,
+     "bm25_score": 3.0277405549277088,
+     "exact_metadata": 0,
+     "family_compatibility": 6,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 9.027740554927709
+    },
+    {
+     "operation_id": "cdr.geospatial_movement",
+     "rank": 17,
+     "bm25_score": 2.9965858423994183,
+     "exact_metadata": 0,
+     "family_compatibility": 6,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 8.99658584239942
+    },
+    {
+     "operation_id": "cdr.temporal_activity",
+     "rank": 18,
+     "bm25_score": 2.9965858423994183,
+     "exact_metadata": 0,
+     "family_compatibility": 6,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 8.99658584239942
+    },
+    {
+     "operation_id": "anpr.camera_activity",
+     "rank": 19,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 5,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 3.5
+    },
+    {
+     "operation_id": "forensics.collection_overview",
+     "rank": 20,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 5,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 3.5
+    },
+    {
+     "operation_id": "forensics.entity_activity",
+     "rank": 21,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 5,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 3.5
+    },
+    {
+     "operation_id": "ipdr.protocol_breakdown",
+     "rank": 22,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 5,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 3.5
+    },
+    {
+     "operation_id": "forensics.canonical_records",
+     "rank": 23,
+     "bm25_score": 4.602176489451911,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": 3.102176489451911
+    },
+    {
+     "operation_id": "access.failed_events",
+     "rank": 24,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "anpr.camera_sequence",
+     "rank": 25,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "anpr.co_travel",
+     "rank": 26,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "anpr.plate_variants",
+     "rank": 27,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "anpr.route_timing",
+     "rank": 28,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "anpr.sightings",
+     "rank": 29,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "anpr.timeline",
+     "rank": 30,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "audio.metadata",
+     "rank": 31,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "audio.transcript_search",
+     "rank": 32,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "document.metadata",
+     "rank": 33,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "document.search",
+     "rank": 34,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "financial.transaction_summary",
+     "rank": 35,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "forensics.case_readiness",
+     "rank": 36,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "forensics.cross_family_correlation",
+     "rank": 37,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "forensics.data_quality",
+     "rank": 38,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "forensics.evidence",
+     "rank": 39,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "forensics.evidence_package_summary",
+     "rank": 40,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "forensics.executive_case_brief",
+     "rank": 41,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "forensics.relationship_network",
+     "rank": 42,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "forensics.source_records",
+     "rank": 43,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "generic.filter_records",
+     "rank": 44,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "image.metadata",
+     "rank": 45,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "image.ocr_search",
+     "rank": 46,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "ipdr.concurrent_sessions",
+     "rank": 47,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "ipdr.domain_summary",
+     "rank": 48,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "ipdr.endpoint_summary",
+     "rank": 49,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "ipdr.session_volume",
+     "rank": 50,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "ipdr.subscriber_sessions",
+     "rank": 51,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "ipdr.timeline",
+     "rank": 52,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "subscriber.conflict_audit",
+     "rank": 53,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "subscriber.device_links",
+     "rank": 54,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "subscriber.identity_lookup",
+     "rank": 55,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "subscriber.reuse_candidates",
+     "rank": 56,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "subscriber.status_summary",
+     "rank": 57,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "subscriber.validity_timeline",
+     "rank": 58,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "tower.alias_conflicts",
+     "rank": 59,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "tower.cdr_join",
+     "rank": 60,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "tower.coordinate_audit",
+     "rank": 61,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "tower.reference_timeline",
+     "rank": 62,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "tower.site_lookup",
+     "rank": 63,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "tower.status_summary",
+     "rank": 64,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "video.anpr_grouped_timeline",
+     "rank": 65,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    },
+    {
+     "operation_id": "video.metadata",
+     "rank": 66,
+     "bm25_score": 0,
+     "exact_metadata": 0,
+     "family_compatibility": -1.5,
+     "intent_compatibility": 0,
+     "grouping_compatibility": 0,
+     "retrieval_compatibility": 0,
+     "time_compatibility": 0,
+     "total_score": -1.5
+    }
+   ],
+   "resolution_score": 23.106931333674616,
+   "resolution_margin": 3.9257404913188196
+  },
+  "source": "semantic_deterministic_registered+explicit_template",
+  "target_type": "",
+  "targets": []
+ },
+ "query_plan": {
+  "interpreted_intent": "records",
+  "selected_template": "frequent_contacts",
+  "target_identifiers": [],
+  "date_bounds": {},
+  "applied_filters": {
+   "field_hints": [],
+   "target_type": ""
+  },
+  "confidence": 1,
+  "coverage_check": {
+   "total_indexed_records": 0,
+   "record_families_present": null,
+   "nearest_activity": {},
+   "valid_target_examples": null
+  },
+  "execution_strategy": "sql_deterministic"
+ },
+ "capability": {
+  "status": "supported_by_selected_route",
+  "requested_families": [],
+  "required_operations": [],
+  "missing_capabilities": [],
+  "explanation": "The selected deterministic or evidence route may run; collection coverage is reported separately.",
+  "suggested_queries": []
+ },
+ "coverage": {
+  "total_indexed_records": 0,
+  "record_families_present": null,
+  "nearest_activity": {},
+  "valid_target_examples": null
+ },
+ "answer": {
+  "clarification": "Which number or subscriber should I analyze for frequent contacts?",
+  "clarification_required": true,
+  "guardrail": "No records query was run because the request needs one missing identifier.",
+  "limitations": [
+   "A target-specific query was detected, but no target identifier was provided or extractable from the request."
+  ]
+ },
+ "enterprise": {
+  "clarification": "Which number or subscriber should I analyze for frequent contacts?",
+  "contribution_lineage": null,
+  "conversation_context": {
+   "analysis_id": "",
+   "audit_id": "ctx-1789712876655217395",
+   "citation_handles": [],
+   "collection_id": "nexusai-forensic-demo",
+   "contract_version": "forensics.follow-up-context/v1",
+   "conversation_id": "",
+   "created_at": "2026-09-18T06:27:56Z",
+   "current_question": "Which phone number made the most calls?",
+   "date_from": "",
+   "date_to": "",
+   "direction": "",
+   "entity_handles": [],
+   "evidence_id": "",
+   "evidence_version_id": "",
+   "expires_at": "2026-09-18T06:57:56Z",
+   "fact_handles": [
+    {
+     "handle_id": "fact-F1",
+     "kind": "fact",
+     "fact_id": "F1"
+    },
+    {
+     "handle_id": "fact-F2",
+     "kind": "fact",
+     "fact_id": "F2"
+    },
+    {
+     "handle_id": "fact-F3",
+     "kind": "fact",
+     "fact_id": "F3"
+    },
+    {
+     "handle_id": "fact-F4",
+     "kind": "fact",
+     "fact_id": "F4"
+    },
+    {
+     "handle_id": "fact-F5",
+     "kind": "fact",
+     "fact_id": "F5"
+    },
+    {
+     "handle_id": "fact-F6",
+     "kind": "fact",
+     "fact_id": "F6"
+    }
+   ],
+   "inherited_fields": null,
+   "issued_fields": null,
+   "mutation": null,
+   "operation_id": "cdr.frequent_contacts",
+   "result_handles": [],
+   "source_native": null,
+   "source_set": null,
+   "target": "",
+   "targets": [],
+   "template": "frequent_contacts",
+   "tenant_id": "default",
+   "turn_id": "",
+   "user_id": "live-eval"
+  },
+  "coverage": {
+   "collection_id": "nexusai-forensic-demo",
+   "collection_max_timestamp": "",
+   "collection_min_timestamp": "",
+   "date_from": "",
+   "date_to": "",
+   "direction": "",
+   "nearest_activity": {},
+   "queried_kb": false,
+   "queried_record_sql": false,
+   "record_families_present": null,
+   "route": [
+    "clarification"
+   ],
+   "target": "",
+   "template": "frequent_contacts",
+   "tenant_id": "default",
+   "total_indexed_records": 0,
+   "valid_target_examples": null
+  },
+  "data_grid": {
+   "columns": null,
+   "count": 0,
+   "rows": null
+  },
+  "executive_answer": "Which number or subscriber should I analyze for frequent contacts?",
+  "fact_packet": {
+   "contract_version": "forensics.fact-packet/v1",
+   "request_id": "9ceeeda7-be32-45e7-9895-8263a86f8593",
+   "question": "Which phone number made the most calls?",
+   "language": {
+    "tag": "en",
+    "source": "deterministic_extractor",
+    "confidence": 0.9
+   },
+   "scope": {
+    "tenant_id": "default",
+    "case_id": "nexusai-forensic-demo",
+    "collection_id": "nexusai-forensic-demo"
+   },
+   "operation_id": "cdr.frequent_contacts",
+   "normalized_parameters": {
+    "date_from": "",
+    "date_to": "",
+    "direction": "",
+    "limit": 20,
+    "retrieval_mode": "NONE",
+    "source_file": "",
+    "source_set": null,
+    "target": "",
+    "targets": []
+   },
+   "execution_mode": "clarification",
+   "result_state": "invalid_request",
+   "facts": [
+    {
+     "fact_id": "F1",
+     "kind": "direct_answer",
+     "text": "Which number or subscriber should I analyze for frequent contacts?",
+     "citation_ids": null
+    },
+    {
+     "fact_id": "F2",
+     "kind": "metric",
+     "text": "Template: frequent_contacts",
+     "value": "frequent_contacts",
+     "citation_ids": null
+    },
+    {
+     "fact_id": "F3",
+     "kind": "metric",
+     "text": "Route: clarification",
+     "value": "clarification",
+     "citation_ids": null
+    },
+    {
+     "fact_id": "F4",
+     "kind": "metric",
+     "text": "Planner Confidence: 1",
+     "value": 1,
+     "citation_ids": null
+    },
+    {
+     "fact_id": "F5",
+     "kind": "metric",
+     "text": "Display Rows: 0",
+     "value": 0,
+     "citation_ids": null
+    },
+    {
+     "fact_id": "F6",
+     "kind": "metric",
+     "text": "Provenance Items: 0",
+     "value": 0,
+     "citation_ids": null
+    }
+   ],
+   "metrics": [
+    {
+     "label": "Template",
+     "source": "planner",
+     "value": "frequent_contacts"
+    },
+    {
+     "label": "Route",
+     "source": "planner",
+     "value": "clarification"
+    },
+    {
+     "label": "Planner Confidence",
+     "source": "planner",
+     "value": 1
+    },
+    {
+     "label": "Display Rows",
+     "source": "records_sql",
+     "value": 0
+    },
+    {
+     "label": "Records Row Count",
+     "source": "records_sql",
+     "value": null
+    },
+    {
+     "label": "Evidence Count",
+     "source": "kb_rag",
+     "value": null
+    },
+    {
+     "label": "Provenance Items",
+     "source": "records_sql+kb_rag",
+     "value": 0
+    }
+   ],
+   "rows": null,
+   "row_set_state": "complete",
+   "relationships": [],
+   "citations": [],
+   "citation_set_state": "complete",
+   "conflicts": [],
+   "limitations": [
+    "Which number or subscriber should I analyze for frequent contacts?",
+    "No records query was run because the request needs one missing identifier.",
+    "A target-specific query was detected, but no target identifier was provided or extractable from the request."
+   ],
+   "missingness": [],
+   "quality_warnings": null,
+   "available_follow_up_capabilities": [
+    {
+     "label": "Show available entities",
+     "query": "show available entities",
+     "reason": "Find valid targets before running a target-specific workflow.",
+     "template": "entity_activity"
+    },
+    {
+     "label": "Audit source files",
+     "query": "which files were ingested?",
+     "reason": "Confirm the collection has the expected source evidence.",
+     "template": "source_file_audit"
+    }
+   ],
+   "presentation_hints": {
+    "direction": "ltr",
+    "language": "en",
+    "presentation_type": "bounded_records_table",
+    "priority_columns": [],
+    "result_kind": "ranked"
+   }
+  },
+  "limitations": [
+   "Which number or subscriber should I analyze for frequent contacts?",
+   "No records query was run because the request needs one missing identifier.",
+   "A target-specific query was detected, but no target identifier was provided or extractable from the request."
+  ],
+  "metrics": [
+   {
+    "label": "Template",
+    "source": "planner",
+    "value": "frequent_contacts"
+   },
+   {
+    "label": "Route",
+    "source": "planner",
+    "value": "clarification"
+   },
+   {
+    "label": "Planner Confidence",
+    "source": "planner",
+    "value": 1
+   },
+   {
+    "label": "Display Rows",
+    "source": "records_sql",
+    "value": 0
+   },
+   {
+    "label": "Records Row Count",
+    "source": "records_sql",
+    "value": null
+   },
+   {
+    "label": "Evidence Count",
+    "source": "kb_rag",
+    "value": null
+   },
+   {
+    "label": "Provenance Items",
+    "source": "records_sql+kb_rag",
+    "value": 0
+   }
+  ],
+  "narrative": {
+   "contract_version": "forensics.narrative/v1",
+   "locale": "en",
+   "direction": "ltr",
+   "status": "deterministic",
+   "direct_answer": "Which number or subscriber should I analyze for frequent contacts?",
+   "key_findings": [
+    {
+     "text": "Which number or subscriber should I analyze for frequent contacts?",
+     "claim_type": "direct_answer",
+     "fact_refs": [
+      "F1"
+     ],
+     "citation_refs": null
+    },
+    {
+     "text": "Template: frequent_contacts",
+     "claim_type": "metric",
+     "fact_refs": [
+      "F2"
+     ],
+     "citation_refs": null
+    },
+    {
+     "text": "Route: clarification",
+     "claim_type": "metric",
+     "fact_refs": [
+      "F3"
+     ],
+     "citation_refs": null
+    },
+    {
+     "text": "Planner Confidence: 1",
+     "claim_type": "metric",
+     "fact_refs": [
+      "F4"
+     ],
+     "citation_refs": null
+    },
+    {
+     "text": "Display Rows: 0",
+     "claim_type": "metric",
+     "fact_refs": [
+      "F5"
+     ],
+     "citation_refs": null
+    }
+   ],
+   "comparisons": [],
+   "relationship_summary": [],
+   "limitations": [
+    "Which number or subscriber should I analyze for frequent contacts?",
+    "No records query was run because the request needs one missing identifier.",
+    "A target-specific query was detected, but no target identifier was provided or extractable from the request."
+   ],
+   "suggested_questions": [
+    "show available entities",
+    "which files were ingested?"
+   ],
+   "fact_refs": [
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6"
+   ],
+   "citation_refs": [],
+   "fallback": true
+  },
+  "operation": {
+   "family_id": "communications_cdr",
+   "operation_id": "cdr.frequent_contacts",
+   "output_description": "Ranked phone-counterparty matrix for one explicit participant, with interaction counts and time coverage.",
+   "source_access": "records",
+   "template": "frequent_contacts"
+  },
+  "processing_state": "",
+  "proof_state": {
+   "citations": "complete",
+   "rows": "complete"
+  },
+  "provenance": [],
+  "recommended_actions": [
+   {
+    "label": "Show available entities",
+    "query": "show available entities",
+    "reason": "Find valid targets before running a target-specific workflow.",
+    "template": "entity_activity"
+   },
+   {
+    "label": "Audit source files",
+    "query": "which files were ingested?",
+    "reason": "Confirm the collection has the expected source evidence.",
+    "template": "source_file_audit"
+   }
+  ],
+  "result_kind": "ranked",
+  "result_state": "invalid_request",
+  "row_count": 0,
+  "status": "needs_input",
+  "summary": "More information is required before this analysis can run. No SQL template was executed and no result was inferred.",
+  "synthesis": {
+   "claims": [
+    {
+     "claim": "Which number or subscriber should I analyze for frequent contacts?",
+     "source": "Planner Guidance"
+    }
+   ],
+   "policy": "Claims are labeled by source: deterministic SQL facts are computed from records templates; semantic context comes from Knowledge Base retrieval."
+  },
+  "telemetry": {
+   "request_id": "9ceeeda7-be32-45e7-9895-8263a86f8593",
+   "db_latency_ms": 0,
+   "kb_latency_ms": 0,
+   "llm_latency_ms": 0,
+   "total_latency_ms": 2319,
+   "planner_confidence": 1,
+   "execution_path": "clarification"
+  }
+ },
+ "telemetry": {
+  "request_id": "9ceeeda7-be32-45e7-9895-8263a86f8593",
+  "db_latency_ms": 0,
+  "kb_latency_ms": 0,
+  "llm_latency_ms": 0,
+  "total_latency_ms": 2319,
+  "planner_confidence": 1,
+  "execution_path": "clarification"
+ },
+ "generated_at": "2026-09-18T06:27:56.654682557Z"
+}

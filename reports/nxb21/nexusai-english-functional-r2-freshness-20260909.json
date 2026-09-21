@@ -1,0 +1,17 @@
+{
+  "contract_version": "nexusai.english-functional-freshness/v1",
+  "corpus_id": "nxb21-english-functional-current-4b-fresh-r2-20260909",
+  "files_scanned": 3877,
+  "question_count": 149,
+  "question_overlap": 0,
+  "normalized_literal_overlap": 0,
+  "prior_corpus_overlap": 0,
+  "expected_workspace_operations": 66,
+  "covered_workspace_operations": 66,
+  "missing_operations": [],
+  "extra_operations": [],
+  "exact_hits": [],
+  "normalized_hits": [],
+  "prior_corpus_hits": [],
+  "status": "PASS"
+}

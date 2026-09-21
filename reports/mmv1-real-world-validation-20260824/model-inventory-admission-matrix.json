@@ -1,0 +1,75 @@
+{
+  "contract_version": "nexusai.mmv1.model-inventory/v1",
+  "rows": [
+    {
+      "task": "Pakistan ANPR",
+      "current": "FastALPR YOLO v9 + CCT XS v2",
+      "classification": "CURRENT_MODEL_ACCEPTED",
+      "evidence": "sample.mp4 detected LN15ZZC at 25s"
+    },
+    {
+      "task": "general image OCR",
+      "current": "Tesseract 5 eng+urd",
+      "classification": "CURRENT_MODEL_ACCEPTED_LIMITED",
+      "evidence": "English/general product baseline remains review-required"
+    },
+    {
+      "task": "Urdu OCR",
+      "current": "Tesseract 5 eng+urd",
+      "candidate": "PaddleOCR arabic_PP-OCRv5_mobile_rec",
+      "source": "https://paddlepaddle.github.io/PaddleOCR/main/en/version3.x/algorithm/PP-OCRv5/PP-OCRv5_multi_languages.html",
+      "license": "Apache-2.0 project; packaged model notice must be verified",
+      "revision": null,
+      "sha256": null,
+      "size": "official table reports approximately 7.6 MB recognition model",
+      "runtime": "PaddleOCR/PaddlePaddle adapter; offline after admission",
+      "hardware": "CPU benchmark required",
+      "fixtures": "MMV-1 Urdu OCR pack",
+      "accuracy": "not_run",
+      "latency": "not_run",
+      "memory": "not_run",
+      "security": "new dependency and model supply-chain review",
+      "rollback": "retain Tesseract eng+urd",
+      "classification": "CHALLENGER_NEEDED_M2",
+      "decision": "admission incomplete; no download authorized"
+    },
+    {
+      "task": "Urdu/Pakistani speech ASR",
+      "current": "faster-whisper-small",
+      "classification": "CURRENT_MODEL_ACCEPTED_LIMITED",
+      "evidence": "natural WER 0.6000 and 0.3333; synthetic identifiers weak"
+    },
+    {
+      "task": "audio diarization",
+      "current": null,
+      "classification": "RESEARCH_M3",
+      "evidence": "not implemented"
+    },
+    {
+      "task": "face candidate similarity",
+      "current": "YuNet + SFace",
+      "classification": "CURRENT_MODEL_ACCEPTED",
+      "evidence": "candidate similarity only; never identity"
+    },
+    {
+      "task": "visual embeddings",
+      "current": "SigLIP base patch16-224",
+      "classification": "CURRENT_MODEL_ACCEPTED_LIMITED",
+      "evidence": "bounded candidate ranking; Urdu text-image weak"
+    },
+    {
+      "task": "document layout/scanned Urdu",
+      "current": "native extraction + Tesseract",
+      "classification": "RESEARCH_M3",
+      "evidence": "layout/scanned Urdu corpus absent"
+    },
+    {
+      "task": "general VLM replacement",
+      "current": null,
+      "classification": "NOT_JUSTIFIED",
+      "evidence": "specialist processors currently provide stronger governed facts"
+    }
+  ],
+  "model_download_needed": "YES_FOR_FUTURE_URDU_OCR_CHALLENGER_ONLY",
+  "download_performed": false
+}

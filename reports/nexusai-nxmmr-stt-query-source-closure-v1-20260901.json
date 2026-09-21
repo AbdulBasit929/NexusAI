@@ -1,0 +1,59 @@
+{
+  "contract_version": "nexusai.nxmmr.stt-query-source-closure/v1",
+  "date": "2026-09-01",
+  "state": "LIVE_ACTIVATED_AWAITING_RETAINED_ACCEPTANCE",
+  "critical_query_matrix": {"passed": 16, "total": 16, "level": "source"},
+  "asr": {
+    "model": "faster-whisper-small-ur",
+    "english": {"wer_percent": 10.795, "cer_percent": 3.229, "failures": 0, "items": 10, "decision": "DEMO_ACCEPTABLE"},
+    "urdu": {"wer_percent": 45.45, "cer_percent": 16.46, "failures": 0, "items": 2, "decision": "DEMO_ACCEPTABLE_WITH_SUBSTANTIAL_LIMITATION"},
+    "fine_tuning_deferred": true
+  },
+  "activation": {
+    "ready": true,
+    "services": ["api", "forensic-records-api", "forensic-records-worker"],
+    "minimum_available_ram_gib": 6,
+    "measured_available_ram_gib": 5.08663558959961,
+    "preflight": "BLOCKED_RAM_ONLY",
+    "sequential_builds": true,
+    "ram_recheck_before_each_build": true,
+    "ram_recheck_before_recreation": true,
+    "post_build_ram_wait_minutes": 30,
+    "safe_clean_page_cache_recovery": true,
+    "completed_builds_resumable": true,
+    "first_operator_attempt": {
+      "preflight_ram_gib": [6.8839, 6.793],
+      "ram_before_api_build_gib": 6.197,
+      "ram_after_api_build_gib": 3.5039,
+      "api_image_built": true,
+      "recreation_started": false,
+      "legacy_image_auto_resumable": false
+    },
+    "corrected_live_read_only_ram_gib": 3.9478,
+    "corrected_live_read_only_checks": {"passed": 32, "total": 32},
+    "live_activation": {
+      "status": "VERIFIED",
+      "receipt": "20260901T154458190Z",
+      "final_operator_checks": {"passed": 34, "total": 34},
+      "final_ram_gib": 6.1611,
+      "images": {
+        "api": "sha256:130f3f40686ca971f6624c90575df7db6994044e18260a8271cd07fee5ab959f",
+        "forensic-records-api": "sha256:5c1d71cd903cc0b2ba541f2f846607bfcf60434ac1bf0c7ba0a0a69a7218c2a1",
+        "forensic-records-worker": "sha256:a7ca5956dcc15d1e8de012167e0b294a590c5093d944f5594eebe6456bd9957b"
+      },
+      "protected_service_identities_unchanged": true,
+      "active_jobs": 0
+    },
+    "runtime_mutated": false,
+    "retained_state_mutated": false,
+    "database_migration": false,
+    "volumes_changed": false
+  },
+  "tts": {
+    "english_acquisition_ready": false,
+    "english_blocker": "complete extracted installed-size and packaged transitive SBOM/license/notice closure",
+    "urdu_acquisition_ready": false,
+    "urdu_blocker": "required charactr/vocos-mel-22khz artifact is not publicly resolvable and therefore cannot be pinned and admitted"
+  },
+  "certification": {"product_certification_performed": false, "no_self_oracle": true}
+}

@@ -1,0 +1,68 @@
+{
+  "schema_version": "nexusai.nxb21.d-q4-final-qualification-freeze/v1",
+  "created_on": "2026-09-05",
+  "status": "FROZEN_NOT_EXECUTED",
+  "development_evidence": {
+    "candidate_id": "nxb21d-q4-explicit-scope-authority-r1",
+    "run_id": "run-20260905T081643297Z",
+    "receipt_sha256": "921229a78719a5594271b4ede2fd5aadabc6f3a52d50c3893e4dd5f5badfafe1",
+    "result": "16_OF_16_MODEL_AND_FINAL_PASS",
+    "runtime_integrity": "PASS"
+  },
+  "qualification_candidate": {
+    "candidate_id": "nxb21d-q4-final-qualification-r1",
+    "identity_sha256": "11c7ce2a5c0ed1d6bb83a8d2a9b26274dbcedf6c96b014a4c7e0404160c26371",
+    "artifact_sha256": "2fde00ce69dd4899c70d020845e2638353015bba0fdf161b3eb965f2bca4464e",
+    "profile_sha256": "30d3bcd8c92684e191277dad992354323b7e46c7d30d3c69149010e90f117129",
+    "temperature": 0,
+    "effective_context": 4096
+  },
+  "independent_holdout": {
+    "path": "scripts/nxb21d-q4-qualification/nxb21d-q4-independent-168case-holdout-v1.json",
+    "sha256": "aaa8517983ea4523e235c4b3de31e5562bfaeada21ef24a7b23065a567d31d13",
+    "cases": 168,
+    "questions_unique": 168,
+    "prior_question_overlap": 0,
+    "prior_oracle_value_overlap": 0,
+    "language_counts": {"en": 65, "ur": 37, "roman_ur": 36, "mixed": 30},
+    "critical_cases": 80,
+    "natural_cases": 88,
+    "capabilities": 22,
+    "consumed": false
+  },
+  "frozen_acceptance": {
+    "critical_percent": 100,
+    "natural_language_per_language_percent": 95,
+    "model_proposals_audited_separately": true
+  },
+  "source_validation": {
+    "corpus_validator": "PASS",
+    "deterministic_source_oracle": "PASS_168_OF_168",
+    "framework": "PASS_537_ASSERTIONS",
+    "evaluator_compilation": "PASS",
+    "model_inference": "NOT_RUN",
+    "holdout_consumption": "NOT_STARTED"
+  },
+  "operator_bundle": {
+    "directory": "scripts/nxb21d-q4-qualification",
+    "config_sha256": "7b3a7f2ca51b3e0c5b94197747e361db963e99138a8da2f72bd5e0d51a40151d",
+    "runner_sha256": "7544fb72cce245a5bbe3bc4901eb7bd213041ca39fe6467a0dc890253ed2b9cf",
+    "evaluator_sha256": "8100066faff4abc69fdc0bf444d10a8477bd903914d958be8eb6fd21b9db30d8",
+    "corpus_generator_sha256": "382e75d48d210cbf9e15eea68912904957f3395c36cea3dd22e90a890a30089e",
+    "corpus_validator_sha256": "5df4255ee594779cdc3bae92fc9809db3a433780d09f5963e8153afdedced77c",
+    "framework_test_sha256": "df238088fb6061897ff5e1a0f30157f97ad6f314e7110ab0ea456e56bfeeaacc",
+    "activation_runner_sha256": "e43a6b04ca1cb6b9930720918a7d0bacc64f0b5d5cce5d789dee6ccc7bfbe3f4",
+    "rollback_runner_sha256": "916ba584718d80cf2e11b3f18120e9430412f7dc5facee7c184def022af0b6d4",
+    "activation_source_manifest_sha256": "26d565355f5558718c927fd72356d337db98157ee7cb7c95e1c49e4dff02b22b",
+    "activation_source_digest_sha256": "b20512221f2a8ffbc931e5c0b4d9d0d7cb246899eb88fc2a630ba1af1a7540bd",
+    "preparation_run_id": "qualification-20260905T152339897Z",
+    "preparation_receipt_sha256": "01d28017aab8755147cd848dc4c1546c9e12f59b68a5810a1f024246406592cd",
+    "preparation_result": "PASS_NO_MODEL_LOAD_OR_UNLOAD_NO_HOLDOUT_CONSUMPTION"
+  },
+  "program_gate": {
+    "D_status": "OPEN_PENDING_ONE_SHOT_QUALIFICATION",
+    "E_status": "NOT_ACCEPTED",
+    "activation": "BLOCKED_PENDING_SUITABLE_RECEIPT_AND_OWNER_APPROVAL",
+    "exact_next_action": "Run the sealed qualification operator exactly once outside Codex, then return its receipt for review."
+  }
+}

@@ -1,0 +1,22 @@
+{
+    "phase":  "R6.4+R6.5-A1",
+    "status":  "live_accepted",
+    "deployed_utc":  "2026-08-11T05:38:44.3504842Z",
+    "presentation_contract_version":  "forensics.agent-presentation/v1",
+    "query_template_contract_version":  "forensics.query-template-catalog/v1",
+    "query_corpus_contract_version":  "forensics.family-query-answer-corpus/v1",
+    "query_corpus_version":  "2026-08-11.r6.4",
+    "case_id":  "nexusai-forensic-demo",
+    "agent_name":  "Forensic_Records_Analyst",
+    "template_count":  65,
+    "corpus_entry_count":  66,
+    "covered_template_count":  65,
+    "suggested_entry_count":  9,
+    "governance_scenario_count":  7,
+    "template_catalog_get":  "pass",
+    "query_corpus_get":  "pass",
+    "mutating_requests_sent":  0,
+    "schema_drop_attempted":  false,
+    "named_volumes_preserved":  true,
+    "rollback_images_preserved":  true
+}

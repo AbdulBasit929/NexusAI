@@ -1,0 +1,38 @@
+{
+  "contract_version": "nexusai.nxb21.selector-fairness-audit/v1",
+  "audit_scope": "saved request bytes only; no inference and no rerun",
+  "qwen_request_file": {
+    "path": "local-acceptance-models/nxb21-product-convergence-development/run-20260915T064053142Z-77a39c6d/model-requests.ndjson",
+    "sha256": "49fc7bc9f3324033de4187dea39d326cbabcc70c0689191878a9aed7266c4b78",
+    "selector_request_count": 5
+  },
+  "phi_request_file": {
+    "path": "local-acceptance-models/nxb21-phi4-mini-instruct-semantic/run-20260915T111523979Z-9fb7248b/model-requests.ndjson",
+    "sha256": "826a77c0a787fc04a88a51f89c81618df65ebc4b4f86d8794198f5f15b2e65cf",
+    "selector_request_count": 7
+  },
+  "rendered_prompt_tokens_approx": {
+    "method": "ceil(UTF-8 rendered prompt characters / 4)",
+    "minimum": 583,
+    "maximum": 647
+  },
+  "candidate_rendering": "JSON array of five compact server-issued descriptors with id, family, intent, meaning, optional measures/group_by, and result_kind",
+  "dynamic_option_position": 1,
+  "instruction_bias_toward_dynamic": true,
+  "instruction_bias_evidence": "DYNAMIC_TYPED_PLAN is the first enum and receives an explicit positive selection instruction; registered operations receive only the generic choose-best instruction.",
+  "decoding_constraint": "strict json_schema",
+  "output_schema_shape": {
+    "field_count": 1,
+    "required_fields": [
+      "decision"
+    ],
+    "semantic_nesting_depth": 1,
+    "response_schema_object_depth": 4,
+    "enum_count": 8,
+    "max_tokens": 96
+  },
+  "first_rendered_prompt_sha256": "e4cb3027f4a2e7843a7f790793b5fd0ece95898e9d3d066941eba6242f56f4c4",
+  "contract_defect_found": true,
+  "contract_defect": "The selector contract puts DYNAMIC_TYPED_PLAN first and explains it explicitly while not stating the symmetric registered-operation preference. The selector itself is already a flat one-field constrained task; the 12-field nested, 512-token failure belongs to the secondary dynamic-plan request, not this selector.",
+  "architectural_disposition": "audit closed; generative operation selection remains architecturally superseded"
+}

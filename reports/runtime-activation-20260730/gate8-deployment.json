@@ -1,0 +1,9 @@
+{
+    "gate":  8,
+    "deployed_utc":  "2026-07-30T05:53:23.2736459Z",
+    "localai_rollback_container":  "nexusai-api-pre-phase3-20260730t055216z",
+    "localai_image":  "nexusai/localai-forensic:phase3-runtime",
+    "forensic_api_image":  "nexusai/forensic-records-api:phase3-runtime",
+    "forensic_worker_image":  "nexusai/forensic-records-worker:phase3-runtime",
+    "named_volumes_preserved":  true
+}

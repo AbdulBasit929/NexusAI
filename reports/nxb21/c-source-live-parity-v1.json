@@ -1,0 +1,242 @@
+{
+  "schema_version": "nexusai.nxb21.c-source-live-parity/v1",
+  "verified_at": "2026-09-03T16:29:38.4100921Z",
+  "live": {
+    "catalog_version": "2026-08-28.nxb1.1",
+    "has_c_semantic_references": false,
+    "tts_advertised_state": "queryable",
+    "tts_role_enabled": false,
+    "tts_generation_ready": false,
+    "activation_receipt": "20260903T063719719Z"
+  },
+  "source_candidate": {
+    "capability_count": 22,
+    "tts_advertised_state": "unavailable",
+    "tts_generation_ready": false,
+    "semantic_contract": "derived-text-search/v1",
+    "deployment_attestation": "NOT_ATTESTED",
+    "readonly_retained_prerequisite_snapshot": [
+      {
+        "query_capability_id": "cdr.identifier_lookup",
+        "input_eligible": true,
+        "result_prerequisite_present": true,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": false,
+        "failed_current_job_present": false
+      },
+      {
+        "query_capability_id": "cdr.frequent_contacts",
+        "input_eligible": true,
+        "result_prerequisite_present": true,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": false,
+        "failed_current_job_present": false
+      },
+      {
+        "query_capability_id": "cdr.time_activity",
+        "input_eligible": true,
+        "result_prerequisite_present": true,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": false,
+        "failed_current_job_present": false
+      },
+      {
+        "query_capability_id": "ipdr.endpoint",
+        "input_eligible": true,
+        "result_prerequisite_present": true,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": false,
+        "failed_current_job_present": false
+      },
+      {
+        "query_capability_id": "ipdr.sessions",
+        "input_eligible": true,
+        "result_prerequisite_present": true,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": false,
+        "failed_current_job_present": false
+      },
+      {
+        "query_capability_id": "subscriber.lookup",
+        "input_eligible": true,
+        "result_prerequisite_present": true,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": false,
+        "failed_current_job_present": false
+      },
+      {
+        "query_capability_id": "device.observations",
+        "input_eligible": true,
+        "result_prerequisite_present": true,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": false,
+        "failed_current_job_present": false
+      },
+      {
+        "query_capability_id": "tower.lookup",
+        "input_eligible": true,
+        "result_prerequisite_present": true,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": false,
+        "failed_current_job_present": false
+      },
+      {
+        "query_capability_id": "financial.summary",
+        "input_eligible": true,
+        "result_prerequisite_present": true,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": false,
+        "failed_current_job_present": false
+      },
+      {
+        "query_capability_id": "logs.failures",
+        "input_eligible": true,
+        "result_prerequisite_present": true,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": false,
+        "failed_current_job_present": false
+      },
+      {
+        "query_capability_id": "generic.filter",
+        "input_eligible": true,
+        "result_prerequisite_present": false,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": false,
+        "failed_current_job_present": false
+      },
+      {
+        "query_capability_id": "document.phrase",
+        "input_eligible": true,
+        "result_prerequisite_present": true,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": false,
+        "failed_current_job_present": false
+      },
+      {
+        "query_capability_id": "knowledge.semantic",
+        "input_eligible": true,
+        "result_prerequisite_present": true,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": false,
+        "failed_current_job_present": false
+      },
+      {
+        "query_capability_id": "ocr.phrase",
+        "input_eligible": true,
+        "result_prerequisite_present": true,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": true,
+        "failed_current_job_present": true
+      },
+      {
+        "query_capability_id": "transcript.phrase",
+        "input_eligible": true,
+        "result_prerequisite_present": true,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": true,
+        "failed_current_job_present": false
+      },
+      {
+        "query_capability_id": "roman_urdu.phrase",
+        "input_eligible": true,
+        "result_prerequisite_present": true,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": false,
+        "failed_current_job_present": false
+      },
+      {
+        "query_capability_id": "image.plate",
+        "input_eligible": true,
+        "result_prerequisite_present": true,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": true,
+        "failed_current_job_present": true
+      },
+      {
+        "query_capability_id": "video.group_plate",
+        "input_eligible": true,
+        "result_prerequisite_present": true,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": true,
+        "failed_current_job_present": false
+      },
+      {
+        "query_capability_id": "image.similarity",
+        "input_eligible": true,
+        "result_prerequisite_present": true,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": false,
+        "failed_current_job_present": true
+      },
+      {
+        "query_capability_id": "face.candidates",
+        "input_eligible": true,
+        "result_prerequisite_present": true,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": false,
+        "failed_current_job_present": true
+      },
+      {
+        "query_capability_id": "cross_family.identifiers",
+        "input_eligible": true,
+        "result_prerequisite_present": false,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": false,
+        "failed_current_job_present": false
+      },
+      {
+        "query_capability_id": "case.evidence_package",
+        "input_eligible": true,
+        "result_prerequisite_present": true,
+        "all_eligible_complete_zero": false,
+        "incomplete_receipt_present": false,
+        "failed_current_job_present": true
+      }
+    ],
+    "prerequisites_are_not_query_results_or_live_deployment_proof": true
+  },
+  "container_runtime_unchanged": true,
+  "retained_tuple": "64|64|77|22507|828|61",
+  "retained_state_unchanged": false,
+  "retained_delta": {
+    "baseline_tuple": "63|63|76|22507|827|61",
+    "final_tuple": "64|64|77|22507|828|61",
+    "delta": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      0
+    ],
+    "new_item_created_at": "2026-09-03T11:56:30.594001Z",
+    "new_item_type": "TXT native text document",
+    "new_artifact_type": "forensics.document-native-text-passage/v1",
+    "attribution": "UNVERIFIED; full regression suites finished before this timestamp; C DB fixtures used an isolated database",
+    "action": "Read-only metadata inspection; item left untouched",
+    "active_jobs": 0
+  },
+  "active_jobs": 0,
+  "installed_models": [
+    "face-detect-yunet-sface",
+    "faster-whisper-small-ur",
+    "qwen_qwen3-4b-instruct-2507",
+    "qwen3-embedding-0.6b",
+    "whisper-tiny"
+  ],
+  "current_worker_configuration": {
+    "FORENSIC_ANPR_ENABLED": "true",
+    "FORENSIC_FACE_ENABLED": "true",
+    "FORENSIC_TTS_ENABLED": "false",
+    "FORENSIC_OCR_ENABLED": "true",
+    "FORENSIC_ASR_MODEL": "faster-whisper-small-ur",
+    "FORENSIC_IMAGE_EMBEDDING_ENABLED": "true",
+    "FORENSIC_ASR_ENABLED": "true",
+    "FORENSIC_OCR_BACKEND": "paddle",
+    "FORENSIC_VIDEO_ANPR_V3_ENABLED": "true"
+  },
+  "processor_receipt_transport": "NOT_WIRED; fresh processing fails closed instead of inferring readiness from configuration.",
+  "deploy_required_for_C_source_closure": false,
+  "proceed_to_D_without_activation": true,
+  "D_status": "NOT_STARTED"
+}

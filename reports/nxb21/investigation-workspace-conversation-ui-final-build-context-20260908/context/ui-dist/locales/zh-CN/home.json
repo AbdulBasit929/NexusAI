@@ -1,0 +1,92 @@
+{
+  "cluster": {
+    "vram": "é›†ç¾¤ VRAM",
+    "ram": "é›†ç¾¤ RAM",
+    "nodesOnline": "{{healthy}}/{{total}} èŠ‚ç‚¹åœ¨çº¿"
+  },
+  "resourceGpu": "GPU",
+  "resourceRam": "RAM",
+  "greeting": {
+    "morning": "Good morning",
+    "afternoon": "Good afternoon",
+    "evening": "Good evening",
+    "night": "Working late"
+  },
+  "statusLine": {
+    "modelsLoaded_one": "{{count}} model loaded",
+    "modelsLoaded_other": "{{count}} models loaded",
+    "noModelsLoaded": "No models loaded",
+    "nodes_one": "{{count}} node",
+    "nodes_other": "{{count}} nodes"
+  },
+  "assistant": {
+    "title": "é€šè¿‡èŠå¤©ç®¡ç† NexusAI",
+    "description": "é€šè¿‡ä¸Ž NexusAI å¯¹è¯æ¥å®‰è£…æ¨¡åž‹ã€åˆ‡æ¢åŽç«¯ã€ç¼–è¾‘é…ç½®å’ŒæŸ¥çœ‹çŠ¶æ€ã€‚",
+    "open": "æ‰“å¼€åŠ©æ‰‹",
+    "tooltip": "é€šè¿‡èŠå¤©ç®¡ç† NexusAI"
+  },
+  "input": {
+    "placeholder": "æ¶ˆæ¯...",
+    "attachImage": "é™„åŠ å›¾ç‰‡",
+    "attachAudio": "é™„åŠ éŸ³é¢‘",
+    "attachFile": "é™„åŠ æ–‡ä»¶",
+    "enterToSend": "æŒ‰å›žè½¦å‘é€",
+    "selectModelFirst": "è¯·å…ˆé€‰æ‹©ä¸€ä¸ªæ¨¡åž‹",
+    "sendMessage": "å‘é€æ¶ˆæ¯",
+    "selectModelToast": "è¯·å…ˆé€‰æ‹©ä¸€ä¸ªæ¨¡åž‹"
+  },
+  "quickLinks": {
+    "manageByChat": "é€šè¿‡èŠå¤©ç®¡ç†",
+    "installedModels": "å·²å®‰è£…çš„æ¨¡åž‹",
+    "browseGallery": "æµè§ˆæ¨¡åž‹åº“",
+    "importModel": "å¯¼å…¥æ¨¡åž‹",
+    "documentation": "æ–‡æ¡£"
+  },
+  "loadedModels": {
+    "heading": "æ´»åŠ¨æ¨¡åž‹",
+    "count_one": "å·²åŠ è½½ {{count}} ä¸ªæ¨¡åž‹",
+    "count_other": "å·²åŠ è½½ {{count}} ä¸ªæ¨¡åž‹",
+    "stop": "åœæ­¢æ¨¡åž‹",
+    "stopAll": "å…¨éƒ¨åœæ­¢"
+  },
+  "stopDialog": {
+    "title": "åœæ­¢æ¨¡åž‹",
+    "message": "åœæ­¢æ¨¡åž‹ {{model}}ï¼Ÿ",
+    "confirm": "åœæ­¢ {{model}}",
+    "stopAllTitle": "åœæ­¢æ‰€æœ‰æ¨¡åž‹",
+    "stopAllMessage": "åœæ­¢æ‰€æœ‰ {{count}} ä¸ªå·²åŠ è½½çš„æ¨¡åž‹ï¼Ÿ",
+    "stopAllConfirm": "å…¨éƒ¨åœæ­¢",
+    "stoppedToast": "å·²åœæ­¢ {{model}}",
+    "allStoppedToast": "æ‰€æœ‰æ¨¡åž‹å·²åœæ­¢",
+    "stopFailed": "åœæ­¢å¤±è´¥ï¼š{{message}}"
+  },
+  "wizard": {
+    "getStarted": "å¼€å§‹ä½¿ç”¨ {{name}}",
+    "intro": "å®‰è£…æ‚¨çš„ç¬¬ä¸€ä¸ªæ¨¡åž‹å³å¯å¼€å§‹ã€‚æµè§ˆæ¨¡åž‹åº“æˆ–å¯¼å…¥æ‚¨è‡ªå·±çš„æ¨¡åž‹ã€‚",
+    "steps": {
+      "step1Title": "æµè§ˆæ¨¡åž‹åº“",
+      "step1Body": "ä»Žæˆ‘ä»¬ç²¾é€‰çš„é›†åˆä¸­æ‰¾åˆ°é€‚åˆæ‚¨éœ€æ±‚çš„æ¨¡åž‹ã€‚",
+      "step2Title": "å®‰è£…æ¨¡åž‹",
+      "step2Body": "ç‚¹å‡»å®‰è£…å³å¯è‡ªåŠ¨ä¸‹è½½å¹¶é…ç½®ã€‚",
+      "step3Title": "å¼€å§‹èŠå¤©",
+      "step3Body": "ç›´æŽ¥åœ¨æµè§ˆå™¨ä¸­ä¸Žæ¨¡åž‹èŠå¤©ï¼Œæˆ–ä½¿ç”¨ APIã€‚"
+    },
+    "browseGallery": "æµè§ˆæ¨¡åž‹åº“",
+    "importModel": "å¯¼å…¥æ¨¡åž‹",
+    "docs": "æ–‡æ¡£",
+    "noModelsTitle": "æš‚æ— å¯ç”¨æ¨¡åž‹",
+    "noModelsBody": "å°šæœªå®‰è£…æ¨¡åž‹ã€‚è¯·è”ç³»æ‚¨çš„ç®¡ç†å‘˜è®¾ç½®æ¨¡åž‹ï¼Œä»¥ä¾¿å¼€å§‹èŠå¤©ã€‚"
+  },
+  "connect": {
+    "title": "ä¸€ä¸ªç«¯ç‚¹ï¼Œæ‰€æœ‰ API",
+    "subtitle": "NexusAI æä¾›è‡ªå·±çš„å®Œæ•´ APIâ€”â€”å›¾åƒä¸Žè§†é¢‘ç”Ÿæˆã€æ·±åº¦ã€ç›®æ ‡æ£€æµ‹ã€é‡æŽ’åºã€éŸ³é¢‘ã€äººè„¸ä¸Žå£°éŸ³è¯†åˆ«ï¼Œä»¥åŠé€šè¿‡ WebRTC å’Œ WebSocket çš„å®žæ—¶è¯­éŸ³ã€‚åœ¨æ­¤ä¹‹ä¸Šï¼Œå³æ’å³ç”¨çš„å…¼å®¹å±‚è®©ä»»ä½•ä¸º OpenAIã€Anthropicã€Ollama æˆ– OpenAI Responses æž„å»ºçš„åº”ç”¨æ— éœ€æ”¹åŠ¨å³å¯ä½¿ç”¨ã€‚",
+    "nativeTitle": "åŽŸç”Ÿ API",
+    "compatTitle": "å³æ’å³ç”¨å…¼å®¹",
+    "apiReference": "å®Œæ•´ API å‚è€ƒ",
+    "copy": "å¤åˆ¶",
+    "copied": "å·²å¤åˆ¶",
+    "browse": "Browse the API",
+    "hide": "Hide endpoints",
+    "dismiss": "Dismiss"
+  }
+}

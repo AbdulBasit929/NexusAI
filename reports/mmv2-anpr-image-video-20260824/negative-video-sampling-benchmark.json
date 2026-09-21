@@ -1,0 +1,301 @@
+{
+  "contract_version": "nexusai.mmv2.video-anpr-sampling-benchmark/v1",
+  "retained_data_mutated": false,
+  "source": {
+    "path": "/tmp/mmv2-negative-video.mp4",
+    "sha256": "94be8b97d62f28eb0349b1eaea02e8073a669d60ffbd3da6511f7f7d27004a26",
+    "size_bytes": 477174,
+    "duration_seconds": 10.5,
+    "fps": 25.0,
+    "codec": "h264",
+    "width": 960,
+    "height": 768
+  },
+  "processor": {
+    "id": "fastalpr-onnx-cpu",
+    "revision": "nexusai-bf1-v1",
+    "detector_model": "yolo-v9-t-384-license-plate-end2end",
+    "ocr_model": "cct-xs-v2-global-model"
+  },
+  "strategies": [
+    {
+      "strategy": "current_fixed_5s_capped_6",
+      "interval_seconds": 5.0,
+      "configured_max_frames": 6,
+      "adaptive_positive_refinement": false,
+      "sampled_frames": 3,
+      "first_sample_seconds": 0.0,
+      "last_sample_seconds": 10.0,
+      "full_duration_coverage": true,
+      "wall_seconds": 0.700273,
+      "process_cpu_seconds": 1.703425,
+      "average_process_cpu_percent": 243.25,
+      "peak_rss_kib": 225844,
+      "frame_extraction_seconds": 0.488964,
+      "temporary_frame_bytes": 3698957,
+      "temporary_artifacts_cleaned": true,
+      "anpr_detections": 0,
+      "unique_plates": [],
+      "duplicate_observations": 0,
+      "known_positive_detected": false,
+      "known_positive_first_sighting": null,
+      "known_positive_last_sighting": null,
+      "observation_ids_unique": true,
+      "plate_groups": [],
+      "plates": [],
+      "frames": [
+        {
+          "timestamp_seconds": 0.0,
+          "frame_number_estimate": 0,
+          "source_frame_sha256": "94838e8937be8d4abb2de7b1bd70f4fbbcf2e0b11d59d41ba3f570d76af0a239",
+          "anpr_wall_seconds": 0.080821,
+          "plate_count": 0
+        },
+        {
+          "timestamp_seconds": 5.0,
+          "frame_number_estimate": 125,
+          "source_frame_sha256": "38986821c823b3d55aa7afb4a58d903b6ff815cb1575675dd08598ea1b8b1937",
+          "anpr_wall_seconds": 0.061205,
+          "plate_count": 0
+        },
+        {
+          "timestamp_seconds": 10.0,
+          "frame_number_estimate": 250,
+          "source_frame_sha256": "fef671a1128b538cac5f5f6482575dcf164769ed591de195c707f450ab3a6a9a",
+          "anpr_wall_seconds": 0.059718,
+          "plate_count": 0
+        }
+      ]
+    },
+    {
+      "strategy": "fixed_2s_full_duration",
+      "interval_seconds": 2.0,
+      "configured_max_frames": 6,
+      "adaptive_positive_refinement": false,
+      "sampled_frames": 6,
+      "first_sample_seconds": 0.0,
+      "last_sample_seconds": 10.0,
+      "full_duration_coverage": true,
+      "wall_seconds": 0.90838,
+      "process_cpu_seconds": 1.480254,
+      "average_process_cpu_percent": 162.96,
+      "peak_rss_kib": 225844,
+      "frame_extraction_seconds": 0.561397,
+      "temporary_frame_bytes": 7416053,
+      "temporary_artifacts_cleaned": true,
+      "anpr_detections": 0,
+      "unique_plates": [],
+      "duplicate_observations": 0,
+      "known_positive_detected": false,
+      "known_positive_first_sighting": null,
+      "known_positive_last_sighting": null,
+      "observation_ids_unique": true,
+      "plate_groups": [],
+      "plates": [],
+      "frames": [
+        {
+          "timestamp_seconds": 0.0,
+          "frame_number_estimate": 0,
+          "source_frame_sha256": "94838e8937be8d4abb2de7b1bd70f4fbbcf2e0b11d59d41ba3f570d76af0a239",
+          "anpr_wall_seconds": 0.0588,
+          "plate_count": 0
+        },
+        {
+          "timestamp_seconds": 2.0,
+          "frame_number_estimate": 50,
+          "source_frame_sha256": "7be10fc4c9f76824297a49bd1f684fe360dac4c71fd1bb0257ed1a7275803f79",
+          "anpr_wall_seconds": 0.05998,
+          "plate_count": 0
+        },
+        {
+          "timestamp_seconds": 4.0,
+          "frame_number_estimate": 100,
+          "source_frame_sha256": "b0b89b1ae8a1d81e52acc69c76b371447da1150b68a7b75419b50964f12087b9",
+          "anpr_wall_seconds": 0.05583,
+          "plate_count": 0
+        },
+        {
+          "timestamp_seconds": 6.0,
+          "frame_number_estimate": 150,
+          "source_frame_sha256": "46187ade1c9e5a044bc7a053889f8334875ce492f8d6f768426f94ecccc421ab",
+          "anpr_wall_seconds": 0.046554,
+          "plate_count": 0
+        },
+        {
+          "timestamp_seconds": 8.0,
+          "frame_number_estimate": 200,
+          "source_frame_sha256": "d7865068d966b57542f36c106ab33e0542804e9101d446a16ca5252706805b01",
+          "anpr_wall_seconds": 0.058974,
+          "plate_count": 0
+        },
+        {
+          "timestamp_seconds": 10.0,
+          "frame_number_estimate": 250,
+          "source_frame_sha256": "fef671a1128b538cac5f5f6482575dcf164769ed591de195c707f450ab3a6a9a",
+          "anpr_wall_seconds": 0.04956,
+          "plate_count": 0
+        }
+      ]
+    },
+    {
+      "strategy": "fixed_1s_full_duration",
+      "interval_seconds": 1.0,
+      "configured_max_frames": 11,
+      "adaptive_positive_refinement": false,
+      "sampled_frames": 11,
+      "first_sample_seconds": 0.0,
+      "last_sample_seconds": 10.0,
+      "full_duration_coverage": true,
+      "wall_seconds": 1.272214,
+      "process_cpu_seconds": 2.560228,
+      "average_process_cpu_percent": 201.24,
+      "peak_rss_kib": 225844,
+      "frame_extraction_seconds": 0.694697,
+      "temporary_frame_bytes": 13611196,
+      "temporary_artifacts_cleaned": true,
+      "anpr_detections": 0,
+      "unique_plates": [],
+      "duplicate_observations": 0,
+      "known_positive_detected": false,
+      "known_positive_first_sighting": null,
+      "known_positive_last_sighting": null,
+      "observation_ids_unique": true,
+      "plate_groups": [],
+      "plates": [],
+      "frames": [
+        {
+          "timestamp_seconds": 0.0,
+          "frame_number_estimate": 0,
+          "source_frame_sha256": "94838e8937be8d4abb2de7b1bd70f4fbbcf2e0b11d59d41ba3f570d76af0a239",
+          "anpr_wall_seconds": 0.048891,
+          "plate_count": 0
+        },
+        {
+          "timestamp_seconds": 1.0,
+          "frame_number_estimate": 25,
+          "source_frame_sha256": "9c4c664bceb23879c6680d078ecb665d3a4c1ba3aaa2482f37562de1e94794da",
+          "anpr_wall_seconds": 0.050393,
+          "plate_count": 0
+        },
+        {
+          "timestamp_seconds": 2.0,
+          "frame_number_estimate": 50,
+          "source_frame_sha256": "7be10fc4c9f76824297a49bd1f684fe360dac4c71fd1bb0257ed1a7275803f79",
+          "anpr_wall_seconds": 0.045491,
+          "plate_count": 0
+        },
+        {
+          "timestamp_seconds": 3.0,
+          "frame_number_estimate": 75,
+          "source_frame_sha256": "f54b23ec624087569423090b6c592d22fb065773795b17647d43cf274213fbfc",
+          "anpr_wall_seconds": 0.046694,
+          "plate_count": 0
+        },
+        {
+          "timestamp_seconds": 4.0,
+          "frame_number_estimate": 100,
+          "source_frame_sha256": "b0b89b1ae8a1d81e52acc69c76b371447da1150b68a7b75419b50964f12087b9",
+          "anpr_wall_seconds": 0.046589,
+          "plate_count": 0
+        },
+        {
+          "timestamp_seconds": 5.0,
+          "frame_number_estimate": 125,
+          "source_frame_sha256": "38986821c823b3d55aa7afb4a58d903b6ff815cb1575675dd08598ea1b8b1937",
+          "anpr_wall_seconds": 0.046054,
+          "plate_count": 0
+        },
+        {
+          "timestamp_seconds": 6.0,
+          "frame_number_estimate": 150,
+          "source_frame_sha256": "46187ade1c9e5a044bc7a053889f8334875ce492f8d6f768426f94ecccc421ab",
+          "anpr_wall_seconds": 0.0479,
+          "plate_count": 0
+        },
+        {
+          "timestamp_seconds": 7.0,
+          "frame_number_estimate": 175,
+          "source_frame_sha256": "38986821c823b3d55aa7afb4a58d903b6ff815cb1575675dd08598ea1b8b1937",
+          "anpr_wall_seconds": 0.044797,
+          "plate_count": 0
+        },
+        {
+          "timestamp_seconds": 8.0,
+          "frame_number_estimate": 200,
+          "source_frame_sha256": "d7865068d966b57542f36c106ab33e0542804e9101d446a16ca5252706805b01",
+          "anpr_wall_seconds": 0.048569,
+          "plate_count": 0
+        },
+        {
+          "timestamp_seconds": 9.0,
+          "frame_number_estimate": 225,
+          "source_frame_sha256": "f82beb9e36489e12893bee3051f4b844cc56f759f8a24c6e8bbc3358825b6deb",
+          "anpr_wall_seconds": 0.059541,
+          "plate_count": 0
+        },
+        {
+          "timestamp_seconds": 10.0,
+          "frame_number_estimate": 250,
+          "source_frame_sha256": "fef671a1128b538cac5f5f6482575dcf164769ed591de195c707f450ab3a6a9a",
+          "anpr_wall_seconds": 0.070422,
+          "plate_count": 0
+        }
+      ]
+    },
+    {
+      "strategy": "adaptive_5s_full_duration_plus_positive_refinement",
+      "interval_seconds": 5.0,
+      "configured_max_frames": 3,
+      "adaptive_positive_refinement": true,
+      "sampled_frames": 3,
+      "first_sample_seconds": 0.0,
+      "last_sample_seconds": 10.0,
+      "full_duration_coverage": true,
+      "wall_seconds": 0.715768,
+      "process_cpu_seconds": 0.661802,
+      "average_process_cpu_percent": 92.46,
+      "peak_rss_kib": 225844,
+      "frame_extraction_seconds": 0.561468,
+      "temporary_frame_bytes": 3698957,
+      "temporary_artifacts_cleaned": true,
+      "anpr_detections": 0,
+      "unique_plates": [],
+      "duplicate_observations": 0,
+      "known_positive_detected": false,
+      "known_positive_first_sighting": null,
+      "known_positive_last_sighting": null,
+      "observation_ids_unique": true,
+      "plate_groups": [],
+      "plates": [],
+      "frames": [
+        {
+          "timestamp_seconds": 0.0,
+          "frame_number_estimate": 0,
+          "source_frame_sha256": "94838e8937be8d4abb2de7b1bd70f4fbbcf2e0b11d59d41ba3f570d76af0a239",
+          "anpr_wall_seconds": 0.050306,
+          "plate_count": 0
+        },
+        {
+          "timestamp_seconds": 5.0,
+          "frame_number_estimate": 125,
+          "source_frame_sha256": "38986821c823b3d55aa7afb4a58d903b6ff815cb1575675dd08598ea1b8b1937",
+          "anpr_wall_seconds": 0.049129,
+          "plate_count": 0
+        },
+        {
+          "timestamp_seconds": 10.0,
+          "frame_number_estimate": 250,
+          "source_frame_sha256": "fef671a1128b538cac5f5f6482575dcf164769ed591de195c707f450ab3a6a9a",
+          "anpr_wall_seconds": 0.04851,
+          "plate_count": 0
+        }
+      ]
+    }
+  ],
+  "selection_policy": {
+    "selected": "fixed_1s_full_duration_for_anpr_only",
+    "rule": "Prefer full-duration plate-candidate recall, exact source timestamps, and bounded CPU/time/storage; keep OCR, face, and SigLIP on a separate coarser cadence.",
+    "resource_boundary": "At most 60 ANPR samples by default, at most 120 by hard cap, with an effective interval widened for longer videos. Secondary image roles remain at a default five-second cadence.",
+    "mmv1_reference_disposition": "The prior LN15ZZC-at-25s result used an fps-filter midpoint frame labeled with index*interval. Source-preserving timestamps do not reproduce that result at 25 seconds; LN15ZZC remains an unreviewed OCR variant, not ground truth."
+  }
+}

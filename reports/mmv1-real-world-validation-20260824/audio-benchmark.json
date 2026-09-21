@@ -1,0 +1,244 @@
+{
+  "contract_version": "nexusai.mmv1.audio-real-world-nonretained-benchmark/v1",
+  "retained_data_mutated": false,
+  "model_downloaded": false,
+  "fixture_count": 3,
+  "natural_speaker_count": 2,
+  "synthetic_identifier_fixture_count": 1,
+  "results": [
+    {
+      "id": "clear-urdu",
+      "sample_type": "natural_read_speech",
+      "speaker_sample_id": "FLEURS ur_pk test row 1",
+      "source": "FLEURS ur_pk test row 1",
+      "source_url": "https://datasets-server.huggingface.co/rows?dataset=google%2Ffleurs&config=ur_pk&split=test&offset=1&length=1",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "language": "Urdu",
+      "declared_locale_accent": "ur_pk",
+      "audio_path": "/tmp/mmv1-pakistan-audio/clear-urdu.wav",
+      "sha256": "c499e06e26b8cbf37386b88bba26f37045439a775e964bdad8634376435a056e",
+      "duration_seconds": 6.24,
+      "ground_truth_source": "FLEURS raw_transcription; pakistan-audio/clear-urdu.ground-truth.txt",
+      "ground_truth": "فلپائنی فوٹوگرافروں کے ساتھ چھےاغوا شدگان کو جلد رہا کر دیا گیا تھا، جِن میں بچّے اور بُوڑھے شامل تھے۔",
+      "asr_result": "فیل پائنی فورٹو گرافروں کے ساتھ چھے اگوا شدگان کو جل رہا کر دیا گیا تھا چھن میں بچوں اور بڑے شاہوں ملتے",
+      "error_rates": {
+        "normalization": "Unicode NFKC + casefold + punctuation/symbol to space + whitespace collapse; CER excludes spaces",
+        "reference_word_count": 20,
+        "word_edits": 12,
+        "wer": 0.6,
+        "reference_character_count": 81,
+        "character_edits": 15,
+        "cer": 0.1852
+      },
+      "latency_seconds": 6.630324,
+      "real_time_factor": 1.062552,
+      "readiness": "READY_WITH_WARNINGS",
+      "processor": "nexusai-deterministic-media",
+      "processor_revision": "bf-media-v1",
+      "timestamped_segments": [
+        {
+          "start_seconds": 0.0,
+          "end_seconds": 4.42,
+          "text": "فیل پائنی فورٹو گرافروں کے ساتھ چھے اگوا شدگان کو جل رہا کر دیا گیا تھا",
+          "language": "ur",
+          "requested_language": "ur",
+          "detected_language": null,
+          "detected_language_probability": null
+        },
+        {
+          "start_seconds": 4.42,
+          "end_seconds": 6.12,
+          "text": "چھن میں بچوں اور بڑے شاہوں ملتے",
+          "language": "ur",
+          "requested_language": "ur",
+          "detected_language": null,
+          "detected_language_probability": null
+        }
+      ],
+      "roman_urdu_segments": [
+        {
+          "contract_version": "forensics.audio-roman-urdu-segment/v1",
+          "raw_urdu_text": "فیل پائنی فورٹو گرافروں کے ساتھ چھے اگوا شدگان کو جل رہا کر دیا گیا تھا",
+          "roman_urdu_text": "fil payni forto grafron ke sath chhe agoa shdgan ko jl rha kr dia gia tha",
+          "source_language": "ur",
+          "representation_language": "ur-Latn",
+          "authority_state": "derived_analyst_representation",
+          "parent_observation_id": "2345fd84-0247-59f0-8d72-bc60b188cf2e",
+          "parent_evidence_id": "non-retained-mmv1-audio-clear-urdu",
+          "parent_version_id": "non-retained-v1",
+          "source_file": "clear-urdu.wav",
+          "start_seconds": 0.0,
+          "end_seconds": 4.42,
+          "processor": "nexusai-deterministic-urdu-transliteration",
+          "processor_revision": "roman-urdu-m1-v1",
+          "identifiers": [],
+          "identifier_preservation_pass": true,
+          "manual_review_required": true
+        },
+        {
+          "contract_version": "forensics.audio-roman-urdu-segment/v1",
+          "raw_urdu_text": "چھن میں بچوں اور بڑے شاہوں ملتے",
+          "roman_urdu_text": "chhn min bchon aor bre shahon mlte",
+          "source_language": "ur",
+          "representation_language": "ur-Latn",
+          "authority_state": "derived_analyst_representation",
+          "parent_observation_id": "57bf9120-f0eb-5e9e-b016-9488b9b0c523",
+          "parent_evidence_id": "non-retained-mmv1-audio-clear-urdu",
+          "parent_version_id": "non-retained-v1",
+          "source_file": "clear-urdu.wav",
+          "start_seconds": 4.42,
+          "end_seconds": 6.12,
+          "processor": "nexusai-deterministic-urdu-transliteration",
+          "processor_revision": "roman-urdu-m1-v1",
+          "identifiers": [],
+          "identifier_preservation_pass": true,
+          "manual_review_required": true
+        }
+      ],
+      "identifier_review": null,
+      "human_usability": "NOT_REASSESSED_AUTOMATICALLY_REQUIRES_HUMAN_REVIEW",
+      "limitations": [
+        "diarization unavailable"
+      ]
+    },
+    {
+      "id": "second-urdu-read-speech",
+      "sample_type": "natural_read_speech_not_spontaneous_conversation",
+      "speaker_sample_id": "FLEURS ur_pk validation row 4",
+      "source": "FLEURS ur_pk validation row 4",
+      "source_url": "https://datasets-server.huggingface.co/rows?dataset=google%2Ffleurs&config=ur_pk&split=validation&offset=4&length=1",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "language": "Urdu",
+      "declared_locale_accent": "ur_pk",
+      "audio_path": "/tmp/mmv1-pakistan-audio/conversational-urdu.wav",
+      "sha256": "f016076b153c2ed6be21fa5f7a4bbc22b3e391d40080b9fa3de3b8a2dd517550",
+      "duration_seconds": 10.5,
+      "ground_truth_source": "FLEURS raw_transcription; pakistan-audio/conversational-urdu.ground-truth.txt",
+      "ground_truth": "مجھے معلوم نہیں آیا آپ نے محسوس کیا ہے یا نہیں، اس ملک میں سنٹرل امریکا سے آئی زیادہ تر اشیاء ڈیوٹی فری ہیں۔",
+      "asr_result": "مجھے معلوم نہیں آیا آپ نے محسوس کیا یا نہیں اس مرک میں سینٹر لمڈیکہ سے آئی زیادہ ترشیا دیوٹی فری ہے",
+      "error_rates": {
+        "normalization": "Unicode NFKC + casefold + punctuation/symbol to space + whitespace collapse; CER excludes spaces",
+        "reference_word_count": 24,
+        "word_edits": 8,
+        "wer": 0.3333,
+        "reference_character_count": 83,
+        "character_edits": 12,
+        "cer": 0.1446
+      },
+      "latency_seconds": 5.993125,
+      "real_time_factor": 0.570774,
+      "readiness": "READY_WITH_WARNINGS",
+      "processor": "nexusai-deterministic-media",
+      "processor_revision": "bf-media-v1",
+      "timestamped_segments": [
+        {
+          "start_seconds": 0.0,
+          "end_seconds": 10.0,
+          "text": "مجھے معلوم نہیں آیا آپ نے محسوس کیا یا نہیں اس مرک میں سینٹر لمڈیکہ سے آئی زیادہ ترشیا دیوٹی فری ہے",
+          "language": "ur",
+          "requested_language": "ur",
+          "detected_language": null,
+          "detected_language_probability": null
+        }
+      ],
+      "roman_urdu_segments": [
+        {
+          "contract_version": "forensics.audio-roman-urdu-segment/v1",
+          "raw_urdu_text": "مجھے معلوم نہیں آیا آپ نے محسوس کیا یا نہیں اس مرک میں سینٹر لمڈیکہ سے آئی زیادہ ترشیا دیوٹی فری ہے",
+          "roman_urdu_text": "mjhe mlom nhin aaia aap ne mhsos kia ia nhin as mrk min sintr lmdikh se aayi ziadh trshia dioti fri he",
+          "source_language": "ur",
+          "representation_language": "ur-Latn",
+          "authority_state": "derived_analyst_representation",
+          "parent_observation_id": "600fed7c-e725-56c6-89e7-991965bc6e5b",
+          "parent_evidence_id": "non-retained-mmv1-audio-second-urdu-read-speech",
+          "parent_version_id": "non-retained-v1",
+          "source_file": "conversational-urdu.wav",
+          "start_seconds": 0.0,
+          "end_seconds": 10.0,
+          "processor": "nexusai-deterministic-urdu-transliteration",
+          "processor_revision": "roman-urdu-m1-v1",
+          "identifiers": [],
+          "identifier_preservation_pass": true,
+          "manual_review_required": true
+        }
+      ],
+      "identifier_review": null,
+      "human_usability": "NOT_REASSESSED_AUTOMATICALLY_REQUIRES_HUMAN_REVIEW",
+      "limitations": [
+        "diarization unavailable"
+      ]
+    },
+    {
+      "id": "synthetic-urdu-english-identifier",
+      "sample_type": "synthetic_mixed_language_identifier_pipeline_test",
+      "speaker_sample_id": "locally generated synthetic voices",
+      "source": "Local espeak-ng sequential Urdu/English fixture",
+      "source_url": null,
+      "license": "Synthetic test fixture",
+      "license_url": null,
+      "language": "Urdu then English",
+      "declared_locale_accent": "synthetic voices; no Pakistan accent claim",
+      "audio_path": "/tmp/mmv1-pakistan-audio/urdu-english-identifier.wav",
+      "sha256": "606ffc7e281940b1b175fff98169a83a6a6ab7744ffd49f05849ac94318fd314",
+      "duration_seconds": 7.778562,
+      "ground_truth_source": "Exact local synthesis scripts; pakistan-audio/urdu-english-identifier.ground-truth.txt",
+      "ground_truth": "گاڑی کا نمبر ایم این ایک تین چھ سات ہے۔ Call zero three zero zero one two three four five six seven at ten thirty five.",
+      "asr_result": "Dariqa number they may make being chicks hothead. Call 03001234567 at 1035.",
+      "error_rates": {
+        "normalization": "Unicode NFKC + casefold + punctuation/symbol to space + whitespace collapse; CER excludes spaces",
+        "reference_word_count": 26,
+        "word_edits": 24,
+        "wer": 0.9231,
+        "reference_character_count": 92,
+        "character_edits": 83,
+        "cer": 0.9022
+      },
+      "latency_seconds": 6.750374,
+      "real_time_factor": 0.867818,
+      "readiness": "READY_WITH_WARNINGS",
+      "processor": "nexusai-deterministic-media",
+      "processor_revision": "bf-media-v1",
+      "timestamped_segments": [
+        {
+          "start_seconds": 0.0,
+          "end_seconds": 2.7800000000000002,
+          "text": "Dariqa number they may make being chicks hothead.",
+          "language": "en",
+          "requested_language": null,
+          "detected_language": "en",
+          "detected_language_probability": null
+        },
+        {
+          "start_seconds": 2.7800000000000002,
+          "end_seconds": 7.64,
+          "text": "Call 03001234567 at 1035.",
+          "language": "en",
+          "requested_language": null,
+          "detected_language": "en",
+          "detected_language_probability": null
+        }
+      ],
+      "roman_urdu_segments": [],
+      "identifier_review": {
+        "phone_digits_03001234567_preserved": true,
+        "time_1035_preserved": true,
+        "plate_mn1367_preserved": false,
+        "manual_review_required": true
+      },
+      "human_usability": "NOT_REASSESSED_AUTOMATICALLY_REQUIRES_HUMAN_REVIEW",
+      "limitations": [
+        "diarization unavailable"
+      ]
+    }
+  ],
+  "coverage_gaps": {
+    "pakistani_english_natural": "PENDING_LAWFUL_SOURCE_ACQUISITION_APPROVAL",
+    "natural_code_switch": "PENDING_LAWFUL_SOURCE_ACQUISITION_APPROVAL",
+    "spontaneous_conversational_urdu": "PENDING_LAWFUL_SOURCE_ACQUISITION_APPROVAL",
+    "moderate_noise": "PENDING_LAWFUL_SOURCE_ACQUISITION_APPROVAL",
+    "dates_times_phone_plate_natural": "SYNTHETIC_CONTROL_ONLY"
+  },
+  "claim_boundary": "Three fixtures establish pipeline behavior only and do not establish population-level ASR accuracy."
+}

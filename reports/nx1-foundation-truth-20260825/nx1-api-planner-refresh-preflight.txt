@@ -1,0 +1,59 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260825164002
+Username: ABDULBASIT\sheik
+RunAs User: ABDULBASIT\sheik
+Configuration Name: 
+Machine: ABDULBASIT (Microsoft Windows NT 10.0.22631.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\activate_nexusai_nx1_api_planner_refresh.ps1 -PreflightOnly
+Process ID: 20484
+PSVersion: 5.1.22621.6133
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.22621.6133
+BuildVersion: 10.0.22621.6133
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+=== Docker readiness ===
+DockerServer=29.6.2
+
+=== Physical RAM gate ===
+TotalPhysicalRAMGiB=15.713
+FreePhysicalRAMGiB=7.133
+RequiredFreeRAMGiB=6.000
+RAMGate=PASS
+
+=== Repository preflight ===
+GitBranch=codex/forensic-hybrid-checkpoint-20260723
+GitHEAD=40717b83510c08db25dc26b9d6674bf46db363ac
+DirtyWorktreeEntries=584
+GitMutation=false
+
+=== Runtime before-state ===
+ForensicApiBefore=3adf4269f68a93f57866e3f6c6ea6b1b8fb74cf62aee47d6d843cedc74de0946
+ForensicApiImageBefore=sha256:fdd4a88f52a91942ab940100ebc43e3e1c32e73fdfeb61012bfc102fefb7d6de
+LocalAIBefore=ddfa8e0d4d2c0dc1b14ef112c91ac4bfeb6bb3fb4800ff722aa022ba5c7c0f23
+LocalAIImageBefore=sha256:71b63e0ef454f29f44430798f547c09edbd6b2a3c2b809b82833237eb4914cd5
+WorkerBefore=1846f558941f583467976ad8e74a44e9063c8a1a50e870951c7e479ecce3fb66
+WorkerImageBefore=sha256:be13dbec4bd9bb62c824140df3777b898d7ad2801a0e68cd512c00dafaf4f9ef
+NatsBefore=5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04
+PostgresBefore=f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361
+
+=== Retained state ===
+RetainedTupleBefore=51|51|64|0|22207|441|47
+KnownRetainedBaseline=CONFIRMED
+ActiveJobs=0
+
+=== NX-1 focused source gate ===
+
+
+NX1SourceGate=PASS
+NX1ApiPlannerRefreshPreflight=PASS
+Mutation=false
+**********************
+Windows PowerShell transcript end
+End time: 20260825164011
+**********************

@@ -1,0 +1,32 @@
+{
+  "api": "PASS",
+  "api_seconds": 36.994,
+  "ginkgo": {
+    "passed": 527,
+    "failed": 0,
+    "skipped": 31
+  },
+  "focused": "PASS",
+  "focused_seconds": 1.574,
+  "focused_ginkgo": {
+    "passed": 42,
+    "failed": 0,
+    "skipped": 516
+  },
+  "source_oracle_admission": "PASS_8_EXPECTED_RESIDUAL_CALLS_NO_HTTP",
+  "receipt": "PASS_SUCCESS_FAILURE_SINGLE_SEAL_SIDECAR_REOUTPUT_LOCK",
+  "transport": "PASS_28MS_3282_BYTES",
+  "guards": "PASS_28_ASSERTIONS",
+  "framework": "PASS_SYNTAX_HASH_TAMPER_VALIDATE_ONLY",
+  "original_evidence_and_lock": "UNCHANGED",
+  "live_inference": false,
+  "logs": {
+    "decision8-api-final.jsonl": "824e9132441ad3d5ec6ffd85b90e6a520b15484c52d3486ba57124b16de68964",
+    "decision8-focused-final.log": "f9b62c03c243528da60de4bee3cb21478d647c446534f2d5ecdb3a1ca377ab08",
+    "decision8-admission.log": "0a7393882b5789b0530cced87c456d581a8b81665ab9c91e362d3fb3194b62fd",
+    "decision8-receipt-test.log": "c94359b94b22d344f2141b0de2eccdbe845b362254dc9f2a075bccdf0dce1bc4",
+    "decision8-transport-test.log": "685a9f1554f375de3b8e00fa37d880730df3f22caba8779546c1fd3d78883301",
+    "decision8-guards-test.log": "5b6425c6d73f19fc8f11b85584231e47fe4343f8f82acd692e1ee732a8492832",
+    "decision8-framework-final.log": "ff14cf066281daba21ee47ae49fe0dbee6635cf070500c5a8f3912f5f4174ffd"
+  }
+}

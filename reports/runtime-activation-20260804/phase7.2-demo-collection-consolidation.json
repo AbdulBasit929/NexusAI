@@ -1,0 +1,40 @@
+{
+    "phase":  "7.2",
+    "generated_utc":  "2026-08-05T06:40:01.8229366Z",
+    "apply_requested":  true,
+    "retained_collection":  "nexusai-forensic-demo",
+    "retained_contract":  {
+                              "evidence_total":  8,
+                              "completed_jobs":  8,
+                              "accepted_rows":  9272,
+                              "duplicate_rows":  3,
+                              "rejected_rows":  7
+                          },
+    "kb_collections_before":  [
+                                  "communications_cdr_analyst",
+                                  "forensic_records_analyst",
+                                  "network_ipdr_capture_analyst",
+                                  "nexusai-forensic-demo",
+                                  "subscriber_identity_analyst",
+                                  "tower_location_reference_analyst",
+                                  "vehicle_anpr_geospatial_analyst"
+                              ],
+    "kb_collections_to_remove":  [
+                                     "communications_cdr_analyst",
+                                     "forensic_records_analyst",
+                                     "network_ipdr_capture_analyst",
+                                     "subscriber_identity_analyst",
+                                     "tower_location_reference_analyst",
+                                     "vehicle_anpr_geospatial_analyst"
+                                 ],
+    "database_inventory_before":  "     collection_id     | evidence_count | evidence_bytes \n-----------------------+----------------+----------------\n nexusai-forensic-demo |              8 |        1303190\n(1 row)\n\n     collection_id     | job_count | accepted_rows | duplicate_rows | rejected_rows \n-----------------------+-----------+---------------+----------------+---------------\n nexusai-forensic-demo |         8 |          9272 |              3 |             7\n(1 row)\n",
+    "outcome":  "pass",
+    "completed_utc":  "2026-08-05T06:40:02.4616013Z",
+    "kb_collections_after":  [
+                                 "nexusai-forensic-demo"
+                             ],
+    "database_collections_after":  [
+                                       "nexusai-forensic-demo"
+                                   ],
+    "database_cleanup_output":  "BEGIN\nSET\nDELETE 0\nDELETE 0\nDELETE 0\nDELETE 0\nDELETE 0\nUPDATE 0\nUPDATE 0\nDELETE 0\nDELETE 0\nDELETE 0\nDELETE 0\nDELETE 0\nDELETE 0\nDELETE 0\nDELETE 0\nDELETE 0\nDELETE 0\nDELETE 0\nDELETE 0\nSET\nCOMMIT"
+}

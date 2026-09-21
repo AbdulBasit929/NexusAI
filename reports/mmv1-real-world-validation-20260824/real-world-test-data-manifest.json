@@ -1,0 +1,48 @@
+{
+  "contract_version": "nexusai.mmv1.real-world-test-data-manifest/v1",
+  "entries": [
+    {
+      "id": "sample-video-positive-anpr",
+      "path": "C:/Users/sheik/Downloads/sample.mp4",
+      "sha256": "d470773444dd23bc4b8d446e3fb1e057923e9902b2a2a93e9fafc83762d137ee",
+      "size_bytes": 184407144,
+      "duration_seconds": 60.01,
+      "license_ownership": "USER_PROVIDED_OWNERSHIP_NOT_ATTESTED",
+      "purpose": "positive video ANPR control",
+      "retained": false,
+      "ground_truth": "LN15ZZC at approximately 25 seconds is a model observation pending human review"
+    },
+    {
+      "id": "fleurs-ur-pk-test-row-1",
+      "sha256": "c499e06e26b8cbf37386b88bba26f37045439a775e964bdad8634376435a056e",
+      "license": "CC BY 4.0",
+      "purpose": "natural Urdu ASR"
+    },
+    {
+      "id": "fleurs-ur-pk-validation-row-4",
+      "sha256": "f016076b153c2ed6be21fa5f7a4bbc22b3e391d40080b9fa3de3b8a2dd517550",
+      "license": "CC BY 4.0",
+      "purpose": "second natural Urdu speaker ASR"
+    },
+    {
+      "id": "synthetic-urdu-english-identifiers",
+      "sha256": "606ffc7e281940b1b175fff98169a83a6a6ab7744ffd49f05849ac94318fd314",
+      "license": "locally generated synthetic test fixture",
+      "purpose": "mixed-language identifier pipeline"
+    },
+    {
+      "id": "mmv1-urdu-ocr-generated-pack",
+      "path": "reports/mmv1-real-world-validation-20260824/urdu-ocr-fixtures",
+      "license": "locally generated test fixtures",
+      "purpose": "Urdu OCR baseline",
+      "ground_truth_separate": true
+    }
+  ],
+  "coverage_gaps": [
+    "natural Pakistani English",
+    "natural Urdu-English code switch",
+    "spontaneous Urdu",
+    "moderate noise",
+    "lawful real Urdu scene text"
+  ]
+}

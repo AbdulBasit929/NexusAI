@@ -1,0 +1,202 @@
+{
+  "source_receipt": "local-acceptance-models/nxb21-current4b-runtime-characterization-v2/run-20260910T050248809Z/resource-lifecycle-receipt-v1.json",
+  "source_receipt_sha256": "9276747b5f7e7c3ce0c802e56ada2013a79a71db11999fe748c07c0ba154d7b4",
+  "source_ndjson_sha256": "f1e1d5a70dc628d9dc2938ef122db112242e8a518bcf7539d1c67a79a12797ef",
+  "classification": "INCOMPLETE_PRE_RELOAD_ADMISSION",
+  "first_interval": "SAFE_AND_STABLE_FOR_TESTED_TINY_WORKLOAD",
+  "model_decision": "PENDING_SINGLE_FINAL_CHARACTERIZATION",
+  "semantic_quality_evidence": "NONE",
+  "metrics": {
+    "available_ram_gib": {
+      "first": 8.772,
+      "last": 4.135,
+      "min": 4.095,
+      "max": 8.772
+    },
+    "committed_bytes": {
+      "first": 12404101120,
+      "last": 17294462976,
+      "min": 12404101120,
+      "max": 17296928768
+    },
+    "commit_limit_bytes": {
+      "first": 29081632768,
+      "last": 29081632768,
+      "min": 29081632768,
+      "max": 29081632768
+    },
+    "commit_reserve_gib": {
+      "first": 15.532,
+      "last": 10.978,
+      "min": 10.975,
+      "max": 15.532
+    },
+    "pages_input_per_second": {
+      "first": 0,
+      "last": 0,
+      "min": 0,
+      "max": 127
+    },
+    "pages_output_per_second": {
+      "first": 0,
+      "last": 0,
+      "min": 0,
+      "max": 0
+    },
+    "wsl_swap_used_kib": {
+      "first": 793060,
+      "last": 793060,
+      "min": 793060,
+      "max": 793060
+    },
+    "vmmemwsl_working_set_mib": {
+      "first": 1068.406,
+      "last": 5844.129,
+      "min": 1068.406,
+      "max": 5844.129
+    },
+    "api_container_memory_mib": {
+      "first": 639.9,
+      "last": 1394.688,
+      "min": 639.9,
+      "max": 1394.688
+    },
+    "backend_rss_total_mib": {
+      "first": 533.898,
+      "last": 5304.476,
+      "min": 533.898,
+      "max": 5304.476
+    },
+    "compression_working_set_mib": {
+      "first": 515.512,
+      "last": 485.055,
+      "min": 485.055,
+      "max": 515.512
+    }
+  },
+  "service_stats": {
+    "nexusai-api-1": {
+      "first_memory": "639.9MiB / 7.611GiB",
+      "last_memory": "1.362GiB / 7.611GiB",
+      "peak_cpu_percent": 85.0
+    },
+    "nexusai-forensic-records-api-1": {
+      "first_memory": "19.95MiB / 7.611GiB",
+      "last_memory": "19.95MiB / 7.611GiB",
+      "peak_cpu_percent": 0.44
+    },
+    "nexusai-forensic-records-worker-1": {
+      "first_memory": "428.3MiB / 7.611GiB",
+      "last_memory": "427.2MiB / 7.611GiB",
+      "peak_cpu_percent": 17.11
+    },
+    "nexusai-forensic-postgres-1": {
+      "first_memory": "141.6MiB / 7.611GiB",
+      "last_memory": "143.8MiB / 7.611GiB",
+      "peak_cpu_percent": 2.21
+    },
+    "nexusai-forensic-nats-1": {
+      "first_memory": "15.17MiB / 7.611GiB",
+      "last_memory": "14.71MiB / 7.611GiB",
+      "peak_cpu_percent": 0.75
+    }
+  },
+  "tiny_latency_p50_ms": 6793.5,
+  "tiny_latency_max_ms": 6816,
+  "latency_caveat": "Runner-observed latency includes telemetry polling overhead; not isolated HTTP completion latency",
+  "postload_to_last_ram_drift_gib": -0.028,
+  "four_call_batch_ram_drift_gib": -0.035,
+  "postload_backend_rss_drift_mib": 4.89,
+  "postload_commit_reserve_drift_gib": -0.011,
+  "pagefile_used_mib": [
+    775,
+    774,
+    770,
+    770,
+    770,
+    770,
+    770,
+    770,
+    770,
+    770,
+    770,
+    770,
+    770,
+    770,
+    770,
+    770,
+    770
+  ],
+  "unload_final_available_gib": 8.527,
+  "unload_final_recovery_gib": 4.392,
+  "unload_caveat": "Physical-only recovery samples; v2 did not collect commit/swap/pagefile after unload; do not impute them",
+  "calls": [
+    {
+      "stage": "model_load",
+      "latency_ms": 13364,
+      "tokens": {
+        "prompt_tokens": 34,
+        "completion_tokens": 12,
+        "total_tokens": 46
+      }
+    },
+    {
+      "stage": "tiny",
+      "latency_ms": 6816,
+      "tokens": {
+        "prompt_tokens": 34,
+        "completion_tokens": 9,
+        "total_tokens": 43
+      }
+    },
+    {
+      "stage": "tiny",
+      "latency_ms": 6775,
+      "tokens": {
+        "prompt_tokens": 34,
+        "completion_tokens": 9,
+        "total_tokens": 43
+      }
+    },
+    {
+      "stage": "tiny",
+      "latency_ms": 6784,
+      "tokens": {
+        "prompt_tokens": 34,
+        "completion_tokens": 9,
+        "total_tokens": 43
+      }
+    },
+    {
+      "stage": "tiny",
+      "latency_ms": 6803,
+      "tokens": {
+        "prompt_tokens": 34,
+        "completion_tokens": 9,
+        "total_tokens": 43
+      }
+    }
+  ],
+  "envelope": {
+    "contract_version": "nexusai.current4b-model-resource-envelope/v1",
+    "state": "CANDIDATE_FOR_SINGLE_FINAL_CHARACTERIZATION_NOT_YET_RUNTIME_QUALIFIED",
+    "measured_peak_delta_gib": 4.677,
+    "measured_load_to_after_delta_gib": 4.609,
+    "measured_steady_noise_gib": 0.068,
+    "selected_reserve_gib": 3.5,
+    "reserve_basis": "Explicit engineering cushion 2 GiB above unchanged 1.5 GiB emergency guard; not a measured minimum",
+    "load_margin_gib": 0.25,
+    "margin_basis": "Three times observed post-load physical range, rounded upward to next quarter GiB",
+    "reload_admission_gib": 8.5,
+    "reload_commit_reserve_gib": 6.9,
+    "commit_basis": "Measured peak commit delta plus existing 2 GiB abort reserve plus load margin, rounded upward to 0.1 GiB",
+    "quiet_paging_pages_per_second": 127,
+    "unloaded_backend_rss_mib": 533.898,
+    "required_samples": 5,
+    "max_first_last_decline_gib": 0.25,
+    "maximum_wait_seconds": 120,
+    "cold_admission_gib": 8.627,
+    "build_recreate_floor_gib": 6,
+    "operating_envelope_adopted": false
+  }
+}

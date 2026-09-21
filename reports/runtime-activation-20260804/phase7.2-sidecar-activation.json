@@ -1,0 +1,17 @@
+{
+    "phase":  "phase7.2-sidecars",
+    "deployed_utc":  "2026-08-04T09:39:52.4114927Z",
+    "minimum_free_ram_gib":  2,
+    "free_ram_before_build_gib":  2.19,
+    "api_build_seconds":  36.6,
+    "worker_build_seconds":  4.6,
+    "api_image":  "sha256:0c162fa6e39a6325caf3280b0d7009dc861d9695dc100d126b7f00cf470d014b",
+    "worker_image":  "sha256:d551d7590f87f2960b3cc3a6602c43cd5c50ef2a3a6bf1585d6d132795205a9e",
+    "localai_image_unchanged":  true,
+    "api_health":  "pass",
+    "worker_health":  "pass",
+    "nats_health":  "pass",
+    "localai_ready":  "pass",
+    "named_volumes_preserved":  true,
+    "rollback_images_preserved":  true
+}

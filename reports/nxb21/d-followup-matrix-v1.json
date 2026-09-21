@@ -1,0 +1,139 @@
+{
+  "schema_version": "nexusai.nxb21.d.followup.matrix/v1",
+  "status": "SOURCE_EXPECTATIONS_FROZEN_MODEL_EVALUATION_PENDING",
+  "case_count": 12,
+  "cases": [
+    {
+      "id": "D-145",
+      "language": "en",
+      "expected": {
+        "capability": "cdr.frequent_contacts",
+        "context_change": "OUTGOING",
+        "no_stale_family": true
+      },
+      "oracle": "AUTHOR_SPECIFIED_CONTEXT_TRANSITION",
+      "actual_model": "NOT_RUN"
+    },
+    {
+      "id": "D-146",
+      "language": "en",
+      "expected": {
+        "capability": "cdr.frequent_contacts",
+        "context_change": "INCOMING",
+        "no_stale_family": true
+      },
+      "oracle": "AUTHOR_SPECIFIED_CONTEXT_TRANSITION",
+      "actual_model": "NOT_RUN"
+    },
+    {
+      "id": "D-147",
+      "language": "en",
+      "expected": {
+        "capability": "cdr.frequent_contacts",
+        "context_change": "TARGET_REPLACED",
+        "no_stale_family": true
+      },
+      "oracle": "AUTHOR_SPECIFIED_CONTEXT_TRANSITION",
+      "actual_model": "NOT_RUN"
+    },
+    {
+      "id": "D-148",
+      "language": "roman_ur",
+      "expected": {
+        "capability": "cdr.frequent_contacts",
+        "context_change": "TARGET_REPLACED",
+        "no_stale_family": true
+      },
+      "oracle": "AUTHOR_SPECIFIED_CONTEXT_TRANSITION",
+      "actual_model": "NOT_RUN"
+    },
+    {
+      "id": "D-149",
+      "language": "en",
+      "expected": {
+        "capability": "transcript.phrase",
+        "context_change": "SOURCE_TIME",
+        "no_stale_family": true
+      },
+      "oracle": "AUTHOR_SPECIFIED_CONTEXT_TRANSITION",
+      "actual_model": "NOT_RUN"
+    },
+    {
+      "id": "D-150",
+      "language": "roman_ur",
+      "expected": {
+        "capability": "transcript.phrase",
+        "context_change": "SOURCE_TIME",
+        "no_stale_family": true
+      },
+      "oracle": "AUTHOR_SPECIFIED_CONTEXT_TRANSITION",
+      "actual_model": "NOT_RUN"
+    },
+    {
+      "id": "D-151",
+      "language": "ur",
+      "expected": {
+        "capability": "transcript.phrase",
+        "context_change": "SOURCE_TIME",
+        "no_stale_family": true
+      },
+      "oracle": "AUTHOR_SPECIFIED_CONTEXT_TRANSITION",
+      "actual_model": "NOT_RUN"
+    },
+    {
+      "id": "D-152",
+      "language": "en",
+      "expected": {
+        "capability": "transcript.phrase",
+        "context_change": "selected_evidence",
+        "no_stale_family": true
+      },
+      "oracle": "AUTHOR_SPECIFIED_CONTEXT_TRANSITION",
+      "actual_model": "NOT_RUN"
+    },
+    {
+      "id": "D-153",
+      "language": "en",
+      "expected": {
+        "capability": "transcript.phrase",
+        "context_change": "authorized_workspace",
+        "no_stale_family": true
+      },
+      "oracle": "AUTHOR_SPECIFIED_CONTEXT_TRANSITION",
+      "actual_model": "NOT_RUN"
+    },
+    {
+      "id": "D-154",
+      "language": "en",
+      "expected": {
+        "capability": "image.plate",
+        "context_change": "TARGET_REPLACED",
+        "no_stale_family": true
+      },
+      "oracle": "AUTHOR_SPECIFIED_CONTEXT_TRANSITION",
+      "actual_model": "NOT_RUN"
+    },
+    {
+      "id": "D-155",
+      "language": "roman_ur",
+      "expected": {
+        "capability": "image.plate",
+        "context_change": "TARGET_REPLACED",
+        "no_stale_family": true
+      },
+      "oracle": "AUTHOR_SPECIFIED_CONTEXT_TRANSITION",
+      "actual_model": "NOT_RUN"
+    },
+    {
+      "id": "D-156",
+      "language": "ur",
+      "expected": {
+        "capability": "image.plate",
+        "context_change": "TARGET_REPLACED",
+        "no_stale_family": true
+      },
+      "oracle": "AUTHOR_SPECIFIED_CONTEXT_TRANSITION",
+      "actual_model": "NOT_RUN"
+    }
+  ]
+}

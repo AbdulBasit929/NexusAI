@@ -1,0 +1,15 @@
+services:
+  api:
+    image: nexusai/localai-forensic:conversation-ui-final-20260908
+    entrypoint: /usr/local/bin/nexusai-ui-wrapper
+    command: phi-2
+    ports: !override
+      - name: http
+        target: 8088
+        published: "8080"
+        protocol: tcp
+    environment:
+      NEXUSAI_BACKEND_URL: http://127.0.0.1:8080
+      NEXUSAI_BASE_ENTRYPOINT: /entrypoint.sh
+      NEXUSAI_UI_LISTEN: :8088
+      NEXUSAI_UI_ROOT: /opt/nexusai/unified-ui

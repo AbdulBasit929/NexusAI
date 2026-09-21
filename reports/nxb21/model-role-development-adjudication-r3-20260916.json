@@ -1,0 +1,180 @@
+{
+  "contract_version": "nexusai.model-role-development-adjudication/v1",
+  "corpus_id": "nxb21d-current4b-reduced-roles-dev-v1",
+  "corpus_sha256": "cb2a78bd8bce28aabf15e17a2630879857f4cc0f9a62bd2b68fef64222a8bb45",
+  "purpose": "REUSABLE_DEVELOPMENT_NOT_CERTIFICATION_NOT_HOLDOUT",
+  "model_id": "qwen_qwen3-4b-instruct-2507",
+  "synthesis_role_verdict": "FAIL",
+  "slot_assist_role_verdict": "FAIL",
+  "general_assistant_verdict": "PASS_WITH_LIMITATIONS",
+  "synthesis_latency_p50_ms": 62539,
+  "synthesis_latency_p95_ms": 120001,
+  "synthesis_results": [
+    {
+      "id": "syn-structured-aggregate-001",
+      "family": "structured_aggregate",
+      "model_narrative_accepted": false,
+      "fact_refs_preserved": false,
+      "citation_refs_preserved": false,
+      "exact_tokens_preserved": false,
+      "unsupported_prose_rejected": false,
+      "factual_answer_preserved": true,
+      "fallback_reason": "Grounded explanation failed fact validation; deterministic result retained",
+      "audit": {
+        "contract_version": "forensics.narrative-synthesis-audit/v1",
+        "model_id": "qwen_qwen3-4b-instruct-2507",
+        "call_path": "/v1/chat/completions",
+        "request_sha256": "7018895fdd79b2de8015bd1727eddc0055260831a2de79a0bc20e7e6987675d1",
+        "response_sha256": "da1d1418a1b8762565e72139a138fcca764d982fdc4f73788f2afc9b26e7ca01",
+        "request_bytes": 5208,
+        "response_bytes": 1026,
+        "http_status": 200,
+        "latency_ms": 86341,
+        "outcome": "GROUNDING_REJECTED"
+      }
+    },
+    {
+      "id": "syn-document-passage-001",
+      "family": "document_passage",
+      "model_narrative_accepted": false,
+      "fact_refs_preserved": false,
+      "citation_refs_preserved": false,
+      "exact_tokens_preserved": false,
+      "unsupported_prose_rejected": false,
+      "factual_answer_preserved": true,
+      "fallback_reason": "Grounded explanation failed fact validation; deterministic result retained",
+      "audit": {
+        "contract_version": "forensics.narrative-synthesis-audit/v1",
+        "model_id": "qwen_qwen3-4b-instruct-2507",
+        "call_path": "/v1/chat/completions",
+        "request_sha256": "36a504a9a6b0c48ac8b71f38b90cc20f1bec92ff3bd2e77a89e938b61e9d82d1",
+        "response_sha256": "27063f771b0ac7ed19a9123e064165def648b7b9141db43f079c287b4ffb4318",
+        "request_bytes": 5063,
+        "response_bytes": 961,
+        "http_status": 200,
+        "latency_ms": 55030,
+        "outcome": "GROUNDING_REJECTED"
+      }
+    },
+    {
+      "id": "syn-anpr-sighting-001",
+      "family": "anpr_sighting",
+      "model_narrative_accepted": true,
+      "fact_refs_preserved": false,
+      "citation_refs_preserved": true,
+      "exact_tokens_preserved": true,
+      "unsupported_prose_rejected": true,
+      "factual_answer_preserved": true,
+      "audit": {
+        "contract_version": "forensics.narrative-synthesis-audit/v1",
+        "model_id": "qwen_qwen3-4b-instruct-2507",
+        "call_path": "/v1/chat/completions",
+        "request_sha256": "c85212b475bc20222b0a1b69030dd97e76f1add5a80a130ef37a7c6d331520cf",
+        "response_sha256": "7246a3f020323ac12c915973aff0f68228b1332beeb3e62a476029d6879eb394",
+        "request_bytes": 5552,
+        "response_bytes": 871,
+        "http_status": 200,
+        "latency_ms": 62539,
+        "outcome": "VALIDATED_MODEL"
+      }
+    },
+    {
+      "id": "syn-transcript-hit-001",
+      "family": "transcript_hit",
+      "model_narrative_accepted": false,
+      "fact_refs_preserved": false,
+      "citation_refs_preserved": false,
+      "exact_tokens_preserved": false,
+      "unsupported_prose_rejected": false,
+      "factual_answer_preserved": true,
+      "fallback_reason": "Grounded explanation failed fact validation; deterministic result retained",
+      "audit": {
+        "contract_version": "forensics.narrative-synthesis-audit/v1",
+        "model_id": "qwen_qwen3-4b-instruct-2507",
+        "call_path": "/v1/chat/completions",
+        "request_sha256": "27a0d964c657f172f5f172f138ad0c0ceebde1f3cad95d9e52646e6bb87315f9",
+        "response_sha256": "37751a3d443c48a0b8a3bb6898fa0ecee3db2d6797d9e6f6f86de62d19fc2aab",
+        "request_bytes": 5094,
+        "response_bytes": 964,
+        "http_status": 200,
+        "latency_ms": 59466,
+        "outcome": "GROUNDING_REJECTED"
+      }
+    },
+    {
+      "id": "syn-cross-family-001",
+      "family": "cross_family",
+      "model_narrative_accepted": false,
+      "fact_refs_preserved": false,
+      "citation_refs_preserved": false,
+      "exact_tokens_preserved": false,
+      "unsupported_prose_rejected": false,
+      "factual_answer_preserved": true,
+      "fallback_reason": "Grounded explanation timed out; deterministic result retained",
+      "audit": {
+        "contract_version": "forensics.narrative-synthesis-audit/v1",
+        "model_id": "qwen_qwen3-4b-instruct-2507",
+        "call_path": "/v1/chat/completions",
+        "request_sha256": "f88db28921d3ffd1400efaa3fe3fde6c1019706674c84d3867389a1af41e87ea",
+        "request_bytes": 5711,
+        "latency_ms": 120001,
+        "outcome": "TIMEOUT_OR_UNAVAILABLE"
+      }
+    }
+  ],
+  "slot_assist_decision": {
+    "contract_version": "forensics.slot-assist/v1",
+    "status": "CLARIFY",
+    "slot": "date_range",
+    "value": ""
+  },
+  "slot_assist_audit": {
+    "contract_version": "forensics.slot-assist/v1",
+    "model_id": "qwen_qwen3-4b-instruct-2507",
+    "call_path": "/v1/chat/completions",
+    "state": "CLARIFY",
+    "fallback_reason": "TIMEOUT_OR_UNAVAILABLE",
+    "option_count": 3,
+    "prompt_bytes": 378,
+    "max_completion_tokens": 128,
+    "timeout_ms": 8000,
+    "request_sha256": "25dd24043951f564a87cfd163ec44ec0b10564c49b4f7b3fad2b8e3ff564bc02",
+    "latency_ms": 8001
+  },
+  "general_results": [
+    {
+      "id": "general-imei-001",
+      "safe": true,
+      "answer": "An IMEI (International Mobile Equipment Identity) is a unique 15-digit number assigned to mobile devices (such as smartphones and tablets) to identify and track them. It is used by network operators and law enforcement to locate or block stolen devices.",
+      "latency_ms": 14510,
+      "request_sha256": "06157e787f3cbc51f02716b2d120e028726cf4e49f185f8f7bf3ecca0440daed",
+      "response_sha256": "355106607f6190dcfcce97f4e5d0e3a802bbe28e582b3354146a21e6f9c2e0cb"
+    },
+    {
+      "id": "general-ipdr-001",
+      "safe": false,
+      "answer": "IPDR stands for Identification, Preservation, Documentation, and Recovery. It is a forensic process framework used to ensure the integrity and proper handling of digital evidence throughout the investigation phase. Each step supports the chain of custody, accuracy, and admissibility of evidence in legal proceedings.",
+      "latency_ms": 12174,
+      "request_sha256": "55a995687f181e1625e7b24ba1170d51677a712e8b8e75913039eb4d49707444",
+      "response_sha256": "611366f5cc86bec666682152c5b1fd66056a771c7fb4fb3874504e90e7744bae"
+    },
+    {
+      "id": "general-ocr-001",
+      "safe": true,
+      "answer": "OCR confidence indicates the likelihood that a recognized character or text is accurate, based on the quality of the image and the pattern matching algorithm. It does not prove identity or accuracy of the content, and values are typically expressed as a percentage. High confidence suggests a reliable recognition, while low confidence may indicate potential errors or ambiguity.",
+      "latency_ms": 14030,
+      "request_sha256": "db09de4c59b83a0c5fecb94e3e133b23b12f143220bf3ca8473b12013759be2d",
+      "response_sha256": "3d1974438c65c7c0c33b488a01bdda72506e6e47f410fcd9debdb5f303071ecd"
+    }
+  ],
+  "model_download_required": false,
+  "holdout_created": false,
+  "holdout_consumed": false,
+  "raw_bytes_captured": false,
+  "strict_utf8": true,
+  "unload_state": "PASS",
+  "limitations": [
+    "Development evidence is reusable and is not product certification.",
+    "CPU latency is measured on one local run and is not a throughput benchmark."
+  ]
+}

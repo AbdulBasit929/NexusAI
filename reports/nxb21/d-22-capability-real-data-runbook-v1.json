@@ -1,0 +1,1323 @@
+{
+  "schema_version": "nexusai.nxb21d-22-capability-real-data-runbook/v1",
+  "status": "SOURCE_LIVE_SEPARATED_NOT_CERTIFIED",
+  "count": 22,
+  "rows": [
+    {
+      "capability_id": "cdr.identifier_lookup",
+      "human_name": "Cdr Identifier Lookup",
+      "family": "case_cross_family",
+      "underlying_reference": "forensics.canonical_records",
+      "authority_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "REGISTERED",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "SOURCE_CANDIDATE_ONLY",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "current_real_evidence_available": "REQUIRES_DYNAMIC_DISCOVERY",
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "EXACT_VALUE"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "row",
+        "evidence"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [],
+      "demo_status": "TIER_2_AFTER_ACTIVATION",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Find records for {PHONE}",
+        "alternative_english": "Locate records for {PHONE}",
+        "urdu": "{PHONE} کے ریکارڈ دکھائیں",
+        "roman_urdu": "{PHONE} ke records dikhao",
+        "mixed": "{PHONE} ke records dikhao please",
+        "positive": "Find records for {PHONE}",
+        "zero_no_match": "Find records for {CONFIRMED_ABSENT_PHONE}",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "cdr.frequent_contacts",
+      "human_name": "Cdr Frequent Contacts",
+      "family": "communications_cdr",
+      "underlying_reference": "cdr.frequent_contacts",
+      "authority_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "PRODUCT_CERTIFIED",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "LIVE_RUNNABLE_WITH_LIMITATION",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "current_real_evidence_available": "KNOWN_FOR_DEMO",
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "TOP_K"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "row",
+        "evidence"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [],
+      "demo_status": "TIER_1_DEMO_NOW",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Show top 10 contacts for {PHONE}",
+        "alternative_english": "List top 10 contacts for {PHONE}",
+        "urdu": "{PHONE} کے دس زیادہ رابطے دکھائیں",
+        "roman_urdu": "{PHONE} ke top 10 contacts dikhao",
+        "mixed": "{PHONE} ke top 10 contacts dikhao please",
+        "positive": "Show top 10 contacts for {PHONE}",
+        "zero_no_match": "Show top 10 contacts for {CONFIRMED_ABSENT_PHONE}",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "cdr.time_activity",
+      "human_name": "Cdr Time Activity",
+      "family": "communications_cdr",
+      "underlying_reference": "cdr.temporal_activity",
+      "authority_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "PRODUCT_CERTIFIED",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "LIVE_RUNNABLE_WITH_LIMITATION",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "current_real_evidence_available": "KNOWN_FOR_DEMO",
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "AGGREGATE"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "row",
+        "evidence"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [],
+      "demo_status": "TIER_1_DEMO_NOW",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Summarize call activity for {PHONE} from {DATE1} to {DATE2}",
+        "alternative_english": "Summarize call activity for {PHONE} from {DATE1} to {DATE2}",
+        "urdu": "{DATE1} سے {DATE2} تک {PHONE} کی کال سرگرمی دکھائیں",
+        "roman_urdu": "{DATE1} se {DATE2} tak {PHONE} ki call activity dikhao",
+        "mixed": "{DATE1} se {DATE2} tak {PHONE} ki call activity dikhao please",
+        "positive": "Summarize call activity for {PHONE} from {DATE1} to {DATE2}",
+        "zero_no_match": "Summarize call activity for {CONFIRMED_ABSENT_PHONE} from {DATE1} to {DATE2}",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "ipdr.endpoint",
+      "human_name": "Ipdr Endpoint",
+      "family": "network_ipdr",
+      "underlying_reference": "ipdr.endpoint_summary",
+      "authority_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "REGISTERED",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "SOURCE_CANDIDATE_ONLY",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "current_real_evidence_available": "REQUIRES_DYNAMIC_DISCOVERY",
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "AGGREGATE"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "row",
+        "evidence"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [],
+      "demo_status": "TIER_2_AFTER_ACTIVATION",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Summarize traffic for {IP}",
+        "alternative_english": "Summarize traffic for {IP}",
+        "urdu": "{IP} کا ٹریفک خلاصہ دکھائیں",
+        "roman_urdu": "{IP} ka traffic summary dikhao",
+        "mixed": "{IP} ka traffic summary dikhao please",
+        "positive": "Summarize traffic for {IP}",
+        "zero_no_match": "Summarize traffic for {IP}",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "ipdr.sessions",
+      "human_name": "Ipdr Sessions",
+      "family": "network_ipdr",
+      "underlying_reference": "ipdr.subscriber_sessions",
+      "authority_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "REGISTERED",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "SOURCE_CANDIDATE_ONLY",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "current_real_evidence_available": "REQUIRES_DYNAMIC_DISCOVERY",
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "FILTER"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "row",
+        "evidence"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [],
+      "demo_status": "TIER_2_AFTER_ACTIVATION",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Show subscriber sessions for {PHONE}",
+        "alternative_english": "List subscriber sessions for {PHONE}",
+        "urdu": "{PHONE} کے سیشن دکھائیں",
+        "roman_urdu": "{PHONE} ke sessions dikhao",
+        "mixed": "{PHONE} ke sessions dikhao please",
+        "positive": "Show subscriber sessions for {PHONE}",
+        "zero_no_match": "Show subscriber sessions for {CONFIRMED_ABSENT_PHONE}",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "subscriber.lookup",
+      "human_name": "Subscriber Lookup",
+      "family": "subscriber_identity",
+      "underlying_reference": "subscriber.identity_lookup",
+      "authority_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "REGISTERED",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "SOURCE_CANDIDATE_ONLY",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "current_real_evidence_available": "REQUIRES_DYNAMIC_DISCOVERY",
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "EXACT_VALUE"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "row",
+        "evidence"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [],
+      "demo_status": "TIER_2_AFTER_ACTIVATION",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Look up subscriber observations for {PHONE}",
+        "alternative_english": "Look up subscriber observations for {PHONE}",
+        "urdu": "{PHONE} کی سبسکرائبر معلومات دکھائیں",
+        "roman_urdu": "{PHONE} ki subscriber observations dikhao",
+        "mixed": "{PHONE} ki subscriber observations dikhao please",
+        "positive": "Look up subscriber observations for {PHONE}",
+        "zero_no_match": "Look up subscriber observations for {CONFIRMED_ABSENT_PHONE}",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "device.observations",
+      "human_name": "Device Observations",
+      "family": "communications_cdr",
+      "underlying_reference": "forensics.imei_imsi_usage",
+      "authority_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "REGISTERED",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "SOURCE_CANDIDATE_ONLY",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "current_real_evidence_available": "REQUIRES_DYNAMIC_DISCOVERY",
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "GROUP"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "row",
+        "evidence"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [],
+      "demo_status": "TIER_2_AFTER_ACTIVATION",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Group device observations for {IMEI}",
+        "alternative_english": "Group device observations for {IMEI}",
+        "urdu": "{IMEI} کے ڈیوائس مشاہدات دکھائیں",
+        "roman_urdu": "{IMEI} ke device observations dikhao",
+        "mixed": "{IMEI} ke device observations dikhao please",
+        "positive": "Group device observations for {IMEI}",
+        "zero_no_match": "Group device observations for {IMEI}",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "tower.lookup",
+      "human_name": "Tower Lookup",
+      "family": "tower_location",
+      "underlying_reference": "tower.site_lookup",
+      "authority_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "REGISTERED",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "SOURCE_CANDIDATE_ONLY",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "current_real_evidence_available": "REQUIRES_DYNAMIC_DISCOVERY",
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "EXACT_VALUE"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "row",
+        "evidence"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [],
+      "demo_status": "TIER_2_AFTER_ACTIVATION",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Look up tower {SITE}",
+        "alternative_english": "Look up tower {SITE}",
+        "urdu": "ٹاور {SITE} دکھائیں",
+        "roman_urdu": "tower {SITE} dikhao",
+        "mixed": "tower {SITE} dikhao please",
+        "positive": "Look up tower {SITE}",
+        "zero_no_match": "Look up tower {SITE}",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "financial.summary",
+      "human_name": "Financial Summary",
+      "family": "financial_transactions",
+      "underlying_reference": "financial.transaction_summary",
+      "authority_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "SOURCE_VALIDATED",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "SOURCE_CANDIDATE_ONLY",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "current_real_evidence_available": "REQUIRES_DYNAMIC_DISCOVERY",
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "AGGREGATE"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "row",
+        "evidence"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [],
+      "demo_status": "TIER_2_AFTER_ACTIVATION",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Summarize transactions for {ACCOUNT}",
+        "alternative_english": "Summarize transactions for {ACCOUNT}",
+        "urdu": "{ACCOUNT} کی ٹرانزیکشنز کا خلاصہ دیں",
+        "roman_urdu": "{ACCOUNT} ki transactions ka summary do",
+        "mixed": "{ACCOUNT} ki transactions ka summary do please",
+        "positive": "Summarize transactions for {ACCOUNT}",
+        "zero_no_match": "Summarize transactions for {ACCOUNT}",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "logs.failures",
+      "human_name": "Logs Failures",
+      "family": "access_security_logs",
+      "underlying_reference": "access.failed_events",
+      "authority_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "SOURCE_VALIDATED",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "SOURCE_CANDIDATE_ONLY",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "current_real_evidence_available": "REQUIRES_DYNAMIC_DISCOVERY",
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "FILTER"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "row",
+        "evidence"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [],
+      "demo_status": "TIER_2_AFTER_ACTIVATION",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Show failed events for {USER}",
+        "alternative_english": "List failed events for {USER}",
+        "urdu": "{USER} کے ناکام واقعات دکھائیں",
+        "roman_urdu": "{USER} ke failed events dikhao",
+        "mixed": "{USER} ke failed events dikhao please",
+        "positive": "Show failed events for {USER}",
+        "zero_no_match": "Show failed events for {USER}",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "generic.filter",
+      "human_name": "Generic Filter",
+      "family": "generic_tabular",
+      "underlying_reference": "generic.filter_records",
+      "authority_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "SOURCE_VALIDATED",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "SOURCE_CANDIDATE_ONLY",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "current_real_evidence_available": "REQUIRES_DYNAMIC_DISCOVERY",
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "FILTER"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "DETERMINISTIC_STRUCTURED_FACT",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "row",
+        "evidence"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [],
+      "demo_status": "TIER_2_AFTER_ACTIVATION",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Filter rows where {FIELD} equals {VALUE}",
+        "alternative_english": "Filter rows where {FIELD} equals {VALUE}",
+        "urdu": "وہ قطاریں دکھائیں جہاں {FIELD} برابر {VALUE} ہو",
+        "roman_urdu": "rows dikhao jahan {FIELD} {VALUE} ho",
+        "mixed": "rows dikhao jahan {FIELD} {VALUE} ho please",
+        "positive": "Filter rows where {FIELD} equals {VALUE}",
+        "zero_no_match": "Filter rows where {FIELD} equals {VALUE}",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "document.phrase",
+      "human_name": "Document Phrase",
+      "family": "document_intelligence",
+      "underlying_reference": "document.search",
+      "authority_type": "SOURCE_TEXT",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "SOURCE_VALIDATED",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "LIVE_RUNNABLE_WITH_LIMITATION",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "txt",
+        "pdf",
+        "docx"
+      ],
+      "current_real_evidence_available": "KNOWN_FOR_DEMO",
+      "scope_modes": [
+        "selected_evidence",
+        "authorized_workspace"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "EXACT_VALUE",
+        "EXACT_PHRASE",
+        "PHRASE_CONTAINS",
+        "TOKEN_SEARCH",
+        "SOURCE",
+        "TIME_RANGE",
+        "SOURCE_TIME"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "SOURCE_TEXT",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "page",
+        "artifact",
+        "evidence"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [
+        "Exhaustive absence requires EXHAUSTIVE executor completeness; bounded or incomplete retrieval cannot establish absence.",
+        "Legacy exact retains its distinct historical normalization."
+      ],
+      "demo_status": "TIER_1_DEMO_NOW",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Find the exact phrase \"{PHRASE}\" in this document",
+        "alternative_english": "Locate the exact phrase \"{PHRASE}\" in this document",
+        "urdu": "اس دستاویز میں عین عبارت \"{PHRASE}\" تلاش کریں",
+        "roman_urdu": "is document mein exact phrase \"{PHRASE}\" dhoondo",
+        "mixed": "is document mein exact phrase \"{PHRASE}\" dhoondo please",
+        "positive": "Find the exact phrase \"{PHRASE}\" in this document",
+        "zero_no_match": "Find the exact phrase \"{CONFIRMED_ABSENT_PHRASE}\" in this document",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "knowledge.semantic",
+      "human_name": "Knowledge Semantic",
+      "family": "knowledge_evidence",
+      "underlying_reference": "forensics.evidence",
+      "authority_type": "SEMANTIC_RETRIEVAL",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "PRODUCT_CERTIFIED",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "NO_CURRENT_REAL_EVIDENCE",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "txt",
+        "pdf",
+        "docx"
+      ],
+      "current_real_evidence_available": "NOT_ESTABLISHED",
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "SEMANTIC_RETRIEVAL"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "SEMANTIC_RETRIEVAL",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "evidence",
+        "page"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [
+        "Runtime retrieval availability must be attested separately; indexed metadata alone is insufficient."
+      ],
+      "demo_status": "TIER_4_DO_NOT_DEMO_YET",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Find evidence about {TOPIC}",
+        "alternative_english": "Locate evidence about {TOPIC}",
+        "urdu": "{TOPIC} کے بارے میں ثبوت تلاش کریں",
+        "roman_urdu": "{TOPIC} ke bare mein evidence dhoondo",
+        "mixed": "{TOPIC} ke bare mein evidence dhoondo please",
+        "positive": "Find evidence about {TOPIC}",
+        "zero_no_match": "Find evidence about {TOPIC}",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "ocr.phrase",
+      "human_name": "Ocr Phrase",
+      "family": "image_intelligence",
+      "underlying_reference": "image.ocr_search",
+      "authority_type": "MODEL_OBSERVATION",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "SOURCE_VALIDATED",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "LIVE_RUNNABLE_WITH_LIMITATION",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "jpg",
+        "jpeg",
+        "png",
+        "bmp",
+        "tif",
+        "tiff",
+        "webp"
+      ],
+      "current_real_evidence_available": "KNOWN_FOR_DEMO",
+      "scope_modes": [
+        "selected_evidence",
+        "authorized_workspace"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "EXACT_VALUE",
+        "EXACT_PHRASE",
+        "PHRASE_CONTAINS",
+        "TOKEN_SEARCH",
+        "SOURCE",
+        "TIME_RANGE",
+        "SOURCE_TIME"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "MODEL_OBSERVATION",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "region",
+        "artifact",
+        "evidence"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [
+        "Exhaustive absence requires EXHAUSTIVE executor completeness; bounded or incomplete retrieval cannot establish absence.",
+        "Legacy exact retains its distinct historical normalization."
+      ],
+      "demo_status": "TIER_1_DEMO_NOW",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Find OCR text containing \"{PHRASE}\"",
+        "alternative_english": "Locate OCR text containing \"{PHRASE}\"",
+        "urdu": "OCR متن میں \"{PHRASE}\" تلاش کریں",
+        "roman_urdu": "OCR text mein \"{PHRASE}\" dhoondo",
+        "mixed": "OCR text mein \"{PHRASE}\" dhoondo please",
+        "positive": "Find OCR text containing \"{PHRASE}\"",
+        "zero_no_match": "Find OCR text containing \"{CONFIRMED_ABSENT_PHRASE}\"",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "transcript.phrase",
+      "human_name": "Transcript Phrase",
+      "family": "audio_intelligence",
+      "underlying_reference": "audio.transcript_search",
+      "authority_type": "MODEL_OBSERVATION",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "SOURCE_VALIDATED",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "LIVE_RUNNABLE_WITH_LIMITATION",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "wav",
+        "mp3",
+        "flac",
+        "ogg",
+        "m4a",
+        "aac",
+        "mp4",
+        "mov",
+        "mkv",
+        "avi",
+        "webm"
+      ],
+      "current_real_evidence_available": "KNOWN_FOR_DEMO",
+      "scope_modes": [
+        "selected_evidence",
+        "authorized_workspace"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "EXACT_VALUE",
+        "EXACT_PHRASE",
+        "PHRASE_CONTAINS",
+        "TOKEN_SEARCH",
+        "SOURCE",
+        "TIME_RANGE",
+        "SOURCE_TIME"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "MODEL_OBSERVATION",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "source_time",
+        "artifact",
+        "evidence"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [
+        "Exhaustive absence requires EXHAUSTIVE executor completeness; bounded or incomplete retrieval cannot establish absence.",
+        "Legacy exact retains its distinct historical normalization."
+      ],
+      "demo_status": "TIER_1_DEMO_NOW",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Find where the transcript contains \"{PHRASE}\"",
+        "alternative_english": "Locate where the transcript contains \"{PHRASE}\"",
+        "urdu": "ٹرانسکرپٹ میں \"{PHRASE}\" کہاں ہے",
+        "roman_urdu": "transcript mein \"{PHRASE}\" kahan hai",
+        "mixed": "transcript mein \"{PHRASE}\" kahan hai please",
+        "positive": "Find where the transcript contains \"{PHRASE}\"",
+        "zero_no_match": "Find where the transcript contains \"{CONFIRMED_ABSENT_PHRASE}\"",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "roman_urdu.phrase",
+      "human_name": "Roman Urdu Phrase",
+      "family": "audio_intelligence",
+      "underlying_reference": "audio.transcript_search",
+      "authority_type": "DERIVED_REPRESENTATION",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "SOURCE_VALIDATED",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "LIVE_RUNNABLE_WITH_LIMITATION",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "wav",
+        "mp3",
+        "flac",
+        "ogg",
+        "m4a",
+        "aac",
+        "mp4",
+        "mov",
+        "mkv",
+        "avi",
+        "webm"
+      ],
+      "current_real_evidence_available": "KNOWN_FOR_DEMO",
+      "scope_modes": [
+        "selected_evidence",
+        "authorized_workspace"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "EXACT_VALUE",
+        "EXACT_PHRASE",
+        "PHRASE_CONTAINS",
+        "TOKEN_SEARCH",
+        "SOURCE",
+        "TIME_RANGE",
+        "SOURCE_TIME"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "DERIVED_REPRESENTATION",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "source_time",
+        "artifact",
+        "evidence"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [
+        "Exhaustive absence requires EXHAUSTIVE executor completeness; bounded or incomplete retrieval cannot establish absence.",
+        "Legacy exact retains its distinct historical normalization."
+      ],
+      "demo_status": "TIER_1_DEMO_NOW",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Search Roman Urdu transcript for \"{PHRASE}\"",
+        "alternative_english": "Search Roman Urdu transcript for \"{PHRASE}\"",
+        "urdu": "رومن اردو ٹرانسکرپٹ میں \"{PHRASE}\" تلاش کریں",
+        "roman_urdu": "Roman Urdu transcript mein \"{PHRASE}\" dhoondo",
+        "mixed": "Roman Urdu transcript mein \"{PHRASE}\" dhoondo please",
+        "positive": "Search Roman Urdu transcript for \"{PHRASE}\"",
+        "zero_no_match": "Search Roman Urdu transcript for \"{CONFIRMED_ABSENT_PHRASE}\"",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "image.plate",
+      "human_name": "Image Plate",
+      "family": "anpr_vehicles",
+      "underlying_reference": "anpr.sightings",
+      "authority_type": "MODEL_OBSERVATION",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "REGISTERED",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "LIVE_RUNNABLE_WITH_LIMITATION",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "jpg",
+        "jpeg",
+        "png",
+        "bmp",
+        "tif",
+        "tiff",
+        "webp"
+      ],
+      "current_real_evidence_available": "KNOWN_FOR_DEMO",
+      "scope_modes": [
+        "selected_evidence"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "EXACT_VALUE"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "MODEL_OBSERVATION",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "region",
+        "artifact",
+        "evidence"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [
+        "Image-only authority requires selected image evidence_id and current normalized ANPR rows; workspace ANPR can also contain structured source records."
+      ],
+      "demo_status": "TIER_1_DEMO_NOW",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Find exact plate {PLATE} in this image",
+        "alternative_english": "Locate exact plate {PLATE} in this image",
+        "urdu": "اس تصویر میں عین نمبر پلیٹ {PLATE} تلاش کریں",
+        "roman_urdu": "is image mein exact plate {PLATE} dhoondo",
+        "mixed": "is image mein exact plate {PLATE} dhoondo please",
+        "positive": "Find exact plate {PLATE} in this image",
+        "zero_no_match": "Find exact plate {CONFIRMED_ABSENT_PLATE} in this image",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "video.group_plate",
+      "human_name": "Video Group Plate",
+      "family": "anpr_vehicles",
+      "underlying_reference": "video.anpr_grouped_timeline",
+      "authority_type": "MODEL_OBSERVATION",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "REGISTERED",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "LIVE_RUNNABLE_WITH_LIMITATION",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "mp4",
+        "mov",
+        "mkv",
+        "avi",
+        "webm"
+      ],
+      "current_real_evidence_available": "KNOWN_FOR_DEMO",
+      "scope_modes": [
+        "selected_evidence"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "EXACT_VALUE",
+        "GROUP",
+        "SOURCE_TIME"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "MODEL_OBSERVATION",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "frame",
+        "source_time",
+        "artifact",
+        "evidence"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [],
+      "demo_status": "TIER_1_DEMO_NOW",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Show grouped timeline for plate {PLATE} in this video",
+        "alternative_english": "List grouped timeline for plate {PLATE} in this video",
+        "urdu": "اس ویڈیو میں پلیٹ {PLATE} کی گروپ ٹائم لائن دکھائیں",
+        "roman_urdu": "is video mein plate {PLATE} ki grouped timeline dikhao",
+        "mixed": "is video mein plate {PLATE} ki grouped timeline dikhao please",
+        "positive": "Show grouped timeline for plate {PLATE} in this video",
+        "zero_no_match": "Show grouped timeline for plate {CONFIRMED_ABSENT_PLATE} in this video",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "image.similarity",
+      "human_name": "Image Similarity",
+      "family": "image_intelligence",
+      "underlying_reference": "image.visual_similarity",
+      "authority_type": "MODEL_SIMILARITY",
+      "reference_kind": "DIRECT_DESCRIPTOR",
+      "canonical_certification": "DIRECT_DESCRIPTOR_NOT_OPERATION_CERTIFICATION",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "NO_CURRENT_REAL_EVIDENCE",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "jpg",
+        "jpeg",
+        "png",
+        "bmp",
+        "tif",
+        "tiff",
+        "webp"
+      ],
+      "current_real_evidence_available": "NOT_ESTABLISHED",
+      "scope_modes": [
+        "selected_evidence",
+        "authorized_workspace"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "SIMILARITY"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "MODEL_SIMILARITY",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "region",
+        "artifact",
+        "evidence"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [
+        "Requires explicit authorized query observation and candidate set with compatible admitted vectors; family inventory does not establish this."
+      ],
+      "demo_status": "TIER_4_DO_NOT_DEMO_YET",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Find images visually similar to this selected image",
+        "alternative_english": "Locate images visually similar to this selected image",
+        "urdu": "اس منتخب تصویر سے ملتی جلتی تصاویر دکھائیں",
+        "roman_urdu": "is selected image jaisi images dikhao",
+        "mixed": "is selected image jaisi images dikhao please",
+        "positive": "Find images visually similar to this selected image",
+        "zero_no_match": "Find images visually similar to this selected image",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "face.candidates",
+      "human_name": "Face Candidates",
+      "family": "face_intelligence",
+      "underlying_reference": "face.similarity",
+      "authority_type": "MODEL_SIMILARITY",
+      "reference_kind": "DIRECT_DESCRIPTOR",
+      "canonical_certification": "DIRECT_DESCRIPTOR_NOT_OPERATION_CERTIFICATION",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "NO_CURRENT_REAL_EVIDENCE",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "jpg",
+        "jpeg",
+        "png",
+        "bmp",
+        "tif",
+        "tiff",
+        "webp"
+      ],
+      "current_real_evidence_available": "NOT_ESTABLISHED",
+      "scope_modes": [
+        "selected_evidence",
+        "authorized_workspace"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "SIMILARITY"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "MODEL_SIMILARITY",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "region",
+        "artifact",
+        "evidence"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [
+        "Requires explicit authorized query observation and candidate set with compatible admitted vectors; family inventory does not establish this."
+      ],
+      "demo_status": "TIER_4_DO_NOT_DEMO_YET",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Show similar face candidates for this selected face",
+        "alternative_english": "List similar face candidates for this selected face",
+        "urdu": "اس منتخب چہرے کے مشابہ امیدوار دکھائیں",
+        "roman_urdu": "is selected face ke similar candidates dikhao",
+        "mixed": "is selected face ke similar candidates dikhao please",
+        "positive": "Show similar face candidates for this selected face",
+        "zero_no_match": "Show similar face candidates for this selected face",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "cross_family.identifiers",
+      "human_name": "Cross Family Identifiers",
+      "family": "case_cross_family",
+      "underlying_reference": "forensics.cross_family_correlation",
+      "authority_type": "COMPOSED_VALIDATED_RESULT",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "REGISTERED",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "SOURCE_CANDIDATE_ONLY",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet"
+      ],
+      "current_real_evidence_available": "REQUIRES_DYNAMIC_DISCOVERY",
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "COMPOSE"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "COMPOSED_VALIDATED_RESULT",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "row",
+        "evidence"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [
+        "Each typed component and its required arguments must independently validate."
+      ],
+      "demo_status": "TIER_2_AFTER_ACTIVATION",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Correlate {PHONE} across authorized evidence families",
+        "alternative_english": "Correlate {PHONE} across authorized evidence families",
+        "urdu": "مجاز ثبوت میں {PHONE} کا باہمی تعلق دکھائیں",
+        "roman_urdu": "authorized evidence mein {PHONE} ka cross-family link dikhao",
+        "mixed": "authorized evidence mein {PHONE} ka cross-family link dikhao please",
+        "positive": "Correlate {PHONE} across authorized evidence families",
+        "zero_no_match": "Correlate {CONFIRMED_ABSENT_PHONE} across authorized evidence families",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    },
+    {
+      "capability_id": "case.evidence_package",
+      "human_name": "Case Evidence Package",
+      "family": "case_cross_family",
+      "underlying_reference": "forensics.evidence_package_summary",
+      "authority_type": "COMPOSED_VALIDATED_RESULT",
+      "reference_kind": "QUERY_OPERATION",
+      "canonical_certification": "PRODUCT_CERTIFIED",
+      "source_validation_state": "SOURCE_CONTRACT_VALIDATED_MODEL_EVALUATION_PENDING",
+      "live_today_state": "SOURCE_CANDIDATE_ONLY",
+      "b1_c_d_source_candidate_state": "SOURCE_VALIDATED_NOT_DEPLOYED",
+      "required_evidence_or_input": [
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "ndjson",
+        "xlsx",
+        "parquet",
+        "txt",
+        "pdf",
+        "docx",
+        "wav",
+        "mp3",
+        "flac",
+        "ogg",
+        "m4a",
+        "aac",
+        "mp4",
+        "mov",
+        "mkv",
+        "avi",
+        "webm",
+        "jpg",
+        "jpeg",
+        "png",
+        "bmp",
+        "tif",
+        "tiff",
+        "webp"
+      ],
+      "current_real_evidence_available": "REQUIRES_DYNAMIC_DISCOVERY",
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "query_existing_vs_process_new": "QUERY_EXISTING_RESULTS_ONLY",
+      "supported_semantics": [
+        "SUMMARY"
+      ],
+      "language_applicability": {
+        "english": true,
+        "urdu": true,
+        "roman_urdu": true,
+        "mixed": true
+      },
+      "expected_result_type": "COMPOSED_VALIDATED_RESULT",
+      "zero_no_match_behavior": "Typed zero/no-match only when executor completeness supports absence; otherwise incomplete/unavailable.",
+      "citation_locator": [
+        "evidence",
+        "row"
+      ],
+      "activity_expectation": "One retained Activity only for a normal live Ask; offline model evaluation creates none.",
+      "known_limitations": [
+        "Canonical certification applies to the operation; variants and navigation have separate proof."
+      ],
+      "demo_status": "TIER_2_AFTER_ACTIVATION",
+      "F_certification_requirement": "Independent positive, zero, scope, current-version, citation, navigation and Activity proof.",
+      "target_discovery": "Select an authorized source, inspect its current cited row/artifact read-only, and copy an exact identifier/literal from that source.",
+      "queries": {
+        "canonical_english": "Summarize this investigation evidence package",
+        "alternative_english": "Summarize this investigation evidence package",
+        "urdu": "اس تفتیش کے ثبوت کا خلاصہ دیں",
+        "roman_urdu": "is investigation ke evidence package ka summary do",
+        "mixed": "is investigation ke evidence package ka summary do please",
+        "positive": "Summarize this investigation evidence package",
+        "zero_no_match": "Summarize this investigation evidence package",
+        "follow_up": "Show the same result in the other authorized scope."
+      }
+    }
+  ]
+}

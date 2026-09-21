@@ -1,0 +1,1611 @@
+{
+ "collection_id": "nexusai-forensic-demo",
+ "request_class": "GOVERNED_EVIDENCE_ANALYSIS",
+ "intent": "records",
+ "template": "subscriber_profile",
+ "query_understanding": {
+  "contract_version": "forensics.query-understanding/v1",
+  "original_question": "Which subscriber has the most internet sessions?",
+  "normalized_question": "which subscriber has the most internet sessions?",
+  "language": {
+   "tag": "en",
+   "source": "deterministic_extractor",
+   "confidence": 0.9
+  },
+  "intent": "lookup",
+  "families": {
+   "kind": "multiple",
+   "primary": "communications_cdr",
+   "secondary": [
+    "generic_tabular",
+    "subscriber_identity"
+   ]
+  },
+  "entities": [],
+  "targets": [],
+  "time_scope": {
+   "timezone": "case_default",
+   "origin": "deterministic_extractor"
+  },
+  "filters": [],
+  "requested_output": {
+   "result_kind": "table",
+   "presentation_type": "bounded_records_table",
+   "limit": 20
+  },
+  "candidate_capabilities": [
+   "forensics.subscriber_profile"
+  ],
+  "semantic_capability_ids": null,
+  "semantic_operation_refs": null,
+  "clarification": {
+   "required": false,
+   "missing_fields": []
+  },
+  "context": {
+   "used": false,
+   "fields": [],
+   "inherited_fields": null
+  },
+  "confidence": {
+   "overall": 0.74,
+   "routing": 0.74,
+   "entities": 0,
+   "time_scope": 0
+  }
+ },
+ "investigation_context": {
+  "contract_version": "forensics.investigation-context/v1",
+  "workspace": {
+   "tenant_id": "default",
+   "case_id": "nexusai-forensic-demo",
+   "collection_id": "nexusai-forensic-demo",
+   "subject_id": "live-eval"
+  },
+  "evidence": {
+   "kind": "current_workspace",
+   "collection_id": "nexusai-forensic-demo",
+   "evidence_ids": [],
+   "family_ids": [],
+   "source_files": []
+  },
+  "active_entities": null,
+  "current_question": "Which subscriber has the most internet sessions?",
+  "previous_result": {},
+  "time": {
+   "domain": "record_timestamp",
+   "timezone": "case_default",
+   "origin": "deterministic_extractor",
+   "normalizer": "forensics.time-policy/v1"
+  },
+  "available_families": [
+   "communications_cdr",
+   "generic_tabular",
+   "subscriber_identity"
+  ],
+  "capability_snapshot_id": "f0970165-2a3a-4735-a13c-20182672fd5e:capabilities",
+  "permissions": [
+   "query:execute"
+  ],
+  "conversation": {},
+  "context_provenance": {
+   "used": false,
+   "fields": [],
+   "inherited_fields": null
+  }
+ },
+ "capability_snapshot": {
+  "contract_version": "forensics.capability-snapshot/v1",
+  "snapshot_id": "f0970165-2a3a-4735-a13c-20182672fd5e:capabilities",
+  "tenant_id": "default",
+  "collection_id": "nexusai-forensic-demo",
+  "generated_at": "2026-09-18T06:28:20.983948228Z",
+  "entries": [
+   {
+    "operation": {
+     "capability_id": "forensics.subscriber_profile",
+     "operation_id": "forensics.subscriber_profile",
+     "template": "subscriber_profile",
+     "family_ids": [
+      "communications_cdr",
+      "generic_tabular",
+      "subscriber_identity"
+     ],
+     "intent_classes": [
+      "lookup"
+     ],
+     "required_parameters": [],
+     "optional_parameters": [
+      "date_from",
+      "date_to",
+      "limit"
+     ],
+     "scope_mode": "case_wide",
+     "source_scoped": false,
+     "time_scoped": true,
+     "execution_mode": "deterministic",
+     "extension_mode": "deterministic_operation",
+     "implementation_key": "runAnalyticalTemplate",
+     "specialist_id": "Communications_CDR_Analyst",
+     "model_role_ids": null,
+     "result_contract": "forensics.enterprise-response/v1",
+     "result_kind": "table",
+     "presentation_type": "bounded_records_table",
+     "citation_required": true,
+     "criticality_tier": "B",
+     "certification_status": "bounded_uncertified",
+     "exposure_status": "limited",
+     "suggestion_eligible": false,
+     "limitations": [
+      "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+     ],
+     "availability": {
+      "implemented": true,
+      "runtime_available": true,
+      "data_available": true,
+      "authorized": true,
+      "model_available": true,
+      "maturity": "operational",
+      "queryable": true,
+      "executable": true,
+      "reason_codes": null
+     }
+    },
+    "requirement": {
+     "family_ids": [
+      "communications_cdr",
+      "generic_tabular",
+      "subscriber_identity"
+     ],
+     "required_parameters": null,
+     "required_fields": null,
+     "model_role_ids": null,
+     "citation_required": true,
+     "certified_required": false
+    },
+    "readiness": "COMPLETE_RESULTS",
+    "reason_codes": null
+   }
+  ]
+ },
+ "execution_plan": {
+  "contract_version": "forensics.execution-plan/v1",
+  "plan_id": "f0970165-2a3a-4735-a13c-20182672fd5e:plan",
+  "mode": "single_operation",
+  "workspace": {
+   "tenant_id": "default",
+   "case_id": "nexusai-forensic-demo",
+   "collection_id": "nexusai-forensic-demo",
+   "subject_id": "live-eval"
+  },
+  "steps": [
+   {
+    "step_id": "step-1",
+    "capability_id": "forensics.subscriber_profile",
+    "operation_id": "forensics.subscriber_profile",
+    "dependencies": [],
+    "input_bindings": [],
+    "parameters": {
+     "targets": [],
+     "raw_payload_filters": null,
+     "field_filters": null,
+     "field_exists": [],
+     "field_not_exists": [],
+     "limit": 20,
+     "offset": 0,
+     "max_kb_results": 1,
+     "retrieval_mode": "NONE"
+    },
+    "evidence_scope": {
+     "collection_id": "nexusai-forensic-demo"
+    },
+    "expected_result_contract": "forensics.enterprise-response/v1",
+    "result_kind": "table",
+    "presentation_type": "bounded_records_table",
+    "citation_required": true
+   }
+  ],
+  "output_contract": "forensics.enterprise-response/v1",
+  "resource_policy": {
+   "read_only": true,
+   "maximum_steps": 1,
+   "maximum_rows": 100,
+   "maximum_offset": 100000,
+   "maximum_kb_results": 20,
+   "maximum_targets": 8,
+   "maximum_intermediate_rows": 0,
+   "maximum_retrieval_chunks": 0,
+   "maximum_model_calls": 0,
+   "timeout_milliseconds": 0
+  },
+  "policy_decisions": [
+   "workspace_scope_bound",
+   "known_capability_only",
+   "read_only_executor",
+   "citations_capability_owned"
+  ]
+ },
+ "plan_validation": {
+  "contract_version": "forensics.plan-validation/v1",
+  "plan_id": "f0970165-2a3a-4735-a13c-20182672fd5e:plan",
+  "valid": true,
+  "scope_authorized": true,
+  "capabilities_ready": true,
+  "dependencies_valid": true,
+  "budget_accepted": true,
+  "authority_preserved": true,
+  "estimated_cost_class": "direct_operation",
+  "issues": []
+ },
+ "resolved_capability": {
+  "capability_id": "forensics.subscriber_profile",
+  "operation_id": "forensics.subscriber_profile",
+  "template": "subscriber_profile",
+  "family_ids": [
+   "communications_cdr",
+   "generic_tabular",
+   "subscriber_identity"
+  ],
+  "intent_classes": [
+   "lookup"
+  ],
+  "required_parameters": [],
+  "optional_parameters": [
+   "date_from",
+   "date_to",
+   "limit"
+  ],
+  "scope_mode": "case_wide",
+  "source_scoped": false,
+  "time_scoped": true,
+  "execution_mode": "deterministic",
+  "extension_mode": "deterministic_operation",
+  "implementation_key": "runAnalyticalTemplate",
+  "specialist_id": "Communications_CDR_Analyst",
+  "model_role_ids": null,
+  "result_contract": "forensics.enterprise-response/v1",
+  "result_kind": "table",
+  "presentation_type": "bounded_records_table",
+  "citation_required": true,
+  "criticality_tier": "B",
+  "certification_status": "bounded_uncertified",
+  "exposure_status": "limited",
+  "suggestion_eligible": false,
+  "limitations": [
+   "The result is bounded by ingested case coverage and does not establish facts outside the cited records."
+  ],
+  "availability": {
+   "implemented": true,
+   "runtime_available": true,
+   "data_available": true,
+   "authorized": true,
+   "model_available": true,
+   "maturity": "operational",
+   "queryable": true,
+   "executable": true,
+   "reason_codes": null
+  }
+ },
+ "route": [
+  "records_sql"
+ ],
+ "policy": "Exact analytics are computed from parameterized SQL templates. KB content is used only for evidence, source previews, and contextual grounding.",
+ "planner": {
+  "capability_id": "forensics.subscriber_profile",
+  "confidence": 0.74,
+  "date_from": "",
+  "date_to": "",
+  "exact_identifier_authority": null,
+  "execution_plan_id": "f0970165-2a3a-4735-a13c-20182672fd5e:plan",
+  "extracted_target": "",
+  "field_hints": [
+   "identity"
+  ],
+  "hybrid_planner": null,
+  "language_assistance": "deterministic_fast_path",
+  "phrase_literal_authority": null,
+  "policy_decisions": [
+   "workspace_scope_bound",
+   "known_capability_only",
+   "read_only_executor",
+   "citations_capability_owned"
+  ],
+  "query_plan": {
+   "interpreted_intent": "records",
+   "selected_template": "subscriber_profile",
+   "target_identifiers": [],
+   "date_bounds": {},
+   "applied_filters": {
+    "field_hints": [
+     "identity"
+    ],
+    "target_type": ""
+   },
+   "confidence": 0.74,
+   "coverage_check": {
+    "total_indexed_records": 0,
+    "record_families_present": null,
+    "nearest_activity": {},
+    "valid_target_examples": null
+   },
+   "execution_strategy": "sql_deterministic"
+  },
+  "query_understanding_version": "forensics.query-understanding/v1",
+  "reason": "rule-based runtime query planner; field hints extracted",
+  "retrieval_strategy": {
+   "contract_version": "forensics.document-retrieval-strategy/v1",
+   "derived_text": false,
+   "exact_is_semantic": false,
+   "kb_retrieval": false,
+   "retrieval_mode": "NONE",
+   "semantic_frame": "forensics.semantic-frame/v1"
+  },
+  "semantic_operation_planner": null,
+  "source": "runtime_query",
+  "target_type": "",
+  "targets": []
+ },
+ "query_plan": {
+  "interpreted_intent": "records",
+  "selected_template": "subscriber_profile",
+  "target_identifiers": [],
+  "date_bounds": {},
+  "applied_filters": {
+   "field_hints": [
+    "identity"
+   ],
+   "target_type": ""
+  },
+  "confidence": 0.74,
+  "coverage_check": {
+   "total_indexed_records": 0,
+   "record_families_present": null,
+   "nearest_activity": {},
+   "valid_target_examples": null
+  },
+  "execution_strategy": "sql_deterministic"
+ },
+ "capability": {
+  "status": "supported_by_selected_route",
+  "requested_families": [],
+  "required_operations": [],
+  "missing_capabilities": [],
+  "explanation": "The selected deterministic or evidence route may run; collection coverage is reported separately.",
+  "suggested_queries": []
+ },
+ "coverage": {
+  "total_indexed_records": 0,
+  "record_families_present": null,
+  "nearest_activity": {},
+  "valid_target_examples": null
+ },
+ "records": {
+  "entity_activity": [
+   {
+    "entity_type": "phone",
+    "entity_value": "923461678183",
+    "first_seen": "2026-04-01T19:10:35Z",
+    "last_seen": "2026-06-20T14:08:01Z",
+    "observation_count": 8908,
+    "record_type_count": 1,
+    "record_types": [
+     "cdr"
+    ]
+   },
+   {
+    "entity_type": "imsi",
+    "entity_value": "410060752029389",
+    "first_seen": "2026-04-01T20:22:34Z",
+    "last_seen": "2026-06-20T14:08:01Z",
+    "observation_count": 3634,
+    "record_type_count": 1,
+    "record_types": [
+     "cdr"
+    ]
+   },
+   {
+    "entity_type": "phone",
+    "entity_value": "internet",
+    "first_seen": "2026-04-02T08:22:38Z",
+    "last_seen": "2026-06-20T14:07:00Z",
+    "observation_count": 3140,
+    "record_type_count": 1,
+    "record_types": [
+     "cdr"
+    ]
+   },
+   {
+    "entity_type": "phone",
+    "entity_value": "923001110001",
+    "first_seen": "2026-04-01T19:00:02Z",
+    "last_seen": "2026-04-26T02:13:03Z",
+    "observation_count": 1744,
+    "record_type_count": 1,
+    "record_types": [
+     "cdr"
+    ]
+   },
+   {
+    "entity_type": "phone",
+    "entity_value": "923331234567",
+    "first_seen": "2026-04-01T19:04:58Z",
+    "last_seen": "2026-04-25T22:43:28Z",
+    "observation_count": 1724,
+    "record_type_count": 1,
+    "record_types": [
+     "cdr"
+    ]
+   },
+   {
+    "entity_type": "phone",
+    "entity_value": "923001110002",
+    "first_seen": "2026-04-01T19:03:36Z",
+    "last_seen": "2026-04-25T20:16:54Z",
+    "observation_count": 1644,
+    "record_type_count": 1,
+    "record_types": [
+     "cdr"
+    ]
+   },
+   {
+    "entity_type": "phone",
+    "entity_value": "923001110003",
+    "first_seen": "2026-04-01T19:12:05Z",
+    "last_seen": "2026-04-26T00:35:06Z",
+    "observation_count": 1634,
+    "record_type_count": 1,
+    "record_types": [
+     "cdr"
+    ]
+   },
+   {
+    "entity_type": "phone",
+    "entity_value": "923451112233",
+    "first_seen": "2026-04-01T19:28:03Z",
+    "last_seen": "2026-04-26T00:21:28Z",
+    "observation_count": 1614,
+    "record_type_count": 1,
+    "record_types": [
+     "cdr"
+    ]
+   },
+   {
+    "entity_type": "location",
+    "entity_value": "Chak No.136 Jamra Road Silanwali",
+    "first_seen": "2026-04-02T06:35:41Z",
+    "last_seen": "2026-06-20T14:08:01Z",
+    "observation_count": 1457,
+    "record_type_count": 1,
+    "record_types": [
+     "cdr"
+    ]
+   },
+   {
+    "entity_type": "imei",
+    "entity_value": "86289207234471",
+    "first_seen": "2026-06-05T03:33:21Z",
+    "last_seen": "2026-06-14T06:05:32Z",
+    "observation_count": 1418,
+    "record_type_count": 1,
+    "record_types": [
+     "cdr"
+    ]
+   },
+   {
+    "entity_type": "location",
+    "entity_value": "Gulberg",
+    "first_seen": "2026-04-01T19:00:02Z",
+    "last_seen": "2026-07-19T07:20:00Z",
+    "observation_count": 1165,
+    "record_type_count": 3,
+    "record_types": [
+     "anpr",
+     "cdr",
+     "transaction"
+    ]
+   },
+   {
+    "entity_type": "location",
+    "entity_value": "Model Town",
+    "first_seen": "2026-04-01T19:03:36Z",
+    "last_seen": "2026-07-19T13:03:00Z",
+    "observation_count": 1159,
+    "record_type_count": 2,
+    "record_types": [
+     "anpr",
+     "cdr"
+    ]
+   },
+   {
+    "entity_type": "location",
+    "entity_value": "DHA Phase 5",
+    "first_seen": "2026-04-01T19:27:19Z",
+    "last_seen": "2026-07-19T03:50:00Z",
+    "observation_count": 1148,
+    "record_type_count": 2,
+    "record_types": [
+     "anpr",
+     "cdr"
+    ]
+   },
+   {
+    "entity_type": "cell",
+    "entity_value": "149631808",
+    "first_seen": "2026-04-08T10:04:00Z",
+    "last_seen": "2026-06-20T14:08:01Z",
+    "observation_count": 1114,
+    "record_type_count": 1,
+    "record_types": [
+     "cdr"
+    ]
+   },
+   {
+    "entity_type": "cell",
+    "entity_value": "CELL-LB-02",
+    "first_seen": "2026-04-01T19:11:02Z",
+    "last_seen": "2026-04-26T00:28:28Z",
+    "observation_count": 1030,
+    "record_type_count": 1,
+    "record_types": [
+     "cdr"
+    ]
+   },
+   {
+    "entity_type": "location",
+    "entity_value": "Liberty Market",
+    "first_seen": "2026-04-01T19:11:02Z",
+    "last_seen": "2026-04-26T00:28:28Z",
+    "observation_count": 1030,
+    "record_type_count": 1,
+    "record_types": [
+     "cdr"
+    ]
+   },
+   {
+    "entity_type": "location",
+    "entity_value": "Chak-No.136-Jamra-Road-Silanwali",
+    "first_seen": "2026-04-01T20:22:34Z",
+    "last_seen": "2026-06-20T14:07:00Z",
+    "observation_count": 1020,
+    "record_type_count": 1,
+    "record_types": [
+     "cdr"
+    ]
+   },
+   {
+    "entity_type": "cell",
+    "entity_value": "CELL-GLB-01",
+    "first_seen": "2026-04-01T19:00:02Z",
+    "last_seen": "2026-04-26T02:13:03Z",
+    "observation_count": 1012,
+    "record_type_count": 1,
+    "record_types": [
+     "cdr"
+    ]
+   },
+   {
+    "entity_type": "cell",
+    "entity_value": "CELL-MT-03",
+    "first_seen": "2026-04-01T19:03:36Z",
+    "last_seen": "2026-04-25T20:09:07Z",
+    "observation_count": 1007,
+    "record_type_count": 1,
+    "record_types": [
+     "cdr"
+    ]
+   },
+   {
+    "entity_type": "cell",
+    "entity_value": "CELL-DHA-05",
+    "first_seen": "2026-04-01T19:27:19Z",
+    "last_seen": "2026-04-25T22:15:11Z",
+    "observation_count": 999,
+    "record_type_count": 1,
+    "record_types": [
+     "cdr"
+    ]
+   }
+  ],
+  "row_count": 20
+ },
+ "answer": {
+  "guardrail": "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations.",
+  "records_row_count": 20,
+  "records_status": "matched",
+  "records_summary": "Computed deterministic records result."
+ },
+ "enterprise": {
+  "clarification": "",
+  "contribution_lineage": null,
+  "conversation_context": {
+   "analysis_id": "",
+   "audit_id": "ctx-1789712901254570257",
+   "citation_handles": [],
+   "collection_id": "nexusai-forensic-demo",
+   "contract_version": "forensics.follow-up-context/v1",
+   "conversation_id": "",
+   "created_at": "2026-09-18T06:28:21Z",
+   "current_question": "Which subscriber has the most internet sessions?",
+   "date_from": "",
+   "date_to": "",
+   "direction": "",
+   "entity_handles": [],
+   "evidence_id": "",
+   "evidence_version_id": "",
+   "expires_at": "2026-09-18T06:58:21Z",
+   "fact_handles": [
+    {
+     "handle_id": "fact-F1",
+     "kind": "fact",
+     "fact_id": "F1"
+    },
+    {
+     "handle_id": "fact-F2",
+     "kind": "fact",
+     "fact_id": "F2"
+    },
+    {
+     "handle_id": "fact-F3",
+     "kind": "fact",
+     "fact_id": "F3"
+    },
+    {
+     "handle_id": "fact-F4",
+     "kind": "fact",
+     "fact_id": "F4"
+    },
+    {
+     "handle_id": "fact-F5",
+     "kind": "fact",
+     "fact_id": "F5"
+    },
+    {
+     "handle_id": "fact-F6",
+     "kind": "fact",
+     "fact_id": "F6"
+    },
+    {
+     "handle_id": "fact-F7",
+     "kind": "fact",
+     "fact_id": "F7"
+    },
+    {
+     "handle_id": "fact-F8",
+     "kind": "fact",
+     "fact_id": "F8"
+    },
+    {
+     "handle_id": "fact-F9",
+     "kind": "fact",
+     "fact_id": "F9"
+    }
+   ],
+   "inherited_fields": null,
+   "issued_fields": null,
+   "mutation": null,
+   "operation_id": "forensics.subscriber_profile",
+   "result_handles": [],
+   "source_native": null,
+   "source_set": null,
+   "target": "",
+   "targets": [],
+   "template": "subscriber_profile",
+   "tenant_id": "default",
+   "turn_id": "",
+   "user_id": "live-eval"
+  },
+  "coverage": {
+   "collection_id": "nexusai-forensic-demo",
+   "collection_max_timestamp": "",
+   "collection_min_timestamp": "",
+   "date_from": "",
+   "date_to": "",
+   "direction": "",
+   "nearest_activity": {},
+   "queried_kb": false,
+   "queried_record_sql": true,
+   "record_families_present": null,
+   "route": [
+    "records_sql"
+   ],
+   "target": "",
+   "template": "subscriber_profile",
+   "tenant_id": "default",
+   "total_indexed_records": 0,
+   "valid_target_examples": null
+  },
+  "data_grid": {
+   "columns": [
+    {
+     "header": "Entity Type",
+     "key": "entity_type"
+    },
+    {
+     "header": "Entity Value",
+     "key": "entity_value"
+    },
+    {
+     "header": "First Seen",
+     "key": "first_seen"
+    },
+    {
+     "header": "Last Seen",
+     "key": "last_seen"
+    },
+    {
+     "header": "Observation Count",
+     "key": "observation_count"
+    },
+    {
+     "header": "Record Type Count",
+     "key": "record_type_count"
+    },
+    {
+     "header": "Record Types",
+     "key": "record_types"
+    },
+    {
+     "header": "Section",
+     "key": "section"
+    }
+   ],
+   "count": 20,
+   "rows": [
+    {
+     "entity_type": "phone",
+     "entity_value": "923461678183",
+     "first_seen": "2026-04-01T19:10:35Z",
+     "last_seen": "2026-06-20T14:08:01Z",
+     "observation_count": 8908,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "imsi",
+     "entity_value": "410060752029389",
+     "first_seen": "2026-04-01T20:22:34Z",
+     "last_seen": "2026-06-20T14:08:01Z",
+     "observation_count": 3634,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "phone",
+     "entity_value": "internet",
+     "first_seen": "2026-04-02T08:22:38Z",
+     "last_seen": "2026-06-20T14:07:00Z",
+     "observation_count": 3140,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "phone",
+     "entity_value": "923001110001",
+     "first_seen": "2026-04-01T19:00:02Z",
+     "last_seen": "2026-04-26T02:13:03Z",
+     "observation_count": 1744,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "phone",
+     "entity_value": "923331234567",
+     "first_seen": "2026-04-01T19:04:58Z",
+     "last_seen": "2026-04-25T22:43:28Z",
+     "observation_count": 1724,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "phone",
+     "entity_value": "923001110002",
+     "first_seen": "2026-04-01T19:03:36Z",
+     "last_seen": "2026-04-25T20:16:54Z",
+     "observation_count": 1644,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "phone",
+     "entity_value": "923001110003",
+     "first_seen": "2026-04-01T19:12:05Z",
+     "last_seen": "2026-04-26T00:35:06Z",
+     "observation_count": 1634,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "phone",
+     "entity_value": "923451112233",
+     "first_seen": "2026-04-01T19:28:03Z",
+     "last_seen": "2026-04-26T00:21:28Z",
+     "observation_count": 1614,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "location",
+     "entity_value": "Chak No.136 Jamra Road Silanwali",
+     "first_seen": "2026-04-02T06:35:41Z",
+     "last_seen": "2026-06-20T14:08:01Z",
+     "observation_count": 1457,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "imei",
+     "entity_value": "86289207234471",
+     "first_seen": "2026-06-05T03:33:21Z",
+     "last_seen": "2026-06-14T06:05:32Z",
+     "observation_count": 1418,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "location",
+     "entity_value": "Gulberg",
+     "first_seen": "2026-04-01T19:00:02Z",
+     "last_seen": "2026-07-19T07:20:00Z",
+     "observation_count": 1165,
+     "record_type_count": 3,
+     "record_types": [
+      "anpr",
+      "cdr",
+      "transaction"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "location",
+     "entity_value": "Model Town",
+     "first_seen": "2026-04-01T19:03:36Z",
+     "last_seen": "2026-07-19T13:03:00Z",
+     "observation_count": 1159,
+     "record_type_count": 2,
+     "record_types": [
+      "anpr",
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "location",
+     "entity_value": "DHA Phase 5",
+     "first_seen": "2026-04-01T19:27:19Z",
+     "last_seen": "2026-07-19T03:50:00Z",
+     "observation_count": 1148,
+     "record_type_count": 2,
+     "record_types": [
+      "anpr",
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "cell",
+     "entity_value": "149631808",
+     "first_seen": "2026-04-08T10:04:00Z",
+     "last_seen": "2026-06-20T14:08:01Z",
+     "observation_count": 1114,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "cell",
+     "entity_value": "CELL-LB-02",
+     "first_seen": "2026-04-01T19:11:02Z",
+     "last_seen": "2026-04-26T00:28:28Z",
+     "observation_count": 1030,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "location",
+     "entity_value": "Liberty Market",
+     "first_seen": "2026-04-01T19:11:02Z",
+     "last_seen": "2026-04-26T00:28:28Z",
+     "observation_count": 1030,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "location",
+     "entity_value": "Chak-No.136-Jamra-Road-Silanwali",
+     "first_seen": "2026-04-01T20:22:34Z",
+     "last_seen": "2026-06-20T14:07:00Z",
+     "observation_count": 1020,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "cell",
+     "entity_value": "CELL-GLB-01",
+     "first_seen": "2026-04-01T19:00:02Z",
+     "last_seen": "2026-04-26T02:13:03Z",
+     "observation_count": 1012,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "cell",
+     "entity_value": "CELL-MT-03",
+     "first_seen": "2026-04-01T19:03:36Z",
+     "last_seen": "2026-04-25T20:09:07Z",
+     "observation_count": 1007,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "cell",
+     "entity_value": "CELL-DHA-05",
+     "first_seen": "2026-04-01T19:27:19Z",
+     "last_seen": "2026-04-25T22:15:11Z",
+     "observation_count": 999,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    }
+   ]
+  },
+  "executive_answer": "Computed deterministic records result.",
+  "fact_packet": {
+   "contract_version": "forensics.fact-packet/v1",
+   "request_id": "f0970165-2a3a-4735-a13c-20182672fd5e",
+   "question": "Which subscriber has the most internet sessions?",
+   "language": {
+    "tag": "en",
+    "source": "deterministic_extractor",
+    "confidence": 0.9
+   },
+   "scope": {
+    "tenant_id": "default",
+    "case_id": "nexusai-forensic-demo",
+    "collection_id": "nexusai-forensic-demo"
+   },
+   "operation_id": "forensics.subscriber_profile",
+   "plan_id": "f0970165-2a3a-4735-a13c-20182672fd5e:plan",
+   "normalized_parameters": {
+    "date_from": "",
+    "date_to": "",
+    "direction": "",
+    "limit": 20,
+    "retrieval_mode": "NONE",
+    "source_file": "",
+    "source_set": null,
+    "target": "",
+    "targets": []
+   },
+   "execution_mode": "records_sql",
+   "result_state": "results_present",
+   "facts": [
+    {
+     "fact_id": "F1",
+     "kind": "direct_answer",
+     "text": "Computed deterministic records result.",
+     "citation_ids": null
+    },
+    {
+     "fact_id": "F2",
+     "kind": "deterministic_fact",
+     "text": "Computed deterministic records result.",
+     "citation_ids": null
+    },
+    {
+     "fact_id": "F3",
+     "kind": "deterministic_fact",
+     "text": "Structured records row count computed.",
+     "value": 20,
+     "citation_ids": null
+    },
+    {
+     "fact_id": "F4",
+     "kind": "metric",
+     "text": "Template: subscriber_profile",
+     "value": "subscriber_profile",
+     "citation_ids": null
+    },
+    {
+     "fact_id": "F5",
+     "kind": "metric",
+     "text": "Route: records_sql",
+     "value": "records_sql",
+     "citation_ids": null
+    },
+    {
+     "fact_id": "F6",
+     "kind": "metric",
+     "text": "Planner Confidence: 0.74",
+     "value": 0.74,
+     "citation_ids": null
+    },
+    {
+     "fact_id": "F7",
+     "kind": "metric",
+     "text": "Display Rows: 20",
+     "value": 20,
+     "citation_ids": null
+    },
+    {
+     "fact_id": "F8",
+     "kind": "metric",
+     "text": "Records Row Count: 20",
+     "value": 20,
+     "citation_ids": null
+    },
+    {
+     "fact_id": "F9",
+     "kind": "metric",
+     "text": "Provenance Items: 0",
+     "value": 0,
+     "citation_ids": null
+    }
+   ],
+   "metrics": [
+    {
+     "label": "Template",
+     "source": "planner",
+     "value": "subscriber_profile"
+    },
+    {
+     "label": "Route",
+     "source": "planner",
+     "value": "records_sql"
+    },
+    {
+     "label": "Planner Confidence",
+     "source": "planner",
+     "value": 0.74
+    },
+    {
+     "label": "Display Rows",
+     "source": "records_sql",
+     "value": 20
+    },
+    {
+     "label": "Records Row Count",
+     "source": "records_sql",
+     "value": 20
+    },
+    {
+     "label": "Evidence Count",
+     "source": "kb_rag",
+     "value": null
+    },
+    {
+     "label": "Provenance Items",
+     "source": "records_sql+kb_rag",
+     "value": 0
+    }
+   ],
+   "rows": [
+    {
+     "entity_type": "phone",
+     "entity_value": "923461678183",
+     "first_seen": "2026-04-01T19:10:35Z",
+     "last_seen": "2026-06-20T14:08:01Z",
+     "observation_count": 8908,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "imsi",
+     "entity_value": "410060752029389",
+     "first_seen": "2026-04-01T20:22:34Z",
+     "last_seen": "2026-06-20T14:08:01Z",
+     "observation_count": 3634,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "phone",
+     "entity_value": "internet",
+     "first_seen": "2026-04-02T08:22:38Z",
+     "last_seen": "2026-06-20T14:07:00Z",
+     "observation_count": 3140,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "phone",
+     "entity_value": "923001110001",
+     "first_seen": "2026-04-01T19:00:02Z",
+     "last_seen": "2026-04-26T02:13:03Z",
+     "observation_count": 1744,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "phone",
+     "entity_value": "923331234567",
+     "first_seen": "2026-04-01T19:04:58Z",
+     "last_seen": "2026-04-25T22:43:28Z",
+     "observation_count": 1724,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "phone",
+     "entity_value": "923001110002",
+     "first_seen": "2026-04-01T19:03:36Z",
+     "last_seen": "2026-04-25T20:16:54Z",
+     "observation_count": 1644,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "phone",
+     "entity_value": "923001110003",
+     "first_seen": "2026-04-01T19:12:05Z",
+     "last_seen": "2026-04-26T00:35:06Z",
+     "observation_count": 1634,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "phone",
+     "entity_value": "923451112233",
+     "first_seen": "2026-04-01T19:28:03Z",
+     "last_seen": "2026-04-26T00:21:28Z",
+     "observation_count": 1614,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "location",
+     "entity_value": "Chak No.136 Jamra Road Silanwali",
+     "first_seen": "2026-04-02T06:35:41Z",
+     "last_seen": "2026-06-20T14:08:01Z",
+     "observation_count": 1457,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "imei",
+     "entity_value": "86289207234471",
+     "first_seen": "2026-06-05T03:33:21Z",
+     "last_seen": "2026-06-14T06:05:32Z",
+     "observation_count": 1418,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "location",
+     "entity_value": "Gulberg",
+     "first_seen": "2026-04-01T19:00:02Z",
+     "last_seen": "2026-07-19T07:20:00Z",
+     "observation_count": 1165,
+     "record_type_count": 3,
+     "record_types": [
+      "anpr",
+      "cdr",
+      "transaction"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "location",
+     "entity_value": "Model Town",
+     "first_seen": "2026-04-01T19:03:36Z",
+     "last_seen": "2026-07-19T13:03:00Z",
+     "observation_count": 1159,
+     "record_type_count": 2,
+     "record_types": [
+      "anpr",
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "location",
+     "entity_value": "DHA Phase 5",
+     "first_seen": "2026-04-01T19:27:19Z",
+     "last_seen": "2026-07-19T03:50:00Z",
+     "observation_count": 1148,
+     "record_type_count": 2,
+     "record_types": [
+      "anpr",
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "cell",
+     "entity_value": "149631808",
+     "first_seen": "2026-04-08T10:04:00Z",
+     "last_seen": "2026-06-20T14:08:01Z",
+     "observation_count": 1114,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "cell",
+     "entity_value": "CELL-LB-02",
+     "first_seen": "2026-04-01T19:11:02Z",
+     "last_seen": "2026-04-26T00:28:28Z",
+     "observation_count": 1030,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "location",
+     "entity_value": "Liberty Market",
+     "first_seen": "2026-04-01T19:11:02Z",
+     "last_seen": "2026-04-26T00:28:28Z",
+     "observation_count": 1030,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "location",
+     "entity_value": "Chak-No.136-Jamra-Road-Silanwali",
+     "first_seen": "2026-04-01T20:22:34Z",
+     "last_seen": "2026-06-20T14:07:00Z",
+     "observation_count": 1020,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "cell",
+     "entity_value": "CELL-GLB-01",
+     "first_seen": "2026-04-01T19:00:02Z",
+     "last_seen": "2026-04-26T02:13:03Z",
+     "observation_count": 1012,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "cell",
+     "entity_value": "CELL-MT-03",
+     "first_seen": "2026-04-01T19:03:36Z",
+     "last_seen": "2026-04-25T20:09:07Z",
+     "observation_count": 1007,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    },
+    {
+     "entity_type": "cell",
+     "entity_value": "CELL-DHA-05",
+     "first_seen": "2026-04-01T19:27:19Z",
+     "last_seen": "2026-04-25T22:15:11Z",
+     "observation_count": 999,
+     "record_type_count": 1,
+     "record_types": [
+      "cdr"
+     ],
+     "section": "entity_activity"
+    }
+   ],
+   "row_set_state": "complete",
+   "relationships": [],
+   "citations": [],
+   "citation_set_state": "complete",
+   "conflicts": [],
+   "limitations": [
+    "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+   ],
+   "missingness": [],
+   "quality_warnings": null,
+   "available_follow_up_capabilities": [
+    {
+     "label": "Audit source files",
+     "query": "which files were ingested?",
+     "reason": "Review traceability and evidence coverage.",
+     "template": "source_file_audit"
+    },
+    {
+     "label": "Check analysis readiness",
+     "query": "is this case ready for analysis?",
+     "reason": "Confirm evidence-processing quality before reporting.",
+     "template": "case_readiness"
+    }
+   ],
+   "presentation_hints": {
+    "direction": "ltr",
+    "language": "en",
+    "presentation_type": "bounded_records_table",
+    "priority_columns": [
+     "entity_type",
+     "entity_value",
+     "first_seen",
+     "last_seen",
+     "observation_count",
+     "record_type_count",
+     "record_types",
+     "section"
+    ],
+    "result_kind": "table"
+   }
+  },
+  "limitations": [
+   "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+  ],
+  "metrics": [
+   {
+    "label": "Template",
+    "source": "planner",
+    "value": "subscriber_profile"
+   },
+   {
+    "label": "Route",
+    "source": "planner",
+    "value": "records_sql"
+   },
+   {
+    "label": "Planner Confidence",
+    "source": "planner",
+    "value": 0.74
+   },
+   {
+    "label": "Display Rows",
+    "source": "records_sql",
+    "value": 20
+   },
+   {
+    "label": "Records Row Count",
+    "source": "records_sql",
+    "value": 20
+   },
+   {
+    "label": "Evidence Count",
+    "source": "kb_rag",
+    "value": null
+   },
+   {
+    "label": "Provenance Items",
+    "source": "records_sql+kb_rag",
+    "value": 0
+   }
+  ],
+  "narrative": {
+   "contract_version": "forensics.narrative/v1",
+   "locale": "en",
+   "direction": "ltr",
+   "status": "deterministic",
+   "direct_answer": "Computed deterministic records result.",
+   "key_findings": [
+    {
+     "text": "Computed deterministic records result.",
+     "claim_type": "direct_answer",
+     "fact_refs": [
+      "F1"
+     ],
+     "citation_refs": null
+    },
+    {
+     "text": "Computed deterministic records result.",
+     "claim_type": "deterministic_fact",
+     "fact_refs": [
+      "F2"
+     ],
+     "citation_refs": null
+    },
+    {
+     "text": "Structured records row count computed.",
+     "claim_type": "deterministic_fact",
+     "fact_refs": [
+      "F3"
+     ],
+     "citation_refs": null
+    },
+    {
+     "text": "Template: subscriber_profile",
+     "claim_type": "metric",
+     "fact_refs": [
+      "F4"
+     ],
+     "citation_refs": null
+    },
+    {
+     "text": "Route: records_sql",
+     "claim_type": "metric",
+     "fact_refs": [
+      "F5"
+     ],
+     "citation_refs": null
+    }
+   ],
+   "comparisons": [],
+   "relationship_summary": [],
+   "limitations": [
+    "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
+   ],
+   "suggested_questions": [
+    "which files were ingested?",
+    "is this case ready for analysis?"
+   ],
+   "fact_refs": [
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6",
+    "F7",
+    "F8",
+    "F9"
+   ],
+   "citation_refs": [],
+   "fallback": true
+  },
+  "operation": {
+   "family_id": "communications_cdr",
+   "operation_id": "forensics.subscriber_profile",
+   "output_description": "Bounded deterministic subscriber profile result with source traceability.",
+   "source_access": "records",
+   "template": "subscriber_profile"
+  },
+  "plan_validation": {
+   "contract_version": "forensics.plan-validation/v1",
+   "plan_id": "f0970165-2a3a-4735-a13c-20182672fd5e:plan",
+   "valid": true,
+   "scope_authorized": true,
+   "capabilities_ready": true,
+   "dependencies_valid": true,
+   "budget_accepted": true,
+   "authority_preserved": true,
+   "estimated_cost_class": "direct_operation",
+   "issues": []
+  },
+  "processing_state": "",
+  "proof_state": {
+   "citations": "complete",
+   "rows": "complete"
+  },
+  "provenance": [],
+  "recommended_actions": [
+   {
+    "label": "Audit source files",
+    "query": "which files were ingested?",
+    "reason": "Review traceability and evidence coverage.",
+    "template": "source_file_audit"
+   },
+   {
+    "label": "Check analysis readiness",
+    "query": "is this case ready for analysis?",
+    "reason": "Confirm evidence-processing quality before reporting.",
+    "template": "case_readiness"
+   }
+  ],
+  "result_kind": "table",
+  "result_state": "results_present",
+  "row_count": 20,
+  "status": "answered_with_limitations",
+  "summary": "**Deterministic Findings**\n\nComputed deterministic records result. It returned 20 exact structured result rows.\n\nReview the 1 evidence limit below before using this result in a decision or report.",
+  "synthesis": {
+   "claims": [
+    {
+     "claim": "Computed deterministic records result.",
+     "source": "Deterministic Fact (SQL)",
+     "template": "subscriber_profile"
+    },
+    {
+     "claim": "Structured records row count computed.",
+     "source": "Deterministic Fact (SQL)",
+     "template": "subscriber_profile",
+     "value": 20
+    }
+   ],
+   "policy": "Claims are labeled by source: deterministic SQL facts are computed from records templates; semantic context comes from Knowledge Base retrieval."
+  },
+  "telemetry": {
+   "request_id": "f0970165-2a3a-4735-a13c-20182672fd5e",
+   "db_latency_ms": 401,
+   "kb_latency_ms": 0,
+   "llm_latency_ms": 0,
+   "total_latency_ms": 550,
+   "planner_confidence": 0.74,
+   "execution_path": "records_sql"
+  }
+ },
+ "telemetry": {
+  "request_id": "f0970165-2a3a-4735-a13c-20182672fd5e",
+  "db_latency_ms": 401,
+  "kb_latency_ms": 0,
+  "llm_latency_ms": 0,
+  "total_latency_ms": 550,
+  "planner_confidence": 0.74,
+  "execution_path": "records_sql"
+ },
+ "warnings": [
+  "tool_result_adapter: factual result requires citations"
+ ],
+ "generated_at": "2026-09-18T06:28:20.831659434Z"
+}

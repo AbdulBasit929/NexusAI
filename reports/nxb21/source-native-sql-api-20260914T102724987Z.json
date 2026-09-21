@@ -1,0 +1,24 @@
+﻿{
+    "contract":  "nexusai.source-native-sql-api-acceptance/v1",
+    "database":  "nxb21_fields_980edfca527a4f21",
+    "passed":  true,
+    "cleanup":  true,
+    "retained_before":  {
+                            "retained_tuple":  "69|69|82|22512|876|69",
+                            "activity_count":  354,
+                            "active_jobs":  0,
+                            "postgres_container_id":  "f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361",
+                            "postgres_image":  "timescale/timescaledb:latest-pg16"
+                        },
+    "retained_after":  {
+                           "retained_tuple":  "69|69|82|22512|876|69",
+                           "activity_count":  354,
+                           "active_jobs":  0,
+                           "postgres_container_id":  "f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361",
+                           "postgres_image":  "timescale/timescaledb:latest-pg16"
+                       },
+    "retained_unchanged":  true,
+    "live_inference":  false,
+    "new_proof_created":  false,
+    "log":  "C:\\Users\\sheik\\Workspace\\Office\\Projects\\NexusAI\\reports\\nxb21\\source-native-sql-api-20260914T102724987Z.json.log"
+}

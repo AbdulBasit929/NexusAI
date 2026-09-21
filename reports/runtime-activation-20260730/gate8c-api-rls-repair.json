@@ -1,0 +1,8 @@
+{
+    "gate":  "8c",
+    "repaired_utc":  "2026-07-30T06:14:21.9072651Z",
+    "defect":  "runtime_writes_missing_transaction_tenant_context",
+    "api_health":  "pass",
+    "rollback_image":  "nexusai/forensic-records-api:rollback-before-runtime-rls-context-fix-20260730",
+    "named_volumes_preserved":  true
+}

@@ -1,0 +1,95 @@
+﻿{
+    "contract_version":  "nexusai.stim56-runtime-acceptance/v1",
+    "generated_utc":  "2026-08-20T06:56:38.0845967Z",
+    "collection_id":  "nexusai-forensic-demo",
+    "localai_url":  "http://localhost:8080",
+    "database_mutated":  false,
+    "models_changed":  false,
+    "checks":  [
+                   {
+                       "name":  "runtime.readyz",
+                       "passed":  true,
+                       "detail":  "HTTP 200",
+                       "latency_ms":  135.1
+                   },
+                   {
+                       "name":  "runtime.model_inventory",
+                       "passed":  true,
+                       "detail":  "qwen3-embedding-0.6b, qwen_qwen3-4b-instruct-2507",
+                       "latency_ms":  0
+                   },
+                   {
+                       "name":  "query.english",
+                       "passed":  true,
+                       "detail":  "frequent_contacts; language=en; target=923001110001",
+                       "latency_ms":  350.5
+                   },
+                   {
+                       "name":  "query.messy_english",
+                       "passed":  true,
+                       "detail":  "frequent_contacts; language=en; target=923001110001",
+                       "latency_ms":  284.6
+                   },
+                   {
+                       "name":  "query.roman_urdu",
+                       "passed":  true,
+                       "detail":  "temporal_activity; language=ur-Latn; target=923001110001",
+                       "latency_ms":  299
+                   },
+                   {
+                       "name":  "query.urdu",
+                       "passed":  true,
+                       "detail":  "temporal_activity; language=ur; target=923001110001",
+                       "latency_ms":  365.8
+                   },
+                   {
+                       "name":  "query.mixed",
+                       "passed":  true,
+                       "detail":  "temporal_activity; language=mixed; target=923001110001",
+                       "latency_ms":  321.2
+                   },
+                   {
+                       "name":  "query.clarification",
+                       "passed":  true,
+                       "detail":  "intent=clarification; model_ms=0",
+                       "latency_ms":  66
+                   },
+                   {
+                       "name":  "query.follow_up",
+                       "passed":  true,
+                       "detail":  "template=frequent_contacts; target=923001110001; direction=OUTGOING; inherited=target,template",
+                       "latency_ms":  330.1
+                   },
+                   {
+                       "name":  "query.unsupported_fast_path",
+                       "passed":  true,
+                       "detail":  "route=capability_guard; db_ms=0; kb_ms=0; model_ms=0",
+                       "latency_ms":  60.1
+                   },
+                   {
+                       "name":  "query.assisted_validated_or_fallback",
+                       "passed":  true,
+                       "detail":  "narrative_status=model_unavailable_fallback; model_ms=7121",
+                       "latency_ms":  9037.1
+                   },
+                   {
+                       "name":  "ui/app/analyst/data",
+                       "passed":  true,
+                       "detail":  "HTTP 200; app_root=True",
+                       "latency_ms":  93.5
+                   },
+                   {
+                       "name":  "ui/app/analyst/ask",
+                       "passed":  true,
+                       "detail":  "HTTP 200; app_root=True",
+                       "latency_ms":  86.7
+                   },
+                   {
+                       "name":  "ui/app/analyst/history",
+                       "passed":  true,
+                       "detail":  "HTTP 200; app_root=True",
+                       "latency_ms":  85.7
+                   }
+               ],
+    "passed":  true
+}

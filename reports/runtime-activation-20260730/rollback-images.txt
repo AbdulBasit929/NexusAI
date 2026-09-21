@@ -1,0 +1,3 @@
+forensic-records-api=nexusai/forensic-records-api:rollback-20260730t052530z
+forensic-records-worker=nexusai/forensic-records-worker:rollback-20260730t052530z
+localai=nexusai/localai:rollback-20260730t052530z

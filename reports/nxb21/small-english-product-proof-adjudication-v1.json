@@ -1,0 +1,120 @@
+{
+  "contract_version": "nexusai.small-english-product-adjudication/v1",
+  "run": "local-acceptance-models/nxb21-small-english-product-proof-v1/run-20260910T100919072Z",
+  "state": "COMPLETED_45_CASES_FUNCTIONAL_GATE_FAILED",
+  "corpus_state": "CONSUMED_DO_NOT_RERUN",
+  "original_receipt_state": "ENGLISH_PRODUCT_PROOF_INCOMPLETE_OR_FAILED",
+  "source_artifact_sha256": {
+    "evaluator.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evaluator.stdout.log": "144f809c618087570ce71e014af87f258d6028b0198ddf8971c4544aead1cc6a",
+    "product-proof-receipt.json": "d1af21a03d241d664ce541ced3ab237c6abcea9e29216db33dbefa595293e593",
+    "product-proof-receipt.json.sha256": "9d027c6535a2b71d274611bfc43aa30e702db8f8407162330add8ff108baa367",
+    "product-proof-results.json": "c3fc238ed1fdb3150455de8497ea3991ec052e16dbdcfac06c4b7b387796cf2d",
+    "runtime-observations.ndjson": "165871c1485c48c97c59fab9e22cd3953cd6e34a206f21f254377ee1f926c8fd"
+  },
+  "runtime_integrity": "PASS",
+  "retained_integrity": "PASS",
+  "unload": "PASS",
+  "resource_fit": "PASS_FOR_THIS_COMPLETED_BOUNDED_RUN",
+  "model_decision": "KEEP_RUNTIME_BASELINE_ENGLISH_FUNCTIONAL_QUALIFICATION_FAILED",
+  "strict_certification": "PENDING",
+  "stage_a": {
+    "cases": 16,
+    "schema_valid": 16,
+    "known_safe_enum": 16,
+    "automated_pass": 5,
+    "automated_fail": 11,
+    "selected_operations": 0,
+    "insufficient_facts": 12,
+    "unsupported": 4,
+    "wrong_executable_selection": 0,
+    "interpretation": "Over-clarification and over-rejection; zero direct-operation evidence. Three permissive supported-case oracles accepted clarification, which must not count as direct functionality.",
+    "root_cause": "NOT_PROVEN_FROM_RECEIPTS; inspect general planner task framing and binding-context contract, not case-specific phrase patches."
+  },
+  "stage_b": {
+    "cases": 8,
+    "pass": 8,
+    "deterministic_routes": 3,
+    "model_routes": 5,
+    "scope": "classifier/policy proposal only; no deployed tool dispatch acceptance"
+  },
+  "stage_c": {
+    "cases": 13,
+    "validated_model": 0,
+    "deterministic_fallback": 13,
+    "observed_timeout_ms": 8000,
+    "fallback_fact_text_limitations_refs_preserved": 13,
+    "source_cause": "stim_fact_packet.go maxNarrativeWait=8s; min with config.SynthesisTimeout; evaluator 120s cannot override",
+    "quality": "MODEL_SYNTHESIS_UNPROVEN_TIMEOUT_BOUND; fallback safety passes supplied synthetic packet checks"
+  },
+  "stage_d": {
+    "cases": 8,
+    "transport_schema_nonempty": 8,
+    "acceptable": 3,
+    "qualified": 3,
+    "content_failures": 2,
+    "review": [
+      {
+        "id": "ep1-d01",
+        "status": "ACCEPTABLE",
+        "reason": "Device identifier explanation and limitations; no case facts claimed."
+      },
+      {
+        "id": "ep1-d02",
+        "status": "QUALIFIED",
+        "reason": "Correct subscription association, but wording conflates device authentication and omits explicit distinction from IMEI/telephone number."
+      },
+      {
+        "id": "ep1-d03",
+        "status": "QUALIFIED",
+        "reason": "Correct metadata/intent distinction; packet timing and blanket no-content descriptions are not universal IPDR export properties; provider variation omitted."
+      },
+      {
+        "id": "ep1-d04",
+        "status": "ACCEPTABLE",
+        "reason": "Explains retrieval and citation checking without invented case citations; RAA terminology is unnecessary but not a factual gate failure."
+      },
+      {
+        "id": "ep1-d05",
+        "status": "FAIL_CONTENT",
+        "reason": "Introduces unsupported general 90% reliability and 70% review thresholds and probability-like interpretation without calibration evidence."
+      },
+      {
+        "id": "ep1-d06",
+        "status": "QUALIFIED",
+        "reason": "Correctly rejects identity inference, but calls similarity scores probabilistic without calibration evidence."
+      },
+      {
+        "id": "ep1-d07",
+        "status": "FAIL_CONTENT",
+        "reason": "Invents a licensing dependency and asserts no forensic tool can determine capabilities without a runtime capability lookup; system has discovery surfaces."
+      },
+      {
+        "id": "ep1-d08",
+        "status": "ACCEPTABLE",
+        "reason": "Conditional platform introduction; no computed case finding claimed. General assistance should not be described as requiring evidence."
+      }
+    ]
+  },
+  "runtime_observations": {
+    "physical_min_gib": 3.683,
+    "commit_reserve_min_gib": 10.526,
+    "swap_growth_kib": 48652,
+    "paging_max_per_second": 4604,
+    "isolated_paging_spikes": 4,
+    "sustained_guard_breach": false,
+    "evaluator_duration_seconds": 571.618
+  },
+  "limitations": [
+    "No live records execution: zero wrong executions is not end-to-end authorization proof.",
+    "Timed-out raw synthesis outputs are not available for model-content adjudication.",
+    "General content review is distinct from automated schema/nonempty checks.",
+    "No claim of a lowered physical admission or emergency floor."
+  ],
+  "next": [
+    "Fix narrative timeout policy integration with bounded cancellation tests; preserve legacy low-latency behavior where required.",
+    "Diagnose planner intent-selection versus missing-facts contract without tuning on consumed wording.",
+    "Ground product-help answers in actual capability discovery and prohibit uncalibrated confidence thresholds.",
+    "Continue source-only algebra/family work; no new proof corpus or runtime campaign dispatched."
+  ]
+}

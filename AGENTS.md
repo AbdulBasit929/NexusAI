@@ -1,5 +1,24 @@
 # LocalAI Agent Instructions
 
+## NexusAI Continuation Checkpoint
+
+For tasks materially concerning NexusAI Structured & Textual Intelligence
+Maturity (STIM), load and follow the repository skill at
+`.agents/skills/nexusai-structured-intelligence-maturity/SKILL.md` before
+modifying production source. Do not activate the STIM skill for unrelated work.
+
+For NexusAI forensic-intelligence work in this repository, read
+[`NEXUSAI_CONTINUATION.md`](NEXUSAI_CONTINUATION.md) before changing files,
+services, models, or database state. Treat it as the living project checkpoint
+and update its status ledger after every meaningful phase.
+
+Also read
+[`docs/design/nexusai-family-adapter-agent-api-architecture.md`](docs/design/nexusai-family-adapter-agent-api-architecture.md)
+before changing forensic adapters, specialist agents, case/collection behavior,
+model-role selection, public forensic APIs, or the case-analysis UI. It is the
+approved target design; extend the current implementation toward it through
+bounded, tested vertical slices rather than a big-bang rewrite.
+
 This file is the entry point for AI coding assistants (Claude Code, Cursor, Copilot, Codex, Aider, etc.) working on LocalAI. It is an index to detailed topic guides in the `.agents/` directory. Read the relevant file(s) for the task at hand — you don't need to load all of them.
 
 Human contributors: see [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow.

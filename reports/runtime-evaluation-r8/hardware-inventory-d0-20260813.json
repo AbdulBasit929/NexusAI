@@ -1,0 +1,48 @@
+{
+    "contract_version":  "nexusai.hardware-inventory/v1",
+    "hardware_tier":  "D0",
+    "captured_at_utc":  "2026-08-13T06:51:40.6401709Z",
+    "host":  {
+                 "os":  "Microsoft Windows 11 Pro",
+                 "os_version":  "10.0.22631",
+                 "architecture":  "64-bit",
+                 "cpu_model":  "12th Gen Intel(R) Core(TM) i7-1260P",
+                 "physical_cores":  12,
+                 "logical_cores":  16,
+                 "max_clock_mhz_reported":  2100,
+                 "system_ram_gib":  15.713,
+                 "available_ram_gib":  5.31,
+                 "system_drive_size_gib":  1906.855,
+                 "system_drive_free_gib":  1716.338
+             },
+    "accelerators":  {
+                         "gpus":  [
+                                      {
+                                          "model":  "Intel(R) UHD Graphics",
+                                          "reported_adapter_memory_gib":  2,
+                                          "driver_version":  "32.0.101.7085",
+                                          "video_processor":  "Intel(R) UHD Graphics Family",
+                                          "status":  "OK"
+                                      }
+                                  ],
+                         "nvidia_smi_available":  false,
+                         "cuda_state":  "not_detected",
+                         "directml_state":  "not_qualified; Windows capability is not evidence that an ONNX DirectML runtime is installed or accurate",
+                         "openvino_state":  "isolated_Docker_CPU_evaluator_measured; host_CLI_not_required"
+                     },
+    "container_runtime":  {
+                              "available":  true,
+                              "server_version":  "29.6.2",
+                              "operating_system":  "Docker Desktop",
+                              "architecture":  "x86_64",
+                              "logical_cpus":  16,
+                              "memory_gib":  7.611,
+                              "root_dir":  "/var/lib/docker"
+                          },
+    "interpretation":  {
+                           "installed_tier":  "D0",
+                           "discrete_gpu_available":  false,
+                           "production_gpu_claim_allowed":  false,
+                           "note":  "This is a point-in-time resource record. Available RAM and disk are volatile."
+                       }
+}

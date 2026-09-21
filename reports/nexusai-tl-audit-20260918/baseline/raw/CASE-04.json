@@ -1,0 +1,104 @@
+{
+ "collection_id": "nexusai-forensic-demo",
+ "request_class": "GENERAL_DOMAIN_KNOWLEDGE",
+ "intent": "semantic",
+ "template": "",
+ "query_understanding": {
+  "contract_version": "",
+  "original_question": "",
+  "normalized_question": "",
+  "language": {
+   "tag": "",
+   "source": "",
+   "confidence": 0
+  },
+  "intent": "",
+  "families": {
+   "kind": "",
+   "secondary": null
+  },
+  "entities": null,
+  "targets": null,
+  "time_scope": {
+   "timezone": "",
+   "origin": ""
+  },
+  "filters": null,
+  "requested_output": {
+   "result_kind": "",
+   "presentation_type": "",
+   "limit": 0
+  },
+  "candidate_capabilities": null,
+  "semantic_capability_ids": null,
+  "semantic_operation_refs": null,
+  "clarification": {
+   "required": false,
+   "missing_fields": null
+  },
+  "context": {
+   "used": false,
+   "fields": null,
+   "inherited_fields": null
+  },
+  "confidence": {
+   "overall": 0,
+   "routing": 0,
+   "entities": 0,
+   "time_scope": 0
+  }
+ },
+ "route": [
+  "terminal"
+ ],
+ "policy": "server_authoritative_terminal_contract",
+ "planner": {
+  "contract_version": "forensics.request-class/v1",
+  "request_class": "GENERAL_DOMAIN_KNOWLEDGE"
+ },
+ "query_plan": {
+  "interpreted_intent": "",
+  "selected_template": "",
+  "target_identifiers": null,
+  "date_bounds": {},
+  "applied_filters": null,
+  "confidence": 0,
+  "coverage_check": {
+   "total_indexed_records": 0,
+   "record_families_present": null,
+   "nearest_activity": {},
+   "valid_target_examples": null
+  },
+  "execution_strategy": ""
+ },
+ "capability": {
+  "status": "terminal",
+  "requested_families": null,
+  "required_operations": null,
+  "missing_capabilities": null,
+  "explanation": "",
+  "suggested_queries": null
+ },
+ "coverage": {
+  "total_indexed_records": 0,
+  "record_families_present": null,
+  "nearest_activity": {},
+  "valid_target_examples": null
+ },
+ "answer": {
+  "answer": "A bounded general definition is unavailable for that term. This response makes no statement about the current case or its evidence.",
+  "case_specific_facts": [],
+  "grounding": "GENERAL_DOMAIN_DEFINITION",
+  "result_state": "COMPLETED"
+ },
+ "telemetry": {
+  "request_id": "",
+  "db_latency_ms": 0,
+  "kb_latency_ms": 0,
+  "llm_latency_ms": 0,
+  "total_latency_ms": 4,
+  "planner_confidence": 0,
+  "execution_path": ""
+ },
+ "generated_at": "2026-09-18T06:28:50.513079359Z"
+}

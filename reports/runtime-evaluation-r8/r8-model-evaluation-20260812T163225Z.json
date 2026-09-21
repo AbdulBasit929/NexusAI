@@ -1,0 +1,180 @@
+﻿{
+    "contract_version":  "forensics.r8-model-evaluation-bundle/v1",
+    "evaluated_at_utc":  "2026-08-12T16:32:25.4819452Z",
+    "image":  "nexusai/r8-ocr-eval:3.7.0-cpu",
+    "model_source":  "BOS",
+    "offline_benchmark":  true,
+    "fixtures_sha256":  "012e714a051cac6adfa881511cc0a73ba4f8e0936810501eb19afc0c36368023",
+    "production_containers_unchanged":  true,
+    "production_role_assignment":  null,
+    "decision":  "measured_results_require_review_no_automatic_promotion",
+    "candidates":  [
+                       {
+                           "candidate":  "tesseract",
+                           "predictions_sha256":  "c68dca770b861044c6f941daed178de32e3168867b2bda760354a61bef9e7e3b",
+                           "score_sha256":  "bfec94df5d965bc0aa1174436f7f7fb33cafd53ff2e7ebf01a961320e5a6ebae",
+                           "score":  {
+                                         "candidate":  "tesseract",
+                                         "contract_version":  "forensics.anpr-model-benchmark/v1",
+                                         "evaluation_role":  "ocr_only_annotated_crop",
+                                         "fixture_contract":  "forensics.image-fixture-taxonomy/v1",
+                                         "gate":  {
+                                                      "blocked_reasons":  [
+
+                                                                          ],
+                                                      "state":  "measured_pending_threshold_decision"
+                                                  },
+                                         "metrics":  {
+                                                         "abstention_accuracy":  1.0,
+                                                         "abstention_precision":  1.0,
+                                                         "confidence_calibration":  {
+                                                                                        "brier_score":  0.45797304377817355,
+                                                                                        "evaluated_count":  7
+                                                                                    },
+                                                         "fixture_count":  8,
+                                                         "latency_ms":  {
+                                                                            "p50":  193.727,
+                                                                            "p95":  211.874
+                                                                        },
+                                                         "localization":  {
+                                                                              "state":  "not_applicable_ocr_uses_annotated_truth_crop"
+                                                                          },
+                                                         "missing_fixture_predictions":  [
+
+                                                                                         ],
+                                                         "ocr":  {
+                                                                     "character_error_rate":  0.16071428571428573,
+                                                                     "evaluated_text_count":  7,
+                                                                     "exact_plate_accuracy":  0.42857142857142855
+                                                                 }
+                                                     }
+                                     }
+                       },
+                       {
+                           "candidate":  "paddle-detector",
+                           "predictions_sha256":  "cb38f580b5ea9112757a56558887a3612acc625625aeb9ff9edcaf750a4d2bee",
+                           "score_sha256":  "c5255b1d5689f536753b7dfd333454f98a36d7e174f628ed2861c04ce1ccd4d5",
+                           "score":  {
+                                         "candidate":  "paddle-detector",
+                                         "contract_version":  "forensics.anpr-model-benchmark/v1",
+                                         "evaluation_role":  "localization_baseline_text_detector_adapter",
+                                         "fixture_contract":  "forensics.image-fixture-taxonomy/v1",
+                                         "gate":  {
+                                                      "blocked_reasons":  [
+
+                                                                          ],
+                                                      "state":  "measured_pending_threshold_decision"
+                                                  },
+                                         "metrics":  {
+                                                         "abstention_accuracy":  1.0,
+                                                         "abstention_precision":  1.0,
+                                                         "confidence_calibration":  {
+                                                                                        "brier_score":  0.8413170664150035,
+                                                                                        "evaluated_count":  7
+                                                                                    },
+                                                         "fixture_count":  8,
+                                                         "latency_ms":  {
+                                                                            "p50":  600.3340000000001,
+                                                                            "p95":  640.436
+                                                                        },
+                                                         "localization":  {
+                                                                              "false_negative":  0,
+                                                                              "false_positive":  0,
+                                                                              "iou_threshold":  0.5,
+                                                                              "precision":  1.0,
+                                                                              "recall":  1.0,
+                                                                              "true_positive":  7
+                                                                          },
+                                                         "missing_fixture_predictions":  [
+
+                                                                                         ],
+                                                         "ocr":  {
+                                                                     "state":  "not_applicable_detector_only"
+                                                                 }
+                                                     }
+                                     }
+                       },
+                       {
+                           "candidate":  "paddle-en",
+                           "predictions_sha256":  "a7218ccbb1475c21c728764d4c57c6e3bdcef04d2d1a2c2ecbbfcb9c70af5f29",
+                           "score_sha256":  "5af714db6b1f7221b9f41885498355fca308fe622459a0725689ce4144f0fdbb",
+                           "score":  {
+                                         "candidate":  "paddle-en",
+                                         "contract_version":  "forensics.anpr-model-benchmark/v1",
+                                         "evaluation_role":  "ocr_only_annotated_crop",
+                                         "fixture_contract":  "forensics.image-fixture-taxonomy/v1",
+                                         "gate":  {
+                                                      "blocked_reasons":  [
+
+                                                                          ],
+                                                      "state":  "measured_pending_threshold_decision"
+                                                  },
+                                         "metrics":  {
+                                                         "abstention_accuracy":  1.0,
+                                                         "abstention_precision":  1.0,
+                                                         "confidence_calibration":  {
+                                                                                        "brier_score":  0.18764613205893607,
+                                                                                        "evaluated_count":  7
+                                                                                    },
+                                                         "fixture_count":  8,
+                                                         "latency_ms":  {
+                                                                            "p50":  119.2645,
+                                                                            "p95":  165.276
+                                                                        },
+                                                         "localization":  {
+                                                                              "state":  "not_applicable_ocr_uses_annotated_truth_crop"
+                                                                          },
+                                                         "missing_fixture_predictions":  [
+
+                                                                                         ],
+                                                         "ocr":  {
+                                                                     "character_error_rate":  0.30357142857142855,
+                                                                     "evaluated_text_count":  7,
+                                                                     "exact_plate_accuracy":  0.7142857142857143
+                                                                 }
+                                                     }
+                                     }
+                       },
+                       {
+                           "candidate":  "paddle-arabic",
+                           "predictions_sha256":  "f66c82206790c7321a4c9bfb204190c3cceea8f12dea1fa4a1921fa5f8be512d",
+                           "score_sha256":  "57e41a44e0237f31ddb94f2bb9e4e7ee3b977c22575ec9aca170fb9d3640a4f4",
+                           "score":  {
+                                         "candidate":  "paddle-arabic",
+                                         "contract_version":  "forensics.anpr-model-benchmark/v1",
+                                         "evaluation_role":  "ocr_only_annotated_crop",
+                                         "fixture_contract":  "forensics.image-fixture-taxonomy/v1",
+                                         "gate":  {
+                                                      "blocked_reasons":  [
+
+                                                                          ],
+                                                      "state":  "measured_pending_threshold_decision"
+                                                  },
+                                         "metrics":  {
+                                                         "abstention_accuracy":  1.0,
+                                                         "abstention_precision":  1.0,
+                                                         "confidence_calibration":  {
+                                                                                        "brier_score":  0.16613841239692612,
+                                                                                        "evaluated_count":  7
+                                                                                    },
+                                                         "fixture_count":  8,
+                                                         "latency_ms":  {
+                                                                            "p50":  86.745,
+                                                                            "p95":  162.53
+                                                                        },
+                                                         "localization":  {
+                                                                              "state":  "not_applicable_ocr_uses_annotated_truth_crop"
+                                                                          },
+                                                         "missing_fixture_predictions":  [
+
+                                                                                         ],
+                                                         "ocr":  {
+                                                                     "character_error_rate":  0.14285714285714285,
+                                                                     "evaluated_text_count":  7,
+                                                                     "exact_plate_accuracy":  0.7142857142857143
+                                                                 }
+                                                     }
+                                     }
+                       }
+                   ]
+}

@@ -1,0 +1,116 @@
+{
+  "schema_version": "nexusai.nxb21.d-q4-phrase-literal-remediation-refreeze/v1",
+  "created_on": "2026-09-05",
+  "status": "REFROZEN_SOURCE_VALIDATED_DEVELOPMENT_NOT_EXECUTED",
+  "lineage": {
+    "pre_atomic_32case": {
+      "result": "31_OF_32_FAIL",
+      "receipt_sha256": "bf73696f2fc89ee02d26027818ee9d0b838926d1cbaf67a7276829a9b1321132"
+    },
+    "atomic_remediation_16case": {
+      "candidate_id": "nxb21d-q4-atomic-identifier-authority-r1",
+      "candidate_identity_sha256": "1ccc03ab44a25cb20ec28053b898c2f975b6373829303e8265833164a89e2ccc",
+      "raw_model_result": "11_OF_16_PASS",
+      "final_typed_result": "13_OF_16_PASS",
+      "plate_result": "8_OF_8_PASS",
+      "phrase_control_result": "5_OF_8_PASS",
+      "receipt_sha256": "83ac55c7cd9627f0d37e21f33c556245bc6e7e62f35fb267d66f95b6872c23f3"
+    }
+  },
+  "immutable_failure_evidence": [
+    {
+      "case_id": "rem16-ur-document-001",
+      "request_sha256": "5e8eef20459068d769d788cfbf278e873f4b6941286181748d2e31300d8a9b41",
+      "raw_and_strict_response_sha256": "de50126f55c43c90d670e40474ab6dc10cc92c9caa5c5172ab4ad65632670403",
+      "case_receipt_sha256": "c7a354fa96ca0d626efd21a9aaf62ed9f6f72b851c8d825a02ecf6fc43c915ce",
+      "classification": "MODEL_LITERAL_CODEPOINT_SUBSTITUTION",
+      "transport_corruption": false,
+      "detail": "raw bytes and strict UTF-8 text are identical; model content substituted Cyrillic U+0430/U+043C for Arabic U+0627/U+0645"
+    },
+    {
+      "case_id": "rem16-ur-transcript-001",
+      "request_sha256": "a7194d8de7f2e1cc2a940a3a14f69f4f3c1025b1ff33055ab17ca035ecbc3ab9",
+      "raw_and_strict_response_sha256": "0d01bb4e5cde4b05a3d021453d52811a8cbf044658b999dd350a9682cd436e66",
+      "case_receipt_sha256": "a5d3dcb97d8b1854073666a490c402fc894ee6ed22c44ed2f741ea47f6c84420",
+      "classification": "MODEL_LITERAL_OMISSION_AND_FALSE_CLARIFICATION",
+      "transport_corruption": false
+    },
+    {
+      "case_id": "rem16-roman-transcript-001",
+      "request_sha256": "a5ec85fcdff838dd1ae35265146f06aa641e4a9dc118360d9cf5c040a5fc9bfb",
+      "raw_and_strict_response_sha256": "ff256dc87dee6328f63c33305029bfd47908113be46041ee7f6a1f10e9c85b70",
+      "case_receipt_sha256": "65779f19766f2b2db64611e41f88600b14ee1ac6b7e3b124c199df84c65cc36e",
+      "classification": "MODEL_LITERAL_OMISSION_AND_FALSE_CLARIFICATION",
+      "transport_corruption": false
+    }
+  ],
+  "product_contract": {
+    "literal_cardinality": "ONE",
+    "document_phrase_scopes": ["selected_evidence", "authorized_workspace"],
+    "transcript_phrase_scopes": ["selected_evidence", "authorized_workspace"],
+    "quoted_phrase_required_for_model_planning": false,
+    "quoted_phrase_required_for_deterministic_authority": true,
+    "multiple_explicit_phrases": "AMBIGUOUS_REQUIRES_CLARIFICATION",
+    "normalization_contract": "nfc-whitespace/v1",
+    "execution_literal": "EXACT_SOURCE_CODEPOINTS"
+  },
+  "candidate": {
+    "candidate_id": "nxb21d-q4-phrase-literal-authority-r1",
+    "identity_sha256": "0129bd4ab0d660573726c744f6ba9874a9a15b9343a87cc5b37a264dcadf675e",
+    "model_artifact_sha256": "2fde00ce69dd4899c70d020845e2638353015bba0fdf161b3eb965f2bca4464e",
+    "q4_profile_sha256": "30d3bcd8c92684e191277dad992354323b7e46c7d30d3c69149010e90f117129",
+    "q8_profile_sha256": "ef036e0a02cc5e8331dc4dff41c0e0cb68e6e0bda71d92b92f47f673472e666f",
+    "prompt_sha256": "3ce8225e30beacb51430dc1f377ee58fbb0e5f2746a44660e099dddac9fc67bc",
+    "schema_sha256": "be217f9e6ddec85131e5b0f60ac8f4050d18b5632e838b1560bc6b1067a3d731",
+    "implementation_sha256": "f22d4d9bc340ba60eb395790fecfb7499f417c0a48fea3d26be6687fe095706b",
+    "bridge_sha256": "b50de13eedffd19ab4731493e8f4828a24fd28e9d9724f5aaf234c34701dda7e",
+    "exact_identifier_authority_sha256": "216b0ec4e2b69c5482c65a3eef306f41b170a11a38a4b2b7a715b81134c7d304",
+    "phrase_literal_authority_sha256": "b2ee25a909558656d53ccd84d14e33d2d8f9eb7181b8820613cf3e5ef41bab81",
+    "byte_safe_transport_sha256": "9deed398e86e0347afc33964c47b8f4e489cc88372a77d16b4ba9ef8ed4a8c64",
+    "corpus_sha256": "7c273c3b45fd3103234f098cd38bce84348c8cfff27b243f6c6987a5dd1555e6",
+    "request_temperature": 0,
+    "effective_context": 4096
+  },
+  "architecture": {
+    "authoritative_input": "one existing-parser quoted phrase span with independently matching document/audio family context",
+    "model_authority": ["capability", "semantic", "scope", "ambiguity"],
+    "reconciled_fields": ["literal_text", "typed_text_query", "clarification"],
+    "model_audit_preserved": true,
+    "unicode_diagnostics": ["source_codepoints", "model_codepoints", "normalized_comparison", "script_family_mismatch"],
+    "homoglyph_conversion": false,
+    "unquoted_heuristic_extraction": false,
+    "atomic_identifier_authority_changed": false
+  },
+  "fresh_development_corpus": {
+    "sha256": "7c273c3b45fd3103234f098cd38bce84348c8cfff27b243f6c6987a5dd1555e6",
+    "case_count": 20,
+    "languages": {"english":5,"urdu-script":5,"roman-urdu":5,"mixed":5},
+    "capabilities": {"document.phrase":8,"transcript.phrase":8,"image.plate":4},
+    "phrase_scope": {"selected":8,"workspace":8},
+    "overall_scope": {"selected":12,"workspace":8},
+    "freshness": "PASS_20_QUESTIONS_20_LITERALS",
+    "execution": "FROZEN_NOT_EXECUTED"
+  },
+  "source_validation": {
+    "focused_dynamic_planner": {"passed":35,"failed":0,"skipped":472,"duration_seconds":2.579},
+    "phrase_framework": {"passed":133,"failed":0,"skipped":0,"duration_seconds_including_corpus_validator":2.333},
+    "byte_safe_framework": {"passed":14,"failed":0,"skipped":0,"duration_seconds":4.714},
+    "corpus_validator": {"passed":1,"failed":0,"skipped":0},
+    "full_forensic_package": {"packages_passed":1,"packages_failed":0,"duration_seconds":43.075},
+    "retired_q8_offline_framework": {"passed":28,"failed":1,"skipped":0,"duration_seconds":16.025,"expected_failure":"historical source manifest rejects intentional new source digest"}
+  },
+  "operator_bundle": {
+    "config_sha256": "c75e175d3c15db36edbb68f71fafa0bf059d8cc6520bf8476775844132a48294",
+    "runner_sha256": "28381d56052041aebca42405614a79d80ea9723e8533040c1fbb54b1a0a63f22",
+    "framework_test_sha256": "8a2c9a2d9a58b6fc0c90d149170e1369dd0eae4592abb2a3c665420c4bac092f",
+    "state": "READY_FOR_STANDALONE_OPERATOR"
+  },
+  "program_gate": {
+    "D_status": "OPEN",
+    "qualification_holdout": "NOT_FROZEN",
+    "activation": "BLOCKED",
+    "live_phrase_remediation_evaluation": "PENDING_USER_EXECUTION",
+    "deployment_performed": false,
+    "retained_state_mutated": false
+  }
+}

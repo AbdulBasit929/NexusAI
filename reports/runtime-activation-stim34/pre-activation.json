@@ -1,0 +1,59 @@
+{
+    "captured_utc":  "2026-08-19T10:42:29.3877296Z",
+    "source_hash":  "9161a5b18214dc06b4e0802af872b4854f808f1003fa2bbd409e0929ff4eadbd",
+    "api":  {
+                "service":  "forensic-records-api",
+                "container_id":  "495b130d3467ca2c896c448dd76535e6f920eb6e5f2a364ffa8a542119610edd",
+                "image_id":  "sha256:5d6866c2be7b1dd78e89e229ea4cd8e0d870fe5d26097da4f2e639b630cf5eff",
+                "image_reference":  "nexusai/forensic-records-api:phase3-runtime",
+                "state":  "running"
+            },
+    "worker":  {
+                   "service":  "forensic-records-worker",
+                   "container_id":  "63384782129bff66ff8f1755faf3ceb2c6c9081aa06e6e0d909cd3621e5d2d38",
+                   "image_id":  "sha256:4f4aec4f2c7d86f8ee8be420bc6ccd93416830101890297d93e603d79d499097",
+                   "image_reference":  "nexusai/forensic-records-worker:phase3-runtime",
+                   "state":  "running"
+               },
+    "postgres":  {
+                     "service":  "forensic-postgres",
+                     "container_id":  "f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361",
+                     "image_id":  "sha256:61f891691050da6032023c01ea885730eeeba06b7c17b403e7d0b9c49c37dfe9",
+                     "image_reference":  "timescale/timescaledb:latest-pg16",
+                     "state":  "running"
+                 },
+    "nats":  {
+                 "service":  "forensic-nats",
+                 "container_id":  "5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04",
+                 "image_id":  "sha256:e4bf19f15fd3218814a4e3c9e0064e1334bd8aa20d5984b9f1a0afd084f8cc00",
+                 "image_reference":  "nats:2.11-alpine",
+                 "state":  "running"
+             },
+    "localai_ui":  {
+                       "service":  "api",
+                       "container_id":  "9ef8805eebba",
+                       "image_id":  "sha256:3e1505f283cc28c7e1189f62b76aa337a8dd80f91b53d40188ed78ec1954e7d6",
+                       "image_reference":  "nexusai/localai-forensic:phase3-runtime",
+                       "state":  "running"
+                   },
+    "named_volumes":  [
+                          "nexusai_forensic_nats_data",
+                          "nexusai_forensic_postgres_data",
+                          "nexusai_forensic_spool"
+                      ],
+    "models":  [
+                   "qwen_qwen3-4b-instruct-2507",
+                   "qwen3-embedding-0.6b"
+               ],
+    "profile_digest":  "4d4a86e84c94c377ea72ad20fd7b58c16c536bb48ffd9e3ded51b9e2c434716f",
+    "retained":  {
+                     "evidence_items":  11,
+                     "evidence_bytes":  1304742,
+                     "canonical_records":  9278,
+                     "cdr_records":  5008,
+                     "ingest_jobs":  11,
+                     "completed_jobs":  10,
+                     "dead_letter_jobs":  1
+                 },
+    "due_ingest_work":  0
+}

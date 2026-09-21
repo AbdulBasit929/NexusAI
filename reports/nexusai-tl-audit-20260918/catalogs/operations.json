@@ -1,0 +1,1428 @@
+{
+ "catalog_version": "2026-08-28.nxb1.1",
+ "operations": [
+  {
+   "id": "access.failed_events",
+   "version": "1.0.0",
+   "family_id": "access_security_logs",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "anpr.camera_activity",
+   "version": "1.0.0",
+   "family_id": "anpr_vehicles",
+   "kind": "deterministic",
+   "implementation": "query.anprCameraActivity",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.chart-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "anpr.camera_sequence",
+   "version": "1.0.0",
+   "family_id": "anpr_vehicles",
+   "kind": "deterministic",
+   "implementation": "query.anprCameraSequence",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.timeline-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "anpr.co_travel",
+   "version": "1.0.0",
+   "family_id": "anpr_vehicles",
+   "kind": "deterministic",
+   "implementation": "query.anprCoTravel",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.table-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "anpr.detect_schema",
+   "version": "1.0.0",
+   "family_id": "anpr_vehicles",
+   "kind": "deterministic",
+   "implementation": "worker.resolve_adapter",
+   "required_tools": [],
+   "input_contract": "forensics.tabular-sample/v1",
+   "output_contract": "forensics.adapter-detection/v1",
+   "citation_required": false,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "anpr.normalize_records",
+   "version": "1.0.0",
+   "family_id": "anpr_vehicles",
+   "kind": "deterministic",
+   "implementation": "worker.normalize_anpr_details",
+   "required_tools": [],
+   "input_contract": "forensics.tabular-row/v1",
+   "output_contract": "forensics.anpr-sighting/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "anpr.plate_variants",
+   "version": "1.0.0",
+   "family_id": "anpr_vehicles",
+   "kind": "deterministic",
+   "implementation": "query.anprPlateVariants",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.table-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "anpr.route_timing",
+   "version": "1.0.0",
+   "family_id": "anpr_vehicles",
+   "kind": "deterministic",
+   "implementation": "query.anprRouteTiming",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.map-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "anpr.sightings",
+   "version": "1.0.0",
+   "family_id": "anpr_vehicles",
+   "kind": "deterministic",
+   "implementation": "query.anprSightings",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.table-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "anpr.timeline",
+   "version": "1.0.0",
+   "family_id": "anpr_vehicles",
+   "kind": "deterministic",
+   "implementation": "query.anprTimeline",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.timeline-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "audio.metadata",
+   "version": "1.0.0",
+   "family_id": "audio_intelligence",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "audio.roman_urdu",
+   "version": "1.0.0",
+   "family_id": "audio_intelligence",
+   "kind": "deterministic",
+   "implementation": "roman_urdu.roman_urdu_payload",
+   "required_tools": [],
+   "input_contract": "forensics.audio-timestamp-segment/v1",
+   "output_contract": "forensics.audio-roman-urdu-segment/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "audio.transcript_search",
+   "version": "1.0.0",
+   "family_id": "audio_intelligence",
+   "kind": "retrieval",
+   "implementation": "derivedTextEvidence:audio_transcript_search",
+   "required_tools": [
+    "derived_text_lexical"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "cdr.call_type_breakdown",
+   "version": "1.0.0",
+   "family_id": "communications_cdr",
+   "kind": "deterministic",
+   "implementation": "query.call_type_breakdown",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.table-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "cdr.detect_schema",
+   "version": "1.0.0",
+   "family_id": "communications_cdr",
+   "kind": "deterministic",
+   "implementation": "worker.resolve_adapter",
+   "required_tools": [],
+   "input_contract": "forensics.tabular-sample/v1",
+   "output_contract": "forensics.adapter-detection/v1",
+   "citation_required": false,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "cdr.device_identity_changes",
+   "version": "1.0.0",
+   "family_id": "communications_cdr",
+   "kind": "deterministic",
+   "implementation": "query.device_identity_changes",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.timeline-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "cdr.duration_extremes",
+   "version": "1.0.0",
+   "family_id": "communications_cdr",
+   "kind": "deterministic",
+   "implementation": "query.duration_extremes",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.table-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "cdr.frequent_contacts",
+   "version": "1.0.0",
+   "family_id": "communications_cdr",
+   "kind": "deterministic",
+   "implementation": "query.frequent_contacts",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.table-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "cdr.geospatial_movement",
+   "version": "1.0.0",
+   "family_id": "communications_cdr",
+   "kind": "deterministic",
+   "implementation": "query.geospatial_movement",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.map-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "cdr.multi_source_comparison",
+   "version": "1.0.0",
+   "family_id": "communications_cdr",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "cdr.normalize_records",
+   "version": "1.0.0",
+   "family_id": "communications_cdr",
+   "kind": "deterministic",
+   "implementation": "worker.normalize_cdr_row",
+   "required_tools": [],
+   "input_contract": "forensics.tabular-row/v1",
+   "output_contract": "forensics.cdr-record/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "cdr.service_usage",
+   "version": "1.0.0",
+   "family_id": "communications_cdr",
+   "kind": "deterministic",
+   "implementation": "query.service_usage",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.table-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "cdr.temporal_activity",
+   "version": "1.0.0",
+   "family_id": "communications_cdr",
+   "kind": "deterministic",
+   "implementation": "query.temporal_activity",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.chart-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "cdr.timeline",
+   "version": "1.0.0",
+   "family_id": "communications_cdr",
+   "kind": "deterministic",
+   "implementation": "query.entity_timeline",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.timeline-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "cdr.tower_activity",
+   "version": "1.0.0",
+   "family_id": "communications_cdr",
+   "kind": "deterministic",
+   "implementation": "query.tower_activity",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.table-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "document.extract",
+   "version": "1.0.0",
+   "family_id": "document_intelligence",
+   "kind": "deterministic",
+   "implementation": "document_pipeline.extract_document",
+   "required_tools": [],
+   "input_contract": "forensics.document-evidence/v1",
+   "output_contract": "forensics.document-native-text-result/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "document.metadata",
+   "version": "1.0.0",
+   "family_id": "document_intelligence",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "document.search",
+   "version": "1.0.0",
+   "family_id": "document_intelligence",
+   "kind": "retrieval",
+   "implementation": "derivedTextEvidence:document_search",
+   "required_tools": [
+    "derived_text_lexical"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "face.candidate_observations",
+   "version": "1.0.0",
+   "family_id": "face_intelligence",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "face.detect",
+   "version": "1.0.0",
+   "family_id": "face_intelligence",
+   "kind": "deterministic",
+   "implementation": "media_pipeline.LocalAIFaceProcessor",
+   "required_tools": [],
+   "input_contract": "forensics.image-evidence/v1",
+   "output_contract": "forensics.face-observation/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "face.search_authorized",
+   "version": "1.0.0",
+   "family_id": "face_intelligence",
+   "kind": "retrieval",
+   "implementation": "GET /faces/similar with explicit_case_evidence_scope and enumerated candidate evidence IDs",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.face-search-request/v1",
+   "output_contract": "forensics.face-similarity-results/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "face.similarity",
+   "version": "1.0.0",
+   "family_id": "face_intelligence",
+   "kind": "deterministic",
+   "implementation": "GET /faces/similar",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.face-comparison-request/v1",
+   "output_contract": "forensics.face-similarity-results/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "financial.transaction_summary",
+   "version": "1.0.0",
+   "family_id": "financial_transactions",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.activity_by_day",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.activity_by_hour",
+   "version": "1.0.0",
+   "family_id": "communications_cdr",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.anomaly_summary",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.canonical_records",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.case_readiness",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.co_travel_or_co_presence",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.collection_overview",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.court_ready_source_summary",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.cross_dataset_entity_summary",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.cross_family_correlation",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.data_quality",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.duplicate_upload_audit",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.entity_activity",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.evidence",
+   "version": "1.0.0",
+   "family_id": "knowledge_evidence",
+   "kind": "retrieval",
+   "implementation": "queryKnowledgeBaseEvidence",
+   "required_tools": [
+    "kb_retrieval"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "forensics.evidence_package_summary",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "legacy_hybrid",
+   "implementation": "hybridQueryHandler",
+   "required_tools": [
+    "records_sql+kb_retrieval"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "forensics.executive_case_brief",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "legacy_hybrid",
+   "implementation": "hybridQueryHandler",
+   "required_tools": [
+    "records_sql+kb_retrieval"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.first_seen_last_seen",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.imei_imsi_usage",
+   "version": "1.0.0",
+   "family_id": "communications_cdr",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.limitations_and_data_quality",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.longest_call",
+   "version": "1.0.0",
+   "family_id": "communications_cdr",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.night_activity",
+   "version": "1.0.0",
+   "family_id": "communications_cdr",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.relationship_network",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.repeated_location_visits",
+   "version": "1.0.0",
+   "family_id": "communications_cdr",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.schema_profile",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.shortest_call",
+   "version": "1.0.0",
+   "family_id": "communications_cdr",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.source_file_audit",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.source_records",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.subscriber_profile",
+   "version": "1.0.0",
+   "family_id": "communications_cdr",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.suspicious_patterns",
+   "version": "1.0.0",
+   "family_id": "case_cross_family",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "forensics.top_locations",
+   "version": "1.0.0",
+   "family_id": "communications_cdr",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "generic.data_quality",
+   "version": "1.0.0",
+   "family_id": "generic_tabular",
+   "kind": "deterministic",
+   "implementation": "query.data_quality",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.findings/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "generic.detect_schema",
+   "version": "1.0.0",
+   "family_id": "generic_tabular",
+   "kind": "deterministic",
+   "implementation": "worker.resolve_adapter",
+   "required_tools": [],
+   "input_contract": "forensics.tabular-sample/v1",
+   "output_contract": "forensics.adapter-detection/v1",
+   "citation_required": false,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "generic.filter_records",
+   "version": "1.0.0",
+   "family_id": "generic_tabular",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate:generic_filter_records",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "generic.normalize_records",
+   "version": "1.0.0",
+   "family_id": "generic_tabular",
+   "kind": "deterministic",
+   "implementation": "worker.normalize_generic_row",
+   "required_tools": [],
+   "input_contract": "forensics.tabular-row/v1",
+   "output_contract": "forensics.generic-record/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "generic.schema_profile",
+   "version": "1.0.0",
+   "family_id": "generic_tabular",
+   "kind": "deterministic",
+   "implementation": "query.schema_profile",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.table-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "image.anpr",
+   "version": "1.0.0",
+   "family_id": "anpr_vehicles",
+   "kind": "deterministic",
+   "implementation": "media_pipeline.FastALPRImageProcessor",
+   "required_tools": [],
+   "input_contract": "forensics.image-evidence/v1",
+   "output_contract": "forensics.anpr-image-observation/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "image.compare",
+   "version": "1.0.0",
+   "family_id": "image_intelligence",
+   "kind": "deterministic",
+   "implementation": "GET /evidence/compare",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.image-comparison-request/v1",
+   "output_contract": "forensics.image-comparison/v1",
+   "citation_required": true,
+   "maturity": "ENGINEERING_ONLY"
+  },
+  {
+   "id": "image.exact_duplicate",
+   "version": "1.0.0",
+   "family_id": "image_intelligence",
+   "kind": "deterministic",
+   "implementation": "image_compare.sha256",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.image-comparison-request/v1",
+   "output_contract": "forensics.image-comparison/v1",
+   "citation_required": true,
+   "maturity": "ENGINEERING_ONLY"
+  },
+  {
+   "id": "image.metadata",
+   "version": "1.0.0",
+   "family_id": "image_intelligence",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate:image_metadata",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "image.near_duplicate",
+   "version": "1.0.0",
+   "family_id": "image_intelligence",
+   "kind": "deterministic",
+   "implementation": "image_compare.dhash64",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.image-comparison-request/v1",
+   "output_contract": "forensics.image-comparison/v1",
+   "citation_required": true,
+   "maturity": "ENGINEERING_ONLY"
+  },
+  {
+   "id": "image.ocr_search",
+   "version": "1.0.0",
+   "family_id": "image_intelligence",
+   "kind": "retrieval",
+   "implementation": "derivedTextEvidence:image_ocr_search",
+   "required_tools": [
+    "derived_text_lexical"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "image.visual_similarity",
+   "version": "1.0.0",
+   "family_id": "image_intelligence",
+   "kind": "retrieval",
+   "implementation": "GET /images/similar with explicit_case_evidence_scope and enumerated candidate evidence IDs",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.image-query/v1",
+   "output_contract": "forensics.semantic-image-candidate-similarity/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "ipdr.concurrent_sessions",
+   "version": "1.0.0",
+   "family_id": "network_ipdr",
+   "kind": "deterministic",
+   "implementation": "query.ipdrConcurrentSessions",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.timeline-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "ipdr.detect_schema",
+   "version": "1.0.0",
+   "family_id": "network_ipdr",
+   "kind": "deterministic",
+   "implementation": "worker.resolve_adapter",
+   "required_tools": [],
+   "input_contract": "forensics.tabular-sample/v1",
+   "output_contract": "forensics.adapter-detection/v1",
+   "citation_required": false,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "ipdr.domain_summary",
+   "version": "1.0.0",
+   "family_id": "network_ipdr",
+   "kind": "deterministic",
+   "implementation": "query.ipdrDomainSummary",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.table-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "ipdr.endpoint_summary",
+   "version": "1.0.0",
+   "family_id": "network_ipdr",
+   "kind": "deterministic",
+   "implementation": "query.ipdrEndpointSummary",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.table-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "ipdr.normalize_records",
+   "version": "1.0.0",
+   "family_id": "network_ipdr",
+   "kind": "deterministic",
+   "implementation": "worker.normalize_ipdr_details",
+   "required_tools": [],
+   "input_contract": "forensics.tabular-row/v1",
+   "output_contract": "forensics.ipdr-session/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "ipdr.protocol_breakdown",
+   "version": "1.0.0",
+   "family_id": "network_ipdr",
+   "kind": "deterministic",
+   "implementation": "query.ipdrProtocolBreakdown",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.chart-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "ipdr.session_volume",
+   "version": "1.0.0",
+   "family_id": "network_ipdr",
+   "kind": "deterministic",
+   "implementation": "query.ipdrSessionVolume",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.chart-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "ipdr.subscriber_sessions",
+   "version": "1.0.0",
+   "family_id": "network_ipdr",
+   "kind": "deterministic",
+   "implementation": "query.ipdrSubscriberSessions",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.table-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "ipdr.timeline",
+   "version": "1.0.0",
+   "family_id": "network_ipdr",
+   "kind": "deterministic",
+   "implementation": "query.ipdrTimeline",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.timeline-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "subscriber.conflict_audit",
+   "version": "1.0.0",
+   "family_id": "subscriber_identity",
+   "kind": "deterministic",
+   "implementation": "query.subscriber_conflict_audit",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.table-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "subscriber.detect_schema",
+   "version": "1.0.0",
+   "family_id": "subscriber_identity",
+   "kind": "deterministic",
+   "implementation": "worker.resolve_adapter",
+   "required_tools": [],
+   "input_contract": "forensics.tabular-sample/v1",
+   "output_contract": "forensics.adapter-detection/v1",
+   "citation_required": false,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "subscriber.device_links",
+   "version": "1.0.0",
+   "family_id": "subscriber_identity",
+   "kind": "deterministic",
+   "implementation": "query.subscriber_device_links",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.timeline-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "subscriber.identity_lookup",
+   "version": "1.0.0",
+   "family_id": "subscriber_identity",
+   "kind": "deterministic",
+   "implementation": "query.subscriber_identity_lookup",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.table-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "subscriber.normalize_records",
+   "version": "1.0.0",
+   "family_id": "subscriber_identity",
+   "kind": "deterministic",
+   "implementation": "worker.normalize_subscriber_details",
+   "required_tools": [],
+   "input_contract": "forensics.tabular-row/v1",
+   "output_contract": "forensics.subscriber-identity/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "subscriber.reuse_candidates",
+   "version": "1.0.0",
+   "family_id": "subscriber_identity",
+   "kind": "deterministic",
+   "implementation": "query.subscriber_reuse_candidates",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.table-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "subscriber.status_summary",
+   "version": "1.0.0",
+   "family_id": "subscriber_identity",
+   "kind": "deterministic",
+   "implementation": "query.subscriber_status_summary",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.chart-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "subscriber.validity_timeline",
+   "version": "1.0.0",
+   "family_id": "subscriber_identity",
+   "kind": "deterministic",
+   "implementation": "query.subscriber_validity_timeline",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.timeline-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "tower.alias_conflicts",
+   "version": "1.0.0",
+   "family_id": "tower_location",
+   "kind": "deterministic",
+   "implementation": "query.towerAliasConflicts",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.table-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "tower.cdr_join",
+   "version": "1.0.0",
+   "family_id": "tower_location",
+   "kind": "deterministic",
+   "implementation": "query.towerCDRJoin",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.timeline-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "tower.coordinate_audit",
+   "version": "1.0.0",
+   "family_id": "tower_location",
+   "kind": "deterministic",
+   "implementation": "query.towerCoordinateAudit",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.map-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "tower.detect_schema",
+   "version": "1.0.0",
+   "family_id": "tower_location",
+   "kind": "deterministic",
+   "implementation": "worker.resolve_adapter",
+   "required_tools": [],
+   "input_contract": "forensics.tabular-sample/v1",
+   "output_contract": "forensics.adapter-detection/v1",
+   "citation_required": false,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "tower.normalize_records",
+   "version": "1.0.0",
+   "family_id": "tower_location",
+   "kind": "deterministic",
+   "implementation": "worker.normalize_tower_details",
+   "required_tools": [],
+   "input_contract": "forensics.tabular-row/v1",
+   "output_contract": "forensics.tower-reference/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "tower.reference_timeline",
+   "version": "1.0.0",
+   "family_id": "tower_location",
+   "kind": "deterministic",
+   "implementation": "query.towerReferenceTimeline",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.timeline-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "tower.site_lookup",
+   "version": "1.0.0",
+   "family_id": "tower_location",
+   "kind": "deterministic",
+   "implementation": "query.towerSiteLookup",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.table-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "tower.status_summary",
+   "version": "1.0.0",
+   "family_id": "tower_location",
+   "kind": "deterministic",
+   "implementation": "query.towerStatusSummary",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-plan/v1",
+   "output_contract": "forensics.chart-result/v1",
+   "citation_required": true,
+   "maturity": "CERTIFIED"
+  },
+  {
+   "id": "video.anpr_grouped_timeline",
+   "version": "1.0.0",
+   "family_id": "anpr_vehicles",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "video.face_observations",
+   "version": "1.0.0",
+   "family_id": "video_intelligence",
+   "kind": "retrieval",
+   "implementation": "unavailable.model_gate",
+   "required_tools": [],
+   "input_contract": "forensics.video-evidence/v1",
+   "output_contract": "forensics.unsupported-operation/v1",
+   "citation_required": true,
+   "maturity": "PLANNED"
+  },
+  {
+   "id": "video.metadata",
+   "version": "1.0.0",
+   "family_id": "video_intelligence",
+   "kind": "deterministic",
+   "implementation": "runAnalyticalTemplate",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  },
+  {
+   "id": "video.timeline",
+   "version": "1.0.0",
+   "family_id": "video_intelligence",
+   "kind": "retrieval",
+   "implementation": "runAnalyticalTemplate:video_timeline",
+   "required_tools": [
+    "records_sql"
+   ],
+   "input_contract": "forensics.query-understanding/v1",
+   "output_contract": "forensics.enterprise-response/v1",
+   "citation_required": true,
+   "maturity": "LIMITED"
+  }
+ ],
+ "schema_version": "forensics.platform/v1"
+}

@@ -1,0 +1,255 @@
+{
+  "contract_version": "nexusai.unified-multimodal-export-checksum/v1",
+  "recorded_at": "2026-08-23T14:14:45.3723486Z",
+  "scope": {
+    "actor_id": "nexusai-breadth-acceptance-operator",
+    "collection_id": "nexusai-multimodal-product-acceptance",
+    "case_id": "nexusai-multimodal-product-acceptance",
+    "tenant_id": "default"
+  },
+  "retained_state": {
+    "versions": 21,
+    "active_jobs": 0,
+    "derived_artifacts": 372,
+    "canonical_records": 9274,
+    "jobs": 34,
+    "evidence": 21,
+    "completed_jobs": 33,
+    "dead_letter_jobs": 1,
+    "kb_assets": 19
+  },
+  "evidence": [
+    {
+      "evidence_id": "b7608931-046a-4b29-9eef-241c7315f38f",
+      "version_id": "8eeab703-adf8-4b0b-ac9c-ce693199d22b",
+      "original_filename": "document-docx-hp-guide-HP_EliteDesk_LocalAI_Remote_Setup_Guide.docx",
+      "sha256": "85b1ab53150a556f84391a222b7fb4dbf69aa80d1c4d7d7a7b54d5f283ea4865",
+      "modality": "document",
+      "detected_type": "document",
+      "processing_status": "completed"
+    },
+    {
+      "evidence_id": "88eedb87-658a-4f3e-a89c-8b5740e4a248",
+      "version_id": "70fc7e8c-983f-4c36-bd84-caed8701eb64",
+      "original_filename": "nexusai-multimodal-acceptance-brief.pdf",
+      "sha256": "ae8432898f694e5452500f0fbe9e4a988acb601377aedcf74419cce352eac2fc",
+      "modality": "document",
+      "detected_type": "pdf",
+      "processing_status": "completed"
+    },
+    {
+      "evidence_id": "ee48bd0b-acde-4b51-b8c6-d9194278efda",
+      "version_id": "36a503c0-1192-44a8-8256-a148912ed4b1",
+      "original_filename": "case_notes_records_demo.txt",
+      "sha256": "11c370e9f4564786ebee8d76d894ffba52ea1a26918e3470f0a9e096cac47216",
+      "modality": "structured_records",
+      "detected_type": "generic",
+      "processing_status": "completed"
+    },
+    {
+      "evidence_id": "50057921-4f1f-4ab8-bab0-47bcdc957822",
+      "version_id": "1696e47d-75e2-4977-a637-501068dc97ac",
+      "original_filename": "pakistan-short-video.mp4",
+      "sha256": "94be8b97d62f28eb0349b1eaea02e8073a669d60ffbd3da6511f7f7d27004a26",
+      "modality": "video",
+      "detected_type": "video",
+      "processing_status": "completed"
+    },
+    {
+      "evidence_id": "a2755d7d-05d2-4bc9-8e95-7e8992b53ada",
+      "version_id": "ee7a4393-c26a-4f01-a340-fca1fb0c4b0e",
+      "original_filename": "urdu-english-identifier.wav",
+      "sha256": "606ffc7e281940b1b175fff98169a83a6a6ab7744ffd49f05849ac94318fd314",
+      "modality": "audio",
+      "detected_type": "audio",
+      "processing_status": "completed"
+    },
+    {
+      "evidence_id": "a33c5848-2cda-457e-950b-d86e88960f51",
+      "version_id": "a9c8a626-2726-4fd4-b349-9499c145d3d2",
+      "original_filename": "conversational-urdu.wav",
+      "sha256": "f016076b153c2ed6be21fa5f7a4bbc22b3e391d40080b9fa3de3b8a2dd517550",
+      "modality": "audio",
+      "detected_type": "audio",
+      "processing_status": "completed"
+    },
+    {
+      "evidence_id": "2097c6df-c0ad-4886-b0e7-ea4f4856a220",
+      "version_id": "f88f7f9d-3de8-4748-bf72-ea47bfe159e7",
+      "original_filename": "clear-urdu.wav",
+      "sha256": "c499e06e26b8cbf37386b88bba26f37045439a775e964bdad8634376435a056e",
+      "modality": "audio",
+      "detected_type": "audio",
+      "processing_status": "completed"
+    },
+    {
+      "evidence_id": "3ffc0eae-f030-4e62-835f-100682b99b1c",
+      "version_id": "7266a4df-df92-4464-a068-39894367ec71",
+      "original_filename": "no-face-street.png",
+      "sha256": "2ccf02c6a96f5c646697258c36bcaf0dfd2aec0052ee06eef81789a040f8892d",
+      "modality": "image",
+      "detected_type": "image",
+      "processing_status": "completed"
+    },
+    {
+      "evidence_id": "273bc132-74b5-4633-b8f9-bf0a812ef3ff",
+      "version_id": "7603fd46-a242-4a84-b081-23e4b1d225f1",
+      "original_filename": "subject-b-frontal.png",
+      "sha256": "d69848db8e4332f02a544dd6a5339dd49f187dadd3203a365cff1d91f8e27885",
+      "modality": "image",
+      "detected_type": "image",
+      "processing_status": "completed"
+    },
+    {
+      "evidence_id": "769f6124-5b06-4c73-9122-39ef4423e0c4",
+      "version_id": "08fb361a-5e26-4dea-afdf-0047c6cd3bfd",
+      "original_filename": "subject-a-blur.png",
+      "sha256": "44b6f48e761d431b70cdb362b472a798aac8b442a7d8e638d47019aea05cae57",
+      "modality": "image",
+      "detected_type": "image",
+      "processing_status": "completed"
+    },
+    {
+      "evidence_id": "3fff8296-ee69-4283-a498-7a0000887072",
+      "version_id": "1a9c7888-d61c-4076-96c4-d8c6fa292cdb",
+      "original_filename": "subject-a-pose.png",
+      "sha256": "2ccb36c968b6d73fd33401932a4f8650d7c2becffabf2e5ca2b613835ea9b518",
+      "modality": "image",
+      "detected_type": "image",
+      "processing_status": "completed"
+    },
+    {
+      "evidence_id": "c23c3e10-a7a6-435a-ae64-c411a7cd0e14",
+      "version_id": "56cb1d0c-24ed-4996-9307-b59df0e66d4b",
+      "original_filename": "subject-a-frontal.png",
+      "sha256": "aed3e4b16fe9560d25840961f615673e4af0ccd28f8695b46dc1ad34776dc387",
+      "modality": "image",
+      "detected_type": "image",
+      "processing_status": "completed"
+    },
+    {
+      "evidence_id": "d4b9daf1-da54-4c66-923c-c725bec4400c",
+      "version_id": "b1171a5a-ae10-47fb-b491-25f839875162",
+      "original_filename": "wikimedia-road-cars-islamabad.jpg",
+      "sha256": "ba1aa5a7e28e18bdd78b2cba132a6fe1cd87612d930be91fa6db22194cae0038",
+      "modality": "image",
+      "detected_type": "image",
+      "processing_status": "completed"
+    },
+    {
+      "evidence_id": "a0ff7b18-129f-4a8a-82cf-48887f98bd9e",
+      "version_id": "3dc6b0f6-8d2b-426d-93c5-12059005549b",
+      "original_filename": "image-test-plate-test_plate.jpg",
+      "sha256": "a15a7ec947fdb2c5a08a70243a62ed66e4dddd89defaba9d135f6c5ac67559f6",
+      "modality": "image",
+      "detected_type": "image",
+      "processing_status": "completed"
+    },
+    {
+      "evidence_id": "c83ab9eb-91da-4f8c-9880-94a00c923146",
+      "version_id": "e83a1bf4-b6dc-46f7-9c4c-d5e46dd44ad4",
+      "original_filename": "seed_transactions.csv",
+      "sha256": "c7d4526183017893b2d84fd97e144da537d5267eb99a5e40783456c3d62d33ac",
+      "modality": "structured_records",
+      "detected_type": "transaction",
+      "processing_status": "completed"
+    },
+    {
+      "evidence_id": "0fadf3a4-0521-4042-8ee6-72ec1880ec8d",
+      "version_id": "03288bf9-e363-4249-9a52-fccdbf106762",
+      "original_filename": "seed_access_log.csv",
+      "sha256": "b73dadbbed702ee7d28e98562eec361be9b1c33dca9ec2b04a73f23acbd713d7",
+      "modality": "structured_records",
+      "detected_type": "access_log",
+      "processing_status": "completed"
+    },
+    {
+      "evidence_id": "d4b2be86-874c-476e-9554-d731b9dc4f59",
+      "version_id": "36eb42df-b21e-4588-8abe-833ee42167fb",
+      "original_filename": "seed_anpr.csv",
+      "sha256": "b39d6046f949b117c826f96503030c5573592e58ca954a7fa2abc6663d47067a",
+      "modality": "structured_records",
+      "detected_type": "anpr",
+      "processing_status": "completed"
+    },
+    {
+      "evidence_id": "0b41a599-c091-4395-a585-ad66e1e8d0be",
+      "version_id": "d4bdd9ea-a50d-4942-9696-e05104d155db",
+      "original_filename": "tower_reference.csv",
+      "sha256": "c805a1a70e9c4aaebbc4f1dae066a993e609bc547ecd7f00cdf1660ac559b1a9",
+      "modality": "structured_records",
+      "detected_type": "tower_location",
+      "processing_status": "completed"
+    },
+    {
+      "evidence_id": "acb5eba6-5c64-427f-bfaa-868a0a759706",
+      "version_id": "3e419dd0-998e-4ba3-9402-c396c0f76379",
+      "original_filename": "subscriber_registry.csv",
+      "sha256": "4681021647a0c0638bc76e0a4196d407a39acf863703903755837fd49cb100c8",
+      "modality": "structured_records",
+      "detected_type": "subscriber",
+      "processing_status": "completed"
+    },
+    {
+      "evidence_id": "a910c6d3-edaa-4d5a-9a7e-4f02797859d1",
+      "version_id": "220aa168-8727-468e-aa93-36baf39f5b16",
+      "original_filename": "seed_ipdr.csv",
+      "sha256": "92701de89595af4749ac8a386e145d1fbc99835dc298813da63f05a8ee264dc0",
+      "modality": "structured_records",
+      "detected_type": "ipdr",
+      "processing_status": "completed"
+    },
+    {
+      "evidence_id": "f94eaf02-3d0d-4b02-90ba-55bfb8a12480",
+      "version_id": "e54ee3d4-a10f-4729-8a1a-75b9b742f5af",
+      "original_filename": "seed_cdr_large.csv",
+      "sha256": "bf6dcedabb58ad206b820745e2c628c6c68174d20f1c551d09518ee6097e2ab4",
+      "modality": "structured_records",
+      "detected_type": "cdr",
+      "processing_status": "completed"
+    }
+  ],
+  "files": [
+    {
+      "path": "local-acceptance-inputs/NEXUSAI_MULTIMODAL_PRODUCT_ACCEPTANCE_MANIFEST.json",
+      "bytes": 16069,
+      "sha256": "9d0d35ec6edfe8125908255a4eff77030d36da0171f38f7f08cefd624180a666"
+    },
+    {
+      "path": "reports/unified-multimodal-product-acceptance-20260823/P1_MEDIA_ROLE_RECOVERY_APPROVAL_MANIFEST.json",
+      "bytes": 9153,
+      "sha256": "1ead36cd12b17d9ba855d09040eb845726a6ff9c42071db9fee3bdb50478e0ab"
+    },
+    {
+      "path": "reports/unified-multimodal-product-acceptance-20260823/media-role-reprocess-results.json",
+      "bytes": 6303,
+      "sha256": "af0d22a8df93179ea3e6d9b162b4aafd25697925c794a138b304ded1ad3e4a48"
+    },
+    {
+      "path": "reports/unified-multimodal-product-acceptance-20260823/media-role-reprocess-verdict.json",
+      "bytes": 1042,
+      "sha256": "d4838479085eeb5c18245eca6792e439f9cd814a467dbb25d3f01fc10442cb54"
+    },
+    {
+      "path": "reports/unified-multimodal-product-acceptance-20260823/structured-65-operation-matrix.json",
+      "bytes": 18875,
+      "sha256": "0f555930892bd8a3d78fec456c01bae104c1c879531d9b3e96c46bbb78bf0ab9"
+    },
+    {
+      "path": "reports/unified-multimodal-product-acceptance-20260823/product-acceptance-api.json",
+      "bytes": 81119,
+      "sha256": "3b63470b9f1e42d074395229ec7baeee66fa01d0ea5cd0ee5d1efdca9a2aa6e2"
+    },
+    {
+      "path": "docs/demo/nexusai-breadth-multimodal-demo-guide.md",
+      "bytes": 6421,
+      "sha256": "506a0360fc7f82b4ac05bf85736d5c58b1e929a8fc322eee47611e903a74bdd9"
+    },
+    {
+      "path": "reports/nexusai-unified-multimodal-product-acceptance-20260823.md",
+      "bytes": 3843,
+      "sha256": "4bffc21337a7102c4f853a98aa23228e892e5b928c53b2566188c7273e9d95f7"
+    }
+  ],
+  "retention": "review hold; deletion and cleanup require separate explicit approval"
+}

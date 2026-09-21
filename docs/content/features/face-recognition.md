@@ -69,13 +69,13 @@ curl -sX POST http://localhost:8080/v1/face/verify \
   }'
 ```
 
-Detect faces and analyze demographics (buffalo entries populate
-age / gender; YuNet + SFace returns regions only):
+Detect face regions without identity or demographic attributes, or use the
+separate analysis route when the configured backend supports demographics:
 
 ```bash
 curl -sX POST http://localhost:8080/v1/face/detect \
   -H "Content-Type: application/json" \
-  -d '{"model": "face-detect-buffalo-l", "img": "https://example.com/group.jpg"}'
+  -d '{"model": "face-detect-yunet-sface", "img": "https://example.com/group.jpg"}'
 
 curl -sX POST http://localhost:8080/v1/face/analyze \
   -H "Content-Type: application/json" \
@@ -190,6 +190,18 @@ format.
 {{% /notice %}}
 
 ## API reference
+
+### `POST /v1/face/detect`
+
+Returns one entry per detected face with only its pixel-space bounding box and
+detector confidence. This detection-only route never returns identity or
+demographic attributes. Use it before `/v1/face/embed` when an application must
+create provenance-preserving crops explicitly.
+
+| field | type | description |
+|---|---|---|
+| `detections[].bbox` | `[int, int, int, int]` | Face region as `[x, y, width, height]` in source-image pixels |
+| `detections[].confidence` | number | Detector confidence |
 
 ### `POST /v1/face/verify` (1:1)
 

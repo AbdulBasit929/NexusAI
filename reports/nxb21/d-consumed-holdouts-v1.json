@@ -1,0 +1,17 @@
+{
+  "schema_version": "nexusai.nxb21d-consumed-holdout-registry/v1",
+  "updated_at": "2026-09-05T15:40:02.1580141Z",
+  "matching_rule": "sha256_of_exact_bytes",
+  "entries": [
+    {
+      "holdout_sha256": "aaa8517983ea4523e235c4b3de31e5562bfaeada21ef24a7b23065a567d31d13",
+      "state": "invalid_incomplete_consumed",
+      "reusable": false,
+      "remaining_cases_may_run": false,
+      "copied_bytes_may_run": false,
+      "consumed_at_run": "local-acceptance-models/nxb21-d/q4-final-qualification-runs/qualification-20260905T152811856Z",
+      "incident_receipt": "reports/nxb21/d-q4-final-qualification-attempt-1-invalid-consumed-v1.json",
+      "incident_receipt_sha256": "94f8554098bd8cfb012bd7726644c7d16bae8d08ef6b30d53d52ce86dbcdbd3c"
+    }
+  ]
+}

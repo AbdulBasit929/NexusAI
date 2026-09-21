@@ -1,0 +1,80 @@
+{
+ "n": 62,
+ "verdicts": {
+  "WRONG": 29,
+  "PARTIAL": 9,
+  "SAFE_FAIL": 5,
+  "ERROR": 3,
+  "CORRECT": 16
+ },
+ "confident_wrong": 26,
+ "false_negative": 3,
+ "latency_ms": {
+  "p50": 555,
+  "p95": 4543,
+  "max": 82001
+ },
+ "answer_stated_in_text": [
+  5,
+  21
+ ],
+ "by_family": {
+  "access_log": {
+   "CORRECT": 1,
+   "WRONG": 3
+  },
+  "anpr": {
+   "CORRECT": 2,
+   "WRONG": 3,
+   "PARTIAL": 1
+  },
+  "audio": {
+   "CORRECT": 1,
+   "WRONG": 2
+  },
+  "cdr": {
+   "WRONG": 7,
+   "PARTIAL": 2,
+   "SAFE_FAIL": 4,
+   "ERROR": 1,
+   "CORRECT": 2
+  },
+  "cross": {
+   "WRONG": 3,
+   "PARTIAL": 1,
+   "ERROR": 1
+  },
+  "document": {
+   "CORRECT": 4,
+   "WRONG": 2
+  },
+  "image": {
+   "CORRECT": 1,
+   "WRONG": 2,
+   "ERROR": 1
+  },
+  "ipdr": {
+   "CORRECT": 2,
+   "WRONG": 2,
+   "PARTIAL": 1
+  },
+  "negative": {
+   "WRONG": 2,
+   "CORRECT": 2
+  },
+  "subscriber": {
+   "PARTIAL": 2,
+   "CORRECT": 1
+  },
+  "tower": {
+   "WRONG": 2
+  },
+  "transaction": {
+   "PARTIAL": 2,
+   "WRONG": 1
+  },
+  "video": {
+   "SAFE_FAIL": 1
+  }
+ }
+}

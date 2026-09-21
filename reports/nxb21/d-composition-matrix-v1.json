@@ -1,0 +1,52 @@
+{
+  "schema_version": "nexusai.nxb21.d-composition-matrix/v1",
+  "status": "BOUNDED_SOURCE_CONTRACT_PASS_MODEL_EVALUATION_PENDING",
+  "maximum_steps": 3,
+  "existing_execution_budget_reused": true,
+  "cases": [
+    {
+      "id": "D-081",
+      "expected": {
+        "capability": "cross_family.identifiers",
+        "semantic": "COMPOSE",
+        "target": "07123456789",
+        "literal": null,
+        "scope": "authorized_workspace"
+      },
+      "actual_model": "NOT_RUN"
+    },
+    {
+      "id": "D-082",
+      "expected": {
+        "capability": "cross_family.identifiers",
+        "semantic": "COMPOSE",
+        "target": "07123456789",
+        "literal": null,
+        "scope": "authorized_workspace"
+      },
+      "actual_model": "NOT_RUN"
+    },
+    {
+      "id": "D-083",
+      "expected": {
+        "capability": "cross_family.identifiers",
+        "semantic": "COMPOSE",
+        "target": "07123456789",
+        "literal": null,
+        "scope": "authorized_workspace"
+      },
+      "actual_model": "NOT_RUN"
+    },
+    {
+      "id": "D-084",
+      "expected": {
+        "capability": "cross_family.identifiers",
+        "semantic": "COMPOSE",
+        "target": "07123456789",
+        "literal": null,
+        "scope": "authorized_workspace"
+      },
+      "actual_model": "NOT_RUN"
+    }
+  ]
+}

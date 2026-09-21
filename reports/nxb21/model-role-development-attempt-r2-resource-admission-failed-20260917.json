@@ -1,0 +1,52 @@
+{
+  "contract_version": "nexusai.model-role-development-attempt/v1",
+  "attempt_id": "nxb21d-model-role-development-r2-20260917",
+  "state": "RESOURCE_ADMISSION_FAILED_NO_INFERENCE",
+  "sealed_at": "2026-09-17T05:30:33.2935692Z",
+  "model_id": "qwen_qwen3-4b-instruct-2507",
+  "ram_admission": {
+    "state": "FAIL",
+    "required_gib": 8.627,
+    "required_consecutive_samples": 5,
+    "observation_count": 24,
+    "maximum_available_gib": 8.666,
+    "longest_consecutive_qualifying_samples": 4,
+    "qualifying_sequence_gib": [8.661, 8.663, 8.665, 8.666],
+    "first_following_nonqualifying_sample_gib": 8.553,
+    "artifact": "reports/nxb21/model-role-ram-admission-r2-20260916.ndjson",
+    "artifact_sha256": "73213cbe45979eaf0489f41b0d888fadc2a6f35e7fc71bd42fb15a059862c0fc"
+  },
+  "execution": {
+    "failure_stage": "RAM_STABLE_WINDOW",
+    "model_requests_dispatched": 0,
+    "model_inference": false,
+    "raw_evidence_created": false,
+    "adjudication_receipt_created": false,
+    "model_quality_evidence": "NONE"
+  },
+  "second_invocation": {
+    "state": "REFUSED_EXISTING_ARTIFACT",
+    "reason": "RAM_ADMISSION_ARTIFACT_ALREADY_EXISTS",
+    "additional_ram_samples": 0,
+    "model_inference": false,
+    "operator_reported_preparation": ["OneDrive sync stopped", "Phone Link stopped"]
+  },
+  "post_state": {
+    "target_model_loaded": false,
+    "loaded_models": ["qwen3-embedding-0.6b"],
+    "embedding_runtime_restored": true,
+    "required_containers_running": true,
+    "container_oom_killed": false
+  },
+  "decision": {
+    "wp3_state": "WAITING_NEXT_EXECUTION_DECISION",
+    "q8_r2_consumed": true,
+    "q8_r3_authorized": false,
+    "quantization_pivot_authorized": false,
+    "permitted_next_choices": [
+      "AUTHORIZE_ONE_Q8_R3_RESOURCE_ATTEMPT",
+      "AUTHORIZE_Q4_K_M_OR_Q5_K_M_SYNTHESIS_ROLE_PIVOT"
+    ],
+    "deterministic_fallback": "REMAINS_PRODUCTION_PATH"
+  }
+}

@@ -1,0 +1,452 @@
+{
+  "benchmarks": {
+    "chat": {
+      "latency": {
+        "avg_ms": 10351.98,
+        "count": 6,
+        "p50_ms": 6397.76,
+        "p95_ms": 22068.22
+      },
+      "model": "qwen_qwen3-4b-instruct-2507",
+      "results": [
+        {
+          "contains": {
+            "expected": [
+              "SQL",
+              "exact"
+            ],
+            "found": [
+              "SQL",
+              "exact"
+            ],
+            "score": 1.0
+          },
+          "latency_ms": 22068.22,
+          "preview": "Exact counts over CDR rows must come from SQL records tools because they process and query the actual stored data on disk, ensuring accuracy and consistency with the original dataset. Memory-based tools may reflect only a snapshot or partial state, leading to discrepancies due to caching, incomplete data loading, or process-level inconsistencies.",
+          "status": "ok",
+          "task": "forensic_grounding"
+        },
+        {
+          "contains": {
+            "expected": [
+              "seed_cdr_large.csv",
+              "60"
+            ],
+            "found": [
+              "seed_cdr_large.csv",
+              "60"
+            ],
+            "score": 1.0
+          },
+          "latency_ms": 6397.76,
+          "preview": "{\n  \"source_file\": \"seed_cdr_large.csv\",\n  \"duration_filter\": \"60\"\n}",
+          "status": "ok",
+          "task": "source_filter_guard"
+        },
+        {
+          "contains": {
+            "expected": [
+              "SQL",
+              "exact"
+            ],
+            "found": [
+              "SQL",
+              "exact"
+            ],
+            "score": 1.0
+          },
+          "latency_ms": 12232.47,
+          "preview": "Exact counts over CDR rows must come from SQL records tools because they process and query the actual stored data on disk, ensuring accuracy and consistency with the original dataset. Memory-based tools may reflect only a snapshot or partial state, leading to discrepancies due to caching, incomplete data loading, or process-level inconsistencies.",
+          "status": "ok",
+          "task": "forensic_grounding"
+        },
+        {
+          "contains": {
+            "expected": [
+              "seed_cdr_large.csv",
+              "60"
+            ],
+            "found": [
+              "seed_cdr_large.csv",
+              "60"
+            ],
+            "score": 1.0
+          },
+          "latency_ms": 4617.08,
+          "preview": "{\n  \"source_file\": \"seed_cdr_large.csv\",\n  \"duration_filter\": \"60\"\n}",
+          "status": "ok",
+          "task": "source_filter_guard"
+        },
+        {
+          "contains": {
+            "expected": [
+              "SQL",
+              "exact"
+            ],
+            "found": [
+              "SQL",
+              "exact"
+            ],
+            "score": 1.0
+          },
+          "latency_ms": 12105.64,
+          "preview": "Exact counts over CDR rows must come from SQL records tools because they process and query the actual stored data on disk, ensuring accuracy and consistency with the original dataset. Memory-based tools may reflect only a snapshot or partial state, leading to discrepancies due to caching, incomplete data loading, or process-level inconsistencies.",
+          "status": "ok",
+          "task": "forensic_grounding"
+        },
+        {
+          "contains": {
+            "expected": [
+              "seed_cdr_large.csv",
+              "60"
+            ],
+            "found": [
+              "seed_cdr_large.csv",
+              "60"
+            ],
+            "score": 1.0
+          },
+          "latency_ms": 4690.74,
+          "preview": "{\n  \"source_file\": \"seed_cdr_large.csv\",\n  \"duration_filter\": \"60\"\n}",
+          "status": "ok",
+          "task": "source_filter_guard"
+        }
+      ]
+    },
+    "embeddings": {
+      "latency": {
+        "avg_ms": 416.84,
+        "count": 3,
+        "p50_ms": 410.69,
+        "p95_ms": 444.25
+      },
+      "model": "qwen3-embedding-0.6b",
+      "results": [
+        {
+          "dimensions": 1024,
+          "latency_ms": 444.25,
+          "status": "ok",
+          "vectors": 3
+        },
+        {
+          "dimensions": 1024,
+          "latency_ms": 410.69,
+          "status": "ok",
+          "vectors": 3
+        },
+        {
+          "dimensions": 1024,
+          "latency_ms": 395.57,
+          "status": "ok",
+          "vectors": 3
+        }
+      ]
+    },
+    "forensic_sidecar": {
+      "checks": [
+        {
+          "latency_ms": 3.13,
+          "name": "healthz",
+          "status": "ok"
+        },
+        {
+          "latency_ms": 16.67,
+          "name": "collection_status",
+          "status": "ok",
+          "summary_keys": [
+            "accepted_rows",
+            "completed_jobs",
+            "completed_jobs_missing_kb_asset",
+            "duplicate_rows",
+            "evidence_completed",
+            "evidence_failed",
+            "evidence_in_flight",
+            "evidence_total",
+            "failed_jobs",
+            "jobs_total",
+            "kb_assets_total",
+            "rejected_rows",
+            "total_rows"
+          ]
+        },
+        {
+          "expected_template": "source_file_audit",
+          "latency_ms": 16.68,
+          "name": "source_file_audit",
+          "selected_template": "source_file_audit",
+          "status": "ok",
+          "template_match": true
+        },
+        {
+          "expected_template": "canonical_records",
+          "latency_ms": 446.98,
+          "name": "duration_filter",
+          "selected_template": "canonical_records",
+          "status": "ok",
+          "template_match": true
+        },
+        {
+          "expected_template": "limitations_and_data_quality",
+          "latency_ms": 11.84,
+          "name": "data_quality",
+          "selected_template": "limitations_and_data_quality",
+          "status": "ok",
+          "template_match": true
+        },
+        {
+          "expected_template": "source_file_audit",
+          "latency_ms": 14.0,
+          "name": "source_file_audit",
+          "selected_template": "source_file_audit",
+          "status": "ok",
+          "template_match": true
+        },
+        {
+          "expected_template": "canonical_records",
+          "latency_ms": 411.21,
+          "name": "duration_filter",
+          "selected_template": "canonical_records",
+          "status": "ok",
+          "template_match": true
+        },
+        {
+          "expected_template": "limitations_and_data_quality",
+          "latency_ms": 19.65,
+          "name": "data_quality",
+          "selected_template": "limitations_and_data_quality",
+          "status": "ok",
+          "template_match": true
+        },
+        {
+          "expected_template": "source_file_audit",
+          "latency_ms": 14.83,
+          "name": "source_file_audit",
+          "selected_template": "source_file_audit",
+          "status": "ok",
+          "template_match": true
+        },
+        {
+          "expected_template": "canonical_records",
+          "latency_ms": 513.06,
+          "name": "duration_filter",
+          "selected_template": "canonical_records",
+          "status": "ok",
+          "template_match": true
+        },
+        {
+          "expected_template": "limitations_and_data_quality",
+          "latency_ms": 8.84,
+          "name": "data_quality",
+          "selected_template": "limitations_and_data_quality",
+          "status": "ok",
+          "template_match": true
+        }
+      ],
+      "collection_id": "records-demo-verified",
+      "latency": {
+        "avg_ms": 161.9,
+        "count": 9,
+        "p50_ms": 16.68,
+        "p95_ms": 513.06
+      },
+      "tenant_id": "default"
+    }
+  },
+  "catalog": "configuration\\forensic_evidence_model_catalog.json",
+  "catalog_schema_version": "2026-07-22",
+  "catalog_summary": [
+    {
+      "benchmark_tasks": [
+        "exact count by record_type",
+        "duration_seconds greater than threshold",
+        "source_file filter detection",
+        "top contacts",
+        "date-range timeline",
+        "data quality limitations"
+      ],
+      "evidence_type": "structured_records",
+      "label": "Structured forensic records",
+      "primary_pipeline": [
+        "forensic_records_worker",
+        "PostgreSQL/Timescale canonical records",
+        "deterministic SQL templates",
+        "Knowledge Base source preview"
+      ],
+      "recommended_models": [
+        {
+          "backend": "llama-cpp",
+          "gallery_id": "qwen_qwen3-4b-instruct-2507",
+          "name": "qwen_qwen3-4b-instruct-2507",
+          "priority": 1,
+          "role": "analyst synthesis and query planning, not exact analytics"
+        }
+      ]
+    },
+    {
+      "benchmark_tasks": [
+        "known-answer retrieval",
+        "cross-file source attribution",
+        "no-answer abstention",
+        "duplicate chunk handling",
+        "long noisy document retrieval"
+      ],
+      "evidence_type": "knowledge_base_text",
+      "label": "Knowledge Base text retrieval",
+      "primary_pipeline": [
+        "chunking",
+        "embedding",
+        "hybrid retrieval",
+        "reranking",
+        "grounded synthesis"
+      ],
+      "recommended_models": [
+        {
+          "backend": "llama-cpp",
+          "gallery_id": "qwen3-embedding-0.6b",
+          "name": "qwen3-embedding-0.6b",
+          "priority": 2,
+          "role": "small multilingual embedding candidate"
+        }
+      ]
+    },
+    {
+      "benchmark_tasks": [
+        "OCR character error rate on scanned forms",
+        "table cell accuracy",
+        "page layout reading order",
+        "source page citation",
+        "handwritten/noisy scan limitations"
+      ],
+      "evidence_type": "documents_ocr",
+      "label": "Documents and OCR",
+      "primary_pipeline": [
+        "Docling document conversion",
+        "layout and table extraction",
+        "OCR engine",
+        "Knowledge Base indexing",
+        "evidence registry provenance"
+      ],
+      "recommended_models": []
+    },
+    {
+      "benchmark_tasks": [
+        "word error rate",
+        "speaker-turn boundary preservation",
+        "timestamp quality",
+        "accent/noise robustness",
+        "transcript retrieval accuracy"
+      ],
+      "evidence_type": "audio_speech",
+      "label": "Audio speech and transcripts",
+      "primary_pipeline": [
+        "audio metadata",
+        "speech-to-text",
+        "language detection",
+        "speaker/voice metadata where configured",
+        "transcript indexing"
+      ],
+      "recommended_models": []
+    },
+    {
+      "benchmark_tasks": [
+        "voice activity precision/recall",
+        "false positive rate on background noise",
+        "event timestamp accuracy"
+      ],
+      "evidence_type": "audio_events_voice",
+      "label": "Audio events and voice metadata",
+      "primary_pipeline": [
+        "voice activity detection",
+        "audio event detection",
+        "speaker metadata extraction",
+        "transcript alignment"
+      ],
+      "recommended_models": []
+    },
+    {
+      "benchmark_tasks": [
+        "object detection precision/recall",
+        "visual question answer grounding",
+        "OCR-on-image accuracy",
+        "face/plate false positive analysis",
+        "bounding box provenance"
+      ],
+      "evidence_type": "images_vision",
+      "label": "Images and visual evidence",
+      "primary_pipeline": [
+        "image metadata",
+        "object detection",
+        "OCR when text is visible",
+        "face/plate adapters where legally permitted",
+        "grounded visual description"
+      ],
+      "recommended_models": [
+        {
+          "backend": "llama-cpp or vllm",
+          "gallery_id": "qwen3-vl-2b-instruct",
+          "name": "qwen3-vl-2b-instruct",
+          "priority": 2,
+          "role": "small vision-language smoke test model"
+        }
+      ]
+    },
+    {
+      "benchmark_tasks": [
+        "frame sampling recall",
+        "event timeline accuracy",
+        "transcript timestamp alignment",
+        "object persistence across frames",
+        "analyst query latency over long videos"
+      ],
+      "evidence_type": "video",
+      "label": "Video evidence",
+      "primary_pipeline": [
+        "media metadata",
+        "frame sampling",
+        "scene/object detection",
+        "audio transcript if present",
+        "timeline/event index"
+      ],
+      "recommended_models": []
+    },
+    {
+      "benchmark_tasks": [
+        "modality classification accuracy",
+        "unsupported file warning quality",
+        "duplicate detection",
+        "nested archive provenance",
+        "safe failure handling"
+      ],
+      "evidence_type": "unknown_mixed",
+      "label": "Unknown or mixed evidence",
+      "primary_pipeline": [
+        "safe file inspection",
+        "MIME and extension detection",
+        "schema sniffing",
+        "recursive evidence registration",
+        "quarantine unsupported items with warnings"
+      ],
+      "recommended_models": [
+        {
+          "backend": "llama-cpp",
+          "gallery_id": "qwen_qwen3-4b-instruct-2507",
+          "name": "qwen_qwen3-4b-instruct-2507",
+          "priority": 1,
+          "role": "classification explanation and analyst triage after deterministic sniffing"
+        }
+      ]
+    }
+  ],
+  "forensic_url": "http://localhost:8091",
+  "generated_at_unix": 1784796241,
+  "installed_models": [
+    "qwen3-embedding-0.6b",
+    "qwen_qwen3-4b-instruct-2507"
+  ],
+  "localai_url": "http://localhost:8080",
+  "model_listing": {
+    "latency_ms": 25.65,
+    "status": "ok"
+  },
+  "profile": "cpu"
+}

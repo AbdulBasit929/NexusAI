@@ -1,0 +1,183 @@
+{
+  "manifest_version": "2026-08-23.unified-multimodal-product-acceptance.media-role-recovery.v1",
+  "status": "EXECUTED_COMPLETE",
+  "created_at": "2026-08-23T13:35:00Z",
+  "approval_recorded_at": "2026-08-23T13:42:19.4001109Z",
+  "execution_completed_at": "2026-08-23T13:46:06.2728434Z",
+  "execution_result": {
+    "verdict": "PASS",
+    "jobs_created": 12,
+    "jobs_completed": 12,
+    "jobs_failed_or_dead_lettered": 0,
+    "second_reprocesses": 0,
+    "results_path": "reports/unified-multimodal-product-acceptance-20260823/media-role-reprocess-results.json",
+    "verdict_path": "reports/unified-multimodal-product-acceptance-20260823/media-role-reprocess-verdict.json"
+  },
+  "tenant_id": "default",
+  "collection_id": "nexusai-multimodal-product-acceptance",
+  "case_id": "nexusai-multimodal-product-acceptance",
+  "actor_id": "nexusai-breadth-acceptance-operator",
+  "purpose": "Produce the originally required retained media and TXT derivative contracts after correcting worker configuration drift and the native-TXT route authority defect.",
+  "root_causes": [
+    "The prior recovery recreated the worker with ANPR, face, SigLIP, OCR, and ASR roles disabled and mounted the empty repository model directory.",
+    "The TXT upload carried the authenticated native_document_worker route but stale structured_records modality metadata caused the worker to fall through to the generic row adapter."
+  ],
+  "completed_non_retained_recovery": {
+    "worker_image": "sha256:4b345f8f3a503a9e54c32a07089a2313b19a368ab4120edb610648d592f8764f",
+    "worker_container": "0b2418d90cbd",
+    "rollback_tag": "nexusai/forensic-records-worker:rollback-before-unified-media-role-reactivation-20260823",
+    "protected_service_ids_preserved": {
+      "localai": "7f41a8378012",
+      "forensic_api": "62d9d475ad0a",
+      "postgresql": "f66e05a3b179",
+      "nats": "5c49e70d132a"
+    },
+    "enabled_existing_roles": [
+      "FastALPR ANPR",
+      "YuNet/SFace face observation and candidate embedding",
+      "SigLIP 768-dimensional image embedding",
+      "Tesseract eng+urd general OCR",
+      "faster-whisper-small-ur with explicit ur admission"
+    ],
+    "model_download": false,
+    "database_migration": false,
+    "retained_mutation": false,
+    "focused_tests": "9 passed",
+    "probe_report": "reports/unified-multimodal-product-acceptance-20260823/non-retained-media-role-probe.json"
+  },
+  "retained_before": {
+    "evidence": 21,
+    "versions": 21,
+    "jobs": 22,
+    "completed_jobs": 21,
+    "dead_letter_jobs": 1,
+    "active_jobs": 0,
+    "canonical_records": 9273,
+    "derived_artifacts": 125,
+    "kb_assets": 19
+  },
+  "execution_ceiling": {
+    "maximum_new_evidence": 0,
+    "maximum_new_versions": 0,
+    "maximum_new_reprocess_jobs": 12,
+    "maximum_reprocess_jobs_per_evidence": 1,
+    "maximum_concurrent_jobs": 1,
+    "force_upload": false,
+    "broad_replay": false
+  },
+  "reprocess_plan": [
+    {
+      "order": 1,
+      "source_id": "image-test-plate",
+      "evidence_id": "a0ff7b18-129f-4a8a-82cf-48887f98bd9e",
+      "sha256": "a15a7ec947fdb2c5a08a70243a62ed66e4dddd89defaba9d135f6c5ac67559f6",
+      "expected_generation": 2,
+      "reason": "Retain FastALPR, fingerprint, SigLIP, scene-OCR, and bounded face observations after approved role activation."
+    },
+    {
+      "order": 2,
+      "source_id": "image-islamabad-road",
+      "evidence_id": "d4b9daf1-da54-4c66-923c-c725bec4400c",
+      "sha256": "ba1aa5a7e28e18bdd78b2cba132a6fe1cd87612d930be91fa6db22194cae0038",
+      "expected_generation": 1,
+      "reason": "Retain fingerprint, SigLIP, scene-OCR, ANPR/no-result, and face/no-result observations after approved role activation."
+    },
+    {
+      "order": 3,
+      "source_id": "face-subject-a-frontal",
+      "evidence_id": "c23c3e10-a7a6-435a-ae64-c411a7cd0e14",
+      "sha256": "aed3e4b16fe9560d25840961f615673e4af0ccd28f8695b46dc1ad34776dc387",
+      "expected_generation": 1,
+      "reason": "Retain lawful synthetic face detection, crop, SFace candidate embedding, SigLIP, and bounded OCR observations."
+    },
+    {
+      "order": 4,
+      "source_id": "face-subject-a-pose",
+      "evidence_id": "3fff8296-ee69-4283-a498-7a0000887072",
+      "sha256": "2ccb36c968b6d73fd33401932a4f8650d7c2becffabf2e5ca2b613835ea9b518",
+      "expected_generation": 1,
+      "reason": "Retain lawful synthetic same-subject candidate observations for bounded similarity."
+    },
+    {
+      "order": 5,
+      "source_id": "face-subject-a-blur",
+      "evidence_id": "769f6124-5b06-4c73-9122-39ef4423e0c4",
+      "sha256": "44b6f48e761d431b70cdb362b472a798aac8b442a7d8e638d47019aea05cae57",
+      "expected_generation": 1,
+      "reason": "Retain lawful synthetic blurred same-subject candidate observations for bounded similarity."
+    },
+    {
+      "order": 6,
+      "source_id": "face-subject-b-frontal",
+      "evidence_id": "273bc132-74b5-4633-b8f9-bf0a812ef3ff",
+      "sha256": "d69848db8e4332f02a544dd6a5339dd49f187dadd3203a365cff1d91f8e27885",
+      "expected_generation": 1,
+      "reason": "Retain lawful synthetic different-subject candidate observations for bounded relative ranking."
+    },
+    {
+      "order": 7,
+      "source_id": "face-no-face-street",
+      "evidence_id": "3ffc0eae-f030-4e62-835f-100682b99b1c",
+      "sha256": "2ccf02c6a96f5c646697258c36bcaf0dfd2aec0052ee06eef81789a040f8892d",
+      "expected_generation": 1,
+      "reason": "Retain the lawful synthetic no-face negative plus bounded image observations."
+    },
+    {
+      "order": 8,
+      "source_id": "audio-clear-urdu",
+      "evidence_id": "2097c6df-c0ad-4886-b0e7-ea4f4856a220",
+      "sha256": "c499e06e26b8cbf37386b88bba26f37045439a775e964bdad8634376435a056e",
+      "expected_generation": 1,
+      "reason": "Retain explicit-Urdu timestamped ASR and authoritative-Urdu/derived-Roman-Urdu contracts."
+    },
+    {
+      "order": 9,
+      "source_id": "audio-second-reader-urdu",
+      "evidence_id": "a33c5848-2cda-457e-950b-d86e88960f51",
+      "sha256": "f016076b153c2ed6be21fa5f7a4bbc22b3e391d40080b9fa3de3b8a2dd517550",
+      "expected_generation": 1,
+      "reason": "Retain second-reader explicit-Urdu timestamped ASR and Roman-Urdu derivatives."
+    },
+    {
+      "order": 10,
+      "source_id": "audio-synthetic-identifiers",
+      "evidence_id": "a2755d7d-05d2-4bc9-8e95-7e8992b53ada",
+      "sha256": "606ffc7e281940b1b175fff98169a83a6a6ab7744ffd49f05849ac94318fd314",
+      "expected_generation": 1,
+      "reason": "Retain the clearly synthetic explicit-Urdu identifier limitation and Roman-Urdu derivative without representing it as natural evidence."
+    },
+    {
+      "order": 11,
+      "source_id": "video-islamabad-derived",
+      "evidence_id": "50057921-4f1f-4ab8-bab0-47bcdc957822",
+      "sha256": "94be8b97d62f28eb0349b1eaea02e8073a669d60ffbd3da6511f7f7d27004a26",
+      "expected_generation": 1,
+      "reason": "Retain bounded frames, image roles, explicit-Urdu ASR, Roman Urdu, and timestamped video composition."
+    },
+    {
+      "order": 12,
+      "source_id": "document-txt-case-notes",
+      "evidence_id": "ee48bd0b-acde-4b51-b8c6-d9194278efda",
+      "sha256": "11c370e9f4564786ebee8d76d894ffba52ea1a26918e3470f0a9e096cac47216",
+      "expected_generation": 1,
+      "reason": "Retain native TXT passages through the tested authoritative native_document_worker route."
+    }
+  ],
+  "execution_rules": [
+    "Use only POST /evidence/{evidence_id}/reprocess with one unique idempotency key per listed evidence.",
+    "Process sequentially in the listed order and stop on the first failed or dead-letter latest generation.",
+    "Before each POST, verify evidence ID, SHA-256, tenant, collection, case, latest terminal generation, and zero active target jobs.",
+    "Never re-upload, force-upload, edit job status, replay a subject, or issue a second POST for the same evidence.",
+    "Preserve every prior generation, artifact, record, KB asset, warning, error, and custody event.",
+    "After completion, resume only Data/KB/Ask/citation/History and browser acceptance for the original 21-source manifest."
+  ],
+  "forbidden": [
+    "new or unmanifested evidence",
+    "database update or migration",
+    "model download or replacement",
+    "deployment outside nexusai-forensic-records-worker-1",
+    "broad replay or queue-subject replay",
+    "deletion, cleanup, pruning, or volume mutation"
+  ],
+  "approval_phrase": "APPROVE UNIFIED MULTIMODAL MEDIA-ROLE P1 RECOVERY: tenant=default; collection=case=nexusai-multimodal-product-acceptance; actor=nexusai-breadth-acceptance-operator; authorize exactly the 12 sequential immutable normal-endpoint reprocess jobs, one per evidence and in the exact order listed in P1_MEDIA_ROLE_RECOVERY_APPROVAL_MANIFEST.json, after the tested worker media-role mount/enable correction and authoritative native-TXT route correction; stop on first failure; then complete Data/KB/Ask/citation/History and browser acceptance for the original approved 21-source manifest; no new evidence, force upload, second reprocess for any listed evidence, database update/migration, model download, unrelated deployment, broad replay, deletion or cleanup."
+}

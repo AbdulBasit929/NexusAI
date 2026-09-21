@@ -1,0 +1,100 @@
+{
+    "gate":  12,
+    "completed_utc":  "2026-07-30T07:20:51.8054957Z",
+    "collection":  "nexusai-structured-demo-v2-20260730",
+    "synthetic_files":  9,
+    "families_exercised":  9,
+    "total_rows":  68,
+    "accepted_unique_rows":  39,
+    "duplicate_rows":  8,
+    "rejected_rows":  21,
+    "capability_families":  20,
+    "queryable_required_families":  9,
+    "cross_family_sql":  "pass",
+    "source_audit":  "pass",
+    "localai_collection_registered":  "pass",
+    "real_evidence_used":  false,
+    "accounting":  [
+                       {
+                           "family":  "cdr",
+                           "format":  "csv",
+                           "total_rows":  5,
+                           "accepted_unique_rows":  4,
+                           "duplicate_rows":  1,
+                           "rejected_rows":  0,
+                           "status":  "pass"
+                       },
+                       {
+                           "family":  "ipdr",
+                           "format":  "csv",
+                           "total_rows":  6,
+                           "accepted_unique_rows":  3,
+                           "duplicate_rows":  1,
+                           "rejected_rows":  2,
+                           "status":  "pass"
+                       },
+                       {
+                           "family":  "anpr",
+                           "format":  "csv",
+                           "total_rows":  10,
+                           "accepted_unique_rows":  5,
+                           "duplicate_rows":  1,
+                           "rejected_rows":  4,
+                           "status":  "pass"
+                       },
+                       {
+                           "family":  "transaction",
+                           "format":  "jsonl",
+                           "total_rows":  11,
+                           "accepted_unique_rows":  6,
+                           "duplicate_rows":  1,
+                           "rejected_rows":  4,
+                           "status":  "pass"
+                       },
+                       {
+                           "family":  "subscriber",
+                           "format":  "jsonl",
+                           "total_rows":  9,
+                           "accepted_unique_rows":  5,
+                           "duplicate_rows":  1,
+                           "rejected_rows":  3,
+                           "status":  "pass"
+                       },
+                       {
+                           "family":  "tower_location",
+                           "format":  "csv",
+                           "total_rows":  10,
+                           "accepted_unique_rows":  5,
+                           "duplicate_rows":  1,
+                           "rejected_rows":  4,
+                           "status":  "pass"
+                       },
+                       {
+                           "family":  "access_log",
+                           "format":  "jsonl",
+                           "total_rows":  10,
+                           "accepted_unique_rows":  5,
+                           "duplicate_rows":  1,
+                           "rejected_rows":  4,
+                           "status":  "pass"
+                       },
+                       {
+                           "family":  "cdr",
+                           "format":  "tsv",
+                           "total_rows":  3,
+                           "accepted_unique_rows":  2,
+                           "duplicate_rows":  1,
+                           "rejected_rows":  0,
+                           "status":  "pass"
+                       },
+                       {
+                           "family":  "auto",
+                           "format":  "xlsx",
+                           "total_rows":  4,
+                           "accepted_unique_rows":  4,
+                           "duplicate_rows":  0,
+                           "rejected_rows":  0,
+                           "status":  "pass"
+                       }
+                   ]
+}

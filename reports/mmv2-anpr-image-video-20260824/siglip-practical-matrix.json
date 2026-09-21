@@ -1,0 +1,150 @@
+{
+  "contract_version": "nexusai.mmv2.siglip-practical-matrix/v1",
+  "scope": "lawful_local_nonretained_bounded",
+  "retained_data_mutated": false,
+  "model": "google/siglip-base-patch16-224",
+  "model_revision": "7fd15f0689c79d79e38b1c2e2e2370a7bf2761ed",
+  "model_sha256": "2c63cb7d1f2e95ba501893cbb8faeb4ea9a3af295498d35097126228659c2af8",
+  "embedding_dimension": 768,
+  "fixture_count": 16,
+  "pair_scores": {
+    "same_scene_resize": {
+      "source": "pakistan-plate-lef1981",
+      "candidate": "resize_50_percent",
+      "cosine": 0.9741111910704094
+    },
+    "same_scene_recompression": {
+      "source": "pakistan-plate-lef1981",
+      "candidate": "jpeg_quality_45",
+      "cosine": 0.9157882069389736
+    },
+    "same_scene_low_light": {
+      "source": "pakistan-plate-lef1981",
+      "candidate": "low_light",
+      "cosine": 0.9202463704922869
+    },
+    "similar_vehicle_plate_crops": {
+      "source": "pakistan-plate-lef1981",
+      "candidate": "pakistan-plate-lec4800",
+      "cosine": 0.803402619758242
+    },
+    "street_images": {
+      "source": "wikimedia-islamabad-road-negative",
+      "candidate": "synthetic-street-negative",
+      "cosine": 0.6311731057625747
+    },
+    "same_person_blur": {
+      "source": "subject-a-frontal",
+      "candidate": "subject-a-blur",
+      "cosine": 0.9357892062354922
+    },
+    "different_person": {
+      "source": "subject-a-frontal",
+      "candidate": "subject-b-frontal",
+      "cosine": 0.7851776739897274
+    },
+    "portrait_vs_street": {
+      "source": "subject-a-frontal",
+      "candidate": "synthetic-street-negative",
+      "cosine": 0.4630320558678394
+    },
+    "vehicle_crop_vs_street": {
+      "source": "pakistan-plate-lef1981",
+      "candidate": "synthetic-street-negative",
+      "cosine": 0.4194701003124239
+    }
+  },
+  "text_to_image_rankings": {
+    "a close portrait photograph of one person": [
+      {
+        "fixture": "subject-a-blur",
+        "cosine": 0.12643153151517367
+      },
+      {
+        "fixture": "subject-a-frontal",
+        "cosine": 0.12470837967782218
+      },
+      {
+        "fixture": "subject-b-frontal",
+        "cosine": 0.10725052067889576
+      },
+      {
+        "fixture": "low_light",
+        "cosine": 0.00811934380557331
+      },
+      {
+        "fixture": "bright_light",
+        "cosine": -0.0048940480496473355
+      }
+    ],
+    "a street scene with cars": [
+      {
+        "fixture": "synthetic-street-negative",
+        "cosine": 0.07585648310186176
+      },
+      {
+        "fixture": "wikimedia-islamabad-road-negative",
+        "cosine": 0.05623801257975417
+      },
+      {
+        "fixture": "synthetic-mn1367",
+        "cosine": 0.04180885546832848
+      },
+      {
+        "fixture": "gaussian_blur",
+        "cosine": 0.004369559434194482
+      },
+      {
+        "fixture": "low_light",
+        "cosine": 0.0023575377328398316
+      }
+    ],
+    "a vehicle license plate": [
+      {
+        "fixture": "low_light",
+        "cosine": 0.1340270776146199
+      },
+      {
+        "fixture": "pakistan-plate-lef1981",
+        "cosine": 0.12527087553023597
+      },
+      {
+        "fixture": "resize_50_percent",
+        "cosine": 0.12372667420234203
+      },
+      {
+        "fixture": "partial_obstruction",
+        "cosine": 0.12211260988043779
+      },
+      {
+        "fixture": "gaussian_blur",
+        "cosine": 0.11889260992963002
+      }
+    ]
+  },
+  "latency_ms": {
+    "pakistan-plate-lec4800": 11444.181,
+    "pakistan-plate-lea4861a": 648.741,
+    "pakistan-plate-lef1981": 846.35,
+    "pakistan-plate-ly55": 1088.992,
+    "synthetic-mn1367": 854.644,
+    "wikimedia-islamabad-road-negative": 794.758,
+    "synthetic-street-negative": 503.28,
+    "bright_light": 425.787,
+    "gaussian_blur": 549.321,
+    "jpeg_quality_45": 527.38,
+    "low_light": 405.252,
+    "partial_obstruction": 394.188,
+    "resize_50_percent": 397.226,
+    "subject-a-frontal": 593.433,
+    "subject-a-blur": 498.08,
+    "subject-b-frontal": 468.456
+  },
+  "mean_image_latency_ms": 1277.5043125,
+  "verdict": "PASS_ACCEPTED_LIMITED",
+  "limitations": [
+    "Cosine values are candidate semantic visual similarity, not duplicate, identity, or fact claims.",
+    "This bounded lawful pack supports ranking sanity only; it does not establish a universal decision threshold.",
+    "Person examples do not authorize or assert biometric identity."
+  ]
+}

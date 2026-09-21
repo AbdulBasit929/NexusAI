@@ -1,0 +1,147 @@
+{
+  "schema_version": "nexusai.nxb21.d-q4-scope-remediation-refreeze/v1",
+  "created_on": "2026-09-05",
+  "status": "DEVELOPMENT_PASS_READY_FOR_INDEPENDENT_QUALIFICATION",
+  "immutable_phrase_run": {
+    "run_id": "run-20260905T062620032Z",
+    "candidate_id": "nxb21d-q4-phrase-literal-authority-r1",
+    "candidate_identity_sha256": "0129bd4ab0d660573726c744f6ba9874a9a15b9343a87cc5b37a264dcadf675e",
+    "receipt_sha256": "02a7981aa4d4918255ef056e0008250baa7fd265e72db5e10cf510da934123a0",
+    "raw_model_result": "19_OF_20_PASS",
+    "final_typed_result": "19_OF_20_PASS",
+    "phrase_literal_result": "16_OF_16_PASS",
+    "plate_result": "4_OF_4_PASS",
+    "transport_schema_runtime_integrity": "PASS",
+    "decision": "DEVELOPMENT_FAIL_DO_NOT_RERUN"
+  },
+  "failure_evidence": {
+    "case_id": "phrase20-roman-tr-001",
+    "question": "tamam transcript files mein \"pichla rasta band rakho\" search karo",
+    "expected": {
+      "capability": "transcript.phrase",
+      "semantic": "PHRASE_CONTAINS",
+      "literal": "pichla rasta band rakho",
+      "scope": "workspace",
+      "clarification": false
+    },
+    "model_and_final": {
+      "capability": "transcript.phrase",
+      "semantic": "PHRASE_CONTAINS",
+      "literal": "pichla rasta band rakho",
+      "scope": "selected",
+      "clarification": false
+    },
+    "request_sha256": "d0d74810ebdaade013bd84701e0ca758794564af299d7a7c131516b8be76e2d8",
+    "response_sha256": "1944584198672e5a1c63862aa0564903c18ccbbabd0addd304c132e3ab337c72",
+    "classification": "MODEL_EXPLICIT_WORKSPACE_SCOPE_MISS",
+    "phrase_literal_defect": false,
+    "transport_corruption": false
+  },
+  "candidate": {
+    "candidate_id": "nxb21d-q4-explicit-scope-authority-r1",
+    "identity_sha256": "ba17c5c688eaa567ce2d006d8a0a80948a4e01e1b3c62f0765c84aeaa4d9d23a",
+    "model_artifact_sha256": "2fde00ce69dd4899c70d020845e2638353015bba0fdf161b3eb965f2bca4464e",
+    "q4_profile_sha256": "30d3bcd8c92684e191277dad992354323b7e46c7d30d3c69149010e90f117129",
+    "q8_profile_sha256": "ef036e0a02cc5e8331dc4dff41c0e0cb68e6e0bda71d92b92f47f673472e666f",
+    "prompt_sha256": "3ce8225e30beacb51430dc1f377ee58fbb0e5f2746a44660e099dddac9fc67bc",
+    "schema_sha256": "be217f9e6ddec85131e5b0f60ac8f4050d18b5632e838b1560bc6b1067a3d731",
+    "shared_scope_sha256": "beda1fb828ab4d400afc5be008ee921ba11f77ba68f243e350a066bdc0055e97",
+    "api_scope_sha256": "e85bee4b81c7ba681470dba0dbf1b7b903c7ec65d76c34efc9f64d5615ae8b3f",
+    "agent_scope_sha256": "383b36623ee7f1530ddd782715bf5d84f6f0840748dc13ef26fe16dea1aa994f",
+    "exact_authority_sha256": "216b0ec4e2b69c5482c65a3eef306f41b170a11a38a4b2b7a715b81134c7d304",
+    "phrase_authority_sha256": "b2ee25a909558656d53ccd84d14e33d2d8f9eb7181b8820613cf3e5ef41bab81",
+    "scope_authority_sha256": "55cf31315216d5ec3c5524868f488af9a479ece488b1fde75f3256921960ef85",
+    "transport_sha256": "9deed398e86e0347afc33964c47b8f4e489cc88372a77d16b4ba9ef8ed4a8c64",
+    "corpus_sha256": "e034bb3683f23c1aeb7488232a7337c56d5e9eb7cb69f9f280698af3412b1b50",
+    "request_temperature": 0,
+    "effective_context": 4096
+  },
+  "architecture": {
+    "authority": "bounded explicit selected/workspace phrases outside quoted evidence text",
+    "authorization_boundary": "scope may change only within the already-authorized case",
+    "contradictory_scope": "REJECTED_REQUIRES_CLARIFICATION",
+    "implicit_scope": "UNCHANGED_REQUEST_CONTEXT",
+    "model_scope_audit_preserved": true,
+    "phrase_literal_authority_changed": false,
+    "atomic_identifier_authority_changed": false
+  },
+  "fresh_development_corpus": {
+    "case_count": 16,
+    "languages": {"english": 4, "urdu-script": 4, "roman-urdu": 4, "mixed": 4},
+    "capabilities": {"document.phrase": 6, "transcript.phrase": 6, "image.plate": 4},
+    "semantic": {"PHRASE_CONTAINS": 12, "EXACT_VALUE": 4},
+    "scope": {"workspace": 8, "selected": 8},
+    "freshness": "PASS_16_QUESTIONS_16_LITERALS",
+    "sha256": "e034bb3683f23c1aeb7488232a7337c56d5e9eb7cb69f9f280698af3412b1b50",
+    "execution": "COMPLETED_16_OF_16_MODEL_AND_FINAL_PASS"
+  },
+  "aborted_run_evidence": [
+    {
+      "run_id": "run-20260905T075458031Z",
+      "receipt_sha256": "b70774be1e521bc1dc33c13df155409868d180f2b6f2c365eafbfb8c40d4f7f8",
+      "executed_cases": 0,
+      "terminal_error": "LOCALAI_CONTAINER_UNHEALTHY"
+    },
+    {
+      "run_id": "run-20260905T075506272Z",
+      "receipt_sha256": "af4f7dffaae8b528f8f2d1951cd37d57a33c557d344cf7633d3ae182b884f44a",
+      "executed_cases": 0,
+      "terminal_error": "LOCALAI_CONTAINER_UNHEALTHY"
+    },
+    {
+      "run_id": "run-20260905T080101493Z",
+      "receipt_sha256": "a6eea5c45bed615d569dbab89a4302253d0f39ff17d8765fa996c24d5c9fc5a3",
+      "executed_cases": 0,
+      "terminal_error": "RAM_TOO_LOW:3.858 required=6 stage=before_first_inference"
+    },
+    {
+      "run_id": "run-20260905T080508522Z",
+      "receipt_sha256": "d61e6ffb44513f3448713a0cbab69db126f597fa9426c620b88a73f955a7fa33",
+      "executed_cases": 1,
+      "preserved_case_id": "scope16-en-tr-workspace-001",
+      "preserved_case_result": "MODEL_AND_FINAL_PASS",
+      "terminal_error": "RAM_TOO_LOW:3.525 required=4 stage=scope16-en-doc-workspace-001"
+    },
+    {
+      "run_id": "run-20260905T081329300Z",
+      "receipt_sha256": "d5f4c307dfd1f45c12f03040100f16fa9ad084fa7048313147fe78fc7eb86e62",
+      "executed_cases": 0,
+      "terminal_error": "RESUME_DIRECTORY_ENUMERATION_FAILURE"
+    }
+  ],
+  "successful_development_run": {
+    "run_id": "run-20260905T081643297Z",
+    "receipt_path": "local-acceptance-models/nxb21-d/challengers/qwen3-4b-instruct-2507-q4km/localai-dev-results/16case-scope-remediation/run-20260905T081643297Z/scope-remediation-16case-development-summary-v1.json",
+    "receipt_sha256": "921229a78719a5594271b4ede2fd5aadabc6f3a52d50c3893e4dd5f5badfafe1",
+    "model_result": "16_OF_16_PASS",
+    "final_typed_result": "16_OF_16_PASS",
+    "deterministic_corrections": 0,
+    "runtime_integrity": "PASS",
+    "decision": "DEVELOPMENT_PASS_ADVANCE_TO_NEW_INDEPENDENT_QUALIFICATION"
+  },
+  "source_validation": {
+    "focused_api_scope": "PASS",
+    "focused_agent_scope": "PASS",
+    "full_forensic_records_package": "PASS",
+    "full_agents_package": "BLOCKED_15_DATABASE_SPECS_DOCKER_UNAVAILABLE_130_PASS_1_SKIP",
+    "scope_framework": {"passed": 137, "failed": 0},
+    "corpus_validator": "PASS",
+    "live_inference": "OWNER_RUN_16_OF_16_PASS"
+  },
+  "operator_bundle": {
+    "config_sha256": "7fe1e0bf20dcf46055e55c2e04e6a2b8e87a7c2a8ebaf34b70523d7c0e5972f0",
+    "runner_sha256": "55ee473e6985a030dbe2f23958ea48a17ef36804416e1329ac7d0f8fa4b3fc9f",
+    "framework_test_sha256": "545e1acbfd56036a49b448c8a97336279108c66f87ce2adf7eae0a224989137e",
+    "container_health_preflight": "WAIT_UP_TO_180_SECONDS_NO_RESTART_OR_RECREATE",
+    "preload_ram_preflight": "SAFE_CLEAN_CACHE_THEN_WAIT_UP_TO_180_SECONDS_KEEP_6_GIB_FLOOR",
+    "per_case_ram_preflight": "SAFE_CLEAN_CACHE_THEN_WAIT_UP_TO_180_SECONDS_KEEP_LOADED_FLOOR",
+    "resume_contract": "ONE_LEVEL_AGGREGATE_DISCOVERY_THEN_VERIFY_SIDECAR_CANDIDATE_CORPUS_ORACLE_AND_RAW_EVIDENCE_HASHES_AND_SKIP_CONSUMED_PREFIX",
+    "state": "HISTORICAL_DEVELOPMENT_OPERATOR_COMPLETED"
+  },
+  "program_gate": {
+    "D_status": "OPEN",
+    "qualification_holdout": "FROZEN_SOURCE_VALIDATED_NOT_CONSUMED",
+    "activation": "BLOCKED",
+    "scope_remediation_evaluation": "PASS"
+  }
+}

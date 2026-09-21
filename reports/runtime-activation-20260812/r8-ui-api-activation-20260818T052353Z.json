@@ -1,0 +1,17 @@
+{
+    "phase":  "R8.2+R8.3-source-ui-api",
+    "status":  "ui_api_live_pending_manual_acceptance",
+    "deployed_utc":  "2026-08-18T05:26:52.1598723Z",
+    "api_build_seconds":  18.3,
+    "localai_build_seconds":  88.2,
+    "services_recreated":  [
+                               "forensic-records-api",
+                               "api"
+                           ],
+    "worker_rebuilt":  false,
+    "models_changed":  false,
+    "profiles_changed":  false,
+    "named_volumes_preserved":  true,
+    "api_rollback_image":  "nexusai/forensic-records-api:rollback-before-r8-ui-api-20260818T052353Z",
+    "localai_rollback_image":  "nexusai/localai-forensic:rollback-before-r8-ui-api-20260818T052353Z"
+}

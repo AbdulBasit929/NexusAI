@@ -1,0 +1,601 @@
+{
+  "contract_version": "nexusai.product-query-capability-matrix/v1",
+  "as_of": "2026-09-11",
+  "authority": "Source reconciliation and complete package regression; read-only runtime proof; not functional product certification or deployment",
+  "registry": {
+    "executable_operations": 79,
+    "correctness_contracts": 79,
+    "certified_operations": 5,
+    "bounded_uncertified_operations": 74,
+    "queryable_exposure": 5,
+    "limited_exposure": 63,
+    "engineering_only_exposure": 11,
+    "legacy_residual_capabilities": 22,
+    "workspace_semantic_candidates": 66
+  },
+  "operation_rows": {
+    "row_count": 79,
+    "authoritative_source": "api/forensic_records/contracts/operation-certification-v1.json",
+    "catalog_projection": "GET /v1/forensics/query/templates",
+    "capability_projection": "forensics.capability-snapshot/v1",
+    "join_key": "operation_id",
+    "field_mapping": {
+      "family": "family",
+      "operation_id": "operation_id",
+      "question_type": "intent and analyst_question",
+      "required_fields": "required_parameters",
+      "optional_fields": "optional_parameters",
+      "grouping": "grouping_semantics",
+      "sorting_ranking": "sorting_ranking_rules and tie_behavior",
+      "time_usage": "time_semantics",
+      "scope": "supported_input_shapes and filter_semantics",
+      "citations": "citation_policy",
+      "implementation_status": "certification_level, exposure_status, overall_status",
+      "limitations": "known_limitations",
+      "certification": "golden_fixture, golden_oracle, pass fields, certification_basis"
+    },
+    "materialization_rule": "Join each certification row to the query-template catalog by operation_id; the API catalog supplies presentation, result kind, scope mode, inputs, measures, group_by, calculation, route, limitations, and suggestion eligibility. Any missing or duplicate join fails source validation."
+  },
+  "planner": {
+    "contract_version": "forensics.semantic-operation-proposal/v1",
+    "language_priority": "english_first",
+    "model_output_fields": [
+      "decision"
+    ],
+    "model_forbidden_authority": [
+      "tenant",
+      "user",
+      "case",
+      "collection",
+      "evidence",
+      "identifier",
+      "date",
+      "filter",
+      "limit",
+      "sql",
+      "url",
+      "tool",
+      "fact"
+    ],
+    "fact_authority": "SERVER_DETERMINISTIC_ONLY",
+    "fallback": "forensics.hybrid-residual/v1 then deterministic clarification/unavailable",
+    "binding_policy": "ISSUED_INTENT_ENUM_THEN_SERVER_BINDING_READY_SERVER_BINDABLE_USER_FACT_REQUIRED",
+    "descriptor_audit": "reports/nxb21/semantic-binding-descriptor-audit-v1.json"
+  },
+  "request_router": {
+    "contract": "assistant_request_router versus deterministic_forensic_fast_path",
+    "deterministic_fast_path": "Only explicit or provably recognized forensic operations bypass the assistant",
+    "assistant_classes": [
+      "investigation",
+      "follow_up",
+      "document_or_evidence_retrieval",
+      "product_help",
+      "greeting",
+      "general_relevant_knowledge",
+      "clarification",
+      "unsupported"
+    ],
+    "investigation_authority": "Governed forensic tools are required for every case, evidence, processing, model-availability, or computed-finding claim",
+    "general_authority": "May answer product help and relevant general knowledge without asserting case state",
+    "source_status": "VALIDATED_AGENT_AND_AGENTPOOL_ROUTING_TESTS"
+  },
+  "typed_query_algebra": {
+    "contract": "forensics.query-plan/v1",
+    "source_status": "BOUNDED_REGISTERED_OPERATION_ALGEBRA_VALIDATED",
+    "supported_primitives": [
+      "EXACT_LOOKUP",
+      "RANGE",
+      "FILTER",
+      "EXISTS",
+      "SORT",
+      "TOP_K",
+      "SOURCE_ROWS",
+      "REGISTERED_COUNT_SUM_AVG_MIN_MAX_GROUP_TIMELINE"
+    ],
+    "validation": [
+      "registered_operation_required",
+      "measure_assertion_matches_operation",
+      "group_assertion_matches_operation",
+      "executor_consumes_filter",
+      "executor_consumes_sort",
+      "single_allowlisted_sort",
+      "allowlisted_payload_operator",
+      "strict_filter_sort_shape",
+      "strict_measure_group_shape",
+      "unconsumed_control_rejection",
+      "duplicate_scalar_predicate_rejection_alias_aware",
+      "canonical_range_conjunction_preserved"
+    ],
+    "model_authority": "NO_SQL_NO_SCOPE_NO_FACTS_NO_ARBITRARY_FIELDS",
+    "remaining_gap": [
+      "SOURCE_NATIVE_PROJECT",
+      "SOURCE_NATIVE_AD_HOC_GROUP",
+      "TIME_BUCKET",
+      "COMPARE",
+      "multi_step_composition",
+      "canonical_group_live_sql_api_acceptance"
+    ],
+    "exposure": "existing registered operation exposure only",
+    "latest_validation": "FULL_FORENSIC_RECORDS_PACKAGE_PASS_53.556_SECONDS",
+    "canonical_projection": "SOURCE_VALIDATED_SEVEN_FIELDS_ALWAYS_PROVENANCE_PRIVACY_REDACTION",
+    "canonical_group": {
+      "state": "SOURCE_VALIDATED_GOVERNED_PLAN_AND_EXECUTOR_HELPERS_LIVE_ACCEPTANCE_PENDING",
+      "fields": [
+        "record_type",
+        "source_file"
+      ],
+      "measure": "count",
+      "input_row_cap": 1000,
+      "group_cap": 100,
+      "overflow": "FAIL_CLOSED",
+      "nulls": "EXPLICIT_BUCKET",
+      "lineage": "EXACT_SOURCE_ROWS",
+      "expressions": false
+    }
+  },
+  "synthesis": {
+    "fact_packet": "forensics.fact-packet/v1",
+    "narrative": "forensics.narrative/v1",
+    "exact_value_validation": true,
+    "fact_reference_validation": true,
+    "citation_reference_validation": true,
+    "deterministic_fallback": true,
+    "small_proof_model_narratives": 0,
+    "small_proof_fallbacks": 13,
+    "effective_narrative_timeout_seconds": 120,
+    "consumed_proof_effective_narrative_timeout_seconds": 8,
+    "maximum_narrative_timeout_seconds": 180,
+    "query_transport_ceiling_seconds": 405,
+    "policy": "CONFIGURED_DEFAULT_120_MAX_180_EARLIER_PARENT_WINS_SOURCE_NOT_DEPLOYED"
+  },
+  "families": [
+    {
+      "id": "plain_text_notes",
+      "status": "limited_queryable",
+      "question_classes": [
+        "metadata",
+        "exact/phrase/term retrieval",
+        "bounded cited summary"
+      ],
+      "priority": "P1",
+      "current_product_completion": "PARTIAL",
+      "functional_done_rule": "NOT_REQUALIFIED_AGAINST_20260910_DIRECTIVE",
+      "next_action": "Close representative English positive/zero/failure, execution, provenance and follow-up acceptance for existing bounded paths; implement missing primitives with independent oracles"
+    },
+    {
+      "id": "logs_access_security",
+      "status": "structured_queryable_evtx_unavailable",
+      "question_classes": [
+        "failed events",
+        "filters",
+        "time activity",
+        "cross-family exact correlation"
+      ],
+      "priority": "P1",
+      "current_product_completion": "PARTIAL",
+      "functional_done_rule": "NOT_REQUALIFIED_AGAINST_20260910_DIRECTIVE",
+      "next_action": "Close representative English positive/zero/failure, execution, provenance and follow-up acceptance for existing bounded paths; implement missing primitives with independent oracles"
+    },
+    {
+      "id": "cdr",
+      "status": "operational_bounded",
+      "question_classes": [
+        "contacts",
+        "service breakdown",
+        "duration",
+        "time activity",
+        "device changes",
+        "location",
+        "multi-source comparison"
+      ],
+      "priority": "P1",
+      "current_product_completion": "PARTIAL",
+      "functional_done_rule": "NOT_REQUALIFIED_AGAINST_20260910_DIRECTIVE",
+      "next_action": "Close representative English positive/zero/failure, execution, provenance and follow-up acceptance for existing bounded paths; implement missing primitives with independent oracles"
+    },
+    {
+      "id": "ipdr_network_sessions",
+      "status": "operational_bounded_capture_derivation_pending",
+      "question_classes": [
+        "endpoint/domain/protocol summaries",
+        "session volume",
+        "subscriber sessions",
+        "concurrency",
+        "timeline"
+      ],
+      "priority": "P1",
+      "current_product_completion": "PARTIAL",
+      "functional_done_rule": "NOT_REQUALIFIED_AGAINST_20260910_DIRECTIVE",
+      "next_action": "Close representative English positive/zero/failure, execution, provenance and follow-up acceptance for existing bounded paths; implement missing primitives with independent oracles"
+    },
+    {
+      "id": "anpr_vehicle_sightings",
+      "status": "structured_operational_image_observations_limited",
+      "question_classes": [
+        "sightings",
+        "camera sequence/activity",
+        "co-observation",
+        "route timing",
+        "variants",
+        "timeline"
+      ],
+      "priority": "P1",
+      "current_product_completion": "PARTIAL",
+      "functional_done_rule": "NOT_REQUALIFIED_AGAINST_20260910_DIRECTIVE",
+      "next_action": "Close representative English positive/zero/failure, execution, provenance and follow-up acceptance for existing bounded paths; implement missing primitives with independent oracles"
+    },
+    {
+      "id": "subscriber_identity",
+      "status": "operational_privacy_bounded",
+      "question_classes": [
+        "identity lookup",
+        "validity",
+        "device/SIM/service links",
+        "status",
+        "conflicts",
+        "reuse candidates"
+      ],
+      "priority": "P1",
+      "current_product_completion": "PARTIAL",
+      "functional_done_rule": "NOT_REQUALIFIED_AGAINST_20260910_DIRECTIVE",
+      "next_action": "Close representative English positive/zero/failure, execution, provenance and follow-up acceptance for existing bounded paths; implement missing primitives with independent oracles"
+    },
+    {
+      "id": "tower_location",
+      "status": "operational_bounded",
+      "question_classes": [
+        "site lookup",
+        "reference history",
+        "coordinate audit",
+        "status",
+        "alias conflicts",
+        "CDR join"
+      ],
+      "priority": "P1",
+      "current_product_completion": "PARTIAL",
+      "functional_done_rule": "NOT_REQUALIFIED_AGAINST_20260910_DIRECTIVE",
+      "next_action": "Close representative English positive/zero/failure, execution, provenance and follow-up acceptance for existing bounded paths; implement missing primitives with independent oracles"
+    },
+    {
+      "id": "financial_transactions",
+      "status": "operational_bounded_formats_partial",
+      "question_classes": [
+        "currency-separated counts and totals",
+        "canonical filtering",
+        "duplicates",
+        "cross-family exact correlation"
+      ],
+      "priority": "P1",
+      "current_product_completion": "PARTIAL",
+      "functional_done_rule": "NOT_REQUALIFIED_AGAINST_20260910_DIRECTIVE",
+      "next_action": "Close representative English positive/zero/failure, execution, provenance and follow-up acceptance for existing bounded paths; implement missing primitives with independent oracles"
+    },
+    {
+      "id": "generic_tabular",
+      "status": "foundation_queryable",
+      "question_classes": [
+        "schema profile",
+        "typed filters",
+        "field existence",
+        "sort/page",
+        "source rows"
+      ],
+      "priority": "P1",
+      "current_product_completion": "PARTIAL",
+      "functional_done_rule": "NOT_REQUALIFIED_AGAINST_20260910_DIRECTIVE",
+      "next_action": "Close representative English positive/zero/failure, execution, provenance and follow-up acceptance for existing bounded paths; implement missing primitives with independent oracles"
+    },
+    {
+      "id": "spreadsheets_and_columnar",
+      "status": "foundation_no_retained_fixture",
+      "question_classes": [
+        "read-only TSV/XLSX normalized rows",
+        "sheet inventory",
+        "formula text inspection"
+      ],
+      "priority": "P1",
+      "current_product_completion": "PARTIAL",
+      "functional_done_rule": "NOT_REQUALIFIED_AGAINST_20260910_DIRECTIVE",
+      "next_action": "Close representative English positive/zero/failure, execution, provenance and follow-up acceptance for existing bounded paths; implement missing primitives with independent oracles"
+    },
+    {
+      "id": "pdf_office_email_documents",
+      "status": "limited_native_text_queryable",
+      "question_classes": [
+        "metadata",
+        "native passage retrieval",
+        "cited summary"
+      ],
+      "priority": "P1",
+      "current_product_completion": "PARTIAL",
+      "functional_done_rule": "NOT_REQUALIFIED_AGAINST_20260910_DIRECTIVE",
+      "next_action": "Close representative English positive/zero/failure, execution, provenance and follow-up acceptance for existing bounded paths; implement missing primitives with independent oracles"
+    },
+    {
+      "id": "images_and_ocr",
+      "status": "limited_review_required",
+      "question_classes": [
+        "metadata",
+        "OCR retrieval",
+        "plate observations",
+        "face candidates",
+        "similarity candidates"
+      ],
+      "priority": "P1",
+      "current_product_completion": "PARTIAL",
+      "functional_done_rule": "NOT_REQUALIFIED_AGAINST_20260910_DIRECTIVE",
+      "next_action": "Close representative English positive/zero/failure, execution, provenance and follow-up acceptance for existing bounded paths; implement missing primitives with independent oracles"
+    },
+    {
+      "id": "audio_and_stt",
+      "status": "limited_persisted_transcript_queryable",
+      "question_classes": [
+        "metadata",
+        "timestamped phrase/term retrieval",
+        "Roman-Urdu derivative retrieval"
+      ],
+      "priority": "P1",
+      "current_product_completion": "PARTIAL",
+      "functional_done_rule": "NOT_REQUALIFIED_AGAINST_20260910_DIRECTIVE",
+      "next_action": "Close representative English positive/zero/failure, execution, provenance and follow-up acceptance for existing bounded paths; implement missing primitives with independent oracles"
+    },
+    {
+      "id": "tts_artifacts",
+      "status": "foundation_generation_not_ready",
+      "question_classes": [
+        "artifact metadata",
+        "parent/backend lookup"
+      ],
+      "priority": "P2",
+      "current_product_completion": "P2",
+      "functional_done_rule": "NOT_REQUALIFIED_AGAINST_20260910_DIRECTIVE",
+      "next_action": "Preserve truthful limitations; defer unless required by P1 dependency"
+    },
+    {
+      "id": "transcripts_and_subtitles",
+      "status": "foundation_cue_parser_pending",
+      "question_classes": [
+        "registered evidence",
+        "existing text retrieval"
+      ],
+      "priority": "P2",
+      "current_product_completion": "P2",
+      "functional_done_rule": "NOT_REQUALIFIED_AGAINST_20260910_DIRECTIVE",
+      "next_action": "Preserve truthful limitations; defer unless required by P1 dependency"
+    },
+    {
+      "id": "video",
+      "status": "foundation_persisted_observations_only",
+      "question_classes": [
+        "metadata",
+        "source-time observation timeline",
+        "grouped ANPR observations"
+      ],
+      "priority": "P1",
+      "current_product_completion": "PARTIAL",
+      "functional_done_rule": "NOT_REQUALIFIED_AGAINST_20260910_DIRECTIVE",
+      "next_action": "Close representative English positive/zero/failure, execution, provenance and follow-up acceptance for existing bounded paths; implement missing primitives with independent oracles"
+    },
+    {
+      "id": "network_system_captures",
+      "status": "inventory_foundation_analysis_unavailable",
+      "question_classes": [
+        "safe inventory only"
+      ],
+      "priority": "P2",
+      "current_product_completion": "P2",
+      "functional_done_rule": "NOT_REQUALIFIED_AGAINST_20260910_DIRECTIVE",
+      "next_action": "Preserve truthful limitations; defer unless required by P1 dependency"
+    },
+    {
+      "id": "databases_and_sql",
+      "status": "inventory_foundation_arbitrary_sql_prohibited",
+      "question_classes": [
+        "safe schema inventory only"
+      ],
+      "priority": "P2",
+      "current_product_completion": "P2",
+      "functional_done_rule": "NOT_REQUALIFIED_AGAINST_20260910_DIRECTIVE",
+      "next_action": "Preserve truthful limitations; defer unless required by P1 dependency"
+    },
+    {
+      "id": "archives_and_bundles",
+      "status": "inventory_foundation_extraction_pending",
+      "question_classes": [
+        "safe member/registration inventory only"
+      ],
+      "priority": "P2",
+      "current_product_completion": "P2",
+      "functional_done_rule": "NOT_REQUALIFIED_AGAINST_20260910_DIRECTIVE",
+      "next_action": "Preserve truthful limitations; defer unless required by P1 dependency"
+    },
+    {
+      "id": "unknown_and_mixed",
+      "status": "manual_review",
+      "question_classes": [
+        "hash/size/signature/disposition inventory"
+      ],
+      "priority": "P1_safety",
+      "current_product_completion": "PARTIAL",
+      "functional_done_rule": "NOT_REQUALIFIED_AGAINST_20260910_DIRECTIVE",
+      "next_action": "Close representative English positive/zero/failure, execution, provenance and follow-up acceptance for existing bounded paths; implement missing primitives with independent oracles"
+    }
+  ],
+  "runtime_observation": {
+    "retained_tuple": "68|68|81|22511|870|68",
+    "activity_count": 353,
+    "active_jobs": 0,
+    "mutation_performed": false,
+    "as_of": "2026-09-10",
+    "analyst_index_sha256": "a0f1e4288c1b9ee46b4fa3c3c94870fef46b12d7c1718c36eee2e905d14ae7de",
+    "loaded_model_ids": [
+      "face-detect-yunet-sface",
+      "qwen3-embedding-0.6b"
+    ]
+  },
+  "qwen3_8b_final_local": {
+    "state": "CLOSED_RESOURCE_INSUFFICIENT",
+    "quality": "INSUFFICIENT_EVIDENCE",
+    "rerun_allowed": false,
+    "receipt_sha256": "430f40db43950981d064f2e52b5cc96290f038f28c33e14771a6e34f4583f4db"
+  },
+  "current_4b_english_functional": {
+    "model": "qwen_qwen3-4b-instruct-2507",
+    "prior_corpus": "nxb21-english-functional-current-4b-fresh-r1-20260909",
+    "prior_corpus_state": "CONSUMED_DO_NOT_RERUN",
+    "prior_result": "INCOMPLETE_RESOURCE_RUNTIME_FAILURE",
+    "semantic_quality": "ZERO_DIRECT_SELECTIONS_16_CASES",
+    "standalone_resource_proof": "BASIC_RUNTIME_AND_TRANSPORT_PASS_R2_CONSUMED_FIRST_SEMANTIC_INFLIGHT_RESOURCE_BREACH",
+    "resource_smoke_id": "nxb21-current4b-standalone-resource-smoke-r2-20260909",
+    "fresh_corpus": "nxb21-english-functional-current-4b-fresh-r2-20260909",
+    "fresh_cases": 149,
+    "workspace_operations": 66,
+    "freshness": "PASS_ZERO_OVERLAP",
+    "fresh_corpus_consumed": true,
+    "live_inference": true,
+    "resource_harness_correction": "PASS",
+    "maximum_recovery_wait_seconds": 120,
+    "qualifying_sample_count": 5,
+    "runner_sha256": "8b4b6147175d3d662673f44295d21e95a59a897b4437001a156f7e7d3d789458",
+    "r2_completed_calls": 0,
+    "r2_last_dispatched_case": "r2-sem-001",
+    "r2_ram_at_breach_gib": 3.966,
+    "basic_runtime_fit": "PASS",
+    "transport_fit": "PASS",
+    "sustained_runtime_fit": "PASS_FOR_TESTED_PRODUCT_SHAPES",
+    "disposable_soak_runner_sha256": "18f27c767982e4e078ad3280b69aa44f7af830a7d7642378e2a70e71df3c95a2",
+    "r3_corpus": "REPLACED_BY_SMALL_FRESH_45_CASE_PRODUCT_PROOF",
+    "runner": "scripts/nxb21-english-functional-qualification/run_standalone_current4b_resource_then_fresh_english_qualification.ps1",
+    "current_decision": "KEEP_RUNTIME_BASELINE",
+    "runtime_characterization_v2": "CONSUMED_INCOMPLETE_PRE_RELOAD_ADMISSION_FIVE_CALLS_PASS",
+    "runtime_characterization_runner": "scripts/nxb21-english-functional-qualification/run_current4b_runtime_characterization_v2.ps1",
+    "safe_resource_envelope": "configuration/current4b-runtime-envelope-v1.json",
+    "strict_certification": "PENDING",
+    "functional_baseline": "RUNTIME_BASELINE_KEEP_ENGLISH_FUNCTIONAL_QUALIFICATION_FAILED",
+    "historical_pre_dispatch_recovery_attempt": {
+      "receipt_sha256": "85bb6e70df449dfe39431e6f28d115cbea9421c25f36421ce5342881928cae3b",
+      "preload_samples_gib": [
+        4.4,
+        4.399,
+        5.288,
+        6.846,
+        8.308
+      ],
+      "adjudication": "TRANSIENT_RECOVERY_SEQUENCE_MISCLASSIFIED_AS_FORMAL_WINDOW_NO_CURRENT4B_RUNTIME_OR_SEMANTIC_EVIDENCE"
+    },
+    "latest_resource_soak_receipt": "local-acceptance-models/nxb21-current4b-final-characterization/run-20260910T052648583Z/resource-lifecycle-receipt-v1.json",
+    "latest_resource_soak_adjudication": "PASS_FOR_TESTED_PRODUCT_SHAPES",
+    "live_inference_field_scope": "Historical consumed qualification; no inference in 20260910 work package",
+    "final_characterization_runner": "scripts/nxb21-english-functional-qualification/run_current4b_final_characterization.ps1",
+    "final_characterization": "FROZEN_TESTED_VALIDATE_ONLY_PASS_NOT_DISPATCHED",
+    "final_preflight_receipt": "local-acceptance-models/nxb21-current4b-final-characterization/run-20260910T052153270Z/validation-only.json",
+    "final_attempt_policy": "PASS_KEEP_RUNTIME_BASELINE_STRICT_PENDING_OR_FAIL_REJECT_NO_FURTHER_4B_RESOURCE_LOOP",
+    "final_characterization_state": "COMPLETED_ADJUDICATED",
+    "resource_track": "CLOSED"
+  },
+  "issue_register": [
+    {
+      "id": "NX-PFC-P1-001",
+      "priority": "P1",
+      "gap": "Fresh representative English model qualification for the full-registry semantic-operation contract",
+      "status": "OPEN_SMALL_PROOF_ZERO_DIRECT_OPERATIONS"
+    },
+    {
+      "id": "NX-PFC-P1-002",
+      "priority": "P1",
+      "gap": "Distinct request-class and general-assistant/product-help routing contract",
+      "status": "ROUTER_8_OF_8_COMPONENT_PASS_GENERAL_CONTENT_GAPS_OPEN"
+    },
+    {
+      "id": "NX-PFC-P1-003",
+      "priority": "P1",
+      "gap": "Composable governed query AST for legitimate questions not expressible by one registered operation",
+      "status": "PARTIAL_STRICT_CONTROL_PRESERVATION_SOURCE_VALIDATED_ARBITRARY_COMPOSITION_OPEN"
+    },
+    {
+      "id": "NX-PFC-P1-004",
+      "priority": "P1",
+      "gap": "All-family representative real-fixture and negative/zero/provenance acceptance",
+      "status": "OPEN"
+    },
+    {
+      "id": "NX-PFC-P1-005",
+      "priority": "P1",
+      "gap": "Build/deploy plus live API/UI planner, clarification, fallback, citation, and follow-up acceptance",
+      "status": "OPEN_APPROVAL_REQUIRED"
+    },
+    {
+      "id": "NX-PFC-P2-001",
+      "priority": "P2",
+      "gap": "Capture, database, archive, subtitle, and TTS foundation maturation",
+      "status": "OPEN"
+    }
+  ],
+  "current_phase": "NX-B2.1D_OPEN",
+  "current_report": "reports/nxb21/nexusai-product-functional-all-family-gap-analysis-20260909.md",
+  "resource_policy_v2": {
+    "build_recreate_floor_gib": 6,
+    "historical_loaded_guard_gib": 4,
+    "origin": "FORMALIZED_QUALIFICATION_GUARD_EMPIRICAL_FAILURE_BOUNDARY_UNPROVEN",
+    "owner_authorization": "RESOURCE_TRACK_CLOSED_PRODUCT_PROOF_AUTHORIZED",
+    "new_operating_floor_gib": null,
+    "experiment_config": "scripts/nxb21-english-functional-qualification/current4b-final-characterization-freeze.json",
+    "operator_manual_close_required": true,
+    "live_inference_this_package": false,
+    "final_candidate_reload_admission_gib": 8.5,
+    "cold_admission_gib": 8.627,
+    "candidate_envelope": "FROZEN_FOR_TESTED_PRODUCT_SHAPES"
+  },
+  "next_roadmap_phases": [
+    "NX-B2.1E_PROOF_FRAMEWORK",
+    "NX-B2.1F_FAMILY_CERTIFICATION",
+    "NX-B2.1G_ASK_UX",
+    "NX-B2.1H_LIVE_DEMO"
+  ],
+  "document_literal_acceptance": {
+    "status": "SOURCE_PASS",
+    "cases": 6,
+    "coverage": [
+      "exact_identifier_boundary",
+      "raw_page_text_and_citation",
+      "phrase_versus_tokens",
+      "tenant_collection_source_version_exclusion"
+    ],
+    "full_package_seconds": 66.603,
+    "live_acceptance": false
+  },
+  "small_english_product_proof": {
+    "cases": 45,
+    "state": "COMPLETED_45_CASES_FUNCTIONAL_GATE_FAILED",
+    "runner": "scripts/nxb21-english-functional-qualification/run_small_english_product_proof.ps1",
+    "strict_certification": "PENDING",
+    "read_only_preflight": "HISTORICAL_1.181_GIB_NO_INFERENCE",
+    "preflight_available_gib": 1.181,
+    "preflight_commit_reserve_gib": 7.453,
+    "dispatch_lock_created": true,
+    "latest_receipt": "local-acceptance-models/nxb21-small-english-product-proof-v1/run-20260910T100919072Z/product-proof-receipt.json",
+    "standalone_preflight": "24_SAMPLES_BELOW_8.627_GIB_NO_INFERENCE",
+    "standalone_max_available_gib": 8.473,
+    "runtime_integrity": "PASS",
+    "corpus_state": "CONSUMED_DO_NOT_RERUN",
+    "completed_cases": 45,
+    "automated_failures": 11,
+    "adjudication": "reports/nxb21/small-english-product-proof-adjudication-v1.json"
+  },
+  "source_remediation_20260910": {
+    "state": "SOURCE_VALIDATED_MODEL_AND_LIVE_ACCEPTANCE_PENDING",
+    "report": "reports/nxb21/english-functional-remediation-source-20260910.json",
+    "live_inference": false,
+    "new_proof_created": false,
+    "D": "OPEN"
+  },
+  "english_product_proof_v2": {
+    "state": "CONSUMED_DO_NOT_RERUN",
+    "handoff": "reports/nxb21/english-product-proof-v2-handoff.json",
+    "group_sql_api": "PASS_DISPOSABLE",
+    "group_browser_deployment": "PENDING",
+    "model_effectiveness": "FUNCTIONAL_QUALIFICATION_FAILED_CURRENT_CONFIGURATION",
+    "nx_b21d": "OPEN",
+    "adjudication": "reports/nxb21/english-product-proof-v2-consumed-adjudication.json"
+  }
+}

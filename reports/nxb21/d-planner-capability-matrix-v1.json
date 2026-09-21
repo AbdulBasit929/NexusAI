@@ -1,0 +1,562 @@
+{
+  "schema_version": "nexusai.nxb21.d-planner-capability-matrix/v1",
+  "status": "QWEN3_8B_FINAL_LOCAL_SELECTION12_CLOSED_RESOURCE_INSUFFICIENT_D_OPEN",
+  "evaluation_state": {
+    "consumed_q8_holdout": "FAIL_TERMINAL_NEVER_REUSE",
+    "pre_remediation_q4_development": "31_OF_32_FAIL",
+    "remediation_candidate_id": "nxb21d-q4-atomic-identifier-authority-r1",
+    "remediation_candidate_identity_sha256": "1ccc03ab44a25cb20ec28053b898c2f975b6373829303e8265833164a89e2ccc",
+    "fresh_development_corpus_sha256": "937f44c241dce1abc6f0ca1781b865b8dc0d49c89ed804411c1ac58e6a329cec",
+    "fresh_development_execution": "COMPLETE_13_OF_16_FINAL_PASS",
+    "qualification_holdout": "NOT_FROZEN",
+    "D_status": "OPEN",
+    "activation": "BLOCKED",
+    "q4_full_plan_role": "RETIRED",
+    "q4_residual_role": "INSUFFICIENT_FOR_RESIDUAL_ROLE",
+    "qwen3_8b_artifact": "VERIFIED",
+    "qwen3_8b_artifact_sha256": "d98cdcbd03e17ce47681435b5150e34c1417f50b5c0019dd560e4882c5745785",
+    "qwen3_8b_profile": "FROZEN_REGISTERED_UNLOADED",
+    "qwen3_8b_selection12_corpus_sha256": "6376e5d18352edd6319562e9799d773bedb67f54bbedc901f06256dd53b226cd",
+    "qwen3_8b_selection12_freeze_identity_sha256": "e0aa163fdf62e12ee3b416bf6fa05061355d16f2ce616566578673ae926e9771",
+    "qwen3_8b_development_gate": "CONSUMED_DO_NOT_RERUN",
+    "qwen3_8b_development_result": "INCOMPLETE_RESOURCE_FAILURE",
+    "qwen3_8b_development_receipt_sha256": "bf45069a8c58f2020a3a1c85c56f02194ca00f7b63bda1f8c3d093cb157dc55f",
+    "qwen3_8b_development_cases": "2_OF_12",
+    "qwen3_8b_development_model_calls": "1_OF_12",
+    "qwen3_8b_observed_model_correct": "1_OF_1",
+    "qwen3_8b_model_quality": "INSUFFICIENT_EVIDENCE",
+    "qwen3_8b_resource_floor": "FAIL_AFTER_FIRST_CALL",
+    "qwen3_8b_peak_api_memory_mib": 6048.8,
+    "qwen3_8b_minimum_available_ram_gib": 2.64,
+    "qwen3_8b_harness_presentation": "INNER_SUCCESS_MISLEADING_OUTER_RECEIPT_CORRECTLY_FAILED",
+    "qwen3_8b_lowmem_resource_recheck": "PASS",
+    "qwen3_8b_lowmem_resource_recheck_receipt_sha256": "f148e40e5dc6a69fa23700c9332bb14c543001625a607be5d217c51b67af917e",
+    "qwen3_8b_lowmem_profile_sha256": "672f8e2c29f162cdc74a8a8dfe7129955436c771db454b0a3ebb20a3bf9b560a",
+    "qwen3_8b_lowmem_requested_batch": 128,
+    "qwen3_8b_lowmem_effective_n_batch": 512,
+    "qwen3_8b_fresh_selection12_gate_id": "nxb21d-qwen3-8b-lowmem-fresh-selection12-20260908T071710Z",
+    "qwen3_8b_fresh_selection12_corpus_sha256": "a56f9b8690f5debc6034a682496ffff004bfe89ac1971d5908bcfeba0244512c",
+    "qwen3_8b_fresh_selection12_gate": "CONSUMED_DO_NOT_RERUN",
+    "qwen3_8b_fresh_selection12_result": "INCOMPLETE_RESOURCE_FAILURE",
+    "qwen3_8b_fresh_selection12_receipt_sha256": "346a519e8e83ee18ade6ffb9a3a740ed7203f5fe07d5b0c102fcc6d32330f107",
+    "qwen3_8b_fresh_selection12_model_calls": "1_OF_12",
+    "qwen3_8b_fresh_selection12_loaded_ram_initial_gib": 2.396,
+    "qwen3_8b_fresh_selection12_loaded_ram_final_gib": 3.195,
+    "qwen3_8b_final_local_gate_id": "nxb21d-qwen3-8b-final-local-selection12-20260908T100500Z",
+    "qwen3_8b_final_local_gate": "CONSUMED_DO_NOT_RERUN",
+    "qwen3_8b_final_local_result": "CLOSED_RESOURCE_INSUFFICIENT",
+    "qwen3_8b_final_local_model_calls": "1_OF_12_HTTP_SEMANTIC_NOT_REACHED",
+    "qwen3_8b_final_local_model_quality": "INSUFFICIENT_EVIDENCE",
+    "qwen3_8b_final_local_receipt_sha256": "430f40db43950981d064f2e52b5cc96290f038f28c33e14771a6e34f4583f4db",
+    "qwen3_8b_final_local_corpus_sha256": "1fdd47b3112e910c9a9850a0cdca16db2240a12e8a9209676b0e60035d4f2d6d",
+    "qwen3_8b_final_local_freshness": "PASS_2035_FILES_ZERO_OVERLAP",
+    "qwen3_8b_final_local_source_admission": "PASS_12_OF_12_NO_INFERENCE",
+    "qwen3_8b_final_local_prebuilt_evaluator_sha256": "130ffac7fcfeb01c57b713cf171dc27d4b9f54a0fde5a7b69796a1dc9875588d",
+    "qwen3_8b_final_local_preload_policy": "THREE_CONSECUTIVE_SAMPLES_AT_OR_ABOVE_6_GIB",
+    "qwen3_8b_final_local_loaded_floor_gib": 4,
+    "final_d_candidate": "NOT_YET",
+    "remediation_development_receipt_sha256": "83ac55c7cd9627f0d37e21f33c556245bc6e7e62f35fb267d66f95b6872c23f3",
+    "exact_identifier_cases": "8_OF_8_FINAL_PASS",
+    "phrase_controls": "5_OF_8_FINAL_PASS",
+    "candidate_decision": "DEVELOPMENT_FAIL_DO_NOT_ADVANCE",
+    "phrase_remediation_candidate_id": "nxb21d-q4-phrase-literal-authority-r1",
+    "phrase_remediation_candidate_identity_sha256": "0129bd4ab0d660573726c744f6ba9874a9a15b9343a87cc5b37a264dcadf675e",
+    "phrase_remediation_corpus_sha256": "7c273c3b45fd3103234f098cd38bce84348c8cfff27b243f6c6987a5dd1555e6",
+    "phrase_remediation_execution": "COMPLETE_19_OF_20_FINAL_PASS",
+    "phrase_remediation_source_validation": "PASS",
+    "phrase_authority_contract": "ONE_EXPLICIT_QUOTED_SOURCE_SPAN_ONLY",
+    "atomic_identifier_authority_regression": "PASS_SOURCE_UNCHANGED",
+    "phrase_remediation_receipt_sha256": "02a7981aa4d4918255ef056e0008250baa7fd265e72db5e10cf510da934123a0",
+    "phrase_literal_cases": "16_OF_16_PASS",
+    "phrase_plate_controls": "4_OF_4_PASS",
+    "phrase_candidate_decision": "DEVELOPMENT_FAIL_DO_NOT_RERUN",
+    "scope_failure_case": "phrase20-roman-tr-001",
+    "scope_remediation_candidate_id": "nxb21d-q4-explicit-scope-authority-r1",
+    "scope_remediation_candidate_identity_sha256": "ba17c5c688eaa567ce2d006d8a0a80948a4e01e1b3c62f0765c84aeaa4d9d23a",
+    "scope_remediation_corpus_sha256": "e034bb3683f23c1aeb7488232a7337c56d5e9eb7cb69f9f280698af3412b1b50",
+    "scope_remediation_execution": "FROZEN_NOT_EXECUTED",
+    "scope_remediation_source_validation": "PASS"
+  },
+  "capability_count": 22,
+  "rows": [
+    {
+      "query_capability_id": "cdr.identifier_lookup",
+      "operation_ref": "forensics.canonical_records",
+      "reference_kind": "QUERY_OPERATION",
+      "semantics": [
+        "EXACT_VALUE"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "corpus_cases": 4,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "BLOCKED_MODEL_NOT_LOADED"
+    },
+    {
+      "query_capability_id": "cdr.frequent_contacts",
+      "operation_ref": "cdr.frequent_contacts",
+      "reference_kind": "QUERY_OPERATION",
+      "semantics": [
+        "TOP_K"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "corpus_cases": 11,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "BLOCKED_MODEL_NOT_LOADED"
+    },
+    {
+      "query_capability_id": "cdr.time_activity",
+      "operation_ref": "cdr.temporal_activity",
+      "reference_kind": "QUERY_OPERATION",
+      "semantics": [
+        "AGGREGATE"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "corpus_cases": 8,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "BLOCKED_MODEL_NOT_LOADED"
+    },
+    {
+      "query_capability_id": "ipdr.endpoint",
+      "operation_ref": "ipdr.endpoint_summary",
+      "reference_kind": "QUERY_OPERATION",
+      "semantics": [
+        "AGGREGATE"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "corpus_cases": 4,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "BLOCKED_MODEL_NOT_LOADED"
+    },
+    {
+      "query_capability_id": "ipdr.sessions",
+      "operation_ref": "ipdr.subscriber_sessions",
+      "reference_kind": "QUERY_OPERATION",
+      "semantics": [
+        "FILTER"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "corpus_cases": 4,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "BLOCKED_MODEL_NOT_LOADED"
+    },
+    {
+      "query_capability_id": "subscriber.lookup",
+      "operation_ref": "subscriber.identity_lookup",
+      "reference_kind": "QUERY_OPERATION",
+      "semantics": [
+        "EXACT_VALUE"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "corpus_cases": 4,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "BLOCKED_MODEL_NOT_LOADED"
+    },
+    {
+      "query_capability_id": "device.observations",
+      "operation_ref": "forensics.imei_imsi_usage",
+      "reference_kind": "QUERY_OPERATION",
+      "semantics": [
+        "GROUP"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "corpus_cases": 4,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "BLOCKED_MODEL_NOT_LOADED"
+    },
+    {
+      "query_capability_id": "tower.lookup",
+      "operation_ref": "tower.site_lookup",
+      "reference_kind": "QUERY_OPERATION",
+      "semantics": [
+        "EXACT_VALUE"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "corpus_cases": 4,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "BLOCKED_MODEL_NOT_LOADED"
+    },
+    {
+      "query_capability_id": "financial.summary",
+      "operation_ref": "financial.transaction_summary",
+      "reference_kind": "QUERY_OPERATION",
+      "semantics": [
+        "AGGREGATE"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "corpus_cases": 4,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "BLOCKED_MODEL_NOT_LOADED"
+    },
+    {
+      "query_capability_id": "logs.failures",
+      "operation_ref": "access.failed_events",
+      "reference_kind": "QUERY_OPERATION",
+      "semantics": [
+        "FILTER"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "corpus_cases": 4,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "BLOCKED_MODEL_NOT_LOADED"
+    },
+    {
+      "query_capability_id": "generic.filter",
+      "operation_ref": "generic.filter_records",
+      "reference_kind": "QUERY_OPERATION",
+      "semantics": [
+        "FILTER"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "corpus_cases": 4,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "BLOCKED_MODEL_NOT_LOADED"
+    },
+    {
+      "query_capability_id": "document.phrase",
+      "operation_ref": "document.search",
+      "reference_kind": "QUERY_OPERATION",
+      "semantics": [
+        "EXACT_VALUE",
+        "EXACT_PHRASE",
+        "PHRASE_CONTAINS",
+        "TOKEN_SEARCH",
+        "SOURCE",
+        "TIME_RANGE",
+        "SOURCE_TIME"
+      ],
+      "scope_modes": [
+        "selected_evidence",
+        "authorized_workspace"
+      ],
+      "corpus_cases": 12,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "PHRASE_LITERAL_16_OF_16_PASS_SCOPE_REMEDIATION_PENDING",
+      "remediation_development_result": "REMEDIATION_CONTROL_3_OF_4_FINAL_PASS",
+      "remediation_development_cases": 4
+    },
+    {
+      "query_capability_id": "knowledge.semantic",
+      "operation_ref": "forensics.evidence",
+      "reference_kind": "QUERY_OPERATION",
+      "semantics": [
+        "SEMANTIC_RETRIEVAL"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "corpus_cases": 4,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "BLOCKED_MODEL_NOT_LOADED"
+    },
+    {
+      "query_capability_id": "ocr.phrase",
+      "operation_ref": "image.ocr_search",
+      "reference_kind": "QUERY_OPERATION",
+      "semantics": [
+        "EXACT_VALUE",
+        "EXACT_PHRASE",
+        "PHRASE_CONTAINS",
+        "TOKEN_SEARCH",
+        "SOURCE",
+        "TIME_RANGE",
+        "SOURCE_TIME"
+      ],
+      "scope_modes": [
+        "selected_evidence",
+        "authorized_workspace"
+      ],
+      "corpus_cases": 12,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "BLOCKED_MODEL_NOT_LOADED"
+    },
+    {
+      "query_capability_id": "transcript.phrase",
+      "operation_ref": "audio.transcript_search",
+      "reference_kind": "QUERY_OPERATION",
+      "semantics": [
+        "EXACT_VALUE",
+        "EXACT_PHRASE",
+        "PHRASE_CONTAINS",
+        "TOKEN_SEARCH",
+        "SOURCE",
+        "TIME_RANGE",
+        "SOURCE_TIME"
+      ],
+      "scope_modes": [
+        "selected_evidence",
+        "authorized_workspace"
+      ],
+      "corpus_cases": 20,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "PHRASE_LITERAL_16_OF_16_PASS_SCOPE_REMEDIATION_PENDING",
+      "remediation_development_result": "REMEDIATION_CONTROL_2_OF_4_FINAL_PASS",
+      "remediation_development_cases": 4
+    },
+    {
+      "query_capability_id": "roman_urdu.phrase",
+      "operation_ref": "audio.transcript_search",
+      "reference_kind": "QUERY_OPERATION",
+      "semantics": [
+        "EXACT_VALUE",
+        "EXACT_PHRASE",
+        "PHRASE_CONTAINS",
+        "TOKEN_SEARCH",
+        "SOURCE",
+        "TIME_RANGE",
+        "SOURCE_TIME"
+      ],
+      "scope_modes": [
+        "selected_evidence",
+        "authorized_workspace"
+      ],
+      "corpus_cases": 12,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "PHRASE_LITERAL_16_OF_16_PASS_SCOPE_REMEDIATION_PENDING"
+    },
+    {
+      "query_capability_id": "image.plate",
+      "operation_ref": "anpr.sightings",
+      "reference_kind": "QUERY_OPERATION",
+      "semantics": [
+        "EXACT_VALUE"
+      ],
+      "scope_modes": [
+        "selected_evidence"
+      ],
+      "corpus_cases": 7,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "ATOMIC_AND_PHRASE_REGRESSION_CONTROLS_PASS_SCOPE_REMEDIATION_PENDING",
+      "exact_identifier_authority": "SOURCE_VALIDATED_SINGLE_EXACT_SOURCE_SPAN_FAIL_CLOSED",
+      "remediation_development_cases": 8,
+      "remediation_development_result": "DEVELOPMENT_8_OF_8_FINAL_PASS_2_DETERMINISTIC_RECONCILIATIONS"
+    },
+    {
+      "query_capability_id": "video.group_plate",
+      "operation_ref": "video.anpr_grouped_timeline",
+      "reference_kind": "QUERY_OPERATION",
+      "semantics": [
+        "EXACT_VALUE",
+        "GROUP",
+        "SOURCE_TIME"
+      ],
+      "scope_modes": [
+        "selected_evidence"
+      ],
+      "corpus_cases": 5,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "BLOCKED_MODEL_NOT_LOADED"
+    },
+    {
+      "query_capability_id": "image.similarity",
+      "operation_ref": "image.visual_similarity",
+      "reference_kind": "DIRECT_DESCRIPTOR",
+      "semantics": [
+        "SIMILARITY"
+      ],
+      "scope_modes": [
+        "selected_evidence",
+        "authorized_workspace"
+      ],
+      "corpus_cases": 5,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "BLOCKED_MODEL_NOT_LOADED"
+    },
+    {
+      "query_capability_id": "face.candidates",
+      "operation_ref": "face.similarity",
+      "reference_kind": "DIRECT_DESCRIPTOR",
+      "semantics": [
+        "SIMILARITY"
+      ],
+      "scope_modes": [
+        "selected_evidence",
+        "authorized_workspace"
+      ],
+      "corpus_cases": 4,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "BLOCKED_MODEL_NOT_LOADED"
+    },
+    {
+      "query_capability_id": "cross_family.identifiers",
+      "operation_ref": "forensics.cross_family_correlation",
+      "reference_kind": "QUERY_OPERATION",
+      "semantics": [
+        "COMPOSE"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "corpus_cases": 4,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "BLOCKED_MODEL_NOT_LOADED"
+    },
+    {
+      "query_capability_id": "case.evidence_package",
+      "operation_ref": "forensics.evidence_package_summary",
+      "reference_kind": "QUERY_OPERATION",
+      "semantics": [
+        "SUMMARY"
+      ],
+      "scope_modes": [
+        "authorized_workspace"
+      ],
+      "corpus_cases": 4,
+      "languages": [
+        "en",
+        "mixed",
+        "roman_ur",
+        "ur"
+      ],
+      "proposal_contract_validation": "PASS_SOURCE",
+      "natural_language_model_evaluation": "BLOCKED_MODEL_NOT_LOADED"
+    }
+  ]
+}

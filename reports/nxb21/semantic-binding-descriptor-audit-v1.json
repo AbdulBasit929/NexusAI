@@ -1,0 +1,1567 @@
+{
+  "candidate_count": 66,
+  "candidate_policy": "FULL_WORKSPACE_REGISTRY_NO_QUESTION_FILTER",
+  "candidates": [
+    {
+      "operation_id": "access.failed_events",
+      "family_id": "access_security_logs",
+      "intent": "lookup",
+      "description": "Explicit access/security failures from HTTP status or source-declared outcome fields.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "failed event count"
+      ],
+      "group_by": [
+        "source event"
+      ],
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "anpr.camera_activity",
+      "family_id": "anpr_vehicles",
+      "intent": "aggregate",
+      "description": "Exact sighting and distinct-plate counts by camera.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "sighting count",
+        "distinct observed plates",
+        "first seen",
+        "last seen"
+      ],
+      "group_by": [
+        "camera ID",
+        "supplied location"
+      ],
+      "result_kind": "aggregate",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "anpr.camera_sequence",
+      "family_id": "anpr_vehicles",
+      "intent": "lookup",
+      "description": "Chronological camera sequence for one exact plate search key.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "sighting count",
+        "elapsed time"
+      ],
+      "group_by": [
+        "observation time",
+        "camera"
+      ],
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "anpr.co_travel",
+      "family_id": "anpr_vehicles",
+      "intent": "correlate",
+      "description": "Same-camera observations of other plates within five minutes of one exact plate; proximity is not association.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "co-observation count",
+        "time difference"
+      ],
+      "group_by": [
+        "other plate",
+        "camera"
+      ],
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "anpr.plate_variants",
+      "family_id": "anpr_vehicles",
+      "intent": "compare",
+      "description": "Observed raw plate variants grouped by the exact normalized search key and supplied OCR confidence.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "observation count",
+        "minimum confidence",
+        "maximum confidence"
+      ],
+      "group_by": [
+        "normalized search key",
+        "raw plate text"
+      ],
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "anpr.route_timing",
+      "family_id": "anpr_vehicles",
+      "intent": "lookup",
+      "description": "Consecutive exact sightings with elapsed time and optional straight-line distance; no road route is inferred.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "elapsed seconds",
+        "straight-line distance"
+      ],
+      "group_by": [
+        "consecutive observation pair"
+      ],
+      "result_kind": "geo",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "anpr.sightings",
+      "family_id": "anpr_vehicles",
+      "intent": "lookup",
+      "description": "ANPR sightings by plate, camera, and location.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "sighting count",
+        "first seen",
+        "last seen"
+      ],
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "anpr.timeline",
+      "family_id": "anpr_vehicles",
+      "intent": "timeline",
+      "description": "Source-bound chronological ANPR sightings for one exact plate.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "sighting count"
+      ],
+      "group_by": [
+        "observation timestamp"
+      ],
+      "result_kind": "timeline",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "audio.metadata",
+      "family_id": "audio_intelligence",
+      "intent": "lookup",
+      "description": "Registered audio evidence, processing state, and completed derived-artifact inventory.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "evidence count",
+        "completed artifact count",
+        "size bytes"
+      ],
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "audio.transcript_search",
+      "family_id": "audio_intelligence",
+      "intent": "retrieve",
+      "description": "Family-scoped lexical retrieval over completed timestamped ASR and Roman-Urdu transcript observations.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target"
+      ],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "document",
+      "presentation": "cited_evidence_results",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "cdr.call_type_breakdown",
+      "family_id": "communications_cdr",
+      "intent": "aggregate",
+      "description": "CDR event counts by call type and direction.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "event count",
+        "total duration"
+      ],
+      "group_by": [
+        "call type",
+        "direction"
+      ],
+      "result_kind": "aggregate",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "cdr.device_identity_changes",
+      "family_id": "communications_cdr",
+      "intent": "lookup",
+      "description": "Chronological IMEI/IMSI baselines and exact identifier changes with source-row provenance.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "device change count",
+        "SIM change count",
+        "first seen",
+        "last seen"
+      ],
+      "group_by": [
+        "originating subscriber",
+        "IMEI",
+        "IMSI"
+      ],
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "cdr.duration_extremes",
+      "family_id": "communications_cdr",
+      "intent": "rank",
+      "description": "Shortest, longest, and aggregate non-zero CDR duration statistics.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "minimum non-zero duration",
+        "maximum duration",
+        "average non-zero duration",
+        "audited row count"
+      ],
+      "group_by": null,
+      "result_kind": "ranked",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "cdr.frequent_contacts",
+      "family_id": "communications_cdr",
+      "intent": "rank",
+      "description": "CDR frequent contacts matrix with incoming/outgoing counts and first/last contact.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "total interactions",
+        "incoming count",
+        "outgoing count",
+        "first contact",
+        "last contact"
+      ],
+      "group_by": [
+        "counterparty"
+      ],
+      "result_kind": "ranked",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "queryable"
+    },
+    {
+      "operation_id": "cdr.geospatial_movement",
+      "family_id": "communications_cdr",
+      "intent": "lookup",
+      "description": "Chronological CDR movement and primary off-peak base location.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "observation count",
+        "first seen",
+        "last seen",
+        "off-peak frequency"
+      ],
+      "group_by": [
+        "cell site",
+        "supplied location"
+      ],
+      "result_kind": "geo",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "cdr.multi_source_comparison",
+      "family_id": "communications_cdr",
+      "intent": "compare",
+      "description": "Source-aware common/unique contacts, direction, frequency, duration, shared identifier, overlap, duplicate, and conflict comparison for one exact target.",
+      "required_parameters": [
+        "target",
+        "source_set"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "common contacts",
+        "unique contacts",
+        "incoming count",
+        "outgoing count",
+        "duration sum",
+        "shared IMEI",
+        "shared IMSI",
+        "shared tower",
+        "exact-instant overlap",
+        "duplicate candidates",
+        "conflicts"
+      ],
+      "group_by": [
+        "source",
+        "counterparty",
+        "typed identifier",
+        "event signature"
+      ],
+      "result_kind": "table",
+      "presentation": "multi_source_relationship_comparison",
+      "scope_mode": "source_set_and_target_required",
+      "exposure_status": "queryable"
+    },
+    {
+      "operation_id": "cdr.service_usage",
+      "family_id": "communications_cdr",
+      "intent": "aggregate",
+      "description": "CDR service classification for voice, SMS, USSD, and packet-data activity.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "event count",
+        "total duration"
+      ],
+      "group_by": [
+        "explicit service class",
+        "direction"
+      ],
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "cdr.temporal_activity",
+      "family_id": "communications_cdr",
+      "intent": "timeline",
+      "description": "Hourly baselines, nocturnal activity, non-zero duration statistics, and shortest/longest audited duration rows.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "event count",
+        "non-zero duration",
+        "average duration"
+      ],
+      "group_by": [
+        "day",
+        "hour"
+      ],
+      "result_kind": "timeline",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "queryable"
+    },
+    {
+      "operation_id": "cdr.timeline",
+      "family_id": "communications_cdr",
+      "intent": "timeline",
+      "description": "Chronological evidence timeline across all structured record families.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "event count"
+      ],
+      "group_by": [
+        "event timestamp",
+        "record family"
+      ],
+      "result_kind": "timeline",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "cdr.tower_activity",
+      "family_id": "communications_cdr",
+      "intent": "aggregate",
+      "description": "Tower, cell-site, and location activity for a target.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "observation count",
+        "first seen",
+        "last seen"
+      ],
+      "group_by": [
+        "cell site",
+        "tower/site",
+        "supplied location"
+      ],
+      "result_kind": "aggregate",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "document.metadata",
+      "family_id": "document_intelligence",
+      "intent": "lookup",
+      "description": "Registered document/text evidence, processing state, and completed derived-artifact inventory.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "evidence count",
+        "completed artifact count",
+        "size bytes"
+      ],
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "document.search",
+      "family_id": "document_intelligence",
+      "intent": "retrieve",
+      "description": "Family-scoped lexical retrieval over completed native document passages with source citations.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target"
+      ],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "document",
+      "presentation": "cited_evidence_results",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "financial.transaction_summary",
+      "family_id": "financial_transactions",
+      "intent": "summarize",
+      "description": "Currency-separated transaction counts and exact amount totals with complete bounded contribution lineage.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "transaction count",
+        "exact amount total",
+        "first seen",
+        "last seen"
+      ],
+      "group_by": [
+        "currency",
+        "explicit status",
+        "amount role"
+      ],
+      "result_kind": "aggregate",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "forensics.activity_by_hour",
+      "family_id": "communications_cdr",
+      "intent": "timeline",
+      "description": "Hourly CDR activity counts.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "timeline",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_wide",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "forensics.canonical_records",
+      "family_id": "case_cross_family",
+      "intent": "inspect",
+      "description": "Parameterized source-of-truth query over forensic.records with JSONB filters, provenance, paging, totals, and sort controls.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit",
+        "group",
+        "projection"
+      ],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_wide",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "forensics.case_readiness",
+      "family_id": "case_cross_family",
+      "intent": "readiness",
+      "description": "Operational readiness score across ingest completion, duplicates, rejected rows, record families, and KB asset coverage.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_wide",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "forensics.collection_overview",
+      "family_id": "case_cross_family",
+      "intent": "aggregate",
+      "description": "Collection-level ingest, KB asset, and record-family summary.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "aggregate",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_wide",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "forensics.cross_family_correlation",
+      "family_id": "case_cross_family",
+      "intent": "correlate",
+      "description": "Exact normalized target matches and cited related entities across every canonical structured record family.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "matching observations",
+        "related entities",
+        "source families"
+      ],
+      "group_by": [
+        "record family",
+        "explicit normalized entity"
+      ],
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "forensics.data_quality",
+      "family_id": "case_cross_family",
+      "intent": "inspect",
+      "description": "Ingest quality, duplicate counts, rejected rows, and parser error samples.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_wide",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "forensics.entity_activity",
+      "family_id": "case_cross_family",
+      "intent": "aggregate",
+      "description": "Cross-record entity observation summary across all indexed structured record families.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "aggregate",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_wide",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "forensics.evidence",
+      "family_id": "knowledge_evidence",
+      "intent": "retrieve",
+      "description": "Knowledge Base evidence search with raw-entry fallback.",
+      "required_parameters": [],
+      "optional_parameters": [],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "document",
+      "presentation": "cited_evidence_results",
+      "scope_mode": "case_wide",
+      "exposure_status": "queryable"
+    },
+    {
+      "operation_id": "forensics.evidence_package_summary",
+      "family_id": "case_cross_family",
+      "intent": "summarize",
+      "description": "Collection overview, source files, data quality, and KB evidence route.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "aggregate",
+      "presentation": "executive_brief_with_sources",
+      "scope_mode": "case_wide",
+      "exposure_status": "queryable"
+    },
+    {
+      "operation_id": "forensics.executive_case_brief",
+      "family_id": "case_cross_family",
+      "intent": "summarize",
+      "description": "Collection-level executive brief inputs from deterministic analytics.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "executive_brief_with_sources",
+      "scope_mode": "case_wide",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "forensics.imei_imsi_usage",
+      "family_id": "communications_cdr",
+      "intent": "aggregate",
+      "description": "IMEI/IMSI usage activity for a target.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_wide",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "forensics.longest_call",
+      "family_id": "communications_cdr",
+      "intent": "rank",
+      "description": "Longest CDR call duration with source row provenance.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_wide",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "forensics.night_activity",
+      "family_id": "communications_cdr",
+      "intent": "timeline",
+      "description": "Nocturnal CDR activity and duration outliers.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "aggregate",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_wide",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "forensics.relationship_network",
+      "family_id": "case_cross_family",
+      "intent": "relationship",
+      "description": "Entities observed in the same source rows as a target entity.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_wide",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "forensics.repeated_location_visits",
+      "family_id": "communications_cdr",
+      "intent": "lookup",
+      "description": "Repeated location and cell-site visits.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "geo",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_wide",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "forensics.shortest_call",
+      "family_id": "communications_cdr",
+      "intent": "rank",
+      "description": "Shortest non-zero CDR call duration with source row provenance.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_wide",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "forensics.source_records",
+      "family_id": "case_cross_family",
+      "intent": "inspect",
+      "description": "Small capped set of source rows for audit and manual review.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_wide",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "forensics.subscriber_profile",
+      "family_id": "communications_cdr",
+      "intent": "lookup",
+      "description": "Subscriber, IMSI, IMEI, and source-row profile for a target.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_wide",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "forensics.top_locations",
+      "family_id": "communications_cdr",
+      "intent": "rank",
+      "description": "Most frequent CDR locations and cells.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "geo",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_wide",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "generic.filter_records",
+      "family_id": "generic_tabular",
+      "intent": "lookup",
+      "description": "Bounded parameterized source-of-truth query over canonical generic structured rows.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "matching row count"
+      ],
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "image.metadata",
+      "family_id": "image_intelligence",
+      "intent": "lookup",
+      "description": "Registered image evidence, processing state, and completed derived-artifact inventory.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "evidence count",
+        "completed artifact count",
+        "size bytes"
+      ],
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "image.ocr_search",
+      "family_id": "image_intelligence",
+      "intent": "retrieve",
+      "description": "Family-scoped lexical retrieval over completed image OCR observations with region citations.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target"
+      ],
+      "measures": null,
+      "group_by": null,
+      "result_kind": "document",
+      "presentation": "cited_evidence_results",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "ipdr.concurrent_sessions",
+      "family_id": "network_ipdr",
+      "intent": "lookup",
+      "description": "Chronological explicit session overlaps for one subscriber.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "overlap count",
+        "overlap start",
+        "overlap end",
+        "overlap seconds"
+      ],
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "ipdr.domain_summary",
+      "family_id": "network_ipdr",
+      "intent": "summarize",
+      "description": "Explicit normalized IPDR domain observations with counts, bytes, and first/last times.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "session count",
+        "byte totals",
+        "first seen",
+        "last seen"
+      ],
+      "group_by": [
+        "explicit normalized domain"
+      ],
+      "result_kind": "aggregate",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "ipdr.endpoint_summary",
+      "family_id": "network_ipdr",
+      "intent": "summarize",
+      "description": "Exact IP/NAT/port endpoint combinations with session counts and byte totals.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "session count",
+        "uploaded bytes",
+        "downloaded bytes",
+        "first seen",
+        "last seen"
+      ],
+      "group_by": [
+        "source/destination IP",
+        "NAT IP",
+        "ports",
+        "protocol"
+      ],
+      "result_kind": "aggregate",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "ipdr.protocol_breakdown",
+      "family_id": "network_ipdr",
+      "intent": "aggregate",
+      "description": "Explicit IPDR protocol counts, byte totals, and duration totals.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "session count",
+        "byte totals",
+        "duration total"
+      ],
+      "group_by": [
+        "explicit protocol"
+      ],
+      "result_kind": "aggregate",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "ipdr.session_volume",
+      "family_id": "network_ipdr",
+      "intent": "lookup",
+      "description": "Hourly IPDR session and byte-volume totals.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "session count",
+        "uploaded bytes",
+        "downloaded bytes"
+      ],
+      "group_by": [
+        "hour"
+      ],
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "ipdr.subscriber_sessions",
+      "family_id": "network_ipdr",
+      "intent": "lookup",
+      "description": "Source-provenance IPDR sessions linked by explicit subscriber identifiers.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "session count",
+        "duration",
+        "uploaded bytes",
+        "downloaded bytes"
+      ],
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "ipdr.timeline",
+      "family_id": "network_ipdr",
+      "intent": "timeline",
+      "description": "Chronological IPDR sessions for an explicit subscriber or endpoint target.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "session count",
+        "duration",
+        "byte totals"
+      ],
+      "group_by": [
+        "session start"
+      ],
+      "result_kind": "timeline",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "subscriber.conflict_audit",
+      "family_id": "subscriber_identity",
+      "intent": "compare",
+      "description": "Deterministic conflicting-attribute counts for stable subscriber identifiers.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "distinct MSISDN count",
+        "distinct IMSI count",
+        "distinct ICCID count",
+        "distinct IMEI count",
+        "distinct service count",
+        "distinct provider count",
+        "distinct status count",
+        "distinct CNIC count"
+      ],
+      "group_by": [
+        "stable explicit subscriber reference or MSISDN"
+      ],
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "subscriber.device_links",
+      "family_id": "subscriber_identity",
+      "intent": "relationship",
+      "description": "Explicit subscriber, SIM, device, and service-role co-observations without ownership inference.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "MSISDN observations",
+        "IMSI observations",
+        "ICCID observations",
+        "IMEI observations",
+        "service observations",
+        "first seen",
+        "last seen"
+      ],
+      "group_by": [
+        "source row"
+      ],
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "subscriber.identity_lookup",
+      "family_id": "subscriber_identity",
+      "intent": "lookup",
+      "description": "Privacy-safe exact subscriber identifier lookup with masked CNIC and row provenance.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "matching rows",
+        "first explicit validity start",
+        "last explicit validity end"
+      ],
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "subscriber.reuse_candidates",
+      "family_id": "subscriber_identity",
+      "intent": "lookup",
+      "description": "Identifiers explicitly observed with more than one MSISDN, reported as review candidates rather than ownership conclusions.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "distinct MSISDN count",
+        "observation count",
+        "first seen",
+        "last seen"
+      ],
+      "group_by": [
+        "identifier kind",
+        "identifier value"
+      ],
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "subscriber.status_summary",
+      "family_id": "subscriber_identity",
+      "intent": "summarize",
+      "description": "Subscriber row counts by explicit status and manual-review state.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "row count",
+        "first validity start",
+        "last validity end"
+      ],
+      "group_by": [
+        "explicit status",
+        "manual-review state"
+      ],
+      "result_kind": "aggregate",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "subscriber.validity_timeline",
+      "family_id": "subscriber_identity",
+      "intent": "timeline",
+      "description": "Explicit subscriber activation, deactivation, and validity-window observations for one exact identifier.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "activation time",
+        "deactivation time",
+        "valid from",
+        "valid to",
+        "status"
+      ],
+      "group_by": [
+        "source row"
+      ],
+      "result_kind": "timeline",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "tower.alias_conflicts",
+      "family_id": "tower_location",
+      "intent": "compare",
+      "description": "Exact alias groups with conflicting supplied coordinates, sectors, technologies, or statuses.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "overlapping validity pairs",
+        "distinct coordinates",
+        "distinct technologies",
+        "distinct statuses",
+        "distinct datums",
+        "distinct uncertainty radii"
+      ],
+      "group_by": [
+        "provider/site/sector history key"
+      ],
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "tower.cdr_join",
+      "family_id": "tower_location",
+      "intent": "lookup",
+      "description": "Time-aware exact cell/site join from CDR observations to the latest eligible supplied tower reference.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "CDR observations",
+        "reference candidates",
+        "eligible references",
+        "match status",
+        "reference age",
+        "coordinates",
+        "uncertainty radius"
+      ],
+      "group_by": null,
+      "result_kind": "geo",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "tower.coordinate_audit",
+      "family_id": "tower_location",
+      "intent": "inspect",
+      "description": "Coordinate, datum, uncertainty, and screening-quality audit for tower/site references.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "latitude",
+        "longitude",
+        "datum",
+        "uncertainty radius",
+        "quality flags"
+      ],
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "tower.reference_timeline",
+      "family_id": "tower_location",
+      "intent": "timeline",
+      "description": "Chronological reference history for one exact tower/site alias.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "valid from",
+        "valid to",
+        "validity basis",
+        "status",
+        "technology",
+        "coordinates",
+        "uncertainty"
+      ],
+      "group_by": [
+        "provider/site/sector history key",
+        "reference observation"
+      ],
+      "result_kind": "timeline",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "tower.site_lookup",
+      "family_id": "tower_location",
+      "intent": "lookup",
+      "description": "Exact tower/site reference observations with supplied coordinates, uncertainty, validity, and provenance.",
+      "required_parameters": [
+        "target"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "reference observations",
+        "coordinates",
+        "uncertainty radius",
+        "validity bounds"
+      ],
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "tower.status_summary",
+      "family_id": "tower_location",
+      "intent": "summarize",
+      "description": "Tower/site reference counts by explicit status, technology, and review state.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "reference row count",
+        "first reference",
+        "last reference"
+      ],
+      "group_by": [
+        "status",
+        "technology",
+        "manual-review state"
+      ],
+      "result_kind": "aggregate",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_wide",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "video.anpr_grouped_timeline",
+      "family_id": "anpr_vehicles",
+      "intent": "timeline",
+      "description": "Grouped ANPR model observations for one retained video, using exact source timestamps.",
+      "required_parameters": [
+        "target",
+        "evidence_id"
+      ],
+      "optional_parameters": [
+        "date_from",
+        "date_to",
+        "limit",
+        "plate",
+        "start_seconds",
+        "end_seconds"
+      ],
+      "measures": [
+        "group count",
+        "sighting count",
+        "first source timestamp",
+        "last source timestamp",
+        "best observation"
+      ],
+      "group_by": [
+        "equal normalized model observation"
+      ],
+      "result_kind": "timeline",
+      "presentation": "bounded_records_table",
+      "scope_mode": "target_required",
+      "exposure_status": "limited"
+    },
+    {
+      "operation_id": "video.metadata",
+      "family_id": "video_intelligence",
+      "intent": "lookup",
+      "description": "Registered video evidence, processing state, and completed derived-artifact inventory.",
+      "required_parameters": [],
+      "optional_parameters": [
+        "target",
+        "date_from",
+        "date_to",
+        "limit"
+      ],
+      "measures": [
+        "evidence count",
+        "completed artifact count",
+        "size bytes"
+      ],
+      "group_by": null,
+      "result_kind": "table",
+      "presentation": "bounded_records_table",
+      "scope_mode": "case_or_target",
+      "exposure_status": "limited"
+    }
+  ],
+  "contract": "nxb21.semantic-descriptor-source-audit/v1",
+  "live_inference": false,
+  "model_effectiveness": "UNPROVEN"
+}

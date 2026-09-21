@@ -1,0 +1,15 @@
+{
+    "phase":  "R7.10",
+    "status":  "api_live_accepted",
+    "deployed_utc":  "2026-08-20T05:10:11.6883443Z",
+    "api_build_seconds":  21.2,
+    "prior_image_id":  "sha256:e42a3ddc45d1dbd70ac8c7223b6a4031b72ec416beb24e13e7968a8814554192",
+    "api_image_id":  "sha256:49ce233505c42f275bad3277ffadd2f1076e5fb5aabce605f642339a3aa23161",
+    "api_health":  "pass",
+    "services_recreated":  [
+                               "forensic-records-api"
+                           ],
+    "profiles_changed":  false,
+    "named_volumes_preserved":  true,
+    "rollback_image":  "nexusai/forensic-records-api:rollback-before-r7.10-20260812"
+}

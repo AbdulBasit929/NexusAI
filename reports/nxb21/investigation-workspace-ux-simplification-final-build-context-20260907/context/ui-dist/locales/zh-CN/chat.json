@@ -1,0 +1,118 @@
+{
+  "activity": {
+    "thought": "æ€è€ƒ",
+    "tool": "å·¥å…·",
+    "result": "ç»“æžœ",
+    "toolResult": "{{name}} çš„ç»“æžœ",
+    "thinking": "æ€è€ƒä¸­..."
+  },
+  "header": {
+    "manageModeTooltip": "æ­¤èŠå¤©å¯ä»¥é€šè¿‡ä¸Ž NexusAI å¯¹è¯æ¥å®‰è£…æ¨¡åž‹ã€ç¼–è¾‘é…ç½®å’Œç®¡ç†åŽç«¯ã€‚",
+    "modelInfo": "æ¨¡åž‹ä¿¡æ¯",
+    "chatSettings": "èŠå¤©è®¾ç½®",
+    "modelInfoTitle": "æ¨¡åž‹ä¿¡æ¯ï¼š{{model}}",
+    "editConfig": "ç¼–è¾‘é…ç½®",
+    "close": "å…³é—­"
+  },
+  "modelInfo": {
+    "backend": "åŽç«¯",
+    "modelFile": "æ¨¡åž‹æ–‡ä»¶",
+    "contextSize": "ä¸Šä¸‹æ–‡å¤§å°",
+    "threads": "çº¿ç¨‹æ•°",
+    "mcp": "MCP",
+    "configured": "å·²é…ç½®",
+    "chatTemplate": "èŠå¤©æ¨¡æ¿",
+    "yes": "æ˜¯",
+    "gpuLayers": "GPU å±‚æ•°"
+  },
+  "context": {
+    "label": "ä¸Šä¸‹æ–‡ï¼š{{percent}}%",
+    "labelWithTokens": "ä¸Šä¸‹æ–‡ï¼š{{percent}}% ï¼ˆ{{tokens}} ä¸ª tokenï¼‰"
+  },
+  "settings": {
+    "title": "èŠå¤©è®¾ç½®",
+    "manageMode": "ç®¡ç†æ¨¡å¼",
+    "manageModeDesc": "å…è®¸æ­¤èŠå¤©é€šè¿‡ä¸Ž NexusAI å¯¹è¯æ¥å®‰è£…æ¨¡åž‹ã€åˆ‡æ¢åŽç«¯å’Œç¼–è¾‘é…ç½®ã€‚",
+    "systemPrompt": "ç³»ç»Ÿæç¤º",
+    "systemPromptPlaceholder": "ä½ æ˜¯ä¸€ä¸ªæœ‰ç”¨çš„åŠ©æ‰‹...",
+    "temperature": "æ¸©åº¦",
+    "topP": "Top P",
+    "topK": "Top K",
+    "contextSize": "ä¸Šä¸‹æ–‡å¤§å°",
+    "contextSizePlaceholder": "2048",
+    "clearHistory": "æ¸…é™¤èŠå¤©è®°å½•"
+  },
+  "empty": {
+    "manageTitle": "é€šè¿‡èŠå¤©ç®¡ç† NexusAI",
+    "manageText": "å¯ä»¥è¯·æ±‚å®‰è£…æ¨¡åž‹ã€åˆ‡æ¢åŽç«¯ã€ç¼–è¾‘é…ç½®æˆ–æ£€æŸ¥çŠ¶æ€ã€‚åŠ©æ‰‹ä¼šæ€»ç»“æ“ä½œå¹¶åœ¨æ›´æ”¹ä»»ä½•å†…å®¹å‰ç­‰å¾…æ‚¨ç¡®è®¤ã€‚",
+    "startTitle": "å¼€å§‹å¯¹è¯",
+    "readyText": "å‡†å¤‡ä¸Ž {{model}} èŠå¤©",
+    "selectModelText": "åœ¨ä¸Šæ–¹é€‰æ‹©ä¸€ä¸ªæ¨¡åž‹ä»¥å¼€å§‹",
+    "suggestionsManage": [
+      "å·²ç»å®‰è£…äº†ä»€ä¹ˆï¼Ÿ",
+      "å®‰è£…ä¸€ä¸ªèŠå¤©æ¨¡åž‹",
+      "æ˜¾ç¤ºç³»ç»ŸçŠ¶æ€",
+      "æ›´æ–°ä¸€ä¸ªåŽç«¯"
+    ],
+    "suggestionsChat": [
+      "è§£é‡Šè¿™æ˜¯å¦‚ä½•å·¥ä½œçš„",
+      "å¸®æˆ‘å†™ä»£ç ",
+      "æ€»ç»“ä¸€ä»½æ–‡æ¡£",
+      "å¤´è„‘é£Žæš´"
+    ],
+    "recent": "æœ€è¿‘",
+    "noMessages": "æš‚æ— æ¶ˆæ¯",
+    "hintEnter": "å›žè½¦å‘é€",
+    "hintShiftEnter": "Shift+å›žè½¦æ¢è¡Œ",
+    "hintAttach": "é™„åŠ æ–‡ä»¶"
+  },
+  "errors": {
+    "viewTraces": "æŸ¥çœ‹è¿½è¸ªä»¥äº†è§£è¯¦æƒ…"
+  },
+  "actions": {
+    "copy": "å¤åˆ¶",
+    "regenerate": "é‡æ–°ç”Ÿæˆ",
+    "jumpToLatest": "Jump to latest"
+  },
+  "streaming": {
+    "transferring": "æ­£åœ¨ä¼ è¾“æ¨¡åž‹...",
+    "transferringTo": "æ­£åœ¨ä¼ è¾“æ¨¡åž‹åˆ° {{node}}..."
+  },
+  "tokens": {
+    "perSec": "{{count}} tok/s",
+    "peak": "å³°å€¼ï¼š{{count}} tok/s",
+    "usage": "{{prompt}}p + {{completion}}c = {{total}}"
+  },
+  "input": {
+    "placeholder": "æ¶ˆæ¯...",
+    "attachFile": "é™„åŠ æ–‡ä»¶",
+    "stopGenerating": "åœæ­¢ç”Ÿæˆ",
+    "canvasTitle": "Canvas â€” å°†ä»£ç å—å’Œåª’ä½“æå–åˆ°ä¾§è¾¹æ ä»¥ä¾¿é¢„è§ˆã€å¤åˆ¶å’Œä¸‹è½½",
+    "canvasLabel": "Canvas",
+    "openCanvas": "æ‰“å¼€ Canvas é¢æ¿"
+  },
+  "deleteAllDialog": {
+    "title": "åˆ é™¤æ‰€æœ‰èŠå¤©",
+    "message": "åˆ é™¤æ‰€æœ‰èŠå¤©ï¼Ÿæ­¤æ“ä½œæ— æ³•æ’¤é”€ã€‚",
+    "confirm": "å…¨éƒ¨åˆ é™¤"
+  },
+  "toasts": {
+    "selectModel": "è¯·é€‰æ‹©ä¸€ä¸ªæ¨¡åž‹",
+    "copied": "å·²å¤åˆ¶åˆ°å‰ªè´´æ¿",
+    "copyFailed": "æ— æ³•å¤åˆ¶åˆ°å‰ªè´´æ¿"
+  },
+  "menu": {
+    "trigger": "èŠå¤©",
+    "triggerTitle": "å¯¹è¯ (Ctrl/Cmd+K)",
+    "search": "æœç´¢å¯¹è¯...",
+    "clearSearch": "æ¸…é™¤æœç´¢",
+    "noMatch": "æ²¡æœ‰å¯¹è¯åŒ¹é…æ‚¨çš„æœç´¢",
+    "noConversations": "æš‚æ— å¯¹è¯",
+    "rename": "é‡å‘½å",
+    "exportMarkdown": "å¯¼å‡ºä¸º Markdown",
+    "deleteChat": "åˆ é™¤èŠå¤©",
+    "newChat": "æ–°å¯¹è¯",
+    "clearAll": "æ¸…é™¤å…¨éƒ¨",
+    "deleteAllTitle": "åˆ é™¤æ‰€æœ‰å¯¹è¯"
+  }
+}

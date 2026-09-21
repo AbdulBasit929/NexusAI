@@ -1,0 +1,24 @@
+{
+  "schema_version":"1.0",
+  "as_of":"2026-08-25",
+  "provenance_note":"Runtime configuration/backend presence was verified read-only. Exact upstream repository, license, immutable model revision, weight size, and per-role hardware budget were not re-established for every retained model during NX-R0; where absent, admission is not broadened and those fields are mandatory before any promotion or replacement.",
+  "admission_fields":["source","license","immutable revision","size","hardware","benefit","benchmark","rollback"],
+  "roles":[
+    {"role":"planner_synthesizer","current":"Qwen3 4B Instruct 2507 via llama.cpp","status":"baseline admitted","use":"bounded intent/explanation only","next":"retain; benchmark typed-plan reliability"},
+    {"role":"embedding","current":"Qwen3 Embedding 0.6B","status":"admitted","use":"retrieval candidates","next":"recall/latency benchmark"},
+    {"role":"reranker","current":"none admitted","status":"candidate","use":"KB/document ranking","next":"evaluate LocalAI reranker endpoint"},
+    {"role":"ASR_primary","current":"Faster-Whisper small Urdu","status":"limited","use":"candidate transcript/timestamps","next":"Urdu/Roman-Urdu WER oracle"},
+    {"role":"ASR_fallback","current":"Whisper tiny","status":"installed fallback","use":"bounded fallback","next":"quality-based routing"},
+    {"role":"OCR","current":"Tesseract eng+urd","status":"limited","use":"candidate page/image text","next":"script/layout benchmark"},
+    {"role":"ANPR","current":"FastALPR YOLOv9 + CCT XS","status":"limited","use":"Pakistan plate candidates","next":"positive/negative retained pack certification"},
+    {"role":"face_detection_recognition","current":"YuNet/SFace","status":"candidate-only","use":"never identity fact","next":"policy/consent/bias/threshold review"},
+    {"role":"image_similarity","current":"dHash + SigLIP evidence","status":"limited/candidate","use":"ranked similarity only","next":"false-neighbor benchmark"},
+    {"role":"vision_captioning","current":"none admitted","status":"research","use":"candidate observations","next":"need/hardware/license gate"},
+    {"role":"diarization","current":"none admitted","status":"research","use":"speaker segment candidates","next":"LocalAI endpoint + speaker oracle"},
+    {"role":"VAD","current":"none admitted","status":"research","use":"speech boundary candidates","next":"LocalAI endpoint + boundary oracle"},
+    {"role":"audio_events","current":"none admitted","status":"research","use":"event label candidates","next":"taxonomy/calibration gate"},
+    {"role":"TTS_realtime","current":"none admitted","status":"deferred","use":"accessibility only; no forensic facts","next":"demonstrated product need"},
+    {"role":"video_multimodal","current":"none admitted","status":"research only","use":"candidate observations","next":"compare vllm-cpp modality against deterministic media pipeline"}
+  ],
+  "global_rule":"No download, weight change, backend install, or model promotion without a complete model card, bounded benchmark, resource preflight, rollback, and explicit approval."
+}

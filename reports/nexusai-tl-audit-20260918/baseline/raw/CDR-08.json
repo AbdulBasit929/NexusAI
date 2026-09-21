@@ -1,0 +1,561 @@
+{
+ "collection_id": "nexusai-forensic-demo",
+ "request_class": "GOVERNED_EVIDENCE_ANALYSIS",
+ "intent": "clarification",
+ "template": "frequent_contacts",
+ "query_understanding": {
+  "contract_version": "forensics.query-understanding/v1",
+  "original_question": "How many unique phone numbers appear as callers in the CDRs?",
+  "normalized_question": "how many unique phone numbers appear as callers in the cdrs?",
+  "language": {
+   "tag": "en",
+   "source": "deterministic_extractor",
+   "confidence": 0.9
+  },
+  "intent": "rank",
+  "families": {
+   "kind": "single",
+   "primary": "communications_cdr",
+   "secondary": []
+  },
+  "entities": [],
+  "targets": [],
+  "time_scope": {
+   "timezone": "case_default",
+   "origin": "deterministic_extractor"
+  },
+  "filters": [],
+  "requested_output": {
+   "result_kind": "ranked",
+   "presentation_type": "bounded_records_table",
+   "limit": 20
+  },
+  "candidate_capabilities": [
+   "cdr.frequent_contacts"
+  ],
+  "semantic_capability_ids": null,
+  "semantic_operation_refs": null,
+  "clarification": {
+   "required": true,
+   "reason_code": "missing_required_parameter",
+   "question": "Which number or subscriber should I analyze for frequent contacts?",
+   "missing_fields": [
+    "target"
+   ]
+  },
+  "context": {
+   "used": false,
+   "fields": [],
+   "inherited_fields": null
+  },
+  "confidence": {
+   "overall": 0.72,
+   "routing": 0.72,
+   "entities": 0,
+   "time_scope": 0
+  }
+ },
+ "clarification": {
+  "contract_version": "forensics.clarification-request/v1",
+  "reason_code": "missing_required_parameter",
+  "question": "Which number or subscriber should I analyze for frequent contacts?",
+  "missing_fields": [
+   "target"
+  ],
+  "options": [],
+  "execution_held": true
+ },
+ "route": [
+  "clarification"
+ ],
+ "policy": "Exact analytics are computed from parameterized SQL templates. KB content is used only for evidence, source previews, and contextual grounding.",
+ "planner": {
+  "confidence": 0.72,
+  "date_from": "",
+  "date_to": "",
+  "exact_identifier_authority": null,
+  "extracted_target": "",
+  "field_hints": [],
+  "hybrid_planner": null,
+  "language_assistance": "deterministic_fast_path",
+  "phrase_literal_authority": null,
+  "query_plan": {
+   "interpreted_intent": "records",
+   "selected_template": "frequent_contacts",
+   "target_identifiers": [],
+   "date_bounds": {},
+   "applied_filters": {
+    "field_hints": [],
+    "target_type": ""
+   },
+   "confidence": 0.72,
+   "coverage_check": {
+    "total_indexed_records": 0,
+    "record_families_present": null,
+    "nearest_activity": {},
+    "valid_target_examples": null
+   },
+   "execution_strategy": "sql_deterministic"
+  },
+  "reason": "rule-based runtime query planner",
+  "retrieval_strategy": {
+   "contract_version": "forensics.document-retrieval-strategy/v1",
+   "derived_text": false,
+   "exact_is_semantic": false,
+   "kb_retrieval": false,
+   "retrieval_mode": "NONE",
+   "semantic_frame": "forensics.semantic-frame/v1"
+  },
+  "semantic_operation_planner": null,
+  "source": "runtime_query",
+  "target_type": "",
+  "targets": []
+ },
+ "query_plan": {
+  "interpreted_intent": "records",
+  "selected_template": "frequent_contacts",
+  "target_identifiers": [],
+  "date_bounds": {},
+  "applied_filters": {
+   "field_hints": [],
+   "target_type": ""
+  },
+  "confidence": 0.72,
+  "coverage_check": {
+   "total_indexed_records": 0,
+   "record_families_present": null,
+   "nearest_activity": {},
+   "valid_target_examples": null
+  },
+  "execution_strategy": "sql_deterministic"
+ },
+ "capability": {
+  "status": "supported_by_selected_route",
+  "requested_families": [],
+  "required_operations": [],
+  "missing_capabilities": [],
+  "explanation": "The selected deterministic or evidence route may run; collection coverage is reported separately.",
+  "suggested_queries": []
+ },
+ "coverage": {
+  "total_indexed_records": 0,
+  "record_families_present": null,
+  "nearest_activity": {},
+  "valid_target_examples": null
+ },
+ "answer": {
+  "clarification": "Which number or subscriber should I analyze for frequent contacts?",
+  "clarification_required": true,
+  "guardrail": "No records query was run because the request needs one missing identifier.",
+  "limitations": [
+   "A target-specific query was detected, but no target identifier was provided or extractable from the request."
+  ]
+ },
+ "enterprise": {
+  "clarification": "Which number or subscriber should I analyze for frequent contacts?",
+  "contribution_lineage": null,
+  "conversation_context": {
+   "analysis_id": "",
+   "audit_id": "ctx-1789712879156283991",
+   "citation_handles": [],
+   "collection_id": "nexusai-forensic-demo",
+   "contract_version": "forensics.follow-up-context/v1",
+   "conversation_id": "",
+   "created_at": "2026-09-18T06:27:59Z",
+   "current_question": "How many unique phone numbers appear as callers in the CDRs?",
+   "date_from": "",
+   "date_to": "",
+   "direction": "",
+   "entity_handles": [],
+   "evidence_id": "",
+   "evidence_version_id": "",
+   "expires_at": "2026-09-18T06:57:59Z",
+   "fact_handles": [
+    {
+     "handle_id": "fact-F1",
+     "kind": "fact",
+     "fact_id": "F1"
+    },
+    {
+     "handle_id": "fact-F2",
+     "kind": "fact",
+     "fact_id": "F2"
+    },
+    {
+     "handle_id": "fact-F3",
+     "kind": "fact",
+     "fact_id": "F3"
+    },
+    {
+     "handle_id": "fact-F4",
+     "kind": "fact",
+     "fact_id": "F4"
+    },
+    {
+     "handle_id": "fact-F5",
+     "kind": "fact",
+     "fact_id": "F5"
+    },
+    {
+     "handle_id": "fact-F6",
+     "kind": "fact",
+     "fact_id": "F6"
+    }
+   ],
+   "inherited_fields": null,
+   "issued_fields": null,
+   "mutation": null,
+   "operation_id": "cdr.frequent_contacts",
+   "result_handles": [],
+   "source_native": null,
+   "source_set": null,
+   "target": "",
+   "targets": [],
+   "template": "frequent_contacts",
+   "tenant_id": "default",
+   "turn_id": "",
+   "user_id": "live-eval"
+  },
+  "coverage": {
+   "collection_id": "nexusai-forensic-demo",
+   "collection_max_timestamp": "",
+   "collection_min_timestamp": "",
+   "date_from": "",
+   "date_to": "",
+   "direction": "",
+   "nearest_activity": {},
+   "queried_kb": false,
+   "queried_record_sql": false,
+   "record_families_present": null,
+   "route": [
+    "clarification"
+   ],
+   "target": "",
+   "template": "frequent_contacts",
+   "tenant_id": "default",
+   "total_indexed_records": 0,
+   "valid_target_examples": null
+  },
+  "data_grid": {
+   "columns": null,
+   "count": 0,
+   "rows": null
+  },
+  "executive_answer": "Which number or subscriber should I analyze for frequent contacts?",
+  "fact_packet": {
+   "contract_version": "forensics.fact-packet/v1",
+   "request_id": "b86da6ab-3a2e-44d0-8969-b3886dbb4f5c",
+   "question": "How many unique phone numbers appear as callers in the CDRs?",
+   "language": {
+    "tag": "en",
+    "source": "deterministic_extractor",
+    "confidence": 0.9
+   },
+   "scope": {
+    "tenant_id": "default",
+    "case_id": "nexusai-forensic-demo",
+    "collection_id": "nexusai-forensic-demo"
+   },
+   "operation_id": "cdr.frequent_contacts",
+   "normalized_parameters": {
+    "date_from": "",
+    "date_to": "",
+    "direction": "",
+    "limit": 20,
+    "retrieval_mode": "NONE",
+    "source_file": "",
+    "source_set": null,
+    "target": "",
+    "targets": []
+   },
+   "execution_mode": "clarification",
+   "result_state": "invalid_request",
+   "facts": [
+    {
+     "fact_id": "F1",
+     "kind": "direct_answer",
+     "text": "Which number or subscriber should I analyze for frequent contacts?",
+     "citation_ids": null
+    },
+    {
+     "fact_id": "F2",
+     "kind": "metric",
+     "text": "Template: frequent_contacts",
+     "value": "frequent_contacts",
+     "citation_ids": null
+    },
+    {
+     "fact_id": "F3",
+     "kind": "metric",
+     "text": "Route: clarification",
+     "value": "clarification",
+     "citation_ids": null
+    },
+    {
+     "fact_id": "F4",
+     "kind": "metric",
+     "text": "Planner Confidence: 0.72",
+     "value": 0.72,
+     "citation_ids": null
+    },
+    {
+     "fact_id": "F5",
+     "kind": "metric",
+     "text": "Display Rows: 0",
+     "value": 0,
+     "citation_ids": null
+    },
+    {
+     "fact_id": "F6",
+     "kind": "metric",
+     "text": "Provenance Items: 0",
+     "value": 0,
+     "citation_ids": null
+    }
+   ],
+   "metrics": [
+    {
+     "label": "Template",
+     "source": "planner",
+     "value": "frequent_contacts"
+    },
+    {
+     "label": "Route",
+     "source": "planner",
+     "value": "clarification"
+    },
+    {
+     "label": "Planner Confidence",
+     "source": "planner",
+     "value": 0.72
+    },
+    {
+     "label": "Display Rows",
+     "source": "records_sql",
+     "value": 0
+    },
+    {
+     "label": "Records Row Count",
+     "source": "records_sql",
+     "value": null
+    },
+    {
+     "label": "Evidence Count",
+     "source": "kb_rag",
+     "value": null
+    },
+    {
+     "label": "Provenance Items",
+     "source": "records_sql+kb_rag",
+     "value": 0
+    }
+   ],
+   "rows": null,
+   "row_set_state": "complete",
+   "relationships": [],
+   "citations": [],
+   "citation_set_state": "complete",
+   "conflicts": [],
+   "limitations": [
+    "Which number or subscriber should I analyze for frequent contacts?",
+    "No records query was run because the request needs one missing identifier.",
+    "A target-specific query was detected, but no target identifier was provided or extractable from the request."
+   ],
+   "missingness": [],
+   "quality_warnings": null,
+   "available_follow_up_capabilities": [
+    {
+     "label": "Show available entities",
+     "query": "show available entities",
+     "reason": "Find valid targets before running a target-specific workflow.",
+     "template": "entity_activity"
+    },
+    {
+     "label": "Audit source files",
+     "query": "which files were ingested?",
+     "reason": "Confirm the collection has the expected source evidence.",
+     "template": "source_file_audit"
+    }
+   ],
+   "presentation_hints": {
+    "direction": "ltr",
+    "language": "en",
+    "presentation_type": "bounded_records_table",
+    "priority_columns": [],
+    "result_kind": "ranked"
+   }
+  },
+  "limitations": [
+   "Which number or subscriber should I analyze for frequent contacts?",
+   "No records query was run because the request needs one missing identifier.",
+   "A target-specific query was detected, but no target identifier was provided or extractable from the request."
+  ],
+  "metrics": [
+   {
+    "label": "Template",
+    "source": "planner",
+    "value": "frequent_contacts"
+   },
+   {
+    "label": "Route",
+    "source": "planner",
+    "value": "clarification"
+   },
+   {
+    "label": "Planner Confidence",
+    "source": "planner",
+    "value": 0.72
+   },
+   {
+    "label": "Display Rows",
+    "source": "records_sql",
+    "value": 0
+   },
+   {
+    "label": "Records Row Count",
+    "source": "records_sql",
+    "value": null
+   },
+   {
+    "label": "Evidence Count",
+    "source": "kb_rag",
+    "value": null
+   },
+   {
+    "label": "Provenance Items",
+    "source": "records_sql+kb_rag",
+    "value": 0
+   }
+  ],
+  "narrative": {
+   "contract_version": "forensics.narrative/v1",
+   "locale": "en",
+   "direction": "ltr",
+   "status": "deterministic",
+   "direct_answer": "Which number or subscriber should I analyze for frequent contacts?",
+   "key_findings": [
+    {
+     "text": "Which number or subscriber should I analyze for frequent contacts?",
+     "claim_type": "direct_answer",
+     "fact_refs": [
+      "F1"
+     ],
+     "citation_refs": null
+    },
+    {
+     "text": "Template: frequent_contacts",
+     "claim_type": "metric",
+     "fact_refs": [
+      "F2"
+     ],
+     "citation_refs": null
+    },
+    {
+     "text": "Route: clarification",
+     "claim_type": "metric",
+     "fact_refs": [
+      "F3"
+     ],
+     "citation_refs": null
+    },
+    {
+     "text": "Planner Confidence: 0.72",
+     "claim_type": "metric",
+     "fact_refs": [
+      "F4"
+     ],
+     "citation_refs": null
+    },
+    {
+     "text": "Display Rows: 0",
+     "claim_type": "metric",
+     "fact_refs": [
+      "F5"
+     ],
+     "citation_refs": null
+    }
+   ],
+   "comparisons": [],
+   "relationship_summary": [],
+   "limitations": [
+    "Which number or subscriber should I analyze for frequent contacts?",
+    "No records query was run because the request needs one missing identifier.",
+    "A target-specific query was detected, but no target identifier was provided or extractable from the request."
+   ],
+   "suggested_questions": [
+    "show available entities",
+    "which files were ingested?"
+   ],
+   "fact_refs": [
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6"
+   ],
+   "citation_refs": [],
+   "fallback": true
+  },
+  "operation": {
+   "family_id": "communications_cdr",
+   "operation_id": "cdr.frequent_contacts",
+   "output_description": "Ranked phone-counterparty matrix for one explicit participant, with interaction counts and time coverage.",
+   "source_access": "records",
+   "template": "frequent_contacts"
+  },
+  "processing_state": "",
+  "proof_state": {
+   "citations": "complete",
+   "rows": "complete"
+  },
+  "provenance": [],
+  "recommended_actions": [
+   {
+    "label": "Show available entities",
+    "query": "show available entities",
+    "reason": "Find valid targets before running a target-specific workflow.",
+    "template": "entity_activity"
+   },
+   {
+    "label": "Audit source files",
+    "query": "which files were ingested?",
+    "reason": "Confirm the collection has the expected source evidence.",
+    "template": "source_file_audit"
+   }
+  ],
+  "result_kind": "ranked",
+  "result_state": "invalid_request",
+  "row_count": 0,
+  "status": "needs_input",
+  "summary": "More information is required before this analysis can run. No SQL template was executed and no result was inferred.",
+  "synthesis": {
+   "claims": [
+    {
+     "claim": "Which number or subscriber should I analyze for frequent contacts?",
+     "source": "Planner Guidance"
+    }
+   ],
+   "policy": "Claims are labeled by source: deterministic SQL facts are computed from records templates; semantic context comes from Knowledge Base retrieval."
+  },
+  "telemetry": {
+   "request_id": "b86da6ab-3a2e-44d0-8969-b3886dbb4f5c",
+   "db_latency_ms": 0,
+   "kb_latency_ms": 0,
+   "llm_latency_ms": 0,
+   "total_latency_ms": 117,
+   "planner_confidence": 0.72,
+   "execution_path": "clarification"
+  }
+ },
+ "telemetry": {
+  "request_id": "b86da6ab-3a2e-44d0-8969-b3886dbb4f5c",
+  "db_latency_ms": 0,
+  "kb_latency_ms": 0,
+  "llm_latency_ms": 0,
+  "total_latency_ms": 117,
+  "planner_confidence": 0.72,
+  "execution_path": "clarification"
+ },
+ "generated_at": "2026-09-18T06:27:59.155857596Z"
+}

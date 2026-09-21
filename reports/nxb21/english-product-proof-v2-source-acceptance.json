@@ -1,0 +1,71 @@
+{
+  "contract_version": "nexusai.english-product-proof-source-acceptance/v2",
+  "date": "2026-09-11",
+  "checks": {
+    "forensic_full": {
+      "seconds": 60.63,
+      "command": "go test ./api/forensic_records -count=1",
+      "state": "PASS"
+    },
+    "agents_full": {
+      "seconds": 47.737,
+      "command": "go test ./core/services/agents -count=1",
+      "state": "PASS"
+    },
+    "proxy": {
+      "seconds": 0.298,
+      "command": "go test ./core/http/endpoints/localai -run ^TestForensicRecordsProxyTimeout$ -count=1",
+      "state": "PASS"
+    },
+    "ask_presentation": {
+      "state": "PASS",
+      "cases": 8
+    },
+    "group_sql_api": {
+      "seconds": 46.722,
+      "focused_specs": 8,
+      "state": "PASS"
+    },
+    "evaluator_selftests": {
+      "synthetic_only": true,
+      "seconds": 31.517,
+      "state": "PASS"
+    },
+    "powershell_51": {
+      "version": "5.1.22621.6133",
+      "checks": 13,
+      "state": "PASS"
+    },
+    "powershell_7": {
+      "version": "7.6.5",
+      "checks": 13,
+      "state": "PASS"
+    }
+  },
+  "group": {
+    "GROUP_SQL_ACCEPTANCE": "PASS",
+    "GROUP_API_ACCEPTANCE": "PASS",
+    "GROUP_PRESENTATION_ACCEPTANCE": "PASS",
+    "GROUP_ZERO_RESULT": "PASS",
+    "GROUP_NULL_BUCKET": "PASS",
+    "GROUP_LINEAGE": "PASS",
+    "GROUP_ROW_TOTAL_SEMANTICS": "PASS",
+    "GROUP_GROUP_COUNT_SEMANTICS": "PASS",
+    "GROUP_BOUNDS": "PASS",
+    "GROUP_SCOPE_ISOLATION": "PASS",
+    "GROUP_NEGATIVE_CASES": "PASS"
+  },
+  "group_receipt": "reports/nxb21/group-sql-api-v2-20260911T051503290Z.json",
+  "group_scope": "Actual typed HTTP handler and PostgreSQL queries in uniquely owned disposable database; source-isolation predicates also verified through canonical executor. NULL is deliberately adversarial nullable scratch fixture.",
+  "fixes": [
+    "Use registered /api/v1/forensics/adapters help discovery route",
+    "Reject sort_by and sort_direction in typed canonical grouping"
+  ],
+  "planner": "66 issued candidates; READY/SERVER_BINDABLE/USER_FACT_REQUIRED",
+  "synthesis": "120s default, 180s max, parent cancellation; tested including response beyond 8s",
+  "v1": "CONSUMED_DO_NOT_RERUN",
+  "live_inference": false,
+  "nx_b21d": "OPEN",
+  "strict_certification": "PENDING",
+  "resource_track": "CLOSED_UNCHANGED"
+}

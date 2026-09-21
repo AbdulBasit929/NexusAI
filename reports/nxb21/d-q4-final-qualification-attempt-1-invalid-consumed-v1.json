@@ -1,0 +1,106 @@
+{
+  "schema_version": "nexusai.nxb21d-q4-final-qualification-invalid-consumed/v1",
+  "qualification_state": "invalid_incomplete_consumed",
+  "recorded_at": "2026-09-05T15:40:02.1580141Z",
+  "candidate": {
+    "candidate_id": "nxb21d-q4-final-qualification-r1",
+    "identity_sha256": "11c7ce2a5c0ed1d6bb83a8d2a9b26274dbcedf6c96b014a4c7e0404160c26371"
+  },
+  "holdout": {
+    "sha256": "aaa8517983ea4523e235c4b3de31e5562bfaeada21ef24a7b23065a567d31d13",
+    "consumed": true,
+    "reusable": false,
+    "remaining_cases_may_run": false,
+    "copied_bytes_may_run": false
+  },
+  "run": {
+    "directory": "local-acceptance-models/nxb21-d/q4-final-qualification-runs/qualification-20260905T152811856Z",
+    "manifest_sha256": "5dc11809273d762653fb38eb6084e573031dcfb69d786065551dc4661acd8b2e",
+    "partial_checkpoint_sha256": "7d76a784dfff7f9ff508713e130e7103da1a75decac7f137e01caa6c3039cd3",
+    "operator_log_sha256": "5ea3ba9b9d90319459749e069894a06af259120ec64d68b86bdb944fdb6bcaa0",
+    "go_evaluator_log_sha256": "e65d6155dd516cb408c7e73ff0fec599d13dc8fba00f92f2d6a863886709c394",
+    "resource_samples_sha256": "ab3ee6ba197a1a21549d23c14e5c24b5d8f131b169b2d564b2f1bfb70206829a",
+    "cases_completed": 2,
+    "completed_model_calls": 2,
+    "requests_dispatched": 3,
+    "structured_valid": 0,
+    "third_request_outcome": "interrupted_or_unknown_no_response_evidence",
+    "final_qualification_result": "INVALID_INCOMPLETE",
+    "suitability": "NOT_DETERMINED",
+    "activation_authorized": false
+  },
+  "completed_cases": [
+    {
+      "id": "DQ2-001",
+      "language": "en",
+      "critical": false,
+      "result": "malformed_proposal",
+      "http_status": 200,
+      "finish_reason": "length",
+      "prompt_tokens": 180,
+      "completion_tokens": 192,
+      "request_bytes": 2762,
+      "request_sha256": "a0e0dc57451c3366c2aef674760535dc1d3a03251695e574a1985b73ac8d7740",
+      "response_bytes": 952,
+      "response_sha256": "c733c21bef3919657ae20d2b810405ebb1e2009d392515fef5922e750ccb87d5",
+      "envelope_json_parse": true,
+      "planner_json_parse": false,
+      "truncation_point": "parameters.date_from string"
+    },
+    {
+      "id": "DQ2-002",
+      "language": "ur",
+      "critical": false,
+      "result": "malformed_proposal",
+      "http_status": 200,
+      "finish_reason": "length",
+      "prompt_tokens": 191,
+      "completion_tokens": 192,
+      "request_bytes": 2794,
+      "request_sha256": "dc92c26194f7e0a9bcba1006224d6c22d74f6d52d263024914d5841693012a92",
+      "response_bytes": 753,
+      "response_sha256": "1869a26a337dca5ab62a5814728969f4b7e591dcdd0e8c2d66d0c18dc270d808",
+      "envelope_json_parse": true,
+      "planner_json_parse": false,
+      "truncation_point": "parameters.target string"
+    }
+  ],
+  "in_flight_evidence": {
+    "id": "DQ2-003",
+    "request_bytes": 2768,
+    "request_sha256": "4b498f6b0c281aaaa64c1b84906386ff871e892174373dc7b0309ca8bf17bb1a",
+    "response_present": false,
+    "checkpoint_result_present": false
+  },
+  "root_cause": {
+    "primary_classes": ["I_RESOURCE_OR_TRUNCATION_DEFECT", "B_QUALIFICATION_PROMPT_DEFECT", "H_PRODUCTION_INTERFACE_INTEGRATION_DEFECT"],
+    "finding": "The two completed HTTP envelopes were valid UTF-8 JSON with status 200. Each model completion reached the configured 192-token maximum, reported finish_reason=length, and ended mid-string inside the required planner JSON object.",
+    "model_defect_primary": false,
+    "transport_corruption": false,
+    "parser_defect": false,
+    "development_difference": "The passing development path used a six-field purpose-built schema and stopped after 50 completion tokens. Qualification exercised the production twelve-field schema plus nested parameters through resolveWithLanguageAssistance, where max_tokens was 192 and unused-field brevity was not required."
+  },
+  "runtime_post_state": {
+    "audited_at": "2026-09-05T15:40:02.1580141Z",
+    "http_health": "PASS",
+    "active_jobs": 0,
+    "retained_tuple": "64|64|77|22507|828|61",
+    "activity_count": 314,
+    "q4_model_loaded": false,
+    "containers": {
+      "api": {"id":"d62021a0a4fc258ff3ce6fc4140090c6d9862dcc04863a065e6e842f62d769de","image":"sha256:feb935b42a93c1810394cb270a809189ca240a225253159a47b8daa72a799171","restarts":0,"state":"running","health":"healthy"},
+      "forensic-records-api": {"id":"ffd93bf51ecad0bc61271dfad0576b852057cd85f85aa8221534e3250ef1c11b","image":"sha256:828e4b03e02979c3fc25dd6b6896e74fb97a2e59b8c17300a3efadce1236ace8","restarts":2,"state":"running","health":"none"},
+      "forensic-records-worker": {"id":"40b6e628d586d5d484468120a8591fdb46a2ecc6f5aac228583067b22811d088","image":"sha256:0b22a604dbf97443623258072a71f741111a1033a5e274166ea0f5b2f9968d47","restarts":5,"state":"running","health":"healthy"},
+      "forensic-postgres": {"id":"f66e05a3b17978c9912aa911177f22e57d69c17de87881a33f23bcba228ad361","image":"sha256:61f891691050da6032023c01ea885730eeeba06b7c17b403e7d0b9c49c37dfe9","restarts":0,"state":"running","health":"healthy"},
+      "forensic-nats": {"id":"5c49e70d132ac01b4adf86f27b1735d4d5cf6cc205d848c0881164f1f200eb04","image":"sha256:e4bf19f15fd3218814a4e3c9e0064e1334bd8aa20d5984b9f1a0afd084f8cc00","restarts":0,"state":"running","health":"healthy"}
+    }
+  },
+  "runtime_impact": {
+    "deployment": false,
+    "database_mutation": false,
+    "retained_evidence_mutation": false,
+    "retained_activity_mutation": false,
+    "model_download": false
+  },
+  "next_gate": "Refreeze a new candidate after source tests and a fresh non-holdout multilingual development diagnostic. A new independent holdout must be created only after that gate passes."
+}

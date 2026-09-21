@@ -1,0 +1,14 @@
+{
+    "gate":  10,
+    "completed_utc":  "2026-07-30T06:14:44.3588455Z",
+    "collection":  "nexusai-runtime-acceptance-20260730",
+    "fixture":  "pakistan_cdr_messy_synthetic.csv",
+    "total_rows":  5,
+    "accepted_unique_rows":  4,
+    "duplicate_rows":  1,
+    "rejected_rows":  0,
+    "idempotent_repeat":  "pass",
+    "authenticated_query_smoke":  "pass",
+    "real_evidence_used":  false,
+    "linked_reprocessing":  "pass"
+}
