@@ -53,5 +53,27 @@ local-ai
 protoc
 tests
 
+# Host-only developer/runtime artifacts. These previously added multiple GiB to
+# every root-context build even though no image stage consumes them. `.git` is
+# intentionally included because the upstream Dockerfile copies it to stamp the
+# LocalAI version and commit; the Phase 6 gate validates this contract early.
+.tmp
+.cache
+.gocache
+.codex-cache
+.codex-tmp
+.codex
+.phase2-backups
+local-acceptance-models
+local-acceptance-inputs
+localai-test-evidence
+
+# Local browser/test artifacts are never runtime inputs. Keeping them out of
+# the root context prevents a focused UI acceptance run from adding hundreds of
+# MiB to the next guarded LocalAI build.
+**/test-results
+**/playwright-report
+**/coverage
+
 # Installed via npm inside the build stage; no need to ship the host copy.
 **/node_modules

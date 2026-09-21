@@ -119,3 +119,47 @@ node_modules/
 core/http/react-ui/node_modules/
 core/http/react-ui/dist/
 models/
+.tmp/
+.cache/
+.codex-cache/
+.codex-tmp/
+.phase2-backups/
+.phase2-acceptance-payloads/
+.env.forensic-runtime.local
+
+# Local breadth-acceptance evidence and human transcripts may be sensitive.
+local-acceptance-inputs/
+local-acceptance-models/
+
+# ---------------------------------------------------------------------------
+# Added 2026-09-21 (Phase 0 — protect the working tree before implementation).
+# These are build caches and session scratch. `git add -A` without them sweeps
+# ~27,500 Go build-cache files into the repository.
+# ---------------------------------------------------------------------------
+
+# Go build/test caches from containerised and local verification runs
+.tmp-go-cache/
+.tmp-go-tmp/
+.tmp-final-local-go-cache/
+.tmp-final-local-go-tmp/
+.tmp-nxb21d-q4-qualification-go-tmp/
+.tmp-nxb21d-qwen3-8b-selection-go-tmp/
+.gotmp/
+
+# Agent / editor session scratch (never shared state — see NEXUSAI_CONTINUATION.md)
+.scratch3/
+.claude/
+.pytest_cache/
+
+# Session working scratch: run logs, one-off adjudication scripts, lockfiles.
+# Anything here that proved durable belongs in scripts/ or reports/ instead.
+/tmp/
+
+# Generated document output (regenerate from source; evidence lives in reports/)
+/output/
+
+# Compiled binaries captured inside report build-context dirs (8 x ~9 MB copies
+# of the same Go wrapper). The reports are evidence; the binaries are build
+# artifacts and are reproducible from source.
+reports/**/build-context/nexusai-ui-wrapper
+reports/**/context/nexusai-ui-wrapper

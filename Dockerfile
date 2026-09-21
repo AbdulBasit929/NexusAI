@@ -361,7 +361,11 @@ COPY --from=react-ui-builder /app/dist ./core/http/react-ui/dist
 ## Build the binary
 ## If we're on arm64 AND using cublas/hipblas, skip some of the llama-compat backends to save space
 ## Otherwise just run the normal build
-RUN make build
+ARG LOCALAI_BUILD_GOMAXPROCS
+ARG LOCALAI_BUILD_GOFLAGS
+RUN --mount=type=cache,target=/root/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    GOMAXPROCS="${LOCALAI_BUILD_GOMAXPROCS}" GOFLAGS="${LOCALAI_BUILD_GOFLAGS}" make build
 
 ###################################
 ###################################
