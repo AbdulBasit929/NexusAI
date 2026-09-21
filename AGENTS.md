@@ -1,23 +1,44 @@
 # LocalAI Agent Instructions
 
-## NexusAI Continuation Checkpoint
+## NexusAI — read this first
 
-For tasks materially concerning NexusAI Structured & Textual Intelligence
-Maturity (STIM), load and follow the repository skill at
-`.agents/skills/nexusai-structured-intelligence-maturity/SKILL.md` before
-modifying production source. Do not activate the STIM skill for unrelated work.
+For any NexusAI forensic-intelligence work in this repository, read
+[`NEXUSAI_CONTINUATION.md`](NEXUSAI_CONTINUATION.md) **in full** before changing
+files, services, models, or database state. It is capped at 300 lines and holds
+**current state only** — active work items, file ownership, open defects, pinned
+architecture decisions, hard rules, operational hazards, and the exact next
+action. **Rewrite it when a work item completes; never append to it.**
 
-For NexusAI forensic-intelligence work in this repository, read
-[`NEXUSAI_CONTINUATION.md`](NEXUSAI_CONTINUATION.md) before changing files,
-services, models, or database state. Treat it as the living project checkpoint
-and update its status ledger after every meaningful phase.
+Then read the document that matches your task:
 
-Also read
-[`docs/design/nexusai-family-adapter-agent-api-architecture.md`](docs/design/nexusai-family-adapter-agent-api-architecture.md)
-before changing forensic adapters, specialist agents, case/collection behavior,
-model-role selection, public forensic APIs, or the case-analysis UI. It is the
-approved target design; extend the current implementation toward it through
-bounded, tested vertical slices rather than a big-bang rewrite.
+| Task | Read |
+|---|---|
+| Why is the architecture this way? | [`docs/architecture/RECONCILIATION_20260921.md`](docs/architecture/RECONCILIATION_20260921.md) |
+| Query, planning, answer or Fact Packet work | same, §G (Governed Semantic Compiler) — **binding** |
+| Any UI work | [`docs/ux/NEXUSAI_PRODUCT_UX.md`](docs/ux/NEXUSAI_PRODUCT_UX.md) — **binding** |
+| What do I implement, exactly? | [`docs/work/MASTER_EXECUTION_PROMPT.md`](docs/work/MASTER_EXECUTION_PROMPT.md) |
+| Joining as Codex | [`.agents/CODEX.md`](.agents/CODEX.md) |
+| What is actually broken? | [`reports/nexusai-tl-audit-20260918/P0-baseline-report.md`](reports/nexusai-tl-audit-20260918/P0-baseline-report.md) |
+
+**Precedence:** source code and live behavior > `NEXUSAI_CONTINUATION.md` >
+`docs/architecture/RECONCILIATION_20260921.md` > this file > everything else.
+Reports are immutable evidence, never a statement of current state.
+
+**Superseded where they conflict, kept for provenance only:**
+`NEXUSAI_MASTER_DIRECTIVE.md`, `NEXUSAI_NEXT_CHAT_PROMPT.md`,
+`NEXUSAI_TL_DIRECTIVE_PROMPT_20260918.md`,
+`configuration/nexusai_stim_maturity_matrix.json` (dated 2026-09-14 — predates
+both the 09-17 auth incident and the 09-18 accuracy baseline),
+`docs/design/nexusai-family-adapter-agent-api-architecture.md`, and the STIM
+skill at `.agents/skills/nexusai-structured-intelligence-maturity/SKILL.md`.
+The append-only project log is archived at
+[`reports/archive/continuation-20260921.md`](reports/archive/continuation-20260921.md)
+(874 KB) — consult it only to trace a specific historical claim.
+
+**Three rules that override habit:** do not add operation templates (the catalog
+is frozen and will be deleted); do not evaluate or swap LLMs outside WI-0's
+written decision rule; do not use embeddings for structural decisions (family,
+group, measure, field role) — two live defects came from exactly that.
 
 This file is the entry point for AI coding assistants (Claude Code, Cursor, Copilot, Codex, Aider, etc.) working on LocalAI. It is an index to detailed topic guides in the `.agents/` directory. Read the relevant file(s) for the task at hand — you don't need to load all of them.
 
