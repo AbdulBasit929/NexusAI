@@ -239,6 +239,9 @@ func governedDerivedTextEvidence(rows []map[string]any, req hybridQueryRequest) 
 	}
 	windows, adjacencyUncertain := derivedTextWindows(rows, req)
 	rawUnavailable := false
+	// Decided ONCE for the request, not per row: whether it names anything to
+	// search for at all. See text_browse_guard.go.
+	untargetedBrowse := textBrowseGuardEnabled() && derivedTextRequestIsUntargeted(req)
 	terms := queryTerms(req.Query + " " + req.Target)
 	results := make([]map[string]any, 0, min(len(rows), req.MaxKBResults))
 	textRows, timedRows := 0, 0
@@ -356,14 +359,21 @@ func governedDerivedTextEvidence(rows []map[string]any, req hybridQueryRequest) 
 			metadata["start_seconds"] = locatorMap["start_seconds"]
 			metadata["end_seconds"] = locatorMap["end_seconds"]
 		}
-		results = append(results, map[string]any{
+		result := map[string]any{
 			"id":       artifactID,
 			"content":  derivedTextPreview(text, 2000),
 			"preview":  derivedTextPreview(text, 2000),
 			"score":    score,
 			"citation": fmt.Sprintf("nexusai://evidence/%s/artifacts/%s", row["evidence_id"], artifactID),
 			"metadata": metadata,
-		})
+		}
+		// AN UNTARGETED REQUEST GETS THE METADATA, NOT THE WORDS. Rationale,
+		// census and the six working search answers this must not break are in
+		// text_browse_guard.go.
+		if untargetedBrowse {
+			withholdBrowsePassageText(result)
+		}
+		results = append(results, result)
 	}
 	sort.SliceStable(results, func(i, j int) bool {
 		leftMeta, _ := results[i]["metadata"].(map[string]any)
@@ -373,6 +383,25 @@ func governedDerivedTextEvidence(rows []map[string]any, req hybridQueryRequest) 
 		if leftRaw != rightRaw {
 			return leftRaw
 		}
+		// RELEVANCE OUTRANKS CHRONOLOGY. Segments of one recording share an
+		// evidence and run, so ordering them by start time first meant score
+		// never broke the tie -- and truncation then kept the EARLIEST segment
+		// rather than the one the analyst asked about.
+		//
+		// Measured live 2026-09-23: "Which recording mentions coconut sugar and
+		// at what time?" returned three segments of one recording and, after
+		// truncation to one, kept "seasoned dishes ... peanut chilies" at 5.56s
+		// while "especially Japanese coconut sugar" sat at 11.28s and was
+		// discarded before the answer was built.
+		//
+		// A browse is unaffected: with no meaningful terms every score is
+		// equal, so this comparison falls through and chronological order
+		// governs exactly as before.
+		left, _ := results[i]["score"].(int)
+		right, _ := results[j]["score"].(int)
+		if left != right {
+			return left > right
+		}
 		if leftMeta["evidence_id"] == rightMeta["evidence_id"] && leftMeta["run_id"] == rightMeta["run_id"] {
 			leftStart, lok := transcriptSeconds(leftMeta["start_seconds"])
 			rightStart, rok := transcriptSeconds(rightMeta["start_seconds"])
@@ -380,9 +409,7 @@ func governedDerivedTextEvidence(rows []map[string]any, req hybridQueryRequest) 
 				return leftStart < rightStart
 			}
 		}
-		left, _ := results[i]["score"].(int)
-		right, _ := results[j]["score"].(int)
-		return left > right
+		return false
 	})
 	truncated := false
 	if req.MaxKBResults > 0 && len(results) > req.MaxKBResults {
@@ -414,7 +441,16 @@ func governedDerivedTextEvidence(rows []map[string]any, req hybridQueryRequest) 
 		completeness = "TRUNCATED"
 		state = "RESULTS_TRUNCATED"
 	}
-	return map[string]any{"candidate_scope": "completed_current_version_observations", "maximum_segment_window": 4, "search_completeness": completeness, "row_count": len(results), "mode": "governed_derived_text_" + mode, "query_mode": mode, "exact_term": exactTerm, "result_state": state, "results": results}
+	payload := map[string]any{"candidate_scope": "completed_current_version_observations", "maximum_segment_window": 4, "search_completeness": completeness, "row_count": len(results), "mode": "governed_derived_text_" + mode, "query_mode": mode, "exact_term": exactTerm, "result_state": state, "results": results}
+	// SAY THAT THE TEXT WAS WITHHELD. Returning fewer fields without saying so
+	// is the same defect as returning an empty 200: the analyst cannot tell a
+	// boundary from an absence.
+	if untargetedBrowse && len(results) > 0 {
+		payload["text_withheld"] = true
+		payload["text_withheld_reason"] = "PII_UNTARGETED_BROWSE"
+		payload["text_withheld_limitation"] = textBrowseWithheldLimitation
+	}
+	return payload
 }
 
 func selectDerivedTextResults(results []map[string]any, windows map[string][]map[string]any, req hybridQueryRequest) []map[string]any {

@@ -69,29 +69,97 @@ type SemanticRetrievalScoreV1 struct {
 }
 
 type SemanticPlannerAuditV1 struct {
-	FamilyDecision            string                               `json:"family_decision,omitempty"`
-	FamilyRaw                 string                               `json:"family_raw,omitempty"`
-	FamilyLatencyMS           int64                                `json:"family_latency_ms"`
-	OperationLatencyMS        int64                                `json:"operation_latency_ms"`
-	RegistryCandidateCount    int                                  `json:"registry_candidate_count"`
-	EligibleOperationCount    int                                  `json:"eligible_operation_count"`
-	RetrievedCandidates       []SemanticOperationCandidateV1       `json:"retrieved_candidates,omitempty"`
-	RetrievalScores           []SemanticRetrievalScoreV1           `json:"retrieval_scores,omitempty"`
-	TopK                      int                                  `json:"top_k"`
-	SelectedDecision          string                               `json:"selected_decision,omitempty"`
-	DynamicSelected           bool                                 `json:"dynamic_selected"`
-	RequestClass              string                               `json:"request_class"`
-	ScopeFilterReason         string                               `json:"scope_filter_reason"`
-	ContractVersion           string                               `json:"contract_version"`
-	Language                  string                               `json:"language"`
-	CandidateCount            int                                  `json:"candidate_count"`
-	Candidates                []SemanticOperationCandidateV1       `json:"candidates"`
-	RawProposal               string                               `json:"raw_model_proposal"`
-	ModelProposal             *SemanticOperationProposalV1         `json:"model_proposal,omitempty"`
-	Selected                  *SemanticOperationCandidateV1        `json:"selected_operation,omitempty"`
-	FactAuthority             string                               `json:"fact_authority"`
-	State                     string                               `json:"state"`
-	DynamicPlan               any                                  `json:"dynamic_plan,omitempty"`
+	FamilyDecision         string                         `json:"family_decision,omitempty"`
+	FamilyRaw              string                         `json:"family_raw,omitempty"`
+	FamilyLatencyMS        int64                          `json:"family_latency_ms"`
+	OperationLatencyMS     int64                          `json:"operation_latency_ms"`
+	RegistryCandidateCount int                            `json:"registry_candidate_count"`
+	EligibleOperationCount int                            `json:"eligible_operation_count"`
+	RetrievedCandidates    []SemanticOperationCandidateV1 `json:"retrieved_candidates,omitempty"`
+	RetrievalScores        []SemanticRetrievalScoreV1     `json:"retrieval_scores,omitempty"`
+	TopK                   int                            `json:"top_k"`
+	SelectedDecision       string                         `json:"selected_decision,omitempty"`
+	DynamicSelected        bool                           `json:"dynamic_selected"`
+	RequestClass           string                         `json:"request_class"`
+	ScopeFilterReason      string                         `json:"scope_filter_reason"`
+	ContractVersion        string                         `json:"contract_version"`
+	Language               string                         `json:"language"`
+	CandidateCount         int                            `json:"candidate_count"`
+	Candidates             []SemanticOperationCandidateV1 `json:"candidates"`
+	RawProposal            string                         `json:"raw_model_proposal"`
+	ModelProposal          *SemanticOperationProposalV1   `json:"model_proposal,omitempty"`
+	Selected               *SemanticOperationCandidateV1  `json:"selected_operation,omitempty"`
+	FactAuthority          string                         `json:"fact_authority"`
+	State                  string                         `json:"state"`
+	DynamicPlan            any                            `json:"dynamic_plan,omitempty"`
+	// IRFallbackOutcome records what the enum-constrained generator did when the
+	// deterministic compiler could not answer: accepted, or the specific check
+	// that discarded its plan. In a forensic product "why did the system answer
+	// this way" must be reconstructable months later, so this is an audit
+	// record, not debug output.
+	IRFallbackOutcome string `json:"ir_fallback_outcome,omitempty"`
+	// IRGenerationMS is how long the enum-constrained generation actually took.
+	//
+	// It was invisible. `llm_latency_ms` is assigned ONLY inside the bounded
+	// synthesis block, so a request that spent two minutes generating a plan
+	// reported `llm=0`. Measured 2026-09-24: CDR-02 reported
+	// total=119,835 ms · db=988 ms · llm=0 · kb=0 -- 119 seconds attributed to
+	// nothing at all, on a question whose SQL took under a second.
+	//
+	// This project's own hardest lesson is that the INSTRUMENT is fixed first:
+	// WI-6 found three runs had been mis-measured. Latency cannot be worked on
+	// until the dominant cost is on the record.
+	IRGenerationMS int64 `json:"ir_generation_ms,omitempty"`
+	// IRPlanCacheHit records that the plan came from a memoized completion
+	// rather than a fresh model call. "Why did the system answer this way"
+	// must be reconstructable months later, and "the model was not consulted
+	// for this answer" is part of that account -- without it, an audit reader
+	// cannot tell a 0 ms generation from a generation that never happened.
+	IRPlanCacheHit bool `json:"ir_plan_cache_hit,omitempty"`
+	// IRShadowOutcome/IRShadowPlan hold what the generator produced when shadow
+	// mode is on. Evidence for measuring field-selection accuracy against gold
+	// plans; never used to answer.
+	IRShadowOutcome string `json:"ir_shadow_outcome,omitempty"`
+	// IRArbitrated records that a generated plan REPLACED a clarification.
+	// "Why did the system answer this way" must be reconstructable months
+	// later, and an arbitrated answer has different provenance from a
+	// compiled one.
+	IRArbitrated bool `json:"ir_arbitrated,omitempty"`
+	// VerifiedOnlyWithheld marks an answer that existed and was NOT stated,
+	// because no verifiable plan backed it. Distinct from a question the
+	// compiler could not resolve.
+	VerifiedOnlyWithheld bool `json:"verified_only_withheld,omitempty"`
+	// WithholdCode/WithholdDetail say WHICH of the five withholding causes
+	// fired and what planner state explains it.
+	//
+	// The flag above is a bit: it records THAT an answer was held back, which
+	// was enough while there was one cause, and is not enough now that there
+	// are five. Measured 2026-09-24, 12 of 18 clarifications in the corpus were
+	// indistinguishable from each other in the recorded response, so "which
+	// coverage gap produces these" could not be answered from a completed run
+	// -- only by re-running each question and reading the prose.
+	WithholdCode   string `json:"withhold_code,omitempty"`
+	WithholdDetail string `json:"withhold_detail,omitempty"`
+	// DroppedInventedFilters names the fields whose filters were removed
+	// because the analyst never supplied their values. "Why did the system
+	// answer this way" must be reconstructable months later, and a plan that
+	// was PRUNED before execution has different provenance from one the
+	// generator produced whole.
+	DroppedInventedFilters []string `json:"dropped_invented_filters,omitempty"`
+	// CrossCheck records the second, independent derivation and whether it
+	// agreed. "Why did the system decline" must be answerable later, and a
+	// disagreement is a different event from an unresolvable question.
+	CrossCheck *crossCheckOutcome `json:"cross_check,omitempty"`
+	// IRShadowIssuedFields is the exact enum handed to the generator. Without
+	// it the safety property -- that a field outside the authorized set is
+	// structurally impossible -- cannot be checked from a recorded run at all:
+	// a hashed uncurated ID like fld_b4d5a2... is a legitimate enum member, and
+	// judging IDs by shape flags it as a violation it is not.
+	IRShadowIssuedFields []string            `json:"ir_shadow_issued_fields,omitempty"`
+	IRShadowPlan         *SourceNativePlanV1 `json:"ir_shadow_plan,omitempty"`
+	// IRShadowRejectedPlan is what the generator proposed when validation threw
+	// the plan away. Without it a rejection reason cannot be attributed.
+	IRShadowRejectedPlan      *SourceNativePlanV1                  `json:"ir_shadow_rejected_plan,omitempty"`
 	BindingState              string                               `json:"binding_state,omitempty"`
 	BindingInitialState       string                               `json:"binding_initial_state,omitempty"`
 	MissingFactKinds          []string                             `json:"missing_fact_kinds,omitempty"`

@@ -1,0 +1,193 @@
+contract_version: forensics.semantic-layer/v1
+family: image_ocr_observation
+record_type: image_ocr_observation
+display_name: Image text reads (unreviewed model observations)
+description: >
+  One row per text region read from image pixels. These are unreviewed model outputs,
+  not source-authored facts. Two producer generations use different confidence fields;
+  they remain separate because their scores are not established as interchangeable.
+synonyms: [image ocr, image text read, scene text, text region, model text read, image text]
+source:
+  table: derived_artifacts
+  artifact_type: forensics.image-ocr-observation/v1
+  payload: metadata
+default_measure: image_ocr_observation.record_count
+fields:
+  - id: image_ocr_observation.raw_text
+    display_name: Raw image text candidate
+    description: >
+      Text proposed from the source pixels; it may contain names, addresses or identifiers
+      that token patterns cannot exhaustively classify. It is withheld from typed projection
+      and untargeted browsing; governed targeted retrieval remains a separate cited path.
+    source_names: ["observation.raw_text"]
+    synonyms: [raw ocr text, recognized text, image text]
+    type: STRING
+    sensitivity: PII
+    redaction: WITHHELD
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, COUNT_DISTINCT]
+    projectable: true
+    groupable: false
+    sortable: false
+    distinct_capable: true
+  - id: image_ocr_observation.normalized_text
+    display_name: Normalized image text candidate
+    description: >
+      Normalized representation emitted only by the PaddleOCR multilingual recognizer.
+      Present on 46 of 309 retained observations; it remains an unreviewed model read
+      and may contain names, addresses or identifiers that token patterns cannot
+      exhaustively classify. It is withheld from typed projection and untargeted browsing;
+      governed targeted retrieval remains a separate cited path.
+    source_names: ["observation.normalized_text"]
+    synonyms: [normalized ocr text, normalized image text]
+    type: STRING
+    sensitivity: PII
+    redaction: WITHHELD
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, COUNT_DISTINCT]
+    projectable: true
+    groupable: false
+    sortable: false
+    distinct_capable: true
+  - id: image_ocr_observation.general_ocr_confidence
+    display_name: General OCR confidence
+    description: >
+      Recognition confidence emitted only by the Tesseract general scene-text recognizer,
+      from 0 to 1. Present on 263 of 309 retained observations and absent on the 46
+      PaddleOCR multilingual-region observations.
+    source_names: ["observation.confidence"]
+    synonyms: [ocr confidence, confidence, how confident, general ocr confidence, scene text confidence]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: image_ocr_observation.recognition_confidence
+    display_name: Selected recognizer confidence
+    description: >
+      Confidence of the selected PaddleOCR multilingual recognizer candidate, from 0 to 1.
+      Present on 46 of 309 retained observations and absent on the 263 Tesseract
+      general scene-text observations.
+    source_names: ["observation.recognition_confidence"]
+    synonyms: [paddleocr selected-recognizer confidence, paddleocr multilingual confidence]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: image_ocr_observation.detection_confidence
+    display_name: Text-region detection confidence
+    description: >
+      PaddleOCR confidence that the detected image region contains text; it is distinct
+      from confidence in the recognized characters. Present on 46 of 309 retained
+      observations and absent on the 263 Tesseract general scene-text observations.
+    source_names: ["observation.detection_confidence"]
+    synonyms: [paddleocr text-region detection confidence, paddleocr region detection score]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: image_ocr_observation.script_family
+    display_name: Detected script family
+    description: Script-family candidate for the text region; this is not a language-identification claim.
+    source_names: ["observation.script_family"]
+    synonyms: [script family, writing system, detected script]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: image_ocr_observation.language_claim
+    display_name: Language claim
+    description: >
+      Tesseract producer-supplied language claim. Present on 263 of 309 retained
+      observations; all 263 state undetermined. The 46 PaddleOCR observations omit this
+      field, and absence remains unavailable rather than undetermined.
+    source_names: ["observation.language_claim"]
+    synonyms: [ocr language, language identification]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: undetermined, display_name: Undetermined, synonyms: [unknown language, language unavailable]}
+  - id: image_ocr_observation.frame_timestamp_seconds
+    display_name: Video frame offset
+    description: >
+      Numeric seconds from the start of the source video for OCR performed on a sampled
+      video frame. Present on 40 of 309 retained observations; absence means the row does
+      not carry a frame offset and must not be interpreted as zero.
+    source_names: ["observation.frame_timestamp_seconds"]
+    synonyms: [frame time, video offset, frame timestamp seconds]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX, AVG]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: image_ocr_observation.review_state
+    display_name: Review state
+    description: >
+      Tesseract producer review state for the model output. Present on 263 of 309 retained
+      observations; the 46 PaddleOCR observations omit it, and absence is unavailable
+      rather than reviewed.
+    source_names: ["observation.review_state"]
+    synonyms: [ocr review state, candidate state]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: model_candidate, display_name: Model candidate, synonyms: [unreviewed model candidate, requires comparison]}
+  - id: image_ocr_observation.manual_review_required
+    display_name: Manual review required
+    description: >
+      Whether the PaddleOCR multilingual producer explicitly requires analyst review.
+      Present on 46 of 309 retained observations; the 263 Tesseract observations omit it,
+      and absence is unavailable rather than false.
+    source_names: ["observation.manual_review_required"]
+    synonyms: [needs manual review, requires review, unreviewed]
+    type: BOOLEAN
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: image_ocr_observation.source_truth_state
+    display_name: Source truth state
+    description: Provenance state distinguishing this derived text read from source-authored content.
+    source_names: [source_truth_state]
+    synonyms: [observation authority, derived observation state]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: derived_model_observation, display_name: Derived model observation, synonyms: [model observation, derived observation]}
+metrics:
+  - id: image_ocr_observation.record_count
+    display_name: Image text reads
+    description: Number of unreviewed OCR text-region observations.
+    synonyms: [how many image text reads, ocr region count, image text count]
+    aggregate: COUNT
+    type: NUMBER

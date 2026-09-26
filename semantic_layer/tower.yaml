@@ -1,0 +1,256 @@
+contract_version: forensics.semantic-layer/v1
+family: tower_location
+record_type: tower_location
+display_name: Cell towers
+description: >
+  One row per cell site with its fixed location. 5 rows in the demo case. This is a
+  reference table of tower locations, distinct from the cell-site dimension carried on a
+  CDR row — a question about which cell site handled calls is a CDR question, not this one.
+synonyms: [tower, towers, cell tower, cell towers, mast, base station]
+default_measure: tower.record_count
+
+fields:
+  - id: tower.site_code
+    display_name: Site code
+    description: Identifier of the tower site, e.g. PK-LHR-SYN-001.
+    source_names: ["Site Code", cell_site_id]
+    synonyms: [site code, tower id, site id, which tower]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+
+  - id: tower.latitude
+    display_name: Latitude
+    description: WGS84 latitude. Project together with longitude to answer where a tower is.
+    source_names: ["Latitude WGS84", latitude]
+    synonyms: [latitude, lat, coordinates, position]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX, AVG]
+    projectable: true
+    groupable: false
+    sortable: true
+
+  - id: tower.longitude
+    display_name: Longitude
+    description: WGS84 longitude. Project together with latitude to answer where a tower is.
+    source_names: ["Longitude WGS84", longitude]
+    synonyms: [longitude, lon, long]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX, AVG]
+    projectable: true
+    groupable: false
+    sortable: true
+
+  - id: tower.site_location
+    display_name: Site location
+    description: Human-readable description of where the tower is.
+    source_names: ["Site Location", location]
+    synonyms: [site location, address, place, where]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+
+  - id: tower.district
+    display_name: District
+    description: Administrative district the tower sits in.
+    source_names: [District, city]
+    synonyms: [district, area, region, city]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+
+  - id: tower.technology
+    display_name: Technology
+    description: Radio technology of the site.
+    source_names: [Technology]
+    synonyms: [technology, tech, radio, generation]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: LTE, display_name: LTE, synonyms: [lte, 4g]}
+      - {value: "3G", display_name: 3G, synonyms: [3g, umts]}
+      - {value: "5G", display_name: 5G, synonyms: [5g]}
+
+  - id: tower.site_status
+    display_name: Site status
+    description: Operational status of the site.
+    source_names: ["Site Status"]
+    synonyms: [site status, status, state]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: ACTIVE, display_name: Active, synonyms: [active, live, in service]}
+      - {value: PLANNED, display_name: Planned, synonyms: [planned, proposed]}
+      - {value: RETIRED, display_name: Retired, synonyms: [retired, decommissioned]}
+
+  - id: tower.lac
+    display_name: Location area code
+    description: Location area code of the site.
+    source_names: [LAC]
+    synonyms: [lac, location area code]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+
+  - id: tower.sector_id
+    display_name: Sector ID
+    description: Source-supplied identifier for a sector within a site.
+    source_names: ["Sector ID"]
+    synonyms: [sector id, sector code, radio sector]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+
+  - id: tower.site_name
+    display_name: Site name
+    description: Human-readable site name supplied by the tower reference source.
+    source_names: [site_name]
+    synonyms: [site name, tower name]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+
+  - id: tower.operator
+    display_name: Source-reported operator
+    description: >
+      Operator label supplied by the reference source. It is not treated as a current
+      operator determination derived from a prefix or external lookup.
+    source_names: [operator]
+    synonyms: [source reported operator, tower operator, network operator]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+
+  - id: tower.coverage_type
+    display_name: Coverage type
+    description: Coverage classification supplied by the tower reference source.
+    source_names: [coverage_type]
+    synonyms: [coverage type, coverage classification]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+
+  - id: tower.azimuth
+    display_name: Azimuth
+    description: Source-supplied antenna azimuth value. No measurement unit is inferred.
+    source_names: [Azimuth]
+    synonyms: [azimuth, antenna bearing]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX, AVG]
+    projectable: true
+    groupable: false
+    sortable: true
+
+  - id: tower.beam_width
+    display_name: Beam width
+    description: Source-supplied antenna beam-width value. No measurement unit is inferred.
+    source_names: ["Beam Width"]
+    synonyms: [beam width, antenna beam width]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX, AVG]
+    projectable: true
+    groupable: false
+    sortable: true
+
+  - id: tower.coordinate_datum
+    display_name: Coordinate datum
+    description: Source-declared reference datum for the supplied coordinates.
+    source_names: ["Coordinate Datum"]
+    synonyms: [coordinate datum, datum, coordinate reference]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+
+  - id: tower.uncertainty_radius_m
+    display_name: Coordinate uncertainty radius
+    description: Source-supplied coordinate uncertainty radius in metres.
+    source_names: ["Uncertainty Radius M"]
+    synonyms: [coordinate uncertainty radius, uncertainty radius, accuracy radius]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX, AVG]
+    projectable: true
+    groupable: false
+    sortable: true
+
+  - id: tower.updated_at
+    display_name: Reference updated time
+    description: Timestamp supplied for when the tower reference row was updated.
+    source_names: ["Updated At"]
+    synonyms: [reference updated time, updated at, last updated]
+    type: TIMESTAMP
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+
+  # Deliberately not curated: `TAC` is present in five rows, but the dataset does
+  # not establish what the acronym means in this export. Issuing a confident
+  # description would teach the planner an unsupported semantic claim.
+
+metrics:
+  - id: tower.record_count
+    display_name: Cell towers
+    description: Number of tower records.
+    synonyms: [how many towers, count, number of towers, how many cell sites]
+    aggregate: COUNT
+    type: NUMBER

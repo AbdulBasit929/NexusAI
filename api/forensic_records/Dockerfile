@@ -10,6 +10,10 @@ RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/forensic-records-a
 FROM gcr.io/distroless/static-debian12:nonroot
 
 COPY --from=builder /out/forensic-records-api /forensic-records-api
+# The curated semantic layer travels with the binary. It is OPTIONAL at runtime —
+# the compiler falls back to the inferred catalogue when it is absent — but
+# shipping it is what turns its verified definitions into answers.
+COPY semantic_layer /semantic_layer
 
 EXPOSE 8091
 ENTRYPOINT ["/forensic-records-api"]

@@ -148,6 +148,15 @@ func main() {
 		slog.Error("create spool dir", "error", err)
 		os.Exit(1)
 	}
+	// Repopulate the plan cache before serving. A cache that silently fails to
+	// load is indistinguishable from one that is working, and its whole purpose
+	// is a latency property someone will check -- so it says what it restored.
+	// Off unless FORENSIC_PLAN_CACHE and FORENSIC_PLAN_CACHE_DIR are both set.
+	if dir := semanticPlanCacheDir(); dir != "" {
+		loaded, skipped := loadSemanticPlanCache(dir)
+		slog.Info("restored semantic plan cache", "dir", dir, "entries", loaded,
+			"skipped_unusable", skipped, "bound", semanticPlanCacheMax)
+	}
 	evidenceStore, err := newContentAddressedStore(cfg.SpoolDir)
 	if err != nil {
 		slog.Error("initialize content-addressed evidence store", "error", err)

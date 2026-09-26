@@ -1,0 +1,117 @@
+contract_version: forensics.semantic-layer/v1
+family: anpr_model_observation
+record_type: anpr_model_observation
+display_name: ANPR plate reads (unreviewed model observations)
+description: >
+  One row per plate text candidate read from an image or video frame by a model. These
+  are unreviewed derived observations, not ingested ANPR source sightings and not proof
+  that a vehicle or plate was present. Review requirements and confidence signals remain
+  explicit so a model read cannot be mistaken for a source record.
+synonyms: [model plate read, model plate reads, image plate read, video frame plate read, derived anpr, plate read, plate detection]
+source:
+  table: derived_artifacts
+  artifact_type: forensics.anpr-observation/v1
+  payload: metadata
+default_measure: anpr_model_observation.record_count
+fields:
+  - id: anpr_model_observation.plate_text
+    display_name: Plate text candidate (model read)
+    description: >
+      Normalized text proposed by the plate recognizer; an unreviewed model observation,
+      not a confirmed registration or sighting. Projection requires one opaque, stable,
+      case-scoped plate alias shared with grouped video plate candidates; no raw prefix or
+      suffix is retained.
+    source_names: ["observation.normalized_plate_text"]
+    synonyms: [plate text candidate, model plate, read plate]
+    type: STRING
+    sensitivity: PII
+    redaction: MASKED
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, COUNT_DISTINCT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+  - id: anpr_model_observation.ocr_confidence
+    display_name: Plate-text recognition confidence
+    description: Model confidence in the proposed plate text, from 0 to 1; it is not evidence of vehicle identity.
+    source_names: ["observation.ocr_confidence"]
+    synonyms: [ocr confidence, plate read confidence, recognition confidence]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: anpr_model_observation.detection_confidence
+    display_name: Plate-region detection confidence
+    description: Model confidence that the image region contains a plate, from 0 to 1; it is separate from confidence in the text read.
+    source_names: ["observation.detection_confidence"]
+    synonyms: [plate detection confidence, region detection confidence, detector confidence]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: anpr_model_observation.crop_size_score
+    display_name: Relative plate-crop size score
+    description: >
+      Bounded score derived from the plate crop area relative to its frame. It is not OCR
+      accuracy, and no governed threshold currently defines a low-quality plate crop.
+    source_names: ["observation.crop_quality"]
+    synonyms: [plate crop size score, relative crop size]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: anpr_model_observation.manual_review_required
+    display_name: Manual review required
+    description: Whether the producer explicitly requires analyst review; an absent value is unavailable, not false.
+    source_names: ["observation.manual_review_required"]
+    synonyms: [needs manual review, requires review, unreviewed]
+    type: BOOLEAN
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: anpr_model_observation.interpolated
+    display_name: Interpolated observation
+    description: Whether the producer marks the plate observation as interpolated rather than directly read from a processed frame.
+    source_names: ["observation.interpolated"]
+    synonyms: [interpolated plate read, inferred between frames]
+    type: BOOLEAN
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: anpr_model_observation.source_truth_state
+    display_name: Source truth state
+    description: Provenance state distinguishing this derived model observation from an ingested source record.
+    source_names: [source_truth_state]
+    synonyms: [observation authority, derived observation state]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: derived_model_observation, display_name: Derived model observation, synonyms: [model observation, derived observation]}
+metrics:
+  - id: anpr_model_observation.record_count
+    display_name: Model plate reads
+    description: Number of unreviewed plate-read observations; this is not a count of ingested ANPR sightings.
+    synonyms: [how many model plate reads, plate read count, number of plate candidates]
+    aggregate: COUNT
+    type: NUMBER

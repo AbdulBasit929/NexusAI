@@ -1,0 +1,104 @@
+contract_version: forensics.semantic-layer/v1
+family: video_sampled_frame
+record_type: video_sampled_frame
+display_name: Sampled video frames (derived technical observations)
+description: >
+  One row per retained sampled-frame technical observation. The exact observation-type
+  discriminator limits this entity to 6 rows and excludes still-image metadata. Six
+  rows are a small population: aggregates are arithmetically valid but forensically thin
+  and must not be presented as broad video coverage.
+synonyms: [sampled video frame, video frame sample, extracted frame metadata]
+source:
+  table: derived_artifacts
+  artifact_type: forensics.image-observation/v1
+  payload: metadata
+  observation_type: video_sampled_frame_observation
+default_measure: video_sampled_frame.record_count
+fields:
+  - id: video_sampled_frame.frame_number
+    display_name: Source frame number
+    description: Frame index reported for the sampled frame under the accompanying frame-number semantics.
+    source_names: ["observation.frame_number"]
+    synonyms: [frame number, video frame index, sampled frame number]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: video_sampled_frame.frame_number_semantics
+    display_name: Frame-number semantics
+    description: Producer statement describing how the reported frame index was derived.
+    source_names: ["observation.frame_number_semantics"]
+    synonyms: [frame number meaning, frame index semantics]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: estimated_from_best_effort_timestamp_and_declared_fps, display_name: Estimated from timestamp and declared frame rate, synonyms: [estimated frame index]}
+  - id: video_sampled_frame.sampling_interval_seconds
+    display_name: Sampling interval
+    description: Declared general sampling cadence in seconds; it is not the exact timestamp of an event.
+    source_names: ["observation.sampling_interval_seconds"]
+    synonyms: [frame sampling interval, sampling cadence, interval seconds]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: video_sampled_frame.sampling_strategy
+    display_name: Sampling strategy
+    description: Producer-declared strategy used to choose sampled frames across the source duration.
+    source_names: ["observation.sampling_strategy"]
+    synonyms: [frame sampling strategy, video sampling method]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: full_duration_bounded_general_cadence, display_name: Bounded cadence across full duration, synonyms: [full duration bounded cadence]}
+  - id: video_sampled_frame.storage_state
+    display_name: Storage state
+    description: Retention state recorded for the sampled-frame derivative; it does not describe source-video content.
+    source_names: ["observation.storage_state"]
+    synonyms: [sampled frame storage, frame retention state]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: ephemeral_processing_derivative, display_name: Ephemeral processing derivative, synonyms: [ephemeral derivative]}
+  - id: video_sampled_frame.source_truth_state
+    display_name: Source truth state
+    description: Provenance state distinguishing the sampled frame metadata from source-authored evidence content.
+    source_names: [source_truth_state]
+    synonyms: [observation authority, derived observation state]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: derived_technical_observation, display_name: Derived technical observation, synonyms: [technical observation, derived metadata]}
+metrics:
+  - id: video_sampled_frame.record_count
+    display_name: Sampled video frames
+    description: Number of retained sampled-frame observations; the current six-row population is forensically thin.
+    synonyms: [how many sampled frames, video frame sample count]
+    aggregate: COUNT
+    type: NUMBER

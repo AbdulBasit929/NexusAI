@@ -1,0 +1,137 @@
+contract_version: forensics.semantic-layer/v1
+family: face_model_observation
+record_type: face_model_observation
+display_name: Face detections (unreviewed model observations)
+description: >
+  One row per model-produced face candidate. A detection or similarity vector does not
+  establish identity. The vector, face crop, crop digest and bounding box are deliberately
+  excluded; only review, confidence, crop-dimension and embedding-lineage metadata are curated.
+synonyms: [face detection, face candidate, model face observation, detected face, face crop, face vector]
+source:
+  table: derived_artifacts
+  artifact_type: forensics.face-observation/v1
+  payload: metadata
+default_measure: face_model_observation.record_count
+fields:
+  - id: face_model_observation.detection_confidence
+    display_name: Face-region detection confidence
+    description: Model confidence that the cited image region contains a face; it is not confidence in a person's identity.
+    source_names: ["observation.detection_confidence"]
+    synonyms: [face detection confidence, detector confidence]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: face_model_observation.crop_width_pixels
+    display_name: Face-crop width
+    description: Width in pixels of the detected face crop; it is a dimension, not a quality classification.
+    source_names: ["observation.quality.crop_width_pixels"]
+    synonyms: [face crop width, crop width pixels]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: face_model_observation.crop_height_pixels
+    display_name: Face-crop height
+    description: Height in pixels of the detected face crop; it is a dimension, not a quality classification.
+    source_names: ["observation.quality.crop_height_pixels"]
+    synonyms: [face crop height, crop height pixels]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: face_model_observation.minimum_crop_dimension_pixels
+    display_name: Minimum face-crop dimension
+    description: Smaller of the detected face crop's width and height in pixels; no governed threshold currently defines low quality.
+    source_names: ["observation.quality.minimum_dimension_pixels"]
+    synonyms: [minimum face crop dimension, smallest crop dimension]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: face_model_observation.embedding_dimension
+    display_name: Face-vector dimension
+    description: Number of numeric components in the retained similarity vector; the vector itself is excluded and cannot be used as a structural field.
+    source_names: ["observation.embedding_dimension"]
+    synonyms: [face embedding dimension, vector dimension]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: face_model_observation.embedding_model
+    display_name: Face-vector producer identifier
+    description: Identifier recorded for the component that produced the similarity vector; it says nothing about identity or match validity.
+    source_names: ["observation.embedding_model"]
+    synonyms: [face embedding model, vector producer]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: face_model_observation.embedding_status
+    display_name: Face-vector availability
+    description: Whether a similarity vector is recorded for the face candidate; availability does not establish identity or similarity.
+    source_names: ["observation.embedding_status"]
+    synonyms: [face embedding status, vector availability]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: available, display_name: Available, synonyms: [vector available]}
+      - {value: unavailable, display_name: Unavailable, synonyms: [vector unavailable]}
+  - id: face_model_observation.review_state
+    display_name: Review state
+    description: Producer review state for the face candidate; a model candidate is unreviewed and must not be treated as an identified person.
+    source_names: ["observation.review_state"]
+    synonyms: [face review state, candidate state]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: model_candidate, display_name: Model candidate, synonyms: [unreviewed face candidate]}
+  - id: face_model_observation.source_truth_state
+    display_name: Source truth state
+    description: Provenance state distinguishing the face candidate from a source-authored identity fact.
+    source_names: [source_truth_state]
+    synonyms: [observation authority, derived observation state]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: derived_model_observation, display_name: Derived model observation, synonyms: [model observation, derived observation]}
+metrics:
+  - id: face_model_observation.record_count
+    display_name: Face candidates
+    description: Number of unreviewed face-detection model observations, not a count of identified people.
+    synonyms: [how many face candidates, face detection count]
+    aggregate: COUNT
+    type: NUMBER

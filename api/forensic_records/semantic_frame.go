@@ -64,6 +64,7 @@ type SemanticFrameV1 struct {
 }
 
 var semanticFrameFieldPhrase = regexp.MustCompile(`(?i)\b(?:average|avg|sum|total|minimum|min|maximum|max)\s+([\p{L}\p{N}_ -]{1,80}?)(?:\s+(?:by|per|for|among|where|over|under|above|below)|[?.!,]|$)`)
+
 // "Which <dimension> <verb> ..." names the grouping dimension of a ranking
 // question. Two-word dimensions are limited to a closed set of second words
 // so a verb is never captured as part of the dimension.
@@ -159,14 +160,79 @@ func semanticFrameGoal(terms map[string]bool, question string) string {
 		return "timeline"
 	case semanticTermsContain(terms, "summarize", "summary", "overview", "status", "statuses"):
 		return "summarize"
-	case semanticTermsContain(terms, "distinct", "unique"):
+	// "distinct" and "unique" are unambiguous. "DIFFERENT" IS NOT: it modifies a
+	// ranking just as often as it asks for a distinct count. Measured across the
+	// 75-question corpus, exactly two questions carry it:
+	//
+	//	H1     "how many DIFFERENT handsets show up"        -> a distinct count
+	//	CDR-07 "who talked to the MOST DIFFERENT people?"   -> a RANKING
+	//
+	// The `distinct` case sits ABOVE `rank` in this switch, so an unguarded
+	// "different" would capture CDR-07 and hand a ranking question to S4's
+	// distinct narrowing, which withdraws the row-count variant and offers no
+	// grouping. WI-31 is the precedent: adding "breakdown" to the aggregate case
+	// looked equally safe and produced a confident wrong answer.
+	//
+	// So "different" only implies a distinct count when no superlative is
+	// present. The superlative list is the SAME one the rank case below uses --
+	// two lists that could disagree about one sentence is the defect pattern
+	// this project keeps paying for.
+	case semanticTermsContain(terms, "distinct", "unique"),
+		semanticTermsContain(terms, "different") &&
+			!semanticTermsContain(terms, semanticRankMarkers...):
 		return "distinct"
 	case semanticTermsContain(terms, "exist", "exists", "whether"):
 		return "existence"
 	case semanticTermsContain(terms, "source") && semanticTermsContain(terms, "row", "rows", "record", "records"):
 		return "source_rows"
-	case semanticTermsContain(terms, "top", "most", "least", "highest", "lowest", "largest", "smallest", "greatest", "rank", "frequent"):
+	// REVERTED WITH ITS PAIR 2026-09-25, and never measured on its own.
+	// "longest"/"shortest" were added here alongside "breakdown" in the
+	// aggregate case below. The run produced one confident-wrong answer, which
+	// was attributable to "breakdown" — CDR-15, "what was the longest call?",
+	// stayed CORRECT throughout — but the declared threshold reverts the change,
+	// not the half of it that looks guilty.
+	//
+	// So this remains a SEPARABLE, UNMEASURED candidate: `semanticFrameMeasure`
+	// already maps "longest" to MAX, so the measure is right while the goal
+	// falls to the `lookup` default and skips shape verification. Retrying it
+	// requires its own run against the same threshold.
+	case semanticTermsContain(terms, semanticRankMarkers...):
 		return "rank"
+	// A date range is TWO values, MIN and MAX of a time field — one number
+	// cannot express it. Without this the question fell through to "lookup" and
+	// returned a page of rows: measured 2026-09-22, "what date range do the CDR
+	// records cover" projected every field over 20 rows. The curated layer has
+	// always declared the capability — cdr.event_time's description says MIN/MAX
+	// of it answers exactly this — so honouring it is reading the layer, not
+	// special-casing a question. Both a range noun AND a time word are required,
+	// so "which period had the most calls" stays a ranking.
+	case semanticTermsContain(terms, "range", "period", "span") &&
+		semanticTermsContain(terms, "cover", "covers", "covered", "date", "dates", "time", "times"):
+		return "range"
+	// MEASURED AND REVERTED 2026-09-25. "breakdown" was added here and ACC-02,
+	// "show the breakdown of HTTP status codes in the access logs", went from
+	// CORRECT to CONFIDENT-WRONG: it answered "There are 1,000 access log
+	// entries in this case" — a total where a breakdown was asked for.
+	//
+	// The reason is a GAP IN THIS TAXONOMY, not a bad term choice. There is no
+	// `breakdown` goal. `aggregate` with no group-by hints resolves to shape
+	// `scalar` in `s9QuestionShape`, so classifying an explicit breakdown as
+	// `aggregate` actively asserts it is a single number. Leaving it in the
+	// `lookup` default is wrong too — that means "unrecognised" and skips shape
+	// verification entirely — but it is wrong in the safe direction.
+	//
+	// A real fix introduces a breakdown goal that carries a grouping
+	// obligation, which is a taxonomy change, not a vocabulary one.
+	// See reports/tier-decision-20260924/GOAL_CLASSIFICATION_RULE.md.
+	// SLICE 1 OF THE TAXONOMY FIX, behind FORENSIC_BREAKDOWN_GOAL (default off).
+	// It sits HERE, above `aggregate`, because the reverted WI-31 attempt put
+	// the same vocabulary INSIDE the aggregate case and that is precisely what
+	// made ACC-02 answer a total: `aggregate` with no group hints resolves to
+	// shape `scalar`. `breakdown` resolves to shape `breakdown`, which refuses
+	// an ungrouped plan instead of asserting it is one number. See
+	// breakdown_goal.go.
+	case breakdownGoal(question) != "":
+		return "breakdown"
 	case semanticTermsContain(terms, "average", "sum", "count", "total", "minimum", "maximum", "many"):
 		return "aggregate"
 	case semanticTermsContain(terms, "find", "search", "mention", "mentions", "phrase", "occurrence"):
@@ -403,4 +469,24 @@ func sortedSemanticFrameStrings(values []string) []string {
 	out := append([]string(nil), values...)
 	sort.Strings(out)
 	return out
+}
+
+// semanticRankMarkers are the superlatives that make a question a RANKING.
+//
+// Named once and shared by the `rank` case and the `different` guard above.
+// They were two literal lists until 2026-09-25; the whole point is that one
+// sentence cannot be read as a ranking by one rule and a distinct count by
+// another.
+// "fewest"/"fewer" were absent until 2026-09-25 and the gap was found by this
+// change's own control test: "which number had the FEWEST DIFFERENT contacts?"
+// classified as a distinct count because no superlative vetoed it. Measured
+// before adding: zero questions in the 75-question corpus carry either word, so
+// nothing already measured moves.
+//
+// "longest"/"shortest" are deliberately NOT here. They were reverted with the
+// WI-31 vocabulary change and remain a separable candidate that has never been
+// measured on its own; adding them here would smuggle that in unmeasured.
+var semanticRankMarkers = []string{
+	"top", "most", "least", "fewest", "fewer", "highest", "lowest",
+	"largest", "smallest", "greatest", "rank", "frequent",
 }

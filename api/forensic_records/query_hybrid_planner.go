@@ -89,6 +89,15 @@ type HybridPlannerAuditV1 struct {
 	FinalPlan      *DynamicPlannerProposalV1 `json:"final_plan"`
 	ResolvedTarget string                    `json:"resolved_target"`
 	State          string                    `json:"state"`
+	// DecisionLatencyMS is the residual-choice model call. It was the THIRD
+	// untimed LLM call found in one session: measured 2026-09-24, five
+	// questions produced five /v1/chat/completions calls while reporting both
+	// `llm_latency_ms=0` and `ir_generation_ms=0`, roughly 16 s each.
+	//
+	// It stays zero when the choice was deterministic, which is the common and
+	// cheap path -- a non-zero value means a model was consulted to pick
+	// between server-issued tuples.
+	DecisionLatencyMS int64 `json:"decision_latency_ms,omitempty"`
 }
 
 func hybridIdentifierSpans(query string) []HybridIdentifierV1 {
@@ -460,14 +469,29 @@ func assembleHybridPlan(req hybridQueryRequest, f HybridFactsV1, tuple HybridTup
 }
 
 func hybridResolvedStatus(status string) bool {
-	return status == "hybrid_deterministic_plan" || status == "hybrid_model_plan" || status == "semantic_model_plan" || status == "semantic_dynamic_plan" || status == "semantic_deterministic_registered" || status == "semantic_deterministic_dynamic"
+	return status == "hybrid_deterministic_plan" || status == "hybrid_model_plan" || status == "semantic_model_plan" || status == "semantic_dynamic_plan" || status == "semantic_deterministic_registered" || status == "semantic_deterministic_dynamic" ||
+		// The enum-constrained IR fallback. It carries its own state so the audit
+		// records which stage answered, but a plan it produced has already passed
+		// S6, S9 SHAPE and CONSTRAINT_APPLIED — omitting it here silently threw
+		// away three valid plans and clarified instead.
+		status == "semantic_ir_fallback"
 }
 
 func resolveHybridPlanner(ctx context.Context, cfg config, req hybridQueryRequest) (hybridQueryRequest, string) {
 	req, f := extractHybridFacts(req)
 	audit := &HybridPlannerAuditV1{Facts: f, Candidates: buildHybridTuples(req, f), DecisionSource: "DETERMINISTIC_FACT", Reconciliation: []string{}}
 	req.HybridAudit = audit
-	finish := func(state string) (hybridQueryRequest, string) { audit.State = state; return req, state }
+	// Time the residual-choice model call. Every exit runs through finish, so
+	// recording here covers the paths that fail mid-call as well as the ones
+	// that succeed -- a call that times out cost the analyst that time too.
+	decisionStart := time.Time{}
+	finish := func(state string) (hybridQueryRequest, string) {
+		if !decisionStart.IsZero() {
+			audit.DecisionLatencyMS = time.Since(decisionStart).Milliseconds()
+		}
+		audit.State = state
+		return req, state
+	}
 	if f.State != "" {
 		return finish(f.State)
 	}
@@ -481,6 +505,7 @@ func resolveHybridPlanner(ctx context.Context, cfg config, req hybridQueryReques
 			return finish("unavailable")
 		}
 		audit.DecisionSource = "MODEL_DECISION"
+		decisionStart = time.Now()
 		choices, _ := json.Marshal(audit.Candidates)
 		body, _ := json.Marshal(map[string]any{"model": req.SynthesisModel, "temperature": 0, "max_tokens": dynamicPlannerMaxCompletionTokens, "response_format": map[string]any{"type": "json_schema", "json_schema": map[string]any{"name": "forensic_hybrid_decision_v2", "strict": true, "schema": hybridResidualSchema(audit.Candidates)}}, "messages": []map[string]string{{"role": "system", "content": "Choose one server-issued tuple matching the analyst's residual intent. Return only a one-field JSON object: {\"decision\":\"<one allowed enum value>\"}. Never generate facts, parameters, scope, tools or operations. Choose CLARIFY:AMBIGUOUS_INTENT for ambiguous intent or CLARIFY:INSUFFICIENT_FACTS for insufficient facts; otherwise choose one tuple ID."}, {"role": "user", "content": req.Query + "\nValid tuples:\n" + string(choices)}}})
 		timeout := languageAssistanceTimeout

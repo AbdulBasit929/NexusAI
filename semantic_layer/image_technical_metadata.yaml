@@ -1,0 +1,264 @@
+contract_version: forensics.semantic-layer/v1
+family: image_technical_metadata
+record_type: image_technical_metadata
+display_name: Image technical metadata (derived observations)
+description: >
+  One row per retained still-image technical observation. The exact observation-type
+  discriminator limits this entity to 20 image technical rows and excludes sampled
+  video frames. These derived measurements describe the source container and decode
+  checks; they do not state what the image depicts.
+synonyms: [image technical metadata, image dimensions, image format, image decode checks]
+source:
+  table: derived_artifacts
+  artifact_type: forensics.image-observation/v1
+  payload: metadata
+  observation_type: image_technical_observation
+default_measure: image_technical_metadata.record_count
+fields:
+  - id: image_technical_metadata.format
+    display_name: Image format
+    description: Source image format reported by the bounded technical inspection.
+    source_names: ["observation.source_metadata.format"]
+    synonyms: [image format, file format, image type]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: jpeg, display_name: JPEG, synonyms: [jpg]}
+      - {value: png, display_name: PNG, synonyms: [portable network graphics]}
+  - id: image_technical_metadata.color_model
+    display_name: Colour model
+    description: Colour model reported for the source image; it does not describe image content.
+    source_names: ["observation.source_metadata.color_model"]
+    synonyms: [color model, colour model, image color space, image colour space]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: rgb, display_name: RGB, synonyms: [red green blue]}
+      - {value: ycbcr, display_name: YCbCr, synonyms: [luma chroma]}
+  - id: image_technical_metadata.width_pixels
+    display_name: Encoded width
+    description: Width in pixels reported from the encoded image dimensions.
+    source_names: ["observation.source_metadata.width_pixels"]
+    synonyms: [image width, width pixels, encoded width]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: image_technical_metadata.height_pixels
+    display_name: Encoded height
+    description: Height in pixels reported from the encoded image dimensions.
+    source_names: ["observation.source_metadata.height_pixels"]
+    synonyms: [image height, height pixels, encoded height]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: image_technical_metadata.display_width_pixels
+    display_name: Orientation-adjusted width
+    description: >
+      Display width after applying the recorded EXIF orientation. Present on 8 of
+      20 retained still-image technical observations; absence is unavailable, not zero.
+    source_names: ["observation.source_metadata.display_width_pixels"]
+    synonyms: [display width, oriented width, orientation adjusted width]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: image_technical_metadata.display_height_pixels
+    display_name: Orientation-adjusted height
+    description: >
+      Display height after applying the recorded EXIF orientation. Present on 8 of
+      20 retained still-image technical observations; absence is unavailable, not zero.
+    source_names: ["observation.source_metadata.display_height_pixels"]
+    synonyms: [display height, oriented height, orientation adjusted height]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: image_technical_metadata.exif_orientation
+    display_name: EXIF orientation code
+    description: >
+      Numeric EXIF orientation code retained on 8 of 20 still-image technical
+      observations. No EXIF free text or GPS metadata is exposed.
+    source_names: ["observation.source_metadata.exif_orientation"]
+    synonyms: [exif orientation, orientation code]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: image_technical_metadata.exif_orientation_label
+    display_name: EXIF orientation label
+    description: >
+      Governed orientation label retained on 8 of 20 still-image technical
+      observations. Absence means no label was stored.
+    source_names: ["observation.source_metadata.exif_orientation_label"]
+    synonyms: [orientation label, exif orientation label]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: top_left, display_name: Top left, synonyms: [normal orientation]}
+  - id: image_technical_metadata.source_size_bytes
+    display_name: Source size
+    description: Source image size in bytes reported by the bounded inspection.
+    source_names: ["observation.source_metadata.source_size_bytes"]
+    synonyms: [image size bytes, source bytes, file size]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: image_technical_metadata.pixel_count
+    display_name: Encoded pixel count
+    description: Product of the encoded width and height as reported by the technical inspection.
+    source_names: ["observation.source_metadata.pixel_count"]
+    synonyms: [pixel count, total pixels, image pixels]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: image_technical_metadata.container_boundary_validated
+    display_name: Container boundary validated
+    description: Whether the bounded inspection validated the reported image-container boundary.
+    source_names: ["observation.source_metadata.container_boundary_validated"]
+    synonyms: [container boundary valid, image boundary validated]
+    type: BOOLEAN
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: image_technical_metadata.extension_content_match
+    display_name: Extension matches content
+    description: Whether the observed image content signature matched the source filename extension.
+    source_names: ["observation.source_metadata.extension_content_match"]
+    synonyms: [extension content match, file extension matches image]
+    type: BOOLEAN
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: image_technical_metadata.downstream_decode_allowed
+    display_name: Downstream decode allowed
+    description: Whether the intake validation allowed subsequent bounded image decoding.
+    source_names: ["observation.source_metadata.downstream_decode_allowed"]
+    synonyms: [decode allowed, downstream image decode]
+    type: BOOLEAN
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: image_technical_metadata.decode_review_required
+    display_name: Decode review required
+    description: Whether the intake validator explicitly required review before image decoding.
+    source_names: ["observation.source_metadata.decode_review_required"]
+    synonyms: [decode needs review, image decode review]
+    type: BOOLEAN
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: image_technical_metadata.validation_state
+    display_name: Metadata validation state
+    description: Retained validation state for the bounded image-metadata inspection.
+    source_names: ["observation.source_metadata.validation_state"]
+    synonyms: [image validation state, metadata validation]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: accepted_metadata_only, display_name: Metadata accepted, synonyms: [metadata only accepted]}
+  - id: image_technical_metadata.inspection_mode
+    display_name: Inspection scope
+    description: Scope recorded for the bounded image inspection; it is not an image-content finding.
+    source_names: ["observation.source_metadata.inspection_mode"]
+    synonyms: [image inspection scope, metadata inspection mode]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: bounded_header_only, display_name: Bounded header only, synonyms: [header only inspection]}
+  - id: image_technical_metadata.metadata_privacy_policy
+    display_name: Metadata privacy policy
+    description: Privacy rule recorded for retained image metadata; free-text EXIF and GPS values are excluded.
+    source_names: ["observation.source_metadata.metadata_privacy_policy"]
+    synonyms: [image metadata privacy, exif privacy policy]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: orientation_only_no_exif_free_text_or_gps, display_name: Orientation only; no EXIF text or GPS, synonyms: [orientation metadata only]}
+  - id: image_technical_metadata.source_truth_state
+    display_name: Source truth state
+    description: Provenance state distinguishing this derived technical metadata from source-authored image content.
+    source_names: [source_truth_state]
+    synonyms: [observation authority, derived observation state]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: derived_technical_observation, display_name: Derived technical observation, synonyms: [technical observation, derived metadata]}
+metrics:
+  - id: image_technical_metadata.record_count
+    display_name: Still-image technical observations
+    description: Number of retained still-image technical observations; sampled video frames are excluded by the exact discriminator.
+    synonyms: [how many image metadata observations, still image metadata count]
+    aggregate: COUNT
+    type: NUMBER

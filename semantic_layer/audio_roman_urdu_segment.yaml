@@ -1,0 +1,180 @@
+contract_version: forensics.semantic-layer/v1
+family: audio_roman_urdu_segment
+record_type: audio_roman_urdu_segment
+display_name: Roman-Urdu transcript representations (unreviewed derived text)
+description: >
+  One row per Roman-Urdu representation derived from an Urdu transcript segment. It is
+  an analyst-aid representation, not an independent source statement; both text forms
+  require review and may contain personal identifiers. The retained rows comprise 6
+  standalone-audio representations and 1 from a video's embedded audio track; source
+  modality is exposed rather than hidden or split into a second vocabulary.
+synonyms: [roman urdu transcript, roman-urdu segment, urdu transliteration, derived transcript representation]
+source:
+  table: derived_artifacts
+  artifact_type: forensics.audio-roman-urdu-segment/v1
+  payload: metadata
+default_measure: audio_roman_urdu_segment.record_count
+fields:
+  - id: audio_roman_urdu_segment.source_modality
+    display_name: Source modality
+    description: >
+      Whether the representation came from standalone audio or a video's embedded audio
+      track. Present on all 7 retained rows: 6 standalone and 1 video-embedded.
+    source_names: [observation_type]
+    synonyms: [audio source modality, roman urdu transcript source, standalone or video audio]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: audio_roman_urdu_segment, display_name: Standalone audio, synonyms: [standalone roman urdu transcript]}
+      - {value: video_embedded_audio_roman_urdu_segment, display_name: Video-embedded audio, synonyms: [video roman urdu transcript, embedded audio representation]}
+  - id: audio_roman_urdu_segment.raw_urdu_text
+    display_name: Urdu transcript text candidate
+    description: >
+      Urdu-script model transcript from which the Roman-Urdu representation was derived.
+      It may carry names, addresses or identifiers that token patterns cannot exhaustively
+      classify, so it is withheld from typed projection and untargeted browsing; governed
+      targeted retrieval remains a separate cited path.
+    source_names: ["observation.raw_urdu_text"]
+    synonyms: [urdu transcript, urdu text, source urdu text]
+    type: STRING
+    sensitivity: PII
+    redaction: WITHHELD
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, COUNT_DISTINCT]
+    projectable: true
+    groupable: false
+    sortable: false
+    distinct_capable: true
+  - id: audio_roman_urdu_segment.roman_urdu_text
+    display_name: Roman-Urdu text candidate
+    description: >
+      Deterministic Latin-script representation of the Urdu transcript, not an independent
+      transcription. It inherits the source text's PII and is withheld from typed projection
+      and untargeted browsing; governed targeted retrieval remains a separate cited path.
+    source_names: ["observation.roman_urdu_text"]
+    synonyms: [roman urdu text, transliterated transcript, latin urdu]
+    type: STRING
+    sensitivity: PII
+    redaction: WITHHELD
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, COUNT_DISTINCT]
+    projectable: true
+    groupable: false
+    sortable: false
+    distinct_capable: true
+  - id: audio_roman_urdu_segment.start_seconds
+    display_name: Segment start offset
+    description: Numeric seconds from the start of the source media to the represented segment start.
+    source_names: ["observation.start_seconds"]
+    synonyms: [start seconds, segment start, audio start time]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX, AVG]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: audio_roman_urdu_segment.end_seconds
+    display_name: Segment end offset
+    description: Numeric seconds from the start of the source media to the represented segment end.
+    source_names: ["observation.end_seconds"]
+    synonyms: [end seconds, segment end, audio end time]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX, AVG]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: audio_roman_urdu_segment.source_language
+    display_name: Source language tag
+    description: Language tag recorded for the source transcript representation.
+    source_names: ["observation.source_language"]
+    synonyms: [source language, urdu language tag]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: ur, display_name: Urdu, synonyms: [urdu]}
+  - id: audio_roman_urdu_segment.representation_language
+    display_name: Representation language tag
+    description: Language-script tag recorded for the derived Roman-Urdu representation.
+    source_names: ["observation.representation_language"]
+    synonyms: [representation language, roman urdu language tag]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: ur-Latn, display_name: Roman Urdu, synonyms: [urdu latin, roman urdu]}
+  - id: audio_roman_urdu_segment.authority_state
+    display_name: Representation authority state
+    description: Provenance state stating that this row is a derived analyst representation, not an independent source statement.
+    source_names: ["observation.authority_state"]
+    synonyms: [representation authority, derived representation state]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: derived_analyst_representation, display_name: Derived analyst representation, synonyms: [analyst representation]}
+  - id: audio_roman_urdu_segment.identifier_preservation_pass
+    display_name: Identifier preservation check passed
+    description: Whether identifier-like tokens found in the source text were preserved exactly in the Roman-Urdu representation; identifiers themselves are not exposed here.
+    source_names: ["observation.identifier_preservation_pass"]
+    synonyms: [identifier preservation, identifiers preserved]
+    type: BOOLEAN
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: audio_roman_urdu_segment.manual_review_required
+    display_name: Manual review required
+    description: Whether the derived representation explicitly requires analyst review; absence is unavailable, not false.
+    source_names: ["observation.manual_review_required"]
+    synonyms: [needs manual review, requires review, unreviewed]
+    type: BOOLEAN
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: audio_roman_urdu_segment.source_truth_state
+    display_name: Source truth state
+    description: Provenance state distinguishing this derived text representation from source-authored content.
+    source_names: [source_truth_state]
+    synonyms: [observation authority, derived observation state]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: derived_text_representation, display_name: Derived text representation, synonyms: [text representation, derived representation]}
+metrics:
+  - id: audio_roman_urdu_segment.record_count
+    display_name: Roman-Urdu representations
+    description: Number of unreviewed derived Roman-Urdu transcript representations.
+    synonyms: [how many roman urdu segments, representation count]
+    aggregate: COUNT
+    type: NUMBER

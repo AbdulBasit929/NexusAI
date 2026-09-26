@@ -1,0 +1,177 @@
+contract_version: forensics.semantic-layer/v1
+family: financial_transactions
+record_type: transaction
+display_name: Financial transactions
+description: One row per financial transaction. 4 rows in the demo case, all in PKR.
+synonyms: [transaction, transactions, payment, payments, financial, money, transfer]
+
+# "The largest transaction" names no field. Without a declared default measure the
+# compiler can only abstain, which is what WI-3 made it do rather than answer COUNT.
+# This default is what lets a magnitude question resolve to MAX(amount).
+default_measure: transaction.total_amount
+
+fields:
+  - id: transaction.amount
+    display_name: Transaction amount
+    description: >
+      Monetary value of the transaction. SUM for a total, MAX for the largest, MIN for the
+      smallest. Never COUNT this when the question asks how much, how large, or for a total.
+    source_names: [transaction_amount]
+    synonyms: [amount, value, how much, money, size, sum, total]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, SUM, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+
+  - id: transaction.account
+    display_name: Account
+    description: >
+      Account the transaction belongs to. Group by this and COUNT rows for which account
+      has the most transactions — that question counts rows, it does not rank by amount.
+    source_names: [account]
+    synonyms: [account, account number, holder]
+    type: STRING
+    sensitivity: IDENTIFIER
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+
+  - id: transaction.counterparty
+    display_name: Counterparty
+    description: The other party to the transaction.
+    source_names: [counterparty]
+    synonyms: [counterparty, other party, payee, recipient, beneficiary]
+    type: STRING
+    sensitivity: IDENTIFIER
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+
+  - id: transaction.merchant
+    display_name: Merchant
+    description: Merchant name associated with the transaction.
+    source_names: [merchant]
+    synonyms: [merchant, shop, vendor, store, business]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+
+  - id: transaction.merchant_location
+    display_name: Merchant location
+    description: Location recorded for the merchant.
+    source_names: [merchant_location]
+    synonyms: [merchant location, where, city]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+
+  - id: transaction.channel
+    display_name: Channel
+    description: Channel the transaction came through.
+    source_names: [channel]
+    synonyms: [channel, method, via]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: pos, display_name: Point of sale, synonyms: [pos, card machine, in store]}
+      - {value: mobile, display_name: Mobile, synonyms: [mobile, app, phone]}
+
+  - id: transaction.status
+    display_name: Transaction status
+    description: Outcome of the transaction.
+    source_names: [status]
+    synonyms: [status, state, outcome, result]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: approved, display_name: Approved, synonyms: [approved, successful, accepted]}
+      - {value: reversed, display_name: Reversed, synonyms: [reversed, refunded, cancelled]}
+
+  - id: transaction.currency
+    display_name: Currency
+    description: >
+      Currency code. Amounts are NEVER summed across differing currencies; a total is only
+      meaningful within one currency.
+    source_names: [currency]
+    synonyms: [currency, denomination]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: PKR, display_name: Pakistani rupee, synonyms: [pkr, rupees, rs]}
+
+  - id: transaction.event_time
+    display_name: Transaction time
+    description: Timestamp of the transaction.
+    source_names: [timestamp]
+    synonyms: [date, time, when, timestamp]
+    type: TIMESTAMP
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+
+metrics:
+  - id: transaction.record_count
+    display_name: Transactions
+    description: Number of transaction rows.
+    synonyms: [how many transactions, count, number of transactions]
+    aggregate: COUNT
+    type: NUMBER
+
+  - id: transaction.total_amount
+    display_name: Total transaction amount
+    description: Sum of transaction amounts within a single currency.
+    synonyms: [total amount, total transaction amount, how much in total, total value]
+    aggregate: SUM
+    field_id: transaction.amount
+    type: NUMBER
+
+  - id: transaction.largest_amount
+    display_name: Largest transaction
+    description: The maximum transaction amount. This is what the largest transaction means.
+    synonyms: [largest transaction, biggest transaction, highest amount, largest amount]
+    aggregate: MAX
+    field_id: transaction.amount
+    type: NUMBER
+
+  - id: transaction.distinct_accounts
+    display_name: Distinct accounts
+    description: Count of distinct accounts involved.
+    synonyms: [how many accounts, distinct accounts, unique accounts]
+    aggregate: COUNT_DISTINCT
+    field_id: transaction.account
+    type: NUMBER

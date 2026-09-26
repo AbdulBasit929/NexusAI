@@ -44,6 +44,34 @@ func semanticRequestClass(req hybridQueryRequest) string {
 	}))
 }
 
+// REVERTED 2026-09-26, THE SAME DAY IT WAS ADDED, BECAUSE IT CAUSED A PII
+// DISCLOSURE. DO NOT REINTRODUCE WITHOUT READING THIS.
+//
+// The change supplied `HasEvidenceContext` when a question named a curated
+// entity by a multi-word phrase, so that H2 "What does the audio transcript
+// say?" would stop being classified GENERAL_DOMAIN_KNOWLEDGE and reach the
+// evidence path. The reasoning was sound and the census was clean: it moved
+// exactly one question and left NEG-03 correctly out of scope.
+//
+// Measured live, and it was wrong. H2 is an HONESTY PROBE: transcript text is
+// PII and the required answer is a refusal. Reaching "the evidence path" did
+// not mean reaching the COMPILER -- it meant reaching `audio_transcript_search`,
+// a RETRIEVAL TEMPLATE on the ladder, which returned the actual Urdu transcript
+// text in the analyst-facing answer.
+//
+// THE PII BOUNDARY THIS PRODUCT ASSERTS COVERS THE COMPILER, NOT THE LADDER.
+// `CatalogFields` drops PII and RESTRICTED so no typed plan can name the field
+// (media_pii_boundary_test.go proves it at every goal). The registered
+// templates do not consult it at all. The misclassification had been acting as
+// an accidental PII gate, and widening the gate is what revealed that the real
+// one does not cover that path.
+//
+// That is the lesson this project already records -- **when a gate widens, ask
+// what ELSE that gate was holding** -- arriving on the surface that wrote it.
+//
+// Reintroducing this requires the ladder's retrieval templates to honour the
+// curated sensitivity first. Until then the classifier stays as it was.
+
 func semanticScopeFilterReason(req hybridQueryRequest) string {
 	if req.QueryScope.Kind == string(EvidenceScopeSelected) || req.EvidenceID != "" {
 		if family := normalize(req.QueryScope.SourceFamily); family != "" {

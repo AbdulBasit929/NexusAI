@@ -22,6 +22,12 @@ import (
 type resultAnswer struct {
 	Headline string
 	Findings []string
+	// Value is the answer itself whenever the question has a single numeric
+	// answer: a count, a total, a minimum, a maximum, or the top group's
+	// measure. It lets the Fact Packet carry the answer AS A VALUE and not
+	// only as a sentence, so the narrator and the presentation layer can each
+	// cite it without re-parsing prose.
+	Value any
 }
 
 var familyNouns = map[string][2]string{
@@ -150,18 +156,40 @@ func sourceNativeResultAnswer(req hybridQueryRequest, resp hybridQueryResponse, 
 	if results == nil {
 		results = mapsFromAny(resp.Records["source_native_results"])
 	}
-	if len(plan.Project) > 0 || len(plan.Measures) != 1 {
+	if len(plan.Project) > 0 {
+		return resultAnswer{}, false
+	}
+	if len(plan.Measures) != 1 {
+		if low, high, ok := sourceNativeRangeMeasures(plan); ok && answerStatesValuesEnabled() && len(results) > 0 {
+			label := humanFieldName(sourceNativeFieldNameFor(resp, low.FieldID))
+			if headline := answerRangeHeadline(label,
+				familyNoun(req.RecordType, 2), answerScopeQualifier(req),
+				stringValueAny(results[0][low.MeasureID]),
+				stringValueAny(results[0][high.MeasureID])); headline != "" {
+				return resultAnswer{Headline: headline}, true
+			}
+		}
 		return resultAnswer{}, false
 	}
 	names := map[string]string{}
+	// A curated display name is what the analyst should read. Falling back to the
+	// raw source name produces "5 inbound outbound ind values" where the layer
+	// says "Call direction" — the same class of defect as a column headed "M1".
+	display := map[string]string{}
 	for _, field := range catalogFromAny(resp.Records["field_catalog"]) {
 		names[field.FieldID] = field.NormalizedName
+		if strings.TrimSpace(field.DisplayName) != "" {
+			display[field.FieldID] = strings.ToLower(field.DisplayName)
+		}
 	}
 	measure := plan.Measures[0]
 	family := req.RecordType
 	scope := answerScopeQualifier(req)
 	measureLabel := func() string {
 		field := humanFieldName(names[measure.FieldID])
+		if curated, ok := display[measure.FieldID]; ok {
+			field = curated
+		}
 		switch measure.Op {
 		case "SUM":
 			return "total " + field
@@ -182,18 +210,30 @@ func sourceNativeResultAnswer(req hybridQueryRequest, resp hybridQueryResponse, 
 		}
 		if measure.Op == "COUNT" {
 			if value == 0 {
-				return resultAnswer{Headline: fmt.Sprintf("There are no %s%s in this case.", familyNoun(family, 0), scope)}, true
+				return resultAnswer{Headline: fmt.Sprintf("There are no %s%s in this case.", familyNoun(family, 0), scope), Value: 0.0}, true
 			}
 			verb := "are"
 			if value == 1 {
 				verb = "is"
 			}
-			return resultAnswer{Headline: fmt.Sprintf("There %s %s %s%s in this case.", verb, formatAnswerNumber(value), familyNoun(family, value), scope)}, true
+			return resultAnswer{Headline: fmt.Sprintf("There %s %s %s%s in this case.", verb, formatAnswerNumber(value), familyNoun(family, value), scope), Value: value}, true
 		}
 		if len(results) == 0 {
 			return resultAnswer{Headline: fmt.Sprintf("No %s%s were available to compute the %s.", familyNoun(family, 0), scope, measureLabel())}, true
 		}
-		return resultAnswer{Headline: fmt.Sprintf("The %s across %s%s is %s.", measureLabel(), familyNoun(family, 0), scope, formatAnswerNumber(value))}, true
+		headline := fmt.Sprintf("The %s across %s%s is %s.", measureLabel(), familyNoun(family, 0), scope, formatAnswerNumber(value))
+		// AN AVERAGE MUST SAY WHAT IT AVERAGED OVER. A field present on 263 of 309
+		// rows produces a number that reads as a statement about all 309.
+		if valueCount, ok := answerNumber(results[0][measureDenominatorKey(measure.MeasureID)]); ok {
+			contributing := 0.0
+			if metadata, ok := results[0]["metadata"].(map[string]any); ok {
+				contributing, _ = answerNumber(metadata["contributing_row_count"])
+			}
+			if note := measureDenominatorNote(int64(valueCount), int64(contributing), familyNoun(family, contributing)); note != "" {
+				headline += " " + note
+			}
+		}
+		return resultAnswer{Headline: headline, Value: value}, true
 	}
 	if len(plan.GroupFields) != 1 || plan.TimeBucket != nil {
 		return resultAnswer{}, false
@@ -224,31 +264,88 @@ func sourceNativeResultAnswer(req hybridQueryRequest, resp hybridQueryResponse, 
 		return resultAnswer{}, false
 	}
 	dimension := humanFieldName(groupName)
+	groupFieldID := ""
+	if len(plan.GroupFields) > 0 {
+		groupFieldID = plan.GroupFields[0]
+	}
+	if curated, ok := display[groupFieldID]; ok {
+		dimension = curated
+	}
 	ranked := len(plan.Sort) > 0 && plan.Sort[0].Target == measure.MeasureID
 	if ranked && (plan.Limit == 1 || len(entries) == 1) {
 		top := entries[0]
-		if plan.Sort[0].Direction == "ASC" {
-			return resultAnswer{Headline: fmt.Sprintf("The %s with the lowest %s%s is %s (%s).", dimension, measureLabel(), scope, top.key, formatAnswerNumber(top.value))}, true
+		// A ranking whose winner has no value is not an answer. "The counterparty
+		// with the highest count is (no value)" is a confident non-answer, and
+		// worse than declining: the data does not support the ranking that was
+		// asked for. Returning false lets the caller clarify instead.
+		if top.key == "(no value)" {
+			return resultAnswer{}, false
 		}
-		return resultAnswer{Headline: fmt.Sprintf("The %s with the highest %s%s is %s (%s).", dimension, measureLabel(), scope, top.key, formatAnswerNumber(top.value))}, true
+		if plan.Sort[0].Direction == "ASC" {
+			return resultAnswer{Headline: fmt.Sprintf("The %s with the lowest %s%s is %s (%s).", dimension, measureLabel(), scope, curatedValueLabel(groupFieldID, top.key), formatAnswerNumber(top.value)), Value: top.value}, true
+		}
+		return resultAnswer{Headline: fmt.Sprintf("The %s with the highest %s%s is %s (%s).", dimension, measureLabel(), scope, curatedValueLabel(groupFieldID, top.key), formatAnswerNumber(top.value)), Value: top.value}, true
 	}
 	if !ranked {
 		sort.SliceStable(entries, func(i, j int) bool { return entries[i].value > entries[j].value })
 	}
 	findings := make([]string, 0, len(entries))
 	for _, e := range entries {
-		findings = append(findings, fmt.Sprintf("%s %s: %s", dimension, e.key, formatAnswerNumber(e.value)))
+		findings = append(findings, fmt.Sprintf("%s %s: %s", dimension, curatedValueLabel(groupFieldID, e.key), formatAnswerNumber(e.value)))
 	}
 	complete, _ := resp.Records["complete"].(bool)
 	headline := fmt.Sprintf("By %s%s: %s.", dimension, scope, joinTopEntries(findings, dimension, 5))
 	if measure.Op == "COUNT" && complete && len(entries) < sourceNativeGroupLimit {
-		headline = fmt.Sprintf("%s %s%s across %d %s value%s. Largest: %s.", formatAnswerNumber(total), familyNoun(family, total), scope, len(entries), dimension, pluralSuffix(len(entries)), joinTopEntries(findings, dimension, 3))
+		stated := 3
+		lead := "Largest"
+		if answerStatesValuesEnabled() && len(entries) <= answerBreakdownFullLimit {
+			stated = len(entries)
+			lead = "In full"
+		}
+		headline = fmt.Sprintf("%s %s%s across %d %s value%s. %s: %s.", formatAnswerNumber(total), familyNoun(family, total), scope, len(entries), dimension, pluralSuffix(len(entries)), lead, joinTopEntries(findings, dimension, stated))
+	} else if answerStatesValuesEnabled() && complete && len(entries) <= answerBreakdownFullLimit {
+		headline = fmt.Sprintf("By %s%s: %s.", dimension, scope, joinTopEntries(findings, dimension, len(entries)))
 	}
-	return resultAnswer{Headline: headline, Findings: findings}, true
+	return resultAnswer{Headline: headline, Findings: findings, Value: total}, true
 }
 
 // joinTopEntries renders the first n "<dimension> <key>: <value>" findings as
 // "<key>: <value>" for a headline, where the dimension is already named.
+// curatedValueLabel renders an enumerated VALUE the way the analyst reads it.
+//
+// The dimension was already curated ("Call type"), but its values were not, so
+// one screen showed the answer saying "GPRS: 5,863 ; SMS: 1,108 ; CALL: 930"
+// above a table saying "Data session", "SMS", "Call" — the same values in two
+// vocabularies, which invites the analyst to wonder whether they are the same
+// data. Observed 2026-09-23 in the UI review screenshots.
+//
+// An uncurated value returns unchanged: a raw identifier is a truthful
+// fallback, and inventing a label for a value the layer does not define would
+// be worse than showing the value itself.
+func curatedValueLabel(fieldID, value string) string {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" || strings.TrimSpace(fieldID) == "" {
+		return value
+	}
+	layer, _ := defaultSemanticLayer()
+	if layer == nil {
+		return value
+	}
+	field, ok := layer.FieldByID(strings.TrimSpace(fieldID))
+	if !ok {
+		return value
+	}
+	for _, candidate := range field.Values {
+		if !strings.EqualFold(strings.TrimSpace(candidate.Value), trimmed) {
+			continue
+		}
+		if name := strings.TrimSpace(candidate.DisplayName); name != "" {
+			return name
+		}
+	}
+	return value
+}
+
 func joinTopEntries(items []string, dimension string, n int) string {
 	parts := []string{}
 	for i, item := range items {
@@ -437,7 +534,33 @@ var factPacketPlumbingMetric = map[string]bool{
 	"Records Row Count": true, "Provenance Items": true, "Evidence Count": true,
 }
 
+// factPacketPlumbingText recognises sentences that describe the machinery
+// rather than the evidence. They are real engineering detail and they belong
+// in the trace, but presented as a "fact" they are worse than useless: the
+// narrator can only paraphrase them, and validateNarrative then correctly
+// rejects the paraphrase, so the analyst is left with nothing.
 func factPacketPlumbingText(text string) bool {
 	lower := strings.ToLower(strings.TrimSpace(text))
-	return lower == "structured records row count computed." || strings.HasPrefix(lower, "executed bounded source-native typed algebra")
+	if lower == "" {
+		return true
+	}
+	if lower == "structured records row count computed." ||
+		strings.HasPrefix(lower, "executed bounded source-native typed algebra") ||
+		// Names the table and the query mechanics; says nothing about evidence.
+		strings.HasPrefix(lower, "queried forensic.records") ||
+		strings.HasPrefix(lower, "computed deterministic records result") ||
+		strings.HasPrefix(lower, "retrieved registered") {
+		return true
+	}
+	// "The analysis returned 1 exact result row." states the size of the
+	// result set, never the answer that was asked for.
+	if strings.HasPrefix(lower, "the analysis returned ") && strings.Contains(lower, "result row") {
+		return true
+	}
+	for _, label := range []string{"template:", "route:", "planner confidence", "display rows", "records row count"} {
+		if strings.HasPrefix(lower, label) {
+			return true
+		}
+	}
+	return false
 }

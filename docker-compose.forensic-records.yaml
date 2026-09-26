@@ -65,6 +65,130 @@ services:
       # 1) rather than silently serving the forensic API without
       # authentication, which happened live during this project's own
       # development when the vars weren't exported before `docker compose up`.
+      # Model-assisted plan generation. The fallback is OFF by default because
+      # field selection was measured unstable; shadow mode records what the
+      # generator WOULD have produced without ever using it, for golden-IR
+      # measurement.
+      FORENSIC_IR_FALLBACK: ${FORENSIC_IR_FALLBACK:-false}
+      FORENSIC_IR_ARBITRATION: ${FORENSIC_IR_ARBITRATION:-false}
+      FORENSIC_IR_CROSSCHECK: ${FORENSIC_IR_CROSSCHECK:-false}
+      FORENSIC_VERIFIED_ONLY: ${FORENSIC_VERIFIED_ONLY:-false}
+      FORENSIC_IR_SHADOW: ${FORENSIC_IR_SHADOW:-false}
+      # Removes filters whose values the analyst never supplied, instead of
+      # refusing the whole plan over them. WIDENS a result, so it is opt-in and
+      # measured on its own: the generator bolts invented filters
+      # (`cdr.direction = "outbound"`, `tower.site_location CONTAINS "where"`)
+      # onto otherwise-correct plans, and the correct filter was being thrown
+      # away alongside the invention.
+      FORENSIC_DROP_INVENTED_FILTERS: ${FORENSIC_DROP_INVENTED_FILTERS:-false}
+      # The keyword routing ladder, P3's remaining deliverable. DEFAULT ON,
+      # unlike every other switch here: the others gate NEW capabilities so
+      # off-by-default means "no change", while this gates an EXISTING
+      # behaviour and default-off would silently reroute every question.
+      # Set to false to measure the corpus with the compiler deciding alone.
+      FORENSIC_LADDER_ROUTING: ${FORENSIC_LADDER_ROUTING:-true}
+      # The `breakdown` goal, slice 1 of the taxonomy fix. The goal taxonomy has
+      # no breakdown, so an explicit breakdown question lands on the `lookup`
+      # DEFAULT, which means "unrecognised" and skips shape verification. WI-31
+      # tried mapping it onto `aggregate` and ACC-02 answered a 1,000-row total
+      # to a breakdown question, because `aggregate` with no group hints asserts
+      # shape `scalar`. This goal's shape carries a GROUPING OBLIGATION instead,
+      # so an ungrouped plan is refused rather than presented as one number.
+      # Threshold: reports/breakdown-taxonomy-20260925/BREAKDOWN_GOAL_RULE.md
+      FORENSIC_BREAKDOWN_GOAL: ${FORENSIC_BREAKDOWN_GOAL:-false}
+      # THE STATED ANSWER MUST CONTAIN THE ANSWER. The Phase 1 gate requires the
+      # answer in the analyst text, and EIGHT of the 62 failed it while scoring
+      # CORRECT because the harness graded the whole response instead. A range
+      # answered "1 CDR record matched this question"; a six-value breakdown
+      # stated three. Values are in data_grid either way -- the defect is that
+      # the DIRECT ANSWER does not answer.
+      # Threshold: reports/answer-not-stated-20260925/ANSWER_NOT_STATED.md
+      FORENSIC_ANSWER_STATES_VALUES: ${FORENSIC_ANSWER_STATES_VALUES:-false}
+      # MEDIA BECOMES ALGEBRA. Lets a typed plan read forensic.derived_artifacts
+      # -- OCR lines, plate reads, face detections, transcript segments -- so
+      # media questions stop depending on hand-written templates. Aggregates
+      # only: listing individual derived rows is refused until their provenance
+      # is mapped, because derived_artifacts has no record_id or row_hash.
+      #
+      # A DERIVED OBSERVATION IS NOT A SOURCE RECORD. A model's plate read is
+      # not a camera's sighting, and the citation carries source_truth_state so
+      # the two can never be presented as one. A plan that mixes the two tables
+      # is REFUSED, never joined.
+      # Evidence: reports/stage1-20260926/SOURCE_CONTRACT.md
+      FORENSIC_DERIVED_ARTIFACT_EXECUTION: ${FORENSIC_DERIVED_ARTIFACT_EXECUTION:-false}
+      # AN AVERAGE MUST SAY WHAT IT AVERAGED OVER. image-ocr carries three
+      # confidence fields from two disjoint producers: 263 of 309 rows, and 46
+      # each. "The average OCR confidence is 0.87" reads as a statement about all
+      # 309 and is a statement about 85% of them. This is the beam-width defect
+      # with the field choice already fixed -- a correct AVG over a population
+      # the analyst was never told about. Selects COUNT(field) alongside the
+      # measure and qualifies the answer below 95% coverage.
+      FORENSIC_MEASURE_DENOMINATOR: ${FORENSIC_MEASURE_DENOMINATOR:-false}
+      # A MEDIA QUESTION MUST BE ABLE TO NAME A MEDIA FAMILY. Measured live:
+      # ZERO of 28 media questions reached a typed plan, because family
+      # resolution goes through the STRUCTURED record types only -- "how many
+      # plate groups used persistent tracking" resolved anpr_vehicles and
+      # answered "1,057 ANPR sightings". This asks the CURATED LAYER instead,
+      # using the same phrase matcher that binds curated values, so widening
+      # coverage is a synonym in a YAML file and not a code change.
+      #
+      # NOT READY TO ENABLE. Four ACCEPTED routings collide with media synonyms
+      # ("image ocr" vs the image_ocr_search template, "face candidate" vs
+      # face_candidate_observations). TestMediaFamilyRoutingNeverClaimsAnAccepted-
+      # VariantRouting fails until curation separates retrieval from algebra.
+      FORENSIC_MEDIA_FAMILY_ROUTING: ${FORENSIC_MEDIA_FAMILY_ROUTING:-false}
+      # BOOLEAN RESTRICTION OBLIGATION. Refuses a plan that neither filters nor
+      # groups on a curated BOOLEAN field the question named, instead of
+      # answering the unrestricted count.
+      #
+      # Measured live, Step 4, 2026-09-26: "how many image text regions require
+      # manual review" answered 309 where the truth is 46, and "how many plate
+      # groups used persistent object tracking" answered 24 where the truth is
+      # 0. Both plans carried `filters: null`, both bound to the RIGHT table,
+      # and both verified -- verification proves a plan against ITSELF, never
+      # against the question. An INVENTED filter is a symptom this system
+      # already watches for; a MISSING one has none.
+      #
+      # It must be DECLARED here even while it defaults false: compose only
+      # passes variables it names, so a switch set in the shell but missing from
+      # this file never reaches the container and the arm silently measures the
+      # feature OFF. That is the 2026-09-25 configuration drift exactly, and it
+      # was caught here by asserting the container env before scoring.
+      FORENSIC_BOOLEAN_RESTRICTION: ${FORENSIC_BOOLEAN_RESTRICTION:-false}
+      # UNTARGETED TEXT BROWSE GUARD. **DEFAULTS ON** -- note the `:-true`.
+      #
+      # `derivedTextRelevance` returns "relevant" for every passage when a
+      # question names no identifier and no content term ("nothing to filter
+      # on: a browse request"), so an untargeted question returns every
+      # transcript and every OCR passage IN FULL. Those are the five curated
+      # fields marked PII that CatalogFields withholds from every typed plan:
+      # the compiler cannot name them, and the ladder reads them straight out
+      # of the JSON.
+      #
+      # Measured 2026-09-26: "What does the audio transcript say?" returned the
+      # actual Urdu transcript in the analyst answer. Search WITH a term is not
+      # the defect and is untouched -- AUD-01/02/03, DOC-02/03 and IMG-01 are
+      # CORRECT in the golden 62 and their snippet IS the citation.
+      #
+      # Default-ON because default-off would ship the bulk-PII path. The switch
+      # exists to take a CONTROL measurement, not to omit the guard.
+      FORENSIC_TEXT_BROWSE_GUARD: ${FORENSIC_TEXT_BROWSE_GUARD:-true}
+      # Memoizes the plan completion on a hash of the exact model payload.
+      # Sound because the completion is requested at temperature 0, so it is a
+      # deterministic function of that payload; the cached bytes re-enter the
+      # same decode and re-verification path, so the cache removes an HTTP call
+      # and never a check. Measured 2026-09-24: 45% of questions generate a plan
+      # at a median of 138 s.
+      FORENSIC_PLAN_CACHE: ${FORENSIC_PLAN_CACHE:-false}
+      # Persisting the cache makes the latency property survive a redeploy
+      # instead of being re-earned after it. OPT-IN and empty by default: each
+      # file holds one model completion, and a plan can carry the question's
+      # literal values (a plan for "how many calls did 03001234567 make" holds
+      # that number as a filter). That is not evidence, and the same plan is
+      # already in the response audit of every request that used it -- but
+      # writing it to a volume is a different act, so an operator enables it
+      # deliberately or nothing is written at all.
+      FORENSIC_PLAN_CACHE_DIR: ${FORENSIC_PLAN_CACHE_DIR:-}
       FORENSIC_API_KEY: ${FORENSIC_RECORDS_API_KEY:-}
       FORENSIC_API_AUTH_REQUIRED: ${FORENSIC_API_AUTH_REQUIRED:-true}
       FORENSIC_TRUSTED_TENANT_ID: ${FORENSIC_RECORDS_TENANT_ID:-default}

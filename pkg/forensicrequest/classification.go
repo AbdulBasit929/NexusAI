@@ -35,6 +35,30 @@ var (
 	// specific piece of case evidence, even when it uses no demonstrative word
 	// ("What is report.pdf about?"). Genuine general-knowledge questions never
 	// contain a filename, so this adds no false positives.
+	// Aggregate and superlative markers. Their presence means the question asks
+	// something OF the evidence, not for the meaning of a term.
+	//
+	// "mean" is deliberately ABSENT. It was included and the existing
+	// classification test caught it immediately: "What does IMSI MEAN?" is the
+	// canonical concept phrasing, and the verb is far more common in this
+	// product than the statistic. "average" and "median" carry the statistical
+	// sense without the ambiguity.
+	//
+	// `earliest` and `latest` were ADDED and REVERTED on 2026-09-26, the same
+	// day. They are genuine temporal superlatives and the census was clean --
+	// exactly M8 and M15 moved, NEG-03 stayed correctly out of scope -- but
+	// measured live, reclassifying them did not send them to the COMPILER. It
+	// sent them to `audio_transcript_search`, a RETRIEVAL TEMPLATE on the
+	// ladder, where M15 answered "No transcript segment intersects the
+	// requested source-time range": a FALSE ABSENCE, which this product holds
+	// to be the worst answer it can give because the analyst stops looking.
+	// Silence was bad; a confident false absence is worse. The same
+	// reclassification took H2 to that template and it returned actual PII
+	// transcript text -- see semantic_candidate_ranking.go.
+	//
+	// Re-add them ONLY once the ladder stops claiming those questions or its
+	// templates honour curated sensitivity, together, with a control.
+	analyticalIntent = regexp.MustCompile(`(?i)\b(?:largest|smallest|highest|lowest|longest|shortest|greatest|most|least|fewest|maximum|minimum|average|median|total|sum|count|how\s+many|how\s+much|top|per|breakdown|distinct|unique)\b`)
 	evidenceFilename = regexp.MustCompile(`(?i)[\w][\w.\-]*\.(?:pdf|docx?|xlsx?|pptx?|csv|tsv|txt|jpe?g|png|gif|bmp|tiff?|mp4|mov|avi|mkv|wav|mp3|m4a|flac|json|xml|pcap|pcapng|zip|eml|msg)\b`)
 )
 
@@ -63,7 +87,28 @@ func Classify(input Input) Class {
 	if input.HasEvidenceContext || evidenceQuestion.MatchString(text) || evidenceFilename.MatchString(text) {
 		return GovernedAnalysis
 	}
-	if forensictext.IsConceptExplanation(text, false) {
+	// A DEFINITION REQUEST NEVER ASKS FOR A MAXIMUM.
+	//
+	// `IsConceptExplanation` keys on the shape "what is X", which also fits
+	// "what is the LARGEST network volume on any call record?" -- an analytical
+	// question about the case. Measured 2026-09-25: it was classified
+	// GENERAL_DOMAIN_KNOWLEDGE, never reached the compiler at all (30 ms,
+	// terminal route) and answered "a bounded general definition is unavailable
+	// for that term". The analyst asked about their evidence and was told a
+	// dictionary had failed them.
+	//
+	// An aggregate or superlative marker settles it: no concept explanation
+	// asks for the largest, the average or a count. Measured across the
+	// 75-question corpus, exactly TWO questions reach this branch -- NEG-03
+	// ("what is the suspect's blood type?", correctly refused as out of scope,
+	// and carrying no such marker) and the one above. Only the analytical one
+	// moves.
+	//
+	// Erring toward GovernedAnalysis is also the safe direction: a concept
+	// question misread as analytical abstains or clarifies, whereas an
+	// analytical question misread as a concept silently refuses to look at the
+	// evidence.
+	if !analyticalIntent.MatchString(text) && forensictext.IsConceptExplanation(text, false) {
 		return GeneralDomainKnowledge
 	}
 	return GovernedAnalysis

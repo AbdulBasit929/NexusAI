@@ -118,6 +118,12 @@ func semanticGoalMatchesIntent(goal, intent string) bool {
 		return intent == "rank" || intent == "aggregate"
 	case "aggregate", "distinct":
 		return intent == "aggregate" || intent == "summarize"
+	case "breakdown":
+		// A breakdown is an aggregate that must keep its grouping. Registered
+		// operations that already expose a grouping (intent "aggregate" or
+		// "summarize") answer it; the obligation that the grouping SURVIVES is
+		// enforced at S9, not here.
+		return intent == "aggregate" || intent == "summarize"
 	case "summarize":
 		// Symmetric with the "rank" case above: "summarize repeated
 		// communications between counterparties" is legitimately answered by
@@ -268,7 +274,7 @@ func deterministicRegisteredMatch(frame SemanticFrameV1, candidates []SemanticOp
 		return SemanticOperationCandidateV1{}, false, 0
 	}
 	top := candidates[0]
-	if len(catalog) > 0 && frame.FamilyHint == "generic_tabular" && containsString([]string{"aggregate", "rank", "distinct", "existence"}, frame.Goal) {
+	if len(catalog) > 0 && frame.FamilyHint == "generic_tabular" && containsString([]string{"aggregate", "breakdown", "rank", "distinct", "existence"}, frame.Goal) {
 		return SemanticOperationCandidateV1{}, false, 0
 	}
 	// Embeddings may reorder an authorized candidate pool, but they do not
@@ -395,6 +401,107 @@ func sourceNativeFieldByHint(role, hint string, catalog []FieldDescriptorV1, pre
 	return values[0].field, values[0].audit.TotalScore >= thresholds.FieldAbsoluteScoreMinimum && margin >= thresholds.FieldTop1Top2MarginMinimum, audit
 }
 
+// sourceNativeCountingSuperlative captures the object of a counting
+// superlative: "the most calls", "the most internet sessions", "most often".
+var sourceNativeCountingSuperlative = regexp.MustCompile(`(?i)\b(?:most|least|fewest)\s+((?:[a-z]+\s+){0,2}[a-z]+)\b`)
+
+// sourceNativeRecordNouns are plural nouns that name ROWS rather than a
+// measurable quantity. "The most calls" asks how many rows, not the maximum of
+// any field. "Often" and "frequently" are included because "most often" is
+// always a frequency, which is a row count.
+var sourceNativeRecordNouns = map[string]bool{
+	"call": true, "calls": true, "record": true, "records": true,
+	"transaction": true, "transactions": true, "session": true, "sessions": true,
+	"request": true, "requests": true, "sighting": true, "sightings": true,
+	"event": true, "events": true, "entry": true, "entries": true,
+	"message": true, "messages": true, "log": true, "logs": true,
+	"contact": true, "contacts": true, "connection": true, "connections": true,
+	"often": true, "frequently": true, "times": true,
+}
+
+// sourceNativeMagnitudeSuperlativePattern matches superlatives that rank by
+// the SIZE of a value rather than by how many rows there are.
+var sourceNativeMagnitudeSuperlativePattern = regexp.MustCompile(`(?i)\b(largest|biggest|greatest|highest|longest|smallest|lowest|shortest)\b`)
+
+// sourceNativeMagnitudeSuperlative maps "the largest transaction" onto MAX and
+// "the shortest call" onto MIN. semanticFrameMeasure does not recognise these
+// words at all, so they fell through to the default and "what was the largest
+// transaction" was answered with a COUNT.
+func sourceNativeMagnitudeSuperlative(question string) (string, bool) {
+	match := sourceNativeMagnitudeSuperlativePattern.FindStringSubmatch(question)
+	if match == nil {
+		return "", false
+	}
+	switch strings.ToLower(match[1]) {
+	case "smallest", "lowest", "shortest":
+		return "MIN", true
+	}
+	return "MAX", true
+}
+
+// sourceNativeRangeTimeField picks the field a date range is measured over.
+// The curated normalised timestamp wins when the layer describes one; otherwise
+// any issued TIMESTAMP that admits MIN and MAX will do. Never resolved from the
+// question text — that is the whole-question embedding resolver D2 was fixed
+// for.
+func sourceNativeRangeTimeField(catalog []FieldDescriptorV1) (FieldDescriptorV1, bool) {
+	bounded := func(field FieldDescriptorV1) bool {
+		return (field.EffectiveType == fieldTypeTimestamp || field.EffectiveType == fieldTypeDate) &&
+			containsString(field.AllowedAggregates, "MIN") && containsString(field.AllowedAggregates, "MAX")
+	}
+	for _, field := range catalog {
+		if field.Curated && bounded(field) && strings.HasSuffix(field.FieldID, ".event_time") {
+			return field, true
+		}
+	}
+	for _, field := range catalog {
+		if field.Curated && bounded(field) {
+			return field, true
+		}
+	}
+	for _, field := range catalog {
+		if bounded(field) {
+			return field, true
+		}
+	}
+	return FieldDescriptorV1{}, false
+}
+
+// sourceNativeMeasureAggregate decides the aggregate deterministically and in
+// a fixed order: a counting superlative beats a magnitude one ("the most
+// transactions" counts rows even though "most" also reads as a maximum), and
+// both beat the frame's coarse measure slot.
+func sourceNativeMeasureAggregate(frame SemanticFrameV1, question string) string {
+	if sourceNativeSuperlativeCountsRows(question) {
+		return "COUNT"
+	}
+	// A magnitude superlative only decides the aggregate when the question
+	// named none. Where an aggregate IS named (an average, a sum), a
+	// superlative beside it expresses the ranking direction instead, and
+	// reading it as a maximum would answer something else entirely.
+	if frame.Measure == "none" {
+		if aggregate, ok := sourceNativeMagnitudeSuperlative(question); ok {
+			return aggregate
+		}
+	}
+	return sourceNativeAggregateForMeasure(frame.Measure)
+}
+
+// sourceNativeSuperlativeCountsRows reports whether the question's superlative
+// ranks by how MANY rows there are rather than by the size of some value.
+func sourceNativeSuperlativeCountsRows(question string) bool {
+	match := sourceNativeCountingSuperlative.FindStringSubmatch(question)
+	if match == nil {
+		return false
+	}
+	for _, word := range strings.Fields(strings.ToLower(match[1])) {
+		if sourceNativeRecordNouns[word] {
+			return true
+		}
+	}
+	return false
+}
+
 func sourceNativeAggregateForMeasure(measure string) string {
 	switch measure {
 	case "sum", "amount", "bytes", "duration":
@@ -410,6 +517,188 @@ func sourceNativeAggregateForMeasure(measure string) string {
 	}
 }
 
+// semanticConstraintUnboundPrefix marks a refusal caused by a literal the
+// analyst supplied that nothing in the compiled request binds. S9
+// CONSTRAINT_APPLIED: an unbound literal must abstain and name itself, never
+// silently widen the answer to the whole case. That widening was defect D1 —
+// "how many calls did <number> make", and even a number present in no record,
+// returned a count of every row in the case.
+const semanticConstraintUnboundPrefix = "CONSTRAINT_UNBOUND:"
+
+// sourceNativeFilterOpForFrame maps the frame's extracted operator vocabulary
+// onto the algebra's allowlist. An operator with no mapping is refused rather
+// than downgraded to equality: a silently weakened comparison answers a
+// different question than the one asked.
+func sourceNativeFilterOpForFrame(op string) (string, bool) {
+	switch strings.ToUpper(strings.TrimSpace(op)) {
+	case "EQ":
+		return "EQ", true
+	case "NE", "NEQ":
+		return "NEQ", true
+	case "GT":
+		return "GT", true
+	case "GTE":
+		return "GTE", true
+	case "LT":
+		return "LT", true
+	case "LTE":
+		return "LTE", true
+	case "IN":
+		return "IN", true
+	case "CONTAINS":
+		return "CONTAINS", true
+	}
+	return "", false
+}
+
+// sourceNativeFieldByExactName resolves a field hint against the authorized
+// catalog by exact normalized name or declared source-name alias only.
+//
+// It deliberately accepts no embedding signal. The analyst named this field
+// explicitly ("where call_type is SMS"), so there is nothing to infer; and a
+// filter bound to a field the analyst did not name produces a confident answer
+// to a different question, which is how D2 and the measure-hint defect behaved.
+func sourceNativeFieldByExactName(hint string, catalog []FieldDescriptorV1) (FieldDescriptorV1, bool) {
+	normalized := normalizeSourceNativeName(hint)
+	if normalized == "" {
+		return FieldDescriptorV1{}, false
+	}
+	for _, field := range catalog {
+		if field.NormalizedName == normalized {
+			return field, true
+		}
+	}
+	for _, field := range catalog {
+		for _, name := range field.SourceNames {
+			if normalizeSourceNativeName(name) == normalized {
+				return field, true
+			}
+		}
+	}
+	return FieldDescriptorV1{}, false
+}
+
+// compileSourceNativeFrameFilters turns every extracted payload filter into a
+// typed plan filter. It returns a non-empty reason naming the first literal
+// that cannot be bound, and the caller must then refuse rather than compile a
+// plan that quietly ignores it.
+func compileSourceNativeFrameFilters(frame SemanticFrameV1, catalog []FieldDescriptorV1) ([]SourceNativeFilterV1, string) {
+	refuse := func(detail string) string { return semanticConstraintUnboundPrefix + detail }
+	filters := []SourceNativeFilterV1{}
+	for _, extracted := range frame.Filters {
+		// Free-text retrieval belongs to the document path, not the source-row
+		// algebra, and names no catalog field.
+		if normalizeSourceNativeName(extracted.FieldHint) == "derived_text" {
+			continue
+		}
+		literal := strings.TrimSpace(extracted.Literal)
+		field, ok := sourceNativeFieldByExactName(extracted.FieldHint, catalog)
+		if !ok {
+			return nil, refuse("no authorized field named " + extracted.FieldHint + " for literal " + literal)
+		}
+		op, mapped := sourceNativeFilterOpForFrame(extracted.Operator)
+		if !mapped || !containsString(field.AllowedFilters, op) {
+			return nil, refuse("operator " + extracted.Operator + " is not allowed on " + extracted.FieldHint + " for literal " + literal)
+		}
+		filter := SourceNativeFilterV1{FieldID: field.FieldID, Op: op, Values: []string{}}
+		if op == "IN" {
+			for _, value := range extracted.Literals {
+				if trimmed := strings.TrimSpace(value); trimmed != "" {
+					filter.Values = append(filter.Values, trimmed)
+				}
+			}
+			if len(filter.Values) == 0 {
+				return nil, refuse("no values supplied for " + extracted.FieldHint)
+			}
+		} else {
+			if literal == "" {
+				return nil, refuse("empty literal for " + extracted.FieldHint)
+			}
+			filter.Value = literal
+		}
+		filters = append(filters, filter)
+	}
+	if len(filters) > sourceNativeFilterLimit {
+		return nil, refuse("more extracted filters than the algebra permits")
+	}
+	return filters, ""
+}
+
+// sourceNativeDigits reduces an identifier to its digits so that formatting
+// differences ("+92 300 1110001" vs "923001110001") do not read as a different
+// number. Mirrors the normalization the executor applies in SQL.
+func sourceNativeDigits(value string) string {
+	return strings.Map(func(r rune) rune {
+		if r >= '0' && r <= '9' {
+			return r
+		}
+		return -1
+	}, value)
+}
+
+// deterministicUnboundConstraints returns every literal the analyst supplied
+// that no part of the compiled request binds.
+//
+// This is the S9 CONSTRAINT_APPLIED check. Identifiers are satisfied by the
+// request-level target constraint, which the executor applies against both
+// party columns with digit normalization
+// (sourceNativeRequestConstraintsSQL); they are deliberately NOT bound to a
+// guessed payload field, because an inferred catalog cannot tell the
+// subscriber's own number from the number they dialled, and picking wrong is
+// the confident-wrong failure this work removes. Once the semantic layer
+// carries descriptions and roles, that binding becomes safe to add.
+func deterministicUnboundConstraints(req hybridQueryRequest, frame SemanticFrameV1, plan *SourceNativePlanV1) []string {
+	unbound := []string{}
+	boundTargets := map[string]bool{}
+	for _, candidate := range append([]string{req.Target}, req.Targets...) {
+		if digits := sourceNativeDigits(candidate); digits != "" {
+			boundTargets[digits] = true
+		}
+		if trimmed := strings.TrimSpace(candidate); trimmed != "" {
+			boundTargets[strings.ToLower(trimmed)] = true
+		}
+	}
+	if plan != nil {
+		for _, filter := range plan.Filters {
+			for _, value := range append([]string{filter.Value}, filter.Values...) {
+				if digits := sourceNativeDigits(value); digits != "" {
+					boundTargets[digits] = true
+				}
+				if trimmed := strings.TrimSpace(value); trimmed != "" {
+					boundTargets[strings.ToLower(trimmed)] = true
+				}
+			}
+		}
+	}
+	for _, identifier := range frame.Identifiers {
+		canonical := strings.TrimSpace(identifier.Canonical)
+		if canonical == "" {
+			canonical = strings.TrimSpace(identifier.Raw)
+		}
+		if canonical == "" {
+			continue
+		}
+		if boundTargets[strings.ToLower(canonical)] {
+			continue
+		}
+		if digits := sourceNativeDigits(canonical); digits != "" && boundTargets[digits] {
+			continue
+		}
+		unbound = append(unbound, identifier.Type+" "+canonical)
+	}
+	// An explicit date range is an obligation exactly like an identifier: a
+	// month that never reaches the request counts every month in the case.
+	if frame.TimeIntent.Kind == "explicit_range" {
+		if from := strings.TrimSpace(frame.TimeIntent.From); from != "" && strings.TrimSpace(req.DateFrom) == "" {
+			unbound = append(unbound, "date range from "+from)
+		}
+		if to := strings.TrimSpace(frame.TimeIntent.To); to != "" && strings.TrimSpace(req.DateTo) == "" {
+			unbound = append(unbound, "date range to "+to)
+		}
+	}
+	return unbound
+}
+
 func compileDeterministicSourceNativePlan(frame SemanticFrameV1, question string, catalog []FieldDescriptorV1, embeddingSimilarities map[string]float64) (*SourceNativePlanV1, string, []SourceNativeFieldResolutionScoreV1) {
 	fieldScores := []SourceNativeFieldResolutionScoreV1{}
 	if len(catalog) == 0 {
@@ -419,6 +708,20 @@ func compileDeterministicSourceNativePlan(frame SemanticFrameV1, question string
 	if plan.Limit == 0 {
 		plan.Limit = defaultHybridLimit
 	}
+	// Every literal the analyst named becomes a typed filter before anything
+	// else is decided. If one cannot bind, the whole plan is refused: a plan
+	// that drops a constraint answers a broader question than was asked.
+	boundFilters, unboundReason := compileSourceNativeFrameFilters(frame, catalog)
+	if unboundReason != "" {
+		return nil, unboundReason, fieldScores
+	}
+	// A value literal the curated layer declares ("active", "500", "SMS") is an
+	// obligation exactly like an identifier. It carries no identifier pattern, so
+	// literal extraction never saw it, the CONSTRAINT_APPLIED guard had nothing to
+	// check, and the answer silently widened to the whole family — SUB-02 counted
+	// all 11 subscribers instead of the 6 that are active. Only values the layer
+	// declares can bind, so nothing is invented.
+	plan.Filters = appendSourceNativeValueFilters(boundFilters, question, catalog)
 	if frame.Goal == "source_rows" || frame.Goal == "lookup" {
 		for _, field := range catalog {
 			if field.Projectable && len(plan.Project) < sourceNativeProjectLimit {
@@ -433,12 +736,31 @@ func compileDeterministicSourceNativePlan(frame SemanticFrameV1, question string
 	groupHint := strings.Join(frame.GroupByHints, " ")
 	var group FieldDescriptorV1
 	hasGroup := false
+	groupable := func(field FieldDescriptorV1) bool { return field.Groupable }
+	// "Which X ..." names the grouping dimension grammatically, and X resolved
+	// against the curated synonyms is the most reliable signal available — more
+	// reliable than the general hint list, which for "which phone number made the
+	// most calls" also captured "counterparty" and would group by the wrong party.
+	if match := semanticFrameWhichGroup.FindStringSubmatch(question); len(match) > 1 {
+		if field, ok := sourceNativeFieldByCuratedName(match[1], catalog, groupable); ok {
+			group, hasGroup = field, true
+		}
+	}
+	// Otherwise take the first hint that exactly names a curated field.
+	if !hasGroup {
+		for _, hint := range frame.GroupByHints {
+			if field, ok := sourceNativeFieldByCuratedName(hint, catalog, groupable); ok {
+				group, hasGroup = field, true
+				break
+			}
+		}
+	}
 	// Grouping is only resolved when the question names a grouping dimension.
 	// The embedding signal is question-level, so resolving an empty hint let
 	// it pick an arbitrary groupable field (e.g. manual_review_required) for a
 	// plain "how many" question — and only when the embedding runtime
 	// happened to answer, making identical questions return different results.
-	if strings.TrimSpace(groupHint) != "" {
+	if !hasGroup && strings.TrimSpace(groupHint) != "" {
 		var scores []SourceNativeFieldResolutionScoreV1
 		group, hasGroup, scores = sourceNativeFieldByHint("group", groupHint, catalog, func(field FieldDescriptorV1) bool { return field.Groupable }, embeddingSimilarities)
 		fieldScores = append(fieldScores, scores...)
@@ -450,15 +772,52 @@ func compileDeterministicSourceNativePlan(frame SemanticFrameV1, question string
 			fieldScores = append(fieldScores, scores...)
 		}
 	}
+	// A question naming several values of one curated field is asking for a
+	// breakdown by that field ("incoming versus outgoing"). The explicit group
+	// hint still wins; this only supplies one where the phrasing carries no
+	// "by X" at all.
+	if !hasGroup {
+		if fieldID, ok := semanticLayerGroupFieldForQuestion(question, catalog); ok {
+			group, hasGroup = sourceNativeFieldMap(catalog)[fieldID], true
+		}
+	}
 	if hasGroup {
 		plan.GroupFields = []string{group.FieldID}
 	}
-	aggregate := sourceNativeAggregateForMeasure(frame.Measure)
+	// "the most <record noun>" counts rows; it is not a maximum over a field.
+	// semanticFrameMeasure maps "most" to max, which turned "which account has
+	// the most transactions" into MAX(amount) — ranking accounts by value
+	// instead of by how many transactions they have. The object of the
+	// superlative is what decides, and it is decided lexically, never by
+	// similarity.
+	// A RANGE needs two measures over one time field. Everything below builds a
+	// single measure, which is why a range question could only ever come back as
+	// a row listing.
+	if frame.Goal == "range" {
+		field, ok := sourceNativeRangeTimeField(catalog)
+		if !ok {
+			return nil, "MEASURE_FIELD_UNRESOLVED:no time field to bound", fieldScores
+		}
+		plan.Measures = []SourceNativeMeasureV1{
+			{MeasureID: "m1", Op: "MIN", FieldID: field.FieldID},
+			{MeasureID: "m2", Op: "MAX", FieldID: field.FieldID},
+		}
+		plan.Project = []string{}
+		return plan, "", fieldScores
+	}
+	aggregate := sourceNativeMeasureAggregate(frame, question)
 	measure := SourceNativeMeasureV1{MeasureID: "m1", Op: aggregate}
 	if aggregate != "COUNT" || frame.MeasureFieldHint != "" {
-		hint := frame.MeasureFieldHint
+		hint := strings.TrimSpace(frame.MeasureFieldHint)
 		if hint == "" {
-			hint = question
+			// Never resolve a measure field from the whole question. Doing so
+			// ran the same question-level embedding resolver that D2 was fixed
+			// for, and it picked an arbitrary numeric field — "what was the
+			// largest transaction" became a count, and a count became a
+			// maximum over an amount. With no explicit hint and no declared
+			// default measure (that arrives with the semantic layer),
+			// refusing is the only honest option.
+			return nil, "MEASURE_FIELD_UNRESOLVED", fieldScores
 		}
 		field, ok, scores := sourceNativeFieldByHint("measure", hint, catalog, func(field FieldDescriptorV1) bool { return containsString(field.AllowedAggregates, aggregate) }, embeddingSimilarities)
 		fieldScores = append(fieldScores, scores...)
@@ -495,13 +854,23 @@ func compileDeterministicSourceNativePlan(frame SemanticFrameV1, question string
 	if err := validateSourceNativePlan(plan, catalog); err != nil {
 		return nil, "PLAN_VALIDATION_REJECTED:" + err.Error(), fieldScores
 	}
+	// S9 SHAPE. A plan can be perfectly valid and still answer a different
+	// question than the one asked — a ranking with nothing to rank by returns a
+	// real number for the wrong question, which is the least detectable failure
+	// available to an analyst.
+	if err := verifySourceNativePlanShape(frame, question, plan); err != nil {
+		return nil, err.Error(), fieldScores
+	}
 	return plan, "COMPILED_AGGREGATE", fieldScores
 }
 
 func compileDeterministicSemanticRequest(ctx context.Context, cfg config, req hybridQueryRequest, catalog []FieldDescriptorV1) (DeterministicSemanticCompilerResultV1, error) {
 	frame := extractSemanticFrame(req)
 	candidates := semanticOperationCandidates(req)
+	// D4: rank against the whole authorized pool so the scoring statistics stay
+	// stable, then drop anything from a family the question did not ask about.
 	ranked, scores := rankSemanticOperationsForFrame(req.Query, frame, candidates)
+	ranked, scores, questionFamily := filterRankedByQuestionFamily(req.Query, ranked, scores)
 	operationEmbeddings, fieldEmbeddings, embeddingAudit, embeddingDegradation := semanticEmbeddingSignals(ctx, cfg, req.Query, candidates, catalog)
 	ranked, scores = fuseSemanticOperationEmbeddings(ranked, scores, operationEmbeddings)
 	result := DeterministicSemanticCompilerResultV1{
@@ -512,6 +881,11 @@ func compileDeterministicSemanticRequest(ctx context.Context, cfg config, req hy
 	}
 	if embeddingDegradation != "" {
 		result.Degradations = append(result.Degradations, embeddingDegradation)
+	}
+	if questionFamily != "" && len(ranked) == 0 {
+		// Audit record: the question named a family no authorized operation
+		// serves. Kept so "why did it not use operation X" is answerable later.
+		result.Degradations = append(result.Degradations, "NO_OPERATION_IN_QUESTION_FAMILY:"+questionFamily)
 	}
 	if len(scores) > 0 {
 		result.AbsoluteScore = scores[0].TotalScore
@@ -528,19 +902,59 @@ func compileDeterministicSemanticRequest(ctx context.Context, cfg config, req hy
 		result.Executor, result.ReasonCode = semanticExecutorClarify, "FRAME_EXTRACTION_DEGRADED"
 		return result, nil
 	}
-	if selected, matched, _ := deterministicRegisteredMatch(frame, ranked, scores, catalog); matched {
-		result.Executor, result.OperationID, result.ReasonCode = semanticExecutorRegistered, selected.OperationID, "REGISTERED_APPLICABILITY_MATCH"
+	// With no operation left in the requested family there is nothing to match
+	// against; the typed plan below is built from the case's own catalog and is
+	// family-correct by construction. Answering from another family is the
+	// defect, not the fallback.
+	registeredSelected, registeredMatched, _ := deterministicRegisteredMatch(frame, ranked, scores, catalog)
+	// A curated value literal ("active", "500", "SMS") is a request to FILTER.
+	// A registered operation produces its own fixed breakdown and cannot carry
+	// that filter, which is why "how many subscribers are active" answered 11:
+	// the template returned every subscriber grouped by status. When the layer
+	// binds a value the analyst named, the typed plan — which can express the
+	// filter — is the better answer, and the registered match stays as the
+	// fallback if no plan compiles.
+	preferTypedPlan := len(appendSourceNativeValueFilters(nil, req.Query, catalog)) > 0
+	if registeredMatched && !preferTypedPlan {
+		result.Executor, result.OperationID, result.ReasonCode = semanticExecutorRegistered, registeredSelected.OperationID, "REGISTERED_APPLICABILITY_MATCH"
 		result.Confidence = 1
 		return result, nil
 	}
 	if plan, reason, fieldScores := compileDeterministicSourceNativePlan(frame, req.Query, catalog, fieldEmbeddings); plan != nil {
 		result.RankedFields = fieldScores
+		// S9 CONSTRAINT_APPLIED. The plan is only usable if every literal the
+		// analyst supplied is actually carried by it or by the request scope.
+		if unbound := deterministicUnboundConstraints(req, frame, plan); len(unbound) > 0 {
+			result.Executor = semanticExecutorClarify
+			result.ReasonCode = semanticConstraintUnboundPrefix + strings.Join(unbound, "; ")
+			return result, nil
+		}
 		result.Executor, result.DynamicPlan, result.ReasonCode = semanticExecutorDynamic, plan, reason
 		result.Confidence = frame.Confidence.Overall
+		return result, nil
+	} else if strings.HasPrefix(reason, s9ShapeViolation) {
+		// The plan would have answered a different shape than was asked for.
+		// Clarifying names the mismatch; answering would hide it.
+		result.RankedFields = fieldScores
+		result.Executor, result.ReasonCode = semanticExecutorClarify, reason
+		return result, nil
+	} else if strings.HasPrefix(reason, semanticConstraintUnboundPrefix) {
+		// Naming the literal that failed to bind is the whole point: the
+		// analyst can only correct what the system tells them it could not use.
+		result.RankedFields = fieldScores
+		result.Executor, result.ReasonCode = semanticExecutorClarify, reason
 		return result, nil
 	} else if reason != "FIELD_CATALOG_UNAVAILABLE" {
 		result.RankedFields = fieldScores
 		result.Degradations = append(result.Degradations, reason)
+	}
+	// The typed plan did not compile. A registered operation that matched is
+	// still better than a clarification, even when a value literal suggested a
+	// filter: a broader true answer beats no answer at all.
+	if registeredMatched {
+		result.Executor, result.OperationID, result.ReasonCode = semanticExecutorRegistered, registeredSelected.OperationID, "REGISTERED_APPLICABILITY_MATCH"
+		result.Confidence = 1
+		return result, nil
 	}
 	if frame.RequestClass == semanticRequestGovernedAnalysis || frame.RequestClass == semanticRequestContextualFollowUp {
 		result.Executor, result.ReasonCode = semanticExecutorClarify, "UNRESOLVED_ISSUED_FIELD_OR_OPERATION"
@@ -552,11 +966,20 @@ func compileDeterministicSemanticRequest(ctx context.Context, cfg config, req hy
 
 func applyDeterministicSemanticCompiler(ctx context.Context, cfg config, req hybridQueryRequest) (hybridQueryRequest, string) {
 	catalog := []FieldDescriptorV1{}
+	catalogSource := ""
 	frame := extractSemanticFrame(req)
 	candidates := semanticOperationCandidates(req)
 	ranked, scores := rankSemanticOperationsForFrame(req.Query, frame, candidates)
-	needsIssuedFields := frame.FamilyHint == "generic_tabular" && containsString([]string{"aggregate", "rank", "distinct", "existence"}, frame.Goal)
-	if _, matched, _ := deterministicRegisteredMatch(frame, ranked, scores, nil); (!matched || needsIssuedFields) && cfg.QueryDB != nil {
+	ranked, scores, _ = filterRankedByQuestionFamily(req.Query, ranked, scores)
+	// A breakdown MUST reach the catalogue: without issued fields it has no
+	// curated field to group BY, and S9 would then refuse the plan it forced.
+	needsIssuedFields := frame.FamilyHint == "generic_tabular" && containsString([]string{"aggregate", "breakdown", "rank", "distinct", "existence"}, frame.Goal)
+	// A question naming a curated value ("active", "status 500") needs the
+	// catalogue even when a registered operation matches: the template returns a
+	// fixed breakdown and cannot carry the filter that was asked for. Skipping
+	// the catalogue here is why SUB-02 kept answering 11 instead of 6.
+	namesCuratedValue := semanticLayerQuestionNamesValue(req.Query)
+	if _, matched, _ := deterministicRegisteredMatch(frame, ranked, scores, nil); (!matched || needsIssuedFields || namesCuratedValue) && cfg.QueryDB != nil {
 		// A bounded sample is enough to learn field shape/type here; this only
 		// decides whether a dynamic plan CAN be compiled. The actual answer,
 		// if a plan is compiled, is always executed as real SQL over the full
@@ -567,6 +990,11 @@ func applyDeterministicSemanticCompiler(ctx context.Context, cfg config, req hyb
 			return req, "field_catalog_unavailable"
 		}
 		catalog = buildSourceNativeFieldCatalog(req, rows)
+		// The curated layer describes what the inferred catalogue only observes:
+		// aliases that make one concept one field, value domains, display names
+		// and descriptions. It is merged in, never substituted, so a field
+		// present in the data but absent from the YAML stays queryable.
+		catalog, catalogSource = semanticLayerCatalogForRequest(req, req.Query, catalog)
 	}
 	result, err := compileDeterministicSemanticRequest(ctx, cfg, req, catalog)
 	if err != nil {
@@ -577,6 +1005,9 @@ func applyDeterministicSemanticCompiler(ctx context.Context, cfg config, req hyb
 	}
 	req.SemanticPlannerAudit.SemanticFrame = &result.Frame
 	req.SemanticPlannerAudit.CapabilitySnapshot = &result.Capability
+	if catalogSource != "" {
+		result.Degradations = append(result.Degradations, catalogSource)
+	}
 	req.SemanticPlannerAudit.EmbeddingResolution = result.EmbeddingAudit
 	req.SemanticPlannerAudit.OperationResolutionScores = result.RankedOperations
 	req.SemanticPlannerAudit.SelectedDecision = result.Executor
@@ -601,6 +1032,19 @@ func applyDeterministicSemanticCompiler(ctx context.Context, cfg config, req hyb
 	case semanticExecutorDynamic:
 		if result.DynamicPlan == nil {
 			return req, "deterministic_dynamic_plan_missing"
+		}
+		// A typed plan over source rows answers a question about STRUCTURED
+		// evidence. When the question names neither a family nor a record type,
+		// it is not about structured rows at all and this executor has no
+		// competence over it -- measured 2026-09-22, it answered "which image
+		// says Stay Positive Work Hard" and "what time period does this case
+		// cover" from canonical_records, both wrong.
+		//
+		// Naming a record type is enough, even without a family: "how many
+		// emails are in this case" resolves record_type=email with no family and
+		// correctly answers zero. Requiring a family would withhold that.
+		if semanticQuestionFamily(req.Query) == "" && extractCanonicalRecordType(req.Query) == "" {
+			return req, "UNSUPPORTED_REQUEST_CLASS"
 		}
 		bound := req
 		bound.Template = "canonical_records"

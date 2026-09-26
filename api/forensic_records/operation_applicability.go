@@ -100,6 +100,95 @@ func operationOrderingSemantics(template queryTemplateCatalogEntry) []string {
 	return values
 }
 
+// semanticQuestionFamily resolves the evidence family a question names, using
+// the canonical record-type vocabulary rather than the frame's family hint.
+//
+// Measured across the D4 questions on 2026-09-21: wherever the two signals
+// disagree, the record type is right and FamilyHint is wrong. "Which domain
+// was accessed most often" hints access_security_logs because of the word
+// "accessed", when it is an IPDR question; "which IP address made the most
+// requests" hints nothing at all, and the ranker then chose a CDR operation.
+// Building the guard on the weaker signal would reject correct candidates and
+// lock in wrong ones.
+//
+// An empty result means the question named no structured family. The caller
+// must NOT filter in that case: precision over recall.
+func semanticQuestionFamily(question string) string {
+	// A MEDIA FAMILY FIRST, when the question names one.
+	//
+	// extractCanonicalRecordType only knows the STRUCTURED record types, so
+	// before this a media question could not resolve to its own family at all:
+	// "how many plate groups used persistent tracking" resolved anpr_vehicles
+	// because "plate" names the ANPR record type, and answered 1,057 ingested
+	// sightings to a question about 24 model plate groups.
+	//
+	// Media wins because the media phrases are MULTI-WORD and specific ("video
+	// plate group"), while the structured families own the single words
+	// ("plate", "sighting"). A question that names only the single words cannot
+	// reach here. Behind FORENSIC_MEDIA_FAMILY_ROUTING, default off.
+	if family := mediaFamilyForQuestion(question); family != "" {
+		return family
+	}
+	return capabilityFamilyForRecordType(extractCanonicalRecordType(question))
+}
+
+// filterOperationsByQuestionFamily removes every candidate belonging to a
+// different evidence family than the one the question names.
+//
+// This is the D4 guard: the keyword ladder ranked a CDR location operation
+// first for an access-log question, and a cross-family activity operation
+// first for an IPDR one.
+//
+// It is applied to the RANKED RESULT, never to the pool before ranking.
+// Measured 2026-09-21: shrinking the pool first changes the BM25 corpus
+// statistics that scoring depends on, and the same winning operation then
+// scores 12.41 instead of 22.19 with its top-two margin collapsing from 0.760
+// to 0.028 — far enough to fail the confidence gate and turn a correct,
+// confident match into a clarification. Filtering the outcome gives the same
+// guarantee with none of that distortion.
+//
+// Returning an empty set is meaningful: no authorized operation serves the
+// family that was asked about, so the caller must fall through to the typed
+// plan or clarify. It must never answer from another family.
+func filterOperationsByQuestionFamily(question string, candidates []SemanticOperationCandidateV1) ([]SemanticOperationCandidateV1, string) {
+	family := semanticQuestionFamily(question)
+	if family == "" {
+		return candidates, ""
+	}
+	kept := make([]SemanticOperationCandidateV1, 0, len(candidates))
+	for _, candidate := range candidates {
+		if candidate.FamilyID == family {
+			kept = append(kept, candidate)
+		}
+	}
+	return kept, family
+}
+
+// filterRankedByQuestionFamily applies the same guard to an already-ranked
+// list, keeping candidates and their scores aligned so the confidence margin
+// is computed among operations that could actually serve the question.
+func filterRankedByQuestionFamily(question string, ranked []SemanticOperationCandidateV1, scores []SemanticOperationResolutionScoreV1) ([]SemanticOperationCandidateV1, []SemanticOperationResolutionScoreV1, string) {
+	family := semanticQuestionFamily(question)
+	if family == "" {
+		return ranked, scores, ""
+	}
+	keptFamily := make(map[string]bool, len(ranked))
+	keptRanked := make([]SemanticOperationCandidateV1, 0, len(ranked))
+	for _, candidate := range ranked {
+		if candidate.FamilyID == family {
+			keptRanked = append(keptRanked, candidate)
+			keptFamily[candidate.OperationID] = true
+		}
+	}
+	keptScores := make([]SemanticOperationResolutionScoreV1, 0, len(scores))
+	for _, score := range scores {
+		if keptFamily[score.OperationID] {
+			keptScores = append(keptScores, score)
+		}
+	}
+	return keptRanked, keptScores, family
+}
+
 func operationApplicability(template queryTemplateCatalogEntry) OperationApplicabilityV1 {
 	required, optional, bindable, userRequired := []string{}, []string{}, []string{}, []string{}
 	for _, input := range template.Inputs {

@@ -1,0 +1,233 @@
+contract_version: forensics.semantic-layer/v1
+family: anpr_vehicles
+record_type: anpr
+display_name: Vehicle plate sightings
+description: One row per automatic number-plate recognition sighting. 750 rows in the demo case.
+synonyms: [anpr, plate, plates, number plate, licence plate, license plate, sighting, sightings, vehicle, vehicles, camera]
+default_measure: anpr.record_count
+fields:
+  - id: anpr.plate_number
+    display_name: Plate number
+    description: Recognised vehicle registration plate. Filter for a specific plate; group by it for "which vehicle was seen most often".
+    source_names: [plate_number, plate, "Registration No."]
+    synonyms: [plate, plate number, registration, vehicle, car, licence plate, license plate]
+    type: STRING
+    sensitivity: IDENTIFIER
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+  - id: anpr.camera_id
+    display_name: Camera
+    description: Camera that captured the sighting. Group by this for "which camera recorded the most sightings".
+    source_names: [camera_id, "Camera Code"]
+    synonyms: [camera, camera id, which camera]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+  - id: anpr.location
+    display_name: Location
+    description: Human-readable location of the camera.
+    source_names: [location, "Camera Location"]
+    synonyms: [location, place, area, where]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: anpr.lane
+    display_name: Lane
+    description: Lane number the vehicle was travelling in.
+    source_names: [lane]
+    synonyms: [lane]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: anpr.confidence
+    display_name: Recognition confidence
+    description: Recogniser confidence for the plate read, 0 to 1. A model score, never evidence of identity.
+    source_names: [confidence, ocr_confidence, "OCR Confidence"]
+    synonyms: [confidence, score, certainty]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: []
+    allowed_aggregates: [COUNT, SUM, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: false
+  - id: anpr.latitude
+    display_name: Latitude
+    description: Latitude of the camera.
+    source_names: [latitude]
+    synonyms: [latitude, lat]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX, AVG]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: anpr.longitude
+    display_name: Longitude
+    description: Longitude of the camera.
+    source_names: [longitude]
+    synonyms: [longitude, lon, long]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX, AVG]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: anpr.event_time
+    display_name: Sighting time
+    description: Timestamp of the sighting. MIN and MAX answer "when was a plate first and last seen".
+    source_names: [timestamp, "Captured At"]
+    synonyms: [date, time, when, first seen, last seen, timestamp]
+    type: TIMESTAMP
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+
+  - id: anpr.detection_confidence
+    display_name: Detection evidence strength
+    description: >
+      Detector confidence recorded for the image region from which the plate candidate was
+      read. This is a model-derived strength signal, not evidence of vehicle identity, and
+      is not exposed as an analyst filter.
+    source_names: [detection_confidence]
+    synonyms: [detection evidence strength, detector score]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: []
+    allowed_aggregates: [COUNT, MIN, MAX, AVG]
+    projectable: true
+    groupable: false
+    sortable: false
+
+  - id: anpr.observation_id
+    display_name: Observation ID
+    description: Stable identifier assigned to the derived ANPR observation.
+    source_names: [observation_id]
+    synonyms: [observation id, sighting id]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: false
+    sortable: false
+    distinct_capable: true
+
+  - id: anpr.source_locator
+    display_name: Source locator
+    description: >
+      Recorded locator for opening the source image region or video position that supports
+      the observation. It is provenance, not a descriptive evidence dimension.
+    source_names: [source_locator]
+    synonyms: [source locator, evidence locator]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: []
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: false
+    sortable: false
+
+  - id: anpr.observation_state
+    display_name: Observation review state
+    description: Review state recorded for the derived plate observation.
+    source_names: [observation_state]
+    synonyms: [observation review state, review state]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: false
+    values:
+      - {value: model_candidate, display_name: Requires review, synonyms: [candidate, requires review]}
+
+  - id: anpr.plate_script
+    display_name: Plate script
+    description: Script label supplied for the plate text, such as Latin or Arabic-derived Urdu.
+    source_names: ["Plate Script"]
+    synonyms: [plate script, writing system]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+
+  - id: anpr.province
+    display_name: Registration province
+    description: Source-supplied province or jurisdiction label associated with the plate.
+    source_names: [Province]
+    synonyms: [registration province, plate province, jurisdiction]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+
+  - id: anpr.camera_timezone
+    display_name: Camera timezone
+    description: Source-declared timezone for the camera timestamp; an absent value is not assumed to be UTC.
+    source_names: ["Camera Timezone"]
+    synonyms: [camera timezone, source timezone]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+
+  - id: anpr.crop_sha256
+    display_name: Plate crop SHA-256
+    description: SHA-256 digest recorded for the plate image crop used by the observation.
+    source_names: ["Crop SHA256"]
+    synonyms: [plate crop sha256, crop hash]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: false
+    sortable: false
+    distinct_capable: true
+metrics:
+  - id: anpr.record_count
+    display_name: Sightings
+    description: Number of ANPR sighting rows.
+    synonyms: [how many sightings, count, number of sightings, how many times seen]
+    aggregate: COUNT
+    type: NUMBER
+  - id: anpr.distinct_cameras
+    display_name: Distinct cameras
+    description: Count of distinct cameras that recorded a sighting.
+    synonyms: [how many cameras, distinct cameras, unique cameras]
+    aggregate: COUNT_DISTINCT
+    field_id: anpr.camera_id
+    type: NUMBER

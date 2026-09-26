@@ -66,6 +66,26 @@ func resolveOpenEndedSemanticPlanner(ctx context.Context, cfg config, req hybrid
 		resolved.SemanticPlannerAudit.OperationLatencyMS = time.Since(start).Milliseconds()
 		resolved.SemanticPlannerAudit.State = state
 	}
+	// THE GATE, INVERTED. The deterministic compiler ran first and is the
+	// default. Where it could not resolve the question at all, the
+	// enum-constrained IR generator now gets its turn — the component WI-0
+	// measured at 74.3% execution-equivalent with ZERO hallucinated fields, and
+	// which until now was unreachable in production. Its output is re-verified
+	// (S6, S9 SHAPE, CONSTRAINT_APPLIED) before it is accepted; a plan that
+	// fails any check is discarded and the deterministic refusal stands.
+	// Shadow mode is NOT recorded here. It used to be, and that made it blind
+	// to every question the keyword ladder resolved before the planner ran. It
+	// now happens once in query.go, where all routes converge.
+	if semanticIRFallbackApplies(state) {
+		if fallback, fallbackState := resolveSemanticIRFallback(ctx, cfg, resolved, state); fallbackState != state {
+			return fallback, fallbackState
+		}
+	}
+	// The OPERATION SELECTOR below stays disabled, and deliberately so. It
+	// picks one of ~104 opaque operation IDs, a choice nothing can re-verify;
+	// the IR generator fills a typed plan whose field slots are an enum, which
+	// everything downstream can and does re-check. They fail differently.
+	//
 	// Re-enabling the bounded model fallback here was attempted twice this
 	// session. The first attempt picked forensics.top_locations for "top 5
 	// phone numbers by number of calls made" (locations instead of phone

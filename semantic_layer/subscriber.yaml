@@ -1,0 +1,212 @@
+contract_version: forensics.semantic-layer/v1
+family: subscriber_identity
+record_type: subscriber
+display_name: Subscribers
+description: >
+  One row per registered subscriber identity. 11 rows in the demo case, ingested from
+  several source files with different column headers, so nearly every field carries
+  aliases. This entity is the clearest demonstration of why aliases matter: "how many
+  subscribers are active" is answered 11 without them and 6 with them.
+synonyms: [subscriber, subscribers, customer, customers, account holder, registered subscriber]
+
+default_measure: subscriber.record_count
+
+fields:
+  - id: subscriber.subscriber_id
+    display_name: Subscriber ID
+    description: Case-internal subscriber identifier, e.g. PK-SUB-SYN-ALPHA.
+    source_names: [subscriber_id, customer_id, customer_no]
+    synonyms: [subscriber id, customer id, account id]
+    type: STRING
+    sensitivity: IDENTIFIER
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+
+  - id: subscriber.status
+    display_name: Account status
+    description: >
+      Whether the account is ACTIVE, SUSPENDED, CLOSED, INACTIVE or PENDING. Stored under
+      TWO different headers depending on which file the row came from: `status` carries
+      five values and `account_status` carries only ACTIVE. Both must be read or the
+      active count is wrong — this is exactly why SUB-02 returned 11 instead of 6.
+    source_names: [status, account_status]
+    synonyms: [status, state, account status]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: ACTIVE, display_name: Active, synonyms: [active, live, enabled]}
+      - {value: SUSPENDED, display_name: Suspended, synonyms: [suspended, barred]}
+      - {value: CLOSED, display_name: Closed, synonyms: [closed, terminated]}
+      - {value: INACTIVE, display_name: Inactive, synonyms: [inactive, disabled]}
+      - {value: PENDING, display_name: Pending, synonyms: [pending, awaiting activation]}
+
+  - id: subscriber.full_name
+    display_name: Subscriber name
+    description: Registered name of the subscriber. Personal data.
+    source_names: [full_name, customer_name, name, subscriber_name]
+    synonyms: [name, full name, registered subscriber, customer name]
+    type: STRING
+    sensitivity: PII
+    redaction: MASKED
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: false
+    sortable: false
+
+  - id: subscriber.cnic
+    display_name: CNIC
+    description: >
+      National identity number. Masked server-side at projection — the analyst sees
+      *********0011, never the full number. The masking is a control, not a display
+      preference.
+    source_names: [cnic_no, CNIC, cnic, national_id]
+    synonyms: [cnic, national id, identity number, nic]
+    type: STRING
+    sensitivity: PII
+    redaction: MASKED
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: false
+    sortable: false
+
+  - id: subscriber.msisdn
+    display_name: Subscriber number
+    description: Phone number registered to the subscriber. Joins to the CDR subscriber number.
+    source_names: [mobile_no, MSISDN, account_msisdn, phone_number, subscriber_number]
+    synonyms: [phone number, msisdn, mobile, contact number]
+    type: STRING
+    sensitivity: IDENTIFIER
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+
+  - id: subscriber.imsi
+    display_name: SIM IMSI
+    description: SIM identifier registered to the subscriber.
+    source_names: [imsi, subscriber_imsi]
+    synonyms: [imsi, sim]
+    type: STRING
+    sensitivity: IDENTIFIER
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+
+  - id: subscriber.imei
+    display_name: Device IMEI
+    description: Handset identifier registered to the subscriber.
+    source_names: [device_imei, imei, IMEI]
+    synonyms: [imei, device, handset]
+    type: STRING
+    sensitivity: IDENTIFIER
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+
+  - id: subscriber.city
+    display_name: City
+    description: >
+      Source-supplied subscriber locality, city, home city, or billing region. The label is
+      retained as supplied and does not establish current physical presence.
+    source_names: [city, home_city, billing_region, location]
+    synonyms: [city, town, region, area]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+
+  - id: subscriber.activation_date
+    display_name: Activation date
+    description: Date the account was activated.
+    source_names: [activation_date, valid_from, created_at]
+    synonyms: [activated, activation, start date, since]
+    type: TIMESTAMP
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+
+  - id: subscriber.deactivation_date
+    display_name: Deactivation date
+    description: Date the account was deactivated, when it has been.
+    source_names: [deactivation_date, valid_to]
+    synonyms: [deactivated, closed date, end date, until]
+    type: TIMESTAMP
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+
+  - id: subscriber.cnic_last4
+    display_name: CNIC last four digits
+    description: >
+      Source-supplied final four digits of a CNIC. This remains partial personal data and
+      is withheld from the dynamic analyst field catalogue; projection masking is enforced
+      by the server.
+    source_names: [cnic_last4]
+    synonyms: [cnic last four, last four cnic digits, cnic suffix]
+    type: STRING
+    sensitivity: PII
+    redaction: MASKED
+    allowed_filters: []
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: false
+    sortable: false
+
+  - id: subscriber.account_type
+    display_name: Account type
+    description: Source-supplied subscriber account type, such as prepaid or postpaid.
+    source_names: [account_type]
+    synonyms: [account type, prepaid or postpaid, billing type]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: prepaid, display_name: Prepaid, synonyms: [prepaid, pay as you go]}
+      - {value: postpaid, display_name: Postpaid, synonyms: [postpaid, billed account]}
+
+metrics:
+  - id: subscriber.record_count
+    display_name: Subscribers
+    description: Number of subscriber records.
+    synonyms: [how many subscribers, count, number of subscribers]
+    aggregate: COUNT
+    type: NUMBER
+
+  - id: subscriber.distinct_cities
+    display_name: Distinct cities
+    description: Count of distinct registered cities.
+    synonyms: [how many cities, distinct cities, unique cities]
+    aggregate: COUNT_DISTINCT
+    field_id: subscriber.city
+    type: NUMBER

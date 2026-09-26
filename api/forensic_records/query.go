@@ -321,6 +321,23 @@ func hybridQueryHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			return
 		}
 
+		// Attach the planner audit BEFORE any planning runs, so cost recording
+		// is unconditional rather than dependent on which path happens to
+		// create one.
+		//
+		// Measured 2026-09-24: `ir_generation_ms` records only when an audit is
+		// present, and three of four probes reported 0 ms while taking 74-154 s
+		// because their path never attached one. TWR-01, which did, accounted
+		// for 98% of its 152 s. A cost that is recorded on some paths and not
+		// others is not a measurement -- it is a sampling bias, and this
+		// project has already lost three runs to a mis-measuring instrument
+		// (WI-6).
+		//
+		// Downstream code replaces this pointer when it builds a richer audit;
+		// it never expects nil, so seeding it is safe.
+		if req.SemanticPlannerAudit == nil {
+			req.SemanticPlannerAudit = &SemanticPlannerAuditV1{}
+		}
 		req = bindDerivedTextQuery(req)
 		preflightCapability := assessDynamicQuery(req.Query, req.Template)
 		planner := planRuntimeQuery(req)
@@ -342,6 +359,10 @@ func hybridQueryHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 				return
 			}
 		}
+		// Snapshot the request BEFORE any router mutates it. Shadow-mode
+		// measurement has to hand the generator the same input on every
+		// route or it is not one measurement; see ensureSemanticIRShadow.
+		irShadowProbe := req
 		compositionSpec := detectBoundedComposition(req.Query)
 		if len(compositionSpec.Templates) > 0 {
 			planner.Template = compositionSpec.Templates[0]
@@ -375,6 +396,10 @@ func hybridQueryHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 				languageAssistanceStatus = status
 			}
 		}
+		// Every route converges here: the deterministic fast path, the
+		// keyword ladder and the semantic planner. Off by default; when on,
+		// it writes only to the audit.
+		req = ensureSemanticIRShadow(ctx, cfg, req, irShadowProbe, languageAssistanceStatus)
 		intent := planner.Intent
 		template := planner.Template
 		if req.Compare != nil {
@@ -461,6 +486,39 @@ func hybridQueryHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			delete(planner.QueryPlan.AppliedFilters, "target")
 			delete(planner.QueryPlan.AppliedFilters, "target_type")
 		}
+		// ARBITRATION. A clarification makes NO claim, so replacing one with a
+		// fully re-verified plan cannot turn a right answer wrong -- it can only
+		// turn "I cannot tell" into an answer that passed every check. That
+		// asymmetry is why this is safe here and NOT against a confident answer:
+		// arbitrating confident answers on a shape mismatch was measured first
+		// and REJECTED, firing on 3 wrong answers and 2 CORRECT ones.
+		//
+		// It has to run BEFORE `understanding` is built. Substituting the request
+		// after that point changes nothing: capability resolution and execution
+		// both read `understanding`, so the original template still runs and
+		// returns nothing, which is exactly what the first attempt did.
+		//
+		// "Which cell site handled the most calls?" is the case -- it routes to a
+		// template demanding a target identifier the question never names, so it
+		// asks WHICH cell site to analyse when the question IS the analysis.
+		// Also triggered by verified-only mode: if an unbacked structured answer is
+		// about to be WITHHELD, try to earn it a verified plan first. Without this
+		// the two features fight each other -- measured 2026-09-23, CDR-02 was
+		// withheld while a correct generated plan sat unused in the same response.
+		// Re-deriving costs a generation; withholding a correct answer costs the
+		// analyst the answer.
+		if semanticIRArbitrationEnabled() && (willClarify(req, template) || verifiedOnlyWithholds(req)) {
+			if arbitrated, state := resolveSemanticIRFallback(ctx, cfg, req, "CLARIFICATION"); state == "semantic_ir_fallback" {
+				req = arbitrated
+				planner = planRuntimeQuery(req)
+				template, intent = planner.Template, planner.Intent
+				languageAssistanceStatus = state
+				if req.SemanticPlannerAudit != nil {
+					req.SemanticPlannerAudit.IRArbitrated = true
+					req.SemanticPlannerAudit.BindingState = ""
+				}
+			}
+		}
 		queryPlan := applyCanonicalRequestToQueryPlan(planner.QueryPlan, req, template)
 		templateEntry, _ := queryTemplateByName(template)
 		understanding := adaptLegacyRuntimePlan(req, planner, templateEntry)
@@ -516,6 +574,20 @@ func hybridQueryHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 		var kbLatencyMS int64
 		var llmLatencyMS int64
 
+		// VERIFIED-ONLY: a structured analytical question is answered from a typed
+		// plan that passed S6, S9 SHAPE and CONSTRAINT_APPLIED, or it is not
+		// answered at all. The ladder and the registered templates answer
+		// confidently and are checked by nothing, and that is where every
+		// confident-wrong answer in the corpus comes from. Runs after arbitration,
+		// which may have just supplied a verified plan, and before any execution.
+		if reason := preExecutionWithhold(req, template); reason != nil {
+			applyWithhold(req, &resp, *reason)
+			resp.Telemetry = buildQueryTelemetry(requestID, dbLatencyMS, kbLatencyMS, llmLatencyMS, startedAt, resp)
+			resp.Enterprise = buildEnterprisePayload(req, resp)
+			writeJSON(w, http.StatusOK, resp)
+			return
+		}
+
 		if resp.Capability.Status == "unavailable" {
 			resp.Route = []string{"capability_guard"}
 			resp.Answer["capability_status"] = "unavailable"
@@ -545,7 +617,7 @@ func hybridQueryHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 				"Which files were ingested?",
 			}
 			resp.Answer["guardrail"] = "No SQL, Knowledge Base retrieval, or model synthesis was run because the requested operation was ambiguous."
-			resp.Clarification = &ClarificationRequestV1{ContractVersion: clarificationRequestContractV1, ReasonCode: "ambiguous_operation", Question: stringValueAny(resp.Answer["clarification"]), MissingFields: []string{"operation"}, Options: []string{}, ExecutionHeld: true}
+			resp.Clarification = &ClarificationRequestV1{ContractVersion: clarificationRequestContractV1, ReasonCode: "ambiguous_operation", Question: stringValueAny(resp.Answer["clarification"]), MissingFields: []string{"operation"}, Options: clarificationOptions(req, nil), ExecutionHeld: true}
 			if req.TextQuery != nil || req.TextQueryError != "" {
 				resp.Clarification.ReasonCode = "ambiguous_text_source"
 				resp.Clarification.MissingFields = []string{"text_source"}
@@ -580,7 +652,8 @@ func hybridQueryHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			req.SemanticPlannerAudit.BindingState, req.SemanticPlannerAudit.MissingFactKinds = semanticBindingReadiness(req, *req.SemanticPlannerAudit.Selected)
 		}
 		bindingMissing := req.SemanticPlannerAudit != nil && req.SemanticPlannerAudit.BindingState == "USER_FACT_REQUIRED"
-		if bindingMissing || invalidSubscriberTarget || (template == "multi_cdr_comparison" && req.SourceSet == nil) || (documentComparisonRequested(req) && req.SourceSet == nil) || needsClarification(req.Query, template, req.Target, req.Targets) {
+		clarifying := bindingMissing || invalidSubscriberTarget || (template == "multi_cdr_comparison" && req.SourceSet == nil) || (documentComparisonRequested(req) && req.SourceSet == nil) || needsClarification(req.Query, template, req.Target, req.Targets)
+		if clarifying {
 			resp.Intent = intentClarify
 			resp.Route = []string{"clarification"}
 			resp.Answer["clarification_required"] = true
@@ -598,7 +671,7 @@ func hybridQueryHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 				resp.Answer["limitations"] = []string{"A target-specific query was detected, but no target identifier was provided or extractable from the request."}
 				resp.Answer["guardrail"] = "No records query was run because the request needs one missing identifier."
 			}
-			resp.Clarification = &ClarificationRequestV1{ContractVersion: clarificationRequestContractV1, ReasonCode: "missing_required_parameter", Question: stringValueAny(resp.Answer["clarification"]), MissingFields: append([]string(nil), understanding.Clarification.MissingFields...), Options: []string{}, ExecutionHeld: true}
+			resp.Clarification = &ClarificationRequestV1{ContractVersion: clarificationRequestContractV1, ReasonCode: "missing_required_parameter", Question: stringValueAny(resp.Answer["clarification"]), MissingFields: append([]string(nil), understanding.Clarification.MissingFields...), Options: clarificationOptions(req, understanding.Clarification.MissingFields), ExecutionHeld: true}
 			resp.Telemetry = buildQueryTelemetry(requestID, dbLatencyMS, kbLatencyMS, llmLatencyMS, startedAt, resp)
 			resp.Enterprise = buildEnterprisePayload(req, resp)
 			writeJSON(w, http.StatusOK, resp)
@@ -883,6 +956,43 @@ func hybridQueryHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			resp.QueryPlan.CoverageCheck = resp.Coverage
 			resp.Planner["query_plan"] = resp.QueryPlan
 		}
+		// CROSS-VERIFICATION: re-derive the answer from the enum-constrained
+		// generated plan and compare. Two independent derivations agreeing is
+		// corroboration; disagreeing means one is wrong and nothing here can
+		// say which, so the honest answer is to decline rather than pick.
+		// Runs BEFORE synthesis so a withdrawn value is never narrated.
+		if cross := crossCheckAgainstGeneratedPlan(ctx, cfg, db, req, resp); cross.Skipped != "disabled" {
+			// Record the SKIP REASON too. Writing the audit only when the check
+			// ran left no way to tell "it could not judge this" from "it never
+			// executed" — the same defect that hid the grammar 500 for hours.
+			if req.SemanticPlannerAudit != nil {
+				req.SemanticPlannerAudit.CrossCheck = &cross
+			}
+			resp.Planner["cross_check"] = cross
+			if cross.Ran && !cross.Agreed {
+				resp.Intent = intentClarify
+				resp.Route = append(resp.Route, "cross_check_disagreement")
+				resp.Answer = map[string]any{
+					"clarification_required": true,
+					"clarification": fmt.Sprintf(
+						"Two independent derivations of this answer disagree (%v versus %v), "+
+							"so I will not state either as fact. Narrow the question — name the "+
+							"field, the grouping, or the time range you want — and I will recompute.",
+						cross.Determinis, cross.Generated),
+					"guardrail": "No result was stated because two independently derived plans " +
+						"produced different values for this question.",
+				}
+				resp.Clarification = &ClarificationRequestV1{
+					ContractVersion: clarificationRequestContractV1,
+					ReasonCode:      "cross_check_disagreement",
+					Question:        stringValueAny(resp.Answer["clarification"]),
+					MissingFields: []string{},
+					Options:       clarificationOptions(req, nil),
+					ExecutionHeld: true,
+				}
+				intent = intentClarify
+			}
+		}
 		if shouldRunBoundedSynthesis(intent, req) {
 			llmStart := time.Now()
 			resp.Telemetry.RequestID = requestID
@@ -901,6 +1011,14 @@ func hybridQueryHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 		resp.Answer["guardrail"] = "No raw full tables were sent to an LLM. Response contains only computed aggregates, selected source previews, and citations."
 		resp.Telemetry = buildQueryTelemetry(requestID, dbLatencyMS, kbLatencyMS, llmLatencyMS, startedAt, resp)
 		resp.Enterprise = buildEnterprisePayload(req, resp)
+		// Building the payload is what runs the answer builder, so only now is it
+		// known whether anything was actually computed. Withholding here rebuilds
+		// the payload so the clarification -- not the discarded answer -- is what
+		// the analyst receives.
+		if withholdPostExecution(req, &resp, templateEntry) {
+			resp.Telemetry = buildQueryTelemetry(requestID, dbLatencyMS, kbLatencyMS, llmLatencyMS, startedAt, resp)
+			resp.Enterprise = buildEnterprisePayload(req, resp)
+		}
 		resp.ToolResults, resp.Warnings = buildSharedToolResults(req, resp, resp.Warnings)
 		if resp.PlanValidation != nil {
 			resp.Enterprise["plan_validation"] = resp.PlanValidation
@@ -1759,6 +1877,15 @@ func planRuntimeQuery(req hybridQueryRequest) runtimePlan {
 		dateTo = req.DateTo
 	}
 	template := chooseTemplate(req.Query, req.Template)
+	// D4 on the keyword-ladder path. The ladder picked a cross-family entity
+	// operation for "which IP address made the most requests" and answered an
+	// access-log question with phone and location counts. A template whose
+	// family contradicts the record type the question names is refused; the
+	// request then falls to canonical_records, where the typed plan compiles it
+	// against the curated catalogue for the family that WAS asked about.
+	if req.Template == "" && !runtimeTemplateFamilyAllowed(req.Query, template) {
+		template = "canonical_records"
+	}
 	intent := classifyIntent(req.Query, req.Template)
 	targetType := classifyTargetType(target)
 	fieldHints := extractFieldHints(req.Query)
@@ -1803,6 +1930,47 @@ func planRuntimeQuery(req hybridQueryRequest) runtimePlan {
 	plan := runtimePlan{Intent: intent, Template: template, Target: target, Targets: targets, TargetType: targetType, FieldHints: fieldHints, DateFrom: dateFrom, DateTo: dateTo, Source: "runtime_query", Confidence: confidence, Reason: reason}
 	plan.QueryPlan = plan.toQueryPlan()
 	return plan
+}
+
+// runtimeTemplateFamilyAllowed reports whether a ladder-chosen template serves
+// the evidence family the question names. It uses extractCanonicalRecordType,
+// the same signal WI-3 measured as strictly more reliable than the frame's
+// family hint. An unknown family, a family-agnostic template, or an explicit
+// caller-supplied template is always allowed: precision over recall.
+func runtimeTemplateFamilyAllowed(question, template string) bool {
+	family := semanticQuestionFamily(question)
+	if family == "" || template == "" || template == "canonical_records" {
+		return true
+	}
+	// A genuinely cross-family question ("show tower activity for <number>")
+	// names one family by word and another by identifier. Refusing on the record
+	// type alone broke three accepted routings, so the guard stands down.
+	if semanticQuestionNamesMultipleFamilies(question) {
+		return true
+	}
+	entry, ok := queryTemplateByName(template)
+	if !ok || entry.FamilyID == "" {
+		return true
+	}
+	if entry.FamilyID == family {
+		return true
+	}
+	// The guard only judges STRUCTURED families, which are the ones the semantic
+	// layer curates. A document, image or audio retrieval template serves a
+	// different kind of question entirely, and refusing it on a structured record
+	// type sent "search the case documents for mentions of plate MN1367" — a
+	// document search — to the ANPR rows.
+	if layer, _ := defaultSemanticLayer(); layer != nil && entry.FamilyID != "case_cross_family" {
+		if _, curated := layer.EntityByFamily(entry.FamilyID); !curated {
+			return true
+		}
+	}
+	// A cross-family operation aggregates over every family at once. That is the
+	// right shape only when the question named no family: asked which IP made the
+	// most requests, it answered "37,601 records across 5 entity type values.
+	// Largest: phone: 20,408". Its RecordTypes list every family, which is why
+	// the family must be read from FamilyID and not from that list.
+	return false
 }
 
 func (p runtimePlan) toQueryPlan() QueryPlan {
@@ -1905,15 +2073,35 @@ func chooseTemplate(query, explicitTemplate string) string {
 			return candidate.Name
 		}
 	}
+	// A MEDIA QUESTION IS NOT THE LADDER'S TO ANSWER. Every template here reads
+	// forensic.records, so a question about model observations can only be
+	// answered from the wrong evidence -- M7 asked about 24 video plate groups
+	// and was told "1,057 ANPR sightings". Abstaining hands it to the compiler,
+	// which is already how 39 of 62 questions are answered.
+	if mediaFamilyRoutingClaims(query) {
+		return ""
+	}
 	q := normalizeAnalystSemantics(query)
 	target := extractTarget(query)
 	dateFrom, _ := extractDateRange(query)
 	family := extractCanonicalRecordType(query)
-	if template := choosePreciseTemplate(q, target, dateFrom); template != "" && templateServesFamily(template, family, true) {
-		return template
-	}
-	if template := chooseGenericFallbackTemplate(q, target); templateServesFamily(template, family, false) {
-		return template
+	// LADDER DELETION, SLICE 1. The keyword ladder is P3's remaining deliverable
+	// and this is the gate that makes removing it measurable instead of
+	// hopeful: default ON reproduces today's behaviour bit-for-bit, and OFF
+	// drives every question down the compiler path.
+	//
+	// Turning it off is safe by construction because an abstaining ladder is
+	// ALREADY a designed outcome — the `return ""` below says so, and 39 of 62
+	// questions reach the compiler today. Nothing enters an unhandled state.
+	//
+	// Rule and thresholds: reports/ladder-deletion-20260925/SLICE_RULE.md.
+	if ladderRoutingEnabled() {
+		if template := choosePreciseTemplate(q, target, dateFrom); template != "" && templateServesFamily(template, family, true) {
+			return template
+		}
+		if template := chooseGenericFallbackTemplate(q, target); templateServesFamily(template, family, false) {
+			return template
+		}
 	}
 	// The ladder abstains; the semantic compiler / dynamic SQL path decides.
 	return ""
@@ -6656,8 +6844,55 @@ func buildCompositionEnterprisePayload(req hybridQueryRequest, resp hybridQueryR
 }
 
 func enterpriseExecutiveAnswer(req hybridQueryRequest, resp hybridQueryResponse, rows []map[string]any) string {
+	answer := enterpriseExecutiveAnswerBody(req, resp, rows)
+	// An incomplete search that FOUND something must state what it found AND
+	// disclose its limit. Both, in that order: the finding is the answer, the
+	// incompleteness is a caveat ON it. Returning the caveat INSTEAD threw the
+	// answer away; returning the answer alone would drop a disclosure the
+	// analyst needs to know they have not seen everything.
 	if state := stringValueAny(resp.Evidence["result_state"]); state == "SEARCH_INCOMPLETE" || state == "RESULTS_TRUNCATED" {
-		return "The text search is incomplete. Any listed observations are supported matches; absence of further matches has not been established."
+		if len(evidenceResults(resp.Evidence)) > 0 && !strings.Contains(strings.ToLower(answer), "incomplete") {
+			answer = strings.TrimSpace(answer) +
+				" This search is incomplete; absence of further matches has not been established."
+		}
+	}
+	return answer
+}
+
+func enterpriseExecutiveAnswerBody(req hybridQueryRequest, resp hybridQueryResponse, rows []map[string]any) string {
+	// The caveat is the whole answer only when there is NOTHING to report.
+	// Measured live 2026-09-23: `Find the exact phrase "coconut sugar" in the
+	// audio transcripts` retrieved 1 cited segment -- "especially Japanese
+	// coconut sugar, and various aromatic spices.", fleurs-en_us-validation-
+	// row-01.wav at 11.28s -- and the analyst was shown none of it. Every audio
+	// question in the corpus failed this way, which read as broken retrieval;
+	// retrieval was working the whole time.
+	//
+	// Measured live 2026-09-23: `Find the exact phrase "coconut sugar" in the
+	// audio transcripts` retrieved 1 cited segment -- "especially Japanese
+	// coconut sugar, and various aromatic spices.", fleurs-en_us-validation-
+	// row-01.wav at 11.28s -- and the analyst was shown none of it. Every audio
+	// question in the corpus failed this way, which read as broken retrieval;
+	// retrieval was working the whole time.
+	//
+	// Incompleteness is a LIMITATION, not a replacement for the finding. It is
+	// already carried into `evidence_limitation` and the warnings by
+	// applyDerivedTextCompleteness, which is where the answer contract puts it
+	// (section 5), not in place of the answer (section 1).
+	if state := stringValueAny(resp.Evidence["result_state"]); state == "SEARCH_INCOMPLETE" || state == "RESULTS_TRUNCATED" {
+		if len(evidenceResults(resp.Evidence)) == 0 {
+			return "The text search is incomplete. Any listed observations are supported matches; absence of further matches has not been established."
+		}
+	}
+	if resp.Template == "audio_transcript_search" && len(evidenceResults(resp.Evidence)) > 0 {
+		if answer := transcriptExecutiveAnswer(req, resp); answer != "" {
+			return answer
+		}
+	}
+	if resp.Template == "image_ocr_search" && len(evidenceResults(resp.Evidence)) > 0 {
+		if answer := imageOCRExecutiveAnswer(req, resp); answer != "" {
+			return answer
+		}
 	}
 	if resp.Template == "document_search" && len(evidenceResults(resp.Evidence)) > 0 {
 		return documentExecutiveAnswer(req, resp)
@@ -6779,10 +7014,29 @@ func enterpriseExecutiveAnswer(req hybridQueryRequest, resp hybridQueryResponse,
 		if answer, ok := buildResultAnswer(req, resp, rows); ok && answer.Headline != "" {
 			return answer.Headline
 		}
-		if summary := strings.TrimSpace(stringValueAny(resp.Answer["records_summary"])); summary != "" {
+		// records_summary describes the MACHINERY ("Executed bounded source-native
+		// typed algebra over 8642 authorized source rows…", "Queried
+		// forensic.records with parameterized canonical filters…"). An analyst
+		// cannot act on it and a narrator can only paraphrase it, which
+		// validateNarrative then correctly rejects — so the analyst is left with
+		// nothing. State something true about the evidence instead.
+		summary := strings.TrimSpace(stringValueAny(resp.Answer["records_summary"]))
+		if summary != "" && !factPacketPlumbingText(summary) {
 			return summary
 		}
-		return fmt.Sprintf("The analysis returned %d exact result row%s.", len(rows), pluralSuffix(len(rows)))
+		noun := familyNoun(req.RecordType, float64(count))
+		if count == 0 {
+			return fmt.Sprintf("No %s matched this question in the authorized scope.", familyNoun(req.RecordType, 0))
+		}
+		// Reaching here means NOTHING computed an answer: buildResultAnswer
+		// produced no headline and records_summary was machinery. The sentence
+		// below states the size of the page that happened to come back, which
+		// reads as a finding and is not one. Mark it so the records path can
+		// withhold instead of asserting -- see uncomputedQuantityAnswer.
+		if resp.Answer != nil {
+			resp.Answer[uncomputedAnswerMarker] = true
+		}
+		return fmt.Sprintf("%s %s matched this question.", formatAnswerNumber(float64(count)), noun)
 	}
 }
 
@@ -6901,6 +7155,142 @@ func documentLocatorLabel(value any) string {
 	return strings.Join(parts, " · ")
 }
 
+// transcriptExecutiveAnswer states WHICH recording carried the match and WHEN,
+// because that is what an analyst asks of audio: "which recording mentions
+// coconut sugar and at what time?".
+//
+// Every value comes from the citation locator of a segment that actually
+// matched -- the source file, the start offset and the transcript text itself.
+// Nothing is inferred, and a segment with no usable locator contributes no
+// time claim rather than a guessed one.
+// claimCarryingResult picks the evidence result that actually SUPPORTS the
+// question, rather than whichever came back first.
+//
+// Measured live 2026-09-23: "Which recording mentions coconut sugar and at what
+// time?" returned three segments of the same recording and led with "seasoned
+// dishes ... peanut chilies" at 5.56s, while the segment containing the phrase
+// the analyst asked about sat at 11.28s. A citation that does not carry the
+// claim is not a citation, whatever the medium.
+func claimCarryingResult(req hybridQueryRequest, results []map[string]any) int {
+	best := 0
+	terms := queryTerms(req.Query + " " + req.Target)
+	if len(terms) == 0 {
+		return best
+	}
+	bestScore := -1
+	for i, result := range results {
+		text := strings.ToLower(stringValueAny(firstPresent(result, "content", "preview")))
+		if score := lexicalScore(text, terms); score > bestScore {
+			bestScore, best = score, i
+		}
+	}
+	return best
+}
+
+// imageOCRExecutiveAnswer names the IMAGE that carried the text.
+//
+// Before this, an OCR search answered "Retrieved 1 cited evidence result from
+// the selected case scope" — a sentence that names no image, quotes no text and
+// could describe any result of any kind. The image, the matched text and the
+// region were all present in the citation locator and none of them reached the
+// analyst. Measured 2026-09-24 on IMG-01, whose answer is printed-english.png.
+//
+// The region is deliberately NOT narrated: a bounding box is something the
+// viewer draws on the image, not a sentence. It stays in the locator where the
+// citation can open it.
+func imageOCRExecutiveAnswer(req hybridQueryRequest, resp hybridQueryResponse) string {
+	results := evidenceResults(resp.Evidence)
+	if len(results) == 0 {
+		return ""
+	}
+	best := claimCarryingResult(req, results)
+	metadata, _ := results[best]["metadata"].(map[string]any)
+	locator := mapFromAny(metadata["citation_locator"])
+	source := strings.TrimSpace(stringValueAny(firstPresent(locator, "source_file")))
+	if source == "" {
+		source = strings.TrimSpace(stringValueAny(firstPresent(metadata, "source_file", "file_name", "source")))
+	}
+	text := strings.Join(strings.Fields(stringValueAny(firstPresent(results[best], "content", "preview"))), " ")
+	text = derivedTextPreview(text, min(240, len(text)))
+	if source == "" || text == "" {
+		return ""
+	}
+	images := map[string]struct{}{}
+	for _, result := range results {
+		meta, _ := result["metadata"].(map[string]any)
+		loc := mapFromAny(meta["citation_locator"])
+		if name := strings.TrimSpace(stringValueAny(firstPresent(loc, "source_file"))); name != "" {
+			images[name] = struct{}{}
+		}
+	}
+	more := ""
+	if len(images) > 1 {
+		more = fmt.Sprintf(" %d images carry matching text.", len(images))
+	}
+	return fmt.Sprintf("%s contains the text “%s”.%s", source, text, more)
+}
+
+func transcriptExecutiveAnswer(req hybridQueryRequest, resp hybridQueryResponse) string {
+	results := evidenceResults(resp.Evidence)
+	if len(results) == 0 {
+		return ""
+	}
+	best := claimCarryingResult(req, results)
+	metadata, _ := results[best]["metadata"].(map[string]any)
+	locator := mapFromAny(metadata["citation_locator"])
+	source := strings.TrimSpace(stringValueAny(firstPresent(locator, "source_file")))
+	if source == "" {
+		source = strings.TrimSpace(stringValueAny(firstPresent(metadata, "source_file", "file_name", "source")))
+	}
+	passage := strings.Join(strings.Fields(stringValueAny(firstPresent(results[best], "content", "preview"))), " ")
+	passage = derivedTextPreview(passage, min(320, len(passage)))
+	if source == "" || passage == "" {
+		return ""
+	}
+	sources := map[string]struct{}{}
+	for _, result := range results {
+		meta, _ := result["metadata"].(map[string]any)
+		loc := mapFromAny(meta["citation_locator"])
+		if name := strings.TrimSpace(stringValueAny(firstPresent(loc, "source_file"))); name != "" {
+			sources[name] = struct{}{}
+		}
+	}
+	at := ""
+	if start, ok := transcriptSeconds(locator["start_seconds"]); ok {
+		at = fmt.Sprintf(" at %s", formatSourceSecond(start))
+	}
+	more := ""
+	if len(sources) > 1 {
+		more = fmt.Sprintf(" %d recording%s carry a matching segment.", len(sources), pluralSuffix(len(sources)))
+	}
+	return fmt.Sprintf("%s mentions it%s: “%s”.%s", source, at, passage, more)
+}
+
+// namedSources renders WHICH documents carried the passages, not merely how
+// many. "across 1 document" names nothing an analyst can open, and a citation
+// that is never named is a count wearing a citation's clothes. The same defect
+// was fixed for images (IMG-01) and audio (WI-12); this is the document case,
+// found by the corrected oracle on DOC-02.
+//
+// One or two are named outright; beyond that the first is named and the rest
+// counted, because a sentence listing nine filenames is not a sentence.
+func namedSources(sources map[string]struct{}) string {
+	names := make([]string, 0, len(sources))
+	for name := range sources {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	switch len(names) {
+	case 0:
+		return ""
+	case 1:
+		return names[0]
+	case 2:
+		return names[0] + " and " + names[1]
+	}
+	return fmt.Sprintf("%s and %d other document%s", names[0], len(names)-1, pluralSuffix(len(names)-1))
+}
+
 func documentExecutiveAnswer(req hybridQueryRequest, resp hybridQueryResponse) string {
 	results := evidenceResults(resp.Evidence)
 	if len(results) == 0 {
@@ -6930,7 +7320,13 @@ func documentExecutiveAnswer(req hybridQueryRequest, resp hybridQueryResponse) s
 		literal = strings.TrimSpace(req.ExactTerm)
 	}
 	if literal != "" {
+		if named := namedSources(sources); named != "" {
+			return fmt.Sprintf("%s contains %d cited passage%s matching %q. First matching passage: “%s”", named, len(results), pluralSuffix(len(results)), literal, first)
+		}
 		return fmt.Sprintf("Found %d cited passage%s matching %q across %d document%s. First matching passage: “%s”", len(results), pluralSuffix(len(results)), literal, len(sources), pluralSuffix(len(sources)), first)
+	}
+	if named := namedSources(sources); named != "" {
+		return fmt.Sprintf("%s states: “%s” %d cited passage%s are available for review.", named, first, len(results), pluralSuffix(len(results)))
 	}
 	return fmt.Sprintf("The most relevant cited document passage states: “%s” %d cited passage%s from %d document%s are available for review.", first, len(results), pluralSuffix(len(results)), len(sources), pluralSuffix(len(sources)))
 }
@@ -7312,15 +7708,45 @@ func enterprisePublicRowCount(resp hybridQueryResponse, rows []map[string]any, r
 	}
 }
 
+// answerSourceLabel names the table the displayed numbers were actually
+// computed over, read from the citations rather than assumed.
+//
+// The metrics panel sits beside the citations on the same screen, so a derived
+// answer whose panel says `records_sql` contradicts its own provenance and
+// re-asserts, in the second place the analyst looks, that a model observation
+// was an ingested record. A plan mixing the two is refused upstream, so in
+// practice an answer is one or the other; the mixed label exists only so this
+// can never silently report the wrong one of the two.
+func answerSourceLabel(provenance []map[string]any) string {
+	derived, records := false, false
+	for _, item := range provenance {
+		switch {
+		case sourceRowIsDerived(item):
+			derived = true
+		case strings.TrimSpace(stringValueAny(item["source"])) == "records_sql":
+			records = true
+		}
+	}
+	switch {
+	case derived && records:
+		return "records_sql+derived_artifacts_sql"
+	case derived:
+		return "derived_artifacts_sql"
+	default:
+		return "records_sql"
+	}
+}
+
 func enterpriseMetrics(req hybridQueryRequest, resp hybridQueryResponse, rows []map[string]any, provenance []map[string]any) []map[string]any {
+	answerSource := answerSourceLabel(provenance)
 	metrics := []map[string]any{
 		{"label": "Template", "value": resp.Template, "source": "planner"},
 		{"label": "Route", "value": strings.Join(resp.Route, " + "), "source": "planner"},
 		{"label": "Planner Confidence", "value": resp.Planner["confidence"], "source": "planner"},
-		{"label": "Display Rows", "value": len(rows), "source": "records_sql"},
-		{"label": "Records Row Count", "value": resp.Answer["records_row_count"], "source": "records_sql"},
+		{"label": "Display Rows", "value": len(rows), "source": answerSource},
+		{"label": "Records Row Count", "value": resp.Answer["records_row_count"], "source": answerSource},
 		{"label": "Evidence Count", "value": resp.Answer["evidence_count"], "source": "kb_rag"},
-		{"label": "Provenance Items", "value": len(provenance), "source": "records_sql+kb_rag"},
+		{"label": "Provenance Items", "value": len(provenance), "source": answerSource + "+kb_rag"},
 	}
 	if req.Target != "" {
 		metrics = append(metrics, map[string]any{"label": "Target", "value": req.Target, "source": "planner"})
@@ -7353,6 +7779,64 @@ func enterpriseDataGrid(rows []map[string]any) map[string]any {
 	}
 }
 
+// sourceRowIsDerived asks the lineage what it is rather than inferring it from
+// the question, the family or the route. `sourceNativeLineageAggExpr` stamps
+// every derived citation with its own source and table, so this reads the one
+// authority that cannot disagree with the SQL that produced the row.
+func sourceRowIsDerived(sourceRow map[string]any) bool {
+	switch strings.TrimSpace(stringValueAny(sourceRow["source"])) {
+	case "derived_artifacts_sql", "derived_observation", "derived_text":
+		return true
+	}
+	return strings.TrimSpace(stringValueAny(sourceRow["source_table"])) == "forensic.derived_artifacts"
+}
+
+// derivedProvenanceItem builds the citation for a MODEL OBSERVATION.
+//
+// `forensic.derived_artifacts` has no record_id, record_type, row_hash,
+// row_number or source_file. Citing an observation as `records_sql` therefore
+// presented five NULL records columns and asserted that a model's output was a
+// row of ingested evidence — the exact confusion the product exists to prevent,
+// and the reason `source_truth_state` is carried here: it is the field that
+// stops a model's plate read being read as a camera's sighting.
+//
+// Measured against the live database 2026-09-26, before this existed: a derived
+// COUNT over 24 plate-group artifacts produced ONE provenance item reading
+// `{"source":"records_sql","record_type":null,"row_hash":null,"row_number":null,
+// "source_file":null,"source_locator":{"record_id":null,...}}`. The artifact_id,
+// artifact_type, run_id, citation_locator and source_truth_state the executor
+// had correctly selected were all discarded, so the analyst could not attribute
+// the observation to anything.
+//
+// Fields the artifact does not carry are OMITTED rather than set to null: a
+// null in a citation reads as "this evidence has no such value", which is a
+// claim, and `confidence`/`content_sha256` are genuinely absent on some
+// contracts.
+func derivedProvenanceItem(sourceRow map[string]any, collectionID string) map[string]any {
+	item := map[string]any{
+		"source":        strings.TrimSpace(stringValueAny(sourceRow["source"])),
+		"source_table":  "forensic.derived_artifacts",
+		"collection_id": collectionID,
+		"evidence_id":   firstPresent(sourceRow, "evidence_id"),
+		"version_id":    firstPresent(sourceRow, "version_id"),
+		"artifact_id":   sourceRow["artifact_id"],
+		"artifact_type": sourceRow["artifact_type"],
+		"proof_role":    "derived_observation",
+	}
+	for _, key := range []string{"run_id", "content_sha256", "confidence", "source_truth_state", "timestamp"} {
+		if value := sourceRow[key]; value != nil {
+			item[key] = value
+		}
+	}
+	// The locator is the observation's position inside the media it was derived
+	// from -- a bbox, a frame, a time offset -- not a row number in a file.
+	if locator := sourceRow["citation_locator"]; locator != nil {
+		item["citation_locator"] = locator
+		item["source_locator"] = locator
+	}
+	return item
+}
+
 func enterpriseProvenance(req hybridQueryRequest, rows []map[string]any, evidence map[string]any, contributionLineage any) []map[string]any {
 	out := make([]map[string]any, 0)
 	seen := map[string]struct{}{}
@@ -7360,7 +7844,15 @@ func enterpriseProvenance(req hybridQueryRequest, rows []map[string]any, evidenc
 		if len(out) >= max(50, len(evidenceResults(evidence))*5) {
 			return
 		}
-		key := fmt.Sprint(item["evidence_id"], "|", item["row_hash"], "|", item["source_file"], "|", item["source_entry"], "|", item["row_number"], "|", item["citation"], "|", item["source_locator"])
+		// `artifact_id` is part of the identity because a DERIVED row has none
+		// of the other components: row_hash, source_file, source_entry,
+		// row_number and citation are all NULL on a model observation, and one
+		// video yields one evidence_id for every artifact derived from it.
+		// Measured 2026-09-26: a 24-artifact derived COUNT collapsed to ONE
+		// citation here, so the analyst was shown a single unattributable item
+		// standing in for 24 distinct observations. It is nil on a records row,
+		// which leaves records de-duplication exactly as it was.
+		key := fmt.Sprint(item["evidence_id"], "|", item["row_hash"], "|", item["source_file"], "|", item["source_entry"], "|", item["row_number"], "|", item["citation"], "|", item["source_locator"], "|", item["artifact_id"])
 		if _, ok := seen[key]; ok {
 			return
 		}
@@ -7374,8 +7866,26 @@ func enterpriseProvenance(req hybridQueryRequest, rows []map[string]any, evidenc
 		if row["result_semantics"] == "document_passage" {
 			continue
 		}
+		// Whether this ROW is a model observation, decided once from its
+		// lineage. The records fallback at the end of this loop keys on a
+		// top-level `source_file`/`row_number`/`timestamp`, so today it cannot
+		// fire for a derived row only because no curated media field happens to
+		// normalize to one of those names. That is a curation coincidence, not a
+		// safety property: one synonym added in `semantic_layer/**` would turn it
+		// into a derived observation cited as an ingested record, with no code
+		// change and nothing to fail. The flag makes it structural.
+		rowIsDerived := false
 		if metadata, ok := row["metadata"].(map[string]any); ok {
 			for _, sourceRow := range mapsFromAny(metadata["source_rows"]) {
+				// A DERIVED OBSERVATION IS NOT AN INGESTED RECORD, so it is
+				// never dressed in the records citation shape below. The
+				// executor's lineage already says which it is; this branch
+				// carries that through instead of overwriting it.
+				if sourceRowIsDerived(sourceRow) {
+					rowIsDerived = true
+					add(derivedProvenanceItem(sourceRow, req.CollectionID))
+					continue
+				}
 				add(map[string]any{
 					"source":        "records_sql",
 					"collection_id": req.CollectionID,
@@ -7426,6 +7936,12 @@ func enterpriseProvenance(req hybridQueryRequest, rows []map[string]any, evidenc
 				"source_file": row["source_file"], "proof_role": "candidate_observation",
 				"source_family": map[bool]string{true: "face_candidate", false: "image_similarity"}[row["candidate_face_observation_id"] != nil],
 			})
+			continue
+		}
+		if rowIsDerived {
+			// Its citations were already emitted from the lineage above, in the
+			// derived shape. Falling through would re-cite the same observation
+			// as an ingested record.
 			continue
 		}
 		if firstPresent(row, "source_file", "source_entry", "row_number", "timestamp") == nil {
@@ -7791,14 +8307,35 @@ func extractCanonicalRecordType(query string) string {
 	return ""
 }
 
+// sourceFileGroupingPhrase marks a question asking for a BREAKDOWN BY source
+// file rather than a filter on one. "each source file" names no file.
+var sourceFileGroupingPhrase = regexp.MustCompile(`(?i)(?:each|every|per|by)\s+source[_\s-]*file`)
+
 func extractCanonicalSourceFile(query string) string {
+	// "How many CDR records came from each source file?" captured "?" as the
+	// file name -- the trailing punctuation was the first non-space token after
+	// "source file". The plan was correct (group by cdr.source_file, COUNT) and
+	// then ran against a filter matching nothing, so a right plan returned ZERO
+	// rows. Measured 2026-09-23.
+	if sourceFileGroupingPhrase.MatchString(query) {
+		return ""
+	}
 	patterns := []*regexp.Regexp{
 		regexp.MustCompile(`(?i)\bsource[_\s-]*file\s*(?:is|=|named|name|:)?\s*("[^"]+"|'[^']+'|[^\s,;]+)`),
 		regexp.MustCompile(`(?i)\bfrom\s+file\s*("[^"]+"|'[^']+'|[^\s,;]+)`),
 	}
 	for _, pattern := range patterns {
 		if match := pattern.FindStringSubmatch(query); len(match) == 2 {
-			return trimCanonicalToken(match[1])
+			value := trimCanonicalToken(match[1])
+			// A file name carries at least one alphanumeric character. Anything
+			// else is punctuation the pattern swept up, and binding it filters
+			// the query down to nothing.
+			if strings.IndexFunc(value, func(r rune) bool {
+				return (r >= '0' && r <= '9') || (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z')
+			}) < 0 {
+				continue
+			}
+			return value
 		}
 	}
 	return ""

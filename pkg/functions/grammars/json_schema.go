@@ -59,6 +59,26 @@ func (sc *JSONSchemaConverter) addRule(name, rule string) string {
 	return key
 }
 
+// schemaNonNegativeInt reads a JSON Schema numeric keyword. A schema parsed
+// from JSON carries float64; one built in Go carries int, so both are accepted.
+func schemaNonNegativeInt(value any) (int, bool) {
+	switch typed := value.(type) {
+	case int:
+		if typed >= 0 {
+			return typed, true
+		}
+	case int64:
+		if typed >= 0 {
+			return int(typed), true
+		}
+	case float64:
+		if typed >= 0 && typed == float64(int(typed)) {
+			return int(typed), true
+		}
+	}
+	return 0, false
+}
+
 func (sc *JSONSchemaConverter) visit(schema map[string]any, name string, rootSchema map[string]any) (string, error) {
 	st, existType := schema["type"]
 	var schemaType string
@@ -201,7 +221,28 @@ func (sc *JSONSchemaConverter) visit(schema map[string]any, name string, rootSch
 		if err != nil {
 			return "", err
 		}
+		// `maxItems` was never read, so every array compiled to unbounded
+		// repetition (`*`) no matter what the schema said. A constrained model
+		// with nothing stopping it fills the array: measured 2026-09-22 against
+		// a bounded analytical plan, generations ran to 599B, 1233B, 1696B and
+		// 1791B where a complete plan is ~292B, and never terminated. Raising
+		// max_tokens only buys more room to repeat.
+		//
+		// Bound it by nesting optionals — item ("," item ("," item)?)? — which
+		// every GBNF version accepts, rather than a `{m,n}` quantifier that
+		// older ones do not. Schemas without `maxItems` keep the old rule.
 		rule := fmt.Sprintf(`"[" space (%s ("," space %s)*)? "]" space`, itemRuleName, itemRuleName)
+		if maxItems, ok := schemaNonNegativeInt(schema["maxItems"]); ok && maxItems <= 32 {
+			if maxItems == 0 {
+				rule = `"[" space "]" space`
+			} else {
+				tail := ""
+				for i := 1; i < maxItems; i++ {
+					tail = fmt.Sprintf(`("," space %s %s)?`, itemRuleName, tail)
+				}
+				rule = fmt.Sprintf(`"[" space (%s %s)? "]" space`, itemRuleName, tail)
+			}
+		}
 		return sc.addRule(ruleName, rule), nil
 	} else if properties, _ := schema["properties"].(map[string]any); (schemaType == "object" || schemaType == "") && len(properties) == 0 {
 		// Handle empty object schema (no properties)

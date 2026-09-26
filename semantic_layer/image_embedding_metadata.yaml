@@ -1,0 +1,89 @@
+contract_version: forensics.semantic-layer/v1
+family: image_embedding_metadata
+record_type: image_embedding_observation
+display_name: Image-vector metadata (unreviewed model observations)
+description: >
+  Metadata about image similarity vectors. The vectors themselves are deliberately
+  excluded and cannot drive family, grouping, measure or field-role decisions. These
+  rows are unreviewed model observations and do not establish identity, fact or duplication.
+synonyms: [image embedding metadata, image vector metadata, visual similarity metadata]
+source:
+  table: derived_artifacts
+  artifact_type: forensics.image-embedding-observation/v1
+  payload: metadata
+default_measure: image_embedding_metadata.record_count
+fields:
+  - id: image_embedding_metadata.embedding_model
+    display_name: Image-vector producer identifier
+    description: Identifier recorded for the component that produced the similarity vector; it does not establish what the image depicts.
+    source_names: ["observation.embedding_model"]
+    synonyms: [image embedding model, vector producer]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: image_embedding_metadata.embedding_dimension
+    display_name: Image-vector dimension
+    description: Number of numeric components in the retained similarity vector; the vector itself is excluded.
+    source_names: ["observation.embedding_dimension"]
+    synonyms: [image embedding dimension, vector dimension]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: image_embedding_metadata.frame_timestamp_seconds
+    display_name: Video frame offset
+    description: >
+      Numeric seconds from the start of the source video when the vector describes a
+      sampled frame. Present on 2 of 18 retained observations; absence on the other 16
+      means no frame offset is stored and must not be interpreted as zero.
+    source_names: ["observation.frame_timestamp_seconds"]
+    synonyms: [frame time, video offset, frame timestamp seconds]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX, AVG]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: image_embedding_metadata.review_state
+    display_name: Review state
+    description: Producer review state for the image-vector observation; a model candidate is unreviewed.
+    source_names: ["observation.review_state"]
+    synonyms: [image vector review state, candidate state]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: model_candidate, display_name: Model candidate, synonyms: [unreviewed model candidate]}
+  - id: image_embedding_metadata.source_truth_state
+    display_name: Source truth state
+    description: Provenance state distinguishing this derived vector metadata from source-authored evidence content.
+    source_names: [source_truth_state]
+    synonyms: [observation authority, derived observation state]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: derived_model_observation, display_name: Derived model observation, synonyms: [model observation, derived observation]}
+metrics:
+  - id: image_embedding_metadata.record_count
+    display_name: Image-vector observations
+    description: Number of unreviewed image-vector metadata rows; vectors themselves are not exposed.
+    synonyms: [how many image vectors, image vector count, embedding metadata count]
+    aggregate: COUNT
+    type: NUMBER

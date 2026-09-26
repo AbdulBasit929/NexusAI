@@ -1,0 +1,116 @@
+contract_version: forensics.semantic-layer/v1
+family: access_security_logs
+record_type: access_log
+display_name: System access logs
+description: One row per HTTP request against the investigation system. 1,000 rows in the demo case.
+synonyms: [access log, access logs, http log, request, requests, web log, login]
+default_measure: access_log.record_count
+
+fields:
+  - id: access_log.status
+    display_name: HTTP status code
+    description: >
+      HTTP response status, stored as a string. A server error means status 500; a failed
+      request is any 4xx or 5xx. Group by this for a status-code breakdown.
+    source_names: [status]
+    synonyms: [status, status code, http status, response code, error, server error, failed]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: "200", display_name: 200 OK, synonyms: [ok, success, succeeded]}
+      - {value: "201", display_name: 201 Created, synonyms: [created]}
+      - {value: "400", display_name: 400 Bad Request, synonyms: [bad request]}
+      - {value: "401", display_name: 401 Unauthorized, synonyms: [unauthorized, unauthenticated]}
+      - {value: "403", display_name: 403 Forbidden, synonyms: [forbidden, denied]}
+      - {value: "500", display_name: 500 Server Error, synonyms: [server error, internal error]}
+
+  - id: access_log.source_ip
+    display_name: Source IP
+    description: IP address that made the request. Group by this for which IP made the most requests.
+    source_names: [source_ip]
+    synonyms: [ip, ip address, source ip, client, requester]
+    type: STRING
+    sensitivity: IDENTIFIER
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+
+  - id: access_log.path
+    display_name: Request path
+    description: URL path of the request.
+    source_names: [path]
+    synonyms: [path, url, endpoint, page, resource]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+
+  - id: access_log.http_method
+    display_name: HTTP method
+    description: Request method.
+    source_names: [http_method]
+    synonyms: [method, verb, http method]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: GET, display_name: GET, synonyms: [get]}
+      - {value: POST, display_name: POST, synonyms: [post]}
+
+  - id: access_log.user_agent
+    display_name: User agent
+    description: Client user-agent string.
+    source_names: [user_agent]
+    synonyms: [user agent, browser, agent]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+
+  - id: access_log.event_time
+    display_name: Request time
+    description: Timestamp of the request.
+    source_names: [timestamp]
+    synonyms: [date, time, when, timestamp]
+    type: TIMESTAMP
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+
+metrics:
+  - id: access_log.record_count
+    display_name: Access log entries
+    description: Number of access log rows.
+    synonyms: [how many requests, count, number of entries, how many entries]
+    aggregate: COUNT
+    type: NUMBER
+
+  - id: access_log.distinct_source_ips
+    display_name: Distinct source IPs
+    description: Count of distinct client IP addresses.
+    synonyms: [how many ips, distinct ips, unique ips]
+    aggregate: COUNT_DISTINCT
+    field_id: access_log.source_ip
+    type: NUMBER

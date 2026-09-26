@@ -1,0 +1,332 @@
+contract_version: forensics.semantic-layer/v1
+family: communications_cdr
+record_type: cdr
+display_name: Call detail records
+description: >
+  One row per telephony event recorded by the network: a voice call, an SMS, or a data
+  session. 8,642 rows in the demo case, 2026-04-01 to 2026-08-10. Ingested from several
+  operator exports whose column headers differ, so most fields carry aliases.
+synonyms: [cdr, cdrs, call record, call records, call, calls, call detail, telephony, phone records]
+
+# "How many CDR records" counts rows. Used when a question names no measure.
+default_measure: cdr.record_count
+
+fields:
+  - id: cdr.msisdn
+    display_name: Subscriber number
+    description: >
+      MSISDN of the subscriber this record belongs to — the party whose activity the row
+      describes. Filter on this to ask what a given number did; group by it to ask which
+      number was most active. This is NOT the dialled party.
+    source_names: [MSISDN]
+    synonyms: [phone number, number, msisdn, subscriber number, caller, who]
+    type: STRING
+    sensitivity: IDENTIFIER
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+
+  - id: cdr.dialed_number
+    display_name: Dialled number
+    description: >
+      The other party: the number dialled, or the counterparty of the event. Group by this
+      to ask who a subscriber contacted.
+    source_names: [CALL_DIALED_NUM, dialed_number, target_number, b_number]
+    synonyms: [dialled, dialed, called number, counterparty, contacted, contact, contacts, other party, b party]
+    type: STRING
+    sensitivity: IDENTIFIER
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+
+  - id: cdr.originating_number
+    display_name: Originating number
+    description: >
+      Raw originating number as supplied by the operator. Frequently a short code rather
+      than a full MSISDN, so it is the wrong field for "which number made the most calls" —
+      use Subscriber number for that.
+    source_names: [call_org_num, source_number, a_number]
+    synonyms: [origin number, originating, a party]
+    type: STRING
+    sensitivity: IDENTIFIER
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+
+  - id: cdr.call_type
+    display_name: Call type
+    description: Kind of network event. Group by this for a "call type breakdown".
+    source_names: [CALL_TYPE, call_type]
+    synonyms: [call type, type, kind, service type]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: VOICE, display_name: Voice call, synonyms: [voice]}
+      - {value: VOLTE, display_name: VoLTE call, synonyms: [volte, lte call]}
+      - {value: CALL, display_name: Call, synonyms: []}
+      - {value: SMS, display_name: SMS, synonyms: [text, text message, sms]}
+      - {value: GPRS, display_name: Data session, synonyms: [gprs, data]}
+
+  - id: cdr.direction
+    display_name: Call direction
+    description: >
+      Whether the event was inbound or outbound. The source data is NOT normalised: both
+      INCOMING and INBOUND appear, as do OUTGOING and OUTBOUND. Group by this for
+      "incoming versus outgoing"; the synonyms map either spelling onto the same concept.
+    source_names: [INBOUND_OUTBOUND_IND, direction]
+    synonyms: [direction, call direction, in or out, versus]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: INCOMING, display_name: Incoming, synonyms: [incoming, received, inbound]}
+      - {value: INBOUND, display_name: Incoming, synonyms: []}
+      - {value: OUTGOING, display_name: Outgoing, synonyms: [outgoing, made, outbound]}
+      - {value: OUTBOUND, display_name: Outgoing, synonyms: []}
+      - {value: DATA, display_name: Data, synonyms: [data]}
+
+  - id: cdr.cell_site_id
+    display_name: Cell site
+    description: >
+      Identifier of the cell site that handled the event. Group by this for "which cell
+      site handled the most calls". A cell site here is a CDR dimension, not a row in the
+      tower reference table.
+    source_names: [Cell_SITE_ID, cell_site_id, cell_id]
+    synonyms: [cell site, cell, site, cell id, base station, cell tower]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+
+  - id: cdr.site_id
+    display_name: Serving site ID
+    description: >
+      Source-supplied site identifier for the event. This is distinct from the more
+      specific Cell site field and is not treated as a tower-reference match unless an
+      exact governed join establishes one.
+    source_names: [Site_Id, site_id]
+    synonyms: [site id, serving site id]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+
+  - id: cdr.lac_id
+    display_name: Location area code
+    description: Source-supplied location area code associated with the event.
+    source_names: [Lac_Id, lac_id, lac]
+    synonyms: [lac, location area code]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+
+  - id: cdr.location
+    display_name: Event location
+    description: >
+      Human-readable location supplied on the CDR row. It is a recorded event attribute,
+      not proof of precise handset position, continuous movement, or a home location.
+    source_names: [location, site_name, area]
+    synonyms: [event location, serving location, where seen, area name]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+
+  - id: cdr.latitude
+    display_name: Event latitude
+    description: >
+      Source-supplied latitude associated with the CDR event. Interpret with the paired
+      longitude and available site context; it does not establish device presence.
+    source_names: [lat, latitude]
+    synonyms: [event latitude, latitude, lat]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX, AVG]
+    projectable: true
+    groupable: false
+    sortable: true
+
+  - id: cdr.longitude
+    display_name: Event longitude
+    description: >
+      Source-supplied longitude associated with the CDR event. Interpret with the paired
+      latitude and available site context; it does not establish device presence.
+    source_names: [longitude, lon, lng]
+    synonyms: [event longitude, longitude, lon]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX, AVG]
+    projectable: true
+    groupable: false
+    sortable: true
+
+  - id: cdr.imei
+    display_name: Device IMEI
+    description: Handset identifier associated with the event.
+    source_names: [IMEI]
+    synonyms: [imei, device, handset]
+    type: STRING
+    sensitivity: IDENTIFIER
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+
+  - id: cdr.imsi
+    display_name: SIM IMSI
+    description: SIM identifier associated with the event.
+    source_names: [IMSI]
+    synonyms: [imsi, sim]
+    type: STRING
+    sensitivity: IDENTIFIER
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+
+  - id: cdr.network_volume
+    display_name: Network volume
+    description: Data volume carried by the event in operator units. Zero for voice and SMS.
+    source_names: [Call_Network_Volume, network_volume, bytes]
+    synonyms: [volume, data volume, usage, bytes]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, SUM, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+
+  - id: cdr.call_start
+    display_name: Call start time
+    description: Timestamp at which the event began.
+    source_names: [CALL_START_DT_TM, call_start_time, call_time, start_time]
+    synonyms: [start, start time, began]
+    type: TIMESTAMP
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+
+  - id: cdr.call_end
+    display_name: Call end time
+    description: Timestamp at which the event ended.
+    source_names: [CALL_END_DT_TM, call_end_time, end_time]
+    synonyms: [end, end time, finished]
+    type: TIMESTAMP
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+
+  - id: cdr.event_time
+    display_name: Event time
+    description: >
+      Normalised record timestamp. All case-level time filtering uses this, and MIN/MAX of
+      it answer "what date range do the records cover".
+    source_names: [timestamp]
+    synonyms: [date, time, when, period, date range, month, timestamp]
+    type: TIMESTAMP
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+
+  - id: cdr.source_file
+    display_name: Source file
+    description: Evidence file each record was ingested from.
+    source_names: [source_file]
+    synonyms: [source file, file, filename, evidence file]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+
+metrics:
+  - id: cdr.record_count
+    display_name: Call records
+    description: Number of CDR rows.
+    synonyms: [how many, count, number of calls, total calls, call count]
+    aggregate: COUNT
+    type: NUMBER
+
+  - id: cdr.call_duration_seconds
+    display_name: Call duration
+    description: >
+      Elapsed seconds between the start and end of the event. There is NO duration column
+      in the source data; this metric is derived, which is why "what was the longest call"
+      could not be answered at all before the layer existed.
+    synonyms: [duration, call duration, length, how long, longest call, shortest call]
+    aggregate: MAX
+    expression: timestamp_diff_seconds(cdr.call_start, cdr.call_end)
+    unit: seconds
+    type: NUMBER
+
+  - id: cdr.distinct_counterparties
+    display_name: Distinct counterparties
+    description: Count of distinct dialled numbers — how many different people were contacted.
+    synonyms: [different people, distinct contacts, how many different people, unique counterparties]
+    aggregate: COUNT_DISTINCT
+    field_id: cdr.dialed_number
+    type: NUMBER
+
+joins:
+  - id: cdr_to_tower_location_area
+    description: >
+      Exact location-area-code match from a CDR event to the retained tower-reference row.
+      The audited source has at most one tower row per non-empty LAC, so its observed
+      cardinality is many-to-one. This is still a location-area relationship, not proof
+      that the referenced site handled the event; a source with repeated tower LAC values
+      must fail re-audit rather than reuse this declaration.
+    left_field_id: cdr.lac_id
+    right_field_id: tower.lac
+    cardinality: many_to_one

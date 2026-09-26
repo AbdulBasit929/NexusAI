@@ -88,6 +88,18 @@ type FactPacketV1 struct {
 	QualityWarnings      []string                   `json:"quality_warnings"`
 	AvailableFollowUps   []map[string]any           `json:"available_follow_up_capabilities"`
 	PresentationHints    map[string]any             `json:"presentation_hints"`
+	// Trace carries execution plumbing: the template, the route, planner
+	// confidence, display-row counts. An engineer needs it; it is never a
+	// fact about the evidence, and narrationPacket strips it before the
+	// packet is shown to a model so it can never be narrated as one.
+	Trace map[string]any `json:"trace,omitempty"`
+}
+
+// narrationPacket returns the packet with everything that is not evidence
+// removed. The narrator is asked to explain results, so it is given results.
+func (p FactPacketV1) narrationPacket() FactPacketV1 {
+	p.Trace = nil
+	return p
 }
 
 type NarrativeClaimV1 struct {
@@ -182,12 +194,42 @@ func buildFactPacket(req hybridQueryRequest, resp hybridQueryResponse, enterpris
 		}
 		facts = append(facts, FactPacketFactV1{FactID: fmt.Sprintf("F%d", len(facts)+1), Kind: kind, Text: text, Value: boundedFactValue(value), CitationIDs: boundedStrings(refs, maxFactPacketRefs)})
 	}
-	addFact("direct_answer", fpFirstString(enterprise, "executive_answer", "summary"), nil, citationIDs)
+	// The direct answer is the value the analyst asked for, computed from the
+	// returned results. It is never a description of the machinery that
+	// produced it: a packet whose first "fact" is "Executed bounded
+	// source-native typed algebra over 8642 authorized source rows" gives the
+	// narrator nothing to state, and leaves the analyst with no answer at all.
+	answer, hasAnswer := buildResultAnswer(req, resp, allRows)
+	directAnswer := ""
+	if hasAnswer {
+		directAnswer = strings.TrimSpace(answer.Headline)
+	}
+	if factPacketPlumbingText(directAnswer) {
+		directAnswer = ""
+		if candidate := fpFirstString(enterprise, "executive_answer", "summary"); !factPacketPlumbingText(candidate) {
+			directAnswer = candidate
+		}
+	}
+	// Some plans have no single computed headline (a projection, a multi-measure
+	// result). Those must still say something TRUE about the evidence: with the
+	// plumbing sentence now rejected, an empty fact list would make the
+	// deterministic fallback claim "No matching evidence was found" over a
+	// result set that is not empty at all.
+	if directAnswer == "" && len(allRows) > 0 {
+		count := float64(len(allRows))
+		noun := familyNoun(req.RecordType, count)
+		if rowSetState == "bounded" {
+			directAnswer = fmt.Sprintf("At least %s %s match this question; the returned set is bounded.", formatAnswerNumber(count), noun)
+		} else {
+			directAnswer = fmt.Sprintf("%s %s match this question.", formatAnswerNumber(count), noun)
+		}
+	}
+	if directAnswer != "" {
+		addFact("direct_answer", directAnswer, answer.Value, citationIDs)
+	}
 	// Result findings computed from the returned values are the facts a
-	// narrator can explain. Execution plumbing (template, route, planner
-	// confidence, display row counts) stays in Metrics for technical detail
-	// but is not presented as a fact about the evidence.
-	if answer, ok := buildResultAnswer(req, resp, allRows); ok {
+	// narrator can explain.
+	if hasAnswer {
 		for _, finding := range answer.Findings {
 			addFact("result_finding", finding, nil, citationIDs)
 		}
@@ -197,11 +239,18 @@ func buildFactPacket(req hybridQueryRequest, resp hybridQueryResponse, enterpris
 			addFact("deterministic_fact", fpFirstString(claim, "claim"), claim["value"], citationIDs)
 		}
 	}
+	valueMetrics := make([]map[string]any, 0, len(metrics))
+	traceMetrics := make([]map[string]any, 0, len(metrics))
 	for _, metric := range metrics {
 		label := fpFirstString(metric, "label", "name")
-		if label == "" || metric["value"] == nil || factPacketPlumbingMetric[label] {
+		if label == "" || metric["value"] == nil {
 			continue
 		}
+		if factPacketPlumbingMetric[label] {
+			traceMetrics = append(traceMetrics, metric)
+			continue
+		}
+		valueMetrics = append(valueMetrics, metric)
 		addFact("metric", label+": "+stringValueAny(metric["value"]), metric["value"], citationIDs)
 	}
 	if resp.Template == "document_search" {
@@ -252,11 +301,15 @@ func buildFactPacket(req hybridQueryRequest, resp hybridQueryResponse, enterpris
 		OperationID: fpFirstString(operation, "operation_id"), PlanID: planID,
 		NormalizedParameters: map[string]any{"target": req.Target, "targets": req.Targets, "date_from": req.DateFrom, "date_to": req.DateTo, "direction": req.Direction, "source_file": req.SourceFile, "source_set": req.SourceSet, "retrieval_mode": req.RetrievalMode, "limit": req.Limit},
 		ExecutionMode:        strings.Join(resp.Route, "+"), ResultState: fpFirstString(enterprise, "result_state", "status"), Facts: facts,
-		Metrics: metrics, Rows: rows, RowSetState: rowSetState, Relationships: relationships,
+		Metrics: valueMetrics, Rows: rows, RowSetState: rowSetState, Relationships: relationships,
 		Citations: citations, CitationSetState: citationState, AggregateLineage: enterprise["contribution_lineage"],
 		Conflicts: conflicts, Limitations: limitations, Missingness: missingness,
 		QualityWarnings: boundedStrings(resp.Warnings, maxFactPacketRefs), AvailableFollowUps: boundedMaps(mapsFromAny(enterprise["recommended_actions"]), 8),
 		PresentationHints: map[string]any{"result_kind": resultKind, "presentation_type": resp.QueryUnderstanding.RequestedOutput.PresentationType, "language": language.Tag, "direction": languageDirection(language.Tag), "priority_columns": fpColumnKeys(grid["columns"], 8)},
+		Trace: map[string]any{
+			"metrics": traceMetrics, "template": resp.Template, "route": resp.Route,
+			"plan_id": planID, "operation_id": fpFirstString(operation, "operation_id"),
+		},
 	}
 }
 
@@ -383,7 +436,7 @@ func synthesizeFactPacketNarrativeWithTrace(ctx context.Context, cfg config, req
 	timeout := synthesisRequestTimeout(cfg)
 	callCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
-	packetJSON, _ := json.Marshal(map[string]any{"fact_packet": packet})
+	packetJSON, _ := json.Marshal(map[string]any{"fact_packet": packet.narrationPacket()})
 	payload, _ := json.Marshal(map[string]any{
 		// 512 was calibrated for GPU-class throughput. Measured live on this
 		// CPU-only deployment: ~4.3 tokens/sec regardless of thread count

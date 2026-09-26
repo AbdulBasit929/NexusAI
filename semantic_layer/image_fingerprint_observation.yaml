@@ -1,0 +1,84 @@
+contract_version: forensics.semantic-layer/v1
+family: image_fingerprint_observation
+record_type: image_fingerprint_observation
+display_name: Image fingerprint metadata (derived technical observations)
+description: >
+  One row per derived image fingerprint observation. The perceptual hash value and source
+  digest are deliberately excluded as askable fields; only algorithm, bit width and the
+  governed near-duplicate semantics are curated. A fingerprint is not semantic similarity.
+synonyms: [image fingerprint metadata, perceptual hash metadata, image hash availability, image fingerprint, perceptual hash]
+source:
+  table: derived_artifacts
+  artifact_type: forensics.image-fingerprint/v1
+  payload: metadata
+default_measure: image_fingerprint_observation.record_count
+fields:
+  - id: image_fingerprint_observation.perceptual_hash_algorithm
+    display_name: Perceptual-hash algorithm
+    description: Algorithm recorded when a perceptual hash exists; the hash value itself is not exposed as an askable field.
+    source_names: ["observation.perceptual_hash_algorithm"]
+    synonyms: [perceptual hash algorithm, image fingerprint algorithm]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: image_fingerprint_observation.perceptual_hash_bits
+    display_name: Perceptual-hash bit width
+    description: Numeric bit width of the recorded perceptual hash; it is metadata, not the hash value.
+    source_names: ["observation.perceptual_hash_bits"]
+    synonyms: [perceptual hash bits, fingerprint bit width]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: image_fingerprint_observation.near_duplicate_semantics
+    display_name: Near-duplicate semantics
+    description: Producer statement limiting the fingerprint to pixel-layout resemblance rather than semantic visual similarity.
+    source_names: ["observation.near_duplicate_semantics"]
+    synonyms: [fingerprint semantics, near duplicate meaning]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: image_fingerprint_observation.exact_identity_algorithm
+    display_name: Exact-identity digest algorithm
+    description: Algorithm recorded for exact source-byte identity; the digest value itself is deliberately excluded.
+    source_names: ["observation.exact_identity_algorithm"]
+    synonyms: [exact identity algorithm, digest algorithm]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: image_fingerprint_observation.source_truth_state
+    display_name: Source truth state
+    description: Provenance state distinguishing this derived technical metadata from source-authored evidence content.
+    source_names: [source_truth_state]
+    synonyms: [observation authority, derived observation state]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: derived_technical_observation, display_name: Derived technical observation, synonyms: [technical observation, derived metadata]}
+metrics:
+  - id: image_fingerprint_observation.record_count
+    display_name: Image fingerprints recorded
+    description: Number of derived image-fingerprint rows; the fingerprint values are not exposed.
+    synonyms: [how many image fingerprints, fingerprint count, images with fingerprints]
+    aggregate: COUNT
+    type: NUMBER

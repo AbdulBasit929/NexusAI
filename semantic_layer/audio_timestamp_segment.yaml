@@ -1,0 +1,140 @@
+contract_version: forensics.semantic-layer/v1
+family: audio_timestamp_segment
+record_type: audio_timestamp_segment
+display_name: Audio transcript segments (unreviewed model observations)
+description: >
+  One row per model-produced transcript segment with numeric media offsets. Transcript
+  text and detected language are unreviewed model observations, not source-authored facts;
+  timing availability and manual-review requirements remain explicit. The retained rows
+  comprise 10 standalone-audio segments and 1 segment from a video's embedded audio track;
+  source modality is exposed rather than hidden or split into a second vocabulary.
+synonyms: [audio transcript segment, timed transcript, speech segment, asr segment, audio segment, audio transcript]
+source:
+  table: derived_artifacts
+  artifact_type: forensics.audio-timestamp-segment/v1
+  payload: metadata
+default_measure: audio_timestamp_segment.record_count
+fields:
+  - id: audio_timestamp_segment.source_modality
+    display_name: Source modality
+    description: >
+      Whether the transcript segment came from standalone audio or a video's embedded
+      audio track. Present on all 11 retained segments: 10 standalone and 1 video-embedded.
+    source_names: [observation_type]
+    synonyms: [audio source modality, transcript source, standalone or video audio]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: audio_transcript_segment, display_name: Standalone audio, synonyms: [standalone audio transcript]}
+      - {value: video_embedded_audio_transcript_segment, display_name: Video-embedded audio, synonyms: [video audio transcript, embedded audio transcript]}
+  - id: audio_timestamp_segment.text
+    display_name: Transcript text candidate
+    description: >
+      Model-produced transcript text may carry names, addresses or identifiers that token
+      patterns cannot exhaustively classify. It is withheld from typed projection and
+      untargeted browsing; governed targeted retrieval remains a separate cited path.
+    source_names: ["observation.text"]
+    synonyms: [transcript text, spoken text, segment text]
+    type: STRING
+    sensitivity: PII
+    redaction: WITHHELD
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, COUNT_DISTINCT]
+    projectable: true
+    groupable: false
+    sortable: false
+    distinct_capable: true
+  - id: audio_timestamp_segment.start_seconds
+    display_name: Segment start offset
+    description: Numeric seconds from the start of the source media to the reported segment start.
+    source_names: ["observation.start_seconds"]
+    synonyms: [start seconds, segment start, audio start time]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX, AVG]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: audio_timestamp_segment.end_seconds
+    display_name: Segment end offset
+    description: Numeric seconds from the start of the source media to the reported segment end.
+    source_names: ["observation.end_seconds"]
+    synonyms: [end seconds, segment end, audio end time]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX, AVG]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: audio_timestamp_segment.detected_language
+    display_name: Detected language candidate
+    description: >
+      Language candidate emitted by the audio recognizer on 4 of 11 retained segments.
+      It is a model observation, not a verified language label; absence on the other
+      seven segments is unavailable, not an inferred language.
+    source_names: ["observation.detected_language"]
+    synonyms: [audio language, detected speech language, transcript language]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: audio_timestamp_segment.timing_status
+    display_name: Timing status
+    description: >
+      Whether the producer explicitly reported a complete segment start and end. Present
+      on 5 of 11 retained segments; absence on the other six is unavailable, not a claim
+      that timing was unreported or incomplete.
+    source_names: ["observation.timing_status"]
+    synonyms: [segment timing status, timestamp status]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: reported, display_name: Timing reported, synonyms: [complete timing]}
+  - id: audio_timestamp_segment.manual_review_required
+    display_name: Manual review required
+    description: Whether the transcript producer explicitly requires analyst review; absence is unavailable, not false.
+    source_names: ["observation.manual_review_required"]
+    synonyms: [needs manual review, requires review, unreviewed]
+    type: BOOLEAN
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: audio_timestamp_segment.source_truth_state
+    display_name: Source truth state
+    description: Provenance state distinguishing the transcript segment from source-authored text.
+    source_names: [source_truth_state]
+    synonyms: [observation authority, derived observation state]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: derived_model_observation, display_name: Derived model observation, synonyms: [model observation, derived observation]}
+metrics:
+  - id: audio_timestamp_segment.record_count
+    display_name: Transcript segments
+    description: Number of unreviewed model-produced transcript segments.
+    synonyms: [how many transcript segments, audio segment count]
+    aggregate: COUNT
+    type: NUMBER

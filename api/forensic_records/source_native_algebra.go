@@ -30,6 +30,19 @@ const (
 	sourceNativeFilterLimit    = 8
 	sourceNativeMeasureLimit   = 4
 	sourceNativeComplexityMax  = 16
+
+	// The GRAMMAR the model fills is bounded far more tightly than the API
+	// contract above. The GBNF converter emits every property unconditionally,
+	// so the model is always handed these arrays to fill and it does: measured
+	// 2026-09-22 it emitted 599B, 1696B and 1791B against a ~292B correct plan
+	// and never terminated, which surfaced as `truncated_token_budget`. Raising
+	// max_tokens would only buy more room to pad. No gold plan in the corpus
+	// uses more than 3 projections or 2 filters, so these leave headroom while
+	// bounding the worst case. The executor's limits are unchanged: a typed API
+	// caller may still send the full contract.
+	sourceNativeSchemaProjectLimit = 4
+	sourceNativeSchemaFilterLimit  = 3
+	sourceNativeSchemaHavingLimit  = 2
 )
 
 const (
@@ -46,8 +59,16 @@ const (
 // scope. FieldID is the only field reference accepted from a model or typed
 // plan; SourceName is never interpreted as SQL.
 type FieldDescriptorV1 struct {
-	ContractVersion        string   `json:"contract_version"`
-	FieldID                string   `json:"field_id"`
+	ContractVersion string `json:"contract_version"`
+	FieldID         string `json:"field_id"`
+	// DisplayName, Description and Synonyms are empty for an inferred field and
+	// populated only from the curated semantic layer. Their absence is what made
+	// the catalogue unusable to a model: nothing said that `call_org_num` means
+	// "originating number", so a field could only be picked by similarity.
+	DisplayName            string   `json:"display_name,omitempty"`
+	Description            string   `json:"description,omitempty"`
+	Synonyms               []string `json:"synonyms,omitempty"`
+	Curated                bool     `json:"curated,omitempty"`
 	SourceName             string   `json:"source_name"`
 	SourceNames            []string `json:"source_names"`
 	NormalizedName         string   `json:"normalized_name"`
@@ -64,8 +85,17 @@ type FieldDescriptorV1 struct {
 	Sortable               bool     `json:"sortable"`
 	FamilyProvenance       []string `json:"family_provenance"`
 	SourceProvenance       []string `json:"source_provenance"`
-	EvidenceID             string   `json:"evidence_id,omitempty"`
-	EvidenceVersionID      string   `json:"evidence_version_id,omitempty"`
+	// DerivedOp/DerivedFields carry a curated metric that is COMPUTED rather
+	// than stored. There is no duration column in CDR data, only a start and an
+	// end, so "what was the longest call" could not be expressed at all: the
+	// layer declares cdr.call_duration_seconds with an allowlisted expression,
+	// but the typed plan had no way to name it. Publishing the metric as a
+	// catalogue field lets the generator select it from the same enum as any
+	// stored column, with the expression resolved server-side at SQL time.
+	DerivedOp         string   `json:"derived_op,omitempty"`
+	DerivedFields     []string `json:"derived_fields,omitempty"`
+	EvidenceID        string   `json:"evidence_id,omitempty"`
+	EvidenceVersionID string   `json:"evidence_version_id,omitempty"`
 }
 
 type SourceNativeFieldScoreV1 struct {
@@ -474,7 +504,16 @@ func retrieveSourceNativeFields(question string, catalog []FieldDescriptorV1) ([
 	sort.Strings(terms)
 	all := make([]scored, 0, len(catalog))
 	for _, field := range catalog {
-		document := descriptorTerms(strings.Join(append([]string{field.NormalizedName, field.SourceName, field.EffectiveType}, field.SourceNames...), " "))
+		parts := append([]string{field.NormalizedName, field.SourceName, field.EffectiveType}, field.SourceNames...)
+		// A curated field carries a display name, a description and synonyms.
+		// Those were written precisely so an analyst's wording finds the field,
+		// but retrieval ignored them and matched only the raw column name, so
+		// "protocol" could not find a field whose synonyms list "protocol".
+		if field.Curated {
+			parts = append(parts, field.DisplayName, field.Description)
+			parts = append(parts, field.Synonyms...)
+		}
+		document := descriptorTerms(strings.Join(parts, " "))
 		score := 0.0
 		for _, term := range terms {
 			if count := document[term]; count > 0 {
@@ -487,20 +526,95 @@ func retrieveSourceNativeFields(question string, catalog []FieldDescriptorV1) ([
 		all = append(all, scored{field: field, score: score})
 	}
 	sort.Slice(all, func(i, j int) bool {
-		if all[i].score == all[j].score {
-			return all[i].field.FieldID < all[j].field.FieldID
+		if all[i].score != all[j].score {
+			return all[i].score > all[j].score
 		}
-		return all[i].score > all[j].score
+		// Curated fields are the CONTRACT; uncurated observed columns exist only
+		// as coverage fallback. Ties used to break alphabetically on field ID,
+		// which silently decided this by PREFIX: `fld_00...` outranks
+		// `ipdr.protocol` because "f" < "i". Every family whose prefix sorts
+		// after "fld_" was starved of its own curated fields by the ~13
+		// uncurated envelope columns (record_id, batch_id, row_hash, ...) that
+		// all tie at score 0 — ipdr, subscriber, tower_location and transaction,
+		// while cdr/anpr/access_log were untouched and hid the defect.
+		// Measured 2026-09-22: "How many IPDR sessions are there?" was offered
+		// 11 hashed fields and 1 curated one, with `ipdr.bytes` absent, so the
+		// question was unanswerable at any model quality.
+		if all[i].field.Curated != all[j].field.Curated {
+			return all[i].field.Curated
+		}
+		return all[i].field.FieldID < all[j].field.FieldID
 	})
-	limit := sourceNativeFieldTopK
-	if len(all) < limit {
-		limit = len(all)
+	// Issue EVERY curated field for the family, then fill any remaining slots
+	// with the best-ranked uncurated columns. The layer keeps curated sets small
+	// (8-17 per family), so this stays bounded.
+	//
+	// A fixed top-12 cut curated fields on the alphabetical tie-break instead:
+	// communications_cdr has 17 curated entries, so "How many calls did
+	// 923001110001 make?" lost `cdr.msisdn` — 10th alphabetically — and the
+	// question became unanswerable at any model quality. Measured 2026-09-22.
+	// Curation is the contract; a column the analyst curated must never be
+	// dropped in favour of `row_hash`.
+	ordered := make([]scored, 0, len(all))
+	for _, candidate := range all {
+		if candidate.field.Curated {
+			ordered = append(ordered, candidate)
+		}
 	}
-	fields := make([]FieldDescriptorV1, limit)
-	scores := make([]SourceNativeFieldScoreV1, limit)
+	// UNCURATED COLUMNS FILL THE SPARE SLOTS -- restored 2026-09-25 after the
+	// alternative was MEASURED AND REVERTED.
+	//
+	// They are the field-substitution vector: an uncurated column reaches the
+	// generator as a hashed id with no description, so H12 ("average BEAM
+	// WIDTH") compiled AVG over one and answered "the average AZIMUTH is
+	// 209.97". Withholding them DID close that -- H12 stopped substituting --
+	// and zero correct answers in either corpus referenced an uncurated field,
+	// so the change looked free.
+	//
+	// It was not. Changing the issued enum changed what the generator produced
+	// for OTHER questions: TWR-02 went CLARIFIED -> "There are no tower records
+	// in this case", a FALSE NEGATIVE, because the new enum led it to invent a
+	// `tower.district IS_NULL` filter alongside the correct site_code one.
+	// Trading a fabricated field for a fabricated absence is not a trade this
+	// product makes.
+	//
+	// The lesson generalises and is now twice-proven: the issued enum is not a
+	// menu the generator picks from independently -- changing ANY part of it
+	// changes plans everywhere. Curating the columns (WI-LAYER-1) removes the
+	// substitution vector without changing what is offered for questions that
+	// already work; that is the route, not withholding.
+	for _, candidate := range all {
+		if len(ordered) >= sourceNativeFieldTopK {
+			break
+		}
+		if !candidate.field.Curated {
+			ordered = append(ordered, candidate)
+		}
+	}
+	// A computed metric is useless without the columns it is computed from, and
+	// the executor resolves them through the SAME issued catalogue. Pull them in
+	// so selecting the metric can never produce an unexecutable plan.
+	byID := map[string]scored{}
+	for _, candidate := range all {
+		byID[candidate.field.FieldID] = candidate
+	}
+	present := map[string]bool{}
+	for _, candidate := range ordered {
+		present[candidate.field.FieldID] = true
+	}
+	for _, candidate := range append([]scored{}, ordered...) {
+		for _, id := range candidate.field.DerivedFields {
+			if dependency, ok := byID[id]; ok && !present[id] {
+				present[id] = true
+				ordered = append(ordered, dependency)
+			}
+		}
+	}
+	fields := make([]FieldDescriptorV1, len(ordered))
+	scores := make([]SourceNativeFieldScoreV1, len(ordered))
 	for index := range fields {
-		fields[index] = all[index].field
-		scores[index] = SourceNativeFieldScoreV1{FieldID: all[index].field.FieldID, Rank: index + 1, Score: all[index].score}
+		fields[index] = ordered[index].field
+		scores[index] = SourceNativeFieldScoreV1{FieldID: ordered[index].field.FieldID, Rank: index + 1, Score: ordered[index].score}
 	}
 	return fields, scores
 }
@@ -535,8 +649,11 @@ func validateSourceNativePlanShape(plan *SourceNativePlanV1) error {
 		if measure.MeasureID != fmt.Sprintf("m%d", index+1) {
 			return errors.New("source-native measures require ordered issued IDs m1..m4")
 		}
-		if !containsString([]string{"COUNT", "SUM", "AVG", "MIN", "MAX"}, strings.ToUpper(measure.Op)) {
+		if !containsString([]string{"COUNT", "COUNT_DISTINCT", "SUM", "AVG", "MIN", "MAX"}, strings.ToUpper(measure.Op)) {
 			return errors.New("source-native aggregate is not allowlisted")
+		}
+		if strings.ToUpper(measure.Op) == "COUNT_DISTINCT" && measure.FieldID == "" {
+			return errors.New("COUNT_DISTINCT requires the field whose values are counted")
 		}
 	}
 	for _, sortSpec := range plan.Sort {

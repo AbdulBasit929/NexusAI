@@ -25,7 +25,21 @@ const (
 	semanticEmbeddingModelDefault    = "qwen3-embedding-0.6b"
 	semanticEmbeddingTimeoutMax      = 2 * time.Second
 	semanticEmbeddingCatalogTimeout  = 3 * time.Minute
-	semanticEmbeddingCatalogBatch    = 1
+	// One descriptor per HTTP call made catalogue embedding the second-largest
+	// cost in the product and it was invisible, because nothing timed it.
+	//
+	// Measured 2026-09-24: a 66-descriptor catalogue issued 66 sequential
+	// /v1/embeddings calls at roughly 2 s apiece -- ~17 s per question, on
+	// questions whose SQL took under half a second. LocalAI batches correctly:
+	// 3 inputs returned 3 order-preserved 1024-dim vectors in 0.9 s, against
+	// ~6 s for the same three issued singly.
+	//
+	// 32 keeps the payload far inside semanticEmbeddingResponseMax (66 vectors
+	// of 1024 float64 is ~0.5 MB against an 8 MB ceiling) while cutting a
+	// 66-call round trip to three. populateSemanticDescriptorEmbeddings appends
+	// each batch in order, so this relies on the response preserving input
+	// order -- which the probe above confirmed and TestEmbeddingBatch asserts.
+	semanticEmbeddingCatalogBatch = 32
 	semanticEmbeddingDescriptorRunes = 1536
 	semanticEmbeddingResponseMax     = 8 << 20
 )

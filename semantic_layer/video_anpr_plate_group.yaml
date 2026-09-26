@@ -1,0 +1,126 @@
+contract_version: forensics.semantic-layer/v1
+family: video_anpr_plate_group
+record_type: video_anpr_plate_group
+display_name: Video plate-read groups (unreviewed model observations)
+description: >
+  One row per bounded adjacent-frame group of model-produced plate reads. A group is not
+  persistent object tracking, does not establish vehicle identity or a journey, and may
+  not be treated as an ingested ANPR sighting. All current rows require manual review.
+synonyms: [video plate group, grouped video plate reads, adjacent-frame plate group, plate group]
+source:
+  table: derived_artifacts
+  artifact_type: forensics.video-anpr-plate-group/v1
+  payload: metadata
+default_measure: video_anpr_plate_group.sightings_count
+fields:
+  - id: video_anpr_plate_group.plate_text
+    display_name: Selected plate text candidate (model read)
+    description: >
+      Plate text selected from grouped model observations; it is unreviewed and not a
+      confirmed registration or sighting. Projection requires one opaque, stable,
+      case-scoped plate alias shared with individual model plate candidates; no raw prefix
+      or suffix is retained.
+    source_names: ["observation.normalized_plate_text"]
+    synonyms: [grouped plate text, selected plate candidate, video plate candidate]
+    type: STRING
+    sensitivity: PII
+    redaction: MASKED
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, COUNT_DISTINCT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+  - id: video_anpr_plate_group.first_seen_seconds
+    display_name: First observed offset
+    description: Numeric seconds from the start of the source video to the first directly observed member of this bounded group.
+    source_names: ["observation.first_seen_seconds"]
+    synonyms: [first seen seconds, first observed time, group start]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX, AVG]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: video_anpr_plate_group.last_seen_seconds
+    display_name: Last observed offset
+    description: Numeric seconds from the start of the source video to the last directly observed member of this bounded group.
+    source_names: ["observation.last_seen_seconds"]
+    synonyms: [last seen seconds, last observed time, group end]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX, AVG]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: video_anpr_plate_group.sightings_count
+    display_name: Directly observed plate reads in group
+    description: Number of directly observed model plate reads supporting the adjacent-frame group; not a count of confirmed vehicle sightings.
+    source_names: ["observation.sightings_count"]
+    synonyms: [reads in group, group support count, grouped observations]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, SUM, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: video_anpr_plate_group.manual_review_required
+    display_name: Manual review required
+    description: Whether the grouped model output explicitly requires analyst review; an absent value is unavailable, not false.
+    source_names: ["observation.manual_review_required"]
+    synonyms: [needs manual review, requires review, unreviewed]
+    type: BOOLEAN
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: video_anpr_plate_group.persistent_tracking
+    display_name: Persistent tracking used
+    description: Whether the producer claims persistent object tracking; false means the group must not be read as a tracked vehicle.
+    source_names: ["observation.persistent_tracking"]
+    synonyms: [persistent tracking, tracked object]
+    type: BOOLEAN
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: video_anpr_plate_group.interpolated_observations
+    display_name: Contains interpolated observations
+    description: Whether observations between processed frames were interpolated; false means only direct processed-frame observations support the group.
+    source_names: ["observation.interpolated_observations"]
+    synonyms: [interpolated observations, inferred observations]
+    type: BOOLEAN
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: video_anpr_plate_group.source_truth_state
+    display_name: Source truth state
+    description: Provenance state for the derived technical grouping; the grouped plate text still originates in model observations.
+    source_names: [source_truth_state]
+    synonyms: [observation authority, derived observation state]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: derived_technical_observation, display_name: Derived technical observation, synonyms: [technical observation, derived grouping]}
+metrics:
+  - id: video_anpr_plate_group.group_count
+    display_name: Video plate-read groups
+    description: Number of bounded adjacent-frame plate-read groups; not a count of confirmed vehicles or journeys.
+    synonyms: [how many video plate groups, group count]
+    aggregate: COUNT
+    type: NUMBER

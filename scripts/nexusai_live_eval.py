@@ -134,6 +134,30 @@ def number_stated(text, value):
     return any(re.search(r"(?<![\d.,])" + re.escape(f) + r"(?![\d])", text) for f in forms)
 
 
+def _collapse(value):
+    return re.sub(r"\s+", " ", str(value)).strip().lower()
+
+
+def expectation_stated(text, expectation):
+    """Is ONE `contains` expectation present in the ANALYST-FACING TEXT?
+
+    Numbers go through number_stated, so the prose "5,000" satisfies an oracle
+    that wrote 5000 -- punctuation is formatting, not a wrong answer. Everything
+    else matches case-insensitively with internal whitespace collapsed, because
+    prose wraps lines and the oracle does not.
+    """
+    number = as_number(expectation)
+    if number is not None:
+        return number_stated(text, number)
+    return _collapse(expectation) in _collapse(text)
+
+
+GRADE_ANALYST_TEXT = False
+
+
+FILENAME_EXPECTATION = re.compile(r"\.(wav|mp3|mp4|png|jpe?g|pdf|csv|docx?|txt)$", re.I)
+
+
 def grade(item, status, resp, ms):
     ent = resp.get("enterprise") or {}
     state = str(ent.get("result_state") or "").lower()
@@ -150,6 +174,8 @@ def grade(item, status, resp, ms):
     elif check == "number":
         nums = [as_number(v) for v in row_vals]
         hit = any(n is not None and abs(n - float(exp)) < 1e-6 for n in nums)
+        if not hit and GRADE_ANALYST_TEXT and number_stated(text, exp):
+            hit = True
         if hit:
             verdict = "CORRECT"
         elif clar:
@@ -160,7 +186,7 @@ def grade(item, status, resp, ms):
             verdict = "WRONG"
         stated = number_stated(text, exp)
     elif check == "top":
-        if rows and exp in [str(v) for v in scalars(rows[0])]:
+        if (rows and exp in [str(v) for v in scalars(rows[0])]) or (GRADE_ANALYST_TEXT and exp in text):
             verdict = "CORRECT"
         elif clar:
             verdict = "CLARIFIED"
@@ -170,9 +196,56 @@ def grade(item, status, resp, ms):
             verdict = "WRONG"
         stated = exp in text
     elif check == "contains":
-        missing = [e for e in exp if str(e) not in blob]
-        verdict = "CORRECT" if not missing else ("CLARIFIED" if clar else "WRONG")
-        stated = all(str(e) in text for e in exp)
+        # THE ANSWER MUST REACH THE ANALYST.
+        #
+        # This branch used to grade against `blob` -- the whole response, raw
+        # result rows included. A value the analyst was never shown still
+        # scored CORRECT. Measured 2026-09-25 across the 62: EIGHT questions
+        # passed that way, three of them stating none of what was asked.
+        #
+        #   CDR-09  "what date range do the CDR records cover?"
+        #           analyst saw "1 CDR record matched this question."
+        #   CDR-10  "who did 923001110001 contact most frequently?"
+        #           analyst saw "8 phone contacts ranked." -- never the contact.
+        #
+        # The `stated_required` branch already knew this, after AUD-01/AUD-03:
+        # "a filename the analyst never sees is not an answer." It was only ever
+        # applied to flagged questions. It is the rule for all of them.
+        #
+        # NOT_STATED is deliberately its OWN verdict, not WRONG. The plan, the
+        # SQL and the rows were right and only the narration failed, so the two
+        # need separating -- otherwise fixing the narration is invisible and a
+        # real wrong answer hides among presentation defects. NOT_STATED IS A
+        # FAILURE. It is never counted as a pass.
+        stated = all(expectation_stated(text, e) for e in exp)
+        if GRADE_ANALYST_TEXT:
+            missing = [e for e in exp if not expectation_stated(text, e)]
+            computed = [e for e in exp if str(e) in blob]
+        elif item.get("stated_required"):
+            # Only the FILENAME parts must be stated verbatim. A number is
+            # legitimately formatted for reading -- the analyst text says
+            # "5,000" where the oracle writes 5000 -- so requiring numbers
+            # verbatim in prose would fail correct answers for punctuation.
+            missing = [e for e in exp
+                       if FILENAME_EXPECTATION.search(str(e))
+                       and str(e) not in text]
+            missing += [e for e in exp
+                        if not FILENAME_EXPECTATION.search(str(e))
+                        and str(e) not in blob]
+            computed = [e for e in exp if str(e) in blob]
+        else:
+            missing = [e for e in exp if str(e) not in blob]
+            computed = [e for e in exp if str(e) in blob]
+        if not missing:
+            verdict = "CORRECT"
+        elif clar:
+            verdict = "CLARIFIED"
+        elif len(computed) == len(exp):
+            # Every expected value IS in the response. The system worked it out
+            # and did not say it.
+            verdict = "NOT_STATED"
+        else:
+            verdict = "WRONG"
         if missing:
             item = dict(item, _missing=missing)
     elif check == "empty":
@@ -207,6 +280,12 @@ def main():
     ap.add_argument("--base", default=os.environ.get("NX_BASE", "http://localhost:8091"))
     ap.add_argument("--only", default="", help="comma-separated ids")
     ap.add_argument("--timeout", type=int, default=240)
+    # Row-only grading understates the product: WI-2 moved answers into the
+    # analyst-facing headline on purpose, so CDR-02/CDR-04/CASE-04 graded WRONG
+    # while their text stated the expected values. Opt-in so the 2026-09-18
+    # baseline stays reproducible byte-for-byte without the flag.
+    ap.add_argument("--analyst-text", action="store_true",
+                    help="accept a value stated in the analyst-facing answer as a hit")
     args = ap.parse_args()
 
     env = load_env()
@@ -222,6 +301,7 @@ def main():
         if only and item["id"] not in only:
             continue
         status, resp, ms = post(args.base, env, cols[item["c"]], item["q"], args.timeout)
+        globals()["GRADE_ANALYST_TEXT"] = args.analyst_text
         with open(os.path.join(raw_dir, item["id"] + ".json"), "w", encoding="utf-8") as fh:
             json.dump(resp, fh, ensure_ascii=False, indent=1)
         r = grade(item, status, resp, ms)

@@ -16,7 +16,11 @@ const (
 	toolInvocationContractV1       = "forensics.tool-invocation/v1"
 	toolResultContractV1           = "forensics.tool-result/v1"
 	observationPacketContractV1    = "forensics.observation-packet/v1"
-	clarificationRequestContractV1 = "forensics.clarification-request/v1"
+	// v2 changes `options` from bare strings to {label, query} objects so a
+	// clarification can be acted on in one click. Bumped rather than extended:
+	// the field's TYPE changed, and a consumer reading v1 would silently see an
+	// array of objects where it expected strings.
+	clarificationRequestContractV1 = "forensics.clarification-request/v2"
 )
 
 // NX-A1 reuses the accepted APF-3 contracts as the authoritative durable
@@ -294,8 +298,11 @@ type ClarificationRequestV1 struct {
 	ReasonCode      string   `json:"reason_code"`
 	Question        string   `json:"question"`
 	MissingFields   []string `json:"missing_fields"`
-	Options         []string `json:"options"`
-	ExecutionHeld   bool     `json:"execution_held"`
+	// Options are 2-4 re-runnable choices drawn from the curated semantic
+	// layer, or empty when the layer can offer none. v2 carries {label, query}
+	// per option; v1 carried bare label strings and could not be clicked.
+	Options       []ClarificationOptionV1 `json:"options"`
+	ExecutionHeld bool                    `json:"execution_held"`
 }
 
 func (s EvidenceScopeV1) Validate(collectionID string) error {

@@ -1,0 +1,257 @@
+contract_version: forensics.semantic-layer/v1
+family: network_ipdr
+record_type: ipdr
+display_name: Internet session records
+description: One row per internet or data session. 2,500 rows in the demo case.
+synonyms: [ipdr, internet session, internet sessions, data session, sessions, browsing, internet]
+default_measure: ipdr.record_count
+fields:
+  - id: ipdr.subscriber_id
+    display_name: Subscriber
+    description: Subscriber (MSISDN) that owns the session. Group by this for "which subscriber has the most sessions".
+    source_names: [subscriber_id, msisdn]
+    synonyms: [subscriber, user, msisdn, phone number]
+    type: STRING
+    sensitivity: IDENTIFIER
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+  - id: ipdr.domain
+    display_name: Domain
+    description: Destination domain accessed. Group by this for "which domain was accessed most often".
+    source_names: [domain]
+    synonyms: [domain, site, website, host, accessed]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+  - id: ipdr.protocol
+    display_name: Protocol
+    description: Network protocol of the session.
+    source_names: [protocol]
+    synonyms: [protocol]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    values:
+      - {value: HTTPS, display_name: HTTPS, synonyms: [https, secure web]}
+      - {value: DNS, display_name: DNS, synonyms: [dns, name resolution]}
+      - {value: TCP, display_name: TCP, synonyms: [tcp]}
+      - {value: UDP, display_name: UDP, synonyms: [udp]}
+  - id: ipdr.bytes
+    display_name: Bytes transferred
+    description: Volume of data transferred in the session, in bytes. SUM this for "total bytes transferred".
+    source_names: [bytes]
+    synonyms: [bytes, data, volume, transferred, traffic, data volume]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, SUM, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+  - id: ipdr.source_ip
+    display_name: Source IP
+    description: Originating IP address of the session.
+    source_names: [source_ip]
+    synonyms: [source ip, client ip, from ip]
+    type: STRING
+    sensitivity: IDENTIFIER
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+  - id: ipdr.destination_ip
+    display_name: Destination IP
+    description: Destination IP address of the session.
+    source_names: [destination_ip]
+    synonyms: [destination ip, server ip, to ip]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+  - id: ipdr.session_id
+    display_name: Session ID
+    description: Identifier of the session as supplied by the source.
+    source_names: [session_id]
+    synonyms: [session id, session]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+  - id: ipdr.event_time
+    display_name: Session time
+    description: Normalised timestamp of the session.
+    source_names: [timestamp, session_start]
+    synonyms: [date, time, when, period, timestamp, session start]
+    type: TIMESTAMP
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+
+  - id: ipdr.session_end
+    display_name: Session end time
+    description: Source-supplied timestamp at which the network session ended.
+    source_names: [session_end]
+    synonyms: [session end, ended, end time]
+    type: TIMESTAMP
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+
+  - id: ipdr.source_port
+    display_name: Source port
+    description: Source transport-layer port supplied for the session.
+    source_names: [source_port]
+    synonyms: [source port, client port, from port]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+
+  - id: ipdr.destination_port
+    display_name: Destination port
+    description: Destination transport-layer port supplied for the session.
+    source_names: [destination_port]
+    synonyms: [destination port, server port, to port]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, MIN, MAX]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+
+  - id: ipdr.bytes_up
+    display_name: Bytes uploaded
+    description: Source-supplied number of bytes sent upstream during the session.
+    source_names: [bytes_up]
+    synonyms: [bytes uploaded, upload bytes, upstream bytes]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, SUM, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+
+  - id: ipdr.bytes_down
+    display_name: Bytes downloaded
+    description: Source-supplied number of bytes received downstream during the session.
+    source_names: [bytes_down]
+    synonyms: [bytes downloaded, download bytes, downstream bytes]
+    type: NUMBER
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT, SUM, AVG, MIN, MAX]
+    projectable: true
+    groupable: false
+    sortable: true
+
+  - id: ipdr.url
+    display_name: URL
+    description: Source-supplied URL associated with the session; it does not establish page content or user intent.
+    source_names: [url]
+    synonyms: [url, web address, request url]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: false
+    sortable: false
+
+  - id: ipdr.cell_id
+    display_name: Serving cell ID
+    description: Source-supplied cell identifier associated with the session.
+    source_names: [cell_id]
+    synonyms: [cell id, network cell, serving cell]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+    distinct_capable: true
+
+  - id: ipdr.location
+    display_name: Session location
+    description: >
+      Human-readable location supplied with the network session. It does not establish
+      subscriber ownership, precise device position, or continuous presence.
+    source_names: [location]
+    synonyms: [location, session location, network location, access location]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+
+  - id: ipdr.source_timezone
+    display_name: Source timezone
+    description: Source-declared timezone used to interpret the session timestamps; an absent value is not UTC.
+    source_names: [source_timezone]
+    synonyms: [source timezone, session timezone]
+    type: STRING
+    sensitivity: NONE
+    allowed_filters: [EQ, NEQ, IN, IS_NULL, IS_NOT_NULL]
+    allowed_aggregates: [COUNT]
+    projectable: true
+    groupable: true
+    sortable: true
+metrics:
+  - id: ipdr.record_count
+    display_name: Internet sessions
+    description: Number of IPDR session rows.
+    synonyms: [how many sessions, count, number of sessions]
+    aggregate: COUNT
+    type: NUMBER
+  - id: ipdr.total_bytes
+    display_name: Total bytes transferred
+    description: Sum of bytes across sessions. This is the answer to "total bytes transferred", which is a SUM and never a session count.
+    synonyms: [total bytes, total data, how much data, bytes transferred, total traffic]
+    aggregate: SUM
+    field_id: ipdr.bytes
+    unit: bytes
+    type: NUMBER
+  - id: ipdr.distinct_domains
+    display_name: Distinct domains
+    description: Count of distinct domains accessed.
+    synonyms: [how many domains, distinct domains, unique domains, unique sites]
+    aggregate: COUNT_DISTINCT
+    field_id: ipdr.domain
+    type: NUMBER
