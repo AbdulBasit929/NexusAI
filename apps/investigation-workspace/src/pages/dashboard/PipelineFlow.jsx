@@ -15,7 +15,8 @@ export function PipelineFlow({ kpis, loading }) {
   const rows = useMemo(() => flowRows(graph), [graph])
   const chart = useMemo(() => ({
     buildOption: theme => flowOption(graph, theme),
-    height: 320,
+    height: 360,
+    fill: true,
     label: `Sources and rows by outcome. ${rows.map(row => `${row.from} to ${row.to}: ${formatNumber(row.value)}`).join('. ')}`,
     onSelect: params => {
       const target = FLOW_TARGETS[params?.name]

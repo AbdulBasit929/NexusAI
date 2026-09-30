@@ -49,9 +49,12 @@ export function flowRows(graph) {
 export function flowOption(graph, theme) {
   const colour = { ready: theme.ready, processing: theme.processing, failed: theme.failed, excluded: theme.withheld, neutral: theme.muted }
   const groups = [graph.links.filter(entry => entry.source !== 'Rows read'), graph.links.filter(entry => entry.source === 'Rows read')].filter(links => links.length)
-  const bands = groups.length === 2 ? [{ top: 8, bottom: '54%' }, { top: '60%', bottom: 8 }] : [{ top: 8, bottom: 8 }]
+  const bands = groups.length === 2 ? [{ top: 28, bottom: '52%' }, { top: '64%', bottom: 8 }] : [{ top: 28, bottom: 8 }]
+  const captions = groups.map(links => (links[0].source === 'Rows read' ? 'Rows read, by outcome' : 'Sources, by outcome'))
+  const captionTops = groups.length === 2 ? [0, '57%'] : [0]
   return {
     aria: { enabled: false },
+    title: captions.map((text, index) => ({ text, left: 8, top: captionTops[index], textStyle: { color: theme.muted, fontSize: 11, fontWeight: 700 } })),
     animationDuration: 600,
     animationEasing: 'cubicOut',
     tooltip: {
@@ -76,7 +79,7 @@ export function flowOption(graph, theme) {
         nodeGap: 20,
         draggable: false,
         emphasis: { focus: 'adjacency' },
-        lineStyle: { color: 'source', opacity: 0.32, curveness: 0.5 },
+        lineStyle: { color: 'gradient', opacity: 0.38, curveness: 0.5 },
         label: { color: theme.text, fontSize: 12, fontWeight: 600, formatter: params => `${params.name}  ${formatNumber(params.value)}` },
         data: graph.nodes.filter(node => names.has(node.name)).map(node => ({ name: node.name, value: node.value, itemStyle: { color: colour[node.tone], borderColor: theme.card } })),
         links,

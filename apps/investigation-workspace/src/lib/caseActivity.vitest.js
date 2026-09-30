@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ACTIVITY_CAP, activityHighlights, activityOption, activityRows, familyColour, familyOrder, mergeActivity, parseActivity } from './caseActivity.js'
+import { ACTIVITY_CAP, activityHighlights, activityOption, activityRows, bucketActivity, bucketQuestion, describeBucket, familyColour, familyOrder, mergeActivity, parseActivity, rangeStartIndex, shortDate } from './caseActivity.js'
 
 const response = rows => ({ records: { activity_by_day: rows } })
 const row = (date, record_type, event_count) => ({ activity_date: `${date}T00:00:00Z`, record_type, event_count })
@@ -63,7 +63,38 @@ describe('colour and table helpers', () => {
 
   it('offers every day as an exact table row', () => {
     const activity = parseActivity(response([row('2026-03-01', 'cdr', 3), row('2026-03-01', 'anpr', 2)]), 'a')
-    expect(activityRows(activity)).toEqual([{ key: '2026-03-01', date: '2026-03-01', total: 5, cdr: 3, anpr: 2 }])
+    expect(activityRows(activity)).toEqual([{ key: '2026-03-01', date: 'Sun, 1 Mar 2026', total: 5, cdr: 3, anpr: 2 }])
+  })
+})
+
+describe('time buckets', () => {
+  const days = Array.from({ length: 10 }, (_, index) => row(new Date(Date.UTC(2026, 1, 20 + index)).toISOString().slice(0, 10), 'cdr', index + 1))
+  const activity = parseActivity(response(days), 'a')
+
+  it('sums days into Monday to Sunday weeks without changing any total', () => {
+    const weekly = bucketActivity(activity, 'week')
+    expect(weekly.bucket).toBe('week')
+    expect(weekly.days.map(week => [week.date, week.end])).toEqual([['2026-02-16', '2026-02-22'], ['2026-02-23', '2026-03-01']])
+    expect(weekly.days.reduce((sum, week) => sum + week.total, 0)).toBe(activity.total)
+    expect(weekly.days.at(-1).end).toBe(activity.last)
+  })
+
+  it('leaves days alone unless weeks are asked for', () => {
+    expect(bucketActivity(activity, 'day')).toBe(activity)
+  })
+
+  it('starts a range on the first bucket inside the last N days', () => {
+    expect(rangeStartIndex(activity, 'all')).toBe(0)
+    expect(rangeStartIndex(activity, '3')).toBe(7)
+    expect(rangeStartIndex(activity, '90')).toBe(0)
+  })
+
+  it('describes and asks about a day or a week in words', () => {
+    expect(describeBucket({ date: '2026-02-28' })).toBe('Sat, 28 Feb 2026')
+    expect(describeBucket({ date: '2026-02-23', end: '2026-03-01' })).toBe('23 Feb to 1 Mar 2026')
+    expect(bucketQuestion({ date: '2026-02-28' })).toBe('Show activity on 2026-02-28')
+    expect(bucketQuestion({ date: '2026-02-23', end: '2026-03-01' })).toBe('Show activity from 2026-02-23 to 2026-03-01')
+    expect(shortDate('2026-02-28')).toBe('28 Feb')
   })
 })
 
@@ -96,11 +127,18 @@ describe('activityOption', () => {
   it('adds a zoom slider that opens on the recent stretch when there are many days', () => {
     const rows = Array.from({ length: 120 }, (_, index) => row(new Date(Date.UTC(2026, 0, 1 + index)).toISOString().slice(0, 10), 'cdr', 1))
     const activity = parseActivity(response(rows.slice(0, 99)), 'a')
-    const many = { ...activity, days: Array.from({ length: 120 }, (_, index) => ({ date: rows[index].activity_date.slice(0, 10), total: 1, byFamily: { cdr: 1 }, byCase: { a: 1 } })) }
+    const many = { ...activity, last: rows[119].activity_date.slice(0, 10), days: Array.from({ length: 120 }, (_, index) => ({ date: rows[index].activity_date.slice(0, 10), total: 1, byFamily: { cdr: 1 }, byCase: { a: 1 } })) }
     const option = activityOption(many, theme, ['cdr'])
     expect(option.dataZoom).toHaveLength(2)
-    expect(option.dataZoom[0].start).toBeGreaterThan(0)
-    expect(option.dataZoom[0].end).toBe(100)
+    expect(option.dataZoom[0]).toMatchObject({ startValue: 0, endValue: 119 })
+    expect(activityOption(many, theme, ['cdr'], { range: '30' }).dataZoom[0].startValue).toBe(90)
+  })
+
+  it('draws a dashed line at the typical bucket', () => {
+    const activity = parseActivity(response([row('2026-03-01', 'cdr', 10), row('2026-03-02', 'cdr', 30)]), 'a')
+    const line = activityOption(activity, theme, ['cdr']).series[0].markLine
+    expect(line.data).toEqual([{ yAxis: 20 }])
+    expect(line.label.formatter).toBe('Typical 20')
   })
 
   it('says exact counts and offers the drill in the tooltip', () => {

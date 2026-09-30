@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ChartColumn, Table2 } from 'lucide-react'
+import { ChartColumn, Table2, X } from 'lucide-react'
 import { Card } from '../../components/Card.jsx'
 import { SkeletonRows } from '../../components/Skeleton.jsx'
 import { packCircles } from '../../lib/bubblePack.js'
@@ -49,8 +49,15 @@ export function EvidenceMap({ families, order, selectedId, onSelect, kpis, loadi
       </div>
     )
   } else {
+    const selectedFamily = selectedId ? byId.get(selectedId) || families.find(family => family.id === selectedId) : null
     body = (
       <>
+        {selectedFamily ? (
+          <p className="em-filter">
+            <span>Showing only cases with <b>{selectedFamily.label}</b></span>
+            <button type="button" onClick={() => onSelect('')}><X aria-hidden="true" />Clear<span className="visually-hidden"> filter: {selectedFamily.label}</span></button>
+          </p>
+        ) : null}
         <div className="em-map" role="group" aria-label="Record families sized by accepted rows">
           {packed.map((circle, index) => {
             const family = byId.get(circle.id)
@@ -78,6 +85,7 @@ export function EvidenceMap({ families, order, selectedId, onSelect, kpis, loadi
               <button type="button" className={selectedId === family.id ? 'is-selected' : undefined} aria-pressed={selectedId === family.id} onClick={() => select(family.id)}>
                 <span className="em-legend__swatch" style={{ background: colour(family.id) }} aria-hidden="true" />
                 <span className="em-legend__label">{family.label}</span>
+                <span className="em-legend__bar" aria-hidden="true"><i style={{ inlineSize: `${Math.max(2, Math.floor(family.share * 100))}%`, background: colour(family.id) }} /></span>
                 <span className="em-legend__value">{formatNumber(family.value)}</span>
                 <span className="em-legend__share">{percent(family.share)}</span>
               </button>

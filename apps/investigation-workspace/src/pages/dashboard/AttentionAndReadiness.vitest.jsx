@@ -73,13 +73,24 @@ describe('Needs review by cause', () => {
     card()
     expect(screen.getByRole('heading', { name: 'What needs review?' })).toBeTruthy()
     expect(screen.getByText('3 causes across 6 sources')).toBeTruthy()
-    expect(screen.getByText('6 sources')).toBeTruthy()
+    expect(screen.getByText('sources need review')).toBeTruthy()
+    expect(document.querySelector('.tri-total').textContent).toBe('6')
+    expect(screen.getByText(/3 failed · 3 missing a copy/)).toBeTruthy()
+  })
+
+  it('draws one bar segment per cause, sized by its count, and lights the matching row on hover', async () => {
+    card()
+    const segments = [...document.querySelectorAll('.tri-seg')]
+    expect(segments.map(segment => segment.style.flexGrow)).toEqual(['3', '2', '1'])
+    await userEvent.setup().hover(segments[1])
+    expect(document.querySelectorAll('.tri-row.is-hot')).toHaveLength(1)
+    expect(document.querySelector('.tri-row.is-hot .tri-label').textContent).toBe('Failed, cause not listed')
   })
 
   it('lists causes biggest first with exact counts, and opens the biggest one so its sources show at once', () => {
     card()
-    const heads = screen.getAllByRole('button', { name: /\d$/ })
-    expect(heads.map(head => head.textContent)).toEqual(['Retained copy is missing3', 'Failed, cause not listed2', 'The source could not be parsed1'])
+    const heads = [...document.querySelectorAll('.tri-head')]
+    expect(heads.map(head => `${head.querySelector('.tri-label').textContent}|${head.querySelector('.tri-count').textContent}`)).toEqual(['Retained copy is missing|3', 'Failed, cause not listed|2', 'The source could not be parsed|1'])
     expect(heads[0].getAttribute('aria-expanded')).toBe('true')
     expect(screen.getByRole('link', { name: 'Review gap.pdf' }).getAttribute('href')).toBe('/cases/alpha/evidence/e3')
     expect(screen.getByRole('link', { name: 'Review b1.pdf' })).toBeTruthy()

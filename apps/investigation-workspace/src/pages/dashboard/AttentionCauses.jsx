@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, ChevronDown, CircleAlert, CircleCheckBig, FileX2 } from 'lucide-react'
+import { ArrowRight, ChevronDown, CircleCheckBig } from 'lucide-react'
 import { Card } from '../../components/Card.jsx'
 import { LanguageText } from '../../components/AnalystComponents.jsx'
 import { SkeletonRows } from '../../components/Skeleton.jsx'
@@ -8,8 +8,8 @@ import { attentionCauses } from '../../lib/attentionCauses.js'
 import { reviewKind } from '../../lib/dashboardCharts.js'
 import { formatNumber } from '../../lib/format.js'
 
-const ICONS = { failed: CircleAlert, missing: FileX2 }
 const ITEMS_SHOWN = 4
+const CAUSES_SHOWN = 5
 
 export function attentionReason(item) {
   return item.detail || (reviewKind(item) === 'failed' ? 'Did not finish processing.' : 'Retained copy is missing.')
@@ -28,19 +28,36 @@ export function unnamedFailures(byCase, items) {
     .filter(entry => entry.unnamed > 0)
 }
 
-// D3 in the hero. What needs review, and why? Findings are grouped by cause, so the same problem on several sources is
-// one bar: the analyst sees how many distinct problems there are and how big each is, and can open the sources behind a
-// cause in place. Counts are reconciled to the complete per-case totals; the named sources are only the most recent each
-// case reports, and the card says so. Rules: UI_REDESIGN_BRIEF §6 (ranked comparison) and §11.
+// Each cause gets a shade of its kind's colour (red for failed, amber for a missing copy), darkest for the largest, so
+// the bar and the list read as one legend without relying on hue alone: the list repeats every label and count.
+function shadeFor(causes) {
+  const seen = { failed: 0, missing: 0 }
+  return Object.fromEntries(causes.map(cause => {
+    const index = seen[cause.kind]++
+    return [cause.key, Math.max(38, 100 - index * 22)]
+  }))
+}
+
+// D3 in the hero, as a triage card. The number is how many sources need attention; the bar shows how that splits by
+// cause and the list names each cause, so the analyst fixes a cause once rather than reading source by source. Hovering
+// a segment or a row lights the other. Counts are reconciled to the complete per-case totals; the named sources are only
+// the most recent each case reports, and the card says so. Rules: UI_REDESIGN_BRIEF §6 (part of a whole) and §11.
 export function AttentionCauses({ items, byCase, kpis, loading }) {
   const causes = useMemo(() => attentionCauses(items, byCase), [items, byCase])
   const [open, setOpen] = useState(null)
   const [more, setMore] = useState('')
+  const [hot, setHot] = useState('')
+  const [allCauses, setAllCauses] = useState(false)
   const total = byCase.reduce((sum, entry) => sum + entry.total, 0)
-  const largest = Math.max(1, ...causes.map(cause => cause.count))
+  const counted = causes.reduce((sum, cause) => sum + cause.count, 0)
+  const failed = causes.filter(cause => cause.kind === 'failed').reduce((sum, cause) => sum + cause.count, 0)
+  const missing = counted - failed
+  const shades = useMemo(() => shadeFor(causes), [causes])
   const openKey = open === null ? causes[0]?.key : open
   const unavailable = !loading && kpis.cases > 0 && kpis.reported === 0
   const failedLinks = unnamedFailures(byCase, items)
+  const shown = allCauses ? causes : causes.slice(0, CAUSES_SHOWN)
+  const manyCases = byCase.length > 1
 
   let body
   if (loading && !causes.length) {
@@ -58,23 +75,47 @@ export function AttentionCauses({ items, byCase, kpis, loading }) {
   } else {
     body = (
       <>
+        <div className="tri-hero">
+          <b className="tri-total">{formatNumber(counted)}</b>
+          <span className="tri-hero__text">
+            <strong>{counted === 1 ? 'source needs' : 'sources need'} review</strong>
+            <small>{[failed ? `${formatNumber(failed)} failed` : '', missing ? `${formatNumber(missing)} missing a copy` : ''].filter(Boolean).join(' · ')}{total ? ` · of ${formatNumber(total)}` : ''}</small>
+          </span>
+        </div>
+        <div className={`tri-bar${hot ? ' has-hot' : ''}`} aria-hidden="true">
+          {causes.map(cause => (
+            <i
+              key={cause.key}
+              className={`tri-seg tri-seg--${cause.kind}${hot === cause.key ? ' is-hot' : ''}`}
+              style={{ flexGrow: cause.count, '--shade': `${shades[cause.key]}%` }}
+              onMouseEnter={() => setHot(cause.key)}
+              onMouseLeave={() => setHot('')}
+              onClick={() => { setOpen(cause.key); setHot(cause.key) }}
+            />
+          ))}
+        </div>
         <p className="ac-summary">{formatNumber(causes.length)} {causes.length === 1 ? 'cause' : 'causes'} across {formatNumber(total)} {total === 1 ? 'source' : 'sources'}</p>
-        <ul className="ac-list">
-          {causes.map((cause, index) => {
-            const Icon = ICONS[cause.kind]
+        <ul className={`tri-list${hot ? ' has-hot' : ''}`}>
+          {shown.map(cause => {
             const isOpen = openKey === cause.key
-            const panelId = `ac-panel-${index}`
+            const panelId = `tri-panel-${causes.indexOf(cause)}`
             return (
-              <li key={cause.key} className={`ac-row ac-row--${cause.kind}${isOpen ? ' is-open' : ''}`}>
-                <button type="button" className="ac-head" aria-expanded={isOpen} aria-controls={panelId} onClick={() => setOpen(isOpen ? '' : cause.key)}>
-                  <span className="ac-mark" aria-hidden="true"><Icon /></span>
-                  <span className="ac-label">{cause.label}</span>
-                  <span className="ac-count">{formatNumber(cause.count)}</span>
+              <li
+                key={cause.key}
+                className={`tri-row tri-row--${cause.kind}${isOpen ? ' is-open' : ''}${hot === cause.key ? ' is-hot' : ''}`}
+                style={{ '--shade': `${shades[cause.key]}%` }}
+                onMouseEnter={() => setHot(cause.key)}
+                onMouseLeave={() => setHot('')}
+              >
+                <button type="button" className="tri-head" aria-expanded={isOpen} aria-controls={panelId} onFocus={() => setHot(cause.key)} onBlur={() => setHot('')} onClick={() => setOpen(isOpen ? '' : cause.key)}>
+                  <span className="tri-dot" aria-hidden="true" />
+                  <span className="tri-label">{cause.label}</span>
+                  {manyCases ? <span className="tri-cases">{formatNumber(cause.caseIds.length)} {cause.caseIds.length === 1 ? 'case' : 'cases'}</span> : null}
+                  <span className="tri-count">{formatNumber(cause.count)}</span>
                   <ChevronDown className="ac-chev" aria-hidden="true" />
                 </button>
-                <span className="ac-bar" aria-hidden="true"><i style={{ inlineSize: `${(cause.count / largest) * 100}%` }} /></span>
                 {isOpen ? (
-                  <div id={panelId} className="ac-body">
+                  <div id={panelId} className="tri-body">
                     {cause.items.length ? (
                       <>
                         <ul className="ac-items">
@@ -105,13 +146,14 @@ export function AttentionCauses({ items, byCase, kpis, loading }) {
             )
           })}
         </ul>
+        {causes.length > CAUSES_SHOWN ? <button type="button" className="ac-showall tri-morecauses" aria-expanded={allCauses} onClick={() => setAllCauses(value => !value)}>{allCauses ? 'Show fewer causes' : `Show ${formatNumber(causes.length - CAUSES_SHOWN)} more ${causes.length - CAUSES_SHOWN === 1 ? 'cause' : 'causes'}`}</button> : null}
       </>
     )
   }
 
   return (
     <div id="dashboard-attention" className="dash-slot">
-      <Card className="needs-review" title="What needs review?" actions={total ? <span className="attention-card__count">{formatNumber(total)} {total === 1 ? 'source' : 'sources'}</span> : null}>
+      <Card className="needs-review triage-card" title="What needs review?">
         {body}
       </Card>
     </div>

@@ -45,6 +45,11 @@ AppShell
 - **Attention rail (4 cols):** the redesigned D3. The count and the worst case first, a mini breakdown, the top items with Review and Retry, and "All N" to the full list. It answers "what needs me" without owning the page.
 - Cards (Z1) sit above so the figures and the visual read together: figures left-to-right, then the picture and the queue side by side.
 
+### Refinement (2026-09-30, round 3)
+- **Activity:** range chips (All, 30 days, 7 days) and a Days/Weeks toggle (weeks only from 21 days of data; totals never change, a week click asks for the whole week), short date labels, a dashed "Typical" line, and the chart fills the card height.
+- **Attention becomes a triage card:** the count of sources first, a composition bar split by cause (red shades for failed, hatched amber for a missing copy), and a ranked cause list. Hovering a segment or a row lights the other. Five causes show, the rest behind "Show N more". Counts stay reconciled to the complete per-case totals. "Last seen" per cause waits on a timestamp on the named items (not reported today).
+- **Evidence and flow are equal-height halves** (`dash-grid--even`, 480 px minimum, footers pinned). The evidence legend has share bars and a removable filter chip; the flow has captioned Sources and Rows bands with gradient links.
+
 ## 5. Evidence map (Z3): the bubbles
 Record families as packed circles, area proportional to accepted rows, colour from the categorical palette, count and share on the label, click filters the case queue and the activity chart to that family. Exact values are in a Table toggle. Bubbles are used because the question is "what is this case made of, at a glance"; precision lives in the labels and the table.
 

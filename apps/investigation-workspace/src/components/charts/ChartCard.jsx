@@ -6,7 +6,7 @@ const EChart = lazy(() => import('./EChart.jsx'))
 
 // One frame for every chart. The title is the question the chart answers. The Table view holds the exact
 // values and the real links behind them, so the chart is never the only way to reach a record.
-export function ChartCard({ title, description, chart, columns, rows, footer = null, tableFirst = false, actions = null, className = '', id }) {
+export function ChartCard({ title, description, chart, columns, rows, footer = null, tableFirst = false, actions = null, toolbar = null, className = '', id }) {
   const headingId = useId()
   const [view, setView] = useState(tableFirst ? 'table' : 'chart')
   return (
@@ -19,10 +19,11 @@ export function ChartCard({ title, description, chart, columns, rows, footer = n
           <button type="button" aria-pressed={view === 'table'} onClick={() => setView('table')}><Table2 aria-hidden="true" />Table</button>
         </div>
       </header>
+      {toolbar ? <div className="chart-card__toolbar">{toolbar}</div> : null}
       {view === 'chart' ? (
         <div className="chart-card__plot">
           <Suspense fallback={<p className="chart-card__loading" role="status">Loading chart…</p>}>
-            <EChart buildOption={chart.buildOption} height={chart.height} label={chart.label} onSelect={chart.onSelect} />
+            <EChart buildOption={chart.buildOption} height={chart.height} label={chart.label} onSelect={chart.onSelect} fill={chart.fill} />
           </Suspense>
           {chart.legend ? <ul className="chart-card__legend" aria-label="Legend">{chart.legend.map(item => <li key={item.label}><span className={`chart-card__swatch chart-card__swatch--${item.tone}`} aria-hidden="true" />{item.label}</li>)}</ul> : null}
         </div>

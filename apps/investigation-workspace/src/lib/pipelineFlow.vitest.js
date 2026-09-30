@@ -62,6 +62,7 @@ describe('flowOption', () => {
     expect(rows.links.every(entry => entry.source === 'Rows read')).toBe(true)
     expect(sources.links.length + rows.links.length).toBe(flowGraph(kpis).links.length)
     expect(sources.top).not.toBe(rows.top)
+    expect(option.title.map(title => title.text)).toEqual(['Sources, by outcome', 'Rows read, by outcome'])
     expect(flowOption(flowGraph({ ...kpis, acceptedRows: 0, duplicateRows: 0, rejectedRows: 0 }), theme).series).toHaveLength(1)
     expect(option.tooltip.formatter({ dataType: 'edge', data: { source: 'Sources', target: 'Failed', value: 2 } })).toContain('<strong>2</strong>')
     expect(option.tooltip.formatter({ dataType: 'node', name: 'Failed', value: 2 })).toContain('Select to see where')

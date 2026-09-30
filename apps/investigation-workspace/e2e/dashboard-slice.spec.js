@@ -75,7 +75,7 @@ test('dashboard answers named questions, links every figure to its records and k
   await expect(activity.getByRole('heading', { name: 'When did activity happen?' })).toBeVisible()
   await expect(activity.getByRole('img', { name: /Activity per day by record family, 2026-09-01 to 2026-09-02/ })).toBeVisible()
   await activity.getByRole('button', { name: /Table/ }).click()
-  await expect(activity.getByRole('table')).toContainText('2026-09-02')
+  await expect(activity.getByRole('table')).toContainText(/Wed, 2 Sep/)
   await activity.getByRole('button', { name: /Chart/ }).click()
 
   // Each chart has a question for a title and an exact table alternative with real links.

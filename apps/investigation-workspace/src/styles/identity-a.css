@@ -218,7 +218,6 @@
 
 /* Hero row: the activity chart and the attention rail read in parallel. */
 .dash-grid--hero { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); }
-.activity-card .echart { min-block-size: 300px; }
 .chart-card__footer { display: flex; flex-wrap: wrap; gap: 4px var(--analyst-space-16); }
 .activity-card__note { color: var(--analyst-text); font-weight: var(--analyst-font-weight-semibold); }
 .activity-card__reason { display: block; margin-block-start: 2px; color: var(--analyst-text-secondary); font-size: var(--analyst-type-label-size); }
@@ -293,7 +292,6 @@
 .ac-more a { margin-inline-start: 10px; color: var(--analyst-accent); font-weight: var(--analyst-font-weight-semibold); }
 
 /* Pipeline flow and key entities. */
-.flow-card .echart { min-block-size: 320px; }
 .ke-ghost { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; padding: var(--analyst-space-12) 0; }
 .ke-ghost i { display: block; border: 2px dashed var(--analyst-line-strong); border-radius: 50%; background: var(--analyst-surface-2); }
 .ke-ghost i:nth-child(1) { inline-size: 76px; block-size: 76px; }
@@ -417,9 +415,9 @@
   .dash-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .dash-kpi--hero { grid-column: 1 / -1; }
 }
-.dash-grid--wide-right { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+.dash-grid--even { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
 @media (max-width: 1023px) {
-  .dash-grid, .dash-grid--wide-left, .dash-grid--wide-right, .dash-grid--hero { grid-template-columns: minmax(0, 1fr); }
+  .dash-grid, .dash-grid--wide-left, .dash-grid--even, .dash-grid--hero { grid-template-columns: minmax(0, 1fr); }
   .nr-body { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 640px) {
@@ -447,7 +445,7 @@
   .nr-seg { animation: none; }
   .nr-bar, .nr-row, .nr-row__review svg { transition: none; }
   .em-bubble { animation: none; transition: none; }
-  .ac-bar i { animation: none; }
+  .ac-bar i, .tri-seg { animation: none; transition: none; }
   .ac-row, .ac-chev, .ac-items a, .ac-items a svg, .ke-asks a, .ke-asks svg { transition: none; }
   .em-bubble:hover { transform: translate(-50%, -50%); }
   .dash-flash { animation: none; box-shadow: 0 0 0 3px var(--analyst-accent); }
@@ -456,3 +454,65 @@
 .is-spinning { animation: dash-spin 1s linear infinite; }
 @keyframes dash-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .is-spinning { animation: none; } }
+
+/* Equal-height cards. A card in a stretched grid row is a flex column: its chart or body takes the spare height, and
+   footers stay pinned to the bottom, so two cards side by side end on one line. */
+.dash-grid--hero > .dash-slot > .chart-card,
+.dash-grid--even > .dash-slot > .chart-card,
+.dash-grid--even > .dash-slot > .card { display: flex; flex-direction: column; }
+.dash-grid--even > .dash-slot > .chart-card { block-size: 100%; }
+.dash-grid--even > .dash-slot > .chart-card,
+.dash-grid--even > .dash-slot > .card { min-block-size: 480px; }
+.chart-card > .chart-card__plot { flex: 1 1 auto; display: flex; flex-direction: column; }
+.echart--fill { flex: 1 1 auto; }
+.chart-card__footer { margin-block-start: auto; }
+.dash-grid--even > .dash-slot > .card > .card__body { flex: 1 1 auto; display: flex; flex-direction: column; min-block-size: 0; }
+.chart-card__toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--analyst-space-8) var(--analyst-space-12); }
+.seg { display: inline-flex; padding: 2px; border: 1px solid var(--analyst-line-strong); border-radius: var(--analyst-radius-pill); background: var(--analyst-surface-2); }
+.seg button { min-block-size: 30px; margin: 0; padding-inline: 12px; border: 0; border-radius: var(--analyst-radius-pill); background: transparent; color: var(--analyst-text-secondary); font: inherit; font-size: var(--analyst-type-label-size); font-weight: var(--analyst-font-weight-semibold); cursor: pointer; transition: background-color 140ms ease-out, color 140ms ease-out; }
+.seg button:hover { color: var(--analyst-text); }
+.seg button[aria-pressed='true'] { background: var(--analyst-accent); color: var(--analyst-accent-text); }
+.seg button:focus-visible { outline: var(--analyst-focus-size) solid var(--analyst-focus); outline-offset: 2px; }
+@media (pointer: coarse) { .seg button { min-block-size: 44px; } }
+
+/* Triage card (needs review by cause). */
+.triage-card { display: flex; flex-direction: column; }
+.tri-hero { display: flex; align-items: center; gap: var(--analyst-space-16); margin-block-end: var(--analyst-space-12); }
+.tri-total { color: var(--analyst-status-failed); font-size: 3rem; font-weight: var(--analyst-font-weight-bold); line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.tri-hero__text { display: grid; gap: 2px; }
+.tri-hero__text strong { font-size: 1.0625rem; }
+.tri-hero__text small { color: var(--analyst-text-secondary); font-size: var(--analyst-type-label-size); }
+.tri-bar { display: flex; gap: 3px; block-size: 14px; margin-block-end: var(--analyst-space-8); }
+.tri-seg { --tone: var(--analyst-status-failed); flex-basis: 0; min-inline-size: 6px; border-radius: 4px; background: var(--tone); background: color-mix(in srgb, var(--tone) var(--shade, 100%), var(--analyst-surface-1)); cursor: pointer; transform-origin: left center; animation: nr-grow 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both; transition: opacity 160ms ease-out, transform 160ms ease-out; }
+.tri-seg--missing { --tone: var(--analyst-caution); background-image: repeating-linear-gradient(45deg, rgb(255 255 255 / 40%) 0 2px, transparent 2px 6px); }
+.tri-bar.has-hot .tri-seg:not(.is-hot),
+.tri-list.has-hot .tri-row:not(.is-hot) { opacity: 0.5; }
+.tri-seg.is-hot { transform: scaleY(1.35); }
+.tri-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.tri-row { --tone: var(--analyst-status-failed); border-block-start: 1px solid var(--analyst-line); transition: opacity 160ms ease-out, background-color 160ms ease-out; }
+.tri-row--missing { --tone: var(--analyst-caution); }
+.tri-row.is-hot { background: var(--analyst-surface-2); }
+.tri-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto auto; align-items: center; gap: 10px; inline-size: 100%; min-block-size: 44px; margin: 0; padding: 6px 8px; border: 0; background: none; color: var(--analyst-text); font: inherit; text-align: start; cursor: pointer; }
+.tri-head:focus-visible { outline: var(--analyst-focus-size) solid var(--analyst-focus); outline-offset: -3px; }
+.tri-dot { inline-size: 12px; block-size: 12px; border-radius: 4px; background: var(--tone); background: color-mix(in srgb, var(--tone) var(--shade, 100%), var(--analyst-surface-1)); }
+.tri-row--missing .tri-dot { background-image: repeating-linear-gradient(45deg, rgb(255 255 255 / 40%) 0 2px, transparent 2px 6px); }
+.tri-label { font-weight: var(--analyst-font-weight-semibold); overflow-wrap: anywhere; }
+.tri-cases { color: var(--analyst-text-muted); font-size: var(--analyst-type-caption-size); white-space: nowrap; }
+.tri-count { min-inline-size: 2ch; font-size: 1.0625rem; font-weight: var(--analyst-font-weight-bold); font-variant-numeric: tabular-nums; text-align: end; }
+.tri-row.is-open .ac-chev { transform: rotate(180deg); }
+.tri-body { padding: 0 8px 10px 30px; }
+.tri-morecauses { align-self: flex-start; margin: 8px 8px 0; }
+.triage-card .ac-summary { margin: 0 0 var(--analyst-space-4, 4px); }
+
+/* Evidence map: filter chip and compact legend with share bars. */
+.evidence-map { display: flex; flex-direction: column; }
+.em-filter { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 var(--analyst-space-8); padding: 6px 6px 6px 12px; border: 1px solid var(--analyst-line-strong); border-radius: var(--analyst-radius-pill); background: var(--analyst-surface-2); font-size: var(--analyst-type-label-size); }
+.em-filter button { display: inline-flex; align-items: center; gap: 4px; min-block-size: 32px; margin: 0; padding-inline: 10px; border: 0; border-radius: var(--analyst-radius-pill); background: var(--analyst-surface-1); color: var(--analyst-text); font: inherit; font-weight: var(--analyst-font-weight-semibold); cursor: pointer; }
+.em-filter button svg { inline-size: 14px; block-size: 14px; }
+.evidence-map .em-legend { grid-template-columns: minmax(0, 1fr); flex: 1 1 auto; align-content: start; gap: 2px; margin-block-start: var(--analyst-space-8); }
+.evidence-map .em-legend button { grid-template-columns: auto minmax(0, 1fr) 110px auto 3.5ch; min-block-size: 32px; padding-block: 2px; border-color: transparent; background: transparent; }
+.evidence-map .em-legend button:hover { border-color: transparent; background: var(--analyst-surface-2); }
+.evidence-map .em-legend button.is-selected { border-color: var(--analyst-text); }
+.em-legend__bar { block-size: 6px; border-radius: 3px; background: var(--analyst-surface-2); overflow: hidden; }
+.em-legend__bar i { display: block; block-size: 100%; border-radius: 3px; }
+.flow-card .chart-card__plot { min-block-size: 0; }

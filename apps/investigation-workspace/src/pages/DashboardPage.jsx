@@ -417,7 +417,7 @@ export default function DashboardPage() {
               <AttentionCauses items={attention} byCase={reviewCases} kpis={kpis} loading={loading} />
             </div>
 
-            <div className="dash-grid dash-grid--wide-right">
+            <div className="dash-grid dash-grid--even">
               <EvidenceMap families={families} order={order} selectedId={selectedFamily} onSelect={selectFamily} kpis={kpis} loading={loading} />
               <PipelineFlow kpis={kpis} loading={loading} />
             </div>

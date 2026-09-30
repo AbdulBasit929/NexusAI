@@ -1,17 +1,19 @@
 import { useEffect, useRef } from 'react'
 import * as echarts from 'echarts/core'
 import { BarChart, SankeyChart } from 'echarts/charts'
-import { AriaComponent, DataZoomComponent, GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
+import { AriaComponent, DataZoomComponent, GridComponent, LegendComponent, MarkLineComponent, TitleComponent, TooltipComponent } from 'echarts/components'
 import { SVGRenderer } from 'echarts/renderers'
 import { chartTheme } from './chartTheme.js'
 
-echarts.use([BarChart, SankeyChart, GridComponent, TooltipComponent, AriaComponent, LegendComponent, DataZoomComponent, SVGRenderer])
+echarts.use([BarChart, SankeyChart, GridComponent, TooltipComponent, AriaComponent, LegendComponent, DataZoomComponent, MarkLineComponent, TitleComponent, SVGRenderer])
 
 // Thin wrapper: the option builder receives the live theme tokens, so a theme switch
 // re-renders with the right colours. SVG output stays crisp when printed and zooms without blur.
 // Pointer clicks are a convenience only; every chart is paired with a table whose rows are real
 // links or buttons, which is the keyboard and screen-reader path.
-export default function EChart({ buildOption, height = 240, label, onSelect }) {
+// With `fill` the chart takes whatever height its card gives it (the card is a flex column), so two cards in a row
+// can share one height; `height` is then only the smallest it will shrink to.
+export default function EChart({ buildOption, height = 240, label, onSelect, fill = false }) {
   const host = useRef(null)
   const chart = useRef(null)
   const select = useRef(onSelect)
@@ -39,5 +41,5 @@ export default function EChart({ buildOption, height = 240, label, onSelect }) {
     }
   }, [buildOption])
 
-  return <div ref={host} className="echart" style={{ blockSize: height }} role="img" aria-label={label} />
+  return <div ref={host} className={`echart${fill ? ' echart--fill' : ''}`} style={fill ? { minBlockSize: height } : { blockSize: height }} role="img" aria-label={label} />
 }

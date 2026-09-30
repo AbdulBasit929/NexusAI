@@ -1,11 +1,11 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CircleAlert } from 'lucide-react'
 import { Card } from '../../components/Card.jsx'
 import { ChartCard } from '../../components/charts/ChartCard.jsx'
 import { SelectControl } from '../../components/SelectControl.jsx'
 import { SkeletonRows } from '../../components/Skeleton.jsx'
-import { activityHighlights, activityOption, activityRows } from '../../lib/caseActivity.js'
+import { activityHighlights, activityOption, activityRows, bucketActivity, bucketQuestion } from '../../lib/caseActivity.js'
 import { formatNumber } from '../../lib/format.js'
 import { curatedFamilyLabel } from '../../lib/semanticCatalog.js'
 import { activityFailureText } from '../../lib/useCaseActivity.js'
@@ -14,12 +14,23 @@ export function dayQuestion(date) {
   return `Show activity on ${date}`
 }
 
-// Where a click on a day goes: the case that holds most of that day, straight into Investigate with the day as the
-// question. All values come from the reported activity; nothing is inferred.
+// Where a click on a day or a week goes: the case that holds most of it, straight into Investigate with the period as
+// the question. All values come from the reported activity; nothing is inferred.
 export function dayTarget(activity, date, scope) {
   const day = activity.days.find(entry => entry.date === date)
   const caseId = scope || day?.topCase
-  return day && caseId ? `/cases/${encodeURIComponent(caseId)}/investigate?question=${encodeURIComponent(dayQuestion(date))}` : null
+  return day && caseId ? `/cases/${encodeURIComponent(caseId)}/investigate?question=${encodeURIComponent(bucketQuestion(day))}` : null
+}
+
+const RANGES = [{ id: 'all', label: 'All' }, { id: '30', label: '30 days' }, { id: '7', label: '7 days' }]
+const WEEKLY_FROM_DAYS = 21
+
+function Segmented({ label, value, options, onChange }) {
+  return (
+    <div className="seg" role="group" aria-label={label}>
+      {options.map(option => <button key={option.id} type="button" aria-pressed={value === option.id} onClick={() => onChange(option.id)}>{option.label}</button>)}
+    </div>
+  )
 }
 
 // D-hero. When did activity happen, and in what? Stacked bars per day by record family, real timestamps only. The
@@ -27,16 +38,21 @@ export function dayTarget(activity, date, scope) {
 // A capped read is labelled partial; a case that could not be read is named. Rules: UI_REDESIGN_BRIEF §6 and §11.
 export function ActivityChart({ activity, status, failures = [], order, cases, scope, onScope, onRetry }) {
   const navigate = useNavigate()
+  const [range, setRange] = useState('all')
+  const [grain, setGrain] = useState('day')
   const failed = failures.map(failure => failure.caseId)
+  const canWeek = activity.available && activity.days.length >= WEEKLY_FROM_DAYS
+  const view = useMemo(() => (canWeek && grain === 'week' ? bucketActivity(activity, 'week') : activity), [activity, canWeek, grain])
   const chart = useMemo(() => ({
-    buildOption: theme => activityOption(activity, theme, order),
+    buildOption: theme => activityOption(view, theme, order, { range }),
     height: 300,
-    label: `Activity per day by record family, ${activity.first} to ${activity.last}. ${activity.families.map(family => `${curatedFamilyLabel(family.id)}: ${formatNumber(family.total)}`).join('. ')}`,
+    fill: true,
+    label: `Activity per ${view.bucket === 'week' ? 'week' : 'day'} by record family, ${activity.first} to ${activity.last}. ${activity.families.map(family => `${curatedFamilyLabel(family.id)}: ${formatNumber(family.total)}`).join('. ')}`,
     onSelect: params => {
-      const target = params?.name ? dayTarget(activity, params.name, scope) : null
+      const target = params?.name ? dayTarget(view, params.name, scope) : null
       if (target) navigate(target)
     },
-  }), [activity, order, scope, navigate])
+  }), [activity, view, range, order, scope, navigate])
 
   const scopeControl = cases.length > 1 ? <SelectControl label="Scope" value={scope || 'all'} options={cases} onChange={value => onScope(value === 'all' ? '' : value)} optionLabel={item => item} /> : null
 
@@ -76,9 +92,15 @@ export function ActivityChart({ activity, status, failures = [], order, cases, s
         className="activity-card"
         title="When did activity happen?"
         actions={scopeControl}
+        toolbar={(
+          <>
+            <Segmented label="Time range" value={range} options={RANGES} onChange={setRange} />
+            {canWeek ? <Segmented label="Group by" value={grain} options={[{ id: 'day', label: 'Days' }, { id: 'week', label: 'Weeks' }]} onChange={setGrain} /> : null}
+          </>
+        )}
         chart={chart}
         columns={columns}
-        rows={activityRows(activity)}
+        rows={activityRows(view)}
         footer={(
           <>
             {highlights ? (

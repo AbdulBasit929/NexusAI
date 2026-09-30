@@ -67,6 +67,10 @@ export function parseActivity(response, caseId) {
   }
 }
 
+function topCaseOf(byCase) {
+  return Object.entries(byCase).sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))[0]?.[0] || null
+}
+
 // Several cases to one series. Each day remembers which case holds most of its events, so a click can open that case.
 export function mergeActivity(results) {
   const parsed = results.filter(result => result?.available)
@@ -84,7 +88,7 @@ export function mergeActivity(results) {
     for (const family of result.families) families.set(family.id, (families.get(family.id) || 0) + family.total)
     total += result.total
   }
-  const ordered = [...days.values()].sort((left, right) => left.date.localeCompare(right.date)).map(day => ({ ...day, topCase: Object.entries(day.byCase).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] || null }))
+  const ordered = [...days.values()].sort((left, right) => left.date.localeCompare(right.date)).map(day => ({ ...day, topCase: topCaseOf(day.byCase) }))
   return {
     available: parsed.length > 0,
     cases: parsed.map(result => result.caseId),
@@ -95,6 +99,60 @@ export function mergeActivity(results) {
     last: ordered.at(-1)?.date || null,
     truncated: parsed.some(result => result.truncated),
   }
+}
+
+// --- Time helpers. Dates are calendar days in UTC, exactly as the service reported them; no timezone shifting.
+function shift(date, days) {
+  const moved = new Date(`${date}T00:00:00Z`)
+  moved.setUTCDate(moved.getUTCDate() + days)
+  return moved.toISOString().slice(0, 10)
+}
+
+function mondayOf(date) {
+  return shift(date, -((new Date(`${date}T00:00:00Z`).getUTCDay() + 6) % 7))
+}
+
+const SHORT = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' })
+const LONG = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
+
+export function shortDate(date) {
+  return SHORT.format(new Date(`${date}T00:00:00Z`))
+}
+
+// A bucket in words: one day ("Sat, 28 Feb 2026") or a week ("23 Feb to 1 Mar 2026").
+export function describeBucket(bucket) {
+  if (!bucket.end || bucket.end === bucket.date) return LONG.format(new Date(`${bucket.date}T00:00:00Z`))
+  return `${shortDate(bucket.date)} to ${LONG.format(new Date(`${bucket.end}T00:00:00Z`)).replace(/^\w+,? /, '')}`
+}
+
+// The question a click on a bucket asks in Investigate.
+export function bucketQuestion(bucket) {
+  return !bucket.end || bucket.end === bucket.date ? `Show activity on ${bucket.date}` : `Show activity from ${bucket.date} to ${bucket.end}`
+}
+
+// Days summed into calendar weeks (Monday to Sunday) when the span is long enough that daily bars turn into a fringe.
+// Totals never change: every event is in exactly one bucket, and the last week ends on the last day read.
+export function bucketActivity(activity, granularity) {
+  if (granularity !== 'week' || !activity.days.length) return activity
+  const weeks = new Map()
+  for (const day of activity.days) {
+    const start = mondayOf(day.date)
+    const week = weeks.get(start) || { date: start, end: shift(start, 6) > activity.last ? activity.last : shift(start, 6), total: 0, byFamily: {}, byCase: {} }
+    week.total += day.total
+    for (const [family, count] of Object.entries(day.byFamily)) week.byFamily[family] = (week.byFamily[family] || 0) + count
+    for (const [caseId, count] of Object.entries(day.byCase)) week.byCase[caseId] = (week.byCase[caseId] || 0) + count
+    weeks.set(start, week)
+  }
+  return { ...activity, bucket: 'week', days: [...weeks.values()].sort((left, right) => left.date.localeCompare(right.date)).map(week => ({ ...week, topCase: topCaseOf(week.byCase) })) }
+}
+
+// Where a range preset starts, as an index into the buckets: the last N calendar days ending on the last day read.
+export function rangeStartIndex(activity, range) {
+  const count = Number(range)
+  if (!count || !activity.days.length) return 0
+  const cutoff = shift(activity.last, -(count - 1))
+  const index = activity.days.findIndex(day => (day.end || day.date) >= cutoff)
+  return index < 0 ? 0 : index
 }
 
 // A record family keeps one colour on every widget: the index comes from the sorted list of every family in view.
@@ -122,20 +180,23 @@ export function activityHighlights(activity) {
 }
 
 export function activityRows(activity) {
-  return activity.days.map(day => ({ key: day.date, date: day.date, total: day.total, ...Object.fromEntries(activity.families.map(family => [family.id, day.byFamily[family.id] || 0])) }))
+  return activity.days.map(day => ({ key: day.date, date: describeBucket(day), total: day.total, ...Object.fromEntries(activity.families.map(family => [family.id, day.byFamily[family.id] || 0])) }))
 }
 
-// Stacked bars per day, one series per record family. The zoom slider appears when there are many days and opens on
-// the most recent stretch. Only the last day's tooltip lines that hold a count are shown.
-export function activityOption(activity, theme, order) {
-  const many = activity.days.length > 45
-  const start = many ? Math.max(0, 100 - Math.round((60 / activity.days.length) * 100)) : 0
+// Stacked bars per bucket, one series per record family, a dashed line at the typical bucket, short date labels and a
+// zoom slider when there are many buckets. `range` narrows the view to the last N days without changing any figure.
+export function activityOption(activity, theme, order, { range = 'all' } = {}) {
+  const many = activity.days.length > 14
+  const last = activity.days.length - 1
+  const start = rangeStartIndex(activity, range)
+  const typical = activity.days.length ? Math.round(activity.days.reduce((sum, day) => sum + day.total, 0) / activity.days.length) : 0
+  const zoom = { startValue: start, endValue: last }
   return {
     aria: { enabled: false },
     animationDuration: 500,
     animationEasing: 'cubicOut',
-    grid: { left: 8, right: 12, top: 36, bottom: many ? 56 : 24, containLabel: true },
-    legend: { top: 0, left: 0, icon: 'roundRect', itemWidth: 12, itemHeight: 12, textStyle: { color: theme.text, fontSize: 12 }, inactiveColor: theme.line },
+    grid: { left: 8, right: typical ? 84 : 16, top: 34, bottom: many ? 54 : 24, containLabel: true },
+    legend: { top: 0, left: 0, icon: 'roundRect', itemWidth: 12, itemHeight: 12, itemGap: 16, textStyle: { color: theme.text, fontSize: 12 }, inactiveColor: theme.line },
     tooltip: {
       trigger: 'axis',
       confine: true,
@@ -144,23 +205,25 @@ export function activityOption(activity, theme, order) {
       borderColor: theme.line,
       textStyle: { color: theme.text },
       formatter: points => {
+        const bucket = activity.days[points[0]?.dataIndex]
         const lines = points.filter(point => point.value > 0).map(point => `${point.marker}${point.seriesName}: <strong>${formatNumber(point.value)}</strong>`)
-        const day = activity.days[points[0]?.dataIndex]
         const sum = points.reduce((total, point) => total + (point.value || 0), 0)
-        return `<strong>${points[0]?.axisValueLabel}</strong><br/>${lines.join('<br/>')}<br/>Total: <strong>${formatNumber(sum)}</strong>${day?.topCase && Object.keys(day.byCase).length > 1 ? `<br/><em>Most in ${day.topCase}</em>` : ''}<br/><em>Select to open this day.</em>`
+        const cases = bucket && Object.keys(bucket.byCase).length > 1 && bucket.topCase ? `<br/><em>Most in ${bucket.topCase}</em>` : ''
+        return `<strong>${bucket ? describeBucket(bucket) : points[0]?.axisValueLabel}</strong><br/>${lines.join('<br/>')}<br/>Total: <strong>${formatNumber(sum)}</strong>${cases}<br/><em>Select to open this ${bucket?.end && bucket.end !== bucket.date ? 'week' : 'day'}.</em>`
       },
     },
-    xAxis: { type: 'category', data: activity.days.map(day => day.date), axisTick: { show: false }, axisLine: { lineStyle: { color: theme.line } }, axisLabel: { color: theme.muted, fontSize: 11, hideOverlap: true } },
+    xAxis: { type: 'category', data: activity.days.map(day => day.date), axisTick: { show: false }, axisLine: { lineStyle: { color: theme.line } }, axisLabel: { color: theme.muted, fontSize: 11, hideOverlap: true, formatter: value => shortDate(value) } },
     yAxis: { type: 'value', minInterval: 1, splitLine: { lineStyle: { color: theme.line, opacity: 0.6 } }, axisLabel: { color: theme.muted, fontSize: 11, formatter: value => formatNumber(value) } },
-    dataZoom: many ? [{ type: 'inside', start, end: 100 }, { type: 'slider', start, end: 100, height: 22, bottom: 6, borderColor: theme.line, textStyle: { color: theme.muted }, brushSelect: false }] : [],
-    series: activity.families.map(family => ({
+    dataZoom: many ? [{ type: 'inside', ...zoom }, { type: 'slider', ...zoom, height: 22, bottom: 6, borderColor: theme.line, textStyle: { color: theme.muted }, brushSelect: false, labelFormatter: (_, label) => (label ? shortDate(label) : '') }] : [],
+    series: activity.families.map((family, index) => ({
       name: curatedFamilyLabel(family.id),
       type: 'bar',
       stack: 'activity',
-      barMaxWidth: 28,
+      barMaxWidth: 32,
       emphasis: { focus: 'series' },
       itemStyle: { color: familyColour(family.id, order, theme.data), borderRadius: 0 },
       data: activity.days.map(day => day.byFamily[family.id] || 0),
+      ...(index === 0 && typical ? { markLine: { silent: true, symbol: 'none', animation: false, lineStyle: { type: 'dashed', color: theme.muted, width: 1.25 }, label: { formatter: `Typical ${formatNumber(typical)}`, color: theme.muted, fontSize: 11, position: 'end' }, data: [{ yAxis: typical }] } } : {}),
     })),
   }
 }
