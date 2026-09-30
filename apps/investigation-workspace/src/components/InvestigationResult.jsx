@@ -34,7 +34,7 @@ function ScopeChips({ scope }) {
 //
 // Both default to today's exact behaviour, so a single standalone result — and
 // every existing test of one — is unchanged.
-export function InvestigationResult({ presentation, onAsk, onClarificationChoice, onRetry, onCompare, clarificationRounds = 0, idPrefix = '', live = true, showOriginalQuestion = true }) {
+export function InvestigationResult({ presentation, onAsk, onClarificationChoice, onRetry, onCompare, clarificationRounds = 0, idPrefix = '', live = true, showOriginalQuestion = true, compact = false }) {
   const headingId = name => (idPrefix ? `${idPrefix}-${name}` : name)
   const liveRegion = live ? 'polite' : undefined
   if (presentation.state === 'clarify') {
@@ -53,7 +53,7 @@ export function InvestigationResult({ presentation, onAsk, onClarificationChoice
   const useSourceRail = (presentation.citations.groups || []).length >= 3
   const findingState = !['unsupported', 'failed'].includes(presentation.state)
   return (
-    <article className={`investigation-result investigation-result--${presentation.state}${useSourceRail ? ' investigation-result--source-rail' : ''}`} aria-live={liveRegion}>
+    <article className={`investigation-result investigation-result--${presentation.state}${useSourceRail && !compact ? ' investigation-result--source-rail' : ''}${compact ? ' investigation-result--compact' : ''}`} aria-live={liveRegion}>
       <ResultStateBanner state={presentation.state} />
       <header className="answer-block" dir={presentation.direction || 'ltr'}>
         {findingState ? (
@@ -103,6 +103,8 @@ export function InvestigationResult({ presentation, onAsk, onClarificationChoice
               {hasResult ? <><ResultChart presentation={presentation} /><ResultTable result={presentation.result} citations={presentation.citations} /></> : <EmptyState kind="complete-zero" />}
             </section>
           ) : null}
+          {!compact && (
+            <>
           <section className="result-section result-section--citations" aria-labelledby={headingId("citations-heading")}>
             <SectionHeading><span id={headingId("citations-heading")}>Citations</span></SectionHeading>
             <SourcePanel citations={presentation.citations} />
@@ -113,12 +115,17 @@ export function InvestigationResult({ presentation, onAsk, onClarificationChoice
               <p>{presentation.derivation}</p>
             </TechnicalDisclosure>
           </section>
-          {presentation.limitations.length > 0 && (
+            </>
+          )}
+          {presentation.limitations.length > 0 && !compact && (
             <section className="result-section result-section--limitations limitations" aria-labelledby={headingId("limitations-heading")}>
               <SectionHeading><span id={headingId("limitations-heading")}>Limitations</span></SectionHeading>
               <ul>{presentation.limitations.map(item => <li key={item}>{item}</li>)}</ul>
             </section>
           )}
+          {presentation.limitations.length > 0 && compact ? (
+            <ul className="compact-limits" aria-label="Limitations">{presentation.limitations.map(item => <li key={item}>{item}</li>)}</ul>
+          ) : null}
         </>
       )}
     </article>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { CircleAlert, CircleCheckBig, CircleHelp, CircleSlash, ChevronDown, Clock3, Layers, LoaderCircle, MessageSquarePlus, SearchX, Square } from 'lucide-react'
+import { ArrowDown, Check, ChevronDown, CircleAlert, CircleCheckBig, CircleHelp, CircleSlash, Clock3, Copy, FileSearch, Layers, ListTree, LoaderCircle, MessageSquarePlus, Pencil, SearchX, Square, Table2 } from 'lucide-react'
 import { AskInput } from '../components/AskInput.jsx'
 import { InvestigationResult } from '../components/InvestigationResult.jsx'
 import { QuestionTrail } from '../components/QuestionTrail.jsx'
@@ -13,6 +13,7 @@ import { EmptyState, LanguageText } from '../components/AnalystComponents.jsx'
 import { recordQuestionHistory, useQuestionDraft, useQuestionHistory } from '../lib/workspaceState.js'
 import { ResultComparison } from '../components/ResultComparison.jsx'
 import { CaseStart, coverageLine } from './investigate/CaseStart.jsx'
+import { EvidencePanel } from './investigate/EvidencePanel.jsx'
 import { OUTCOME_LABEL } from '../lib/acrossCases.js'
 import { useCaseOverview } from '../lib/useCaseOverview.js'
 
@@ -79,6 +80,11 @@ export default function InvestigatePage() {
   const overview = useCaseOverview(caseId)
   const recent = useQuestionHistory(caseId).slice(0, 3)
   const [scopeOpen, setScopeOpen] = useState(false)
+  const [panelId, setPanelId] = useState(null)
+  const [outlineOpen, setOutlineOpen] = useState(false)
+  const [copiedId, setCopiedId] = useState(null)
+  const [atBottom, setAtBottom] = useState(true)
+  const scroller = useRef(null)
   const controller = useRef(null)
   const composer = useRef(null)
   const pendingFocus = useRef(null)
@@ -107,7 +113,8 @@ export default function InvestigatePage() {
     const node = globalThis.document?.getElementById(pendingFocus.current)
     pendingFocus.current = null
     node?.focus({ preventScroll: true })
-    node?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    // Show the question and the start of its answer together, not the tail of a long answer.
+    ;(node?.closest('li') || node)?.scrollIntoView({ block: 'start', behavior: 'smooth' })
   }, [turns, busy])
 
   function updateTurn(id, patch) {
@@ -191,10 +198,32 @@ export default function InvestigatePage() {
   }
 
   const turnIcon = { answered: CircleCheckBig, partial: CircleCheckBig, clarify: CircleHelp, processing: Clock3, 'zero-result': SearchX, unsupported: CircleSlash, failed: CircleAlert }
+  const panelTurn = turns.find(turn => turn.id === panelId) || null
+
+  function watchScroll() {
+    const node = scroller.current
+    if (node) setAtBottom(node.scrollHeight - node.scrollTop - node.clientHeight < 160)
+  }
+  function jumpToLatest() {
+    scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: 'smooth' })
+  }
+  async function copyAnswer(turn) {
+    const text = turn.presentation?.answer || ''
+    try {
+      await globalThis.navigator.clipboard.writeText(text)
+      setCopiedId(turn.id)
+      globalThis.setTimeout(() => setCopiedId(current => (current === turn.id ? null : current)), 1600)
+    } catch { setCopiedId(null) }
+  }
+  function jumpToTurn(id) {
+    setOutlineOpen(false)
+    globalThis.document?.getElementById(`${id}-anchor`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   const composerBlock = (
     <div className="gi-composer">
       {canAskScope
-        ? <AskInput busy={busy} value={draft} onChange={setDraft} inputRef={composer} onAsk={query => ask(query)} clearOnAsk={!turns.length ? false : true} label="Ask a question about this case" placeholder="Ask about this case’s evidence…" ariaLabel="Ask about case evidence" />
+        ? <AskInput busy={busy} value={draft} onChange={setDraft} inputRef={composer} onAsk={query => ask(query)} clearOnAsk label="Ask a question about this case" placeholder="Ask about this case’s evidence…" ariaLabel="Ask about case evidence" />
         : <EmptyState kind="unavailable" label={`${selectedFamily.label} questions are unavailable`} description="The question service cannot yet enforce this family scope. NexusAI has not widened the request to other evidence." />}
       <div className="gi-scope">
         <details className="thread-composer__scope gi-scope__pop" open={scopeOpen} onToggle={event => setScopeOpen(event.currentTarget.open)}>
@@ -206,7 +235,6 @@ export default function InvestigatePage() {
         </details>
         <p className="gi-scope__line" role="status">{coverageLine(overview) || 'Checking what this case holds…'}</p>
         {busy ? <button type="button" className="gi-stop thread-composer__stop" onClick={stopQuestion}><Square aria-hidden="true" />Stop current question</button> : null}
-        {turns.length > 0 ? <button type="button" className="gi-stop thread-composer__clear" onClick={clearThread}><MessageSquarePlus aria-hidden="true" />Start a new conversation</button> : null}
       </div>
     </div>
   )
@@ -220,72 +248,87 @@ export default function InvestigatePage() {
             <CaseStart caseId={caseId} overview={overview} starters={starters} recent={recent} onPick={chooseStarter}>{composerBlock}</CaseStart>
           </>
         ) : (
-          <div className="gi-case">
-            <div className="gi-case__main">
-              <h1 className="visually-hidden">Investigate {caseId}</h1>
-              <ResultComparison items={comparison} onRemove={id => setComparison(items => items.filter(item => item.id !== id))} onClear={() => setComparison([])} />
-              <QuestionTrail entries={decisionTrail} history={[]} />
-              {/* One live region for the whole thread, so a dozen answers do not compete to interrupt a screen reader. */}
-              <ol className="investigation-thread" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Investigation conversation">
-                {turns.map((turn, index) => (
-                  <li key={turn.id} className={`thread-turn${turn.parentId ? ' thread-turn--branched' : ''}`}>
-                    <article className="thread-turn__question" aria-label={`Question ${index + 1}`}>
-                      <div className="thread-turn__meta">
-                        <strong>You asked</strong>
-                        <span>{turn.scope?.label || 'All evidence'} scope</span>
-                      </div>
-                      {turn.parentId ? <p className="thread-turn__branch">Following the clarification{turn.label ? <> · <LanguageText>{turn.label}</LanguageText></> : null}</p> : null}
-                      <p className="thread-turn__text"><LanguageText>{turn.query}</LanguageText></p>
-                      <button type="button" className="thread-turn__edit" onClick={() => editQuestion(turn.query)}>Ask a variation</button>
-                    </article>
-                    <div id={`${turn.id}-anchor`} tabIndex={-1} className="thread-turn__answer">
-                      <header className="thread-turn__answer-identity"><NexusAnswerMark /><span><strong>NexusAI</strong><small>Evidence analysis</small></span></header>
-                      {turn.busy && <p className="processing-announcement" role="status"><LoaderCircle aria-hidden="true" />Checking {turn.scope?.label || 'the selected'} case evidence…</p>}
-                      {turn.aborted && !turn.busy && <p className="thread-turn__aborted" role="status">This question was stopped before a result was returned.</p>}
-                      {turn.presentation && (
-                        <InvestigationResult
-                          presentation={turn.presentation}
-                          idPrefix={turn.id}
-                          live={false}
-                          onAsk={query => ask(query)}
-                          onClarificationChoice={(option, clarification) => chooseClarification(option, clarification, turn)}
-                          onRetry={() => retryTurn(turn)}
-                          onCompare={() => addComparison(turn)}
-                          clarificationRounds={turn.parentId ? 1 : 0}
-                          showOriginalQuestion={false}
-                        />
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ol>
-              <div className="gi-dock">{composerBlock}</div>
-            </div>
+          <div className={`ch${panelTurn ? ' ch--panel' : ''}`}>
+            <div className="ch__chat">
+              <header className="ch__head">
+                <h1 className="ch__title"><span className="visually-hidden">Investigate </span><LanguageText as="bdi" identifier>{caseId}</LanguageText></h1>
+                <span className="ch__coverage">{coverageLine(overview) || 'Checking what this case holds…'}</span>
+                <div className="ch__head-actions">
+                  <div className="ch__outline">
+                    <button type="button" className="ch-btn" aria-expanded={outlineOpen} aria-controls="ch-outline" onClick={() => setOutlineOpen(open => !open)}><ListTree aria-hidden="true" />Conversation<span className="ch-btn__count">{turns.length}</span></button>
+                    {outlineOpen ? (
+                      <ol id="ch-outline" className="ch__outline-list" aria-label="Questions in this conversation">
+                        {turns.map(turn => {
+                          const state = turn.presentation?.state
+                          const Icon = turn.busy ? LoaderCircle : turnIcon[state] || CircleHelp
+                          return (
+                            <li key={turn.id}><button type="button" onClick={() => jumpToTurn(turn.id)}><Icon aria-hidden="true" /><span><LanguageText>{turn.query}</LanguageText><small>{turn.busy ? 'Searching…' : turn.aborted ? 'Stopped' : OUTCOME_LABEL[state] || 'Answered'}</small></span></button></li>
+                          )
+                        })}
+                      </ol>
+                    ) : null}
+                  </div>
+                  <button type="button" className="ch-btn thread-composer__clear" onClick={clearThread}><MessageSquarePlus aria-hidden="true" />Start a new conversation</button>
+                </div>
+              </header>
 
-            <aside className="gi-case__rail" aria-label="About this conversation">
-              <section className="gi-rail">
-                <h2 className="gi-rail__title">This case</h2>
-                <p className="gi-rail__note">{coverageLine(overview) || 'Checking what this case holds…'}</p>
-                <p className="gi-rail__links"><Link to={`/cases/${encodeURIComponent(caseId)}/overview`}>Overview</Link><Link to={`/cases/${encodeURIComponent(caseId)}/evidence`}>Evidence</Link><Link to="/investigate">Ask across all cases</Link></p>
-              </section>
-              <section className="gi-rail">
-                <h2 className="gi-rail__title">Conversation <span>{turns.length}</span></h2>
-                <ol className="gi-rail__list" aria-label="Questions in this conversation">
-                  {turns.map((turn, index) => {
-                    const state = turn.presentation?.state
-                    const Icon = turn.busy ? LoaderCircle : turnIcon[state] || CircleHelp
-                    return (
-                      <li key={turn.id} className={`gi-rail__item ${turn.busy ? 'gi-rail__item--pending' : `gi-rail__item--${state || 'clarify'}`}`}>
-                        <a href={`#${turn.id}-anchor`} onClick={event => { event.preventDefault(); globalThis.document?.getElementById(`${turn.id}-anchor`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }}>
-                          <span className="gi-rail__mark" aria-hidden="true"><Icon /></span>
-                          <span className="gi-rail__text"><span className="gi-rail__q"><LanguageText>{turn.query}</LanguageText></span><small>{turn.busy ? 'Searching…' : turn.aborted ? 'Stopped' : OUTCOME_LABEL[state] || 'Answered'}</small></span>
-                        </a>
-                      </li>
-                    )
-                  })}
-                </ol>
-              </section>
-            </aside>
+              <div className="ch__scroll" ref={scroller} onScroll={watchScroll}>
+                <div className="ch__column">
+                  <ResultComparison items={comparison} onRemove={id => setComparison(items => items.filter(item => item.id !== id))} onClear={() => setComparison([])} />
+                  <QuestionTrail entries={decisionTrail} history={[]} />
+                  {/* One live region for the whole thread, so a dozen answers do not compete to interrupt a screen reader. */}
+                  <ol className="investigation-thread" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Investigation conversation">
+                    {turns.map((turn, index) => {
+                      const presentation = turn.presentation
+                      const answered = presentation && ['answered', 'partial', 'zero-result'].includes(presentation.state)
+                      const hasEvidence = presentation && !['clarify', 'unsupported', 'failed'].includes(presentation.state)
+                      const sourceCount = presentation ? (presentation.citations.groups || []).length : 0
+                      return (
+                        <li key={turn.id} className={`thread-turn${turn.parentId ? ' thread-turn--branched' : ''}`}>
+                          <article className="thread-turn__question" aria-label={`Question ${index + 1}`}>
+                            {turn.parentId ? <p className="thread-turn__branch">Following the clarification{turn.label ? <> · <LanguageText>{turn.label}</LanguageText></> : null}</p> : null}
+                            <p className="thread-turn__text"><LanguageText>{turn.query}</LanguageText></p>
+                            <div className="thread-turn__meta"><span>{turn.scope?.label || 'All evidence'} scope</span></div>
+                          </article>
+                          <div id={`${turn.id}-anchor`} tabIndex={-1} className="thread-turn__answer">
+                            <NexusAnswerMark />
+                            <div className="ch-msg">
+                              {turn.busy && <p className="processing-announcement" role="status"><span className="ch-dots" aria-hidden="true"><i /><i /><i /></span>Searching {turn.scope?.label === 'All evidence' || !turn.scope ? 'the case evidence' : `${turn.scope.label} evidence`}…</p>}
+                              {turn.aborted && !turn.busy && <p className="thread-turn__aborted" role="status">This question was stopped before a result was returned.</p>}
+                              {presentation && (
+                                <InvestigationResult
+                                  presentation={presentation}
+                                  idPrefix={turn.id}
+                                  live={false}
+                                  compact
+                                  onAsk={query => ask(query)}
+                                  onClarificationChoice={(option, clarification) => chooseClarification(option, clarification, turn)}
+                                  onRetry={() => retryTurn(turn)}
+                                  clarificationRounds={turn.parentId ? 1 : 0}
+                                  showOriginalQuestion={false}
+                                />
+                              )}
+                              {presentation && presentation.state !== 'clarify' ? (
+                                <div className="ch-actions" role="group" aria-label="Actions for this answer">
+                                  {hasEvidence ? <button type="button" className={`ch-action${panelId === turn.id ? ' is-on' : ''}`} aria-pressed={panelId === turn.id} onClick={() => setPanelId(panelId === turn.id ? null : turn.id)}><FileSearch aria-hidden="true" />Evidence{sourceCount ? <span className="ch-btn__count">{sourceCount}</span> : null}</button> : null}
+                                  {answered ? <button type="button" className="ch-action" onClick={() => copyAnswer(turn)}>{copiedId === turn.id ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}{copiedId === turn.id ? 'Copied' : 'Copy'}</button> : null}
+                                  {answered ? <button type="button" className="ch-action" onClick={() => addComparison(turn)}><Table2 aria-hidden="true" />Compare</button> : null}
+                                  <button type="button" className="ch-action thread-turn__edit" onClick={() => editQuestion(turn.query)}><Pencil aria-hidden="true" />Ask a variation</button>
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                        </li>
+                      )
+                    })}
+                  </ol>
+                </div>
+                {!atBottom ? <button type="button" className="ch-jump" onClick={jumpToLatest}><ArrowDown aria-hidden="true" />Latest</button> : null}
+              </div>
+
+              <div className="ch__composer">{composerBlock}</div>
+            </div>
+            {panelTurn ? <EvidencePanel turn={panelTurn} onClose={() => setPanelId(null)} /> : null}
           </div>
         )}
       </main>
