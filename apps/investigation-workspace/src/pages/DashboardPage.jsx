@@ -7,10 +7,10 @@ import { ChartCard } from '../components/charts/ChartCard.jsx'
 import { ProportionBar } from '../components/DataVisualizations.jsx'
 import { DashboardHeader } from './dashboard/DashboardHeader.jsx'
 import { KpiTiles } from './dashboard/KpiTiles.jsx'
-import { AttentionQueue, caseFailures } from './dashboard/AttentionQueue.jsx'
+import { NeedsReview } from './dashboard/NeedsReview.jsx'
 import { ReadinessBars } from './dashboard/ReadinessBars.jsx'
 import { configuredCaseIds, getQueryCapabilities } from '../lib/apiClient.js'
-import { attentionItems, familyOption, familyRows, formatRate, ingestionRows, readinessRows } from '../lib/dashboardCharts.js'
+import { attentionItems, familyOption, familyRows, formatRate, ingestionRows, readinessRows, reviewByCase } from '../lib/dashboardCharts.js'
 import { formatNumber } from '../lib/format.js'
 import { curatedFamilyLabel } from '../lib/semanticCatalog.js'
 import { summariseCase, useConfiguredCaseOverviews } from '../lib/useCaseOverview.js'
@@ -345,7 +345,7 @@ export default function DashboardPage() {
   const families = useMemo(() => familyRows(aggregateFamilyRows(rows)), [rows])
   const ingestion = useMemo(() => ingestionRows(rows), [rows])
   const attention = useMemo(() => attentionItems(rows), [rows])
-  const failures = useMemo(() => caseFailures(rows), [rows])
+  const reviewCases = useMemo(() => reviewByCase(rows), [rows])
   const visible = useMemo(() => rows
     .filter(row => rowMatchesFilter(row, filter))
     .filter(row => row.caseId.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()))
@@ -400,12 +400,10 @@ export default function DashboardPage() {
             <KpiTiles kpis={kpis} loading={loading} />
             {unreadable > 0 ? <p className="dash-notice" role="status"><CircleAlert aria-hidden="true" />{unreadable === cases.length ? 'No case could report status. Check that the records API is running.' : `${formatNumber(unreadable)} of ${formatNumber(cases.length)} ${unreadable === 1 ? 'case' : 'cases'} could not report status, so totals above cover the rest.`} <button type="button" onClick={reload}>Try again</button></p> : null}
 
-            <div className="dash-grid dash-grid--wide-left">
-              <AttentionQueue items={attention} kpis={kpis} failures={failures} loading={loading} />
-              <ReadinessBars rows={readiness} kpis={kpis} loading={loading} />
-            </div>
+            <NeedsReview items={attention} byCase={reviewCases} kpis={kpis} loading={loading} />
 
-            <div className="dash-grid dash-grid--wide-left">
+            <div className="dash-grid dash-grid--wide-right">
+              <ReadinessBars rows={readiness} kpis={kpis} loading={loading} />
               <div id="dashboard-families">
                 {families.length ? (
                   <ChartCard
@@ -423,8 +421,9 @@ export default function DashboardPage() {
                   />
                 ) : <section className="dash-card"><header className="dash-card__header"><div><h2>Which kinds of records make up the evidence?</h2></div></header><p className="dash-card__empty">{loading ? 'Reading record families…' : 'No structured records have been accepted yet.'}</p></section>}
               </div>
-              <IngestionCard rows={ingestion} />
             </div>
+
+            <IngestionCard rows={ingestion} />
 
             <section className="dashboard-workbench" aria-labelledby="dashboard-workbench-title">
               <header className="dashboard-workbench__toolbar">

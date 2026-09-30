@@ -87,6 +87,37 @@ export function ingestionRows(rows) {
   }).filter(row => row.total > 0)
 }
 
+// The two kinds of "needs review" the status reports. Both count against the per-case summary, which is complete;
+// the named items below are only the most recent each case lists, so the two are never mixed up.
+export function reviewKind(item) {
+  return item.kind === 'Failed' ? 'failed' : 'missing'
+}
+
+// Where the problems are: one row per case with something to review, ranked worst first. Counts come from the
+// summary (complete), so a bar is exact even when the case names only some of its sources.
+export function reviewByCase(rows) {
+  return rows
+    .filter(row => row.summary)
+    .map(row => {
+      const failed = Math.max(0, Number(row.summary.failed) || 0)
+      const missing = Math.max(0, Number(row.summary.missingAssets) || 0)
+      return { caseId: row.caseId, failed, missing, total: failed + missing }
+    })
+    .filter(entry => entry.total > 0)
+    .sort((left, right) => right.total - left.total || right.failed - left.failed || left.caseId.localeCompare(right.caseId))
+}
+
+export function itemMatchesReviewFilter(item, filter) {
+  return (!filter.kind || reviewKind(item) === filter.kind) && (!filter.caseId || item.caseId === filter.caseId)
+}
+
+// How many items the current filter stands for, from the complete counts, so the list can say honestly when it names fewer.
+export function reviewFilterCount(byCase, filter) {
+  return byCase
+    .filter(entry => !filter.caseId || entry.caseId === filter.caseId)
+    .reduce((total, entry) => total + (filter.kind === 'failed' ? entry.failed : filter.kind === 'missing' ? entry.missing : entry.total), 0)
+}
+
 export function attentionItems(rows) {
   const items = []
   for (const row of rows) {

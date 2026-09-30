@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { AttentionQueue, attentionReason, caseFailures, reviewTarget } from './AttentionQueue.jsx'
+import { NeedsReview, attentionReason, reviewTarget, unnamedFailures } from './NeedsReview.jsx'
 import { ReadinessBars } from './ReadinessBars.jsx'
-import { attentionItems, evidenceLink, readinessRows } from '../../lib/dashboardCharts.js'
+import { attentionItems, evidenceLink, itemMatchesReviewFilter, readinessRows, reviewByCase, reviewFilterCount, reviewKind } from '../../lib/dashboardCharts.js'
 
 const show = ui => render(<MemoryRouter>{ui}</MemoryRouter>)
 
@@ -17,51 +17,132 @@ const statusData = {
   missing_kb_assets: [{ evidence_id: 'e3', source_file: 'gap.pdf' }],
 }
 
-describe('D3 needs review', () => {
-  it('merges a failed source seen as evidence and as a job, keeps the job reason, and puts failures first', () => {
-    const items = attentionItems([
-      { caseId: 'a', state: { data: { ...statusData, missing_kb_assets: [{ evidence_id: 'e0', source_file: 'first-gap.pdf' }] } } },
+const rows = [
+  { caseId: 'alpha', summary: { failed: 3, missingAssets: 1 }, state: { data: statusData } },
+  { caseId: 'bravo', summary: { failed: 0, missingAssets: 2 }, state: { data: { missing_kb_assets: [{ evidence_id: 'b1', source_file: 'b1.pdf' }, { evidence_id: 'b2', source_file: 'b2.pdf' }] } } },
+  { caseId: 'clean', summary: { failed: 0, missingAssets: 0 }, state: { data: {} } },
+  { caseId: 'unreported', summary: null, state: null },
+]
+
+describe('D3 data', () => {
+  it('ranks cases worst first from the complete summary counts and leaves out clean and unreported cases', () => {
+    expect(reviewByCase(rows)).toEqual([
+      { caseId: 'alpha', failed: 3, missing: 1, total: 4 },
+      { caseId: 'bravo', failed: 0, missing: 2, total: 2 },
     ])
+  })
+
+  it('maps a named item to a kind, and a filter to the count it stands for', () => {
+    expect(reviewKind({ kind: 'Failed' })).toBe('failed')
+    expect(reviewKind({ kind: 'Retained copy missing' })).toBe('missing')
+    const byCase = reviewByCase(rows)
+    expect(reviewFilterCount(byCase, { caseId: null, kind: null })).toBe(6)
+    expect(reviewFilterCount(byCase, { caseId: null, kind: 'failed' })).toBe(3)
+    expect(reviewFilterCount(byCase, { caseId: 'bravo', kind: 'missing' })).toBe(2)
+    expect(reviewFilterCount(byCase, { caseId: 'alpha', kind: null })).toBe(4)
+    expect(itemMatchesReviewFilter({ kind: 'Failed', caseId: 'alpha' }, { caseId: 'bravo', kind: null })).toBe(false)
+    expect(itemMatchesReviewFilter({ kind: 'Failed', caseId: 'alpha' }, { caseId: 'alpha', kind: 'failed' })).toBe(true)
+  })
+
+  it('merges a failed source seen as evidence and as a job, keeps the job reason, and puts failures first', () => {
+    const items = attentionItems([{ caseId: 'a', state: { data: { ...statusData, missing_kb_assets: [{ evidence_id: 'e0', source_file: 'first-gap.pdf' }] } } }])
     expect(items.map(item => `${item.kind}:${item.label}`)).toEqual(['Failed:bad.csv', 'Retained copy missing:first-gap.pdf'])
     expect(items[0].detail).toBe('The source could not be parsed.')
   })
 
-  it('names the reason honestly when the service gave none and links each row to the real source', () => {
-    expect(attentionReason({ kind: 'Failed', detail: '' })).toBe('Processing did not complete.')
-    expect(attentionReason({ kind: 'Retained copy missing', detail: '' })).toMatch(/retained copy .* is missing/)
+  it('names the reason honestly when the service gave none, and links each row to the real source', () => {
+    expect(attentionReason({ kind: 'Failed', detail: '' })).toBe('Did not finish processing.')
+    expect(attentionReason({ kind: 'Retained copy missing', detail: '' })).toBe('Retained copy is missing.')
     expect(attentionReason({ kind: 'Failed', detail: 'Bad header' })).toBe('Bad header')
     expect(reviewTarget({ caseId: 'case/x', evidenceId: 'e 1', kind: 'Failed' })).toBe('/cases/case%2Fx/evidence/e%201')
     expect(reviewTarget({ caseId: 'a', kind: 'Failed' })).toBe('/cases/a/evidence?status=failed')
     expect(reviewTarget({ caseId: 'a', kind: 'Retained copy missing' })).toBe('/cases/a/evidence')
   })
 
-  it('lists only cases that have failures for the completeness links', () => {
-    expect(caseFailures([{ caseId: 'a', summary: { failed: 2 } }, { caseId: 'b', summary: { failed: 0 } }, { caseId: 'c', summary: null }])).toEqual([{ caseId: 'a', failed: 2 }])
+  it('finds failed sources a case counts but does not name', () => {
+    const items = attentionItems(rows)
+    expect(unnamedFailures(reviewByCase(rows), items)).toEqual([{ caseId: 'alpha', unnamed: 2, failed: 3 }])
+  })
+})
+
+describe('D3 needs review', () => {
+  const byCase = reviewByCase(rows)
+  const items = attentionItems(rows)
+  const kpis = { cases: 4, reported: 3, sources: 20, ready: 14, failed: 3, gaps: 3, review: 6 }
+  const card = () => show(<NeedsReview items={items} byCase={byCase} kpis={kpis} loading={false} />)
+
+  it('answers "where" with a ranked bar per case, exact counts, and a name for each segment', () => {
+    card()
+    expect(screen.getByRole('heading', { name: 'What needs review?' })).toBeTruthy()
+    const alpha = screen.getByRole('group', { name: 'Sources to review in alpha' })
+    expect(within(alpha).getByRole('button', { name: /3 failed in alpha/ })).toBeTruthy()
+    expect(within(alpha).getByRole('button', { name: /1 missing copy in alpha/ })).toBeTruthy()
+    expect(screen.getByText('6 sources')).toBeTruthy()
+    expect(screen.getByRole('list', { name: 'Legend' })).toBeTruthy()
   })
 
-  it('says when the named list is shorter than the reported failures and links to all of them', () => {
-    const items = attentionItems([{ caseId: 'a', state: { data: statusData } }])
-    show(<AttentionQueue items={items} kpis={{ failed: 5 }} failures={[{ caseId: 'a', failed: 5 }]} loading={false} />)
-    expect(screen.getByText(/5 failed sources are reported in total; 1 is named here/)).toBeTruthy()
-    expect(screen.getByRole('link', { name: /All 5 failed in a/ }).getAttribute('href')).toBe('/cases/a/evidence?status=failed')
-    expect(screen.getByRole('link', { name: 'Review bad.csv' }).getAttribute('href')).toBe('/cases/a/evidence/e1')
+  it('answers "which" with named sources, a reason and a real Review link', () => {
+    card()
+    expect(screen.getByRole('link', { name: 'Review bad.csv' }).getAttribute('href')).toBe('/cases/alpha/evidence/e1')
+    expect(screen.getByText('The source could not be parsed.')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Review gap.pdf' })).toBeTruthy()
   })
 
-  it('shows a plain positive empty state, a loading skeleton, and collapses long lists', async () => {
-    const { rerender } = show(<AttentionQueue items={[]} kpis={{ failed: 0 }} failures={[]} loading={false} />)
-    expect(screen.getByText(/No failed sources or missing retained copies/)).toBeTruthy()
-    rerender(<MemoryRouter><AttentionQueue items={[]} kpis={{ failed: 0 }} failures={[]} loading /></MemoryRouter>)
-    expect(screen.queryByText(/No failed sources/)).toBeNull()
-    const many = Array.from({ length: 9 }, (_, index) => ({ caseId: 'a', kind: 'Failed', label: `f${index}.csv`, evidenceId: `e${index}`, detail: '' }))
-    rerender(<MemoryRouter><AttentionQueue items={many} kpis={{ failed: 9 }} failures={[]} loading={false} /></MemoryRouter>)
-    expect(screen.getAllByRole('listitem')).toHaveLength(6)
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Show all 9' }))
-    expect(screen.getAllByRole('listitem')).toHaveLength(9)
+  it('filters the list from a bar segment and never filters the chart itself', async () => {
+    card()
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: /2 missing copy in bravo/ }))
+    expect(screen.getByRole('button', { name: /2 missing copy in bravo/ }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.queryByRole('link', { name: 'Review bad.csv' })).toBeNull()
+    expect(screen.getByRole('link', { name: 'Review b1.pdf' })).toBeTruthy()
+    // Both cases are still drawn: the chart stays a control.
+    expect(screen.getByRole('group', { name: 'Sources to review in alpha' })).toBeTruthy()
+    // The same segment again clears it.
+    await user.click(screen.getByRole('button', { name: /2 missing copy in bravo/ }))
+    expect(screen.getByRole('link', { name: 'Review bad.csv' })).toBeTruthy()
+  })
+
+  it('filters by kind with chips whose counts come from the complete totals, and clears', async () => {
+    card()
+    const user = userEvent.setup()
+    const chips = screen.getByRole('group', { name: 'Filter the list' })
+    expect(within(chips).getByRole('button', { name: /All\s*6/ })).toBeTruthy()
+    await user.click(within(chips).getByRole('button', { name: /Failed\s*3/ }))
+    expect(screen.queryByRole('link', { name: 'Review gap.pdf' })).toBeNull()
+    expect(screen.getByRole('link', { name: 'Review bad.csv' })).toBeTruthy()
+    await user.click(within(chips).getByRole('button', { name: 'Clear' }))
+    expect(screen.getByRole('link', { name: 'Review gap.pdf' })).toBeTruthy()
+  })
+
+  it('says honestly when it names fewer than it counts, and links to the full failed list', () => {
+    card()
+    expect(screen.getByText(/6 in total; 4 named here, the most recent each case reports/)).toBeTruthy()
+    expect(screen.getByRole('link', { name: /All 3 failed in alpha/ }).getAttribute('href')).toBe('/cases/alpha/evidence?status=failed')
+  })
+
+  it('shows a positive empty state, a neutral unavailable state, and a loading skeleton', () => {
+    const { rerender } = show(<NeedsReview items={[]} byCase={[]} kpis={{ cases: 2, reported: 2, sources: 55, ready: 55 }} loading={false} />)
+    expect(screen.getByText('Nothing needs review')).toBeTruthy()
+    expect(screen.getByText('55 of 55 sources are ready.')).toBeTruthy()
+    rerender(<MemoryRouter><NeedsReview items={[]} byCase={[]} kpis={{ cases: 2, reported: 0, sources: 0, ready: 0 }} loading={false} /></MemoryRouter>)
+    expect(screen.getByText('Status unavailable')).toBeTruthy()
+    expect(screen.queryByText('Nothing needs review')).toBeNull()
+    rerender(<MemoryRouter><NeedsReview items={[]} byCase={[]} kpis={{ cases: 2, reported: 0, sources: 0, ready: 0 }} loading /></MemoryRouter>)
+    expect(screen.queryByText('Nothing needs review')).toBeNull()
+    expect(screen.queryByText('Status unavailable')).toBeNull()
+  })
+
+  it('collapses long lists behind Show all', async () => {
+    const many = Array.from({ length: 8 }, (_, index) => ({ caseId: 'alpha', kind: 'Failed', label: `f${index}.csv`, evidenceId: `e${index}`, detail: '' }))
+    show(<NeedsReview items={many} byCase={[{ caseId: 'alpha', failed: 8, missing: 0, total: 8 }]} kpis={kpis} loading={false} />)
+    expect(screen.getAllByRole('link', { name: /^Review / })).toHaveLength(5)
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Show all 8' }))
+    expect(screen.getAllByRole('link', { name: /^Review / })).toHaveLength(8)
   })
 })
 
 describe('D4 readiness by case', () => {
-  const rows = readinessRows([
+  const readiness = readinessRows([
     { caseId: 'clean', summary: { total: 43, ready: 43, inFlight: 0, failed: 0 } },
     { caseId: 'messy', summary: { total: 12, ready: 8, inFlight: 1, failed: 2 } },
     { caseId: 'empty', summary: { total: 0, ready: 0, inFlight: 0, failed: 0 } },
@@ -70,28 +151,26 @@ describe('D4 readiness by case', () => {
   const kpis = { ready: 51, sources: 55 }
 
   it('orders the worst case first, drops cases with no sources and never zero-shapes an unreported case', () => {
-    expect(rows.map(row => row.caseId)).toEqual(['messy', 'clean'])
-    expect(rows[0].counts).toEqual({ ready: 8, processing: 1, failed: 2, other: 1 })
+    expect(readiness.map(row => row.caseId)).toEqual(['messy', 'clean'])
+    expect(readiness[0].counts).toEqual({ ready: 8, processing: 1, failed: 2, other: 1 })
   })
 
   it('makes every segment a real link with an exact accessible count, and prints counts only in wide segments', () => {
-    show(<ReadinessBars rows={rows} kpis={kpis} loading={false} />)
+    show(<ReadinessBars rows={readiness} kpis={kpis} loading={false} />)
     const messy = screen.getByRole('group', { name: 'Evidence readiness of messy' })
     const ready = within(messy).getByRole('link', { name: /8 ready of 12 sources in messy/ })
     expect(ready.getAttribute('href')).toBe(evidenceLink('messy', 'ready'))
     expect(ready.getAttribute('href')).toBe('/cases/messy/evidence?status=completed')
     expect(within(messy).getByRole('link', { name: /2 failed of 12/ }).getAttribute('href')).toBe('/cases/messy/evidence?status=failed')
-    // 1 of 12 is under 10%, so no printed number, but the link and its label still exist.
     expect(within(messy).getByRole('link', { name: /1 processing of 12/ }).textContent).toBe('')
     expect(screen.getByText('51 of 55 sources are ready across 2 cases.')).toBeTruthy()
   })
 
   it('offers the same numbers as a table with links, and honest empty and loading states', async () => {
-    const { rerender } = show(<ReadinessBars rows={rows} kpis={kpis} loading={false} />)
+    const { rerender } = show(<ReadinessBars rows={readiness} kpis={kpis} loading={false} />)
     await userEvent.setup().click(screen.getByRole('button', { name: /Table/ }))
     const table = screen.getByRole('table')
     expect(within(table).getByRole('link', { name: '43' }).getAttribute('href')).toBe('/cases/clean/evidence?status=completed')
-    // A count of zero is plain text, not a link to an empty list: the clean case has zero processing and zero failed.
     expect(within(table).getAllByText('0', { selector: 'td' })).toHaveLength(2)
     rerender(<MemoryRouter><ReadinessBars rows={[]} kpis={kpis} loading={false} /></MemoryRouter>)
     expect(screen.getByText('No case has reported evidence yet.')).toBeTruthy()
