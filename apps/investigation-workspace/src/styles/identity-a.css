@@ -530,3 +530,26 @@
 .answer-summary dd small { color: var(--analyst-text-secondary); font-size: var(--analyst-type-caption-size); overflow-wrap: anywhere; }
 .source-share { display: block; inline-size: min(220px, 100%); block-size: 5px; margin-block: 4px 2px; border-radius: 3px; background: var(--analyst-surface-2); overflow: hidden; }
 .source-share i { display: block; block-size: 100%; border-radius: 3px; background: var(--analyst-accent); }
+
+/* Empty thread for a case, and follow-up chips under an answer. */
+.case-start { display: grid; gap: var(--analyst-space-16); max-inline-size: 760px; margin-block: var(--analyst-space-24); }
+.case-start__coverage { margin: 0; color: var(--analyst-text-secondary); font-size: var(--analyst-type-label-size); }
+.case-start h2 { margin: 0; font-size: clamp(1.5rem, 2.2vw, 1.875rem); line-height: 1.2; overflow-wrap: anywhere; }
+.case-start__block { display: grid; gap: var(--analyst-space-8); }
+.case-start__label { display: inline-flex; align-items: center; gap: 6px; color: var(--analyst-text-muted); font-size: var(--analyst-type-caption-size); font-weight: var(--analyst-font-weight-bold); letter-spacing: var(--analyst-type-caption-tracking); text-transform: uppercase; }
+.case-start__label svg { inline-size: 14px; block-size: 14px; color: var(--analyst-accent); }
+.case-start__cards, .case-start__recent { display: grid; gap: var(--analyst-space-8); margin: 0; padding: 0; list-style: none; }
+.case-start__cards { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.case-start__cards button { display: grid; gap: 4px; inline-size: 100%; min-block-size: 68px; margin: 0; padding: 12px 16px; border: 1px solid var(--analyst-line); border-radius: 12px; background: var(--analyst-surface-1); box-shadow: var(--analyst-shadow-1); color: var(--analyst-text); font: inherit; font-weight: var(--analyst-font-weight-semibold); text-align: start; cursor: pointer; transition: border-color 140ms ease-out, transform 140ms ease-out, box-shadow 140ms ease-out; }
+.case-start__cards button:hover { border-color: var(--analyst-accent); box-shadow: var(--analyst-shadow-2); transform: translateY(-2px); }
+.case-start__cards small { color: var(--analyst-text-muted); font-size: var(--analyst-type-caption-size); font-weight: var(--analyst-font-weight-regular); }
+.case-start__recent { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+.case-start__recent button { inline-size: 100%; min-block-size: 40px; margin: 0; padding: 6px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--analyst-text); font: inherit; text-align: start; cursor: pointer; }
+.case-start__recent button:hover { background: var(--analyst-surface-2); }
+.case-start__across { margin: 0; color: var(--analyst-text-secondary); }
+.case-start__across a { display: inline-flex; align-items: center; gap: 4px; color: var(--analyst-accent); font-weight: var(--analyst-font-weight-semibold); }
+.case-start__across svg { inline-size: 14px; block-size: 14px; }
+.follow-ups--inline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block-start: var(--analyst-space-12); }
+.follow-ups--inline > span { color: var(--analyst-text-muted); font-size: var(--analyst-type-caption-size); font-weight: var(--analyst-font-weight-bold); letter-spacing: var(--analyst-type-caption-tracking); text-transform: uppercase; }
+.follow-ups--inline button { min-block-size: 36px; padding: 4px 14px; border-radius: var(--analyst-radius-pill); }
+@media (prefers-reduced-motion: reduce) { .case-start__cards button { transition: none; } .case-start__cards button:hover { transform: none; } }

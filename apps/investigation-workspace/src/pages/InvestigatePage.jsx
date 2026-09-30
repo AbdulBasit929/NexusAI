@@ -9,9 +9,11 @@ import { CaseShell } from '../components/CaseShell.jsx'
 import { recordSessionActivity } from '../lib/sessionActivity.js'
 import { familyDefinition, ScopeChips, useEvidenceScope } from '../components/ScopeChips.jsx'
 import { EmptyState, LanguageText } from '../components/AnalystComponents.jsx'
-import { recordQuestionHistory, useQuestionDraft } from '../lib/workspaceState.js'
+import { recordQuestionHistory, useQuestionDraft, useQuestionHistory } from '../lib/workspaceState.js'
 import { ResultComparison } from '../components/ResultComparison.jsx'
 import { PageHeader } from '../components/PageHeader.jsx'
+import { CaseStart } from './investigate/CaseStart.jsx'
+import { useCaseOverview } from '../lib/useCaseOverview.js'
 
 let turnSequence = 0
 function nextTurnId() {
@@ -73,6 +75,8 @@ export default function InvestigatePage() {
   const [comparison, setComparison] = useState([])
   const [draft, setDraft] = useQuestionDraft(caseId)
   const [capabilities, setCapabilities] = useState(null)
+  const overview = useCaseOverview(caseId)
+  const recent = useQuestionHistory(caseId).slice(0, 3)
   const [scopeOpen, setScopeOpen] = useState(false)
   const controller = useRef(null)
   const composer = useRef(null)
@@ -198,18 +202,7 @@ export default function InvestigatePage() {
             <ResultComparison items={comparison} onRemove={id => setComparison(items => items.filter(item => item.id !== id))} onClear={() => setComparison([])} />
             <QuestionTrail entries={decisionTrail} history={[]} />
 
-            {!turns.length && canAskScope && (
-              <section className="empty-investigation" aria-labelledby="investigate-start-title">
-                <div className="empty-investigation__mark"><NexusAnswerMark /></div>
-                <p className="eyebrow">Evidence-grounded conversation</p>
-                <h2 id="investigate-start-title">What do you want to verify?</h2>
-                <p>Choose an evidence scope, then ask one precise question. NexusAI will distinguish a supported answer, a complete zero, a clarification and an unavailable analysis.</p>
-                {starters.length > 0 && <div className="investigate-starters" aria-label="Questions suggested by available evidence">
-                  <span>Suggested from available evidence</span>
-                  <div>{starters.map(item => <button key={`${item.scope}-${item.query}`} type="button" onClick={() => chooseStarter(item)}><LanguageText>{item.query}</LanguageText><small>{item.family}</small></button>)}</div>
-                </div>}
-              </section>
-            )}
+            {!turns.length && canAskScope && <CaseStart caseId={caseId} overview={overview} starters={starters} recent={recent} onPick={chooseStarter} />}
 
             {/* One live region for the whole thread. Each turn does not carry its
                 own, or every answer competes to interrupt the screen reader. */}

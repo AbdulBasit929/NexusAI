@@ -75,6 +75,14 @@ export function InvestigationResult({ presentation, onAsk, onClarificationChoice
             ))}
           </dl>
         ) : null}
+        {findingState && presentation.followUps.length > 0 ? (
+          <div className="follow-ups follow-ups--inline" role="group" aria-label="Suggested next questions">
+            <span>Ask next</span>
+            {presentation.followUps.map(item => (
+              <button key={item.query} type="button" onClick={() => onAsk(item.query)} title={item.reason || undefined}>{item.label}</button>
+            ))}
+          </div>
+        ) : null}
         {showOriginalQuestion && presentation.originalQuestion && <p className="asked-question"><span>Asked</span> “<LanguageText>{presentation.originalQuestion}</LanguageText>”</p>}
         {onCompare && ['answered', 'partial', 'zero-result'].includes(presentation.state) ? <button className="compare-result" type="button" onClick={onCompare}>Add result to comparison</button> : null}
       </header>
@@ -109,16 +117,6 @@ export function InvestigationResult({ presentation, onAsk, onClarificationChoice
             <section className="result-section result-section--limitations limitations" aria-labelledby={headingId("limitations-heading")}>
               <SectionHeading><span id={headingId("limitations-heading")}>Limitations</span></SectionHeading>
               <ul>{presentation.limitations.map(item => <li key={item}>{item}</li>)}</ul>
-            </section>
-          )}
-          {presentation.followUps.length > 0 && (
-            <section className="result-section result-section--followups" aria-labelledby={headingId("followups-heading")}>
-              <SectionHeading><span id={headingId("followups-heading")}>Follow-ups</span></SectionHeading>
-              <div className="follow-ups">
-                {presentation.followUps.map(item => (
-                  <button key={item.query} type="button" onClick={() => onAsk(item.query)} title={item.reason || undefined}>{item.label}</button>
-                ))}
-              </div>
             </section>
           )}
         </>
