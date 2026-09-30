@@ -514,3 +514,8 @@
 .ax-case__open a { display: inline-flex; align-items: center; gap: 6px; min-block-size: 36px; color: var(--analyst-accent); font-weight: var(--analyst-font-weight-semibold); }
 .ax-case__open svg { inline-size: 14px; block-size: 14px; }
 @media (prefers-reduced-motion: reduce) { .ax-suggest button, .ax-chip, .ax-narrow summary svg { transition: none; } .ax-suggest button:hover { transform: none; } }
+
+/* Answer polish: the chart above the exact table, and a quieter comparison button. */
+.result-chart { margin: 0 0 var(--analyst-space-12); padding: var(--analyst-space-12) var(--analyst-space-16) var(--analyst-space-8); border: 1px solid var(--analyst-line); border-radius: 12px; background: var(--analyst-surface-1); }
+.result-chart figcaption { margin-block-start: var(--analyst-space-4, 4px); color: var(--analyst-text-muted); font-size: var(--analyst-type-caption-size); }
+.compare-result { min-block-size: 32px; padding-inline: 12px; border: 0; background: transparent; color: var(--analyst-accent); font-size: var(--analyst-type-label-size); font-weight: var(--analyst-font-weight-semibold); text-decoration: underline; }

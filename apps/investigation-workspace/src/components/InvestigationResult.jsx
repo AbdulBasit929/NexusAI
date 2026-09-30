@@ -1,5 +1,6 @@
 import { ClaimText, SourcePanel } from './Citations.jsx'
 import { ClarificationPrompt } from './ClarificationPrompt.jsx'
+import { ResultChart } from './ResultChart.jsx'
 import { ResultTable } from './ResultTable.jsx'
 import { EmptyState, FindingCard, LanguageText, ResultStateBanner, TechnicalDisclosure } from './AnalystComponents.jsx'
 
@@ -79,13 +80,13 @@ export function InvestigationResult({ presentation, onAsk, onClarificationChoice
 
       {presentation.state !== 'failed' && presentation.state !== 'unsupported' && (
         <>
-          <section className="result-section result-section--result" aria-labelledby={headingId("result-heading")}>
-            <SectionHeading><span id={headingId("result-heading")}>The result</span></SectionHeading>
-            {presentation.state === 'zero-result' && <ScopeChips scope={presentation.scope} />}
-            {hasResult ? <ResultTable result={presentation.result} citations={presentation.citations} /> : presentation.state === 'zero-result'
-              ? <EmptyState kind="complete-zero" />
-              : <p className="result-empty">This finding does not require a result table.</p>}
-          </section>
+          {hasResult || presentation.state === 'zero-result' ? (
+            <section className="result-section result-section--result" aria-labelledby={headingId("result-heading")}>
+              <SectionHeading><span id={headingId("result-heading")}>The result</span></SectionHeading>
+              {presentation.state === 'zero-result' && <ScopeChips scope={presentation.scope} />}
+              {hasResult ? <><ResultChart presentation={presentation} /><ResultTable result={presentation.result} citations={presentation.citations} /></> : <EmptyState kind="complete-zero" />}
+            </section>
+          ) : null}
           <section className="result-section result-section--citations" aria-labelledby={headingId("citations-heading")}>
             <SectionHeading><span id={headingId("citations-heading")}>Citations</span></SectionHeading>
             <SourcePanel citations={presentation.citations} />
