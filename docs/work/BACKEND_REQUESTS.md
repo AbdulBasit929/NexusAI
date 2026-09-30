@@ -24,6 +24,11 @@ Each request states: the **endpoint and method**, the **exact response fields an
 
 | 12 | Workspace summary: totals and per-case governed summaries in one request, replacing one `/collections/status` call per configured case | Dashboard, sidebar badges, Cases | open (proposed 2026-09-30) |
 | 13 | Needs-attention feed across cases: failed sources, retained-copy gaps and stalled jobs, each with a reason label and an openable locator, complete and countable | Dashboard, Activity | open (proposed 2026-09-30) |
+| 14 | Reprocess a failed source (retry), with `retryable` and attempt counts on attention items | Dashboard, Evidence detail | open (proposed 2026-09-30, owner asked for more backend to make the Dashboard work best) |
+| 15 | Live workspace events stream, so the Dashboard updates without polling and can say what just finished | Dashboard, Activity | open (proposed 2026-09-30) |
+| 16 | Case data-quality and coverage summary per record family (kept, duplicate, rejected, missing critical fields, first and last event time) | Dashboard, Overview | open (proposed 2026-09-30) |
+| 17 | Report history: list, open and download generated case reports | Dashboard, Overview | open (proposed 2026-09-30) |
+| 18 | Case display name and open/on-hold/closed status, stored per collection | Dashboard, Cases, sidebar | open (proposed 2026-09-30, needs owner sign-off) |
 
 Rows 1–6 were anticipated in `CODEX_UI_REDESIGN_PROMPT_20260929.md` §8, and row 7 came from the
 2026-09-28 demo check (`CODEX_UI_DEFECTS_20260928.md`). Codex: add detail under a heading per request,
@@ -91,3 +96,44 @@ This enables a truthful activity volume view with an accessible event table and 
 - **Why:** the Dashboard's needs-review list can only name the most recent items each case reports (`recent_evidence`, `recent_jobs`), so it discloses that it may be incomplete. This makes it a complete, paginated queue with exact counts and one-click review.
 - **Empty/error:** `200` with zero counts and no items is the only "nothing needs review" state; `403` and service errors stay distinct.
 - **Privacy:** server-side masking applies before projection; file names are shown only as the service returned them.
+
+## 14. Reprocess a failed source
+
+- **Endpoint:** `POST /evidence/{evidence_id}/reprocess`, body `{ tenant_id, collection_id }`. Same authorization headers as the other evidence routes.
+- **Response:** `202 { evidence_id, job_id, status: "queued", attempt: integer, max_attempts: integer }`. Idempotent: a second call while a job for that source is queued or running returns `200` with the existing `job_id` and `status`, never a duplicate job.
+- **Refusals:** `409` with `reason` in `not_failed | attempts_exhausted | source_missing` (the UI states the reason in words); `403` and `404` stay distinct. A source whose retained copy is missing cannot be reprocessed and says so.
+- **Also:** `GET /workspace/attention` items (row 13) gain `retryable: boolean`, `attempts` and `max_attempts`, so the UI shows a Retry button only where it will work.
+- **Why:** D3 lists failed sources, but the analyst can only look at them. One click to retry turns the Dashboard from a report into a work surface. It uses the existing ingest queue; it must not change the source file or its hash.
+- **Audit:** the retry is recorded as a custody event (row 10) with who asked and when.
+- **Privacy:** no evidence content in the response.
+
+## 15. Live workspace events
+
+- **Endpoint:** `GET /workspace/events?tenant_id=...&since=<event_id>` as Server-Sent Events (fall back to long-poll returning the same JSON). Heartbeat comment every 25 s.
+- **Event:** `{ event_id, occurred_at, type, collection_id, evidence_id|null, source_file|null, status|null }` with `type` in `evidence.registered | processing.started | processing.completed | processing.failed | report.generated`. Ordered, resumable by `since`; a gap returns `410` so the UI reloads the summary instead of guessing.
+- **Authorization:** only collections the viewer may see; the stream ends with `403` if authorization changes.
+- **Why:** the Dashboard currently polls every 15 s while anything is processing and cannot say what just changed. With events it can update the cards in place, toast "call-log-march.csv finished processing", and drop polling entirely.
+- **Privacy:** same masking as the evidence list; no content, only labels the service already returns.
+
+## 16. Case data-quality and coverage summary
+
+- **Endpoint:** `GET /collections/health?tenant_id=&collection_id=`.
+- **Response:** `{ collection_id, generated_at, families: [{ record_type, label|null, accepted_rows, duplicate_rows, rejected_rows, first_event_at: RFC3339|null, last_event_at: RFC3339|null, missing_critical_fields: [{ field_label, missing_rows }] , rejected_sample_locator: object|null }], readiness: { ready: boolean, reasons: [ string ] } }`.
+- **Semantics:** unsampled aggregates over the canonical records. `first_event_at` and `last_event_at` are the true earliest and latest event times per family (null when a family has no timestamp). `readiness` reuses the existing deterministic case-readiness computation and its reasons, so the Dashboard can say "ready for analysis" or why not. `missing_critical_fields` uses curated field labels.
+- **Why:** "can I trust the evidence" is the second question of the Dashboard. Today the UI has only totals. Coverage dates tell an investigator at a glance what period the data spans, and the rejected sample locator lets them open the rows that were dropped.
+- **Empty and error:** a case with no records returns `200` with `families: []`. `403` and service errors stay distinct.
+- **Privacy:** aggregates and labels only; the sample locator opens rows through the normal masked evidence route.
+
+## 17. Report history
+
+- **Endpoints:** `GET /reports?tenant_id=&collection_id=&cursor=` and `GET /reports/{report_id}` (the Markdown body). `POST /reports/generate` (exists) additionally returns and stores `report_id`.
+- **Response:** `{ items: [{ report_id, collection_id, title, target_label|null, created_at, size_bytes, generated_from: { collection_id, evidence_count, generated_at } }], next_cursor }`. The stored body is exactly what was generated (deterministic), with its inputs listed.
+- **Why:** the deterministic report generator exists but its output is not kept, so an analyst cannot find a brief they made yesterday. A "Recent reports" list and a one-click "Generate case brief" make the last step of the workflow (reporting) visible on the Dashboard.
+- **Audit:** generation is a custody event (row 10). **Privacy:** reports are masked at generation; listing shows titles only.
+
+## 18. Case display name and status
+
+- **Endpoints:** `GET /collections/{id}/meta` and `PATCH /collections/{id}/meta` with `{ display_name: string|null, status: "open"|"on_hold"|"closed" }`; `GET /collections` (row 9) includes both.
+- **Why:** collection IDs such as `nexusai-multimodal-product-acceptance` are long and unfriendly everywhere the UI shows a case. A display name and a simple lifecycle status make the sidebar, Dashboard and Cases readable and let closed cases drop out of "needs review".
+- **Constraint:** no owner, assignment, priority or classification is requested; those wait for an authoritative source. `display_name` is user-entered text and is shown escaped with `dir="auto"`. Needs owner sign-off before it is built.
+- **Audit:** changes are custody events (row 10).
