@@ -93,6 +93,7 @@ export function dashboardKpis(rows) {
     failed: sum('failed'),
     gaps: sum('missingAssets'),
     review: sum('failed') + sum('missingAssets'),
+    reviewCases: reported.filter(row => row.summary.failed + row.summary.missingAssets > 0).length,
     acceptedRows: sum('acceptedRows'),
   }
 }
@@ -392,12 +393,12 @@ export default function DashboardPage() {
   return (
     <AppShell identityLed>
       <main id="workspace-main" className="catalog-page dashboard-page dashboard-command" tabIndex={-1}>
-        <DashboardHeader caseCount={cases.length} reporting={kpis.reported} loading={loading} lastUpdated={lastUpdated} processing={hasProcessing} refreshing={isRefreshing} onRefresh={reload} />
+        <DashboardHeader kpis={kpis} loading={loading} lastUpdated={lastUpdated} processing={hasProcessing} refreshing={isRefreshing} onRefresh={reload} />
 
         {cases.length ? (
           <>
             <KpiTiles kpis={kpis} loading={loading} />
-            {unreadable > 0 ? <p className="dash-notice" role="status"><CircleAlert aria-hidden="true" />{formatNumber(unreadable)} of {formatNumber(cases.length)} {unreadable === 1 ? 'case' : 'cases'} could not report status, so totals above cover the rest. <button type="button" onClick={reload}>Try again</button></p> : null}
+            {unreadable > 0 ? <p className="dash-notice" role="status"><CircleAlert aria-hidden="true" />{unreadable === cases.length ? 'No case could report status. Check that the records API is running.' : `${formatNumber(unreadable)} of ${formatNumber(cases.length)} ${unreadable === 1 ? 'case' : 'cases'} could not report status, so totals above cover the rest.`} <button type="button" onClick={reload}>Try again</button></p> : null}
 
             <div className="dash-grid dash-grid--wide-left">
               <AttentionQueue items={attention} kpis={kpis} failures={failures} loading={loading} />

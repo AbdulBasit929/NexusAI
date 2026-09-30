@@ -2,78 +2,22 @@ import { describe, expect, it, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { DashboardHeader, ageText, headerFacts, isStale, updatedText } from './DashboardHeader.jsx'
+import { DashboardHeader, ageText, briefing, freshnessText, isStale, updatedText } from './DashboardHeader.jsx'
 import { KpiTiles, kpiTiles } from './KpiTiles.jsx'
 
-const kpis = { cases: 2, reported: 2, unreported: 0, sources: 55, ready: 53, processing: 0, failed: 2, gaps: 3, review: 5, acceptedRows: 23080 }
+const kpis = { cases: 2, reported: 2, unreported: 0, sources: 55, ready: 53, processing: 0, failed: 2, gaps: 1, review: 3, reviewCases: 1, acceptedRows: 23080 }
 const show = ui => render(<MemoryRouter>{ui}</MemoryRouter>)
 
-describe('D1 page header', () => {
-  it('states scope and freshness as facts and only mentions polling while it is real', () => {
-    const now = new Date('2026-09-30T16:45:00Z')
-    expect(headerFacts({ caseCount: 2, lastUpdated: now, processing: false }).map(fact => fact.label)).toEqual(['Scope', 'Updated'])
-    const processing = headerFacts({ caseCount: 1, lastUpdated: null, processing: true, loading: true })
-    expect(processing[0].value).toBe('1 case in this workspace')
-    expect(processing[1].value).toBe('Reading…')
-    expect(processing[2]).toEqual({ label: 'Refresh', value: 'Every 15 s while evidence is processing' })
-    expect(updatedText(null)).toBe('Reading…')
-  })
-
-  it('has one h1, a Refresh that calls back and reports progress, and Add evidence', async () => {
-    const onRefresh = vi.fn()
-    const { rerender } = show(<DashboardHeader caseCount={2} lastUpdated={new Date('2026-09-30T16:45:00Z')} processing={false} refreshing={false} onRefresh={onRefresh} />)
-    expect(screen.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Add evidence' }).getAttribute('href')).toBe('/cases/new')
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Refresh' }))
-    expect(onRefresh).toHaveBeenCalledOnce()
-    expect(screen.getByRole('status').textContent).toMatch(/^Case status updated at /)
-    rerender(<MemoryRouter><DashboardHeader caseCount={2} lastUpdated={null} processing={false} refreshing onRefresh={onRefresh} /></MemoryRouter>)
-    expect(screen.getByRole('button', { name: 'Refreshing…' }).hasAttribute('disabled')).toBe(true)
-    expect(screen.getByRole('status').textContent).toBe('Refreshing case status')
-  })
-})
-
-describe('D2 KPI tiles', () => {
-  it('orders the four figures by priority and links each to the section behind it', () => {
-    const tiles = kpiTiles(kpis)
-    expect(tiles.map(tile => tile.label)).toEqual(['Needs review', 'Evidence ready', 'Processing', 'Structured rows'])
-    expect(tiles.map(tile => tile.href)).toEqual(['#dashboard-attention', '#dashboard-readiness', '#dashboard-readiness', '#dashboard-families'])
-    expect(tiles[0].value).toBe(5)
-    expect(tiles[1]).toMatchObject({ value: 53, valueSuffix: 'of 55', bar: { total: 55, ready: 53, processing: 0, failed: 2 } })
-  })
-
-  it('tones Needs review only when there is something to review', () => {
-    expect(kpiTiles(kpis)[0].tone).toBe('attention')
-    expect(kpiTiles({ ...kpis, review: 0 })[0].tone).toBeUndefined()
-  })
-
-  it('shows exact figures, a definition for each and a composition bar with a text equivalent', () => {
-    const { container } = render(<KpiTiles kpis={kpis} loading={false} />)
-    const list = screen.getByRole('list', { name: 'Workspace totals' })
-    expect(within(list).getAllByRole('listitem')).toHaveLength(4)
-    expect(container.textContent).toContain('23,080')
-    expect(container.textContent).toContain('53 of 55')
-    expect(container.textContent).toContain('Failed sources and completed jobs missing their retained copy')
-    expect(screen.getByRole('img', { name: 'Evidence readiness across all cases: ready 53, processing 0, failed 2, other 0' })).toBeTruthy()
-  })
-
-  it('shows an ellipsis, never zero, while status is unknown and marks the list busy', () => {
-    const { container } = render(<KpiTiles kpis={{ ...kpis, review: 0, ready: 0, sources: 0 }} loading />)
-    expect(container.querySelectorAll('.dash-kpi strong')).toHaveLength(4)
-    for (const value of container.querySelectorAll('.dash-kpi strong')) expect(value.textContent).toBe('…')
-    expect(screen.getByRole('list', { name: 'Workspace totals' }).getAttribute('aria-busy')).toBe('true')
-    expect(screen.queryByRole('img')).toBeNull()
-  })
-})
-
-describe('D1 freshness and coverage (research: a freshness signal is owed, stale is its own state)', () => {
+describe('D1 briefing header', () => {
   const at = new Date('2026-09-30T16:45:00Z')
-  it('says how old the figures are in words', () => {
+
+  it('says how old the figures are in words, floored so age is never understated', () => {
     expect(ageText(at, new Date('2026-09-30T16:45:20Z'))).toBe('just now')
     expect(ageText(at, new Date('2026-09-30T16:48:30Z'))).toBe('3 min ago')
     expect(ageText(at, new Date('2026-09-30T19:46:00Z'))).toBe('3 h ago')
     expect(ageText(at, new Date('2026-10-02T16:45:00Z'))).toBe('over a day ago')
     expect(ageText(null, at)).toBe('')
+    expect(updatedText(null)).toBe('Reading…')
   })
 
   it('treats figures older than five minutes as stale, never before', () => {
@@ -82,41 +26,103 @@ describe('D1 freshness and coverage (research: a freshness signal is owed, stale
     expect(isStale(null, at)).toBe(false)
   })
 
-  it('shows the age beside the time and warns in words when stale', () => {
-    const fresh = headerFacts({ caseCount: 2, reporting: 2, lastUpdated: at, processing: false, now: new Date('2026-09-30T16:46:00Z') })
-    expect(fresh[1].value).toMatch(/· 1 min ago$/)
-    expect(fresh[1].stale).toBeFalsy()
-    const stale = headerFacts({ caseCount: 2, reporting: 2, lastUpdated: at, processing: false, now: new Date('2026-09-30T17:15:00Z') })
-    expect(stale[1].value).toMatch(/· 30 min ago, may be out of date$/)
-    expect(stale[1].stale).toBe(true)
+  it('pairs time and age, warns in words when stale, and separates "reading" from "no successful read"', () => {
+    expect(freshnessText({ lastUpdated: at, loading: false, now: new Date('2026-09-30T16:46:00Z') })).toBe('Updated 16:45 · 1 min ago')
+    expect(freshnessText({ lastUpdated: at, loading: false, now: new Date('2026-09-30T17:15:00Z') })).toBe('Updated 16:45 · 30 min ago, may be out of date')
+    expect(freshnessText({ lastUpdated: null, loading: true, now: at })).toBe('Reading…')
+    expect(freshnessText({ lastUpdated: null, loading: false, now: at })).toBe('No successful read yet')
   })
 
-  it('names how many cases actually reported instead of claiming all of them', () => {
-    expect(headerFacts({ caseCount: 4, reporting: 3, lastUpdated: at, processing: false, now: at })[0].value).toBe('3 of 4 cases reporting')
-    expect(headerFacts({ caseCount: 1, reporting: 1, lastUpdated: at, processing: false, now: at })[0].value).toBe('1 case in this workspace')
-    // While the first read is still in flight nothing has reported yet, and that is not a fault to announce.
-    expect(headerFacts({ caseCount: 4, reporting: 0, lastUpdated: null, processing: false, loading: true, now: at })[0].value).toBe('4 cases in this workspace')
+  it('leads with what needs the analyst, with units, and only states what the data says', () => {
+    const attention = briefing(kpis, { loading: false })
+    expect(attention.tone).toBe('attention')
+    expect(attention.sentences).toEqual(['3 sources need review in 1 of 2 cases.', '53 of 55 are ready to search.'])
+    expect(attention.action).toEqual({ label: 'Review them', href: '#dashboard-attention' })
+    expect(briefing({ ...kpis, review: 1, gaps: 0, failed: 1, reviewCases: 1 }, { loading: false }).sentences[0]).toBe('1 source needs review in 1 of 2 cases.')
+  })
+
+  it('reads well when nothing needs review, when work is in flight, and when there is no evidence', () => {
+    const clear = { ...kpis, review: 0, failed: 0, gaps: 0, reviewCases: 0, ready: 55 }
+    expect(briefing(clear, { loading: false })).toMatchObject({ tone: 'ok', sentences: ['All 55 sources are ready to search.'], action: null })
+    expect(briefing({ ...clear, ready: 50, processing: 5 }, { loading: false })).toMatchObject({ tone: 'processing', sentences: ['5 sources are still processing.', '50 of 55 are ready to search.'] })
+    expect(briefing({ ...clear, sources: 0, ready: 0 }, { loading: false }).sentences).toEqual(['No evidence has been added yet.'])
+  })
+
+  it('never claims a state it does not know: loading, unreadable and partial coverage are stated plainly', () => {
+    expect(briefing(kpis, { loading: true })).toMatchObject({ tone: 'neutral', sentences: ['Reading case status…'] })
+    expect(briefing({ ...kpis, reported: 0, unreported: 2 }, { loading: false })).toMatchObject({ tone: 'caution', sentences: ['Case status could not be read, so no figures are shown.'] })
+    const partial = briefing({ ...kpis, cases: 4, reported: 3, unreported: 1 }, { loading: false })
+    expect(partial.sentences.at(-1)).toBe('Showing 3 of 4 cases; 1 could not be read.')
+  })
+
+  it('has one h1, a compact Refresh that reports progress, and Add evidence', async () => {
+    const onRefresh = vi.fn()
+    const { rerender } = show(<DashboardHeader kpis={kpis} loading={false} lastUpdated={new Date()} processing={false} refreshing={false} onRefresh={onRefresh} />)
+    expect(screen.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeTruthy()
+    expect(screen.getByText('3 sources need review in 1 of 2 cases.')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Review them' }).getAttribute('href')).toBe('#dashboard-attention')
+    expect(screen.getByRole('link', { name: 'Add evidence' }).getAttribute('href')).toBe('/cases/new')
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Refresh' }))
+    expect(onRefresh).toHaveBeenCalledOnce()
+    expect(screen.getByRole('status').textContent).toMatch(/^Case status updated at /)
+    rerender(<MemoryRouter><DashboardHeader kpis={kpis} loading={false} lastUpdated={null} processing={false} refreshing onRefresh={onRefresh} /></MemoryRouter>)
+    expect(screen.getByRole('button', { name: 'Refreshing…' }).hasAttribute('disabled')).toBe(true)
+    expect(screen.getByRole('status').textContent).toBe('Refreshing case status')
+  })
+
+  it('mentions polling only while it is real', () => {
+    show(<DashboardHeader kpis={kpis} loading={false} lastUpdated={new Date()} processing refreshing={false} onRefresh={() => {}} />)
+    expect(screen.getByText('Refreshes every 15 s while evidence is processing')).toBeTruthy()
   })
 })
 
-describe('D2 never turns missing into zero', () => {
-  it('shows an em dash and "Status unavailable" when no case could report', () => {
-    const { container } = render(<KpiTiles kpis={{ ...kpis, reported: 0, unreported: 2, review: 0, ready: 0, sources: 0, processing: 0, acceptedRows: 0 }} loading={false} />)
+describe('D2 summary strip', () => {
+  it('orders four figures by priority, with the review breakdown, and links each to its section', () => {
+    const tiles = kpiTiles(kpis)
+    expect(tiles.map(tile => tile.label)).toEqual(['Sources to review', 'Ready to search', 'Processing', 'Structured rows'])
+    expect(tiles.map(tile => tile.href)).toEqual(['#dashboard-attention', '#dashboard-readiness', '#dashboard-readiness', '#dashboard-families'])
+    expect(tiles[0]).toMatchObject({ value: 3, detail: '2 failed · 1 missing retained copy', tone: 'attention' })
+    expect(tiles[1]).toMatchObject({ value: 53, valueSuffix: 'of 55', percent: '96%', bar: { total: 55, ready: 53, processing: 0, failed: 2 } })
+  })
+
+  it('floors the ready percentage so a real failure is never rounded away', () => {
+    expect(kpiTiles({ ...kpis, sources: 1000, ready: 999, failed: 1 })[1].percent).toBe('99%')
+    expect(kpiTiles({ ...kpis, sources: 55, ready: 55, failed: 0 })[1].percent).toBe('100%')
+  })
+
+  it('tones the first cell only when there is something to review, and quiets Processing at zero', () => {
+    expect(kpiTiles({ ...kpis, review: 0, failed: 0, gaps: 0 })[0]).toMatchObject({ tone: undefined, detail: 'Nothing to review' })
+    expect(kpiTiles(kpis)[2].quiet).toBe(true)
+    expect(kpiTiles({ ...kpis, processing: 2 })[2].quiet).toBe(false)
+  })
+
+  it('renders one strip, not four cards, with exact figures and a bar with a text equivalent', () => {
+    const { container } = render(<KpiTiles kpis={kpis} loading={false} />)
+    const list = screen.getByRole('list', { name: 'Workspace totals' })
+    expect(within(list).getAllByRole('listitem')).toHaveLength(4)
+    expect(container.querySelectorAll('.dash-kpi__icon')).toHaveLength(0)
+    expect(container.textContent).toContain('23,080')
+    expect(container.textContent).toContain('53 of 55')
+    expect(container.textContent).toContain('2 failed · 1 missing retained copy')
+    expect(screen.getByRole('img', { name: 'Evidence readiness across all cases: ready 53, processing 0, failed 2, other 0' })).toBeTruthy()
+  })
+
+  it('shows an ellipsis while unknown, an em dash when nothing reported, and never a measured zero', () => {
+    const { container, rerender } = render(<KpiTiles kpis={{ ...kpis, review: 0, ready: 0, sources: 0 }} loading />)
+    for (const value of container.querySelectorAll('.dash-kpi strong')) expect(value.textContent).toBe('…')
+    expect(screen.getByRole('list', { name: 'Workspace totals' }).getAttribute('aria-busy')).toBe('true')
+    rerender(<KpiTiles kpis={{ ...kpis, reported: 0, unreported: 2, review: 0, ready: 0, sources: 0, processing: 0, acceptedRows: 0 }} loading={false} />)
     for (const value of container.querySelectorAll('.dash-kpi strong')) expect(value.textContent).toBe('—')
     expect(container.textContent).toContain('Status unavailable')
-    expect(container.textContent).not.toMatch(/\b0\b/)
     expect(screen.queryByRole('img')).toBeNull()
   })
 
-  it('says the totals cover only the cases that reported', () => {
-    const { container } = render(<KpiTiles kpis={{ ...kpis, cases: 4, reported: 3, unreported: 1 }} loading={false} />)
-    expect(container.textContent).toContain('Across 3 of 4 cases')
-    expect(kpiTiles(kpis).every(tile => !tile.scope)).toBe(true)
-  })
-
-  it('says "No sources added yet" instead of drawing an empty bar when there is nothing to measure', () => {
-    const { container } = render(<KpiTiles kpis={{ ...kpis, review: 0, ready: 0, sources: 0, processing: 0, failed: 0, gaps: 0, acceptedRows: 0 }} loading={false} />)
-    expect(container.textContent).toContain('No sources added yet')
+  it('names partial coverage on each cell and says "No sources added yet" instead of an empty bar', () => {
+    const partial = render(<KpiTiles kpis={{ ...kpis, cases: 4, reported: 3, unreported: 1 }} loading={false} />)
+    expect(partial.container.textContent).toContain('Across 3 of 4 cases')
+    partial.unmount()
+    const empty = render(<KpiTiles kpis={{ ...kpis, review: 0, failed: 0, gaps: 0, ready: 0, sources: 0, processing: 0, acceptedRows: 0 }} loading={false} />)
+    expect(empty.container.textContent).toContain('No sources added yet')
     expect(screen.queryByRole('img')).toBeNull()
   })
 })

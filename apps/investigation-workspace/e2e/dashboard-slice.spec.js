@@ -51,8 +51,8 @@ test('dashboard answers named questions, links every figure to its records and k
 
   // Totals are real sums of the four mocked cases, each linking to the rows behind it.
   const totals = page.getByRole('list', { name: 'Workspace totals' })
-  await expect(totals.getByRole('listitem').filter({ hasText: 'Evidence ready' })).toContainText('5 of 8')
-  await expect(totals.getByRole('listitem').filter({ hasText: 'Needs review' })).toContainText('1')
+  await expect(totals.getByRole('listitem').filter({ hasText: 'Ready to search' })).toContainText('5 of 8')
+  await expect(totals.getByRole('listitem').filter({ hasText: 'Sources to review' })).toContainText('1')
   await expect(totals.getByRole('listitem').filter({ hasText: 'Processing' })).toContainText('2')
   await expect(totals.getByRole('listitem').filter({ hasText: 'Structured rows' })).toContainText('9,062')
 
