@@ -99,7 +99,7 @@ describe('GlobalInvestigatePage', () => {
     open(['alpha', 'bravo'], { asked })
     const user = userEvent.setup()
     await screen.findByText(/Searching 2 cases/)
-    await user.click(screen.getByText('Narrow to some cases'))
+    await user.click(screen.getByText(/^Scope:/))
     await user.click(screen.getByRole('checkbox', { name: /bravo/ }))
     expect(await screen.findByText(/Searching 1 case, 1 skipped/)).toBeTruthy()
     await user.type(screen.getByLabelText('Your question'), 'Anything?')

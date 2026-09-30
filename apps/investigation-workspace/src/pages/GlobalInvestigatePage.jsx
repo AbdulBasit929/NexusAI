@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { ChevronDown, Layers, Sparkles } from 'lucide-react'
+import { ChevronDown, Layers, Sparkles, Square, History } from 'lucide-react'
 import { AppShell } from '../components/CaseShell.jsx'
 import { AskInput } from '../components/AskInput.jsx'
 import { EmptyState, LanguageText } from '../components/AnalystComponents.jsx'
-import { PageHeader } from '../components/PageHeader.jsx'
-import { QuestionHistory } from '../components/QuestionHistory.jsx'
 import { AcrossResults } from './investigate/AcrossResults.jsx'
+import { CaseRail } from './investigate/CaseRail.jsx'
 import { askCase, configuredCaseIds, getQueryCapabilities } from '../lib/apiClient.js'
 import { askAcrossCases, planSearch, sortOutcomes } from '../lib/acrossCases.js'
 import { curatedQuestions } from '../lib/dashboardCases.js'
@@ -14,7 +13,7 @@ import { formatNumber } from '../lib/format.js'
 import { presentInvestigationResponse } from '../lib/investigationPresentation.js'
 import { recordSessionActivity } from '../lib/sessionActivity.js'
 import { summariseCase, useConfiguredCaseOverviews } from '../lib/useCaseOverview.js'
-import { recordQuestionHistory } from '../lib/workspaceState.js'
+import { recordQuestionHistory, useQuestionHistoryAcross } from '../lib/workspaceState.js'
 
 export function investigateTarget(caseId, question) {
   return `/cases/${encodeURIComponent(caseId)}/investigate?question=${encodeURIComponent(question.trim())}`
@@ -100,54 +99,79 @@ export default function GlobalInvestigatePage() {
   const toggle = caseId => setChosen(current => (current.includes(caseId) ? current.filter(id => id !== caseId) : [...current, caseId]))
   useEffect(() => () => controller.current?.abort(), [])
 
+  const recent = useQuestionHistoryAcross(cases).slice(0, 4)
+  const scopeLabel = chosen.length ? `${formatNumber(chosen.length)} of ${formatNumber(cases.length)} cases` : cases.length === 1 ? '1 case' : `All ${formatNumber(cases.length)} cases`
+
+  const composerBlock = (
+    <div className="gi-composer">
+      <AskInput
+        busy={busy}
+        value={draft}
+        onChange={setDraft}
+        inputRef={composer}
+        onAsk={ask}
+        clearOnAsk={false}
+        label="Your question"
+        placeholder="Ask about any evidence, in any case…"
+        ariaLabel="Ask across your cases"
+      />
+      <div className="gi-scope">
+        {cases.length > 1 ? (
+          <details className="gi-scope__pop">
+            <summary><Layers aria-hidden="true" /><span>Scope: {scopeLabel}</span><small className="visually-hidden">Narrow to some cases</small><ChevronDown aria-hidden="true" /></summary>
+            <fieldset>
+              <legend>Cases to search</legend>
+              <p>Leave everything unticked to search all cases.</p>
+              <ul>
+                {rows.map(row => (
+                  <li key={row.caseId}>
+                    <label><input type="checkbox" checked={chosen.includes(row.caseId)} onChange={() => toggle(row.caseId)} /><LanguageText as="bdi" identifier>{row.caseId}</LanguageText><small>{coverage[row.caseId] || 'Checking…'}</small></label>
+                  </li>
+                ))}
+              </ul>
+              {chosen.length ? <button type="button" className="gi-scope__clear" onClick={() => setChosen([])}>Search all cases</button> : null}
+            </fieldset>
+          </details>
+        ) : null}
+        <p role="status" className="ax-scope__line gi-scope__line">{loading ? 'Checking which cases have evidence…' : searchScopeNote({ searching: plan.search.length, skipped: plan.skipped.length, ...totals })}</p>
+        {busy ? <button type="button" className="gi-stop" onClick={stop}><Square aria-hidden="true" />Stop</button> : null}
+      </div>
+    </div>
+  )
+
   return (
     <AppShell>
-      <main id="workspace-main" className="catalog-page global-investigate" tabIndex={-1}>
-        <PageHeader title="Ask a question" description="Ask once. Every case you can open is searched, so you do not need to remember where the evidence is." />
+      <main id="workspace-main" className={`catalog-page global-investigate gi${run ? ' gi--results' : ' gi--landing'}`} tabIndex={-1}>
         {rows.length ? (
-          <>
-            <section className="ax-ask" aria-label="Ask across your cases">
-              <AskInput
-                busy={busy}
-                value={draft}
-                onChange={setDraft}
-                inputRef={composer}
-                onAsk={ask}
-                clearOnAsk={false}
-                label="Your question"
-                placeholder="For example: who contacted this number, and in which case?"
-                ariaLabel="Ask across your cases"
-              />
-              <div className="ax-scope">
-                <p role="status" className="ax-scope__line"><Layers aria-hidden="true" />{loading ? 'Checking which cases have evidence…' : searchScopeNote({ searching: plan.search.length, skipped: plan.skipped.length, ...totals })}</p>
-                {cases.length > 1 ? (
-                  <details className="ax-narrow">
-                    <summary>Narrow to some cases<ChevronDown aria-hidden="true" /></summary>
-                    <fieldset>
-                      <legend className="visually-hidden">Cases to search</legend>
-                      <p>Leave everything unticked to search all cases.</p>
-                      <ul>
-                        {rows.map(row => (
-                          <li key={row.caseId}>
-                            <label><input type="checkbox" checked={chosen.includes(row.caseId)} onChange={() => toggle(row.caseId)} /><LanguageText as="bdi" identifier>{row.caseId}</LanguageText><small>{coverage[row.caseId] || 'Checking…'}</small></label>
-                          </li>
-                        ))}
-                      </ul>
-                    </fieldset>
-                  </details>
-                ) : null}
-                {busy ? <button type="button" className="ax-stop" onClick={stop}>Stop</button> : null}
+          run ? (
+            <div className="gi-layout">
+              <div className="gi-layout__bar">
+                <h1 className="gi-layout__title">Ask a question</h1>
+                {composerBlock}
               </div>
-              {!run && suggestions.length ? (
-                <div className="ax-suggest">
-                  <span><Sparkles aria-hidden="true" />Try one of these</span>
+              <CaseRail run={run} coverage={coverage} />
+              <div className="gi-layout__main"><AcrossResults run={run} coverage={coverage} onRetryCase={retryCase} /></div>
+            </div>
+          ) : (
+            <section className="gi-hero" aria-labelledby="gi-title">
+              <p className="gi-hero__eyebrow"><Sparkles aria-hidden="true" />Across every case you can open</p>
+              <h1 id="gi-title">Ask a question</h1>
+              <p className="gi-hero__lede">Ask once. Every case you can open is searched, so you do not need to remember where the evidence is.</p>
+              {composerBlock}
+              {suggestions.length ? (
+                <div className="gi-suggest">
+                  <h2>Try one of these</h2>
                   <ul>{suggestions.map(item => <li key={item.query}><button type="button" onClick={() => { setDraft(item.query); composer.current?.focus() }}><LanguageText>{item.query}</LanguageText></button></li>)}</ul>
                 </div>
               ) : null}
+              {recent.length ? (
+                <div className="gi-recent">
+                  <h2><History aria-hidden="true" />Your questions</h2>
+                  <ul>{recent.map(entry => <li key={`${entry.caseId}-${entry.id}`}><Link to={investigateTarget(entry.caseId, entry.query)}><span><LanguageText>{entry.label || entry.query}</LanguageText></span><small><bdi dir="ltr">{entry.caseId}</bdi></small></Link></li>)}</ul>
+                </div>
+              ) : null}
             </section>
-            {run ? <AcrossResults run={run} coverage={coverage} onRetryCase={retryCase} /> : null}
-            <QuestionHistory caseIds={cases} />
-          </>
+          )
         ) : (
           <EmptyState kind="not-processed" label="No cases are configured" description="Add evidence to create a case before asking a question."><Link to="/cases/new">Add evidence</Link></EmptyState>
         )}

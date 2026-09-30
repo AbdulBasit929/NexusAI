@@ -6,7 +6,6 @@ import { OUTCOME_LABEL, outcomeHeadline, sortOutcomes, tallyOutcomes } from '../
 import { formatNumber } from '../../lib/format.js'
 
 const ICON = { answered: CircleCheckBig, partial: CircleCheckBig, clarify: CircleHelp, processing: Clock3, 'zero-result': SearchX, unsupported: CircleSlash, failed: CircleAlert }
-const SKIP_REASON = { no_evidence: 'no evidence yet', not_chosen: 'not selected' }
 const OPEN_FIRST = 3
 
 export const caseQuestionLink = (caseId, question) => `/cases/${encodeURIComponent(caseId)}/investigate?question=${encodeURIComponent(question)}`
@@ -22,7 +21,6 @@ export function AcrossResults({ run, coverage, onRetryCase }) {
   const done = run.outcomes.length
   const total = run.caseIds.length
   const pending = run.busy ? run.caseIds.filter(id => !run.outcomes.some(outcome => outcome.caseId === id)) : []
-  const chips = Object.entries(tally.counts).filter(([, count]) => count > 0)
   let opened = 0
 
   return (
@@ -34,17 +32,6 @@ export function AcrossResults({ run, coverage, onRetryCase }) {
         </div>
         {run.busy ? <p className="ax__progress" role="status"><progress max={total} value={done} aria-label="Cases searched" /><span>{formatNumber(done)} of {formatNumber(total)} searched</span></p> : null}
       </header>
-      {chips.length ? (
-        <ul className="ax__chips" aria-label="Outcome by case">
-          {chips.map(([state, count]) => {
-            const Icon = ICON[state]
-            const first = outcomes.find(outcome => outcome.presentation.state === state)
-            return <li key={state}><a className={`ax-chip ax-chip--${state}`} href={`#ax-${encodeURIComponent(first.caseId)}`}><Icon aria-hidden="true" /><b>{formatNumber(count)}</b>{OUTCOME_LABEL[state]}</a></li>
-          })}
-        </ul>
-      ) : null}
-      {run.skipped.length ? <p className="ax__skipped">Not searched: {run.skipped.map(item => `${item.caseId} (${SKIP_REASON[item.reason]})`).join(', ')}.</p> : null}
-
       <ol className="ax__cases">
         {outcomes.map(({ caseId, presentation }) => {
           const Icon = ICON[presentation.state]
