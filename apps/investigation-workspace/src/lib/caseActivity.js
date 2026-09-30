@@ -155,6 +155,18 @@ export function rangeStartIndex(activity, range) {
   return index < 0 ? 0 : index
 }
 
+// Events per calendar day for each case over the last `span` days read (ending on the last day with activity), for the
+// small trend beside each case. A case that was not read has no entry, so the table shows "not read" rather than a flat line.
+export function caseSparks(activity, span = 30) {
+  if (!activity.available || !activity.last) return {}
+  const dates = Array.from({ length: span }, (_, index) => shift(activity.last, index - (span - 1)))
+  const byDate = new Map(activity.days.map(day => [day.date, day]))
+  return Object.fromEntries((activity.cases || []).map(caseId => {
+    const values = dates.map(date => byDate.get(date)?.byCase[caseId] || 0)
+    return [caseId, { values, total: values.reduce((sum, value) => sum + value, 0), from: dates[0], to: activity.last }]
+  }))
+}
+
 // A record family keeps one colour on every widget: the index comes from the sorted list of every family in view.
 export function familyOrder(...idLists) {
   return [...new Set(idLists.flat().filter(Boolean))].sort()

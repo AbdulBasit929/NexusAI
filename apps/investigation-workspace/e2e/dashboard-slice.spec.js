@@ -78,26 +78,30 @@ test('dashboard answers named questions, links every figure to its records and k
   await expect(activity.getByRole('table')).toContainText(/Wed, 2 Sep/)
   await activity.getByRole('button', { name: /Chart/ }).click()
 
-  // Each chart has a question for a title and an exact table alternative with real links.
-  const readiness = page.locator('#dashboard-readiness')
-  await expect(readiness.getByRole('heading', { name: /Is each case’s evidence ready to search\?/ })).toBeVisible()
-  await expect(readiness.getByRole('link', { name: /1 failed of 2 sources in case-review/ })).toHaveAttribute('href', '/cases/case-review/evidence?status=failed')
-  await readiness.getByRole('button', { name: /Table/ }).click()
-  await expect(readiness.getByRole('link', { name: '1', exact: true }).first()).toHaveAttribute('href', /\/cases\/case-review\/evidence\?status=/)
   const families = page.locator('#dashboard-families')
   await expect(families.getByRole('heading', { name: /What is the evidence made of\?/ })).toBeVisible()
-  // A bubble is a button: selecting a family filters the case queue, and the same button clears it.
+  // The cases table lists every case, worst first, with exact figures and real links.
+  const table = page.locator('#dashboard-cases')
+  const caseRows = table.locator('tbody tr')
+  await expect(table.getByRole('heading', { name: 'Which case needs me next?' })).toBeVisible()
+  await expect(caseRows).toHaveCount(4)
+  await expect(caseRows.first()).toContainText('case-review')
+  await expect(caseRows.first().getByRole('link', { name: /Review evidence/ })).toHaveAttribute('href', '/cases/case-review/evidence')
+  // A bubble is a button: selecting a family filters the table, and the same button clears it.
   await families.getByRole('button', { name: /Call detail records: 8,642 accepted rows/ }).first().click()
-  await expect(page.locator('.dashboard-case')).toHaveCount(1)
+  await expect(caseRows).toHaveCount(1)
+  await expect(caseRows.first()).toContainText('case-ready')
   await families.getByRole('button', { name: /Call detail records: 8,642 accepted rows/ }).first().click()
-  await expect(page.locator('.dashboard-case')).toHaveCount(4)
+  await expect(caseRows).toHaveCount(4)
   await families.getByRole('button', { name: /Table/ }).click()
   await families.getByRole('button', { name: 'Show only cases with Call detail records' }).click()
-  const queueItems = page.locator('.dashboard-case')
-  await expect(queueItems).toHaveCount(1)
-  await expect(queueItems.first()).toContainText('case-ready')
-  await page.getByRole('button', { name: 'All cases' }).click()
-  await expect(queueItems).toHaveCount(4)
+  await expect(caseRows).toHaveCount(1)
+  await table.getByRole('button', { name: /Clear/ }).click()
+  await expect(caseRows).toHaveCount(4)
+  await table.getByRole('group', { name: 'Filter cases' }).getByRole('button', { name: /Needs review/ }).click()
+  await expect(caseRows).toHaveCount(1)
+  await table.getByRole('group', { name: 'Filter cases' }).getByRole('button', { name: /^All/ }).click()
+  await expect(caseRows).toHaveCount(4)
 
   // Needs-review list names the failed source and links to it.
   const attention = page.locator('#dashboard-attention')
@@ -106,40 +110,21 @@ test('dashboard answers named questions, links every figure to its records and k
   await expect(attention).toContainText('The source could not be parsed')
   await expect(attention.getByRole('button', { name: /The source could not be parsed/ })).toHaveAttribute('aria-expanded', 'true')
 
-  // Where sources and rows end up, as exact numbers behind the flow diagram, and the honest key-entities card.
+  // Where sources and rows end up, as exact numbers behind the flow diagram.
   const flow = page.locator('#dashboard-flow')
   await expect(flow.getByRole('heading', { name: 'Where do sources and rows end up?' })).toBeVisible()
   await flow.getByRole('button', { name: /Table/ }).click()
   await expect(flow.getByRole('table')).toContainText('Failed')
-  await expect(page.locator('#dashboard-entities').getByRole('link', { name: /most frequent contacts/ })).toBeVisible()
-
-  // Case workbench: readiness order, filters and the inspector.
-  await expect(queueItems.nth(0)).toContainText('case-review')
-  await expect(queueItems.nth(0)).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.getByRole('heading', { name: 'Review evidence in case-review' })).toBeVisible()
-  await queueItems.filter({ hasText: 'case-ready' }).click()
-  await expect(page.getByRole('heading', { name: 'Continue with case-ready' })).toBeVisible()
-  await expect(page.getByText('8,642', { exact: true }).first()).toBeVisible()
-  await page.getByRole('tab', { name: /Questions/ }).click()
-  await expect(page.getByText('Which identifiers occur most often?', { exact: true })).toBeVisible()
-  await page.getByRole('tab', { name: /Questions/ }).press('ArrowLeft')
-  await expect(page.getByRole('tab', { name: /Processing/ })).toHaveAttribute('aria-selected', 'true')
-  await expect(page.getByRole('link', { name: 'Start investigating' })).toBeVisible()
-  await page.getByRole('group', { name: 'Filter cases' }).getByRole('button', { name: 'Needs review' }).click()
-  await expect(queueItems).toHaveCount(1)
-  await expect(queueItems.first()).toContainText('case-review')
-  await page.getByRole('searchbox', { name: 'Find a case' }).fill('missing')
-  await expect(page.getByRole('heading', { name: 'No cases match this view' })).toBeVisible()
-  await page.getByRole('button', { name: 'Clear view' }).first().click()
-  await expect(queueItems).toHaveCount(4)
 
   await expect.poll(() => statusRequests).toBeGreaterThanOrEqual(4)
   await page.getByRole('button', { name: 'Refresh' }).click()
   await expect.poll(() => statusRequests).toBeGreaterThanOrEqual(8)
 
-  await expect(page.getByText('This browser only', { exact: true })).toBeVisible()
+  // The two ways back into the work: the analyst's own recent questions and what the case can answer.
+  await expect(page.getByRole('heading', { name: 'Pick up where you left off' })).toBeVisible()
   await expect(page.getByText('Priority caller', { exact: true })).toBeVisible()
-  await expect(page.getByText('Who called most often?', { exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'What could I ask?' })).toBeVisible()
+  await expect(page.locator('#dashboard-suggested').getByText('Which identifiers occur most often?', { exact: true })).toBeVisible()
   await expect(page.getByText(/Assignment, severity and investigative priority are not available/)).toBeVisible()
 
   await page.setViewportSize({ width: 375, height: 812 })
@@ -156,7 +141,7 @@ test('captures the task-first dashboard in both themes and responsive sizes', as
       await page.setViewportSize({ width, height: width >= 1024 ? 900 : 844 })
       await page.goto('/')
       await page.evaluate(value => { document.documentElement.dataset.theme = value; localStorage.setItem('nexusai.viewer.theme', value) }, theme)
-      await expect(page.getByRole('heading', { name: 'Review evidence in case-review' })).toBeVisible()
+      await expect(page.getByRole('heading', { name: 'Which case needs me next?' })).toBeVisible()
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBe(0)
       await page.screenshot({ path: path.join(reviewDirectory, `dashboard-${theme}-${width}.png`), fullPage: true })
     }

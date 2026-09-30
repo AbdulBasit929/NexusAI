@@ -27,11 +27,9 @@ AppShell
      ├─ Z0 Command header    title, one-line briefing, freshness, Refresh, Add evidence
      ├─ Z1 Metric cards      four cards (done)
      ├─ Z2 Hero              [ Activity over time + highlights (8) ] [ Needs review by cause (4) ]
-     ├─ Z3 Evidence          [ Evidence map: bubbles (5) ] [ Sources and rows flow (7) ]
-     ├─ Z3b                  [ Readiness by case (7) ] [ Key entities (5, honest until request 19) ]
-     ├─ Z4 Quality           ingestion accounting now; data quality when request 16 lands
-     ├─ Z5 Case workbench    queue and inspector (redesign next)
-     └─ Z6 Continue          recent questions, later recent reports
+     ├─ Z3 Evidence          [ Evidence map: bubbles (6) ] [ Sources and rows flow (6) ], equal height
+     ├─ Z4 Cases             one table, worst first: readiness, review count, rows kept, 30-day trend, updated, next step
+     └─ Z5 Continue          [ Pick up where you left off (recent questions) ] [ What could I ask? (suggested for a case) ]
 ```
 - **Grid:** 12 columns at 1280 px and up, 8 at tablet, 4 on phones; 16 px gaps, 24 px between zones. A widget declares its span per breakpoint; the page never hard-codes layout inside a widget.
 - **Widget contract (maintainability):** each widget is one component that receives already-computed props and renders inside one shared frame (title as the question, actions, body, footer) with the four states handled the same way: loading skeleton, empty (one sentence), partial (says what is missing), error (says why, offers retry). Adding a widget is one file plus one line in the page composition; nothing else changes.
@@ -49,6 +47,13 @@ AppShell
 - **Activity:** range chips (All, 30 days, 7 days) and a Days/Weeks toggle (weeks only from 21 days of data; totals never change, a week click asks for the whole week), short date labels, a dashed "Typical" line, and the chart fills the card height.
 - **Attention becomes a triage card:** the count of sources first, a composition bar split by cause (red shades for failed, hatched amber for a missing copy), and a ranked cause list. Hovering a segment or a row lights the other. Five causes show, the rest behind "Show N more". Counts stay reconciled to the complete per-case totals. "Last seen" per cause waits on a timestamp on the named items (not reported today).
 - **Evidence and flow are equal-height halves** (`dash-grid--even`, 480 px minimum, footers pinned). The evidence legend has share bars and a removable filter chip; the flow has captioned Sources and Rows bands with gradient links.
+
+### Lower page (2026-09-30, round 4)
+The owner rejected the sections under the evidence pair (readiness bars, key entities, ingestion card, case workbench with inspector, recent list). They were four cards restating the same per-case counts, plus a placeholder, and made the page long. They are replaced by:
+- **Z4 Cases table** ("Which case needs me next?"): every case in one sortable-by-need table. Readiness bar and "N of M", needs-review count (link to the failed sources), rows kept with rejected and duplicate counts beneath, a 30-day trend drawn from the same real activity as the hero (a case that was not read says "Not read", never a flat line), age of the newest dated update (floored), and a next-step button. State filters carry exact counts; search appears from 7 cases; 8 rows show until "Show all". A family selected on the evidence map filters this table and shows a removable chip.
+- **Z5 Continue**: the analyst's recent questions (pinned first, this browser only) beside the service's suggested questions for the case in scope, or the first ready case. Both are links into Investigate.
+- **Retired:** Key entities (waits on request 19, listed in BACKEND_REQUESTS; a card with no data was noise), the case inspector (its content lives on the case overview one click away), the ingestion card (folded into "Rows kept").
+- **Length:** about 1,900 px at 1440 wide, roughly two and a half screens; the first screen holds the header, four metric cards and most of the hero.
 
 ## 5. Evidence map (Z3): the bubbles
 Record families as packed circles, area proportional to accepted rows, colour from the categorical palette, count and share on the label, click filters the case queue and the activity chart to that family. Exact values are in a Table toggle. Bubbles are used because the question is "what is this case made of, at a glance"; precision lives in the labels and the table.

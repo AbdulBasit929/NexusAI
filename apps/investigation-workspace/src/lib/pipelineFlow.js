@@ -6,15 +6,15 @@ import { formatNumber } from './format.js'
 // A stage with no count is left out, so the picture never draws an empty path. Everything is a count the service
 // reported; nothing is estimated, and the two flows are separate because a source and a row are different things.
 export const FLOW_TARGETS = {
-  Ready: '#dashboard-readiness',
-  Processing: '#dashboard-readiness',
+  Ready: '#dashboard-cases',
+  Processing: '#dashboard-cases',
   Failed: '#dashboard-attention',
-  'Not counted yet': '#dashboard-readiness',
-  'Copy kept': '#dashboard-readiness',
+  'Not counted yet': '#dashboard-cases',
+  'Copy kept': '#dashboard-cases',
   'Copy missing': '#dashboard-attention',
-  Accepted: '#dashboard-ingestion',
-  Duplicate: '#dashboard-ingestion',
-  Rejected: '#dashboard-ingestion',
+  Accepted: '#dashboard-cases',
+  Duplicate: '#dashboard-cases',
+  Rejected: '#dashboard-cases',
 }
 
 const TONE = { Sources: 'neutral', Ready: 'ready', Processing: 'processing', Failed: 'failed', 'Not counted yet': 'excluded', 'Copy kept': 'ready', 'Copy missing': 'failed', 'Rows read': 'neutral', Accepted: 'ready', Duplicate: 'processing', Rejected: 'failed' }

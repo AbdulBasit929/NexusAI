@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { aggregateFamilyRows, curatedQuestions, dashboardKpis, dashboardNextAction, dashboardOrientation, dashboardRowState } from './DashboardPage.jsx'
+import { aggregateFamilyRows, curatedQuestions, dashboardKpis, dashboardNextAction, dashboardRowState } from './DashboardPage.jsx'
 
 describe('Dashboard decision presentation', () => {
   it('orders service failures ahead of stale retained data', () => {
@@ -13,12 +13,7 @@ describe('Dashboard decision presentation', () => {
 
   it('routes each readiness state to a real next action', () => {
     expect(dashboardNextAction({ processingState: 'attention' }, 'case/a')).toEqual({ label: 'Review evidence', to: '/cases/case%2Fa/evidence' })
-    expect(dashboardNextAction({ processingState: 'complete' }, 'case/a')).toEqual({ label: 'Start investigating', to: '/cases/case%2Fa/investigate' })
-  })
-
-  it('describes evidence accounting without inventing percentages', () => {
-    expect(dashboardOrientation({ failed: 1, missingAssets: 0, inFlight: 0, total: 2, ready: 1 })).toBe('1 evidence item failed. Review before relying on complete coverage.')
-    expect(dashboardOrientation({ failed: 0, missingAssets: 0, inFlight: 0, total: 4, ready: 4 })).toBe('4 of 4 evidence sources are ready for analysis.')
+    expect(dashboardNextAction({ processingState: 'complete' }, 'case/a')).toEqual({ label: 'Investigate', to: '/cases/case%2Fa/investigate' })
   })
 
   it('projects only analyst-safe questions from the server corpus', () => {

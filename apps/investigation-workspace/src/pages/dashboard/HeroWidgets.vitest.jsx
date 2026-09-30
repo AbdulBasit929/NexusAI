@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { ActivityChart, dayQuestion, dayTarget } from './ActivityChart.jsx'
 import { EvidenceMap } from './EvidenceMap.jsx'
-import { ENTITY_QUESTIONS, KeyEntities, entityQuestionLink } from './KeyEntities.jsx'
 import { PipelineFlow } from './PipelineFlow.jsx'
 import { mergeActivity, parseActivity } from '../../lib/caseActivity.js'
 import { familyRows } from '../../lib/dashboardCharts.js'
@@ -143,21 +142,5 @@ describe('Pipeline flow', () => {
     expect(screen.getByText('Nothing has been ingested yet.')).toBeTruthy()
     rerender(<MemoryRouter><PipelineFlow kpis={{ sources: 0, ready: 0, processing: 0, failed: 0, gaps: 0 }} loading /></MemoryRouter>)
     expect(screen.queryByText('Nothing has been ingested yet.')).toBeNull()
-  })
-})
-
-describe('Key entities', () => {
-  it('is honest that nothing is summarised yet, shows no numbers, and offers the questions that work today', () => {
-    const { container } = show(<KeyEntities caseId="alpha" />)
-    expect(screen.getByRole('heading', { name: 'Who and where shows up most?' })).toBeTruthy()
-    expect(screen.getByText(/will be summarised here once the case can report them/)).toBeTruthy()
-    expect(container.textContent).not.toMatch(/\d/)
-    const links = within(screen.getByRole('list', { name: 'Ask in Investigate' })).getAllByRole('link')
-    expect(links.map(link => link.getAttribute('href'))).toEqual(ENTITY_QUESTIONS.map(question => entityQuestionLink('alpha', question)))
-  })
-
-  it('offers no questions when there is no case to ask in', () => {
-    show(<KeyEntities caseId={undefined} />)
-    expect(screen.queryByRole('list', { name: 'Ask in Investigate' })).toBeNull()
   })
 })

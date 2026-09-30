@@ -3,8 +3,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { AttentionCauses, attentionReason, reviewTarget, unnamedFailures } from './AttentionCauses.jsx'
-import { ReadinessBars } from './ReadinessBars.jsx'
-import { attentionItems, evidenceLink, itemMatchesReviewFilter, readinessRows, reviewByCase, reviewFilterCount, reviewKind } from '../../lib/dashboardCharts.js'
+import { attentionItems, itemMatchesReviewFilter, reviewByCase, reviewFilterCount, reviewKind } from '../../lib/dashboardCharts.js'
 
 const show = ui => render(<MemoryRouter>{ui}</MemoryRouter>)
 
@@ -123,41 +122,5 @@ describe('Needs review by cause', () => {
     rerender(<MemoryRouter><AttentionCauses items={[]} byCase={[]} kpis={{ cases: 2, reported: 0, sources: 0, ready: 0 }} loading /></MemoryRouter>)
     expect(screen.queryByText('Nothing needs review')).toBeNull()
     expect(screen.queryByText('Status unavailable')).toBeNull()
-  })
-})
-
-describe('D4 readiness by case', () => {
-  const readiness = readinessRows([
-    { caseId: 'clean', summary: { total: 43, ready: 43, inFlight: 0, failed: 0 } },
-    { caseId: 'messy', summary: { total: 12, ready: 8, inFlight: 1, failed: 2 } },
-    { caseId: 'empty', summary: { total: 0, ready: 0, inFlight: 0, failed: 0 } },
-    { caseId: 'unreported', summary: null },
-  ])
-  const kpis = { ready: 51, sources: 55 }
-
-  it('orders the worst case first, drops cases with no sources and never zero-shapes an unreported case', () => {
-    expect(readiness.map(row => row.caseId)).toEqual(['messy', 'clean'])
-    expect(readiness[0].counts).toEqual({ ready: 8, processing: 1, failed: 2, other: 1 })
-  })
-
-  it('makes every segment a real link with an exact accessible count, and prints counts only in wide segments', () => {
-    show(<ReadinessBars rows={readiness} kpis={kpis} loading={false} />)
-    const messy = screen.getByRole('group', { name: 'Evidence readiness of messy' })
-    const ready = within(messy).getByRole('link', { name: /8 ready of 12 sources in messy/ })
-    expect(ready.getAttribute('href')).toBe(evidenceLink('messy', 'ready'))
-    expect(ready.getAttribute('href')).toBe('/cases/messy/evidence?status=completed')
-    expect(within(messy).getByRole('link', { name: /2 failed of 12/ }).getAttribute('href')).toBe('/cases/messy/evidence?status=failed')
-    expect(within(messy).getByRole('link', { name: /1 processing of 12/ }).textContent).toBe('')
-    expect(screen.getByText('51 of 55 sources are ready across 2 cases.')).toBeTruthy()
-  })
-
-  it('offers the same numbers as a table with links, and honest empty and loading states', async () => {
-    const { rerender } = show(<ReadinessBars rows={readiness} kpis={kpis} loading={false} />)
-    await userEvent.setup().click(screen.getByRole('button', { name: /Table/ }))
-    const table = screen.getByRole('table')
-    expect(within(table).getByRole('link', { name: '43' }).getAttribute('href')).toBe('/cases/clean/evidence?status=completed')
-    expect(within(table).getAllByText('0', { selector: 'td' })).toHaveLength(2)
-    rerender(<MemoryRouter><ReadinessBars rows={[]} kpis={kpis} loading={false} /></MemoryRouter>)
-    expect(screen.getByText('No case has reported evidence yet.')).toBeTruthy()
   })
 })
