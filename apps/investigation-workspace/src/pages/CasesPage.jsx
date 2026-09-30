@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { LayoutGrid, Table2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { EmptyState, LanguageText, RouteState } from '../components/AnalystComponents.jsx'
 import { AppShell } from '../components/CaseShell.jsx'
@@ -6,6 +7,7 @@ import { ProportionBar, StackedBar } from '../components/DataVisualizations.jsx'
 import { PageHeader } from '../components/PageHeader.jsx'
 import { configuredCaseIds } from '../lib/apiClient.js'
 import { formatNumber } from '../lib/format.js'
+import { relativeAge } from '../lib/dashboardCases.js'
 import { curatedFamilyLabel } from '../lib/semanticCatalog.js'
 import { summariseCase, useConfiguredCaseOverviews } from '../lib/useCaseOverview.js'
 
@@ -196,12 +198,54 @@ function CaseDirectoryRow({ row }) {
   )
 }
 
+
+// A case as a card: the state first, then the case, how much of its evidence is ready, the figures that decide whether to
+// open it, and its record families. A case that could not be read says so and offers no link, never zero-shaped figures.
+function CaseCard({ row }) {
+  const { caseId, state, status, summary, activity } = row
+  const action = summary ? nextAction(summary, caseId) : null
+  const families = (summary?.families || []).map(family => ({ id: family.record_type, value: Number(family.accepted_rows || 0) })).filter(family => family.value > 0)
+  const review = summary ? (summary.failed || 0) + summary.missingAssets : null
+  const overview = `/cases/${encodeURIComponent(caseId)}/overview`
+  return (
+    <li className={`case-tile case-tile--${status}`}>
+      <div className="case-tile__top">
+        <span className={`case-directory__state case-directory__state--${status}`}><StateIcon state={status} /><span>{STATE_LABEL[status]}</span></span>
+        {activity ? <time dateTime={activity.date.toISOString()} title={formatTimestamp(activity.date)}>Updated {relativeAge(activity.date)}</time> : null}
+      </div>
+      <h3 className="case-tile__id">
+        {summary ? <Link to={overview}><LanguageText as="bdi" identifier>{caseId}</LanguageText></Link> : <LanguageText as="bdi" identifier>{caseId}</LanguageText>}
+      </h3>
+      {summary ? (
+        <>
+          <div className="case-tile__ready">
+            <ProportionBar total={summary.total} ready={summary.ready} processing={summary.inFlight} failed={summary.failed || 0} label={`${caseId} evidence readiness`} />
+            <span>{formatNumber(summary.ready)} of {formatNumber(summary.total)} sources ready</span>
+          </div>
+          <dl className="case-tile__figures">
+            <div><dt>Sources</dt><dd>{formatNumber(summary.total)}</dd></div>
+            <div><dt>Rows</dt><dd>{formatNumber(summary.acceptedRows)}</dd></div>
+            <div className={review ? 'is-flagged' : undefined}><dt>Review</dt><dd>{review ? formatNumber(review) : 'None'}</dd></div>
+          </dl>
+          {families.length ? <ul className="case-tile__families" aria-label={`${caseId} evidence families`}>{families.slice(0, 3).map(family => <li key={family.id}>{curatedFamilyLabel(family.id)}</li>)}{families.length > 3 ? <li>+{families.length - 3}</li> : null}</ul> : <p className="case-tile__none">No structured families yet</p>}
+        </>
+      ) : <p className="case-tile__none" role={state?.loading ? 'status' : undefined}>{state?.loading ? 'Reading status…' : status === 'forbidden' ? 'Outside your access scope.' : 'Status could not be read.'}</p>}
+      <div className="case-tile__actions">
+        {action ? <Link className={`case-tile__primary${status === 'attention' ? ' is-alert' : ''}`} to={action.to} aria-label={`${action.label}: ${caseId}`}>{action.label}<ArrowIcon /></Link> : null}
+        {summary ? <Link className="case-tile__secondary" to={overview} aria-label={`Overview: ${caseId}`}>Overview</Link> : null}
+      </div>
+    </li>
+  )
+}
+
 export default function CasesPage() {
   const cases = configuredCaseIds()
   const { states, reload } = useConfiguredCaseOverviews(cases)
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('all')
   const [sort, setSort] = useState({ key: 'activity', direction: 'descending' })
+  const [view, setView] = useState(() => { try { return globalThis.localStorage?.getItem('nexusai.cases.view') === 'table' ? 'table' : 'cards' } catch { return 'cards' } })
+  const chooseView = next => { setView(next); try { globalThis.localStorage?.setItem('nexusai.cases.view', next) } catch { /* the choice just is not remembered */ } }
 
   const rows = useMemo(() => cases.map((caseId, index) => {
     const state = states[caseId]
@@ -274,9 +318,25 @@ export default function CasesPage() {
                 {FILTERS.map(([id, label]) => <button key={id} type="button" aria-pressed={filter === id} onClick={() => setFilter(id)}><span>{label}</span><strong>{formatNumber(counts[id])}</strong></button>)}
               </div>
               {(query || filter !== 'all') ? <button type="button" className="case-directory__clear" onClick={clearView}>Clear</button> : null}
+              <div className="seg case-directory__view" role="group" aria-label="View">
+                <button type="button" aria-pressed={view === 'cards'} onClick={() => chooseView('cards')}><LayoutGrid aria-hidden="true" />Cards</button>
+                <button type="button" aria-pressed={view === 'table'} onClick={() => chooseView('table')}><Table2 aria-hidden="true" />Table</button>
+              </div>
             </div>
 
-            {visible.length ? (
+            {visible.length && view === 'cards' ? (
+              <>
+                <div className="case-directory__mobile-sort case-directory__sort-bar" aria-label="Sort cases">
+                  <span>Sort</span>
+                  <SortButton column="activity" label="Activity" sort={sort} onSort={changeSort} />
+                  <SortButton column="caseId" label="Case" sort={sort} onSort={changeSort} />
+                  <SortButton column="evidence" label="Evidence" sort={sort} onSort={changeSort} />
+                  <SortButton column="rows" label="Rows" sort={sort} onSort={changeSort} />
+                </div>
+                <ul className="case-tiles" aria-label={`${formatNumber(visible.length)} of ${formatNumber(cases.length)} cases`}>{visible.map(row => <CaseCard key={row.caseId} row={row} />)}</ul>
+              </>
+            ) : null}
+            {visible.length && view === 'table' ? (
               <div className="case-directory__table-wrap" tabIndex={0} aria-label="Scrollable case directory">
                 <div className="case-directory__mobile-sort" aria-label="Sort cases">
                   <span>Sort</span>
@@ -298,7 +358,7 @@ export default function CasesPage() {
                 </table>
                 <p className="visually-hidden" aria-live="polite">Sorted by {sort.key === 'caseId' ? 'case ID' : sort.key === 'evidence' ? 'evidence count' : sort.key === 'rows' ? 'accepted rows' : 'latest evidence activity'}, {sort.direction}.</p>
               </div>
-            ) : <EmptyState kind="no-match" label="No cases match" description="Try another search or readiness filter."><button type="button" onClick={clearView}>Clear view</button></EmptyState>}
+            ) : !visible.length ? <EmptyState kind="no-match" label="No cases match" description="Try another search or readiness filter."><button type="button" onClick={clearView}>Clear view</button></EmptyState> : null}
 
             <details className="case-directory__boundary"><summary>Directory scope</summary><p>Names, owners, classification and priority are absent because the service does not expose them.</p></details>
           </section>

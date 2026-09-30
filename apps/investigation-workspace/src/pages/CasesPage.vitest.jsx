@@ -14,8 +14,9 @@ function response(body, status = 200) {
   return { ok: status >= 200 && status < 300, status, headers: { get: () => null }, json: async () => body }
 }
 
-function open(caseIds = ['case-10', 'case-2', 'case-review', 'case-denied']) {
+function open(caseIds = ['case-10', 'case-2', 'case-review', 'case-denied'], view = 'table') {
   window.__INVESTIGATION_WORKSPACE_CONFIG__ = { caseIds }
+  localStorage.setItem('nexusai.cases.view', view)
   return render(<MemoryRouter><CasesPage /></MemoryRouter>)
 }
 
@@ -61,6 +62,23 @@ describe('CasesPage', () => {
     await userEvent.type(screen.getByRole('searchbox', { name: 'Search cases' }), 'review')
     expect(within(table).getAllByRole('row')).toHaveLength(2)
     expect(within(table).getByText('case-review')).toBeTruthy()
+  })
+
+  it('shows cases as cards by default, each with its readiness and a link, and remembers the table choice', async () => {
+    open(undefined, 'cards')
+    await screen.findByRole('heading', { name: 'Some statuses are unavailable' })
+    const cards = document.querySelectorAll('.case-tile')
+    expect(cards).toHaveLength(4)
+    const review = [...cards].find(card => card.textContent.includes('case-review'))
+    expect(within(review).getByText('2 of 3 sources ready')).toBeTruthy()
+    expect(within(review).getByRole('link', { name: 'Review evidence: case-review' }).getAttribute('href')).toBe('/cases/case-review/evidence')
+    expect(within(review).getByText('Needs review')).toBeTruthy()
+    const denied = [...cards].find(card => card.textContent.includes('case-denied'))
+    expect(within(denied).getByText('Outside your access scope.')).toBeTruthy()
+    expect(within(denied).queryByRole('link')).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: /Table/ }))
+    expect(screen.getByRole('table', { name: /4 of 4 configured collections/i })).toBeTruthy()
+    expect(localStorage.getItem('nexusai.cases.view')).toBe('table')
   })
 
   it('keeps unavailable status distinct from zero evidence', async () => {
