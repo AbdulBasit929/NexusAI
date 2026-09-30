@@ -1,16 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { ArrowRight, CircleAlert, CircleCheckBig, Clock3, Folder, Search, X } from 'lucide-react'
 import { AppShell } from '../components/CaseShell.jsx'
 import { EmptyState, LanguageText } from '../components/AnalystComponents.jsx'
-import { ChartCard } from '../components/charts/ChartCard.jsx'
 import { ProportionBar } from '../components/DataVisualizations.jsx'
+import { ActivityChart } from './dashboard/ActivityChart.jsx'
 import { DashboardHeader } from './dashboard/DashboardHeader.jsx'
+import { EvidenceMap } from './dashboard/EvidenceMap.jsx'
 import { KpiTiles } from './dashboard/KpiTiles.jsx'
 import { NeedsReview } from './dashboard/NeedsReview.jsx'
 import { ReadinessBars } from './dashboard/ReadinessBars.jsx'
 import { configuredCaseIds, getQueryCapabilities } from '../lib/apiClient.js'
-import { attentionItems, familyOption, familyRows, formatRate, ingestionRows, readinessRows, reviewByCase } from '../lib/dashboardCharts.js'
+import { familyOrder } from '../lib/caseActivity.js'
+import { attentionItems, familyRows, formatRate, ingestionRows, readinessRows, reviewByCase } from '../lib/dashboardCharts.js'
+import { useCaseActivity } from '../lib/useCaseActivity.js'
 import { formatNumber } from '../lib/format.js'
 import { curatedFamilyLabel } from '../lib/semanticCatalog.js'
 import { summariseCase, useConfiguredCaseOverviews } from '../lib/useCaseOverview.js'
@@ -356,12 +359,17 @@ export default function DashboardPage() {
   // The age of the figures is the age of the oldest read among the cases shown; the newest would hide a case whose refresh failed.
   const lastUpdated = rows.filter(row => row.summary).map(row => parseTimestamp(row.state?.receivedAt)).filter(Boolean).sort((left, right) => left - right)[0] || null
 
-  const familyChart = useMemo(() => ({
-    buildOption: theme => familyOption(families, theme),
-    height: Math.max(90, families.length * 30 + 12),
-    label: `Accepted rows by evidence family. ${families.map(item => `${item.label}: ${formatNumber(item.value)}`).join('. ')}`,
-    onSelect: params => { if (params?.data?.id) { setFilter(`family:${params.data.id}`); setSelectedCaseId(''); globalThis.document?.getElementById('dashboard-workbench-title')?.scrollIntoView?.({ block: 'start' }) } },
-  }), [families])
+  // Scope lives in the URL so a view can be shared and survives reload; absent means every case. An unknown case is ignored.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const requestedScope = searchParams.get('scope') || ''
+  const scope = cases.includes(requestedScope) ? requestedScope : ''
+  const setScope = useCallback(next => setSearchParams(current => { const params = new URLSearchParams(current); if (next) params.set('scope', next); else params.delete('scope'); return params }, { replace: true }), [setSearchParams])
+  const [activityToken, setActivityToken] = useState(0)
+  const activity = useCaseActivity(scope ? [scope] : cases.slice(0, 8), { refreshToken: activityToken })
+  const refreshAll = useCallback(() => { reload(); setActivityToken(token => token + 1) }, [reload])
+  const order = useMemo(() => familyOrder(families.map(family => family.id), activity.activity.families.map(family => family.id)), [families, activity.activity.families])
+  const selectedFamily = filter.startsWith('family:') ? filter.slice(7) : ''
+  const selectFamily = useCallback(id => { setFilter(id ? `family:${id}` : 'all'); setSelectedCaseId('') }, [])
 
   useEffect(() => {
     if (!selected?.caseId) {
@@ -393,34 +401,21 @@ export default function DashboardPage() {
   return (
     <AppShell identityLed>
       <main id="workspace-main" className="catalog-page dashboard-page dashboard-command" tabIndex={-1}>
-        <DashboardHeader kpis={kpis} loading={loading} lastUpdated={lastUpdated} processing={hasProcessing} refreshing={isRefreshing} onRefresh={reload} />
+        <DashboardHeader kpis={kpis} loading={loading} lastUpdated={lastUpdated} processing={hasProcessing} refreshing={isRefreshing} onRefresh={refreshAll} />
 
         {cases.length ? (
           <>
             <KpiTiles kpis={kpis} loading={loading} />
             {unreadable > 0 ? <p className="dash-notice" role="status"><CircleAlert aria-hidden="true" />{unreadable === cases.length ? 'No case could report status. Check that the records API is running.' : `${formatNumber(unreadable)} of ${formatNumber(cases.length)} ${unreadable === 1 ? 'case' : 'cases'} could not report status, so totals above cover the rest.`} <button type="button" onClick={reload}>Try again</button></p> : null}
 
-            <NeedsReview items={attention} byCase={reviewCases} kpis={kpis} loading={loading} />
+            <div className="dash-grid dash-grid--hero">
+              <ActivityChart activity={activity.activity} status={activity.status} failed={activity.failed} order={order} cases={cases} scope={scope} onScope={setScope} onRetry={() => setActivityToken(token => token + 1)} />
+              <NeedsReview compact items={attention} byCase={reviewCases} kpis={kpis} loading={loading} />
+            </div>
 
-            <div className="dash-grid dash-grid--wide-right">
+            <div className="dash-grid dash-grid--wide-left">
+              <EvidenceMap families={families} order={order} selectedId={selectedFamily} onSelect={selectFamily} kpis={kpis} loading={loading} />
               <ReadinessBars rows={readiness} kpis={kpis} loading={loading} />
-              <div id="dashboard-families">
-                {families.length ? (
-                  <ChartCard
-                    title="Which kinds of records make up the evidence?"
-                    description="Accepted rows by structured record family, largest first. Select a bar to show only the cases that have it."
-                    chart={familyChart}
-                    columns={[
-                      { key: 'label', label: 'Record family' },
-                      { key: 'value', label: 'Accepted rows', numeric: true, render: row => formatNumber(row.value) },
-                      { key: 'caseCount', label: 'Cases', numeric: true },
-                      { key: 'show', label: 'Filter', render: row => <button type="button" className="dash-link-button" aria-label={`Show only cases with ${row.label}`} onClick={() => { setFilter(`family:${row.id}`); setSelectedCaseId('') }}>Show cases</button> },
-                    ]}
-                    rows={families.map(item => ({ ...item, key: item.id }))}
-                    footer={<span>{formatNumber(kpis.acceptedRows)} accepted rows in total. Counts cover structured records, not every file.</span>}
-                  />
-                ) : <section className="dash-card"><header className="dash-card__header"><div><h2>Which kinds of records make up the evidence?</h2></div></header><p className="dash-card__empty">{loading ? 'Reading record families…' : 'No structured records have been accepted yet.'}</p></section>}
-              </div>
             </div>
 
             <IngestionCard rows={ingestion} />

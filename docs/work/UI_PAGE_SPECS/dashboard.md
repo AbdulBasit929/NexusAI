@@ -7,9 +7,20 @@ Data today: one `GET /collections/status` per configured case (`useConfiguredCas
 ## Build status
 | Section | Status |
 |---|---|
-| D1 briefing header, D2 summary strip | redesigned 2026-09-30 after owner review (first version rejected); earlier research pass also applied (freshness age and stale state, oldest-read freshness, partial coverage named, no fabricated zeros) with unit tests and a live check of the all-down, one-down and empty cases |
-| D3 Needs review, D4 Readiness by case | built and verified 2026-09-30: unit tests (`dashboard/AttentionAndReadiness.vitest.jsx`), e2e `dashboard-slice.spec.js`, screenshots at 1440 and 375 in both themes. The workbench's duplicate Refresh was removed (Refresh lives in D1 only). |
-| D5 to D8 | still the first-pass versions; rebuilt next, one at a time |
+**Layout architecture: `dashboard-architecture.md` (read first). Product plan: `dashboard-product-plan.md`.** The Dashboard is a zoned page of self-contained widgets; the sections below are widgets inside those zones.
+
+| Zone and widget | Status |
+|---|---|
+| Z0 D1 briefing header, Z1 D2 metric cards | done and accepted by the owner |
+| Z2 hero: **Activity over time** (8 cols) beside the **attention rail** (4 cols) | rebuilt 2026-09-30 after the owner rejected the earlier full-width D3. Activity is real `activity_by_day` data; the rail is the compact Needs review. Specs below. |
+| Z3 **Evidence map** (packed bubbles of record families, 7 cols) beside Readiness by case (5 cols, old version) | Evidence map new; readiness restyle next |
+| Z4 ingestion, Z5 case workbench, Z6 recent | first-pass versions, rebuilt next |
+
+## Hero widgets (2026-09-30; rules: UI_REDESIGN_BRIEF §6 and §11)
+**Activity over time.** Question: when did activity happen, and in what kind of records? Source: `POST /query/hybrid` with `template=activity_by_day`, no target and no language model, per case in scope, merged. Rows are `{activity_date, record_type, event_count}`, unsampled but **capped at 100 day-and-family groups, oldest first**, so a full page is labelled "Partial" (request 19 asks for a complete endpoint). Encoding: stacked bars per day, one colour per record family (the same colour on every widget, from the sorted list of families in view), because the question is magnitude over time with composition inside. Interaction: interactive legend toggles families, a zoom slider appears above 45 days and opens on the latest stretch, the tooltip gives exact counts per family and the total, and a click opens that day in Investigate in the case that holds most of it (Scope narrows it to one case, kept in the URL as `?scope=`). A Table view lists every day and family. States: loading skeleton, "No dated records have been ingested yet" (a real empty case), "Activity could not be read for this scope" with Try again, and a named list of cases that could not be read (never counted as zero).
+**Attention rail.** The compact form of Needs review: chips for Failed and Missing copy with complete counts, the top four named sources with a one-line reason, the case, and an icon Review link, then Show all. Same honesty as before: counts are complete, named items are the most recent each case reports, and it says so.
+**Evidence map.** Question: what is the evidence made of? Record families as packed bubbles, area proportional to accepted rows (deterministic layout, so it does not shuffle), exact name, count and share in each bubble's accessible name and in the legend below, which is also the keyboard path. Clicking a bubble or legend entry filters the case queue by that family; clicking again clears. A Table view adds cases per family. Empty: "No structured records have been accepted yet." Bubbles are used because the question is the shape of the case at a glance; precision lives in the legend and table.
+The earlier D3 (full-width bars plus list) is superseded by the rail; its per-case breakdown and filter logic remain in `NeedsReview.jsx` for the full view.
 
 ## D1 and D2 research pass (2026-09-30)
 Sources read as search summaries only (the primary pages of Primer, Grafana and W3C were not reachable from the build environment, so treat the wording as secondary): Primer and Carbon PageHeader, Grafana stat panel, Nielsen Norman Group dashboard guidance, WCAG 2.2 (2.5.8 target size, 4.1.3 status messages), and dashboard KPI write-ups on zero versus missing data.

@@ -6,13 +6,14 @@ const EChart = lazy(() => import('./EChart.jsx'))
 
 // One frame for every chart. The title is the question the chart answers. The Table view holds the exact
 // values and the real links behind them, so the chart is never the only way to reach a record.
-export function ChartCard({ title, description, chart, columns, rows, footer = null, tableFirst = false }) {
+export function ChartCard({ title, description, chart, columns, rows, footer = null, tableFirst = false, actions = null, className = '', id }) {
   const headingId = useId()
   const [view, setView] = useState(tableFirst ? 'table' : 'chart')
   return (
-    <section className="chart-card" aria-labelledby={headingId}>
+    <section id={id} className={`chart-card${className ? ` ${className}` : ''}`} aria-labelledby={headingId}>
       <header className="chart-card__header">
         <div><h2 id={headingId}>{title}</h2>{description ? <p>{description}</p> : null}</div>
+        {actions}
         <div className="chart-card__toggle" role="group" aria-label={`View of: ${title}`}>
           <button type="button" aria-pressed={view === 'chart'} onClick={() => setView('chart')}><ChartColumn aria-hidden="true" />Chart</button>
           <button type="button" aria-pressed={view === 'table'} onClick={() => setView('table')}><Table2 aria-hidden="true" />Table</button>

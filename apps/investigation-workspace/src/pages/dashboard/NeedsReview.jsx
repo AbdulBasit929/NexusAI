@@ -38,7 +38,8 @@ export function unnamedFailures(byCase, items) {
 // link. Clicking a bar segment or a chip filters the list, and the chart never filters itself, so it stays a control.
 // The named list is only the most recent items each case reports, so the card says so when it names fewer than the
 // counts and links to the full failed list. Rules: UI_REDESIGN_BRIEF §11.
-export function NeedsReview({ items, byCase, kpis, loading }) {
+export function NeedsReview({ items, byCase, kpis, loading, compact = false }) {
+  const rowsShown = compact ? 4 : VISIBLE
   const [filter, setFilter] = useState(NO_FILTER)
   const [showAll, setShowAll] = useState(false)
   const total = byCase.reduce((sum, entry) => sum + entry.total, 0)
@@ -46,7 +47,7 @@ export function NeedsReview({ items, byCase, kpis, loading }) {
   const kindTotals = KINDS.map(kind => ({ ...kind, count: byCase.reduce((sum, entry) => sum + entry[kind.id], 0) }))
   const kindsPresent = kindTotals.filter(kind => kind.count > 0)
   const filtered = items.filter(item => itemMatchesReviewFilter(item, filter))
-  const shown = showAll ? filtered : filtered.slice(0, VISIBLE)
+  const shown = showAll ? filtered : filtered.slice(0, rowsShown)
   const expected = reviewFilterCount(byCase, filter)
   const unnamed = unnamedFailures(byCase, items).filter(entry => (!filter.caseId || entry.caseId === filter.caseId) && filter.kind !== 'missing')
   const filtering = Boolean(filter.caseId || filter.kind)
@@ -74,7 +75,8 @@ export function NeedsReview({ items, byCase, kpis, loading }) {
     )
   } else {
     body = (
-      <div className="nr-body">
+      <div className={`nr-body${compact ? ' nr-body--compact' : ''}`}>
+        {compact ? null : (
         <section className="nr-where" aria-label="Problems by case">
           <h3 className="nr-caption">By case</h3>
           <ul className="nr-bars">
@@ -111,6 +113,7 @@ export function NeedsReview({ items, byCase, kpis, loading }) {
           </ul>
           <ul className="nr-legend" aria-label="Legend">{KINDS.map(kind => <li key={kind.id}><span className={`nr-swatch nr-swatch--${kind.id}`} aria-hidden="true" />{kind.label}</li>)}</ul>
         </section>
+        )}
 
         <section className="nr-what" aria-label="Sources to review">
           {kindsPresent.length > 1 || filter.caseId ? (
@@ -138,7 +141,7 @@ export function NeedsReview({ items, byCase, kpis, loading }) {
                       <span className="nr-row__reason" title={attentionReason(item)}><LanguageText>{attentionReason(item)}</LanguageText></span>
                       <span className="nr-row__meta"><b>{kind.label}</b><span aria-hidden="true">·</span><LanguageText as="bdi" identifier>{item.caseId}</LanguageText></span>
                     </div>
-                    <Link className="nr-row__review" to={reviewTarget(item)} aria-label={`Review ${item.label}`}>Review<ArrowRight aria-hidden="true" /></Link>
+                    <Link className={`nr-row__review${compact ? ' nr-row__review--icon' : ''}`} to={reviewTarget(item)} aria-label={`Review ${item.label}`} title={`Review ${item.label}`}>{compact ? null : 'Review'}<ArrowRight aria-hidden="true" /></Link>
                   </li>
                 )
               })}
@@ -146,7 +149,7 @@ export function NeedsReview({ items, byCase, kpis, loading }) {
           ) : (
             <p className="nr-empty">{expected ? 'None of these are named here yet.' : 'Nothing matches this filter.'}</p>
           )}
-          {filtered.length > VISIBLE ? <button type="button" className="dash-more" aria-expanded={showAll} onClick={() => setShowAll(value => !value)}>{showAll ? 'Show fewer' : `Show all ${formatNumber(filtered.length)}`}</button> : null}
+          {filtered.length > rowsShown ? <button type="button" className="dash-more" aria-expanded={showAll} onClick={() => setShowAll(value => !value)}>{showAll ? 'Show fewer' : `Show all ${formatNumber(filtered.length)}`}</button> : null}
           {expected > filtered.length ? (
             <p className="nr-note">
               {formatNumber(expected)} in total; {formatNumber(filtered.length)} named here, the most recent each case reports.
@@ -159,7 +162,7 @@ export function NeedsReview({ items, byCase, kpis, loading }) {
   }
 
   return (
-    <div id="dashboard-attention" className="dash-slot dash-slot--wide">
+    <div id="dashboard-attention" className={`dash-slot${compact ? '' : ' dash-slot--wide'}`}>
       <Card className="needs-review" title="What needs review?" actions={total ? <span className="attention-card__count">{formatNumber(total)} {total === 1 ? 'source' : 'sources'}</span> : null}>
         {body}
       </Card>

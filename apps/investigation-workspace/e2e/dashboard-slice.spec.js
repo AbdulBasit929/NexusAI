@@ -25,6 +25,12 @@ test.beforeEach(async ({ page }) => {
       query_corpus: { entries: [{ id: 'cdr-1', family_id: 'cdr', query: 'Which identifiers occur most often?', suggested: true }] },
     }),
   }))
+  // Whole-case activity for the hero chart: the deterministic activity_by_day template, shaped as the service returns it.
+  await page.route('**/query/hybrid', route => {
+    const caseId = route.request().headers()['x-forensic-collection-id']
+    const rows = caseId === 'case-ready' ? [{ activity_date: '2026-09-01T00:00:00Z', record_type: 'cdr', event_count: 40 }, { activity_date: '2026-09-02T00:00:00Z', record_type: 'cdr', event_count: 25 }, { activity_date: '2026-09-02T00:00:00Z', record_type: 'anpr', event_count: 5 }] : []
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ records: { activity_by_day: rows, row_count: rows.length } }) })
+  })
   await page.route('**/collections/status*', route => {
     const caseId = route.request().headers()['x-forensic-collection-id']
     const status = caseId === 'case-review' ? 'failed' : caseId === 'case-processing' ? 'processing' : 'completed'
@@ -64,6 +70,14 @@ test('dashboard answers named questions, links every figure to its records and k
   await expect(page.getByRole('link', { name: /Dashboard, 1 case needs review/ })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Investigate', exact: true })).toHaveAttribute('href', '/investigate')
 
+  // The hero: activity over time from real day buckets, with an exact table alternative.
+  const activity = page.locator('.activity-card')
+  await expect(activity.getByRole('heading', { name: 'When did activity happen?' })).toBeVisible()
+  await expect(activity.getByRole('img', { name: /Activity per day by record family, 2026-09-01 to 2026-09-02/ })).toBeVisible()
+  await activity.getByRole('button', { name: /Table/ }).click()
+  await expect(activity.getByRole('table')).toContainText('2026-09-02')
+  await activity.getByRole('button', { name: /Chart/ }).click()
+
   // Each chart has a question for a title and an exact table alternative with real links.
   const readiness = page.locator('#dashboard-readiness')
   await expect(readiness.getByRole('heading', { name: /Is each case’s evidence ready to search\?/ })).toBeVisible()
@@ -71,7 +85,12 @@ test('dashboard answers named questions, links every figure to its records and k
   await readiness.getByRole('button', { name: /Table/ }).click()
   await expect(readiness.getByRole('link', { name: '1', exact: true }).first()).toHaveAttribute('href', /\/cases\/case-review\/evidence\?status=/)
   const families = page.locator('#dashboard-families')
-  await expect(families.getByRole('heading', { name: /Which kinds of records make up the evidence\?/ })).toBeVisible()
+  await expect(families.getByRole('heading', { name: /What is the evidence made of\?/ })).toBeVisible()
+  // A bubble is a button: selecting a family filters the case queue, and the same button clears it.
+  await families.getByRole('button', { name: /Call detail records: 8,642 accepted rows/ }).first().click()
+  await expect(page.locator('.dashboard-case')).toHaveCount(1)
+  await families.getByRole('button', { name: /Call detail records: 8,642 accepted rows/ }).first().click()
+  await expect(page.locator('.dashboard-case')).toHaveCount(4)
   await families.getByRole('button', { name: /Table/ }).click()
   await families.getByRole('button', { name: 'Show only cases with Call detail records' }).click()
   const queueItems = page.locator('.dashboard-case')

@@ -124,6 +124,26 @@ export async function askCase({ caseId, query, recordType, signal, fetchImpl = g
   return response.json()
 }
 
+// A deterministic analytical template over a whole case, with no target and no language model in the path. Used for
+// figures that are aggregates (for example activity per day), never for questions. The service caps a template call at
+// 100 rows, so callers must treat a full page as possibly partial.
+export async function runCaseTemplate({ caseId, template, limit = 100, signal, fetchImpl = globalThis.fetch }) {
+  const { baseUrl, tenantId, collectionId, headers } = requestContext(caseId)
+  const response = await fetchImpl(endpoint(baseUrl, '/query/hybrid'), {
+    method: 'POST',
+    signal,
+    headers: { ...headers, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tenant_id: tenantId, collection_id: collectionId, template, limit }),
+  })
+  if (!response.ok) {
+    const error = new Error('The case figures could not be read.')
+    error.reference = response.headers.get('x-request-id') || `HTTP-${response.status}`
+    error.status = response.status
+    throw error
+  }
+  return response.json()
+}
+
 // Evidence intake. The backend exposes exactly one way in --
 // POST /webhooks/records/upload, multipart, with `file` required and
 // `collection_id` required -- and a collection comes into existence when its

@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react'
 import * as echarts from 'echarts/core'
 import { BarChart } from 'echarts/charts'
-import { AriaComponent, GridComponent, TooltipComponent } from 'echarts/components'
+import { AriaComponent, DataZoomComponent, GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
 import { SVGRenderer } from 'echarts/renderers'
 import { chartTheme } from './chartTheme.js'
 
-echarts.use([BarChart, GridComponent, TooltipComponent, AriaComponent, SVGRenderer])
+echarts.use([BarChart, GridComponent, TooltipComponent, AriaComponent, LegendComponent, DataZoomComponent, SVGRenderer])
 
 // Thin wrapper: the option builder receives the live theme tokens, so a theme switch
 // re-renders with the right colours. SVG output stays crisp when printed and zooms without blur.

@@ -24,7 +24,8 @@ Each request states: the **endpoint and method**, the **exact response fields an
 
 | 12 | Workspace summary: totals and per-case governed summaries in one request, replacing one `/collections/status` call per configured case | Dashboard, sidebar badges, Cases | open (proposed 2026-09-30) |
 | 13 | Needs-attention feed across cases: failed sources, retained-copy gaps and stalled jobs, each with a reason label and an openable locator, complete and countable | Dashboard, Activity | open (proposed 2026-09-30) |
-| 14 | Reprocess a failed source (retry), with `retryable` and attempt counts on attention items | Dashboard, Evidence detail | open (proposed 2026-09-30, owner asked for more backend to make the Dashboard work best) |
+| 14 | Reprocess a failed source (retry). **Corrected: the endpoint already exists**; only `retryable` and attempt counts on attention items remain open | Dashboard, Evidence detail | mostly delivered; small addition open |
+| 19 | Complete, bucketed case activity history and top entities (counterparties, locations, plates, domains) for the Dashboard hero | Dashboard, Overview | open (proposed 2026-09-30); until then the hero uses `template=activity_by_day` and labels a 100-row cap as partial |
 | 15 | Live workspace events stream, so the Dashboard updates without polling and can say what just finished | Dashboard, Activity | open (proposed 2026-09-30) |
 | 16 | Case data-quality and coverage summary per record family (kept, duplicate, rejected, missing critical fields, first and last event time) | Dashboard, Overview | open (proposed 2026-09-30) |
 | 17 | Report history: list, open and download generated case reports | Dashboard, Overview | open (proposed 2026-09-30) |
@@ -97,15 +98,20 @@ This enables a truthful activity volume view with an accessible event table and 
 - **Empty/error:** `200` with zero counts and no items is the only "nothing needs review" state; `403` and service errors stay distinct.
 - **Privacy:** server-side masking applies before projection; file names are shown only as the service returned them.
 
-## 14. Reprocess a failed source
+## 14. Reprocess a failed source: CORRECTION 2026-09-30
 
-- **Endpoint:** `POST /evidence/{evidence_id}/reprocess`, body `{ tenant_id, collection_id }`. Same authorization headers as the other evidence routes.
-- **Response:** `202 { evidence_id, job_id, status: "queued", attempt: integer, max_attempts: integer }`. Idempotent: a second call while a job for that source is queued or running returns `200` with the existing `job_id` and `status`, never a duplicate job.
-- **Refusals:** `409` with `reason` in `not_failed | attempts_exhausted | source_missing` (the UI states the reason in words); `403` and `404` stay distinct. A source whose retained copy is missing cannot be reprocessed and says so.
-- **Also:** `GET /workspace/attention` items (row 13) gain `retryable: boolean`, `attempts` and `max_attempts`, so the UI shows a Retry button only where it will work.
-- **Why:** D3 lists failed sources, but the analyst can only look at them. One click to retry turns the Dashboard from a report into a work surface. It uses the existing ingest queue; it must not change the source file or its hash.
-- **Audit:** the retry is recorded as a custody event (row 10) with who asked and when.
-- **Privacy:** no evidence content in the response.
+**The backend already has this.** `POST /evidence/{evidence_id}/reprocess` and `GET /evidence/{evidence_id}/reprocess-plan` exist (`api/forensic_records/reprocess.go`). The first version of this request said they were missing; that was wrong. The request body needs `tenant_id`, `collection_id`, a `reason` of 3 to 1000 characters, and an `Idempotency-Key` (8 to 128 safe characters, header or body); `max_attempts` defaults to 5 (1 to 10). The UI can build Retry on it now: a small confirm dialog that asks for the reason, sends a generated idempotency key, and shows the result.
+
+**What is still worth asking for (small):** `GET /workspace/attention` items (row 13) should carry `retryable: boolean`, `attempts` and `max_attempts`, so the UI shows Retry only where it will work, without calling `reprocess-plan` per row. Until row 13 lands, the UI can call `reprocess-plan` for the selected failed source when its Retry dialog opens.
+
+## 19. Case activity history (complete, bucketed) and top entities
+
+- **Why:** the Dashboard hero should show what is *in* the evidence, not only the pipeline. Today the only whole-case aggregate is `POST /query/hybrid` with `template=activity_by_day`, which works with no target and returns `records.activity_by_day: [{ activity_date, record_type, event_count }]` across every record family, but a template call is capped at 100 rows (`maxHybridLimit`) and ordered oldest first, so a case with more than 100 day-and-family buckets is silently truncated. The UI labels that as partial; it needs a proper endpoint.
+- **Endpoint:** `GET /collections/activity?tenant_id=&collection_id=&bucket=day|week|month&from=&to=`.
+- **Response:** `{ collection_id, bucket, from, to, complete: boolean, buckets: [{ start: RFC3339, end: RFC3339, by_family: [{ record_type, events }], events_total }], families: [{ record_type, label|null, events_total }], first_event_at, last_event_at }`. The server picks the bucket when omitted so the response stays a bounded size, and `complete=false` states why.
+- **Top entities** (for the "key entities" bubbles): `GET /collections/entities?tenant_id=&collection_id=&kind=counterparty|location|plate|domain|ip&limit=`, `{ kind, complete, items: [{ value_label, events, first_seen_at, last_seen_at, locator }] }`. Today `frequent_contacts` and `top_locations` need a target and refuse an empty one. Entity values are returned exactly as the existing masked routes return them; a kind the case has no data for returns `items: []`.
+- **Privacy:** aggregates and the same masking as the existing evidence and query routes; identity numbers are never returned unmasked.
+- **Page:** Dashboard hero and Overview.
 
 ## 15. Live workspace events
 
