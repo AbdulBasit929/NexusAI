@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { CircleAlert, CircleCheckBig, CircleHelp, CircleSlash, ChevronDown, Clock3, Layers, LoaderCircle, MessageSquarePlus, SearchX, Square } from 'lucide-react'
 import { AskInput } from '../components/AskInput.jsx'
 import { InvestigationResult } from '../components/InvestigationResult.jsx'
 import { QuestionTrail } from '../components/QuestionTrail.jsx'
@@ -11,8 +12,8 @@ import { familyDefinition, ScopeChips, useEvidenceScope } from '../components/Sc
 import { EmptyState, LanguageText } from '../components/AnalystComponents.jsx'
 import { recordQuestionHistory, useQuestionDraft, useQuestionHistory } from '../lib/workspaceState.js'
 import { ResultComparison } from '../components/ResultComparison.jsx'
-import { PageHeader } from '../components/PageHeader.jsx'
-import { CaseStart } from './investigate/CaseStart.jsx'
+import { CaseStart, coverageLine } from './investigate/CaseStart.jsx'
+import { OUTCOME_LABEL } from '../lib/acrossCases.js'
 import { useCaseOverview } from '../lib/useCaseOverview.js'
 
 let turnSequence = 0
@@ -189,84 +190,104 @@ export default function InvestigatePage() {
     globalThis.setTimeout(() => composer.current?.focus(), 0)
   }
 
+  const turnIcon = { answered: CircleCheckBig, partial: CircleCheckBig, clarify: CircleHelp, processing: Clock3, 'zero-result': SearchX, unsupported: CircleSlash, failed: CircleAlert }
+  const composerBlock = (
+    <div className="gi-composer">
+      {canAskScope
+        ? <AskInput busy={busy} value={draft} onChange={setDraft} inputRef={composer} onAsk={query => ask(query)} clearOnAsk={!turns.length ? false : true} label="Ask a question about this case" placeholder="Ask about this case’s evidence…" ariaLabel="Ask about case evidence" />
+        : <EmptyState kind="unavailable" label={`${selectedFamily.label} questions are unavailable`} description="The question service cannot yet enforce this family scope. NexusAI has not widened the request to other evidence." />}
+      <div className="gi-scope">
+        <details className="thread-composer__scope gi-scope__pop" open={scopeOpen} onToggle={event => setScopeOpen(event.currentTarget.open)}>
+          <summary><Layers aria-hidden="true" /><span>Scope</span> <strong>{scope === 'all' ? 'All evidence' : selectedFamily.label}</strong><ChevronDown aria-hidden="true" /></summary>
+          <div className="gi-scope__panel">
+            <ScopeChips value={scope} onChange={changeScope} label="Evidence family for the next question" />
+            <p><strong>{scope === 'all' ? 'All evidence' : selectedFamily.label}</strong> applies to the next question and stays selected in this browser.</p>
+          </div>
+        </details>
+        <p className="gi-scope__line" role="status">{coverageLine(overview) || 'Checking what this case holds…'}</p>
+        {busy ? <button type="button" className="gi-stop thread-composer__stop" onClick={stopQuestion}><Square aria-hidden="true" />Stop current question</button> : null}
+        {turns.length > 0 ? <button type="button" className="gi-stop thread-composer__clear" onClick={clearThread}><MessageSquarePlus aria-hidden="true" />Start a new conversation</button> : null}
+      </div>
+    </div>
+  )
+
   return (
     <CaseShell caseId={caseId}>
-      <main id="workspace-main" className={`investigate-page${turns.length ? ' investigate-page--answered' : ''}`} tabIndex={-1}>
-        <PageHeader
-          eyebrow="Case investigation"
-          title="Investigate"
-          description="Ask the evidence a question, inspect the result and open the exact sources behind each supported claim."
-        />
-        <div className="investigate-workspace">
-          <div className="investigate-workspace__main">
+      <main id="workspace-main" className={`investigate-page catalog-page gi gi--case ${turns.length ? 'gi--results investigate-page--answered' : 'gi--landing'}`} tabIndex={-1}>
+        {!turns.length ? (
+          <>
             <ResultComparison items={comparison} onRemove={id => setComparison(items => items.filter(item => item.id !== id))} onClear={() => setComparison([])} />
-            <QuestionTrail entries={decisionTrail} history={[]} />
-
-            {!turns.length && canAskScope && <CaseStart caseId={caseId} overview={overview} starters={starters} recent={recent} onPick={chooseStarter} />}
-
-            {/* One live region for the whole thread. Each turn does not carry its
-                own, or every answer competes to interrupt the screen reader. */}
-            <ol className="investigation-thread" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Investigation conversation">
-              {turns.map((turn, index) => (
-                <li key={turn.id} className={`thread-turn${turn.parentId ? ' thread-turn--branched' : ''}`}>
-                  <article className="thread-turn__question" aria-label={`Question ${index + 1}`}>
-                    <div className="thread-turn__meta">
-                      <strong>You</strong>
-                      <span>{turn.scope?.label || 'All evidence'} scope</span>
+            <CaseStart caseId={caseId} overview={overview} starters={starters} recent={recent} onPick={chooseStarter}>{composerBlock}</CaseStart>
+          </>
+        ) : (
+          <div className="gi-case">
+            <div className="gi-case__main">
+              <h1 className="visually-hidden">Investigate {caseId}</h1>
+              <ResultComparison items={comparison} onRemove={id => setComparison(items => items.filter(item => item.id !== id))} onClear={() => setComparison([])} />
+              <QuestionTrail entries={decisionTrail} history={[]} />
+              {/* One live region for the whole thread, so a dozen answers do not compete to interrupt a screen reader. */}
+              <ol className="investigation-thread" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Investigation conversation">
+                {turns.map((turn, index) => (
+                  <li key={turn.id} className={`thread-turn${turn.parentId ? ' thread-turn--branched' : ''}`}>
+                    <article className="thread-turn__question" aria-label={`Question ${index + 1}`}>
+                      <div className="thread-turn__meta">
+                        <strong>You asked</strong>
+                        <span>{turn.scope?.label || 'All evidence'} scope</span>
+                      </div>
+                      {turn.parentId ? <p className="thread-turn__branch">Following the clarification{turn.label ? <> · <LanguageText>{turn.label}</LanguageText></> : null}</p> : null}
+                      <p className="thread-turn__text"><LanguageText>{turn.query}</LanguageText></p>
+                      <button type="button" className="thread-turn__edit" onClick={() => editQuestion(turn.query)}>Ask a variation</button>
+                    </article>
+                    <div id={`${turn.id}-anchor`} tabIndex={-1} className="thread-turn__answer">
+                      <header className="thread-turn__answer-identity"><NexusAnswerMark /><span><strong>NexusAI</strong><small>Evidence analysis</small></span></header>
+                      {turn.busy && <p className="processing-announcement" role="status"><LoaderCircle aria-hidden="true" />Checking {turn.scope?.label || 'the selected'} case evidence…</p>}
+                      {turn.aborted && !turn.busy && <p className="thread-turn__aborted" role="status">This question was stopped before a result was returned.</p>}
+                      {turn.presentation && (
+                        <InvestigationResult
+                          presentation={turn.presentation}
+                          idPrefix={turn.id}
+                          live={false}
+                          onAsk={query => ask(query)}
+                          onClarificationChoice={(option, clarification) => chooseClarification(option, clarification, turn)}
+                          onRetry={() => retryTurn(turn)}
+                          onCompare={() => addComparison(turn)}
+                          clarificationRounds={turn.parentId ? 1 : 0}
+                          showOriginalQuestion={false}
+                        />
+                      )}
                     </div>
-                    {turn.parentId ? <p className="thread-turn__branch">Following the clarification{turn.label ? <> · <LanguageText>{turn.label}</LanguageText></> : null}</p> : null}
-                    <p className="thread-turn__text"><LanguageText>{turn.query}</LanguageText></p>
-                    <button type="button" className="thread-turn__edit" onClick={() => editQuestion(turn.query)}>Ask a variation</button>
-                  </article>
-                  <div id={`${turn.id}-anchor`} tabIndex={-1} className="thread-turn__answer">
-                    <header className="thread-turn__answer-identity"><NexusAnswerMark /><span><strong>NexusAI</strong><small>Evidence analysis</small></span></header>
-                    {turn.busy && <p className="processing-announcement" role="status">Checking {turn.scope?.label || 'the selected'} case evidence…</p>}
-                    {turn.aborted && !turn.busy && <p className="thread-turn__aborted" role="status">This question was stopped before a result was returned.</p>}
-                    {turn.presentation && (
-                      <InvestigationResult
-                        presentation={turn.presentation}
-                        idPrefix={turn.id}
-                        live={false}
-                        onAsk={query => ask(query)}
-                        onClarificationChoice={(option, clarification) => chooseClarification(option, clarification, turn)}
-                        onRetry={() => retryTurn(turn)}
-                        onCompare={() => addComparison(turn)}
-                        clarificationRounds={turn.parentId ? 1 : 0}
-                        showOriginalQuestion={false}
-                      />
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ol>
-            {/* The composer sits AFTER the thread in both DOM and reading order, so
-                tabbing through an answer arrives at the next question. Alt+A offers
-                direct access without covering the evidence with a sticky layer. */}
-            <section className="thread-composer" aria-label="Ask about case evidence">
-              <details className="thread-composer__scope" open={scopeOpen} onToggle={event => setScopeOpen(event.currentTarget.open)}>
-                <summary>
-                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M7 12h10m-7 5h4" /></svg>
-                  <span>Scope</span>
-                  <strong>{scope === 'all' ? 'All evidence' : selectedFamily.label}</strong>
-                  <svg className="thread-composer__chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m8 10 4 4 4-4" /></svg>
-                </summary>
-                <div>
-                  <ScopeChips value={scope} onChange={changeScope} label="Evidence family for the next question" />
-                  <p><strong>{scope === 'all' ? 'All evidence' : selectedFamily.label}</strong> applies to the next question and stays selected in this browser.</p>
-                </div>
-              </details>
-              {canAskScope
-                ? <AskInput busy={busy} value={draft} onChange={setDraft} inputRef={composer} onAsk={query => ask(query)} />
-                : <EmptyState kind="unavailable" label={`${selectedFamily.label} questions are unavailable`} description="The question service cannot yet enforce this family scope. NexusAI has not widened the request to other evidence." />}
-              {(busy || turns.length > 0) && (
-                <div className="thread-composer__actions">
-                  {busy ? <button type="button" className="thread-composer__stop" onClick={stopQuestion}>Stop current question</button> : null}
-                  {turns.length > 0 ? <button type="button" className="thread-composer__clear" onClick={clearThread}>Start a new conversation</button> : null}
-                </div>
-              )}
-            </section>
+                  </li>
+                ))}
+              </ol>
+              <div className="gi-dock thread-composer">{composerBlock}</div>
+            </div>
+
+            <aside className="gi-case__rail" aria-label="About this conversation">
+              <section className="gi-rail">
+                <h2 className="gi-rail__title">This case</h2>
+                <p className="gi-rail__note">{coverageLine(overview) || 'Checking what this case holds…'}</p>
+                <p className="gi-rail__links"><Link to={`/cases/${encodeURIComponent(caseId)}/overview`}>Overview</Link><Link to={`/cases/${encodeURIComponent(caseId)}/evidence`}>Evidence</Link><Link to="/investigate">Ask across all cases</Link></p>
+              </section>
+              <section className="gi-rail">
+                <h2 className="gi-rail__title">Conversation <span>{turns.length}</span></h2>
+                <ol className="gi-rail__list" aria-label="Questions in this conversation">
+                  {turns.map((turn, index) => {
+                    const state = turn.presentation?.state
+                    const Icon = turn.busy ? LoaderCircle : turnIcon[state] || CircleHelp
+                    return (
+                      <li key={turn.id} className={`gi-rail__item ${turn.busy ? 'gi-rail__item--pending' : `gi-rail__item--${state || 'clarify'}`}`}>
+                        <a href={`#${turn.id}-anchor`} onClick={event => { event.preventDefault(); globalThis.document?.getElementById(`${turn.id}-anchor`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }}>
+                          <span className="gi-rail__mark" aria-hidden="true"><Icon /></span>
+                          <span className="gi-rail__text"><span className="gi-rail__q"><LanguageText>{turn.query}</LanguageText></span><small>{turn.busy ? 'Searching…' : turn.aborted ? 'Stopped' : OUTCOME_LABEL[state] || 'Answered'}</small></span>
+                        </a>
+                      </li>
+                    )
+                  })}
+                </ol>
+              </section>
+            </aside>
           </div>
-        </div>
+        )}
       </main>
     </CaseShell>
   )

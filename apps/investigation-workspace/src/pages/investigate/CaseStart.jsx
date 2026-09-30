@@ -14,19 +14,20 @@ export function coverageLine(overview) {
   return `${formatNumber(summary.ready)} of ${formatNumber(summary.total)} sources ready${rows}${notReady > 0 ? `. The ${formatNumber(notReady)} not ready ${notReady === 1 ? 'is' : 'are'} not searched.` : ''}`
 }
 
-// The empty thread. It says what this case can answer before the analyst types: how much evidence is ready, questions the
-// service suggests for the families present, the analyst's own last questions here, and a way out to every case when they
-// do not know where the evidence lives. Nothing is invented in the browser.
-export function CaseStart({ caseId, overview, starters, recent, onPick }) {
+// The empty thread, as a hero: what this case can answer before the analyst types (how much evidence is ready), the composer
+// itself, questions the service suggests for the families present, the analyst's own last questions here, and a way out to
+// every case when they do not know where the evidence lives. Nothing is invented in the browser.
+export function CaseStart({ caseId, overview, starters, recent, onPick, children = null }) {
   const coverage = coverageLine(overview)
   return (
-    <section className="case-start" aria-labelledby="investigate-start-title">
-      <p className="case-start__coverage">{coverage || 'Checking what this case holds…'}</p>
-      <h2 id="investigate-start-title">What do you want to verify in <LanguageText as="bdi" identifier>{caseId}</LanguageText>?</h2>
+    <section className="gi-hero case-start" aria-labelledby="investigate-start-title">
+      <p className="gi-hero__eyebrow case-start__coverage"><Sparkles aria-hidden="true" />{coverage || 'Checking what this case holds…'}</p>
+      <h1 id="investigate-start-title">What do you want to verify in <LanguageText as="bdi" identifier>{caseId}</LanguageText>?</h1>
+      {children}
       {starters.length ? (
-        <div className="case-start__block" aria-label="Questions suggested by available evidence">
-          <span className="case-start__label"><Sparkles aria-hidden="true" />Suggested from the evidence here</span>
-          <ul className="case-start__cards">
+        <div className="gi-suggest" aria-label="Questions suggested by available evidence">
+          <h2>Suggested from the evidence here</h2>
+          <ul>
             {starters.map(item => (
               <li key={`${item.scope}-${item.query}`}>
                 <button type="button" onClick={() => onPick(item)}><small>{item.family}</small><LanguageText>{item.query}</LanguageText></button>
@@ -36,10 +37,10 @@ export function CaseStart({ caseId, overview, starters, recent, onPick }) {
         </div>
       ) : null}
       {recent.length ? (
-        <div className="case-start__block">
-          <span className="case-start__label"><History aria-hidden="true" />Your last questions here</span>
-          <ul className="case-start__recent">
-            {recent.map(entry => <li key={entry.id}><button type="button" onClick={() => onPick({ query: entry.query, scope: 'all' })}><LanguageText>{entry.label || entry.query}</LanguageText></button></li>)}
+        <div className="gi-recent">
+          <h2><History aria-hidden="true" />Your last questions here</h2>
+          <ul>
+            {recent.map(entry => <li key={entry.id}><button type="button" className="gi-recent__button" onClick={() => onPick({ query: entry.query, scope: 'all' })}><LanguageText>{entry.label || entry.query}</LanguageText></button></li>)}
           </ul>
         </div>
       ) : null}
