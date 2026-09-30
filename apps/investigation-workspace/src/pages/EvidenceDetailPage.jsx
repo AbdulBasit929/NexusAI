@@ -6,6 +6,7 @@ import { getEvidence, getEvidenceContent } from '../lib/apiClient.js'
 import { displayName, formatBytes } from '../lib/format.js'
 import { LanguageText, ProcessingBadge, RouteState } from '../components/AnalystComponents.jsx'
 import { AudioViewer, DocumentViewer, ImageViewer, LineagePanel, StructuredViewer, VideoViewer } from '../components/EvidenceViewers.jsx'
+import { recordFields } from '../lib/viewerTools.js'
 import { curatedFamilyLabel } from '../lib/semanticCatalog.js'
 import { relativeAge } from '../lib/dashboardCases.js'
 import { formatNumber } from '../lib/format.js'
@@ -58,9 +59,11 @@ function CopyButton({ text, label }) {
   return <button type="button" className="evv-copy" onClick={copy} aria-label={done ? `${label} copied` : `Copy ${label}`}>{done ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}</button>
 }
 
-function Inspector({ detail, version }) {
+function Inspector({ detail, version, record }) {
   const [tab, setTab] = useState('details')
   const tabs = [['details', 'Details'], ['lineage', 'Lineage']]
+  if (record) tabs.unshift(['record', 'Record'])
+  useEffect(() => { if (record) setTab('record') }, [record])
   const refs = useRef([])
   function onKey(event, index) {
     if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
@@ -76,7 +79,11 @@ function Inspector({ detail, version }) {
         {tabs.map(([id, label], index) => <button key={id} ref={node => { refs.current[index] = node }} type="button" role="tab" id={`evv-tab-${id}`} aria-selected={tab === id} aria-controls={`evv-panel-${id}`} tabIndex={tab === id ? 0 : -1} onKeyDown={event => onKey(event, index)} onClick={() => setTab(id)}>{label}</button>)}
       </div>
       <div className="evv-panel" role="tabpanel" id={`evv-panel-${tab}`} aria-labelledby={`evv-tab-${tab}`}>
-        {tab === 'details' ? (
+        {tab === 'record' && record ? (
+          <dl className="evv-facts evv-record">
+            {recordFields(record.row, record.columns).map(field => <div key={field.key}><dt>{field.label}</dt><dd><LanguageText>{String(field.value)}</LanguageText></dd></div>)}
+          </dl>
+        ) : tab === 'details' ? (
           <dl className="evv-facts">
             {facts.map(fact => <div key={fact.id}><dt>{fact.label}</dt><dd>{fact.identifier ? <LanguageText as="bdi" identifier>{fact.value}</LanguageText> : <LanguageText>{fact.value}</LanguageText>}{fact.copy ? <CopyButton text={fact.value} label={fact.label} /> : null}</dd></div>)}
           </dl>
@@ -91,6 +98,7 @@ export default function EvidenceDetailPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [state, setState] = useState({ loading: true })
   const [content, setContent] = useState({ loading: true })
+  const [record, setRecord] = useState(null)
   useEffect(() => {
     const controller = new AbortController()
     getEvidence({ caseId, evidenceId, signal: controller.signal })
@@ -159,14 +167,14 @@ export default function EvidenceDetailPage() {
         ) : null}
         <div className="evv-body">
           <div className="evv-canvas">
-            {modality === 'structured_records' ? <StructuredViewer detail={detail} row={searchParams.get('row')} recordType={item.detected_type} /> : null}
+            {modality === 'structured_records' ? <StructuredViewer detail={detail} row={searchParams.get('row')} recordType={item.detected_type} onRowSelect={(row, columns) => setRecord({ row, columns })} /> : null}
             {modality === 'document' ? <DocumentViewer detail={detail} objectUrl={content.objectUrl} page={searchParams.get('page')} charSpan={searchParams.get('char_span')} onPageChange={changePage} /> : null}
             {modality === 'image' && content.objectUrl ? <ImageViewer detail={detail} objectUrl={content.objectUrl} citedBBox={searchParams.get('bbox')} /> : null}
             {modality === 'audio' && content.objectUrl ? <AudioViewer detail={detail} objectUrl={content.objectUrl} sourceTime={searchParams.get('source_time')} charSpan={searchParams.get('char_span')} /> : null}
             {modality === 'video' && content.objectUrl ? <VideoViewer detail={detail} objectUrl={content.objectUrl} frame={searchParams.get('frame') || searchParams.get('source_time')} /> : null}
             {modality !== 'structured_records' && !content.objectUrl ? <p className="viewer-gap">{content.loading ? 'Loading retained source…' : 'The retained source cannot be displayed inline.'}</p> : null}
           </div>
-          <Inspector detail={detail} version={searchParams.get('version')} />
+          <Inspector detail={detail} version={searchParams.get('version')} record={record} />
         </div>
       </> : null}
     </main>
