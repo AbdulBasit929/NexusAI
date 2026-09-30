@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-export function AskInput({ busy = false, initialValue = '', value, onChange, onAsk, inputRef }) {
+export function AskInput({ busy = false, initialValue = '', value, onChange, onAsk, inputRef, label = 'Ask a question about this case', placeholder = 'Ask about the selected evidence…', ariaLabel = 'Ask about case evidence', clearOnAsk = true }) {
   const [internal, setInternal] = useState(initialValue)
   const localRef = useRef(null)
   const query = value === undefined ? internal : value
@@ -27,7 +27,7 @@ export function AskInput({ busy = false, initialValue = '', value, onChange, onA
     const value = query.trim()
     if (!value || busy) return
     onAsk(value)
-    setQuery('')
+    if (clearOnAsk) setQuery('')
   }
   function handleKeyDown(event) {
     if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent?.isComposing) return
@@ -35,8 +35,8 @@ export function AskInput({ busy = false, initialValue = '', value, onChange, onA
     event.currentTarget.form?.requestSubmit()
   }
   return (
-    <form className="ask-form" onSubmit={submit} aria-label="Ask about case evidence">
-      <label htmlFor="case-question">Ask a question about this case</label>
+    <form className="ask-form" onSubmit={submit} aria-label={ariaLabel}>
+      <label htmlFor="case-question">{label}</label>
       <div className="ask-form__row">
         <textarea
           ref={node => { localRef.current = node; if (inputRef) inputRef.current = node }}
@@ -46,7 +46,7 @@ export function AskInput({ busy = false, initialValue = '', value, onChange, onA
           value={query}
           onChange={event => setQuery(event.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Ask about the selected evidence…"
+          placeholder={placeholder}
           aria-busy={busy}
           aria-describedby="case-question-hint"
         />

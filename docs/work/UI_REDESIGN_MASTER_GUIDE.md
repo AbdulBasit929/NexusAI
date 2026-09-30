@@ -129,4 +129,5 @@ The full rules (metric-card contract, copy budget, interaction and motion, layou
 | Team-lead revision | **done 2026-09-30**: recent questions moved to the command palette and the Investigate page (not the sidebar); header "Ask a question" and Appearance redesigned; see `UI_PAGE_SPECS/shell.md` |
 | S6 Dashboard, section by section | **in progress**: D1 header, D2 KPI tiles, D3 needs review, D4 readiness by case **done 2026-09-30**; **next** D5 families, D6 ingestion, D7 workbench, D8 continue (D9 filed as backend requests) |
 | S6 Dashboard | first pass built; to be redone section by section after S1 to S5 |
-| S7 to S12 | not started |
+| S7 Investigate | **in progress (2026-09-30)**: global `/investigate` now needs no case choice; one question is asked of every case with evidence and answered per case (team-lead ruling, stopgap for backend request 11). **Next:** the per-case thread page redesign (answer-first card, charts from results, citations) |
+| S8 to S12 | not started |
