@@ -51,10 +51,14 @@ test('dashboard answers named questions, links every figure to its records and k
 
   // Totals are real sums of the four mocked cases, each linking to the rows behind it.
   const totals = page.getByRole('list', { name: 'Workspace totals' })
-  await expect(totals.getByRole('listitem').filter({ hasText: 'Ready to search' })).toContainText('5 of 8')
-  await expect(totals.getByRole('listitem').filter({ hasText: 'Sources to review' })).toContainText('1')
-  await expect(totals.getByRole('listitem').filter({ hasText: 'Processing' })).toContainText('2')
-  await expect(totals.getByRole('listitem').filter({ hasText: 'Structured rows' })).toContainText('9,062')
+  // Figures count up for about 700 ms, so assert on the visible digits (auto-waits) rather than the raw text, which
+  // also holds the screen-reader copy of the final value.
+  const figure = label => totals.getByRole('listitem').filter({ hasText: label }).locator('.dash-kpi__num')
+  await expect(figure('Ready')).toHaveText('5')
+  await expect(totals.getByRole('listitem').filter({ hasText: 'Ready' })).toContainText('of 8')
+  await expect(figure('Needs review')).toHaveText('1')
+  await expect(figure('Processing')).toHaveText('2')
+  await expect(figure('Structured rows')).toHaveText('9,062')
 
   // The sidebar carries the live count of cases needing review and the global Investigate entry.
   await expect(page.getByRole('link', { name: /Dashboard, 1 case needs review/ })).toBeVisible()

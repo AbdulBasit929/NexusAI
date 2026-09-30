@@ -18,6 +18,8 @@ Real API data only. Privacy is enforced by the server. WCAG 2.2 AA in both theme
 
 ## 3. Design principles (apply to every stage)
 
+> Section 11 (modern visual and interaction language, owner direction of 2026-09-30) refines these and wins where they differ, notably principle 3 (a flat status tint is now allowed) and principle 9 (motion is richer but still functional).
+
 1. **Answer first.** Each page opens with what the investigator most needs, then supporting detail, then raw records.
 2. **One accent, one meaning.** Teal is interaction. Status (ready, processing, failed, withheld) and categorical data colours are separate sets. Never reuse a status colour as a category.
 3. **Elevation over decoration.** Four surfaces: canvas, card, raised, overlay. Gradients live on chrome, hero bands and empty states only, never behind tables or charts.
@@ -110,6 +112,10 @@ If the owner wants this session to edit `api/**` directly, they must say so expl
 - Contrast measured; keyboard path works; reduced motion respected.
 - Route code-split; no unapproved dependency.
 - Spec written, backend requests filed, `CODEX_UI_TRACK` updated.
+
+## 11. Modern visual and interaction language (owner direction, 2026-09-30)
+
+The full rules (metric-card contract, copy budget, interaction and motion, layout, sources) live in **`UI_REDESIGN_BRIEF_20260929.md` §11**, the owner's designated reference file. Every stage spec cites it. In short: one card per metric with its own status accent, size follows importance, flat tint not gradient, at most one short line of text per card, hover/focus/press interaction, accessible count-up that respects reduced motion, and no fabricated trends.
 
 ## 10. Progress tracker
 

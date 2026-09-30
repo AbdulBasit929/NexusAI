@@ -201,14 +201,18 @@
 .global-investigate__submit svg { inline-size: 18px; block-size: 18px; }
 
 /* D1 briefing header: the sentence under the title says what needs the analyst; freshness and Refresh sit together. */
-.dash-brief { display: block; }
-.dash-brief__lead { color: var(--analyst-text); font-size: 1.125rem; line-height: 1.75rem; font-weight: var(--analyst-font-weight-semibold); }
+.page-header__identity h1 { font-size: 1.5rem; line-height: 2rem; }
+.dash-brief { --brief: var(--analyst-text-secondary); display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; font-size: 1rem; line-height: 1.5rem; }
+.dash-brief__dot { inline-size: 8px; block-size: 8px; border-radius: 50%; background: var(--brief); }
+.dash-brief__lead { color: var(--brief); font-weight: var(--analyst-font-weight-semibold); }
 .dash-brief__rest { color: var(--analyst-text-secondary); }
-.dash-brief--attention .dash-brief__lead { color: var(--analyst-status-failed); }
-.dash-brief--ok .dash-brief__lead { color: var(--analyst-status-ready); }
-.dash-brief--processing .dash-brief__lead,
-.dash-brief--caution .dash-brief__lead { color: var(--analyst-status-processing); }
-.dash-brief__action { color: var(--analyst-accent); font-weight: var(--analyst-font-weight-semibold); text-decoration: underline; text-underline-offset: 3px; }
+.dash-brief__rest::before { content: '·'; margin-inline-end: 10px; color: var(--analyst-text-muted); }
+.dash-brief--attention { --brief: var(--analyst-status-failed); }
+.dash-brief--ok { --brief: var(--analyst-status-ready); }
+.dash-brief--processing,
+.dash-brief--caution { --brief: var(--analyst-status-processing); }
+.dash-brief__action { display: inline-flex; align-items: center; min-block-size: 28px; padding-inline: 10px; border: 1px solid var(--brief); border-radius: var(--analyst-radius-pill); color: var(--brief); font-size: var(--analyst-type-label-size); font-weight: var(--analyst-font-weight-semibold); text-decoration: none; transition: background-color 140ms ease-out; }
+.dash-brief__action:hover { background: color-mix(in srgb, var(--brief) 12%, transparent); }
 .dash-header-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--analyst-space-12); }
 .dash-fresh { display: grid; text-align: end; color: var(--analyst-text-secondary); font-size: var(--analyst-type-label-size); line-height: var(--analyst-type-label-line); font-variant-numeric: tabular-nums; }
 .dash-fresh small { color: var(--analyst-text-muted); font-size: var(--analyst-type-caption-size); }
@@ -220,37 +224,60 @@
 
 /* D2 summary strip: one container with hairline dividers instead of four boxes. The first cell is the point of the
    page (what needs review) and carries the only tone. */
-.dash-strip { display: grid; grid-template-columns: 1.3fr 1.5fr 1fr 1.15fr; margin: 0 0 var(--analyst-space-16); padding: 0; list-style: none; border: 1px solid var(--analyst-line); border-radius: var(--analyst-radius-lg); background: var(--analyst-surface-1); box-shadow: var(--analyst-shadow-1); overflow: hidden; }
-.dash-kpi { min-inline-size: 0; }
-.dash-kpi + .dash-kpi { border-inline-start: 1px solid var(--analyst-line); }
-.dash-kpi > a { position: relative; display: grid; align-content: start; gap: 4px; block-size: 100%; padding: var(--analyst-space-16) var(--analyst-space-20); color: var(--analyst-text); text-decoration: none; }
-.dash-kpi > a:hover { background: var(--analyst-surface-2); }
-.dash-kpi > a:focus-visible { outline: var(--analyst-focus-size) solid var(--analyst-focus); outline-offset: -3px; }
-.dash-kpi__label { display: flex; align-items: center; gap: 6px; color: var(--analyst-text-secondary); font-size: var(--analyst-type-label-size); font-weight: var(--analyst-font-weight-semibold); }
-.dash-kpi__go { inline-size: 14px; block-size: 14px; color: var(--analyst-accent); opacity: 0; transform: translateX(-3px); transition: opacity 120ms, transform 120ms; }
+.dash-cards { display: grid; grid-template-columns: 1.5fr 1.35fr 1fr 1.1fr; gap: var(--analyst-space-16); margin: 0 0 var(--analyst-space-24); padding: 0; list-style: none; }
+.dash-kpi { --tone: var(--analyst-text-muted); min-inline-size: 0; }
+.dash-kpi--failed { --tone: var(--analyst-status-failed); }
+.dash-kpi--ready { --tone: var(--analyst-status-ready); }
+.dash-kpi--processing { --tone: var(--analyst-status-processing); }
+.dash-kpi--data { --tone: var(--analyst-accent); }
+.dash-kpi--quiet { --tone: var(--analyst-text-muted); }
+/* Each card is a real link with its own tone: a 4 px accent bar, a tinted icon chip and a flat 6% tint. Hover lifts it
+   2 px; press settles it. Only transform, shadow and border colour animate. */
+.dash-kpi > a { position: relative; display: grid; align-content: start; gap: 6px; block-size: 100%; padding: var(--analyst-space-16) var(--analyst-space-16) var(--analyst-space-16) 22px; border: 1px solid var(--analyst-line); border-radius: 14px; background: var(--analyst-surface-1); background: color-mix(in srgb, var(--tone) 6%, var(--analyst-surface-1)); box-shadow: var(--analyst-shadow-1); color: var(--analyst-text); text-decoration: none; overflow: hidden; transition: transform 160ms ease-out, box-shadow 160ms ease-out, border-color 160ms ease-out; }
+.dash-kpi > a::before { content: ''; position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: 4px; background: var(--tone); }
+.dash-kpi > a:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--tone) 45%, var(--analyst-line)); box-shadow: var(--analyst-shadow-2); }
+.dash-kpi > a:active { transform: translateY(0); box-shadow: var(--analyst-shadow-1); }
+.dash-kpi > a:focus-visible { outline: var(--analyst-focus-size) solid var(--analyst-focus); outline-offset: 2px; }
+.dash-kpi__top { display: flex; align-items: center; gap: 10px; }
+.dash-kpi__chip { display: grid; place-items: center; inline-size: 30px; block-size: 30px; border-radius: 9px; background: var(--analyst-surface-2); background: color-mix(in srgb, var(--tone) 14%, var(--analyst-surface-1)); color: var(--tone); }
+.dash-kpi__chip svg { inline-size: 17px; block-size: 17px; }
+.dash-kpi__label { display: inline-flex; align-items: center; gap: 8px; color: var(--analyst-text-secondary); font-size: var(--analyst-type-label-size); font-weight: var(--analyst-font-weight-semibold); }
+.dash-kpi__go { margin-inline-start: auto; inline-size: 16px; block-size: 16px; color: var(--tone); opacity: 0; transform: translate(-3px, 3px); transition: opacity 140ms ease-out, transform 140ms ease-out; }
 .dash-kpi > a:hover .dash-kpi__go,
 .dash-kpi > a:focus-visible .dash-kpi__go { opacity: 1; transform: none; }
-.dash-kpi strong { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 6px; font-size: 2rem; line-height: 2.5rem; letter-spacing: -0.02em; font-weight: var(--analyst-font-weight-bold); font-variant-numeric: tabular-nums; }
-.dash-kpi__of { color: var(--analyst-text-muted); font-size: var(--analyst-type-body-size); font-weight: var(--analyst-font-weight-regular); letter-spacing: 0; }
-.dash-kpi__pct { margin-inline-start: auto; color: var(--analyst-text-secondary); font-size: var(--analyst-type-body-size); font-weight: var(--analyst-font-weight-semibold); letter-spacing: 0; }
-.dash-kpi small { color: var(--analyst-text-secondary); font-size: var(--analyst-type-caption-size); line-height: var(--analyst-type-caption-line); }
-.dash-kpi .dash-kpi__scope { color: var(--analyst-text); font-weight: var(--analyst-font-weight-semibold); }
-.dash-kpi--attention > a::before { content: ''; position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: 4px; background: var(--analyst-status-failed); }
-.dash-kpi--attention strong { color: var(--analyst-status-failed); }
-.dash-kpi--attention small:not(.dash-kpi__scope) { color: var(--analyst-text); font-weight: var(--analyst-font-weight-semibold); }
+.dash-kpi strong { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 6px; font-size: 1.875rem; line-height: 2.25rem; letter-spacing: -0.02em; font-weight: var(--analyst-font-weight-bold); font-variant-numeric: tabular-nums; }
+.dash-kpi--hero strong { font-size: 2.5rem; line-height: 2.75rem; }
+.dash-kpi--failed strong { color: var(--analyst-status-failed); }
 .dash-kpi--quiet strong { color: var(--analyst-text-muted); }
-.dash-kpi--quiet .dash-kpi__label { color: var(--analyst-text-muted); }
-.dash-strip .proportion-bar { block-size: 6px; margin-block: 2px; }
+.dash-kpi__of { color: var(--analyst-text-muted); font-size: var(--analyst-type-body-size); font-weight: var(--analyst-font-weight-regular); letter-spacing: 0; }
+.dash-kpi__pct { margin-inline-start: auto; padding: 1px 8px; border-radius: var(--analyst-radius-pill); background: var(--analyst-surface-2); background: color-mix(in srgb, var(--tone) 14%, var(--analyst-surface-1)); color: var(--analyst-text); font-size: var(--analyst-type-label-size); font-weight: var(--analyst-font-weight-semibold); letter-spacing: 0; }
+.dash-kpi small { color: var(--analyst-text-secondary); font-size: var(--analyst-type-caption-size); line-height: var(--analyst-type-caption-line); }
+.dash-kpi--failed small:not(.dash-kpi__scope) { color: var(--analyst-text); font-weight: var(--analyst-font-weight-semibold); }
+.dash-kpi .dash-kpi__scope { color: var(--analyst-text); font-weight: var(--analyst-font-weight-semibold); }
+.dash-cards .proportion-bar { block-size: 6px; margin-block: 2px; }
+/* The pulse appears only while real processing is in flight. */
+.dash-kpi__pulse { position: relative; inline-size: 8px; block-size: 8px; border-radius: 50%; background: var(--analyst-status-processing); }
+.dash-kpi__pulse::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: var(--analyst-status-processing); animation: dash-pulse 1.6s ease-out infinite; }
+@keyframes dash-pulse { from { transform: scale(1); opacity: 0.6; } to { transform: scale(2.8); opacity: 0; } }
+/* The target of a card click flashes once so the eye finds it; the flash is a shadow ring, not layout. */
+.dash-flash { animation: dash-flash 1100ms ease-out; border-radius: var(--analyst-radius-lg); }
+@keyframes dash-flash { from { box-shadow: 0 0 0 3px var(--analyst-accent); } to { box-shadow: 0 0 0 3px transparent; } }
+#dashboard-attention:focus,
+#dashboard-readiness:focus,
+#dashboard-families:focus { outline: none; }
 
 @media (max-width: 1279px) {
-  .dash-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .dash-kpi:nth-child(odd) { border-inline-start: 0; }
-  .dash-kpi:nth-child(n + 3) { border-block-start: 1px solid var(--analyst-line); }
+  .dash-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .dash-kpi--hero { grid-column: 1 / -1; }
 }
 @media (max-width: 1023px) { .dash-grid, .dash-grid--wide-left { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 640px) {
-  .dash-kpi > a { padding: var(--analyst-space-12) var(--analyst-space-16); }
+  .dash-brief__rest::before { content: none; }
+  .dash-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--analyst-space-12); }
+  .dash-kpi:nth-child(2) { grid-column: 1 / -1; }
+  .dash-kpi > a { padding: var(--analyst-space-12) var(--analyst-space-12) var(--analyst-space-12) 18px; }
   .dash-kpi strong { font-size: 1.625rem; line-height: 2rem; }
+  .dash-kpi--hero strong { font-size: 2.25rem; line-height: 2.5rem; }
   .dash-header-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--analyst-space-8) var(--analyst-space-12); inline-size: 100%; }
   .dash-fresh { text-align: start; }
   .dash-header-actions .page-header__cta { grid-column: 1 / -1; justify-content: center; }
@@ -261,7 +288,13 @@
   .page-header__actions { inline-size: 100%; }
   .page-header__actions > * { flex: 1 1 auto; justify-content: center; }
 }
-@media (prefers-reduced-motion: reduce) { .dash-kpi__go { transition: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .dash-kpi > a { transition: border-color 160ms ease-out; }
+  .dash-kpi > a:hover { transform: none; }
+  .dash-kpi__go { transition: none; transform: none; }
+  .dash-kpi__pulse::after { animation: none; }
+  .dash-flash { animation: none; box-shadow: 0 0 0 3px var(--analyst-accent); }
+}
 
 .is-spinning { animation: dash-spin 1s linear infinite; }
 @keyframes dash-spin { to { transform: rotate(360deg); } }

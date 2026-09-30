@@ -1,12 +1,15 @@
-import { describe, expect, it, vi } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { act, render, renderHook, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { DashboardHeader, ageText, briefing, freshnessText, isStale, updatedText } from './DashboardHeader.jsx'
-import { KpiTiles, kpiTiles } from './KpiTiles.jsx'
+import { KpiTiles, kpiTiles, useCountUp } from './KpiTiles.jsx'
 
 const kpis = { cases: 2, reported: 2, unreported: 0, sources: 55, ready: 53, processing: 0, failed: 2, gaps: 1, review: 3, reviewCases: 1, acceptedRows: 23080 }
 const show = ui => render(<MemoryRouter>{ui}</MemoryRouter>)
+const numbers = container => [...container.querySelectorAll('.dash-kpi__num')].map(node => node.textContent)
+
+afterEach(() => vi.unstubAllGlobals())
 
 describe('D1 briefing header', () => {
   const at = new Date('2026-09-30T16:45:00Z')
@@ -26,41 +29,40 @@ describe('D1 briefing header', () => {
     expect(isStale(null, at)).toBe(false)
   })
 
-  it('pairs time and age, warns in words when stale, and separates "reading" from "no successful read"', () => {
-    expect(freshnessText({ lastUpdated: at, loading: false, now: new Date('2026-09-30T16:46:00Z') })).toBe('Updated 16:45 · 1 min ago')
-    expect(freshnessText({ lastUpdated: at, loading: false, now: new Date('2026-09-30T17:15:00Z') })).toBe('Updated 16:45 · 30 min ago, may be out of date')
+  it('keeps freshness to a few words, warns in words when stale, and separates "reading" from "no successful read"', () => {
+    expect(freshnessText({ lastUpdated: at, loading: false, now: new Date('2026-09-30T16:46:00Z') })).toBe('Updated 1 min ago')
+    expect(freshnessText({ lastUpdated: at, loading: false, now: new Date('2026-09-30T17:15:00Z') })).toBe('Updated 30 min ago · out of date')
     expect(freshnessText({ lastUpdated: null, loading: true, now: at })).toBe('Reading…')
     expect(freshnessText({ lastUpdated: null, loading: false, now: at })).toBe('No successful read yet')
   })
 
-  it('leads with what needs the analyst, with units, and only states what the data says', () => {
+  it('leads with what needs the analyst in a few words and only states what the data says', () => {
     const attention = briefing(kpis, { loading: false })
     expect(attention.tone).toBe('attention')
-    expect(attention.sentences).toEqual(['3 sources need review in 1 of 2 cases.', '53 of 55 are ready to search.'])
-    expect(attention.action).toEqual({ label: 'Review them', href: '#dashboard-attention' })
-    expect(briefing({ ...kpis, review: 1, gaps: 0, failed: 1, reviewCases: 1 }, { loading: false }).sentences[0]).toBe('1 source needs review in 1 of 2 cases.')
+    expect(attention.sentences).toEqual(['3 sources need review', '53 of 55 ready'])
+    expect(attention.action).toEqual({ label: 'Review', href: '#dashboard-attention' })
+    expect(briefing({ ...kpis, review: 1 }, { loading: false }).sentences[0]).toBe('1 source needs review')
   })
 
   it('reads well when nothing needs review, when work is in flight, and when there is no evidence', () => {
     const clear = { ...kpis, review: 0, failed: 0, gaps: 0, reviewCases: 0, ready: 55 }
-    expect(briefing(clear, { loading: false })).toMatchObject({ tone: 'ok', sentences: ['All 55 sources are ready to search.'], action: null })
-    expect(briefing({ ...clear, ready: 50, processing: 5 }, { loading: false })).toMatchObject({ tone: 'processing', sentences: ['5 sources are still processing.', '50 of 55 are ready to search.'] })
-    expect(briefing({ ...clear, sources: 0, ready: 0 }, { loading: false }).sentences).toEqual(['No evidence has been added yet.'])
+    expect(briefing(clear, { loading: false })).toMatchObject({ tone: 'ok', sentences: ['All 55 sources ready'], action: null })
+    expect(briefing({ ...clear, ready: 50, processing: 5 }, { loading: false })).toMatchObject({ tone: 'processing', sentences: ['5 sources processing', '50 of 55 ready'] })
+    expect(briefing({ ...clear, sources: 0, ready: 0 }, { loading: false }).sentences).toEqual(['No evidence yet'])
   })
 
   it('never claims a state it does not know: loading, unreadable and partial coverage are stated plainly', () => {
-    expect(briefing(kpis, { loading: true })).toMatchObject({ tone: 'neutral', sentences: ['Reading case status…'] })
-    expect(briefing({ ...kpis, reported: 0, unreported: 2 }, { loading: false })).toMatchObject({ tone: 'caution', sentences: ['Case status could not be read, so no figures are shown.'] })
-    const partial = briefing({ ...kpis, cases: 4, reported: 3, unreported: 1 }, { loading: false })
-    expect(partial.sentences.at(-1)).toBe('Showing 3 of 4 cases; 1 could not be read.')
+    expect(briefing(kpis, { loading: true })).toMatchObject({ tone: 'neutral', sentences: ['Reading status…'] })
+    expect(briefing({ ...kpis, reported: 0, unreported: 2 }, { loading: false })).toMatchObject({ tone: 'caution', sentences: ['Status unavailable'] })
+    expect(briefing({ ...kpis, cases: 4, reported: 3, unreported: 1 }, { loading: false }).sentences.at(-1)).toBe('3 of 4 cases reporting')
   })
 
-  it('has one h1, a compact Refresh that reports progress, and Add evidence', async () => {
+  it('has one h1, one short line, a compact Refresh that reports progress, and Add evidence', async () => {
     const onRefresh = vi.fn()
     const { rerender } = show(<DashboardHeader kpis={kpis} loading={false} lastUpdated={new Date()} processing={false} refreshing={false} onRefresh={onRefresh} />)
     expect(screen.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeTruthy()
-    expect(screen.getByText('3 sources need review in 1 of 2 cases.')).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Review them' }).getAttribute('href')).toBe('#dashboard-attention')
+    expect(screen.getByText('3 sources need review')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Review' }).getAttribute('href')).toBe('#dashboard-attention')
     expect(screen.getByRole('link', { name: 'Add evidence' }).getAttribute('href')).toBe('/cases/new')
     await userEvent.setup().click(screen.getByRole('button', { name: 'Refresh' }))
     expect(onRefresh).toHaveBeenCalledOnce()
@@ -72,17 +74,25 @@ describe('D1 briefing header', () => {
 
   it('mentions polling only while it is real', () => {
     show(<DashboardHeader kpis={kpis} loading={false} lastUpdated={new Date()} processing refreshing={false} onRefresh={() => {}} />)
-    expect(screen.getByText('Refreshes every 15 s while evidence is processing')).toBeTruthy()
+    expect(screen.getByText('Refreshing every 15 s')).toBeTruthy()
   })
 })
 
-describe('D2 summary strip', () => {
-  it('orders four figures by priority, with the review breakdown, and links each to its section', () => {
+describe('D2 metric cards', () => {
+  it('orders four cards by priority, marks the first as the hero, and links each to its section', () => {
     const tiles = kpiTiles(kpis)
-    expect(tiles.map(tile => tile.label)).toEqual(['Sources to review', 'Ready to search', 'Processing', 'Structured rows'])
+    expect(tiles.map(tile => tile.label)).toEqual(['Needs review', 'Ready', 'Processing', 'Structured rows'])
     expect(tiles.map(tile => tile.href)).toEqual(['#dashboard-attention', '#dashboard-readiness', '#dashboard-readiness', '#dashboard-families'])
-    expect(tiles[0]).toMatchObject({ value: 3, detail: '2 failed · 1 missing retained copy', tone: 'attention' })
-    expect(tiles[1]).toMatchObject({ value: 53, valueSuffix: 'of 55', percent: '96%', bar: { total: 55, ready: 53, processing: 0, failed: 2 } })
+    expect(tiles.filter(tile => tile.hero).map(tile => tile.id)).toEqual(['review'])
+    expect(tiles[0]).toMatchObject({ value: 3, line: '2 failed · 1 missing copy', tone: 'failed' })
+    expect(tiles[1]).toMatchObject({ value: 53, valueSuffix: 'of 55', percent: '96%', tone: 'ready', bar: { total: 55, ready: 53, processing: 0, failed: 2 } })
+  })
+
+  it('gives each metric its own tone, and lets tone follow the data', () => {
+    expect(kpiTiles({ ...kpis, review: 0, failed: 0, gaps: 0 })[0]).toMatchObject({ tone: 'ready', line: 'All clear' })
+    expect(kpiTiles(kpis)[2]).toMatchObject({ tone: 'quiet', line: 'Idle', live: false })
+    expect(kpiTiles({ ...kpis, processing: 2 })[2]).toMatchObject({ tone: 'processing', line: 'In progress', live: true })
+    expect(kpiTiles(kpis)[3].tone).toBe('data')
   })
 
   it('floors the ready percentage so a real failure is never rounded away', () => {
@@ -90,39 +100,92 @@ describe('D2 summary strip', () => {
     expect(kpiTiles({ ...kpis, sources: 55, ready: 55, failed: 0 })[1].percent).toBe('100%')
   })
 
-  it('tones the first cell only when there is something to review, and quiets Processing at zero', () => {
-    expect(kpiTiles({ ...kpis, review: 0, failed: 0, gaps: 0 })[0]).toMatchObject({ tone: undefined, detail: 'Nothing to review' })
-    expect(kpiTiles(kpis)[2].quiet).toBe(true)
-    expect(kpiTiles({ ...kpis, processing: 2 })[2].quiet).toBe(false)
-  })
-
-  it('renders one strip, not four cards, with exact figures and a bar with a text equivalent', () => {
-    const { container } = render(<KpiTiles kpis={kpis} loading={false} />)
+  it('renders four separate cards with little text: a label, a figure and at most one short line', () => {
+    const { container } = show(<KpiTiles kpis={kpis} loading={false} animate={false} />)
     const list = screen.getByRole('list', { name: 'Workspace totals' })
     expect(within(list).getAllByRole('listitem')).toHaveLength(4)
-    expect(container.querySelectorAll('.dash-kpi__icon')).toHaveLength(0)
-    expect(container.textContent).toContain('23,080')
-    expect(container.textContent).toContain('53 of 55')
-    expect(container.textContent).toContain('2 failed · 1 missing retained copy')
+    expect(numbers(container)).toEqual(['3', '53', '0', '23,080'])
+    expect(container.textContent).toContain('2 failed · 1 missing copy')
+    expect(container.textContent).toContain('of 55')
+    expect(container.textContent).toContain('96%')
+    expect(container.querySelectorAll('.dash-kpi small')).toHaveLength(3)
     expect(screen.getByRole('img', { name: 'Evidence readiness across all cases: ready 53, processing 0, failed 2, other 0' })).toBeTruthy()
+    // Long definitions live in the tooltip, not as body copy.
+    expect(screen.getByRole('link', { name: /Needs review/ }).getAttribute('title')).toBe('2 failed sources and 1 completed jobs missing their retained copy')
+  })
+
+  it('exposes the final figure to assistive technology while the animated digits are hidden from it', () => {
+    const { container } = show(<KpiTiles kpis={kpis} loading={false} animate={false} />)
+    for (const digits of container.querySelectorAll('.dash-kpi__num')) expect(digits.getAttribute('aria-hidden')).toBe('true')
+    expect(screen.getByRole('link', { name: /Needs review.*3/ })).toBeTruthy()
+    expect(screen.getByRole('link', { name: /Structured rows.*23,080/ })).toBeTruthy()
   })
 
   it('shows an ellipsis while unknown, an em dash when nothing reported, and never a measured zero', () => {
-    const { container, rerender } = render(<KpiTiles kpis={{ ...kpis, review: 0, ready: 0, sources: 0 }} loading />)
-    for (const value of container.querySelectorAll('.dash-kpi strong')) expect(value.textContent).toBe('…')
+    const { container, rerender } = show(<KpiTiles kpis={{ ...kpis, review: 0, ready: 0, sources: 0 }} loading animate={false} />)
+    expect(numbers(container)).toEqual(['…', '…', '…', '…'])
     expect(screen.getByRole('list', { name: 'Workspace totals' }).getAttribute('aria-busy')).toBe('true')
-    rerender(<KpiTiles kpis={{ ...kpis, reported: 0, unreported: 2, review: 0, ready: 0, sources: 0, processing: 0, acceptedRows: 0 }} loading={false} />)
-    for (const value of container.querySelectorAll('.dash-kpi strong')) expect(value.textContent).toBe('—')
-    expect(container.textContent).toContain('Status unavailable')
+    rerender(<MemoryRouter><KpiTiles kpis={{ ...kpis, reported: 0, unreported: 2, review: 0, ready: 0, sources: 0, processing: 0, acceptedRows: 0 }} loading={false} animate={false} /></MemoryRouter>)
+    expect(numbers(container)).toEqual(['—', '—', '—', '—'])
+    expect(container.textContent).toContain('Unavailable')
     expect(screen.queryByRole('img')).toBeNull()
   })
 
-  it('names partial coverage on each cell and says "No sources added yet" instead of an empty bar', () => {
-    const partial = render(<KpiTiles kpis={{ ...kpis, cases: 4, reported: 3, unreported: 1 }} loading={false} />)
-    expect(partial.container.textContent).toContain('Across 3 of 4 cases')
+  it('names partial coverage on each card and says "No sources yet" instead of an empty bar', () => {
+    const partial = show(<KpiTiles kpis={{ ...kpis, cases: 4, reported: 3, unreported: 1 }} loading={false} animate={false} />)
+    expect(partial.container.textContent).toContain('3 of 4 cases')
     partial.unmount()
-    const empty = render(<KpiTiles kpis={{ ...kpis, review: 0, failed: 0, gaps: 0, ready: 0, sources: 0, processing: 0, acceptedRows: 0 }} loading={false} />)
-    expect(empty.container.textContent).toContain('No sources added yet')
+    const empty = show(<KpiTiles kpis={{ ...kpis, review: 0, failed: 0, gaps: 0, ready: 0, sources: 0, processing: 0, acceptedRows: 0 }} loading={false} animate={false} />)
+    expect(empty.container.textContent).toContain('No sources yet')
     expect(screen.queryByRole('img')).toBeNull()
+  })
+
+  it('lands a card click on its section: scrolls, moves focus there and flashes it once', async () => {
+    const scrollIntoView = vi.fn()
+    Element.prototype.scrollIntoView = scrollIntoView
+    show(<><KpiTiles kpis={kpis} loading={false} animate={false} /><div id="dashboard-attention">Section</div></>)
+    await userEvent.setup().click(screen.getByRole('link', { name: /Needs review/ }))
+    const target = document.getElementById('dashboard-attention')
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' })
+    expect(document.activeElement).toBe(target)
+    expect(target.classList.contains('dash-flash')).toBe(true)
+  })
+
+  it('jumps instantly under reduced motion', async () => {
+    vi.stubGlobal('matchMedia', () => ({ matches: true }))
+    const scrollIntoView = vi.fn()
+    Element.prototype.scrollIntoView = scrollIntoView
+    show(<><KpiTiles kpis={kpis} loading={false} animate={false} /><div id="dashboard-readiness">Section</div></>)
+    await userEvent.setup().click(screen.getByRole('link', { name: /Ready/ }))
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'auto', block: 'start' })
+  })
+})
+
+describe('count-up', () => {
+  function withClock() {
+    let now = 0
+    const frames = []
+    vi.stubGlobal('requestAnimationFrame', callback => { frames.push(callback); return frames.length })
+    vi.stubGlobal('cancelAnimationFrame', () => {})
+    vi.spyOn(globalThis.performance, 'now').mockImplementation(() => now)
+    return { advanceTo: time => { now = time; act(() => { const pending = frames.splice(0); for (const frame of pending) frame(time) }) } }
+  }
+
+  it('counts up with ease-out and lands exactly on the target', () => {
+    const clock = withClock()
+    const { result } = renderHook(() => useCountUp(100))
+    expect(result.current).toBe(0)
+    clock.advanceTo(350)
+    expect(result.current).toBeGreaterThan(50)
+    expect(result.current).toBeLessThan(100)
+    clock.advanceTo(800)
+    expect(result.current).toBe(100)
+  })
+
+  it('writes the final value at once under reduced motion or when animation is off', () => {
+    vi.stubGlobal('matchMedia', () => ({ matches: true }))
+    expect(renderHook(() => useCountUp(42)).result.current).toBe(42)
+    vi.unstubAllGlobals()
+    expect(renderHook(() => useCountUp(42, { animate: false })).result.current).toBe(42)
   })
 })

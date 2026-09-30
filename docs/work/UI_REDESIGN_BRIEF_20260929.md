@@ -180,3 +180,72 @@ supports it.
 
 Stop and ask the owner when a design needs data the API lacks (and write the backend request), when
 tests fail for a reason you don't understand, or when a choice would break accessibility.
+
+Owner update, 2026-09-30: git commits and pushes to the working branch are allowed again, so progress can be
+reviewed on the owner's machine. Force pushes, resets and hook bypasses stay off limits.
+
+## 11. Modern visual and interaction language (owner direction, 2026-09-30)
+
+Why this section exists. The owner rejected the first Dashboard header and the flat "summary strip" that replaced
+it. What the owner liked was the earlier row of individual metric cards with a status accent (red over "Needs
+review") and its interactivity. The direction is: modern and up to date, less text, appropriately sized type, and
+interaction that feels alive, applied the same way to every section of every page. Every spec cites this section.
+It refines §6's chart rules only for presentation; the chart-selection table there still decides the encoding.
+
+### 11.1 Cards, hierarchy and accents (the metric-card contract)
+1. One card per metric. A metric that decides an action gets its own card. Never merge unrelated metrics into one
+   strip or table row.
+2. Size is importance (bento rule). The card that carries the page's job is visibly larger; supporting cards are
+   smaller. Never make every tile equal.
+3. Each metric has its own accent, and the accent means one thing. A left accent bar (3 to 4 px), a tinted icon
+   chip and a very light flat tint of the card: Needs review is failed red, Ready is ready green, Processing is
+   processing amber, data volume is accent teal. Tone follows the data: zero drops to a quiet neutral, or to green
+   when zero is the good outcome ("All clear"). Colour never carries meaning alone; the words do too.
+4. Flat tint, not gradient. The tint is one flat colour mixed at 4 to 8% into the card surface. No gradient
+   backgrounds, no glass, no blobs behind data. Gradients stay on chrome, hero bands and empty states.
+5. Quiet chrome. 1 px hairline borders, 12 to 14 px radius, soft low shadows (`--analyst-shadow-1`, deepening on
+   hover), tabular numerals for every figure.
+
+### 11.2 Less text (copy budget)
+- Page header: the title plus one line of about eight words, computed from data ("3 sources need review · 53 of 55
+  ready"). No paragraph explaining what the page is.
+- Metric card: a one or two word label, the value, and at most one short line (six words or fewer). Long
+  definitions go in a `title` tooltip and the accessible name, not visible body copy.
+- Card headings are the analyst's question in plain words. Descriptions are one short sentence, or omitted when the
+  heading already says it. Empty and error states are one sentence and one action.
+- Type scale: page title 1.5 rem; card value 1.75 to 2 rem tabular; lead line 1 rem; label 0.8125 rem; caption
+  0.75 rem. Text the analyst must read to act is never below 0.8125 rem.
+- If a sentence repeats what the number already shows, delete the sentence.
+
+### 11.3 Interaction and motion
+- Everything clickable looks and behaves it: hover lifts the card 2 px with a deeper shadow and a tone-coloured
+  border, the arrow slides in, press settles it, keyboard focus shows a 3 px ring at 3:1. Cards are real links, so
+  middle-click and copy-link work.
+- A click goes somewhere and lands well: in-page jumps scroll smoothly (instantly under reduced motion), move focus
+  to the target and flash it once so the eye finds it.
+- Numbers count up on first load and when a value changes: 600 to 800 ms, ease-out, no overshoot. The animated
+  digits are `aria-hidden` and the final value is exposed as static text. Nothing announces intermediate values.
+- Animate only `transform`, `opacity`, colour and shadow. Never width, height, top or left.
+- Durations: hover and press 120 to 180 ms, reveal 200 to 240 ms, count-up 600 to 800 ms. Under
+  `prefers-reduced-motion` everything is removed or reduced to an opacity fade.
+- No fabricated motion or data: no trend arrows, deltas or sparklines without a real time series (backend request
+  3). A pulse or spinner means real work in flight.
+
+### 11.4 Layout
+Bento-style modular grid on a 12-column base: the hero tile spans more columns than support tiles, tiles align to one
+grid, gaps are 16 px (24 px between bands). Two columns by two rows at tablet width and one column at phone width
+with the hero first. Summary first; detail is one click or hover away.
+
+### 11.5 A section is "modern" when
+It has a clear hero; each metric's tone matches its meaning; hover, focus and press are visibly different; counts
+animate and respect reduced motion; no sentence repeats what a number already says; contrast is measured in both
+themes; and it is checked at 1440, 820 and 375.
+
+### 11.6 Sources for this direction
+Read as search summaries only (the primary sites of Vercel, Grafana, Primer and W3C were unreachable from the build
+environment), so check the originals when access allows.
+- Bento grids, size as importance, restraint and solid backgrounds: [Bento Grid Dashboard Design: Complete Guide 2026](https://www.orbix.studio/blogs/bento-grid-dashboard-design-aesthetics), [UI Design Trends 2026](https://rajeshrnair.com/blog/design/ui-ux/ui-design-trends-2026-bento-grids-glassmorphism.html), [43 SaaS Bento Grid UI Design Examples](https://www.saasframe.io/patterns/bento-grid).
+- KPI card micro-interactions (hover lift, count-up near 800 ms, transform and opacity only): [Mastering Card UI Design Patterns for 2026](https://www.layoutscene.com/card-ui-design-patterns-guide-2026/), [CSS Micro Animations and Micro-Interactions 2026](https://www.skillvalix.com/blog/css-animations-micro-interactions-guide), [KPI card with increment animation](https://codefronts.com/motion/css-number-counter-animations/dashboard-kpi-metric-card-with-increment-animation/).
+- Restrained systems (quiet shadows, soft radii, layered surfaces, sharp numerals): [Vercel Geist overview](https://www.designsystems.one/design-systems/vercel-geist), [Vercel design system for React](https://www.shadcn.io/design/vercel).
+- Accessible counters and reduced motion: [prefers-reduced-motion for accessible animation](https://blog.openreplay.com/prefers-reduced-motion-accessible-animation/), [MDN prefers-reduced-motion](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion), [An accessible animated counter](https://savvasstephanides.hashnode.dev/lets-create-an-accessible-animated-counter).
+- Exception-first headline, honest freshness, missing is not zero: `UI_PAGE_SPECS/dashboard.md`.

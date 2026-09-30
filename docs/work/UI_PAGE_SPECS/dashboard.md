@@ -39,23 +39,22 @@ Sources read as search summaries only (the primary pages of Primer, Grafana and 
 6. D8 Continue (resume questions).
 7. Scope line.
 
-## D1 Briefing header (redesigned 2026-09-30)
-Question: what needs me now, and how fresh is this? The first version (generic description, Scope/Updated facts, two large buttons, about 180 px tall) told the analyst what a dashboard is and nothing about their case. It is replaced by a **briefing**: the title, then one computed sentence that leads with what needs review, in words and with units.
-- Sentence, computed only from figures already on the page: "3 sources need review in 1 of 2 cases." then "Review them" (to D3), then "53 of 55 are ready to search." Variants: still processing ("5 sources are still processing."), nothing to review ("All 55 sources are ready to search."), no evidence, still reading, unreadable ("Case status could not be read, so no figures are shown."), and partial coverage ("Showing 3 of 4 cases; 1 could not be read."). It never asserts a state the data does not show. Tone comes from the words first and colour second (failed, ready, processing).
-- Freshness and Refresh sit together, right-aligned: "Updated 05:27 · just now" (age floored; older than 5 minutes adds ", may be out of date"; "No successful read yet" is distinct from "Reading…") and a compact 44 px icon Refresh with an accessible name, then the one primary action, Add evidence. The polling note appears only while polling is real.
-- The static description and the Scope fact are gone; scope now appears only when it is partial. Height about 110 px.
-- Mobile: freshness and the refresh icon share a row; Add evidence is full width below.
+## D1 Briefing header (third version, 2026-09-30; rules: UI_REDESIGN_BRIEF §11)
+Question: what needs me now, and how fresh is this? History: the first version (generic description, Scope/Updated facts, two big buttons, about 180 px) said nothing about the case; the second put a full sentence with a wrapping link under the title. This one obeys the copy budget: the title (1.5 rem) and **one short line**, about 110 px in all.
+- The line, computed only from figures already on the page: a tone dot, "3 sources need review" (red), a **Review** pill that jumps to D3, then "· 53 of 55 ready". Variants: "5 sources processing" (amber, pill "Progress"), "All 55 sources ready" (green), "No evidence yet", "Reading status…", "Status unavailable" (amber), and an appended "3 of 4 cases reporting" when coverage is partial. It never asserts a state the data does not show, and words carry the meaning as well as colour.
+- Right side: "Updated just now" (tooltip has the clock time; age is floored; older than 5 minutes adds "· out of date" in amber; "No successful read yet" is distinct from "Reading…"), a 44 px icon Refresh with an accessible name, then the one primary action, Add evidence. "Refreshing every 15 s" appears only while polling is real. The live region announces the clock time, never the ticking age.
+- Phone: the line wraps without a dangling separator; freshness and Refresh share a row; Add evidence is full width.
 
-## D2 Summary strip (redesigned 2026-09-30)
-Question: how big is the problem, and how much can I use? Four boxes with icon chips, arrows and a tinted gradient gave every figure equal weight, spent a whole tile on "Processing 0", and left three unlabeled numbers (3 in the tile, 1 and 2 in the sidebar) that disagreed. Replaced by **one bordered strip with hairline dividers**; the first cell is the point of the page.
-| Cell | Content |
-|---|---|
-| Sources to review (hero) | count with an accent rule and the only tone, plus the breakdown "2 failed · 1 missing retained copy" (or "Nothing to review") |
-| Ready to search | "53 of 55", the percentage (floored, so 999 of 1,000 reads 99%, never 100%), and a slim composition bar |
-| Processing | quiet (muted) at zero; "Not searchable until they finish" when not |
-| Structured rows | accepted rows |
-Units are in the labels. Each cell links to its section; the arrow appears on hover and focus only. Unknown is an ellipsis, nothing reported is a dash with "Status unavailable", partial coverage is named on each cell ("Across 3 of 4 cases"), and zero sources says "No sources added yet" with no empty bar. Two columns by two rows below 1280 px. No sparklines or deltas: the API has no history (backend request 3).
-Known cross-page inconsistency: the sidebar Dashboard badge counts cases needing review (1) while the strip counts sources (3). The briefing sentence bridges them ("3 sources ... in 1 of 2 cases"); the badge itself belongs to the shell and is noted for the shell review.
+## D2 Metric cards (third version, 2026-09-30; rules: UI_REDESIGN_BRIEF §11)
+Question: how big is the problem, and how much can I use? The owner liked the original individual cards with a red accent on review, and rejected the flat strip that replaced them. This version restores one card per metric and makes it modern and interactive, with very little text.
+| Card | Tone | Figure | Line (six words or fewer) |
+|---|---|---|---|
+| Needs review (hero, widest, largest figure) | failed red; green "All clear" when zero | sources to review | "2 failed · 1 missing copy" (tooltip: the full definition) |
+| Ready | ready green | "53 of 55" with a floored percentage chip and a slim composition bar | none; "No sources yet" when empty |
+| Processing | amber with a live pulse while work is in flight; quiet neutral at zero | sources in flight | "In progress" or "Idle" |
+| Structured rows | data teal | accepted rows | "Accepted" |
+Each card has a 4 px accent bar, a tinted icon chip and a flat 6% tint (no gradient). Hover lifts it 2 px with a deeper shadow and a tone-coloured border and slides an arrow in; press settles it; keyboard focus shows a 3 px ring. Figures count up over about 700 ms with ease-out (the animated digits are `aria-hidden`; the final value is exposed separately; reduced motion writes the final value at once). A click smooth-scrolls to its section, moves focus there and flashes it once (instant under reduced motion). Unknown is an ellipsis, nothing reported is a dash with "Unavailable", partial coverage is named on each card ("3 of 4 cases"), and zero sources draws no empty bar. Layout: four columns with a wider hero at 1280 px and up; at tablet the hero takes a full row above three cards; on phones the hero and Ready take full rows and the last two share one. No sparklines or deltas: the API has no history (backend request 3).
+Known cross-page inconsistency: the sidebar Dashboard badge counts cases needing review (1) while the card counts sources (3). The badge belongs to the shell and is noted for the shell review.
 
 ## D3 Needs review
 Question: which sources need review before I rely on results? Encoding: a queue (list of named things, not a chart). Row: severity icon plus problem word, source name (link to Evidence detail), reason sentence from the service if it gave one, case (link), and a "Review" link. Worst first (failed, then missing copy). Header states the count. Footer discloses completeness: while the status only lists each case's most recent items it says so and links to each case's Evidence list filtered to failed; when request 13 lands it becomes complete and paginated. Empty: a positive, plain sentence. Loading: skeleton rows.
