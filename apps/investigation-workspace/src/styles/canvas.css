@@ -16,7 +16,6 @@
 }
 .workspace-content > main.new-case-page,
 .workspace-content > main.settings-page,
-.workspace-content > main.global-investigate { --page-max: var(--analyst-content-reading); }
 .workspace-content > main:focus,
 .workspace-content > main:focus-visible { outline: none; }
 

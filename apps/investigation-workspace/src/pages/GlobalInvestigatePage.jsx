@@ -5,6 +5,7 @@ import { AppShell } from '../components/CaseShell.jsx'
 import { AskInput } from '../components/AskInput.jsx'
 import { EmptyState, LanguageText } from '../components/AnalystComponents.jsx'
 import { AcrossResults } from './investigate/AcrossResults.jsx'
+import { EvidencePanel } from './investigate/EvidencePanel.jsx'
 import { CaseRail } from './investigate/CaseRail.jsx'
 import { askCase, configuredCaseIds, getQueryCapabilities } from '../lib/apiClient.js'
 import { askAcrossCases, planSearch, sortOutcomes } from '../lib/acrossCases.js'
@@ -40,6 +41,7 @@ export default function GlobalInvestigatePage() {
   const [draft, setDraft] = useState(searchParams.get('question') || '')
   const [chosen, setChosen] = useState([])
   const [run, setRun] = useState(null)
+  const [panelCase, setPanelCase] = useState(null)
   const [suggestions, setSuggestions] = useState([])
   const controller = useRef(null)
   const composer = useRef(null)
@@ -71,6 +73,7 @@ export default function GlobalInvestigatePage() {
     controller.current?.abort()
     controller.current = new AbortController()
     const { signal } = controller.current
+    setPanelCase(null)
     setRun({ query, caseIds: [...new Set([...keep.map(outcome => outcome.caseId), ...caseIds])], skipped: plan.skipped, outcomes: keep, busy: true })
     const outcomes = await askAcrossCases({
       caseIds,
@@ -141,16 +144,17 @@ export default function GlobalInvestigatePage() {
 
   return (
     <AppShell>
-      <main id="workspace-main" className={`catalog-page global-investigate gi${run ? ' gi--results' : ' gi--landing'}`} tabIndex={-1}>
+      <main id="workspace-main" className={`catalog-page gi${run ? ' gi--results' : ' gi--landing'}`} tabIndex={-1}>
         {rows.length ? (
           run ? (
-            <div className="gi-layout">
+            <div className={`gi-layout${panelCase ? ' gi-layout--panel' : ''}`}>
               <div className="gi-layout__bar">
                 <h1 className="gi-layout__title">Ask a question</h1>
                 {composerBlock}
               </div>
               <CaseRail run={run} coverage={coverage} />
-              <div className="gi-layout__main"><AcrossResults run={run} coverage={coverage} onRetryCase={retryCase} /></div>
+              <div className="gi-layout__main"><AcrossResults run={run} coverage={coverage} onRetryCase={retryCase} panelCase={panelCase} onEvidence={setPanelCase} /></div>
+              {panelCase && run.outcomes.find(outcome => outcome.caseId === panelCase) ? <EvidencePanel turn={{ id: panelCase, query: run.query, presentation: run.outcomes.find(outcome => outcome.caseId === panelCase).presentation }} caseLabel={panelCase} onClose={() => setPanelCase(null)} /> : null}
             </div>
           ) : (
             <section className="gi-hero" aria-labelledby="gi-title">

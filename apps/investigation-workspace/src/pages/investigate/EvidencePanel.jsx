@@ -8,7 +8,7 @@ import { answerSummary } from '../../lib/answerSummary.js'
 // the rows, how it was derived, and what it cannot claim. Keeping it here keeps the thread short and readable while the proof
 // is one click away (the pattern citation-first assistants converge on). It is a labelled complementary region; Escape or
 // the close button returns focus to the message that opened it.
-export function EvidencePanel({ turn, onClose }) {
+export function EvidencePanel({ turn, onClose, caseLabel = null }) {
   const closeRef = useRef(null)
   const presentation = turn?.presentation
   useEffect(() => { closeRef.current?.focus() }, [turn?.id])
@@ -24,6 +24,7 @@ export function EvidencePanel({ turn, onClose }) {
       <header className="ch-panel__head">
         <div>
           <h2 id="ch-panel-title">Evidence for this answer</h2>
+          {caseLabel ? <p className="ch-panel__case"><LanguageText as="bdi" identifier>{caseLabel}</LanguageText></p> : null}
           <p className="ch-panel__q"><LanguageText>{turn.query}</LanguageText></p>
         </div>
         <button type="button" ref={closeRef} className="ch-icon" onClick={onClose} aria-label="Close evidence panel"><X aria-hidden="true" /></button>

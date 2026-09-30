@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CircleAlert, CircleCheckBig, CircleHelp, CircleSlash, Clock3, ExternalLink, SearchX } from 'lucide-react'
+import { Check, CircleAlert, CircleCheckBig, CircleHelp, CircleSlash, Clock3, Copy, ExternalLink, FileSearch, SearchX } from 'lucide-react'
 import { InvestigationResult } from '../../components/InvestigationResult.jsx'
 import { LanguageText } from '../../components/AnalystComponents.jsx'
 import { OUTCOME_LABEL, outcomeHeadline, sortOutcomes, tallyOutcomes } from '../../lib/acrossCases.js'
@@ -14,8 +15,16 @@ export const caseQuestionLink = (caseId, question) => `/cases/${encodeURICompone
 // of each outcome and jump to those cases; each case keeps its own verified result, best first, so an answer is never
 // blended with another case's. Cases that answered open at once, the rest are one line until asked. A case that could not
 // be searched says so and can be retried alone. Coverage is the case's own count of ready sources.
-export function AcrossResults({ run, coverage, onRetryCase }) {
+export function AcrossResults({ run, coverage, onRetryCase, panelCase = null, onEvidence = () => {} }) {
   const navigate = useNavigate()
+  const [copied, setCopied] = useState(null)
+  async function copy(caseId, text) {
+    try {
+      await globalThis.navigator.clipboard.writeText(text)
+      setCopied(caseId)
+      globalThis.setTimeout(() => setCopied(current => (current === caseId ? null : current)), 1600)
+    } catch { setCopied(null) }
+  }
   const outcomes = sortOutcomes(run.outcomes)
   const tally = tallyOutcomes(outcomes)
   const done = run.outcomes.length
@@ -52,12 +61,17 @@ export function AcrossResults({ run, coverage, onRetryCase }) {
                     presentation={presentation}
                     idPrefix={`ax-${caseId}`}
                     live={false}
+                    compact
                     onAsk={question => navigate(caseQuestionLink(caseId, question))}
                     onClarificationChoice={option => (option?.query ? navigate(caseQuestionLink(caseId, option.query)) : undefined)}
                     onRetry={() => onRetryCase(caseId)}
                     showOriginalQuestion={false}
                   />
-                  <p className="ax-case__open"><a href={link} onClick={event => { event.preventDefault(); navigate(link) }}>Continue in this case<ExternalLink aria-hidden="true" /></a></p>
+                  <div className="ch-actions ax-case__actions" role="group" aria-label={`Actions for ${caseId}`}>
+                    {!['clarify', 'unsupported', 'failed'].includes(presentation.state) ? <button type="button" className={`ch-action${panelCase === caseId ? ' is-on' : ''}`} aria-pressed={panelCase === caseId} onClick={() => onEvidence(panelCase === caseId ? null : caseId)}><FileSearch aria-hidden="true" />Evidence{(presentation.citations.groups || []).length ? <span className="ch-btn__count">{(presentation.citations.groups || []).length}</span> : null}</button> : null}
+                    {['answered', 'partial', 'zero-result'].includes(presentation.state) ? <button type="button" className="ch-action" onClick={() => copy(caseId, presentation.answer || '')}>{copied === caseId ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}{copied === caseId ? 'Copied' : 'Copy'}</button> : null}
+                    <a className="ch-action ax-case__open" href={link} onClick={event => { event.preventDefault(); navigate(link) }}><ExternalLink aria-hidden="true" />Continue in this case</a>
+                  </div>
                 </div>
               </details>
             </li>

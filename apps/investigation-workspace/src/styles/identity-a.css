@@ -1080,3 +1080,22 @@
 .ch__composer .gi-scope__line { display: none; }
 .ch .thread-turn { padding: 0; margin: 0; scroll-margin-block-start: var(--analyst-space-16); }
 .ch .thread-turn__question { margin: 0; inline-size: fit-content; }
+
+/* All-cases results share the chat vocabulary: compact answers, per-case actions and the same on-demand evidence panel. */
+.workspace-content > main.gi.gi--results { --page-max: 1560px; }
+.gi-layout--panel { grid-template-columns: minmax(0, 1fr) minmax(340px, 420px); }
+.gi-layout--panel .gi-layout__bar { grid-column: 1 / -1; }
+.gi-layout--panel .gi-rail { grid-column: 1 / -1; position: static; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 8px 14px; }
+.gi-layout--panel .gi-rail__list, .gi-layout--panel .ax__skipped { display: none; }
+.gi-layout--panel .gi-layout__main { grid-column: 1; }
+.gi-layout--panel > .ch-panel { grid-column: 2; grid-row: 3 / span 2; position: sticky; inset-block-start: 130px; max-block-size: calc(100dvh - 150px); }
+.ch-panel__case { margin: 2px 0 0; font-family: var(--analyst-font-mono); font-size: var(--analyst-type-label-size); color: var(--analyst-accent); }
+.ax-case__body { min-inline-size: 0; }
+.ax-case__body .investigation-result { display: grid; gap: var(--analyst-space-12); min-inline-size: 0; max-inline-size: 100%; grid-template-columns: minmax(0, 1fr); }
+.ax-case__body .answer-summary { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+.ax-case__body .answer-summary__item { display: inline-flex; align-items: baseline; gap: 6px; padding: 3px 12px; border-radius: var(--analyst-radius-pill); }
+.ax-case__body .answer-summary dd { display: inline; }
+.ax-case__body .answer-summary dd small { display: none; }
+.ax-case__body .answer-summary dd b { font-size: var(--analyst-type-label-size); }
+.ax-case__actions { margin-block-start: 4px; }
+@media (max-width: 1100px) { .gi-layout--panel { grid-template-columns: minmax(0, 1fr); } .gi-layout--panel > .ch-panel { position: fixed; inset: 72px 8px 8px 8px; z-index: 60; max-block-size: none; } }
