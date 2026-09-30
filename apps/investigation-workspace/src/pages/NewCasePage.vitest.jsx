@@ -51,4 +51,33 @@ describe('NewCasePage', () => {
     await userEvent.tab()
     expect(await screen.findByRole('alert')).toHaveTextContent('Use at least 4 characters')
   })
+
+  it('shows which identifier rules are met as the analyst types, before any error is raised', async () => {
+    open()
+    await userEvent.type(screen.getByLabelText('Case identifier'), 'Op Falcon')
+    const rules = screen.getByRole('list', { name: 'Identifier rules' })
+    expect(rules.textContent).toMatch(/Lowercase letters, numbers and hyphens only, not met/)
+    expect(rules.textContent).toMatch(/4 to 64 characters, met/)
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('offers a valid version but never applies it without a click', async () => {
+    open()
+    const field = screen.getByLabelText('Case identifier')
+    await userEvent.type(field, 'Operation Falcon 2026')
+    expect(field.value).toBe('Operation Falcon 2026')
+    await userEvent.click(screen.getByRole('button', { name: 'operation-falcon-2026' }))
+    expect(field.value).toBe('operation-falcon-2026')
+    expect(screen.getByLabelText(/choose evidence files/i)).toBeTruthy()
+  })
+
+  it('does not start a case on an identifier that already exists, and offers to add evidence to it', async () => {
+    window.__INVESTIGATION_WORKSPACE_CONFIG__ = { caseIds: ['case-alpha'] }
+    open()
+    await userEvent.type(screen.getByLabelText('Case identifier'), 'case-alpha')
+    expect(screen.getByRole('status').textContent).toMatch(/already a case in this workspace/)
+    expect(screen.getByRole('link', { name: 'Add evidence to it instead' }).getAttribute('href')).toBe('/cases/case-alpha/evidence#add-evidence')
+    expect(screen.queryByLabelText(/choose evidence files/i)).toBeNull()
+    delete window.__INVESTIGATION_WORKSPACE_CONFIG__
+  })
 })
