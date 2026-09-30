@@ -7,9 +7,21 @@ Data today: one `GET /collections/status` per configured case (`useConfiguredCas
 ## Build status
 | Section | Status |
 |---|---|
-| D1 header, D2 KPI tiles | built and verified |
+| D1 header, D2 KPI tiles | built; research pass applied 2026-09-30 (freshness age and stale state, oldest-read freshness, partial coverage named, no fabricated zeros) with unit tests and a live check of the all-down, one-down and empty cases |
 | D3 Needs review, D4 Readiness by case | built and verified 2026-09-30: unit tests (`dashboard/AttentionAndReadiness.vitest.jsx`), e2e `dashboard-slice.spec.js`, screenshots at 1440 and 375 in both themes. The workbench's duplicate Refresh was removed (Refresh lives in D1 only). |
 | D5 to D8 | still the first-pass versions; rebuilt next, one at a time |
+
+## D1 and D2 research pass (2026-09-30)
+Sources read as search summaries only (the primary pages of Primer, Grafana and W3C were not reachable from the build environment, so treat the wording as secondary): Primer and Carbon PageHeader, Grafana stat panel, Nielsen Norman Group dashboard guidance, WCAG 2.2 (2.5.8 target size, 4.1.3 status messages), and dashboard KPI write-ups on zero versus missing data.
+
+| Finding | Applied |
+|---|---|
+| A freshness signal is owed: last-updated marker, manual refresh, and stale as its own state. | D1 shows time and age ("05:15 · 3 min ago"). Older than 5 minutes adds ", may be out of date" in words and an amber value. The age stays out of the live region so it is not announced every minute. |
+| Freshness must be honest. | "Updated" is the age of the **oldest** successful read behind the figures shown. The newest would hide a case whose refresh failed. |
+| Missing is not zero; loading, unavailable, no data and zero must look and read differently. | Loading is an ellipsis. Nothing reported is an em dash with "Status unavailable". A case that could not report is named in Scope ("3 of 4 cases reporting") and on every tile ("Across 3 of 4 cases"). Zero sources says "No sources added yet" and draws no empty bar. "No successful read yet" is distinct from "Reading…". |
+| A sparkline or delta needs a real time series; a fabricated trend misleads. | None drawn. The API has no history, so trends stay out and are filed as backend request 3. |
+| Drill through instead of packing detail into a card. | Every tile links to the section behind it. |
+| One h1, h2 card titles, status announced without taking focus, targets at least 24 px. | Unchanged and verified: one h1, `role="status"`, 44 px buttons, reduced motion respected. |
 
 ## Research applied to the page
 - **Nielsen Norman Group** on operational dashboards: they exist for fast decisions, so the most critical three to five figures go top-left, colour coding stays consistent, and detail is disclosed progressively.

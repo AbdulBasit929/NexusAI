@@ -39,7 +39,7 @@ export function PageHeader({ title, description, breadcrumbs = [], meta = [], ac
       {facts.length > 0 && (
         <dl className="page-header__meta">
           {facts.map((item, index) => (
-            <div key={`${item.label}-${index}`}>
+            <div key={`${item.label}-${index}`} className={item.stale ? 'is-stale' : undefined}>
               <dt>{item.label}</dt>
               <dd>{item.identifier ? <LanguageText as="bdi" identifier>{item.value}</LanguageText> : item.value}</dd>
             </div>

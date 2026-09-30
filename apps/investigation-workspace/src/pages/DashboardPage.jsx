@@ -85,6 +85,7 @@ export function dashboardKpis(rows) {
   const sum = key => reported.reduce((total, row) => total + (row.summary[key] || 0), 0)
   return {
     cases: rows.length,
+    reported: reported.length,
     unreported: rows.length - reported.length,
     sources: sum('total'),
     ready: sum('ready'),
@@ -351,7 +352,8 @@ export default function DashboardPage() {
   const selected = visible.find(row => row.caseId === selectedCaseId) || visible[0]
   const isRefreshing = rows.some(row => row.state?.refreshing)
   const hasProcessing = rows.some(row => row.status === 'processing')
-  const lastUpdated = rows.map(row => parseTimestamp(row.state?.receivedAt)).filter(Boolean).sort((left, right) => right - left)[0] || null
+  // The age of the figures is the age of the oldest read among the cases shown; the newest would hide a case whose refresh failed.
+  const lastUpdated = rows.filter(row => row.summary).map(row => parseTimestamp(row.state?.receivedAt)).filter(Boolean).sort((left, right) => left - right)[0] || null
 
   const familyChart = useMemo(() => ({
     buildOption: theme => familyOption(families, theme),
@@ -390,7 +392,7 @@ export default function DashboardPage() {
   return (
     <AppShell identityLed>
       <main id="workspace-main" className="catalog-page dashboard-page dashboard-command" tabIndex={-1}>
-        <DashboardHeader caseCount={cases.length} lastUpdated={lastUpdated} processing={hasProcessing} refreshing={isRefreshing} onRefresh={reload} />
+        <DashboardHeader caseCount={cases.length} reporting={kpis.reported} loading={loading} lastUpdated={lastUpdated} processing={hasProcessing} refreshing={isRefreshing} onRefresh={reload} />
 
         {cases.length ? (
           <>

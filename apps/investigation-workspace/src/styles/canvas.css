@@ -36,6 +36,7 @@
 .page-header__meta > div { padding: 2px var(--analyst-space-24) 2px 0; margin-inline-end: var(--analyst-space-24); border-inline-end: 1px solid var(--analyst-line); }
 .page-header__meta > div:last-child { border-inline-end: 0; margin-inline-end: 0; padding-inline-end: 0; }
 .page-header__meta dt { color: var(--analyst-text-muted); font-size: var(--analyst-type-caption-size); font-weight: var(--analyst-font-weight-semibold); letter-spacing: var(--analyst-type-caption-tracking); text-transform: uppercase; }
+.page-header__meta > .is-stale dd { color: var(--analyst-status-processing); }
 .page-header__meta dd { margin: 0; color: var(--analyst-text); font-weight: var(--analyst-font-weight-semibold); overflow-wrap: anywhere; }
 
 /* ── Card: the one surface primitive ────────────────────────────────────── */

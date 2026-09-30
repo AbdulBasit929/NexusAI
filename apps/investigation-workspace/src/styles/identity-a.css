@@ -66,6 +66,7 @@
 .dash-kpi strong { font-size: 2.25rem; line-height: 2.5rem; letter-spacing: -0.03em; font-weight: var(--analyst-font-weight-bold); font-variant-numeric: tabular-nums; }
 .dash-kpi__of { color: var(--analyst-text-muted); font-size: var(--analyst-type-body-size); font-weight: var(--analyst-font-weight-regular); letter-spacing: 0; }
 .dash-kpi small { color: var(--analyst-text-secondary); font-size: var(--analyst-type-caption-size); line-height: var(--analyst-type-caption-line); }
+.dash-kpi .dash-kpi__scope { color: var(--analyst-text); font-weight: var(--analyst-font-weight-semibold); }
 .dash-kpi--attention > a { border-color: var(--analyst-status-failed); background: linear-gradient(180deg, var(--analyst-critical-surface), var(--analyst-surface-1) 70%); }
 .dash-kpi--attention .dash-kpi__icon { background: var(--analyst-critical-surface); color: var(--analyst-status-failed); }
 .dash-kpi--attention strong { color: var(--analyst-status-failed); }
