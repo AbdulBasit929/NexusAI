@@ -259,7 +259,7 @@ export default function InvestigatePage() {
                   </li>
                 ))}
               </ol>
-              <div className="gi-dock thread-composer">{composerBlock}</div>
+              <div className="gi-dock">{composerBlock}</div>
             </div>
 
             <aside className="gi-case__rail" aria-label="About this conversation">

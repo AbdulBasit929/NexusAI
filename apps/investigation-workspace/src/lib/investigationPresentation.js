@@ -1,5 +1,6 @@
 import { analystPrimaryFieldIsInternal } from '../ported/analyst/analystPrimaryAnswer.js'
 import { citationHref, claimSegments, hasOpenableLocator, normalizeCitations } from './citations.js'
+import { humanizeKey } from './format.js'
 import { semanticCatalog as defaultCatalog } from './semanticCatalog.js'
 
 // Evidence names may legitimately contain the product name. Treating the
@@ -74,7 +75,8 @@ function resultTable(response, catalog, caseId = '') {
   const columns = keys.flatMap(key => {
     if (!key || hiddenColumns.has(String(key).toLowerCase()) || analystPrimaryFieldIsInternal(key)) return []
     const display = catalog.displayForColumn(key, recordType, plan)
-    return [{ key, label: display.label, description: display.description, semanticId: display.id, fallback: display.fallback }]
+    const label = display.fallback && display.label === key ? humanizeKey(key) : display.label
+    return [{ key, label, description: display.description, semanticId: display.id, fallback: display.fallback }]
   })
   const displayedRows = rows.map(row => {
     const citation = rowCitation(row, caseId)

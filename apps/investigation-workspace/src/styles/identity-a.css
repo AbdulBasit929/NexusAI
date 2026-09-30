@@ -971,3 +971,14 @@
 .gi--case .gi-hero h1 { font-size: clamp(1.75rem, 3vw, 2.5rem); }
 .gi-case .thread-turn__answer:focus-visible { outline-width: 2px; outline-offset: 3px; }
 .gi-case__main { padding-block-end: var(--analyst-space-8); }
+/* Containment: a wide result table scrolls inside its card and never widens the thread or slides under the rail. */
+.gi-case__main, .gi-case .investigation-thread, .gi-case .thread-turn, .gi-case .thread-turn__answer, .gi-case .investigation-result, .gi-case .result-section, .gi-case .answer-block { grid-template-columns: minmax(0, 1fr); min-inline-size: 0; max-inline-size: 100%; }
+.gi-case .thread-turn__question { max-inline-size: min(100%, 640px); grid-template-columns: minmax(0, 1fr); }
+.gi-case .thread-turn__answer { overflow: hidden; }
+.gi-case .data-table, .gi-case .data-table > * { min-inline-size: 0; max-inline-size: 100%; }
+.gi-dock .gi-scope__line { display: none; }
+.gi-dock .gi-composer .ask-form { padding-block-start: 8px; }
+.gi-case .thread-turn__answer:focus-visible { outline: 2px solid color-mix(in srgb, var(--analyst-accent) 55%, transparent); outline-offset: 2px; }
+/* The answer card takes programmatic focus (so a screen reader lands on it) but is not a control; a frame around a tall card
+   only looks like a rendering fault, so it carries no outline. Keyboard users still land on the card and read from it. */
+.gi-case .thread-turn__answer:focus, .gi-case .thread-turn__answer:focus-visible { outline: none; }

@@ -14,3 +14,12 @@ export function formatBytes(value) {
 export function displayName(value) {
   return String(value || 'Unknown').replaceAll('_', ' ').replace(/\b\w/g, letter => letter.toUpperCase())
 }
+
+// A column name the catalog has no label for, in words: `accepted_rows` reads "Accepted rows", `lastObservedAt` reads "Last
+// observed at". Only used as a fallback, so a curated label always wins and an unknown name is never shown as engine jargon.
+export function humanizeKey(key) {
+  const text = String(key ?? '').trim()
+  if (!text || /^m\d+$/i.test(text)) return text
+  const spaced = text.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim().toLocaleLowerCase()
+  return spaced.charAt(0).toLocaleUpperCase() + spaced.slice(1)
+}
