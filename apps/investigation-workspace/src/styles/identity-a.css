@@ -1099,3 +1099,69 @@
 .ax-case__body .answer-summary dd b { font-size: var(--analyst-type-label-size); }
 .ax-case__actions { margin-block-start: 4px; }
 @media (max-width: 1100px) { .gi-layout--panel { grid-template-columns: minmax(0, 1fr); } .gi-layout--panel > .ch-panel { position: fixed; inset: 72px 8px 8px 8px; z-index: 60; max-block-size: none; } }
+
+/* Evidence viewer: a review workspace. A slim header (file, type, size, state), an arrival strip when opened from a citation,
+   the source filling the canvas, and one inspector (details, lineage) beside it. The canvas scrolls, the page does not. */
+.evv { display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: var(--analyst-space-12); block-size: calc(100dvh - 176px); min-block-size: 560px; align-content: start; }
+.workspace-content > main.evv { --page-max: 1560px; padding-block: var(--analyst-space-8) 0; }
+.evv-head { display: grid; gap: 6px; }
+.evv-crumbs a { display: inline-flex; align-items: center; gap: 6px; min-block-size: 32px; color: var(--analyst-text-secondary); font-size: var(--analyst-type-label-size); font-weight: var(--analyst-font-weight-semibold); text-decoration: none; }
+.evv-crumbs a:hover { color: var(--analyst-accent); }
+.evv-crumbs svg { inline-size: 15px; block-size: 15px; transition: transform 140ms ease-out; }
+.evv-crumbs a:hover svg { transform: translateX(-3px); }
+.evv-title { display: flex; flex-wrap: wrap; align-items: center; gap: var(--analyst-space-12) var(--analyst-space-16); }
+.evv-mark { display: grid; place-items: center; flex: none; inline-size: 48px; block-size: 48px; border-radius: 14px; background: color-mix(in srgb, var(--analyst-accent) 12%, var(--analyst-surface-1)); color: var(--analyst-accent); }
+.evv-mark svg { inline-size: 24px; block-size: 24px; }
+.evv-title__text { flex: 1 1 260px; min-inline-size: 0; }
+.evv-title h1, .evv-title__loading { margin: 0; font-size: clamp(1.25rem, 2vw, 1.625rem); line-height: 1.15; overflow-wrap: anywhere; }
+.evv-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 6px 0 0; color: var(--analyst-text-secondary); font-size: var(--analyst-type-label-size); }
+.evv-chips > span:not(.processing-badge) { padding: 2px 10px; border: 1px solid var(--analyst-line); border-radius: var(--analyst-radius-pill); background: var(--analyst-surface-2); }
+.evv-actions { display: flex; gap: 8px; margin-inline-start: auto; }
+.evv-btn { display: inline-flex; align-items: center; gap: 8px; min-block-size: 40px; padding-inline: 16px; border: 1px solid var(--analyst-line-strong); border-radius: var(--analyst-radius-sm); background: var(--analyst-surface-1); color: var(--analyst-text); font-weight: var(--analyst-font-weight-semibold); text-decoration: none; transition: background-color 140ms ease-out, border-color 140ms ease-out; }
+.evv-btn:hover { border-color: var(--analyst-accent); background: var(--analyst-surface-2); }
+.evv-btn svg { inline-size: 16px; block-size: 16px; }
+.evv-locator { display: flex; align-items: center; gap: 14px; padding: 10px 16px; border: 1px solid color-mix(in srgb, var(--analyst-accent) 45%, var(--analyst-line)); border-radius: 14px; background: color-mix(in srgb, var(--analyst-accent) 8%, var(--analyst-surface-1)); }
+.evv-locator__icon { display: grid; place-items: center; flex: none; inline-size: 34px; block-size: 34px; border-radius: 10px; background: var(--analyst-accent); color: var(--analyst-accent-text); }
+.evv-locator__icon svg { inline-size: 18px; block-size: 18px; }
+.evv-locator h2 { margin: 0; font-size: var(--analyst-type-label-size); }
+.evv-locator dl { display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 2px 0 0; }
+.evv-locator dl div { display: flex; gap: 6px; align-items: baseline; }
+.evv-locator dt { color: var(--analyst-text-muted); font-size: var(--analyst-type-caption-size); }
+.evv-locator dd { margin: 0; font-weight: var(--analyst-font-weight-semibold); overflow-wrap: anywhere; }
+.evv-body { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--analyst-space-16); min-block-size: 0; }
+.evv-canvas { min-inline-size: 0; min-block-size: 0; overflow: auto; border: 1px solid var(--analyst-line); border-radius: 16px; background: var(--analyst-surface-1); box-shadow: var(--analyst-shadow-1); }
+.evv-canvas > .source-viewer, .evv-canvas > .viewer-gap { margin: 0; padding: var(--analyst-space-16) var(--analyst-space-20); border: 0; border-radius: 0; box-shadow: none; background: transparent; }
+.evv-canvas .source-viewer > header { position: sticky; inset-block-start: calc(-1 * var(--analyst-space-16)); z-index: 2; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin: calc(-1 * var(--analyst-space-16)) calc(-1 * var(--analyst-space-20)) var(--analyst-space-12); padding: 10px var(--analyst-space-20); border-block-end: 1px solid var(--analyst-line); background: color-mix(in srgb, var(--analyst-surface-1) 92%, transparent); backdrop-filter: blur(6px); }
+.evv-canvas .source-viewer > header h2 { margin: 0; font-size: 1rem; }
+.evv-canvas .source-viewer iframe { display: block; inline-size: 100%; block-size: max(70vh, 520px); border: 0; border-radius: 10px; background: var(--analyst-surface-2); }
+.evv-canvas .source-viewer img, .evv-canvas .source-viewer video { display: block; max-inline-size: 100%; margin-inline: auto; border-radius: 10px; }
+.evv-canvas .source-text { max-inline-size: 78ch; margin-inline: auto; padding: var(--analyst-space-16); overflow-wrap: anywhere; white-space: pre-wrap; line-height: 1.65; }
+.evv-canvas .viewer-gap { color: var(--analyst-text-secondary); }
+.evv-inspector { display: grid; grid-template-rows: auto minmax(0, 1fr); min-block-size: 0; border: 1px solid var(--analyst-line); border-radius: 16px; background: var(--analyst-surface-1); box-shadow: var(--analyst-shadow-1); overflow: hidden; }
+.evv-tabs { display: flex; gap: 4px; padding: 8px; border-block-end: 1px solid var(--analyst-line); background: var(--analyst-surface-2); }
+.evv-tabs button { flex: 1; min-block-size: 36px; margin: 0; border: 0; border-radius: 10px; background: transparent; color: var(--analyst-text-secondary); font: inherit; font-weight: var(--analyst-font-weight-semibold); cursor: pointer; transition: background-color 140ms ease-out, color 140ms ease-out; }
+.evv-tabs button:hover { color: var(--analyst-text); }
+.evv-tabs button[aria-selected='true'] { background: var(--analyst-surface-1); color: var(--analyst-accent); box-shadow: var(--analyst-shadow-1); }
+.evv-panel { min-block-size: 0; padding: var(--analyst-space-16); overflow-y: auto; }
+.evv-facts { display: grid; gap: 0; margin: 0; }
+.evv-facts > div { display: grid; gap: 2px; padding-block: 10px; border-block-end: 1px solid var(--analyst-line); }
+.evv-facts > div:last-child { border-block-end: 0; }
+.evv-facts dt { color: var(--analyst-text-muted); font-size: var(--analyst-type-caption-size); font-weight: var(--analyst-font-weight-bold); letter-spacing: var(--analyst-type-caption-tracking); text-transform: uppercase; }
+.evv-facts dd { display: flex; align-items: center; gap: 8px; margin: 0; overflow-wrap: anywhere; word-break: break-word; }
+.evv-facts bdi { font-family: var(--analyst-font-mono); font-size: var(--analyst-type-label-size); }
+.evv-copy { display: grid; place-items: center; flex: none; inline-size: 28px; block-size: 28px; margin-inline-start: auto; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--analyst-text-muted); cursor: pointer; }
+.evv-copy:hover { background: var(--analyst-surface-2); color: var(--analyst-accent); }
+.evv-copy svg { inline-size: 15px; block-size: 15px; }
+.evv-panel .lineage-panel { padding: 0; border: 0; background: transparent; box-shadow: none; }
+.evv-panel .lineage-panel h2 { font-size: 1rem; }
+@media (max-width: 1100px) {
+  .evv { block-size: auto; min-block-size: 0; grid-template-rows: auto; }
+  .evv-body { grid-template-columns: minmax(0, 1fr); }
+  .evv-canvas { max-block-size: 75vh; }
+  .evv-inspector { order: -1; }
+}
+@media (prefers-reduced-motion: reduce) { .evv-crumbs svg, .evv-btn, .evv-tabs button { transition: none; } }
+.evv-canvas .data-table__toolbar { gap: 6px 10px; padding: 8px 12px; }
+.evv-canvas .data-table__toolbar button, .evv-canvas .data-table__toolbar input { min-block-size: 36px; padding-block: 4px; }
+.evv-canvas .data-table__toolbar label span { font-size: var(--analyst-type-caption-size); }
+.evv-facts bdi { font-size: 0.6875rem; letter-spacing: -0.01em; }

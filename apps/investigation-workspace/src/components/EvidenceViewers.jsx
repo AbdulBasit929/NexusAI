@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { EvidenceStrengthBadge } from './Citations.jsx'
 import { LanguageText } from './AnalystComponents.jsx'
 import { VirtualizedTable } from './VirtualizedTable.jsx'
+import { humanizeKey } from '../lib/format.js'
 import { semanticCatalog } from '../lib/semanticCatalog.js'
 import { documentPages, imageRegions, lineage, transcriptCues, transcriptText, videoEvents } from '../lib/viewerPresentation.js'
 
@@ -45,7 +46,7 @@ export function DocumentViewer({ detail, objectUrl, page, charSpan, onPageChange
 export function StructuredViewer({ detail, row, recordType }) {
   const previewRows = detail.records_preview || []
   const keys = [...new Set(previewRows.flatMap(item => Object.keys(item || {})))].filter(key => !['metadata', 'row_hash', 'source_hash'].includes(key))
-  const columns = keys.map(key => ({ key, ...semanticCatalog.displayForColumn(key, recordType) }))
+  const columns = keys.map(key => { const display = semanticCatalog.displayForColumn(key, recordType); return { key, ...display, label: display.fallback && display.label === key ? humanizeKey(key) : display.label } })
   const hasHashes = previewRows.some(item => item.row_hash || item.source_hash)
   if (hasHashes) columns.push({ key: '__source', label: 'Source row', description: 'Exact source row and hash' })
   // Keep the same locator that the analyst can inspect in the exported row.
