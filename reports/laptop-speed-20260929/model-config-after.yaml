@@ -1,0 +1,31 @@
+backend: llama-cpp
+context_size: 12288
+f16: true
+function:
+    grammar:
+        disable: true
+gpu_layers: 0
+known_usecases:
+    - chat
+min_p: 0
+mmap: true
+name: qwen3-4b-instruct-2507-q4km-nxb21d-dev
+options:
+    - use_jinja:true
+    - parallel:3
+parameters:
+    f16: true
+    mmap: true
+    model: Qwen_Qwen3-4B-Instruct-2507-Q4_K_M.gguf
+repeat_penalty: 1
+stopwords:
+    - <|im_end|>
+    - <dummy32000>
+    - </s>
+    - <|endoftext|>
+temperature: 0
+template:
+    use_tokenizer_template: true
+threads: 8
+top_k: 20
+top_p: 0.95

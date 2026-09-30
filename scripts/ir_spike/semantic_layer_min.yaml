@@ -1,0 +1,745 @@
+# Minimal curated semantic layer — WI-0 spike only.
+#
+# THROWAWAY. This is not the WI-4 deliverable and must not be loaded by production
+# code. It exists to answer one question: can a 4B model fill an enum-constrained IR
+# over a catalogue that has descriptions and synonyms? It is hand-curated from the
+# real demo-case payloads (sampled read-only from forensic.records on 2026-09-21),
+# not inferred from row samples at request time.
+#
+# Field IDs are readable and stable by deliberate choice (see PRE-REGISTRATION §2.3).
+# `source_names` carries the real, messy, per-source-file column headers — this is the
+# single largest piece of value the curated layer adds over the inferred catalogue,
+# and SUB-02 (status vs account_status) proves it: the correct answer, 6, is only
+# reachable by unioning two aliases.
+#
+# `allowed_filters` / `allowed_aggregates` mirror the live rules in
+# source_native_algebra.go:306-317 so the spike's S6 validation is the real one.
+
+contract_version: forensics.semantic-layer-spike/v0
+case: nexusai-forensic-demo
+
+entities:
+
+  # ---------------------------------------------------------------- CDR
+  - family: cdr
+    display_name: Call detail records
+    description: >
+      One row per telephony event (voice call, SMS, data session) recorded by the
+      network. 8,642 rows in this case, 2026-04-01 to 2026-08-10.
+    synonyms: [cdr, cdrs, call record, call records, calls, call detail, telephony]
+    fields:
+      - id: cdr.msisdn
+        display_name: Subscriber number
+        description: >
+          The MSISDN of the subscriber whose activity this record belongs to — the
+          party who made or received the event. This is the field to filter on when
+          asked what a given phone number did, and to group by when asked which
+          phone number was most active.
+        source_names: [MSISDN]
+        synonyms: [phone number, number, msisdn, subscriber number, caller, who]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: IDENTIFIER
+
+      - id: cdr.dialed_number
+        display_name: Dialed number
+        description: >
+          The other party's number — the number that was dialed or that appears as
+          the counterparty. Group by this to find who a subscriber contacted.
+        source_names: [CALL_DIALED_NUM]
+        synonyms: [dialed, called number, counterparty, contacted, other party, b party]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: IDENTIFIER
+
+      - id: cdr.originating_number
+        display_name: Originating number
+        description: >
+          The raw originating number field as supplied by the operator. Often a short
+          code rather than a full MSISDN, so it is NOT the right field for "which
+          number made the most calls" — use Subscriber number for that.
+        source_names: [call_org_num]
+        synonyms: [origin number, a party, originating]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: IDENTIFIER
+
+      - id: cdr.call_type
+        display_name: Call type
+        description: >
+          The kind of network event. Values in this case: VOICE, VOLTE, CALL, SMS,
+          GPRS. Group by this for a "call type breakdown".
+        source_names: [CALL_TYPE]
+        synonyms: [call type, type, kind, breakdown by type, service type]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+
+      - id: cdr.direction
+        display_name: Call direction
+        description: >
+          Whether the event was inbound or outbound. Values in this case are not
+          normalised: INCOMING, INBOUND, OUTGOING, OUTBOUND, DATA. Group by this for
+          "incoming versus outgoing".
+        source_names: [INBOUND_OUTBOUND_IND]
+        synonyms: [direction, incoming, outgoing, inbound, outbound, in or out]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+
+      - id: cdr.cell_site_id
+        display_name: Cell site
+        description: >
+          Identifier of the cell site (tower sector) that handled the event. Group by
+          this for "which cell site handled the most calls".
+        source_names: [Cell_SITE_ID]
+        synonyms: [cell site, cell, site, tower, cell tower, cell id, base station]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+
+      - id: cdr.imei
+        display_name: Device IMEI
+        description: Handset identifier associated with the event.
+        source_names: [IMEI]
+        synonyms: [imei, device, handset]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: IDENTIFIER
+
+      - id: cdr.imsi
+        display_name: SIM IMSI
+        description: SIM identifier associated with the event.
+        source_names: [IMSI]
+        synonyms: [imsi, sim]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: IDENTIFIER
+
+      - id: cdr.network_volume
+        display_name: Network volume
+        description: Data volume carried by the event, in operator-supplied units. Zero for voice and SMS.
+        source_names: [Call_Network_Volume]
+        synonyms: [volume, data volume, bytes, usage]
+        type: NUMBER
+        allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IN, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT, SUM, AVG, MIN, MAX]
+        projectable: true
+        groupable: false
+        sortable: true
+        sensitivity: NONE
+
+      - id: cdr.call_start
+        display_name: Call start time
+        description: Timestamp at which the event began.
+        source_names: [CALL_START_DT_TM]
+        synonyms: [start, start time, began, call start]
+        type: TIMESTAMP
+        allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT, MIN, MAX]
+        projectable: true
+        groupable: false
+        sortable: true
+        sensitivity: NONE
+
+      - id: cdr.call_end
+        display_name: Call end time
+        description: Timestamp at which the event ended.
+        source_names: [CALL_END_DT_TM]
+        synonyms: [end, end time, finished, call end]
+        type: TIMESTAMP
+        allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT, MIN, MAX]
+        projectable: true
+        groupable: false
+        sortable: true
+        sensitivity: NONE
+
+      - id: cdr.event_time
+        display_name: Event time
+        description: >
+          Normalised record timestamp used for all case-level time filtering and for
+          "what date range do the records cover". Filter on this for month or period
+          questions.
+        source_names: [timestamp]
+        synonyms: [date, time, when, period, date range, month, timestamp]
+        type: TIMESTAMP
+        allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT, MIN, MAX]
+        projectable: true
+        groupable: false
+        sortable: true
+        sensitivity: NONE
+
+      - id: cdr.source_file
+        display_name: Source file
+        description: >
+          The evidence file each record was ingested from. Group by this for
+          "how many records came from each source file".
+        source_names: [source_file]
+        synonyms: [source file, file, filename, evidence file, which file]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+
+  # ---------------------------------------------------------------- IPDR
+  - family: ipdr
+    display_name: Internet session records
+    description: One row per internet/data session. 2,500 rows in this case.
+    synonyms: [ipdr, internet session, internet sessions, data session, sessions, browsing]
+    fields:
+      - id: ipdr.subscriber_id
+        display_name: Subscriber
+        description: The subscriber (MSISDN) that owns the session. Group by this for "which subscriber has the most sessions".
+        source_names: [subscriber_id]
+        synonyms: [subscriber, user, msisdn, phone number, who]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: IDENTIFIER
+      - id: ipdr.domain
+        display_name: Domain
+        description: Destination domain accessed in the session. Group by this for "which domain was accessed most often".
+        source_names: [domain]
+        synonyms: [domain, site, website, host, url, accessed]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+      - id: ipdr.protocol
+        display_name: Protocol
+        description: Network protocol of the session — HTTPS, DNS, HTTP, QUIC. Group by this for a protocol breakdown.
+        source_names: [protocol]
+        synonyms: [protocol, breakdown by protocol]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+      - id: ipdr.bytes
+        display_name: Bytes transferred
+        description: Volume of data transferred in the session, in bytes. SUM this for "total bytes transferred".
+        source_names: [bytes]
+        synonyms: [bytes, data, volume, transferred, traffic, total bytes]
+        type: NUMBER
+        allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IN, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT, SUM, AVG, MIN, MAX]
+        projectable: true
+        groupable: false
+        sortable: true
+        sensitivity: NONE
+      - id: ipdr.source_ip
+        display_name: Source IP
+        description: Originating IP address of the session.
+        source_names: [source_ip]
+        synonyms: [source ip, client ip, ip, from ip]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: IDENTIFIER
+      - id: ipdr.destination_ip
+        display_name: Destination IP
+        description: Destination IP address of the session.
+        source_names: [destination_ip]
+        synonyms: [destination ip, server ip, to ip]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+      - id: ipdr.event_time
+        display_name: Session time
+        description: Normalised timestamp of the session.
+        source_names: [timestamp]
+        synonyms: [date, time, when, period, timestamp]
+        type: TIMESTAMP
+        allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT, MIN, MAX]
+        projectable: true
+        groupable: false
+        sortable: true
+        sensitivity: NONE
+
+  # ---------------------------------------------------------------- ANPR
+  - family: anpr
+    display_name: Vehicle plate sightings
+    description: One row per automatic number-plate recognition sighting. 750 rows in this case.
+    synonyms: [anpr, plate, plates, number plate, licence plate, license plate, sighting, sightings, vehicle, vehicles, camera]
+    fields:
+      - id: anpr.plate_number
+        display_name: Plate number
+        description: The recognised vehicle registration plate. Filter on this for a specific plate; group by it for "which vehicle was seen most often".
+        source_names: [plate_number]
+        synonyms: [plate, plate number, registration, vehicle, car, licence plate, license plate]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: IDENTIFIER
+      - id: anpr.camera_id
+        display_name: Camera
+        description: Identifier of the camera that captured the sighting. Group by this for "which camera recorded the most sightings".
+        source_names: [camera_id]
+        synonyms: [camera, camera id, device, which camera]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+      - id: anpr.location
+        display_name: Location
+        description: Human-readable location of the camera.
+        source_names: [location]
+        synonyms: [location, place, where, area]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+      - id: anpr.confidence
+        display_name: Recognition confidence
+        description: Recogniser confidence for the plate read, 0 to 1. This is a model score, never evidence of identity.
+        source_names: [confidence]
+        synonyms: [confidence, score, certainty]
+        type: NUMBER
+        allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IN, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT, SUM, AVG, MIN, MAX]
+        projectable: true
+        groupable: false
+        sortable: true
+        sensitivity: NONE
+      - id: anpr.event_time
+        display_name: Sighting time
+        description: Timestamp of the sighting. MIN and MAX of this answer "when was a plate first and last seen".
+        source_names: [timestamp]
+        synonyms: [date, time, when, first seen, last seen, timestamp]
+        type: TIMESTAMP
+        allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT, MIN, MAX]
+        projectable: true
+        groupable: false
+        sortable: true
+        sensitivity: NONE
+
+  # ---------------------------------------------------------------- Access log
+  - family: access_log
+    display_name: System access logs
+    description: One row per HTTP request against the investigation system. 1,000 rows in this case.
+    synonyms: [access log, access logs, http log, requests, web log, login]
+    fields:
+      - id: access_log.status
+        display_name: HTTP status code
+        description: >
+          HTTP response status as a string — "200", "403", "404", "500". A server
+          error means status "500". Group by this for a status-code breakdown.
+        source_names: [status]
+        synonyms: [status, status code, http status, response code, error, server error, failed]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+      - id: access_log.source_ip
+        display_name: Source IP
+        description: IP address that made the request. Group by this for "which IP made the most requests".
+        source_names: [source_ip]
+        synonyms: [ip, ip address, source ip, client, who, requester]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: IDENTIFIER
+      - id: access_log.path
+        display_name: Request path
+        description: URL path of the request.
+        source_names: [path]
+        synonyms: [path, url, endpoint, page, resource]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+      - id: access_log.http_method
+        display_name: HTTP method
+        description: Request method — GET, POST, PUT, DELETE.
+        source_names: [http_method]
+        synonyms: [method, verb, http method]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+      - id: access_log.user_agent
+        display_name: User agent
+        description: Client user-agent string.
+        source_names: [user_agent]
+        synonyms: [user agent, client, browser, agent]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+      - id: access_log.event_time
+        display_name: Request time
+        description: Timestamp of the request.
+        source_names: [timestamp]
+        synonyms: [date, time, when, timestamp]
+        type: TIMESTAMP
+        allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT, MIN, MAX]
+        projectable: true
+        groupable: false
+        sortable: true
+        sensitivity: NONE
+
+  # ---------------------------------------------------------------- Subscriber
+  - family: subscriber
+    display_name: Subscribers
+    description: >
+      One row per registered subscriber identity. 11 rows in this case, ingested from
+      several source files with different column headers, so most fields have aliases.
+    synonyms: [subscriber, subscribers, customer, customers, account holder, registered]
+    fields:
+      - id: subscriber.subscriber_id
+        display_name: Subscriber ID
+        description: Case-internal subscriber identifier, e.g. PK-SUB-SYN-ALPHA.
+        source_names: [subscriber_id, customer_id, customer_no]
+        synonyms: [subscriber id, customer id, id, account id]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: IDENTIFIER
+      - id: subscriber.status
+        display_name: Account status
+        description: >
+          Whether the subscriber account is ACTIVE, SUSPENDED or CLOSED. Stored under
+          two different headers depending on the source file — both must be considered
+          or the count is wrong.
+        source_names: [status, account_status]
+        synonyms: [status, active, state, account status, enabled]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+      - id: subscriber.full_name
+        display_name: Subscriber name
+        description: Registered name of the subscriber. Personal data.
+        source_names: [full_name, customer_name, name, subscriber_name]
+        synonyms: [name, full name, who, registered subscriber, customer name]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: PII
+      - id: subscriber.cnic
+        display_name: CNIC
+        description: National identity number of the subscriber. Masked at projection.
+        source_names: [cnic_no, CNIC, cnic, national_id]
+        synonyms: [cnic, national id, identity number, nic]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: false
+        sortable: false
+        sensitivity: PII
+      - id: subscriber.msisdn
+        display_name: Subscriber number
+        description: Phone number registered to the subscriber.
+        source_names: [mobile_no, MSISDN, account_msisdn, phone_number, subscriber_number]
+        synonyms: [phone number, msisdn, mobile, number, contact number]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: IDENTIFIER
+      - id: subscriber.city
+        display_name: City
+        description: Registered city of the subscriber.
+        source_names: [city, home_city, billing_region]
+        synonyms: [city, town, region, location, where]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+      - id: subscriber.activation_date
+        display_name: Activation date
+        description: Date the subscriber account was activated.
+        source_names: [activation_date, valid_from, created_at]
+        synonyms: [activated, activation, start date, since]
+        type: TIMESTAMP
+        allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT, MIN, MAX]
+        projectable: true
+        groupable: false
+        sortable: true
+        sensitivity: NONE
+
+  # ---------------------------------------------------------------- Tower
+  - family: tower_location
+    display_name: Cell towers
+    description: One row per cell site with its fixed location. 5 rows in this case.
+    synonyms: [tower, towers, cell tower, cell towers, cell site, site, base station, mast]
+    fields:
+      - id: tower.site_code
+        display_name: Site code
+        description: Identifier of the tower site, e.g. PK-LHR-SYN-001.
+        source_names: ["Site Code"]
+        synonyms: [site code, tower id, site id, tower, which tower]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+      - id: tower.latitude
+        display_name: Latitude
+        description: WGS84 latitude of the tower. Project this with longitude to answer "where is this tower".
+        source_names: ["Latitude WGS84"]
+        synonyms: [latitude, lat, coordinates, location, where, position]
+        type: NUMBER
+        allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IN, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT, SUM, AVG, MIN, MAX]
+        projectable: true
+        groupable: false
+        sortable: true
+        sensitivity: NONE
+      - id: tower.longitude
+        display_name: Longitude
+        description: WGS84 longitude of the tower. Project this with latitude to answer "where is this tower".
+        source_names: ["Longitude WGS84"]
+        synonyms: [longitude, long, lon, coordinates, location, where, position]
+        type: NUMBER
+        allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IN, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT, SUM, AVG, MIN, MAX]
+        projectable: true
+        groupable: false
+        sortable: true
+        sensitivity: NONE
+      - id: tower.site_location
+        display_name: Site location
+        description: Human-readable description of where the tower is.
+        source_names: ["Site Location"]
+        synonyms: [location, address, place, where, site location]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+      - id: tower.district
+        display_name: District
+        description: Administrative district the tower sits in.
+        source_names: [District]
+        synonyms: [district, area, region, city]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+      - id: tower.technology
+        display_name: Technology
+        description: Radio technology of the site — LTE, UMTS, GSM.
+        source_names: [Technology]
+        synonyms: [technology, tech, radio, generation]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+
+  # ---------------------------------------------------------------- Transactions
+  - family: transaction
+    display_name: Financial transactions
+    description: One row per financial transaction. 4 rows in this case, all in PKR.
+    synonyms: [transaction, transactions, payment, payments, financial, money, transfer]
+    fields:
+      - id: transaction.amount
+        display_name: Transaction amount
+        description: >
+          Monetary value of the transaction. SUM this for "total transaction amount";
+          MAX it for "the largest transaction". Never COUNT it when asked for a total
+          or a largest value.
+        source_names: [transaction_amount]
+        synonyms: [amount, value, total, sum, largest, biggest, how much, money, size]
+        type: NUMBER
+        allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IN, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT, SUM, AVG, MIN, MAX]
+        projectable: true
+        groupable: false
+        sortable: true
+        sensitivity: NONE
+      - id: transaction.account
+        display_name: Account
+        description: >
+          The account the transaction belongs to. Group by this and COUNT for
+          "which account has the most transactions" — count rows, not amount.
+        source_names: [account]
+        synonyms: [account, account number, which account, holder]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: IDENTIFIER
+      - id: transaction.counterparty
+        display_name: Counterparty
+        description: The other party to the transaction.
+        source_names: [counterparty]
+        synonyms: [counterparty, other party, payee, recipient, beneficiary]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: IDENTIFIER
+      - id: transaction.merchant
+        display_name: Merchant
+        description: Merchant name associated with the transaction.
+        source_names: [merchant]
+        synonyms: [merchant, shop, vendor, store, business]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+      - id: transaction.channel
+        display_name: Channel
+        description: Channel the transaction came through — pos, atm, online, branch.
+        source_names: [channel]
+        synonyms: [channel, method, via, how]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+      - id: transaction.status
+        display_name: Transaction status
+        description: Outcome of the transaction — posted, reversed, pending.
+        source_names: [status]
+        synonyms: [status, state, outcome, result]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+      - id: transaction.currency
+        display_name: Currency
+        description: Currency code of the transaction. All PKR in this case.
+        source_names: [currency]
+        synonyms: [currency, denomination]
+        type: STRING
+        allowed_filters: [EQ, NEQ, IN, CONTAINS, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT]
+        projectable: true
+        groupable: true
+        sortable: true
+        sensitivity: NONE
+      - id: transaction.event_time
+        display_name: Transaction time
+        description: Timestamp of the transaction.
+        source_names: [timestamp]
+        synonyms: [date, time, when, timestamp]
+        type: TIMESTAMP
+        allowed_filters: [EQ, NEQ, GT, GTE, LT, LTE, BETWEEN, IS_NULL, IS_NOT_NULL]
+        allowed_aggregates: [COUNT, MIN, MAX]
+        projectable: true
+        groupable: false
+        sortable: true
+        sensitivity: NONE
+
+# Families present in the case. A question naming a family that is not here must
+# abstain (S9 FAMILY check) rather than route to a family that is.
+families_present: [cdr, ipdr, anpr, access_log, subscriber, tower_location, transaction]

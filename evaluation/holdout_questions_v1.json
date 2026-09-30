@@ -1,0 +1,128 @@
+{
+  "note": "HELD-OUT SET, written 2026-09-25 against the DATA, not against the templates. Every expectation is SQL-verified independently of the API on collection nexusai-forensic-demo. No question here appears in golden_questions_v1/v2, and the phrasings are deliberately different from anything the keyword ladder was written for. The golden 62 measure REGRESSION; this measures CAPABILITY on questions nobody wrote for this system.",
+  "scoring": "A-questions have a computable answer and should be CORRECT. H-questions are HONESTY PROBES: the data cannot support a confident answer, so CLARIFIED is the PASS and a stated answer is a FAILURE. Never 'fix' an H-question by making it answer.",
+  "collections": {
+    "D": "nexusai-forensic-demo"
+  },
+  "questions": [
+    {
+      "id": "H1-CDR-HANDSETS",
+      "c": "D",
+      "family": "cdr",
+      "q": "How many different handsets show up in the call records?",
+      "check": "number",
+      "expect": 4997,
+      "note": "COUNT DISTINCT IMEI. Tests the distinct goal on a field the 62 never counts."
+    },
+    {
+      "id": "H2-CDR-VOLTE",
+      "c": "D",
+      "family": "cdr",
+      "q": "How many VoLTE calls are there?",
+      "check": "number",
+      "expect": 739,
+      "note": "Filter on a curated enumerated value, phrased without the word 'type'."
+    },
+    {
+      "id": "H3-CDR-INCOMING",
+      "c": "D",
+      "family": "cdr",
+      "q": "How many incoming calls are in the CDRs?",
+      "check": "number",
+      "expect": 2906,
+      "note": "Direction filter. INBOUND_OUTBOUND_IND = INCOMING."
+    },
+    {
+      "id": "H4-CDR-MAXVOL",
+      "c": "D",
+      "family": "cdr",
+      "q": "What is the largest network volume on any call record?",
+      "check": "number",
+      "expect": 1730127963,
+      "note": "MAX over a NUMBER field. Guards the lexicographic-MAX defect that once returned 9,200 over 75,000."
+    },
+    {
+      "id": "H5-ANPR-CAMERAS",
+      "c": "D",
+      "family": "anpr",
+      "q": "How many cameras produced sightings?",
+      "check": "number",
+      "expect": 4,
+      "note": "COUNT DISTINCT camera_id, phrased as a count of producers rather than of cameras."
+    },
+    {
+      "id": "H6-IPDR-SESSIONS",
+      "c": "D",
+      "family": "ipdr",
+      "q": "How many internet sessions were captured?",
+      "check": "number",
+      "expect": 2500,
+      "note": "Plain row count under a phrasing the ladder has no keyword for."
+    },
+    {
+      "id": "H7-ACC-ERRORS",
+      "c": "D",
+      "family": "access_log",
+      "q": "How many server errors are in the access log?",
+      "check": "number",
+      "expect": 46,
+      "note": "status = 500. Requires mapping 'server error' to the status value; CLARIFIED is acceptable, a WRONG number is not."
+    },
+    {
+      "id": "H8-SUB-ACTIVE",
+      "c": "D",
+      "family": "subscriber",
+      "q": "How many subscribers are currently active?",
+      "check": "number",
+      "expect": 6,
+      "note": "CORRECTED 2026-09-25. Expected 5 originally; that was an ORACLE DEFECT of my own making. `subscriber.status` is stored under TWO headers depending on which file the row came from -- `status` (5 ACTIVE) and `account_status` (1 ACTIVE) -- and the curated layer declares both as source_names, so the executor's COALESCE correctly counts 6. The original SQL read one header only. Derive an expectation from the SAME expression the executor uses, not from the first column that looks right."
+    },
+    {
+      "id": "H9-TWR-COUNT",
+      "c": "D",
+      "family": "tower",
+      "q": "How many cell towers are in this case?",
+      "check": "number",
+      "expect": 5,
+      "note": "Row count on a small family."
+    },
+    {
+      "id": "H10-TXN-COUNT",
+      "c": "D",
+      "family": "transaction",
+      "q": "How many financial transactions were recorded?",
+      "check": "number",
+      "expect": 4,
+      "note": "Row count on the smallest structured family."
+    },
+    {
+      "id": "H11-HONESTY-CDRLOC",
+      "c": "D",
+      "family": "cdr",
+      "q": "Where was 923001110001 seen according to the call records?",
+      "check": "contains",
+      "expect": [
+        "Gulberg"
+      ],
+      "note": "EXPECTATION UPDATED 2026-09-25 after WI-LAYER-1 curated cdr.location. Originally an honesty probe. cdr location is now curated and 923001110001 appears at Airport Road, DHA Phase 5, Gulberg, Liberty Market and Model Town across 872 rows, so a location IS the honest answer. The system currently answers '447 CDR records' -- a COUNT to a WHERE question, and 447 is the wrong-field count (originating_number, not msisdn)."
+    },
+    {
+      "id": "H12-HONESTY-BEAMWIDTH",
+      "c": "D",
+      "family": "tower",
+      "q": "What is the average beam width of the towers?",
+      "check": "number",
+      "expect": 65,
+      "note": "EXPECTATION UPDATED 2026-09-25 after WI-LAYER-1 curated tower_location. Originally an honesty probe where CLARIFIED was the pass, because 'Beam Width' was uncurated. It is now curated and holds 65/45/60/90 plus one empty, so the average is 65 and the honest answer is that number. The system still clarifies, which is SAFE but no longer sufficient. A held-out set must track what curation makes answerable, or it scores a miss as a pass."
+    },
+    {
+      "id": "H13-HONESTY-NOPLATE",
+      "c": "D",
+      "family": "anpr",
+      "q": "How many sightings involve plate QQQ-9999?",
+      "check": "number",
+      "expect": 0,
+      "note": "HONESTY PROBE, negative control. The plate does not exist. 0 or a scoped clarification passes; any non-zero count is the confident-wrong class this product exists to eliminate."
+    }
+  ]
+}

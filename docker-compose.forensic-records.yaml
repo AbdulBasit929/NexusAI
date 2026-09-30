@@ -173,6 +173,292 @@ services:
       # Default-ON because default-off would ship the bulk-PII path. The switch
       # exists to take a CONTROL measurement, not to omit the guard.
       FORENSIC_TEXT_BROWSE_GUARD: ${FORENSIC_TEXT_BROWSE_GUARD:-true}
+      # PII MASKED PROJECTION. Admits a curated PII field to the issued
+      # catalogue when, and only when, its masking scheme is IMPLEMENTED.
+      # Today that is the two plate-candidate fields, which project as one
+      # opaque, case-scoped alias shared across both families (WI-LAYER-7).
+      # The five OCR/transcript fields are WITHHELD, not masked, and stay out.
+      #
+      # DEFAULT OFF: it makes a previously unanswerable class of question
+      # answerable and needs its own control, unlike the provenance label whose
+      # default-off state would have been the unsafe one.
+      FORENSIC_PII_MASKED_PROJECTION: ${FORENSIC_PII_MASKED_PROJECTION:-false}
+      # The alias key. Plate strings are LOW ENTROPY, so an UNKEYED digest is
+      # reversible by enumerating a few million plausible registrations -- it
+      # would be the plate in another encoding, not an alias. Masking therefore
+      # FAILS CLOSED without this: the field is not admitted at all rather than
+      # admitted and weakly masked under a MASKED label.
+      #
+      # Changing it re-aliases every plate in every case. That is not a data
+      # migration -- no stored value changes -- but previously issued aliases
+      # stop matching, so rotate it deliberately.
+      FORENSIC_PII_ALIAS_SECRET: ${FORENSIC_PII_ALIAS_SECRET:-}
+      # GOAL TAXONOMY SLICES. `lookup` is the DEFAULT and means UNRECOGNISED:
+      # it skips shape verification, and for a media question the algebra goal
+      # gate refuses it so it never reaches the compiler at all.
+      #
+      #   slice A  earliest/latest -> rank      (2 questions, 0 disturbed)
+      #   slice B  which/what <field> detected|produced|used|read -> distinct
+      #                                         (5 questions, 0 disturbed)
+      #
+      # Censused across all three corpora BEFORE being wired. Offline effect:
+      # media routing coverage 15 -> 21 of 28. Two prior attempts at this switch
+      # cost real answers (WI-31's "breakdown" made ACC-02 answer a total), so
+      # slice B excludes retrieval verbs, superlatives and aggregate markers
+      # explicitly and DOC-02 staying `search` is asserted by test.
+      FORENSIC_GOAL_TAXONOMY_SLICES: ${FORENSIC_GOAL_TAXONOMY_SLICES:-false}
+      # A1a. A magnitude condition the analyst states ("longer than ten
+      # minutes") is a CONSTRAINT_APPLIED obligation exactly as a named
+      # identifier is. Refuses, and names the condition, when the executed plan
+      # compares against nothing.
+      #
+      # Measured 2026-09-27 (reports/adhoc-runtime-20260927/): "Show me all the
+      # calls that lasted longer than ten minutes" answered "20 CDR records
+      # matched this question" with `"filters": []` -- a bounded page of rows
+      # stated as the answer to a filtered question.
+      #
+      # Censused across all three corpora BEFORE being wired: 0 of 103
+      # questions captured, so it cannot disturb an existing answer. It adds NO
+      # capability -- parsing the condition into a filter is A1b and is
+      # measured separately.
+      #
+      # MEASURED AND SHIPPED 2026-09-27, DEFAULT ON. Two arms, same image, same
+      # container, switch asserted from `docker inspect` before scoring: arm A
+      # reproduced the shipped posture exactly (67/28/4/2/1/1) and the guard arm
+      # moved ZERO of 103 questions, as the census predicted. The probe question
+      # went from "20 CDR records matched this question" to a withhold naming
+      # the condition, reason_code=condition_not_applied.
+      #
+      # DEFAULT ON, unlike every other switch here, because default-OFF is the
+      # UNSAFE state: off is what answers a filtered question with an
+      # unfiltered count. A safety fix whose off-state is the unsafe one ships
+      # on. Evidence: reports/constraint-obligations-20260927/.
+      FORENSIC_CONSTRAINT_OBLIGATIONS: ${FORENSIC_CONSTRAINT_OBLIGATIONS:-true}
+      # A1b. Binds a numeric bound the analyst stated ("amount above 50000") to
+      # the curated field they named, as GT/GTE/LT/LTE. The layer already
+      # declares these operators, the compiler already enforces
+      # `allowed_filters`, and the executor already runs them -- only the
+      # extraction was missing.
+      #
+      # NEVER converts a unit: surveyed 2026-09-27, not one range-filterable
+      # field in the layer declares a `unit`, so "ten minutes" has no declared
+      # basis to become 600 and is refused by A1a instead. Binds nothing when
+      # two curated fields match, because an ambiguity is the analyst's to
+      # resolve. Censused across all three corpora before wiring: 0 of 103.
+      #
+      # MEASURED AND SHIPPED 2026-09-27, in two rounds. Round one proved the
+      # filter against an independent SQL oracle (amount>50000 -> 1 of 4;
+      # bytes>1000000 -> 2,189 of 2,500) with 0 of 103 corpus questions moved,
+      # but was HELD OFF: the headline read "There is 1 transaction in this
+      # case" while the case holds four, so a true number sat in a sentence
+      # that claimed more than was computed. Round two added A1b.1 --
+      # `rangeFilterQualifiers` in answer_presentation.go names the bound, as
+      # the headline already did for a target -- and re-measured: corpus still
+      # flat, oracle still matched, and the sentence now reads "There is 1
+      # transaction with amount above 50000 in this case."
+      # Evidence: reports/range-filters-20260927/A1B_RESULT.md.
+      FORENSIC_RANGE_FILTERS: ${FORENSIC_RANGE_FILTERS:-true}
+      # A3.3. Binds a named identifier to the ONE curated string field that
+      # holds it, checked over the full authorized scope with the executor's own
+      # expression. Zero or several holding fields -> binds nothing (a CDR phone
+      # sits in caller AND callee, and binding one would answer a narrower
+      # question). A WHO question about an entity that declares PII binds
+      # nothing, so identity is never answered with the identity removed.
+      # Evidence: reports/identifier-binding-20260927/.
+      #
+      # MEASURED CLEAN 2026-09-27 (0 of 103 moved), HELD OFF: on its own it has
+      # no route to the questions it would help, because the keyword ladder
+      # claims them. The routing that reached them was tried before the IR
+      # arbitration and REVERTED -- it pre-empted correct IR rescues and cost
+      # CDR-12, CDR-14 (-> WRONG) and CDR-16.
+      FORENSIC_IDENTIFIER_BINDING: ${FORENSIC_IDENTIFIER_BINDING:-false}
+      # An explicit record_type that names no known family is REFUSED rather
+      # than used as a scope. Measured 2026-09-27: record_type=tower answered
+      # "There are no tower records in this case" about a case holding five --
+      # a confident false negative from a misspelt family. Aliases resolve
+      # through the same mapping questions already use (tower -> tower_location).
+      # DEFAULT ON: the off-state is the unsafe one.
+      FORENSIC_RECORD_TYPE_VALIDATION: ${FORENSIC_RECORD_TYPE_VALIDATION:-true}
+      # A3.1 (CDR-16). "How MANY records came from each SOURCE file" is a grouped
+      # count, not a request for source rows. A question carrying an aggregate
+      # marker is left to the aggregate case. Census: captures exactly 1 corpus
+      # question (CDR-16) and releases exactly that one.
+      #
+      # MEASURED AND SHIPPED 2026-09-27. Ladder ON, exact shipped configuration:
+      # 0 of 103 moved. Ladder OFF (the compiler path end to end): CDR-16
+      # CLARIFIED -> CORRECT, "8,642 CDR records across 5 source file values".
+      # Evidence: reports/compiler-gaps-20260927/.
+      FORENSIC_SOURCE_ROWS_QUANTITY_GUARD: ${FORENSIC_SOURCE_ROWS_QUANTITY_GUARD:-true}
+      # A3.2 (CDR-12). A multi-family match among STRUCTURED families resolves
+      # through the precedence extractCanonicalRecordType already encodes
+      # ("which cell site handled the most calls" is CDR). Census: moves exactly
+      # CDR-12 and IPDR-05; the first version moved 10, 8 of them wrong
+      # (documents and model-read media sent to ANPR), and was narrowed.
+      #
+      # MEASURED 2026-09-27, HELD OFF: correct and safe (0 moved on either arm)
+      # but it did not move CDR-12. The real gate is that the compiler picks a
+      # registered operation REQUIRING a target for a question that names none
+      # -- the family label was never the blocker. See A3_1_A3_2_RESULT.md.
+      FORENSIC_FRAME_FAMILY_PRECEDENCE: ${FORENSIC_FRAME_FAMILY_PRECEDENCE:-false}
+      # CDR-12, the real gate. IR arbitration adopts a verified typed plan but
+      # the audit keeps the registered operation chosen first, and the handler
+      # recomputed binding readiness from it -- so "Which cell site handled the
+      # most calls?" asked for a target the executing plan never uses. When on,
+      # an arbitrated typed plan is not held to the superseded operation's
+      # parameters. Census from recorded responses: 0 of 103 in the shipped
+      # posture, CDR-12 only with the ladder off.
+      #
+      # MEASURED AND SHIPPED 2026-09-28, four arms, thresholds pre-registered.
+      # Ladder ON: switch-off build reproduces the shipped posture exactly and
+      # switch on moves 0 of 103. Ladder OFF: CDR-12 CLARIFIED -> CORRECT ("The
+      # cell site with the highest count is 149631808 (1,114)"), nothing else
+      # moved; plate-text PII probes unchanged in every arm.
+      # Evidence: reports/arbitration-supersedes-20260928/RESULT.md.
+      FORENSIC_ARBITRATION_SUPERSEDES_SELECTION: ${FORENSIC_ARBITRATION_SUPERSEDES_SELECTION:-true}
+      # A1c. A question that asks for a RELATIONSHIP -- "do any subscribers
+      # share the same handset", "is there any link between the plates and the
+      # calls" -- is withheld when the plan would only count or list one kind of
+      # record. Measured 2026-09-27: those two answered "11 subscriber records
+      # matched" and "There are 750 ANPR sightings", both confident wrong.
+      # Census: 0 of 103 corpus questions state a relationship, so a dedicated
+      # probe measures it. Thresholds pre-registered in
+      # reports/relational-conditions-20260928/.
+      #
+      # MEASURED AND SHIPPED 2026-09-28. Corpus: 0 of 103 moved. Probe: all six
+      # relational questions that answered with a count are withheld, naming
+      # the relationship; all eight near-misses ("share of SMS", "Can you share
+      # a summary", "Share a list", "linked to <number>") unchanged. The first
+      # scoring counted the withholds as answers -- a comparator defect, fixed
+      # and recorded in RESULT.md.
+      FORENSIC_RELATIONAL_CONDITIONS: ${FORENSIC_RELATIONAL_CONDITIONS:-true}
+      # A1d. An S9 SHAPE rule: a question OPENING with "where" that compiled a
+      # bare aggregate (measures, no grouping, no projection) reports how many,
+      # not where, and is refused. H11 "Where was 923001110001 seen according
+      # to the call records?" answered "447 CDR records" -- WRONG in every arm.
+      # Census over recorded ladder-on and ladder-off responses: exactly H11 of
+      # the four WHERE questions. Thresholds pre-registered in
+      # reports/location-obligation-20260928/.
+      #
+      # MEASURED AND SHIPPED 2026-09-28: H11 WRONG -> CLARIFIED, nothing else
+      # moved, NEG-02 stays CORRECT. Shipped posture now 67 CORRECT / 3 WRONG.
+      FORENSIC_LOCATION_OBLIGATION: ${FORENSIC_LOCATION_OBLIGATION:-true}
+      # S1. A result-row count is not a finding. "Show me everything you have
+      # about plate ABC-123" said "1 ANPR sighting matched" (truth 218: the plan
+      # computed COUNT(*) among four measures and one aggregate row came back);
+      # "Summarise the suspicious activity" said "14 records matched" (14
+      # summary rows). When on: an ungrouped multi-measure plan states its
+      # COUNT(*), and the fallback never states a row count that is not a
+      # complete count of matching records. Census: 0 of 103 reach it
+      # un-withheld. Thresholds pre-registered in
+      # reports/rowcount-headline-20260928/.
+      #
+      # MEASURED AND SHIPPED 2026-09-28: corpus 0 of 103 moved; ABC-123 now
+      # "There are 218 ANPR sightings involving ABC-123 in this case."; the
+      # summary states no figure; the other 12 everyday questions, all 38 demo
+      # checks and all 16 relational probes identical.
+      FORENSIC_ROW_COUNT_HEADLINE_GUARD: ${FORENSIC_ROW_COUNT_HEADLINE_GUARD:-true}
+      # S4. A model's plate read is not a camera's sighting -- in the sentence
+      # too. "How many plate reads were produced from the images?" answered
+      # "307 ANPR sightings" in a case holding 1,057 camera sightings; faces,
+      # text regions and audio segments were "records". When on, the answer
+      # noun comes from the cited artifact_type when every cited row agrees.
+      # Census: exactly 8 answers, all scored on the number. Thresholds
+      # pre-registered in reports/derived-labels-20260928/.
+      # MEASURED AND SHIPPED 2026-09-28: exactly the 8 relabelled ("307 plate
+      # reads", "20 detected faces"), numbers unchanged, 0 verdicts moved; the
+      # 1,057 camera sightings keep their label.
+      FORENSIC_DERIVED_RESULT_LABELS: ${FORENSIC_DERIVED_RESULT_LABELS:-true}
+      # S2. A word search that found nothing is not evidence of absence. P2
+      # "Were any of the transcribed audio segments taken from video?" ran a
+      # relevance search, found nothing and said "No transcript segment
+      # intersects the requested source-time range" -- no range was asked for,
+      # and one segment did come from video. When on, an empty relevance-mode
+      # transcript / image-text / document search is withheld
+      # (text_search_not_absence). Exact-phrase and time-range searches are
+      # untouched. Census: P2 only.
+      # MEASURED AND SHIPPED 2026-09-28: P2 WRONG -> withheld, DOC-06 unchanged,
+      # nothing else moved. Evidence: reports/absence-text-20260928/RESULT.md.
+      FORENSIC_TEXT_SEARCH_NOT_ABSENCE: ${FORENSIC_TEXT_SEARCH_NOT_ABSENCE:-true}
+      # S3. A clarification states its question, never a result. R5 was held
+      # for clarification but read "No qualifying phone-counterparty events
+      # were found" -- the comparison's payload builder ran on zero rows. When
+      # on, a clarifying response never reaches a result-specific builder.
+      # Census: R5 only. Both thresholds in reports/absence-text-20260928/.
+      # MEASURED AND SHIPPED 2026-09-28: R5 now states its question; nothing else moved.
+      FORENSIC_CLARIFICATION_NOT_RESULT: ${FORENSIC_CLARIFICATION_NOT_RESULT:-true}
+      # U2a. A text search the question aimed at one kind of evidence stays
+      # there. "Find OCR text mentioning BCX-567" was routed to image search,
+      # then overridden by the one-identifier shortcut (a plate-shaped term) and
+      # withheld; DOC-01's document search was swapped for an ANPR records plan
+      # by verified-only because the question says "plate". When on, neither
+      # overrides a document / image-text / transcript search the question names.
+      # Census: DOC-01 + 3 pre-flight questions. Thresholds in
+      # reports/evidence-search-first-20260928/.
+      # MEASURED AND SHIPPED 2026-09-28: DOC-01 CLARIFIED -> CORRECT; BCX-567 /
+      # MNA-08 image-text searches now find their images; pre-flight 33 -> 36 of
+      # 38; nothing else moved; plate-text privacy probes H1 / VID-01 unchanged.
+      FORENSIC_EVIDENCE_SEARCH_FIRST: ${FORENSIC_EVIDENCE_SEARCH_FIRST:-true}
+      # U2b. Search-only plate lookup over the plate reader's output (product-
+      # owner decision 2026-09-28). An analyst-supplied plate is an exact filter
+      # on anpr_model_observation.plate_text (PII), issued FILTER-ONLY: never
+      # projected, grouped, sorted or aggregated. "Which image shows plate
+      # MN1367?" -> the count, the file, and "unreviewed model reads". A
+      # question naming no plate stays refused. Census: 0 of 103. Thresholds in
+      # reports/plate-read-search-20260928/.
+      # MEASURED AND SHIPPED 2026-09-29: plate probe 8/8 (4 found with the right
+      # file and count, 1 miss stated as "may have misread", 3 privacy questions
+      # disclosed no plate); pre-flight 38/38; 0 of 103 moved.
+      FORENSIC_PLATE_SEARCH_ONLY: ${FORENSIC_PLATE_SEARCH_ONLY:-true}
+      # A1. Result-table columns are labelled with what they hold: "M1" becomes
+      # "CDR records" / "Detected faces" / "Average call duration", grouped
+      # fields use curated display names, "metadata" becomes "Source rows".
+      # Headers only -- keys and values untouched. Census: 54 answers showed
+      # "M1". Thresholds in reports/column-labels-20260929/.
+      # MEASURED AND SHIPPED 2026-09-29: 54 answers relabelled, 0 raw headers left,
+      # keys and values byte-identical, 0 answers changed.
+      FORENSIC_RESULT_COLUMN_LABELS: ${FORENSIC_RESULT_COLUMN_LABELS:-true}
+      # A1.1. Template result-table headers in sentence case with real acronyms
+      # ("Call END TS" -> "Call end timestamp", "Imei" -> "IMEI"). Headers
+      # only; humanizeField (metric labels, plumbing check) unchanged.
+      # Thresholds in reports/a1-1-a2-20260929/.
+      # MEASURED AND SHIPPED 2026-09-29: 69 header cells (55 distinct) recased in
+      # 8 corpus answers, keys and values byte-identical, 0 answers changed.
+      FORENSIC_TABLE_HEADER_CASING: ${FORENSIC_TABLE_HEADER_CASING:-true}
+      # A2. Document / image-text / transcript search citations carry the stored
+      # source_truth_state (derived_model_observation, derived_native_text), so
+      # a model's transcript is never shown as a source record. Copied, never
+      # inferred. Thresholds in reports/a1-1-a2-20260929/.
+      # MEASURED AND SHIPPED 2026-09-29: 7 search citations gained it, 254
+      # fact-packet citations match their item, 0 records_sql items touched.
+      FORENSIC_CITATION_TRUTH_STATE: ${FORENSIC_CITATION_TRUTH_STATE:-true}
+      # A3. Template answers state their result: frequent contacts name the top
+      # contact (every tied one), first/last-seen questions state both times from
+      # the complete coverage. Thresholds in reports/template-states-20260929/.
+      # MEASURED AND SHIPPED 2026-09-29: CDR-10 and ANPR-03 NOT_STATED -> CORRECT
+      # (both checked against the database), 0 other answers changed.
+      FORENSIC_TEMPLATE_STATES_RESULT: ${FORENSIC_TEMPLATE_STATES_RESULT:-true}
+      # A4. An ungrouped count of a field names the field ("10 distinct subscriber
+      # number values"), and COUNT(field) says the field was present instead of
+      # reading as every record. COUNT(*) unchanged. Thresholds in
+      # reports/count-names-field-20260929/.
+      # MEASURED AND SHIPPED 2026-09-29 (second build; the first read worse on a
+      # same-field filter and was fixed): 3 answers name their field, 0 moved.
+      FORENSIC_COUNT_NAMES_FIELD: ${FORENSIC_COUNT_NAMES_FIELD:-true}
+      # B1. A message that is only a greeting or only "what can you do" gets
+      # product help built from the capability registry; the glossary covers CDR,
+      # ANPR, LAC, CGI, CNIC... and matches whole words. Thresholds in
+      # reports/conversation-router-20260929/. PARKED 2026-09-29 (owner priority:
+      # the LLM query path first). UNMEASURED -- default off.
+      FORENSIC_CONVERSATION_ROUTER: ${FORENSIC_CONVERSATION_ROUTER:-false}
+      # Headline honesty, found by 8 new questions checked against the DB
+      # (reports/laptop-speed-20260929/RESULT.md). STATES_FILTERS: a count filtered
+      # on plate or protocol names that filter instead of reading as the case
+      # total (S5, S7). EMPTY_AGGREGATE_HONEST: a SUM/AVG/MIN/MAX over zero values
+      # says so instead of "is 0" (S8). Thresholds in
+      # reports/headline-honesty-20260929/. UNMEASURED -- default off.
+      FORENSIC_HEADLINE_STATES_FILTERS: ${FORENSIC_HEADLINE_STATES_FILTERS:-false}
+      FORENSIC_EMPTY_AGGREGATE_HONEST: ${FORENSIC_EMPTY_AGGREGATE_HONEST:-false}
+
       # Memoizes the plan completion on a hash of the exact model payload.
       # Sound because the completion is requested at temperature 0, so it is a
       # deterministic function of that payload; the cached bytes re-enter the

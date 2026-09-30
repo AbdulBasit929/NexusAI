@@ -5,7 +5,7 @@
 > · `continuation-20260921.md`. **TWO AGENTS WRITE THIS FILE:** everything above
 > `## CODEX_UI_TRACK` is the backend track, that section is Codex's, neither edits the other's.
 
-**Last updated:** 2026-09-26 · **Branch:** `codex/forensic-hybrid-checkpoint-20260723`
+**Last updated:** 2026-09-29 · **Branch:** `codex/forensic-hybrid-checkpoint-20260723`
 
 ---
 
@@ -136,8 +136,9 @@ cross-family misrouting · **D8** payload filters discarded unless the template 
 - **Never fabricate** a result, citation, OCR text, transcript, sighting, face identity, location, timeline or
   cross-family relationship.
 - **Never merge upstream LocalAI into this repo.** Clone to a sibling directory to compare.
-- **Every behavioural change is measured against a pre-declared threshold**, and reverted if it fires. **Fired
-  three times, honoured three times** — most recently Step 4, 2026-09-26 (§7).
+- **Every behavioural change is measured against a pre-declared threshold**, and reverted if it fires.
+  **Fired three times, honoured three times** — most recently Step 4, 2026-09-26 (§7). **A safety fix whose
+  default-off state would be the unsafe one ships without a switch** (the derived citation; the browse guard).
 
 ## 6. Operational hazards
 
@@ -160,17 +161,16 @@ cross-family misrouting · **D8** payload filters discarded unless the template 
 synthesis `qwen3-4b-instruct-2507-q4km-nxb21d-dev` (**Q4_K_M**), embeddings `qwen3-embedding-0.6b`. CPU only, ~4
 tok/s, ~15.7 GiB RAM.
 
-**Switches — ASSERTED FROM THE CONTAINER 2026-09-26 after the arm C ship**, and all of them now PERSISTED in
-`.env.forensic-runtime.local` AND declared in compose: `VERIFIED_ONLY=true` · `IR_ARBITRATION=true` ·
-`IR_FALLBACK=true` · `PLAN_CACHE=true` with `PLAN_CACHE_DIR=/data/forensic/spool/plan-cache` ·
-`ANSWER_STATES_VALUES=true` · `MEASURE_DENOMINATOR=true` · `LADDER_ROUTING=true` (**defaults ON** — it gates
-EXISTING behaviour; off cost 3 confident-wrong) · **`MEDIA_FAMILY_ROUTING=true` ·
-`DERIVED_ARTIFACT_EXECUTION=true` · `BOOLEAN_RESTRICTION=true` (SHIPPED, §7)** · `BREAKDOWN_GOAL=false` ·
-`IR_SHADOW=false` · `IR_CROSSCHECK=false` · `DROP_INVENTED_FILTERS=false` (measured, rejected). **A SWITCH MUST
-BE DECLARED IN COMPOSE, NOT JUST SET IN THE SHELL — compose forwards only what it names**, and an undeclared one
-measures the feature silently OFF (§7).
-
-Rollback images: `rollback-before-step4b-20260926` · `rollback-before-step4-20260926`.
+**Switches — ASSERTED FROM THE CONTAINER 2026-09-27**, persisted in `.env.forensic-runtime.local` AND declared in
+compose: `VERIFIED_ONLY` · `IR_ARBITRATION` · `IR_FALLBACK` · `PLAN_CACHE` · `ANSWER_STATES_VALUES` ·
+`MEASURE_DENOMINATOR` · `LADDER_ROUTING` · `MEDIA_FAMILY_ROUTING` · `DERIVED_ARTIFACT_EXECUTION` ·
+`BOOLEAN_RESTRICTION` all true. **Shipped 2026-09-27, each measured 0 of 103 moved:** `CONSTRAINT_OBLIGATIONS=true`
+(dropped numeric condition refuses, names it) · `RANGE_FILTERS=true` (GT/LT bound to the named field; headline
+names the bound) · `RECORD_TYPE_VALIDATION=true` (unknown family refused, never narrated as "no records") ·
+`SOURCE_ROWS_QUANTITY_GUARD=true` (A3.1; ladder-OFF: CDR-16 CORRECT) · `ARBITRATION_SUPERSEDES_SELECTION=true` (2026-09-28;
+ladder-OFF: CDR-12 CORRECT; ladder-OFF now 66 vs 67 ON) · `RELATIONAL_CONDITIONS=true` · `LOCATION_OBLIGATION=true` (2026-09-28; H11
+WRONG->CLARIFIED, shipped now 67/3 WRONG) · `ROW_COUNT_HEADLINE_GUARD=true` (S1; ABC-123 "1" -> 218) · `DERIVED_RESULT_LABELS=true` (S4) · `TEXT_SEARCH_NOT_ABSENCE`, `CLARIFICATION_NOT_RESULT` (S2/S3) · `EVIDENCE_SEARCH_FIRST` (U2a) · `PLATE_SEARCH_ONLY` (U2b, owner: search-only) · `RESULT_COLUMN_LABELS` (A1; shipped 68/2 WRONG) · `TABLE_HEADER_CASING` (A1.1) · `CITATION_TRUTH_STATE` (A2) · `TEMPLATE_STATES_RESULT` (A3; CDR-10, ANPR-03 -> CORRECT) · `COUNT_NAMES_FIELD` (A4) (2026-09-29; **shipped 70/2 WRONG**, image de5c372e1b70, 30 on/9 off, pre-flight 38/38). **Parked OFF:** `CONVERSATION_ROUTER` (B1). **OWNER DIRECTION 2026-09-29: runtime queries replace templates** -- census `reports/templates-off-20260929/RESULT.md` (ladder OFF 68/4 WRONG: CASE-01, X-01 false absence; text search is 6 of 9 template-only answers). Plan: `docs/work/ROADMAP_20260929.md`. **Held OFF:** `IDENTIFIER_BINDING`, `FRAME_FAMILY_PRECEDENCE`. **REVERTED 2026-09-27:** compiler-first routing
+(A2), deterministic arbitration (A3.3), compiled family scope. `docs/work/CAPABILITY_LOG.md`. **DECLARE EVERY SWITCH IN COMPOSE.**
 
 **ASK THE PRODUCT OWNER FIRST:** container rebuild or redeploy · any `docker compose` action beyond `ps`/`logs`
 · any database write, migration or backfill · model downloads or backend installs · any git operation that
@@ -179,8 +179,9 @@ writes · long builds · running a live evaluation suite · anything touching re
 ## 7. Next — RE-BASED 2026-09-26
 
     (0) ANSWER PATH 7 WRONG->1 · (1) VOCABULARY 86%->99%, routing 7/28->15/28   CLOSED
-    (2) MEDIA ANSWERING   SHIPPED  5 CORRECT/7 WRONG -> 13/3 (arm C)
-    (3) SCOPE bound by the ladder   OPEN · (4) HELD-OUT 13+28, needs >=40   PARTIAL
+    (2) MEDIA ANSWERING SHIPPED 5/7 -> 13/3 · (3) SCOPE bound by the ladder OPEN
+    (4) HELD-OUT 13+28, needs >=40 structured   PARTIAL
+    (5) ANALYST UI on the live API 2026-09-27; script docs/work/DEMO_SCRIPT_20260928.md   DEMO-READY
 
 **BREAKDOWN GOAL — BUILT, MEASURED, NEUTRAL, OFF 2026-09-25**, behind `FORENSIC_BREAKDOWN_GOAL`, registered at
 all five sites a new goal needs: 62/62 identical verdicts, all four targets BYTE-IDENTICAL. **The ladder answers
@@ -189,8 +190,8 @@ ORDERING** — it cannot pay until the ladder stops answering them, but it stays
 the 17 `lookup` questions, and an S9 `rows` case cannot be added while that bucket holds six kinds of question).
 Measure it TOGETHER with the `rows` case, and **RE-MEASURE: its neutral verdict was scored against a control
 that over-credited four of its targets.** **STAGE 0 DONE 2026-09-25** behind `FORENSIC_ANSWER_STATES_VALUES`,
-+4, ON. **Left behind:** CDR-10 and ANPR-03 stay NOT_STATED because REGISTERED TEMPLATES answer them, so
-`sourceNativeResultAnswer` never runs — `tabularResultAnswer` needs the same treatment.
++4, ON. CDR-10 and ANPR-03 (registered templates) now state their result: A3, shipped 2026-09-29. They
+still need the runtime planner to express them before those templates can retire (templates-off census).
 
 ### MEDIA — **SHIPPED 2026-09-26** as Step 4b arm C. Step 4 fired first and was reverted.
 
@@ -230,10 +231,9 @@ names** — arm C would have measured the rule silently OFF. And §3.4 did not s
 the change from what it does not touch, so read literally it mandated keeping 7 wrong answers to avoid 3. **Both
 readings were reported and the product owner ruled; a threshold is not reinterpreted after seeing the result.**
 
-**THE LADDER'S PII PATH — FOUND AND GUARDED. The boundary covers the COMPILER, not the LADDER:**
-`CatalogFields` drops PII/RESTRICTED so no typed plan can name those fields (proven at every goal), while
-`derivedTextEvidenceSQL` reads `raw_text`, `normalized_text`, `text`, `roman_urdu_text` and `raw_urdu_text`
-straight out of the JSON. **I caused the discovery:** fixing H2's misclassification sent it to
+**THE LADDER'S PII PATH — FOUND AND GUARDED. The boundary covers the COMPILER, not the LADDER:** `CatalogFields`
+drops PII/RESTRICTED so no typed plan can name those fields, while `derivedTextEvidenceSQL` reads the five text
+fields straight out of the JSON. **I caused the discovery:** fixing H2's misclassification sent it to
 `audio_transcript_search`, which returned the actual Urdu transcript. Reverted the same day. **The lesson was
 already written down and I still walked into it — a census of the CLASSIFIER said nothing about where the
 reclassified question would LAND.**
@@ -241,35 +241,35 @@ reclassified question would LAND.**
 **The defect is UNTARGETED BROWSE, not search.** `derived_text_relevance.go:83` judges every passage relevant
 when a question names nothing to filter on, so all come back IN FULL. **AUD-03 showing an Urdu snippet is
 CORRECT** — the analyst supplied the identifier and the snippet IS the citation; AUD-01/02, DOC-02/03 and IMG-01
-are the same, all CORRECT in the 62. `FORENSIC_TEXT_BROWSE_GUARD` (**default ON**, declared in compose AND
-persisted) withholds text for untargeted requests, keeps count/files/languages/timestamps/locators and **says it
-withheld them**. Census first: **1 question, H2, zero structured.** **Live probe, same template and route:
-untargeted -> ZERO Urdu anywhere in the payload; targeted -> snippet intact. Golden 62: ZERO transitions.**
+are the same, all CORRECT in the 62. `FORENSIC_TEXT_BROWSE_GUARD` (**default ON**, in compose AND persisted)
+withholds text for untargeted requests, keeps count/files/languages/timestamps/locators and **says it withheld
+them**. Census first: **1 question, H2, zero structured.** **Live probe: untargeted -> ZERO Urdu anywhere in the
+payload; targeted -> snippet intact. Golden 62: ZERO transitions.**
+[`TEXT_BROWSE_GUARD.md`](reports/browse-guard-20260926/TEXT_BROWSE_GUARD.md).
 
 **EMPTY 200s FIXED.** All FOUR terminal classes returned HTTP 200 with NO analyst-facing text:
 `terminalRequestResponse` filled `resp.Answer` and never built `resp.Enterprise`, where the analyst surface and
-the grader both read — **the server produced an answer and dropped it**; H2 and M15 went 0 -> 243 chars. It does
-NOT use `finalizeEnterprisePayload`, which asserts an EVIDENCE shape these classes lack. **Those four classes
-ARE the unwired conversational surface (§7 item 5), so this is its groundwork.**
+the grader both read — **the server produced an answer and dropped it**; H2/M15 went 0 -> 243 chars. It does NOT
+use `finalizeEnterprisePayload`, which asserts an EVIDENCE shape these classes lack. **Those four classes ARE
+the unwired conversational surface (§7 item 5).**
 
 **Remaining, in order:**
 
-1. **PII MASKING — the largest capability gap, and one part is CODEX'S to rule on.** The browse guard is the
-   *fallback* (withhold the whole text); the masking itself is owed, and 7 curated media fields stay withheld
-   until it lands. Ruling ACCEPTED: case-scoped stable alias (`Plate candidate ••••-A7C2`), **NOT last-four** —
-   plate strings are LOW ENTROPY, so last-four both reveals too much and collides; typed placeholders in
-   OCR/transcript text; **if token-level redaction cannot be PROVEN, withhold the text** and keep counts,
-   timestamps, language, review state and locators. **`audio_roman_urdu_segment` holds the SAME utterance in two
-   scripts** — redacting a number in one and not the other discloses it anyway, and synchronising depends on
-   whether the Roman form is a deterministic transliteration and whether digits are Urdu-Indic in one and ASCII
-   in the other. Asked of Codex FROM THE DATA in
-   [`WI-LAYER-7_CODEX_PROMPT.md`](docs/work/WI-LAYER-7_CODEX_PROMPT.md), with "cannot be synchronised safely"
-   named as a valid answer. **H2/M8/M15 stay on the terminal path until it lands** —
-   `TestClassifierSuperlativeBoundary` keeps `earliest|latest` ABSENT so they are not re-added by accident.
-2. **M4 "highest plate detection confidence" went CORRECT -> CLARIFIED** when media routing landed. A lost
-   answer, not a wrong one, so it did not fire a threshold — but it is unexplained and worth one trace.
-3. **Derive SCOPE from the curated layer, then delete the ladder in slices** — it blocks the taxonomy work as
-   well as Phase 3's remaining deliverable.
+1. **PII MASKING — BUILT 2026-09-26, NOT DEPLOYED, NOT MEASURED.** `FORENSIC_PII_MASKED_PROJECTION` (default
+   off) + `FORENSIC_PII_ALIAS_SECRET` (FAILS CLOSED without it). Plates project as one opaque, fixed-width,
+   case-scoped HMAC alias shared across both families; **the key is not optional — plate strings are LOW
+   ENTROPY, so an unkeyed digest is reversible by enumeration.** Masked fields are **not sortable**: SQL orders
+   by the RAW value while the analyst sees aliases, so the ordering would hand back what the alias hides.
+   DB-proven: 24 labels aliased, 24 plates none raw. **A BUG IT INTRODUCED, caught by an existing test:**
+   admitting every `PII`/`MASKED` field let `subscriber.cnic` into the catalogue to be run through the PLATE
+   aliaser. Fixed with a scheme whitelist — not "is this MASKED?" but **"can this actually be masked?"**
+   OCR/transcript stay WITHHELD; subscriber fields have no scheme. **DECISION OWED FIRST:** with masking on, H1
+   stops being a refusal and becomes an answer IN ALIASES — re-rule H1 and its threshold before shipping.
+   [`PII_MASKING.md`](reports/pii-masking-20260926/PII_MASKING.md).
+2. **M4 went CORRECT -> CLARIFIED** when media routing landed — a lost answer, not a wrong one, so no
+   threshold fired, but it is unexplained and worth one trace.
+3. **Derive SCOPE from the curated layer, then delete the ladder in slices** — it blocks the taxonomy work
+   and Phase 3's remaining deliverable.
 4. **Then the `rows` case + breakdown goal together**, plus "longest/shortest" -> `rank` and ANPR-03 "first and
    last seen" -> `range`, each against a control. **Worth ~7 media questions.**
 5. **The unwired question classes** — greetings, chit-chat, product-help, capability, concept explanation,
@@ -294,7 +294,8 @@ allow `many_to_many` (CDR<->IPDR is real but many-to-many, which the v1 validato
 
 ## CODEX_UI_TRACK
 
-- **WI-LAYER-7 COMPLETE locally 2026-09-26:** both plate fields remain `PII/MASKED` with one opaque case-scoped alias across families; OCR raw/normalized text, timestamp transcript text, and both Urdu representations are now `PII/WITHHELD` for typed projection and untargeted browse. Targeted cited retrieval remains a separate allowed path. No `api/**`, database, deployment, container configuration or live evaluation was changed.
-- **Data ruling:** the aggregate-only oracle `semantic_layer/audits/wi-layer-7-pii-synchronization-audit.sql` found 307+24 populated plate candidates; one phone-like source token repeated across timestamp/raw-Urdu/Roman text; 22 raw + 2 normalized OCR rows with non-ASCII digits; and zero pattern matches for CNIC, email, IPv4 or Pakistan IBAN. Free text is still withheld because names, addresses and contextual identifiers are not exhaustively classifiable by syntax.
-- **Urdu linkage:** all 7 derivatives carry raw+Roman text, the expected deterministic processor/revision and identifier-preservation pass; one row has ASCII digits in both, none has Arabic-Indic/Persian digits. Standalone parent linkage is 6/6 exact; the video derivative is 0/1 by parent ID but has exactly one same-scope text/time/locator match, so parent-ID synchronization is not reliable for all stored rows.
-- **Verification:** requested `TestWI4`, `TestMediaPII|TestTextBrowse|TestTargetedSearches`, and DB-backed `TestSemanticLayerCoverage` all PASS; coverage remains 93/94 (99%). Direct Roman-Urdu function checks pass. An extra ingestion unittest run has one unrelated existing red case: its `language='ur'` fixture supplies Latin `bounded`, which the current trusted-Urdu guard rejects (1.27 s run); no out-of-scope ingestion behavior was changed.
+- **Identity + shell complete 2026-09-29:** Mineral Signal tokens and Type Proof govern the live workspace; the three-band shell has a code-native NexusAI lockup, scoped command search, persistent/collapsible desktop rail, focus-trapped mobile drawer, compact case context and coordinated navy-charcoal navigation/canvas surfaces. Noto remains for mixed-script coverage. `docs/work/UI_REDESIGN_RESEARCH_20260929.md` holds the primary-source rulings.
+- **Dashboard under final product review:** the live page is a real readiness workbench, not KPI card soup. It now combines direct workspace totals, a true multi-segment readiness donut, linear ingestion accounting, ranked structured-family bars with linked filtering, a readiness-ordered queue, synchronized inspector tabs and a selected-case readiness plot. Processing/failure details, curated questions and browser-local recent work derive from existing responses; unsupported trends, priority, assignment and full-census claims stay absent.
+- **Measured gate:** 109 unit + 46 ported tests green; the 11-test token matrix proves text >=4.5:1 and components/focus >=3:1 in both themes; clean 2,039-module build; four Dashboard/shell Playwright contracts green. Light/dark captures cover 1440/1280/1024/768/375 plus drawer, collapsed rail, command search and case shell; 375px has zero page overflow and the keyboard drawer path traps focus, closes on Escape and returns focus. The real `127.0.0.1:4181` page was checked with 2 cases / 55 sources / 53 ready / 2 failed. No deployment, container, API, semantic-layer or DB change.
+- **2026-09-29 Claude took over the UI track.** Binding: `docs/work/UI_REDESIGN_MASTER_GUIDE.md` (staged plan S0..S12: shell, header, top nav, sidebar, canvas, Dashboard section by section, then every page; research before each stage; backend needs go to `BACKEND_REQUESTS.md`) plus `UI_REDESIGN_BRIEF_20260929.md`; both supersede Codex's hold point below. **First pass done, to be redone stage by stage:** Identity A tokens (`tokens.css`, `identity-a.css`), gradient sidebar, live badges, case breadcrumb, `/investigate` page, Dashboard on ECharts (`components/charts/*`, own 173 kB gz chunk), audit `UI_PAGE_SPECS/shell-and-dashboard-audit.md`, palette gallery A/B/C. 142 unit tests green; dashboard e2e main test green. **Stale e2e from the old contract, fix in their stage:** `dashboard-slice` capture, `shell-redesign-slice` capture, `header-context` capture, `navigation-rail` rail label. **S1 shell frame + S2 header done** (`UI_PAGE_SPECS/shell.md`, `shell.css`; 149 unit tests green, header contrast tested). **S3 case bar done** (breadcrumb, readiness pill, section links with aria-current; case sections left the sidebar; 153 unit + 46 ported tests green; vitest timeout 15 s). **S4 sidebar done** (one Cases category with live status, pinned/recent two-line rows, inline actions, sticky collapse; rail 264 px; 162 unit + 46 ported tests green). **S5 canvas done** (`UI_PAGE_SPECS/canvas.md`: page tokens, PageHeader v2 without eyebrow, Card, unified state panels, Skeleton/ShellSkeleton, mobile section-bar scroll shadows; 172 unit + 46 ported tests green). **Team-lead revision done 2026-09-30:** recent/pinned questions left the sidebar for the command palette (empty-query recents, all cases) and a "Your questions" card on `/investigate`; header "Ask a question" is a measured ghost-accent button (a light-theme invisible-label defect fixed); Appearance is an icon button with a radio-tile panel (`AppearanceMenu.jsx`, shared `useThemePreference`). 186 unit + 46 ported tests green; two e2e specs updated for the new Appearance selector. **Next: Dashboard section by section (D1..D9).** Shots: `apps/investigation-workspace/design-review/ui-redesign-20260930/`. No API, DB or Docker change.
+- **Rulings / hold point (Codex, superseded):** every visualization requires a named question, authoritative source, useful encoding and filter/drill-through; chart variety follows the question, never decoration. `docs/work/BACKEND_REQUESTS.md` specifies complete processing history, evidence census, collection directory and authorized activity contracts needed for later truthful visuals. Do not advance beyond Dashboard until product review accepts this surface; preserve WI-LAYER-8's separate product-owner gate.

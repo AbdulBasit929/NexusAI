@@ -1,0 +1,220 @@
+{
+  "contract": "wi0.gold-ir/v1",
+  "created": "2026-09-21",
+  "provenance": "Hand-written from the question text against semantic_layer_min.yaml, before any model was called. Every expected value re-derived by direct SQL against forensic.records on 2026-09-21 and matched the 2026-09-18 oracle exactly. No gold plan was produced by running the harness and blessing its output.",
+  "notes": {
+    "shape": "SourceNativePlanV1. project[] is mutually exclusive with group_fields/measures/time_bucket/having (source_native_algebra.go:530). measures carry issued IDs m1..m4 in order. COUNT may omit field_id.",
+    "limit_0": "limit 0 means unbounded within the executor's own row cap; it is used for scalars and full breakdowns. A limit on a single-row scalar result cannot change the result set and is scored execution-equivalent.",
+    "inexpressible": "Marked items cannot be expressed in SourceNativePlanV1 at any model quality. They are scored separately. See PRE-REGISTRATION.md §3.1 and its amendment."
+  },
+  "items": [
+    {
+      "id": "CDR-01", "family": "cdr", "expect": 8642, "shape": "scalar",
+      "q": "How many CDR records do we have in this case?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": [], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [], "limit": 0}
+    },
+    {
+      "id": "CDR-02", "family": "cdr", "expect": 8642, "shape": "scalar",
+      "q": "What's the total number of call records?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": [], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [], "limit": 0}
+    },
+    {
+      "id": "CDR-04", "family": "cdr", "expect": ["GPRS", "5863", "SMS", "1108"], "shape": "breakdown",
+      "q": "Show the call type breakdown",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": ["cdr.call_type"], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [{"target": "m1", "direction": "DESC"}], "limit": 0}
+    },
+    {
+      "id": "CDR-05", "family": "cdr", "expect": ["GPRS", "5863", "VOLTE", "739"], "shape": "breakdown",
+      "q": "How many calls of each type are there?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": ["cdr.call_type"], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [{"target": "m1", "direction": "DESC"}], "limit": 0}
+    },
+    {
+      "id": "CDR-06", "family": "cdr", "expect": "923461678183", "shape": "rank",
+      "q": "Which phone number made the most calls?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": ["cdr.msisdn"], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [{"target": "m1", "direction": "DESC"}], "limit": 1}
+    },
+    {
+      "id": "CDR-07", "family": "cdr", "expect": "923461678183", "shape": "rank",
+      "q": "Who talked to the most different people?",
+      "inexpressible": "COUNT DISTINCT dialed_number per msisdn. SourceNativePlanV1 allows COUNT/SUM/AVG/MIN/MAX only — there is no distinct-count aggregate.",
+      "gold": null
+    },
+    {
+      "id": "CDR-08", "family": "cdr", "expect": 10, "shape": "scalar",
+      "q": "How many unique phone numbers appear as callers in the CDRs?",
+        "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": [], "measures": [{"measure_id": "m1", "op": "COUNT_DISTINCT", "field_id": "cdr.msisdn"}], "time_bucket": null, "having": [], "sort": [], "limit": 0}
+    },
+    {
+      "id": "CDR-09", "family": "cdr", "expect": ["2026-04-01", "2026-08-10"], "shape": "scalar",
+      "q": "What date range do the CDR records cover?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": [], "measures": [{"measure_id": "m1", "op": "MIN", "field_id": "cdr.event_time"}, {"measure_id": "m2", "op": "MAX", "field_id": "cdr.event_time"}], "time_bucket": null, "having": [], "sort": [], "limit": 0}
+    },
+    {
+      "id": "CDR-10", "family": "cdr", "expect": "923009998887", "shape": "rank",
+      "q": "Who did 923001110001 contact most frequently?",
+      "ambiguity": "The oracle excludes self-calls. Without the self-exclusion filter the top dialed number is 923001110001 itself (425 rows, an artefact of the source data) and the answer misses. A model that omits the NEQ is wrong against the oracle but is arguably reading the question literally; this is recorded as a genuinely ambiguous item and is reported separately in the attribution table.",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [{"field_id": "cdr.msisdn", "op": "EQ", "value": "923001110001", "values": []}, {"field_id": "cdr.dialed_number", "op": "NEQ", "value": "923001110001", "values": []}], "group_fields": ["cdr.dialed_number"], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [{"target": "m1", "direction": "DESC"}], "limit": 1}
+    },
+    {
+      "id": "CDR-11", "family": "cdr", "expect": 872, "shape": "scalar",
+      "q": "How many calls did 923001110001 make?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [{"field_id": "cdr.msisdn", "op": "EQ", "value": "923001110001", "values": []}], "group_fields": [], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [], "limit": 0}
+    },
+    {
+      "id": "CDR-12", "family": "cdr", "expect": "149631808", "shape": "rank",
+      "q": "Which cell site handled the most calls?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": ["cdr.cell_site_id"], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [{"target": "m1", "direction": "DESC"}], "limit": 1}
+    },
+    {
+      "id": "CDR-13", "family": "cdr", "expect": ["INCOMING", "2906", "OUTGOING", "2592"], "shape": "breakdown",
+      "q": "How many incoming versus outgoing calls are there?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": ["cdr.direction"], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [{"target": "m1", "direction": "DESC"}], "limit": 0}
+    },
+    {
+      "id": "CDR-14", "family": "cdr", "expect": 2, "shape": "scalar",
+      "q": "How many call records are from August 2026?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [{"field_id": "cdr.event_time", "op": "BETWEEN", "value": "", "values": ["2026-08-01T00:00:00Z", "2026-08-31T23:59:59Z"]}], "group_fields": [], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [], "limit": 0}
+    },
+    {
+      "id": "CDR-15", "family": "cdr", "expect": ["1798"], "shape": "scalar",
+      "q": "What was the longest call?",
+      "inexpressible": "Requires MAX(call_end - call_start). The CDR payload has NO duration column (verified: keys are CALL_START_DT_TM and CALL_END_DT_TM only), and SourceNativePlanV1 has no derived or computed expression. Inexpressible until the semantic layer gains derived metrics.",
+      "gold": null
+    },
+    {
+      "id": "CDR-16", "family": "cdr", "expect": ["seed_cdr_large.csv", "5000", "923461678183.csv", "3634"], "shape": "breakdown",
+      "q": "How many CDR records came from each source file?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": ["cdr.source_file"], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [{"target": "m1", "direction": "DESC"}], "limit": 0}
+    },
+    {
+      "id": "IPDR-01", "family": "ipdr", "expect": 2500, "shape": "scalar",
+      "q": "How many IPDR sessions are there?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": [], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [], "limit": 0}
+    },
+    {
+      "id": "IPDR-02", "family": "ipdr", "expect": "chat.example.test", "shape": "rank",
+      "q": "Which domain was accessed most often?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": ["ipdr.domain"], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [{"target": "m1", "direction": "DESC"}], "limit": 1}
+    },
+    {
+      "id": "IPDR-03", "family": "ipdr", "expect": ["HTTPS", "644", "DNS", "613"], "shape": "breakdown",
+      "q": "Break down IPDR sessions by protocol",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": ["ipdr.protocol"], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [{"target": "m1", "direction": "DESC"}], "limit": 0}
+    },
+    {
+      "id": "IPDR-04", "family": "ipdr", "expect": 9764124834, "shape": "scalar",
+      "q": "What is the total number of bytes transferred in IPDR sessions?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": [], "measures": [{"measure_id": "m1", "op": "SUM", "field_id": "ipdr.bytes"}], "time_bucket": null, "having": [], "sort": [], "limit": 0}
+    },
+    {
+      "id": "IPDR-05", "family": "ipdr", "expect": "923001110002", "shape": "rank",
+      "q": "Which subscriber has the most internet sessions?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": ["ipdr.subscriber_id"], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [{"target": "m1", "direction": "DESC"}], "limit": 1}
+    },
+    {
+      "id": "ANPR-01", "family": "anpr", "expect": 750, "shape": "scalar",
+      "q": "How many ANPR sightings are there in total?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": [], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [], "limit": 0}
+    },
+    {
+      "id": "ANPR-02", "family": "anpr", "expect": 87, "shape": "scalar",
+      "q": "How many times was plate LHR-2026 seen?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [{"field_id": "anpr.plate_number", "op": "EQ", "value": "LHR-2026", "values": []}], "group_fields": [], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [], "limit": 0}
+    },
+    {
+      "id": "ANPR-03", "family": "anpr", "expect": ["2026-07-14", "2026-07-19"], "shape": "scalar",
+      "q": "When was LHR-2026 first and last seen?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [{"field_id": "anpr.plate_number", "op": "EQ", "value": "LHR-2026", "values": []}], "group_fields": [], "measures": [{"measure_id": "m1", "op": "MIN", "field_id": "anpr.event_time"}, {"measure_id": "m2", "op": "MAX", "field_id": "anpr.event_time"}], "time_bucket": null, "having": [], "sort": [], "limit": 0}
+    },
+    {
+      "id": "ANPR-04", "family": "anpr", "expect": "CAM-12", "shape": "rank",
+      "q": "Which camera recorded the most sightings?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": ["anpr.camera_id"], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [{"target": "m1", "direction": "DESC"}], "limit": 1}
+    },
+    {
+      "id": "ANPR-05", "family": "anpr", "expect": 6, "shape": "scalar",
+      "q": "How many distinct license plates were captured?",
+        "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": [], "measures": [{"measure_id": "m1", "op": "COUNT_DISTINCT", "field_id": "anpr.plate_number"}], "time_bucket": null, "having": [], "sort": [], "limit": 0}
+    },
+    {
+      "id": "ANPR-06", "family": "anpr", "expect": "ABC-123", "shape": "rank",
+      "q": "Which vehicle was seen most often?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": ["anpr.plate_number"], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [{"target": "m1", "direction": "DESC"}], "limit": 1}
+    },
+    {
+      "id": "ACC-01", "family": "access_log", "expect": 1000, "shape": "scalar",
+      "q": "How many access log entries do we have?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": [], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [], "limit": 0}
+    },
+    {
+      "id": "ACC-02", "family": "access_log", "expect": ["200", "697", "500", "46"], "shape": "breakdown",
+      "q": "Show the breakdown of HTTP status codes in the access logs",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": ["access_log.status"], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [{"target": "m1", "direction": "DESC"}], "limit": 0}
+    },
+    {
+      "id": "ACC-03", "family": "access_log", "expect": "10.20.1.7", "shape": "rank",
+      "q": "Which IP address made the most requests?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": ["access_log.source_ip"], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [{"target": "m1", "direction": "DESC"}], "limit": 1}
+    },
+    {
+      "id": "ACC-04", "family": "access_log", "expect": 46, "shape": "scalar",
+      "q": "How many requests failed with a server error (status 500)?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [{"field_id": "access_log.status", "op": "EQ", "value": "500", "values": []}], "group_fields": [], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [], "limit": 0}
+    },
+    {
+      "id": "SUB-01", "family": "subscriber", "expect": 11, "shape": "scalar",
+      "q": "How many subscribers are there?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": [], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [], "limit": 0}
+    },
+    {
+      "id": "SUB-02", "family": "subscriber", "expect": 6, "shape": "scalar",
+      "q": "How many subscribers are active?",
+      "note": "Correct only if subscriber.status unions its two source aliases (status, account_status). This is the clearest demonstration of what the curated layer buys.",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [{"field_id": "subscriber.status", "op": "EQ", "value": "ACTIVE", "values": []}], "group_fields": [], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [], "limit": 0}
+    },
+    {
+      "id": "SUB-03", "family": "subscriber", "expect": ["00000-1000001-1"], "shape": "rows",
+      "q": "Who is the registered subscriber for PK-SUB-SYN-ALPHA?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": ["subscriber.full_name", "subscriber.cnic", "subscriber.msisdn"], "filters": [{"field_id": "subscriber.subscriber_id", "op": "EQ", "value": "PK-SUB-SYN-ALPHA", "values": []}], "group_fields": [], "measures": [], "time_bucket": null, "having": [], "sort": [], "limit": 1}
+    },
+    {
+      "id": "TWR-01", "family": "tower_location", "expect": 5, "shape": "scalar",
+      "q": "How many cell towers are in the case?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": [], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [], "limit": 0}
+    },
+    {
+      "id": "TWR-02", "family": "tower_location", "expect": ["31.5204", "74.3587"], "shape": "rows",
+      "q": "Where is tower PK-LHR-SYN-001 located?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": ["tower.latitude", "tower.longitude", "tower.site_location"], "filters": [{"field_id": "tower.site_code", "op": "EQ", "value": "PK-LHR-SYN-001", "values": []}], "group_fields": [], "measures": [], "time_bucket": null, "having": [], "sort": [], "limit": 1}
+    },
+    {
+      "id": "TXN-01", "family": "transaction", "expect": 129700, "shape": "scalar",
+      "q": "What is the total transaction amount?",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": [], "measures": [{"measure_id": "m1", "op": "SUM", "field_id": "transaction.amount"}], "time_bucket": null, "having": [], "sort": [], "limit": 0}
+    },
+    {
+      "id": "TXN-02", "family": "transaction", "expect": ["75000"], "shape": "scalar",
+      "q": "What was the largest transaction?",
+      "note": "The live product answers COUNT here (the open measure-hint defect). MAX(amount) is correct.",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": [], "measures": [{"measure_id": "m1", "op": "MAX", "field_id": "transaction.amount"}], "time_bucket": null, "having": [], "sort": [], "limit": 0}
+    },
+    {
+      "id": "TXN-03", "family": "transaction", "expect": "ACCT-778812", "shape": "rank",
+      "q": "Which account has the most transactions?",
+      "note": "The live product ranks by amount here. COUNT of rows per account is correct.",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [], "group_fields": ["transaction.account"], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [{"target": "m1", "direction": "DESC"}], "limit": 1}
+    },
+    {
+      "id": "NEG-01", "family": "cdr", "expect": 0, "shape": "scalar",
+      "q": "How many calls did 03999999999 make?",
+      "note": "The D1 anchor. The correct plan is expressible and returns 0. The live product returns 12,912 — the whole-case row count — because plan.Filters is never populated.",
+      "gold": {"contract_version": "forensics.source-native-plan/v1", "project": [], "filters": [{"field_id": "cdr.msisdn", "op": "EQ", "value": "03999999999", "values": []}], "group_fields": [], "measures": [{"measure_id": "m1", "op": "COUNT", "field_id": ""}], "time_bucket": null, "having": [], "sort": [], "limit": 0}
+    },
+    {
+      "id": "NEG-04", "family": "absent", "expect": null, "shape": "abstain",
+      "q": "How many emails are in this case?",
+      "note": "There is no email family in this case (families_present has seven, none of them email). The only correct behaviour is to abstain with a clarifying question — S9 FAMILY. Emitting any plan at all is a failure, and emitting a CDR count is the confident-wrong failure mode.",
+      "gold": "ABSTAIN"
+    }
+  ]
+}

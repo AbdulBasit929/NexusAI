@@ -1,0 +1,126 @@
+# NexusAI workspace: UI/UX redesign master guide
+
+Owner directive, 2026-09-29. This file is the working instruction for the redesign. It sits under `UI_REDESIGN_BRIEF_20260929.md` (binding rules, chart table, definition of done) and above the per-stage specs in `docs/work/UI_PAGE_SPECS/`. Where they conflict, the brief's truth, privacy and accessibility rules win.
+
+## 1. What the owner asked for
+
+1. Redesign and recreate every section of every page to a world-class, enterprise, modern, elegant and interactive standard. Carry an existing section over only if it is genuinely the best solution; otherwise improve it or replace it.
+2. Add new sections wherever they make the product more useful, easier and more productive, including sections that need new backend capability.
+3. Work in stages, one thing at a time, in this order: **shell, header, top navigation, sidebar, main canvas, then the Dashboard, section by section**, then every other page the same way.
+4. Research before every stage: the whole thing first, then each component in depth. Design from the research, not from habit.
+5. Charts, figures and graphs must be modern and each must answer a named investigator question (brief section 6).
+6. The header no longer matches the palette. Fix it in the shell stages (section 5).
+7. Improve the backend where it blocks a better UI. Route: section 8.
+
+## 2. Rules that never change
+
+Real API data only. Privacy is enforced by the server. WCAG 2.2 AA in both themes, measured on real backgrounds. No engine jargon. Every control works. Refusal, clarification and model-observation states are honest and never styled as findings. Approved dependencies: `lucide-react`, Apache ECharts with the thin wrapper, code-split per route. Anything else needs the owner's yes. No edits to `semantic_layer/**`, Docker or the database. No git writes.
+
+## 3. Design principles (apply to every stage)
+
+1. **Answer first.** Each page opens with what the investigator most needs, then supporting detail, then raw records.
+2. **One accent, one meaning.** Teal is interaction. Status (ready, processing, failed, withheld) and categorical data colours are separate sets. Never reuse a status colour as a category.
+3. **Elevation over decoration.** Four surfaces: canvas, card, raised, overlay. Gradients live on chrome, hero bands and empty states only, never behind tables or charts.
+4. **Progressive density.** Summary by default, detail on selection, raw data one click away. Compact and comfortable density options where tables dominate.
+5. **Context survives.** Case, filters, selection and scroll persist across drill-downs and browser back.
+6. **Every visual is a route.** Click filters, drills down or opens the real records. Every chart has a table path and a text equivalent.
+7. **Honest waiting.** Skeletons hold layout. Long work shows real state and is cancellable. No fake percentage.
+8. **Keyboard first, touch clear.** One tab stop per composite widget, arrow keys inside, 44 px touch targets, focus visible at 3:1, focus returns after overlays.
+9. **Motion is functional.** 120 to 200 ms, ease-out, off under reduced motion.
+10. **One component, one place.** Build shared primitives once (button, chip, badge, tabs, table, card, chart frame, empty state, toast, drawer) and use them everywhere.
+
+## 4. Identity and tokens (the palette that governs everything)
+
+Identity A, continuous dark chrome, is applied: header gradient navy `#111827` to deep teal `#123b43` (dark: `#070b12` to `#10343a`), teal-tinted canvas, near-white cards, teal accent `#0e7490` (dark `#4fd1e5`). Tokens live in `src/styles/tokens.css` and `src/styles/identity-a.css`. The gallery at `/design/type-proof` keeps options A, B and C for reference. All contrast is asserted in `tokens.vitest.js` and `paletteOptions.vitest.js`.
+
+Stage 0 finishes the system: named role tokens for surface, border, text, accent, status, data and chrome; a spacing, radius, elevation, motion and z-index scale; one icon grammar (Lucide, 16/18/20 px, 1.75 stroke); a colour-blind-safe categorical set with pattern fallbacks for charts.
+
+## 5. Stage plan
+
+Each stage ends with: spec in `docs/work/UI_PAGE_SPECS/`, live verification, before and after screenshots at 1440 and 375 in light and dark, a log line in `CODEX_UI_TRACK`, and then the next stage starts unless the owner objects.
+
+| Stage | Scope | Key questions to research | Deliverable |
+|---|---|---|---|
+| S0 | Foundations | Token architecture (Fluent, Atlassian, Primer, Geist); elevation in dark UIs; type scale for mixed English/Urdu | Token set, primitives inventory, gallery update |
+| S1 | Shell frame | App-frame layouts (Linear, Vercel, Grafana, Datadog); grid, regions, scroll ownership, sticky rules | `shell.md`, layout grid, responsive rules |
+| S2 | Header (top bar) | Global bar contents; palette match; search/command pattern (Linear, Stripe, Raycast); status and notification affordances | Header rebuilt on the teal gradient with search, Investigate shortcut, live activity, appearance and help. **Fix the mismatch: the header still mixes a cobalt glow and mark; retune to navy-teal only** |
+| S3 | Top navigation and context bar | Breadcrumb patterns; case switcher; tab bars vs sidebar for case sections (Atlassian, Primer) | Case context bar with breadcrumb, readiness, switcher, section tabs |
+| S4 | Sidebar | Collapsible rail patterns (Linear, Notion, Azure); grouping; badges; pinned items; mobile drawer (Primer) | Sidebar with groups, live badges, pins, recent items, collapsed mode |
+| S5 | Main canvas and page templates | Page anatomy; content widths; card system; empty, loading, error, offline patterns | Page templates: overview, list, detail, workspace, status pages |
+| S6 | Dashboard | Ops dashboards (Grafana, Datadog), queue-plus-detail (Defender, Linear), forensic case summaries (AXIOM, Cellebrite) | Section by section, each with its own spec (below) |
+| S7 | Investigate (per case and global) | Answer-first result layouts; citation and provenance UI; chart auto-selection from result grids | Answer card, automatic charts, citations with truth-state badges, refusal and clarify cards, cross-case scope |
+| S8 | Case overview | Case dossier patterns | Readiness, families, quality, recent activity, next actions |
+| S9 | Evidence list and detail | Review-set UIs (Purview, AXIOM); list/detail; previews | Faceted list, saved views, bulk actions, viewer with provenance |
+| S10 | Cases and New case | Directory and onboarding flows | Searchable directory, guided intake |
+| S11 | Timeline and Connections | Timeline Explorer, Maltego | Real timeline, relationship graph with list alternative (blocked on backend rows 1, 2) |
+| S12 | Activity, Settings, 404, error, offline | Audit and custody UIs | Complete, honest states |
+
+### S6 Dashboard sections, each built and reviewed separately
+
+D1 page header and primary actions. D2 workspace KPI strip. D3 readiness by case. D4 needs-review queue. D5 record families. D6 ingestion quality. D7 case workbench (queue, inspector). D8 recent questions and resume. D9 cross-case insights when the backend allows (processing history, evidence census, activity). Status of the first pass is in `dashboard.md`; every section is revisited under this guide, because the first pass carried structure over rather than designing from research.
+
+## 6. Per-stage protocol
+
+1. **Audit.** Screenshot current state (1440, 375, both themes). List each part, the job it serves, its data source, and mark keep, improve, replace, remove. List what is missing.
+2. **Research the whole.** Two or three reference products for this kind of surface. Write what they do better and why. Cite the source.
+3. **Research each component.** The best pattern for that job, with reasons, and the accessibility pattern (WAI-ARIA APG) it needs.
+4. **Spec.** Purpose, question answered, data source, encoding, interaction, states (loading, empty, partial, error, forbidden), and behaviour at 1440, 1024, 768, 375.
+5. **Backend needs.** Anything the UI wants that the API lacks becomes a precise row in `docs/work/BACKEND_REQUESTS.md`, and the UI shows an honest state until it lands.
+6. **Build** with shared tokens and components.
+7. **Verify.** Unit tests for every count, mapping and state. Live check against the real API with the preview. Zero console errors, zero overflow at 375, zero duplicate IDs, contrast measured, keyboard path walked.
+8. **Show and log.** Send screenshots, update `CODEX_UI_TRACK`, move on.
+
+## 7. Research references by component type
+
+| Component | Study |
+|---|---|
+| Frame, header, sidebar | Linear, Vercel, Stripe Dashboard, Notion, Datadog, Fluent nav, Primer PageLayout |
+| Search and command | Linear command menu, Raycast, Stripe search, GitHub command palette |
+| Tables and lists | Carbon data table, Linear lists, Retool tables, Purview review sets |
+| Charts | Carbon data visualisation, Grafana, Datadog widgets, ECharts docs, Observable Plot guidance |
+| Forensic workflows | Magnet AXIOM, Cellebrite, Palantir Object Views, Maltego |
+| Accessibility | WAI-ARIA APG (tabs, grid, dialog, disclosure, listbox), WCAG 2.2 |
+| Tokens and theming | Fluent tokens, Atlassian tokens, Geist colour, Spectrum colour, USWDS |
+
+Chart choice follows brief section 6: bars for comparison and ranking, 100% stacked bars for composition across groups, line or area only with real timestamps, histogram for distribution, heatmap for two dimensions, treemap for hierarchy, Sankey for lineage, network for verified relationships, and a number or table when that is clearer. Never a pie above four slices. Never a chart without a question.
+
+## 8. Backend improvement route
+
+The backend is built by a separate Claude session working in `api/**`. This track proposes, that session builds. Each proposal is a row in `docs/work/BACKEND_REQUESTS.md` with endpoint, exact response fields, page served, empty and error behaviour, and privacy notes. Open rows today: 1 timeline, 2 connections, 3 processing history, 4 image overlays, 5 question history, 8 evidence census, 9 collection directory, 10 activity, 11 multi-case question scope.
+
+Candidate additions to raise as their stages begin (each needs owner sign-off before it becomes a row):
+
+- A single workspace summary endpoint, so the Dashboard makes one request instead of one per case.
+- A needs-attention feed across cases: failed sources, retained-copy gaps, stuck jobs, each with a locator.
+- Case metadata the UI can trust: title, created date, last activity, and optional owner, status and priority once real sources exist.
+- Saved views and pins stored server-side, so they follow the analyst across browsers.
+- Global search across cases and evidence, with grouped results and a completeness flag.
+- Evidence thumbnails and previews with privacy applied server-side.
+- Export of an answer with its citations for a report.
+- Long-running operation status with cancel, so waits are honest.
+
+If the owner wants this session to edit `api/**` directly, they must say so explicitly; until then this track only writes requests.
+
+## 9. Definition of done, every stage
+
+- `npm --prefix apps/investigation-workspace run test` green with new tests for the stage.
+- Live check on port 4181 against the real API; figures match the API exactly.
+- Screenshots at 1440 and 375, light and dark, before and after.
+- Zero console errors, zero horizontal overflow at 375, zero duplicate IDs.
+- Contrast measured; keyboard path works; reduced motion respected.
+- Route code-split; no unapproved dependency.
+- Spec written, backend requests filed, `CODEX_UI_TRACK` updated.
+
+## 10. Progress tracker
+
+| Stage | Status |
+|---|---|
+| Identity A tokens | applied; needs S0 completion |
+| S1 shell frame, S2 header | **done 2026-09-29**, spec `UI_PAGE_SPECS/shell.md` |
+| S3 top navigation and case bar | **done 2026-09-29**, in `UI_PAGE_SPECS/shell.md` |
+| S4 sidebar | **done 2026-09-29** (redesigned after owner review), in `UI_PAGE_SPECS/shell.md` |
+| S5 canvas and page templates | **done 2026-09-30**, `UI_PAGE_SPECS/canvas.md` |
+| Team-lead revision | **done 2026-09-30**: recent questions moved to the command palette and the Investigate page (not the sidebar); header "Ask a question" and Appearance redesigned; see `UI_PAGE_SPECS/shell.md` |
+| S6 Dashboard, section by section | **next**: D1 header, D2 KPI strip, D3 readiness, D4 needs review, D5 families, D6 ingestion, D7 workbench, D8 recent, D9 cross-case insights |
+| S6 Dashboard | first pass built; to be redone section by section after S1 to S5 |
+| S7 to S12 | not started |

@@ -163,3 +163,6 @@ local-acceptance-models/
 # artifacts and are reproducible from source.
 reports/**/build-context/nexusai-ui-wrapper
 reports/**/context/nexusai-ui-wrapper
+
+apps/investigation-workspace/design-review/**/*.png
+apps/investigation-workspace/fixtures/live-*/
