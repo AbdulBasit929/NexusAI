@@ -23,7 +23,26 @@ describe('NewCasePage', () => {
   it('offers intake once the name is usable as an identifier', async () => {
     open()
     await userEvent.type(screen.getByLabelText('Case identifier'), 'operation-falcon-2026')
+    expect(screen.queryByLabelText(/choose evidence files/i)).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Continue' }))
     expect(screen.getByLabelText(/choose evidence files/i)).toBeTruthy()
+  })
+
+  it('keeps Continue off until the identifier is valid, and Enter continues from the field', async () => {
+    open()
+    expect(screen.getByRole('button', { name: 'Continue' }).disabled).toBe(true)
+    await userEvent.type(screen.getByLabelText('Case identifier'), 'operation-falcon-2026{Enter}')
+    expect(screen.getByLabelText(/choose evidence files/i)).toBeTruthy()
+    await userEvent.click(screen.getByRole('button', { name: 'Change identifier' }))
+    expect(screen.getByLabelText('Case identifier').value).toBe('operation-falcon-2026')
+  })
+
+  it('previews the case as not created until a file is accepted', async () => {
+    open()
+    expect(screen.getByText('Not created yet')).toBeTruthy()
+    await userEvent.type(screen.getByLabelText('Case identifier'), 'operation-falcon-2026')
+    expect(document.querySelector('.nc-preview__id').textContent).toBe('operation-falcon-2026')
+    expect(screen.getByText('Not created yet')).toBeTruthy()
   })
 
   it('refuses a name that would not survive as an identifier, and says why', async () => {
@@ -68,7 +87,7 @@ describe('NewCasePage', () => {
     expect(field.value).toBe('Operation Falcon 2026')
     await userEvent.click(screen.getByRole('button', { name: 'operation-falcon-2026' }))
     expect(field.value).toBe('operation-falcon-2026')
-    expect(screen.getByLabelText(/choose evidence files/i)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Continue' }).disabled).toBe(false)
   })
 
   it('does not start a case on an identifier that already exists, and offers to add evidence to it', async () => {

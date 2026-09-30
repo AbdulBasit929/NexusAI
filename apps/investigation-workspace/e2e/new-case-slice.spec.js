@@ -29,6 +29,8 @@ test('starts the case only after the first accepted file and locks its identifie
   const identifier = page.getByRole('textbox', { name: 'Case identifier' })
   await identifier.fill(caseId)
   await expect(page.getByText(`Case will use this exact identifier: ${caseId}`)).toBeVisible()
+  await expect(page.getByText('Not created yet')).toBeVisible()
+  await page.getByRole('button', { name: 'Continue' }).click()
   await expect(page.getByRole('heading', { name: 'Add the first evidence' })).toBeVisible()
   await page.getByLabel('Choose evidence files to add to this case').setInputFiles({ name: 'first-cdr.csv', mimeType: 'text/csv', buffer: Buffer.from('msisdn,call_type\n03001234567,CALL') })
   await expect(page.getByText('Accepted — processing has started')).toBeVisible()
@@ -48,6 +50,7 @@ test('new case intake is clear in both themes and has no page overflow at 375px'
     await page.goto('/cases/new')
     await page.evaluate(value => { document.documentElement.dataset.theme = value; localStorage.setItem('nexusai.viewer.theme', value) }, theme)
     await page.getByRole('textbox', { name: 'Case identifier' }).fill(caseId)
+    await page.getByRole('button', { name: 'Continue' }).click()
     await expect(page.getByRole('button', { name: 'Choose files' })).toBeVisible()
     await page.screenshot({ path: path.join(reviewDirectory, `new-case-${theme}-1440.png`), fullPage: true })
 
