@@ -95,8 +95,7 @@ test('uses authoritative catalog filters and pagination without widening scope',
   await page.getByRole('button', { name: 'CDR' }).click()
   await expect.poll(() => requests.at(-1)?.searchParams.get('detected_type')).toBe('cdr')
 
-  await page.locator('.select-control__trigger').click()
-  await page.getByRole('option', { name: 'Failed' }).click()
+  await page.getByRole('group', { name: 'Processing state' }).getByRole('button', { name: /Failed/ }).click()
   await expect.poll(() => requests.at(-1)?.searchParams.get('processing_status')).toBe('failed')
 
   await page.getByRole('searchbox', { name: 'Search evidence' }).fill('calls')

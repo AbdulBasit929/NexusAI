@@ -692,3 +692,31 @@
   .co-families__bar { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .co-btn, .co-btn svg, .co-step a, .co-step__cta svg, .co-chips button, .co-families a { transition: none; } .co-step a:hover { transform: none; } }
+
+/* Evidence catalog: a review workbench. Case-wide readiness strip, one-tap state filter with counts, file marks, quiet rows. */
+.ev-strip { display: grid; gap: 6px; }
+.ev-strip p { margin: 0; color: var(--analyst-text-secondary); font-size: var(--analyst-type-label-size); }
+.evidence-toolbar { align-items: end; }
+.ev-status .seg__count, .ev-density .seg__count { margin-inline-start: 6px; }
+.ev-status button.has-issue:not([aria-pressed='true']) { color: var(--analyst-status-failed); }
+.ev-status button.has-issue:not([aria-pressed='true']) .seg__count { background: color-mix(in srgb, var(--analyst-status-failed) 16%, transparent); }
+.evidence-table tbody th { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px; }
+.ev-mark { display: grid; place-items: center; inline-size: 36px; block-size: 36px; border-radius: 10px; background: color-mix(in srgb, var(--analyst-accent) 10%, var(--analyst-surface-1)); color: var(--analyst-accent); }
+.ev-mark svg { inline-size: 18px; block-size: 18px; }
+.ev-name { display: grid; gap: 2px; min-inline-size: 0; }
+.ev-name > a { font-weight: var(--analyst-font-weight-semibold); overflow-wrap: anywhere; }
+.ev-family { display: inline-block; padding: 2px 10px; border: 1px solid var(--analyst-line); border-radius: var(--analyst-radius-pill); background: var(--analyst-surface-2); font-size: var(--analyst-type-label-size); white-space: nowrap; }
+.ev-rows { display: inline-grid; justify-items: end; gap: 3px; min-inline-size: 84px; }
+.ev-rows i { display: block; inline-size: 100%; block-size: 4px; border-radius: 2px; background: var(--analyst-surface-2); overflow: hidden; }
+.ev-rows em { display: block; block-size: 100%; border-radius: 2px; background: var(--analyst-accent); }
+.evidence-table tbody tr.is-failed > :first-child { box-shadow: inset 3px 0 0 var(--analyst-status-failed); }
+.evidence-table--comfortable tbody th, .evidence-table--comfortable tbody td { padding-block: 16px; }
+.evidence-table--compact tbody th, .evidence-table--compact tbody td { padding-block: 8px; }
+.evidence-table tbody tr { transition: background-color 140ms ease-out; }
+.evidence-table__action a { display: inline-flex; align-items: center; min-block-size: 36px; padding-inline: 12px; border: 1px solid var(--analyst-line-strong); border-radius: var(--analyst-radius-sm); text-decoration: none; font-weight: var(--analyst-font-weight-semibold); }
+.evidence-table__action a:hover { border-color: var(--analyst-accent); background: var(--analyst-surface-2); }
+.evidence-table tbody th, .evidence-table tbody td { background: transparent; }
+.evidence-table tbody tr:nth-child(even) { background: color-mix(in srgb, var(--analyst-surface-2) 55%, transparent); }
+.evidence-table tbody tr:hover { background: var(--analyst-surface-2); }
+.ev-name small { display: flex; gap: 4px; max-inline-size: 26ch; }
+.ev-name small bdi { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

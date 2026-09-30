@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { AudioLines, File, FileSpreadsheet, FileText, Image as ImageIcon, Video } from 'lucide-react'
 import { AddDataDropzone } from '../components/AddDataDropzone.jsx'
+import { ProportionBar } from '../components/DataVisualizations.jsx'
 import { CaseShell } from '../components/CaseShell.jsx'
 import { listEvidence } from '../lib/apiClient.js'
 import { formatBytes, formatNumber } from '../lib/format.js'
@@ -8,11 +10,13 @@ import { EmptyState, LanguageText, ProcessingBadge, RouteState } from '../compon
 import { evidenceFamilies, familyDefinition, ScopeChips, useEvidenceScope } from '../components/ScopeChips.jsx'
 import { curatedFamilyLabel } from '../lib/semanticCatalog.js'
 import { PageHeader } from '../components/PageHeader.jsx'
-import { SelectControl } from '../components/SelectControl.jsx'
+import { relativeAge } from '../lib/dashboardCases.js'
+import { summariseCase, useCaseOverview } from '../lib/useCaseOverview.js'
 
 const PAGE_SIZE = 25
 const activeStatuses = new Set(['registered', 'queued', 'processing', 'running'])
 const statusOptions = ['completed', 'processing', 'failed']
+const MODALITY_ICON = { structured_records: FileSpreadsheet, document: FileText, image: ImageIcon, audio: AudioLines, video: Video }
 
 function validStatus(value) {
   return statusOptions.includes(value) ? value : 'all'
@@ -31,6 +35,11 @@ function evidenceTypeLabel(item) {
   if (item.detected_type) return curatedFamilyLabel(item.detected_type)
   const match = evidenceFamilies.find(family => family.modality === String(item.modality || '').toLowerCase())
   return match?.label || String(item.modality || 'Not reported')
+}
+
+function FileMark({ modality }) {
+  const Icon = MODALITY_ICON[String(modality || '').toLowerCase()] || File
+  return <span className="ev-mark" aria-hidden="true"><Icon /></span>
 }
 
 function timestamp(value) {
@@ -54,6 +63,9 @@ export default function EvidenceListPage() {
   const [intakeOpen, setIntakeOpen] = useState(false)
   const intakeRef = useRef(null)
   const family = familyDefinition(scope)
+  const overview = useCaseOverview(caseId)
+  const caseCounts = overview.data ? summariseCase(overview.data) : null
+  const [density, setDensity] = useState('compact')
 
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
@@ -110,6 +122,7 @@ export default function EvidenceListPage() {
   const end = offset + returned
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const peakRows = Math.max(1, ...items.map(entry => Number(entry.accepted_rows) || 0))
   const hasFilters = scope !== 'all' || status !== 'all' || Boolean(query)
 
   const resultDescription = useMemo(() => {
@@ -171,6 +184,13 @@ export default function EvidenceListPage() {
             {state.data && total > 0 ? <p className="evidence-inventory__page">Page {formatNumber(currentPage)} of {formatNumber(totalPages)}</p> : null}
           </header>
 
+          {caseCounts && caseCounts.total > 0 ? (
+            <div className="ev-strip">
+              <ProportionBar total={caseCounts.total} ready={caseCounts.ready} processing={caseCounts.inFlight} failed={caseCounts.failed || 0} label="Case evidence readiness" />
+              <p>{formatNumber(caseCounts.ready)} of {formatNumber(caseCounts.total)} sources ready in this case{caseCounts.failed > 0 ? `, ${formatNumber(caseCounts.failed)} failed` : ''}. Counts cover the whole case; the list below follows your filters.</p>
+            </div>
+          ) : null}
+
           <div className="evidence-toolbar">
             <form className="evidence-search" role="search" onSubmit={submitSearch}>
               <label htmlFor="evidence-search-input">Search evidence</label>
@@ -179,7 +199,15 @@ export default function EvidenceListPage() {
                 <button type="submit">Search</button>
               </div>
             </form>
-            <SelectControl label="Processing state" value={status} options={statusOptions} onChange={chooseStatus} optionLabel={statusLabel} />
+            <div className="seg ev-status" role="group" aria-label="Processing state">
+              {[['all', 'All', caseCounts?.total], ['completed', 'Ready', caseCounts?.ready], ['processing', 'Processing', caseCounts?.inFlight], ['failed', 'Failed', caseCounts?.failed]].map(([id, label, count]) => (
+                <button key={id} type="button" aria-pressed={status === id} className={id === 'failed' && count > 0 ? 'has-issue' : undefined} onClick={() => chooseStatus(id)}>{label}{count === undefined || count === null ? null : <span className="seg__count">{formatNumber(count)}</span>}</button>
+              ))}
+            </div>
+            <div className="seg ev-density" role="group" aria-label="Row density">
+              <button type="button" aria-pressed={density === 'compact'} onClick={() => setDensity('compact')}>Compact</button>
+              <button type="button" aria-pressed={density === 'comfortable'} onClick={() => setDensity('comfortable')}>Comfortable</button>
+            </div>
             {hasFilters ? <button type="button" className="evidence-toolbar__clear" onClick={clearFilters}>Clear filters</button> : null}
           </div>
 
@@ -210,7 +238,7 @@ export default function EvidenceListPage() {
 
           {!state.loading && !state.error && items.length > 0 ? (
             <div className="evidence-table-wrap">
-              <table className="evidence-table">
+              <table className={`evidence-table evidence-table--${density}`}>
                 <caption>{resultDescription} Newest source items are shown first.</caption>
                 <thead>
                   <tr>
@@ -227,16 +255,19 @@ export default function EvidenceListPage() {
                   {items.map(item => {
                     const href = `/cases/${encodeURIComponent(caseId)}/evidence/${encodeURIComponent(item.evidence_id)}`
                     return (
-                      <tr key={item.evidence_id}>
+                      <tr key={item.evidence_id} className={String(item.processing_status).toLowerCase() === 'failed' ? 'is-failed' : undefined}>
                         <th scope="row" data-label="Evidence">
-                          <Link to={href}><LanguageText>{item.original_filename || item.source_file || item.evidence_id}</LanguageText></Link>
-                          <small><span>Evidence ID</span> <LanguageText as="bdi" identifier>{item.evidence_id}</LanguageText></small>
+                          <FileMark modality={item.modality} />
+                          <span className="ev-name">
+                            <Link to={href}><LanguageText>{item.original_filename || item.source_file || item.evidence_id}</LanguageText></Link>
+                            <small title={item.evidence_id}><span>ID</span> <LanguageText as="bdi" identifier>{item.evidence_id}</LanguageText></small>
+                          </span>
                         </th>
-                        <td data-label="Family">{evidenceTypeLabel(item)}</td>
+                        <td data-label="Family"><span className="ev-family">{evidenceTypeLabel(item)}</span></td>
                         <td data-label="Size" className="numeric">{formatBytes(item.size_bytes)}</td>
-                        <td data-label="Added"><time dateTime={item.created_at || undefined}>{timestamp(item.created_at)}</time></td>
+                        <td data-label="Added"><time dateTime={item.created_at || undefined} title={timestamp(item.created_at)}>{item.created_at && !Number.isNaN(new Date(item.created_at).getTime()) ? relativeAge(new Date(item.created_at)) : 'Not reported'}</time></td>
                         <td data-label="Status"><ProcessingBadge state={item.processing_status} /></td>
-                        <td data-label="Accepted rows" className="numeric">{item.accepted_rows == null ? 'Not reported' : formatNumber(item.accepted_rows)}</td>
+                        <td data-label="Accepted rows" className="numeric">{item.accepted_rows == null ? 'Not reported' : <span className="ev-rows"><b>{formatNumber(item.accepted_rows)}</b><i aria-hidden="true"><em style={{ inlineSize: `${Math.max(3, Math.floor((item.accepted_rows / peakRows) * 100))}%` }} /></i></span>}</td>
                         <td data-label="Action" className="evidence-table__action"><Link to={href}>Open evidence</Link></td>
                       </tr>
                     )
