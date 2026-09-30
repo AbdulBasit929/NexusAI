@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, CircleAlert, CircleCheckBig, Clock3, Database, FileWarning, Folder, Folders, Plus, RefreshCw, Rows3, Search, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ArrowRight, CircleAlert, CircleCheckBig, Clock3, Folder, Search, X } from 'lucide-react'
 import { AppShell } from '../components/CaseShell.jsx'
 import { EmptyState, LanguageText } from '../components/AnalystComponents.jsx'
 import { ChartCard } from '../components/charts/ChartCard.jsx'
 import { ProportionBar } from '../components/DataVisualizations.jsx'
 import { DashboardHeader } from './dashboard/DashboardHeader.jsx'
 import { KpiTiles } from './dashboard/KpiTiles.jsx'
+import { AttentionQueue, caseFailures } from './dashboard/AttentionQueue.jsx'
+import { ReadinessBars } from './dashboard/ReadinessBars.jsx'
 import { configuredCaseIds, getQueryCapabilities } from '../lib/apiClient.js'
-import { attentionItems, evidenceLink, familyOption, familyRows, formatRate, ingestionRows, readinessOption, readinessRows, readinessSummaryText } from '../lib/dashboardCharts.js'
+import { attentionItems, familyOption, familyRows, formatRate, ingestionRows, readinessRows } from '../lib/dashboardCharts.js'
 import { formatNumber } from '../lib/format.js'
 import { curatedFamilyLabel } from '../lib/semanticCatalog.js'
 import { summariseCase, useConfiguredCaseOverviews } from '../lib/useCaseOverview.js'
@@ -323,7 +325,6 @@ function IngestionCard({ rows }) {
 
 export default function DashboardPage() {
   const cases = configuredCaseIds()
-  const navigate = useNavigate()
   const recent = useQuestionHistoryAcross(cases).slice(0, 4)
   const { states, reload } = useConfiguredCaseOverviews(cases)
   const [filter, setFilter] = useState('all')
@@ -342,6 +343,7 @@ export default function DashboardPage() {
   const families = useMemo(() => familyRows(aggregateFamilyRows(rows)), [rows])
   const ingestion = useMemo(() => ingestionRows(rows), [rows])
   const attention = useMemo(() => attentionItems(rows), [rows])
+  const failures = useMemo(() => caseFailures(rows), [rows])
   const visible = useMemo(() => rows
     .filter(row => rowMatchesFilter(row, filter))
     .filter(row => row.caseId.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()))
@@ -351,13 +353,6 @@ export default function DashboardPage() {
   const hasProcessing = rows.some(row => row.status === 'processing')
   const lastUpdated = rows.map(row => parseTimestamp(row.state?.receivedAt)).filter(Boolean).sort((left, right) => right - left)[0] || null
 
-  const readinessChart = useMemo(() => ({
-    buildOption: theme => readinessOption(readiness, theme),
-    height: Math.max(90, readiness.length * 44 + 16),
-    label: `Readiness of every case. ${readinessSummaryText(readiness)}`,
-    onSelect: params => { if (params?.data?.caseId) navigate(evidenceLink(params.data.caseId, params.data.segment)) },
-    legend: [{ label: 'Ready', tone: 'ready' }, { label: 'Processing', tone: 'processing' }, { label: 'Failed', tone: 'failed' }, { label: 'Not yet counted', tone: 'other' }],
-  }), [readiness, navigate])
   const familyChart = useMemo(() => ({
     buildOption: theme => familyOption(families, theme),
     height: Math.max(90, families.length * 30 + 12),
@@ -402,23 +397,12 @@ export default function DashboardPage() {
             <KpiTiles kpis={kpis} loading={loading} />
             {unreadable > 0 ? <p className="dash-notice" role="status"><CircleAlert aria-hidden="true" />{formatNumber(unreadable)} of {formatNumber(cases.length)} {unreadable === 1 ? 'case' : 'cases'} could not report status, so totals above cover the rest. <button type="button" onClick={reload}>Try again</button></p> : null}
 
-            <div className="dash-grid">
-              <div id="dashboard-readiness">
-                {readiness.length ? (
-                  <ChartCard
-                    title="Is each case’s evidence ready to search?"
-                    description="Share of each case’s sources that are ready, processing or failed. Select a segment to open those sources."
-                    chart={readinessChart}
-                    columns={[
-                      { key: 'case', label: 'Case', render: row => <Link to={`/cases/${encodeURIComponent(row.caseId)}/overview`}><LanguageText as="bdi" identifier>{row.caseId}</LanguageText></Link> },
-                      ...['ready', 'processing', 'failed'].map(id => ({ key: id, label: { ready: 'Ready', processing: 'Processing', failed: 'Failed' }[id], numeric: true, render: row => (row.counts[id] ? <Link to={evidenceLink(row.caseId, id)}>{formatNumber(row.counts[id])}</Link> : '0') })),
-                      { key: 'total', label: 'Sources', numeric: true, render: row => formatNumber(row.total) },
-                    ]}
-                    rows={readiness.map(row => ({ ...row, key: row.caseId }))}
-                    footer={<span>{formatNumber(kpis.ready)} of {formatNumber(kpis.sources)} sources are ready across {formatNumber(readiness.length)} {readiness.length === 1 ? 'case' : 'cases'}.</span>}
-                  />
-                ) : <section className="dash-card"><header className="dash-card__header"><div><h2>Is each case’s evidence ready to search?</h2></div></header><p className="dash-card__empty">{loading ? 'Reading each case’s status…' : 'No case has reported evidence yet.'}</p></section>}
-              </div>
+            <div className="dash-grid dash-grid--wide-left">
+              <AttentionQueue items={attention} kpis={kpis} failures={failures} loading={loading} />
+              <ReadinessBars rows={readiness} kpis={kpis} loading={loading} />
+            </div>
+
+            <div className="dash-grid dash-grid--wide-left">
               <div id="dashboard-families">
                 {families.length ? (
                   <ChartCard
@@ -436,10 +420,6 @@ export default function DashboardPage() {
                   />
                 ) : <section className="dash-card"><header className="dash-card__header"><div><h2>Which kinds of records make up the evidence?</h2></div></header><p className="dash-card__empty">{loading ? 'Reading record families…' : 'No structured records have been accepted yet.'}</p></section>}
               </div>
-            </div>
-
-            <div className="dash-grid dash-grid--wide-left">
-              <AttentionCard items={attention} kpis={kpis} />
               <IngestionCard rows={ingestion} />
             </div>
 
@@ -450,7 +430,6 @@ export default function DashboardPage() {
                   <label className="visually-hidden" htmlFor="dashboard-case-search">Find a case</label>
                   <span className="dashboard-search__field"><Search aria-hidden="true" /><input id="dashboard-case-search" type="search" value={query} onChange={event => { setQuery(event.target.value); setSelectedCaseId('') }} placeholder="Search collection ID" /></span>
                 </form>
-                <div className="dashboard-refresh-group">{lastUpdated ? <small>Updated {new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' }).format(lastUpdated)}</small> : null}<button type="button" className="dashboard-refresh" onClick={reload} disabled={isRefreshing}><RefreshCw aria-hidden="true" />{isRefreshing ? 'Refreshing…' : 'Refresh'}</button></div>
               </header>
               <div className="dash-chips" role="group" aria-label="Filter cases">
                 {STATE_FILTERS.map(([id, label]) => <button key={id} type="button" aria-pressed={filter === id} onClick={() => { setFilter(id); setSelectedCaseId('') }}>{label}</button>)}

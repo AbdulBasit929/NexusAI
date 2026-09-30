@@ -4,6 +4,13 @@ Route `/`. The investigator's job on this page: **"What needs me now, can I trus
 
 Data today: one `GET /collections/status` per configured case (`useConfiguredCaseOverviews`) plus `GET /query/capabilities` for the selected case. Nothing is estimated. A case that did not report is left out and named, never zero-shaped. Requests 12 (workspace summary) and 13 (needs-attention feed) are filed in `BACKEND_REQUESTS.md`; this page will move to them when they land.
 
+## Build status
+| Section | Status |
+|---|---|
+| D1 header, D2 KPI tiles | built and verified |
+| D3 Needs review, D4 Readiness by case | built and verified 2026-09-30: unit tests (`dashboard/AttentionAndReadiness.vitest.jsx`), e2e `dashboard-slice.spec.js`, screenshots at 1440 and 375 in both themes. The workbench's duplicate Refresh was removed (Refresh lives in D1 only). |
+| D5 to D8 | still the first-pass versions; rebuilt next, one at a time |
+
 ## Research applied to the page
 - **Nielsen Norman Group** on operational dashboards: they exist for fast decisions, so the most critical three to five figures go top-left, colour coding stays consistent, and detail is disclosed progressively.
 - **Grafana stat panel**: the value is prominent, the label says what it counts, colour appears only when a threshold matters, and the tile is a link into the data behind it.

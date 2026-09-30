@@ -121,6 +121,6 @@ If the owner wants this session to edit `api/**` directly, they must say so expl
 | S4 sidebar | **done 2026-09-29** (redesigned after owner review), in `UI_PAGE_SPECS/shell.md` |
 | S5 canvas and page templates | **done 2026-09-30**, `UI_PAGE_SPECS/canvas.md` |
 | Team-lead revision | **done 2026-09-30**: recent questions moved to the command palette and the Investigate page (not the sidebar); header "Ask a question" and Appearance redesigned; see `UI_PAGE_SPECS/shell.md` |
-| S6 Dashboard, section by section | **next**: D1 header, D2 KPI strip, D3 readiness, D4 needs review, D5 families, D6 ingestion, D7 workbench, D8 recent, D9 cross-case insights |
+| S6 Dashboard, section by section | **in progress**: D1 header, D2 KPI tiles, D3 needs review, D4 readiness by case **done 2026-09-30**; **next** D5 families, D6 ingestion, D7 workbench, D8 continue (D9 filed as backend requests) |
 | S6 Dashboard | first pass built; to be redone section by section after S1 to S5 |
 | S7 to S12 | not started |

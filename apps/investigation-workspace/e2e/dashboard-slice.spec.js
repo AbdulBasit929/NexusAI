@@ -47,13 +47,14 @@ test('dashboard answers named questions, links every figure to its records and k
   page.on('console', message => { if (message.type() === 'error') browserErrors.push(message.text()) })
   page.on('request', request => { if (new URL(request.url()).pathname.endsWith('/collections/status')) statusRequests += 1 })
   await page.goto('/')
-  await expect(page.getByRole('heading', { level: 1, name: 'Where your cases stand' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible()
 
   // Totals are real sums of the four mocked cases, each linking to the rows behind it.
   const totals = page.getByRole('list', { name: 'Workspace totals' })
-  await expect(totals.getByRole('listitem').filter({ hasText: 'Evidence sources' })).toContainText('8')
-  await expect(totals.getByRole('listitem').filter({ hasText: 'Need review' })).toContainText('1')
+  await expect(totals.getByRole('listitem').filter({ hasText: 'Evidence ready' })).toContainText('5 of 8')
+  await expect(totals.getByRole('listitem').filter({ hasText: 'Needs review' })).toContainText('1')
   await expect(totals.getByRole('listitem').filter({ hasText: 'Processing' })).toContainText('2')
+  await expect(totals.getByRole('listitem').filter({ hasText: 'Structured rows' })).toContainText('9,062')
 
   // The sidebar carries the live count of cases needing review and the global Investigate entry.
   await expect(page.getByRole('link', { name: /Dashboard, 1 case needs review/ })).toBeVisible()
@@ -62,6 +63,7 @@ test('dashboard answers named questions, links every figure to its records and k
   // Each chart has a question for a title and an exact table alternative with real links.
   const readiness = page.locator('#dashboard-readiness')
   await expect(readiness.getByRole('heading', { name: /Is each case’s evidence ready to search\?/ })).toBeVisible()
+  await expect(readiness.getByRole('link', { name: /1 failed of 2 sources in case-review/ })).toHaveAttribute('href', '/cases/case-review/evidence?status=failed')
   await readiness.getByRole('button', { name: /Table/ }).click()
   await expect(readiness.getByRole('link', { name: '1', exact: true }).first()).toHaveAttribute('href', /\/cases\/case-review\/evidence\?status=/)
   const families = page.locator('#dashboard-families')
@@ -76,7 +78,7 @@ test('dashboard answers named questions, links every figure to its records and k
 
   // Needs-review list names the failed source and links to it.
   const attention = page.locator('#dashboard-attention')
-  await expect(attention.getByRole('link', { name: 'case-review.csv' })).toHaveAttribute('href', '/cases/case-review/evidence/case-review-source')
+  await expect(attention.getByRole('link', { name: 'Review case-review.csv' })).toHaveAttribute('href', '/cases/case-review/evidence/case-review-source')
   await expect(attention).toContainText('The source could not be parsed.')
 
   // Case workbench: readiness order, filters and the inspector.
