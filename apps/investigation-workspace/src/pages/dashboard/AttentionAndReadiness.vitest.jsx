@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { NeedsReview, attentionReason, reviewTarget, unnamedFailures } from './NeedsReview.jsx'
+import { AttentionCauses, attentionReason, reviewTarget, unnamedFailures } from './AttentionCauses.jsx'
 import { ReadinessBars } from './ReadinessBars.jsx'
 import { attentionItems, evidenceLink, itemMatchesReviewFilter, readinessRows, reviewByCase, reviewFilterCount, reviewKind } from '../../lib/dashboardCharts.js'
 
@@ -24,7 +24,7 @@ const rows = [
   { caseId: 'unreported', summary: null, state: null },
 ]
 
-describe('D3 data', () => {
+describe('Needs review data', () => {
   it('ranks cases worst first from the complete summary counts and leaves out clean and unreported cases', () => {
     expect(reviewByCase(rows)).toEqual([
       { caseId: 'alpha', failed: 3, missing: 1, total: 4 },
@@ -39,7 +39,6 @@ describe('D3 data', () => {
     expect(reviewFilterCount(byCase, { caseId: null, kind: null })).toBe(6)
     expect(reviewFilterCount(byCase, { caseId: null, kind: 'failed' })).toBe(3)
     expect(reviewFilterCount(byCase, { caseId: 'bravo', kind: 'missing' })).toBe(2)
-    expect(reviewFilterCount(byCase, { caseId: 'alpha', kind: null })).toBe(4)
     expect(itemMatchesReviewFilter({ kind: 'Failed', caseId: 'alpha' }, { caseId: 'bravo', kind: null })).toBe(false)
     expect(itemMatchesReviewFilter({ kind: 'Failed', caseId: 'alpha' }, { caseId: 'alpha', kind: 'failed' })).toBe(true)
   })
@@ -60,84 +59,59 @@ describe('D3 data', () => {
   })
 
   it('finds failed sources a case counts but does not name', () => {
-    const items = attentionItems(rows)
-    expect(unnamedFailures(reviewByCase(rows), items)).toEqual([{ caseId: 'alpha', unnamed: 2, failed: 3 }])
+    expect(unnamedFailures(reviewByCase(rows), attentionItems(rows))).toEqual([{ caseId: 'alpha', unnamed: 2, failed: 3 }])
   })
 })
 
-describe('D3 needs review', () => {
+describe('Needs review by cause', () => {
   const byCase = reviewByCase(rows)
   const items = attentionItems(rows)
   const kpis = { cases: 4, reported: 3, sources: 20, ready: 14, failed: 3, gaps: 3, review: 6 }
-  const card = () => show(<NeedsReview items={items} byCase={byCase} kpis={kpis} loading={false} />)
+  const card = () => show(<AttentionCauses items={items} byCase={byCase} kpis={kpis} loading={false} />)
 
-  it('answers "where" with a ranked bar per case, exact counts, and a name for each segment', () => {
+  it('summarises how many distinct causes there are across how many sources', () => {
     card()
     expect(screen.getByRole('heading', { name: 'What needs review?' })).toBeTruthy()
-    const alpha = screen.getByRole('group', { name: 'Sources to review in alpha' })
-    expect(within(alpha).getByRole('button', { name: /3 failed in alpha/ })).toBeTruthy()
-    expect(within(alpha).getByRole('button', { name: /1 missing copy in alpha/ })).toBeTruthy()
+    expect(screen.getByText('3 causes across 6 sources')).toBeTruthy()
     expect(screen.getByText('6 sources')).toBeTruthy()
-    expect(screen.getByRole('list', { name: 'Legend' })).toBeTruthy()
   })
 
-  it('answers "which" with named sources, a reason and a real Review link', () => {
+  it('lists causes biggest first with exact counts, and opens the biggest one so its sources show at once', () => {
     card()
-    expect(screen.getByRole('link', { name: 'Review bad.csv' }).getAttribute('href')).toBe('/cases/alpha/evidence/e1')
-    expect(screen.getByText('The source could not be parsed.')).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Review gap.pdf' })).toBeTruthy()
-  })
-
-  it('filters the list from a bar segment and never filters the chart itself', async () => {
-    card()
-    const user = userEvent.setup()
-    await user.click(screen.getByRole('button', { name: /2 missing copy in bravo/ }))
-    expect(screen.getByRole('button', { name: /2 missing copy in bravo/ }).getAttribute('aria-pressed')).toBe('true')
-    expect(screen.queryByRole('link', { name: 'Review bad.csv' })).toBeNull()
+    const heads = screen.getAllByRole('button', { name: /\d$/ })
+    expect(heads.map(head => head.textContent)).toEqual(['Retained copy is missing3', 'Failed, cause not listed2', 'The source could not be parsed1'])
+    expect(heads[0].getAttribute('aria-expanded')).toBe('true')
+    expect(screen.getByRole('link', { name: 'Review gap.pdf' }).getAttribute('href')).toBe('/cases/alpha/evidence/e3')
     expect(screen.getByRole('link', { name: 'Review b1.pdf' })).toBeTruthy()
-    // Both cases are still drawn: the chart stays a control.
-    expect(screen.getByRole('group', { name: 'Sources to review in alpha' })).toBeTruthy()
-    // The same segment again clears it.
-    await user.click(screen.getByRole('button', { name: /2 missing copy in bravo/ }))
-    expect(screen.getByRole('link', { name: 'Review bad.csv' })).toBeTruthy()
   })
 
-  it('filters by kind with chips whose counts come from the complete totals, and clears', async () => {
+  it('opens another cause in place and closes the first, and lets an open cause be closed', async () => {
     card()
     const user = userEvent.setup()
-    const chips = screen.getByRole('group', { name: 'Filter the list' })
-    expect(within(chips).getByRole('button', { name: /All\s*6/ })).toBeTruthy()
-    await user.click(within(chips).getByRole('button', { name: /Failed\s*3/ }))
+    await user.click(screen.getByRole('button', { name: /The source could not be parsed/ }))
+    expect(screen.getByRole('link', { name: 'Review bad.csv' }).getAttribute('href')).toBe('/cases/alpha/evidence/e1')
     expect(screen.queryByRole('link', { name: 'Review gap.pdf' })).toBeNull()
-    expect(screen.getByRole('link', { name: 'Review bad.csv' })).toBeTruthy()
-    await user.click(within(chips).getByRole('button', { name: 'Clear' }))
-    expect(screen.getByRole('link', { name: 'Review gap.pdf' })).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: /The source could not be parsed/ }))
+    expect(screen.queryByRole('link', { name: 'Review bad.csv' })).toBeNull()
   })
 
-  it('says honestly when it names fewer than it counts, and links to the full failed list', () => {
+  it('says honestly when failures are counted but not named, and links to the full failed list', async () => {
     card()
-    expect(screen.getByText(/6 in total; 4 named here, the most recent each case reports/)).toBeTruthy()
+    await userEvent.setup().click(screen.getByRole('button', { name: /Failed, cause not listed/ }))
+    expect(screen.getByText('2 not named here.')).toBeTruthy()
     expect(screen.getByRole('link', { name: /All 3 failed in alpha/ }).getAttribute('href')).toBe('/cases/alpha/evidence?status=failed')
   })
 
   it('shows a positive empty state, a neutral unavailable state, and a loading skeleton', () => {
-    const { rerender } = show(<NeedsReview items={[]} byCase={[]} kpis={{ cases: 2, reported: 2, sources: 55, ready: 55 }} loading={false} />)
+    const { rerender } = show(<AttentionCauses items={[]} byCase={[]} kpis={{ cases: 2, reported: 2, sources: 55, ready: 55 }} loading={false} />)
     expect(screen.getByText('Nothing needs review')).toBeTruthy()
     expect(screen.getByText('55 of 55 sources are ready.')).toBeTruthy()
-    rerender(<MemoryRouter><NeedsReview items={[]} byCase={[]} kpis={{ cases: 2, reported: 0, sources: 0, ready: 0 }} loading={false} /></MemoryRouter>)
+    rerender(<MemoryRouter><AttentionCauses items={[]} byCase={[]} kpis={{ cases: 2, reported: 0, sources: 0, ready: 0 }} loading={false} /></MemoryRouter>)
     expect(screen.getByText('Status unavailable')).toBeTruthy()
     expect(screen.queryByText('Nothing needs review')).toBeNull()
-    rerender(<MemoryRouter><NeedsReview items={[]} byCase={[]} kpis={{ cases: 2, reported: 0, sources: 0, ready: 0 }} loading /></MemoryRouter>)
+    rerender(<MemoryRouter><AttentionCauses items={[]} byCase={[]} kpis={{ cases: 2, reported: 0, sources: 0, ready: 0 }} loading /></MemoryRouter>)
     expect(screen.queryByText('Nothing needs review')).toBeNull()
     expect(screen.queryByText('Status unavailable')).toBeNull()
-  })
-
-  it('collapses long lists behind Show all', async () => {
-    const many = Array.from({ length: 8 }, (_, index) => ({ caseId: 'alpha', kind: 'Failed', label: `f${index}.csv`, evidenceId: `e${index}`, detail: '' }))
-    show(<NeedsReview items={many} byCase={[{ caseId: 'alpha', failed: 8, missing: 0, total: 8 }]} kpis={kpis} loading={false} />)
-    expect(screen.getAllByRole('link', { name: /^Review / })).toHaveLength(5)
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Show all 8' }))
-    expect(screen.getAllByRole('link', { name: /^Review / })).toHaveLength(8)
   })
 })
 

@@ -4,9 +4,11 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { ActivityChart, dayQuestion, dayTarget } from './ActivityChart.jsx'
 import { EvidenceMap } from './EvidenceMap.jsx'
-import { NeedsReview } from './NeedsReview.jsx'
+import { ENTITY_QUESTIONS, KeyEntities, entityQuestionLink } from './KeyEntities.jsx'
+import { PipelineFlow } from './PipelineFlow.jsx'
 import { mergeActivity, parseActivity } from '../../lib/caseActivity.js'
-import { attentionItems, familyRows, reviewByCase } from '../../lib/dashboardCharts.js'
+import { familyRows } from '../../lib/dashboardCharts.js'
+import { activityFailureText } from '../../lib/useCaseActivity.js'
 
 // ECharts needs a real layout engine, so the chart frame is stood in for here; its data mapping is tested in lib.
 vi.mock('../../components/charts/ChartCard.jsx', () => ({
@@ -66,7 +68,6 @@ describe('Evidence map', () => {
 })
 
 describe('Activity chart', () => {
-  const failed = []
   const cases = ['alpha', 'bravo']
   const props = { order: ['cdr'], cases, scope: '', onScope: () => {}, onRetry: () => {} }
 
@@ -80,55 +81,83 @@ describe('Activity chart', () => {
 
   it('states the span and total, and labels a capped read as partial', () => {
     const capped = { ...mergeActivity([parsed([row('2026-03-01', 'cdr', 3), row('2026-03-02', 'cdr', 4)])]), truncated: true }
-    show(<ActivityChart activity={capped} status="ready" failed={failed} {...props} />)
+    show(<ActivityChart activity={capped} status="ready" failures={[]} {...props} />)
     expect(screen.getByText(/7 events · 2026-03-01 to 2026-03-02/)).toBeTruthy()
     expect(screen.getByText(/Partial: the service returns at most 100 day-and-family groups/)).toBeTruthy()
     expect(screen.getByRole('table')).toBeTruthy()
   })
 
-  it('names a case that could not be read instead of counting it as zero, and offers a retry', async () => {
+  it('names a case that could not be read, with the reason, instead of counting it as zero, and offers a retry', async () => {
     const onRetry = vi.fn()
-    show(<ActivityChart activity={mergeActivity([parsed([row('2026-03-01', 'cdr', 3)])])} status="ready" failed={['bravo']} {...props} onRetry={onRetry} />)
-    expect(screen.getByText(/Not read: bravo/)).toBeTruthy()
+    show(<ActivityChart activity={mergeActivity([parsed([row('2026-03-01', 'cdr', 3)])])} status="ready" failures={[{ caseId: 'bravo', reason: 403 }]} {...props} onRetry={onRetry} />)
+    expect(screen.getByText(/Not read: bravo \(you do not have access to this case’s activity\)/)).toBeTruthy()
     await userEvent.setup().click(screen.getByRole('button', { name: 'Try again' }))
     expect(onRetry).toHaveBeenCalledOnce()
   })
 
   it('has a scope control only when there is more than one case', () => {
     const activity = mergeActivity([parsed([row('2026-03-01', 'cdr', 3)])])
-    const { rerender } = show(<ActivityChart activity={activity} status="ready" failed={failed} {...props} />)
+    const { rerender } = show(<ActivityChart activity={activity} status="ready" failures={[]} {...props} />)
     expect(screen.getByText('Scope')).toBeTruthy()
-    rerender(<MemoryRouter><ActivityChart activity={activity} status="ready" failed={failed} {...props} cases={['alpha']} /></MemoryRouter>)
+    rerender(<MemoryRouter><ActivityChart activity={activity} status="ready" failures={[]} {...props} cases={['alpha']} /></MemoryRouter>)
     expect(screen.queryByText('Scope')).toBeNull()
   })
 
-  it('shows loading, empty and unreadable as three different states', () => {
+  it('shows loading, empty and unreadable as different states, and says why it could not be read', () => {
     const none = mergeActivity([])
-    const { rerender } = show(<ActivityChart activity={none} status="loading" failed={[]} {...props} />)
+    const { rerender } = show(<ActivityChart activity={none} status="loading" failures={[]} {...props} />)
     expect(screen.queryByText(/No dated records/)).toBeNull()
-    rerender(<MemoryRouter><ActivityChart activity={none} status="ready" failed={[]} {...props} /></MemoryRouter>)
+    rerender(<MemoryRouter><ActivityChart activity={none} status="ready" failures={[]} {...props} /></MemoryRouter>)
     expect(screen.getByText(/No dated records to chart/)).toBeTruthy()
-    rerender(<MemoryRouter><ActivityChart activity={none} status="ready" failed={['alpha']} {...props} /></MemoryRouter>)
+    rerender(<MemoryRouter><ActivityChart activity={none} status="ready" failures={[{ caseId: 'alpha', reason: 'no_rows' }]} {...props} /></MemoryRouter>)
     expect(screen.getByText(/Activity could not be read for this scope/)).toBeTruthy()
-    rerender(<MemoryRouter><ActivityChart activity={mergeActivity([parsed([])])} status="ready" failed={[]} {...props} /></MemoryRouter>)
+    expect(screen.getByText('The service answered without activity rows.')).toBeTruthy()
+    rerender(<MemoryRouter><ActivityChart activity={none} status="ready" failures={[{ caseId: 'alpha', reason: 500 }]} {...props} /></MemoryRouter>)
+    expect(screen.getByText('The service returned an error (HTTP 500).')).toBeTruthy()
+    rerender(<MemoryRouter><ActivityChart activity={mergeActivity([parsed([])])} status="ready" failures={[]} {...props} /></MemoryRouter>)
     expect(screen.getByText('No dated records have been ingested yet.')).toBeTruthy()
+  })
+
+  it('puts every failure reason into words', () => {
+    expect(activityFailureText('no_rows')).toMatch(/without activity rows/)
+    expect(activityFailureText(403)).toMatch(/do not have access/)
+    expect(activityFailureText(404)).toMatch(/not found/)
+    expect(activityFailureText(502)).toBe('The service returned an error (HTTP 502).')
+    expect(activityFailureText('unreachable')).toMatch(/could not be reached/)
   })
 })
 
-describe('Needs review rail (compact)', () => {
-  const rows = [
-    { caseId: 'alpha', summary: { failed: 3, missingAssets: 1 }, state: { data: { recent_evidence: Array.from({ length: 6 }, (_, index) => ({ evidence_id: `e${index}`, source_file: `f${index}.csv`, processing_status: 'failed' })), missing_kb_assets: [{ evidence_id: 'm1', source_file: 'gap.pdf' }] } } },
-  ]
-  const kpis = { cases: 1, reported: 1, sources: 20, ready: 14, failed: 3, gaps: 1, review: 4 }
+describe('Pipeline flow', () => {
+  const kpis = { sources: 54, ready: 50, processing: 2, failed: 2, gaps: 3, acceptedRows: 1000, duplicateRows: 40, rejectedRows: 10 }
 
-  it('leaves out the by-case bars, shows four rows and an icon-only Review with a full name', async () => {
-    show(<NeedsReview compact items={attentionItems(rows)} byCase={reviewByCase(rows)} kpis={kpis} loading={false} />)
-    expect(screen.queryByRole('group', { name: /Sources to review in/ })).toBeNull()
-    const links = screen.getAllByRole('link', { name: /^Review / })
-    expect(links).toHaveLength(4)
-    expect(links[0].getAttribute('title')).toBe('Review f0.csv')
-    expect(links[0].textContent).toBe('')
-    await userEvent.setup().click(screen.getByRole('button', { name: /Show all 7/ }))
-    expect(screen.getAllByRole('link', { name: /^Review / })).toHaveLength(7)
+  it('lists every path as an exact count and states the totals', () => {
+    show(<PipelineFlow kpis={kpis} loading={false} />)
+    expect(screen.getByRole('heading', { name: 'Where do sources and rows end up?' })).toBeTruthy()
+    const table = screen.getByRole('table')
+    expect(within(table).getByText('Copy missing')).toBeTruthy()
+    expect(screen.getByText(/54 sources · 1,050 rows read/)).toBeTruthy()
+  })
+
+  it('says so when nothing has been ingested, and shows a skeleton while reading', () => {
+    const { rerender } = show(<PipelineFlow kpis={{ sources: 0, ready: 0, processing: 0, failed: 0, gaps: 0 }} loading={false} />)
+    expect(screen.getByText('Nothing has been ingested yet.')).toBeTruthy()
+    rerender(<MemoryRouter><PipelineFlow kpis={{ sources: 0, ready: 0, processing: 0, failed: 0, gaps: 0 }} loading /></MemoryRouter>)
+    expect(screen.queryByText('Nothing has been ingested yet.')).toBeNull()
+  })
+})
+
+describe('Key entities', () => {
+  it('is honest that nothing is summarised yet, shows no numbers, and offers the questions that work today', () => {
+    const { container } = show(<KeyEntities caseId="alpha" />)
+    expect(screen.getByRole('heading', { name: 'Who and where shows up most?' })).toBeTruthy()
+    expect(screen.getByText(/will be summarised here once the case can report them/)).toBeTruthy()
+    expect(container.textContent).not.toMatch(/\d/)
+    const links = within(screen.getByRole('list', { name: 'Ask in Investigate' })).getAllByRole('link')
+    expect(links.map(link => link.getAttribute('href'))).toEqual(ENTITY_QUESTIONS.map(question => entityQuestionLink('alpha', question)))
+  })
+
+  it('offers no questions when there is no case to ask in', () => {
+    show(<KeyEntities caseId={undefined} />)
+    expect(screen.queryByRole('list', { name: 'Ask in Investigate' })).toBeNull()
   })
 })

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ACTIVITY_CAP, activityOption, activityRows, familyColour, familyOrder, mergeActivity, parseActivity } from './caseActivity.js'
+import { ACTIVITY_CAP, activityHighlights, activityOption, activityRows, familyColour, familyOrder, mergeActivity, parseActivity } from './caseActivity.js'
 
 const response = rows => ({ records: { activity_by_day: rows } })
 const row = (date, record_type, event_count) => ({ activity_date: `${date}T00:00:00Z`, record_type, event_count })
@@ -64,6 +64,19 @@ describe('colour and table helpers', () => {
   it('offers every day as an exact table row', () => {
     const activity = parseActivity(response([row('2026-03-01', 'cdr', 3), row('2026-03-01', 'anpr', 2)]), 'a')
     expect(activityRows(activity)).toEqual([{ key: '2026-03-01', date: '2026-03-01', total: 5, cdr: 3, anpr: 2 }])
+  })
+})
+
+describe('activityHighlights', () => {
+  it('names the busiest day, the most active family and a typical day from the same rows as the chart', () => {
+    const activity = parseActivity(response([row('2026-03-01', 'cdr', 30), row('2026-03-02', 'cdr', 90), row('2026-03-02', 'anpr', 10), row('2026-03-03', 'cdr', 20)]), 'a')
+    expect(activityHighlights(activity)).toEqual({ busiest: { date: '2026-03-02', total: 100 }, topFamily: { id: 'cdr', total: 140, share: 93 }, typical: 50, activeDays: 3 })
+  })
+
+  it('floors the share so a family is never rounded up to everything, and returns nothing for no activity', () => {
+    const activity = parseActivity(response([row('2026-03-01', 'cdr', 999), row('2026-03-01', 'anpr', 1)]), 'a')
+    expect(activityHighlights(activity).topFamily.share).toBe(99)
+    expect(activityHighlights(parseActivity(response([]), 'a'))).toBeNull()
   })
 })
 

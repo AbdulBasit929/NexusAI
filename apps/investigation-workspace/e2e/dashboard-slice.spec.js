@@ -102,7 +102,16 @@ test('dashboard answers named questions, links every figure to its records and k
   // Needs-review list names the failed source and links to it.
   const attention = page.locator('#dashboard-attention')
   await expect(attention.getByRole('link', { name: 'Review case-review.csv' })).toHaveAttribute('href', '/cases/case-review/evidence/case-review-source')
-  await expect(attention).toContainText('The source could not be parsed.')
+  // Findings are grouped by cause; the biggest cause opens so its sources show at once.
+  await expect(attention).toContainText('The source could not be parsed')
+  await expect(attention.getByRole('button', { name: /The source could not be parsed/ })).toHaveAttribute('aria-expanded', 'true')
+
+  // Where sources and rows end up, as exact numbers behind the flow diagram, and the honest key-entities card.
+  const flow = page.locator('#dashboard-flow')
+  await expect(flow.getByRole('heading', { name: 'Where do sources and rows end up?' })).toBeVisible()
+  await flow.getByRole('button', { name: /Table/ }).click()
+  await expect(flow.getByRole('table')).toContainText('Failed')
+  await expect(page.locator('#dashboard-entities').getByRole('link', { name: /most frequent contacts/ })).toBeVisible()
 
   // Case workbench: readiness order, filters and the inspector.
   await expect(queueItems.nth(0)).toContainText('case-review')

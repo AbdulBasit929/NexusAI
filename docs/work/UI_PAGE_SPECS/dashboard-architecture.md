@@ -26,8 +26,9 @@ AppShell
  └─ DashboardPage            owns scope (All cases | one case, in the URL), refresh, and the data hooks
      ├─ Z0 Command header    title, one-line briefing, freshness, Refresh, Add evidence
      ├─ Z1 Metric cards      four cards (done)
-     ├─ Z2 Hero              [ Activity over time  (8 cols) ] [ Attention rail (4 cols) ]
-     ├─ Z3 Evidence          [ Evidence map: family bubbles (7) ] [ Readiness by case (5) ]
+     ├─ Z2 Hero              [ Activity over time + highlights (8) ] [ Needs review by cause (4) ]
+     ├─ Z3 Evidence          [ Evidence map: bubbles (5) ] [ Sources and rows flow (7) ]
+     ├─ Z3b                  [ Readiness by case (7) ] [ Key entities (5, honest until request 19) ]
      ├─ Z4 Quality           ingestion accounting now; data quality when request 16 lands
      ├─ Z5 Case workbench    queue and inspector (redesign next)
      └─ Z6 Continue          recent questions, later recent reports

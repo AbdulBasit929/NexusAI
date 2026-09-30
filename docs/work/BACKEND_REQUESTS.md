@@ -102,6 +102,8 @@ This enables a truthful activity volume view with an accessible event table and 
 
 **The backend already has this.** `POST /evidence/{evidence_id}/reprocess` and `GET /evidence/{evidence_id}/reprocess-plan` exist (`api/forensic_records/reprocess.go`). The first version of this request said they were missing; that was wrong. The request body needs `tenant_id`, `collection_id`, a `reason` of 3 to 1000 characters, and an `Idempotency-Key` (8 to 128 safe characters, header or body); `max_attempts` defaults to 5 (1 to 10). The UI can build Retry on it now: a small confirm dialog that asks for the reason, sends a generated idempotency key, and shows the result.
 
+**Bulk retry by cause (new ask, 2026-09-30):** the Dashboard now groups failures by cause, so "retry all sources that failed for this cause" is the natural action. Ask: `POST /collections/reprocess` with `{ tenant_id, collection_id, evidence_ids: [..] | cause_label, reason, idempotency_key }`, returning a job per source and the same refusal reasons as the single call, capped at a stated batch size. It must not retry sources whose retained copy is missing.
+
 **What is still worth asking for (small):** `GET /workspace/attention` items (row 13) should carry `retryable: boolean`, `attempts` and `max_attempts`, so the UI shows Retry only where it will work, without calling `reprocess-plan` per row. Until row 13 lands, the UI can call `reprocess-plan` for the selected failed source when its Retry dialog opens.
 
 ## 19. Case activity history (complete, bucketed) and top entities
@@ -110,6 +112,7 @@ This enables a truthful activity volume view with an accessible event table and 
 - **Endpoint:** `GET /collections/activity?tenant_id=&collection_id=&bucket=day|week|month&from=&to=`.
 - **Response:** `{ collection_id, bucket, from, to, complete: boolean, buckets: [{ start: RFC3339, end: RFC3339, by_family: [{ record_type, events }], events_total }], families: [{ record_type, label|null, events_total }], first_event_at, last_event_at }`. The server picks the bucket when omitted so the response stays a bounded size, and `complete=false` states why.
 - **Top entities** (for the "key entities" bubbles): `GET /collections/entities?tenant_id=&collection_id=&kind=counterparty|location|plate|domain|ip&limit=`, `{ kind, complete, items: [{ value_label, events, first_seen_at, last_seen_at, locator }] }`. Today `frequent_contacts` and `top_locations` need a target and refuse an empty one. Entity values are returned exactly as the existing masked routes return them; a kind the case has no data for returns `items: []`.
+- **Also for the hero:** `GET /collections/activity/rhythm?...` returning a weekday-by-hour matrix `{ cells: [{ weekday: 0-6, hour: 0-23, events }], timezone, complete }` for a heatmap of when a case is active (today only CDR hourly counts exist through `activity_by_hour`, with no weekday), and `key_moments`: the busiest days with their record family mix, so the chart can annotate them. Both are aggregates over the same canonical records as `activity_by_day`.
 - **Privacy:** aggregates and the same masking as the existing evidence and query routes; identity numbers are never returned unmasked.
 - **Page:** Dashboard hero and Overview.
 

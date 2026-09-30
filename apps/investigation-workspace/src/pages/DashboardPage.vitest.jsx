@@ -35,7 +35,7 @@ describe('Dashboard decision presentation', () => {
   it('sums workspace figures only over cases that reported, and says how many did not', () => {
     const summary = (over) => ({ total: 43, ready: 42, inFlight: 0, failed: 1, missingAssets: 3, acceptedRows: 100, ...over })
     expect(dashboardKpis([{ summary: summary({}) }, { summary: summary({ total: 12, ready: 11, failed: 1, missingAssets: 0, acceptedRows: 50 }) }, { summary: null }])).toEqual({
-      cases: 3, reported: 2, unreported: 1, sources: 55, ready: 53, processing: 0, failed: 2, gaps: 3, review: 5, reviewCases: 2, acceptedRows: 150,
+      cases: 3, reported: 2, unreported: 1, sources: 55, ready: 53, processing: 0, failed: 2, gaps: 3, review: 5, reviewCases: 2, acceptedRows: 150, duplicateRows: 0, rejectedRows: 0,
     })
   })
 

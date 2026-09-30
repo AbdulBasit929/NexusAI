@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowUpRight, CircleCheckBig, Clock3, FileWarning, Rows3, SearchCheck } from 'lucide-react'
 import { ProportionBar } from '../../components/DataVisualizations.jsx'
 import { formatNumber } from '../../lib/format.js'
+import { jumpToElement } from '../../lib/jump.js'
 
 const prefersReducedMotion = () => Boolean(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
 
@@ -98,19 +99,9 @@ export function useCountUp(target, { animate = true, duration = 700 } = {}) {
   return value
 }
 
-// An in-page jump that lands well: smooth scroll (instant under reduced motion), focus moves to the target so
-// keyboard and screen-reader users arrive there too, and the target flashes once so the eye finds it.
+// A card click lands on its section (see lib/jump.js); when the section is not on the page the link behaves normally.
 function jumpTo(event, href) {
-  const target = globalThis.document?.getElementById(href.slice(1))
-  if (!target) return
-  event.preventDefault()
-  target.scrollIntoView?.({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' })
-  target.setAttribute('tabindex', '-1')
-  target.focus({ preventScroll: true })
-  target.classList.remove('dash-flash')
-  void target.offsetWidth
-  target.classList.add('dash-flash')
-  globalThis.setTimeout(() => target.classList.remove('dash-flash'), 1100)
+  if (jumpToElement(href)) event.preventDefault()
 }
 
 function Figure({ value, unknown, animate }) {

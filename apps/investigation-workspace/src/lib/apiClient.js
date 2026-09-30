@@ -133,7 +133,9 @@ export async function runCaseTemplate({ caseId, template, limit = 100, signal, f
     method: 'POST',
     signal,
     headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tenant_id: tenantId, collection_id: collectionId, template, limit }),
+    // The platform's own corpus asks for a deterministic template as this canonical sentence, and the router keys its
+    // early checks off the query text, so send it together with the explicit template and limit.
+    body: JSON.stringify({ tenant_id: tenantId, collection_id: collectionId, query: `Run deterministic forensic query; template=${template}; limit=${limit}`, template, limit }),
   })
   if (!response.ok) {
     const error = new Error('The case figures could not be read.')

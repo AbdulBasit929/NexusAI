@@ -8,7 +8,9 @@ import { ActivityChart } from './dashboard/ActivityChart.jsx'
 import { DashboardHeader } from './dashboard/DashboardHeader.jsx'
 import { EvidenceMap } from './dashboard/EvidenceMap.jsx'
 import { KpiTiles } from './dashboard/KpiTiles.jsx'
-import { NeedsReview } from './dashboard/NeedsReview.jsx'
+import { AttentionCauses } from './dashboard/AttentionCauses.jsx'
+import { KeyEntities } from './dashboard/KeyEntities.jsx'
+import { PipelineFlow } from './dashboard/PipelineFlow.jsx'
 import { ReadinessBars } from './dashboard/ReadinessBars.jsx'
 import { configuredCaseIds, getQueryCapabilities } from '../lib/apiClient.js'
 import { familyOrder } from '../lib/caseActivity.js'
@@ -98,6 +100,8 @@ export function dashboardKpis(rows) {
     review: sum('failed') + sum('missingAssets'),
     reviewCases: reported.filter(row => row.summary.failed + row.summary.missingAssets > 0).length,
     acceptedRows: sum('acceptedRows'),
+    duplicateRows: sum('duplicateRows'),
+    rejectedRows: sum('rejectedRows'),
   }
 }
 
@@ -409,13 +413,18 @@ export default function DashboardPage() {
             {unreadable > 0 ? <p className="dash-notice" role="status"><CircleAlert aria-hidden="true" />{unreadable === cases.length ? 'No case could report status. Check that the records API is running.' : `${formatNumber(unreadable)} of ${formatNumber(cases.length)} ${unreadable === 1 ? 'case' : 'cases'} could not report status, so totals above cover the rest.`} <button type="button" onClick={reload}>Try again</button></p> : null}
 
             <div className="dash-grid dash-grid--hero">
-              <ActivityChart activity={activity.activity} status={activity.status} failed={activity.failed} order={order} cases={cases} scope={scope} onScope={setScope} onRetry={() => setActivityToken(token => token + 1)} />
-              <NeedsReview compact items={attention} byCase={reviewCases} kpis={kpis} loading={loading} />
+              <ActivityChart activity={activity.activity} status={activity.status} failures={activity.failures} order={order} cases={cases} scope={scope} onScope={setScope} onRetry={() => setActivityToken(token => token + 1)} />
+              <AttentionCauses items={attention} byCase={reviewCases} kpis={kpis} loading={loading} />
+            </div>
+
+            <div className="dash-grid dash-grid--wide-right">
+              <EvidenceMap families={families} order={order} selectedId={selectedFamily} onSelect={selectFamily} kpis={kpis} loading={loading} />
+              <PipelineFlow kpis={kpis} loading={loading} />
             </div>
 
             <div className="dash-grid dash-grid--wide-left">
-              <EvidenceMap families={families} order={order} selectedId={selectedFamily} onSelect={selectFamily} kpis={kpis} loading={loading} />
               <ReadinessBars rows={readiness} kpis={kpis} loading={loading} />
+              <KeyEntities caseId={scope || cases[0]} />
             </div>
 
             <IngestionCard rows={ingestion} />

@@ -11,11 +11,33 @@ function dayOf(value) {
   return match ? match[1] : null
 }
 
-// One case's response to `{ days, families, total, first, last, truncated }`, or `available: false` when the response
-// has no activity rows to read (an unexpected shape is reported as unavailable, never as zero).
+// The analyst-facing grid is a fallback source: its column keys are not guaranteed, so a row is only accepted when it
+// holds a date, a family name and a count that can each be told apart by value. Anything else is left out.
+function rowFromGrid(row) {
+  if (!row || typeof row !== 'object') return null
+  const entries = Object.entries(row)
+  const date = entries.find(([, value]) => dayOf(value))?.[1]
+  const count = entries.find(([key, value]) => /count|events|^m\d+$/i.test(key) && Number.isFinite(Number(value)))?.[1]
+  const family = entries.find(([key, value]) => typeof value === 'string' && !dayOf(value) && /type|family|record/i.test(key))?.[1]
+  return date && family && count !== undefined ? { activity_date: date, record_type: family, event_count: count } : null
+}
+
+function activityRowsOf(response) {
+  const direct = response?.records?.activity_by_day
+  if (Array.isArray(direct)) return direct
+  const grid = response?.enterprise?.data_grid?.rows
+  if (Array.isArray(grid) && grid.length) {
+    const rows = grid.map(rowFromGrid)
+    return rows.every(Boolean) ? rows : null
+  }
+  return null
+}
+
+// One case's response to `{ days, families, total, first, last, truncated }`, or `available: false` with a reason when
+// the response has no activity rows to read (an unexpected shape is reported as unavailable, never as zero).
 export function parseActivity(response, caseId) {
-  const rows = response?.records?.activity_by_day
-  if (!Array.isArray(rows)) return { available: false, caseId }
+  const rows = activityRowsOf(response)
+  if (!Array.isArray(rows)) return { available: false, caseId, reason: 'no_rows' }
   const days = new Map()
   const families = new Map()
   let total = 0
@@ -83,6 +105,20 @@ export function familyOrder(...idLists) {
 export function familyColour(id, order, palette) {
   const index = Math.max(0, order.indexOf(id))
   return palette[index % palette.length]
+}
+
+// Three facts derived from the days read: the busiest day, the most active record family and a typical day. They are
+// computed from the same rows as the chart, so they are as complete as the chart is (and share its "partial" label).
+export function activityHighlights(activity) {
+  if (!activity.days.length || !activity.total) return null
+  const busiest = activity.days.reduce((best, day) => (day.total > best.total ? day : best), activity.days[0])
+  const top = activity.families[0]
+  return {
+    busiest: { date: busiest.date, total: busiest.total },
+    topFamily: { id: top.id, total: top.total, share: Math.floor((top.total / activity.total) * 100) },
+    typical: Math.round(activity.total / activity.days.length),
+    activeDays: activity.days.length,
+  }
 }
 
 export function activityRows(activity) {

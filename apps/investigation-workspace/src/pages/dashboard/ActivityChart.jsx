@@ -1,13 +1,14 @@
 import { useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { CircleAlert } from 'lucide-react'
 import { Card } from '../../components/Card.jsx'
 import { ChartCard } from '../../components/charts/ChartCard.jsx'
 import { SelectControl } from '../../components/SelectControl.jsx'
 import { SkeletonRows } from '../../components/Skeleton.jsx'
-import { activityOption, activityRows } from '../../lib/caseActivity.js'
+import { activityHighlights, activityOption, activityRows } from '../../lib/caseActivity.js'
 import { formatNumber } from '../../lib/format.js'
 import { curatedFamilyLabel } from '../../lib/semanticCatalog.js'
+import { activityFailureText } from '../../lib/useCaseActivity.js'
 
 export function dayQuestion(date) {
   return `Show activity on ${date}`
@@ -24,8 +25,9 @@ export function dayTarget(activity, date, scope) {
 // D-hero. When did activity happen, and in what? Stacked bars per day by record family, real timestamps only. The
 // legend toggles families, the slider zooms, the tooltip has exact counts, and a click opens that day in Investigate.
 // A capped read is labelled partial; a case that could not be read is named. Rules: UI_REDESIGN_BRIEF §6 and §11.
-export function ActivityChart({ activity, status, failed, order, cases, scope, onScope, onRetry }) {
+export function ActivityChart({ activity, status, failures = [], order, cases, scope, onScope, onRetry }) {
   const navigate = useNavigate()
+  const failed = failures.map(failure => failure.caseId)
   const chart = useMemo(() => ({
     buildOption: theme => activityOption(activity, theme, order),
     height: 300,
@@ -45,7 +47,14 @@ export function ActivityChart({ activity, status, failed, order, cases, scope, o
     return (
       <div className="dash-slot">
         <Card className="activity-card" title="When did activity happen?" actions={scopeControl}>
-          <p className="dash-card__empty"><CircleAlert aria-hidden="true" />{failed.length ? 'Activity could not be read for this scope.' : 'No dated records to chart.'} {failed.length ? <button type="button" className="dash-link-button" onClick={onRetry}>Try again</button> : null}</p>
+          <p className="dash-card__empty">
+            <CircleAlert aria-hidden="true" />
+            <span>
+              {failed.length ? 'Activity could not be read for this scope.' : 'No dated records to chart.'}
+              {failures[0] ? <small className="activity-card__reason">{activityFailureText(failures[0].reason)}</small> : null}
+            </span>
+            {failed.length ? <button type="button" className="dash-link-button" onClick={onRetry}>Try again</button> : null}
+          </p>
         </Card>
       </div>
     )
@@ -54,6 +63,8 @@ export function ActivityChart({ activity, status, failed, order, cases, scope, o
     return <div className="dash-slot"><Card className="activity-card" title="When did activity happen?" actions={scopeControl}><p className="dash-card__empty">No dated records have been ingested yet.</p></Card></div>
   }
 
+  const highlights = activityHighlights(activity)
+  const busiestLink = highlights ? dayTarget(activity, highlights.busiest.date, scope) : null
   const columns = [
     { key: 'date', label: 'Day' },
     { key: 'total', label: 'Total', numeric: true, render: row => formatNumber(row.total) },
@@ -70,9 +81,28 @@ export function ActivityChart({ activity, status, failed, order, cases, scope, o
         rows={activityRows(activity)}
         footer={(
           <>
+            {highlights ? (
+              <ul className="activity-highlights" aria-label="Highlights">
+                <li>
+                  <span>Busiest day</span>
+                  <b>{busiestLink ? <Link to={busiestLink}>{highlights.busiest.date}</Link> : highlights.busiest.date}</b>
+                  <small>{formatNumber(highlights.busiest.total)} events</small>
+                </li>
+                <li>
+                  <span>Most active</span>
+                  <b>{curatedFamilyLabel(highlights.topFamily.id)}</b>
+                  <small>{highlights.topFamily.share}% of events</small>
+                </li>
+                <li>
+                  <span>Typical day</span>
+                  <b>{formatNumber(highlights.typical)}</b>
+                  <small>events, {formatNumber(highlights.activeDays)} active {highlights.activeDays === 1 ? 'day' : 'days'}</small>
+                </li>
+              </ul>
+            ) : null}
             <span>{formatNumber(activity.total)} events · {activity.first} to {activity.last}{activity.cases.length > 1 ? ` · ${formatNumber(activity.cases.length)} cases` : ''}</span>
             {activity.truncated ? <span className="activity-card__note">Partial: the service returns at most 100 day-and-family groups, oldest first.</span> : null}
-            {failed.length ? <span className="activity-card__note">Not read: {failed.join(', ')}. <button type="button" className="dash-link-button" onClick={onRetry}>Try again</button></span> : null}
+            {failed.length ? <span className="activity-card__note">Not read: {failed.join(', ')} ({activityFailureText(failures[0].reason).replace(/\.$/, '').toLowerCase()}). <button type="button" className="dash-link-button" onClick={onRetry}>Try again</button></span> : null}
           </>
         )}
       />
