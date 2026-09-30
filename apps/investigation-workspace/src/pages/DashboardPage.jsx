@@ -14,62 +14,14 @@ import { PipelineFlow } from './dashboard/PipelineFlow.jsx'
 import { configuredCaseIds, getQueryCapabilities } from '../lib/apiClient.js'
 import { caseSparks, familyOrder } from '../lib/caseActivity.js'
 import { attentionItems, familyRows, reviewByCase } from '../lib/dashboardCharts.js'
-import { curatedQuestions, latestEvidenceActivity, parseTimestamp } from '../lib/dashboardCases.js'
+import { aggregateFamilyRows, curatedQuestions, dashboardKpis, dashboardRowState, latestEvidenceActivity, parseTimestamp } from '../lib/dashboardCases.js'
 import { useCaseActivity } from '../lib/useCaseActivity.js'
 import { formatNumber } from '../lib/format.js'
 import { curatedFamilyLabel } from '../lib/semanticCatalog.js'
 import { summariseCase, useConfiguredCaseOverviews } from '../lib/useCaseOverview.js'
 import { useQuestionHistoryAcross } from '../lib/workspaceState.js'
 
-export { curatedQuestions, dashboardNextAction } from '../lib/dashboardCases.js'
-
-export function aggregateFamilyRows(rows) {
-  const totals = new Map()
-  for (const row of rows) {
-    const seen = new Set()
-    for (const family of row.summary?.families || []) {
-      const id = String(family.record_type || '').trim()
-      const value = Number(family.accepted_rows || 0)
-      if (!id || !Number.isFinite(value) || value <= 0) continue
-      const current = totals.get(id) || { id, value: 0, caseCount: 0 }
-      current.value += value
-      if (!seen.has(id)) {
-        current.caseCount += 1
-        seen.add(id)
-      }
-      totals.set(id, current)
-    }
-  }
-  return [...totals.values()].sort((left, right) => right.value - left.value || left.id.localeCompare(right.id))
-}
-
-export function dashboardRowState(state) {
-  if (state?.error) return 'unavailable'
-  if (!state?.data) return 'loading'
-  return summariseCase(state.data).processingState
-}
-
-// Workspace-level figures, each with the rows behind it. Only reported cases contribute, and the
-// count of cases that did not report is carried so the page can say so instead of under-counting silently.
-export function dashboardKpis(rows) {
-  const reported = rows.filter(row => row.summary)
-  const sum = key => reported.reduce((total, row) => total + (row.summary[key] || 0), 0)
-  return {
-    cases: rows.length,
-    reported: reported.length,
-    unreported: rows.length - reported.length,
-    sources: sum('total'),
-    ready: sum('ready'),
-    processing: sum('inFlight'),
-    failed: sum('failed'),
-    gaps: sum('missingAssets'),
-    review: sum('failed') + sum('missingAssets'),
-    reviewCases: reported.filter(row => row.summary.failed + row.summary.missingAssets > 0).length,
-    acceptedRows: sum('acceptedRows'),
-    duplicateRows: sum('duplicateRows'),
-    rejectedRows: sum('rejectedRows'),
-  }
-}
+export { aggregateFamilyRows, curatedQuestions, dashboardKpis, dashboardNextAction, dashboardRowState } from '../lib/dashboardCases.js'
 
 // The command dashboard. Zones, top to bottom: header, four metric cards, then the hero (activity and what needs
 // review), then the evidence pair (what it is made of, where it ends up), then the cases table and the two ways back into

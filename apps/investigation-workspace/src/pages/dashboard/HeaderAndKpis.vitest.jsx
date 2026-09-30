@@ -82,7 +82,7 @@ describe('D2 metric cards', () => {
   it('orders four cards by priority, marks the first as the hero, and links each to its section', () => {
     const tiles = kpiTiles(kpis)
     expect(tiles.map(tile => tile.label)).toEqual(['Needs review', 'Ready', 'Processing', 'Structured rows'])
-    expect(tiles.map(tile => tile.href)).toEqual(['#dashboard-attention', '#dashboard-readiness', '#dashboard-readiness', '#dashboard-families'])
+    expect(tiles.map(tile => tile.href)).toEqual(['#dashboard-attention', '#dashboard-cases', '#dashboard-cases', '#dashboard-families'])
     expect(tiles.filter(tile => tile.hero).map(tile => tile.id)).toEqual(['review'])
     expect(tiles[0]).toMatchObject({ value: 3, line: '2 failed · 1 missing copy', tone: 'failed' })
     expect(tiles[1]).toMatchObject({ value: 53, valueSuffix: 'of 55', percent: '96%', tone: 'ready', bar: { total: 55, ready: 53, processing: 0, failed: 2 } })
@@ -155,7 +155,7 @@ describe('D2 metric cards', () => {
     vi.stubGlobal('matchMedia', () => ({ matches: true }))
     const scrollIntoView = vi.fn()
     Element.prototype.scrollIntoView = scrollIntoView
-    show(<><KpiTiles kpis={kpis} loading={false} animate={false} /><div id="dashboard-readiness">Section</div></>)
+    show(<><KpiTiles kpis={kpis} loading={false} animate={false} /><div id="dashboard-cases">Section</div></>)
     await userEvent.setup().click(screen.getByRole('link', { name: /Ready/ }))
     expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'auto', block: 'start' })
   })

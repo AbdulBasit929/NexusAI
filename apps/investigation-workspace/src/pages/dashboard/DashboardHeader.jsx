@@ -49,7 +49,7 @@ export function briefing(kpis, { loading }) {
   if (kpis.review > 0) {
     result = { tone: 'attention', sentences: [`${formatNumber(kpis.review)} ${plural(kpis.review, 'source needs', 'sources need')} review`, ready], action: { label: 'Review', href: '#dashboard-attention' } }
   } else if (kpis.processing > 0) {
-    result = { tone: 'processing', sentences: [`${formatNumber(kpis.processing)} ${plural(kpis.processing, 'source', 'sources')} processing`, ready], action: { label: 'Progress', href: '#dashboard-readiness' } }
+    result = { tone: 'processing', sentences: [`${formatNumber(kpis.processing)} ${plural(kpis.processing, 'source', 'sources')} processing`, ready], action: { label: 'Progress', href: '#dashboard-cases' } }
   } else if (!kpis.sources) {
     result = { tone: 'neutral', sentences: ['No evidence yet'], action: null }
   } else {

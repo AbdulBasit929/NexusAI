@@ -22,7 +22,7 @@ function reviewLine(kpis) {
 // so the eye can rank them before reading; the first is the hero because it is the page's job. Tone follows the
 // data: zero review is green ("All clear"), zero processing is a quiet neutral. Words carry the meaning too, and the
 // long definitions live in the tooltip and accessible name, not as body copy. Rules: UI_REDESIGN_BRIEF §11.
-export function kpiTiles(kpis) {
+export function kpiTiles(kpis, targets = {}) {
   // Totals cover only the cases that reported. Say so on the card, so a partial sum is never read as the whole.
   const scope = kpis.unreported > 0 && kpis.reported > 0 ? `${formatNumber(kpis.reported)} of ${formatNumber(kpis.cases)} cases` : null
   return [
@@ -33,7 +33,7 @@ export function kpiTiles(kpis) {
       value: kpis.review,
       line: reviewLine(kpis),
       title: `${formatNumber(kpis.failed)} failed sources and ${formatNumber(kpis.gaps)} completed jobs missing their retained copy`,
-      href: '#dashboard-attention',
+      href: targets.review || '#dashboard-attention',
       tone: kpis.review > 0 ? 'failed' : 'ready',
       hero: true,
       scope,
@@ -47,7 +47,7 @@ export function kpiTiles(kpis) {
       percent: readyPercent(kpis),
       line: kpis.sources ? null : 'No sources yet',
       title: 'Sources you can search now',
-      href: '#dashboard-readiness',
+      href: targets.ready || '#dashboard-cases',
       tone: 'ready',
       // A bar of nothing says nothing, so it is drawn only when there is something to measure.
       bar: kpis.sources ? { total: kpis.sources, ready: kpis.ready, processing: kpis.processing, failed: kpis.failed } : null,
@@ -60,13 +60,13 @@ export function kpiTiles(kpis) {
       value: kpis.processing,
       line: kpis.processing ? 'In progress' : 'Idle',
       title: 'Sources that are not searchable until processing finishes',
-      href: '#dashboard-readiness',
+      href: targets.processing || '#dashboard-cases',
       tone: kpis.processing ? 'processing' : 'quiet',
       quiet: !kpis.processing,
       live: kpis.processing > 0,
       scope,
     },
-    { id: 'rows', label: 'Structured rows', icon: Rows3, value: kpis.acceptedRows, line: 'Accepted', title: 'Records accepted for analysis', href: '#dashboard-families', tone: 'data', scope },
+    { id: 'rows', label: 'Structured rows', icon: Rows3, value: kpis.acceptedRows, line: 'Accepted', title: 'Records accepted for analysis', href: targets.rows || '#dashboard-families', tone: 'data', scope },
   ]
 }
 
@@ -116,12 +116,12 @@ function Figure({ value, unknown, animate }) {
 }
 
 // Loading shows an ellipsis and "nothing reported" shows a dash: neither is ever drawn as a measured zero.
-export function KpiTiles({ kpis, loading, animate = true }) {
+export function KpiTiles({ kpis, loading, animate = true, targets = {}, label = 'Workspace totals' }) {
   const unavailable = !loading && kpis.cases > 0 && kpis.reported === 0
   const unknown = loading ? '…' : unavailable ? '—' : null
   return (
-    <ul className="dash-kpis dash-cards" aria-label="Workspace totals" aria-busy={loading ? 'true' : 'false'}>
-      {kpiTiles(kpis).map(tile => {
+    <ul className="dash-kpis dash-cards" aria-label={label} aria-busy={loading ? 'true' : 'false'}>
+      {kpiTiles(kpis, targets).map(tile => {
         const Icon = tile.icon
         const tone = unknown ? 'quiet' : tile.tone
         return (

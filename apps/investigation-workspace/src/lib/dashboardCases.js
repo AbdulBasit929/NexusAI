@@ -1,4 +1,5 @@
 import { formatNumber } from './format.js'
+import { summariseCase } from './useCaseOverview.js'
 
 // Pure helpers behind the dashboard's case table and question cards. Nothing here fetches; each takes what the
 // page already holds.
@@ -58,4 +59,52 @@ export function curatedQuestions(payload) {
       return true
     })
     .slice(0, 4)
+}
+
+export function aggregateFamilyRows(rows) {
+  const totals = new Map()
+  for (const row of rows) {
+    const seen = new Set()
+    for (const family of row.summary?.families || []) {
+      const id = String(family.record_type || '').trim()
+      const value = Number(family.accepted_rows || 0)
+      if (!id || !Number.isFinite(value) || value <= 0) continue
+      const current = totals.get(id) || { id, value: 0, caseCount: 0 }
+      current.value += value
+      if (!seen.has(id)) {
+        current.caseCount += 1
+        seen.add(id)
+      }
+      totals.set(id, current)
+    }
+  }
+  return [...totals.values()].sort((left, right) => right.value - left.value || left.id.localeCompare(right.id))
+}
+
+export function dashboardRowState(state) {
+  if (state?.error) return 'unavailable'
+  if (!state?.data) return 'loading'
+  return summariseCase(state.data).processingState
+}
+
+// Workspace-level figures, each with the rows behind it. Only reported cases contribute, and the
+// count of cases that did not report is carried so the page can say so instead of under-counting silently.
+export function dashboardKpis(rows) {
+  const reported = rows.filter(row => row.summary)
+  const sum = key => reported.reduce((total, row) => total + (row.summary[key] || 0), 0)
+  return {
+    cases: rows.length,
+    reported: reported.length,
+    unreported: rows.length - reported.length,
+    sources: sum('total'),
+    ready: sum('ready'),
+    processing: sum('inFlight'),
+    failed: sum('failed'),
+    gaps: sum('missingAssets'),
+    review: sum('failed') + sum('missingAssets'),
+    reviewCases: reported.filter(row => row.summary.failed + row.summary.missingAssets > 0).length,
+    acceptedRows: sum('acceptedRows'),
+    duplicateRows: sum('duplicateRows'),
+    rejectedRows: sum('rejectedRows'),
+  }
 }

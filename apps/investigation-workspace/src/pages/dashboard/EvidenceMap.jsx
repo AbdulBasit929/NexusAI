@@ -20,7 +20,7 @@ function percent(share) {
 // keyboard path. Each family keeps one colour on every widget. A click selects a family, which filters the case
 // queue below; selecting it again clears. Bubbles are buttons positioned in percent, so type stays a readable size.
 // Rules: UI_REDESIGN_BRIEF §11.
-export function EvidenceMap({ families, order, selectedId, onSelect, kpis, loading }) {
+export function EvidenceMap({ families, order, selectedId, onSelect, kpis, loading, pickLabel = 'Show only cases with', pickText = 'Show cases' }) {
   const [view, setView] = useState('map')
   const shown = families.slice(0, SHOWN)
   const packed = useMemo(() => packCircles(shown.map(family => ({ id: family.id, value: family.value })), WIDTH, HEIGHT), [shown])
@@ -42,7 +42,7 @@ export function EvidenceMap({ families, order, selectedId, onSelect, kpis, loadi
               <td className="is-numeric">{formatNumber(family.value)}</td>
               <td className="is-numeric">{percent(family.share)}</td>
               <td className="is-numeric">{formatNumber(family.caseCount)}</td>
-              <td><button type="button" className="dash-link-button" aria-label={`Show only cases with ${family.label}`} aria-pressed={selectedId === family.id} onClick={() => select(family.id)}>Show cases</button></td>
+              <td><button type="button" className="dash-link-button" aria-label={`${pickLabel} ${family.label}`} aria-pressed={selectedId === family.id} onClick={() => select(family.id)}>{pickText}</button></td>
             </tr>
           ))}</tbody>
         </table>
@@ -70,7 +70,7 @@ export function EvidenceMap({ families, order, selectedId, onSelect, kpis, loadi
                 className={`em-bubble${selected ? ' is-selected' : ''}${selectedId && !selected ? ' is-dim' : ''}`}
                 style={{ left: `${(circle.x / WIDTH) * 100}%`, top: `${(circle.y / HEIGHT) * 100}%`, inlineSize: `${((circle.r * 2) / WIDTH) * 100}%`, background: colour(circle.id), animationDelay: `${index * 45}ms` }}
                 aria-pressed={selected}
-                aria-label={`${family.label}: ${formatNumber(family.value)} accepted rows, ${percent(family.share)}. Show only cases with this.`}
+                aria-label={`${family.label}: ${formatNumber(family.value)} accepted rows, ${percent(family.share)}. ${pickLabel} this.`}
                 title={`${family.label}: ${formatNumber(family.value)}`}
                 onClick={() => select(circle.id)}
               >
