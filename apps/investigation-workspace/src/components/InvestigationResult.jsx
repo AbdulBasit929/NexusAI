@@ -1,6 +1,7 @@
 import { ClaimText, SourcePanel } from './Citations.jsx'
 import { ClarificationPrompt } from './ClarificationPrompt.jsx'
 import { ResultChart } from './ResultChart.jsx'
+import { answerSummary } from '../lib/answerSummary.js'
 import { ResultTable } from './ResultTable.jsx'
 import { EmptyState, FindingCard, LanguageText, ResultStateBanner, TechnicalDisclosure } from './AnalystComponents.jsx'
 
@@ -64,9 +65,16 @@ export function InvestigationResult({ presentation, onAsk, onClarificationChoice
             <LanguageText as="p" className="answer-claim">{presentation.answer}</LanguageText>
           </div>
         )}
-        {!presentation.citations.items.length && presentation.state !== 'unsupported' && presentation.state !== 'failed' && (
-          <p className="unsourced-note">This statement did not include an openable source location.</p>
-        )}
+        {findingState ? (
+          <dl className="answer-summary" aria-label="What this answer rests on">
+            {answerSummary(presentation).map(item => (
+              <div key={item.id} className={`answer-summary__item${item.tone ? ` answer-summary__item--${item.tone}` : ''}`}>
+                <dt>{item.label}</dt>
+                <dd><b><LanguageText>{item.value}</LanguageText></b>{item.detail ? <small>{item.detail}</small> : null}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : null}
         {showOriginalQuestion && presentation.originalQuestion && <p className="asked-question"><span>Asked</span> “<LanguageText>{presentation.originalQuestion}</LanguageText>”</p>}
         {onCompare && ['answered', 'partial', 'zero-result'].includes(presentation.state) ? <button className="compare-result" type="button" onClick={onCompare}>Add result to comparison</button> : null}
       </header>

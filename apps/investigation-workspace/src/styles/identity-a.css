@@ -519,3 +519,14 @@
 .result-chart { margin: 0 0 var(--analyst-space-12); padding: var(--analyst-space-12) var(--analyst-space-16) var(--analyst-space-8); border: 1px solid var(--analyst-line); border-radius: 12px; background: var(--analyst-surface-1); }
 .result-chart figcaption { margin-block-start: var(--analyst-space-4, 4px); color: var(--analyst-text-muted); font-size: var(--analyst-type-caption-size); }
 .compare-result { min-block-size: 32px; padding-inline: 12px; border: 0; background: transparent; color: var(--analyst-accent); font-size: var(--analyst-type-label-size); font-weight: var(--analyst-font-weight-semibold); text-decoration: underline; }
+
+/* Answer summary strip and per-file contribution bars. */
+.answer-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--analyst-space-8); margin: var(--analyst-space-12) 0 0; padding: 0; }
+.answer-summary__item { display: grid; gap: 2px; min-inline-size: 0; padding: 10px 12px; border: 1px solid var(--analyst-line); border-radius: 12px; background: color-mix(in srgb, var(--analyst-accent) 5%, var(--analyst-surface-1)); }
+.answer-summary__item--warn { border-color: color-mix(in srgb, var(--analyst-status-failed) 45%, var(--analyst-line)); background: color-mix(in srgb, var(--analyst-status-failed) 7%, var(--analyst-surface-1)); }
+.answer-summary dt { color: var(--analyst-text-muted); font-size: var(--analyst-type-caption-size); font-weight: var(--analyst-font-weight-bold); letter-spacing: var(--analyst-type-caption-tracking); text-transform: uppercase; }
+.answer-summary dd { display: grid; gap: 1px; margin: 0; min-inline-size: 0; }
+.answer-summary dd b { font-size: 1.0625rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.answer-summary dd small { color: var(--analyst-text-secondary); font-size: var(--analyst-type-caption-size); overflow-wrap: anywhere; }
+.source-share { display: block; inline-size: min(220px, 100%); block-size: 5px; margin-block: 4px 2px; border-radius: 3px; background: var(--analyst-surface-2); overflow: hidden; }
+.source-share i { display: block; block-size: 100%; border-radius: 3px; background: var(--analyst-accent); }

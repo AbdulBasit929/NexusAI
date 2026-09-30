@@ -1,6 +1,7 @@
 import { useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { LanguageText } from './AnalystComponents.jsx'
+import { contributionShare } from '../lib/answerSummary.js'
 
 const previewInset = 12
 const previewGap = 8
@@ -180,6 +181,7 @@ export function SourcePanel({ citations }) {
                   <span>
                     <strong><LanguageText>{citation.label}</LanguageText></strong>
                     <small>{total ? `${contributing.toLocaleString()} of ${total.toLocaleString()} contributing rows` : `${samples.length} representative ${samples.length === 1 ? 'location' : 'locations'}`}</small>
+                    {contributionShare(citation) !== null ? <span className="source-share" aria-hidden="true"><i style={{ inlineSize: `${Math.max(2, contributionShare(citation))}%` }} /></span> : null}
                     <small><EvidenceStrengthBadge strength={citation.strength} /></small>
                   </span>
                 </summary>
