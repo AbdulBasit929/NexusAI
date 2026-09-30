@@ -102,13 +102,13 @@ export function mergeActivity(results) {
 }
 
 // --- Time helpers. Dates are calendar days in UTC, exactly as the service reported them; no timezone shifting.
-function shift(date, days) {
+export function shift(date, days) {
   const moved = new Date(`${date}T00:00:00Z`)
   moved.setUTCDate(moved.getUTCDate() + days)
   return moved.toISOString().slice(0, 10)
 }
 
-function mondayOf(date) {
+export function mondayOf(date) {
   return shift(date, -((new Date(`${date}T00:00:00Z`).getUTCDay() + 6) % 7))
 }
 

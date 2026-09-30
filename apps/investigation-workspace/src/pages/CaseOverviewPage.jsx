@@ -1,25 +1,26 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ArrowRight, CircleAlert, CircleCheckBig, Clock3, Plus, Send } from 'lucide-react'
 import { CaseShell } from '../components/CaseShell.jsx'
-import { RouteState } from '../components/AnalystComponents.jsx'
-import { PageHeader } from '../components/PageHeader.jsx'
+import { LanguageText, RouteState } from '../components/AnalystComponents.jsx'
 import { ProportionBar } from '../components/DataVisualizations.jsx'
-import { ActivityChart } from './dashboard/ActivityChart.jsx'
-import { AttentionCauses } from './dashboard/AttentionCauses.jsx'
-import { ContinueCards } from './dashboard/ContinueCards.jsx'
-import { EvidenceMap } from './dashboard/EvidenceMap.jsx'
-import { KpiTiles } from './dashboard/KpiTiles.jsx'
-import { PipelineFlow } from './dashboard/PipelineFlow.jsx'
+import { reviewTarget } from './dashboard/AttentionCauses.jsx'
+import { ActivityCalendar } from './case/ActivityCalendar.jsx'
+import { ReadinessRing } from './case/ReadinessRing.jsx'
 import { getQueryCapabilities } from '../lib/apiClient.js'
+import { attentionCauses } from '../lib/attentionCauses.js'
 import { familyOrder } from '../lib/caseActivity.js'
-import { aggregateFamilyRows, curatedQuestions, dashboardKpis, dashboardRowState, latestEvidenceActivity } from '../lib/dashboardCases.js'
+import { caseVerdict, nextSteps } from '../lib/caseDossier.js'
+import { aggregateFamilyRows, curatedQuestions, dashboardRowState, latestEvidenceActivity, relativeAge } from '../lib/dashboardCases.js'
 import { attentionItems, familyRows, formatRate, reviewByCase } from '../lib/dashboardCharts.js'
 import { formatNumber } from '../lib/format.js'
 import { summariseCase, useCaseOverview } from '../lib/useCaseOverview.js'
 import { useCaseActivity } from '../lib/useCaseActivity.js'
 import { useQuestionHistory } from '../lib/workspaceState.js'
 
-const TARGETS = { ready: '#case-quality', processing: '#case-quality' }
+const FAMILIES_SHOWN = 8
+const CAUSES_SHOWN = 3
+const STEP_ICON = { failed: CircleAlert, processing: Clock3, ready: CircleCheckBig, quiet: Plus }
 
 // Data-quality notes, each a plain sentence from the collection-wide summary counts (never the bounded recent lists).
 export function qualityNotes(summary, counts) {
@@ -33,104 +34,176 @@ export function qualityNotes(summary, counts) {
   ].filter(Boolean)
 }
 
-function QualityCard({ caseId, counts, notes }) {
-  const read = counts.accepted + counts.duplicates + counts.rejected
+function Panel({ id, title, hint = null, className = '', children }) {
+  const headingId = `${id}-title`
   return (
-    <section id="case-quality" className="cases-card" aria-labelledby="quality-notes-title">
-      <header className="cases-card__header">
-        <div><h2 id="quality-notes-title">Data-quality notes</h2><p>{read ? 'Did ingestion keep every row? Shares are of all rows read.' : 'No structured rows have been read yet.'}</p></div>
-      </header>
-      {read ? (
-        <div className="cq-rows">
-          <ProportionBar total={read} ready={counts.accepted} processing={counts.duplicates} failed={counts.rejected} label={`${caseId} structured rows`} />
-          <dl className="cq-figures">
-            <div><dt>Accepted</dt><dd>{formatNumber(counts.accepted)}</dd></div>
-            <div><dt>Duplicate</dt><dd>{formatNumber(counts.duplicates)}<small>{formatRate(counts.duplicates / read)}</small></dd></div>
-            <div className={counts.rejected ? 'is-flagged' : undefined}><dt>Rejected</dt><dd>{formatNumber(counts.rejected)}<small>{formatRate(counts.rejected / read)}</small></dd></div>
-          </dl>
-        </div>
-      ) : null}
-      {notes.length ? <ul className="cq-notes">{notes.map(note => <li key={note}>{note}</li>)}</ul> : <p className="dash-card__empty">No data-quality issues are reported for this case.</p>}
-      <p className="cq-foot">{formatNumber(counts.accepted)} accepted rows across the reported record families. <Link to={`/cases/${encodeURIComponent(caseId)}/evidence`}>Open the evidence catalog</Link></p>
+    <section id={id} className={`co-panel${className ? ` ${className}` : ''}`} aria-labelledby={headingId}>
+      <header><h2 id={headingId}>{title}</h2>{hint ? <p>{hint}</p> : null}</header>
+      {children}
     </section>
   )
 }
 
-// The case dossier: the dashboard's own widgets, scoped to one case, so what an analyst learned on the dashboard reads the
-// same here. Metrics, when activity happened, what needs review, what the evidence is made of and where it ends up, data
-// quality, and the ways back into the work. Every figure is the collection's own summary count.
+// The case briefing. Not the portfolio dashboard in miniature: it opens with a verdict on this one case and a readiness
+// ring, then answers what to do next, what the case holds, when things happened and whether ingestion kept the rows.
+// Everything is the collection's own summary counts or its real per-day activity; nothing is estimated.
 export default function CaseOverviewPage() {
   const { id: caseId = '' } = useParams()
   const navigate = useNavigate()
   const state = useCaseOverview(caseId)
-  const [suggestions, setSuggestions] = useState({ loading: false, items: [] })
+  const [suggestions, setSuggestions] = useState([])
   const [activityToken, setActivityToken] = useState(0)
+  const [draft, setDraft] = useState('')
   const activity = useCaseActivity([caseId], { refreshToken: activityToken })
-  const recent = useQuestionHistory(caseId).slice(0, 4).map(entry => ({ ...entry, caseId }))
+  const recent = useQuestionHistory(caseId).slice(0, 3)
 
-  const row = useMemo(() => {
-    const summary = state.data ? summariseCase(state.data) : null
-    return { caseId, index: 0, state, status: dashboardRowState(state), summary, activity: state.data ? latestEvidenceActivity(state.data) : null }
-  }, [caseId, state])
-  const kpis = useMemo(() => dashboardKpis([row]), [row])
+  const row = useMemo(() => ({ caseId, index: 0, state, status: dashboardRowState(state), summary: state.data ? summariseCase(state.data) : null, activity: state.data ? latestEvidenceActivity(state.data) : null }), [caseId, state])
+  const summary = row.summary
   const families = useMemo(() => familyRows(aggregateFamilyRows([row])), [row])
-  const items = useMemo(() => attentionItems([row]), [row])
-  const byCase = useMemo(() => reviewByCase([row]), [row])
   const order = useMemo(() => familyOrder(families.map(family => family.id), activity.activity.families.map(family => family.id)), [families, activity.activity.families])
+  const causes = useMemo(() => attentionCauses(attentionItems([row]), reviewByCase([row])), [row])
+  const verdict = caseVerdict(summary)
+  const steps = nextSteps(summary, caseId)
+  const raw = state.data?.summary || {}
+  const counts = { accepted: Number(raw.accepted_rows || 0), rejected: Number(raw.rejected_rows || 0), duplicates: Number(raw.duplicate_rows || 0), failed: Number(raw.evidence_failed || 0), processing: Number(raw.evidence_in_flight || 0) }
+  const read = counts.accepted + counts.duplicates + counts.rejected
+  const notes = state.data ? qualityNotes(raw, counts) : []
+  const encoded = encodeURIComponent(caseId)
 
   useEffect(() => {
-    if (row.status !== 'complete' && row.status !== 'attention' && row.status !== 'processing') return undefined
+    if (!summary?.ready) return undefined
     const controller = new AbortController()
-    setSuggestions({ loading: true, items: [] })
-    getQueryCapabilities({ caseId, signal: controller.signal })
-      .then(data => setSuggestions({ loading: false, items: curatedQuestions(data) }))
-      .catch(error => { if (error.name !== 'AbortError') setSuggestions({ loading: false, items: [] }) })
+    getQueryCapabilities({ caseId, signal: controller.signal }).then(data => setSuggestions(curatedQuestions(data).slice(0, 3))).catch(() => {})
     return () => controller.abort()
-  }, [caseId, row.status])
+  }, [caseId, summary?.ready])
 
-  const summary = state.data?.summary || {}
-  const counts = {
-    accepted: Number(summary.accepted_rows || 0),
-    rejected: Number(summary.rejected_rows || 0),
-    duplicates: Number(summary.duplicate_rows || 0),
-    failed: Number(summary.evidence_failed || 0),
-    processing: Number(summary.evidence_in_flight || 0),
+  function ask(event) {
+    event.preventDefault()
+    if (draft.trim()) navigate(`/cases/${encoded}/investigate?question=${encodeURIComponent(draft.trim())}`)
   }
-  const encoded = encodeURIComponent(caseId)
 
   return (
     <CaseShell caseId={caseId}>
-      <main id="workspace-main" className="catalog-page dashboard-page dashboard-command" tabIndex={-1}>
-        <PageHeader
-          eyebrow="Case overview"
-          title="Case overview"
-          description="Collection-backed evidence status and readiness."
-          meta={state.data ? [
-            { label: 'Case', value: caseId, identifier: true },
-            { label: 'Evidence', value: formatNumber(summary.evidence_total) },
-            { label: 'Structured rows', value: formatNumber(summary.accepted_rows) },
-          ] : []}
-          actions={<><Link className="page-header__cta" to={`/cases/${encoded}/investigate`}>Ask about this case</Link><Link className="page-header__secondary" to={`/cases/${encoded}/evidence#add-evidence`}>Add evidence</Link></>}
-        />
+      <main id="workspace-main" className="catalog-page case-overview" tabIndex={-1}>
         {state.loading && <RouteState state="loading" label="Loading case status" />}
         {state.error && <RouteState state={state.error.status === 403 ? 'forbidden' : 'error'} label={state.error.status === 403 ? 'Case overview is forbidden' : 'Case overview could not be loaded'} reference={state.error.reference} />}
-        {state.data && (
+        {state.data && summary && (
           <>
-            <KpiTiles kpis={kpis} loading={false} targets={TARGETS} label="Case totals" />
+            <header className={`co-hero co-hero--${verdict.tone}`}>
+              <div className="co-hero__text">
+                <h1 className="co-hero__label">Case overview</h1>
+                <p className="co-hero__id"><LanguageText as="bdi" identifier>{caseId}</LanguageText></p>
+                <p className="co-hero__verdict">{verdict.headline}</p>
+                {verdict.detail ? <p className="co-hero__detail">{verdict.detail}</p> : null}
+                <div className="co-hero__actions">
+                  <Link className="co-btn co-btn--primary" to={`/cases/${encoded}/investigate`}>Ask about this case<ArrowRight aria-hidden="true" /></Link>
+                  <Link className="co-btn" to={`/cases/${encoded}/evidence#add-evidence`}>Add evidence</Link>
+                </div>
+                <p className="co-hero__meta">
+                  <span>{formatNumber(summary.total)} {summary.total === 1 ? 'source' : 'sources'}</span>
+                  <span>{formatNumber(summary.acceptedRows)} structured rows</span>
+                  {row.activity ? <span>Updated <time dateTime={row.activity.date.toISOString()}>{relativeAge(row.activity.date)}</time></span> : null}
+                </p>
+              </div>
+              <ReadinessRing summary={summary} />
+            </header>
 
-            <div className="dash-grid dash-grid--hero">
-              <ActivityChart activity={activity.activity} status={activity.status} failures={activity.failures} order={order} cases={[caseId]} scope={caseId} onScope={() => {}} onRetry={() => setActivityToken(token => token + 1)} />
-              <AttentionCauses items={items} byCase={byCase} kpis={kpis} loading={false} />
+            <div className="co-grid">
+              <div className="co-main">
+                <Panel id="case-families" title="What is in this case" hint={families.length ? `${formatNumber(summary.acceptedRows)} accepted rows across ${formatNumber(families.length)} record ${families.length === 1 ? 'family' : 'families'}` : null}>
+                  {families.length ? (
+                    <>
+                      <ul className="co-families">
+                        {families.slice(0, FAMILIES_SHOWN).map(family => (
+                          <li key={family.id}>
+                            <Link to={`/cases/${encoded}/evidence?family=${encodeURIComponent(family.id)}`}>
+                              <span className="co-families__dot" style={{ background: `var(--analyst-data-${(Math.max(0, order.indexOf(family.id)) % 6) + 1})` }} aria-hidden="true" />
+                              <span className="co-families__name">{family.label}</span>
+                              <span className="co-families__bar" aria-hidden="true"><i style={{ inlineSize: `${Math.max(2, Math.floor(family.share * 100))}%`, background: `var(--analyst-data-${(Math.max(0, order.indexOf(family.id)) % 6) + 1})` }} /></span>
+                              <span className="co-families__value">{formatNumber(family.value)}</span>
+                              <span className="co-families__share">{family.share < 0.01 ? '<1%' : `${Math.floor(family.share * 100)}%`}</span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                      {families.length > FAMILIES_SHOWN ? <p className="co-note">{formatNumber(families.length - FAMILIES_SHOWN)} smaller families are in the evidence catalog.</p> : null}
+                    </>
+                  ) : <p className="dash-card__empty">No structured records have been accepted yet.</p>}
+                </Panel>
+
+                <Panel id="case-activity" title="When did activity happen?">
+                  <ActivityCalendar caseId={caseId} activity={activity.activity} status={activity.status} failures={activity.failures} onRetry={() => setActivityToken(token => token + 1)} />
+                </Panel>
+
+                <Panel id="case-quality" title="Data-quality notes" hint={read ? 'Did ingestion keep every row? Shares are of all rows read.' : 'No structured rows have been read yet.'}>
+                  {read ? (
+                    <div className="cq-rows">
+                      <ProportionBar total={read} ready={counts.accepted} processing={counts.duplicates} failed={counts.rejected} label={`${caseId} structured rows`} />
+                      <dl className="cq-figures">
+                        <div><dt>Accepted</dt><dd>{formatNumber(counts.accepted)}</dd></div>
+                        <div><dt>Duplicate</dt><dd>{formatNumber(counts.duplicates)}<small>{formatRate(counts.duplicates / read)}</small></dd></div>
+                        <div className={counts.rejected ? 'is-flagged' : undefined}><dt>Rejected</dt><dd>{formatNumber(counts.rejected)}<small>{formatRate(counts.rejected / read)}</small></dd></div>
+                      </dl>
+                    </div>
+                  ) : null}
+                  {notes.length ? <ul className="cq-notes">{notes.map(note => <li key={note}>{note}</li>)}</ul> : <p className="dash-card__empty">No data-quality issues are reported for this case.</p>}
+                  <p className="cq-foot">{formatNumber(counts.accepted)} accepted rows across the reported record families. <Link to={`/cases/${encoded}/evidence`}>Open the evidence catalog</Link></p>
+                </Panel>
+              </div>
+
+              <aside className="co-rail" aria-label="Actions for this case">
+                <Panel id="case-next" title="Next steps" className="co-panel--accent">
+                  {steps.length ? (
+                    <ol className="co-steps">
+                      {steps.map((step, index) => {
+                        const Icon = STEP_ICON[step.tone] || Plus
+                        return (
+                          <li key={step.id} className={`co-step co-step--${step.tone}${index === 0 ? ' is-first' : ''}`}>
+                            <Link to={step.to}>
+                              <span className="co-step__mark" aria-hidden="true"><Icon /></span>
+                              <span className="co-step__text"><strong>{step.title}</strong><small>{step.detail}</small></span>
+                              <span className="co-step__cta">{step.cta}<ArrowRight aria-hidden="true" /></span>
+                            </Link>
+                          </li>
+                        )
+                      })}
+                    </ol>
+                  ) : <p className="dash-card__empty">Nothing to do yet.</p>}
+                </Panel>
+
+                <Panel id="case-attention" title="Needs review">
+                  {causes.length ? (
+                    <ul className="co-causes">
+                      {causes.slice(0, CAUSES_SHOWN).map(cause => (
+                        <li key={cause.key} className={`co-cause co-cause--${cause.kind}`}>
+                          <Link to={cause.items[0] ? reviewTarget(cause.items[0]) : `/cases/${encoded}/evidence${cause.kind === 'failed' ? '?status=failed' : ''}`}>
+                            <span className="co-cause__label">{cause.label}</span>
+                            <b>{formatNumber(cause.count)}</b>
+                            <ArrowRight aria-hidden="true" />
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : <p className="co-clear"><CircleCheckBig aria-hidden="true" />Nothing needs review.</p>}
+                  {causes.length > CAUSES_SHOWN ? <p className="co-note">{formatNumber(causes.length - CAUSES_SHOWN)} more {causes.length - CAUSES_SHOWN === 1 ? 'cause' : 'causes'} in the evidence catalog.</p> : null}
+                </Panel>
+
+                <Panel id="case-ask" title="Ask about this case">
+                  <form className="co-ask" onSubmit={ask}>
+                    <label className="visually-hidden" htmlFor="co-ask-input">Your question</label>
+                    <input id="co-ask-input" type="text" value={draft} onChange={event => setDraft(event.target.value)} placeholder="Ask about the evidence…" disabled={!summary.ready} />
+                    <button type="submit" disabled={!draft.trim() || !summary.ready} aria-label="Ask"><Send aria-hidden="true" /></button>
+                  </form>
+                  {!summary.ready ? <p className="co-note">Nothing is ready to search yet.</p> : null}
+                  {suggestions.length || recent.length ? (
+                    <ul className="co-chips" aria-label="Question suggestions">
+                      {suggestions.map(item => <li key={item.query}><button type="button" onClick={() => setDraft(item.query)}><LanguageText>{item.query}</LanguageText></button></li>)}
+                      {recent.map(entry => <li key={entry.id}><button type="button" className="is-recent" onClick={() => setDraft(entry.query)} title="Asked before"><LanguageText>{entry.label || entry.query}</LanguageText></button></li>)}
+                    </ul>
+                  ) : null}
+                </Panel>
+              </aside>
             </div>
-
-            <div className="dash-grid dash-grid--even">
-              <EvidenceMap families={families} order={order} selectedId="" onSelect={id => { if (id) navigate(`/cases/${encoded}/evidence?family=${encodeURIComponent(id)}`) }} kpis={kpis} loading={false} pickLabel="Open evidence of type" pickText="Open evidence" />
-              <PipelineFlow kpis={kpis} loading={false} />
-            </div>
-
-            <QualityCard caseId={caseId} counts={counts} notes={qualityNotes(summary, counts)} />
-
-            <ContinueCards recent={recent} suggestions={suggestions.items} suggestionCase={caseId} suggestionsLoading={suggestions.loading} />
           </>
         )}
       </main>
