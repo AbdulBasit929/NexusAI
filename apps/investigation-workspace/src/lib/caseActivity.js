@@ -197,6 +197,11 @@ export function activityRows(activity) {
 
 // Stacked bars per bucket, one series per record family, a dashed line at the typical bucket, short date labels and a
 // zoom slider when there are many buckets. `range` narrows the view to the last N days without changing any figure.
+function legendRows(families) {
+  const width = families.reduce((sum, family) => sum + 28 + curatedFamilyLabel(family.id).length * 7 + 16, 0)
+  return Math.max(1, Math.ceil(width / 760))
+}
+
 export function activityOption(activity, theme, order, { range = 'all' } = {}) {
   const many = activity.days.length > 14
   const last = activity.days.length - 1
@@ -207,7 +212,9 @@ export function activityOption(activity, theme, order, { range = 'all' } = {}) {
     aria: { enabled: false },
     animationDuration: 500,
     animationEasing: 'cubicOut',
-    grid: { left: 8, right: typical ? 84 : 16, top: 34, bottom: many ? 54 : 24, containLabel: true },
+    // The legend wraps onto more rows as families are added, so the plot starts below however many rows it needs (a row is
+    // about 24px; an item is its label plus its swatch and gap, against roughly 760px of usable width).
+    grid: { left: 8, right: typical ? 84 : 16, top: 14 + legendRows(activity.families) * 24, bottom: many ? 54 : 24, containLabel: true },
     legend: { top: 0, left: 0, icon: 'roundRect', itemWidth: 12, itemHeight: 12, itemGap: 16, textStyle: { color: theme.text, fontSize: 12 }, inactiveColor: theme.line },
     tooltip: {
       trigger: 'axis',
