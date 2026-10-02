@@ -46,7 +46,7 @@ func frontDoorTestRequest(query string) hybridQueryRequest {
 
 func ask(t *testing.T, f *fakeModel, query string) (hybridQueryResponse, bool, bool) {
 	t.Helper()
-	return conversationFrontDoor(t.Context(), config{LocalAIURL: f.server.URL, SynthesisModel: "qwen3-4b"}, frontDoorTestRequest(query), time.Now())
+	return conversationFrontDoor(t.Context(), httptest.NewRecorder(), config{LocalAIURL: f.server.URL, SynthesisModel: "qwen3-4b"}, frontDoorTestRequest(query), time.Now())
 }
 
 func TestFrontDoorIsOffByDefault(t *testing.T) {
@@ -242,21 +242,65 @@ func TestFrontDoorPromptIsStableAndCarriesNoQuestion(t *testing.T) {
 	}
 }
 
-// Product help may only promise what the registry says is supported.
+// Product help may only promise what the registry says is supported, and only at the level it says.
 func TestFrontDoorFactsComeFromTheCapabilityRegistry(t *testing.T) {
 	facts := frontDoorFacts()
+	tiers := map[string]string{"operational": "Fully supported:", "limited": "Partly supported", "foundation": "Basic support only"}
+	order := []string{"Fully supported:", "Partly supported", "Basic support only", "Anything not listed"}
 	for _, capability := range forensicCapabilityDefinitions() {
 		inFacts := strings.Contains(facts, capability.Label)
-		switch capability.SupportLevel {
-		case "operational", "limited":
-			if !inFacts {
-				t.Errorf("%s (%s) must be offered", capability.Label, capability.SupportLevel)
-			}
-		default:
-			if inFacts {
-				t.Errorf("%s (%s) must not be promised", capability.Label, capability.SupportLevel)
+		tier, offered := tiers[capability.SupportLevel]
+		if offered != inFacts {
+			t.Errorf("%s (%s): offered=%v inFacts=%v", capability.Label, capability.SupportLevel, offered, inFacts)
+			continue
+		}
+		if !offered {
+			continue
+		}
+		// The label must sit inside its own tier's span, never a stronger one.
+		at := strings.Index(facts, tier)
+		end := len(facts)
+		for i, marker := range order {
+			if marker == tier && i+1 < len(order) {
+				end = strings.Index(facts, order[i+1])
 			}
 		}
+		if pos := strings.Index(facts, capability.Label); pos < at || pos > end {
+			t.Errorf("%s (%s) is listed outside %q", capability.Label, capability.SupportLevel, tier)
+		}
+	}
+}
+
+// Arm B of the baseline: "can you read scanned documents?" was answered yes and "do you work with video?" no. The notes restate the
+// registry's own limits, and every key must name a family that still exists.
+func TestFrontDoorNotesMatchTheRegistry(t *testing.T) {
+	known := map[string]string{}
+	for _, capability := range forensicCapabilityDefinitions() {
+		known[capability.ID] = capability.SupportLevel
+	}
+	for id := range frontDoorNotes {
+		if known[id] == "" || known[id] == "planned" {
+			t.Errorf("note for %q names no offered registry family", id)
+		}
+	}
+	facts := frontDoorFacts()
+	if !strings.Contains(facts, "no OCR on scanned documents") {
+		t.Error("the scanned-document limit must reach the model")
+	}
+	if strings.Contains(facts, "Video (") && !strings.Contains(facts, "basic only") {
+		t.Error("video has a basic path and must be described as basic, not as unsupported")
+	}
+}
+
+func TestFrontDoorHeaderRecordsDataQuestionsToo(t *testing.T) {
+	f := newFakeModel(t, fdDataQuestion, "")
+	rec := httptest.NewRecorder()
+	_, handled, promote := conversationFrontDoor(t.Context(), rec, config{LocalAIURL: f.server.URL, SynthesisModel: "qwen3-4b"}, frontDoorTestRequest("Which numbers did the owner contact?"), time.Now())
+	if handled || !promote {
+		t.Fatalf("handled=%v promote=%v", handled, promote)
+	}
+	if got := rec.Header().Get("X-Front-Door"); !strings.Contains(got, "state=DATA_QUESTION") || !strings.Contains(got, "ms=") {
+		t.Fatalf("header %q", got)
 	}
 }
 

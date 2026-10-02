@@ -92,3 +92,9 @@ Added lines, fixed now:
 | Fallback | with the model server stopped or erroring, every message behaves exactly as in arm A |
 
 Fail any line: `FORENSIC_CONVERSATION_FRONT_DOOR` stays off and the cause is recorded.
+
+## Revision log
+
+- 2026-10-02, after arm B1 (`RESULT_ARM_B1.md`): product-help facts, DECLINE wording and a response-header audit were revised. **The thresholds above did not change.**
+  The 40-message set was used to make the revision, so a 20-message holdout (`HOLDOUT`, `--set holdout`) was written before arm B2; the claim for B2 rests on the holdout and on
+  the unchanged lines (leak, boilerplate, safety, speed, regression).

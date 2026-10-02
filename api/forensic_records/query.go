@@ -318,7 +318,7 @@ func hybridQueryHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 		req.RequestClass = forensicrequest.Class(semanticRequestClass(req))
 		// FORENSIC_CONVERSATION_FRONT_DOOR: a model decides whether the message is about the case data at all (conversation_front_door.go).
 		if frontDoorEnabled() {
-			if reply, handled, promote := conversationFrontDoor(ctx, cfg, req, startedAt); handled {
+			if reply, handled, promote := conversationFrontDoor(ctx, w, cfg, req, startedAt); handled {
 				writeJSON(w, http.StatusOK, reply)
 				return
 			} else if promote {
