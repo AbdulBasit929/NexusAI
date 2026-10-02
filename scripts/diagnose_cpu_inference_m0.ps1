@@ -32,6 +32,11 @@
   Size of the model file in GB, used to turn decode speed into effective memory bandwidth. Looked up in the
   container when omitted; 2.5 is used if it cannot be found.
 
+.PARAMETER PrefixCacheTest
+  Also test prompt caching: one long fixed prefix followed by a short varying question, four times. If the first request is
+  slow and the next three are fast, the server reuses the shared prefix, which is how a real planner prompt (long fixed
+  instructions, short question) should behave. Adds about one to two minutes.
+
 .PARAMETER Quick
   Short prompts only, two repetitions. Finishes in a couple of minutes. Without it the script also times a long
   prompt, which is what real planner prompts look like and can take several minutes on a slow machine.
@@ -46,7 +51,8 @@ param(
   [string]$ApiKey = '',
   [string]$ContainerName = '',
   [double]$ModelSizeGB = 0,
-  [switch]$Quick
+  [switch]$Quick,
+  [switch]$PrefixCacheTest
 )
 
 $ErrorActionPreference = 'Continue'
@@ -328,6 +334,31 @@ if (-not $warm.ok) {
   }
   $long = $timingRows | Where-Object { $_.label -eq 'long prompt' } | Select-Object -First 1
   if ($long -and $long.time_to_first_token_s -gt 10) { Add-Finding ("A " + $long.prompt_tokens + "-token prompt takes " + $long.time_to_first_token_s + " s before the first word. Prompt reading dominates long questions: shorter prompts, prompt caching and a repack-friendly quantisation (Q4_0) are the levers.") }
+}
+
+# ---------------------------------------------------------------- prompt cache test
+if ($PrefixCacheTest -and $warm.ok) {
+  Say '7. Prompt cache: one long fixed prefix, four short questions'
+  $prefixNonce = [guid]::NewGuid().ToString('N')
+  $prefixBuilder = New-Object System.Text.StringBuilder
+  [void]$prefixBuilder.Append('Reference ' + $prefixNonce + '. ')
+  for ($i = 0; $i -lt 100; $i++) { [void]$prefixBuilder.Append('Record ' + $i + ' notes that subscriber group ' + ($i % 17) + ' placed calls at hour ' + ($i % 24) + ' from tower ' + ($i % 31) + '. ') }
+  $fixedPrefix = $prefixBuilder.ToString()
+  $cacheRows = @()
+  for ($q = 0; $q -lt 4; $q++) {
+    $result = Invoke-Chat ($fixedPrefix + 'Question ' + $q + ': name one hour that appears in the records above.') 1
+    if ($result.ok) {
+      $cacheRows += [ordered]@{ request = $q + 1; prompt_tokens = $result.prompt_tokens; seconds = [math]::Round($result.seconds, 2) }
+      Say ('   request ' + ($q + 1) + ': ' + $result.prompt_tokens + ' prompt tokens, first token after ' + [math]::Round($result.seconds, 2) + ' s')
+    }
+  }
+  $report.timing.prompt_cache = $cacheRows
+  if ($cacheRows.Count -ge 3) {
+    $cold = $cacheRows[0].seconds
+    $warmSeconds = Get-Median @($cacheRows[1].seconds, $cacheRows[2].seconds)
+    if ($warmSeconds -lt ($cold * 0.5)) { Add-Finding ('Prompt caching works: the same long prefix took ' + $cold + ' s the first time and about ' + $warmSeconds + ' s after. Keeping the long fixed instructions at the START of every planner and synthesis prompt, and only the question at the end, is a large and free speedup.') }
+    else { Add-Finding ('Prompt caching did NOT help here: ' + $cold + ' s first, about ' + $warmSeconds + ' s after for the same prefix. The shared prefix is being recomputed every time; check that cache_prompt reaches the backend and that requests land in the same slot.') }
+  }
 }
 
 # ---------------------------------------------------------------- write the report
