@@ -450,6 +450,11 @@ services:
       # reports/conversation-router-20260929/. PARKED 2026-09-29 (owner priority:
       # the LLM query path first). UNMEASURED -- default off.
       FORENSIC_CONVERSATION_ROUTER: ${FORENSIC_CONVERSATION_ROUTER:-false}
+      # Conversation front door: one model call decides whether a message is about the case data at all, and writes the reply
+      # for greetings, small talk, concepts and product help (never shown case data; a server check refuses a reply that states a
+      # case fact). Any failure leaves the request on the existing path. Thresholds written before the arms ran:
+      # reports/free-question-baseline-20261002/PREREGISTRATION.md. UNMEASURED -- default off.
+      FORENSIC_CONVERSATION_FRONT_DOOR: ${FORENSIC_CONVERSATION_FRONT_DOOR:-false}
       # Headline honesty, found by 8 new questions checked against the DB
       # (reports/laptop-speed-20260929/RESULT.md). STATES_FILTERS: a count filtered
       # on plate or protocol names that filter instead of reading as the case

@@ -113,3 +113,9 @@ func Classify(input Input) Class {
 	}
 	return GovernedAnalysis
 }
+
+// HasAnalyticalIntent reports whether the text carries an aggregate or superlative marker
+// ("how many", "most", "top", "total"...), which means it asks something OF the evidence.
+func HasAnalyticalIntent(text string) bool {
+	return analyticalIntent.MatchString(text)
+}
