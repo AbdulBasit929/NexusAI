@@ -12,8 +12,8 @@ const wrap = ui => render(<MemoryRouter>{ui}</MemoryRouter>)
 describe('timeline workbench parts', () => {
   test('family filters report the choice and offer a clear', () => {
     const onToggle = vi.fn(); const onClear = vi.fn()
-    render(<FamilyStrip all={[{ id: 'cdr', total: 34 }, { id: 'anpr', total: 6 }]} days={days} order={['anpr', 'cdr']} palette={palette} chosen={['cdr']} onToggle={onToggle} onClear={onClear} totals={40} />)
-    expect(screen.getByText('1 chosen')).toBeInTheDocument()
+    render(<FamilyStrip all={[{ id: 'cdr', total: 34 }, { id: 'anpr', total: 6 }]} order={['anpr', 'cdr']} palette={palette} chosen={['cdr']} onToggle={onToggle} onClear={onClear} totals={40} />)
+    expect(screen.getByRole('button', { name: /Call detail records|cdr/i, pressed: true })).toBeInTheDocument()
     fireEvent.click(screen.getAllByRole('button', { pressed: false })[0])
     expect(onToggle).toHaveBeenCalledWith('anpr')
     fireEvent.click(screen.getByRole('button', { name: 'Clear' }))
