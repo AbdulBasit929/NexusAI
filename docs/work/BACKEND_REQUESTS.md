@@ -30,6 +30,13 @@ Each request states: the **endpoint and method**, the **exact response fields an
 | 16 | Case data-quality and coverage summary per record family (kept, duplicate, rejected, missing critical fields, first and last event time) | Dashboard, Overview | open (proposed 2026-09-30) |
 | 17 | Report history: list, open and download generated case reports | Dashboard, Overview | open (proposed 2026-09-30) |
 | 18 | Case display name and open/on-hold/closed status, stored per collection | Dashboard, Cases, sidebar | open (proposed 2026-09-30, needs owner sign-off) |
+| 20 | Intraday timeline: `activity_by_hour` (or `bucket=hour\|day\|week`) per record family with time basis, so the timeline can zoom from days to hours and show a day-of-week by hour-of-day pattern. Extends row 1 | Timeline | open (proposed 2026-10-02) |
+| 21 | Case timeline annotations: pin a day or event, note, tag, star, with author and time; shared across analysts on the case; list, create, update, delete. Today pins and notes live in the browser only (Timesketch-style stars, tags and comments) | Timeline, Investigate | open (proposed 2026-10-02) |
+| 22 | Event clusters and co-occurrence: events from different families within a stated window (for example a call and a plate read within five minutes), each cluster with its member events and locators. Extends row 1 | Timeline | open (proposed 2026-10-02) |
+| 23 | Case record: a stored case with display name, status, `created_by` (subject), `created_at` and owner, created when the first evidence is accepted. Today a case is only a `collection_id` string on evidence rows | Cases, Dashboard, sidebar, "My cases" | open (proposed 2026-10-02; extends 18) |
+| 24 | Case membership and listing: members with roles (owner, editor, viewer); list cases with `mine=true` or `member=<subject>`; the server enforces access | Cases, Dashboard, "My cases" | open (proposed 2026-10-02) |
+| 25 | Real identity end to end: the signed-in person's subject forwarded by the gateway instead of the constants `investigation-workspace` and `nexusai-local-operator`; the API ignores a form-supplied `user_id` whenever auth is on; `GET /whoami` returns subject, display name and role | Everywhere | open (proposed 2026-10-02) |
+| 26 | Expose provenance that is already stored: `registered_by` and `registered_at` on evidence list and detail (from `evidence_items.user_id` and `evidence_versions.created_by`), and a read endpoint for custody events with `actor_type` and `actor_id`, for the evidence Lineage tab and Activity | Evidence, Activity | open (proposed 2026-10-02) |
 
 Rows 1–6 were anticipated in `CODEX_UI_REDESIGN_PROMPT_20260929.md` §8, and row 7 came from the
 2026-09-28 demo check (`CODEX_UI_DEFECTS_20260928.md`). Codex: add detail under a heading per request,
@@ -146,6 +153,24 @@ This enables a truthful activity volume view with an accessible event table and 
 - **Why:** collection IDs such as `nexusai-multimodal-product-acceptance` are long and unfriendly everywhere the UI shows a case. A display name and a simple lifecycle status make the sidebar, Dashboard and Cases readable and let closed cases drop out of "needs review".
 - **Constraint:** no owner, assignment, priority or classification is requested; those wait for an authoritative source. `display_name` is user-entered text and is shown escaped with `dir="auto"`. Needs owner sign-off before it is built.
 - **Audit:** changes are custody events (row 10).
-| 20 | Intraday timeline: `activity_by_hour` (or `bucket=hour\|day\|week`) per record family with time basis, so the timeline can zoom from days to hours and show a day-of-week by hour-of-day pattern. Extends row 1 | Timeline | open (proposed 2026-10-02) |
-| 21 | Case timeline annotations: pin a day or event, note, tag, star, with author and time; shared across analysts on the case; list, create, update, delete. Today pins and notes live in the browser only (Timesketch-style stars, tags and comments) | Timeline, Investigate | open (proposed 2026-10-02) |
-| 22 | Event clusters and co-occurrence: events from different families within a stated window (for example a call and a plate read within five minutes), each cluster with its member events and locators. Extends row 1 | Timeline | open (proposed 2026-10-02) |
+
+## 23 to 26. Ownership, membership and real identity
+
+Why: "my own cases" and any per-person view depend on facts the system does not yet hold. Findings are in
+`MODEL_AND_ARCHITECTURE_RESEARCH_20261002.md` (Pass 1).
+
+- **23 Case record.** `GET /cases`, `GET /cases/{case_id}`, `PATCH /cases/{case_id}` (display name, status). Fields:
+  `{ case_id, display_name|null, status: open|on_hold|closed, created_by: subject|null, created_at, owner: subject|null }`.
+  `created_by` is set from the authenticated subject when the first evidence is accepted. Existing cases are backfilled with
+  `created_by: null` unless the database shows exactly one real subject for the case; unknown stays unknown, never guessed.
+- **24 Membership.** `GET|PUT|DELETE /cases/{case_id}/members` with `{ subject_id, role: owner|editor|viewer }`;
+  `GET /cases?mine=true` returns cases where the caller is a member. Access to a case, its evidence and its answers is decided by
+  membership on the server, never by the client.
+- **25 Identity.** The gateway sets `X-Forensic-Subject-ID` from the sign-in (LocalAI users, `core/http/auth`), the API
+  rejects a request-supplied `user_id` when authentication is required, and `GET /whoami` returns
+  `{ subject_id, display_name, role }`. The workspace stops sending constants.
+- **26 Provenance read.** Add `registered_by` and `registered_at` to the evidence list and detail responses; add
+  `GET /evidence/{id}/custody` returning `{ events: [{ at, event_type, actor_type, actor_id, reason }] }` in chain order.
+- **Empty and error behaviour.** A case with no known creator returns `created_by: null`; the UI says "not recorded".
+  Forbidden stays `403`; an unavailable identity service must not be shown as an anonymous person.
+- **Privacy.** Subject ids are identifiers; show display names only to members of the same case.

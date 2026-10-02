@@ -27,11 +27,14 @@ How the identity string gets there (`api/forensic_records/auth_scope.go`, `main.
   (`user`, `admin` or `agent-worker`) and the API trusts them. The evidence `user_id` is the subject header.
 - With auth off, the API takes `user_id` from the request form or body, so anyone can claim any user. That is acceptable for
   local development and wrong for any "my cases" feature.
-- The investigation workspace sends a **fixed** identity: `X-Forensic-Actor-ID` and `X-Forensic-Subject-ID` default to
-  `investigation-workspace` (`apps/investigation-workspace/src/lib/apiClient.js` lines ~34-35), and the dev proxy attaches one
-  shared API key. So every file uploaded from this UI is recorded as uploaded by `investigation-workspace`, not by a person.
-  The proxy comment already says it: real multi-user identity does not exist yet (no users, roles or membership tables for
-  this API).
+- Nobody sends a per-person identity today. The investigation workspace's own client sends a **fixed** one:
+  `X-Forensic-Actor-ID` and `X-Forensic-Subject-ID` default to `investigation-workspace`
+  (`apps/investigation-workspace/src/lib/apiClient.js` lines ~34-35), with one shared API key attached by the dev proxy. The
+  LocalAI proxy path is fixed too: `docker-compose.forensic-runtime.localai.yaml` sets
+  `FORENSIC_RECORDS_PROXY_ACTOR_ID` to `nexusai-local-operator` and the role to `admin` ("an intentionally local no-auth UI;
+  authenticated deployments ignore these values and forward the real user"). So evidence is recorded as uploaded by one
+  of those two constants, not by a person. The dev-proxy comment says the same: real multi-user identity does not exist yet
+  (no users, roles or membership tables for this API).
 - LocalAI's own front door does have users (`core/http/auth/users.go`) and passes real `actorID` / `subjectID` when it calls
   the forensic API (`core/http/endpoints/localai/agent_collections.go` ~258). That is the natural source of real identity.
 
@@ -57,7 +60,7 @@ SELECT actor_type, actor_id, count(*) FROM forensic.evidence_custody_events GROU
 ```
 
 (If the custody table has a different name in your build, `\dt forensic.*` lists it.) Expect one dominant value,
-`investigation-workspace`, plus whatever the earlier test fixtures used.
+`nexusai-local-operator` or `investigation-workspace`, plus whatever the earlier test fixtures used.
 
 ### What is and is not in this checkout about the model work
 
@@ -122,7 +125,17 @@ All figures below come from public write-ups on other hardware. They tell us whe
 
 ### Roadmap
 
-**M0. Find out why 4 tokens per second (one afternoon, no downloads).** On the host and inside the LLM container record: CPU
+**M0. Find out why 4 tokens per second (one afternoon, no downloads). Tool written: `scripts/diagnose_cpu_inference_m0.ps1`.**
+Run `powershell -ExecutionPolicy Bypass -File scripts\diagnose_cpu_inference_m0.ps1 -Quick` on the Windows host with the
+LocalAI container running and the laptop plugged in (add `-Model`, `-BaseUri` or `-ApiKey` if yours differ; drop `-Quick` for a
+long-prompt timing too). It is read-only and writes `reports\m0-cpu-diagnostic-<time>\report.md`. The compose file names the
+reference machine a 16 GiB Windows laptop, which makes four things likely suspects, in this order: a single memory module
+(single-channel memory), the Windows power plan or battery throttling, the Docker VM's processors and the model's thread
+count, and a container CPU limit. The script checks each and prints a finding when one applies. How to read its numbers: generation speed
+times model size is the memory bandwidth actually used; if that is under about a third of the estimated peak, something other
+than the model is the limit; if it is above half, only a smaller model or faster memory will help. *Not yet run, and the
+script has not been executed anywhere (no PowerShell in the authoring environment), so expect to fix a typo or two.* What it
+was designed to do: On the host and inside the LLM container record: CPU
 model and flags (AVX2, AVX-512), memory type, number of populated channels and speed, threads given to the service against
 cores available, any Docker CPU or memory limit, and a `llama-bench` run of the current model (prompt processing and
 generation separately). Also split a real slow answer into prompt time and generation time. Outcome: either "the box is
