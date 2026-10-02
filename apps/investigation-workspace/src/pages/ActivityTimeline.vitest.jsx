@@ -38,10 +38,7 @@ describe('case activity', () => {
     expect(screen.getAllByText('Clarification requested', { exact: true }).length).toBeGreaterThan(0)
     expect(screen.getAllByText('case-1', { exact: true }).length).toBeGreaterThan(0)
     expect(screen.getAllByRole('link', { name: 'Reopen with this question' })[0]).toHaveAttribute('href', expect.stringContaining('question='))
-    await userEvent.click(screen.getByRole('button', { name: /Outcome All/ }))
-    await userEvent.click(screen.getByRole('option', { name: 'Answered' }))
-    // Targeted by name: the page also renders a breadcrumb list, and "the only
-    // list on the page" was never what this assertion was about.
+    await userEvent.click(screen.getByRole('button', { name: /^Answered\s*1/ }))
     expect(screen.getByRole('list', { name: 'Activity' })).not.toHaveTextContent('Clarification requested')
   })
 

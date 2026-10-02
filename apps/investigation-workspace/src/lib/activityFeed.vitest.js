@@ -1,0 +1,36 @@
+import { describe, expect, it } from 'vitest'
+import { activitiesCsv, buildActivities, countOutcomes, dayCounts, groupByDay, outcomeOf } from './activityFeed.js'
+
+const overview = { recent_evidence: [{ evidence_id: 'e1', source_file: 'calls.csv', processing_status: 'completed', updated_at: '2026-02-02T10:00:00Z' }, { evidence_id: 'e2', source_file: 'scan.pdf', processing_status: 'failed' }], recent_jobs: [{ evidence_id: 'e1', accepted_rows: 5, rejected_rows: 1, duplicate_rows: 0, attempt_count: 2 }] }
+const session = [{ id: 's1', query: 'Busiest hour', state: 'answered', title: 'Busiest hour', answer: 'Noon', scope: [], recordedAt: '2026-02-03T09:15:00Z' }]
+const history = [{ id: 'h1', query: 'Old question', state: 'clarify', updatedAt: '2026-02-02T08:00:00Z' }, { id: 'h2', query: 'Busiest hour', state: 'answered', updatedAt: '2026-02-03T09:15:00Z' }]
+
+describe('activity feed', () => {
+  const items = buildActivities({ sessionActivities: session, questionHistory: history, overview, caseId: 'c1' })
+
+  it('merges the three sources newest first and does not repeat a question already in this tab', () => {
+    expect(items.map(item => item.id)).toEqual(['s1', 'evidence-e1', 'history-h1', 'evidence-e2'])
+    expect(items.find(item => item.id === 'evidence-e1').title).toBe('Evidence reprocessed: calls.csv')
+  })
+
+  it('groups by UTC day with undated entries last, and counts outcomes', () => {
+    const groups = groupByDay(items)
+    expect(groups.map(group => [group.key, group.items.length])).toEqual([['2026-02-03', 1], ['2026-02-02', 2], ['', 1]])
+    expect(groups[2].label).toBe('Time not reported')
+    expect(countOutcomes(items)).toEqual({ ok: 2, attention: 1, failed: 1, unavailable: 0 })
+    expect(outcomeOf({ state: 'mystery' })).toBe('unavailable')
+  })
+
+  it('places dated entries on the last days and leaves undated ones off', () => {
+    const counts = dayCounts(items, 3)
+    expect(counts).toEqual([{ day: '2026-02-01', count: 0 }, { day: '2026-02-02', count: 2 }, { day: '2026-02-03', count: 1 }])
+    expect(dayCounts([{ recordedAt: null }])).toEqual([])
+  })
+
+  it('writes CSV without withheld answers', () => {
+    const csv = activitiesCsv(items)
+    expect(csv.split('\n')[0]).toBe('Time (UTC),Source,Outcome,Activity,Answer')
+    expect(csv).toContain('Evidence ready')
+    expect(csv.split('\n').find(line => line.includes('Old question'))).toMatch(/,$/)
+  })
+})
