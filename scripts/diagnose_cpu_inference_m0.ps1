@@ -218,9 +218,23 @@ if ($container) {
   if (-not ($threadHints -match 'threads')) { Say '     (no explicit threads: setting found; llama.cpp then picks its own default)' }
 
   if ($ModelSizeGB -le 0) {
-    $sizeBytes = Try-Run { docker exec $container sh -c "find /models /build/models -iname '*q4*.gguf' -printf '%s %p\n' 2>/dev/null | sort -rn | head -1" } ''
-    if ($sizeBytes -match '^(\d+)\s') { $ModelSizeGB = [math]::Round([double]$Matches[1] / 1GB, 2) }
+    # The model file named by the selected model's own config (the largest q4 file on disk may belong to a different model).
+    $file = Try-Run { docker exec $container sh -c ("grep -h -o -E '[A-Za-z0-9._-]+\.gguf' /models/" + $Model + ".yaml 2>/dev/null | head -1") } ''
+    if ($file) {
+      $sizeBytes = Try-Run { docker exec $container sh -c ("stat -c %s /models/" + ($file | Select-Object -First 1).Trim() + " 2>/dev/null") } ''
+      if ($sizeBytes -match '^(\d+)') { $ModelSizeGB = [math]::Round([double]$Matches[1] / 1GB, 2); $report.docker.model_file = $file }
+    }
   }
+  # Memory the Docker VM has left, and who is using it: a model memory-mapped from a VM that is short of memory is re-read from disk.
+  $meminfo = (Try-Run { docker exec $container sh -c "grep -E '^(MemTotal|MemAvailable|SwapTotal|SwapFree|Cached):' /proc/meminfo" } '') -join "`n"
+  $report.docker.vm_meminfo = $meminfo
+  Say '   Docker VM memory (kB):'
+  ($meminfo -split "`n") | ForEach-Object { if ($_) { Say ('     ' + $_.Trim()) } }
+  $allStats = Try-Run { docker stats --no-stream --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}' } ''
+  $report.docker.all_container_stats = $allStats
+  Say '   Containers (CPU, memory):'
+  ($allStats -split "`n") | ForEach-Object { if ($_) { Say ('     ' + $_.Trim()) } }
+  if ($meminfo -match 'MemAvailable:\s+(\d+)') { $availGb = [math]::Round([double]$Matches[1] / 1MB, 1); $report.docker.vm_available_gb = $availGb; if ($availGb -lt 1.5) { Add-Finding ('The Docker VM has only ' + $availGb + ' GB of memory available. A memory-mapped model is then re-read from disk and prefill slows sharply. A second memory module (more RAM for WSL) or fewer resident models would help.') } }
   $stats = Try-Run { docker stats $container --no-stream --format '{{.CPUPerc}}|{{.MemUsage}}' } ''
   $report.docker.idle_stats = $stats
   Say ("   idle usage: " + $stats + "   (model size assumed " + $ModelSizeGB + " GB)")
@@ -271,7 +285,7 @@ if (-not $warm.ok) {
   $genTokens = 48
   $sizes = @(@{ label = 'short prompt'; sentences = 6 })
   $reps = 3
-  if ($Quick) { $reps = 2 } else { $sizes += @{ label = 'long prompt'; sentences = 140 } }
+  if ($Quick) { $reps = 3 } else { $sizes += @{ label = 'long prompt'; sentences = 140 } }
   $timingRows = @()
   foreach ($size in $sizes) {
     $prefill = @(); $decode = @(); $promptTokens = 0
@@ -290,6 +304,9 @@ if (-not $warm.ok) {
     $decodeTps = [math]::Round((Get-Median $decode), 2)
     $prefillTps = 0
     if ($prefillSec -gt 0) { $prefillTps = [math]::Round($promptTokens / $prefillSec, 1) }
+    $spread = [ordered]@{ prefill_seconds_each = @($prefill | ForEach-Object { [math]::Round($_, 2) }); decode_tokens_per_s_each = @($decode | ForEach-Object { [math]::Round($_, 2) }) }
+    Say ('   ' + $size.label + ' each run: first token ' + ($spread.prefill_seconds_each -join ', ') + ' s; generation ' + ($spread.decode_tokens_per_s_each -join ', ') + ' tok/s')
+    $report.timing[$size.label + '_runs'] = $spread
     $timingRows += [ordered]@{ label = $size.label; prompt_tokens = $promptTokens; time_to_first_token_s = [math]::Round($prefillSec, 2); prefill_tokens_per_s = $prefillTps; decode_tokens_per_s = $decodeTps }
     Say ("   " + $size.label + ": " + $promptTokens + " prompt tokens, first token after " + [math]::Round($prefillSec, 2) + " s (" + $prefillTps + " tok/s reading), generation " + $decodeTps + " tok/s")
   }
