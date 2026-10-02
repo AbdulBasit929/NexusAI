@@ -144,9 +144,14 @@ def rescore(arm):
 def main():
     if len(sys.argv) > 2 and sys.argv[1] == "--rescore":
         return rescore(sys.argv[2])
-    args = [a for a in sys.argv[1:] if a != "--set" and a != "holdout"]
-    arm = args[0] if args else "baseline"
-    questions = HOLDOUT if ("--set" in sys.argv and "holdout" in sys.argv) else SET
+    argv = sys.argv[1:]
+    set_name = "main"
+    if "--set" in argv:  # the arm name is the first remaining argument; `--set holdout` must not swallow it
+        i = argv.index("--set")
+        set_name = argv[i + 1] if i + 1 < len(argv) else "main"
+        del argv[i:i + 2]
+    arm = argv[0] if argv else "baseline"
+    questions = HOLDOUT if set_name == "holdout" else SET
     out = os.path.join(HERE, arm)
     os.makedirs(os.path.join(out, "raw"), exist_ok=True)
     rows = []
