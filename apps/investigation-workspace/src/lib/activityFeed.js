@@ -10,6 +10,7 @@ export const STATE_LABELS = {
   processing: 'Processing',
   unsupported: 'Unavailable',
   failed: 'Failed',
+  missing: 'Retained copy missing',
 }
 
 const FAMILY_LABELS = { cdr: 'CDR', ipdr: 'IPDR', anpr: 'ANPR', tower: 'Tower and cell', document: 'Documents', audio: 'Audio', video: 'Video', image: 'Images', 'all evidence': 'All evidence' }
@@ -24,6 +25,7 @@ export function outcomeLabel(item) {
     if (item.state === 'answered') return 'Evidence ready'
     if (item.state === 'processing') return 'Evidence processing'
     if (item.state === 'failed') return 'Evidence failed'
+    if (item.state === 'missing') return 'Retained copy missing'
     return 'Evidence status unavailable'
   }
   return STATE_LABELS[item.state] || 'Outcome not reported'
@@ -32,7 +34,7 @@ export function outcomeLabel(item) {
 // Outcomes grouped for filtering and counting: what went well, what needs a look, what failed, what could not be said.
 export const OUTCOMES = [
   { id: 'ok', label: 'Answered', states: ['answered', 'zero-result'] },
-  { id: 'attention', label: 'Needs attention', states: ['partial', 'clarify', 'processing'] },
+  { id: 'attention', label: 'Needs attention', states: ['partial', 'clarify', 'processing', 'missing'] },
   { id: 'failed', label: 'Failed', states: ['failed'] },
   { id: 'unavailable', label: 'Unavailable', states: ['unsupported'] },
 ]
@@ -48,9 +50,30 @@ function evidenceState(status) {
   return 'unsupported'
 }
 
+function missingCopies(data, caseId) {
+  const seen = new Set((data?.recent_evidence || []).map(item => item.evidence_id))
+  return (data?.missing_kb_assets || []).map(entry => (typeof entry === 'string' ? { evidence_id: entry, source_file: entry } : entry))
+    .filter(entry => entry?.evidence_id && !seen.has(entry.evidence_id))
+    .map(entry => ({
+      id: `missing-${entry.evidence_id}`,
+      caseId,
+      kind: 'evidence',
+      sourceKind: 'evidence',
+      sourceLabel: 'Collection status',
+      evidenceId: entry.evidence_id,
+      family: null,
+      state: 'missing',
+      title: `Retained copy is missing: ${entry.source_file || entry.evidence_id}`,
+      answer: 'Processing finished but the retained copy of this file cannot be opened. No analysis from it can be traced back to the source until it is restored.',
+      answerWithheld: true,
+      scope: [{ label: 'Evidence ID', value: entry.evidence_id }],
+      recordedAt: null,
+    }))
+}
+
 export function evidenceActivities(data, caseId) {
   const jobs = new Map((data?.recent_jobs || []).map(job => [job.evidence_id, job]))
-  return (data?.recent_evidence || []).map(evidence => {
+  const recent = (data?.recent_evidence || []).map(evidence => {
     const job = jobs.get(evidence.evidence_id) || {}
     const state = evidenceState(evidence.processing_status)
     const reprocessed = Number(job.attempt_count) > 1
@@ -78,13 +101,14 @@ export function evidenceActivities(data, caseId) {
       recordedAt: evidence.updated_at || evidence.created_at || null,
     }
   })
+  return [...recent, ...missingCopies(data, caseId)]
 }
 
 export function browserHistoryActivities(history, sessionActivities, caseId) {
-  const active = new Set(sessionActivities.map(item => item.query))
-  return history.filter(item => !active.has(item.query)).map(item => ({
-    id: `history-${item.id}`,
-    caseId,
+  const active = new Set(sessionActivities.map(item => `${item.caseId ?? caseId}|${item.query}`))
+  return history.filter(item => !active.has(`${item.caseId ?? caseId}|${item.query}`)).map(item => ({
+    id: `history-${item.caseId ?? caseId}-${item.id}`,
+    caseId: item.caseId ?? caseId,
     kind: 'analysis',
     sourceKind: 'questions',
     sourceLabel: 'Saved in this browser',
@@ -109,6 +133,26 @@ export function buildActivities({ sessionActivities, questionHistory, overview, 
   return [...currentTab, ...browserHistoryActivities(questionHistory, sessionActivities, caseId), ...evidenceActivities(overview, caseId)]
     .sort((left, right) => asTimestamp(right.recordedAt) - asTimestamp(left.recordedAt))
 }
+
+// The same feed across every case: tab and browser questions of each case plus each case's evidence entries.
+export function buildWorkspaceActivities({ sessionActivities, questionHistory, overviews }) {
+  const currentTab = sessionActivities.map(item => ({ ...item, sourceKind: 'questions', sourceLabel: 'Current tab' }))
+  const evidence = Object.entries(overviews || {}).flatMap(([caseId, data]) => (data ? evidenceActivities(data, caseId) : []))
+  return [...currentTab, ...browserHistoryActivities(questionHistory, sessionActivities, ''), ...evidence].sort((left, right) => asTimestamp(right.recordedAt) - asTimestamp(left.recordedAt))
+}
+
+// Per case: how many entries, how many still need a look, and the latest dated one.
+export function caseSummaries(items, caseIds, reviewed = new Set()) {
+  return caseIds.map(caseId => {
+    const mine = items.filter(item => item.caseId === caseId)
+    const open = mine.filter(item => ['attention', 'failed'].includes(outcomeOf(item)) && !reviewed.has(`${item.caseId}|${item.id}`))
+    const stamps = mine.map(item => asTimestamp(item.recordedAt)).filter(Boolean)
+    return { caseId, total: mine.length, open: open.length, latest: stamps.length ? Math.max(...stamps) : 0 }
+  })
+}
+
+export const reviewedKey = item => `${item.caseId}|${item.id}`
+export const needsLook = item => ['attention', 'failed'].includes(outcomeOf(item))
 
 const DAY = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
 const CLOCK = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' })

@@ -9,7 +9,7 @@ describe('activity feed', () => {
   const items = buildActivities({ sessionActivities: session, questionHistory: history, overview, caseId: 'c1' })
 
   it('merges the three sources newest first and does not repeat a question already in this tab', () => {
-    expect(items.map(item => item.id)).toEqual(['s1', 'evidence-e1', 'history-h1', 'evidence-e2'])
+    expect(items.map(item => item.id)).toEqual(['s1', 'evidence-e1', 'history-c1-h1', 'evidence-e2'])
     expect(items.find(item => item.id === 'evidence-e1').title).toBe('Evidence reprocessed: calls.csv')
   })
 
@@ -32,5 +32,24 @@ describe('activity feed', () => {
     expect(csv.split('\n')[0]).toBe('Time (UTC),Source,Outcome,Activity,Answer')
     expect(csv).toContain('Evidence ready')
     expect(csv.split('\n').find(line => line.includes('Old question'))).toMatch(/,$/)
+  })
+})
+
+import { buildWorkspaceActivities, caseSummaries, reviewedKey } from './activityFeed.js'
+
+describe('workspace feed', () => {
+  const overviews = { a: { recent_evidence: [{ evidence_id: 'e1', source_file: 'x.csv', processing_status: 'failed', updated_at: '2026-02-02T10:00:00Z' }], missing_kb_assets: [{ evidence_id: 'm1', source_file: 'gap.pdf' }, 'e1'] }, b: null }
+  const items = buildWorkspaceActivities({ sessionActivities: [{ id: 's', caseId: 'b', query: 'Q', state: 'answered', title: 'Q', answer: 'A', scope: [], recordedAt: '2026-02-03T00:00:00Z' }], questionHistory: [{ id: 'h', caseId: 'b', query: 'Q', state: 'answered', updatedAt: '2026-02-03T00:00:00Z' }, { id: 'h2', caseId: 'a', query: 'Q', state: 'clarify', updatedAt: '2026-02-01T00:00:00Z' }], overviews })
+
+  it('merges cases, keeps the same question in two cases, and adds missing copies once', () => {
+    expect(items.map(item => `${item.caseId}:${item.id}`)).toEqual(['b:s', 'a:evidence-e1', 'a:history-a-h2', 'a:missing-m1'])
+    expect(items.find(item => item.id === 'missing-m1')).toMatchObject({ state: 'missing', recordedAt: null })
+    expect(outcomeOf(items.find(item => item.id === 'missing-m1'))).toBe('attention')
+  })
+
+  it('summarises each case and respects reviewed entries', () => {
+    expect(caseSummaries(items, ['a', 'b', 'c']).map(row => [row.caseId, row.total, row.open])).toEqual([['a', 3, 3], ['b', 1, 0], ['c', 0, 0]])
+    const reviewed = new Set([reviewedKey(items.find(item => item.id === 'missing-m1'))])
+    expect(caseSummaries(items, ['a'], reviewed)[0].open).toBe(2)
   })
 })

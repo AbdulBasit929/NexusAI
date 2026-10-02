@@ -73,3 +73,8 @@ export function clearSessionActivityForTests() {
   entries = []
   emit()
 }
+
+// Every question asked in this tab, across cases (the workspace-level activity page).
+export function useAllSessionActivity() {
+  return useSyncExternalStore(subscribe, snapshot, snapshot)
+}

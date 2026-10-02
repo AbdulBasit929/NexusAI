@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
-import { AlertTriangle, Check, CircleSlash, Clock, Copy, FileText, MessageSquareText, X } from 'lucide-react'
+import { AlertTriangle, Check, CheckCheck, CircleSlash, Clock, Copy, FileText, MessageSquareText, X } from 'lucide-react'
 import { useState } from 'react'
 import { LanguageText } from '../../components/AnalystComponents.jsx'
 import { relativeAge } from '../../lib/dashboardCases.js'
-import { OUTCOMES, asTimestamp, clockOf, exactTime, familyLabel, outcomeLabel, outcomeOf } from '../../lib/activityFeed.js'
+import { OUTCOMES, asTimestamp, clockOf, exactTime, familyLabel, needsLook, outcomeLabel, outcomeOf, reviewedKey } from '../../lib/activityFeed.js'
 import { formatNumber } from '../../lib/format.js'
 
 const TONE_ICON = { ok: Check, attention: AlertTriangle, failed: X, unavailable: CircleSlash }
@@ -16,7 +16,7 @@ export function OutcomeChip({ item }) {
 
 // The feed: entries grouped under sticky day headings. Each row is one button (kind mark, title, where it came from, the
 // outcome and the time); the chosen row is marked and read in the inspector. Up and down move the choice.
-export function Feed({ groups, selectedId, onSelect, total, shown }) {
+export function Feed({ groups, selectedId, onSelect, total, shown, showCase = false, reviewed = null, idOf = item => item.id }) {
   function onKey(event) {
     if (!['ArrowDown', 'ArrowUp'].includes(event.key)) return
     const buttons = [...event.currentTarget.querySelectorAll('button[data-id]')]
@@ -38,12 +38,12 @@ export function Feed({ groups, selectedId, onSelect, total, shown }) {
               {group.items.map(item => {
                 const Kind = item.kind === 'evidence' ? FileText : MessageSquareText
                 return (
-                  <li key={item.id}>
-                    <button type="button" data-id={item.id} aria-current={item.id === selectedId ? 'true' : undefined} onClick={() => onSelect(item.id)}>
+                  <li key={idOf(item)}>
+                    <button type="button" data-id={idOf(item)} aria-current={idOf(item) === selectedId ? 'true' : undefined} onClick={() => onSelect(idOf(item))}>
                       <span className="ac-time">{asTimestamp(item.recordedAt) ? clockOf(item.recordedAt).replace(' UTC', '') : '—'}</span>
                       <span className={`ac-kind ac-kind--${item.kind}`} aria-hidden="true"><Kind /></span>
-                      <span className="ac-row__text"><b><LanguageText>{item.title}</LanguageText></b><small>{item.kind === 'evidence' ? 'Evidence' : 'Question'} · {item.sourceLabel}{item.family ? ` · ${familyLabel(item.family)}` : ''}</small></span>
-                      <OutcomeChip item={item} />
+                      <span className="ac-row__text"><b><LanguageText>{item.title}</LanguageText></b><small>{showCase ? <><bdi className="ac-casetag">{item.caseId}</bdi> · </> : null}{item.kind === 'evidence' ? 'Evidence' : 'Question'}{showCase ? '' : ` · ${item.sourceLabel}`}{item.family ? ` · ${familyLabel(item.family)}` : ''}</small></span>
+                      {reviewed?.has(reviewedKey(item)) ? <span className="ac-chip ac-chip--done"><CheckCheck aria-hidden="true" />Reviewed</span> : <OutcomeChip item={item} />}
                     </button>
                   </li>
                 )
@@ -58,7 +58,7 @@ export function Feed({ groups, selectedId, onSelect, total, shown }) {
 
 // The chosen entry in full: outcome, exact time, where it came from, its scope, the answer (withheld text is marked, never
 // shown as if it were a result) and the one action that makes sense.
-export function Detail({ item, caseId }) {
+export function Detail({ item, caseId, onReview = null, isReviewed = false, showCase = false }) {
   const [copied, setCopied] = useState(false)
   const time = asTimestamp(item.recordedAt)
   async function copy() {
@@ -77,6 +77,7 @@ export function Detail({ item, caseId }) {
           <LanguageText as="p" className={item.answerWithheld ? 'ac-answer ac-answer--withheld' : 'ac-answer'}>{item.answer}</LanguageText>
         </section>
         <dl className="ac-facts">
+          {showCase ? <div><dt>Case</dt><dd><Link to={`/cases/${encodeURIComponent(caseId)}`}><bdi>{caseId}</bdi></Link></dd></div> : null}
           <div><dt>Time</dt><dd>{exactTime(item.recordedAt)}</dd></div>
           <div><dt>Source</dt><dd>{item.sourceLabel}</dd></div>
           {item.scope.map((entry, index) => <div key={`${entry.label}-${entry.value}-${index}`}><dt>{entry.label}</dt><dd><LanguageText>{entry.value}</LanguageText></dd></div>)}
@@ -86,6 +87,7 @@ export function Detail({ item, caseId }) {
         {item.kind === 'analysis'
           ? <Link className="ac-btn ac-btn--primary" to={`/cases/${encodeURIComponent(caseId)}/investigate?question=${encodeURIComponent(item.query)}`}><MessageSquareText aria-hidden="true" />Reopen with this question</Link>
           : <Link className="ac-btn ac-btn--primary" to={`/cases/${encodeURIComponent(caseId)}/evidence/${encodeURIComponent(item.evidenceId)}`}><FileText aria-hidden="true" />Open evidence</Link>}
+        {onReview && needsLook(item) ? <button type="button" className="ac-btn" onClick={onReview} aria-pressed={isReviewed}><CheckCheck aria-hidden="true" />{isReviewed ? 'Reviewed. Mark as open again' : 'Mark as reviewed'}</button> : null}
         {item.kind === 'analysis' ? <button type="button" className="ac-btn" onClick={copy}>{copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}{copied ? 'Copied' : 'Copy question'}</button> : null}
       </div>
     </aside>
@@ -103,7 +105,8 @@ export function OutcomeCard({ counts, total, active, onPick }) {
       <ul className="ac-legend">
         {OUTCOMES.map(group => {
           const share = total ? Math.floor((counts[group.id] / total) * 100) : 0
-          return <li key={group.id}><button type="button" aria-pressed={active === group.id} onClick={() => onPick(active === group.id ? 'all' : group.id)}><i className={`ac-seg ac-seg--${group.id}`} aria-hidden="true" /><span>{group.label}</span><b>{formatNumber(counts[group.id])}</b><small>{share}%</small></button></li>
+          const row = <><i className={`ac-seg ac-seg--${group.id}`} aria-hidden="true" /><span>{group.label}</span><b>{formatNumber(counts[group.id])}</b><small>{share}%</small></>
+          return <li key={group.id}>{onPick ? <button type="button" aria-pressed={active === group.id} onClick={() => onPick(active === group.id ? 'all' : group.id)}>{row}</button> : <div className="ac-legend__row">{row}</div>}</li>
         })}
       </ul>
     </section>
