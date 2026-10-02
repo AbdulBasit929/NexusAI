@@ -64,7 +64,8 @@ SET = [
 
 BOILERPLATE = ("could not map that request", "bounded general definition is unavailable", "outside the governed analyst query contract",
                "restate the request with the evidence")
-DIGITS = re.compile(r"\d{4,}")
+# Digit runs of 4+ including thousands separators ("8,642"): the first baseline run missed these.
+DIGITS = re.compile(r"\d[\d,.]{3,}\d|\d{4,}")
 PLATE = re.compile(r"\b[A-Z]{2,3}[- ]?\d{2,4}\b")
 FILENAME = re.compile(r"\b[\w.-]+\.(?:csv|pdf|docx?|xlsx?|jpe?g|png|mp[34]|wav|mkv|txt|json|zip)\b", re.I)
 
@@ -98,7 +99,26 @@ def reply_text(blob):
     return ""
 
 
+def leaks(group, text):
+    return group not in ("DATA", "MIXED") and bool(DIGITS.search(text) or PLATE.search(text) or FILENAME.search(text))
+
+
+def rescore(arm):
+    """Recompute the leak flag on a saved run without asking the model anything again."""
+    path = os.path.join(HERE, arm, "results.json")
+    with io.open(path, encoding="utf-8") as handle:
+        rows = json.load(handle)
+    for row in rows:
+        row["leak"] = leaks(row["group"], row["text"])
+    with io.open(path, "w", encoding="utf-8") as handle:
+        json.dump(rows, handle, indent=1, ensure_ascii=False)
+    print(json.dumps({k: sum(1 for r in rows if r[k]) for k in ("empty", "boilerplate", "leak", "terminal")}))
+    print("leaks:", [r["id"] for r in rows if r["leak"]])
+
+
 def main():
+    if len(sys.argv) > 2 and sys.argv[1] == "--rescore":
+        return rescore(sys.argv[2])
     arm = sys.argv[1] if len(sys.argv) > 1 else "baseline"
     out = os.path.join(HERE, arm)
     os.makedirs(os.path.join(out, "raw"), exist_ok=True)
@@ -115,7 +135,7 @@ def main():
             "id": pid, "group": group, "message": message, "http": status, "route": blob.get("route"),
             "request_class": blob.get("request_class"), "terminal": terminal, "seconds": round(seconds, 1),
             "empty": not text, "boilerplate": any(b in low for b in BOILERPLATE),
-            "leak": non_data and bool(DIGITS.search(text) or PLATE.search(text) or FILENAME.search(text)),
+            "leak": leaks(group, text),
             "data_path": ((not terminal) and status == 200) if not non_data else None, "text": text,
         }
         rows.append(row)
