@@ -120,6 +120,16 @@ if ($memRows.Count -ge 1) {
   Say ("   Estimated peak bandwidth: about " + $peakGBs + " GB/s (" + $estimatedChannels + " channel(s) x 64 bit x " + $minSpeed + " MT/s). Real use reaches roughly 60 to 80 percent of this.")
 } else { Add-Finding 'Could not read memory modules from WMI (a virtual machine or restricted account).' }
 
+$memArray = Try-Run { Get-CimInstance Win32_PhysicalMemoryArray | Select-Object -First 1 }
+$machine = Try-Run { Get-CimInstance Win32_ComputerSystem | Select-Object -First 1 }
+if ($memArray) {
+  $maxGb = [math]::Round([double]$memArray.MaxCapacity / 1MB, 0)
+  $report.host.memory_slots = $memArray.MemoryDevices
+  $report.host.memory_max_gb = $maxGb
+  Say ("   Memory slots reported: " + $memArray.MemoryDevices + ", maximum " + $maxGb + " GB")
+}
+if ($machine) { $report.host.machine = ($machine.Manufacturer + ' ' + $machine.Model); Say ('   Machine: ' + $report.host.machine) }
+
 # ---------------------------------------------------------------- host: power
 Say '3. Power and clocks'
 $scheme = Try-Run { (powercfg /getactivescheme) -join ' ' } ''
@@ -166,7 +176,10 @@ if ($dockerInfo) {
 # ---------------------------------------------------------------- the LocalAI container
 $container = $ContainerName
 if (-not $container -and $dockerInfo) {
-  $rows = Try-Run { docker ps --format '{{.Names}}|{{.Image}}' } @()
+  $rows = Try-Run { docker ps --format '{{.Names}}|{{.Image}}|{{.Ports}}' } @()
+  # The LocalAI container is the one publishing the API port; fall back to an image name containing "localai".
+  $portPattern = ':' + ([uri]$BaseUri).Port + '->'
+  foreach ($row in @($rows)) { if (-not $container -and $row.Split('|').Count -ge 3 -and $row.Split('|')[2].Contains($portPattern)) { $container = $row.Split('|')[0] } }
   foreach ($row in @($rows)) { if (-not $container -and $row -match 'localai') { $container = $row.Split('|')[0] } }
 }
 $report.docker.container = $container
@@ -208,12 +221,13 @@ if ($container) {
     $sizeBytes = Try-Run { docker exec $container sh -c "find /models /build/models -iname '*q4*.gguf' -printf '%s %p\n' 2>/dev/null | sort -rn | head -1" } ''
     if ($sizeBytes -match '^(\d+)\s') { $ModelSizeGB = [math]::Round([double]$Matches[1] / 1GB, 2) }
   }
-  if ($ModelSizeGB -le 0) { $ModelSizeGB = 2.5 }
-  $report.docker.model_size_gb = $ModelSizeGB
   $stats = Try-Run { docker stats $container --no-stream --format '{{.CPUPerc}}|{{.MemUsage}}' } ''
   $report.docker.idle_stats = $stats
   Say ("   idle usage: " + $stats + "   (model size assumed " + $ModelSizeGB + " GB)")
 } else { Say '5. No LocalAI container found; pass -ContainerName. Timing will still run if the API answers.' }
+
+if ($ModelSizeGB -le 0) { $ModelSizeGB = 2.5 }
+$report.docker.model_size_gb = $ModelSizeGB
 
 # ---------------------------------------------------------------- timing through the API
 Say '6. Timing the real model (prefill against decode)'
