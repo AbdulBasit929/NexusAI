@@ -115,7 +115,7 @@ export default function TimelinePage() {
   const view = useMemo(() => (weekly ? bucketActivity(activity, 'week') : activity), [activity, weekly])
   const order = useMemo(() => familyOrder(all.families.map(family => family.id)), [all.families])
   const typical = useMemo(() => typicalDay(activity), [activity])
-  const peaks = useMemo(() => (activity.available ? peakDays(view, 5) : []), [activity.available, view])
+  const peaks = useMemo(() => (activity.available ? peakDays(view, 4) : []), [activity.available, view])
   const insights = useMemo(() => timelineInsights(activity), [activity])
   const windowed = useMemo(() => (activity.available && windowRange ? windowSummary(view, windowRange.from, windowRange.to) : null), [activity.available, view, windowRange])
   const lanes = laneOrder(activity)
@@ -198,7 +198,7 @@ export default function TimelinePage() {
 
             <div className="tw-workbench">
               <section className="tw-center" aria-label="Timeline explorer">
-                <FamilyStrip all={all.families} days={all.days} order={order} palette={palette} chosen={chosen} onToggle={toggleFamily} onClear={() => setChosen([])} totals={all.total} />
+                <FamilyStrip all={all.families} order={order} palette={palette} chosen={chosen} onToggle={toggleFamily} onClear={() => setChosen([])} totals={all.total} />
                 {insights.length ? (
                   <ul className="tw-insights" aria-label="What stands out">
                     {insights.map(item => {

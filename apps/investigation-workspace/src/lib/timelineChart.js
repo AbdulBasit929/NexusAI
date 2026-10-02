@@ -96,7 +96,7 @@ export function workbenchOption(view, theme, order, { range = 'all', selected = 
         type: 'scatter',
         xAxisIndex: 1,
         yAxisIndex: 1,
-        symbolSize: point => 7 + 22 * Math.sqrt(point[2] / peak),
+        symbolSize: point => 5 + 15 * Math.sqrt(point[2] / peak),
         itemStyle: { color: familyColour(id, order, theme.data), opacity: 0.85, borderColor: theme.card, borderWidth: 1 },
         emphasis: { scale: 1.25, itemStyle: { opacity: 1 } },
         data: view.days.filter(day => day.byFamily[id] > 0).map(day => [stamp(day.date), index, day.byFamily[id]]),

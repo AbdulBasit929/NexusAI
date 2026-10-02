@@ -6,38 +6,28 @@ import { weekdayRhythm } from '../../lib/timelineModel.js'
 
 const dot = colour => ({ '--fam': colour })
 
-// A family's activity across the whole span as a tiny line, scaled to its own busiest day.
-function Spark({ days, id }) {
-  const values = days.map(day => day.byFamily[id] || 0)
-  const peak = Math.max(1, ...values)
-  const step = values.length > 1 ? 100 / (values.length - 1) : 0
-  const points = values.map((value, index) => `${(index * step).toFixed(1)},${(16 - (value / peak) * 15).toFixed(1)}`).join(' ')
-  return <svg className="tw-spark" viewBox="0 0 100 16" preserveAspectRatio="none" aria-hidden="true"><polyline points={points} fill="none" stroke="var(--fam)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" /></svg>
-}
-
 // The record families as one row of filters, each with its share and trend. Choosing families narrows every number and
 // picture on the page; with none chosen, all are shown.
-export function FamilyStrip({ all, days, order, palette, chosen, onToggle, onClear, totals }) {
+export function FamilyStrip({ all, order, palette, chosen, onToggle, onClear, totals }) {
   return (
     <section className="tw-fambar" aria-labelledby="tw-fam">
-      <header><h2 id="tw-fam">Record families</h2><span>{chosen.length ? `${chosen.length} chosen` : 'All shown'}</span>{chosen.length ? <button type="button" onClick={onClear}>Clear</button> : null}</header>
+      <h2 id="tw-fam">Record families</h2>
       <ul className="tw-fams">
         {all.map(family => {
           const on = chosen.includes(family.id)
           const share = totals ? Math.floor((family.total / totals) * 100) : 0
           return (
             <li key={family.id} style={dot(familyColour(family.id, order, palette))}>
-              <button type="button" aria-pressed={on} data-active={on || !chosen.length ? 'true' : 'false'} onClick={() => onToggle(family.id)}>
+              <button type="button" aria-pressed={on} data-active={on || !chosen.length ? 'true' : 'false'} onClick={() => onToggle(family.id)} title={`${share < 1 ? 'Under 1' : share}% of all events`}>
                 <i aria-hidden="true" />
                 <span className="tw-fams__name">{curatedFamilyLabel(family.id)}</span>
                 <b>{formatNumber(family.total)}</b>
-                <Spark days={days} id={family.id} />
-                <small>{share < 1 ? '<1%' : `${share}%`}</small>
               </button>
             </li>
           )
         })}
       </ul>
+      {chosen.length ? <button type="button" className="tw-fambar__clear" onClick={onClear}>Clear</button> : null}
     </section>
   )
 }
