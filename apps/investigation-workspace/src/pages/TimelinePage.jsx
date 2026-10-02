@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, CircleAlert, MessageSquareText } from 'lucide-react'
+import { ChevronLeft, ChevronRight, CircleAlert, MessageSquareText, MoonStar, PieChart, TrendingUp } from 'lucide-react'
 import { CaseShell } from '../components/CaseShell.jsx'
 import { SkeletonRows } from '../components/Skeleton.jsx'
 import { getQueryCapabilities } from '../lib/apiClient.js'
@@ -8,6 +8,7 @@ import { activityHighlights, bucketActivity, bucketQuestion, describeBucket, fam
 import { formatNumber } from '../lib/format.js'
 import { curatedFamilyLabel } from '../lib/semanticCatalog.js'
 import { dateOfStamp, laneHeight, laneOrder, timelineOption } from '../lib/timelineChart.js'
+import { timelineInsights, windowSummary } from '../lib/timelineInsights.js'
 import { againstTypical, dayBreakdown, familyOrder, familyScope, peakDays, typicalDay } from '../lib/timelineModel.js'
 import { activityFailureText, useCaseActivity } from '../lib/useCaseActivity.js'
 
@@ -65,6 +66,7 @@ function investigateLink(caseId, bucket, family = null) {
   return `/cases/${encodeURIComponent(caseId)}/investigate?${query}`
 }
 
+const INSIGHT_ICON = { spike: TrendingUp, gap: MoonStar, mix: PieChart }
 const dot = colour => ({ '--fam': colour })
 
 function SelectedDay({ caseId, bucket, typical, order, palette, position, count, onStep, questions }) {
@@ -119,6 +121,7 @@ export default function TimelinePage() {
   const [range, setRange] = useState('all')
   const [selected, setSelected] = useState('')
   const [palette, setPalette] = useState(['#0072b2', '#c2410c', '#00795f', '#7e3fb2', '#8a6100', '#475569'])
+  const [windowRange, setWindowRange] = useState(null)
   const stage = useRef(null)
 
   useEffect(() => {
@@ -143,6 +146,9 @@ export default function TimelinePage() {
   const bucket = view.days[index]
   const highlights = activity.available ? activityHighlights(activity) : null
   const lanes = laneOrder(activity)
+  const insights = useMemo(() => timelineInsights(activity), [activity])
+  const windowed = useMemo(() => (activity.available && windowRange ? windowSummary(view, windowRange.from, windowRange.to) : null), [activity.available, view, windowRange])
+  useEffect(() => { setWindowRange(null) }, [range, view])
 
   const chart = useMemo(() => ({
     buildOption: theme => timelineOption(view, theme, order, { range, selected: bucket?.date || '' }),
@@ -187,6 +193,20 @@ export default function TimelinePage() {
 
         {activity.available && activity.total ? (
           <>
+            {insights.length ? (
+              <section className="tl-insights" aria-labelledby="tl-insights-title">
+                <h2 id="tl-insights-title">What stands out</h2>
+                <ul>
+                  {insights.map(item => {
+                    const Icon = INSIGHT_ICON[item.id]
+                    const body = <><span className="tl-insight__icon" aria-hidden="true"><Icon /></span><span><b>{item.title}</b><small>{item.detail}</small></span></>
+                    return <li key={item.id} className={`tl-insight tl-insight--${item.tone}`}>{item.date && view.days.some(day => day.date === item.date) ? <button type="button" onClick={() => setSelected(item.date)} aria-label={`${item.title}. ${item.detail} Read this day.`}>{body}</button> : <div>{body}</div>}</li>
+                  })}
+                </ul>
+                <p>Plain arithmetic on the reported counts: days at least 3× the typical day, gaps of a week or more, and a family above half of all events.</p>
+              </section>
+            ) : null}
+
             <section className="tl-stage" aria-label="Timeline explorer">
               <header>
                 <div className="tl-stage__title"><h2>Events by record family</h2><p>Each bubble is a {weekly ? 'week' : 'day'}; bigger means more events. Scroll to zoom, drag the slider below to move.</p></div>
@@ -194,9 +214,17 @@ export default function TimelinePage() {
               </header>
               <div ref={stage} className="tl-stage__plot" tabIndex={0} role="group" aria-label="Timeline chart. Left and right arrow keys move between days." onKeyDown={onKey}>
                 <Suspense fallback={<p className="chart-card__loading" role="status">Loading chart…</p>}>
-                  <EChart buildOption={chart.buildOption} height={chart.height} label={chart.label} onSelect={chart.onSelect} />
+                  <EChart buildOption={chart.buildOption} height={chart.height} label={chart.label} onSelect={chart.onSelect} onZoom={setWindowRange} />
                 </Suspense>
               </div>
+              {windowed && windowed.days ? (
+                <div className="tl-window" role="status" aria-live="polite">
+                  <span>In view</span>
+                  <b>{windowed.first}{windowed.last !== windowed.first ? ` to ${windowed.last}` : ''}</b>
+                  <span>{formatNumber(windowed.total)} events · {formatNumber(windowed.days)} {windowed.days === 1 ? (weekly ? 'week' : 'day') : (weekly ? 'weeks' : 'days')}</span>
+                  <i className="tl-stack" aria-hidden="true">{Object.entries(windowed.byFamily).sort((left, right) => right[1] - left[1]).map(([id, count]) => <em key={id} style={{ ...dot(familyColour(id, order, palette)), flexGrow: count }} />)}</i>
+                </div>
+              ) : null}
               <div className="tl-peaks"><span>Busiest {weekly ? 'weeks' : 'days'}</span>
                 {peaks.map(day => <button key={day.date} type="button" aria-pressed={bucket?.date === day.date} onClick={() => setSelected(day.date)}>{day.date}<b>{formatNumber(day.total)}</b></button>)}
               </div>
