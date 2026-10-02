@@ -1,0 +1,2 @@
+id,collection_id,question,family,expected_value,oracle_sql_or_method,written_by,date
+EXAMPLE-1,your-collection,"How many calls did number X make in March?",cdr,"<value from the database>","SELECT count(*) FROM ... WHERE ...",analyst name,2026-10-xx
