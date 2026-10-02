@@ -54,6 +54,8 @@ const (
 	frontDoorFallibleReply = "I can make mistakes. Answers about your case come with their sources so you can check them, and when I cannot verify something I say so."
 )
 
+const fdCaseNouns = `(?:case|evidence|images?|photos?|pictures?|audio|recordings?|transcripts?|videos?|documents?|files?|guides?|records?|calls?|messages?|plates?|vehicles?|towers?|segments?|faces?|vectors?|hashes|subscribers?|numbers?|transactions?|logs?|sessions?|cameras?|frames?)`
+
 var frontDoorClasses = []string{fdDataQuestion, fdConversation, fdConcept, fdProductHelp, fdDecline}
 
 func frontDoorEnabled() bool { return envBoolValue(os.Getenv(frontDoorEnv), false) }
@@ -142,11 +144,19 @@ var (
 	fdFilename   = regexp.MustCompile(`(?i)\b[\w][\w.\-]*\.(?:pdf|docx?|xlsx?|csv|tsv|txt|jpe?g|png|mp[34]|wav|mkv|json|zip|pcap|eml)\b`)
 	fdCaseClaim  = regexp.MustCompile(`(?i)\b(?:there (?:are|is|were|was)|i (?:found|see|can see)|we (?:have|found)|contains?|shows?|show)\s+(?:\d+|one|two|three|four|five|several|many|no)\s+(?:\w+\s+){0,2}(?:records?|calls?|files?|documents?|vehicles?|numbers?|sightings?|towers?|messages?|transactions?)\b`)
 	// Holdout H-SMALL-3 said "listed in the facts above"; H-SMALL-2 said "I don't make mistakes". A prompt is never a guarantee, so both are also refused here.
-	fdPromptRef    = regexp.MustCompile(`(?i)\b(?:facts above|these instructions|my instructions|as instructed|system prompt)\b`)
-	fdInfallible   = regexp.MustCompile(`(?i)\b(?:i (?:don't|do not|never) (?:make )?(?:any )?mistakes?|i am (?:always|never) (?:right|correct|wrong)|(?:always|100%) (?:correct|accurate|right))\b`)
-	fdPhoneLike    = regexp.MustCompile(`\b\d{3}[-\s]\d{4}\b`)
-	fdSpaceRuns    = regexp.MustCompile(`\s+`)
-	fdSentenceStop = regexp.MustCompile(`[.!?]["')\]]*\s`)
+	fdPromptRef  = regexp.MustCompile(`(?i)\b(?:facts above|these instructions|my instructions|as instructed|system prompt)\b`)
+	fdInfallible = regexp.MustCompile(`(?i)\b(?:i (?:don't|do not|never) (?:make )?(?:any )?mistakes?|i am (?:always|never) (?:right|correct|wrong)|(?:always|100%) (?:correct|accurate|right))\b`)
+	fdPhoneLike  = regexp.MustCompile(`\b\d{3}[-\s]\d{4}\b`)
+	// A reply that says the case lacks something it never searched for is the product's worst answer (a false absence). Regression run 2026-10-02:
+	// "Which model produced the face vectors?" was answered "This information is not available in the case evidence" without a search.
+	fdAbsenceClaim = regexp.MustCompile(`(?i)\b(?:not|isn't|is not|no)\b[^.]{0,40}\b(?:available|present|found|stored|recorded|included|contained)\b[^.]{0,30}\b(?:in|within|from)\s+(?:the\s+|this\s+|your\s+)?(?:case|evidence|data|records|files)\b`)
+	// Regression run: six corpus data questions ("Give me an overview of this case", "Which image says...", "Which model produced the face vectors?")
+	// were judged conversation or concept by the model and answered without looking. A definite reference to case material is a data question
+	// whatever the model says, unless the message is addressed to the assistant itself (help, rules, secrets), which is not.
+	fdCaseReference = regexp.MustCompile(`(?i)\b(?:(?:this|these|those|the|my|our|any of the)\s+(?:\w+\s+){0,2}` + fdCaseNouns + `|which\s+(?:\w+\s+)?` + fdCaseNouns + `)\b|\b(?:overview|summary|summari[sz]e)\b.*\b(?:case|evidence)\b`)
+	fdMetaRequest   = regexp.MustCompile(`(?i)\b(?:can you|could you|do you|are you|will you|how do i|what can|help me|ignore|disregard|pretend|password|prompt|instructions|delete|upload|reveal|developer mode|every record|all the data)\b`)
+	fdSpaceRuns     = regexp.MustCompile(`\s+`)
+	fdSentenceStop  = regexp.MustCompile(`[.!?]["')\]]*\s`)
 )
 
 // frontDoorCleanReply normalises the model's text and refuses anything that reads as a case fact.
@@ -166,6 +176,9 @@ func frontDoorCleanReply(reply string) (string, string) {
 	}
 	if fdCaseClaim.MatchString(reply) {
 		return "", "CASE_CLAIM_IN_REPLY"
+	}
+	if fdAbsenceClaim.MatchString(reply) {
+		return "", "ABSENCE_CLAIM_IN_REPLY"
 	}
 	if fdPhoneLike.MatchString(reply) {
 		return "", "PHONE_LIKE_IN_REPLY"
@@ -306,10 +319,19 @@ func conversationFrontDoor(ctx context.Context, w http.ResponseWriter, cfg confi
 		audit.Class, audit.Overridden = fdDataQuestion, true
 		result.Class = fdDataQuestion
 	}
+	if result.Class != fdDataQuestion && fdCaseReference.MatchString(req.Query) && !fdMetaRequest.MatchString(req.Query) {
+		audit.Class, audit.Overridden = fdDataQuestion, true
+		result.Class = fdDataQuestion
+	}
 	if result.Class == fdDataQuestion {
 		audit.State = "DATA_QUESTION"
 		finish()
-		return hybridQueryResponse{}, false, true
+		// NEVER PROMOTE. The front door only ever moves a message AWAY from the data path. A message the keyword rules called a definition or a help
+		// request keeps that handling even when the model says it is about the data: the regression run showed what promotion does. H2 "What does
+		// the audio transcript say?" is a PII honesty probe that the canned terminal answer was quietly protecting; promotion sent it to the
+		// derived-text retrieval path (the incident recorded in semantic_candidate_ranking.go: widening a gate reveals what else it held).
+		// Widening is a separate change that must first bring curated sensitivity to that path.
+		return hybridQueryResponse{}, false, false
 	}
 	reply, why := frontDoorCleanReply(result.Reply)
 	audit.State = "ANSWERED"

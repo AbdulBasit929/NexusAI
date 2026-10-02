@@ -120,3 +120,5 @@ Fail any line: `FORENSIC_CONVERSATION_FRONT_DOOR` stays off and the cause is rec
 | Added time | median front-door time on data questions at most 8 s, read from the `X-Front-Door` header |
 
 Fail any line: the switch stays off and the cause is recorded.
+- 2026-10-02, after the regression replay (`RESULT_REGRESSION_V4.md`): **the Routing line failed** (7 corpus data questions answered as chat; 3 more promoted to the data path, including the H2 PII probe). v5 adds a deterministic
+  case-reference override, removes promotion entirely and refuses false-absence replies. Thresholds unchanged; the ON arm is re-run as `replay-on2` and compared with the same `replay-off`.
