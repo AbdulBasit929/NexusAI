@@ -66,10 +66,10 @@ describe('case timeline', () => {
     reading.activity = mergeActivity([parse({ records: { activity_by_day: rows } }, 'case-1')])
     at('/cases/case-1/timeline', <TimelinePage />)
     expect(screen.getByRole('heading', { name: 'Timeline' })).toBeInTheDocument()
-    expect(screen.getByRole('region', { name: 'Selected day' })).toHaveTextContent('30')
+    expect(screen.getByRole('complementary', { name: 'Selected day' })).toHaveTextContent('30')
     expect(screen.getByText(/upload and processing dates are never used/i)).toBeInTheDocument()
     await userEvent.click(screen.getAllByRole('button', { name: /^2026-01-30/ })[0])
-    expect(screen.getByRole('region', { name: 'Selected day' })).toHaveTextContent('10 events')
+    expect(screen.getByRole('complementary', { name: 'Selected day' })).toHaveTextContent('10 events')
     expect(screen.getByRole('link', { name: /Investigate this day/ })).toHaveAttribute('href', expect.stringContaining('2026-01-30'))
   })
 
