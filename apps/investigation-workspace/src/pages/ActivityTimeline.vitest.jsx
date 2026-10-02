@@ -57,7 +57,7 @@ describe('case activity', () => {
 })
 
 describe('case timeline', () => {
-  test('lists real record days by month, narrows by family and never uses ingestion dates', async () => {
+  test('reads the selected day from real record dates, and never uses ingestion dates', async () => {
     const rows = [
       { activity_date: '2026-01-30', record_type: 'cdr', event_count: 6 },
       { activity_date: '2026-01-30', record_type: 'anpr', event_count: 4 },
@@ -65,12 +65,12 @@ describe('case timeline', () => {
     ]
     reading.activity = mergeActivity([parse({ records: { activity_by_day: rows } }, 'case-1')])
     at('/cases/case-1/timeline', <TimelinePage />)
-    expect(await screen.findByRole('heading', { name: /^February 2026/ })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /^January 2026/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Timeline' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Selected day' })).toHaveTextContent('30')
     expect(screen.getByText(/upload and processing dates are never used/i)).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: /plate|anpr/i }))
-    expect(screen.queryByRole('heading', { name: /^February 2026/ })).not.toBeInTheDocument()
-    expect(screen.getByText(/^1 day · 4 events/)).toBeInTheDocument()
+    await userEvent.click(screen.getAllByRole('button', { name: /^2026-01-30/ })[0])
+    expect(screen.getByRole('region', { name: 'Selected day' })).toHaveTextContent('10 events')
+    expect(screen.getByRole('link', { name: /Investigate this day/ })).toHaveAttribute('href', expect.stringContaining('2026-01-30'))
   })
 
   test('projects only curated, available chronology questions from capabilities', () => {

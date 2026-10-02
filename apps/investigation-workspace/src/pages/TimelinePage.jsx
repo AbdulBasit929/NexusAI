@@ -1,14 +1,18 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, CircleAlert, MessageSquareText, Search } from 'lucide-react'
+import { ChevronLeft, ChevronRight, CircleAlert, MessageSquareText } from 'lucide-react'
 import { CaseShell } from '../components/CaseShell.jsx'
 import { SkeletonRows } from '../components/Skeleton.jsx'
 import { getQueryCapabilities } from '../lib/apiClient.js'
-import { activityHighlights, bucketQuestion, describeBucket } from '../lib/caseActivity.js'
+import { activityHighlights, bucketActivity, bucketQuestion, describeBucket, familyColour } from '../lib/caseActivity.js'
 import { formatNumber } from '../lib/format.js'
 import { curatedFamilyLabel } from '../lib/semanticCatalog.js'
-import { againstTypical, dayBreakdown, dayParts, familyOrder, familyScope, groupByMonth, typicalDay, visibleDays } from '../lib/timelineModel.js'
+import { dateOfStamp, laneHeight, laneOrder, timelineOption } from '../lib/timelineChart.js'
+import { againstTypical, dayBreakdown, familyOrder, familyScope, peakDays, typicalDay } from '../lib/timelineModel.js'
 import { activityFailureText, useCaseActivity } from '../lib/useCaseActivity.js'
+
+// Code-split with the other charts: ECharts is fetched only when the timeline is shown.
+const EChart = lazy(() => import('../components/charts/EChart.jsx'))
 
 const familyLabels = {
   cdr: 'CDR', ipdr: 'IPDR', anpr: 'ANPR', subscriber: 'Subscriber', tower_location: 'Tower',
@@ -51,63 +55,61 @@ export function timelineQuestions(payload) {
     .slice(0, 6)
 }
 
-function investigateLink(caseId, item) {
-  const query = new URLSearchParams({ question: item.question })
-  if (item.scope !== 'all') query.set('scope', item.scope)
-  return `/cases/${encodeURIComponent(caseId)}/investigate?${query}`
-}
-
 const RANGES = [{ id: 'all', label: 'All' }, { id: '90', label: '90 days' }, { id: '30', label: '30 days' }, { id: '7', label: '7 days' }]
+const WEEKLY_FROM_DAYS = 150
 
-function investigateDay(caseId, day, family = null) {
-  const query = new URLSearchParams({ question: family ? `Show ${curatedFamilyLabel(family)} activity on ${day.date}` : bucketQuestion(day) })
+function investigateLink(caseId, bucket, family = null) {
+  const query = new URLSearchParams({ question: family ? `Show ${curatedFamilyLabel(family)} activity on ${bucket.date}${bucket.end && bucket.end !== bucket.date ? ` to ${bucket.end}` : ''}` : bucketQuestion(bucket) })
   const scope = family ? familyScope(family) : ''
   if (scope) query.set('scope', scope)
   return `/cases/${encodeURIComponent(caseId)}/investigate?${query}`
 }
 
-const swatch = index => ({ '--fam': `var(--analyst-data-${(index % 6) + 1})` })
+const dot = colour => ({ '--fam': colour })
 
-function DayDetail({ caseId, day, typical, order, position, count, onStep, questions }) {
-  const rows = dayBreakdown(day, order)
-  const compare = againstTypical(day.total, typical)
+function SelectedDay({ caseId, bucket, typical, order, palette, position, count, onStep, questions }) {
+  const rows = dayBreakdown(bucket, order)
+  const week = bucket.end && bucket.end !== bucket.date
+  const compare = week ? '' : againstTypical(bucket.total, typical)
   return (
-    <aside className="tl-detail" aria-label="Selected day">
-      <header>
-        <p className="tl-detail__kicker">{dayParts(day.date).weekday}</p>
-        <h2>{describeBucket(day)}</h2>
-        <p className="tl-detail__total"><b>{formatNumber(day.total)}</b> {day.total === 1 ? 'event' : 'events'}{compare ? <span> · {compare}</span> : null}</p>
-      </header>
-      <ul className="tl-detail__families" aria-label="Events by record family">
-        {rows.map(row => (
-          <li key={row.id} style={swatch(row.index)}>
-            <div><i aria-hidden="true" /><span>{curatedFamilyLabel(row.id)}</span><b>{formatNumber(row.count)}</b></div>
-            <span className="tl-detail__bar" aria-hidden="true"><i style={{ inlineSize: `${Math.max(2, row.share)}%` }} /></span>
-            <small>{row.share < 1 ? 'Under 1%' : `${row.share}%`} of the day · <Link to={investigateDay(caseId, day, row.id)}>Open these in Investigate</Link></small>
-          </li>
-        ))}
-      </ul>
-      <div className="tl-detail__actions">
-        <Link className="tl-btn tl-btn--primary" to={investigateDay(caseId, day)}><MessageSquareText aria-hidden="true" />Open this day in Investigate</Link>
-        <div className="tl-detail__step" role="group" aria-label="Move between days">
-          <button type="button" onClick={() => onStep(-1)} disabled={position <= 0}><ChevronLeft aria-hidden="true" />Earlier day</button>
-          <button type="button" onClick={() => onStep(1)} disabled={position >= count - 1}>Later day<ChevronRight aria-hidden="true" /></button>
+    <section className="tl-read" aria-label={week ? 'Selected week' : 'Selected day'}>
+      <div className="tl-read__when">
+        <p className="tl-read__kicker">{week ? 'Selected week' : 'Selected day'}</p>
+        <h2>{describeBucket(bucket)}</h2>
+        <p className="tl-read__total"><b>{formatNumber(bucket.total)}</b> {bucket.total === 1 ? 'event' : 'events'}</p>
+        {compare ? <p className="tl-read__compare">{compare}</p> : null}
+        <div className="tl-read__step" role="group" aria-label={`Move between ${week ? 'weeks' : 'days'}`}>
+          <button type="button" onClick={() => onStep(-1)} disabled={position <= 0}><ChevronLeft aria-hidden="true" />Earlier</button>
+          <button type="button" onClick={() => onStep(1)} disabled={position >= count - 1}>Later<ChevronRight aria-hidden="true" /></button>
         </div>
       </div>
-      {questions.length ? (
-        <section className="tl-detail__ask" aria-labelledby="tl-ask">
-          <h3 id="tl-ask">Ask about a sequence</h3>
-          <ul>{questions.map(item => <li key={`${item.scope}-${item.question}`}><Link to={`/cases/${encodeURIComponent(caseId)}/investigate?${new URLSearchParams({ question: item.question, ...(item.scope !== 'all' ? { scope: item.scope } : {}) })}`}>{item.question}</Link><small>{item.family}</small></li>)}</ul>
-        </section>
-      ) : null}
-    </aside>
+      <div className="tl-read__mix">
+        <p className="tl-read__kicker">What happened</p>
+        <div className="tl-stack" role="img" aria-label={rows.map(row => `${curatedFamilyLabel(row.id)} ${formatNumber(row.count)}`).join(', ')}>
+          {rows.map(row => <i key={row.id} style={{ ...dot(familyColour(row.id, order, palette)), flexGrow: row.count }} />)}
+        </div>
+        <ul>
+          {rows.map(row => (
+            <li key={row.id} style={dot(familyColour(row.id, order, palette))}>
+              <i aria-hidden="true" /><span>{curatedFamilyLabel(row.id)}</span><b>{formatNumber(row.count)}</b><small>{row.share < 1 ? '<1%' : `${row.share}%`}</small>
+              <Link to={investigateLink(caseId, bucket, row.id)} aria-label={`Open ${curatedFamilyLabel(row.id)} events in Investigate`}>Open</Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="tl-read__next">
+        <p className="tl-read__kicker">Go further</p>
+        <Link className="tl-btn tl-btn--primary" to={investigateLink(caseId, bucket)}><MessageSquareText aria-hidden="true" />Investigate {week ? 'this week' : 'this day'}</Link>
+        {questions.length ? <ul>{questions.slice(0, 3).map(item => <li key={`${item.scope}-${item.question}`}><Link to={`/cases/${encodeURIComponent(caseId)}/investigate?${new URLSearchParams({ question: item.question, ...(item.scope !== 'all' ? { scope: item.scope } : {}) })}`}>{item.question}</Link><small>{item.family}</small></li>)}</ul> : null}
+      </div>
+    </section>
   )
 }
 
-// The case chronology: when records happened, day by day, grouped by month, in the families that hold them. Counts come from
-// the case's real record dates (the service's day-and-family summary), so each day is as exact as the date on the record and
-// no more: individual events and rows open in Investigate, and upload or processing dates are never used. Rows are chosen
-// to see a day's make-up; the family chips and range narrow everything, totals included.
+// The case chronology as an explorer: one lane per record family on a real time axis, a bubble on every day that has
+// events, zoomable with an overview slider. Counts come from the case's real record dates (the service's day-and-family
+// summary), so a day is as exact as the date on the record and no more: events and rows open in Investigate, and upload or
+// processing dates are never used. Spans over about five months are drawn by week so the bubbles stay readable.
 export default function TimelinePage() {
   const { id: caseId = '' } = useParams()
   const [token, setToken] = useState(0)
@@ -115,11 +117,9 @@ export default function TimelinePage() {
   const { status, activity, failures } = useCaseActivity(caseIds, { refreshToken: token })
   const [capabilities, setCapabilities] = useState({ loading: true })
   const [range, setRange] = useState('all')
-  const [families, setFamilies] = useState([])
-  const [newestFirst, setNewestFirst] = useState(true)
   const [selected, setSelected] = useState('')
-  const [jump, setJump] = useState('')
-  const list = useRef(null)
+  const [palette, setPalette] = useState(['#0072b2', '#c2410c', '#00795f', '#7e3fb2', '#8a6100', '#475569'])
+  const stage = useRef(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -128,35 +128,38 @@ export default function TimelinePage() {
       .catch(error => error.name !== 'AbortError' && setCapabilities({ error, loading: false }))
     return () => controller.abort()
   }, [caseId])
+  useEffect(() => {
+    import('../components/charts/chartTheme.js').then(({ chartTheme }) => setPalette(chartTheme().data))
+  }, [])
 
   const questions = useMemo(() => timelineQuestions(capabilities.data), [capabilities.data])
+  const weekly = activity.available && activity.days.length >= WEEKLY_FROM_DAYS
+  const view = useMemo(() => (weekly ? bucketActivity(activity, 'week') : activity), [activity, weekly])
   const order = useMemo(() => familyOrder(activity.families.map(family => family.id)), [activity.families])
   const typical = useMemo(() => typicalDay(activity), [activity])
-  const days = useMemo(() => visibleDays(activity, { range, families, newestFirst }), [activity, range, families, newestFirst])
-  const groups = useMemo(() => groupByMonth(days), [days])
-  const shownTotal = days.reduce((sum, day) => sum + day.shown, 0)
-  const peak = days.reduce((best, day) => Math.max(best, day.shown), 1)
-  const index = Math.max(0, days.findIndex(day => day.date === selected))
-  const current = days[index]
+  const peaks = useMemo(() => (activity.available ? peakDays(view, 5) : []), [activity.available, view])
+  // Until a day is chosen, the busiest one is read out: the place an analyst usually starts.
+  const index = Math.max(0, view.days.findIndex(day => day.date === (selected || peaks[0]?.date)))
+  const bucket = view.days[index]
   const highlights = activity.available ? activityHighlights(activity) : null
+  const lanes = laneOrder(activity)
 
-  function toggle(id) { setFamilies(value => (value.includes(id) ? value.filter(item => item !== id) : [...value, id])) }
-  function select(date) { setSelected(date) }
-  function step(direction) { const next = days[index + (newestFirst ? -direction : direction)]; if (next) { setSelected(next.date); list.current?.querySelector(`[data-date="${next.date}"]`)?.scrollIntoView?.({ block: 'nearest' }) } }
-  function goTo(event) {
-    event.preventDefault()
-    const hit = days.find(day => day.date === jump.trim()) || days.find(day => day.date.startsWith(jump.trim()))
-    if (hit) { setSelected(hit.date); list.current?.querySelector(`[data-date="${hit.date}"]`)?.scrollIntoView?.({ block: 'center' }) }
-  }
+  const chart = useMemo(() => ({
+    buildOption: theme => timelineOption(view, theme, order, { range, selected: bucket?.date || '' }),
+    height: laneHeight(lanes.length),
+    label: `Timeline: ${lanes.length} record families by ${weekly ? 'week' : 'day'}, ${activity.first} to ${activity.last}. ${activity.families.map(family => `${curatedFamilyLabel(family.id)}: ${formatNumber(family.total)}`).join('. ')}`,
+    onSelect: params => {
+      const stamp = params?.value?.[0]
+      const date = Number.isFinite(stamp) ? dateOfStamp(stamp) : ''
+      if (date && view.days.some(day => day.date === date)) setSelected(date)
+    },
+  }), [view, order, range, bucket?.date, lanes.length, weekly, activity])
+
+  function step(direction) { const next = view.days[index + direction]; if (next) setSelected(next.date) }
   function onKey(event) {
-    if (!['ArrowDown', 'ArrowUp'].includes(event.key)) return
-    const buttons = [...list.current.querySelectorAll('button[data-date]')]
-    const at = buttons.indexOf(globalThis.document.activeElement)
-    const next = buttons[at + (event.key === 'ArrowDown' ? 1 : -1)]
-    if (next) { event.preventDefault(); next.focus(); setSelected(next.dataset.date) }
+    if (event.key === 'ArrowLeft') { event.preventDefault(); step(-1) }
+    else if (event.key === 'ArrowRight') { event.preventDefault(); step(1) }
   }
-  // The detail follows the data: when the filter drops the chosen day, the first listed day stands in.
-  const position = current ? (newestFirst ? days.length - 1 - index : index) : 0
 
   return (
     <CaseShell caseId={caseId}>
@@ -164,11 +167,16 @@ export default function TimelinePage() {
         <header className="tl-head">
           <div>
             <h1>Timeline</h1>
-            <p className="tl-head__sub">
-              {activity.available && activity.total ? <>Day by day, from the dates on the records. <b>{formatNumber(activity.total)}</b> events · {activity.first} to {activity.last}</> : 'When the records in this case happened, day by day.'}
-            </p>
+            <p className="tl-head__sub">When the records in this case happened, from the dates on the records.</p>
           </div>
-          {highlights ? <p className="tl-head__peak">Busiest day <Link to={investigateDay(caseId, { date: highlights.busiest.date })}>{highlights.busiest.date}</Link> <small>{formatNumber(highlights.busiest.total)} events</small></p> : null}
+          {activity.available && activity.total ? (
+            <dl className="tl-facts" aria-label="Timeline summary">
+              <div><dt>Events</dt><dd>{formatNumber(activity.total)}</dd></div>
+              <div><dt>Span</dt><dd>{activity.first} <i>to</i> {activity.last}</dd></div>
+              <div><dt>Active days</dt><dd>{formatNumber(activity.days.length)}</dd></div>
+              {highlights ? <div><dt>Busiest day</dt><dd>{highlights.busiest.date} <small>{formatNumber(highlights.busiest.total)}</small></dd></div> : null}
+            </dl>
+          ) : null}
         </header>
 
         {status === 'loading' && !activity.available ? <SkeletonRows rows={6} label="Reading the timeline" /> : null}
@@ -179,46 +187,32 @@ export default function TimelinePage() {
 
         {activity.available && activity.total ? (
           <>
-            <div className="tl-bar">
-              <div className="tl-chips" role="group" aria-label="Record families">
-                <button type="button" aria-pressed={families.length === 0} onClick={() => setFamilies([])}>All families</button>
-                {activity.families.map(family => <button key={family.id} type="button" style={swatch(Math.max(0, order.indexOf(family.id)))} aria-pressed={families.includes(family.id)} onClick={() => toggle(family.id)}><i aria-hidden="true" />{curatedFamilyLabel(family.id)}<small>{formatNumber(family.total)}</small></button>)}
-              </div>
-              <div className="tl-tools">
+            <section className="tl-stage" aria-label="Timeline explorer">
+              <header>
+                <div className="tl-stage__title"><h2>Events by record family</h2><p>Each bubble is a {weekly ? 'week' : 'day'}; bigger means more events. Scroll to zoom, drag the slider below to move.</p></div>
                 <div className="seg" role="group" aria-label="Time range">{RANGES.map(item => <button key={item.id} type="button" aria-pressed={range === item.id} onClick={() => setRange(item.id)}>{item.label}</button>)}</div>
-                <button type="button" className="tl-btn" onClick={() => setNewestFirst(value => !value)} aria-label={newestFirst ? 'Showing newest first. Show oldest first' : 'Showing oldest first. Show newest first'}>{newestFirst ? <ArrowDown aria-hidden="true" /> : <ArrowUp aria-hidden="true" />}{newestFirst ? 'Newest first' : 'Oldest first'}</button>
-                <form className="tl-jump" onSubmit={goTo}><Search aria-hidden="true" /><label><span className="visually-hidden">Go to a date</span><input value={jump} onChange={event => setJump(event.target.value)} placeholder="Go to 2026-03" inputMode="numeric" /></label></form>
+              </header>
+              <div ref={stage} className="tl-stage__plot" tabIndex={0} role="group" aria-label="Timeline chart. Left and right arrow keys move between days." onKeyDown={onKey}>
+                <Suspense fallback={<p className="chart-card__loading" role="status">Loading chart…</p>}>
+                  <EChart buildOption={chart.buildOption} height={chart.height} label={chart.label} onSelect={chart.onSelect} />
+                </Suspense>
               </div>
-            </div>
-            <p className="tl-count" role="status">{days.length ? `${formatNumber(days.length)} ${days.length === 1 ? 'day' : 'days'} · ${formatNumber(shownTotal)} events${families.length ? ` in ${families.map(curatedFamilyLabel).join(', ')}` : ''}` : 'No days match this range and these families.'}</p>
+              <div className="tl-peaks"><span>Busiest {weekly ? 'weeks' : 'days'}</span>
+                {peaks.map(day => <button key={day.date} type="button" aria-pressed={bucket?.date === day.date} onClick={() => setSelected(day.date)}>{day.date}<b>{formatNumber(day.total)}</b></button>)}
+              </div>
+            </section>
 
-            {days.length ? (
-              <div className="tl-body">
-                <div className="tl-river" ref={list} onKeyDown={onKey}>
-                  {groups.map(group => (
-                    <section key={group.key} aria-label={group.label}>
-                      <h2 className="tl-month">{group.label}<small>{formatNumber(group.total)} events · {group.days.length} active {group.days.length === 1 ? 'day' : 'days'}</small></h2>
-                      <ol>
-                        {group.days.map(day => {
-                          const parts = dayParts(day.date)
-                          const entries = Object.entries(day.byShown).filter(([, count]) => count > 0)
-                          return (
-                            <li key={day.date}>
-                              <button type="button" data-date={day.date} aria-current={current?.date === day.date ? 'true' : undefined} onClick={() => select(day.date)} aria-label={`${describeBucket(day)}: ${formatNumber(day.shown)} events`}>
-                                <span className="tl-date"><b>{parts.day}</b><small>{parts.weekday}</small></span>
-                                <span className="tl-track" aria-hidden="true"><span style={{ inlineSize: `${Math.max(1.5, (day.shown / peak) * 100)}%` }}>{entries.map(([id, count]) => <i key={id} style={{ ...swatch(Math.max(0, order.indexOf(id))), flexGrow: count }} />)}</span></span>
-                                <span className="tl-num">{formatNumber(day.shown)}</span>
-                              </button>
-                            </li>
-                          )
-                        })}
-                      </ol>
-                    </section>
-                  ))}
-                </div>
-                {current ? <DayDetail caseId={caseId} day={current} typical={typical} order={order} position={position} count={days.length} onStep={step} questions={questions} /> : null}
+            {bucket ? <SelectedDay caseId={caseId} bucket={bucket} typical={typical} order={order} palette={palette} position={index} count={view.days.length} onStep={step} questions={questions} /> : null}
+
+            <details className="tl-table">
+              <summary>Exact values by {weekly ? 'week' : 'day'}</summary>
+              <div role="region" aria-label="Exact values" tabIndex={0}>
+                <table>
+                  <thead><tr><th scope="col">{weekly ? 'Week of' : 'Day'}</th><th scope="col" className="is-numeric">Total</th>{lanes.map(id => <th key={id} scope="col" className="is-numeric">{curatedFamilyLabel(id)}</th>)}</tr></thead>
+                  <tbody>{view.days.map(day => <tr key={day.date}><th scope="row"><button type="button" onClick={() => setSelected(day.date)}>{day.date}</button></th><td className="is-numeric">{formatNumber(day.total)}</td>{lanes.map(id => <td key={id} className="is-numeric">{day.byFamily[id] ? formatNumber(day.byFamily[id]) : '—'}</td>)}</tr>)}</tbody>
+                </table>
               </div>
-            ) : null}
+            </details>
             <p className="tl-note">Counts are per calendar day (UTC) from each record&rsquo;s own date; upload and processing dates are never used. Open a day in Investigate to see its individual events and rows.{activity.truncated ? ' Partial: the service returns at most 100 day-and-family groups, oldest first.' : ''}</p>
           </>
         ) : null}

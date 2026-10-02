@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { againstTypical, dayBreakdown, familyScope, groupByMonth, typicalDay, visibleDays } from './timelineModel.js'
+import { againstTypical, dayBreakdown, familyScope, peakDays, typicalDay } from './timelineModel.js'
 
 const activity = {
   first: '2026-01-30', last: '2026-02-02',
@@ -11,19 +11,8 @@ const activity = {
 }
 
 describe('timeline model', () => {
-  it('lists days newest first and narrows by family so totals add up', () => {
-    expect(visibleDays(activity).map(day => day.date)).toEqual(['2026-02-02', '2026-02-01', '2026-01-30'])
-    const cdr = visibleDays(activity, { families: ['cdr'], newestFirst: false })
-    expect(cdr.map(day => [day.date, day.shown])).toEqual([['2026-01-30', 6], ['2026-02-01', 30]])
-  })
-
-  it('applies the range from the last day read', () => {
-    expect(visibleDays(activity, { range: '2' }).map(day => day.date)).toEqual(['2026-02-02', '2026-02-01'])
-  })
-
-  it('groups days under months with their own totals', () => {
-    const groups = groupByMonth(visibleDays(activity, { newestFirst: false }))
-    expect(groups.map(group => [group.label, group.total, group.days.length])).toEqual([['January 2026', 10, 1], ['February 2026', 32, 2]])
+  it('ranks the busiest days', () => {
+    expect(peakDays(activity, 2).map(day => day.date)).toEqual(['2026-02-01', '2026-01-30'])
   })
 
   it('compares a day with the typical day in words', () => {
