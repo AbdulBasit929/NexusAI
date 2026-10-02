@@ -180,6 +180,59 @@ export function localStorageFootprint() {
   }
 }
 
+// What this browser keeps, by kind, so the analyst can see it and remove one kind at a time. Counts are of items (questions,
+// drafts, pinned days, reviewed entries) and sizes are characters stored, both read from what is actually there.
+const CATEGORIES = [
+  { id: 'questions', label: 'Question history', note: 'The questions you asked in each case, so you can reopen them.', prefix: 'nexusai.viewer.questions.' },
+  { id: 'drafts', label: 'Draft questions', note: 'Question text you typed and did not send.', prefix: 'nexusai.viewer.draft.' },
+  { id: 'pins', label: 'Pinned timeline days', note: 'Days you pinned on a case timeline, with your notes.', prefix: 'nexusai.viewer.timeline.pins.' },
+  { id: 'reviewed', label: 'Reviewed activity', note: 'Entries you marked reviewed on the Activity page.', prefix: 'nexusai.viewer.activity.reviewed' },
+  { id: 'appearance', label: 'Appearance', note: 'Your theme choice.', prefix: 'nexusai.viewer.theme' },
+]
+
+export function storageInventory() {
+  const rows = [...CATEGORIES.map(category => ({ ...category, items: 0, bytes: 0, keys: [] })), { id: 'other', label: 'Other preferences', note: 'Navigation and view preferences.', prefix: null, items: 0, bytes: 0, keys: [] }]
+  try {
+    for (let index = 0; index < globalThis.localStorage.length; index += 1) {
+      const key = globalThis.localStorage.key(index)
+      if (!key?.startsWith('nexusai.')) continue
+      const value = globalThis.localStorage.getItem(key) || ''
+      const row = rows.find(entry => entry.prefix && key.startsWith(entry.prefix)) || rows[rows.length - 1]
+      let items = 1
+      if (['questions', 'pins', 'reviewed'].includes(row.id)) { try { const parsed = JSON.parse(value); items = Array.isArray(parsed) ? parsed.length : 0 } catch { items = 0 } }
+      else if (row.id === 'drafts') items = value.trim() ? 1 : 0
+      row.items += items
+      row.bytes += key.length + value.length
+      row.keys.push(key)
+    }
+  } catch { return { available: false, rows: [], bytes: 0 } }
+  return { available: true, rows, bytes: rows.reduce((total, row) => total + row.bytes, 0) }
+}
+
+// Everything this browser keeps for the workspace as one JSON document, for the analyst to keep or move. It is read from
+// local storage as it is; nothing is added.
+export function storageExport() {
+  const data = {}
+  try {
+    for (let index = 0; index < globalThis.localStorage.length; index += 1) {
+      const key = globalThis.localStorage.key(index)
+      if (!key?.startsWith('nexusai.')) continue
+      const value = globalThis.localStorage.getItem(key) || ''
+      try { data[key] = JSON.parse(value) } catch { data[key] = value }
+    }
+  } catch { return '{}' }
+  return JSON.stringify({ exportedAt: new Date().toISOString(), note: 'Saved in this browser only; not part of any case record.', data }, null, 2)
+}
+
+// Removes one kind of stored data (never anything outside this workspace's own keys).
+export function clearStorageKeys(keys) {
+  try { for (const key of keys) if (key.startsWith('nexusai.')) globalThis.localStorage.removeItem(key) } catch { /* nothing more to remove */ }
+  histories.clear()
+  drafts.clear()
+  merged.clear()
+  emit()
+}
+
 // Removes stored question history and drafts for every case. Deliberately does
 // NOT touch retained evidence -- nothing in this browser is evidence, and this
 // control must never read as though it could delete any.
