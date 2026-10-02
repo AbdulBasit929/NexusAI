@@ -175,3 +175,12 @@ a remote node is allowed at all; that is a policy question for the product owner
 1. Is a network inference node acceptable under the evidence-handling policy (M4)?
 2. Which outside model licences are acceptable for evaluation (M2)?
 3. Should ownership (O1 to O4) be scheduled before or after the model work? They do not depend on each other.
+4. Approval to run the L1b arms and the pre-registered Q4_0 speed test, and a thread-count test (these touch model config).
+5. Does the laptop (Lenovo 21BVS0QX00) have a free second SODIMM slot? A matching DDR4-3200 module would give dual-channel memory.
+
+## M0 results (measured 2026-10-02, four runs)
+
+Single-channel DDR4-3200 (peak about 25.6 GB/s): decode 6.9 to 9.0 tok/s, 63% to 82% of peak, so memory-bound. Threads (8), power
+plan, container limits and memory pressure are not limiting. Prefill is 38 to 48 tok/s. The prompt cache works: a 2,301-token
+prefix took 60.67 s cold and 1.04 s on each later request. The planner prompt layout defeats prefix caching beyond the system
+prompt; the proposed fix and its pre-registered thresholds are in `L1B_SHARED_PREAMBLE_SPEC_20261002.md` (not implemented, not measured).
