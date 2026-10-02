@@ -166,3 +166,6 @@ reports/**/context/nexusai-ui-wrapper
 
 apps/investigation-workspace/design-review/**/*.png
 apps/investigation-workspace/fixtures/live-*/
+
+# Binary produced by `go build ./api/forensic_records` run from the repo root
+/forensic_records
