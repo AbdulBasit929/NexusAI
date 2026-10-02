@@ -116,7 +116,7 @@ def main():
             "request_class": blob.get("request_class"), "terminal": terminal, "seconds": round(seconds, 1),
             "empty": not text, "boilerplate": any(b in low for b in BOILERPLATE),
             "leak": non_data and bool(DIGITS.search(text) or PLATE.search(text) or FILENAME.search(text)),
-            "data_path": (not terminal) if not non_data else None, "text": text,
+            "data_path": ((not terminal) and status == 200) if not non_data else None, "text": text,
         }
         rows.append(row)
         flags = ",".join(k for k in ("empty", "boilerplate", "leak") if row[k]) or "-"
