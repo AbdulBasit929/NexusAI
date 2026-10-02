@@ -98,3 +98,6 @@ Fail any line: `FORENSIC_CONVERSATION_FRONT_DOOR` stays off and the cause is rec
 - 2026-10-02, after arm B1 (`RESULT_ARM_B1.md`): product-help facts, DECLINE wording and a response-header audit were revised. **The thresholds above did not change.**
   The 40-message set was used to make the revision, so a 20-message holdout (`HOLDOUT`, `--set holdout`) was written before arm B2; the claim for B2 rests on the holdout and on
   the unchanged lines (leak, boilerplate, safety, speed, regression).
+- 2026-10-02, after arm B2 (`RESULT_ARM_B2.md`) and the HOLDOUT replies: the facts now include supported file formats, the prompt forbids infallibility claims and references to its own
+  instructions (and the server refuses such replies as a backstop), and a bare acronym such as "SMS" no longer counts as evidence context (H-CONCEPT-4 skipped the front door and took
+  82 s in the planner). **Thresholds unchanged.** HOLDOUT is now used; `HOLDOUT2` (20 new messages, `--set holdout2`) was written before the next run.
