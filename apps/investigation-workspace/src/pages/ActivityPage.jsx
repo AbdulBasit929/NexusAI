@@ -6,10 +6,10 @@ import { useSessionActivity } from '../lib/sessionActivity.js'
 import { useQuestionHistory } from '../lib/workspaceState.js'
 import { getCaseOverview } from '../lib/apiClient.js'
 import { EmptyState, RouteState } from '../components/AnalystComponents.jsx'
-import { activitiesCsv, asTimestamp, buildActivities, countOutcomes, dayCounts, groupByDay, outcomeOf } from '../lib/activityFeed.js'
+import { activitiesCsv, asTimestamp, buildActivities, countOutcomes, groupByDay, outcomeOf, seriesByDay } from '../lib/activityFeed.js'
 import { relativeAge } from '../lib/dashboardCases.js'
 import { formatNumber } from '../lib/format.js'
-import { CoverageCard, Detail, Feed, OutcomeCard, RhythmCard } from './activity/ActivityParts.jsx'
+import { CoverageCard, Detail, Feed, OutcomeCard, Pulse } from './activity/ActivityParts.jsx'
 
 const SOURCES = [{ id: 'all', label: 'All' }, { id: 'questions', label: 'Questions' }, { id: 'evidence', label: 'Evidence' }]
 
@@ -54,7 +54,7 @@ export default function ActivityPage() {
   const visible = useMemo(() => (outcome === 'all' ? matching : matching.filter(item => outcomeOf(item) === outcome)), [matching, outcome])
   const groups = useMemo(() => groupByDay(visible), [visible])
   const current = visible.find(item => item.id === selected) || visible[0]
-  const days = useMemo(() => dayCounts(activities), [activities])
+  const pulse = useMemo(() => seriesByDay(activities, item => item.sourceKind, ['questions', 'evidence']), [activities])
   const hasFilters = Boolean(query || source !== 'all' || outcome !== 'all')
   const clear = () => { setQuery(''); setSource('all'); setOutcome('all') }
   const questions = activities.filter(item => item.sourceKind === 'questions').length
@@ -69,16 +69,12 @@ export default function ActivityPage() {
             <h1>Recent activity</h1>
             <p>Resume questions saved in this browser and review the bounded recent evidence state reported for this collection.</p>
           </div>
-          <dl className="ac-facts-row" aria-label="Activity summary">
-            <div><dt>Entries</dt><dd>{formatNumber(activities.length)}</dd></div>
-            <div><dt>Questions</dt><dd>{formatNumber(questions)}</dd></div>
-            <div><dt>Evidence updates</dt><dd>{formatNumber(activities.length - questions)}</dd></div>
-            <div><dt>Latest</dt><dd>{latest ? relativeAge(latest) : '—'}</dd></div>
-          </dl>
         </header>
 
         {activities.length > 0 && (
           <>
+            <Pulse stats={[{ label: 'Entries', value: formatNumber(activities.length) }, { label: 'Questions', value: formatNumber(questions) }, { label: 'Evidence updates', value: formatNumber(activities.length - questions) }, { label: 'Latest', value: latest ? relativeAge(latest) : '—' }]} data={pulse} keys={['questions', 'evidence']} labelOf={key => (key === 'questions' ? 'Questions' : 'Evidence updates')} caption="Entries per day over the last 30 days that have any" />
+
             <div className="ac-bar" role="toolbar" aria-label="Find and filter activity">
               <label className="ac-search"><Search aria-hidden="true" /><span className="visually-hidden">Search activity</span><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Question, filename or identifier" /></label>
               <div className="seg" role="group" aria-label="Source">{SOURCES.map(item => <button key={item.id} type="button" aria-pressed={source === item.id} onClick={() => setSource(item.id)}>{item.label}</button>)}</div>
@@ -100,7 +96,6 @@ export default function ActivityPage() {
 
             <div className="ac-below">
               <OutcomeCard counts={counts} total={matching.length} active={outcome} onPick={setOutcome} />
-              <RhythmCard days={days} />
               <CoverageCard />
             </div>
           </>

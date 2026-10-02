@@ -200,6 +200,26 @@ export function dayCounts(items, span = 14) {
   return days.map(day => ({ day, count: counts.get(day) }))
 }
 
+// Entries per calendar day over the last `span` days ending on the latest dated entry, one series per key (for example per
+// case), oldest day first. Undated entries are not placed on any day. Empty when nothing carries a time.
+export function seriesByDay(items, keyOf, keys, span = 30) {
+  const stamps = items.map(item => asTimestamp(item.recordedAt)).filter(Boolean)
+  if (!stamps.length) return { days: [], series: [] }
+  const last = Date.parse(`${new Date(Math.max(...stamps)).toISOString().slice(0, 10)}T00:00:00Z`)
+  const days = Array.from({ length: span }, (_, index) => new Date(last - (span - 1 - index) * 86_400_000).toISOString().slice(0, 10))
+  const at = new Map(days.map((day, index) => [day, index]))
+  const series = keys.map(key => ({ key, values: days.map(() => 0), total: 0 }))
+  const lookup = new Map(series.map(entry => [entry.key, entry]))
+  for (const item of items) {
+    const index = at.get(dayKey(item.recordedAt))
+    const entry = lookup.get(keyOf(item))
+    if (index === undefined || !entry) continue
+    entry.values[index] += 1
+    entry.total += 1
+  }
+  return { days, series }
+}
+
 export function activitiesCsv(items) {
   const quote = value => (/[",\n]/.test(String(value)) ? `"${String(value).replace(/"/g, '""')}"` : String(value))
   const rows = items.map(item => [item.recordedAt || '', item.sourceLabel, outcomeLabel(item), item.title, item.answerWithheld ? '' : item.answer].map(quote).join(','))

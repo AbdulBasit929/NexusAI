@@ -53,3 +53,15 @@ describe('workspace feed', () => {
     expect(caseSummaries(items, ['a'], reviewed)[0].open).toBe(2)
   })
 })
+
+import { seriesByDay } from './activityFeed.js'
+
+describe('seriesByDay', () => {
+  const rows = [{ caseId: 'a', recordedAt: '2026-02-03T01:00:00Z' }, { caseId: 'a', recordedAt: '2026-02-03T05:00:00Z' }, { caseId: 'b', recordedAt: '2026-02-01T05:00:00Z' }, { caseId: 'b', recordedAt: null }, { caseId: 'z', recordedAt: '2026-02-02T05:00:00Z' }]
+  it('counts per case per day ending on the latest entry, and leaves out undated or unknown ones', () => {
+    const { days, series } = seriesByDay(rows, item => item.caseId, ['a', 'b'], 3)
+    expect(days).toEqual(['2026-02-01', '2026-02-02', '2026-02-03'])
+    expect(series).toEqual([{ key: 'a', values: [0, 0, 2], total: 2 }, { key: 'b', values: [1, 0, 0], total: 1 }])
+    expect(seriesByDay([{ recordedAt: null }], () => 'a', ['a'])).toEqual({ days: [], series: [] })
+  })
+})

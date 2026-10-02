@@ -4,14 +4,14 @@ import { CircleAlert, Download, RotateCcw, Search } from 'lucide-react'
 import { EmptyState, RouteState } from '../components/AnalystComponents.jsx'
 import { AppShell } from '../components/CaseShell.jsx'
 import { configuredCaseIds } from '../lib/apiClient.js'
-import { activitiesCsv, asTimestamp, buildWorkspaceActivities, caseSummaries, countOutcomes, dayCounts, groupByDay, needsLook, reviewedKey } from '../lib/activityFeed.js'
+import { activitiesCsv, asTimestamp, buildWorkspaceActivities, caseSummaries, countOutcomes, groupByDay, needsLook, reviewedKey, seriesByDay } from '../lib/activityFeed.js'
 import { useReviewed } from '../lib/activityReviewed.js'
 import { relativeAge } from '../lib/dashboardCases.js'
 import { formatNumber } from '../lib/format.js'
 import { useAllSessionActivity } from '../lib/sessionActivity.js'
 import { useConfiguredCaseOverviews } from '../lib/useCaseOverview.js'
 import { useQuestionHistoryAcross } from '../lib/workspaceState.js'
-import { CoverageCard, Detail, Feed, OutcomeCard, RhythmCard } from './activity/ActivityParts.jsx'
+import { CoverageCard, Detail, Feed, OutcomeCard, Pulse } from './activity/ActivityParts.jsx'
 import { WorkspaceRail } from './activity/WorkspaceRail.jsx'
 
 function download(name, text) {
@@ -63,7 +63,7 @@ export default function GlobalActivityPage() {
   const current = visible.find(item => reviewedKey(item) === selected) || visible[0]
   const counts = { attention: open.length, all: items.length, questions: items.filter(item => item.sourceKind === 'questions').length, evidence: items.filter(item => item.sourceKind === 'evidence').length }
   const cases = useMemo(() => caseSummaries(items, caseIds, reviewed), [items, reviewed]) // eslint-disable-line react-hooks/exhaustive-deps
-  const days = useMemo(() => dayCounts(items), [items])
+  const pulse = useMemo(() => seriesByDay(items, item => item.caseId, caseIds), [items]) // eslint-disable-line react-hooks/exhaustive-deps
   const outcomes = useMemo(() => countOutcomes(scoped), [scoped])
   const latestStamp = Math.max(0, ...items.map(item => asTimestamp(item.recordedAt)))
   const hasFilters = Boolean(query || caseFilter)
@@ -90,12 +90,6 @@ export default function GlobalActivityPage() {
             <h1>Activity</h1>
             <p>What has happened across your cases, with the things that need a look first. Everything opens in its own case.</p>
           </div>
-          <dl className="ac-facts-row" aria-label="Activity summary">
-            <div><dt>Cases</dt><dd>{formatNumber(caseIds.length)}</dd></div>
-            <div><dt>Entries</dt><dd>{formatNumber(items.length)}</dd></div>
-            <div><dt>Need a look</dt><dd>{formatNumber(open.length)}</dd></div>
-            <div><dt>Latest</dt><dd>{latestStamp ? relativeAge(new Date(latestStamp)) : '—'}</dd></div>
-          </dl>
         </header>
 
         {caseIds.length === 0 ? (
@@ -111,6 +105,8 @@ export default function GlobalActivityPage() {
 
         {caseIds.length > 0 && !loading ? (
           <>
+            <Pulse stats={[{ label: 'Need a look', value: formatNumber(open.length), tone: open.length ? 'alert' : null, note: open.length ? 'failed, limited, waiting or missing' : 'nothing waiting' }, { label: 'Entries', value: formatNumber(items.length), note: `across ${formatNumber(caseIds.length)} ${caseIds.length === 1 ? 'case' : 'cases'}` }, { label: 'Latest', value: latestStamp ? relativeAge(new Date(latestStamp)) : '—' }]} data={pulse} keys={caseIds} labelOf={key => key} caption="Entries per day, by case, over the last 30 days that have any" />
+
             <div className="ac-bar" role="toolbar" aria-label="Find activity">
               <label className="ac-search"><Search aria-hidden="true" /><span className="visually-hidden">Search activity</span><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Question, filename, case or identifier" /></label>
               <span className="ac-keys" aria-hidden="true"><kbd>J</kbd><kbd>K</kbd> move <kbd>E</kbd> mark reviewed</span>
@@ -120,7 +116,7 @@ export default function GlobalActivityPage() {
             </div>
 
             <div className="ac-main ac-main--ws">
-              <WorkspaceRail view={view} onView={setView} counts={counts} cases={cases} caseFilter={caseFilter} onCase={setCaseFilter} />
+              <WorkspaceRail view={view} onView={setView} counts={counts} cases={cases} caseFilter={caseFilter} onCase={setCaseFilter} pulse={pulse} />
               {visible.length ? (
                 <>
                   <Feed groups={groups} selectedId={current ? reviewedKey(current) : ''} onSelect={setSelected} total={items.length} shown={visible.length} showCase reviewed={reviewed} idOf={reviewedKey} />
@@ -137,7 +133,6 @@ export default function GlobalActivityPage() {
 
             <div className="ac-below">
               <OutcomeCard counts={outcomes} total={scoped.length} />
-              <RhythmCard days={days} />
               <CoverageCard />
             </div>
           </>

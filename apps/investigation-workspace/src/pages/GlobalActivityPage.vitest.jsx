@@ -15,6 +15,8 @@ function open(caseIds, respond = () => new Response(JSON.stringify(status), { st
   return render(<MemoryRouter initialEntries={['/activity']}><GlobalActivityPage /></MemoryRouter>)
 }
 
+vi.mock('../components/charts/EChart.jsx', () => ({ default: () => null }))
+
 afterEach(() => {
   vi.restoreAllMocks()
   globalThis.localStorage?.clear()

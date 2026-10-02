@@ -11,6 +11,8 @@ import TimelinePage, { timelineQuestions } from './TimelinePage.jsx'
 const reading = { activity: mergeActivity([]) }
 vi.mock('../lib/useCaseActivity.js', async importOriginal => ({ ...(await importOriginal()), useCaseActivity: () => ({ status: 'ready', activity: reading.activity, failures: [] }) }))
 
+vi.mock('../components/charts/EChart.jsx', () => ({ default: () => null }))
+
 afterEach(() => {
   clearSessionActivityForTests()
   clearWorkspaceStateForTests()
