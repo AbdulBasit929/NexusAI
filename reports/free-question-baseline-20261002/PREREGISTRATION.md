@@ -101,3 +101,22 @@ Fail any line: `FORENSIC_CONVERSATION_FRONT_DOOR` stays off and the cause is rec
 - 2026-10-02, after arm B2 (`RESULT_ARM_B2.md`) and the HOLDOUT replies: the facts now include supported file formats, the prompt forbids infallibility claims and references to its own
   instructions (and the server refuses such replies as a backstop), and a bare acronym such as "SMS" no longer counts as evidence context (H-CONCEPT-4 skipped the front door and took
   82 s in the planner). **Thresholds unchanged.** HOLDOUT is now used; `HOLDOUT2` (20 new messages, `--set holdout2`) was written before the next run.
+- 2026-10-02, after frontdoor3 and holdout2 (read from the owner's paste): the infallibility rejection now returns the honest answer instead of a rephrase request; an invented phone-like number in a reply is refused; the facts say Urdu and
+  Roman Urdu transcripts exist (as model output to review) and that evidence is added from the case's Evidence page (holdout2 said Urdu audio was not understood and that users do not upload evidence). **Thresholds unchanged.**
+  **Freeze:** every conversation set written so far has now been used to tune, so none is unseen. From here the front-door code changes only for a regression failure or a reviewer's finding on `review.md`;
+  further quality claims rest on the owner's grading and on messages the owner writes.
+
+## Regression arms (fixed before they run)
+
+`replay_corpus.py` asks the repository's own 103 evaluation questions (`evaluation/golden_questions_v2.json` 62, `holdout_questions_v1.json` 13, `holdout_media_v1.json` 28) on one image, once with
+`FORENSIC_CONVERSATION_FRONT_DOOR=false` (arm `replay-off`) and once with `true` (arm `replay-on`); `replay_corpus.py compare replay-off replay-on` prints every difference.
+
+| Line | Pass condition |
+|---|---|
+| Answers | the analyst text is identical for all 103, or every difference is read and shown to be neutral or an improvement |
+| Routing | 0 corpus questions are answered by the front door itself (route `terminal` where arm OFF was not terminal) |
+| Number checks | 0 lost (a number check the OFF arm states and the ON arm does not) |
+| Errors | 0 HTTP errors in either arm |
+| Added time | median front-door time on data questions at most 8 s, read from the `X-Front-Door` header |
+
+Fail any line: the switch stays off and the cause is recorded.

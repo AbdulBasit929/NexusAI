@@ -358,3 +358,35 @@ func TestFrontDoorRefusesPromptReferencesAndInfallibilityClaims(t *testing.T) {
 		}
 	}
 }
+
+// Live check and holdout2 I-SMALL-1: the model kept claiming to be infallible, so the rejection now answers honestly instead of asking the user to rephrase.
+func TestFrontDoorInfallibleClaimIsReplacedByTheHonestAnswer(t *testing.T) {
+	f := newFakeModel(t, fdConversation, "I don't make mistakes when providing information.")
+	resp, handled, _ := ask(t, f, "do you ever get things wrong?")
+	if !handled {
+		t.Fatal("the front door must answer")
+	}
+	if text, _ := resp.Enterprise["executive_answer"].(string); text != frontDoorFallibleReply || !strings.Contains(text, "can make mistakes") {
+		t.Fatalf("got %q", text)
+	}
+}
+
+// Frontdoor3 HELP-2 invented "555-1234" inside an example question.
+func TestFrontDoorRefusesInventedPhoneNumbersInExamples(t *testing.T) {
+	if _, why := frontDoorCleanReply("Try asking: Who made a call to 555-1234 on October 10th?"); why != "PHONE_LIKE_IN_REPLY" {
+		t.Fatalf("got %q", why)
+	}
+	if _, why := frontDoorCleanReply("Try asking: Who called <number> on <date>?"); why != "" {
+		t.Fatalf("placeholders must pass, got %q", why)
+	}
+}
+
+// Holdout2 I-HELP-2 said Urdu audio is not understood; I-HELP-5 said evidence is not uploaded by the user.
+func TestFrontDoorFactsCoverUrduAudioAndAddingEvidence(t *testing.T) {
+	facts := frontDoorFacts()
+	for _, want := range []string{"Urdu and Roman Urdu", "Add evidence", "Evidence page"} {
+		if !strings.Contains(facts, want) {
+			t.Errorf("the facts must mention %q", want)
+		}
+	}
+}
