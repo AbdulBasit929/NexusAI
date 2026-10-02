@@ -1,11 +1,15 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { afterEach, describe, expect, test } from 'vitest'
+import { afterEach, describe, expect, test, vi } from 'vitest'
+import { mergeActivity, parseActivity as parse } from '../lib/caseActivity.js'
 import { clearSessionActivityForTests, recordSessionActivity } from '../lib/sessionActivity.js'
 import { clearWorkspaceStateForTests, recordQuestionHistory } from '../lib/workspaceState.js'
 import ActivityPage from './ActivityPage.jsx'
 import TimelinePage, { timelineQuestions } from './TimelinePage.jsx'
+
+const reading = { activity: mergeActivity([]) }
+vi.mock('../lib/useCaseActivity.js', async importOriginal => ({ ...(await importOriginal()), useCaseActivity: () => ({ status: 'ready', activity: reading.activity, failures: [] }) }))
 
 afterEach(() => {
   clearSessionActivityForTests()
@@ -53,12 +57,20 @@ describe('case activity', () => {
 })
 
 describe('case timeline', () => {
-  test('states the missing contract and never substitutes ingestion timestamps', () => {
+  test('lists real record days by month, narrows by family and never uses ingestion dates', async () => {
+    const rows = [
+      { activity_date: '2026-01-30', record_type: 'cdr', event_count: 6 },
+      { activity_date: '2026-01-30', record_type: 'anpr', event_count: 4 },
+      { activity_date: '2026-02-01', record_type: 'cdr', event_count: 30 },
+    ]
+    reading.activity = mergeActivity([parse({ records: { activity_by_day: rows } }, 'case-1')])
     at('/cases/case-1/timeline', <TimelinePage />)
-    expect(screen.getByRole('heading', { name: 'A reliable source chronology is not available' })).toBeInTheDocument()
-    expect(screen.getByText(/upload and processing dates were deliberately excluded/i)).toBeInTheDocument()
-    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
-    expect(screen.queryByPlaceholderText(/Phone, plate/)).not.toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /^February 2026/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /^January 2026/ })).toBeInTheDocument()
+    expect(screen.getByText(/upload and processing dates are never used/i)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /plate|anpr/i }))
+    expect(screen.queryByRole('heading', { name: /^February 2026/ })).not.toBeInTheDocument()
+    expect(screen.getByText(/^1 day · 4 events/)).toBeInTheDocument()
   })
 
   test('projects only curated, available chronology questions from capabilities', () => {
