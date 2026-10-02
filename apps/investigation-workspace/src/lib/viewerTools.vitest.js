@@ -104,3 +104,18 @@ describe('regions and cues', () => {
     expect(activeCueIndex(cues, 99)).toBe(2)
   })
 })
+
+describe('scrollWithin', () => {
+  const box = (top, height) => ({ getBoundingClientRect: () => ({ top, bottom: top + height, height }) })
+  it('scrolls only the container, to the element or its centre, and not at all when it is already in view', async () => {
+    const { scrollWithin } = await import('./viewerTools.js')
+    const container = { ...box(100, 200), scrollTop: 50, clientHeight: 200, scrollTo: ({ top }) => { container.scrollTop = top } }
+    scrollWithin(container, box(150, 20))
+    expect(container.scrollTop).toBe(50)
+    scrollWithin(container, box(320, 20))
+    expect(container.scrollTop).toBe(50 + 320 - 100 - 200 + 20)
+    scrollWithin(container, box(100, 20), 'center')
+    expect(container.scrollTop).toBe(Math.max(0, container.scrollTop))
+    expect(() => scrollWithin(null, null)).not.toThrow()
+  })
+})

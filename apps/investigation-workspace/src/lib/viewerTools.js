@@ -114,3 +114,19 @@ export function activeCueIndex(cues, time) {
   cues.forEach((cue, index) => { if (time >= cue.start && (cue.end == null || time < cue.end)) found = index })
   return found
 }
+
+// Brings one element into view by scrolling its own scroll container only. `scrollIntoView` would also scroll the page and
+// every ancestor, which jumps the whole screen when a viewer opens.
+export function scrollWithin(container, element, align = 'nearest', smooth = false) {
+  if (!container || !element) return
+  const box = container.getBoundingClientRect()
+  const target = element.getBoundingClientRect()
+  const top = target.top - box.top + container.scrollTop
+  let next = null
+  if (align === 'center') next = top - (container.clientHeight - target.height) / 2
+  else if (target.top < box.top) next = top
+  else if (target.bottom > box.bottom) next = top - container.clientHeight + target.height
+  if (next === null) return
+  const options = { top: Math.max(0, next), behavior: smooth ? 'smooth' : 'auto' }
+  if (container.scrollTo) container.scrollTo(options); else container.scrollTop = options.top
+}

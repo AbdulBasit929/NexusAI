@@ -4,7 +4,7 @@ import { CircleAlert, ClipboardCopy, Download, RotateCcw, Search } from 'lucide-
 import { CaseShell } from '../components/CaseShell.jsx'
 import { SkeletonRows } from '../components/Skeleton.jsx'
 import { getQueryCapabilities } from '../lib/apiClient.js'
-import { activityHighlights, bucketActivity, bucketQuestion } from '../lib/caseActivity.js'
+import { activityHighlights, bucketActivity, bucketQuestion, rangeStartIndex } from '../lib/caseActivity.js'
 import { formatNumber } from '../lib/format.js'
 import { curatedFamilyLabel } from '../lib/semanticCatalog.js'
 import { dateOfStamp, laneOrder, workbenchHeight, workbenchOption } from '../lib/timelineChart.js'
@@ -116,7 +116,16 @@ export default function TimelinePage() {
   const typical = useMemo(() => typicalDay(activity), [activity])
   const peaks = useMemo(() => (activity.available ? peakDays(view, 4) : []), [activity.available, view])
   const insights = useMemo(() => timelineInsights(activity), [activity])
-  const windowed = useMemo(() => (activity.available && windowRange ? windowSummary(view, windowRange.from, windowRange.to) : null), [activity.available, view, windowRange])
+  // The window in view: what the user zoomed to, else the range preset (so the summary always matches the chart), else everything.
+  const presetWindow = useMemo(() => {
+    const first = view.days[rangeStartIndex(view, range)]
+    const last = view.days[view.days.length - 1]
+    return range !== 'all' && first && last ? { from: Date.parse(`${first.date}T00:00:00Z`), to: Date.parse(`${last.end || last.date}T00:00:00Z`) } : null
+  }, [view, range])
+  const windowed = useMemo(() => {
+    const window = windowRange || presetWindow
+    return activity.available && window ? windowSummary(view, window.from, window.to) : null
+  }, [activity.available, view, windowRange, presetWindow])
   const lanes = laneOrder(activity)
   const shown = windowed && windowed.days ? view.days.filter(day => Date.parse(`${day.end || day.date}T00:00:00Z`) >= windowRange.from && Date.parse(`${day.date}T00:00:00Z`) <= windowRange.to) : view.days
   // Until a day is chosen, the busiest one is read out: the place an analyst usually starts.
@@ -147,7 +156,8 @@ export default function TimelinePage() {
     if (hit) setSelected(hit.date)
   }
   function onKey(event) {
-    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return
+    // A control that already used the key (the inspector's tabs, a radio group) keeps it: the day does not also move.
+    if (event.defaultPrevented || ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName) || event.target.closest?.('[role="tablist"]')) return
     if (event.key === 'ArrowLeft') { event.preventDefault(); step(-1) }
     else if (event.key === 'ArrowRight') { event.preventDefault(); step(1) }
     else if (event.key.toLowerCase() === 'p' && bucket) toggle(bucket.date)
@@ -206,7 +216,7 @@ export default function TimelinePage() {
                 {activity.days.length ? (
                   <div className="tw-stage__plot" role="group" aria-label="Timeline chart. Left and right arrow keys move between days, P pins the day." tabIndex={0}>
                     <Suspense fallback={<p className="chart-card__loading" role="status">Loading chart…</p>}>
-                      <EChart buildOption={chart.buildOption} height={chart.height} label={chart.label} onSelect={chart.onSelect} onZoom={setWindowRange} />
+                      <EChart buildOption={chart.buildOption} height={chart.height} label={chart.label} onSelect={chart.onSelect} onZoom={setWindowRange} zoomKey={`${range}|${weekly}|${chosen.join(',')}`} />
                     </Suspense>
                   </div>
                 ) : <p className="tw-empty">No days match the chosen families.</p>}
@@ -220,7 +230,7 @@ export default function TimelinePage() {
                   </div>
                 </footer>
               </section>
-              {bucket ? <Inspector caseId={caseId} bucket={bucket} typical={typical} order={order} palette={palette} position={index} count={view.days.length} onStep={step} neighbours={view.days.slice(Math.max(0, index - 10), index + 11)} onSelect={setSelected} pinned={Boolean(pin)} note={pin?.note || ''} onPin={() => toggle(bucket.date)} onNote={text => setNote(bucket.date, text)} link={link} /> : <aside className="tw-inspector"><p className="tw-empty">Nothing to read for these families.</p></aside>}
+              {bucket ? <Inspector caseId={caseId} bucket={bucket} typical={typical} order={order} palette={palette} position={index} count={view.days.length} onStep={step} neighbours={view.days.slice(Math.max(0, index - 5), index + 6)} onSelect={setSelected} pinned={Boolean(pin)} note={pin?.note || ''} onPin={() => toggle(bucket.date)} onNote={text => setNote(bucket.date, text)} link={link} /> : <aside className="tw-inspector"><p className="tw-empty">Nothing to read for these families.</p></aside>}
             </div>
 
             <div className="tw-below">

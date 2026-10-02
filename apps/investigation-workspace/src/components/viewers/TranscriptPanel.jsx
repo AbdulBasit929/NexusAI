@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
 import { LanguageText } from '../AnalystComponents.jsx'
-import { activeCueIndex, formatClock } from '../../lib/viewerTools.js'
+import { activeCueIndex, formatClock, scrollWithin } from '../../lib/viewerTools.js'
 
 // The transcript beside the player: the cue being spoken is marked and followed as it plays, a click seeks to it, the cue a
 // citation pointed at is set apart, and a search narrows the list to the cues that contain the words.
@@ -16,10 +16,10 @@ export function TranscriptPanel({ cues, time, onSeek, cited = null }) {
 
   useEffect(() => {
     if (!follow || needle) return
-    list.current?.querySelector('[aria-current="true"]')?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' })
+    scrollWithin(list.current, list.current?.querySelector('[aria-current="true"]'), 'nearest', true)
   }, [active, follow, needle])
   useEffect(() => {
-    if (citedIndex >= 0) list.current?.querySelector('.is-cited')?.scrollIntoView?.({ block: 'center' })
+    if (citedIndex >= 0) scrollWithin(list.current, list.current?.querySelector('.is-cited'), 'center')
   }, [citedIndex])
 
   return (

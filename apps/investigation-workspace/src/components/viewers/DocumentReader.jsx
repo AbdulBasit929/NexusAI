@@ -4,7 +4,7 @@ import { EvidenceStrengthBadge } from '../Citations.jsx'
 import { LanguageText } from '../AnalystComponents.jsx'
 import { documentPages } from '../../lib/viewerPresentation.js'
 import { strength } from '../../lib/viewerStrength.js'
-import { findMatches, pageMatchCounts, splitByMatches } from '../../lib/viewerTools.js'
+import { findMatches, pageMatchCounts, scrollWithin, splitByMatches } from '../../lib/viewerTools.js'
 import { HighlightedText } from './HighlightedText.jsx'
 
 // The document as a reader: a page rail with where the search words occur, find-in-document with a count and next/previous,
@@ -25,7 +25,7 @@ export function DocumentReader({ detail, objectUrl, page, charSpan, onPageChange
   const searching = query.trim().length > 0
 
   useEffect(() => { setHit(0) }, [query, requested])
-  useEffect(() => { body.current?.querySelector('.dr-hit.is-active, #exact-source')?.scrollIntoView?.({ block: 'center' }) }, [hit, requested, query, charSpan])
+  useEffect(() => { scrollWithin(body.current, body.current?.querySelector('.dr-hit.is-active, #exact-source'), 'center') }, [hit, requested, query, charSpan])
 
   function step(direction) {
     if (matches.length) { setHit(value => (value + direction + matches.length) % matches.length); return }

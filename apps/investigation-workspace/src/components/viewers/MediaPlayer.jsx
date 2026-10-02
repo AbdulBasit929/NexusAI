@@ -36,9 +36,10 @@ export function MediaPlayer({ kind, src, label, markers = [], initialTime = null
     let cancelled = false
     ;(async () => {
       try {
-        const buffer = await (await globalThis.fetch(src)).arrayBuffer()
+        const blob = await (await globalThis.fetch(src)).blob()
         const Context = globalThis.AudioContext || globalThis.webkitAudioContext
-        if (cancelled || buffer.byteLength > MAX_DECODE_BYTES || !Context) return
+        if (cancelled || blob.size > MAX_DECODE_BYTES || !Context) return
+        const buffer = await blob.arrayBuffer()
         const context = new Context()
         const decoded = await context.decodeAudioData(buffer)
         if (!cancelled) setPeaks(peaksFrom(decoded.getChannelData(0), BARS))
