@@ -12,7 +12,7 @@ const dot = colour => ({ '--fam': colour })
 // The right panel: the chosen day or week read in full. Summary holds the total, how it compares, the family mix with a link
 // into Investigate for each family, and the pin and note; Events is where individual events will list. Tabs follow the
 // ARIA pattern (arrow keys, roving focus).
-export function Inspector({ caseId, bucket, typical, order, palette, position, count, onStep, questions, pinned, note, onPin, onNote, link }) {
+export function Inspector({ caseId, bucket, typical, order, palette, position, count, onStep, neighbours = [], onSelect = () => {}, pinned, note, onPin, onNote, link }) {
   const [tab, setTab] = useState('summary')
   const tabs = [['summary', 'Summary'], ['events', 'Events']]
   const refs = useRef([])
@@ -63,16 +63,20 @@ export function Inspector({ caseId, bucket, typical, order, palette, position, c
                 <textarea value={note} maxLength={400} rows={3} onChange={event => onNote(event.target.value)} placeholder="Why this day matters" />
               </label>
             ) : null}
+            {neighbours.length > 1 ? (
+              <figure className="tw-around">
+                <figcaption>Around this {week ? 'week' : 'day'}</figcaption>
+                <ol aria-label={`Events on the ${neighbours.length} ${week ? 'weeks' : 'days'} around ${bucket.date}`}>
+                  {neighbours.map(day => (
+                    <li key={day.date}><button type="button" aria-current={day.date === bucket.date ? 'true' : undefined} onClick={() => onSelect(day.date)} title={`${day.date}: ${formatNumber(day.total)} events`} aria-label={`${day.date}: ${formatNumber(day.total)} events`}><span style={{ blockSize: `${Math.max(4, (day.total / Math.max(1, ...neighbours.map(item => item.total))) * 100)}%` }} /></button></li>
+                  ))}
+                </ol>
+              </figure>
+            ) : null}
           </>
         ) : <EventStream caseId={caseId} bucket={bucket} />}
       </div>
       <Link className="tw-btn tw-btn--primary" to={link(bucket)}><MessageSquareText aria-hidden="true" />Investigate {week ? 'this week' : 'this day'}</Link>
-      {questions.length ? (
-        <section className="tw-ask" aria-labelledby="tw-ask">
-          <h3 id="tw-ask">Ask about a sequence</h3>
-          <ul>{questions.slice(0, 3).map(item => <li key={`${item.scope}-${item.question}`}><Link to={`/cases/${encodeURIComponent(caseId)}/investigate?${new URLSearchParams({ question: item.question, ...(item.scope !== 'all' ? { scope: item.scope } : {}) })}`}>{item.question}</Link><small>{item.family}</small></li>)}</ul>
-        </section>
-      ) : null}
     </aside>
   )
 }

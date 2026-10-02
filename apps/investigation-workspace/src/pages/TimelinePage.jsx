@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { CircleAlert, ClipboardCopy, Download, MoonStar, PieChart, RotateCcw, Search, TrendingUp } from 'lucide-react'
+import { CircleAlert, ClipboardCopy, Download, RotateCcw, Search } from 'lucide-react'
 import { CaseShell } from '../components/CaseShell.jsx'
 import { SkeletonRows } from '../components/Skeleton.jsx'
 import { getQueryCapabilities } from '../lib/apiClient.js'
@@ -12,7 +12,7 @@ import { timelineInsights, windowSummary } from '../lib/timelineInsights.js'
 import { briefing, daysCsv, familyOrder, familyScope, filterActivity, peakDays, typicalDay } from '../lib/timelineModel.js'
 import { usePins } from '../lib/timelineAnnotations.js'
 import { activityFailureText, useCaseActivity } from '../lib/useCaseActivity.js'
-import { FamilyStrip, RhythmPanel, SavedPanel } from './timeline/FamilyRail.jsx'
+import { FamilyStrip, InsightsCard, RhythmPanel, SavedPanel } from './timeline/FamilyRail.jsx'
 import { Inspector } from './timeline/Inspector.jsx'
 
 // Code-split with the other charts: ECharts is fetched only when the timeline is shown.
@@ -61,7 +61,6 @@ export function timelineQuestions(payload) {
 
 const RANGES = [{ id: 'all', label: 'All' }, { id: '90', label: '90 days' }, { id: '30', label: '30 days' }, { id: '7', label: '7 days' }]
 const WEEKLY_FROM_DAYS = 150
-const INSIGHT_ICON = { spike: TrendingUp, gap: MoonStar, mix: PieChart }
 
 function investigateLink(caseId) {
   return (bucket, family = null) => {
@@ -196,58 +195,50 @@ export default function TimelinePage() {
               <button type="button" className="tw-btn" onClick={exportCsv}><Download aria-hidden="true" />Export CSV</button>
             </div>
 
-            <div className="tw-workbench">
-              <section className="tw-center" aria-label="Timeline explorer">
-                <FamilyStrip all={all.families} order={order} palette={palette} chosen={chosen} onToggle={toggleFamily} onClear={() => setChosen([])} totals={all.total} />
-                {insights.length ? (
-                  <ul className="tw-insights" aria-label="What stands out">
-                    {insights.map(item => {
-                      const Icon = INSIGHT_ICON[item.id]
-                      const body = <><span className="tw-insight__icon" aria-hidden="true"><Icon /></span><span><b>{item.title}</b><small>{item.detail}</small></span></>
-                      return <li key={item.id} className={`tw-insight tw-insight--${item.tone}`}>{item.date && view.days.some(day => day.date === item.date) ? <button type="button" onClick={() => setSelected(item.date)} aria-label={`${item.title}. ${item.detail} Read this day.`}>{body}</button> : <div>{body}</div>}</li>
-                    })}
-                  </ul>
-                ) : null}
-                <div className="tw-stage">
-                  <header>
-                    <h2>Volume and activity by record family</h2>
-                    <p>Each {weekly ? 'week' : 'day'} on one time axis. Scroll to zoom, drag the slider to move, select a bar or bubble to read it.</p>
-                  </header>
-                  {activity.days.length ? (
-                    <div className="tw-stage__plot" role="group" aria-label="Timeline chart. Left and right arrow keys move between days, P pins the day." tabIndex={0}>
-                      <Suspense fallback={<p className="chart-card__loading" role="status">Loading chart…</p>}>
-                        <EChart buildOption={chart.buildOption} height={chart.height} label={chart.label} onSelect={chart.onSelect} onZoom={setWindowRange} />
-                      </Suspense>
-                    </div>
-                  ) : <p className="tw-empty">No days match the chosen families.</p>}
-                  <footer>
-                    <p className="tw-window" role="status" aria-live="polite">
-                      <span>In view</span>
-                      {windowed && windowed.days ? <><b>{windowed.first}{windowed.last !== windowed.first ? ` to ${windowed.last}` : ''}</b><span>{formatNumber(windowed.total)} events · {formatNumber(windowed.days)} {weekly ? (windowed.days === 1 ? 'week' : 'weeks') : (windowed.days === 1 ? 'day' : 'days')}</span></> : <><b>{activity.first} to {activity.last}</b><span>{formatNumber(activity.total)} events · {formatNumber(activity.days.length)} {weekly ? 'weeks' : 'days'}</span></>}
-                    </p>
-                    <div className="tw-peaks"><span>Busiest {weekly ? 'weeks' : 'days'}</span>
-                      {peaks.map(day => <button key={day.date} type="button" aria-pressed={bucket?.date === day.date} onClick={() => setSelected(day.date)}>{day.date}<b>{formatNumber(day.total)}</b></button>)}
-                    </div>
-                  </footer>
-                </div>
-                <details className="tw-table">
-                  <summary>Exact values by {weekly ? 'week' : 'day'}</summary>
-                  <div role="region" aria-label="Exact values" tabIndex={0}>
-                    <table>
-                      <thead><tr><th scope="col">{weekly ? 'Week of' : 'Day'}</th><th scope="col" className="is-numeric">Total</th>{lanes.map(id => <th key={id} scope="col" className="is-numeric">{curatedFamilyLabel(id)}</th>)}</tr></thead>
-                      <tbody>{view.days.map(day => <tr key={day.date}><th scope="row"><button type="button" onClick={() => setSelected(day.date)}>{day.date}</button></th><td className="is-numeric">{formatNumber(day.total)}</td>{lanes.map(id => <td key={id} className="is-numeric">{day.byFamily[id] ? formatNumber(day.byFamily[id]) : '—'}</td>)}</tr>)}</tbody>
-                    </table>
-                  </div>
-                </details>
-                <p className="tw-note">Counts are per calendar day (UTC) from each record&rsquo;s own date; upload and processing dates are never used.{activity.truncated ? ' Partial: the service returns at most 100 day-and-family groups, oldest first.' : ''}</p>
-              </section>
+            <FamilyStrip all={all.families} days={all.days} order={order} palette={palette} chosen={chosen} onToggle={toggleFamily} onClear={() => setChosen([])} totals={all.total} />
 
-              <div className="tw-side">
-              {bucket ? <Inspector caseId={caseId} bucket={bucket} typical={typical} order={order} palette={palette} position={index} count={view.days.length} onStep={step} questions={questions} pinned={Boolean(pin)} note={pin?.note || ''} onPin={() => toggle(bucket.date)} onNote={text => setNote(bucket.date, text)} link={link} /> : <aside className="tw-inspector"><p className="tw-empty">Nothing to read for these families.</p></aside>}
-                <RhythmPanel days={activity.days} />
-                <SavedPanel pins={pins} onOpenPin={setSelected} onRemovePin={toggle} />
-              </div>
+            <div className="tw-main">
+              <section className="tw-stage" aria-label="Timeline explorer">
+                <header>
+                  <h2>Volume and activity by record family</h2>
+                  <p>Each {weekly ? 'week' : 'day'} on one time axis. Scroll to zoom, drag the slider to move, select a bar or bubble to read it.</p>
+                </header>
+                {activity.days.length ? (
+                  <div className="tw-stage__plot" role="group" aria-label="Timeline chart. Left and right arrow keys move between days, P pins the day." tabIndex={0}>
+                    <Suspense fallback={<p className="chart-card__loading" role="status">Loading chart…</p>}>
+                      <EChart buildOption={chart.buildOption} height={chart.height} label={chart.label} onSelect={chart.onSelect} onZoom={setWindowRange} />
+                    </Suspense>
+                  </div>
+                ) : <p className="tw-empty">No days match the chosen families.</p>}
+                <footer>
+                  <p className="tw-window" role="status" aria-live="polite">
+                    <span>In view</span>
+                    {windowed && windowed.days ? <><b>{windowed.first}{windowed.last !== windowed.first ? ` to ${windowed.last}` : ''}</b><span>{formatNumber(windowed.total)} events · {formatNumber(windowed.days)} {weekly ? (windowed.days === 1 ? 'week' : 'weeks') : (windowed.days === 1 ? 'day' : 'days')}</span></> : <><b>{activity.first} to {activity.last}</b><span>{formatNumber(activity.total)} events · {formatNumber(activity.days.length)} {weekly ? 'weeks' : 'days'}</span></>}
+                  </p>
+                  <div className="tw-peaks"><span>Busiest {weekly ? 'weeks' : 'days'}</span>
+                    {peaks.map(day => <button key={day.date} type="button" aria-pressed={bucket?.date === day.date} onClick={() => setSelected(day.date)}>{day.date}<b>{formatNumber(day.total)}</b></button>)}
+                  </div>
+                </footer>
+              </section>
+              {bucket ? <Inspector caseId={caseId} bucket={bucket} typical={typical} order={order} palette={palette} position={index} count={view.days.length} onStep={step} neighbours={view.days.slice(Math.max(0, index - 10), index + 11)} onSelect={setSelected} pinned={Boolean(pin)} note={pin?.note || ''} onPin={() => toggle(bucket.date)} onNote={text => setNote(bucket.date, text)} link={link} /> : <aside className="tw-inspector"><p className="tw-empty">Nothing to read for these families.</p></aside>}
             </div>
+
+            <div className="tw-below">
+              <InsightsCard insights={insights} questions={questions} caseId={caseId} canOpen={date => view.days.some(day => day.date === date)} onSelect={setSelected} />
+              <RhythmPanel days={activity.days} />
+              <SavedPanel pins={pins} onOpenPin={setSelected} onRemovePin={toggle} />
+            </div>
+
+            <details className="tw-table">
+              <summary>Exact values by {weekly ? 'week' : 'day'}</summary>
+              <div role="region" aria-label="Exact values" tabIndex={0}>
+                <table>
+                  <thead><tr><th scope="col">{weekly ? 'Week of' : 'Day'}</th><th scope="col" className="is-numeric">Total</th>{lanes.map(id => <th key={id} scope="col" className="is-numeric">{curatedFamilyLabel(id)}</th>)}</tr></thead>
+                  <tbody>{view.days.map(day => <tr key={day.date}><th scope="row"><button type="button" onClick={() => setSelected(day.date)}>{day.date}</button></th><td className="is-numeric">{formatNumber(day.total)}</td>{lanes.map(id => <td key={id} className="is-numeric">{day.byFamily[id] ? formatNumber(day.byFamily[id]) : '—'}</td>)}</tr>)}</tbody>
+                </table>
+              </div>
+            </details>
+            <p className="tw-note">Counts are per calendar day (UTC) from each record&rsquo;s own date; upload and processing dates are never used.{activity.truncated ? ' Partial: the service returns at most 100 day-and-family groups, oldest first.' : ''}</p>
           </>
         ) : null}
       </main>
