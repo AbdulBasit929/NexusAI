@@ -1,0 +1,5 @@
+# Generated questions hold values sampled from the database under test, and run folders hold its answers. Keep them local.
+questions*.json
+arm-*/
+mockrun/
+__pycache__/
