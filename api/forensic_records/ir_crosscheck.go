@@ -176,6 +176,11 @@ func verifiedOnlyWithholds(req hybridQueryRequest) bool {
 	if !semanticVerifiedOnlyEnabled() || req.SourceNative != nil {
 		return false
 	}
+	// U2a gate 2: a cited text search over the evidence the question named is
+	// not a structured answer awaiting a typed plan. See evidence_search_first.go.
+	if derivedTextSearchNamedByQuestion(req.Query, req.Template) {
+		return false
+	}
 	family := semanticQuestionFamily(req.Query)
 	return family != "" && semanticDynamicFamilyAllowed(req, family)
 }
@@ -237,6 +242,10 @@ func structuredTemplateAnsweringMediaQuestion(req hybridQueryRequest, template s
 	// So it stands down when the question resolves to a DERIVED family. The
 	// narrowing is precise: a structured family naming a media noun is untouched.
 	if family := mediaFamilyForQuestion(req.Query); family != "" {
+		return false
+	}
+	// U2b: a plate-read search plan reads the plate reader's own output.
+	if plateReadSearchPlan(req.SourceNative) {
 		return false
 	}
 	lowered := strings.ToLower(req.Query)
@@ -419,6 +428,9 @@ func withholdPostExecution(req hybridQueryRequest, resp *hybridQueryResponse, en
 				"scope actually searched.",
 			Detail: "searched_family=" + familyOrNone(entry.FamilyID) + " template=" + entry.Name,
 		}
+	case relevanceSearchMissIsNotAbsence(*resp):
+		// S2. See absence_statements.go.
+		reason = textSearchNotAbsenceReason(*resp)
 	default:
 		return false
 	}

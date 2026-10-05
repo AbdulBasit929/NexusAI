@@ -150,6 +150,11 @@ func executeSourceNativeProjectionSQL(ctx context.Context, db *pgxpool.Pool, req
 	for _, row := range rows {
 		out := map[string]any{}
 		for _, id := range plan.Project {
+			// The projection path, for the same reason as the group labels above.
+			if alias, handled := maskCuratedValue(fields[id], req.CollectionID, row[sourceNativeSQLAlias(fields[id].FieldID)]); handled {
+				out[fields[id].NormalizedName] = alias
+				continue
+			}
 			out[fields[id].NormalizedName] = row[sourceNativeSQLAlias(fields[id].FieldID)]
 		}
 		out["metadata"] = map[string]any{"source_rows": []map[string]any{{
@@ -300,6 +305,16 @@ func executeSourceNativeAggregateSQL(ctx context.Context, db *pgxpool.Pool, req 
 	for _, row := range rows {
 		out := map[string]any{}
 		for i, id := range plan.GroupFields {
+			// A GROUP LABEL IS A PROJECTED VALUE. Grouping by a masked field
+			// puts the raw value in the row key, which is the same disclosure
+			// as projecting it — "how many reads per plate" would list every
+			// plate. The curated redaction is applied here, at the point the
+			// value would reach an analyst, and a field whose masking cannot be
+			// performed yields no label at all rather than the raw text.
+			if alias, handled := maskCuratedValue(fields[id], req.CollectionID, row[groupAliases[i]]); handled {
+				out[fields[id].NormalizedName] = alias
+				continue
+			}
 			out[fields[id].NormalizedName] = row[groupAliases[i]]
 		}
 		if plan.TimeBucket != nil {

@@ -443,12 +443,47 @@ func (e SemanticLayerEntityV1) CatalogFields(req hybridQueryRequest) []FieldDesc
 	out := make([]FieldDescriptorV1, 0, len(e.Fields))
 	for _, field := range e.Fields {
 		if field.Sensitivity == "PII" || field.Sensitivity == "RESTRICTED" {
-			continue
+			// A PII FIELD IS ADMITTED ONLY WHEN THE CURATION SAYS HOW TO MASK IT
+			// AND THE DEPLOYMENT CAN ACTUALLY DO SO.
+			//
+			// WI-LAYER-7 split the seven PII fields in two. The plate candidates
+			// are `MASKED`: projected as one opaque, case-scoped alias shared
+			// across both plate families. The five OCR and transcript fields are
+			// `WITHHELD`: token masking was ruled insufficient because free text
+			// carries names, addresses and contextual identifiers that no token
+			// syntax recognises, and the bounded patterns proving zero CNIC-,
+			// email- or IBAN-like rows do NOT make the remainder safe.
+			//
+			// Three conditions, all required:
+			//   * the field declares MASKED, not WITHHELD or an unrecognised value
+			//   * masking is behind its own switch, default off
+			//   * the deployment holds an alias secret
+			//
+			// The secret condition is not incidental. Plate strings are LOW
+			// ENTROPY, so an unkeyed digest is reversible by enumeration and is
+			// not an alias at all. Without the secret this FAILS CLOSED and the
+			// field stays out of the catalogue entirely, rather than being
+			// admitted and then degrading to a weak mask under a MASKED label.
+			descriptor := FieldDescriptorV1{SourceName: field.SourceNames[0], SourceNames: field.SourceNames}
+			if !(piiMaskedProjectionEnabled() && field.Redaction == "MASKED" &&
+				piiMaskingAvailable() && piiMaskScheme(descriptor) != "") {
+				// U2b: the plate-read text may be issued FILTER-ONLY for a question
+				// that supplies a plate (product-owner decision, search-only). It
+				// can never be projected, grouped, sorted or aggregated.
+				if plateReadFilterOnlyField(req, e, field) {
+					out = append(out, filterOnlyDescriptor(e, field, req))
+				}
+				continue
+			}
 		}
 		names := append([]string(nil), field.SourceNames...)
 		sensitivity, redaction := "STANDARD", "VISIBLE"
 		if field.Sensitivity == "IDENTIFIER" {
 			sensitivity = "IDENTIFIER"
+		}
+		masked := field.Sensitivity == "PII" || field.Sensitivity == "RESTRICTED"
+		if masked {
+			sensitivity, redaction = field.Sensitivity, "MASKED"
 		}
 		out = append(out, FieldDescriptorV1{
 			ContractVersion:   fieldDescriptorContractV1,
@@ -467,7 +502,12 @@ func (e SemanticLayerEntityV1) CatalogFields(req hybridQueryRequest) []FieldDesc
 			AllowedAggregates: semanticLayerPlanAggregates(field.AllowedAggregates, field.DistinctCapable),
 			Projectable:       field.Projectable,
 			Groupable:         field.Groupable,
-			Sortable:          field.Sortable,
+			// A MASKED FIELD IS NEVER SORTABLE. Sorting happens in SQL over the
+			// RAW value while the analyst is shown aliases, so an ordered list of
+			// aliases discloses the raw lexical order of the plates behind them —
+			// enough, over a few queries, to reconstruct them. The alias hides the
+			// value; the ordering would hand it back.
+			Sortable:          field.Sortable && !masked,
 			FamilyProvenance:  []string{e.RecordType},
 			EvidenceID:        req.EvidenceID,
 			EvidenceVersionID: req.EvidenceVersionID,

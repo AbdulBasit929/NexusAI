@@ -277,6 +277,17 @@ func hybridQueryHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			writeError(w, http.StatusBadRequest, errors.New("query or template is required"))
 			return
 		}
+		// An explicit family scope is validated BEFORE it can scope anything. A
+		// misspelt family used to match zero rows and be narrated as "there are
+		// no records" -- see record_type_validation.go for the measured case.
+		if recordTypeValidationEnabled() {
+			canonical, _, err := canonicalizeRequestedRecordType(req.RecordType)
+			if err != nil {
+				writeError(w, http.StatusBadRequest, err)
+				return
+			}
+			req.RecordType = canonical
+		}
 		if preliminary := assessDynamicQuery(req.Query, req.Template); preliminary.Status != "unavailable" {
 			var scopeIntentStatus string
 			req, scopeIntentStatus = applyExplicitQueryScopeIntent(req)
@@ -380,10 +391,23 @@ func hybridQueryHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			planner.Reason = compositionSpec.Reason
 		}
 		languageAssistanceStatus := "deterministic_fast_path"
+		// U2b: a plate the analyst supplied, asked about in images or video, is
+		// searched over the plate reader's output, search-only. Case-wide only: a
+		// selected-evidence request keeps its own scoped routes. See plate_read_search.go.
+		if req.Template == "" && req.EvidenceID == "" && len(compositionSpec.Templates) == 0 {
+			if searched, ok := plateReadSearchRequest(req); ok {
+				req = searched
+				planner = planRuntimeQuery(req)
+				languageAssistanceStatus = "plate_read_search"
+			}
+		}
 		// Upgrade supported deterministic queries through the same fact/tuple
 		// assembler used by residual planning, without touching catalogue-only
 		// operations or bounded composition.
-		if preflightCapability.Status != "unavailable" && len(compositionSpec.Templates) == 0 && req.Template == "" {
+		// U2a gate 1: the one-identifier shortcut never overrides a text search
+		// the question aimed at one kind of evidence. See evidence_search_first.go.
+		if preflightCapability.Status != "unavailable" && len(compositionSpec.Templates) == 0 && req.Template == "" &&
+			!derivedTextSearchNamedByQuestion(req.Query, planner.Template) {
 			factReq, facts := extractHybridFacts(req)
 			if len(buildHybridTuples(factReq, facts)) == 1 {
 				if resolved, status := resolveHybridPlanner(ctx, config{}, req); hybridResolvedStatus(status) && resolved.Template != "" {
@@ -405,6 +429,27 @@ func hybridQueryHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 				languageAssistanceStatus = status
 			}
 		}
+		// A2 WAS TRIED HERE AND REVERTED, 2026-09-27. Do not re-add it without
+		// reading reports/compiler-first-20260927/A2_RESULT.md first.
+		//
+		// The premise -- taken from the post-mortem comment at `chooseTemplate`
+		// -- was that a template-less question reaches the `template == ""`
+		// clarification below having never been planned, because
+		// `shouldUseLanguageAssistance` requires `req.SynthesisModel != ""`.
+		//
+		// MEASURED: it is already planned. With the A2 switch OFF, "List the
+		// audio files in this case" still carries a semantic operation planner
+		// audit with ~3.1 s of real compiler latency and 66 ranked candidates,
+		// and the compiler returns UNSUPPORTED_REQUEST_CLASS. A synthesis model
+		// IS configured in this deployment, so that gate does not block.
+		//
+		// A second invocation here therefore bought nothing and cost a
+		// duplicate catalogue build and compile on every unrecognised question.
+		// The real blocker is one layer down: the compiler refuses these
+		// questions at its own structured-competence guard
+		// (`semanticQuestionFamily == "" && extractCanonicalRecordType == ""`),
+		// which is the A3 work, not a routing problem.
+		//
 		// Every route converges here: the deterministic fast path, the
 		// keyword ladder and the semantic planner. Off by default; when on,
 		// it writes only to the audit.
@@ -516,6 +561,23 @@ func hybridQueryHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 		// withheld while a correct generated plan sat unused in the same response.
 		// Re-deriving costs a generation; withholding a correct answer costs the
 		// analyst the answer.
+		// DETERMINISTIC ARBITRATION WAS TRIED HERE, BEFORE THE IR ARBITRATION
+		// BELOW, AND REVERTED 2026-09-27. Read
+		// reports/identifier-binding-20260927/A3_3_RESULT.md before re-adding it.
+		//
+		// Running the deterministic compiler FIRST pre-empted the IR rescue that
+		// was already answering CDR-12, CDR-14 and CDR-16 correctly: the
+		// deterministic plan was adopted, the IR never ran, and the three went
+		// CORRECT -> CLARIFIED, WRONG ("4 records" for a question whose answer is
+		// 2) and CLARIFIED. The deterministic compiler fails on exactly those
+		// shapes -- rank with no target, GROUP BY a provenance column -- which is
+		// WHY the IR had been rescuing them.
+		//
+		// The safety argument written for it was wrong: "a clarification makes no
+		// claim, so replacing one cannot turn a right answer wrong". The baseline
+		// is not the clarification. It is whatever the NEXT rescuer would have
+		// produced. Any future attempt belongs AFTER this block, as a last resort
+		// when the IR also failed, never before it.
 		if semanticIRArbitrationEnabled() && (willClarify(req, template) || verifiedOnlyWithholds(req)) {
 			if arbitrated, state := resolveSemanticIRFallback(ctx, cfg, req, "CLARIFICATION"); state == "semantic_ir_fallback" {
 				req = arbitrated
@@ -658,7 +720,14 @@ func hybridQueryHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			}
 		}
 		if req.SemanticPlannerAudit != nil && req.SemanticPlannerAudit.Selected != nil {
-			req.SemanticPlannerAudit.BindingState, req.SemanticPlannerAudit.MissingFactKinds = semanticBindingReadiness(req, *req.SemanticPlannerAudit.Selected)
+			if registeredSelectionSuperseded(req) {
+				// The arbitrated typed plan executes, not `Selected`; readiness
+				// computed for `Selected` would clarify on a parameter nothing
+				// uses. See arbitration_supersedes_selection.go.
+				req.SemanticPlannerAudit.BindingState, req.SemanticPlannerAudit.MissingFactKinds = bindingSupersededByArbitration, nil
+			} else {
+				req.SemanticPlannerAudit.BindingState, req.SemanticPlannerAudit.MissingFactKinds = semanticBindingReadiness(req, *req.SemanticPlannerAudit.Selected)
+			}
 		}
 		bindingMissing := req.SemanticPlannerAudit != nil && req.SemanticPlannerAudit.BindingState == "USER_FACT_REQUIRED"
 		clarifying := bindingMissing || invalidSubscriberTarget || (template == "multi_cdr_comparison" && req.SourceSet == nil) || (documentComparisonRequested(req) && req.SourceSet == nil) || needsClarification(req.Query, template, req.Target, req.Targets)
@@ -995,9 +1064,9 @@ func hybridQueryHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 					ContractVersion: clarificationRequestContractV1,
 					ReasonCode:      "cross_check_disagreement",
 					Question:        stringValueAny(resp.Answer["clarification"]),
-					MissingFields: []string{},
-					Options:       clarificationOptions(req, nil),
-					ExecutionHeld: true,
+					MissingFields:   []string{},
+					Options:         clarificationOptions(req, nil),
+					ExecutionHeld:   true,
 				}
 				intent = intentClarify
 			}
@@ -2088,6 +2157,31 @@ func chooseTemplate(query, explicitTemplate string) string {
 	// and was told "1,057 ANPR sightings". Abstaining hands it to the compiler,
 	// which is already how 39 of 62 questions are answered.
 	if mediaFamilyRoutingClaims(query) {
+		// A MEDIA QUESTION IS NOT THE LADDER'S TO ANSWER. Every template here
+		// reads forensic.records, so a question about model observations can
+		// only be answered from the wrong evidence -- M7 asked about 24 video
+		// plate groups and was told "1,057 ANPR sightings".
+		//
+		// TESTED AND REVERTED 2026-09-27. Returning "canonical_records" here
+		// instead of "" looked well-evidenced: five correctly-routed media
+		// questions (M4, M11, M18, M20, H1) die at the handler guard that
+		// clarifies on an EMPTY template before any compilation runs, and every
+		// media question that WORKS carries template=canonical_records. The
+		// inference was that the compiler runs inside that template and the
+		// derived catalogue isolation would keep the plan on
+		// forensic.derived_artifacts.
+		//
+		// It does not. Measured live, all five went CLARIFIED -> WRONG and
+		// answered from records: "20 ANPR sightings matched this question",
+		// including H1 "which plates were read from the videos". That is the
+		// exact defect this abstention exists to prevent, and five honest
+		// abstentions became five confident-wrong answers.
+		//
+		// The real blocker is therefore NOT the template value: it is that no
+		// compiler path exists for a template-less question. The handler guard
+		// at the `template == ""` check ends the request before planning. Fixing
+		// this means giving those questions a compiler path, not a template
+		// that routes them back to the wrong table.
 		return ""
 	}
 	q := normalizeAnalystSemantics(query)
@@ -6624,10 +6718,13 @@ func buildEnterprisePayload(req hybridQueryRequest, resp hybridQueryResponse) ma
 	if resp.Template == "video_anpr_grouped_timeline" {
 		req.Target = strings.TrimSpace(req.Plate)
 	}
-	if resp.Composition != nil {
+	// S3: a clarifying response never reaches a result-specific builder, which
+	// would describe zero rows as a finding. See absence_statements.go.
+	clarifying := clarifyingInsteadOfResult(resp)
+	if resp.Composition != nil && !clarifying {
 		return finalizeEnterprisePayload(req, resp, buildCompositionEnterprisePayload(req, resp))
 	}
-	if resp.Template == "multi_cdr_comparison" {
+	if resp.Template == "multi_cdr_comparison" && !clarifying {
 		return finalizeEnterprisePayload(req, resp, buildMultiCDREnterprisePayload(req, resp))
 	}
 	rows := enterpriseDisplayRows(req, resp)
@@ -6652,6 +6749,8 @@ func buildEnterprisePayload(req hybridQueryRequest, resp hybridQueryResponse) ma
 		}
 	}
 	dataGrid := enterpriseDataGrid(rows)
+	// A1: headers name what each column holds. See result_column_labels.go.
+	applyColumnLabels(dataGrid, sourceNativeColumnLabels(req, resp))
 	if resp.Template == "document_search" {
 		dataGrid["title"] = "Cited document passages"
 		dataGrid["count_label"] = "passages"
@@ -6660,7 +6759,7 @@ func buildEnterprisePayload(req hybridQueryRequest, resp hybridQueryResponse) ma
 	if resp.Template == "video_anpr_grouped_timeline" {
 		columns := make([]map[string]any, 0)
 		for _, key := range videoResultColumns(rows) {
-			columns = append(columns, map[string]any{"key": key, "header": humanizeField(key)})
+			columns = append(columns, map[string]any{"key": key, "header": tableHeader(key)})
 		}
 		dataGrid["columns"] = columns
 		dataGrid["priority_columns"] = videoResultColumns(rows)
@@ -7016,10 +7115,19 @@ func enterpriseExecutiveAnswerBody(req hybridQueryRequest, resp hybridQueryRespo
 	case "source_file_audit":
 		return fmt.Sprintf("%d source file%s %s registered in this case.", count, pluralSuffix(count), singularVerb(count, "is", "are"))
 	case "frequent_contacts":
-		return fmt.Sprintf("%d phone contact%s ranked for %s.", count, pluralSuffix(count), defaultString(req.Target, "the selected participant"))
+		ranked := fmt.Sprintf("%d phone contact%s ranked for %s.", count, pluralSuffix(count), defaultString(req.Target, "the selected participant"))
+		// A3: say who ranks first, then the size of the ranking. See template_result_statements.go.
+		if leaders := frequentContactLeaders(req, resp); leaders != "" {
+			return leaders + " " + ranked
+		}
+		return ranked
 	case "case_readiness":
 		return "If you mean whether this evidence case is ready for analysis, the readiness checks below summarize processing, traceability, coverage, duplicates, and rejected rows. This is not a certification that the NexusAI platform is production-ready."
 	default:
+		// A3: a first/last-seen question states both times. See template_result_statements.go.
+		if seen := targetFirstLastSeen(req, resp); seen != "" {
+			return seen
+		}
 		if answer, ok := buildResultAnswer(req, resp, rows); ok && answer.Headline != "" {
 			return answer.Headline
 		}
@@ -7033,9 +7141,9 @@ func enterpriseExecutiveAnswerBody(req hybridQueryRequest, resp hybridQueryRespo
 		if summary != "" && !factPacketPlumbingText(summary) {
 			return summary
 		}
-		noun := familyNoun(req.RecordType, float64(count))
+		noun := resultNoun(req, resp, float64(count))
 		if count == 0 {
-			return fmt.Sprintf("No %s matched this question in the authorized scope.", familyNoun(req.RecordType, 0))
+			return fmt.Sprintf("No %s matched this question in the authorized scope.", resultNoun(req, resp, 0))
 		}
 		// Reaching here means NOTHING computed an answer: buildResultAnswer
 		// produced no headline and records_summary was machinery. The sentence
@@ -7044,6 +7152,10 @@ func enterpriseExecutiveAnswerBody(req hybridQueryRequest, resp hybridQueryRespo
 		// withhold instead of asserting -- see uncomputedQuantityAnswer.
 		if resp.Answer != nil {
 			resp.Answer[uncomputedAnswerMarker] = true
+		}
+		// S1 Part B: say "N matched" only where it is true. See rowcount_headline.go.
+		if sentence := rowCountFallbackSentence(resp, count, noun); sentence != "" {
+			return sentence
 		}
 		return fmt.Sprintf("%s %s matched this question.", formatAnswerNumber(float64(count)), noun)
 	}
@@ -7973,9 +8085,9 @@ func enterpriseProvenance(req hybridQueryRequest, rows []map[string]any, evidenc
 		metadata, _ := item["metadata"].(map[string]any)
 		locator := decodedCitationLocator(metadata["source_locator"])
 		for _, support := range mapsFromAny(metadata["contributing_observations"]) {
-			add(map[string]any{"source": "derived_text", "collection_id": req.CollectionID, "evidence_id": support["evidence_id"], "version_id": support["version_id"], "artifact_id": support["artifact_id"], "run_id": support["run_id"], "source_file": support["source_file"], "source_locator": marshalJSONString(support["citation_locator"]), "citation_locator": support["citation_locator"], "citation": fmt.Sprintf("nexusai://evidence/%s/artifacts/%s", support["evidence_id"], support["artifact_id"]), "preview": support["passage_text"]})
+			add(withCitationTruthState(map[string]any{"source": "derived_text", "collection_id": req.CollectionID, "evidence_id": support["evidence_id"], "version_id": support["version_id"], "artifact_id": support["artifact_id"], "run_id": support["run_id"], "source_file": support["source_file"], "source_locator": marshalJSONString(support["citation_locator"]), "citation_locator": support["citation_locator"], "citation": fmt.Sprintf("nexusai://evidence/%s/artifacts/%s", support["evidence_id"], support["artifact_id"]), "preview": support["passage_text"]}, firstPresent(support, "source_truth_state")))
 		}
-		add(map[string]any{
+		add(withCitationTruthState(map[string]any{
 			"source":             "kb_rag",
 			"collection_id":      req.CollectionID,
 			"evidence_id":        metadata["evidence_id"],
@@ -7991,7 +8103,7 @@ func enterpriseProvenance(req hybridQueryRequest, rows []map[string]any, evidenc
 			"citation":           firstPresent(item, "citation", "id"),
 			"score":              firstPresent(item, "similarity", "score"),
 			"preview":            firstPresent(item, "preview", "content"),
-		})
+		}, metadata["source_truth_state"]))
 	}
 	return out
 }
@@ -8151,7 +8263,7 @@ func inferEnterpriseColumns(rows []map[string]any) []map[string]any {
 			seen[key] = struct{}{}
 			columns = append(columns, map[string]any{
 				"key":    key,
-				"header": humanizeField(key),
+				"header": tableHeader(key), // A1.1, see table_header_casing.go
 			})
 		}
 	}

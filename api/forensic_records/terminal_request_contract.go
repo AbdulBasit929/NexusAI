@@ -135,6 +135,13 @@ func terminalEnterprisePayload(req hybridQueryRequest, class forensicrequest.Cla
 }
 
 func generalDomainAnswer(query string) string {
+	// B1: whole-word glossary. See conversation_router.go.
+	if conversationRouterEnabled() {
+		if text, ok := glossaryAnswer(query); ok {
+			return text
+		}
+		return "A bounded general definition is unavailable for that term. This response makes no statement about the current case or its evidence."
+	}
 	normalized := strings.ToLower(query)
 	definitions := []struct {
 		terms []string
@@ -186,10 +193,15 @@ func groundedProductHelp(query string) map[string]any {
 	if len(formats) == 0 && len(operations) == 0 {
 		state = "UNAVAILABLE"
 	}
+	text := "Current product help is derived from the registered evidence families, their explicit support levels, and exposed query operations shown in this response."
+	if conversationRouterEnabled() && state == "AVAILABLE" {
+		// B1: say what the registry says, in words. See conversation_router.go.
+		text = productHelpAnswer(query)
+	}
 	return map[string]any{
 		"result_state": "COMPLETED", "grounding_contract": productHelpGroundingContractV1,
 		"registry_state": state, "question": query,
-		"answer":              "Current product help is derived from the registered evidence families, their explicit support levels, and exposed query operations shown in this response.",
+		"answer":              text,
 		"operational_formats": formats, "registered_families": families, "exposed_operations": operations,
 	}
 }

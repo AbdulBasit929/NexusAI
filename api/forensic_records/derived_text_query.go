@@ -23,6 +23,7 @@ SELECT artifacts.artifact_id::text, artifacts.artifact_type,
  artifacts.tenant_id, artifacts.collection_id, artifacts.run_id::text,
  artifacts.metadata#>>'{observation,language}' AS language_lineage,
  artifacts.metadata->>'observation_id' AS observation_id,
+ artifacts.metadata->>'source_truth_state' AS source_truth_state,
  CASE WHEN artifacts.artifact_type='forensics.image-ocr-observation/v1' AND coalesce(artifacts.metadata#>>'{observation,raw_text}', '')='' THEN true ELSE false END AS raw_text_unavailable,
        coalesce(artifacts.parent_artifact_id::text, '') AS parent_artifact_id,
        artifacts.evidence_id::text, artifacts.version_id::text,
@@ -331,6 +332,10 @@ func governedDerivedTextEvidence(rows []map[string]any, req hybridQueryRequest) 
 		}
 		metadata["raw_text"] = stringValueAny(row["passage_text"])
 		metadata["observation_id"] = row["observation_id"]
+		// A2: carry what the stored observation says it is. See citation_truth_state.go.
+		if state := citationTruthState(row["source_truth_state"]); state != "" {
+			metadata["source_truth_state"] = state
+		}
 		metadata["run_id"] = row["run_id"]
 		metadata["match_semantic"] = mode
 		metadata["text_representation"] = "raw"

@@ -722,6 +722,12 @@ func compileDeterministicSourceNativePlan(frame SemanticFrameV1, question string
 	// all 11 subscribers instead of the 6 that are active. Only values the layer
 	// declares can bind, so nothing is invented.
 	plan.Filters = appendSourceNativeValueFilters(boundFilters, question, catalog)
+	// A1b. A numeric bound the analyst stated ("above 50000") is the same kind
+	// of obligation as a declared value literal, and enters by the same door.
+	// Binds only when the layer declares the field range-filterable AND the
+	// question names that field; never converts a unit, because no filterable
+	// field in the layer declares one.
+	plan.Filters = appendSourceNativeRangeFilters(plan.Filters, question, catalog)
 	if frame.Goal == "source_rows" || frame.Goal == "lookup" {
 		for _, field := range catalog {
 			if field.Projectable && len(plan.Project) < sourceNativeProjectLimit {
@@ -915,6 +921,15 @@ func compileDeterministicSemanticRequest(ctx context.Context, cfg config, req hy
 	// filter — is the better answer, and the registered match stays as the
 	// fallback if no plan compiles.
 	preferTypedPlan := len(appendSourceNativeValueFilters(nil, req.Query, catalog)) > 0
+	// A3.3. A named identifier that occurs in exactly one curated field is the
+	// same kind of obligation, and a registered operation cannot carry it as a
+	// filter either. Measured: TWR-02 resolved to the registered
+	// `tower_coordinate_audit`, which has no typed plan and is therefore withheld
+	// by VERIFIED_ONLY. Inert unless FORENSIC_IDENTIFIER_BINDING is on.
+	identifierFilters := bindIdentifiersByPresence(ctx, cfg.QueryDB, req, frame, catalog)
+	if len(identifierFilters) > 0 {
+		preferTypedPlan = true
+	}
 	if registeredMatched && !preferTypedPlan {
 		result.Executor, result.OperationID, result.ReasonCode = semanticExecutorRegistered, registeredSelected.OperationID, "REGISTERED_APPLICABILITY_MATCH"
 		result.Confidence = 1
@@ -922,6 +937,26 @@ func compileDeterministicSemanticRequest(ctx context.Context, cfg config, req hy
 	}
 	if plan, reason, fieldScores := compileDeterministicSourceNativePlan(frame, req.Query, catalog, fieldEmbeddings); plan != nil {
 		result.RankedFields = fieldScores
+		// A3.3. Appended BEFORE CONSTRAINT_APPLIED runs, so the guard below sees
+		// the identifier carried by the plan and stops refusing it -- and still
+		// refuses every identifier this could not bind. The filter enters by
+		// FieldID, as the value and range filters do: `sourceNativeFieldByExactName`
+		// resolves by normalized name or source alias, never by FieldID, so a
+		// frame filter hinted with a FieldID would fail to resolve.
+		alreadyFiltered := map[string]bool{}
+		for _, existing := range plan.Filters {
+			alreadyFiltered[existing.FieldID] = true
+		}
+		for _, filter := range identifierFilters {
+			if len(plan.Filters) >= sourceNativeFilterLimit {
+				break
+			}
+			if alreadyFiltered[filter.FieldID] {
+				continue
+			}
+			plan.Filters = append(plan.Filters, filter)
+			alreadyFiltered[filter.FieldID] = true
+		}
 		// S9 CONSTRAINT_APPLIED. The plan is only usable if every literal the
 		// analyst supplied is actually carried by it or by the request scope.
 		if unbound := deterministicUnboundConstraints(req, frame, plan); len(unbound) > 0 {
@@ -979,7 +1014,13 @@ func applyDeterministicSemanticCompiler(ctx context.Context, cfg config, req hyb
 	// fixed breakdown and cannot carry the filter that was asked for. Skipping
 	// the catalogue here is why SUB-02 kept answering 11 instead of 6.
 	namesCuratedValue := semanticLayerQuestionNamesValue(req.Query)
-	if _, matched, _ := deterministicRegisteredMatch(frame, ranked, scores, nil); (!matched || needsIssuedFields || namesCuratedValue) && cfg.QueryDB != nil {
+	// A3.3. A named identifier needs the catalogue for the same reason: binding
+	// it is a lookup against curated fields. Without this the catalogue is
+	// skipped whenever a registered operation matches, so the binding is handed
+	// an empty catalogue and silently does nothing -- measured on TWR-02, which
+	// kept resolving to the registered `tower_coordinate_audit`.
+	namesBindableIdentifier := identifierBindingEnabled() && len(frame.Identifiers) > 0
+	if _, matched, _ := deterministicRegisteredMatch(frame, ranked, scores, nil); (!matched || needsIssuedFields || namesCuratedValue || namesBindableIdentifier) && cfg.QueryDB != nil {
 		// A bounded sample is enough to learn field shape/type here; this only
 		// decides whether a dynamic plan CAN be compiled. The actual answer,
 		// if a plan is compiled, is always executed as real SQL over the full
@@ -1049,6 +1090,21 @@ func applyDeterministicSemanticCompiler(ctx context.Context, cfg config, req hyb
 		bound := req
 		bound.Template = "canonical_records"
 		bound.SourceNative = result.DynamicPlan
+		// DO NOT SCOPE RecordType HERE. Tried and reverted 2026-09-27 -- see
+		// reports/compiled-family-scope-20260927/RESULT.md.
+		//
+		// Scoping is already done downstream by `applyCanonicalQueryHints`
+		// (query.go), which sets RecordType from the QUESTION's words when it is
+		// empty. Setting it here, from the frame's family label, pre-empted that:
+		// "Which domain was ACCESSED most often?" is labelled access-log on the
+		// word "accessed", was scoped to access_log, and IPDR-02 went CORRECT ->
+		// WRONG. The question-based hint correctly yields `ipdr`.
+		//
+		// The "4 records" CDR-14 defect is real but lives ONLY on the arbitration
+		// path, which swaps a plan in AFTER the hints have run. If a compiled plan
+		// is ever adopted at arbitration again, re-apply `applyCanonicalQueryHints`
+		// there -- the one existing definition of scope -- rather than adding a
+		// second one here.
 		bound.SourceNativeCatalog = catalog
 		bound.Group, bound.Compare, bound.Projection = nil, nil, nil
 		bound.SemanticPlannerAudit = req.SemanticPlannerAudit

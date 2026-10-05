@@ -251,7 +251,7 @@ test-coverage-check: test-coverage
 ## the launcher). Their compile-time correctness is enforced by their own
 ## build pipelines. Keep this as a deny list — `go list ./...` discovers
 ## everything else automatically, so new packages are scanned by default.
-LINT_EXCLUDE_DIRS_RE=/(backend/go/(piper|silero-vad|llm)|cmd/launcher)(/|$$)
+LINT_EXCLUDE_DIRS_RE=[/\\](backend[/\\]go[/\\](piper|silero-vad|llm)|cmd[/\\]launcher)([/\\]|$$)|[/\\]scripts[/\\]nxb21d-[^/\\]+([/\\]|$$)
 
 ## Set LINT_NEW_FROM to a git ref to override .golangci.yml's
 ## new-from-merge-base (origin/master). Useful from a fork clone where
@@ -263,7 +263,7 @@ lint:
 		echo 'golangci-lint not installed. Install: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest'; \
 		exit 1; \
 	}
-	golangci-lint run $(if $(LINT_NEW_FROM),--new-from-merge-base=$(LINT_NEW_FROM),) $$(go list -e -f '{{.Dir}}' ./... | grep -vE '$(LINT_EXCLUDE_DIRS_RE)')
+	$(if $(LINT_GOOS),GOOS=$(LINT_GOOS) ,)golangci-lint run $(if $(LINT_NEW_FROM),--new-from-merge-base=$(LINT_NEW_FROM),) $$(go list -e -f '{{.Dir}}' ./... | grep -vE '$(LINT_EXCLUDE_DIRS_RE)$(LINT_EXCLUDE_EXTRA)')
 
 ## Like `lint` but reports every issue, including the pre-existing baseline
 ## that `lint` ignores via .golangci.yml's new-from-merge-base. Use this to
@@ -273,7 +273,7 @@ lint-all:
 		echo 'golangci-lint not installed. Install: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest'; \
 		exit 1; \
 	}
-	golangci-lint run --new=false --new-from-merge-base= --new-from-rev= $$(go list -e -f '{{.Dir}}' ./... | grep -vE '$(LINT_EXCLUDE_DIRS_RE)')
+	golangci-lint run --new=false --new-from-merge-base= --new-from-rev= $$(go list -e -f '{{.Dir}}' ./... | grep -vE '$(LINT_EXCLUDE_DIRS_RE)$(LINT_EXCLUDE_EXTRA)')
 
 ########################################################
 ## Git hooks
