@@ -80,6 +80,8 @@ def run(arm):
                    front_door=header, answer_text=text, stated=number_stated(item["expect"], text) if item["check"] == "number" else None)
         rows.append(row)
         print("%-9s %-18s http=%s %6.1fs %-26s %s" % (item["set"], item["id"], status, seconds, ",".join(row["route"] or []) or "-", header or "-"))
+        if seconds > 1800:
+            print("WARNING: %s took %.0f minutes; the machine probably slept. Re-run this arm for clean timing." % (item["id"], seconds / 60))
         with io.open(os.path.join(out, "replay.json"), "w", encoding="utf-8") as handle:  # written as it goes, so an interrupted run keeps its rows
             json.dump(rows, handle, indent=1, ensure_ascii=False)
     numeric = [r for r in rows if r["stated"] is not None]
@@ -124,8 +126,13 @@ def compare(off_arm, on_arm):
             ms.append(int(m.group(1)) / 1000.0)
     if ms:
         print("front-door time on data questions: median %.1fs  min %.1fs  max %.1fs  (n=%d)" % (statistics.median(ms), min(ms), max(ms), len(ms)))
-    deltas = [on[i]["seconds"] - off[i]["seconds"] for i in ids]
-    print("wall-time change ON-OFF: median %+.1fs  total %+.0fs  (plan cache state matters; read with the front-door figure above)" % (statistics.median(deltas), sum(deltas)))
+    # A laptop that sleeps mid-run turns one question into hours (the 2026-10-02 rerun showed +235,620 s). Anything over 30 minutes is a pause, not a measurement.
+    slept = [i for i in ids if max(off[i]["seconds"], on[i]["seconds"]) > 1800]
+    kept = [i for i in ids if i not in slept]
+    if slept:
+        print("WARNING: %d question(s) took over 30 minutes in one arm (the machine probably slept) and are left out of the timing: %s" % (len(slept), slept))
+    deltas = [on[i]["seconds"] - off[i]["seconds"] for i in kept]
+    print("wall-time change ON-OFF: median %+.1fs  total %+.0fs  over %d questions (plan cache state matters; read with the front-door figure above)" % (statistics.median(deltas), sum(deltas), len(deltas)))
     for i in changed:
         print("\n--- %s  %s\n  OFF [%s]: %s\n  ON  [%s]: %s" % (i, off[i]["question"], ",".join(off[i]["route"] or []), norm(off[i]["answer_text"])[:260],
                                                               ",".join(on[i]["route"] or []), norm(on[i]["answer_text"])[:260]))
