@@ -58,11 +58,26 @@ type GovSQLAuditV1 struct {
 	PromptID    string   `json:"prompt_id,omitempty"`
 }
 
+// govSQLReclassifiable is true for a question the keyword classifier labelled a
+// concept or a clarification although it asks for a computed value (earliest, total,
+// how many...). Such a request may reach the lane, but only an ANSWERED result may
+// replace the reply it would otherwise have got: an abstention or a decline leaves
+// the existing reply untouched, so concepts, greetings and help are never changed.
+func govSQLReclassifiable(req hybridQueryRequest) bool {
+	switch req.RequestClass {
+	case forensicrequest.GeneralDomainKnowledge, forensicrequest.Clarify:
+		return forensicrequest.HasAnalyticalIntent(req.Query) || govSQLEarliestLatest.MatchString(req.Query)
+	}
+	return false
+}
+
+var govSQLEarliestLatest = regexp.MustCompile(`(?i)\b(?:earliest|latest|first|last|oldest|newest|most\s+recent)\b`)
+
 func govSQLEligible(req hybridQueryRequest) (bool, string) {
 	switch {
 	case strings.TrimSpace(req.Query) == "":
 		return false, "no question"
-	case req.RequestClass != forensicrequest.GovernedAnalysis:
+	case !govSQLReclassifiable(req) && req.RequestClass != forensicrequest.GovernedAnalysis:
 		return false, "not a data question"
 	case req.Template != "":
 		return false, "an explicit operation was requested"
@@ -320,8 +335,21 @@ func govSQLProbeIdentifiers(ctx context.Context, db *pgxpool.Pool, req hybridQue
 		slots := []slot{}
 		for _, view := range all {
 			cols := []string{}
+			seen := map[string]int{}
 			for _, c := range view.Columns {
-				if c.Identifier && c.Type == "text" {
+				seen[c.Name]++
+			}
+			for _, c := range view.Columns {
+				// A name the view holds twice cannot be referenced, and provenance columns
+				// hold file names, never an identifier.
+				if seen[c.Name] > 1 || c.Name == "source_file" || c.Name == "record_id" || c.Name == "artifact_id" || c.Name == "evidence_id" {
+					continue
+				}
+				// Every free-text column is searched, not only those flagged as identifiers: an
+				// address held in a column the curator did not flag (an IPDR destination) must
+				// not make "nothing matched" untrue. Enumerated columns hold category words,
+				// never an identifier, so they are skipped.
+				if c.Type == "text" && (c.Identifier || (!view.binding.Derived && len(c.Values) == 0)) {
 					cols = append(cols, c.Name)
 				}
 			}

@@ -25,7 +25,12 @@ import (
 // The wrapper buffers the handler's response. The handler hands back the authorised,
 // bound request through a holder in the context, so the lane sees the same tenant,
 // case and evidence scope the old path used and never re-derives them.
-type govSQLHolder struct{ req *hybridQueryRequest }
+type govSQLHolder struct {
+	req *hybridQueryRequest
+	// reclassified marks a concept/clarify-labelled request that asks for a computed
+	// value; only an answered lane result may replace the existing reply for it.
+	reclassified bool
+}
 
 type govSQLHolderKey struct{}
 
@@ -90,7 +95,7 @@ func governedSQLFallback(core http.HandlerFunc, cfg config, db *pgxpool.Pool) ht
 		}
 		laneResponse, laneAudit := runGovernedSQLLane(r.Context(), cfg, db, *holder.req, startedAt)
 		setGovernedSQLHeader(buffered, laneAudit)
-		if laneResponse == nil {
+		if laneResponse == nil || (holder.reclassified && laneAudit.State != "answered") {
 			buffered.flushTo(w)
 			return
 		}
@@ -113,6 +118,9 @@ func govSQLOldPathDeclined(body []byte) bool {
 	}
 	if json.Unmarshal(body, &resp) != nil {
 		return false
+	}
+	if stringValueAny(resp.Answer["grounding"]) == "GENERAL_DOMAIN_DEFINITION" && strings.Contains(stringValueAny(resp.Answer["answer"]), "definition is unavailable") {
+		return true
 	}
 	for _, route := range resp.Route {
 		if route == "clarification" || route == "verified_only_withheld" {

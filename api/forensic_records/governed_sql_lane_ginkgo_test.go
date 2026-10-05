@@ -110,7 +110,7 @@ var _ = Describe("Governed SQL lane (no database)", func() {
 		ok, _ := govSQLEligible(base)
 		Expect(ok).To(BeTrue())
 		for _, mutate := range []func(*hybridQueryRequest){
-			func(r *hybridQueryRequest) { r.RequestClass = forensicrequest.GeneralDomainKnowledge },
+			func(r *hybridQueryRequest) { r.RequestClass = forensicrequest.ProductHelp },
 			func(r *hybridQueryRequest) { r.Template = "cdr_summary" },
 			func(r *hybridQueryRequest) { r.Group = &CanonicalGroupV1{} },
 			func(r *hybridQueryRequest) { r.Query = "  " },
@@ -357,6 +357,47 @@ var _ = Describe("Governed SQL lane (with a database)", func() {
 		Expect(resp.Intent).To(Equal(intentClarify))
 	})
 
+	It("finds a value that sits in a free-text column the curator did not flag as an identifier", func() {
+		layer, _ := defaultSemanticLayer()
+		req := hybridQueryRequest{TenantID: "default", CollectionID: "records-demo", Query: "x"}
+		all := govSQLViews(layer, req)
+		var target string
+		var column string
+		// pick any non-identifier, non-enumerated text column of a records view, and a real value from it
+		for _, view := range all {
+			if view.binding.Derived {
+				continue
+			}
+			for _, c := range view.Columns {
+				if c.Type == "text" && !c.Identifier && len(c.Values) == 0 && c.Name != "source_file" && c.Name != "record_id" {
+					cte, args, err := govSQLCTE(view, req, nil)
+					Expect(err).NotTo(HaveOccurred())
+					var value string
+					row := db.QueryRow(ctx, "WITH "+cte+" SELECT "+c.Name+" FROM "+view.Name+" WHERE "+c.Name+" IS NOT NULL AND length("+c.Name+") BETWEEN 4 AND 30 LIMIT 1", args...)
+					if row.Scan(&value) == nil && value != "" {
+						target, column = value, view.Name+"."+c.Name
+						break
+					}
+				}
+			}
+			if target != "" {
+				break
+			}
+		}
+		if target == "" {
+			Skip("no non-identifier text column with data in this database")
+		}
+		hits, err := govSQLProbeIdentifiers(ctx, db, req, all, []string{target})
+		Expect(err).NotTo(HaveOccurred())
+		found := false
+		for _, hit := range hits[target] {
+			if hit.View.Name+"."+hit.Column == column {
+				found = true
+			}
+		}
+		Expect(found).To(BeTrue(), "the probe must search "+column)
+	})
+
 	Describe("when a query for an identifier finds nothing", func() {
 		It("looks in the other column of the same view before saying so", func() {
 			model.replies = []string{
@@ -364,7 +405,7 @@ var _ = Describe("Governed SQL lane (with a database)", func() {
 				sqlReply("SELECT COUNT(*) AS number_of_calls FROM v_cdr WHERE msisdn = '923009998886' OR dialed_number = '923009998886'"),
 			}
 			resp, audit := ask("How many calls involved 923009998886?")
-			Expect(audit.State).To(Equal("answered"))
+			Expect(audit.State).To(Equal("answered"), audit.Reason)
 			Expect(audit.Attempts).To(Equal(2))
 			want := oracle("SELECT count(*) " + cdr + " AND (raw_payload->>'MSISDN'='923009998886' OR raw_payload->>'CALL_DIALED_NUM'='923009998886')")
 			Expect(want).NotTo(Equal("0"))
@@ -435,11 +476,40 @@ var _ = Describe("Governed SQL lane (with a database)", func() {
 			Expect(recorder.Header().Get("X-Governed-SQL")).To(ContainSubstring("state=declined"))
 		})
 
+		It("treats a terminal 'definition unavailable' reply as declined, but only an answer replaces it", func() {
+			terminal := map[string]any{"route": []string{"terminal"}, "answer": map[string]any{"result_state": "COMPLETED", "grounding": "GENERAL_DOMAIN_DEFINITION", "answer": "A bounded general definition is unavailable for that term."}}
+			Expect(govSQLOldPathDeclined(mustJSON(terminal))).To(BeTrue())
+			Expect(govSQLOldPathDeclined(mustJSON(map[string]any{"answer": map[string]any{"grounding": "GENERAL_DOMAIN_DEFINITION", "answer": "A CDR is a call detail record."}}))).To(BeFalse())
+		})
+
 		It("passes an error status through untouched", func() {
 			recorder, _ := run(map[string]any{"error": "bad request"}, http.StatusBadRequest)
 			Expect(recorder.Code).To(Equal(http.StatusBadRequest))
 			Expect(model.calls).To(BeEmpty())
 		})
+	})
+})
+
+var _ = Describe("governed SQL reach", func() {
+	It("lets a computed-value question labelled a concept or clarification reach the lane", func() {
+		for _, class := range []forensicrequest.Class{forensicrequest.GeneralDomainKnowledge, forensicrequest.Clarify} {
+			for _, q := range []string{"What is the earliest request time in the access logs?", "What is the latest transaction?", "How many CDR records are there?", "What is the total amount?"} {
+				Expect(govSQLReclassifiable(hybridQueryRequest{Query: q, RequestClass: class})).To(BeTrue(), q)
+			}
+		}
+	})
+	It("leaves concepts, greetings, help and unsupported requests alone", func() {
+		for _, q := range []string{"What is a CDR?", "hello", "What does IPDR stand for?", "How do I upload a file?"} {
+			Expect(govSQLReclassifiable(hybridQueryRequest{Query: q, RequestClass: forensicrequest.GeneralDomainKnowledge})).To(BeFalse(), q)
+		}
+		Expect(govSQLReclassifiable(hybridQueryRequest{Query: "How many records?", RequestClass: forensicrequest.ProductHelp})).To(BeFalse())
+		Expect(govSQLReclassifiable(hybridQueryRequest{Query: "How many records?", RequestClass: forensicrequest.Unsupported})).To(BeFalse())
+	})
+	It("is eligible for the lane only with a scope and no explicit operation", func() {
+		ok, _ := govSQLEligible(hybridQueryRequest{Query: "latest transaction?", RequestClass: forensicrequest.GeneralDomainKnowledge, TenantID: "t", CollectionID: "c"})
+		Expect(ok).To(BeTrue())
+		ok, _ = govSQLEligible(hybridQueryRequest{Query: "What is a CDR?", RequestClass: forensicrequest.GeneralDomainKnowledge, TenantID: "t", CollectionID: "c"})
+		Expect(ok).To(BeFalse())
 	})
 })
 
