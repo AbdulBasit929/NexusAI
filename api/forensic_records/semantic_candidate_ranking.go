@@ -37,11 +37,13 @@ func semanticRequestClass(req hybridQueryRequest) string {
 		hasContext, _ = req.ConversationContext.validFor(req, time.Now().UTC())
 		hasContext = hasContext && req.ConversationContext.hasContinuableState()
 	}
-	return string(forensicrequest.Classify(forensicrequest.Input{
+	class := string(forensicrequest.Classify(forensicrequest.Input{
 		Text:                   req.Query,
 		HasEvidenceContext:     semanticHasExplicitEvidenceContext(req),
 		HasConversationContext: hasContext,
 	}))
+	// B1: a greeting or a capability question is product help. See conversation_router.go.
+	return routedConversationClass(req, class)
 }
 
 // REVERTED 2026-09-26, THE SAME DAY IT WAS ADDED, BECAUSE IT CAUSED A PII

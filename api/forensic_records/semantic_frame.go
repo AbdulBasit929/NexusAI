@@ -145,6 +145,21 @@ func semanticFrameFamily(req hybridQueryRequest, facts HybridFactsV1, terms map[
 		return matches[0]
 	}
 	if len(matches) > 1 {
+		// A3.2. "Which cell site handled the most calls?" matches CDR on "calls"
+		// and TOWER on "cell"/"site", and every multi-match used to become
+		// cross_family -- so a plain CDR ranking was treated as a cross-family
+		// question. The tower layer itself says "a question about which cell
+		// site handled calls is a CDR question, not this one".
+		//
+		// The precedence already exists, one function over:
+		// `extractCanonicalRecordType` orders activity families ahead of
+		// reference families for exactly this sentence. It is reused, not
+		// re-derived, and its answer is accepted only when that family is one
+		// the question actually matched -- otherwise the question stays
+		// cross_family, which is today's behaviour.
+		if resolved := frameFamilyByRecordTypePrecedence(req.Query, matches); resolved != "" {
+			return resolved
+		}
 		return "cross_family"
 	}
 	return "none"
@@ -181,9 +196,24 @@ func semanticFrameGoal(terms map[string]bool, question string) string {
 		semanticTermsContain(terms, "different") &&
 			!semanticTermsContain(terms, semanticRankMarkers...):
 		return "distinct"
+	// SLICE B of the taxonomy fix, behind FORENSIC_GOAL_TAXONOMY_SLICES
+	// (default off). "Which model produced the face vectors?" asks which VALUES
+	// occur, which is distinct, not lookup. Its predicate excludes retrieval
+	// verbs, superlatives and aggregate markers itself, so sitting above `rank`
+	// and `search` cannot steal either of them. See goal_taxonomy_slices.go.
+	case goalTaxonomySlicesEnabled() && goalSliceBDistinctValues(question, terms):
+		return "distinct"
 	case semanticTermsContain(terms, "exist", "exists", "whether"):
 		return "existence"
-	case semanticTermsContain(terms, "source") && semanticTermsContain(terms, "row", "rows", "record", "records"):
+	// A3.1. "Show me the source rows" asks for rows. "How MANY records came from
+	// each SOURCE file" asks for a count per file -- and it contains both words,
+	// so this case captured CDR-16 and the compiler projected twenty raw rows.
+	// Its grouping hint was already right ("source"/"file" -> group by source);
+	// only the goal was wrong. Behind FORENSIC_SOURCE_ROWS_QUANTITY_GUARD, a
+	// question that carries an aggregate marker is left to the aggregate case,
+	// which already resolves a grouped count to shape `breakdown`.
+	case semanticTermsContain(terms, "source") && semanticTermsContain(terms, "row", "rows", "record", "records") &&
+		!(sourceRowsQuantityGuardEnabled() && semanticTermsContain(terms, semanticAggregateMarkers...)):
 		return "source_rows"
 	// REVERTED WITH ITS PAIR 2026-09-25, and never measured on its own.
 	// "longest"/"shortest" were added here alongside "breakdown" in the
@@ -196,6 +226,13 @@ func semanticFrameGoal(terms map[string]bool, question string) string {
 	// already maps "longest" to MAX, so the measure is right while the goal
 	// falls to the `lookup` default and skips shape verification. Retrying it
 	// requires its own run against the same threshold.
+	// SLICE A: temporal superlatives. `earliest`/`latest` are superlatives on
+	// the time axis and belong with `largest`/`smallest`; they are expressed
+	// here rather than added to semanticRankMarkers because that list is ALSO
+	// consulted by the "different" guard above, and one edit must not move two
+	// rules. Behind FORENSIC_GOAL_TAXONOMY_SLICES. See goal_taxonomy_slices.go.
+	case goalTaxonomySlicesEnabled() && goalSliceATemporalSuperlative(terms):
+		return "rank"
 	case semanticTermsContain(terms, semanticRankMarkers...):
 		return "rank"
 	// A date range is TWO values, MIN and MAX of a time field — one number
@@ -233,7 +270,7 @@ func semanticFrameGoal(terms map[string]bool, question string) string {
 	// breakdown_goal.go.
 	case breakdownGoal(question) != "":
 		return "breakdown"
-	case semanticTermsContain(terms, "average", "sum", "count", "total", "minimum", "maximum", "many"):
+	case semanticTermsContain(terms, semanticAggregateMarkers...):
 		return "aggregate"
 	case semanticTermsContain(terms, "find", "search", "mention", "mentions", "phrase", "occurrence"):
 		return "search"

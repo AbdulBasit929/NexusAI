@@ -39,6 +39,7 @@ const (
 	withholdTargetNotFiltered    = "target_not_filtered"
 	withholdUncomputedQuantity   = "uncomputed_quantity"
 	withholdSingleFamilyNegative = "single_family_negative"
+	withholdConditionNotApplied  = "condition_not_applied"
 )
 
 // withholdReason is one withholding event: what the analyst is told, why
@@ -74,6 +75,18 @@ func preExecutionWithhold(req hybridQueryRequest, template string) *withholdReas
 	}
 	if answerNamesUnfilteredTarget(req) {
 		return targetNotFilteredReason(req)
+	}
+	// A1a. The same CONSTRAINT_APPLIED rule as the guard above, in its third
+	// shape: that one covers a named identifier, `deterministicUnboundConstraints`
+	// covers an explicit date range, and this covers a magnitude condition.
+	// Specific before general, as the ordering note above requires.
+	if answerIgnoresStatedCondition(req) {
+		return conditionNotAppliedReason(req)
+	}
+	// A1c. The relational counterpart: the question asks whether records share
+	// something or are linked, and the plan only counts or lists one kind.
+	if answerIgnoresStatedRelationship(req, template) {
+		return relationshipNotComputedReason(req, template)
 	}
 	if verifiedOnlyWithholds(req) {
 		return &withholdReason{

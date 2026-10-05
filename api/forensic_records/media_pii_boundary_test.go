@@ -42,9 +42,19 @@ func mediaPIIFields(t *testing.T) map[string][]string {
 			continue
 		}
 		for _, field := range entity.Fields {
-			if field.Sensitivity == "PII" || field.Sensitivity == "RESTRICTED" {
-				out[entity.Family] = append(out[entity.Family], field.ID)
+			if field.Sensitivity != "PII" && field.Sensitivity != "RESTRICTED" {
+				continue
 			}
+			// WITHHELD only. WI-LAYER-7 split the seven PII fields: the five
+			// free-text ones are WITHHELD and must NEVER be issued, while the two
+			// plate candidates are MASKED and may be issued as an opaque alias
+			// once masking is enabled and a secret is present. Lumping them
+			// together would either block a ruled-safe capability or, far worse,
+			// let a MASKED field pass a test written for a WITHHELD one.
+			if field.Redaction == "MASKED" {
+				continue
+			}
+			out[entity.Family] = append(out[entity.Family], field.ID)
 		}
 	}
 	if len(out) == 0 {
@@ -53,10 +63,15 @@ func mediaPIIFields(t *testing.T) map[string][]string {
 	return out
 }
 
-// A PII FIELD IS NEVER ISSUED. If it is not in the catalogue it is not in the
-// enum, and the GBNF alternation makes it unemittable -- the keystone. This is
-// the control that must hold when the goal gate stops holding.
-func TestMediaPIIFieldsAreNeverIssuedInTheCatalogue(t *testing.T) {
+// A WITHHELD FIELD IS NEVER ISSUED. If it is not in the catalogue it is not in
+// the enum, and the GBNF alternation makes it unemittable -- the keystone. This
+// is the control that must hold when the goal gate stops holding.
+//
+// Deliberately run with masking fully ENABLED, because that is the permissive
+// configuration: a WITHHELD field that leaked would leak here first.
+func TestMediaWithheldFieldsAreNeverIssuedInTheCatalogue(t *testing.T) {
+	t.Setenv(piiMaskedProjectionEnv, "true")
+	t.Setenv(piiAliasSecretEnv, testAliasSecret)
 	layer, _ := defaultSemanticLayer()
 	if layer == nil {
 		t.Skip("curated layer unavailable")
@@ -81,16 +96,24 @@ func TestMediaPIIFieldsAreNeverIssuedInTheCatalogue(t *testing.T) {
 		}
 		for _, id := range piiFields {
 			if issued[id] {
-				t.Errorf("PII field %s IS issued for %s; a plan can name it and the analyst can be shown the value", id, family)
+				t.Errorf("WITHHELD field %s IS issued for %s; a plan can name it and the analyst can be shown the value", id, family) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
 			}
 		}
-		t.Logf("%-30s %d fields issued, %d PII withheld: %v", family, len(issued), len(piiFields), piiFields)
+		t.Logf("%-30s %d fields issued, %d WITHHELD: %v", family, len(issued), len(piiFields), piiFields) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
 	}
 }
 
-// THE PLATE TEXT AND THE TRANSCRIPT SPECIFICALLY. These are the two the honesty
-// probes ask for by name, and the two the product would be caught on.
+// THE PLATE TEXT AND THE TRANSCRIPT SPECIFICALLY, IN THE SHIPPED POSTURE.
+// These are the fields the honesty probes ask for by name.
+//
+// Masking is explicitly OFF here, which is how it ships. That is not an
+// assumption baked in by omission: with masking ON the plate fields are
+// DELIBERATELY issued as an opaque alias, and H1 "which plates were read" stops
+// being a refusal and becomes an answer in aliases. That is a real behavioural
+// change, it needs its own measured threshold, and it must not arrive as a side
+// effect of a test default. TestMaskedPlateNeverSurfacesRaw covers the ON state.
 func TestTheHonestyProbeFieldsAreWithheld(t *testing.T) {
+	t.Setenv(piiMaskedProjectionEnv, "")
 	layer, _ := defaultSemanticLayer()
 	if layer == nil {
 		t.Skip("curated layer unavailable")
@@ -140,7 +163,10 @@ func TestTheHonestyProbeFieldsAreWithheld(t *testing.T) {
 // THE GOAL GATE IS NOT THE CONTROL, and this asserts the separation directly:
 // with the goal gate set aside, the PII field is STILL not issued. If this ever
 // fails, the taxonomy work has opened a PII path and must stop.
+//
+// Shipped posture: masking OFF.
 func TestPIIWithholdingIsIndependentOfTheGoalGate(t *testing.T) {
+	t.Setenv(piiMaskedProjectionEnv, "")
 	layer, _ := defaultSemanticLayer()
 	if layer == nil {
 		t.Skip("curated layer unavailable")
@@ -164,4 +190,50 @@ func TestPIIWithholdingIsIndependentOfTheGoalGate(t *testing.T) {
 		}
 	}
 	t.Log("plate_text withheld at every goal — the boundary is the catalogue, not the goal gate")
+}
+
+// THE INVARIANT THAT HOLDS IN BOTH STATES: a raw plate never reaches an analyst.
+//
+// Masking OFF achieves it by withholding the field. Masking ON achieves it by
+// replacing the value with an opaque alias. The two mechanisms are different and
+// the guarantee is the same, so it is asserted once, against both.
+func TestMaskedPlateNeverSurfacesRaw(t *testing.T) {
+	t.Setenv(piiAliasSecretEnv, testAliasSecret)
+	layer, _ := defaultSemanticLayer()
+	if layer == nil {
+		t.Skip("curated layer unavailable") //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+	req := hybridQueryRequest{
+		TenantID: "default", CollectionID: "nexusai-multimodal-product-acceptance",
+		QueryScope: queryEvidenceScope{Kind: string(EvidenceScopeWorkspace)},
+	}
+	const rawPlate = "ABC-123"
+	for _, masking := range []string{"", "true"} {
+		t.Setenv(piiMaskedProjectionEnv, masking)
+		state := "OFF"
+		if masking == "true" {
+			state = "ON"
+		}
+		for _, family := range []string{"anpr_model_observation", "video_anpr_plate_group"} {
+			entity, ok := layer.EntityByFamily(family)
+			if !ok {
+				continue
+			}
+			for _, field := range entity.CatalogFields(req) {
+				if !strings.Contains(field.FieldID, "plate_text") {
+					continue
+				}
+				// Issued at all? Then its value MUST be masked, and the mask must
+				// not contain the plate.
+				value, handled := maskCuratedValue(field, req.CollectionID, rawPlate)
+				if !handled {
+					t.Errorf("masking %s: %s issues %s but its value is not masked", state, family, field.FieldID) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+					continue
+				}
+				if strings.Contains(strings.ToUpper(stringValueAny(value)), "ABC") {
+					t.Errorf("masking %s: the raw plate survived in %v", state, value) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+				}
+			}
+		}
+	}
 }

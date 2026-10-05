@@ -122,6 +122,7 @@ func TestEveryWithholdCodeIsDistinct(t *testing.T) {
 	codes := []string{
 		withholdNoVerifiedPlan, withholdMediaMisroute, withholdTargetNotFiltered,
 		withholdUncomputedQuantity, withholdSingleFamilyNegative,
+		withholdConditionNotApplied, withholdRelationshipNotComputed, withholdTextSearchNotAbsence,
 	}
 	seen := map[string]bool{}
 	for _, code := range codes {

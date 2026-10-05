@@ -144,6 +144,8 @@ func main() {
 	if cfg.InboundAPIKey == "" {
 		slog.Warn("forensic API service authentication is disabled; configure FORENSIC_API_KEY and enable FORENSIC_API_AUTH_REQUIRED before protected deployment")
 	}
+	// P3: state every behaviour switch at startup. See switch_state.go.
+	logSwitchState()
 	if err := os.MkdirAll(cfg.SpoolDir, 0o750); err != nil {
 		slog.Error("create spool dir", "error", err)
 		os.Exit(1)

@@ -113,6 +113,17 @@ func answerScopeQualifier(req hybridQueryRequest) string {
 	if target := strings.TrimSpace(req.Target); target != "" {
 		parts = append(parts, "involving "+target)
 	}
+	// A1b.1. A RANGE FILTER SHAPED THE RESULT EXACTLY AS A TARGET DOES, and the
+	// headline must say so for the same reason.
+	//
+	// Measured 2026-09-27: with A1b binding the filter, "How many transactions
+	// have an amount above 50000?" answered "There is 1 transaction in this
+	// case." The count is right and the case holds FOUR transactions, so the
+	// sentence read alone -- exported, quoted, pasted into a report -- states
+	// something false. A true number inside a sentence that claims more than
+	// was computed is the defect this function exists to prevent; it simply had
+	// no case for this filter shape.
+	parts = append(parts, rangeFilterQualifiers(req)...)
 	from, to := strings.TrimSpace(req.DateFrom), strings.TrimSpace(req.DateTo)
 	switch {
 	case from != "" && to != "":
@@ -126,6 +137,54 @@ func answerScopeQualifier(req hybridQueryRequest) string {
 		return ""
 	}
 	return " " + strings.Join(parts, " ")
+}
+
+// rangeComparisonWording renders one bound in the analyst's terms. Phrasing
+// only -- the operator itself is the plan's, never re-interpreted here.
+func rangeComparisonWording(op string) string {
+	switch strings.ToUpper(strings.TrimSpace(op)) {
+	case "GT":
+		return "above"
+	case "GTE":
+		return "of at least"
+	case "LT":
+		return "below"
+	case "LTE":
+		return "of at most"
+	}
+	return ""
+}
+
+// rangeFilterQualifiers describes every range bound the EXECUTED PLAN carries.
+//
+// Read from the plan, never from the question: the plan is what ran, and the
+// question is only what was asked. That distinction is the whole reason
+// `answerNamesUnfilteredTarget` exists.
+//
+// Gated on the same switch as A1b so the two are one measurable unit. With the
+// switch off nothing in this build emits a range filter, so the qualifier is
+// moot and today's wording is untouched.
+func rangeFilterQualifiers(req hybridQueryRequest) []string {
+	if !rangeFiltersEnabled() || req.SourceNative == nil {
+		return nil
+	}
+	out := []string{}
+	for _, filter := range req.SourceNative.Filters {
+		wording := rangeComparisonWording(filter.Op)
+		if wording == "" {
+			continue
+		}
+		value := strings.TrimSpace(filter.Value)
+		if value == "" {
+			continue
+		}
+		field := filter.FieldID
+		if _, tail, found := strings.Cut(field, "."); found {
+			field = tail
+		}
+		out = append(out, "with "+humanFieldName(field)+" "+wording+" "+value)
+	}
+	return out
 }
 
 func shortDate(value string) string {
@@ -163,11 +222,15 @@ func sourceNativeResultAnswer(req hybridQueryRequest, resp hybridQueryResponse, 
 		if low, high, ok := sourceNativeRangeMeasures(plan); ok && answerStatesValuesEnabled() && len(results) > 0 {
 			label := humanFieldName(sourceNativeFieldNameFor(resp, low.FieldID))
 			if headline := answerRangeHeadline(label,
-				familyNoun(req.RecordType, 2), answerScopeQualifier(req),
+				resultNoun(req, resp, 2), answerScopeQualifier(req),
 				stringValueAny(results[0][low.MeasureID]),
 				stringValueAny(results[0][high.MeasureID])); headline != "" {
 				return resultAnswer{Headline: headline}, true
 			}
+		}
+		// S1 Part A: an ungrouped multi-measure plan still counted its records.
+		if answer, ok := multiMeasureRecordCountHeadline(req, resp, plan, results); ok {
+			return answer, true
 		}
 		return resultAnswer{}, false
 	}
@@ -183,8 +246,8 @@ func sourceNativeResultAnswer(req hybridQueryRequest, resp hybridQueryResponse, 
 		}
 	}
 	measure := plan.Measures[0]
-	family := req.RecordType
-	scope := answerScopeQualifier(req)
+	// Filters the plan applied are part of the scope. See headline_honesty.go.
+	scope := answerScopeQualifier(req) + planFilterQualifiers(req, resp, plan)
 	measureLabel := func() string {
 		field := humanFieldName(names[measure.FieldID])
 		if curated, ok := display[measure.FieldID]; ok {
@@ -208,20 +271,28 @@ func sourceNativeResultAnswer(req hybridQueryRequest, resp hybridQueryResponse, 
 		if len(results) > 0 {
 			value, _ = answerNumber(results[0][measure.MeasureID])
 		}
-		if measure.Op == "COUNT" {
+		if measure.Op == "COUNT" && !countsFieldValues(plan, measure) {
 			if value == 0 {
-				return resultAnswer{Headline: fmt.Sprintf("There are no %s%s in this case.", familyNoun(family, 0), scope), Value: 0.0}, true
+				return resultAnswer{Headline: withPlateReadNote(fmt.Sprintf("There are no %s%s in this case.", plateReadNounOr(plan, resultNoun(req, resp, 0), 0), scope), resp, plan, 0), Value: 0.0}, true
 			}
 			verb := "are"
 			if value == 1 {
 				verb = "is"
 			}
-			return resultAnswer{Headline: fmt.Sprintf("There %s %s %s%s in this case.", verb, formatAnswerNumber(value), familyNoun(family, value), scope), Value: value}, true
+			return resultAnswer{Headline: withPlateReadNote(fmt.Sprintf("There %s %s %s%s in this case.", verb, formatAnswerNumber(value), plateReadNounOr(plan, resultNoun(req, resp, value), value), scope), resp, plan, value), Value: value}, true
 		}
 		if len(results) == 0 {
-			return resultAnswer{Headline: fmt.Sprintf("No %s%s were available to compute the %s.", familyNoun(family, 0), scope, measureLabel())}, true
+			return resultAnswer{Headline: fmt.Sprintf("No %s%s were available to compute the %s.", resultNoun(req, resp, 0), scope, measureLabel())}, true
 		}
-		headline := fmt.Sprintf("The %s across %s%s is %s.", measureLabel(), familyNoun(family, 0), scope, formatAnswerNumber(value))
+		// A total over no recorded values is not zero. See headline_honesty.go.
+		if stated, ok := emptyAggregateHeadline(req, resp, measure, results[0], resultNoun(req, resp, 0), scope); ok {
+			return resultAnswer{Headline: stated}, true
+		}
+		headline := fmt.Sprintf("The %s across %s%s is %s.", measureLabel(), resultNoun(req, resp, 0), scope, formatAnswerNumber(value))
+		// A4: a count of a field names the field. See count_names_field.go.
+		if stated, ok := countedFieldHeadline(req, resp, plan, measure, value, scope); ok {
+			headline = stated
+		}
 		// AN AVERAGE MUST SAY WHAT IT AVERAGED OVER. A field present on 263 of 309
 		// rows produces a number that reads as a statement about all 309.
 		if valueCount, ok := answerNumber(results[0][measureDenominatorKey(measure.MeasureID)]); ok {
@@ -229,7 +300,7 @@ func sourceNativeResultAnswer(req hybridQueryRequest, resp hybridQueryResponse, 
 			if metadata, ok := results[0]["metadata"].(map[string]any); ok {
 				contributing, _ = answerNumber(metadata["contributing_row_count"])
 			}
-			if note := measureDenominatorNote(int64(valueCount), int64(contributing), familyNoun(family, contributing)); note != "" {
+			if note := measureDenominatorNote(int64(valueCount), int64(contributing), resultNoun(req, resp, contributing)); note != "" {
 				headline += " " + note
 			}
 		}
@@ -302,7 +373,7 @@ func sourceNativeResultAnswer(req hybridQueryRequest, resp hybridQueryResponse, 
 			stated = len(entries)
 			lead = "In full"
 		}
-		headline = fmt.Sprintf("%s %s%s across %d %s value%s. %s: %s.", formatAnswerNumber(total), familyNoun(family, total), scope, len(entries), dimension, pluralSuffix(len(entries)), lead, joinTopEntries(findings, dimension, stated))
+		headline = fmt.Sprintf("%s %s%s across %d %s value%s. %s: %s.", formatAnswerNumber(total), resultNoun(req, resp, total), scope, len(entries), dimension, pluralSuffix(len(entries)), lead, joinTopEntries(findings, dimension, stated))
 	} else if answerStatesValuesEnabled() && complete && len(entries) <= answerBreakdownFullLimit {
 		headline = fmt.Sprintf("By %s%s: %s.", dimension, scope, joinTopEntries(findings, dimension, len(entries)))
 	}
@@ -406,13 +477,13 @@ func tabularResultAnswer(req hybridQueryRequest, resp hybridQueryResponse, rows 
 	}
 	scope := answerScopeQualifier(req)
 	findings := []string{}
-	headline := fmt.Sprintf("%s %s%s in total.", formatAnswerNumber(total), familyNoun(family, total), scope)
+	headline := fmt.Sprintf("%s %s%s in total.", formatAnswerNumber(total), resultNounForFamily(family, resp, total), scope)
 	if dimension != "" && len(order) > 1 {
 		sort.SliceStable(order, func(i, j int) bool { return perDimension[order[i]] > perDimension[order[j]] })
 		for _, key := range order {
 			findings = append(findings, fmt.Sprintf("%s %s: %s", humanFieldName(dimension), key, formatAnswerNumber(perDimension[key])))
 		}
-		headline = fmt.Sprintf("%s %s%s across %d %s value%s. Largest: %s.", formatAnswerNumber(total), familyNoun(family, total), scope, len(order), humanFieldName(dimension), pluralSuffix(len(order)), joinTopEntries(findings, humanFieldName(dimension), 3))
+		headline = fmt.Sprintf("%s %s%s across %d %s value%s. Largest: %s.", formatAnswerNumber(total), resultNounForFamily(family, resp, total), scope, len(order), humanFieldName(dimension), pluralSuffix(len(order)), joinTopEntries(findings, humanFieldName(dimension), 3))
 	}
 	for _, column := range tabularAmountColumns {
 		if _, ok := answerNumber(rows[0][column]); !ok {

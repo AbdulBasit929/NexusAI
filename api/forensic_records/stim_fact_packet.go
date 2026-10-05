@@ -61,6 +61,9 @@ type FactPacketCitationV1 struct {
 	Locator      any    `json:"locator,omitempty"`
 	ProofRole    string `json:"proof_role"`
 	Completeness string `json:"completeness"`
+	// SourceTruthState is copied from the cited observation when it records one
+	// (A2): derived_model_observation, derived_native_text, ... Omitted otherwise.
+	SourceTruthState string `json:"source_truth_state,omitempty"`
 }
 
 type FactPacketV1 struct {
@@ -359,6 +362,7 @@ func factPacketCitations(items []map[string]any) ([]FactPacketCitationV1, string
 			CitationID: fmt.Sprintf("C%d", index+1), EvidenceID: stringValueAny(item["evidence_id"]), VersionID: stringValueAny(item["version_id"]),
 			SourceFile: stringValueAny(firstPresent(item, "source_file", "source_entry")), SourceRow: item["row_number"], SourceHash: stringValueAny(item["row_hash"]),
 			Locator: firstPresent(item, "citation_locator", "source_locator", "citation", "source_entry"), ProofRole: role, Completeness: completeness,
+			SourceTruthState: citationTruthState(item["source_truth_state"]),
 		})
 	}
 	return out, state

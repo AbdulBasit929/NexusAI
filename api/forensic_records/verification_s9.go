@@ -153,6 +153,12 @@ func verifySourceNativePlanShape(frame SemanticFrameV1, question string, plan *S
 				"by it, so the result would cover every row", s9ShapeViolation, strings.Join(unused, ", "))
 		}
 	}
+	// LOCATION OBLIGATION (A1d). A question opening with "where" answered by a
+	// bare aggregate reports how many, not where. See location_obligation.go.
+	if locationObligationUnmet(question, plan) {
+		return fmt.Errorf("%sa question asking WHERE compiled %s with no location in its result, "+
+			"which answers how many rather than where", s9ShapeViolation, planMeasureOps(plan))
+	}
 	switch s9QuestionShape(frame, question) {
 	case "rank":
 		// "Which X has the most Y" must name an X. Without a grouping there is
