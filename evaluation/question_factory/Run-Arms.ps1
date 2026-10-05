@@ -1,20 +1,24 @@
 # GOVERNED SQL LANE: THE THREE ARMS (the owner runs this; gates are in reports/governed-sql-20261005/PREREGISTRATION.md)
 #
-#   cd <repo root>
+# Run it from a CLEAN checkout of the branch (not from your main working copy, so nothing of yours is touched):
+#
+#   cd C:\Users\sheik\Workspace\Office\Projects\NexusAI-localwork
 #   git fetch origin claude/gifted-pasteur-4kpx0r
-#   git checkout origin/claude/gifted-pasteur-4kpx0r -- api semantic_layer go.mod go.sum docker-compose.forensic-records.yaml evaluation/question_factory reports/governed-sql-20261005
+#   git checkout -B lane-arms origin/claude/gifted-pasteur-4kpx0r
 #   . .\evaluation\question_factory\Run-Arms.ps1
 #   Show-Stack          # read-only: what is running, which switches it has
-#   Build-LaneImage     # builds the forensic API image with the lane in it (switches stay off); remembers the old image
+#   Build-LaneImage     # docker build of THIS checkout, tagged with the name the running API already uses; the old image is kept
 #   Run-Arm A           # new image, both switches off  (the control: must equal arm-baseline-v1)
 #   Run-Arm C           # lane only after the existing path declines
 #   Run-Arm B           # lane before the existing path
-#   Compare-Arms        # A vs baseline, A vs B, A vs C
+#   Compare-Arms        # A vs baseline, A vs C, A vs B
+#   Run-Regression A ; Run-Regression C     # gates G2 and G3: the 103-question corpus and the pre-flight
 #   Restore-Stack       # puts the original image and switches back
 #
-# Each Run-Arm recreates ONLY the API container, with the environment it already had plus the two lane switches, and checks the
-# switch state from `docker inspect` before asking a question. It never touches postgres, the worker, nats or LocalAI.
-# Needs about 90 minutes per arm for the 80-question spread (--per-intent 1). Re-run the same command to continue (--resume).
+# questions-demo.json and arm-baseline-v1 are copied from your main checkout (..\NexusAI\evaluation\question_factory) the first time.
+# Each Run-Arm recreates ONLY the API container, with the environment it already had plus the two lane switches, and checks the switch
+# state from `docker inspect` before asking a question. It never touches postgres, the worker, nats or LocalAI.
+# About 90 minutes per arm for the 80-question spread (--per-intent 1). Run the same command again to continue (--resume).
 $ErrorActionPreference = "Continue"
 $script:Here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $script:Repo = (Resolve-Path (Join-Path $script:Here "..\..")).Path
@@ -98,9 +102,20 @@ function Build-LaneImage {
       ConvertTo-Json | Set-Content -Encoding ascii $script:StateFile
     Write-Host "saved the original image and switch state to $script:StateFile"
   }
-  $rc = Invoke-Compose $s @('build', $s.Service)
+  Write-Host "building $($s.ImageName) from $script:Repo (the running API is not touched until Run-Arm)" -ForegroundColor DarkGray
+  Push-Location $script:Repo
+  try { docker build -t $s.ImageName -f api/forensic_records/Dockerfile . | Out-Host; $rc = [int]$LASTEXITCODE } finally { Pop-Location }
   if ($rc -ne 0) { Write-Host "BUILD FAILED (exit $rc): nothing was changed; the running API is untouched" -ForegroundColor Red; return }
   Write-Host "built. Next: Run-Arm A" -ForegroundColor Green
+}
+
+# The baseline's question file and results live in the main checkout; the arms must use the SAME questions.
+function Import-BaselineData {
+  param([string]$From = (Join-Path (Split-Path $script:Repo -Parent) "NexusAI\evaluation\question_factory"))
+  foreach ($name in 'questions-demo.json', 'arm-baseline-v1') {
+    $src = Join-Path $From $name; $dst = Join-Path $script:Here $name
+    if ((Test-Path $src) -and -not (Test-Path $dst)) { Copy-Item $src $dst -Recurse; Write-Host "copied $name from $From" }
+  }
 }
 
 function Set-Arm {
@@ -123,6 +138,7 @@ function Set-Arm {
 
 function Run-Arm {
   param([ValidateSet('A', 'B', 'C')][string]$Arm, [int]$BudgetMinutes = 110)
+  Import-BaselineData
   $s = Set-Arm -Arm $Arm
   Add-Type -Namespace W -Name P -MemberDefinition '[System.Runtime.InteropServices.DllImport("kernel32.dll")] public static extern uint SetThreadExecutionState(uint f);' -ErrorAction SilentlyContinue
   [void][W.P]::SetThreadExecutionState([uint32]2147483649)
@@ -139,6 +155,7 @@ function Run-Arm {
 }
 
 function Compare-Arms {
+  Import-BaselineData
   Push-Location $script:Here
   try {
     foreach ($pair in @(@('arm-baseline-v1', 'arm-lane-A'), @('arm-lane-A', 'arm-lane-C'), @('arm-lane-A', 'arm-lane-B'))) {
