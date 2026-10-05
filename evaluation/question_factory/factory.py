@@ -116,11 +116,25 @@ def spec(qid, family, intent, question, sql, kind, **extra):
     return dict({"id": qid, "family": family, "intent": intent, "question": question, "oracle_sql": sql, "kind": kind}, **extra)
 
 
+def phrases(field, doc):
+    """Ways to name a field in a question. A synonym that another field of the same family also answers to ("number" for both the subscriber and the dialled number)
+    makes the QUESTION ambiguous, and the right answer to an ambiguous question is to ask back, so such words are not used as the only name of a field."""
+    others = [f for f in doc["fields"] if f["id"] != field["id"]]
+    pool = " | ".join(" ".join([o["display_name"]] + list(o.get("synonyms", []))).lower() for o in others)
+    clear = []
+    for syn in field.get("synonyms", []):
+        syn = syn.strip()
+        if len(syn) > 3 and syn.lower() not in BAD_SYNONYMS and not re.search(r"\b" + re.escape(syn.lower()) + r"\b", pool):
+            clear.append(syn)
+    return clear or [field["display_name"].lower()]
+
+
 def generate(db, seed):
     rnd = random.Random(seed)
-    out, counter = [], {}
+    out, counter, family_total = [], {}, {}
 
     def add(item_family, intent, question, sql, kind, **extra):
+        extra.setdefault("total", family_total.get(item_family))
         counter[(item_family, intent)] = counter.get((item_family, intent), 0) + 1
         out.append(spec("%s-%s-%02d" % (item_family.upper()[:4], intent, counter[(item_family, intent)]), item_family, intent, question, sql, kind, **extra))
 
@@ -130,13 +144,15 @@ def generate(db, seed):
         total = int(db.scalar("SELECT count(*) FROM forensic.records WHERE %s" % base) or 0)
         if total == 0:
             continue
+        family_total[family] = total
         nouns = NOUN[family]
         fields = [f for f in doc["fields"] if f.get("sensitivity") != "PII"]
+        identifier_values = []
         for phrase in ("How many {n} are there in this case?", "Count the {n}", "What is the total number of {n}?"):
             add(family, "count_all", phrase.format(n=rnd.choice(nouns)), "SELECT count(*) FROM forensic.records WHERE %s" % base, "number")
         for field in fields:
             expr, name = typed_expr(field), field["display_name"].lower()
-            syns = [s for s in field.get("synonyms", []) if len(s) > 3 and s.lower() not in BAD_SYNONYMS] or [name]
+            syns = phrases(field, doc)
             if field["type"] == "STRING" and field.get("groupable"):
                 top = db.rows("SELECT %s v, count(*) c FROM forensic.records WHERE %s AND %s IS NOT NULL AND %s <> '' GROUP BY 1 ORDER BY 2 DESC, 1 LIMIT 6" % (expr, base, expr, expr))
                 top = [(r[0], int(r[1])) for r in top if len(r) == 2]
@@ -153,7 +169,7 @@ def generate(db, seed):
                         phrasing = rnd.choice(["How many %s have %s %s?", "How many %s are there where the %s is %s?", "Count the %s with %s %s"])
                         add(family, "count_eq", phrasing % (rnd.choice(nouns), rnd.choice(syns), value), "SELECT count(*) FROM forensic.records WHERE %s AND %s = %s" % (base, expr, sql_str(value)), "number")
                         if field.get("sensitivity") == "IDENTIFIER" and family in ("cdr", "ipdr"):
-                            add(family, "entity_events", "What did %s do? How many %s are there for it?" % (value, rnd.choice(nouns)), "SELECT count(*) FROM forensic.records WHERE %s AND %s = %s" % (base, expr, sql_str(value)), "number")
+                            identifier_values.append(value)
                     if field.get("sensitivity") == "IDENTIFIER":
                         fake = "9230" + "".join(rnd.choice("0123456789") for _ in range(8))
                         add(family, "absent_value", "How many %s does %s have?" % (rnd.choice(nouns), fake), "SELECT count(*) FROM forensic.records WHERE %s AND %s = %s" % (base, expr, sql_str(fake)), "absence", total=total)
@@ -166,14 +182,16 @@ def generate(db, seed):
                 first = db.scalar("SELECT min(%s)::date FROM forensic.records WHERE %s" % (expr, base))
                 last = db.scalar("SELECT max(%s)::date FROM forensic.records WHERE %s" % (expr, base))
                 if first and last and first != "":
-                    add(family, "earliest", rnd.choice(["When was the earliest of the %s?", "What is the date of the first of the %s?"]) % rnd.choice(nouns), "SELECT min(%s)::date FROM forensic.records WHERE %s" % (expr, base), "date")
-                    add(family, "latest", rnd.choice(["When was the most recent of the %s?", "What is the date of the last of the %s?"]) % rnd.choice(nouns), "SELECT max(%s)::date FROM forensic.records WHERE %s" % (expr, base), "date")
+                    shown = field["display_name"].lower()
+                    add(family, "earliest", rnd.choice(["What is the earliest %s in the %s?", "Which is the first %s among the %s?"]) % (shown, rnd.choice(nouns)), "SELECT min(%s)::date FROM forensic.records WHERE %s" % (expr, base), "date")
+                    add(family, "latest", rnd.choice(["What is the latest %s in the %s?", "Which is the most recent %s among the %s?"]) % (shown, rnd.choice(nouns)), "SELECT max(%s)::date FROM forensic.records WHERE %s" % (expr, base), "date")
                     d1 = datetime.date.fromisoformat(first)
                     d2 = datetime.date.fromisoformat(last)
                     if (d2 - d1).days >= 10:
                         a = d1 + datetime.timedelta(days=rnd.randint(0, max(1, (d2 - d1).days // 2)))
                         b = a + datetime.timedelta(days=rnd.randint(3, max(4, (d2 - d1).days // 2)))
-                        add(family, "date_range", "How many %s are there between %s and %s?" % (rnd.choice(nouns), a.isoformat(), b.isoformat()),
+                        add(family, "date_range", ("How many %s are there between %s and %s?" % (rnd.choice(nouns), a.isoformat(), b.isoformat())) if family in ("cdr", "ipdr", "anpr", "access_log", "transaction")
+                            else ("How many %s have a %s between %s and %s?" % (rnd.choice(nouns), shown, a.isoformat(), b.isoformat())),
                             "SELECT count(*) FROM forensic.records WHERE %s AND %s::date BETWEEN '%s' AND '%s'" % (base, expr, a, b), "number")
                         add(family, "month_count", "How many %s were there in %s %d?" % (rnd.choice(nouns), MONTHS[a.month - 1], a.year),
                             "SELECT count(*) FROM forensic.records WHERE %s AND date_trunc('month', %s) = '%s-%02d-01'::timestamp" % (base, expr, a.year, a.month), "number")
@@ -181,6 +199,11 @@ def generate(db, seed):
                         add(family, "night", "How many %s were there at night?" % rnd.choice(nouns),
                             "SELECT count(*) FROM forensic.records WHERE %s AND extract(hour from %s) IN (0,1,2,3,4,5)" % (base, expr), "number", note="night = 00:00 to 05:59 in the source time zone")
                     break
+        # "Involving": the value may sit in ANY identifier field (the subscriber or the dialled party), so the key is the union. A search of one field only reports a false absence.
+        id_fields = [f for f in fields if f.get("sensitivity") == "IDENTIFIER" and f["type"] == "STRING"]
+        for value in rnd.sample(sorted(set(identifier_values)), min(3, len(set(identifier_values)))):
+            union = " OR ".join("%s = %s" % (typed_expr(f), sql_str(value)) for f in id_fields)
+            add(family, "involving", rnd.choice(["How many %s involve %s?", "How many %s are linked to %s?", "How many %s mention the number %s?"]) % (rnd.choice(nouns), value), "SELECT count(*) FROM forensic.records WHERE %s AND (%s)" % (base, union), "number")
         # Questions that name something the data cannot bind: a total is the wrong answer to every one of these.
         if family in ("cdr", "ipdr", "anpr", "access_log", "transaction"):
             who = rnd.choice(UNKNOWN_NAMES)
@@ -189,7 +212,9 @@ def generate(db, seed):
 
 
 # ---------------------------------------------------------------- judging
-ABSTAIN = re.compile(r"(could not|cannot|can't|unable|not able|which (number|subscriber|plate|field)|name the|tell me|please (name|specify|restate)|clarif|only state this from a plan|no (single figure|matching|such)|not stated|did not (find|match))", re.I)
+ABSTAIN = re.compile(r"(did not apply the condition|counts every record of its kind rather than|could not|cannot|can't|unable|not able|which (number|subscriber|plate|field)|name the|tell me|please (name|specify|restate)|clarif|only state this from a plan|no (single figure|matching|such)|not stated|did not (find|match))", re.I)
+
+DISCLOSURE = re.compile(r"did not apply the condition|counts every record of its kind rather than", re.I)
 
 
 def number_in(text, expected):
@@ -206,7 +231,33 @@ def date_in(text, iso):
     return any(f.lower() in text.lower() for f in forms)
 
 
+TAGS = [
+    (re.compile(r"Computed collection ingest, KB asset", re.I), "collection overview given instead of an answer"),
+    (re.compile(r"Showing \d[\d,]* of [\d,]+ .*records", re.I), "rows listed instead of an answer"),
+    (re.compile(r"Retrieved \d+ cited evidence result", re.I), "retrieval stub instead of an answer"),
+    (re.compile(r"\b(there are no|no \w+ (records|sightings|entries)|not found)\b", re.I), "absence claimed"),
+]
+
+
+def tag_of(item, expected, text):
+    for pattern, tag in TAGS:
+        if pattern.search(text):
+            return tag
+    if item["kind"] == "number" and expected not in (None, "") and float(expected) != 0 and re.search(r"(?<![\d,.])0(?!\d|[,.]\d)", text):
+        return "zero returned"
+    if item["kind"] == "unbound" or (item.get("total") is not None and number_in(text, item["total"])):
+        return "total returned for a question about something else"
+    return "wrong value or wrong field"
+
+
 def judge(item, expected, text, status, route):
+    verdict, why = _judge(item, expected, text, status, route)
+    if verdict == "WRONG":
+        why = tag_of(item, expected, text) + " | " + why
+    return verdict, why
+
+
+def _judge(item, expected, text, status, route):
     if status != 200:
         return "ERROR", "HTTP %s" % status
     if not text.strip():
@@ -216,8 +267,8 @@ def judge(item, expected, text, status, route):
     if kind == "number":
         if number_in(text, expected):
             return "CORRECT", "states %s" % expected
-        if abstained and not re.search(r"\d", text):
-            return "ABSTAINED", "no figure"
+        if abstained and (not re.search(r"\d", text) or DISCLOSURE.search(text)):
+            return "ABSTAINED", "no figure" if not re.search(r"\d", text) else "disclosed the unapplied condition"
         return ("ABSTAINED", "withheld") if abstained and "clarification" in (route or []) else ("WRONG", "expected %s" % expected)
     if kind == "date":
         return ("CORRECT", "states %s" % expected) if date_in(text, expected) else (("ABSTAINED", "withheld") if abstained else ("WRONG", "expected %s" % expected))
@@ -232,7 +283,7 @@ def judge(item, expected, text, status, route):
         total = item["total"]
         if number_in(text, total) and not abstained:
             return "WRONG", "states the total (%s) as the answer" % fmt_num(total)
-        if kind == "absence" and (re.search(r"(?<![\d,.])0(?![\d,.])", text) or re.search(r"no (matching|records)", text, re.I)):
+        if kind == "absence" and (re.search(r"(?<![\d,.])0(?!\d|[,.]\d)", text) or re.search(r"no (matching|records)", text, re.I)):
             return "CORRECT", "reports nothing found"
         if abstained or "clarification" in (route or []):
             return "ABSTAINED", "withheld or asked back"
@@ -281,9 +332,38 @@ def summarise(rows):
     lines = ["%-14s %-15s %5s %5s %5s %5s" % ("family", "intent", "ok", "wrong", "abst", "other")]
     for (family, intent), c in sorted(by.items()):
         lines.append("%-14s %-15s %5d %5d %5d %5d" % (family, intent, c["CORRECT"], c["WRONG"], c["ABSTAINED"], c["NOT_STATED"] + c["ERROR"]))
+    tags = {}
+    for r in rows:
+        if r["verdict"] == "WRONG":
+            tag = (r.get("why") or "").split(" | ")[0]
+            tags[tag] = tags.get(tag, 0) + 1
     n = len(rows) or 1
     lines.append("TOTAL %d: correct %d (%.0f%%)  wrong %d (%.1f%%)  abstained %d  other %d" % (len(rows), total["CORRECT"], 100.0 * total["CORRECT"] / n, total["WRONG"], 100.0 * total["WRONG"] / n, total["ABSTAINED"], total["NOT_STATED"] + total["ERROR"]))
+    if tags:
+        lines.append("\nCONFIDENT-WRONG BY KIND:")
+        for tag, count in sorted(tags.items(), key=lambda kv: -kv[1]):
+            lines.append("  %3d  %s" % (count, tag))
     return "\n".join(lines)
+
+
+def compare(a_arm, b_arm):
+    def load(arm):
+        with io.open(os.path.join(HERE, arm, "results.json"), encoding="utf-8") as handle:
+            return {r["id"]: r for r in json.load(handle)}
+    a, b = load(a_arm), load(b_arm)
+    ids = [i for i in a if i in b]
+    order = {"CORRECT": 3, "ABSTAINED": 2, "NOT_STATED": 1, "ERROR": 0, "WRONG": 0}
+    better = [i for i in ids if order[b[i]["verdict"]] > order[a[i]["verdict"]]]
+    worse = [i for i in ids if order[b[i]["verdict"]] < order[a[i]["verdict"]]]
+    def count(rows, v):
+        return sum(1 for i in ids if rows[i]["verdict"] == v)
+    print("compared %d questions: %s -> %s" % (len(ids), a_arm, b_arm))
+    for v in ("CORRECT", "WRONG", "ABSTAINED", "NOT_STATED", "ERROR"):
+        print("  %-10s %3d -> %3d" % (v, count(a, v), count(b, v)))
+    print("improved: %d   worse: %d   changed text only: %d" % (len(better), len(worse), sum(1 for i in ids if a[i]["verdict"] == b[i]["verdict"] and a[i]["text"] != b[i]["text"])))
+    for label, group in (("IMPROVED", better), ("WORSE", worse)):
+        for i in group:
+            print("\n%s [%s] %s\n   %s -> %s\n   was: %s\n   now: %s" % (label, i, a[i]["question"], a[i]["verdict"], b[i]["verdict"], a[i]["text"][:110].replace("\n", " "), b[i]["text"][:110].replace("\n", " ")))
 
 
 def main():
@@ -295,6 +375,9 @@ def main():
         p.add_argument("--collection", required=True)
         p.add_argument("--seed", type=int, default=1)
         p.add_argument("--out", default="questions.json")
+    c = sub.add_parser("compare")
+    c.add_argument("a")
+    c.add_argument("b")
     r = sub.add_parser("run")
     r.add_argument("--questions", default="questions.json")
     r.add_argument("--arm", required=True)
@@ -305,6 +388,10 @@ def main():
     r.add_argument("--budget-minutes", type=float, default=0, help="stop cleanly after this long; results so far are kept and --resume continues")
     r.add_argument("--resume", action="store_true", help="skip ids already in <arm>/results.json")
     args = parser.parse_args()
+
+    if args.cmd == "compare":
+        compare(args.a, args.b)
+        return 0
 
     if args.cmd in ("generate", "selftest"):
         db = Db(args.psql, args.collection)

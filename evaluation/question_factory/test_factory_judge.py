@@ -39,6 +39,19 @@ def test_top_and_date():
     assert case("date", "2026-04-02", "The earliest was May 3, 2026.") == "WRONG"
 
 
+def test_tags_and_disclosure():
+    item = {"kind": "number", "total": 8642}
+    verdict, why = f.judge(item, "10", "Showing 20 of 8,642 CDR records that matched this question.", 200, [])
+    assert verdict == "WRONG" and why.startswith("rows listed instead of an answer")
+    verdict, why = f.judge(item, "10", "There are no CDR records involving 923451112233 in this case.", 200, [])
+    assert verdict == "WRONG" and why.startswith("absence claimed")
+    verdict, why = f.judge(item, "10", "There are 8,642 CDR records in this case.", 200, [])
+    assert verdict == "WRONG" and why.startswith("total returned")
+    verdict, why = f.judge(item, "3905649.9", "The average network volume across IPDR sessions is 0.", 200, [])
+    assert verdict == "WRONG" and why.startswith("zero returned")
+    assert f.judge(item, "0", 'I did not apply the condition "between 2025" to a curated field, so this result counts every record of its kind rather than only those you asked for: 5.', 200, [])[0] == "ABSTAINED"
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):
