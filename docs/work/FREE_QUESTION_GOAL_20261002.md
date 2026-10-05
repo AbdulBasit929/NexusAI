@@ -77,3 +77,14 @@ A message that mixes the two ("hello, how many calls did 0300... make?") is spli
 2. Who writes the fresh question sets? They must not be written from the system's own corpus. The owner or analysts are best.
 3. May the conversational and concept replies use the same 4B model for now? A different model is only evaluated under the written decision rule.
 4. Order: speed (L1b) first, or the conversation front door first?
+
+## Status, 2026-10-05
+
+- **Conversation front door** (`FORENSIC_CONVERSATION_FRONT_DOOR`, default off): built, measured, and it passes its pre-registered regression lines (103 evaluation questions: 102 identical, the one change an improvement; pre-flight 38 of 38 off and on).
+  Results: `reports/free-question-baseline-20261002/` (`RESULT.md` baseline, `RESULT_ARM_B1.md`, `RESULT_ARM_B2.md`, `RESULT_REGRESSION_V4.md`, `RESULT_REGRESSION_V5.md`, `RESULT_PREFLIGHT_V6.md`).
+  It only ever moves a message away from the data path (never toward it), never shows the model case data, and replaces any reply that states a case fact, claims the case lacks something, or claims to be infallible.
+  Open: owner grading of the replies; cold-start cost (25 to 43 s once per cache eviction); product-help nuance limited by a 4B model.
+- **Not done, and the largest remaining gap for "any question answered correctly":** the data planner still answers some questions with a count of everything when a constraint cannot be bound
+  ("How many calls did Ahmed make?", "What is the earliest call in the data?", "Just guess: how many calls were made at night?" all return the total CDR count) and cannot map others ("List the file types in this case").
+  Much of the backend work behind this lives uncommitted on the owner's laptop (about 55 new Go files and 16 modified), so it cannot be analysed from this repository until it is pushed to a branch.
+- **Speed:** a shared prompt start for every call type (`L1B_SHARED_PREAMBLE_SPEC_20261002.md`) is written and unmeasured; it would also remove the front door's cold start.
