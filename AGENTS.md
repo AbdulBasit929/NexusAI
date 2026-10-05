@@ -15,6 +15,7 @@ Then read the document that matches your task:
 |---|---|
 | Why is the architecture this way? | [`docs/architecture/RECONCILIATION_20260921.md`](docs/architecture/RECONCILIATION_20260921.md) |
 | Query, planning, answer or Fact Packet work | same, §G (Governed Semantic Compiler) — **binding** |
+| How a free question is answered end to end (two lanes, one verifier) | [`docs/architecture/QUERY_ANSWERING_DECISION_20261005.md`](docs/architecture/QUERY_ANSWERING_DECISION_20261005.md) — **binding**; amends §G.5 rule 1 |
 | Any UI work | [`docs/ux/NEXUSAI_PRODUCT_UX.md`](docs/ux/NEXUSAI_PRODUCT_UX.md) — **binding** |
 | What do I implement, exactly? | [`docs/work/MASTER_EXECUTION_PROMPT.md`](docs/work/MASTER_EXECUTION_PROMPT.md) |
 | Joining as Codex | [`.agents/CODEX.md`](.agents/CODEX.md) |

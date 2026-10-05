@@ -109,7 +109,7 @@ cross-family misrouting · **D8** payload filters discarded unless the template 
 1. **Stop defining operations.** 79 templates, 104 operations and the ladder are a *per-question* abstraction.
    **Frozen; deleted at the end of Phase 3.**
 2. **Governed Semantic Compiler**: classify → literals → scope → narrow → enum-constrained IR → validation →
-   one self-correction → parameterized SQL → verify → **abstain, never guess**. Build on `SourceNativePlanV1`.
+   one self-correction → parameterized SQL → verify → **abstain, never guess**. Build on `SourceNativePlanV1`. **Amended 2026-10-05:** a second lane, governed SQL (`FORENSIC_GOVERNED_SQL`, default off, `governed_sql_*.go`), lets the model write one validated, verified `SELECT` over analyst views for what the typed plan cannot say; see `docs/architecture/QUERY_ANSWERING_DECISION_20261005.md`.
 3. **The keystone HOLDS, verified on the SERVING path.** The schema travels as JSON and
    `core/http/endpoints/openai/chat.go` converts it to a GBNF alternation per enum;
    `grammar_keystone_test.go` asserts it through the JSON round-trip — **calling the converter directly gives

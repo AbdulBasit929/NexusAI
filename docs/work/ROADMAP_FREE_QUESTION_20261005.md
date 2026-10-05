@@ -1,5 +1,7 @@
 # Roadmap: any question about the case data answered accurately, with no predefined templates, questions or answers (2026-10-05)
 
+> **Decision record and current state: `docs/architecture/QUERY_ANSWERING_DECISION_20261005.md`.** R4 (governed SQL) is built behind `FORENSIC_GOVERNED_SQL` and awaits measurement (`reports/governed-sql-20261005/PREREGISTRATION.md`); the steps below are otherwise unchanged.
+
 Replaces the ordering in `ROADMAP_20260929.md` and `RUNTIME_QUERY_PLAN_20260929.md` where they conflict; their architecture (one governed agent, structured compiler first, checked SQL as the fallback) stands.
 Goal in `FREE_QUESTION_GOAL_20261002.md`. Measured state: `reports/free-question-baseline-20261002/`.
 

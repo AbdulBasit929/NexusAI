@@ -455,6 +455,13 @@ services:
       # case fact). Any failure leaves the request on the existing path. Thresholds written before the arms ran:
       # reports/free-question-baseline-20261002/PREREGISTRATION.md. UNMEASURED -- default off.
       FORENSIC_CONVERSATION_FRONT_DOOR: ${FORENSIC_CONVERSATION_FRONT_DOOR:-false}
+      # Governed SQL lane (docs/architecture/QUERY_ANSWERING_DECISION_20261005.md): a model writes one SELECT over analyst views built from
+      # the curated semantic layer; a parse-tree allowlist validates it, a verifier checks that every condition in the question is in the
+      # query, and it runs read-only. GOVERNED_SQL alone runs it only AFTER the existing path declines (it cannot change an answer already
+      # given); GOVERNED_SQL_FIRST runs it before the existing path (measurement). Gates: reports/governed-sql-20261005/PREREGISTRATION.md.
+      # UNMEASURED -- default off.
+      FORENSIC_GOVERNED_SQL: ${FORENSIC_GOVERNED_SQL:-false}
+      FORENSIC_GOVERNED_SQL_FIRST: ${FORENSIC_GOVERNED_SQL_FIRST:-false}
       # Headline honesty, found by 8 new questions checked against the DB
       # (reports/laptop-speed-20260929/RESULT.md). STATES_FILTERS: a count filtered
       # on plate or protocol names that filter instead of reading as the case

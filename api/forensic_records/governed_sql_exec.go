@@ -56,23 +56,26 @@ type govSQLResult struct {
 type govSQLRunError struct {
 	Code    string
 	Message string
+	// Detail is the database's own text, for the server log only. It is never put in a
+	// response or a prompt: it can name tables and settings.
+	Detail string
 }
 
 func (e *govSQLRunError) Error() string { return e.Code + ": " + e.Message }
 
 func govSQLExecute(ctx context.Context, db *pgxpool.Pool, req hybridQueryRequest, validated *govSQLValidated, maxRows int, timeout time.Duration) (*govSQLResult, error) {
 	if db == nil {
-		return nil, &govSQLRunError{"NO_DATABASE", "no database is configured"}
+		return nil, &govSQLRunError{Code: "NO_DATABASE", Message: "no database is configured"}
 	}
 	if validated == nil || validated.View == nil {
-		return nil, &govSQLRunError{"NOT_VALIDATED", "only a validated query may run"}
+		return nil, &govSQLRunError{Code: "NOT_VALIDATED", Message: "only a validated query may run"}
 	}
 	if maxRows <= 0 || maxRows > govSQLMaxRows {
 		maxRows = govSQLMaxRows
 	}
 	cte, args, err := govSQLCTE(validated.View, req, nil)
 	if err != nil {
-		return nil, &govSQLRunError{"SCOPE", err.Error()}
+		return nil, &govSQLRunError{Code: "SCOPE", Message: err.Error()}
 	}
 	// The row cap is a literal integer the server chose, never model text.
 	final := "WITH " + cte + "\nSELECT * FROM (\n" + validated.SQL + "\n) AS governed_result LIMIT " + strconv.Itoa(maxRows+1)
@@ -91,11 +94,11 @@ func govSQLRun(ctx context.Context, db *pgxpool.Pool, tenantID, final string, ar
 	defer cancel()
 	tx, err := db.BeginTx(callCtx, pgx.TxOptions{AccessMode: pgx.ReadOnly})
 	if err != nil {
-		return nil, &govSQLRunError{"DATABASE", "could not start a read-only transaction"}
+		return nil, &govSQLRunError{Code: "DATABASE", Message: "could not start a read-only transaction"}
 	}
 	defer tx.Rollback(callCtx) //nolint:errcheck // a read-only transaction has nothing to undo
 	if _, err := tx.Exec(callCtx, "SELECT set_config('app.tenant_id', $1, true)", tenantID); err != nil {
-		return nil, &govSQLRunError{"DATABASE", "could not set the tenant context"}
+		return nil, &govSQLRunError{Code: "DATABASE", Message: "could not set the tenant context"}
 	}
 	for _, setting := range []string{
 		"SET LOCAL statement_timeout = " + strconv.FormatInt(timeout.Milliseconds(), 10),
@@ -103,7 +106,7 @@ func govSQLRun(ctx context.Context, db *pgxpool.Pool, tenantID, final string, ar
 		"SET LOCAL idle_in_transaction_session_timeout = 30000",
 	} {
 		if _, err := tx.Exec(callCtx, setting); err != nil {
-			return nil, &govSQLRunError{"DATABASE", "could not set the query limits"}
+			return nil, &govSQLRunError{Code: "DATABASE", Message: "could not set the query limits"}
 		}
 	}
 
@@ -112,7 +115,7 @@ func govSQLRun(ctx context.Context, db *pgxpool.Pool, tenantID, final string, ar
 		return nil, govSQLMapError(err)
 	}
 	if cost > govSQLMaxPlanCost {
-		return nil, &govSQLRunError{"TOO_EXPENSIVE", fmt.Sprintf("the query would read far too much data (planner cost %.0f, limit %.0f); filter on a column first", cost, govSQLMaxPlanCost)}
+		return nil, &govSQLRunError{Code: "TOO_EXPENSIVE", Message: fmt.Sprintf("the query would read far too much data (planner cost %.0f, limit %.0f); filter on a column first", cost, govSQLMaxPlanCost)}
 	}
 
 	rows, err := tx.Query(callCtx, final, args...)
@@ -175,22 +178,23 @@ func govSQLMapError(err error) error {
 		return run
 	}
 	if errors.Is(err, context.DeadlineExceeded) {
-		return &govSQLRunError{"TIMEOUT", "the query took too long; filter or aggregate earlier"}
+		return &govSQLRunError{Code: "TIMEOUT", Message: "the query took too long; filter or aggregate earlier"}
 	}
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
+		detail := pgErr.Code + ": " + govSQLClip(pgErr.Message, 300)
 		switch pgErr.Code {
 		case "57014":
-			return &govSQLRunError{"TIMEOUT", "the query took too long; filter or aggregate earlier"}
+			return &govSQLRunError{Code: "TIMEOUT", Message: "the query took too long; filter or aggregate earlier"}
 		case "25006":
-			return &govSQLRunError{"READ_ONLY", "this query tried to change data, which is not allowed"}
+			return &govSQLRunError{Code: "READ_ONLY", Message: "this query tried to change data, which is not allowed"}
 		case "42703", "42883", "42804", "42725", "22P02", "22007", "22008", "22012", "22003", "42601", "42803", "42P20", "42702", "22023", "2201X":
-			return &govSQLRunError{"QUERY_ERROR", govSQLClip(pgErr.Message, 200)}
+			return &govSQLRunError{Code: "QUERY_ERROR", Message: govSQLClip(pgErr.Message, 200)}
 		}
-		return &govSQLRunError{"DATABASE", "the database could not run this query"}
+		return &govSQLRunError{Code: "DATABASE", Message: "the database could not run this query", Detail: detail}
 	}
 	if strings.Contains(err.Error(), "context canceled") {
-		return &govSQLRunError{"CANCELED", "the request was canceled"}
+		return &govSQLRunError{Code: "CANCELED", Message: "the request was canceled"}
 	}
-	return &govSQLRunError{"DATABASE", "the database could not run this query"}
+	return &govSQLRunError{Code: "DATABASE", Message: "the database could not run this query", Detail: govSQLClip(err.Error(), 300)}
 }

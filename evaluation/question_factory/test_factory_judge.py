@@ -52,6 +52,26 @@ def test_tags_and_disclosure():
     assert f.judge(item, "0", 'I did not apply the condition "between 2025" to a curated field, so this result counts every record of its kind rather than only those you asked for: 5.', 200, [])[0] == "ABSTAINED"
 
 
+def test_lane_summary_and_absence():
+    # an honest absence after a search is a correct answer to "does this exist"
+    item = {"kind": "absence", "total": 5005}
+    assert f.judge(item, None, "No record in this case contains 923000000001: I searched every identifier field of every evidence family in this case.", 200, ["governed_sql"])[0] == "CORRECT"
+    assert f.judge(item, None, "The total is 5,005.", 200, [])[0] == "WRONG"
+    rows = [
+        {"verdict": "CORRECT", "lane": "state=answered; attempts=1; views=v_cdr; model_ms=41000; exec_ms=12; total_ms=41100"},
+        {"verdict": "WRONG", "lane": "state=answered; attempts=2; views=v_cdr; model_ms=82000; exec_ms=15; total_ms=82200"},
+        {"verdict": "ABSTAINED", "lane": "state=abstained; attempts=2; views=v_cdr; model_ms=80000; exec_ms=0; total_ms=80050"},
+        {"verdict": "WRONG", "lane": "state=declined; attempts=1; views=; model_ms=0; exec_ms=0; total_ms=5; reason=model: TIMEOUT_OR_UNAVAILABLE"},
+        {"verdict": "CORRECT"},
+    ]
+    text = f.lane_summary(rows)
+    assert "4 of 5 responses carry the header" in text
+    assert "answered" in text and "CORRECT 1, WRONG 1" in text
+    assert "two attempts: 1" in text
+    assert "TIMEOUT_OR_UNAVAILABLE" in text
+    assert f.lane_summary([{"verdict": "CORRECT"}]) == ""
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

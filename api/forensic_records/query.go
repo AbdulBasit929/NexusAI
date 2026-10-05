@@ -221,7 +221,7 @@ func queryTemplatesHandler() http.HandlerFunc {
 	}
 }
 
-func hybridQueryHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
+func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 	cfg.QueryDB = db
 	return func(w http.ResponseWriter, r *http.Request) {
 		startedAt := time.Now()
@@ -339,6 +339,19 @@ func hybridQueryHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 		if terminal, ok := terminalRequestResponse(req, startedAt); ok {
 			writeJSON(w, http.StatusOK, terminal)
 			return
+		}
+		// FORENSIC_GOVERNED_SQL / _FIRST (governed_sql_lane.go). Only a data question reaches this line: conversation, concepts and help were answered above.
+		if holder := govSQLHolderFrom(ctx); holder != nil {
+			held := req
+			holder.req = &held
+		}
+		if governedSQLFirstEnabled() {
+			laneResponse, laneAudit := runGovernedSQLLane(ctx, cfg, db, req, startedAt)
+			setGovernedSQLHeader(w, laneAudit)
+			if laneResponse != nil {
+				writeJSON(w, http.StatusOK, *laneResponse)
+				return
+			}
 		}
 
 		// Attach the planner audit BEFORE any planning runs, so cost recording

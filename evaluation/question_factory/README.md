@@ -41,3 +41,14 @@ The replica is smaller than the owner's database (5,005 CDR rows against 8,642),
 ## What the baseline is for
 
 The first run records numbers before any planner change: share correct, share confident-wrong, abstentions by reason, and a failure taxonomy by family and intent. Targets for R2 are set after that is read.
+
+## Switch arms (the governed SQL lane)
+
+`Run-Arms.ps1` runs the same question file against the same image with the two lane switches in three states (A both off, C `FORENSIC_GOVERNED_SQL` only, B both on) and compares them. The gates are
+`reports/governed-sql-20261005/PREREGISTRATION.md`. The result files now carry the `X-Governed-SQL` header of every response, and the summary prints how many requests the lane answered, abstained on and
+declined, the accuracy of the answered ones, and model and execution time.
+
+    . .\evaluation\question_factory\Run-Arms.ps1
+    Show-Stack ; Build-LaneImage ; Run-Arm A ; Run-Arm C ; Run-Arm B ; Compare-Arms
+    Run-Regression A ; Run-Regression C        # gates G2 and G3: the corpus and the pre-flight
+    Restore-Stack

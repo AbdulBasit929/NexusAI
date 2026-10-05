@@ -283,7 +283,7 @@ def _judge(item, expected, text, status, route):
         total = item["total"]
         if number_in(text, total) and not abstained:
             return "WRONG", "states the total (%s) as the answer" % fmt_num(total)
-        if kind == "absence" and (re.search(r"(?<![\d,.])0(?!\d|[,.]\d)", text) or re.search(r"no (matching|records)", text, re.I)):
+        if kind == "absence" and (re.search(r"(?<![\d,.])0(?!\d|[,.]\d)", text) or re.search(r"no (matching|records?)\b|does not appear|searched every", text, re.I)):
             return "CORRECT", "reports nothing found"
         if abstained or "clarification" in (route or []):
             return "ABSTAINED", "withheld or asked back"
@@ -303,11 +303,12 @@ def ask(url, key, collection, question, timeout=900):
     started = time.time()
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
-            return response.status, json.loads(response.read().decode("utf-8")), time.time() - started
+            headers = {k.lower(): v for k, v in response.headers.items()}
+            return response.status, json.loads(response.read().decode("utf-8")), time.time() - started, headers
     except urllib.error.HTTPError as exc:
-        return exc.code, {}, time.time() - started
+        return exc.code, {}, time.time() - started, {}
     except Exception as exc:  # noqa: BLE001 - a probe reports its own failure
-        return 0, {"_error": str(exc)[:200]}, time.time() - started
+        return 0, {"_error": str(exc)[:200]}, time.time() - started, {}
 
 
 def answer_text(blob):
@@ -343,6 +344,56 @@ def summarise(rows):
         lines.append("\nCONFIDENT-WRONG BY KIND:")
         for tag, count in sorted(tags.items(), key=lambda kv: -kv[1]):
             lines.append("  %3d  %s" % (count, tag))
+    return "\n".join(lines)
+
+
+def lane_fields(header):
+    out = {}
+    for part in (header or "").split(";"):
+        if "=" in part:
+            key, value = part.split("=", 1)
+            out[key.strip()] = value.strip()
+    return out
+
+
+def percentile(values, q):
+    values = sorted(values)
+    if not values:
+        return 0
+    return values[min(len(values) - 1, int(round(q * (len(values) - 1))))]
+
+
+def lane_summary(rows):
+    """What the governed SQL lane did, from the X-Governed-SQL header on each response (gates G4-G8)."""
+    seen = [(r, lane_fields(r.get("lane"))) for r in rows if r.get("lane")]
+    if not seen:
+        return ""
+    lines = ["\nGOVERNED SQL LANE (%d of %d responses carry the header):" % (len(seen), len(rows))]
+    states = {}
+    for r, f in seen:
+        states.setdefault(f.get("state", "?"), []).append((r, f))
+    for state in ("answered", "abstained", "declined"):
+        group = states.get(state, [])
+        verdicts = {}
+        for r, _ in group:
+            verdicts[r["verdict"]] = verdicts.get(r["verdict"], 0) + 1
+        lines.append("  %-9s %3d   by verdict: %s" % (state, len(group), ", ".join("%s %d" % kv for kv in sorted(verdicts.items())) or "-"))
+    answered = states.get("answered", [])
+    if answered:
+        model = [float(f.get("model_ms", 0)) / 1000.0 for _, f in answered]
+        run = [float(f.get("exec_ms", 0)) / 1000.0 for _, f in answered]
+        total = [float(f.get("total_ms", 0)) / 1000.0 for _, f in answered]
+        attempts = [int(f.get("attempts", 1)) for _, f in answered]
+        lines.append("  answered: model s median %.1f p90 %.1f max %.1f | execution s median %.2f p90 %.2f | total s median %.1f p90 %.1f | two attempts: %d" % (
+            percentile(model, 0.5), percentile(model, 0.9), max(model), percentile(run, 0.5), percentile(run, 0.9), percentile(total, 0.5), percentile(total, 0.9), sum(1 for a in attempts if a > 1)))
+    reasons = {}
+    for _, f in states.get("declined", []):
+        reason = f.get("reason", "?")[:70]
+        reasons[reason] = reasons.get(reason, 0) + 1
+    if reasons:
+        lines.append("  declined because:")
+        for reason, count in sorted(reasons.items(), key=lambda kv: -kv[1])[:8]:
+            lines.append("    %3d  %s" % (count, reason))
     return "\n".join(lines)
 
 
@@ -447,19 +498,21 @@ def main():
             print("time budget reached; stopping cleanly. Continue with --resume.")
             break
         expected = expected_of(db, item) if db else item.get("expected")
-        status, blob, seconds = ask(url, key, item["collection"], item["question"])
+        status, blob, seconds, headers = ask(url, key, item["collection"], item["question"])
         text = answer_text(blob)
         verdict, why = judge(item, expected, text, status, blob.get("route"))
         row = {k: item[k] for k in ("id", "family", "intent", "question", "kind")}
         row.update(expected=expected, verdict=verdict, why=why, route=blob.get("route"), seconds=round(seconds, 1), text=text[:500])
+        if headers.get("x-governed-sql"):
+            row["lane"] = headers["x-governed-sql"]
         rows.append(row)
         print("%-9s %-24s %-8s %6.1fs  %s" % (verdict, item["id"], item["kind"], seconds, item["question"]))
         with io.open(os.path.join(out_dir, "results.json"), "w", encoding="utf-8") as handle:
             json.dump(rows, handle, indent=1, ensure_ascii=False)
-    print("\n" + summarise(rows))
+    print("\n" + summarise(rows) + lane_summary(rows))
     wrong = [r for r in rows if r["verdict"] == "WRONG"]
     with io.open(os.path.join(out_dir, "summary.txt"), "w", encoding="utf-8") as handle:
-        handle.write(summarise(rows) + "\n\nCONFIDENT-WRONG (%d):\n" % len(wrong))
+        handle.write(summarise(rows) + lane_summary(rows) + "\n\nCONFIDENT-WRONG (%d):\n" % len(wrong))
         for r in wrong:
             handle.write("  [%s] %s\n      key: %s   answered: %s\n      -> %s\n" % (r["id"], r["question"], r["expected"], r["text"][:140].replace("\n", " "), r["why"]))
     print("\nwritten: %s" % out_dir)

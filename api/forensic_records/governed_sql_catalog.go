@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -90,15 +92,6 @@ func (v *govSQLView) columnNames(limit int) string {
 		names = names[:limit]
 	}
 	return strings.Join(names, ", ")
-}
-
-func (v *govSQLView) column(name string) (govSQLColumn, bool) {
-	for _, c := range v.Columns {
-		if c.Name == name {
-			return c, true
-		}
-	}
-	return govSQLColumn{}, false
 }
 
 // govSQLColumnType is the SQL type a column is declared with. It follows the
@@ -307,6 +300,23 @@ func govSQLShortlist(views []*govSQLView, question string) []*govSQLView {
 	return out
 }
 
+var govSQLRxPlaceholder = regexp.MustCompile(`\$(\d+)`)
+
+// govSQLShiftPlaceholders renumbers $n placeholders by offset.
+func govSQLShiftPlaceholders(clauses []string, offset int) []string {
+	if offset == 0 {
+		return clauses
+	}
+	out := make([]string, len(clauses))
+	for i, clause := range clauses {
+		out[i] = govSQLRxPlaceholder.ReplaceAllStringFunc(clause, func(match string) string {
+			n, _ := strconv.Atoi(match[1:])
+			return "$" + strconv.Itoa(n+offset)
+		})
+	}
+	return out
+}
+
 // govSQLCTE builds the view's definition for one request. The scope predicate is
 // the compiler's own: tenant, case and (for a derived view) completed artifacts of
 // exactly this contract. The request's target and date bounds are NOT applied;
@@ -331,10 +341,16 @@ func govSQLCTE(view *govSQLView, req hybridQueryRequest, args []any) (string, []
 			where = append(where, fmt.Sprintf("d.metadata->>'observation_type'=$%d", len(args)))
 		}
 	} else {
-		where, args, err = sourceNativeScopeWhere(scoped, args)
-		if err != nil {
-			return "", nil, err
+		// sourceNativeScopeWhere writes tenant and case as the literal placeholders $1
+		// and $2, which is right for one query and wrong for the second view's CTE in a
+		// query that carries several. Build the scope on its own and shift it past the
+		// arguments already in use.
+		local, localArgs, scopeErr := sourceNativeScopeWhere(scoped, nil)
+		if scopeErr != nil {
+			return "", nil, scopeErr
 		}
+		where = govSQLShiftPlaceholders(local, len(args))
+		args = append(args, localArgs...)
 	}
 	fields := map[string]FieldDescriptorV1{}
 	for _, column := range view.Columns {
