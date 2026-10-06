@@ -426,6 +426,9 @@ def main():
         p.add_argument("--collection", required=True)
         p.add_argument("--seed", type=int, default=1)
         p.add_argument("--out", default="questions.json")
+    e = sub.add_parser("explain", help="ask ONE question again and print the answer key, the answer, the lane header and the query the lane ran")
+    e.add_argument("--questions", default="questions.json")
+    e.add_argument("--id", required=True)
     c = sub.add_parser("compare")
     c.add_argument("a")
     c.add_argument("b")
@@ -442,6 +445,21 @@ def main():
 
     if args.cmd == "compare":
         compare(args.a, args.b)
+        return 0
+
+    if args.cmd == "explain":
+        with io.open(args.questions, encoding="utf-8") as handle:
+            data = json.load(handle)
+        item = next((i for i in data["questions"] if i["id"] == args.id), None)
+        if item is None:
+            print("no such question id: %s" % args.id)
+            return 1
+        url = os.environ.get("NEXUSAI_PROBE_URL", "http://127.0.0.1:8091/query/hybrid")
+        status, blob, seconds, headers = ask(url, os.environ.get("FORENSIC_RECORDS_API_KEY", ""), item["collection"], item["question"])
+        derivation = ((blob.get("enterprise") or {}).get("derivation") or {}) if isinstance(blob, dict) else {}
+        print("id       : %s\nquestion : %s\nexpected : %s\noracle   : %s\nhttp     : %s  %.1fs\nlane     : %s\nanswer   : %s\nquery    : %s\nchecked  : %s\n" % (
+            item["id"], item["question"], item.get("expected"), item["oracle_sql"], status, seconds, headers.get("x-governed-sql"),
+            answer_text(blob).replace("\n", " | ")[:300], derivation.get("sql"), derivation.get("conditions_checked") or derivation.get("checked")))
         return 0
 
     if args.cmd in ("generate", "selftest"):

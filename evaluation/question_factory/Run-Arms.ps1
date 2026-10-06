@@ -197,6 +197,16 @@ function Run-Arm {
   Write-Host "If it stopped at the time budget, run the same command again to continue." -ForegroundColor Yellow
 }
 
+# Ask ONE question again against the running API and print the answer key, the answer, the lane header and the query the lane ran.
+function Explain-Question {
+  param([Parameter(Mandatory)][string[]]$Id)
+  $s = Get-Stack
+  $keyLine = $s.Env | Where-Object { $_ -like 'FORENSIC_RECORDS_API_KEY=*' -or $_ -like 'FORENSIC_API_KEY=*' } | Select-Object -First 1
+  $env:FORENSIC_RECORDS_API_KEY = $keyLine.Substring($keyLine.IndexOf('=') + 1)
+  Push-Location $script:Here
+  try { foreach ($one in $Id) { python factory.py explain --questions questions-demo.json --id $one } } finally { Pop-Location; Remove-Item Env:\FORENSIC_RECORDS_API_KEY -ErrorAction SilentlyContinue }
+}
+
 function Compare-Arms {
   Import-BaselineData
   Push-Location $script:Here
