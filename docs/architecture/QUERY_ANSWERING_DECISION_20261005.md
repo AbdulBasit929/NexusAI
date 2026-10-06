@@ -58,7 +58,8 @@ Every other §G.5 rule stands: every field the model can reference is enumerated
 |---|---|---|
 | R0 | the laptop's backend work pushed to a branch | **done** 2026-10-05 |
 | Lane 2 | catalogue, validator (172 specs, 100+ hostile queries), executor (14 live-database specs), verifier, prompt, loop, two entry modes, 31 end-to-end specs, 0 lint issues | **built** 2026-10-05 |
-| M1 | measure it: arms A/B/C on the factory set against the gates in `reports/governed-sql-20261005/PREREGISTRATION.md` | **next** (owner runs; one paste per arm) |
+| M1 | measure it: arms A/B/C on the factory set against the gates in `reports/governed-sql-20261005/PREREGISTRATION.md` | **in progress** (runs 1-5 recorded there: factory set B 73/82 correct, 2 confident-wrong; pre-flight and corpus found and fixed the lane answering what it should not; unseen set v2 running) |
+| R1b | the silently dropped free-word condition ("still need manual review"): layer names the predicate as a field, or the model reports what it did not apply | next, after the unseen-set result |
 | R2 | give the typed lane the same verifier, so a dropped condition abstains there too | after M1 |
 | R3 | add earliest/latest, time-of-day and others to the typed algebra **only** where M1 shows lane 2 is too slow or too error-prone for them | data-driven |
 | R5 | retrieval path with the curated sensitivity; then, and only then, the front door may promote | after M1 |
