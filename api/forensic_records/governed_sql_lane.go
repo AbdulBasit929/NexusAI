@@ -87,8 +87,16 @@ func govSQLEligible(req hybridQueryRequest) (bool, string) {
 	case req.TenantID == "" || req.CollectionID == "":
 		return false, "no authorised scope"
 	}
+	if _, kind := questionStatesRelationalCondition(req.Query); kind != relationalNone {
+		return false, "a relationship between records needs a join, which this lane does not attempt"
+	}
 	return true, ""
 }
+
+// govSQLMediaCue marks a question about text or media evidence (a transcript, a photo, a document).
+// Those are answered by the retrieval path, which searches the text itself; the structured
+// views cannot say whether a number is mentioned in a recording.
+var govSQLMediaCue = regexp.MustCompile(`(?i)\b(?:images?|photos?|pictures?|jpe?g|video|videos|footage|audio|recordings?|transcripts?|speech|spoken|documents?|pdfs?|ocr|scans?|scanned|faces?)\b`)
 
 // runGovernedSQLLane returns a response when the lane answered or abstained, and nil
 // when it declined. The audit is always filled.
@@ -124,6 +132,9 @@ func runGovernedSQLLane(ctx context.Context, cfg config, db *pgxpool.Pool, req h
 	}
 	all := govSQLViews(layer, req)
 	offered := govSQLShortlist(all, req.Query)
+	if govSQLMediaCue.MatchString(req.Query) && (len(offered) == 0 || !offered[0].binding.Derived) {
+		return decline("text and media evidence is answered by the retrieval path")
+	}
 	if len(offered) == 0 {
 		// A name the evidence cannot hold is answered "not answerable" even when no family is recognised:
 		// declining would hand the question to a path that answers it with a total (measured 2026-10-06).
@@ -460,7 +471,7 @@ func govSQLReadProbe(hits map[string][]govSQLHit, ids []string, validated *govSQ
 	}
 	if !foundAny {
 		verdict.absentEverywhere = true
-		verdict.searched = "every identifier field of every evidence family in this case"
+		verdict.searched = "every identifier field of the structured evidence (records and media metadata). Text inside recordings, images and documents is searched by a different path and was not searched here"
 	}
 	return verdict
 }
@@ -533,6 +544,9 @@ func govSQLFormatCell(view *govSQLView, column string, value any) string {
 		for _, c := range view.Columns {
 			if c.Name == column && c.Type == "text" {
 				if text, ok := value.(string); ok {
+					if label := c.Labels[text]; label != "" {
+						return label
+					}
 					return text
 				}
 			}
@@ -567,6 +581,14 @@ func govSQLHeadline(view *govSQLView, result *govSQLResult, facts govSQLQuestion
 			parts = append(parts, fmt.Sprintf("%s: %s", govSQLHumanize(column), govSQLFormatCell(view, column, result.Rows[0][i])))
 		}
 		return strings.Join(parts, "; ") + "."
+	case len(result.Columns) == 2 && len(result.Rows) <= 12 && !facts.WantsSingle:
+		// A short two-column result is a breakdown: say all of it, in the order the query gave,
+		// instead of naming the first row "top".
+		parts := make([]string, 0, len(result.Rows))
+		for _, row := range result.Rows {
+			parts = append(parts, fmt.Sprintf("%s: %s", govSQLFormatCell(view, result.Columns[0], row[0]), govSQLFormatCell(view, result.Columns[1], row[1])))
+		}
+		return fmt.Sprintf("%d rows (%s by %s). In full: %s.", len(result.Rows), strings.ToLower(govSQLHumanize(result.Columns[1])), strings.ToLower(govSQLHumanize(result.Columns[0])), strings.Join(parts, "; "))
 	default:
 		first := result.Rows[0]
 		lead := ""
@@ -723,7 +745,7 @@ func govSQLElsewhereResponse(req hybridQueryRequest, offered, all []*govSQLView,
 	}
 	text := fmt.Sprintf("%s does not appear in %s, but it does appear in %s (%s, %s rows). Ask about %s instead.",
 		verdict.id, here, verdict.elsewhereView, verdict.elsewhereColumn, govSQLGroup(strconv.FormatInt(verdict.elsewhereRows, 10)), verdict.elsewhereView)
-	return govSQLClarification(req, text, "I searched every identifier field of every evidence family before saying this. No count of zero is reported, because the value exists elsewhere in the case.", audit)
+	return govSQLClarification(req, text, "I searched every identifier field of the structured evidence before saying this. No count of zero is reported, because the value exists elsewhere in the case.", audit)
 }
 
 // ---------------------------------------------------------------- the headers and the fallback

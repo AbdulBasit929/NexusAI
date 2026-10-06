@@ -60,7 +60,7 @@ var _ = Describe("Governed SQL lane (no database)", func() {
 		one := &govSQLResult{Columns: []string{"number_of_calls"}, Rows: [][]any{{int64(5005)}}}
 		Expect(govSQLHeadline(view, one, govSQLQuestionFacts{}, "", nil)).To(Equal("Number of calls: 5,005."))
 		top := &govSQLResult{Columns: []string{"protocol", "sessions"}, Rows: [][]any{{"DNS", int64(1246)}, {"HTTP", int64(900)}}}
-		Expect(govSQLHeadline(view, top, govSQLQuestionFacts{}, "", nil)).To(ContainSubstring("Top result: protocol = DNS (sessions: 1,246)"))
+		Expect(govSQLHeadline(view, top, govSQLQuestionFacts{}, "", nil)).To(ContainSubstring("In full: DNS: 1,246; HTTP: 900"))
 		Expect(govSQLHeadline(view, &govSQLResult{Columns: []string{"x"}}, govSQLQuestionFacts{}, "", nil)).To(Equal("The query matched no rows."))
 		Expect(govSQLHeadline(view, one, govSQLQuestionFacts{}, "every identifier field", []string{"923000000001"})).To(ContainSubstring("No record in this case contains 923000000001"))
 	})
@@ -405,6 +405,25 @@ var _ = Describe("Governed SQL lane (with a database)", func() {
 		Expect(strings.Join(toStrings(resp.Enterprise["limitations"]), " ")).To(ContainSubstring("The time condition was applied to: Event time (event_time)"))
 	})
 
+	It("leaves text and media questions to the retrieval path, and relationships to a join it does not attempt", func() {
+		for _, q := range []string{"Is the number 03001234567 mentioned in any audio?", "Find OCR text mentioning Investigation Workspace", "Find plate LEB15491 in the images", "Do any subscribers share the same handset?"} {
+			resp, audit := ask(q)
+			Expect(resp).To(BeNil(), q)
+			Expect(audit.State).To(Equal("declined"), q)
+		}
+		Expect(model.calls).To(BeEmpty(), "none of them reaches the model")
+	})
+
+	It("lists a short breakdown in full with the names the analyst reads", func() {
+		model.replies = []string{sqlReply("SELECT call_type, COUNT(*) AS number_of_events FROM v_cdr GROUP BY call_type ORDER BY number_of_events DESC")}
+		resp, audit := ask("Show the call type breakdown")
+		Expect(resp).NotTo(BeNil(), audit.Reason)
+		Expect(headline(resp)).To(ContainSubstring("In full:"))
+		Expect(headline(resp)).To(ContainSubstring("Data session"))
+		Expect(headline(resp)).NotTo(ContainSubstring("GPRS"))
+		Expect(headline(resp)).NotTo(ContainSubstring("Top result"))
+	})
+
 	It("abstains on a name even when no evidence family is recognised", func() {
 		model.replies = []string{sqlReply("SELECT COUNT(*) AS n FROM v_cdr")}
 		resp, audit := ask("How many items did Nadia Farooqui have?")
@@ -444,7 +463,7 @@ var _ = Describe("Governed SQL lane (with a database)", func() {
 			resp, audit := ask("How many calls did 923000000001 make?")
 			Expect(audit.State).To(Equal("answered"))
 			Expect(headline(resp)).To(ContainSubstring("No record in this case contains 923000000001"))
-			Expect(headline(resp)).To(ContainSubstring("every identifier field of every evidence family"))
+			Expect(headline(resp)).To(ContainSubstring("every identifier field of the structured evidence"))
 		})
 	})
 

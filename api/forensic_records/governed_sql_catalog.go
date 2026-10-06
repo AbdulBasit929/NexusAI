@@ -63,7 +63,8 @@ type govSQLColumn struct {
 	Description string
 	Identifier  bool
 	Derived     bool
-	Values      []string // declared canonical values, for a text column
+	Values      []string          // declared canonical values, for a text column
+	Labels      map[string]string // canonical value -> the name the analyst reads (GPRS -> Data session)
 	Synonyms    []string
 	field       FieldDescriptorV1
 }
@@ -176,9 +177,16 @@ func govSQLViews(layer *SemanticLayerV1, req hybridQueryRequest) []*govSQLView {
 		}
 		taken[name] = true
 		values := map[string][]string{}
+		labels := map[string]map[string]string{}
 		for _, field := range entity.Fields {
 			for _, value := range field.Values {
 				values[field.ID] = append(values[field.ID], value.Value)
+				if strings.TrimSpace(value.DisplayName) != "" {
+					if labels[field.ID] == nil {
+						labels[field.ID] = map[string]string{}
+					}
+					labels[field.ID][value.Value] = value.DisplayName
+				}
 			}
 		}
 		scoped := req
@@ -211,7 +219,7 @@ func govSQLViews(layer *SemanticLayerV1, req hybridQueryRequest) []*govSQLView {
 			view.Columns = append(view.Columns, govSQLColumn{
 				Name: colName, FieldID: field.FieldID, Type: govSQLColumnType(field.EffectiveType), Display: field.DisplayName,
 				Description: field.Description, Identifier: field.Sensitivity == "IDENTIFIER", Derived: field.DerivedOp != "",
-				Values: values[field.FieldID], Synonyms: field.Synonyms, field: field,
+				Values: values[field.FieldID], Labels: labels[field.FieldID], Synonyms: field.Synonyms, field: field,
 			})
 		}
 		if len(view.Columns) == 0 {

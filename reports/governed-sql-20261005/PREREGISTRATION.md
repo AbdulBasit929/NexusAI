@@ -144,3 +144,32 @@ The answer now states which time column the condition used. Whether "June" and "
 
 Arm B's result is the lane's own accuracy with the existing path unchanged underneath it (declined requests fall to it). On this question set it is a 46-point gain in correct answers and a 24-point drop in confident-wrong ones against arm A.
 The set is the one the failures were found on, so it is evidence of the fixes, not of the next unseen question: a new generation (new seed) and the 103-question corpus are the independent checks, and the lane stays off by default until they are in.
+
+## Run 4 (2026-10-06): the 38-question pre-flight and the 103-question corpus (`Run-Regression`), image `50d9afc`
+
+| Arm | Pre-flight | Corpus questions | HTTP errors |
+|---|---|---|---|
+| A | **38 of 38** | 103 | 0 |
+| C | **35 of 38** | 103 | 0 |
+| B | **27 of 38** | 103 | 0 |
+
+**G2 and G3 are not met on the pre-flight.** The three arm C failures are questions the existing path *refused* (arm A: withheld) and the lane then answered: "calls that lasted longer than ten minutes" (a list), "do any subscribers share the same handset" (answered "Number of unique handsets: 1": a different question), "where was 923001110001 seen" (5 rows).
+Arm B has the same three, plus these, each read from the output:
+
+| Pre-flight item | Arm B answer | Class |
+|---|---|---|
+| "Is the number 03001234567 mentioned in any audio?" | "No record in this case contains 03001234567: I searched every identifier field of every evidence family" while the old path finds it in a recording | **false absence: G6 violated.** The search covers structured evidence, not text inside recordings, images and documents; the sentence claimed more than was searched |
+| "Find OCR text mentioning Investigation Workspace" | abstained: "could not tie 'Investigation Workspace' to any field" | a text-search question read as an unknown name |
+| "Find plate LEB15491 in the images" | a row dump of `Camera id: no value ...` | wrong evidence family for a media question |
+| "How many plate reads were produced from the images?" | 1,057 (camera sightings); the old path says 307 (plate reads from images) | wrong evidence family for a media question |
+| "Show the call type breakdown", "...HTTP status codes" | "Top result: call_type = GPRS (5,863). 5 rows." and "Top result: status = 500 (46)" | presentation: the first row of a breakdown called "top", and a raw code where the layer declares a name |
+| "How many call records are from August 2026?", "How many transactions have an amount above 50000?", "Where was plate ZZZ-0000 seen?" | a correct number or an honest absence, in different words than the pre-flight's expected phrase | wording check of the pre-flight, not a wrong answer |
+
+### Changes made after this reading, before any further run
+
+* Text and media evidence (a recording, a photo, a document, OCR, a face) is left to the retrieval path unless the best-matching view is a derived media view.
+* A question that states a relationship between records ("share the same ...", "in common", "between ... and ...") is declined: a relationship needs a join and the lane does not attempt one (the existing detector, `questionStatesRelationalCondition`, is reused).
+* The absence sentence says what was searched ("every identifier field of the structured evidence"; text inside recordings, images and documents "was not searched here"). It no longer says "every evidence family".
+* A short two-column result is a breakdown and is listed in full with the layer's display names ("Data session: 5,863"), not summarised as "top".
+
+Arm B on the 103-question corpus (`number_checks_stated` 33 of 47, the same as A) and arm C (36 of 47) are read next with `replay_corpus.py compare`; the honesty items (H11, H12, H13, NEG-01) are the first to look at.
