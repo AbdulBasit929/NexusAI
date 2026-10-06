@@ -224,10 +224,10 @@ function Compare-Arms {
   } finally { Pop-Location }
 }
 
-# Gate G2: the 103-question corpus and the 38-question pre-flight, with the lane off (A) and fallback (C). Read the DIFFERENCES that
+# Gate G2: the 103-question corpus and the 38-question pre-flight, with the lane off (A), after the old path (C) and first (B). Read the DIFFERENCES that
 # compare prints: every question the existing path answered must have identical text.
 function Run-Regression {
-  param([ValidateSet('A', 'C')][string]$Arm)
+  param([ValidateSet('A', 'B', 'C')][string]$Arm)
   $s = Set-Arm -Arm $Arm
   $keyLine = $s.Env | Where-Object { $_ -like 'FORENSIC_RECORDS_API_KEY=*' -or $_ -like 'FORENSIC_API_KEY=*' } | Select-Object -First 1
   $env:FORENSIC_RECORDS_API_KEY = $keyLine.Substring($keyLine.IndexOf('=') + 1)

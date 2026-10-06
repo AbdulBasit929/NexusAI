@@ -604,6 +604,23 @@ func govSQLAnswerResponse(req hybridQueryRequest, validated *govSQLValidated, re
 	if len(audit.Checked) > 0 {
 		limitations = append(limitations, "The query was checked to apply: "+strings.Join(audit.Checked, "; ")+".")
 	}
+	if len(facts.TimeCues) > 0 {
+		// Several columns of a view can hold a time (an event time, a call start). Which one the
+		// condition used is part of the answer.
+		used := map[string]bool{}
+		for _, name := range validated.Columns {
+			used[name] = true
+		}
+		named := []string{}
+		for _, column := range view.Columns {
+			if used[column.Name] && (column.Type == "timestamptz" || column.Type == "date") {
+				named = append(named, fmt.Sprintf("%s (%s)", column.Display, column.Name))
+			}
+		}
+		if len(named) > 0 {
+			limitations = append(limitations, "The time condition was applied to: "+strings.Join(named, ", ")+".")
+		}
+	}
 	if facts.TimeOfDay {
 		limitations = append(limitations, "A time of day uses the hours as recorded at the source; 'night' was taken as 00:00 to 05:59.")
 	}

@@ -398,6 +398,13 @@ var _ = Describe("Governed SQL lane (with a database)", func() {
 		Expect(found).To(BeTrue(), "the probe must search "+column)
 	})
 
+	It("says which time column a time condition used", func() {
+		model.replies = []string{sqlReply("SELECT COUNT(*) AS number_of_call_records FROM v_cdr WHERE event_time >= '2026-06-01' AND event_time < '2026-07-01'")}
+		resp, audit := ask("How many call records were there in June 2026?")
+		Expect(resp).NotTo(BeNil(), audit.Reason)
+		Expect(strings.Join(toStrings(resp.Enterprise["limitations"]), " ")).To(ContainSubstring("The time condition was applied to: Event time (event_time)"))
+	})
+
 	It("abstains on a name even when no evidence family is recognised", func() {
 		model.replies = []string{sqlReply("SELECT COUNT(*) AS n FROM v_cdr")}
 		resp, audit := ask("How many items did Nadia Farooqui have?")
@@ -522,3 +529,19 @@ var _ = Describe("governed SQL reach", func() {
 })
 
 func timeNow() time.Time { return time.Now() }
+
+func toStrings(value any) []string {
+	switch v := value.(type) {
+	case []string:
+		return v
+	case []any:
+		out := []string{}
+		for _, item := range v {
+			if text, ok := item.(string); ok {
+				out = append(out, text)
+			}
+		}
+		return out
+	}
+	return nil
+}

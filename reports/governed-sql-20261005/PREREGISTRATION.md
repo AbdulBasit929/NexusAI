@@ -117,3 +117,30 @@ Image from commit `ae2db2a`. Same 82 questions.
 Lane: the five fixes marked above; rounding instead of truncation in the headline number; abstentions recorded as `abstained` in the header.
 Instrument: the factory's number matcher now also accepts a number the text states that is the key correctly rounded to the places it shows (two or more), with or without thousands separators. It cannot accept a wrong value (the specs include 31.6119 and 31.7 against 31.611806, and 1,986 against 1,768).
 It is applied to every arm, including the baseline and A, by `factory.py rejudge`, so no arm is advantaged. The original `results.json` files are untouched; the re-read goes to `results-rejudged.json`.
+
+## Run 3 (2026-10-06): arm B on the corrected image (`12361ac`), factory set, 82 questions
+
+| Arm | Correct | Confident-wrong | Abstained |
+|---|---|---|---|
+| A | 35 (43%) | 22 (26.8%) | 25 |
+| C, run 2 | 57 (70%) | 21 | 4 |
+| B, run 1 (old image, as judged then) | 63 | 13 | 6 |
+| **B, run 2** | **73 (89%)** | **2 (2.4%)** | **7** |
+
+Lane for B: 82 of 82 responses carry the header; answered 75 (73 right, 2 wrong); abstained 6 (all ABSTAINED); declined 1; two attempts 13; model time median 8.7 s, p90 21.4 s, max 53.1 s; execution median 0.02 s.
+
+| Gate | Result on the factory set |
+|---|---|
+| G4 | **met**: confident-wrong 2 (limit 11 and 10%); correct 89% against 58%. The "every abstention states a reason" half is read from the answers below. |
+| G5 | **met**: every `unbound_name` question abstained (6 of 6); every `absent_value` question was answered "nothing found" after the search (8 of 8); none got a total or a zero. |
+| G6 | met on the factory set; the response says it searched every identifier field of every evidence family. |
+| G7 | met: 0 HTTP errors; the one declined request was counted. |
+| G1 (PII probe and identity questions), G2, G3 on the 103 corpus and the pre-flight | **not yet measured**: `Run-Regression` for A, C and B. |
+
+The two remaining wrong answers are `CDR-month_count` and `CDR-night`, the time-field definition difference (the lane filters `event_time`, the layer's documented field for case-level time filtering; the key uses `call_start`). They are unchanged since run 1 and are not tuned for.
+The answer now states which time column the condition used. Whether "June" and "night" for call records mean `event_time` or `call_start` is a curation decision for the product owner.
+
+### Reading
+
+Arm B's result is the lane's own accuracy with the existing path unchanged underneath it (declined requests fall to it). On this question set it is a 46-point gain in correct answers and a 24-point drop in confident-wrong ones against arm A.
+The set is the one the failures were found on, so it is evidence of the fixes, not of the next unseen question: a new generation (new seed) and the 103-question corpus are the independent checks, and the lane stays off by default until they are in.
