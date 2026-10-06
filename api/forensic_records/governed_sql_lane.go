@@ -605,17 +605,23 @@ func govSQLHeadline(view *govSQLView, result *govSQLResult, facts govSQLQuestion
 			parts = append(parts, fmt.Sprintf("%s: %s", govSQLFormatCell(view, result.Columns[0], row[0]), govSQLFormatCell(view, result.Columns[1], row[1])))
 		}
 		return fmt.Sprintf("%d rows (%s by %s). In full: %s.", len(result.Rows), strings.ToLower(govSQLHumanize(result.Columns[1])), strings.ToLower(govSQLHumanize(result.Columns[0])), strings.Join(parts, "; "))
-	default:
-		first := result.Rows[0]
-		lead := ""
-		if len(result.Columns) >= 2 && !facts.WantsSingle {
-			lead = fmt.Sprintf("Top result: %s = %s (%s: %s). ", result.Columns[0], govSQLFormatCell(view, result.Columns[0], first[0]), strings.ToLower(govSQLHumanize(result.Columns[len(result.Columns)-1])), govSQLFormatCell(view, result.Columns[len(result.Columns)-1], first[len(first)-1]))
+	case len(result.Columns) == 1 && len(result.Rows) <= 10:
+		values := make([]string, 0, len(result.Rows))
+		for _, row := range result.Rows {
+			values = append(values, govSQLFormatCell(view, result.Columns[0], row[0]))
 		}
+		return fmt.Sprintf("%d values (%s): %s.", len(result.Rows), strings.ToLower(govSQLHumanize(result.Columns[0])), strings.Join(values, "; "))
+	default:
+		// A list is not ranked unless the analyst asked for a ranking; its first row is not "the top".
 		more := ""
 		if result.Truncated {
-			more = fmt.Sprintf(" (showing the first %d)", len(result.Rows))
+			more = fmt.Sprintf(" (showing the first %d; the query matched more)", len(result.Rows))
 		}
-		return fmt.Sprintf("%s%d rows%s.", lead, len(result.Rows), more)
+		names := make([]string, 0, len(result.Columns))
+		for _, column := range result.Columns {
+			names = append(names, strings.ToLower(govSQLHumanize(column)))
+		}
+		return fmt.Sprintf("%d rows%s. Columns: %s. The rows are in the table below.", len(result.Rows), more, strings.Join(names, ", "))
 	}
 }
 

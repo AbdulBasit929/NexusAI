@@ -436,6 +436,20 @@ var _ = Describe("Governed SQL lane (with a database)", func() {
 		Expect(model.calls).To(BeEmpty())
 	})
 
+	It("describes a list as a list, never as a ranking, and shows a short single column", func() {
+		model.replies = []string{sqlReply("SELECT msisdn, call_duration_seconds FROM v_cdr WHERE call_duration_seconds > 600")}
+		resp, audit := ask("Show me all the calls that lasted longer than 600 seconds")
+		Expect(resp).NotTo(BeNil(), audit.Reason)
+		Expect(headline(resp)).To(ContainSubstring("rows"))
+		Expect(headline(resp)).To(ContainSubstring("Columns:"))
+		Expect(headline(resp)).NotTo(ContainSubstring("Top result"))
+		model.replies = []string{sqlReply("SELECT DISTINCT call_type FROM v_cdr ORDER BY call_type")}
+		resp, audit = ask("Which call types are there in the calls?")
+		Expect(resp).NotTo(BeNil(), audit.Reason)
+		Expect(headline(resp)).To(ContainSubstring("values (call type)"))
+		Expect(headline(resp)).To(ContainSubstring("Data session"))
+	})
+
 	It("abstains on a name even when no evidence family is recognised", func() {
 		model.replies = []string{sqlReply("SELECT COUNT(*) AS n FROM v_cdr")}
 		resp, audit := ask("How many items did Nadia Farooqui have?")
