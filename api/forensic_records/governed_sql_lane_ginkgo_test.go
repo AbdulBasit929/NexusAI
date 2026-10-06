@@ -424,6 +424,18 @@ var _ = Describe("Governed SQL lane (with a database)", func() {
 		Expect(headline(resp)).NotTo(ContainSubstring("Top result"))
 	})
 
+	It("declines a question about the whole case or one that names no family, and still abstains on a name", func() {
+		for _, q := range []string{"What time period does this case cover?", "Where does 03001234567 appear across all evidence?"} {
+			resp, audit := ask(q)
+			Expect(resp).To(BeNil(), q)
+			Expect(audit.State).To(Equal("declined"), q)
+		}
+		resp, audit := ask("How many log entries did Nadia Farooqui have?")
+		Expect(resp).NotTo(BeNil(), audit.Reason)
+		Expect(audit.State).To(Equal("abstained"))
+		Expect(model.calls).To(BeEmpty())
+	})
+
 	It("abstains on a name even when no evidence family is recognised", func() {
 		model.replies = []string{sqlReply("SELECT COUNT(*) AS n FROM v_cdr")}
 		resp, audit := ask("How many items did Nadia Farooqui have?")

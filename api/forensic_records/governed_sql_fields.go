@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 )
@@ -37,14 +38,54 @@ var govSQLGenericWords = map[string]bool{
 
 var govSQLProvenanceColumns = map[string]bool{"record_id": true, "source_file": true, "row_number": true, "artifact_id": true, "evidence_id": true}
 
+// govSQLSingular folds a plural so "plate reads" finds the curated phrase "plate read".
+func govSQLSingular(word string) string {
+	switch {
+	case len(word) > 4 && strings.HasSuffix(word, "ies"):
+		return word[:len(word)-3] + "y"
+	case len(word) > 3 && strings.HasSuffix(word, "s") && !strings.HasSuffix(word, "ss") && !strings.HasSuffix(word, "us") && !strings.HasSuffix(word, "is"):
+		return word[:len(word)-1]
+	}
+	return word
+}
+
+// govSQLPhraseWords are the words of a phrase, lower-cased and singular.
 func govSQLPhraseWords(phrase string) []string {
-	return semanticWords.FindAllString(strings.ToLower(strings.TrimSpace(phrase)), -1)
+	words := semanticWords.FindAllString(strings.ToLower(strings.TrimSpace(phrase)), -1)
+	for i, w := range words {
+		words[i] = govSQLSingular(w)
+	}
+	return words
+}
+
+// govSQLStems is the set of singular words of a question.
+func govSQLStems(question string) map[string]bool {
+	out := map[string]bool{}
+	for _, w := range govSQLPhraseWords(question) {
+		out[w] = true
+	}
+	return out
+}
+
+// govSQLPhraseIn is true when every word of the phrase is in the question. A one-word phrase of
+// fewer than three letters never matches ("in", "no").
+func govSQLPhraseIn(phrase string, stems map[string]bool) bool {
+	words := govSQLPhraseWords(phrase)
+	if len(words) == 0 || (len(words) == 1 && len(words[0]) < 3) {
+		return false
+	}
+	for _, w := range words {
+		if !stems[w] {
+			return false
+		}
+	}
+	return true
 }
 
 // govSQLFieldFacts finds the columns of the offered views that the question names by
 // a phrase no other column of that view answers to.
 func govSQLFieldFacts(question string, views []*govSQLView) []govSQLFieldFact {
-	stems := _semanticLayerQuestionTokens(question)
+	stems := govSQLStems(question)
 	sequence := " " + strings.Join(govSQLPhraseWords(question), " ") + " "
 	var out []govSQLFieldFact
 	for _, view := range views {
@@ -76,7 +117,7 @@ func govSQLFieldFacts(question string, views []*govSQLView) []govSQLFieldFact {
 		}
 		var matches []match
 		for key, cols := range owners {
-			if len(cols) != 1 || !_semanticLayerPhraseInQuestion(key, stems) {
+			if len(cols) != 1 || !govSQLPhraseIn(key, stems) {
 				continue
 			}
 			// The words must stand together in the question: "which" and "tower" somewhere in a
@@ -169,12 +210,12 @@ func govSQLCheckFilters(question string, facts govSQLQuestionFacts, validated *g
 			enumerated[column.Name] = column.Values
 		}
 	}
-	stems := _semanticLayerQuestionTokens(question)
+	stems := govSQLStems(question)
 	// The words of a multi-word column name the question uses ("call start time") are spent on
 	// naming that column; they are not also a request for a value ("call" is a value of call_type).
 	for _, column := range view.Columns {
 		for _, phrase := range append([]string{column.Display}, column.Synonyms...) {
-			if words := govSQLPhraseWords(phrase); len(words) > 1 && _semanticLayerPhraseInQuestion(phrase, stems) {
+			if words := govSQLPhraseWords(phrase); len(words) > 1 && govSQLPhraseIn(phrase, stems) {
 				for _, w := range words {
 					delete(stems, w)
 				}
@@ -185,7 +226,7 @@ func govSQLCheckFilters(question string, facts govSQLQuestionFacts, validated *g
 	// names the column network_volume, it does not ask for data-type calls.
 	grounded := map[string]bool{}
 	for _, v := range append(append([]govSQLValueFact{}, facts.ValueFacts...), facts.WeakValues...) {
-		if v.View == view.Name && (v.Phrase == "" || _semanticLayerPhraseInQuestion(v.Phrase, stems)) {
+		if v.View == view.Name && (v.Phrase == "" || govSQLPhraseIn(v.Phrase, stems)) {
 			grounded[v.Column+"\x00"+strings.ToLower(v.Value)] = true
 		}
 	}
@@ -204,7 +245,7 @@ func govSQLCheckFilters(question string, facts govSQLQuestionFacts, validated *g
 		}
 		return false
 	}
-	says := func(value string) bool { return _semanticLayerPhraseInQuestion(value, stems) }
+	says := func(value string) bool { return govSQLPhraseIn(value, stems) }
 	var unmet []govSQLObligation
 	for _, cmp := range govSQLComparisons(validated.Tree) {
 		declared, ok := enumerated[cmp.Column]
@@ -241,16 +282,50 @@ func govSQLCheckFilters(question string, facts govSQLQuestionFacts, validated *g
 // govSQLNamedViews are the views whose own name the question uses ("data sessions" is
 // v_ipdr). When the question names an evidence family and the query reads a different
 // one, the answer is about something else (measured 2026-10-06: "highest data volume in
-// the data sessions" was answered from the call records).
+// the data sessions" was answered from the call records). The longest name wins:
+// "plate read" names the plate-read observations, and the shorter "plate" of the
+// camera sightings does not also name them.
 func govSQLNamedViews(question string, views []*govSQLView) map[string]bool {
 	sequence := " " + strings.Join(govSQLPhraseWords(question), " ") + " "
-	out := map[string]bool{}
+	type match struct {
+		view  string
+		words []string
+	}
+	var matches []match
 	for _, view := range views {
 		for _, phrase := range append([]string{view.Display}, view.Synonyms...) {
-			key := strings.Join(govSQLPhraseWords(phrase), " ")
+			words := govSQLPhraseWords(phrase)
+			key := strings.Join(words, " ")
 			if key != "" && strings.Contains(sequence, " "+key+" ") {
-				out[view.Name] = true
+				matches = append(matches, match{view.Name, words})
 			}
+		}
+	}
+	subset := func(a, b []string) bool {
+		if len(a) >= len(b) {
+			return false
+		}
+		set := map[string]bool{}
+		for _, w := range b {
+			set[w] = true
+		}
+		for _, w := range a {
+			if !set[w] {
+				return false
+			}
+		}
+		return true
+	}
+	out := map[string]bool{}
+	for _, m := range matches {
+		dominated := false
+		for _, other := range matches {
+			if other.view != m.view && subset(m.words, other.words) {
+				dominated = true
+			}
+		}
+		if !dominated {
+			out[m.view] = true
 		}
 	}
 	return out
@@ -270,4 +345,72 @@ func govSQLCheckView(facts govSQLQuestionFacts, validated *govSQLValidated) []go
 		Message: fmt.Sprintf("The question is about %s, but the query reads %s. Use %s.", strings.Join(names, " / "), validated.View.Name, strings.Join(names, " or ")),
 		Reason:  fmt.Sprintf("the query read %s, which is not the evidence the question names", validated.View.Display),
 	}}
+}
+
+var govSQLRxGroupNoun = regexp.MustCompile(`(?i)\b(?:for\s+each|of\s+each|in\s+each|by\s+each|per|each)\s+([a-z][a-z-]*(?:\s+[a-z][a-z-]*)?)`)
+
+var govSQLFunctionWords = map[string]bool{
+	"the": true, "a": true, "an": true, "of": true, "in": true, "on": true, "are": true, "is": true, "there": true, "do": true, "does": true,
+	"did": true, "have": true, "has": true, "were": true, "was": true, "and": true, "with": true, "for": true, "from": true, "how": true,
+	"many": true, "what": true, "which": true, "that": true, "this": true, "to": true, "by": true, "at": true, "be": true, "case": true,
+}
+
+// govSQLGroupNouns are the nouns the question groups by ("for each record type" -> record, type).
+func govSQLGroupNouns(question string) [][]string {
+	var out [][]string
+	for _, m := range govSQLRxGroupNoun.FindAllStringSubmatch(question, -1) {
+		words := []string{}
+		for _, w := range govSQLPhraseWords(m[1]) {
+			if !govSQLFunctionWords[w] {
+				words = append(words, w)
+			} else {
+				break
+			}
+		}
+		if len(words) > 0 {
+			out = append(out, words)
+		}
+	}
+	return out
+}
+
+// govSQLCheckGrouping holds the query to a grouping that is a field of the evidence. "How many
+// records for each record type" names no field of the call records; answering it by call
+// type is an answer to a different question (measured 2026-10-06).
+func govSQLCheckGrouping(question string, views []*govSQLView) []govSQLObligation {
+	var unmet []govSQLObligation
+	for _, words := range govSQLGroupNouns(question) {
+		found := false
+		for _, view := range views {
+			sets := []map[string]bool{{"source": true, "file": true}, {"record": true, "id": true}, {"row": true, "number": true}}
+			for _, column := range view.Columns {
+				tokens := map[string]bool{}
+				for _, phrase := range append([]string{column.Display, column.Name}, column.Synonyms...) {
+					for _, w := range govSQLPhraseWords(strings.ReplaceAll(phrase, "_", " ")) {
+						tokens[w] = true
+					}
+				}
+				sets = append(sets, tokens)
+			}
+			for _, set := range sets {
+				covered := true
+				for _, w := range words {
+					if !set[w] {
+						covered = false
+					}
+				}
+				if covered {
+					found = true
+				}
+			}
+		}
+		if !found {
+			unmet = append(unmet, govSQLObligation{
+				Kind: "GROUPING", Subject: strings.Join(words, " "),
+				Message: fmt.Sprintf("The question groups by %q, which is not a column of the evidence. Do not substitute another column: set answerable to false.", strings.Join(words, " ")),
+				Reason:  fmt.Sprintf("I could not tie %q to a field of this evidence", strings.Join(words, " ")),
+			})
+		}
+	}
+	return unmet
 }

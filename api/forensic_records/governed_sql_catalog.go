@@ -256,7 +256,7 @@ func govSQLFirstSentence(text string, limit int) string {
 // returned, and the second only when it is close to the first, because a question
 // that really spans families is declined later and a vague one is asked about.
 func govSQLShortlist(views []*govSQLView, question string) []*govSQLView {
-	stems := _semanticLayerQuestionTokens(question)
+	stems := govSQLStems(question)
 	type scored struct {
 		view  *govSQLView
 		score int
@@ -282,7 +282,7 @@ func govSQLShortlist(views []*govSQLView, question string) []*govSQLView {
 	for _, view := range views {
 		score := 0
 		for _, phrase := range append([]string{view.Display}, view.Synonyms...) {
-			if _semanticLayerPhraseInQuestion(phrase, stems) {
+			if govSQLPhraseIn(phrase, stems) {
 				score += 4
 			}
 		}
@@ -290,7 +290,7 @@ func govSQLShortlist(views []*govSQLView, question string) []*govSQLView {
 		for _, column := range view.Columns {
 			matched, distinctive := false, false
 			for _, phrase := range append([]string{column.Display}, column.Synonyms...) {
-				if _semanticLayerPhraseInQuestion(phrase, stems) {
+				if govSQLPhraseIn(phrase, stems) {
 					matched = true
 					key := strings.Join(govSQLPhraseWords(phrase), " ")
 					words := strings.Fields(key)
@@ -306,7 +306,7 @@ func govSQLShortlist(views []*govSQLView, question string) []*govSQLView {
 				distinctHits++
 			}
 			for _, value := range column.Values {
-				if _semanticLayerPhraseInQuestion(value, stems) {
+				if govSQLPhraseIn(value, stems) {
 					valueHits++
 					break
 				}

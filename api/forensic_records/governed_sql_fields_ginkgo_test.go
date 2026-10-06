@@ -87,4 +87,18 @@ var _ = Describe("Governed SQL fields and filters", func() {
 		Expect(govSQLFormatNumber("-31.61180696670")).To(Equal("-31.6118"))
 		Expect(govSQLFormatNumber("3905649.933600000000")).To(Equal("3,905,649.9336"))
 	})
+
+	It("reads a plural as the curated singular and lets the longest name win", func() {
+		named := govSQLNamedViews("What is the average OCR confidence of the plate reads?", all)
+		Expect(named).To(HaveKey("v_anpr_model_observation"))
+		Expect(named).NotTo(HaveKey("v_anpr"))
+		Expect(govSQLNamedViews("How many ANPR sightings are there?", all)).To(HaveKey("v_anpr"))
+	})
+
+	It("will not answer a grouping the evidence has no column for", func() {
+		Expect(kinds("How many records do we have for each record type?", "SELECT call_type, COUNT(*) AS n FROM v_cdr GROUP BY call_type", "v_cdr")).To(ContainElement("GROUPING"))
+		Expect(kinds("How many calls of each type are there?", "SELECT call_type, COUNT(*) AS n FROM v_cdr GROUP BY call_type", "v_cdr")).NotTo(ContainElement("GROUPING"))
+		Expect(kinds("How many CDR records came from each source file?", "SELECT source_file, COUNT(*) AS n FROM v_cdr GROUP BY source_file", "v_cdr")).NotTo(ContainElement("GROUPING"))
+		Expect(kinds("Break down IPDR sessions by protocol", "SELECT protocol, COUNT(*) AS n FROM v_ipdr GROUP BY protocol", "v_ipdr")).NotTo(ContainElement("GROUPING"))
+	})
 })

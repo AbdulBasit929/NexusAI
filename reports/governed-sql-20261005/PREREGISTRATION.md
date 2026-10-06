@@ -173,3 +173,34 @@ Arm B has the same three, plus these, each read from the output:
 * A short two-column result is a breakdown and is listed in full with the layer's display names ("Data session: 5,863"), not summarised as "top".
 
 Arm B on the 103-question corpus (`number_checks_stated` 33 of 47, the same as A) and arm C (36 of 47) are read next with `replay_corpus.py compare`; the honesty items (H11, H12, H13, NEG-01) are the first to look at.
+
+## Run 5 (2026-10-06): the 103-question corpus read side by side (A against C, A against B), image `50d9afc`
+
+Arm C changed 21 of 103 answers (all questions the existing path had withheld, asked back or answered "unavailable"); 82 are identical. The number checks lost: none; gained: 3. Arm B changed 76.
+No change touched a question the existing path had answered correctly in arm C, which is what G2 asks. G1 (no case PII) holds: no changed answer shows a name, an alias or a masked value; the face-identity question stayed a clarification in every arm.
+
+Read one by one, the 21 changes in arm C were:
+
+| Count | What | Verdict |
+|---|---|---|
+| 8 | plausible, useful answers where the existing path had withheld (CDR-07 most different contacts: 45; CDR-11 calls by 923001110001: 447; TWR-02 tower location; H5 four cameras; H12 average beam width 65; M4, M10, M20, M21 over the derived media views) | answered |
+| 3 | an honest "no record contains ... I searched every identifier field" for an identifier that is absent (NEG-01, NEG-02, H13) | answered, but the sentence over-claimed (see below) |
+| 5 | **wrong evidence family or dropped condition** | defects |
+| 3 | text/media questions the lane should not take (VID-01 "plates in the videos" answered from camera sightings; H1 same; IMG-03/AUD-01/IMG-01 abstained on a phrase read as a person's name) | defects |
+| 2 | **false absence**: X-01 "where does 03001234567 appear across all evidence" and AUD-03, answered "no record contains it" while a recording does | defects (G6) |
+
+The five wrong-family or dropped-condition answers: CASE-01 "records for each record type" answered by call type; CASE-03 "what time period does this case cover" answered from the access log alone; M3 "plate reads still needing manual review" counted all sightings; M1/M2 "plate reads ... from the images" answered from camera sightings (1,057 against 307).
+
+### Changes made after this reading, before any further run
+
+* **Plurals fold.** "plate reads" finds the curated phrase "plate read" (the derived plate-read observations); the longest name wins, so the camera sightings' "plate" does not also name that family.
+* **A grouping must be a column.** "for each record type" is refused when no column of the evidence is a record type; "for each source file" and "by protocol" are accepted.
+* **A question about the whole case** ("this case", "across all evidence") that names no evidence family is declined.
+* **A question that names no family, no column and no declared value** is declined (7 of 249 generated questions: "log entries", "registered numbers" are not words the layer knows); a name the evidence cannot hold is still an abstention.
+* The earlier fixes (text and media cue, relationships, absence wording, breakdowns) stand.
+
+Not fixed, stated plainly: **a condition the question states in words no field of the layer maps to is still dropped silently** (M3 is the example: "still need manual review"). The verifier checks identifiers, declared values, magnitudes, time, names, named columns and groupings; it cannot check a free predicate. A word-list check flagged 94 of 249 generated questions (most harmless words), so it was not adopted. The two routes that remain are the layer naming the predicate as a field, and the model reporting what it did not apply; neither has been built.
+
+### Instrument
+
+The factory's anpr nouns included "plate reads", which the layer (and the existing path) reads as the image-derived plate-read observations, not the camera sightings the answer key counted. Those three arm A "wrong" answers (ANPR count, sum, night) were the existing path following the layer. The noun is replaced by "camera sightings", and a new question set (different seed) is generated for the next run so the lane is measured on questions it was not corrected on (`New-QuestionSet`, then `Run-Arm B -Questions questions-demo-v2.json -Tag -v2`).

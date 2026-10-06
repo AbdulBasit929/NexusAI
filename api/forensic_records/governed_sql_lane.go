@@ -96,6 +96,10 @@ func govSQLEligible(req hybridQueryRequest) (bool, string) {
 // govSQLMediaCue marks a question about text or media evidence (a transcript, a photo, a document).
 // Those are answered by the retrieval path, which searches the text itself; the structured
 // views cannot say whether a number is mentioned in a recording.
+// govSQLWholeCase marks a question about the case as a whole ("what time period does this case
+// cover", "where does X appear across all evidence"). One evidence family cannot answer it.
+var govSQLWholeCase = regexp.MustCompile(`(?i)\b(?:this case|the case|entire case|whole case|all (?:the )?evidence|every evidence|across (?:all|every|the)\b|all (?:the )?(?:families|record types))\b`)
+
 var govSQLMediaCue = regexp.MustCompile(`(?i)\b(?:images?|photos?|pictures?|jpe?g|video|videos|footage|audio|recordings?|transcripts?|speech|spoken|documents?|pdfs?|ocr|scans?|scanned|faces?)\b`)
 
 // runGovernedSQLLane returns a response when the lane answered or abstained, and nil
@@ -152,6 +156,18 @@ func runGovernedSQLLane(ctx context.Context, cfg config, db *pgxpool.Pool, req h
 		}
 	}
 	facts := govSQLExtractFacts(req.Query, offered, all)
+	if govSQLWholeCase.MatchString(req.Query) && len(facts.NamedViews) == 0 {
+		return decline("the question is about the whole case, not one evidence family")
+	}
+	// A question that names no evidence family, no column and no declared value gives the shortlist
+	// nothing but loose words to go on; the model would be guessing the family. A name the evidence
+	// cannot hold is still an abstention (a decline would hand it to a path that answers with a total).
+	if len(facts.NamedViews) == 0 && len(facts.Fields) == 0 && len(facts.ValueFacts) == 0 {
+		if len(facts.Names) > 0 {
+			return finish(govSQLAbstainResponse(req, offered, facts, []govSQLObligation{govSQLNameObligation(facts.Names[0])}, audit))
+		}
+		return decline("the question names no evidence family or field the curated layer knows")
+	}
 	if facts.WithheldAttr != "" {
 		return decline("the question asks for an attribute the evidence withholds (" + facts.WithheldAttr + ")")
 	}

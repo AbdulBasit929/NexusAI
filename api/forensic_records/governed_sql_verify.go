@@ -727,6 +727,7 @@ func govSQLCheck(facts govSQLQuestionFacts, validated *govSQLValidated) []govSQL
 		}
 	}
 	unmet = append(unmet, govSQLCheckView(facts, validated)...)
+	unmet = append(unmet, govSQLCheckGrouping(facts.Question, []*govSQLView{validated.View})...)
 	unmet = append(unmet, govSQLCheckFields(facts, validated)...)
 	unmet = append(unmet, govSQLCheckFilters(facts.Question, facts, validated)...)
 	return unmet

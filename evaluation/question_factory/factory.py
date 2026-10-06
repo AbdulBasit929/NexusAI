@@ -41,7 +41,7 @@ LAYER = os.path.normpath(os.path.join(HERE, "..", "..", "semantic_layer"))
 RECORD_FAMILIES = ("cdr", "ipdr", "anpr", "access_log", "transaction", "subscriber", "tower_location")
 # Phrasing only. Test data; the product never reads this.
 NOUN = {"cdr": ["call records", "calls", "CDR records"], "ipdr": ["internet sessions", "IPDR records", "data sessions"],
-        "anpr": ["vehicle sightings", "plate reads", "ANPR records"], "access_log": ["access log entries", "log entries", "web requests"],
+        "anpr": ["vehicle sightings", "camera sightings", "ANPR records"], "access_log": ["access log entries", "log entries", "web requests"],
         "transaction": ["transactions", "payments", "financial transactions"], "subscriber": ["subscribers", "subscriber records", "registered numbers"],
         "tower_location": ["towers", "cell towers", "tower records"]}
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]

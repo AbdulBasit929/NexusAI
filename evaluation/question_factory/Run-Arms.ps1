@@ -180,7 +180,7 @@ function Set-Arm {
 }
 
 function Run-Arm {
-  param([ValidateSet('A', 'B', 'C')][string]$Arm, [int]$BudgetMinutes = 110)
+  param([ValidateSet('A', 'B', 'C')][string]$Arm, [int]$BudgetMinutes = 110, [string]$Questions = 'questions-demo.json', [string]$Tag = '')
   Import-BaselineData
   $s = Set-Arm -Arm $Arm
   Add-Type -Namespace W -Name P -MemberDefinition '[System.Runtime.InteropServices.DllImport("kernel32.dll")] public static extern uint SetThreadExecutionState(uint f);' -ErrorAction SilentlyContinue
@@ -191,20 +191,29 @@ function Run-Arm {
   $psql = "docker exec -i $($s.Postgres) psql -U localrecall -d localrecall -At -F '|'"
   Push-Location $script:Here
   try {
-    if (-not (Test-Path questions-demo.json)) { throw "questions-demo.json is missing: use the file the baseline used, do not regenerate it" }
-    python factory.py run --questions questions-demo.json --arm "arm-lane-$Arm" --per-intent 1 --budget-minutes $BudgetMinutes --resume --psql $psql
+    if (-not (Test-Path $Questions)) { throw "$Questions is missing: use the file the baseline used (or New-QuestionSet for a new one), do not regenerate it" }
+    python factory.py run --questions $Questions --arm "arm-lane-$Arm$Tag" --per-intent 1 --budget-minutes $BudgetMinutes --resume --psql $psql
   } finally { Pop-Location; Remove-Item Env:\FORENSIC_RECORDS_API_KEY -ErrorAction SilentlyContinue }
   Write-Host "If it stopped at the time budget, run the same command again to continue." -ForegroundColor Yellow
 }
 
 # Ask ONE question again against the running API and print the answer key, the answer, the lane header and the query the lane ran.
+# A NEW question set with a different seed (read-only against the case database). Questions never seen while the lane was built.
+function New-QuestionSet {
+  param([int]$Seed = 2, [string]$Name = 'questions-demo-v2.json')
+  $s = Get-Stack
+  $psql = "docker exec -i $($s.Postgres) psql -U localrecall -d localrecall -At -F '|'"
+  Push-Location $script:Here
+  try { python factory.py generate --psql $psql --collection nexusai-forensic-demo --seed $Seed --out $Name } finally { Pop-Location }
+}
+
 function Explain-Question {
-  param([Parameter(Mandatory)][string[]]$Id)
+  param([Parameter(Mandatory)][string[]]$Id, [string]$Questions = 'questions-demo.json')
   $s = Get-Stack
   $keyLine = $s.Env | Where-Object { $_ -like 'FORENSIC_RECORDS_API_KEY=*' -or $_ -like 'FORENSIC_API_KEY=*' } | Select-Object -First 1
   $env:FORENSIC_RECORDS_API_KEY = $keyLine.Substring($keyLine.IndexOf('=') + 1)
   Push-Location $script:Here
-  try { foreach ($one in $Id) { python factory.py explain --questions questions-demo.json --id $one } } finally { Pop-Location; Remove-Item Env:\FORENSIC_RECORDS_API_KEY -ErrorAction SilentlyContinue }
+  try { foreach ($one in $Id) { python factory.py explain --questions $Questions --id $one } } finally { Pop-Location; Remove-Item Env:\FORENSIC_RECORDS_API_KEY -ErrorAction SilentlyContinue }
 }
 
 # Re-read saved results with the current number matcher (a correctly rounded rendition counts). Writes results-rejudged.json beside each.
