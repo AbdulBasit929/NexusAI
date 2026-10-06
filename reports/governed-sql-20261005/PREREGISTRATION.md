@@ -54,3 +54,33 @@ already had plus the two switches, asserts the switch state from `docker inspect
 * "Night" is taken as 00:00 to 05:59 in the time recorded at the source, and the answer says so. A declared definition belongs in the semantic layer; that is a curation item.
 * The database role that can read nothing but analyst views needs a database change and is the owner's decision (`docs/work/BACKEND_REQUESTS.md`). Until then three walls stand: the server-built view,
   the read-only transaction with timeouts and a planner-cost ceiling, and the allowlist validator.
+
+## Run 1 (2026-10-06): arms A and C, recorded as measured
+
+Image built from commit `da818a7`. Factory set `questions-demo.json`, 82 questions, front door off.
+
+| Arm | Correct | Confident-wrong | Abstained |
+|---|---|---|---|
+| baseline v1 (previous image) | 35 | 22 | 25 |
+| A (new image, switches off) | 35 | 22 | 25 (identical to baseline question by question except one answer's wording) |
+| C (lane after the existing path) | 53 | 24 | 5 |
+
+**G3 FAILED.** Arm C added 5 wrong answers on questions arm A had abstained on, and fixed 3 wrong answers of arm A, so confident-wrong rose from 22 to 24. The lane answered 23 requests (18 correct, 5 wrong), declined 5, and abstained 0.
+Median model time for an answered question was 16.6 s (p90 34 s, max 56 s); execution 0.04 s; no question needed a second attempt.
+
+### Failure taxonomy of the five (from `Explain-Question`, the key, the lane's query and the oracle)
+
+| Question | What the lane did | Class |
+|---|---|---|
+| TOWE-min "smallest position" | `min(longitude)`; the layer declares "position" a name of **latitude** | lane defect: a named column not used |
+| CDR-latest "most recent call start time among the calls" | `WHERE call_type = 'CALL'`, a filter the question never asked for (the word "call" belongs to the column name "call start time") | lane defect: unrequested filter |
+| SUBS-earliest "first activation date among the registered numbers" | answered from the plate view (`v_anpr`), the question's own words copied into the label | lane defect: wrong evidence family |
+| CDR-month_count "June 2026" (2,455 vs key 2,463) | filtered `event_time`, the layer's documented field for case-level time filtering; the key uses `call_start` | instrument/definition: two valid time fields; not yet resolved |
+| CDR-night "at night" (1,986 vs key 1,768) | hours of `event_time`; the key uses hours of `call_start` | instrument/definition: same cause |
+
+### Changes made after this reading, before any further run
+
+Code, not prompt wording (the rule against re-wording prompts stands; none of the prompt text changed): the verifier now (1) requires the query to use a column the question names by a word only that column answers to, with the longest name winning (`FIELD`);
+(2) refuses an equality filter on an enumerated column that the question does not say, or whose value the layer does not declare (`FILTER`); (3) the view shortlist weights a column name that only one view has.
+Also the earlier reach fix (a computed-value question labelled a concept or clarification may reach the lane; only an answered result replaces the old reply) and the probe over every free-text records column.
+Arm C is run once more on the corrected image, against the same gates. The two instrument items are reported, not tuned for: the answer will name the time field it used.

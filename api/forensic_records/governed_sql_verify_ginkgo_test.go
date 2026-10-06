@@ -123,7 +123,7 @@ var _ = Describe("Governed SQL verification", func() {
 			facts := factsFor("How many VoLTE calls are there?", "v_cdr")
 			Expect(unmetKinds(facts, "SELECT COUNT(*) AS calls FROM v_cdr")).To(ConsistOf("VALUE"))
 			Expect(unmetKinds(facts, "SELECT COUNT(*) AS calls FROM v_cdr WHERE call_type = 'VOLTE'")).To(BeEmpty())
-			Expect(unmetKinds(facts, "SELECT COUNT(*) AS calls FROM v_cdr WHERE direction = 'VOLTE'")).To(ConsistOf("VALUE"))
+			Expect(unmetKinds(facts, "SELECT COUNT(*) AS calls FROM v_cdr WHERE direction = 'VOLTE'")).To(ConsistOf("VALUE", "FILTER"))
 		})
 
 		It("flags a query that drops a stated magnitude", func() {

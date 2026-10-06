@@ -254,6 +254,23 @@ func govSQLShortlist(views []*govSQLView, question string) []*govSQLView {
 		score int
 	}
 	ranked := make([]scored, 0, len(views))
+	// A column name that only ONE view has ("activation date") says which view the
+	// question is about far better than a word several views share ("number").
+	holders := map[string]map[string]bool{}
+	for _, view := range views {
+		for _, column := range view.Columns {
+			for _, phrase := range append([]string{column.Display}, column.Synonyms...) {
+				key := strings.Join(govSQLPhraseWords(phrase), " ")
+				if key == "" {
+					continue
+				}
+				if holders[key] == nil {
+					holders[key] = map[string]bool{}
+				}
+				holders[key][view.Name] = true
+			}
+		}
+	}
 	for _, view := range views {
 		score := 0
 		for _, phrase := range append([]string{view.Display}, view.Synonyms...) {
@@ -261,17 +278,24 @@ func govSQLShortlist(views []*govSQLView, question string) []*govSQLView {
 				score += 4
 			}
 		}
-		fieldHits, valueHits := 0, 0
+		fieldHits, valueHits, distinctHits := 0, 0, 0
 		for _, column := range view.Columns {
-			matched := false
+			matched, distinctive := false, false
 			for _, phrase := range append([]string{column.Display}, column.Synonyms...) {
 				if _semanticLayerPhraseInQuestion(phrase, stems) {
 					matched = true
-					break
+					key := strings.Join(govSQLPhraseWords(phrase), " ")
+					words := strings.Fields(key)
+					if len(holders[key]) == 1 && (len(words) > 1 || (len(key) >= 5 && !govSQLGenericWords[key])) {
+						distinctive = true
+					}
 				}
 			}
 			if matched {
 				fieldHits++
+			}
+			if distinctive {
+				distinctHits++
 			}
 			for _, value := range column.Values {
 				if _semanticLayerPhraseInQuestion(value, stems) {
@@ -280,7 +304,7 @@ func govSQLShortlist(views []*govSQLView, question string) []*govSQLView {
 				}
 			}
 		}
-		score += minInt(fieldHits, 6) + 2*minInt(valueHits, 3)
+		score += minInt(fieldHits, 6) + 2*minInt(valueHits, 3) + 3*minInt(distinctHits, 3)
 		if score > 0 {
 			ranked = append(ranked, scored{view, score})
 		}
