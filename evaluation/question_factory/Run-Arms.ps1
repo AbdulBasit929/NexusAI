@@ -89,11 +89,22 @@ function Import-ContainerEnv($Stack) {
 # else ask for it (hidden input, never printed, never written to disk). Enter on LOCALAI_API_KEY skips it.
 function Ensure-ComposeSecrets($Stack) {
   $map = [ordered]@{ 'FORENSIC_RECORDS_API_KEY' = 'FORENSIC_API_KEY'; 'FORENSIC_PII_ALIAS_SECRET' = 'FORENSIC_PII_ALIAS_SECRET'; 'LOCALAI_API_KEY' = $null }
+  # The stack's own secrets file (gitignored, in the main checkout) is the first place to look.
+  $fileValues = @{}
+  foreach ($dir in @((Join-Path (Split-Path $script:Repo -Parent) 'NexusAI'), $script:Repo)) {
+    $file = Join-Path $dir '.env.forensic-runtime.local'
+    if (Test-Path -LiteralPath $file) {
+      foreach ($l in (Get-Content -LiteralPath $file)) {
+        if ($l -match '^\s*([A-Z][A-Z0-9_]*)=(.*)$' -and -not $fileValues.ContainsKey($Matches[1])) { $fileValues[$Matches[1]] = $Matches[2].Trim() }
+      }
+    }
+  }
   foreach ($host_var in $map.Keys) {
     if ([Environment]::GetEnvironmentVariable($host_var, 'Process')) { continue }
     $value = ''
+    if ($fileValues.ContainsKey($host_var)) { $value = $fileValues[$host_var] }
     $inside = $map[$host_var]
-    if ($inside) {
+    if (-not $value -and $inside) {
       $line = @($Stack.Env) | Where-Object { $_ -like "$inside=*" } | Select-Object -First 1
       if ($line) { $value = $line.Substring($inside.Length + 1) }
     }
