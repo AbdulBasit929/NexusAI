@@ -83,6 +83,29 @@ function Import-ContainerEnv($Stack) {
   return $saved
 }
 
+# The compose file reads some settings from the SHELL that runs compose (for example FORENSIC_API_KEY comes from
+# ${FORENSIC_RECORDS_API_KEY}), not from the container. A new window does not have them, and compose then recreates the API
+# with an empty key, which the API refuses to start with. So: copy each from the running container where it is non-empty,
+# else ask for it (hidden input, never printed, never written to disk). Enter on LOCALAI_API_KEY skips it.
+function Ensure-ComposeSecrets($Stack) {
+  $map = [ordered]@{ 'FORENSIC_RECORDS_API_KEY' = 'FORENSIC_API_KEY'; 'FORENSIC_PII_ALIAS_SECRET' = 'FORENSIC_PII_ALIAS_SECRET'; 'LOCALAI_API_KEY' = $null }
+  foreach ($host_var in $map.Keys) {
+    if ([Environment]::GetEnvironmentVariable($host_var, 'Process')) { continue }
+    $value = ''
+    $inside = $map[$host_var]
+    if ($inside) {
+      $line = @($Stack.Env) | Where-Object { $_ -like "$inside=*" } | Select-Object -First 1
+      if ($line) { $value = $line.Substring($inside.Length + 1) }
+    }
+    if (-not $value) {
+      $secure = Read-Host -AsSecureString "$host_var is not set in this window; paste it (hidden), or press Enter to leave it empty"
+      $ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
+      try { $value = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr) } finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr) }
+    }
+    if ($value) { [Environment]::SetEnvironmentVariable($host_var, $value, 'Process') }
+  }
+}
+
 function Restore-ProcessEnv($Saved) { foreach ($k in $Saved.Keys) { [Environment]::SetEnvironmentVariable($k, $Saved[$k], 'Process') } }
 
 function Wait-Healthy {
@@ -123,6 +146,7 @@ function Set-Arm {
   $s = Get-Stack
   $want = @{ 'A' = @('false', 'false'); 'B' = @('true', 'true'); 'C' = @('true', 'false') }[$Arm]
   $saved = Import-ContainerEnv $s
+  Ensure-ComposeSecrets $s
   try {
     $env:FORENSIC_GOVERNED_SQL = $want[0]; $env:FORENSIC_GOVERNED_SQL_FIRST = $want[1]
     $rc = Invoke-Compose $s @('up', '-d', '--no-deps', '--force-recreate', $s.Service)
@@ -142,9 +166,9 @@ function Run-Arm {
   $s = Set-Arm -Arm $Arm
   Add-Type -Namespace W -Name P -MemberDefinition '[System.Runtime.InteropServices.DllImport("kernel32.dll")] public static extern uint SetThreadExecutionState(uint f);' -ErrorAction SilentlyContinue
   [void][W.P]::SetThreadExecutionState([uint32]2147483649)
-  $keyLine = $s.Env | Where-Object { $_ -like 'FORENSIC_RECORDS_API_KEY=*' } | Select-Object -First 1
-  if (-not $keyLine) { throw "the API container has no FORENSIC_RECORDS_API_KEY" }
-  $env:FORENSIC_RECORDS_API_KEY = $keyLine.Substring('FORENSIC_RECORDS_API_KEY='.Length)
+  $keyLine = $s.Env | Where-Object { $_ -like 'FORENSIC_RECORDS_API_KEY=*' -or $_ -like 'FORENSIC_API_KEY=*' } | Select-Object -First 1
+  if (-not $keyLine) { throw "the API container has no FORENSIC_API_KEY" }
+  $env:FORENSIC_RECORDS_API_KEY = $keyLine.Substring($keyLine.IndexOf('=') + 1)
   $psql = "docker exec -i $($s.Postgres) psql -U localrecall -d localrecall -At -F '|'"
   Push-Location $script:Here
   try {
@@ -169,8 +193,8 @@ function Compare-Arms {
 function Run-Regression {
   param([ValidateSet('A', 'C')][string]$Arm)
   $s = Set-Arm -Arm $Arm
-  $keyLine = $s.Env | Where-Object { $_ -like 'FORENSIC_RECORDS_API_KEY=*' } | Select-Object -First 1
-  $env:FORENSIC_RECORDS_API_KEY = $keyLine.Substring('FORENSIC_RECORDS_API_KEY='.Length)
+  $keyLine = $s.Env | Where-Object { $_ -like 'FORENSIC_RECORDS_API_KEY=*' -or $_ -like 'FORENSIC_API_KEY=*' } | Select-Object -First 1
+  $env:FORENSIC_RECORDS_API_KEY = $keyLine.Substring($keyLine.IndexOf('=') + 1)
   Push-Location (Join-Path $script:Repo "reports\free-question-baseline-20261002")
   try {
     python replay_corpus.py run "replay-lane-$Arm"
@@ -185,6 +209,7 @@ function Restore-Stack {
   $s = Get-Stack
   docker tag $state.ImageId $state.ImageName | Out-Null
   $saved = Import-ContainerEnv $s
+  Ensure-ComposeSecrets $s
   try {
     foreach ($pair in @(@('FORENSIC_GOVERNED_SQL', $state.GovernedSql), @('FORENSIC_GOVERNED_SQL_FIRST', $state.GovernedSqlFirst))) {
       if ($pair[1] -eq '<unset>') { Remove-Item "Env:\$($pair[0])" -ErrorAction SilentlyContinue } else { [Environment]::SetEnvironmentVariable($pair[0], $pair[1], 'Process') }
