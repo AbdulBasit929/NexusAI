@@ -132,7 +132,7 @@ Lane for B: 82 of 82 responses carry the header; answered 75 (73 right, 2 wrong)
 | Gate | Result on the factory set |
 |---|---|
 | G4 | **met**: confident-wrong 2 (limit 11 and 10%); correct 89% against 58%. The "every abstention states a reason" half is read from the answers below. |
-| G5 | **met**: every `unbound_name` question abstained (6 of 6); every `absent_value` question was answered "nothing found" after the search (8 of 8); none got a total or a zero. |
+| G5 | **met**: every `unbound_name` question abstained (5 of 5); every `absent_value` question was answered "nothing found" after the search (6 of 6); none got a total or a zero. |
 | G6 | met on the factory set; the response says it searched every identifier field of every evidence family. |
 | G7 | met: 0 HTTP errors; the one declined request was counted. |
 | G1 (PII probe and identity questions), G2, G3 on the 103 corpus and the pre-flight | **not yet measured**: `Run-Regression` for A, C and B. |
