@@ -58,11 +58,19 @@ function Show-Stack {
 
 function Invoke-Compose($Stack, [string[]]$ComposeArgs) {
   $a = @('compose', '-p', $Stack.Project)
-  foreach ($f in $Stack.Files) { $a += @('-f', $f) }
+  # The running stack was started from the main checkout, whose compose file does not declare the lane switches. The same file
+  # of THIS checkout does (and differs from it only by those declarations), so use it when it exists. The API service has only
+  # named volumes, so nothing depends on the directory.
+  $workDir = $Stack.WorkDir
+  foreach ($f in $Stack.Files) {
+    $mine = Join-Path $script:Repo (Split-Path $f -Leaf)
+    if (Test-Path -LiteralPath $mine) { $f = $mine; $workDir = $script:Repo }
+    $a += @('-f', $f)
+  }
   if ($Stack.EnvFile) { $a += @('--env-file', $Stack.EnvFile) }
   $a += $ComposeArgs
   Write-Host ("docker " + ($a -join ' ')) -ForegroundColor DarkGray
-  Push-Location $Stack.WorkDir
+  Push-Location $workDir
   try { & docker @a | Out-Host } finally { Pop-Location }
   return [int]$LASTEXITCODE
 }
