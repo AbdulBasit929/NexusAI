@@ -222,7 +222,28 @@ def number_in(text, expected):
         return False
     value = float(expected)
     forms = {fmt_num(value), str(int(value)) if value.is_integer() else str(value), "{:,}".format(int(value)) if value.is_integer() else "{:,.2f}".format(value), "{:.2f}".format(value), "{:.1f}".format(value)}
-    return any(re.search(r"(?<![\d,.])" + re.escape(f) + r"(?![\d,]|\.\d)", text) for f in forms)
+    if any(re.search(r"(?<![\d,.])" + re.escape(f) + r"(?![\d,]|\.\d)", text) for f in forms):
+        return True
+    return rounded_in(text, expected)
+
+
+def rounded_in(text, expected):
+    """A number the text states that IS the expected value correctly rounded to the places it shows (at least two), with or without
+    thousands separators: "31.6118" for 31.611806967, "3,905,649.9336" for 3905649.9336. A wrong value is never within rounding of the key."""
+    from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
+    try:
+        want = Decimal(str(expected))
+    except InvalidOperation:
+        return False
+    for token in re.findall(r"(?<![\d.])-?\d[\d,]*\.\d{2,}", text):
+        shown = token.replace(",", "")
+        places = len(shown.split(".")[1])
+        try:
+            if Decimal(shown) == want.quantize(Decimal(1).scaleb(-places), rounding=ROUND_HALF_UP):
+                return True
+        except InvalidOperation:
+            continue
+    return False
 
 
 def date_in(text, iso):
@@ -429,6 +450,8 @@ def main():
     e = sub.add_parser("explain", help="ask ONE question again and print the answer key, the answer, the lane header and the query the lane ran")
     e.add_argument("--questions", default="questions.json")
     e.add_argument("--id", required=True)
+    j = sub.add_parser("rejudge", help="re-read saved results with the current number matcher (rounded renditions count); writes <arm>/results-rejudged.json and prints the table")
+    j.add_argument("arms", nargs="+")
     c = sub.add_parser("compare")
     c.add_argument("a")
     c.add_argument("b")
@@ -445,6 +468,22 @@ def main():
 
     if args.cmd == "compare":
         compare(args.a, args.b)
+        return 0
+
+    if args.cmd == "rejudge":
+        for arm in args.arms:
+            path = os.path.join(HERE, arm, "results.json")
+            with io.open(path, encoding="utf-8") as handle:
+                rows = json.load(handle)
+            changed = []
+            for row in rows:
+                if row["kind"] == "number" and row["verdict"] != "CORRECT" and row.get("expected") not in (None, "") and rounded_in(row.get("text", ""), row["expected"]):
+                    changed.append((row["id"], row["verdict"]))
+                    row["verdict"], row["why"] = "CORRECT", "states %s (rounded)" % row["expected"]
+            with io.open(os.path.join(HERE, arm, "results-rejudged.json"), "w", encoding="utf-8") as handle:
+                json.dump(rows, handle, indent=1, ensure_ascii=False)
+            print("== %s: %d verdict(s) changed to CORRECT (%s)" % (arm, len(changed), ", ".join("%s was %s" % c for c in changed) or "none"))
+            print("   " + "  ".join("%s %d" % (v, sum(1 for r in rows if r["verdict"] == v)) for v in ("CORRECT", "WRONG", "ABSTAINED", "NOT_STATED", "ERROR")))
         return 0
 
     if args.cmd == "explain":

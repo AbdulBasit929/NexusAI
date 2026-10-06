@@ -169,12 +169,6 @@ func govSQLCheckFilters(question string, facts govSQLQuestionFacts, validated *g
 			enumerated[column.Name] = column.Values
 		}
 	}
-	grounded := map[string]bool{}
-	for _, v := range append(append([]govSQLValueFact{}, facts.ValueFacts...), facts.WeakValues...) {
-		if v.View == view.Name {
-			grounded[v.Column+"\x00"+strings.ToLower(v.Value)] = true
-		}
-	}
 	stems := _semanticLayerQuestionTokens(question)
 	// The words of a multi-word column name the question uses ("call start time") are spent on
 	// naming that column; they are not also a request for a value ("call" is a value of call_type).
@@ -185,6 +179,14 @@ func govSQLCheckFilters(question string, facts govSQLQuestionFacts, validated *g
 					delete(stems, w)
 				}
 			}
+		}
+	}
+	// A value fact counts only if its own words are still unspent: "data" in "total data volume"
+	// names the column network_volume, it does not ask for data-type calls.
+	grounded := map[string]bool{}
+	for _, v := range append(append([]govSQLValueFact{}, facts.ValueFacts...), facts.WeakValues...) {
+		if v.View == view.Name && (v.Phrase == "" || _semanticLayerPhraseInQuestion(v.Phrase, stems)) {
+			grounded[v.Column+"\x00"+strings.ToLower(v.Value)] = true
 		}
 	}
 	// A value the layer does not declare is only acceptable when the question itself carries
@@ -234,4 +236,38 @@ func govSQLCheckFilters(question string, facts govSQLQuestionFacts, validated *g
 		}
 	}
 	return unmet
+}
+
+// govSQLNamedViews are the views whose own name the question uses ("data sessions" is
+// v_ipdr). When the question names an evidence family and the query reads a different
+// one, the answer is about something else (measured 2026-10-06: "highest data volume in
+// the data sessions" was answered from the call records).
+func govSQLNamedViews(question string, views []*govSQLView) map[string]bool {
+	sequence := " " + strings.Join(govSQLPhraseWords(question), " ") + " "
+	out := map[string]bool{}
+	for _, view := range views {
+		for _, phrase := range append([]string{view.Display}, view.Synonyms...) {
+			key := strings.Join(govSQLPhraseWords(phrase), " ")
+			if key != "" && strings.Contains(sequence, " "+key+" ") {
+				out[view.Name] = true
+			}
+		}
+	}
+	return out
+}
+
+func govSQLCheckView(facts govSQLQuestionFacts, validated *govSQLValidated) []govSQLObligation {
+	if len(facts.NamedViews) == 0 || facts.NamedViews[validated.View.Name] {
+		return nil
+	}
+	names := make([]string, 0, len(facts.NamedViews))
+	for name := range facts.NamedViews {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return []govSQLObligation{{
+		Kind: "VIEW", Subject: validated.View.Name,
+		Message: fmt.Sprintf("The question is about %s, but the query reads %s. Use %s.", strings.Join(names, " / "), validated.View.Name, strings.Join(names, " or ")),
+		Reason:  fmt.Sprintf("the query read %s, which is not the evidence the question names", validated.View.Display),
+	}}
 }

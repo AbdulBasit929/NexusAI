@@ -72,6 +72,19 @@ def test_lane_summary_and_absence():
     assert f.lane_summary([{"verdict": "CORRECT"}]) == ""
 
 
+def test_rounded_renditions_count_and_wrong_values_do_not():
+    assert f.number_in("Average latitude: 31.6118.", "31.6118069667093470")
+    assert f.number_in("Highest latitude: 33.6844.", "33.684420")
+    assert f.number_in("Average volume: 3,905,649.9336.", "3905649.933600000000")
+    assert f.number_in("Average confidence: 0.862.", "0.86201200000000000000")
+    assert f.number_in("Average latitude: 29.049.", "29.0490600000000000")
+    assert f.number_in("Average latitude: 31.61.", "31.6118069667093470")
+    assert not f.number_in("Average latitude: 31.62.", "31.6118069667093470")
+    assert not f.number_in("Average latitude: 31.6119.", "31.6118069667093470")
+    assert not f.number_in("Average latitude: 31.7.", "31.6118069667093470")
+    assert not f.number_in("Number of records: 1,986.", "1768")
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

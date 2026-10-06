@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"net/http"
 	"regexp"
 	"sort"
@@ -94,6 +95,10 @@ func govSQLEligible(req hybridQueryRequest) (bool, string) {
 func runGovernedSQLLane(ctx context.Context, cfg config, db *pgxpool.Pool, req hybridQueryRequest, startedAt time.Time) (*hybridQueryResponse, GovSQLAuditV1) {
 	audit := GovSQLAuditV1{State: "declined"}
 	finish := func(resp *hybridQueryResponse) (*hybridQueryResponse, GovSQLAuditV1) {
+		// A response that is not an answer is an abstention: it says why and shows no number.
+		if resp != nil && audit.State == "declined" {
+			audit.State = "abstained"
+		}
 		audit.TotalMS = time.Since(startedAt).Milliseconds()
 		if resp != nil {
 			resp.Telemetry.TotalLatencyMS = audit.TotalMS
@@ -120,6 +125,11 @@ func runGovernedSQLLane(ctx context.Context, cfg config, db *pgxpool.Pool, req h
 	all := govSQLViews(layer, req)
 	offered := govSQLShortlist(all, req.Query)
 	if len(offered) == 0 {
+		// A name the evidence cannot hold is answered "not answerable" even when no family is recognised:
+		// declining would hand the question to a path that answers it with a total (measured 2026-10-06).
+		if facts := govSQLExtractFacts(req.Query, all, all); len(facts.Names) > 0 {
+			return finish(govSQLAbstainResponse(req, nil, facts, []govSQLObligation{govSQLNameObligation(facts.Names[0])}, audit))
+		}
 		return decline("no evidence family recognised in the question")
 	}
 	for _, view := range offered {
@@ -496,20 +506,39 @@ func govSQLFormatValue(value any) string {
 	}
 }
 
-// govSQLFormatNumber groups thousands and trims a long fraction; the value is not rounded away.
+// govSQLFormatNumber groups thousands and rounds (never truncates) a long fraction to four places.
 func govSQLFormatNumber(text string) string {
+	if !strings.ContainsAny(text, ".") {
+		return govSQLGroup(text)
+	}
+	if rat, ok := new(big.Rat).SetString(text); ok {
+		text = rat.FloatString(4)
+	}
 	whole, frac := text, ""
 	if i := strings.Index(text, "."); i >= 0 {
 		whole, frac = text[:i], text[i+1:]
-	}
-	if len(frac) > 4 {
-		frac = frac[:4]
 	}
 	frac = strings.TrimRight(frac, "0")
 	if frac == "" {
 		return govSQLGroup(whole)
 	}
 	return govSQLGroup(whole) + "." + frac
+}
+
+// govSQLFormatCell formats one result value. A value in a text column of the view (a phone
+// number, an account, a plate) is an identifier: it is shown exactly as stored, never
+// grouped as if it were a quantity.
+func govSQLFormatCell(view *govSQLView, column string, value any) string {
+	if view != nil {
+		for _, c := range view.Columns {
+			if c.Name == column && c.Type == "text" {
+				if text, ok := value.(string); ok {
+					return text
+				}
+			}
+		}
+	}
+	return govSQLFormatValue(value)
 }
 
 func govSQLGroup(digits string) string {
@@ -531,18 +560,18 @@ func govSQLHeadline(view *govSQLView, result *govSQLResult, facts govSQLQuestion
 	case len(result.Rows) == 0:
 		return "The query matched no rows."
 	case len(result.Rows) == 1 && len(result.Columns) == 1:
-		return fmt.Sprintf("%s: %s.", govSQLHumanize(result.Columns[0]), govSQLFormatValue(result.Rows[0][0]))
+		return fmt.Sprintf("%s: %s.", govSQLHumanize(result.Columns[0]), govSQLFormatCell(view, result.Columns[0], result.Rows[0][0]))
 	case len(result.Rows) == 1:
 		parts := make([]string, 0, len(result.Columns))
 		for i, column := range result.Columns {
-			parts = append(parts, fmt.Sprintf("%s: %s", govSQLHumanize(column), govSQLFormatValue(result.Rows[0][i])))
+			parts = append(parts, fmt.Sprintf("%s: %s", govSQLHumanize(column), govSQLFormatCell(view, column, result.Rows[0][i])))
 		}
 		return strings.Join(parts, "; ") + "."
 	default:
 		first := result.Rows[0]
 		lead := ""
 		if len(result.Columns) >= 2 && !facts.WantsSingle {
-			lead = fmt.Sprintf("Top result: %s = %s (%s: %s). ", result.Columns[0], govSQLFormatValue(first[0]), strings.ToLower(govSQLHumanize(result.Columns[len(result.Columns)-1])), govSQLFormatValue(first[len(first)-1]))
+			lead = fmt.Sprintf("Top result: %s = %s (%s: %s). ", result.Columns[0], govSQLFormatCell(view, result.Columns[0], first[0]), strings.ToLower(govSQLHumanize(result.Columns[len(result.Columns)-1])), govSQLFormatCell(view, result.Columns[len(result.Columns)-1], first[len(first)-1]))
 		}
 		more := ""
 		if result.Truncated {
@@ -598,7 +627,7 @@ func govSQLAnswerResponse(req hybridQueryRequest, validated *govSQLValidated, re
 			"source": source, "kind": "governed_sql", "view": view.Name, "record_type": view.RecordType,
 			"table": view.binding.Table, "sql": validated.SQL, "row_count": len(rows),
 		}},
-		"metrics": govSQLMetrics(result),
+		"metrics": govSQLMetrics(validated.View, result),
 		"operation": map[string]any{
 			"template": "governed_sql", "operation_id": "forensics.governed_sql",
 			"family_id": view.Family, "source_access": source,
@@ -619,13 +648,13 @@ func govSQLAnswerResponse(req hybridQueryRequest, validated *govSQLValidated, re
 	}
 }
 
-func govSQLMetrics(result *govSQLResult) []map[string]any {
+func govSQLMetrics(view *govSQLView, result *govSQLResult) []map[string]any {
 	if len(result.Rows) != 1 {
 		return []map[string]any{}
 	}
 	metrics := make([]map[string]any, 0, len(result.Columns))
 	for i, column := range result.Columns {
-		metrics = append(metrics, map[string]any{"label": govSQLHumanize(column), "value": govSQLFormatValue(result.Rows[0][i]), "source": "governed_sql"})
+		metrics = append(metrics, map[string]any{"label": govSQLHumanize(column), "value": govSQLFormatCell(view, column, result.Rows[0][i]), "source": "governed_sql"})
 	}
 	return metrics
 }

@@ -51,6 +51,7 @@ type govSQLQuestionFacts struct {
 	WantsSingle  bool
 	WithheldAttr string
 	Fields       []govSQLFieldFact // columns the question names by a word only that column answers to
+	NamedViews   map[string]bool   // evidence families the question names outright
 	Question     string
 }
 
@@ -128,6 +129,7 @@ func govSQLVocabulary(views []*govSQLView) map[string]bool {
 func govSQLExtractFacts(question string, views []*govSQLView, all []*govSQLView) govSQLQuestionFacts {
 	facts := govSQLQuestionFacts{Question: question}
 	facts.Fields = govSQLFieldFacts(question, views)
+	facts.NamedViews = govSQLNamedViews(question, views)
 	text := strings.TrimSpace(question)
 
 	// Identifiers. Dates and clock times are removed first so "2026-04-02" and
@@ -724,6 +726,7 @@ func govSQLCheck(facts govSQLQuestionFacts, validated *govSQLValidated) []govSQL
 			})
 		}
 	}
+	unmet = append(unmet, govSQLCheckView(facts, validated)...)
 	unmet = append(unmet, govSQLCheckFields(facts, validated)...)
 	unmet = append(unmet, govSQLCheckFilters(facts.Question, facts, validated)...)
 	return unmet

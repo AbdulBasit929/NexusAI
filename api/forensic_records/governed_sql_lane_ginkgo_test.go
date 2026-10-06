@@ -49,7 +49,7 @@ var _ = Describe("Governed SQL lane (no database)", func() {
 		Expect(govSQLFormatValue(int64(8642))).To(Equal("8,642"))
 		Expect(govSQLFormatValue("5005")).To(Equal("5,005"))
 		Expect(govSQLFormatValue("3905649.900000")).To(Equal("3,905,649.9"))
-		Expect(govSQLFormatValue("0.123456789")).To(Equal("0.1234"))
+		Expect(govSQLFormatValue("0.123456789")).To(Equal("0.1235"))
 		Expect(govSQLFormatValue("2026-04-02T00:00:02Z")).To(Equal("2026-04-02 00:00:02 UTC"))
 		Expect(govSQLFormatValue(nil)).To(ContainSubstring("no value"))
 		Expect(govSQLFormatValue("VOICE")).To(Equal("VOICE"))
@@ -396,6 +396,14 @@ var _ = Describe("Governed SQL lane (with a database)", func() {
 			}
 		}
 		Expect(found).To(BeTrue(), "the probe must search "+column)
+	})
+
+	It("abstains on a name even when no evidence family is recognised", func() {
+		model.replies = []string{sqlReply("SELECT COUNT(*) AS n FROM v_cdr")}
+		resp, audit := ask("How many items did Nadia Farooqui have?")
+		Expect(resp).NotTo(BeNil(), audit.Reason)
+		Expect(audit.State).To(Equal("abstained"), audit.Reason)
+		Expect(model.calls).To(BeEmpty(), "no model call is needed to say a name cannot be bound")
 	})
 
 	Describe("when a query for an identifier finds nothing", func() {

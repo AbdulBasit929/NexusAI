@@ -66,4 +66,25 @@ var _ = Describe("Governed SQL fields and filters", func() {
 		Expect(offered).NotTo(BeEmpty())
 		Expect(offered[0].Name).To(Equal("v_subscriber"))
 	})
+
+	It("does not read 'data' in 'data volume' as a request for data-type calls", func() {
+		q := "What is the total data volume of all the call records?"
+		Expect(kinds(q, "SELECT sum(network_volume) AS total FROM v_cdr WHERE call_type = 'GPRS'", "v_cdr")).To(ContainElement("FILTER"))
+		Expect(kinds(q, "SELECT sum(network_volume) AS total FROM v_cdr", "v_cdr")).To(BeEmpty())
+	})
+
+	It("holds the query to the evidence family the question names", func() {
+		q := "What is the highest data volume in the data sessions?"
+		Expect(kinds(q, "SELECT max(network_volume) AS highest FROM v_cdr", "v_ipdr", "v_cdr")).To(ContainElement("VIEW"))
+		Expect(kinds(q, "SELECT max(bytes) AS highest FROM v_ipdr", "v_ipdr", "v_cdr")).NotTo(ContainElement("VIEW"))
+	})
+
+	It("shows identifiers as stored and rounds a long fraction instead of cutting it", func() {
+		Expect(govSQLFormatCell(views["v_cdr"], "msisdn", "923461678183")).To(Equal("923461678183"))
+		Expect(govSQLFormatCell(views["v_cdr"], "number_of_records", "4454")).To(Equal("4,454"))
+		Expect(govSQLFormatNumber("29.04906")).To(Equal("29.0491"))
+		Expect(govSQLFormatNumber("0.86201200000000")).To(Equal("0.8620"[:5]))
+		Expect(govSQLFormatNumber("-31.61180696670")).To(Equal("-31.6118"))
+		Expect(govSQLFormatNumber("3905649.933600000000")).To(Equal("3,905,649.9336"))
+	})
 })

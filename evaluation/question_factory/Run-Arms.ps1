@@ -207,6 +207,13 @@ function Explain-Question {
   try { foreach ($one in $Id) { python factory.py explain --questions questions-demo.json --id $one } } finally { Pop-Location; Remove-Item Env:\FORENSIC_RECORDS_API_KEY -ErrorAction SilentlyContinue }
 }
 
+# Re-read saved results with the current number matcher (a correctly rounded rendition counts). Writes results-rejudged.json beside each.
+function Rejudge-Arms {
+  param([string[]]$Arm = @('arm-baseline-v1', 'arm-lane-A', 'arm-lane-C-run1', 'arm-lane-C', 'arm-lane-B'))
+  Push-Location $script:Here
+  try { $have = @($Arm | Where-Object { Test-Path (Join-Path $_ 'results.json') }); python factory.py rejudge @have } finally { Pop-Location }
+}
+
 function Compare-Arms {
   Import-BaselineData
   Push-Location $script:Here
