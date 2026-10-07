@@ -700,7 +700,7 @@ func govSQLAnswerResponse(req hybridQueryRequest, validated *govSQLValidated, re
 		"derivation": map[string]any{"sql": validated.SQL, "view": view.Name, "conditions_checked": audit.Checked},
 	}
 	return &hybridQueryResponse{
-		CollectionID: req.CollectionID, RequestClass: forensicrequest.GovernedAnalysis, Intent: intentSemantic,
+		CollectionID: req.CollectionID, RequestClass: forensicrequest.GovernedAnalysis, Intent: intentRecords,
 		Route: []string{"governed_sql"}, Policy: "governed_sql_lane",
 		Planner:   map[string]any{"contract_version": forensicrequest.ContractV1, "request_class": forensicrequest.GovernedAnalysis},
 		QueryPlan: QueryPlan{}, Capability: queryCapabilityAssessment{Status: "supported"},
