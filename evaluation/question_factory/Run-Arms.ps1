@@ -202,11 +202,11 @@ function Run-Arm {
 # Ask ONE question again against the running API and print the answer key, the answer, the lane header and the query the lane ran.
 # A NEW question set with a different seed (read-only against the case database). Questions never seen while the lane was built.
 function New-QuestionSet {
-  param([int]$Seed = 2, [string]$Name = 'questions-demo-v2.json')
+  param([int]$Seed = 2, [string]$Name = 'questions-demo-v2.json', [string]$Collection = 'nexusai-forensic-demo')
   $s = Get-Stack
   $psql = "docker exec -i $($s.Postgres) psql -U localrecall -d localrecall -At -F '|'"
   Push-Location $script:Here
-  try { python factory.py generate --psql $psql --collection nexusai-forensic-demo --seed $Seed --out $Name } finally { Pop-Location }
+  try { python factory.py generate --psql $psql --collection $Collection --seed $Seed --out $Name } finally { Pop-Location }
 }
 
 # Everything the activation decision still needs, in one go, saved to files next to the factory: arm A on the unseen set, the two corpus
