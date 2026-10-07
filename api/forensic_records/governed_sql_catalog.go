@@ -415,3 +415,38 @@ func govSQLCTE(view *govSQLView, req hybridQueryRequest, args []any) (string, []
 	}
 	return fmt.Sprintf("%s AS (SELECT %s FROM %s %s WHERE %s)", view.Name, strings.Join(selects, ", "), view.binding.Table, alias, strings.Join(where, " AND ")), args, nil
 }
+
+// govSQLOffer is the shortlist with every evidence family the question NAMES put first. A
+// family the analyst names ("plate group", "plate reads") must be one the model can read:
+// offered only by score, the camera sightings outranked the plate-read observations for
+// "plate reads still needing manual review" and the question was answered from the wrong
+// family (measured 2026-10-07, M3 and M8).
+func govSQLOffer(all []*govSQLView, question string) []*govSQLView {
+	ranked := govSQLShortlist(all, question)
+	named := govSQLNamedViews(question, all)
+	if len(named) == 0 {
+		return ranked
+	}
+	out := []*govSQLView{}
+	seen := map[string]bool{}
+	add := func(view *govSQLView) {
+		if len(out) < 2 && !seen[view.Name] {
+			seen[view.Name] = true
+			out = append(out, view)
+		}
+	}
+	for _, view := range ranked {
+		if named[view.Name] {
+			add(view)
+		}
+	}
+	for _, view := range all {
+		if named[view.Name] {
+			add(view)
+		}
+	}
+	for _, view := range ranked {
+		add(view)
+	}
+	return out
+}

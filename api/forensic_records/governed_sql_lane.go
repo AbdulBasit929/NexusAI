@@ -135,7 +135,7 @@ func runGovernedSQLLane(ctx context.Context, cfg config, db *pgxpool.Pool, req h
 		return decline("no semantic layer")
 	}
 	all := govSQLViews(layer, req)
-	offered := govSQLShortlist(all, req.Query)
+	offered := govSQLOffer(all, req.Query)
 	if govSQLMediaCue.MatchString(req.Query) && (len(offered) == 0 || !offered[0].binding.Derived) {
 		return decline("text and media evidence is answered by the retrieval path")
 	}

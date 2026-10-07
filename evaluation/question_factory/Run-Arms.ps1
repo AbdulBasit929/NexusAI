@@ -211,6 +211,23 @@ function New-QuestionSet {
 
 # Everything the activation decision still needs, in one go, saved to files next to the factory: arm A on the unseen set, the two corpus
 # comparisons, and the queries behind the remaining wrong answers. Takes about an hour; start it and leave the window alone.
+# The confirmation round after a fix: the unseen set on arm B (kept as -v3), the old corpus and the pre-flight on C and B, and the
+# comparisons against A saved next to the factory. Build-LaneImage first. Takes about two hours; start it and leave the window alone.
+function Verify-Round {
+  Run-Arm -Arm B -Questions questions-demo-v2.json -Tag -v3
+  Run-Regression C
+  Run-Regression B
+  $out = $script:Here
+  Push-Location (Join-Path $script:Repo "reports\free-question-baseline-20261002")
+  try {
+    python replay_corpus.py compare replay-lane-A replay-lane-C | Out-File -Encoding utf8 (Join-Path $out 'verify-compare-A-C.txt')
+    python replay_corpus.py compare replay-lane-A replay-lane-B | Out-File -Encoding utf8 (Join-Path $out 'verify-compare-A-B.txt')
+  } finally { Pop-Location }
+  Push-Location $out
+  try { python factory.py compare arm-lane-A-v2 arm-lane-B-v3 | Out-File -Encoding utf8 (Join-Path $out 'verify-compare-v2-A-B.txt') } finally { Pop-Location }
+  Write-Host "done. Send me the three summaries above, then run:  Select-String -Path .\evaluation\question_factory\verify-compare-A-C.txt -Pattern '^--- |^  ON ' | ForEach-Object { `$_.Line.Substring(0, [Math]::Min(240, `$_.Line.Length)) }   and   Select-String -Path .\evaluation\question_factory\verify-compare-v2-A-B.txt -Pattern 'WORSE' -Context 0,4" -ForegroundColor Green
+}
+
 function Finish-Round {
   param([string[]]$Explain = @('ACCE-top_group-01', 'ACCE-count_distinct-01', 'CDR-avg-01', 'CDR-max-01'))
   Run-Arm -Arm A -Questions questions-demo-v2.json -Tag -v2

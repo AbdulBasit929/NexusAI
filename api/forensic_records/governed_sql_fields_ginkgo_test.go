@@ -117,4 +117,17 @@ var _ = Describe("Governed SQL fields and filters", func() {
 		Expect(kinds("What is the most common failed in the access log entries?", "SELECT status FROM v_access_log WHERE status NOT IN ('200', '201') GROUP BY status ORDER BY count(*) DESC LIMIT 1", "v_access_log")).To(ContainElement("FILTER"))
 		Expect(kinds("How many unique failed do the web requests have?", "SELECT count(DISTINCT source_ip) AS n FROM v_access_log WHERE status LIKE '4%'", "v_access_log")).To(ContainElement("FILTER"))
 	})
+
+	It("offers the family the question names, and holds the query to its named field", func() {
+		for _, q := range []string{"How many plate reads still need manual review?", "What is the earliest offset at which a plate group was first seen?"} {
+			offered := govSQLOffer(all, q)
+			Expect(offered).NotTo(BeEmpty(), q)
+			Expect(govSQLNamedViews(q, all)).To(HaveKey(offered[0].Name), q)
+		}
+		offered := govSQLOffer(all, "How many plate reads still need manual review?")
+		Expect(offered[0].Name).To(Equal("v_anpr_model_observation"))
+		q := "How many plate reads still need manual review?"
+		Expect(kinds(q, "SELECT COUNT(*) AS n FROM v_anpr_model_observation", "v_anpr_model_observation")).To(ContainElement("FIELD"))
+		Expect(kinds(q, "SELECT COUNT(*) AS n FROM v_anpr_model_observation WHERE manual_review_required = true", "v_anpr_model_observation")).NotTo(ContainElement("FIELD"))
+	})
 })

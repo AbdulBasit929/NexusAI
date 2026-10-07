@@ -239,3 +239,16 @@ Arm B changed 70 and lost two number checks (H7, H13), both read in the explain 
 Also found in reading the corpus: arm B abstained on "How many server errors are in the access log" (H7) although the old path answers it, because "server errors" (plural) did not match the layer's value phrase "server error". The value check now matches a value by any phrase the layer gives it (code, display name, synonyms) with plurals folded, and a phrase the layer gives to a value is never spent on naming a column.
 
 Pre-flight on arm C: 36 of 38 (the two misses are list answers whose headlines were fixed after that image).
+
+## Run 8 (2026-10-07): the 18 answers arm C added to the corpus, read one by one (image `c1d3735`)
+
+Right or plausible: CDR-11 (447 calls, matches the old path's own ranked list), TWR-02, NEG-01 and H4 (honest absence, worded as structured evidence), H5 (4 cameras), H12 (beam width 65), M4, M6, M10 (OCR confidence 0.451 from the image-text reads), M15, M20, M21; M18 and H11 are lists (their headlines were fixed after this image); P2 abstained with its reason; M7 answered 0.
+**Two wrong, so G3 is not met on the corpus:**
+
+| Question | What the lane did | Class |
+|---|---|---|
+| M3 "How many plate reads still need manual review?" | counted all 1,057 camera sightings | wrong family **and** a dropped condition. The layer names the family ("plate read") and the field (`manual_review_required`, "needs manual review"), but the family was not among the two the shortlist offered, so neither the view check nor the field check could apply |
+| M8 "earliest offset at which a plate group was first seen" | `1,784,008,800` from the camera sightings (an epoch value) | wrong family: "plate group" names the video plate-group observations, not offered |
+
+Fix: a family the question names is always offered, first (`govSQLOffer`); the named-field check then forces `manual_review_required`. Specified (M3's query must use the field; the family of M3 and M8 is offered first); on 249 generated questions the offered families cover the question's own family as before (245 of 249; the four misses are the "registered numbers" vocabulary gap).
+Confirmation to come: `Verify-Round` (the unseen set on arm B as `-v3`, the corpus and pre-flight on C and B, the comparisons against A).
