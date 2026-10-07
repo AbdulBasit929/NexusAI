@@ -93,12 +93,21 @@ def raw_expr(field):
     return "COALESCE(" + ", ".join("raw_payload->>%s" % sql_str(n) for n in names) + ")"
 
 
+# THE CASE CLOCK. Evidence times are stored as UTC instants; the questions mean the clock of the place the case is about.
+# A time with an explicit offset (Z, +05:00) is converted to this zone; a time without one is already the source's local
+# clock, which the real ingest reads in the same zone, so it is taken as written. The result is local wall-clock text, so
+# hour, day and month of it are what an investigator means by "at night" or "in June". PostgreSQL does the conversion
+# (this file never needs a time-zone database). Same default as the lane's FORENSIC_ANALYSIS_TIMEZONE.
+CASE_ZONE = os.environ.get("FORENSIC_ANALYSIS_TIMEZONE", "Asia/Karachi").replace("'", "")
+
+
 def typed_expr(field):
     raw = raw_expr(field)
     if field["type"] == "NUMBER":
         return "(CASE WHEN %s ~ '^-?[0-9]+(\\.[0-9]+)?$' THEN (%s)::numeric ELSE NULL END)" % (raw, raw)
     if field["type"] == "TIMESTAMP":
-        return "(CASE WHEN %s ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' THEN replace(%s,'Z','')::timestamp ELSE NULL END)" % (raw, raw)
+        return ("(CASE WHEN %s ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}.*(Z|[+-][0-9]{2}(:?[0-9]{2})?)$' THEN ((%s)::timestamptz AT TIME ZONE '%s') "
+                "WHEN %s ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' THEN (%s)::timestamp ELSE NULL END)") % (raw, raw, CASE_ZONE, raw, raw)
     return raw
 
 

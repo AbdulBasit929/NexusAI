@@ -389,3 +389,33 @@ So the lane has a real gap: it exposes time in UTC while claiming the source clo
 What remains a decision for the product owner is one precise question: which clock defines "night", a day or a month. Either the clock recorded at the source (UTC for the `Z` families, local for CDR, which is what the answer key and the lane's note say) or one jurisdiction zone (Asia/Karachi) for every family. CDR needs the conversion to Asia/Karachi under both readings.
 
 Proposed, not implemented (it changes the API and needs a rebuild): (A) expose each time column to the model in the chosen clock (an `AT TIME ZONE` in the view definition, `govSQLCTE`), so hour, day and month conditions mean what the answer says; (B) give media-derived rows no time in time conditions. Each needs a spec with a 5-hour fixture and a live-database spec, then a re-measure of CDR-night, CDR-month_count and ANPR-night on both cases. The current behaviour is the unsafe default, so whether it ships behind a switch is the owner's call.
+## Run 11 plan (2026-10-07): the case clock, written before any measurement
+
+**What was prepared** (tested offline and kept as a patch, `reports/governed-sql-20261005/case-clock-fix.patch`, because the Go commit is blocked by the pre-commit hook for reasons unrelated to it; NOT deployed; the running image is unchanged): the governed SQL lane reads and shows time on one case clock, `FORENSIC_ANALYSIS_TIMEZONE` (default Asia/Karachi), for every evidence family, as decided by the product owner (the decision document, "Time: one case clock"). It sets the zone for its read-only transaction, formats times by the column's type (a timestamptz on the case clock with its abbreviation; a date as the date, never shifted), says which clock an answer used, refuses a query that converts to another zone, and keeps a record with no time of its own out of time conditions. The factory's answer keys and the stand-in loader follow the same clock.
+
+**Offline evidence.** Lane specs with a database: 259 before, 283 after, all passing; without a database (what CI sees): 214 before, 231 after. Forcing the case zone to UTC, which re-creates the old behaviour, makes 11 of the new or changed specs fail, so they do hold the behaviour in place. Lint: 0 issues. Factory tests: 15 pass. The stand-in loader now reads a naive time in the source zone and gives a no-time row its ingest time, as the real ingest does.
+
+**Predictions, fixed now from read-only SELECTs on the main case over the raw payload (not from the lane).** After deployment the lane must return exactly these for "at night" (hours 0 to 5 on the case clock, records with no time of their own excluded):
+
+| Family | Case clock (prediction) | Old reading, hours of the UTC instant |
+|---|---|---|
+| CDR | 1,283 | 1,323 |
+| ANPR (camera sightings with a recorded time) | 176 | 165 |
+| IPDR | 371 | 1,199 |
+| Access log | 0 | 0 |
+| Transactions | 2 | 2 |
+
+On the demo case "calls in June 2026" must be 2,463 (the lane said 2,455). The answer keys move with the decision: ANPR night 162 to 176, IPDR night 1,199 to 371; the CDR keys do not move.
+
+**Gates for the re-measure, fixed now.**
+
+| Gate | Pass condition |
+|---|---|
+| T1 | every `night` question the lane answers equals its new key exactly, on both cases |
+| T2 | every `month_count`, `date_range`, `earliest` and `latest` question the lane answers equals its new key exactly |
+| T3 | no other question changes verdict or text against run 10 arm C (the change must not move what does not depend on the clock) |
+| T4 | 0 HTTP 5xx and no timeout counted, other than the existing-path 500 already recorded |
+| T5 | every lane answer that reads or shows a time says which clock it used |
+| T6 | no ANPR time answer counts a plate read that has no recorded time |
+
+**Procedure, each step needing the product owner's go-ahead because it rebuilds and redeploys:** build the API image from this branch; recreate the API with stage 1 as before; ask arm C on the multimodal set (79 questions, keys re-evaluated at run time) and on the unseen demo set (82 questions); re-judge arm A's stored time answers against the new keys so the control is read on the same clock. No prompt wording is tuned if a gate fails: a failure gets a taxonomy and a smaller scope.

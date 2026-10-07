@@ -462,6 +462,8 @@ services:
       # UNMEASURED -- default off.
       FORENSIC_GOVERNED_SQL: ${FORENSIC_GOVERNED_SQL:-false}
       FORENSIC_GOVERNED_SQL_FIRST: ${FORENSIC_GOVERNED_SQL_FIRST:-false}
+      # The case clock the governed SQL lane reads and shows time on (hour, day and month of a question). UTC stays the stored instant.
+      FORENSIC_ANALYSIS_TIMEZONE: ${FORENSIC_ANALYSIS_TIMEZONE:-Asia/Karachi}
       # Headline honesty, found by 8 new questions checked against the DB
       # (reports/laptop-speed-20260929/RESULT.md). STATES_FILTERS: a count filtered
       # on plate or protocol names that filter instead of reading as the case

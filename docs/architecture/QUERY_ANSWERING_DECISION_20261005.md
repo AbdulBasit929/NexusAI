@@ -52,6 +52,18 @@ Every other §G.5 rule stands: every field the model can reference is enumerated
 | Questions that span two families | declined in v1: a join is only attempted where one is declared and verified (`CONTINUATION §7`: none works today) | by design |
 | Conversation, concepts, product help | the front door | built (default off) |
 
+## Time: one case clock (decided 2026-10-07)
+
+Evidence times are stored as UTC instants, and that does not change: the ingest reads a time without an offset in the source zone, converts a time with an offset by itself, and records which. A question about the hour, the day or the month ("at night", "in June", "on the 14th") means the clock of the place the case is about, so the lane reads and shows time on **one case clock for every evidence family**: `FORENSIC_ANALYSIS_TIMEZONE`, default `Asia/Karachi` (the typed lane already buckets time there).
+
+* The lane sets that zone for its read-only transaction, so PostgreSQL evaluates the hour, day and month of a timestamp, and the date a text time is cast to, on the case clock. No view or stored value is changed.
+* Every time it shows is written on that clock with the zone's abbreviation, and every answer that reads or shows a time says which clock it used.
+* A query that converts to another zone (`AT TIME ZONE 'UTC'`) is refused: it would count a different window than the one the answer states.
+* A record that holds no time of its own, whose canonical time falls back to the ingest time (a plate read derived from a video frame), never matches a time condition and is ignored by MIN and MAX; a count that names no time still counts it.
+* The question factory's answer keys follow the same clock, read from the raw text, so the lane is still checked against the evidence and not against itself.
+
+Why not the clock "as recorded at the source" for each family: that is local time for CDR and UTC for the families whose sources write `Z`, so "night" would mean two different parts of the day in one case, and for an investigator in Pakistan the UTC reading answers a different question (IPDR "night": 371 on the case clock, 1,199 on the UTC clock). Why not remove UTC: the stored instant is the evidence; only the reading of its calendar parts changes. Evidence: `reports/governed-sql-20261005/PREREGISTRATION.md`, run 10 and its correction.
+
 ## What exists, and what is next
 
 | Step | What | State |
