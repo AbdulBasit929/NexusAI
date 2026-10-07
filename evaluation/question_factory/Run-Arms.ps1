@@ -95,6 +95,7 @@ function Import-ContainerEnv($Stack) {
 # ${FORENSIC_RECORDS_API_KEY}), not from the container. A new window does not have them, and compose then recreates the API
 # with an empty key, which the API refuses to start with. So: copy each from the running container where it is non-empty,
 # else ask for it (hidden input, never printed, never written to disk). Enter on LOCALAI_API_KEY skips it.
+$script:AskedSecrets = @{}
 function Ensure-ComposeSecrets($Stack) {
   $map = [ordered]@{ 'FORENSIC_RECORDS_API_KEY' = 'FORENSIC_API_KEY'; 'FORENSIC_PII_ALIAS_SECRET' = 'FORENSIC_PII_ALIAS_SECRET'; 'LOCALAI_API_KEY' = $null }
   # The stack's own secrets file (gitignored, in the main checkout) is the first place to look.
@@ -116,7 +117,8 @@ function Ensure-ComposeSecrets($Stack) {
       $line = @($Stack.Env) | Where-Object { $_ -like "$inside=*" } | Select-Object -First 1
       if ($line) { $value = $line.Substring($inside.Length + 1) }
     }
-    if (-not $value) {
+    if (-not $value -and -not $script:AskedSecrets[$host_var]) {
+      $script:AskedSecrets[$host_var] = $true
       $secure = Read-Host -AsSecureString "$host_var is not set in this window; paste it (hidden), or press Enter to leave it empty"
       $ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
       try { $value = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr) } finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr) }
@@ -205,6 +207,24 @@ function New-QuestionSet {
   $psql = "docker exec -i $($s.Postgres) psql -U localrecall -d localrecall -At -F '|'"
   Push-Location $script:Here
   try { python factory.py generate --psql $psql --collection nexusai-forensic-demo --seed $Seed --out $Name } finally { Pop-Location }
+}
+
+# Everything the activation decision still needs, in one go, saved to files next to the factory: arm A on the unseen set, the two corpus
+# comparisons, and the queries behind the remaining wrong answers. Takes about an hour; start it and leave the window alone.
+function Finish-Round {
+  param([string[]]$Explain = @('ACCE-top_group-01', 'ACCE-count_distinct-01', 'CDR-avg-01', 'CDR-max-01'))
+  Run-Arm -Arm A -Questions questions-demo-v2.json -Tag -v2
+  $out = $script:Here
+  Push-Location (Join-Path $script:Repo "reports\free-question-baseline-20261002")
+  try {
+    python replay_corpus.py compare replay-lane-A replay-lane-C | Out-File -Encoding utf8 (Join-Path $out 'round-compare-A-C.txt')
+    python replay_corpus.py compare replay-lane-A replay-lane-B | Out-File -Encoding utf8 (Join-Path $out 'round-compare-A-B.txt')
+  } finally { Pop-Location }
+  Push-Location $out
+  try { python factory.py compare arm-lane-A-v2 arm-lane-B-v2 | Out-File -Encoding utf8 (Join-Path $out 'round-compare-v2-A-B.txt') } finally { Pop-Location }
+  [void](Set-Arm -Arm B)
+  Explain-Question -Id $Explain -Questions questions-demo-v2.json | Out-File -Encoding utf8 (Join-Path $out 'round-explain.txt')
+  Write-Host "done. Send me: the summary printed above, round-compare-v2-A-B.txt, round-explain.txt, round-compare-A-C.txt and round-compare-A-B.txt (all in $out)" -ForegroundColor Green
 }
 
 function Explain-Question {
