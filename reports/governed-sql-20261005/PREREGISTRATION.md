@@ -371,3 +371,6 @@ Ten questions through `Ask-Case`, judged against the SQL-verified values of the 
 ### Reading and decision (product owner)
 
 On the main case, stage 1 lifts correct answers from 43% to 68% and cuts "cannot answer" from 29% to 4%, without replacing any data answer the existing path gave. It does not touch the existing path's 19 confident-wrong answers (24% of the set); only the lane going first can. Decisions: keep stage 1 on or roll it back (`Disable-Lane`); the time field for "night"; whether an existing-path 5xx should reach the lane; correcting the judge; whether to measure arm B on this set (about two hours) before any step towards stage 2.
+### Decision taken (product owner, 2026-10-07, in the working session)
+
+Stage 1 stays ON (`FORENSIC_GOVERNED_SQL=true`, `FORENSIC_GOVERNED_SQL_FIRST=false`) although G2, G3 (on the fair reading) and G7 were not met. This is an exception to the rule "fail any gate: the switch stays off", taken knowing the causes recorded above: an existing-path error, a judge scoring, and an open definition. Stage 1 is not persistent across a full restart of the stack. Still open: the time field for "night", whether an existing-path 5xx should reach the lane, the judge correction, and arm B on this case.
