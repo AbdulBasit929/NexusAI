@@ -215,3 +215,27 @@ The factory's anpr nouns included "plate reads", which the layer (and the existi
 Unseen set, lane: 82 of 82 carry the header; answered 74 (68 right, 6 wrong); abstained 6; declined 2 (both correct); two attempts 6; model time median 7.2 s, p90 18.6 s, max 29.0 s; execution 0.02 s. G5: all five unbound-name questions abstained; all absent-value questions said "nothing found". G7: 0 HTTP errors.
 The six wrong: `CDR-month_count` and `CDR-night` (the time-field definition, unchanged); `ACCE-top_group` and `ACCE-count_distinct` (a value word, "failed", used by the factory as a field name: instrument wording, to be confirmed); `CDR-avg` and `CDR-max` on "event latitude" (to be explained).
 Pre-flight, arm B: **33 of 38** (27 before the run-5 fixes). The five remaining misses are a correct number or an honest absence worded differently from the check's expected phrase (three), and two list answers whose headlines were uninformative ("Top result: ... 861", "5 rows."): fixed after this run: a list is described as a list, never as a ranking, and a short single column is shown in full.
+
+## Run 7 (2026-10-07): arm A on the unseen set, the corpus comparisons, and the last wrong answers, image `c1d3735`
+
+| Unseen set (82) | Correct | Confident-wrong | Abstained | Time |
+|---|---|---|---|---|
+| A (old path) | 42 (51%) | 18 (22%) | 22 | up to 130-290 s |
+| B (lane first) | 70 (85%) | 6 (7.3%) | 6 | median 7 s, p90 19 s |
+
+**G4 on the unseen set: met** (6 against a limit of 9 and 10%; correct 85% against A + 15 points = 66%). B improved 35 questions and was worse on 5. Four of A's five unbound-name questions were answered with a total; B abstained on all five.
+**G2 on the corpus: met.** Arm C changed 18 of 103 answers (85 identical); every one is a question the old path had withheld, asked back or answered "unavailable" (CDR-11, TWR-02, NEG-01, H4, H5, H11, H12, M3, M4, M6, M7, M8, M10, M15, M18, M20, M21, P2). Number checks lost: none; gained: 5. 0 HTTP errors.
+Arm B changed 70 and lost two number checks (H7, H13), both read in the explain below.
+
+### The five questions where B was worse than A on the unseen set
+
+| Question | What the lane did | Class |
+|---|---|---|
+| CDR-avg, CDR-max ("event latitude of the call records") | added `WHERE call_type = 'CALL'`: the "call" of "call records" (the evidence's own name) was read as a request for the call type CALL | **lane defect, fixed:** words of the evidence's own name are spent and do not ground a value |
+| ACCE-count_distinct ("unique failed") | counted distinct source IPs where `status LIKE '4%'` | **lane defect, fixed:** LIKE, NOT IN and <> on an enumerated column are filters too |
+| ACCE-top_group ("most common failed") | `status NOT IN ('200','201')`, reading "failed" as "not successful"; the key counts all statuses because the factory used "failed" as a field name | **fixed (the NOT IN is now refused) and instrument:** "failed" is added to the factory's bad synonyms |
+| CDR-night | hours of `event_time` against the key's `call_start` | the open time-field definition |
+
+Also found in reading the corpus: arm B abstained on "How many server errors are in the access log" (H7) although the old path answers it, because "server errors" (plural) did not match the layer's value phrase "server error". The value check now matches a value by any phrase the layer gives it (code, display name, synonyms) with plurals folded, and a phrase the layer gives to a value is never spent on naming a column.
+
+Pre-flight on arm C: 36 of 38 (the two misses are list answers whose headlines were fixed after that image).

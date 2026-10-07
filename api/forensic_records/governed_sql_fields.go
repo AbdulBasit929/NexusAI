@@ -200,8 +200,9 @@ func govSQLCheckFields(facts govSQLQuestionFacts, validated *govSQLValidated) []
 	return unmet
 }
 
-// govSQLCheckFilters refuses an equality filter on an enumerated column that the
-// question did not ask for, or that names a value the layer does not declare.
+// govSQLCheckFilters refuses a filter on an enumerated column that the question did not ask for,
+// or that names a value the layer does not declare. "=", "<>", IN, NOT IN and LIKE all count:
+// "status NOT IN ('200','201')" and "status LIKE '4%'" are filters too (measured 2026-10-07).
 func govSQLCheckFilters(question string, facts govSQLQuestionFacts, validated *govSQLValidated) []govSQLObligation {
 	view := validated.View
 	enumerated := map[string][]string{}
@@ -210,25 +211,60 @@ func govSQLCheckFilters(question string, facts govSQLQuestionFacts, validated *g
 			enumerated[column.Name] = column.Values
 		}
 	}
-	stems := govSQLStems(question)
-	// The words of a multi-word column name the question uses ("call start time") are spent on
-	// naming that column; they are not also a request for a value ("call" is a value of call_type).
+	// The phrases the layer gives each declared value: its code, its display name, its synonyms.
+	valuePhrases := map[string][]string{}
+	valueKeys := map[string]bool{}
 	for _, column := range view.Columns {
-		for _, phrase := range append([]string{column.Display}, column.Synonyms...) {
-			if words := govSQLPhraseWords(phrase); len(words) > 1 && govSQLPhraseIn(phrase, stems) {
-				for _, w := range words {
-					delete(stems, w)
+		for _, field := range view.entity.Fields {
+			if field.ID != column.FieldID {
+				continue
+			}
+			for _, v := range field.Values {
+				key := column.Name + "\x00" + strings.ToLower(v.Value)
+				phrases := append([]string{v.Value, v.DisplayName}, v.Synonyms...)
+				valuePhrases[key] = phrases
+				for _, phrase := range phrases {
+					valueKeys[strings.Join(govSQLPhraseWords(phrase), " ")] = true
 				}
 			}
 		}
 	}
-	// A value fact counts only if its own words are still unspent: "data" in "total data volume"
-	// names the column network_volume, it does not ask for data-type calls.
-	grounded := map[string]bool{}
-	for _, v := range append(append([]govSQLValueFact{}, facts.ValueFacts...), facts.WeakValues...) {
-		if v.View == view.Name && (v.Phrase == "" || govSQLPhraseIn(v.Phrase, stems)) {
-			grounded[v.Column+"\x00"+strings.ToLower(v.Value)] = true
+	stems := govSQLStems(question)
+	// Words spent on naming something else are not also a request for a value: the words of a
+	// multi-word column name ("call start time"), and of the evidence's own name ("call records",
+	// where "call" is also a value of call_type). A phrase the layer itself gives to a value
+	// ("server error") is never spent.
+	spend := func(phrase string) {
+		words := govSQLPhraseWords(phrase)
+		if len(words) == 0 || !govSQLPhraseIn(phrase, stems) || valueKeys[strings.Join(words, " ")] {
+			return
 		}
+		for _, w := range words {
+			delete(stems, w)
+		}
+	}
+	for _, column := range view.Columns {
+		for _, phrase := range append([]string{column.Display}, column.Synonyms...) {
+			if len(govSQLPhraseWords(phrase)) > 1 {
+				spend(phrase)
+			}
+		}
+	}
+	for _, phrase := range append([]string{view.Display}, view.Synonyms...) {
+		spend(phrase)
+	}
+	grounded := func(column, value string) bool {
+		for _, phrase := range valuePhrases[column+"\x00"+strings.ToLower(value)] {
+			if govSQLPhraseIn(phrase, stems) {
+				return true
+			}
+		}
+		for _, v := range append(append([]govSQLValueFact{}, facts.ValueFacts...), facts.WeakValues...) {
+			if v.View == view.Name && v.Column == column && strings.EqualFold(v.Value, value) && (v.Phrase == "" || govSQLPhraseIn(v.Phrase, stems)) {
+				return true
+			}
+		}
+		return false
 	}
 	// A value the layer does not declare is only acceptable when the question itself carries
 	// it as a literal (an identifier or a number); an ordinary word of the question is not enough.
@@ -246,14 +282,14 @@ func govSQLCheckFilters(question string, facts govSQLQuestionFacts, validated *g
 		return false
 	}
 	says := func(value string) bool { return govSQLPhraseIn(value, stems) }
+	filterOps := map[string]bool{"=": true, "<>": true, "!=": true, "~~": true, "~~*": true, "!~~": true, "!~~*": true}
 	var unmet []govSQLObligation
 	for _, cmp := range govSQLComparisons(validated.Tree) {
 		declared, ok := enumerated[cmp.Column]
-		if !ok || cmp.Op != "=" {
+		if !ok || !filterOps[cmp.Op] {
 			continue
 		}
 		for _, c := range cmp.Consts {
-			value := strings.ToLower(strings.TrimSpace(c))
 			isDeclared := false
 			for _, d := range declared {
 				if strings.EqualFold(d, c) {
@@ -261,16 +297,16 @@ func govSQLCheckFilters(question string, facts govSQLQuestionFacts, validated *g
 				}
 			}
 			switch {
-			case !isDeclared && !named(c):
+			case !isDeclared && !named(c) && !named(strings.Trim(c, "%")):
 				unmet = append(unmet, govSQLObligation{
 					Kind: "FILTER", Subject: c,
-					Message: fmt.Sprintf("%s = '%s' is not a value of %s (its values are %s) and the question does not say it. Remove that filter.", cmp.Column, c, cmp.Column, strings.Join(declared, ", ")),
+					Message: fmt.Sprintf("%s %s '%s' is not a value of %s (its values are %s) and the question does not say it. Remove that filter.", cmp.Column, cmp.Op, c, cmp.Column, strings.Join(declared, ", ")),
 					Reason:  fmt.Sprintf("the query filtered %s on %q, which the question does not ask for", cmp.Column, c),
 				})
-			case isDeclared && !grounded[cmp.Column+"\x00"+value] && !says(c):
+			case isDeclared && !grounded(cmp.Column, c) && !says(c):
 				unmet = append(unmet, govSQLObligation{
 					Kind: "FILTER", Subject: c,
-					Message: fmt.Sprintf("The question does not ask for %s = '%s'. Remove that filter: count everything unless the question restricts it.", cmp.Column, c),
+					Message: fmt.Sprintf("The question does not ask for %s %s '%s'. Remove that filter: count everything unless the question restricts it.", cmp.Column, cmp.Op, c),
 					Reason:  fmt.Sprintf("the query filtered %s on %q, which the question does not ask for", cmp.Column, c),
 				})
 			}

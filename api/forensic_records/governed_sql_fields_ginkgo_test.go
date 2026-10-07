@@ -101,4 +101,20 @@ var _ = Describe("Governed SQL fields and filters", func() {
 		Expect(kinds("How many CDR records came from each source file?", "SELECT source_file, COUNT(*) AS n FROM v_cdr GROUP BY source_file", "v_cdr")).NotTo(ContainElement("GROUPING"))
 		Expect(kinds("Break down IPDR sessions by protocol", "SELECT protocol, COUNT(*) AS n FROM v_ipdr GROUP BY protocol", "v_ipdr")).NotTo(ContainElement("GROUPING"))
 	})
+
+	It("does not read the 'call' of 'call records' as a request for call_type = CALL", func() {
+		q := "What is the average event latitude of the call records?"
+		Expect(kinds(q, "SELECT avg(latitude) AS average FROM v_cdr WHERE call_type = 'CALL'", "v_cdr")).To(ContainElement("FILTER"))
+		Expect(kinds(q, "SELECT avg(latitude) AS average FROM v_cdr", "v_cdr")).NotTo(ContainElement("FILTER"))
+	})
+
+	It("accepts a value the question says in the layer's own words, plural or not", func() {
+		Expect(kinds("How many server errors are in the access log?", "SELECT COUNT(*) AS n FROM v_access_log WHERE status = '500'", "v_access_log")).NotTo(ContainElement("FILTER"))
+		Expect(kinds("How many requests were forbidden?", "SELECT COUNT(*) AS n FROM v_access_log WHERE status = '403'", "v_access_log")).NotTo(ContainElement("FILTER"))
+	})
+
+	It("counts NOT IN and LIKE as filters", func() {
+		Expect(kinds("What is the most common failed in the access log entries?", "SELECT status FROM v_access_log WHERE status NOT IN ('200', '201') GROUP BY status ORDER BY count(*) DESC LIMIT 1", "v_access_log")).To(ContainElement("FILTER"))
+		Expect(kinds("How many unique failed do the web requests have?", "SELECT count(DISTINCT source_ip) AS n FROM v_access_log WHERE status LIKE '4%'", "v_access_log")).To(ContainElement("FILTER"))
+	})
 })

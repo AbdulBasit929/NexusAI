@@ -46,7 +46,7 @@ NOUN = {"cdr": ["call records", "calls", "CDR records"], "ipdr": ["internet sess
         "tower_location": ["towers", "cell towers", "tower records"]}
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 # Synonyms that read badly inside a question ("have where DHA Lahore", "distinct type appear").
-BAD_SYNONYMS = {"who", "versus", "in or out", "type", "kind", "where", "when", "what", "how", "number of", "data"}
+BAD_SYNONYMS = {"failed", "who", "versus", "in or out", "type", "kind", "where", "when", "what", "how", "number of", "data"}
 UNKNOWN_NAMES = ["Zubair", "Mr Qureshi", "Hamza Ghauri", "Nadia Farooqui"]  # chosen not to appear in any seed file
 
 
