@@ -286,3 +286,30 @@ Stage 1: turn `FORENSIC_GOVERNED_SQL` on with `FORENSIC_GOVERNED_SQL_FIRST` off.
 Stage 2 (lane first) is NOT recommended yet: it replaces correct old-path answers with lane answers, wins on accuracy and time in the measurement, and should first run for a while as stage 1 with the confident-wrong count watched.
 Stage 3 (front door) waits for R5.
 Rollback: `Disable-Lane`, or unset the switch and recreate the API container. Open items: the time field for "June" and "night" on call records; vocabulary gaps ("registered numbers", "log entries"); a condition stated in words no layer field maps to is still dropped silently.
+
+## Run 10 plan (2026-10-07): the lane on the main case, written before the arms were read
+
+The lane has only been measured on `nexusai-forensic-demo` (structured records, no media). The case the analysts work in is `nexusai-multimodal-product-acceptance` (structured records plus derived media: audio, video, ANPR images, faces, documents; 42 of 43 sources ready). Nothing below has been read yet: when this was written arm A had answered one question (ACCE-count_all-01, CORRECT) and arm C had not started.
+
+| Item | Fixed now |
+|---|---|
+| Question set | `New-QuestionSet -Seed 3 -Name questions-multimodal.json -Collection nexusai-multimodal-product-acceptance`: 249 generated, 79 asked (`--per-intent 1`, one per family and intent). Structured families only: the factory has no independent oracle for derived media |
+| Arms | A (both switches off, the control) and C (lane after the existing path), same question file, same image, same model; arm B is not run this round |
+| Image | `nexusai-forensic-records-api:latest`, id `5b253d84d32d`, created 2026-10-07 07:30:36 UTC, built straight after commit `07093fcf` (07:28:59 UTC). It does **not** contain `cb0f3bcf` (07:57:32 UTC) although the handoff note says it does; that commit changes only the `intent` field of an answered lane response, not the lane's logic |
+| Switch state | asserted from `docker inspect` by `Run-Arm` before the first question, never from the shell |
+
+Gates for this run, from the table above, unchanged:
+
+| Gate | Pass condition on this set |
+|---|---|
+| G2 | every question arm A answered (CORRECT, WRONG or NOT_STATED) has the identical verdict and analyst text in arm C; every difference is on a question arm A abstained on |
+| G3 | confident-wrong in arm C is at most arm A's |
+| G5 | in arm C every `unbound_name` and `absent_value` question is answered correctly or abstained; none is answered with a total or a zero |
+| G6 | every "none found" in arm C says what was searched |
+| G7 | 0 HTTP 5xx; no timeout counted as a verdict; declined requests stay in the denominator |
+| G1 | no answer, in either arm, shows a name, an alias or a masked value |
+| G8 | reported, not gated: median, p90 and max of model, execution and total time for the questions the lane answered in arm C |
+
+G4 (arm B accuracy) is not evaluated: arm B is not run. A wrong answer in arm C gets a failure taxonomy (what the lane did, against the key and its query), not a reworded prompt.
+
+Media questions (audio, video, plates from images, faces, documents) are tried by hand through `Ask-Case` and the workspace. They are exploratory and not gated: there is no independent key for derived media yet. The corpus questions M1 to M21 and P1, P2 are the reference list for what the lane answered on this case before. This file records only counts, ids and failure classes: the question file and the `arm-*` directories hold case data, stay local and gitignored, and must not be committed.
