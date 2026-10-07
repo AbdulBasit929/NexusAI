@@ -252,3 +252,37 @@ Right or plausible: CDR-11 (447 calls, matches the old path's own ranked list), 
 
 Fix: a family the question names is always offered, first (`govSQLOffer`); the named-field check then forces `manual_review_required`. Specified (M3's query must use the field; the family of M3 and M8 is offered first); on 249 generated questions the offered families cover the question's own family as before (245 of 249; the four misses are the "registered numbers" vocabulary gap).
 Confirmation to come: `Verify-Round` (the unseen set on arm B as `-v3`, the corpus and pre-flight on C and B, the comparisons against A).
+
+## Run 9 (2026-10-07): confirmation round on image `4223547`, and the decision table
+
+| Measurement | Result |
+|---|---|
+| Unseen set, arm B | 72 correct (88%), **3 confident-wrong (3.7%)**, 7 abstained; median 7.5 s, p90 21.9 s |
+| Corpus, arm C | 0 errors; number checks 40/47 (A 33, B 38); pre-flight 36/38 |
+| Corpus, arm B | 0 errors; pre-flight 33/38 |
+| Arm C's 18 added corpus answers | 14 right or plausible, M4 and P2 abstained with their reason, M3 (307 plate reads that need manual review: the question's family and field are now used) and M8 (earliest offset 0, from the plate groups) answered from the right family |
+| Arm B worse than A on the unseen set | 2 of 82 (CDR-max: `call_type = 'CALL'` from "the calls"; CDR-night: the time-field definition) |
+
+The two pre-flight "refuse" items that still print FAIL in arm C are answers the lane now gives correctly (a list of 200 calls with their columns; "5 values (location): Airport Road; DHA Phase 5; Gulberg; Liberty Market; Model Town"). The check was written for the old path's refusal; the expectation is stale, not the answer.
+
+After this reading: a single-word value ("call") is only asked for by that exact word, so the plural "calls" is the noun for the records, not the value CALL (`CDR-max`). Specified; this only tightens the verifier (it can turn an answer into an abstention, not add one).
+
+### Gates
+
+| Gate | Result |
+|---|---|
+| G1 PII | met: no changed answer, in any arm, shows a name, alias or masked value |
+| G2 arm C changes nothing already answered | met: 18 of 103 changed, every one a question the old path had withheld, asked back or called "unavailable"; 0 lost number checks |
+| G3 arm C adds no wrong answer | met on the factory set (C 21 against A 22) and on the corpus read (no wrong answer among the 18) |
+| G4 arm B accuracy | met on the tuned set and on the unseen set (3.7% confident-wrong; correct 88% against A's 51%) |
+| G5 no silent drop (names, absences) | met: every unbound-name question abstained; every absent-value question was answered "nothing found" after the search |
+| G6 honest absence | met: the sentence names what was searched and says transcripts, images and documents were not |
+| G7 instrument | met: 0 HTTP errors; declined requests counted |
+| G8 time | reported: arm B median 7.5 s, p90 21.9 s, max 30.8 s on the unseen set; the old path alone took 1-5 minutes on many of the same questions |
+
+### Decision (to be taken by the product owner)
+
+Stage 1: turn `FORENSIC_GOVERNED_SQL` on with `FORENSIC_GOVERNED_SQL_FIRST` off. Recommended: it can only change a question the existing path declined, and everything it adds is checked and shows its query.
+Stage 2 (lane first) is NOT recommended yet: it replaces correct old-path answers with lane answers, wins on accuracy and time in the measurement, and should first run for a while as stage 1 with the confident-wrong count watched.
+Stage 3 (front door) waits for R5.
+Rollback: `Disable-Lane`, or unset the switch and recreate the API container. Open items: the time field for "June" and "night" on call records; vocabulary gaps ("registered numbers", "log entries"); a condition stated in words no layer field maps to is still dropped silently.

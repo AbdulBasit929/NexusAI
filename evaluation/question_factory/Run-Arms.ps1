@@ -213,6 +213,13 @@ function New-QuestionSet {
 # comparisons, and the queries behind the remaining wrong answers. Takes about an hour; start it and leave the window alone.
 # The confirmation round after a fix: the unseen set on arm B (kept as -v3), the old corpus and the pre-flight on C and B, and the
 # comparisons against A saved next to the factory. Build-LaneImage first. Takes about two hours; start it and leave the window alone.
+# STAGE 1 of the activation plan: the lane runs only AFTER the existing path withholds, so it cannot change an answer already given.
+# This recreates only the API container with FORENSIC_GOVERNED_SQL=true (and _FIRST=false), asserts it, and leaves it running.
+# To keep it after a full restart of the stack, set FORENSIC_GOVERNED_SQL=true in the environment that starts the stack.
+function Enable-LaneStage1 { [void](Set-Arm -Arm C); Show-Stack }
+# Back to the lane off, exactly as shipped (the same recreate with both switches false). Use this to roll Stage 1 back.
+function Disable-Lane { [void](Set-Arm -Arm A); Show-Stack }
+
 function Verify-Round {
   Run-Arm -Arm B -Questions questions-demo-v2.json -Tag -v3
   Run-Regression C

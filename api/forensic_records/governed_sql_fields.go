@@ -230,6 +230,20 @@ func govSQLCheckFilters(question string, facts govSQLQuestionFacts, validated *g
 		}
 	}
 	stems := govSQLStems(question)
+	// The words as the analyst wrote them. A single-word value ("call") is only asked for by that
+	// exact word: the plural "calls" is the noun for the records, not the value CALL of call_type
+	// (measured 2026-10-07: "the largest event latitude among the calls" gained call_type = 'CALL').
+	raw := map[string]bool{}
+	for _, w := range semanticWords.FindAllString(strings.ToLower(question), -1) {
+		raw[w] = true
+	}
+	phraseIn := func(phrase string) bool {
+		words := govSQLPhraseWords(phrase)
+		if len(words) == 1 {
+			return raw[strings.ToLower(strings.TrimSpace(phrase))] && stems[words[0]]
+		}
+		return govSQLPhraseIn(phrase, stems)
+	}
 	// Words spent on naming something else are not also a request for a value: the words of a
 	// multi-word column name ("call start time"), and of the evidence's own name ("call records",
 	// where "call" is also a value of call_type). A phrase the layer itself gives to a value
@@ -241,6 +255,11 @@ func govSQLCheckFilters(question string, facts govSQLQuestionFacts, validated *g
 		}
 		for _, w := range words {
 			delete(stems, w)
+			for r := range raw {
+				if govSQLSingular(r) == w {
+					delete(raw, r)
+				}
+			}
 		}
 	}
 	for _, column := range view.Columns {
@@ -255,12 +274,12 @@ func govSQLCheckFilters(question string, facts govSQLQuestionFacts, validated *g
 	}
 	grounded := func(column, value string) bool {
 		for _, phrase := range valuePhrases[column+"\x00"+strings.ToLower(value)] {
-			if govSQLPhraseIn(phrase, stems) {
+			if phraseIn(phrase) {
 				return true
 			}
 		}
 		for _, v := range append(append([]govSQLValueFact{}, facts.ValueFacts...), facts.WeakValues...) {
-			if v.View == view.Name && v.Column == column && strings.EqualFold(v.Value, value) && (v.Phrase == "" || govSQLPhraseIn(v.Phrase, stems)) {
+			if v.View == view.Name && v.Column == column && strings.EqualFold(v.Value, value) && (v.Phrase == "" || phraseIn(v.Phrase)) {
 				return true
 			}
 		}
@@ -281,7 +300,7 @@ func govSQLCheckFilters(question string, facts govSQLQuestionFacts, validated *g
 		}
 		return false
 	}
-	says := func(value string) bool { return govSQLPhraseIn(value, stems) }
+	says := func(value string) bool { return phraseIn(value) }
 	filterOps := map[string]bool{"=": true, "<>": true, "!=": true, "~~": true, "~~*": true, "!~~": true, "!~~*": true}
 	var unmet []govSQLObligation
 	for _, cmp := range govSQLComparisons(validated.Tree) {

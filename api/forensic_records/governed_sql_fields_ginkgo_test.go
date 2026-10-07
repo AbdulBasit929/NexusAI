@@ -130,4 +130,13 @@ var _ = Describe("Governed SQL fields and filters", func() {
 		Expect(kinds(q, "SELECT COUNT(*) AS n FROM v_anpr_model_observation", "v_anpr_model_observation")).To(ContainElement("FIELD"))
 		Expect(kinds(q, "SELECT COUNT(*) AS n FROM v_anpr_model_observation WHERE manual_review_required = true", "v_anpr_model_observation")).NotTo(ContainElement("FIELD"))
 	})
+
+	It("reads the plural 'calls' as the records, not as the value CALL", func() {
+		q := "What is the largest event latitude among the calls?"
+		Expect(kinds(q, "SELECT max(latitude) AS largest FROM v_cdr WHERE call_type = 'CALL'", "v_cdr")).To(ContainElement("FILTER"))
+		Expect(kinds(q, "SELECT max(latitude) AS largest FROM v_cdr", "v_cdr")).NotTo(ContainElement("FILTER"))
+		Expect(kinds("How many VoLTE calls are there?", "SELECT COUNT(*) AS n FROM v_cdr WHERE call_type = 'VOLTE'", "v_cdr")).NotTo(ContainElement("FILTER"))
+		Expect(kinds("How many SMS were sent?", "SELECT COUNT(*) AS n FROM v_cdr WHERE call_type = 'SMS'", "v_cdr")).NotTo(ContainElement("FILTER"))
+		Expect(kinds("How many server errors are in the access log?", "SELECT COUNT(*) AS n FROM v_access_log WHERE status = '500'", "v_access_log")).NotTo(ContainElement("FILTER"))
+	})
 })
