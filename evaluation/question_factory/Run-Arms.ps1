@@ -220,6 +220,32 @@ function Enable-LaneStage1 { [void](Set-Arm -Arm C); Show-Stack }
 # Back to the lane off, exactly as shipped (the same recreate with both switches false). Use this to roll Stage 1 back.
 function Disable-Lane { [void](Set-Arm -Arm A); Show-Stack }
 
+# Ask the running API one or more questions the way the UI does, and show the answer, which path produced it (the X-Governed-SQL header)
+# and the query the lane ran. Read-only. Example:  Ask-Case "How many calls did 923001110001 make?"
+function Ask-Case {
+  param([Parameter(Mandatory, ValueFromRemainingArguments)][string[]]$Question, [string]$Collection = 'nexusai-forensic-demo')
+  $s = Get-Stack
+  $keyLine = $s.Env | Where-Object { $_ -like 'FORENSIC_RECORDS_API_KEY=*' -or $_ -like 'FORENSIC_API_KEY=*' } | Select-Object -First 1
+  $key = $keyLine.Substring($keyLine.IndexOf('=') + 1)
+  $headers = @{ 'Authorization' = "Bearer $key"; 'X-Forensic-Tenant-ID' = 'default'; 'X-Forensic-Collection-ID' = $Collection; 'X-Forensic-Actor-ID' = 'investigation-workspace'; 'X-Forensic-Subject-ID' = 'investigation-workspace'; 'X-Forensic-Actor-Role' = 'user' }
+  foreach ($q in $Question) {
+    $body = @{ tenant_id = 'default'; collection_id = $Collection; query = $q } | ConvertTo-Json
+    $started = Get-Date
+    try {
+      $r = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:8091/query/hybrid' -Method Post -ContentType 'application/json' -Headers $headers -Body $body -TimeoutSec 900
+    } catch { Write-Host "FAILED: $($_.Exception.Message)" -ForegroundColor Red; continue }
+    $blob = $r.Content | ConvertFrom-Json
+    $ent = $blob.enterprise
+    Write-Host ""
+    Write-Host "Q: $q" -ForegroundColor Cyan
+    Write-Host ("path    : " + ($blob.route -join ', ') + "   (" + [math]::Round(((Get-Date) - $started).TotalSeconds, 1) + " s)")
+    Write-Host ("lane    : " + $r.Headers['X-Governed-SQL'])
+    Write-Host ("answer  : " + $ent.executive_answer)
+    if ($ent.derivation -and $ent.derivation.sql) { Write-Host ("query   : " + $ent.derivation.sql) }
+    if ($ent.limitations) { foreach ($l in $ent.limitations) { Write-Host ("note    : " + $l) -ForegroundColor DarkGray } }
+  }
+}
+
 function Verify-Round {
   Run-Arm -Arm B -Questions questions-demo-v2.json -Tag -v3
   Run-Regression C
