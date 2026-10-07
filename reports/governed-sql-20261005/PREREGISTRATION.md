@@ -313,3 +313,10 @@ Gates for this run, from the table above, unchanged:
 G4 (arm B accuracy) is not evaluated: arm B is not run. A wrong answer in arm C gets a failure taxonomy (what the lane did, against the key and its query), not a reworded prompt.
 
 Media questions (audio, video, plates from images, faces, documents) are tried by hand through `Ask-Case` and the workspace. They are exploratory and not gated: there is no independent key for derived media yet. The corpus questions M1 to M21 and P1, P2 are the reference list for what the lane answered on this case before. This file records only counts, ids and failure classes: the question file and the `arm-*` directories hold case data, stay local and gitignored, and must not be committed.
+### Known before arm C was started (2026-10-07, 15:40)
+
+Arm A (lane off) is complete: 79 asked, 34 CORRECT, 21 confident-wrong, 23 ABSTAINED, 1 ERROR; median 61.7 s per question, p90 123 s, max 293 s; no row carries a lane header.
+
+The one ERROR is `ANPR-top_group-01` ("Which plate number appears most often in the camera sightings?"): HTTP 500 after 85.7 s. Asked again alone on the lane-off stack it fails again, after 1 s (the plan is now cached), with `{"error":"source-native group cardinality exceeds 100"}`: the existing path's guard on the number of groups, returned as a 500 instead of an abstention. It is deterministic, not load, and the API logs nothing for it.
+
+Stage 1 (`governedSQLFallback`, `api/forensic_records/governed_sql_fallback.go`) passes the existing path's reply through whenever its status is not 200, and tries the lane only when a 200 reply declined. The lane therefore never sees this question, and arm C is expected to return the same 500. G7 ("0 HTTP 5xx") is then reported as not met in both arms by this one inherited error, and is not attributed to the lane. Whether an existing-path 5xx should also reach the lane is an owner decision: a 500 is a fourth outcome, and the decision record allows three.
