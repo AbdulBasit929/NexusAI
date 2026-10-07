@@ -320,3 +320,54 @@ Arm A (lane off) is complete: 79 asked, 34 CORRECT, 21 confident-wrong, 23 ABSTA
 The one ERROR is `ANPR-top_group-01` ("Which plate number appears most often in the camera sightings?"): HTTP 500 after 85.7 s. Asked again alone on the lane-off stack it fails again, after 1 s (the plan is now cached), with `{"error":"source-native group cardinality exceeds 100"}`: the existing path's guard on the number of groups, returned as a 500 instead of an abstention. It is deterministic, not load, and the API logs nothing for it.
 
 Stage 1 (`governedSQLFallback`, `api/forensic_records/governed_sql_fallback.go`) passes the existing path's reply through whenever its status is not 200, and tries the lane only when a 200 reply declined. The lane therefore never sees this question, and arm C is expected to return the same 500. G7 ("0 HTTP 5xx") is then reported as not met in both arms by this one inherited error, and is not attributed to the lane. Whether an existing-path 5xx should also reach the lane is an owner decision: a 500 is a fourth outcome, and the decision record allows three.
+## Run 10 (2026-10-07): the lane on the main case, arms A and C, image `5b253d84d32d` (built after `07093fcf`)
+
+Question set `questions-multimodal.json` (seed 3, 79 asked, structured families), the same questions, image and model in both arms; the switch state of each arm was asserted from the container (A: both false; C: `FORENSIC_GOVERNED_SQL=true`, `_FIRST=false`).
+
+| Arm | Correct | Confident-wrong | Abstained | HTTP error |
+|---|---|---|---|---|
+| A (lane off) | 34 (43%) | 21 (27%) | 23 | 1 |
+| C (lane after the existing path) | **54 (68%)** | 21 (27%) | 3 | 1 |
+
+Transitions A to C: ABSTAINED to CORRECT 18, ABSTAINED to WRONG 2, WRONG to CORRECT 2, ABSTAINED to ABSTAINED 3, CORRECT to CORRECT 34, WRONG to WRONG 19, ERROR to ERROR 1.
+
+**What the lane did in arm C.** It touched 25 of the 79 questions: answered 22 (20 CORRECT, 2 WRONG) and abstained on 3 (two name questions and one date-range question). The existing path answered 53 and returned the one error. By family the lane answered: access log 3, ANPR 4, CDR 4, IPDR 3, subscriber 3, tower 3, transaction 2.
+
+**Where the 21 confident-wrong answers of arm C come from.** 2 from the lane, 19 from the existing path, the same 19 as in arm A (stage 1 cannot change an answer the existing path gave). The 19 by intent: unbound_name 3, count_distinct 2, count_eq 2, night 2, max 2, min 2, latest 2, earliest 1, date_range 1, sum 1, avg 1; by family: IPDR 6, access log 4, CDR 4, ANPR 3, subscriber 2. This is the part only the lane going first (arm B) can address; on the demo case arm B cut confident-wrong from 22% to 3.7% (run 9). Arm B has not been measured on this case.
+
+### Gates (fixed before the run; read as measured)
+
+| Gate | Reading |
+|---|---|
+| G2 | **Not met by the letter**: 3 questions arm A answered differ in arm C. None is the lane replacing a data answer. ACCE-latest-01 and TRAN-latest-01: the existing path replied "A bounded general definition is unavailable for that term" (route `terminal`), which the factory's judge scored WRONG in arm A, and the lane replaced it with a correct answer (the designed "called unavailable" case). IPDR-absent_value-01: the lane did not run (no lane header); the existing path's wording differs between runs (arm A names the number searched; arm C, with a warm plan cache, says only that there are no IPDR sessions in the case) |
+| G3 | **By the judge's count, met (21 against 21). On a fair reading, not met (19 against 21).** The judge scores the two "definition unavailable" declines above as confident-wrong, which flatters arm A. The lane added two wrong answers on questions arm A abstained on: ANPR-night-01 and CDR-night-01 |
+| G5 | Written for arm B, which was not run, so it cannot be evaluated. Information for arm C: unbound_name 3 WRONG (the existing path answered with a total) and 2 ABSTAINED (the lane); absent_value 5 CORRECT. No change is possible in stage 1 for an answer the existing path already gave |
+| G6 | Met: 2 lane "none found" answers, both say what was searched |
+| G7 | **Not met, by one inherited error**: ANPR-top_group-01, HTTP 500 (`source-native group cardinality exceeds 100`), identical in both arms, from the existing path; stage 1 never hands a non-200 reply to the lane |
+| G1 | Not exercised: structured questions only. The identity probes (H2, H5) are in the 103 corpus |
+| G8 | Reported: lane model time for the 22 answered, median 17.8 s, p90 35.8 s, max 52.5 s; execution median 0.0 s, max 0.1 s; two attempts: 2. Including the existing path's own time before the lane: median 20.3 s, p90 202 s, max 315 s. (Demo case, run 9: model median 7.5 s, p90 21.9 s.) Times between arms are confounded by the persisted plan cache: arm A filled it, so arm C's median per question was 4.5 s against 61.7 s |
+
+Consequence written before the run: "fail any gate: the switch stays off and the cause is recorded". Causes: (1) G7, an existing-path error; (2) G2, an instrument scoring and an existing-path wording difference; (3) G3, two answers that depend on an open definition. None is a fault in the lane's own checks. Stage 1 was already on in the running container when this run began; leaving it on is therefore a decision of the product owner and an exception to the rule above, not a result of it.
+
+### Failure taxonomy of the two wrong answers the lane added
+
+| Question | What the lane did | Class |
+|---|---|---|
+| ANPR-night-01 | counted camera sightings whose `event_time` hour is 0 to 5 (165); the key uses the hour of the source's own recorded timestamp (162) | the open time-field definition |
+| CDR-night-01 | the same condition over call records (1,323); the key uses the call start recorded at the source (1,283) | the same |
+
+The answer names the time column it used. Which column "night", "June" and similar mean for each family is a curation decision for the product owner; it is not tuned for here.
+
+### Instrument and tooling findings
+
+* The factory judge scores the existing path's "definition unavailable" decline as confident-wrong (its abstention test matches neither that wording nor the route `terminal`). Corrected, arm A reads 34 correct, 19 wrong, 25 abstained, 1 error; arm C is unchanged. The judge was not changed after seeing the results; a one-line correction applied to every arm by `rejudge` is proposed.
+* The plan cache persists across arms, so the old path is faster, and sometimes worded differently, in whichever arm runs second.
+* `Compare-Arms` only compares the demo arms; tagged arms are compared with `python factory.py compare arm-lane-A-mm arm-lane-C-mm`.
+
+### Media questions tried by hand (not gated; no independent key for derived media)
+
+Ten questions through `Ask-Case`, judged against the SQL-verified values of the corpus: 8 correct, 1 correct but not distilled, 1 honest abstention, 0 wrong. The existing path answered 5 (plate groups, audio segments, faces, text regions, and the document search, 0.4 to 4.3 s); the lane answered 4 (largest supporting reads, latest audio end offset, average OCR confidence, and which model produced the face vectors, 29 to 50 s in total) and abstained once (highest plate detection confidence: after two attempts the model's query did not use the field the question names, so no number was shown). The "which model" answer was a 20-row table of one value, because the query has no `DISTINCT`: the content is right, the headline is a row count. Two earlier tries in the workspace UI: a correct lane answer (307 plate reads needing manual review) was shown under "Analysis unavailable" (the image predates the intent fix); a lane abstention on "Were any of the transcribed audio segments taken from video?" blanked the page (the defect fixed in `eb70a2b7`). Text and document content questions stay on the existing path, as designed (R5).
+
+### Reading and decision (product owner)
+
+On the main case, stage 1 lifts correct answers from 43% to 68% and cuts "cannot answer" from 29% to 4%, without replacing any data answer the existing path gave. It does not touch the existing path's 19 confident-wrong answers (24% of the set); only the lane going first can. Decisions: keep stage 1 on or roll it back (`Disable-Lane`); the time field for "night"; whether an existing-path 5xx should reach the lane; correcting the judge; whether to measure arm B on this set (about two hours) before any step towards stage 2.
