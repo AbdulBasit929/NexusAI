@@ -101,14 +101,53 @@ def raw_expr(field):
 CASE_ZONE = os.environ.get("FORENSIC_ANALYSIS_TIMEZONE", "Asia/Karachi").replace("'", "")
 
 
+def time_expr(raw):
+    """The case-clock reading of a time held as text (see CASE_ZONE above)."""
+    return ("(CASE WHEN %s ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}.*(Z|[+-][0-9]{2}(:?[0-9]{2})?)$' THEN ((%s)::timestamptz AT TIME ZONE '%s') "
+            "WHEN %s ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' THEN (%s)::timestamp ELSE NULL END)") % (raw, raw, CASE_ZONE, raw, raw)
+
+
 def typed_expr(field):
     raw = raw_expr(field)
     if field["type"] == "NUMBER":
         return "(CASE WHEN %s ~ '^-?[0-9]+(\\.[0-9]+)?$' THEN (%s)::numeric ELSE NULL END)" % (raw, raw)
     if field["type"] == "TIMESTAMP":
-        return ("(CASE WHEN %s ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}.*(Z|[+-][0-9]{2}(:?[0-9]{2})?)$' THEN ((%s)::timestamptz AT TIME ZONE '%s') "
-                "WHEN %s ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' THEN (%s)::timestamp ELSE NULL END)") % (raw, raw, CASE_ZONE, raw, raw)
+        return time_expr(raw)
     return raw
+
+
+# A question file generated BEFORE the case clock was decided stores the old reading of a time field: the text with its "Z" dropped, so a
+# UTC wall clock was taken as if it were local. rekey_time_sql rewrites exactly that expression to the current one, so a stored question's
+# answer key follows the same clock as a newly generated one. The questions themselves, their ids and their order do not change.
+_OLD_TIME_EXPR = re.compile(
+    r"\(CASE WHEN (?P<raw>COALESCE\((?:[^()']|'[^']*')*\)) ~ " + re.escape("'^[0-9]{4}-[0-9]{2}-[0-9]{2}'")
+    + r" THEN replace\((?P=raw),'Z',''\)::timestamp ELSE NULL END\)")
+OLD_TIME_MARK = "'Z',''"
+TIME_INTENTS = ("night", "month_count", "date_range", "earliest", "latest")
+
+
+def rekey_time_sql(sql):
+    return _OLD_TIME_EXPR.sub(lambda m: time_expr(m.group("raw")), sql)
+
+
+def rekey_questions(data, key_of):
+    """Rewrite the time SQL of every stored question to the current case clock and refresh its key with key_of(item). Returns
+    [(id, intent, old key, new key)] for the questions that were rewritten. A file in which an old-form expression is left behind is
+    refused: a variant this does not recognise would otherwise keep a stale key without any sign of it."""
+    moved = []
+    for item in data["questions"]:
+        new_sql = rekey_time_sql(item["oracle_sql"])
+        if new_sql == item["oracle_sql"]:
+            continue
+        old_key = item.get("expected")
+        item["oracle_sql"] = new_sql
+        item["expected"] = key_of(item)
+        moved.append((item["id"], item["intent"], old_key, item["expected"]))
+    left = [item["id"] for item in data["questions"] if OLD_TIME_MARK in item["oracle_sql"]]
+    if left:
+        raise ValueError("a stored time expression was not recognised in: " + ", ".join(left))
+    data["rekeyed_to_case_clock"] = {"zone": CASE_ZONE, "questions_rewritten": len(moved)}
+    return moved
 
 
 def scope(db, family):
@@ -352,6 +391,23 @@ def expected_of(db, item):
     return db.scalar(item["oracle_sql"]) if item["kind"] in ("number", "date") else None
 
 
+def rejudge_on_the_case_clock(rows, items, key_of):
+    """Judge the saved answers to the TIME questions again against keys on the case clock (items come from a re-keyed question file).
+    Returns [(id, old key, new key, old verdict, new verdict)] for the rows whose key or verdict changed. A row that was an ERROR stays
+    one: it never got an answer to judge. The same judge, the same matcher; only the key moves."""
+    changed = []
+    for row in rows:
+        item = items.get(row["id"])
+        if item is None or item["intent"] not in TIME_INTENTS or row["verdict"] == "ERROR":
+            continue
+        key = key_of(item)
+        verdict, why = judge(item, key, row.get("text", ""), 200, row.get("route"))
+        if (key, verdict) != (row.get("expected"), row["verdict"]):
+            changed.append((row["id"], row.get("expected"), key, row["verdict"], verdict))
+        row["expected"], row["verdict"], row["why"] = key, verdict, why
+    return changed
+
+
 def summarise(rows):
     by = {}
     for r in rows:
@@ -461,6 +517,14 @@ def main():
     e.add_argument("--id", required=True)
     j = sub.add_parser("rejudge", help="re-read saved results with the current number matcher (rounded renditions count); writes <arm>/results-rejudged.json and prints the table")
     j.add_argument("arms", nargs="+")
+    k = sub.add_parser("rekey", help="rewrite the stored answer-key SQL of a question file to the case clock and refresh its keys (read-only against the database); the questions do not change; writes --out")
+    k.add_argument("--questions", required=True)
+    k.add_argument("--out", required=True)
+    k.add_argument("--psql", required=True)
+    rc = sub.add_parser("reclock", help="judge an arm's saved answers to the time questions again against the keys of a re-keyed question file; writes <arm>/results-clock.json and prints what changed")
+    rc.add_argument("arms", nargs="+")
+    rc.add_argument("--questions", required=True)
+    rc.add_argument("--psql", required=True)
     c = sub.add_parser("compare")
     c.add_argument("a")
     c.add_argument("b")
@@ -492,6 +556,35 @@ def main():
             with io.open(os.path.join(HERE, arm, "results-rejudged.json"), "w", encoding="utf-8") as handle:
                 json.dump(rows, handle, indent=1, ensure_ascii=False)
             print("== %s: %d verdict(s) changed to CORRECT (%s)" % (arm, len(changed), ", ".join("%s was %s" % c for c in changed) or "none"))
+            print("   " + "  ".join("%s %d" % (v, sum(1 for r in rows if r["verdict"] == v)) for v in ("CORRECT", "WRONG", "ABSTAINED", "NOT_STATED", "ERROR")))
+        return 0
+
+    if args.cmd == "rekey":
+        with io.open(args.questions, encoding="utf-8") as handle:
+            data = json.load(handle)
+        db = Db(args.psql, data["collection"])
+        moved = rekey_questions(data, lambda item: expected_of(db, item))
+        with io.open(args.out, "w", encoding="utf-8") as handle:
+            json.dump(data, handle, indent=1, ensure_ascii=False)
+        print("%d of %d questions rewritten to the case clock (%s); the others are unchanged. written: %s" % (len(moved), len(data["questions"]), CASE_ZONE, args.out))
+        for qid, intent, old, new in moved:
+            print("  %-22s %-12s key %s -> %s%s" % (qid, intent, old, new, "" if old == new else "   MOVED"))
+        return 0
+
+    if args.cmd == "reclock":
+        with io.open(args.questions, encoding="utf-8") as handle:
+            data = json.load(handle)
+        db = Db(args.psql, data["collection"])
+        items = {i["id"]: i for i in data["questions"]}
+        for arm in args.arms:
+            with io.open(os.path.join(HERE, arm, "results.json"), encoding="utf-8") as handle:
+                rows = json.load(handle)
+            changed = rejudge_on_the_case_clock(rows, items, lambda item: expected_of(db, item))
+            with io.open(os.path.join(HERE, arm, "results-clock.json"), "w", encoding="utf-8") as handle:
+                json.dump(rows, handle, indent=1, ensure_ascii=False)
+            print("== %s: %d time answer(s) changed key or verdict on the case clock" % (arm, len(changed)))
+            for qid, old_key, key, old_verdict, verdict in changed:
+                print("   %-22s key %s -> %s   %s -> %s" % (qid, old_key, key, old_verdict, verdict))
             print("   " + "  ".join("%s %d" % (v, sum(1 for r in rows if r["verdict"] == v)) for v in ("CORRECT", "WRONG", "ABSTAINED", "NOT_STATED", "ERROR")))
         return 0
 
