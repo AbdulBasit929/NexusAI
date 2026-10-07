@@ -282,7 +282,7 @@ export default function InvestigatePage() {
                       const presentation = turn.presentation
                       const answered = presentation && ['answered', 'partial', 'zero-result'].includes(presentation.state)
                       const hasEvidence = presentation && !['clarify', 'unsupported', 'failed'].includes(presentation.state)
-                      const sourceCount = presentation ? (presentation.citations.groups || []).length : 0
+                      const sourceCount = (presentation?.citations?.groups || []).length
                       return (
                         <li key={turn.id} className={`thread-turn${turn.parentId ? ' thread-turn--branched' : ''}`}>
                           <article className="thread-turn__question" aria-label={`Question ${index + 1}`}>

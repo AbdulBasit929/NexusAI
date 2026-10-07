@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { CapabilityGate } from './shell/CapabilityGate.jsx'
+import { RouteErrorBoundary } from './components/ErrorBoundary.jsx'
 import { ShellSkeleton } from './components/Skeleton.jsx'
 
 const routeLoaders = {
@@ -48,6 +49,8 @@ export function WorkspaceRouter() {
   return (
     <BrowserRouter>
       <a className="skip-link" href="#workspace-main" onClick={focusMain}>Skip to investigation</a>
+      {/* Outside Suspense, so a page chunk that fails to load is caught too. */}
+      <RouteErrorBoundary>
       <Suspense fallback={<ShellSkeleton />}>
         <Routes>
           <Route path="/" element={<DashboardPage />} />
@@ -72,6 +75,7 @@ export function WorkspaceRouter() {
           <Route path="*" element={<Navigate replace to="/" />} />
         </Routes>
       </Suspense>
+      </RouteErrorBoundary>
     </BrowserRouter>
   )
 }

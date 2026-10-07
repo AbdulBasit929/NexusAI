@@ -3,6 +3,7 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import GlobalInvestigatePage, { searchScopeNote } from './GlobalInvestigatePage.jsx'
+import laneAbstain from '../lib/__fixtures__/lane_abstain.json'
 
 function Landing() {
   const location = useLocation()
@@ -18,6 +19,8 @@ const summaries = {
 const answers = {
   alpha: { enterprise: { executive_answer: 'The number appears 12 times in this case.', result_state: 'complete' } },
   bravo: { enterprise: { executive_answer: '', result_state: 'no_match' } },
+  // What the governed SQL lane sends when it declines to answer a question it could not verify.
+  abstained: laneAbstain,
 }
 const json = body => ({ ok: true, status: 200, headers: { get: () => null }, json: async () => body })
 
@@ -92,6 +95,19 @@ describe('GlobalInvestigatePage', () => {
     await screen.findByRole('heading', { name: 'Found in 1 of 2 cases.' })
     const down = [...document.querySelectorAll('.ax-case')].find(item => item.textContent.includes('down'))
     expect(down.querySelector('.ax-case__state').textContent).toBe('Could not search')
+  })
+
+  it('shows a lane abstention as a case that needs a choice, with its reason, and the page stays up', async () => {
+    open(['alpha', 'abstained'])
+    const user = userEvent.setup()
+    await screen.findByText(/Searching 2 cases/)
+    await user.type(screen.getByLabelText('Your question'), 'What is the smallest position of the towers?')
+    await user.click(screen.getByRole('button', { name: 'Ask' }))
+    await screen.findByRole('heading', { name: 'Found in 1 of 2 cases.' })
+    const abstained = document.getElementById('ax-abstained')
+    expect(abstained.querySelector('.ax-case__state').textContent).toBe('Needs a choice')
+    expect(abstained.textContent).toMatch(/did not use the field the question names \(position\)/)
+    expect(screen.getByLabelText('Your question')).toBeTruthy()
   })
 
   it('lets the search be narrowed, and only asks the chosen cases', async () => {

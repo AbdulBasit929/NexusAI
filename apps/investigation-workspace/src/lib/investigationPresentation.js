@@ -23,6 +23,30 @@ function safeText(value) {
   return result && !forbiddenAnalystLanguage.test(result) ? result : ''
 }
 
+// The governed SQL lane writes its sentences on the server from the query result and the curated layer; no model
+// narrates them. They are the answer, or the stated reason for not answering, and must reach the analyst as written.
+// The vocabulary filter above is for the older paths, whose text can leak implementation words. Applied to the lane
+// it drops an answer about a "model" or a "route", and the reason an abstention gives ("unreviewed model observations").
+const LANE_POLICY = 'governed_sql_lane'
+function fromLane(response) {
+  return response?.policy === LANE_POLICY
+}
+function textOf(response, value) {
+  return fromLane(response) ? text(value) : safeText(value)
+}
+
+// Every consumer of a presentation (the thread, the evidence panel, the result components) reads `result`, `citations`
+// and the lists without asking which state produced it. A state that carries no evidence, a failure or a clarification
+// (which is what every abstention of the lane is), still has them, empty. A clarification once had none and the thread
+// threw `Cannot read properties of undefined (reading 'groups')` while rendering, which blanked the whole page.
+function withoutEvidence() {
+  return {
+    result: { columns: [], rows: [], unresolvedLabels: [] },
+    citations: { items: [], groups: [], markerItems: [], totalOpenable: 0, truncated: false },
+    limitations: [], followUps: [], scope: [], derivation: '',
+  }
+}
+
 function sourcePlan(response) {
   return response?.planner?.semantic_operation_planner?.dynamic_plan
     || response?.query_plan?.applied_filters?.source_native
@@ -112,7 +136,9 @@ function classifiedState(response, error) {
   const resultState = text(enterprise.result_state || enterprise.status).toLowerCase()
   const processingState = text(enterprise.processing_state).toLowerCase()
   const plannerState = text(response?.planner?.semantic_operation_planner?.state).toUpperCase()
-  if (response?.intent === 'semantic') return 'unsupported'
+  // `semantic` is the intent of an analysis the case cannot do. The lane's answered responses once carried it by mistake
+  // (they now say `records`); a lane response is judged by the lane's own result, whichever image produced it.
+  if (response?.intent === 'semantic' && !fromLane(response)) return 'unsupported'
   if (response?.intent === 'clarification') return plannerState === 'UNSUPPORTED_REQUEST_CLASS' ? 'unsupported' : 'clarify'
   if (/fail|error/.test(resultState)) return 'failed'
   if (/processing|queued|running/.test(resultState) || /processing|queued|running/.test(processingState)) return 'processing'
@@ -143,7 +169,7 @@ function clarificationModel(response, catalog) {
     }
   }).filter(option => option.label.trim())
   const reason = text(source.reason_code)
-  const specificQuestion = safeText(source.question || response?.enterprise?.executive_answer)
+  const specificQuestion = textOf(response, source.question || response?.enterprise?.executive_answer)
   const title = reason === 'missing_required_parameter'
     ? 'I can answer this with one more detail'
     : reason === 'cross_check_disagreement'
@@ -253,7 +279,7 @@ function answeredTitle(state) {
 export function presentInvestigationResponse(response, { caseId = response?.collection_id || '', catalog = defaultCatalog, error = null } = {}) {
   const state = classifiedState(response, error)
   if (state === 'clarify') {
-    return { state, clarification: clarificationModel(response, catalog), original: response }
+    return { state, clarification: clarificationModel(response, catalog), ...withoutEvidence(), original: response }
   }
   if (state === 'failed') {
     return {
@@ -261,13 +287,12 @@ export function presentInvestigationResponse(response, { caseId = response?.coll
       title: answeredTitle(state),
       answer: 'Something prevented this question from completing. Your case evidence was not changed.',
       errorReference: text(error?.reference || response?.telemetry?.request_id || 'QRY-LOCAL'),
-      result: { columns: [], rows: [], unresolvedLabels: [] },
-      citations: { items: [], totalOpenable: 0, truncated: false },
-      limitations: [], followUps: [], scope: [], derivation: '', original: response,
+      ...withoutEvidence(),
+      original: response,
     }
   }
   const enterprise = response?.enterprise || {}
-  let answer = safeText(enterprise.executive_answer)
+  let answer = textOf(response, enterprise.executive_answer)
   if (state === 'unsupported') {
     answer = response?.intent === 'semantic'
       ? safeText(response?.answer?.answer) || 'This question is outside the evidence analysis available for this case.'
