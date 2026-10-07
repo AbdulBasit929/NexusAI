@@ -79,8 +79,9 @@ var _ = Describe("Governed SQL execution", func() {
 		result, err := run("SELECT MIN(call_start) AS earliest, MAX(call_start) AS latest FROM v_cdr", req)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result.Rows).To(HaveLen(1))
-		earliest := oracle("SELECT min((raw_payload->>'CALL_START_DT_TM')::timestamptz) AT TIME ZONE 'UTC' FROM forensic.records WHERE tenant_id='default' AND collection_id='records-demo' AND record_type='cdr'")
-		Expect(strings.ReplaceAll(toText(result.Rows[0][0]), "T", " ")).To(HavePrefix(strings.TrimSuffix(earliest, "+00")[:10]))
+		// The case clock (governed_sql_zone.go): an independent oracle over the raw text, not over the stored instant.
+		earliest := oracle("SELECT to_char(min(" + govSQLTestCaseClock("raw_payload->>'CALL_START_DT_TM'") + "), 'YYYY-MM-DD') FROM forensic.records WHERE tenant_id='default' AND collection_id='records-demo' AND record_type='cdr'")
+		Expect(toText(result.Rows[0][0])).To(HavePrefix(earliest))
 	})
 
 	It("groups like the raw rows do", func() {

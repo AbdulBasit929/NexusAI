@@ -216,12 +216,12 @@ var _ = Describe("Governed SQL lane (with a database)", func() {
 		}
 	})
 
-	It("answers earliest from a typed timestamp", func() {
+	It("answers earliest from a typed timestamp, on the case clock", func() {
 		model.replies = []string{sqlReply("SELECT MIN(call_start) AS earliest_call FROM v_cdr")}
 		resp, audit := ask("What is the earliest call in the data?")
 		Expect(audit.State).To(Equal("answered"))
-		want := oracle("SELECT to_char(min((raw_payload->>'CALL_START_DT_TM')::timestamptz) AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS') " + cdr)
-		Expect(headline(resp)).To(Equal("Earliest call: " + want + " UTC."))
+		want := oracle("SELECT to_char(min(" + govSQLTestCaseClock("raw_payload->>'CALL_START_DT_TM'") + "), 'YYYY-MM-DD HH24:MI:SS') " + cdr)
+		Expect(headline(resp)).To(Equal("Earliest call: " + want + " PKT."))
 	})
 
 	It("applies a declared value the question says as a code", func() {
@@ -340,13 +340,14 @@ var _ = Describe("Governed SQL lane (with a database)", func() {
 		Expect(headline(resp)).To(HavePrefix("Number of calls: "))
 	})
 
-	It("states its assumption when 'night' is used", func() {
+	It("states its assumption when 'night' is used, and reads it on the case clock", func() {
 		model.replies = []string{sqlReply("SELECT COUNT(*) AS number_of_sessions FROM v_ipdr WHERE EXTRACT(HOUR FROM event_time) BETWEEN 0 AND 5")}
 		resp, audit := ask("How many data sessions were there at night?")
 		Expect(audit.State).To(Equal("answered"))
-		want := oracle("SELECT count(*) FROM forensic.records WHERE tenant_id='default' AND collection_id='records-demo' AND record_type='ipdr' AND extract(hour from (raw_payload->>'timestamp')::timestamptz) BETWEEN 0 AND 5")
+		want := oracle("SELECT count(*) FROM forensic.records WHERE tenant_id='default' AND collection_id='records-demo' AND record_type='ipdr' AND extract(hour from " + govSQLTestCaseClock("raw_payload->>'timestamp'") + ") BETWEEN 0 AND 5")
 		Expect(headline(resp)).To(Equal("Number of sessions: " + govSQLFormatNumber(want) + "."))
 		Expect(resp.Enterprise["limitations"]).To(ContainElement(ContainSubstring("'night' was taken as 00:00 to 05:59")))
+		Expect(resp.Enterprise["limitations"]).To(ContainElement(ContainSubstring("case clock (Asia/Karachi, UTC+05:00)")))
 	})
 
 	It("refuses 'at night' answered with no hour in the query", func() {

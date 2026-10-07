@@ -598,7 +598,7 @@ func govSQLTimeConstraint(tree *pg.ParseResult, view *govSQLView) (onTimeColumn,
 
 // govSQLObligation is one thing the question demands that the query lacks.
 type govSQLObligation struct {
-	Kind    string // IDENTIFIER, VALUE, MAGNITUDE, TIME, TIME_OF_DAY, NAME, WITHHELD
+	Kind    string // IDENTIFIER, VALUE, MAGNITUDE, TIME, TIME_OF_DAY, TIME_ZONE, NAME, WITHHELD
 	Subject string
 	Message string // written for the model
 	Reason  string // written for the analyst, when the lane abstains
@@ -702,6 +702,17 @@ func govSQLCheck(facts govSQLQuestionFacts, validated *govSQLValidated) []govSQL
 				Reason:  "the query did not apply the time-of-day condition",
 			})
 		}
+	}
+
+	// TIME ZONE: the views already read time on the case clock, so a conversion to any other
+	// zone would count a different window than the one the question means and the answer states.
+	zoneName, _ := govSQLTimeZone()
+	if foreign := govSQLForeignZoneConversions(validated.Tree, zoneName); len(foreign) > 0 {
+		unmet = append(unmet, govSQLObligation{
+			Kind: "TIME_ZONE", Subject: strings.Join(foreign, ", "),
+			Message: fmt.Sprintf("Times in the view are already on the case clock (%s). Remove AT TIME ZONE and compare the time column directly.", zoneName),
+			Reason:  fmt.Sprintf("the query converted time zones (%s), which counts a different window than the case clock", strings.Join(foreign, ", ")),
+		})
 	}
 
 	// NAMES: a capitalised name must be compared with a column that is not an

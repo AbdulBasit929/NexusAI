@@ -100,6 +100,12 @@ func govSQLRun(ctx context.Context, db *pgxpool.Pool, tenantID, final string, ar
 	if _, err := tx.Exec(callCtx, "SELECT set_config('app.tenant_id', $1, true)", tenantID); err != nil {
 		return nil, &govSQLRunError{Code: "DATABASE", Message: "could not set the tenant context"}
 	}
+	// THE CASE CLOCK (governed_sql_zone.go): the hour, day and month of every time the query reads or
+	// compares are evaluated in ONE zone, and every time it returns is shown in it.
+	zoneName, zone := govSQLTimeZone()
+	if _, err := tx.Exec(callCtx, "SELECT set_config('TimeZone', $1, true)", zoneName); err != nil {
+		return nil, &govSQLRunError{Code: "DATABASE", Message: "could not set the case time zone", Detail: err.Error()}
+	}
 	for _, setting := range []string{
 		"SET LOCAL statement_timeout = " + strconv.FormatInt(timeout.Milliseconds(), 10),
 		"SET LOCAL lock_timeout = 2000",
@@ -125,8 +131,10 @@ func govSQLRun(ctx context.Context, db *pgxpool.Pool, tenantID, final string, ar
 	defer rows.Close()
 	descriptions := rows.FieldDescriptions()
 	result := &govSQLResult{Columns: make([]string, len(descriptions)), PlanCost: cost}
+	columnTypes := make([]uint32, len(descriptions))
 	for i, d := range descriptions {
 		result.Columns[i] = string(d.Name)
+		columnTypes[i] = d.DataTypeOID
 	}
 	for rows.Next() {
 		values, err := rows.Values()
@@ -139,7 +147,7 @@ func govSQLRun(ctx context.Context, db *pgxpool.Pool, tenantID, final string, ar
 		}
 		row := make([]any, len(values))
 		for i, value := range values {
-			row[i] = normalizeDBValue(value)
+			row[i] = govSQLCellValue(value, columnTypes[i], zone)
 		}
 		result.Rows = append(result.Rows, row)
 	}

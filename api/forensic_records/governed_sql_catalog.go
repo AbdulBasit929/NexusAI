@@ -405,6 +405,10 @@ func govSQLCTE(view *govSQLView, req hybridQueryRequest, args []any) (string, []
 			}
 		} else {
 			expr = sourceNativeFieldTypedExpr(view.binding, column.field, &args)
+			if !view.binding.Derived && column.field.NormalizedName == "timestamp" {
+				// The canonical record time falls back to the ingest time when the evidence has none.
+				expr = govSQLRecordedTime(expr)
+			}
 		}
 		selects = append(selects, expr+" AS "+column.Name)
 	}

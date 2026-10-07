@@ -53,7 +53,7 @@ RULES
 3. Compare text columns with the exact values listed for them (for example call_type = 'SMS'). When a value is listed, use it exactly as listed.
 4. "How many" is COUNT(*), or COUNT(DISTINCT column) when it asks for different or unique ones. "Which", "most" and "top" group, count, order by the count descending and use LIMIT. "Earliest" or "first" is MIN of the time column; "latest" or "last" is MAX. "Average", "total", "largest" and "smallest" use AVG, SUM, MAX and MIN of the matching numeric column.
 5. A number that can be either party of an event needs every identifier column that can hold it, joined with OR.
-6. Times are as recorded at the source. Night means the hours 0 to 5: use EXTRACT(HOUR FROM column) BETWEEN 0 AND 5.
+6. Times are on the case clock: the hour, day and month of a time column already mean the case's local time, so never convert time zones. Night means the hours 0 to 5: use EXTRACT(HOUR FROM column) BETWEEN 0 AND 5.
 7. Give every output column a short readable alias such as number_of_calls or earliest_call.
 8. If the question cannot be answered from the listed columns, set answerable to false and leave sql empty. Do not guess. A person's name is never a column value here, so a question about a named person is not answerable unless the name is a value of a listed column.
 

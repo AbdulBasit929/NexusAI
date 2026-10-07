@@ -648,13 +648,19 @@ func govSQLAnswerResponse(req hybridQueryRequest, validated *govSQLValidated, re
 	if len(audit.Checked) > 0 {
 		limitations = append(limitations, "The query was checked to apply: "+strings.Join(audit.Checked, "; ")+".")
 	}
+	used := map[string]bool{}
+	for _, name := range validated.Columns {
+		used[name] = true
+	}
+	usedTimestamp := false
+	for _, column := range view.Columns {
+		if used[column.Name] && column.Type == "timestamptz" {
+			usedTimestamp = true
+		}
+	}
 	if len(facts.TimeCues) > 0 {
 		// Several columns of a view can hold a time (an event time, a call start). Which one the
 		// condition used is part of the answer.
-		used := map[string]bool{}
-		for _, name := range validated.Columns {
-			used[name] = true
-		}
 		named := []string{}
 		for _, column := range view.Columns {
 			if used[column.Name] && (column.Type == "timestamptz" || column.Type == "date") {
@@ -665,8 +671,15 @@ func govSQLAnswerResponse(req hybridQueryRequest, validated *govSQLValidated, re
 			limitations = append(limitations, "The time condition was applied to: "+strings.Join(named, ", ")+".")
 		}
 	}
-	if facts.TimeOfDay {
-		limitations = append(limitations, "A time of day uses the hours as recorded at the source; 'night' was taken as 00:00 to 05:59.")
+	if facts.TimeOfDay || usedTimestamp {
+		// Which clock a time is read and shown on is part of the answer (governed_sql_zone.go).
+		zoneName, zone := govSQLTimeZone()
+		clock := zoneName + ", " + govSQLZoneOffset(zone, time.Now())
+		if facts.TimeOfDay {
+			limitations = append(limitations, "A time of day is read on the case clock ("+clock+"); 'night' was taken as 00:00 to 05:59.")
+		} else {
+			limitations = append(limitations, "Times are read and shown on the case clock ("+clock+").")
+		}
 	}
 	if result.Truncated {
 		limitations = append(limitations, fmt.Sprintf("Only the first %d rows are shown; the query matched more.", len(result.Rows)))
