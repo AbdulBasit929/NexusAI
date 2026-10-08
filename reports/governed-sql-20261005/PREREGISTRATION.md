@@ -733,3 +733,38 @@ Image `nexusai-forensic-records-api:latest` = `89e79efb5024`, built from `5f23c4
 | T8 stage 1, "Which plate number appears most often in the camera sightings?" | HTTP 500 | **answered by the lane** (ABC-123, 218 sightings), 13.6 s |
 
 All eight behave as predicted. No other question was asked in this check; the gates are read on the full repeat.
+
+## Run 14 results (2026-10-08): every gate passes; lane first is 149 of 161 correct (92.5%) with one wrong answer (0.6%); the three corpus regressions of Phase 1 are closed
+
+Image `nexusai-forensic-records-api:latest` = `89e79efb5024` (built from `5f23c4bc`, Go commit `72aeab18`), the Phase 1 measurement repeated unchanged: lane first on every question of both sets, the 103-question corpus and the 38-question pre-flight, tags `-mmp2`, `-v2p2`, `-p2`, 14:15 to 15:26 (71 minutes). Stage 1 was put back by the run and checked afterwards (`FORENSIC_GOVERNED_SQL=true`, `FORENSIC_GOVERNED_SQL_FIRST=false`, same image). Scored with `check_phase1_gates.py` (tested; on the Phase 1 results it reproduces the hand-scored numbers).
+
+**Arms: every question of both sets.**
+
+| Set | Phase 1 (lane first) | **Run 14 (lane first)** |
+|---|---|---|
+| multimodal (79) | 71 correct (89.9%), 3 wrong, 5 abstained | **73 correct (92.4%), 1 wrong (1.3%), 5 abstained** |
+| demo unseen (82) | 75 correct (91.5%), 1 wrong, 6 abstained | **76 correct (92.7%), 0 wrong, 6 abstained** |
+| both (161) | 146 correct (90.7%), 4 wrong (2.5%), 11 abstained | **149 correct (92.5%), 1 wrong (0.6%), 11 abstained** |
+
+Against Phase 1 on the same questions: 3 gained (multimodal `ANPR-max-01` and `SUBS-count_eq-01`, demo `CDR-date_range-01`), none lost, no other verdict changed. Against stage 1 (run 13, arm C): 31 gained, none lost. Reading note, as in Phase 1: the demo's 76 includes `ACCE-top_group-01`, a lane abstention that quotes the key; counted as the abstention it is, the demo set is 75 of 82 (91.5%) and both sets 148 of 161 (91.9%). The one wrong answer is multimodal `ACCE-count_distinct-01`, the question whose wording the factory built from the layer's synonym for the value 500 while its key counts the six status codes (class G of Phase 1); its label now says "distinct". The lane answered 74 (multimodal) and 73 (demo) questions, abstained on 5 and 7, declined 0 and 2; the second attempt was used by 13 and 8 responses (Phase 1: 15 and 7).
+
+**Gates, as written before the code.**
+
+| Gate | Result | Evidence |
+|---|---|---|
+| R14-1 the fixes | **pass** | T1 to T8: see below |
+| R14-2 S1 to S4 again | **pass**, both sets | correct 73 (need 46) and 76 (need 55); wrong 1 (need at most 7) and 0 (need at most 8); every abstention names its condition; 21 name and absent-value questions answered correctly or abstained, none with a total or a zero; 0 errors and 0 timeouts |
+| R14-3 nothing right gets worse | **pass**, both sets | against Phase 1: 0 CORRECT to WRONG, 0 CORRECT to ABSTAINED |
+| R14-4 the corpus | **pass** | scored by number and by text match: 58 checks pass in arm A and now, 24 fail in both; 2 pass in arm A and fail now, both documented (`CDR-09`, the date written for UTC; `H13-HONESTY-NOPLATE`, the checker artefact); 9 gained; nothing that passed in Phase 1 fails now; 0 HTTP errors; the lane answered 67 of the 103; the sensitive-attribute probes give the text of arm A |
+| R14-5 the pre-flight | **pass** | 32 of 38 (arm A 38 of 38), the same six as Phase 1: three phrasing expectations, one date written for UTC, two correct answers where the existing path had refused; 0 errors |
+| R14-6 time | reported | below |
+
+**The targeted items on the full pass.** T1 demo `CDR-date_range-01`: **correct** (1,013; Phase 1 914); the other date ranges stay correct. T2 multimodal `SUBS-count_eq-01`: **correct** (4; Phase 1 0). T3 `CDR-13`: "2 rows (call count by direction). In full: Incoming: 2,906; Outgoing: 2,592." T4 `CDR-10`: "Dialed number: 923009998887; Contact count: 68." (the subject is gone; the lane ranks the numbers it dialed, the existing path counts both directions and ties two numbers at 121, a difference of reading). T5 `AUD-01`: declined to retrieval in 0.3 s, names the recording. T6 `ANPR-max-01`: correct (0.99996). T7 `ACCE-count_distinct-01`: wrong against the factory's key, as predicted, with the label fixed. T8, the stage 1 plate question that returned HTTP 500, was answered in the targeted check.
+
+**What the corpus still shows, read one by one (the lane's answers whose check fails; none is a wrong answer by the layer's vocabulary, none is new).** `CDR-09` and the pre-flight date range: the expectation is a UTC date, the lane answers on the case clock (2026-04-02 00:00:02 PKT is 2026-04-01 19:00:02 UTC). `CDR-11` ("How many calls did X make?"): 447, which is the number's outgoing records (872 in all, 447 outgoing and 425 incoming, checked against the data); the golden counts both directions and the existing path answers this question with a withholding. `TWR-02`: the site's location name where the golden expects coordinates (the existing path withheld). `M10` and `M17`: 0.451 and 0.7896 where the keys have six places; the display rounds to four. `M18` ("Which model produced the face vectors?"): 20 rows that all hold one model, because the query has no DISTINCT; the answer is in the table and not in the sentence. `H13`: the checker looks for the character "0".
+
+**S6 time (seconds, wall clock, lane first).** Multimodal: median 9.8, 90th percentile 24.8, maximum 64.4 (lane answers 10.8 / 24.9 / 64.4); demo: median 8.0, 90th percentile 21.6, maximum 67.8 (lane answers 8.3 / 20.0 / 67.8). Corpus: all 103 median 10.7, 90th percentile 34.9, maximum 63.2 against 3.2, 4.0, 5.9 for arm A; the 67 lane answers median 19.2, 90th percentile 36.4. Pre-flight lane answers (24): median 20.6, 90th percentile 49.0. Part of the multimodal arm ran while UI tests used the same laptop, which lengthens its tail (Phase 1 ran on an idle machine); the corpus and the pre-flight did not. On this CPU-only laptop the lane first adds roughly 7 to 17 seconds to a structured question, as in Phase 1.
+
+**The goal reading, reported and not gated.** At least 90% correct: **149 of 161 (92.5%)**, 148 (91.9%) with the credited abstention counted as one. At most 1% confident wrong: **1 of 161 (0.6%)**, and none on the corpus. Both targets are met on these sets. They are not a promise about questions the factory and the corpus do not generate.
+
+**Reading for stage 2.** R14-1 to R14-5 pass: this is the evidence the plan fixed for **proposing stage 2 as the default for the structured families to the owner, who alone flips it**. The switch is off and verified. What the owner would be choosing: the lane answers (or abstains with its reason on) every structured question before the existing path, which it did in these 264 questions with 1 wrong answer where stage 1 gives 37 on the factory sets; text and media questions are declined to the retrieval path as today; the cost is about 7 to 17 seconds more per structured question on this laptop; `Disable-Lane` or `Enable-LaneStage1` rolls back in one command. What stays open: questions of shapes neither set contains (so a monitored start is advisable: the `X-Governed-SQL` header and the audit already record the state and the reason of every response), the six gaps above, and the commit gate (every further Go change needs a one-time authorisation or the proposed lane-scoped hook).
