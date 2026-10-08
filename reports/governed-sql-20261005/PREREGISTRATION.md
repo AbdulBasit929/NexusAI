@@ -1021,3 +1021,17 @@ Seeds 6 and 7, the five intents, the corpus and the pre-flight are not asked aga
 **Built.** Code `5d3d0c8` (committed through the lane-scoped hook, no bypass: golangci-lint 0 issues, go vet clean on the host and linux/amd64, the package tests pass), 4 new specs (412 with a database, 408 before), undoing each of 3 pieces (the reading of the units, the line in the question's message, the line in the retry) fails a spec: 3 of 3. Rollback tag `nexusai-lane-arms-prev:case-clock-run16` = `d7e301c95e02` (the image of run 16, the last that was measured whole).
 
 **Reach.** The prompt built by the run 16 code and by this code for every question of the 14 files (the factory sets of runs 14, 5, 6 and 7 on both cases, the corpus, the pre-flight and both probe sets, 2,364 questions): the system prompt is identical for every question, and the user prompt changes for exactly two, `SHAPE-compare_months-01` and `SHAPE2-versus_months-01`. R17-2 asks probes sets 1 and 2 again for that reason and for no other.
+
+## Run 17 results (2026-10-09, 00:40 to 00:57): one of the two comparisons of months is answered, the other is still declined; nothing else changed
+
+Image `56cfc58e683b` (code `5d3d0c8`), lane first (arm B), probes set 1 `-sh4` and set 2 `-sx4`; stage 1 was put back at 00:57 and checked (`FORENSIC_GOVERNED_SQL=true`, `_FIRST=false`, the same image). The scope note above is stamped 00:55 and was written at about 00:36.
+
+| Gate | Result |
+|---|---|
+| R17-1 the two comparisons | **PASS.** `SHAPE-compare_months-01` is **correct** at the first attempt: "2026-05: 994; 2026-06: 2,463", from a query that groups on `to_char(event_time, 'YYYY-MM')`. `SHAPE2-versus_months-01` is still declined ("the result was one value where the question compares values"); a declined question keeps no query, so what the model wrote is not known. None is wrong |
+| R17-2 nothing else changes | **PASS.** The prompt comparison found only these two questions changed in 2,364. Probes set 1: 28 of 28 correct (27 in run 16); probes set 2: 14 of 15 correct (14 in run 16); none of the 41 that were correct in run 16 is anything else |
+| R17-3 engineering | **PASS.** 4 new specs (412 with a database), 3 of 3 mutations caught, lint 0, vet clean, the commit through the lane-scoped hook with no bypass |
+
+So the hint that names the unit answers a comparison of two months where the model followed it (once in two questions). The other question was declined, not answered wrongly, which is what a decline is for. Seeds 6 and 7, the five intents, the corpus and the pre-flight were not asked again, as planned (their prompts and checks are those of run 16).
+
+**State at the end of the night (2026-10-09, 00:57):** image `56cfc58e683b`, stage 1 on, stage 2 off. Lane first, as measured by the pre-registered arms: seed 7 (never seen before it was measured) 150 of 161 correct (93.2%), 0 wrong; seed 6 after the fixes 148 of 161 (91.9%), 2 wrong (the question defect); probes 42 of 43 correct, 1 abstained, 0 wrong. The flip is the owner's.
