@@ -884,3 +884,30 @@ The control ran after the lane-first arms, as written, and stage 1 was put back 
 * **Wrong in both:** `SHAPE-weekend-01` (existing path 2,592, the total of the case; lane 3,041; key 2,980), class N.
 * The existing path's 7 wrong answers on the probes (`weekend`, `count_in_month_for`, `value_list` twice, `two_conditions`, `median`, `first_last`) are not repeated here; they are in `arm-lane-A-sh`.
 * The flip rule stays unmet through F5 (2 wrong over the fresh sets against at most 1, and a new class).
+
+## Run 15, built and measured scope (2026-10-08, 20:05, before any question is asked of the new image)
+
+**Built.** Code `a744d98a` (committed through the lane-scoped hook, no bypass: golangci-lint 0 issues, go vet clean on the host and linux/amd64, the package tests pass), image `nexusai-forensic-records-api:latest` = `00d11ffc892e`, deployed with stage 1 on and stage 2 off (`FORENSIC_GOVERNED_SQL=true`, `_FIRST=false`, `FORENSIC_ANALYSIS_TIMEZONE=Asia/Karachi`; checked). Rollback: `docker tag nexusai-lane-arms-prev:case-clock-run14 nexusai-forensic-records-api:latest` (that is `89e79efb5024`, run 14), then `Enable-LaneStage1`. The owner approved the build, the deploy and the measurement, and asked that the stage 2 flip stay with them (2026-10-08, 19:5x): R15 ends in a report, never in a flip.
+
+**Specs.** 40 new, 387 lane specs with a database (347 before) and 307 without (275 before). Undoing each of 16 pieces of the change (the window check, the end hour of a window across midnight and of one within a day, the clock window left in the quantity, the weekend read as Friday and Saturday, the absent-window rule, the tolerance of one instant, the aggregate check, a sum accepted as the maximum, the which-day check, the unit conversion, the unit advice, "versus" read as a field, the recording of unmet kinds, the log line) fails at least one spec: 16 of 16.
+
+**Which questions the change can reach.** Measured as in runs 12 to 14: the system and the user prompt built by the run 14 code (`HEAD` before the change) and by the run 15 code for every question of the files below, and what the run 15 checks read in each question (a clock window, a set of days, highest, lowest, average, which day, a quantity in a unit).
+
+| Question file | Questions | Reach a view | Carry a flag | Prompt of a question with no flag |
+|---|---|---|---|---|
+| factory demo (the run 14 set) | 296 | 295 | 46 | identical, 249 of 249 |
+| factory multimodal (the run 14 set) | 249 | 249 | 40 | identical, 209 of 209 |
+| fresh seed 5 demo / multimodal | 296 / 249 | 293 / 246 | 47 / 39 | identical, 246 of 246 / 207 of 207 |
+| fresh seed 6 demo / multimodal | 296 / 249 | 295 / 248 | 45 / 37 | identical, 250 of 250 / 211 of 211 |
+| corpus demo / multimodal | 60 / 43 | 58 / 37 | 5 / 9 | identical, 53 of 53 / 28 of 28 |
+| pre-flight demo / multimodal | 25 / 13 | 24 / 9 | 3 / 0 | identical, 21 of 21 / 9 of 9 |
+| probes set 1 / set 2 | 28 / 15 | 28 / 15 | 7 / 10 | identical, 21 of 21 / 5 of 5 |
+
+The system prompt is identical for every question of every file. The user prompt changes only for a question that carries a flag, and for all but one of the flagged ones (`PF20-refuse`, a quantity in seconds, which needs no conversion). In the factory sets the flag falls on exactly five intents, `avg`, `max`, `min`, `earliest` and `latest` (40 to 47 questions per file); the other intents carry none and meet no new check, so their prompt and their verifier are those of run 14. The one change that is not in the prompt is the comparison words of class M; the questions that carry one are `CDR-13` (corpus), `SHAPE-compare_months-01` and `SHAPE2-versus_methods-01`, `SHAPE2-versus_months-01` (probes).
+
+**Amendment to R15-5, written before the new image is asked anything.** R15-5 named ten intents, a guess made before the scope was measured; five of them (`date_range`, `night`, `top_group`, `sum`, `month_count`) carry no flag. A question whose prompt and checks are those of run 14 can differ from run 14 only through the model's own variation, and the fresh seed 6 (R15-4) samples that on new values anyway. R15-5 is therefore read as: the questions that carry a flag, asked again lane first and compared with run 14's lane-first arms:
+* the five intents on the two sets of run 14 (`questions-multimodal-clock.json`, `questions-demo-v2-clock.json`, `--intents avg,max,min,earliest,latest`), arms `-mmp3t` and `-v2p3t` against `-mmp2` and `-v2p2`: no CORRECT of run 14 is anything else;
+* the same five intents on the two sets of seed 5 (arms `-s5mmt`, `-s5vt`) against the lane-first arms `-s5mm`, `-s5v` of the fresh-seed check: the same questions, so the comparison is question by question; `TRAN-max-01` is one of them (R15-1);
+* the 15 corpus questions that carry a flag or a comparison word (demo `CDR-09`, `CDR-13`, `CDR-15`, `TXN-02`, `H4-CDR-MAXVOL`, `H12-HONESTY-BEAMWIDTH`; multimodal `M2-ANPR-AVG-OCR`, `M4-ANPR-MAX-DET`, `M6-VIDEO-MAX-SIGHTINGS`, `M8-VIDEO-FIRST-SEEN`, `M10-OCR-AVG-CONF`, `M15-AUDIO-MAX-END`, `M17-FACE-AVG-CONF`, `M21-FACE-MIN-CROP`, `H3-MEDIA-LONGEST-PLATE`), scored as in run 14 and compared with `replay-lane-B-p2`: no scored check that passed there fails now (arm `replay-lane-B-p3t`);
+* the 3 pre-flight questions that carry a flag (`PF11-model`, `PF13-model`, `PF20-refuse`) are asked with the corpus ones and compared with `preflight-lane-B-p2`.
+Nothing else in the plan changes: R15-1 to R15-4 are as written, the arms are `-sh2` (probes set 1), `-sx` (probes set 2), `-s6mm` and `-s6v` (seed 6), lane first, on this image; the control arm of the probes (F6) was read in the F6 section above.
