@@ -182,7 +182,8 @@ function Set-Arm {
 }
 
 function Run-Arm {
-  param([ValidateSet('A', 'B', 'C')][string]$Arm, [int]$BudgetMinutes = 110, [string]$Questions = 'questions-demo.json', [string]$Tag = '')
+  # -Intents narrows the run to some intents, for example 'night,month_count,date_range,earliest,latest' (the time questions).
+  param([ValidateSet('A', 'B', 'C')][string]$Arm, [int]$BudgetMinutes = 110, [string]$Questions = 'questions-demo.json', [string]$Tag = '', [string]$Intents = '')
   Import-BaselineData
   $s = Set-Arm -Arm $Arm
   Add-Type -Namespace W -Name P -MemberDefinition '[System.Runtime.InteropServices.DllImport("kernel32.dll")] public static extern uint SetThreadExecutionState(uint f);' -ErrorAction SilentlyContinue
@@ -194,7 +195,8 @@ function Run-Arm {
   Push-Location $script:Here
   try {
     if (-not (Test-Path $Questions)) { throw "$Questions is missing: use the file the baseline used (or New-QuestionSet for a new one), do not regenerate it" }
-    python factory.py run --questions $Questions --arm "arm-lane-$Arm$Tag" --per-intent 1 --budget-minutes $BudgetMinutes --resume --psql $psql
+    $only = @(); if ($Intents) { $only = @('--intents', $Intents) }
+    python factory.py run --questions $Questions --arm "arm-lane-$Arm$Tag" --per-intent 1 --budget-minutes $BudgetMinutes --resume --psql $psql @only
   } finally { Pop-Location; Remove-Item Env:\FORENSIC_RECORDS_API_KEY -ErrorAction SilentlyContinue }
   Write-Host "If it stopped at the time budget, run the same command again to continue." -ForegroundColor Yellow
 }

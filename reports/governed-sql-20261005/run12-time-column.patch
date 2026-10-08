@@ -1,0 +1,571 @@
+diff --git a/api/forensic_records/governed_sql_lane_ginkgo_test.go b/api/forensic_records/governed_sql_lane_ginkgo_test.go
+index 60bff84a..b8df0ddd 100644
+--- a/api/forensic_records/governed_sql_lane_ginkgo_test.go
++++ b/api/forensic_records/governed_sql_lane_ginkgo_test.go
+@@ -406,6 +406,59 @@ var _ = Describe("Governed SQL lane (with a database)", func() {
+ 		Expect(strings.Join(toStrings(resp.Enterprise["limitations"]), " ")).To(ContainSubstring("The time condition was applied to: Event time (event_time)"))
+ 	})
+ 
++	// Run 11: "at night" was answered on the call's start OR end (1,771 against 1,768), a reading the
++	// question never asked for (governed_sql_timecolumn.go).
++	const startOrEnd = "SELECT COUNT(*) AS number_of_call_records FROM v_cdr WHERE EXTRACT(HOUR FROM call_start) BETWEEN 0 AND 5 OR EXTRACT(HOUR FROM call_end) BETWEEN 0 AND 5"
++
++	It("moves a time condition from the call's start and end to the record's own time, once, and the count is the one the key gives", func() {
++		model.replies = []string{
++			sqlReply(startOrEnd),
++			sqlReply("SELECT COUNT(*) AS number_of_call_records FROM v_cdr WHERE EXTRACT(HOUR FROM event_time) BETWEEN 0 AND 5"),
++		}
++		resp, audit := ask("How many call records were there at night?")
++		Expect(resp).NotTo(BeNil(), audit.Reason)
++		Expect(audit.State).To(Equal("answered"))
++		Expect(audit.Attempts).To(Equal(2))
++		Expect(model.calls[1][len(model.calls[1])-1].Content).To(ContainSubstring("belongs on event_time"))
++		want := oracle("SELECT count(*) " + cdr + " AND extract(hour from " + govSQLTestCaseClock("raw_payload->>'CALL_START_DT_TM'") + ") BETWEEN 0 AND 5")
++		Expect(headline(resp)).To(Equal("Number of call records: " + govSQLFormatNumber(want) + "."))
++		Expect(strings.Join(toStrings(resp.Enterprise["limitations"]), " ")).To(ContainSubstring("The time condition was applied to: Event time (event_time)"))
++	})
++
++	It("tells the model the record's own time in the first message, so the first attempt is usually the only one", func() {
++		model.replies = []string{sqlReply("SELECT COUNT(*) AS number_of_call_records FROM v_cdr WHERE EXTRACT(HOUR FROM event_time) BETWEEN 0 AND 5")}
++		_, audit := ask("How many call records were there at night?")
++		Expect(audit.State).To(Equal("answered"))
++		Expect(audit.Attempts).To(Equal(1))
++		Expect(model.calls[0][1].Content).To(ContainSubstring("on event_time, the time of the record"))
++		Expect(model.calls[0][1].Content).To(ContainSubstring("Times are on the case clock"))
++	})
++
++	It("abstains, and says which time it would not use, when the model keeps conditioning on the call's start and end", func() {
++		model.replies = []string{sqlReply(startOrEnd)}
++		resp, audit := ask("How many call records were there at night?")
++		Expect(audit.State).NotTo(Equal("answered"))
++		Expect(resp).NotTo(BeNil())
++		Expect(resp.Intent).To(Equal(intentClarify))
++		text := resp.Answer["clarification"].(string)
++		Expect(text).To(ContainSubstring("call_end, call_start"))
++		Expect(text).To(ContainSubstring("event_time"))
++		Expect(text).NotTo(MatchRegexp(`\d,\d{3}`))
++		Expect(audit.Attempts).To(Equal(2))
++	})
++
++	It("lets a question that says the call ended condition on the call's end", func() {
++		model.replies = []string{sqlReply("SELECT COUNT(*) AS number_of_calls FROM v_cdr WHERE EXTRACT(HOUR FROM call_end) BETWEEN 0 AND 5")}
++		resp, audit := ask("How many calls ended at night?")
++		Expect(resp).NotTo(BeNil(), audit.Reason)
++		Expect(audit.State).To(Equal("answered"))
++		Expect(audit.Attempts).To(Equal(1))
++		raw := "COALESCE(raw_payload->>'CALL_END_DT_TM', raw_payload->>'call_end_time', raw_payload->>'end_time')"
++		want := oracle("SELECT count(*) " + cdr + " AND extract(hour from " + govSQLTestCaseClock(raw) + ") BETWEEN 0 AND 5")
++		Expect(headline(resp)).To(Equal("Number of calls: " + govSQLFormatNumber(want) + "."))
++		Expect(strings.Join(toStrings(resp.Enterprise["limitations"]), " ")).To(ContainSubstring("The time condition was applied to: Call end time (call_end)"))
++	})
++
+ 	It("leaves text and media questions to the retrieval path, and relationships to a join it does not attempt", func() {
+ 		for _, q := range []string{"Is the number 03001234567 mentioned in any audio?", "Find OCR text mentioning Investigation Workspace", "Find plate LEB15491 in the images", "Do any subscribers share the same handset?"} {
+ 			resp, audit := ask(q)
+diff --git a/api/forensic_records/governed_sql_prompt.go b/api/forensic_records/governed_sql_prompt.go
+index d8fedd76..e2111241 100644
+--- a/api/forensic_records/governed_sql_prompt.go
++++ b/api/forensic_records/governed_sql_prompt.go
+@@ -45,6 +45,13 @@ type govSQLModelFunc func(ctx context.Context, cfg config, model string, turns [
+ 
+ var govSQLModel govSQLModelFunc = govSQLModelHTTP
+ 
++// THE SHARED RULES ARE FROZEN. They are the same for every question and the endpoint caches them with the
++// schema, so a change to one word reaches questions that have nothing to do with the change. Run 11 reworded
++// rule 6 for the case clock and a tower question the lane had answered was then declined, 6 asks in 6; that
++// the reword caused it is suspected, not proven (run 12 tests it). Rule 6 is therefore the run 10 wording on
++// purpose. What a time question needs to know about the case clock, and which time column to use, is said in
++// that question's own hint (govSQLTimeHint), which only a question with a time cue receives.
++// governed_sql_timecolumn_ginkgo_test.go pins this text by hash.
+ const govSQLRules = `You write one PostgreSQL SELECT query that answers an investigator's question about the evidence in a case. A server runs your query, so it must be exact.
+ 
+ RULES
+@@ -53,7 +60,7 @@ RULES
+ 3. Compare text columns with the exact values listed for them (for example call_type = 'SMS'). When a value is listed, use it exactly as listed.
+ 4. "How many" is COUNT(*), or COUNT(DISTINCT column) when it asks for different or unique ones. "Which", "most" and "top" group, count, order by the count descending and use LIMIT. "Earliest" or "first" is MIN of the time column; "latest" or "last" is MAX. "Average", "total", "largest" and "smallest" use AVG, SUM, MAX and MIN of the matching numeric column.
+ 5. A number that can be either party of an event needs every identifier column that can hold it, joined with OR.
+-6. Times are on the case clock: the hour, day and month of a time column already mean the case's local time, so never convert time zones. Night means the hours 0 to 5: use EXTRACT(HOUR FROM column) BETWEEN 0 AND 5.
++6. Times are as recorded at the source. Night means the hours 0 to 5: use EXTRACT(HOUR FROM column) BETWEEN 0 AND 5.
+ 7. Give every output column a short readable alias such as number_of_calls or earliest_call.
+ 8. If the question cannot be answered from the listed columns, set answerable to false and leave sql empty. Do not guess. A person's name is never a column value here, so a question about a named person is not answerable unless the name is a value of a listed column.
+ 
+@@ -134,7 +141,7 @@ func govSQLUserPrompt(question string, facts govSQLQuestionFacts, views []*govSQ
+ 		hints = append(hints, fmt.Sprintf("The question states a condition: %q. Use > or < with the number.", facts.Magnitude))
+ 	}
+ 	if len(facts.TimeCues) > 0 && len(views) > 0 {
+-		hints = append(hints, fmt.Sprintf("The question restricts time (%s). Put it in the WHERE clause on a time column (%s).", strings.Join(facts.TimeCues, ", "), govSQLTimeColumns(views[0])))
++		hints = append(hints, govSQLTimeHint(facts, views[0]))
+ 	}
+ 	for _, name := range facts.Names {
+ 		hints = append(hints, fmt.Sprintf("The question names %q. No column holds personal names; use it only as a value of a listed column, otherwise set answerable to false.", name))
+diff --git a/api/forensic_records/governed_sql_timecolumn.go b/api/forensic_records/governed_sql_timecolumn.go
+new file mode 100644
+index 00000000..d4b393eb
+--- /dev/null
++++ b/api/forensic_records/governed_sql_timecolumn.go
+@@ -0,0 +1,194 @@
++package main
++
++import (
++	"fmt"
++	"sort"
++	"strings"
++
++	pg "github.com/pganalyze/pg_query_go/v6"
++	"google.golang.org/protobuf/reflect/protoreflect"
++)
++
++// GOVERNED SQL: WHICH TIME A TIME CONDITION MEANS.
++//
++// Measured 2026-10-07 (pre-registration, run 11): "How many call records were there at night?" was
++// answered 1,771 against a key of 1,768. A call record holds three times, its own, the call's start and
++// the call's end, and the model applied "night" to start OR end; the three extra records are calls that
++// began before midnight and ended after it. The answer said so, but the question had named neither.
++//
++// The curated layer already says which time a question about the records means: cdr.event_time is the
++// "normalised record timestamp; all case-level time filtering uses this". The hint listed every time column
++// of the view in alphabetical order (call_end, call_start, event_time) and the checker accepted any of them.
++//
++// So a time condition belongs on the record's own time, the normalised timestamp that the dated evidence
++// families carry (event_time), unless the question names another time of that record by one of its names
++// ("started", "ended", "activation"). A family whose layer has no such field (subscribers, towers) and the
++// derived media views are left as they were.
++
++// govSQLTimeNameSkip are the words that say "a time" without saying which one. The evidence's own name
++// ("call", "session") is skipped too, read from the view.
++var govSQLTimeNameSkip = map[string]bool{
++	"time": true, "date": true, "timestamp": true, "datetime": true, "when": true, "period": true, "month": true,
++	"year": true, "day": true, "number": true, "type": true, "record": true, "event": true, "data": true,
++	"the": true, "of": true, "at": true, "on": true, "in": true, "for": true, "and": true,
++}
++
++// govSQLPrimaryTime is the column that holds a record's own time: the normalised timestamp of a records
++// view, the one govSQLCTE reads with the no-time rule. A derived view and a family without one have none.
++func govSQLPrimaryTime(view *govSQLView) *govSQLColumn {
++	if view == nil || view.binding.Derived {
++		return nil
++	}
++	for i := range view.Columns {
++		if c := &view.Columns[i]; c.Type == "timestamptz" && c.field.NormalizedName == "timestamp" {
++			return c
++		}
++	}
++	return nil
++}
++
++// govSQLWordsAlike is true for the same word, or two forms of it that begin the same way: "end" and
++// "ended", "start" and "started", "activation" and "activated". A doubtful case is decided in favour of
++// letting the query use the column, which is what happened before this check existed.
++func govSQLWordsAlike(a, b string) bool {
++	if a == b {
++		return true
++	}
++	common := 0
++	for common < len(a) && common < len(b) && a[common] == b[common] {
++		common++
++	}
++	need := len(a)
++	if len(b) < need {
++		need = len(b)
++	}
++	if need > 5 {
++		need = 5
++	}
++	return need >= 3 && common >= need
++}
++
++// govSQLNamesTimeColumn is true when the question uses a word that names this column and not the record's
++// other times: "started" for call_start, "ended" for call_end, "activation" for activation_date. The words
++// every time shares ("time", "date") and the evidence's own name do not count.
++func govSQLNamesTimeColumn(question string, view *govSQLView, column govSQLColumn) bool {
++	entity := map[string]bool{}
++	for _, phrase := range append([]string{view.Display}, view.Synonyms...) {
++		for _, w := range govSQLPhraseWords(phrase) {
++			entity[w] = true
++		}
++	}
++	asked := govSQLPhraseWords(question)
++	for _, phrase := range append([]string{column.Display}, column.Synonyms...) {
++		for _, w := range govSQLPhraseWords(phrase) {
++			if len(w) < 3 || govSQLTimeNameSkip[w] || entity[w] {
++				continue
++			}
++			for _, q := range asked {
++				if govSQLWordsAlike(w, q) {
++					return true
++				}
++			}
++		}
++	}
++	return false
++}
++
++// govSQLNamesOtherTime is true when the question names a time of the record other than its own.
++func govSQLNamesOtherTime(question string, view *govSQLView, primary *govSQLColumn) bool {
++	for _, c := range view.Columns {
++		if c.Name != primary.Name && (c.Type == "timestamptz" || c.Type == "date") && govSQLNamesTimeColumn(question, view, c) {
++			return true
++		}
++	}
++	return false
++}
++
++// govSQLTimeTarget says where a time condition goes: the record's own time when the question names no other
++// time of the record, otherwise any time column of the view.
++func govSQLTimeTarget(question string, view *govSQLView) string {
++	if primary := govSQLPrimaryTime(view); primary != nil && !govSQLNamesOtherTime(question, view, primary) {
++		return primary.Name + ", the time of the record"
++	}
++	return "a time column (" + govSQLTimeColumns(view) + ")"
++}
++
++// govSQLTimeHint is what the question's own message says about a time condition. It carries the case clock
++// too, so the shared rules (the same for every question and cached with the schema) never have to.
++func govSQLTimeHint(facts govSQLQuestionFacts, view *govSQLView) string {
++	return fmt.Sprintf("The question restricts time (%s). Put it in the WHERE clause on %s. Times are on the case clock: the hour, day and month of a time column already mean the case's local time, so never convert time zones.",
++		strings.Join(facts.TimeCues, ", "), govSQLTimeTarget(facts.Question, view))
++}
++
++// govSQLPredicateTimeColumns lists the time columns that a query's conditions (WHERE, HAVING) refer to.
++// MIN(call_start) in a SELECT list asks for a time; it does not constrain one.
++func govSQLPredicateTimeColumns(tree *pg.ParseResult, view *govSQLView) []string {
++	timeColumns := map[string]bool{}
++	for _, c := range view.Columns {
++		if c.Type == "timestamptz" || c.Type == "date" {
++			timeColumns[c.Name] = true
++		}
++	}
++	found := map[string]bool{}
++	scan := func(node *pg.Node) {
++		if node == nil {
++			return
++		}
++		govSQLWalkTree(node.ProtoReflect(), func(msg protoreflect.Message) bool {
++			if ref, ok := msg.Interface().(*pg.ColumnRef); ok && len(ref.Fields) > 0 {
++				if s := ref.Fields[len(ref.Fields)-1].GetString_(); s != nil && timeColumns[s.Sval] {
++					found[s.Sval] = true
++				}
++			}
++			return true
++		})
++	}
++	for _, stmt := range tree.Stmts {
++		govSQLWalkTree(stmt.ProtoReflect(), func(msg protoreflect.Message) bool {
++			if sel, ok := msg.Interface().(*pg.SelectStmt); ok {
++				scan(sel.WhereClause)
++				scan(sel.HavingClause)
++			}
++			return true
++		})
++	}
++	names := make([]string, 0, len(found))
++	for name := range found {
++		names = append(names, name)
++	}
++	sort.Strings(names)
++	return names
++}
++
++// govSQLCheckTimeColumn holds a time condition to the record's own time unless the question names another.
++// A query that conditions on a time the question never named answers a different question than the one
++// asked (here, calls that started OR ended at night, for calls at night).
++func govSQLCheckTimeColumn(facts govSQLQuestionFacts, validated *govSQLValidated) []govSQLObligation {
++	if len(facts.TimeCues) == 0 {
++		return nil
++	}
++	view := validated.View
++	primary := govSQLPrimaryTime(view)
++	if primary == nil {
++		return nil
++	}
++	var off []string
++	for _, name := range govSQLPredicateTimeColumns(validated.Tree, view) {
++		if name == primary.Name {
++			continue
++		}
++		for _, c := range view.Columns {
++			if c.Name == name && !govSQLNamesTimeColumn(facts.Question, view, c) {
++				off = append(off, name)
++			}
++		}
++	}
++	if len(off) == 0 {
++		return nil
++	}
++	return []govSQLObligation{{
++		Kind: "TIME_COLUMN", Subject: strings.Join(off, ", "),
++		Message: fmt.Sprintf("The question names no time other than the record's own, so the time condition belongs on %s. Remove %s from the conditions and put the condition on %s.", primary.Name, strings.Join(off, ", "), primary.Name),
++		Reason:  fmt.Sprintf("the query applied the time condition to %s, which the question does not name; the time of a record is %s", strings.Join(off, ", "), primary.Name),
++	}}
++}
+diff --git a/api/forensic_records/governed_sql_timecolumn_ginkgo_test.go b/api/forensic_records/governed_sql_timecolumn_ginkgo_test.go
+new file mode 100644
+index 00000000..d05e3531
+--- /dev/null
++++ b/api/forensic_records/governed_sql_timecolumn_ginkgo_test.go
+@@ -0,0 +1,190 @@
++package main
++
++import (
++	"crypto/sha256"
++	"encoding/hex"
++
++	. "github.com/onsi/ginkgo/v2"
++	. "github.com/onsi/gomega"
++)
++
++// Run 11 (pre-registration) missed two gates, and neither miss was a clock error:
++//
++//	T1  "How many call records were there at night?" was answered 1,771 against a key of 1,768: the model
++//	    applied "night" to call_start OR call_end, and the question named neither.
++//	T3  a tower question the lane had answered was declined, 6 asks in 6, after rule 6 of the shared prompt
++//	    was reworded for the case clock. That the reword caused it is suspected, not proven.
++//
++// These specs hold the two changes made for them: a time condition belongs on the record's own time unless the
++// question names another, and the shared rules are the run 10 text again, so a question without a time cue is
++// shown exactly what it was shown before.
++var _ = Describe("Governed SQL: which time a time condition means", func() {
++	var (
++		views map[string]*govSQLView
++		all   []*govSQLView
++	)
++	BeforeEach(func() {
++		views = govSQLTestViews()
++		all = nil
++		for _, v := range views {
++			all = append(all, v)
++		}
++	})
++	factsFor := func(question, view string) govSQLQuestionFacts {
++		return govSQLExtractFacts(question, []*govSQLView{views[view]}, all)
++	}
++	unmetKinds := func(question, view, sql string) []string {
++		validated, rejection := govSQLValidate(sql, views)
++		Expect(rejection).To(BeNil(), "validator rejected: %v", rejection)
++		kinds := []string{}
++		for _, item := range govSQLCheck(factsFor(question, view), validated) {
++			kinds = append(kinds, item.Kind)
++		}
++		return kinds
++	}
++
++	Describe("the shared rules", func() {
++		It("are byte for byte the run 10 text, so a question with no time cue is shown what it was shown then", func() {
++			sum := sha256.Sum256([]byte(govSQLRules))
++			// sha256 of the rules constant of the image that ran run 10 (commit b111b585^), 2,581 bytes.
++			Expect(hex.EncodeToString(sum[:])).To(Equal("e6004f75f9d8fd26e46cbef7d9b4cdeabae539747093f5fad743e74641244c7f"))
++			Expect(govSQLRules).To(ContainSubstring("6. Times are as recorded at the source."))
++			Expect(govSQLRules).NotTo(ContainSubstring("case clock"))
++		})
++
++		It("leave a question with no time cue with nothing about time or the clock in what it is shown", func() {
++			for question, view := range map[string]string{
++				"What is the smallest position among the towers?": "v_tower",
++				"How many calls did 923001110001 make?":           "v_cdr",
++				"Which plate number appears most often?":          "v_anpr",
++			} {
++				facts := factsFor(question, view)
++				Expect(facts.TimeCues).To(BeEmpty(), question)
++				offered := []*govSQLView{views[view]}
++				user := govSQLUserPrompt(question, facts, offered)
++				Expect(user).NotTo(ContainSubstring("restricts time"), question)
++				Expect(user).NotTo(ContainSubstring("case clock"), question)
++				Expect(govSQLSystemPrompt(offered)).NotTo(ContainSubstring("case clock"), question)
++			}
++		})
++	})
++
++	Describe("the record's own time", func() {
++		It("is event_time in every dated family, and there is none where the layer has no such field", func() {
++			for _, name := range []string{"v_cdr", "v_ipdr", "v_anpr", "v_access_log", "v_transaction"} {
++				primary := govSQLPrimaryTime(views[name])
++				Expect(primary).NotTo(BeNil(), name)
++				Expect(primary.Name).To(Equal("event_time"), name)
++			}
++			Expect(govSQLPrimaryTime(views["v_subscriber"])).To(BeNil())
++			Expect(govSQLPrimaryTime(views["v_tower"])).To(BeNil())
++			Expect(govSQLPrimaryTime(nil)).To(BeNil())
++		})
++
++		It("is named in the hint when the question names no other time of the record", func() {
++			question := "How many call records were there at night?"
++			offered := []*govSQLView{views["v_cdr"]}
++			user := govSQLUserPrompt(question, factsFor(question, "v_cdr"), offered)
++			Expect(user).To(ContainSubstring("on event_time, the time of the record"))
++			Expect(user).NotTo(ContainSubstring("call_end, call_start"))
++			Expect(user).To(ContainSubstring("Times are on the case clock"))
++			Expect(user).To(ContainSubstring("never convert time zones"))
++		})
++
++		It("leaves the choice open, with the case clock, when the question names another time of the record", func() {
++			question := "How many calls ended after 23:00?"
++			offered := []*govSQLView{views["v_cdr"]}
++			user := govSQLUserPrompt(question, factsFor(question, "v_cdr"), offered)
++			Expect(user).To(ContainSubstring("on a time column (call_end, call_start, event_time)"))
++			Expect(user).To(ContainSubstring("Times are on the case clock"))
++		})
++
++		It("is left alone in a family that has none: the hint lists the time columns", func() {
++			question := "How many registered numbers were activated in 2023?"
++			offered := []*govSQLView{views["v_subscriber"]}
++			user := govSQLUserPrompt(question, factsFor(question, "v_subscriber"), offered)
++			Expect(user).To(ContainSubstring("on a time column ("))
++			Expect(user).To(ContainSubstring("activation_date"))
++		})
++	})
++
++	Describe("the check", func() {
++		const night = "How many call records were there at night?"
++		const startOrEnd = "SELECT COUNT(*) AS number_of_call_records FROM v_cdr WHERE EXTRACT(HOUR FROM call_start) BETWEEN 0 AND 5 OR EXTRACT(HOUR FROM call_end) BETWEEN 0 AND 5"
++
++		It("refuses the call's start OR end for a question that named neither (the run 11 answer, 1,771)", func() {
++			Expect(unmetKinds(night, "v_cdr", startOrEnd)).To(ConsistOf("TIME_COLUMN"))
++		})
++
++		It("says what to do, to the model and to the analyst", func() {
++			validated, _ := govSQLValidate(startOrEnd, views)
++			unmet := govSQLCheck(factsFor(night, "v_cdr"), validated)
++			Expect(unmet).To(HaveLen(1))
++			Expect(unmet[0].Message).To(ContainSubstring("belongs on event_time"))
++			Expect(unmet[0].Message).To(ContainSubstring("call_end, call_start"))
++			Expect(unmet[0].Reason).To(ContainSubstring("which the question does not name"))
++		})
++
++		It("accepts the record's own time", func() {
++			Expect(unmetKinds(night, "v_cdr", "SELECT COUNT(*) AS n FROM v_cdr WHERE EXTRACT(HOUR FROM event_time) BETWEEN 0 AND 5")).To(BeEmpty())
++			Expect(unmetKinds("How many calls were made in June 2026?", "v_cdr", "SELECT COUNT(*) AS n FROM v_cdr WHERE event_time >= '2026-06-01' AND event_time < '2026-07-01'")).To(BeEmpty())
++		})
++
++		It("refuses a time the question did not name even next to the record's own", func() {
++			Expect(unmetKinds(night, "v_cdr", "SELECT COUNT(*) AS n FROM v_cdr WHERE EXTRACT(HOUR FROM event_time) BETWEEN 0 AND 5 AND call_end IS NOT NULL")).To(ConsistOf("TIME_COLUMN"))
++		})
++
++		It("accepts the call's end when the question says it ended, and the start when it says it started", func() {
++			Expect(unmetKinds("How many calls ended at night?", "v_cdr", "SELECT COUNT(*) AS n FROM v_cdr WHERE EXTRACT(HOUR FROM call_end) BETWEEN 0 AND 5")).To(BeEmpty())
++			Expect(unmetKinds("How many calls started in April 2026?", "v_cdr", "SELECT COUNT(*) AS n FROM v_cdr WHERE call_start >= '2026-04-01' AND call_start < '2026-05-01'")).To(BeEmpty())
++			Expect(unmetKinds("How many calls started in April 2026?", "v_cdr", "SELECT COUNT(*) AS n FROM v_cdr WHERE call_end >= '2026-04-01' AND call_end < '2026-05-01'")).To(ConsistOf("TIME_COLUMN"))
++		})
++
++		It("does not mind a time that is only selected, which asks for a time and constrains none", func() {
++			Expect(unmetKinds("When was the first call in June 2026?", "v_cdr", "SELECT MIN(call_start) AS first_call FROM v_cdr WHERE event_time >= '2026-06-01' AND event_time < '2026-07-01'")).To(BeEmpty())
++			Expect(unmetKinds("What is the earliest call in the data?", "v_cdr", "SELECT MIN(call_start) AS earliest_call FROM v_cdr")).To(BeEmpty())
++		})
++
++		It("asks nothing of a family with no record time of its own", func() {
++			Expect(unmetKinds("How many registered numbers were activated in 2023?", "v_subscriber", "SELECT COUNT(*) AS n FROM v_subscriber WHERE activation_date >= '2023-01-01' AND activation_date < '2024-01-01'")).To(BeEmpty())
++			Expect(unmetKinds("How many registered numbers were there in 2023?", "v_subscriber", "SELECT COUNT(*) AS n FROM v_subscriber WHERE activation_date >= '2023-01-01' AND activation_date < '2024-01-01'")).To(BeEmpty())
++		})
++
++		It("still sends the model to the record's own time when it applied no time condition at all", func() {
++			validated, _ := govSQLValidate("SELECT COUNT(*) AS n FROM v_cdr", views)
++			unmet := govSQLCheck(factsFor(night, "v_cdr"), validated)
++			Expect(unmet).NotTo(BeEmpty())
++			Expect(unmet[0].Kind).To(Equal("TIME"))
++			Expect(unmet[0].Message).To(ContainSubstring("event_time, the time of the record"))
++		})
++	})
++
++	Describe("reading which time a question names", func() {
++		It("takes a word that begins the way a name of the column does, and nothing the times share", func() {
++			for _, pair := range [][2]string{{"end", "ended"}, {"start", "started"}, {"start", "starts"}, {"activation", "activated"}, {"finished", "finish"}} {
++				Expect(govSQLWordsAlike(pair[0], pair[1])).To(BeTrue(), pair[0]+" / "+pair[1])
++			}
++			for _, pair := range [][2]string{{"end", "energy"}, {"start", "stat"}, {"end", "call"}, {"start", "end"}} {
++				Expect(govSQLWordsAlike(pair[0], pair[1])).To(BeFalse(), pair[0]+" / "+pair[1])
++			}
++		})
++
++		It("names the column the question talks about and not the others", func() {
++			cdr := views["v_cdr"]
++			column := func(name string) govSQLColumn {
++				for _, c := range cdr.Columns {
++					if c.Name == name {
++						return c
++					}
++				}
++				Fail("no column " + name)
++				return govSQLColumn{}
++			}
++			Expect(govSQLNamesTimeColumn("How many calls ended at night?", cdr, column("call_end"))).To(BeTrue())
++			Expect(govSQLNamesTimeColumn("How many calls ended at night?", cdr, column("call_start"))).To(BeFalse())
++			Expect(govSQLNamesTimeColumn("calls that began in June", cdr, column("call_start"))).To(BeTrue())
++			Expect(govSQLNamesTimeColumn("How many call records were there at night?", cdr, column("call_start"))).To(BeFalse())
++			Expect(govSQLNamesTimeColumn("How many call records were there at night?", cdr, column("call_end"))).To(BeFalse())
++		})
++	})
++})
+diff --git a/api/forensic_records/governed_sql_verify.go b/api/forensic_records/governed_sql_verify.go
+index 25a6fc35..3bc1f58f 100644
+--- a/api/forensic_records/governed_sql_verify.go
++++ b/api/forensic_records/governed_sql_verify.go
+@@ -598,7 +598,7 @@ func govSQLTimeConstraint(tree *pg.ParseResult, view *govSQLView) (onTimeColumn,
+ 
+ // govSQLObligation is one thing the question demands that the query lacks.
+ type govSQLObligation struct {
+-	Kind    string // IDENTIFIER, VALUE, MAGNITUDE, TIME, TIME_OF_DAY, TIME_ZONE, NAME, WITHHELD
++	Kind    string // IDENTIFIER, VALUE, MAGNITUDE, TIME, TIME_OF_DAY, TIME_COLUMN, TIME_ZONE, NAME, WITHHELD
+ 	Subject string
+ 	Message string // written for the model
+ 	Reason  string // written for the analyst, when the lane abstains
+@@ -692,7 +692,7 @@ func govSQLCheck(facts govSQLQuestionFacts, validated *govSQLValidated) []govSQL
+ 		if !onTime {
+ 			unmet = append(unmet, govSQLObligation{
+ 				Kind: "TIME", Subject: strings.Join(facts.TimeCues, ", "),
+-				Message: fmt.Sprintf("The question restricts time (%s). Add a WHERE condition on a time column (%s).", strings.Join(facts.TimeCues, ", "), govSQLTimeColumns(view)),
++				Message: fmt.Sprintf("The question restricts time (%s). Add a WHERE condition on %s.", strings.Join(facts.TimeCues, ", "), govSQLTimeTarget(facts.Question, view)),
+ 				Reason:  fmt.Sprintf("the query did not apply the time condition (%s)", strings.Join(facts.TimeCues, ", ")),
+ 			})
+ 		} else if facts.TimeOfDay && !timeOfDay {
+@@ -704,6 +704,10 @@ func govSQLCheck(facts govSQLQuestionFacts, validated *govSQLValidated) []govSQL
+ 		}
+ 	}
+ 
++	// TIME COLUMN: a time condition belongs on the record's own time unless the question names another
++	// (governed_sql_timecolumn.go).
++	unmet = append(unmet, govSQLCheckTimeColumn(facts, validated)...)
++
+ 	// TIME ZONE: the views already read time on the case clock, so a conversion to any other
+ 	// zone would count a different window than the one the question means and the answer states.
+ 	zoneName, _ := govSQLTimeZone()
+diff --git a/api/forensic_records/governed_sql_verify_ginkgo_test.go b/api/forensic_records/governed_sql_verify_ginkgo_test.go
+index d57ed796..4d718d44 100644
+--- a/api/forensic_records/governed_sql_verify_ginkgo_test.go
++++ b/api/forensic_records/governed_sql_verify_ginkgo_test.go
+@@ -137,8 +137,12 @@ var _ = Describe("Governed SQL verification", func() {
+ 			facts := factsFor("How many calls were made in April 2026?", "v_cdr")
+ 			Expect(unmetKinds(facts, "SELECT COUNT(*) AS calls FROM v_cdr")).To(ConsistOf("TIME"))
+ 			Expect(unmetKinds(facts, "SELECT MIN(call_start) AS first_call FROM v_cdr")).To(ConsistOf("TIME"))
+-			Expect(unmetKinds(facts, "SELECT COUNT(*) AS calls FROM v_cdr WHERE call_start >= '2026-04-01' AND call_start < '2026-05-01'")).To(BeEmpty())
+-			Expect(unmetKinds(facts, "SELECT COUNT(*) AS calls FROM v_cdr WHERE EXTRACT(MONTH FROM call_start) = 4 AND EXTRACT(YEAR FROM call_start) = 2026")).To(BeEmpty())
++			Expect(unmetKinds(facts, "SELECT COUNT(*) AS calls FROM v_cdr WHERE event_time >= '2026-04-01' AND event_time < '2026-05-01'")).To(BeEmpty())
++			Expect(unmetKinds(facts, "SELECT COUNT(*) AS calls FROM v_cdr WHERE EXTRACT(MONTH FROM event_time) = 4 AND EXTRACT(YEAR FROM event_time) = 2026")).To(BeEmpty())
++			// The question names no start, so the call's start is not "when the record happened": the time
++			// condition belongs on the record's own time (governed_sql_timecolumn.go, run 11).
++			Expect(unmetKinds(facts, "SELECT COUNT(*) AS calls FROM v_cdr WHERE call_start >= '2026-04-01' AND call_start < '2026-05-01'")).To(ConsistOf("TIME_COLUMN"))
++			Expect(unmetKinds(facts, "SELECT COUNT(*) AS calls FROM v_cdr WHERE EXTRACT(MONTH FROM call_start) = 4 AND EXTRACT(YEAR FROM call_start) = 2026")).To(ConsistOf("TIME_COLUMN"))
+ 		})
+ 
+ 		It("flags 'at night' answered without the hour", func() {
+diff --git a/api/forensic_records/governed_sql_zone_ginkgo_test.go b/api/forensic_records/governed_sql_zone_ginkgo_test.go
+index 4abc87f2..23f7404a 100644
+--- a/api/forensic_records/governed_sql_zone_ginkgo_test.go
++++ b/api/forensic_records/governed_sql_zone_ginkgo_test.go
+@@ -150,10 +150,14 @@ var _ = Describe("Governed SQL case clock", func() {
+ 			Expect(unmetKinds(night, "SELECT COUNT(*) AS sessions FROM v_ipdr WHERE EXTRACT(HOUR FROM event_time AT TIME ZONE 'Asia/Karachi') BETWEEN 0 AND 5")).To(ContainElement("TIME_ZONE"))
+ 		})
+ 
+-		It("tells the model that times are already on the case clock", func() {
+-			Expect(govSQLRules).To(ContainSubstring("Times are on the case clock"))
+-			Expect(govSQLRules).To(ContainSubstring("never convert time zones"))
+-			Expect(govSQLRules).NotTo(ContainSubstring("as recorded at the source"))
++		It("tells a time question, in its own hint, that times are already on the case clock", func() {
++			// The shared rules stay as they were (governed_sql_timecolumn_ginkgo_test.go pins them); only a
++			// question with a time cue is told.
++			Expect(govSQLRules).NotTo(ContainSubstring("case clock"))
++			offered := []*govSQLView{views["v_ipdr"]}
++			user := govSQLUserPrompt(night, govSQLExtractFacts(night, offered, all), offered)
++			Expect(user).To(ContainSubstring("Times are on the case clock"))
++			Expect(user).To(ContainSubstring("never convert time zones"))
+ 		})
+ 	})
+ 

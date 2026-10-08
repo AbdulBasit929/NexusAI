@@ -391,6 +391,25 @@ def expected_of(db, item):
     return db.scalar(item["oracle_sql"]) if item["kind"] in ("number", "date") else None
 
 
+def select_items(items, per_intent=0, intents=None, limit=0):
+    """The questions a run asks, in file order: only the named intents (a comma-separated list), then at most per_intent of each
+    (family, intent), then the first limit. With none of the three it is every question."""
+    if intents:
+        wanted = {w.strip() for w in intents.split(",") if w.strip()}
+        items = [i for i in items if i["intent"] in wanted]
+    if per_intent:
+        seen, picked = {}, []
+        for item in items:
+            group = (item["family"], item["intent"])
+            if seen.get(group, 0) < per_intent:
+                seen[group] = seen.get(group, 0) + 1
+                picked.append(item)
+        items = picked
+    if limit:
+        items = items[:limit]
+    return items
+
+
 def rejudge_on_the_case_clock(rows, items, key_of):
     """Judge the saved answers to the TIME questions again against keys on the case clock (items come from a re-keyed question file).
     Returns [(id, old key, new key, old verdict, new verdict)] for the rows whose key or verdict changed. A row that was an ERROR stays
@@ -535,6 +554,7 @@ def main():
     r.add_argument("--collection")
     r.add_argument("--limit", type=int, default=0)
     r.add_argument("--per-intent", type=int, default=0, help="take at most this many questions per (family, intent): a spread across everything in far fewer questions")
+    r.add_argument("--intents", help="ask only these intents (comma-separated, for example night,month_count,date_range,earliest,latest); applied before --per-intent")
     r.add_argument("--budget-minutes", type=float, default=0, help="stop cleanly after this long; results so far are kept and --resume continues")
     r.add_argument("--resume", action="store_true", help="skip ids already in <arm>/results.json")
     args = parser.parse_args()
@@ -633,17 +653,7 @@ def main():
     out_dir = os.path.join(HERE, args.arm)
     os.makedirs(out_dir, exist_ok=True)
     rows = []
-    items = data["questions"]
-    if args.per_intent:
-        seen, picked = {}, []
-        for item in items:
-            group = (item["family"], item["intent"])
-            if seen.get(group, 0) < args.per_intent:
-                seen[group] = seen.get(group, 0) + 1
-                picked.append(item)
-        items = picked
-    if args.limit:
-        items = items[: args.limit]
+    items = select_items(data["questions"], args.per_intent, args.intents, args.limit)
     results_path = os.path.join(out_dir, "results.json")
     if args.resume and os.path.exists(results_path):
         with io.open(results_path, encoding="utf-8") as handle:
