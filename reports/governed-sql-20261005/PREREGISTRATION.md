@@ -715,3 +715,21 @@ The owner approved the round on 2026-10-08 with one condition: no separate test 
 **The goal reading, reported and not gated:** at least 90% correct and at most 1% confident wrong on the factory sets (Phase 1: 90.7% and 2.5%).
 
 **What a pass means.** R14-1 to R14-5 are the evidence for proposing stage 2 as the default for the structured families to the owner, who alone flips it. A failure is a taxonomy and a smaller scope; the switch stays off, nothing is reworded.
+
+## Run 14, targeted check (2026-10-08, 14:08 to 14:15): the questions the round is about, asked once, before the full repeat
+
+Image `nexusai-forensic-records-api:latest` = `89e79efb5024`, built from `5f23c4bc` (the Go commit is `72aeab18`, the fourth and last one-time `--no-verify`); the running image of run 13 is tagged `nexusai-lane-arms-prev:case-clock-run13` (`5d07f125d867`) for rollback. Lane first for T1 to T7 (the container recreated on the new image), stage 1 for T8, put back and checked afterwards. The questions are asked by `Explain-Question` and `Ask-Case`, one attempt each; this is not the gate run, it is the check that the gate run is worth starting.
+
+| Item | Phase 1 | Run 14, targeted |
+|---|---|---|
+| T1 demo `CDR-date_range-01` | 914 (key 1,013) | **1,013**, two attempts; the first left the last day out, the retry named the day after |
+| the other date ranges (multimodal CDR, both subscriber ones) | 1,373, 2, 1 | **1,373, 2, 1**, one attempt each, the range recorded in "checked" |
+| T2 multimodal `SUBS-count_eq-01` | 0 (key 4) | **4**, two attempts: `lower(status) = lower('ACTIVE')` after the retry |
+| T3 corpus `CDR-13` | one total of 5,500 | **2 rows: Incoming 2,906; Outgoing 2,592**, two attempts |
+| T4 corpus `CDR-10` | the number itself, 425 | **923009998887, 68**, two attempts; the number is gone from the ranking. The lane ranks the numbers it dialed (68); the existing path counts both directions and ties two numbers at 121. Recorded as a difference of reading, not as an error |
+| T5 corpus `AUD-01` | abstained, "Japanese" taken for a name | **declined to retrieval in 0.5 s**, which names the recording |
+| T6 multimodal `ANPR-max-01` | 1 | **0.99996** |
+| T7 multimodal `ACCE-count_distinct-01` | "Number of server errors: 1" | "Number of **distinct** server errors: 1"; the verdict stays wrong against the factory's key of 6, as predicted |
+| T8 stage 1, "Which plate number appears most often in the camera sightings?" | HTTP 500 | **answered by the lane** (ABC-123, 218 sightings), 13.6 s |
+
+All eight behave as predicted. No other question was asked in this check; the gates are read on the full repeat.
