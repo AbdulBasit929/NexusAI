@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Question shapes the factory has no template for, with answer keys computed from SQL over the raw records.
 
-    python shape_probes.py --psql "docker exec -i nexusai-forensic-postgres-1 psql -U localrecall -d localrecall -At -F '|'" --out questions-shapes.json
+    python shape_probes.py --psql "docker exec -i nexusai-forensic-postgres-1 psql -U localrecall -d localrecall -At -F '|'" [--set 2]
 
 The factory's questions are templates filled with values, so a new seed gives new values and the same shapes. These are shapes it never
 asks: a top 3, a percentage, a window of the day that crosses midnight, weekends, a threshold in minutes or in words, a comparison of two
@@ -22,8 +22,8 @@ import factory as f
 DEMO = "nexusai-forensic-demo"
 
 
-def probes(db):
-    """(id, family, intent, question, key SQL, kind) for each probe. Typed expressions come from the layer, as the factory's own keys do."""
+def probes_v1(db):
+    """(id, family, intent, question, key SQL, kind) for each probe of the first set. Typed expressions come from the layer, as the factory's own keys do."""
     L = f.load_layer()
     fld = {x["id"]: x for fam in L.values() for x in fam["fields"]}
     raw, typed, S = f.raw_expr, f.typed_expr, lambda fam: f.scope(db, fam)
@@ -98,9 +98,62 @@ def probes(db):
     ]
 
 
-def build(db, collection):
+def probes_v2(db):
+    """The second set: the same kinds of trouble as the first, in different questions, values and words, so that a fix made for the first can be measured
+    on questions it was not made for. SHAPE2-sum_bytes-01, -fewest-01 and -share-01 are controls: the right answer to each is a sum or a ranking that
+    the checks for "highest", "average" and the rest must leave alone."""
+    L = f.load_layer()
+    fld = {x["id"]: x for fam in L.values() for x in fam["fields"]}
+    raw, typed, S = f.raw_expr, f.typed_expr, lambda fam: f.scope(db, fam)
+    t0, t1 = typed(fld["cdr.call_start"]), typed(fld["cdr.call_end"])
+    dur = "extract(epoch from (%s) - (%s))" % (t1, t0)
+    cdr = "FROM forensic.records WHERE %s" % S("cdr")
+    log = "FROM forensic.records WHERE %s" % S("access_log")
+    alt = typed(fld["access_log.event_time"])
+    anpr = "FROM forensic.records WHERE %s" % S("anpr")
+    tx = "FROM forensic.records WHERE %s" % S("transaction")
+    ipdr = "FROM forensic.records WHERE %s" % S("ipdr")
+    method = raw(fld["access_log.http_method"])
+    return [
+        ("SHAPE2-min_amount-01", "transaction", "min_amount", "What is the lowest amount in the transactions?",
+         "SELECT min(%s) %s" % (typed(fld["transaction.amount"]), tx), "number"),
+        ("SHAPE2-max_volume-01", "cdr", "max_volume", "What is the biggest network volume among the call records?",
+         "SELECT max(%s) %s" % (typed(fld["cdr.network_volume"]), cdr), "number"),
+        ("SHAPE2-mean_duration-01", "cdr", "mean_duration", "What is the mean duration of the calls in seconds?",
+         "SELECT avg(%s) %s" % (dur, cdr), "number"),
+        ("SHAPE2-tod_cross-01", "cdr", "tod_cross", "How many call records started between 10 pm and 4 am?",
+         "SELECT count(*) %s AND extract(hour from %s) IN (22, 23, 0, 1, 2, 3)" % (cdr, t0), "number"),
+        ("SHAPE2-tod_plain-01", "access_log", "tod_plain", "How many access log entries were recorded between 9 am and 5 pm?",
+         "SELECT count(*) %s AND extract(hour from %s) BETWEEN 9 AND 16" % (log, alt), "number"),
+        ("SHAPE2-minutes-01", "cdr", "minutes", "How many calls lasted longer than 20 minutes?",
+         "SELECT count(*) %s AND %s > 1200" % (cdr, dur), "number"),
+        ("SHAPE2-minutes-02", "cdr", "minutes", "How many calls lasted at least 25 minutes?",
+         "SELECT count(*) %s AND %s >= 1500" % (cdr, dur), "number"),
+        ("SHAPE2-versus_methods-01", "access_log", "versus_methods", "How many GET versus POST requests are in the access log?",
+         "SELECT count(*) %s AND %s IN ('GET', 'POST') GROUP BY %s ORDER BY %s" % (log, method, method, method), "all"),
+        ("SHAPE2-versus_months-01", "cdr", "versus_months", "How many call records were there in April 2026 versus May 2026?",
+         "SELECT c FROM (SELECT to_char(%s, 'YYYY-MM') m, count(*) c %s GROUP BY 1) t WHERE m IN ('2026-04', '2026-05') ORDER BY m" % (t0, cdr), "all"),
+        ("SHAPE2-which_date-01", "anpr", "which_date", "On which date were the most vehicle sightings recorded?",
+         "SELECT to_char(%s, 'YYYY-MM-DD') %s GROUP BY 1 ORDER BY count(*) DESC, 1 LIMIT 1" % (typed(fld["anpr.event_time"]), anpr), "date"),
+        ("SHAPE2-weekdays-01", "cdr", "weekdays", "How many call records were made on weekdays?",
+         "SELECT count(*) %s AND extract(isodow from %s) BETWEEN 1 AND 5" % (cdr, t0), "number"),
+        ("SHAPE2-sat_sun-01", "access_log", "sat_sun", "How many access log entries were recorded on a Saturday or a Sunday?",
+         "SELECT count(*) %s AND extract(isodow from %s) IN (6, 7)" % (log, alt), "number"),
+        ("SHAPE2-fewest-01", "cdr", "fewest", "Which call type has the fewest records?",
+         "SELECT %s %s GROUP BY 1 ORDER BY count(*), 1 LIMIT 1" % (raw(fld["cdr.call_type"]), cdr), "all"),
+        ("SHAPE2-sum_bytes-01", "ipdr", "sum_bytes", "What is the total number of bytes transferred in the internet sessions?",
+         "SELECT sum(%s) %s" % (typed(fld["ipdr.bytes"]), ipdr), "number"),
+        ("SHAPE2-share-01", "access_log", "share", "What percentage of the access log entries are POST requests?",
+         "SELECT 100.0 * count(*) FILTER (WHERE %s = 'POST') / count(*) %s" % (method, log), "number"),
+    ]
+
+
+PROBE_SETS = {"1": probes_v1, "2": probes_v2}
+
+
+def build(db, collection, which="1"):
     items = []
-    for qid, family, intent, question, sql, kind in probes(db):
+    for qid, family, intent, question, sql, kind in PROBE_SETS[which](db):
         item = f.spec(qid, family, intent, question, sql, kind)
         item["collection"] = collection
         item["expected"] = f.expected_of(db, item)
@@ -112,14 +165,16 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--psql", required=True, help="a command that runs psql against the case database, as factory.py takes it")
     parser.add_argument("--collection", default=DEMO)
-    parser.add_argument("--out", default="questions-shapes.json")
+    parser.add_argument("--set", default="1", choices=sorted(PROBE_SETS), help="1: the first 28 probes; 2: the second set (different questions, same kinds of trouble)")
+    parser.add_argument("--out", default=None, help="default questions-shapes.json (set 1) or questions-shapes2.json (set 2)")
     args = parser.parse_args(argv)
     db = f.Db(args.psql, args.collection)
-    items = build(db, args.collection)
+    out = args.out or ("questions-shapes.json" if args.set == "1" else "questions-shapes2.json")
+    items = build(db, args.collection, args.set)
     empty = [i["id"] for i in items if i["expected"] in (None, "", [])]
-    with io.open(args.out, "w", encoding="utf-8") as handle:
-        json.dump({"seed": "shapes", "collection": args.collection, "generated": datetime.datetime.now().isoformat(timespec="seconds"), "questions": items}, handle, indent=1, ensure_ascii=False)
-    print("%d probes written to %s" % (len(items), args.out))
+    with io.open(out, "w", encoding="utf-8") as handle:
+        json.dump({"seed": "shapes" + args.set, "collection": args.collection, "generated": datetime.datetime.now().isoformat(timespec="seconds"), "questions": items}, handle, indent=1, ensure_ascii=False)
+    print("%d probes written to %s" % (len(items), out))
     for i in items:
         print("  %-28s %-6s key: %s" % (i["id"], i["kind"], str(i["expected"])[:90]))
     if empty:

@@ -802,3 +802,70 @@ The existing path asks the model for a plan for every question it has not seen b
 * **F1** takes its thresholds from arm A of the earlier set of the same templates, as in Phase 1 (multimodal seed 3: 34 of 79 correct and 21 wrong; demo seed 2: 42 of 82 and 18): correct at least 46 and 55, confident wrong at most 7 and 8, every abstention with its reason. Scored with `check_phase1_gates.py arms --a arm-lane-A-mm --b arm-lane-B-s5mm --thresholds-only` (the same ids name different questions in another seed, so S2 is not asked).
 * **F2** is dropped for the fresh sets (no control). "Nothing right gets worse than the existing path" is kept where the control exists and is cheap: on the 28 probes (F6).
 * **F3, F4, F5** are unchanged. The probes run as arms `arm-lane-B-sh` (lane first) and `arm-lane-A-sh` (the existing path), in that order, after the two fresh sets.
+
+## Fresh-seed check results (2026-10-08): the accuracy gates pass on new values; the flip rule does not, so the stage 2 switch stays off
+
+Run on 2026-10-08, 15:5x to 17:5x, lane first (arm B), image `89e79efb5024` (the image of run 14), on `questions-multimodal-s5.json` and `questions-demo-s5.json` (seed 5, the `--per-intent 1` spread: 79 and 82 questions, keys on the case clock) and then on the 28 shape probes (`questions-shapes.json`). The existing path was not run on the fresh sets (change of plan, written about 16:07 and headed 16:10, before any result was read). A standby of the laptop (the event log: 16:16:04 to 17:02:40) fell inside the multimodal arm; it changes no verdict, and one question carries it in its time (`CDR-sum-01`, 3,066.7 s: the lane declined it after 7.4 s of model time and the existing path answered it, correctly). Scored with `check_phase1_gates.py arms --thresholds-only` against arm A of the earlier set of the same templates (multimodal seed 3: 34 correct, 21 wrong; demo seed 2: 42 correct, 18 wrong).
+
+| Gate | Result |
+|---|---|
+| F1 accuracy | **PASS** on both. Multimodal: 70 correct (need 46), 2 wrong (need at most 7). Demo: 75 correct (need 55), 0 wrong (need at most 8). Every abstention names its condition |
+| F2 | not asked (no control on the fresh sets; the probes below carry it) |
+| F3 no silent drop | **PASS**: 10 and 11 name and absent-value questions, none answered with a total or a zero |
+| F4 instrument | **PASS**: no error or timeout counted as a verdict |
+| F5 the flip rule | **NOT MET**: 2 confident wrong answers over 161 questions (1.2%; the limit is 1), and one has a cause that is not one of classes A to G |
+
+Both sets: 145 of 161 correct (90.1%), 2 wrong (1.2%), 14 abstained (the goal reading, at least 90% correct and at most 1% confident wrong: correct met, wrong not). Time of an answer by the lane (S6, not gated): multimodal median 11.7 s, p90 34.6 s; demo median 11.5 s, p90 29.4 s; a second attempt in 14 and 10 responses.
+
+**The 2 wrong answers** (multimodal only):
+* `TRAN-max-01`, "What is the highest total in the transactions?": the lane ran a SUM and answered 129,700 (key 75,000, the largest single amount). The verifier never compares "highest" with the aggregate the query uses. New class H. The same intent was correct in run 14 on another wording (`arm-lane-B-mmp2`).
+* `SUBS-count_distinct-01`, "How many different state are in the subscriber records?": the lane declined ("the model judged the question not answerable from the listed columns"), the question went to the existing path, which answered "no subscriber ID values" (key 2). A wrong answer of the existing path after a decline: new class I. Not the lane's answer, but stage 2 does not remove it.
+
+**The 14 abstentions** (7 on each set): 10 are the name questions (`unbound_name`, 5 per set) and 1 the absent value (`SUBS-absent_value-01`), the credited abstentions; `ACCE-night-01` on both sets (declined before the model: "no evidence family recognised in the question", for "log entries", words the layer does not list for the access log; the existing path then withheld); `TOWE-min-01` on the multimodal set ("smallest position": the key is a latitude; the model judged it not answerable; the existing path withheld). Declines hand the question over, they never answer; the last two are recorded as class P (a question the lane could answer, declined), not fixed in the next round (the layer's synonyms are shared with the existing path).
+
+**The 28 probes, lane first:** 23 correct, 3 abstained, 2 wrong. Misses: `SHAPE-weekend-01` (wrong: 3,041 for 2,980), `SHAPE-busiest_day_for-01` (wrong: "3" for 2026-04-03), `SHAPE-window_midnight-01`, `SHAPE-minutes-01` and `SHAPE-compare_months-01` (abstained). The existing path on the same probes (the control of F6) was still running at 18:25 with 9 of 28 asked; its result and F6 are recorded in their own section when it ends.
+
+**Decision.** F5 is not met: stage 2 stays off, as pre-registered, and nothing is reworded or retuned after the gate. The owner is told the numbers; the flip remains the owner's choice.
+
+## Run 15 plan (2026-10-08, evening): the classes the fresh seeds and the probes found; written before any fix, with a second probe set and a new seed to verify on
+
+**What the safeguard found.** Read before this plan, and recorded in "Fresh-seed check results" above: 145 of 161 correct (90.1%) and 2 wrong (1.2%) on the fresh seed 5 sets, lane first, so the flip rule is not met and the switch stays off; 23 correct, 3 abstained and 2 wrong on the 28 probes. The existing path on the probes (the control of F6) was still running at 18:25 with 9 of 28 asked; its section is added when it ends and changes nothing in this plan. The classes below come from the 2 wrong answers of the fresh sets, the 2 wrong answers and 3 abstentions of the probes, and the declines.
+
+**The classes (new ones named H to N; A to G are those of "Phase 1 results").**
+* **H, the aggregate does not match the question's quantifier.** "highest total" answered with a SUM (`TRAN-max-01`). The verifier never compares "highest, lowest, average" with the query's functions.
+* **I, a decline followed by a wrong answer from the existing path.** `SUBS-count_distinct-01`: the model judged "how many different state" not answerable, the question went down the existing path, which was confidently wrong on 21 of 79 and 18 of 82 questions of the Phase 1 sets. Not fixed by this round; it is the cost of handing a declined question to that path, and it is what stage 2 does not remove.
+* **J, "on which day" answered with the day of the month.** `SHAPE-busiest_day_for-01`: "Day with most calls: 3" (the key is 2026-04-03; right here only because every record is in April).
+* **K, a clock window read as a quantity.** `SHAPE-window_midnight-01` ("between 11 pm and 3 am"): the shared detector reads "between 11" as a number, as it once read "between 2025"; the lane abstained (twice) on a question it can answer.
+* **L, a threshold in a unit.** `SHAPE-minutes-01` ("more than 15 minutes"): the verifier demands the number 15 in the query, and the right constant is 900 seconds; abstained.
+* **M, "versus" taken for a field.** `SHAPE-compare_months-01` ("May 2026 versus June 2026"): the layer lists "versus" as a name of the direction field, so the verifier demanded `direction`; abstained.
+* **N, the weekend.** `SHAPE-weekend-01`: 3,041 (Friday and Saturday) for 2,980 (Saturday and Sunday); the model confused the two numberings of the day of the week.
+* **O, nothing records what the lane did.** The API logs nothing per request, so a monitored start has only the response header. Not a wrong answer.
+* **P, a question the lane could answer, declined.** `ACCE-night-01` (seed 5, "log entries": words the layer does not list for the access log), `TOWE-min-01` (seed 5, "smallest position": the key is a latitude), `CDR-sum-01` (seed 5, "bytes across the calls"). Declines hand the question over and never answer, so they are safe; they cost time and, through class I, can end in the existing path's wrong answer. Not fixed in this round (the layer's synonyms are shared with the existing path, so a change there is a change of the path outside the lane).
+
+**What changes (deterministic; the shared prompt rules stay the frozen run 10 text).**
+* H: a question that says highest, largest, biggest, greatest, maximum, longest, latest or newest needs a MAX (or an ORDER BY ... DESC with a LIMIT) in the query; lowest, smallest, minimum, shortest, earliest or oldest, a MIN (or ORDER BY ... ASC with a LIMIT); average or mean, an AVG (or a SUM with a COUNT). "total" and "most" are not read as cues. One retry that names the function, then an abstention.
+* J: "which day", "what day" and "on which date" need the date, not `EXTRACT(DAY ...)` alone; one retry, then an abstention.
+* K: a clock time with am/pm or hh:mm after "between" is not a quantity. A window of whole hours ("between 11 pm and 3 am") is named in the question's own hint with the hours computed by the server and, when it crosses midnight, the OR it needs; the query must carry both hours.
+* L: a threshold in seconds, minutes, hours, days, KB, MB or GB accepts the converted constant (both 1,000 and 1,024 for bytes) and an interval literal that carries the number.
+* M: "versus", "vs" and "compared" are not names of fields.
+* N: "weekend" and "weekday" are hinted with the days (Saturday and Sunday: `EXTRACT(ISODOW ...) IN (6, 7)`), and a query that picks other days is retried once, then abstained.
+* O: one structured log line per lane response (state, attempts, views, the kinds of what was unmet or the decline reason, timings); never the question, the query or a value.
+
+**Predictions, fixed now.**
+* The five probe misses (`weekend`, `busiest_day_for`, `window_midnight`, `compare_months`, `minutes`) become correct, or abstain with a reason; none is wrong. At least four are correct.
+* `TRAN-max-01` is answered 75,000. `SUBS-count_distinct-01` is unchanged (class I).
+* Probe set 2 (15 new questions, `questions-shapes2.json`, generated before any fix): at least 12 correct, none wrong; its three controls (a sum, a ranking, a percentage) are correct.
+* Fresh seed 6 (`questions-demo-s6.json` and `questions-multimodal-s6.json`, generated with `New-QuestionSet -Seed 6` at 18:19 and 18:23 on 2026-10-08, before any fix; keys on the case clock; gitignored like the other sets): at least 88% correct on each, at most 1 wrong over both, none of a new class.
+* No probe of set 1 that was correct stays anything but correct.
+
+**Gates, fixed now (lane first on image X; arms `-sh2` and `-s6mm`, `-s6v`).**
+
+| Gate | Pass condition |
+|---|---|
+| R15-1 the fixes | the five probe misses and `TRAN-max-01` behave as predicted; each that does not is listed with its cause |
+| R15-2 probe set 1 | none of the 23 that were correct is anything else; at most 1 wrong |
+| R15-3 probe set 2 | at least 12 of 15 correct, 0 wrong, the controls correct |
+| R15-4 a new seed | on each fresh set S1 (thresholds from arm A of the earlier set of the same templates), S3, S4; at most 1 confident wrong answer over both sets, each with a cause, none a new class |
+| R15-5 nothing known gets worse | the intents these checks touch (`max`, `min`, `avg`, `earliest`, `latest`, `date_range`, `night`, `top_group`, `sum`, `month_count`) asked again on the two sets of run 14 (`questions-multimodal-clock.json` and `questions-demo-v2-clock.json`, the arms `-mmp2` and `-v2p2` of run 14 are the reference): no CORRECT of run 14 is anything else |
+
+**What follows.** All of R15-1 to R15-5 pass: stage 2 is flipped on the path the owner approved ("yes to all, recommended", 2026-10-08: the safeguard first, then the flip with the rollback ready), and recorded. Any gate fails or a new class appears: the switch stays off and the taxonomy goes to the owner. The Run 14 corpus and pre-flight are not repeated in full (71 minutes); the touched intents of the two known sets are (R15-5), and the corpus questions the checks can reach are named in the results.
