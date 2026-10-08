@@ -34,6 +34,9 @@ var govSQLGenericWords = map[string]bool{
 	"time": true, "date": true, "when": true, "period": true, "month": true, "year": true, "number": true, "numbers": true, "type": true,
 	"kind": true, "count": true, "total": true, "name": true, "value": true, "id": true, "record": true, "records": true, "call": true,
 	"calls": true, "data": true, "event": true, "events": true, "start": true, "end": true, "timestamp": true, "status": true, "code": true,
+	// The words of a comparison are never the name of a column (run 15, class M): the layer lists "versus" as a name of the
+	// direction field, so "May 2026 versus June 2026" demanded a use of direction and abstained.
+	"versus": true, "vs": true, "compared": true, "compare": true, "comparison": true,
 }
 
 var govSQLProvenanceColumns = map[string]bool{"record_id": true, "source_file": true, "row_number": true, "artifact_id": true, "evidence_id": true}

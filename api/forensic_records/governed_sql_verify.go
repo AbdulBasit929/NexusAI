@@ -49,9 +49,15 @@ type govSQLQuestionFacts struct {
 	TimeOfDay    bool
 	Names        []string
 	WantsSingle  bool
-	WantsCompare bool             // "A versus B": one row per value, never one total (governed_sql_guards.go)
-	WantsRanking bool             // "most", "top", "least": a ranking over a group
-	Range        *govSQLDateRange // two dates given outright: both days are in
+	WantsCompare bool               // "A versus B": one row per value, never one total (governed_sql_guards.go)
+	WantsRanking bool               // "most", "top", "least": a ranking over a group
+	Range        *govSQLDateRange   // two dates given outright: both days are in
+	Window       *govSQLClockWindow // "between 11 pm and 3 am": the hours it keeps (governed_sql_window.go)
+	Days         *govSQLDaySet      // "weekends", "on a Saturday or a Sunday": the days it keeps
+	WantsMax     bool               // highest, largest, longest, latest ...: a MAX (governed_sql_aggregate.go)
+	WantsMin     bool               // lowest, smallest, shortest, earliest ...: a MIN
+	WantsAvg     bool               // average, mean: an AVG
+	WantsDate    bool               // "which day": the date, not the day of the month
 	WithheldAttr string
 	Fields       []govSQLFieldFact // columns the question names by a word only that column answers to
 	NamedViews   map[string]bool   // evidence families the question names outright
@@ -75,6 +81,7 @@ var (
 	govSQLRxDayName   = regexp.MustCompile(`(?i)\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)s?\b`)
 	govSQLRxMonth     = regexp.MustCompile(`\b(?:January|February|March|April|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept?|Oct|Nov|Dec)\b|(?i:\bmay\b)\s+\d|\bMay\b`)
 	govSQLRxTimeWord  = regexp.MustCompile(`(?i)\b(?:night|nights|nighttime|overnight|midnight|morning|afternoon|evening|noon|dawn|dusk|\d{1,2}\s?(?:am|pm))\b`)
+	govSQLRxNight     = regexp.MustCompile(`(?i)\b(?:night|nights|nighttime|overnight)\b`)
 	govSQLRxSingle    = regexp.MustCompile(`(?i)\b(?:how\s+many|how\s+much|number\s+of|count\s+of|count\s+the|total|average|mean|sum|largest|smallest|biggest|highest|lowest|maximum|minimum|earliest|latest|first|last|oldest|newest|longest|shortest)\b`)
 	govSQLRxGroupCue  = regexp.MustCompile(`(?i)\b(?:per|each|every|by\s+(?:type|day|month|year|hour|week|status|city|protocol|number)|breakdown|group|which|top\s+\d+|most|least|list|show|rank|distribution)\b`)
 )
@@ -246,6 +253,14 @@ func govSQLExtractFacts(question string, views []*govSQLView, all []*govSQLView)
 	facts.Range = govSQLReadDateRange(text)
 	facts.WantsSingle = govSQLRxSingle.MatchString(text) && !govSQLRxGroupCue.MatchString(text) && !facts.WantsCompare
 
+	// A window of the day, the days of the week, and the function the question's superlative needs (run 15).
+	facts.Window = govSQLReadClockWindow(text)
+	facts.Days = govSQLReadDays(text)
+	facts.WantsMax = govSQLRxWantsMax.MatchString(text)
+	facts.WantsMin = govSQLRxWantsMin.MatchString(text)
+	facts.WantsAvg = govSQLRxWantsAvg.MatchString(text)
+	facts.WantsDate = govSQLRxWhichDay.MatchString(text) && !govSQLRxDayPart.MatchString(text)
+
 	// An attribute the evidence withholds (a person's name, a national ID): the
 	// curated layer says which fields are PII or RESTRICTED and what they are called.
 	stems := _semanticLayerQuestionTokens(text)
@@ -269,9 +284,11 @@ func govSQLExtractFacts(question string, views []*govSQLView, all []*govSQLView)
 // "between 2025-03-09 and 2025-12-13" was read as a number the query had to compare, and the lane
 // abstained on every date range with "the query did not apply the condition 'between 2025'" (run 12,
 // part B). A date range is a time condition (TimeCues keeps it); only the quantity reading changes, and
-// only in this lane: "between 10 and 20 calls" and "more than 2000" are read as before.
+// only in this lane: "between 10 and 20 calls" and "more than 2000" are read as before. A window of the day
+// ("between 11 pm and 3 am") is a time condition too, and its "between 11" was read as the number 11 (run 14,
+// probe SHAPE-window_midnight-01): clock windows are taken out as well.
 func govSQLMagnitudeText(text string) string {
-	return govSQLRxBetweenYear.ReplaceAllString(govSQLRxSlashDate.ReplaceAllString(scrubDates(text), " "), " ")
+	return govSQLRxBetweenYear.ReplaceAllString(govSQLRxSlashDate.ReplaceAllString(govSQLStripClockSpans(scrubDates(text)), " "), " ")
 }
 
 // govSQLValueIsStrong decides whether the question really names a declared value.
@@ -706,10 +723,16 @@ func govSQLCheck(facts govSQLQuestionFacts, validated *govSQLValidated) []govSQL
 				hasNumber = true
 			}
 		}
+		// The number in the unit the column is kept in: 15 minutes is 900 seconds (run 15, class L).
+		hasNumber = hasNumber || govSQLQuantityInUnit(facts, validated.Consts)
 		if !hasNumber || !govSQLHasRangeOperator(validated.Tree) {
+			message := fmt.Sprintf("The question states a condition (%q). The query must compare the matching numeric column or an aggregate with %s using > or < (not =).", facts.Magnitude, strings.Join(facts.Numbers, " / "))
+			if advice := govSQLUnitAdvice(facts); advice != "" {
+				message += " " + advice
+			}
 			unmet = append(unmet, govSQLObligation{
 				Kind: "MAGNITUDE", Subject: facts.Magnitude,
-				Message: fmt.Sprintf("The question states a condition (%q). The query must compare the matching numeric column or an aggregate with %s using > or < (not =).", facts.Magnitude, strings.Join(facts.Numbers, " / ")),
+				Message: message,
 				Reason:  fmt.Sprintf("the query did not apply the condition %q", facts.Magnitude),
 			})
 		}
@@ -724,10 +747,15 @@ func govSQLCheck(facts govSQLQuestionFacts, validated *govSQLValidated) []govSQL
 				Message: fmt.Sprintf("The question restricts time (%s). Add a WHERE condition on %s.", strings.Join(facts.TimeCues, ", "), govSQLTimeTarget(facts.Question, view)),
 				Reason:  fmt.Sprintf("the query did not apply the time condition (%s)", strings.Join(facts.TimeCues, ", ")),
 			})
-		} else if facts.TimeOfDay && !timeOfDay {
+		} else if facts.TimeOfDay && !timeOfDay && facts.Window == nil {
+			// A window of whole hours has its own check (governed_sql_window.go), which says which hours.
+			message := "The question names a time of day. Filter on the time of day with EXTRACT(HOUR FROM column), or compare the column cast to time."
+			if govSQLRxNight.MatchString(facts.Question) {
+				message = "The question names a time of day. Filter on the hour with EXTRACT(HOUR FROM column) (night is hours 0 to 5)."
+			}
 			unmet = append(unmet, govSQLObligation{
 				Kind: "TIME_OF_DAY", Subject: strings.Join(facts.TimeCues, ", "),
-				Message: "The question names a time of day. Filter on the hour with EXTRACT(HOUR FROM column) (night is hours 0 to 5).",
+				Message: message,
 				Reason:  "the query did not apply the time-of-day condition",
 			})
 		}
@@ -739,6 +767,13 @@ func govSQLCheck(facts govSQLQuestionFacts, validated *govSQLValidated) []govSQL
 
 	// RANGE: "between D1 and D2" includes all of D2 (governed_sql_guards.go).
 	unmet = append(unmet, govSQLCheckRange(facts, validated)...)
+
+	// WINDOW and DAYS: the hours of "between 11 pm and 3 am" and the days of "weekends" are the ones the query
+	// keeps (governed_sql_window.go). AGGREGATE: "highest" needs a MAX, "average" an AVG. DATE: "which day" is a
+	// date (governed_sql_aggregate.go).
+	unmet = append(unmet, govSQLCheckWindow(facts, validated)...)
+	unmet = append(unmet, govSQLCheckAggregate(facts, validated)...)
+	unmet = append(unmet, govSQLCheckDay(facts, validated)...)
 
 	// TIME ZONE: the views already read time on the case clock, so a conversion to any other
 	// zone would count a different window than the one the question means and the answer states.

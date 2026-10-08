@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math/big"
 	"net/http"
 	"regexp"
@@ -57,6 +58,22 @@ type GovSQLAuditV1 struct {
 	Truncated   bool     `json:"truncated,omitempty"`
 	PromptBytes int      `json:"prompt_bytes,omitempty"`
 	PromptID    string   `json:"prompt_id,omitempty"`
+	// Unmet is the kinds of what the verifier found missing over all attempts (TIME, WINDOW, AGGREGATE ...). It is
+	// logged, never sent: a kind is a fixed word, and no word of the question or of the query is in it.
+	Unmet []string `json:"-"`
+}
+
+// noteUnmet records the kind of each unmet demand once.
+func (a *GovSQLAuditV1) noteUnmet(items ...govSQLObligation) {
+	for _, item := range items {
+		known := false
+		for _, kind := range a.Unmet {
+			known = known || kind == item.Kind
+		}
+		if !known {
+			a.Unmet = append(a.Unmet, item.Kind)
+		}
+	}
 }
 
 // govSQLReclassifiable is true for a question the keyword classifier labelled a
@@ -231,6 +248,7 @@ func runGovernedSQLLane(ctx context.Context, cfg config, db *pgxpool.Pool, req h
 		audit.SQL = validated.SQL
 
 		if unmet := govSQLCheck(facts, validated); len(unmet) > 0 {
+			audit.noteUnmet(unmet...)
 			// A missing name cannot be repaired by rewriting: no column holds one.
 			names := false
 			problems := make([]string, 0, len(unmet))
@@ -263,6 +281,7 @@ func runGovernedSQLLane(ctx context.Context, cfg config, db *pgxpool.Pool, req h
 		audit.Rows, audit.Truncated = len(result.Rows), result.Truncated
 
 		if shape := govSQLCheckShape(facts, result); shape != nil {
+			audit.noteUnmet(*shape)
 			if last {
 				return decline("the result was a list where one value was asked for")
 			}
@@ -272,6 +291,7 @@ func runGovernedSQLLane(ctx context.Context, cfg config, db *pgxpool.Pool, req h
 		// What the result shows, read against what the question asked (governed_sql_guards.go). A second miss
 		// declines, so the existing path answers as it would without the lane.
 		if compare := govSQLCheckCompare(facts, result); compare != nil {
+			audit.noteUnmet(*compare)
 			if last {
 				return decline("the result was one value where the question compares values")
 			}
@@ -279,6 +299,7 @@ func runGovernedSQLLane(ctx context.Context, cfg config, db *pgxpool.Pool, req h
 			continue
 		}
 		if subject := govSQLCheckSubject(facts, validated, result); subject != nil {
+			audit.noteUnmet(*subject)
 			if last {
 				return decline("the ranking returned the number the question names; a contact ranking is left to the path that counts both directions")
 			}
@@ -291,6 +312,7 @@ func runGovernedSQLLane(ctx context.Context, cfg config, db *pgxpool.Pool, req h
 				return decline("could not check an empty result")
 			}
 			if mismatch != nil {
+				audit.noteUnmet(mismatch.obligation())
 				if last {
 					return finish(govSQLAbstainResponse(req, offered, facts, []govSQLObligation{mismatch.obligation()}, audit))
 				}
@@ -385,6 +407,26 @@ func govSQLConditionsChecked(facts govSQLQuestionFacts) []string {
 	}
 	if facts.WantsCompare {
 		out = append(out, "comparison: one row per value")
+	}
+	if w := facts.Window; w != nil {
+		out = append(out, fmt.Sprintf("hours: %02d:00 up to %02d:00 (%s)", w.Start, w.End%24, strings.Join(govSQLIntWords(w.hours()), ", ")))
+	}
+	if s := facts.Days; s != nil {
+		out = append(out, "days: "+govSQLJoinWords(s.names()))
+	}
+	switch {
+	case facts.WantsMax && facts.WantsMin:
+		out = append(out, "the highest and the lowest value")
+	case facts.WantsMax:
+		out = append(out, "the highest value")
+	case facts.WantsMin:
+		out = append(out, "the lowest value")
+	}
+	if facts.WantsAvg {
+		out = append(out, "an average")
+	}
+	if facts.WantsDate {
+		out = append(out, "which day: a date")
 	}
 	return out
 }
@@ -842,4 +884,14 @@ func setGovernedSQLHeader(w http.ResponseWriter, audit GovSQLAuditV1) {
 		value += "; reason=" + strings.ReplaceAll(govSQLClip(audit.Reason, 120), ";", ",")
 	}
 	w.Header().Set("X-Governed-SQL", value)
+	govSQLLogAudit(audit)
+}
+
+// govSQLLogAudit writes one line for each response the lane touched, so that a monitored start can be read
+// without the result files: what the lane did, how many attempts, which views, which demands were unmet, how long
+// it took. Never the question, the query or a value; the reason is one of the lane's own fixed phrases or codes.
+func govSQLLogAudit(audit GovSQLAuditV1) {
+	slog.Info("governed sql", "state", audit.State, "attempts", audit.Attempts, "views", strings.Join(audit.Views, ","),
+		"unmet", strings.Join(audit.Unmet, ","), "reason", govSQLClip(audit.Reason, 120), "rows", audit.Rows,
+		"model_ms", audit.ModelMS, "exec_ms", audit.ExecMS, "total_ms", audit.TotalMS)
 }

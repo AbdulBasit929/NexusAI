@@ -139,10 +139,19 @@ func govSQLUserPrompt(question string, facts govSQLQuestionFacts, views []*govSQ
 	}
 	if facts.Magnitude != "" {
 		hints = append(hints, fmt.Sprintf("The question states a condition: %q. Use > or < with the number.", facts.Magnitude))
+		if advice := govSQLUnitAdvice(facts); advice != "" {
+			hints = append(hints, advice)
+		}
 	}
 	if len(facts.TimeCues) > 0 && len(views) > 0 {
 		hints = append(hints, govSQLTimeHint(facts, views[0]))
 	}
+	var firstView *govSQLView
+	if len(views) > 0 {
+		firstView = views[0]
+	}
+	hints = append(hints, govSQLWindowHints(facts, firstView)...)
+	hints = append(hints, govSQLAggregateHints(facts)...)
 	for _, name := range facts.Names {
 		hints = append(hints, fmt.Sprintf("The question names %q. No column holds personal names; use it only as a value of a listed column, otherwise set answerable to false.", name))
 	}
