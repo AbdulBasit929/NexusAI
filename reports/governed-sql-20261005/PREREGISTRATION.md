@@ -560,3 +560,27 @@ B-P1 held: **12 of 13**; the miss is the demo `CDR-date_range-01`, which the lan
 * P3: nothing else changes in either part.
 
 **Gates.** Part A: T1, T2, T4, T5, T6 as in run 12; T3 against run 10's arm C on the multimodal set and T3b against run 12's arm C on both sets. Part B: B1 (every lane answer equals its key), B2 (nothing right gets worse than stage 1), B3 (no 5xx or timeout); with the date ranges answered B2 is expected to pass for the first time. Procedure and rules as in run 12: the owner's go-ahead for the Go commit route, for tagging the running image (`nexusai-lane-arms-prev:case-clock-run12`), building, recreating only the API, and the two parts; stage 1 restored after part B. If a gate fails: a taxonomy and a smaller scope, no prompt wording tuned.
+
+## Phase 1 plan (2026-10-08): the lane first on every question, the stage 2 decision; written before any measurement
+
+**What is being decided.** Whether `FORENSIC_GOVERNED_SQL_FIRST` (stage 2: the lane before the existing path) is good enough to become the product's default for the structured families. In stage 1 the existing path answers first and is confidently wrong on 18 to 19 of every 80 questions (runs 11 and 12), which the lane never sees. Part B of run 12 showed the effect on the time questions alone (14 wrong answers to 0). This measures it on everything. It is a measurement; the switch goes back to stage 1 afterwards, and only the product owner flips the default.
+
+**Runs, after run 13 is finished and stage 1 is restored.** (1) Arm B, every question of the two spreads already used (multimodal 79, demo unseen 82), the same `-clock` question files, tags `-mmp1` and `-v2p1`. (2) The 103-question corpus and the 38-question pre-flight with the lane first, on the demo case (`Run-Regression`, with a tag so that the earlier `replay-lane-*` and `preflight-lane-*` results, which this document cites, are not overwritten); the control is the existing `replay-lane-A`, because the existing path is unchanged. Same image as run 13, same model, stage 1 restored at the end.
+
+**Predictions, fixed now.**
+* Multimodal, arm B: **at least 64 of 79 correct, at most 5 wrong** (stage 1, run 12: 56 correct, 19 wrong). Demo unseen, arm B: **at least 72 of 82 correct, at most 5 wrong** (stage 1: 61 correct, 18 wrong; arm B on the older image and the older clock: 72 of 82 with 3 wrong).
+* The wrong answers that remain are few and each has a named cause; the name questions (`unbound_name`) abstain instead of returning a total.
+* The existing path's HTTP 500 on the plate question disappears or stays the only error.
+
+**Gates, fixed now** (the pre-registered G-gates above, applied to arm B on these sets; G1 and G6 are read on the corpus and pre-flight).
+
+| Gate | Pass condition |
+|---|---|
+| S1 (G4) accuracy | on each set: CORRECT at least arm A's plus 15 points (multimodal at least 46 of 79, demo at least 55 of 82); confident-wrong at most half of arm A's and at most 10% of the questions (multimodal at most 7, demo at most 8); every abstention carries its reason |
+| S2 nothing right gets worse | against run 13's arm C on the same set: no question goes from CORRECT to WRONG; at most 3 per set go from CORRECT to ABSTAINED, each listed with its cause |
+| S3 (G5) no silent drop | every `unbound_name` and `absent_value` question is answered correctly or abstained on; none is answered with a total or a zero |
+| S4 (G7) instrument | 0 HTTP 5xx and 0 timeouts counted as verdicts (the recorded plate-question 500 is allowed only if it still occurs) |
+| S5 (G1, G6, G2 read for arm B) regression | on the 103 corpus and 38 pre-flight: no number check lost against arm A, 0 HTTP errors, no personal data in any answer to the PII probes, no "none found" without the all-families search; every changed answer text is listed and read |
+| S6 (G8) time | reported: median, 90th percentile and maximum of model time and total time for lane answers |
+
+**The goal reading, reported and not gated:** the roadmap's targets of at least 90% correct and at most 1% confident-wrong on in-scope questions. **If a gate fails:** a taxonomy and a smaller scope; the switch stays off and nothing is reworded. **What the result can and cannot decide:** passing S1 to S5 on these sets is the evidence for proposing stage 2 as the default for the structured families; it does not cover text and media evidence (roadmap R5) or any question the factory does not generate.
