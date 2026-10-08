@@ -76,6 +76,9 @@ var (
 	govSQLRxGroupCue  = regexp.MustCompile(`(?i)\b(?:per|each|every|by\s+(?:type|day|month|year|hour|week|status|city|protocol|number)|breakdown|group|which|top\s+\d+|most|least|list|show|rank|distribution)\b`)
 )
 
+// "between 2025 and 2026" is a range of years, a time condition, not a quantity.
+var govSQLRxBetweenYear = regexp.MustCompile(`(?i)\bbetween\s+(?:19|20)\d{2}\b`)
+
 var govSQLStopWords = func() map[string]bool {
 	out := map[string]bool{}
 	for _, w := range strings.Fields(`how what which who whom whose when where why is are was were do does did can could would should will
@@ -206,7 +209,7 @@ func govSQLExtractFacts(question string, views []*govSQLView, all []*govSQLView)
 	}
 
 	// A stated magnitude, with the numbers it names.
-	if phrase := questionStatesMagnitudeCondition(text); phrase != "" {
+	if phrase := questionStatesMagnitudeCondition(govSQLMagnitudeText(text)); phrase != "" {
 		facts.Magnitude = phrase
 		for _, n := range govSQLRxNumber.FindAllString(phrase, -1) {
 			facts.Numbers = append(facts.Numbers, n)
@@ -251,6 +254,16 @@ func govSQLExtractFacts(question string, views []*govSQLView, all []*govSQLView)
 		}
 	}
 	return facts
+}
+
+// govSQLMagnitudeText is the question with its dates removed, for reading a stated quantity. The shared
+// detector takes "between" followed by a digit for a two-sided quantity, so the year that begins
+// "between 2025-03-09 and 2025-12-13" was read as a number the query had to compare, and the lane
+// abstained on every date range with "the query did not apply the condition 'between 2025'" (run 12,
+// part B). A date range is a time condition (TimeCues keeps it); only the quantity reading changes, and
+// only in this lane: "between 10 and 20 calls" and "more than 2000" are read as before.
+func govSQLMagnitudeText(text string) string {
+	return govSQLRxBetweenYear.ReplaceAllString(govSQLRxSlashDate.ReplaceAllString(scrubDates(text), " "), " ")
 }
 
 // govSQLValueIsStrong decides whether the question really names a declared value.

@@ -447,6 +447,19 @@ var _ = Describe("Governed SQL lane (with a database)", func() {
 		Expect(audit.Attempts).To(Equal(2))
 	})
 
+	// Run 12, part B: a date range was abstained on with "the query did not apply the condition 'between 2026'"
+	// because the quantity detector read the year that begins a date as a number (governed_sql_verify.go).
+	It("answers a date range between two dates, with the count the key gives, on the first attempt", func() {
+		model.replies = []string{sqlReply("SELECT COUNT(*) AS number_of_call_records FROM v_cdr WHERE event_time >= '2026-04-02' AND event_time < '2026-04-04'")}
+		resp, audit := ask("How many CDR records are there between 2026-04-02 and 2026-04-03?")
+		Expect(resp).NotTo(BeNil(), audit.Reason)
+		Expect(audit.State).To(Equal("answered"))
+		Expect(audit.Attempts).To(Equal(1))
+		want := oracle("SELECT count(*) " + cdr + " AND (" + govSQLTestCaseClock("raw_payload->>'CALL_START_DT_TM'") + ")::date BETWEEN '2026-04-02' AND '2026-04-03'")
+		Expect(headline(resp)).To(Equal("Number of call records: " + govSQLFormatNumber(want) + "."))
+		Expect(strings.Join(toStrings(resp.Enterprise["limitations"]), " ")).To(ContainSubstring("The time condition was applied to: Event time (event_time)"))
+	})
+
 	It("lets a question that says the call ended condition on the call's end", func() {
 		model.replies = []string{sqlReply("SELECT COUNT(*) AS number_of_calls FROM v_cdr WHERE EXTRACT(HOUR FROM call_end) BETWEEN 0 AND 5")}
 		resp, audit := ask("How many calls ended at night?")
