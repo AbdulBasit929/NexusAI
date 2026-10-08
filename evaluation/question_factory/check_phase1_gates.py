@@ -4,6 +4,7 @@
 
     python check_phase1_gates.py arms      --a arm-lane-A-mm --c arm-lane-C-mm13 --b arm-lane-B-mmp2 [--prev arm-lane-B-mmp1]
     python check_phase1_gates.py arms      --a arm-lane-A-s5mm --b arm-lane-B-s5mm        (a fresh-seed set: no stage 1 arm)
+    python check_phase1_gates.py arms      --a arm-lane-A-mm --b arm-lane-B-s5mm --thresholds-only   (arm A of an earlier seed sets the thresholds)
     python check_phase1_gates.py corpus    --off replay-lane-A --on replay-lane-B-p2 [--convention CDR-09 --convention H13-HONESTY-NOPLATE]
     python check_phase1_gates.py preflight --off preflight-lane-A --on preflight-lane-B-p2
 
@@ -116,19 +117,23 @@ def timing(arm_b):
     return {"all": quantiles([r["seconds"] for r in arm_b.values()]), "lane_answered": quantiles([r["seconds"] for r in answered]), "lane_model": quantiles(model)}
 
 
-def report_arms(a, b, c=None, prev=None, names=("arm A", "stage 1", "this arm", "previous")):
+def report_arms(a, b, c=None, prev=None, names=("arm A", "stage 1", "this arm", "previous"), compare=True):
     """Print S1 to S4 and S6 for arm B against arm A. The S2 baseline is stage 1 (arm C) when it is given, otherwise the existing path (arm A):
-    a fresh-seed set is measured against the existing path only. Returns 0 when every gate passes."""
+    a fresh-seed set is measured against the existing path only. With compare=False, arm A comes from ANOTHER seed (the same question ids name
+    different questions): it sets the S1 thresholds and S2 is not asked. Returns 0 when every gate passes."""
     baseline = c if c is not None else a
     print("%s: %s" % (names[0], counts(a)))
     if c is not None:
         print("%s: %s" % (names[1], counts(c)))
     print("%s: %s" % (names[2], counts(b)))
-    s1, s2, s3, s4 = gate_s1(a, b), gate_s2(baseline, b), gate_s3(b), gate_s4(b)
+    s1, s2, s3, s4 = gate_s1(a, b), (gate_s2(baseline, b) if compare else {"pass": True, "correct_to_wrong": [], "correct_to_abstained": [], "gained": 0, "other": []}), gate_s3(b), gate_s4(b)
     print("\nS1 accuracy       %s  correct %d (need %d), wrong %d (need <= %d), abstentions without a reason: %s"
           % ("PASS" if s1["pass"] else "FAIL", s1["correct"], s1["need_correct"], s1["wrong"], s1["max_wrong"], s1["abstentions_without_reason"] or "none"))
-    print("S2 not worse (vs %s) %s  correct to wrong %s, correct to abstained %s, gained %d, other moves %s"
-          % ("stage 1" if c is not None else "the existing path", "PASS" if s2["pass"] else "FAIL", s2["correct_to_wrong"], s2["correct_to_abstained"], s2["gained"], s2["other"]))
+    if compare:
+        print("S2 not worse (vs %s) %s  correct to wrong %s, correct to abstained %s, gained %d, other moves %s"
+              % ("stage 1" if c is not None else "the existing path", "PASS" if s2["pass"] else "FAIL", s2["correct_to_wrong"], s2["correct_to_abstained"], s2["gained"], s2["other"]))
+    else:
+        print("S2 not asked: arm A is from another seed (thresholds only)")
     ok = s1["pass"] and s2["pass"]
     if prev is not None:
         s2p = gate_s2(prev, b)
@@ -155,7 +160,7 @@ def run_arms(args):
     a, b = load_results(args.a), load_results(args.b)
     c = load_results(args.c) if args.c else None
     prev = load_results(args.prev) if args.prev else None
-    return report_arms(a, b, c, prev, (args.a, args.c, args.b, args.prev))
+    return report_arms(a, b, c, prev, (args.a, args.c, args.b, args.prev), compare=not args.thresholds_only)
 
 
 # ---------------------------------------------------------------- the corpus (S5)
@@ -267,6 +272,7 @@ def main(argv=None):
     arms.add_argument("--a", required=True, help="arm A (the lane off), the control")
     arms.add_argument("--c", help="the stage 1 arm of the same set (run 13 arm C); without it the existing path (arm A) is the baseline of S2")
     arms.add_argument("--b", required=True, help="the lane-first arm under test")
+    arms.add_argument("--thresholds-only", action="store_true", help="arm A is from another seed: take the S1 thresholds from it and do not compare question by question")
     arms.add_argument("--prev", help="the previous lane-first arm of the same set (Phase 1), for the run 14 'nothing right gets worse' gate")
     corpus = sub.add_parser("corpus")
     corpus.add_argument("--off", required=True)

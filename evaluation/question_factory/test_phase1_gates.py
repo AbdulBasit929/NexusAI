@@ -144,6 +144,24 @@ def test_without_a_stage_1_arm_the_existing_path_is_the_baseline_of_s2(capsys=No
     assert code == 1 and "S2 not worse (vs the existing path) FAIL" in out.getvalue()
 
 
+def test_an_arm_from_another_seed_sets_the_thresholds_and_is_never_compared_question_by_question():
+    import contextlib
+    import io
+    a = arm(*many("c", 34, "CORRECT"), *many("w", 21, "WRONG"), *many("a", 24, "ABSTAINED"))
+    # the same ids name different questions in another seed: "c-000" being CORRECT in arm A and WRONG here means nothing
+    b = arm(row("c-000", "WRONG"), *many("x", 70, "CORRECT"), *many("a", 8, "ABSTAINED", text="I did not run this question, because I could not apply it."))
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        code = g.report_arms(a, b, compare=False)
+    text = out.getvalue()
+    assert code == 0 and "S2 not asked" in text and "S1 accuracy       PASS" in text
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        code = g.report_arms(a, b, compare=True)
+    assert code == 1 and "S2 not worse (vs the existing path) FAIL" in out.getvalue()
+
+
+
 if __name__ == "__main__":
     failed = 0
     for name, fn in sorted(globals().items()):
