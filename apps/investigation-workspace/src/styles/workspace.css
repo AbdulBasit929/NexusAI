@@ -2197,6 +2197,12 @@ kbd { padding: 2px 6px; border: 1px solid var(--analyst-line-strong); border-rad
 .technical-disclosure > button:hover { background: transparent; color: var(--analyst-accent); }
 .technical-disclosure > div { padding-block: 0 var(--analyst-space-16); color: var(--analyst-text-secondary); }
 
+/* The governed SQL lane's method: the query that was run, and what was checked in it. */
+.method-details { display: grid; gap: var(--analyst-space-8); margin-block-start: var(--analyst-space-12); }
+.method-details__label { margin: 0; color: var(--analyst-text-muted); font-weight: var(--analyst-font-weight-semibold); }
+.method-details__sql { margin: 0; padding: var(--analyst-space-12); overflow-x: auto; border: var(--analyst-rule-size) solid var(--analyst-line); border-radius: var(--analyst-radius-sm); background: var(--analyst-surface-2); color: var(--analyst-text); font-family: var(--analyst-font-mono); font-size: 0.875em; white-space: pre-wrap; overflow-wrap: anywhere; }
+.method-details__checked { margin: 0; padding-inline-start: var(--analyst-space-20); }
+
 .empty-state {
   display: flex;
   gap: var(--analyst-space-16);

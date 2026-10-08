@@ -3,7 +3,7 @@ import { ClarificationPrompt } from './ClarificationPrompt.jsx'
 import { ResultChart } from './ResultChart.jsx'
 import { answerSummary } from '../lib/answerSummary.js'
 import { ResultTable } from './ResultTable.jsx'
-import { EmptyState, FindingCard, LanguageText, ResultStateBanner, TechnicalDisclosure } from './AnalystComponents.jsx'
+import { EmptyState, FindingCard, LanguageText, MethodDetails, ResultStateBanner, TechnicalDisclosure } from './AnalystComponents.jsx'
 
 function SectionHeading({ children }) {
   return <h2 className="section-heading">{children}</h2>
@@ -113,6 +113,7 @@ export function InvestigationResult({ presentation, onAsk, onClarificationChoice
             <SectionHeading><span id={headingId("derivation-heading")}>How this was derived</span></SectionHeading>
             <TechnicalDisclosure summary="Read the analysis method">
               <p>{presentation.derivation}</p>
+              <MethodDetails method={presentation.method} />
             </TechnicalDisclosure>
           </section>
             </>

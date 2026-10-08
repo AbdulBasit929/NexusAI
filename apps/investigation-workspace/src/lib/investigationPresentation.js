@@ -35,6 +35,19 @@ function textOf(response, value) {
   return fromLane(response) ? text(value) : safeText(value)
 }
 
+// The lane shows its work: the one read-only query a model wrote, and the conditions the server found in it. They
+// arrive in enterprise.derivation, are the citation of a number the database computed, and are shown as written.
+// Only the lane sends them; every other path derives its method sentence from its plan.
+function methodFor(response) {
+  if (!fromLane(response)) return null
+  const derivation = response?.enterprise?.derivation
+  const sql = text(derivation?.sql)
+  if (!sql) return null
+  return { sql, checked: array(derivation?.conditions_checked).map(item => text(item)).filter(Boolean) }
+}
+
+const LANE_METHOD = 'A model wrote one read-only query over this case’s records, and the server checked it against what you asked before running it. The model saw no case data and wrote none of the numbers: the database computed them.'
+
 // Every consumer of a presentation (the thread, the evidence panel, the result components) reads `result`, `citations`
 // and the lists without asking which state produced it. A state that carries no evidence, a failure or a clarification
 // (which is what every abstention of the lane is), still has them, empty. A clarification once had none and the thread
@@ -43,7 +56,7 @@ function withoutEvidence() {
   return {
     result: { columns: [], rows: [], unresolvedLabels: [] },
     citations: { items: [], groups: [], markerItems: [], totalOpenable: 0, truncated: false },
-    limitations: [], followUps: [], scope: [], derivation: '',
+    limitations: [], followUps: [], scope: [], derivation: '', method: null,
   }
 }
 
@@ -299,6 +312,7 @@ export function presentInvestigationResponse(response, { caseId = response?.coll
       : 'This question is outside the evidence analysis currently available for this case.'
   }
   const citations = normalizeCitations(response, caseId)
+  const method = state === 'unsupported' ? null : methodFor(response)
   return {
     state,
     title: answeredTitle(state),
@@ -308,7 +322,8 @@ export function presentInvestigationResponse(response, { caseId = response?.coll
     result: resultTable(response, catalog, caseId),
     citations,
     claimSegments: claimSegments(answer || (state === 'processing' ? 'The available evidence is still being prepared.' : 'No verified answer is available.'), response, citations),
-    derivation: state === 'unsupported' ? '' : derivationFor(response, catalog),
+    derivation: state === 'unsupported' ? '' : method ? LANE_METHOD : derivationFor(response, catalog),
+    method,
     limitations: limitationsFor(response, state),
     followUps: followUpsFor(response),
     scope: scopeFor(response, catalog),

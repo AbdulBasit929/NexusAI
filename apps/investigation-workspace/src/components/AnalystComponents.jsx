@@ -154,6 +154,24 @@ export function TechnicalDisclosure({ summary = 'Technical details', children })
   return <section className="technical-disclosure"><button type="button" aria-expanded={expanded} aria-controls={contentId} onClick={() => setExpanded(value => !value)}><span>{summary}</span><span aria-hidden="true">{expanded ? '−' : '+'}</span></button>{expanded ? <div id={contentId}>{children}</div> : null}</section>
 }
 
+// The governed SQL lane's method: the read-only query a model wrote and what the server found in it. It is the
+// citation of a number the database computed, so it is shown as written, left to right whatever the page direction.
+export function MethodDetails({ method }) {
+  if (!method?.sql) return null
+  return (
+    <div className="method-details">
+      <p className="method-details__label">The query that was run (read-only)</p>
+      <pre className="method-details__sql" dir="ltr" tabIndex={0}><code>{method.sql}</code></pre>
+      {method.checked.length > 0 ? (
+        <>
+          <p className="method-details__label">Checked against your question</p>
+          <ul className="method-details__checked">{method.checked.map(item => <li key={item}>{item}</li>)}</ul>
+        </>
+      ) : null}
+    </div>
+  )
+}
+
 export function EmptyState({ kind = 'unavailable', label, description, children }) {
   const [defaultLabel, defaultDescription, icon] = emptyContent[kind] || emptyContent.unavailable
   return (
