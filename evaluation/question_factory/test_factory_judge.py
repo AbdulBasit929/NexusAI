@@ -85,6 +85,34 @@ def test_rounded_renditions_count_and_wrong_values_do_not():
     assert not f.number_in("Number of records: 1,986.", "1768")
 
 
+def test_all_of_needs_every_expected_string():
+    # a top 3, a pair of counts, a list of values: every one must be in the answer, commas and case ignored
+    keys = ["923461678183", "923001110001", "923451112233"]
+    assert case("all", keys, "Msisdn: 923461678183; 923001110001; 923451112233.") == "CORRECT"
+    assert case("all", keys, "The numbers are 923461678183 and 923001110001.") == "WRONG"
+    assert case("all", ["2906", "2592"], "Incoming: 2,906; Outgoing: 2,592") == "CORRECT"
+    assert case("all", ["2906", "2592"], "Total calls: 5,498.") == "WRONG"
+    assert case("all", ["Chat.Example.Test"], "Domain: chat.example.test; accesses: 639") == "CORRECT"
+    assert case("all", keys, "I did not run this question, because I could not apply everything it asks.", ["governed_sql", "clarification"]) == "ABSTAINED"
+    assert case("all", [], "anything") in ("WRONG", "ABSTAINED")  # a key with no values proves nothing: never a pass
+
+
+def test_a_short_number_is_found_only_as_a_whole_number():
+    # the key "6" must not be satisfied by 46 or 1.6, nor "2" by 2026: a count cannot be found by accident
+    assert f.string_in("There are 6 records.", "6")
+    assert not f.string_in("There are 46 records.", "6")
+    assert not f.string_in("Average 1.6 seconds", "6")
+    assert not f.string_in("In 2026 there were 5 records", "2")
+    assert f.string_in("Incoming: 2,906; Outgoing: 2,592", "2906")
+    assert f.string_in("Incoming: 2,906", "2,906")
+    assert f.string_in("Mean 666.6333 s", "666.6333")
+    assert not f.string_in("Mean 666.63339 s", "666.6333")
+    assert f.string_in("domain maps.example.test", "Maps.Example.Test")
+    assert case("all", ["5177", "994", "2463", "6", "2"], "Months: 5,177; 994; 2,463; 6; 2.") == "CORRECT"
+    assert case("all", ["5177", "994", "2463", "6", "2"], "Months: 5,177; 994; 2,463.") == "WRONG"
+
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

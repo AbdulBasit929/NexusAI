@@ -294,6 +294,15 @@ def rounded_in(text, expected):
     return False
 
 
+def string_in(text, token):
+    """A value the answer must contain, case and thousands separators ignored ("2,906" holds 2906). A number is matched as a whole number:
+    6 is not in "46" or "1.6", so a short count cannot be found by accident."""
+    t, w = (text or "").lower(), str(token).lower().strip()
+    if re.fullmatch(r"-?\d+(\.\d+)?", w):
+        return re.search(r"(?<![\d.])" + re.escape(w) + r"(?![\d]|\.\d)", t.replace(",", "")) is not None
+    return w in t
+
+
 def date_in(text, iso):
     d = datetime.date.fromisoformat(iso)
     forms = [iso, "%s %d, %d" % (MONTHS[d.month - 1], d.day, d.year), "%d %s %d" % (d.day, MONTHS[d.month - 1], d.year), "%s %d %d" % (MONTHS[d.month - 1][:3], d.day, d.year)]
@@ -339,6 +348,11 @@ def _judge(item, expected, text, status, route):
         if abstained and (not re.search(r"\d", text) or DISCLOSURE.search(text)):
             return "ABSTAINED", "no figure" if not re.search(r"\d", text) else "disclosed the unapplied condition"
         return ("ABSTAINED", "withheld") if abstained and "clarification" in (route or []) else ("WRONG", "expected %s" % expected)
+    if kind == "all":
+        wanted = [str(e) for e in (expected or [])]
+        if wanted and all(string_in(text, e) for e in wanted):
+            return "CORRECT", "states all %d" % len(wanted)
+        return ("ABSTAINED", "withheld") if abstained else ("WRONG", "expected all of %s" % wanted)
     if kind == "date":
         return ("CORRECT", "states %s" % expected) if date_in(text, expected) else (("ABSTAINED", "withheld") if abstained else ("WRONG", "expected %s" % expected))
     if kind == "top":
@@ -388,6 +402,8 @@ def answer_text(blob):
 
 
 def expected_of(db, item):
+    if item["kind"] == "all":  # the key is every value the query returns, one per row (a top 3, a pair of counts, a list of domains)
+        return [row[0] for row in db.rows(item["oracle_sql"]) if row and row[0] != ""]
     return db.scalar(item["oracle_sql"]) if item["kind"] in ("number", "date") else None
 
 
