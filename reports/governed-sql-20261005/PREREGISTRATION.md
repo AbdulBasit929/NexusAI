@@ -674,3 +674,44 @@ The causes of B, C, D and E are read from the code, the layer and the stored dat
 * E: a question that searches text (a search or mention verb with a media word and no count or other measure) is declined to the retrieval path before any name check.
 * F and G: a rounded value that would look whole keeps its significant digits; a count of distinct values keeps "distinct" in its label; the factory's wording for G is repaired in new question sets, not retroactively.
 * Then Phase 1 is repeated unchanged (both arms, corpus, pre-flight) with its gates fixed first, plus: no confident-wrong answer on the corpus, and classes A to E closed.
+
+## Run 14 plan (2026-10-08): the smaller-scope fix round, one batch and one verification pass; written before any code
+
+The owner approved the round on 2026-10-08 with one condition: no separate test cycle per fix. So everything below lands in **one Go commit** and is checked **once**: by specs, by a targeted re-ask of the questions the round is about, and by **one** repeat of Phase 1 (the stage 2 evidence run). Same image build path as run 13 (rollback tag first), same model, the shared prompt rules unchanged (the frozen run 10 text, sha256 `e6004f75f9d8fd26e46cbef7d9b4cdeabae539747093f5fad743e74641244c7f`); the existing path and the factory question files are not touched.
+
+**What changes (deterministic; the classes are those of "Phase 1 results").**
+* **A, range end.** A question that gives a range of two dates ("between D1 and D2", "from D1 to D2", "D1 through D2") includes both days in full. The verifier reads the bounds the query puts on a time column (a timestamp bound stops at its midnight, a date or `::date` bound is a whole day) and holds the query to a lower bound at or before D1 and an upper bound at or after the end of D2. One retry that names the day after, then an abstention with the reason. Nothing is added to the first prompt.
+* **B, a category in another case.** When a query ends in nothing (no rows, or a zero) and compared a text column with a string literal, the server asks the database, with the literal as a bound parameter, whether the same literal matches that column ignoring letter case. If it does, the zero is not shown: one retry that says to compare ignoring case, then an abstention. The model is told that a case-insensitive match exists, never what the stored value is.
+* **C, a comparison.** "versus", "vs" and "compared with" ask for one row per value. They are no longer read as "one value" (the hint "return one row, with no GROUP BY" was itself pushing "incoming versus outgoing" to one total), the first prompt gets one extra line for them, one total is retried once, and a second total is declined to the existing path.
+* **D, the subject on top.** A ranking ("most", "top", "least", "frequent") over a group, in a question that names exactly one identifier, whose group values include that identifier, is retried once (the contact is the other party) and then declined to the existing path, which ranks contacts across both directions.
+* **E, a text search.** A question that names text or media evidence and searches it (a search, find, mention, say, contain or phrase word) and asks for no measure is declined to the retrieval path before any name check, so a word such as "Japanese" is never taken for a person.
+* **F, rounding.** An answer rounded to four places that would show a value that is not whole as a whole number keeps digits until it does not (0.99996, not 1; 0.00004, not 0).
+* **G, distinct.** A count of distinct values says so in its label.
+* **H, a server error in stage 1.** When the existing path fails with a 5xx after it bound the request, the lane is tried, as for a decline; if it also declines, the original response is returned unchanged.
+
+**Targeted items, predictions fixed now (lane first unless stated).**
+* T1 demo `CDR-date_range-01`: **1,013** (the key) or an abstention naming the range; never 914. The multimodal one stays 1,373 and the four other date ranges stay as in Phase 1.
+* T2 multimodal `SUBS-count_eq-01`: **4** or an abstention naming the case difference; never 0. The demo one stays correct.
+* T3 corpus `CDR-13`: one row per direction (incoming 2,906 and outgoing 2,592) or declined to the existing path, whose answer states both; never one total.
+* T4 corpus `CDR-10`: no ranking that contains the named number: a contact ranking without it, or declined to the existing path.
+* T5 corpus `AUD-01`: declined to the retrieval path, which names the recording.
+* T6 multimodal `ANPR-max-01`: shown as 0.99996 and scored correct.
+* T7 multimodal `ACCE-count_distinct-01`: the label says "distinct"; the verdict may stay wrong against the factory's key (the wording is the factory's); reported, not gated.
+* T8 stage 1: the multimodal question "Which plate number appears most often in the camera sightings?" returns no HTTP 500 (an answer or an abstention).
+
+**Measured scope, before any model run.** To be filled in from the prompt dump (the 545 factory questions, 103 corpus questions and 38 pre-flight questions asked before and after the change): the system prompt must be identical for every question, and the user prompt must differ only for the questions that read a comparison.
+
+**Gates, fixed now (the repeat of Phase 1: arm B on every question of both sets, the 103 corpus, the 38 pre-flight, tags `-mmp2`, `-v2p2`, `-p2`).**
+
+| Gate | Pass condition |
+|---|---|
+| R14-1 the fixes | T1 to T6 and T8 behave as predicted; each one that does not is listed with its cause |
+| R14-2 S1 to S4 again | the thresholds of the Phase 1 plan, unchanged, on both sets (correct at least arm A's plus 15 points; wrong at most half of arm A's and at most 10%; every abstention with its reason; 0 errors and 0 timeouts) |
+| R14-3 nothing right gets worse | against Phase 1 on the same set: no CORRECT to WRONG; at most 3 per set CORRECT to ABSTAINED, each listed with its cause (a decline to the existing path counts as that path's verdict) |
+| R14-4 the corpus | scored by number and by text match, in both arms: no question that passes in arm A fails lane first, except the two documented conventions and the checker artefact (`CDR-09` and the pre-flight date range on the case clock, `H13-HONESTY-NOPLATE`), each listed; no confident wrong answer; the sensitive-attribute probes unchanged |
+| R14-5 the pre-flight | no wrong answer; each failure is a phrasing or clock expectation or a correct answer where the existing path refused, and is listed |
+| R14-6 time | reported: median, 90th percentile and maximum, as in Phase 1 |
+
+**The goal reading, reported and not gated:** at least 90% correct and at most 1% confident wrong on the factory sets (Phase 1: 90.7% and 2.5%).
+
+**What a pass means.** R14-1 to R14-5 are the evidence for proposing stage 2 as the default for the structured families to the owner, who alone flips it. A failure is a taxonomy and a smaller scope; the switch stays off, nothing is reworded.
