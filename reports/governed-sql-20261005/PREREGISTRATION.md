@@ -493,3 +493,55 @@ The lane in run 11: multimodal, 25 of 79 responses carry the header: answered 21
 * B-gates: (B1) no lane answer to a time question differs from its key; (B2) no time question that was CORRECT in run 11's arm C is worse in arm B; (B3) no HTTP 5xx and no timeout on these questions. B2 is the real test of stage 2: the lane is now ahead of an existing path that was right on some of these.
 
 **Procedure, each step needing the product owner's go-ahead.** (1) How the Go change is committed (the hook; the one-time `--no-verify` is spent, so another authorisation, or a Linux environment after the stale `tests/e2e/distributed` calls are fixed). (2) Tag the running image `nexusai-lane-arms-prev:case-clock-run11`, build from the run 12 commit, recreate only the API with stage 1. (3) Part A and its gates (`check_clock_gates.py` with the baselines above, and `--ask` for T5). (4) Part B, separately. Rollback: the run 11 image (`case-clock-run11`) or the run 10 image (`before-case-clock`). **If a gate fails:** a taxonomy and a smaller scope, no prompt wording tuned, as in run 11.
+
+## Run 12 part A results (2026-10-08): both run 11 misses fixed, no gate failed
+
+Image `nexusai-forensic-records-api:latest` (`3db72cf63191`, built from `93f1489d`, committed with the product owner's second one-time `--no-verify`, now spent), stage 1, case clock `Asia/Karachi`; arm C on the same `-clock` question files and spreads as run 11 (tags `-mm12`, `-v2-12`). The previous images are tagged `nexusai-lane-arms-prev:case-clock-run11` and `:before-case-clock`. Nothing in the plan, gates or questions changed after the plan was committed; the checker's two extra readings (T3b, part B) were committed before any result.
+
+| Set | Arm | Correct | Wrong | Abstained | Error |
+|---|---|---|---|---|---|
+| multimodal (79) | A, lane off | 34 | 21 | 23 | 1 |
+| | run 11 arm C | 55 | 19 | 4 | 1 |
+| | **run 12 arm C** | **56 (70.9%)** | **19 (24.1%)** | 3 | 1 |
+| demo, unseen v2 (82) | A, lane off | 42 | 18 | 22 | 0 |
+| | run 11 arm C | 60 | 19 | 3 | 0 |
+| | **run 12 arm C** | **61 (74.4%)** | **18 (22.0%)** | 3 | 0 |
+
+The lane answered 22 of 22 correctly on the multimodal set (run 11: 21 of 21) and 19 of 19 on the demo set (run 11: 18 of 19); it abstained on 3 in each. The existing path's wrong answers are exactly run 11's (19 and 18), so the lane has no wrong answer left in either set.
+
+| Gate | Multimodal | Demo |
+|---|---|---|
+| T1 night | PASS: lane answered 2 of 4, both equal their keys | PASS: lane answered 2 of 4, both equal their keys |
+| T2 month, date range, earliest, latest | PASS: 9 answered by the lane, all equal | PASS: 11 answered by the lane, all equal |
+| T3 against run 10 arm C | **PASS**: no verdict or text change outside the time questions | not assessable (no run 10 arm C) |
+| T3b nothing gets worse than run 11 | PASS (one improvement, `TOWE-min-01`) | PASS (none worse) |
+| T4 errors | PASS: only the recorded 500 | PASS: none |
+| T5 clock stated | PASS: 11 asked again, all name the clock | PASS: 13 asked again |
+| T6 no no-time ANPR reads | PASS | PASS |
+
+**Predictions.** P1 held: demo `CDR-night-01` is answered **1,768** on the first attempt (run 11: 1,771). P2 held: multimodal `TOWE-min-01` is answered **24.8138** (attempt 2, as in run 10); with the prompt rules the run 10 text again and nothing else changed for that question, the run 11 decline is attributed to the reword of rule 6. P3 held: the multimodal set equals run 10 outside the time questions exactly. P4 held: ANPR night 176 on both sets, CDR night 1,283 and 1,768. P5 held. Differences from run 11 across both sets: `TOWE-min-01` (ABSTAINED to CORRECT), `CDR-night-01` (WRONG to CORRECT), and one harmless wording change in a time answer ("Latest" to "Most recent").
+
+Timing: the first lane question after the API restart took 323 s (cold prompt cache for the restored rules); the other lane answers took a median of about 13 s.
+
+## Run 12 part B results (2026-10-08): the lane first, on the time questions only
+
+`Run-Arm -Arm B -Intents night,month_count,date_range,earliest,latest` on the same two question files (tags `-mm12b`, `-v2-12b`; 20 and 22 questions), with `FORENSIC_GOVERNED_SQL_FIRST=true` for 11 minutes, then stage 1 put back and checked (switch false, same image `3db72cf63191`). Read against run 11's arm C on the same questions.
+
+| Set | Stage 1 (existing path first) | Lane first |
+|---|---|---|
+| multimodal, 20 time questions | 13 correct, 6 wrong, 1 abstained | **19 correct, 0 wrong**, 1 abstained |
+| demo unseen, 22 time questions | 14 correct, 8 wrong | **20 correct, 0 wrong**, 2 abstained |
+| both, 42 | 27 correct, 14 wrong, 1 abstained | **39 correct, 0 wrong**, 3 abstained |
+
+| Gate | Multimodal | Demo |
+|---|---|---|
+| B1 every lane answer equals its key | PASS (19 answered) | PASS (20 answered) |
+| B2 nothing right gets worse | PASS | **FAIL**: `SUBS-date_range-01` CORRECT (existing path) to ABSTAINED |
+| B3 no 5xx or timeout | PASS | PASS |
+| B-P1 prediction (at least 9 of the 13 the existing path got wrong are now right) | 6 of 6 | 6 of 7 |
+
+B-P1 held: **12 of 13**; the miss is the demo `CDR-date_range-01`, which the lane abstained on (no wrong number). Examples: access-log night 0 (existing path: 1,000), IPDR night 371 (2,500), ANPR latest 2026-07-19, CDR date range 1,373, CDR April 5,177 (existing path: 890), demo CDR night 1,768. Warm lane timing: total median 13.4 s and 11.1 s, p90 31.5 s and 19.6 s.
+
+**Taxonomy of the B2 miss and of the three date-range abstentions.** The reason the lane gives, "the query did not apply the condition `between 2025`" (or 2026, 2023), is the `MAGNITUDE` obligation firing on a date range: `questionStatesMagnitudeCondition` (`constraint_obligations.go`) reads "between" followed by a digit, so the year that begins "between 2025-03-09 and 2025-12-13" is taken for a number to compare, and a query that compares dates cannot satisfy it. It is a defect of the checker, not of the model, and a deterministic one. Of the four date-range questions the lane saw lane-first, three abstained (multimodal subscriber, demo CDR, demo subscriber; the multimodal subscriber one also abstained in stage 1 in runs 10 to 12); the multimodal CDR one was answered. The abstentions are honest (no wrong number), but lane-first replaces whatever the existing path said, and for the demo subscriber question that was a right answer.
+
+**Reading for stage 2.** On these 42 time questions lane-first removed all 14 wrong answers and lost one right one to an abstention. That is promising and not yet a reason to change the default: only a full arm B on every question can decide it. **Smaller-scope fix, proposed and not implemented (it needs the product owner's go-ahead and its own pre-registered run 13):** read the magnitude on the question with its dates removed, so a date range is a time condition and not a number. Predicted: the three abstentions become answers equal to their keys (multimodal subscriber 2, demo CDR 1,013, demo subscriber 1) and nothing else changes.
