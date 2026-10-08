@@ -88,6 +88,50 @@ def test_the_report_names_all_six_gates_in_order():
     assert [gate for gate, _, _ in g.report(rows, rows, None)] == ["T1", "T2", "T3", "T4", "T5", "T6"]
 
 
+# ---- run 12: T3 read as "nothing gets worse", and part B, the lane-first spot check of the time questions ----
+def test_t3b_nothing_gets_worse_lets_an_improvement_through_and_ignores_the_time_questions():
+    previous = [row("A", "count_eq", "CORRECT"), row("B", "count_eq", "ABSTAINED"), row("N", "night", "CORRECT")]
+    now = [row("A", "count_eq", "CORRECT"), row("B", "count_eq", "CORRECT"), row("N", "night", "WRONG")]
+    assert g.gate_not_worse(now, previous) == ("PASS", [], [("B", "ABSTAINED", "CORRECT")])
+    now[0]["verdict"] = "ABSTAINED"
+    status, worse, _ = g.gate_not_worse(now, previous)
+    assert status == "FAIL" and worse == [("A", "CORRECT", "ABSTAINED")]
+    assert g.gate_not_worse(now, None)[0] == "NOT ASSESSABLE"
+
+
+def test_b2_a_time_question_that_was_right_must_stay_right():
+    previous = [row("N1", "night", "CORRECT"), row("E1", "earliest", "WRONG"), row("A", "count_eq", "CORRECT")]
+    now = [row("N1", "night", "WRONG"), row("E1", "earliest", "CORRECT"), row("A", "count_eq", "WRONG")]
+    assert g.gate_time_not_worse(now, previous) == ("FAIL", [("N1", "CORRECT", "WRONG")])  # the count question is not a time question
+    now[0]["verdict"] = "CORRECT"
+    assert g.gate_time_not_worse(now, previous)[0] == "PASS"
+    assert g.gate_time_not_worse(now, None)[0] == "NOT ASSESSABLE"
+
+
+def test_b_p1_counts_the_existing_paths_wrong_time_answers_that_are_right_now():
+    previous = [row("N1", "night", "WRONG"), row("L1", "latest", "WRONG"), row("N2", "night", "WRONG", ANSWERED),
+                row("C", "count_eq", "WRONG"), row("E", "earliest", "CORRECT")]
+    now = [row("N1", "night", "CORRECT", ANSWERED), row("L1", "latest", "WRONG"), row("N2", "night", "CORRECT", ANSWERED),
+           row("C", "count_eq", "CORRECT"), row("E", "earliest", "CORRECT")]
+    before, fixed = g.prediction_fixed(now, previous)
+    assert before == ["N1", "L1"]  # N2 was the lane's own wrong answer and C is not a time question
+    assert fixed == ["N1"]
+
+
+def test_the_spot_report_names_its_gates_and_the_report_adds_t3b_only_with_a_previous_arm():
+    rows = [row("N1", "night", "CORRECT", ANSWERED)]
+    assert [gate for gate, _, _ in g.report_spot(rows, rows)] == ["B1", "B2", "B3", "B-P1"]
+    assert [gate for gate, _, _ in g.report_spot(rows, None)] == ["B1", "B2", "B3"]
+    assert "T3b" not in [gate for gate, _, _ in g.report(rows, rows, None)]
+    assert "T3b" in [gate for gate, _, _ in g.report(rows, rows, None, rows)]
+
+
+def test_a_lane_first_answer_that_differs_from_its_key_fails_b1():
+    rows = [row("N1", "night", "WRONG", ANSWERED), row("E1", "earliest", "CORRECT", ANSWERED)]
+    status = {gate: s for gate, s, _ in g.report_spot(rows, [row("N1", "night", "WRONG"), row("E1", "earliest", "WRONG")])}
+    assert status["B1"] == "FAIL" and status["B2"] == "PASS"
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):
