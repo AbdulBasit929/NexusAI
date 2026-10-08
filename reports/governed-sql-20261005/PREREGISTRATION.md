@@ -977,3 +977,41 @@ Two corrections to "Run 15, built and measured scope": two flagged questions kep
 **Which questions the change reaches.** The prompt built by the run 15 code (`a744d98a`) and by this code for every question of the files below. The system prompt changes only where the offered views change, which is where the lane's own words name a family ("log entries", "registered numbers"): 6 to 16 questions per factory file (the access log and subscriber questions that used to be offered the call records first). The user prompt changes for 0 to 7 questions per file: those same questions where a family is now named, and four questions whose weak "made"/"received" hint is dropped (`CDR-06` of the corpus, `SHAPE-window_midnight-01`, `SHAPE-weekend-01`, `SHAPE2-weekdays-01`). Every other question of the 14 files (including the 161 of seed 6, the 161 of seed 7, the 112 of the five intents and the corpus) has the prompt it had in run 15. The checks of classes W, Y, R and Q add no demand to a prompt; they reach any question whose query meets them, which no file can show, so R16-2 re-asks every question that was correct in run 15 (probes 1 and 2, the five intents on seed 5, seed 6), not a subset.
 
 **Measured next, lane first, in this order:** probes sets 1 and 2 (`-sh3`, `-sx3`), seed 6 (`-s6mm3`, `-s6v3`), seed 7 (`-s7mm`, `-s7v`), the five intents on seed 5 (`-s5mmt3`, `-s5vt3`), the 15 corpus questions (`replay-lane-B-p4t`) and the pre-flight (`preflight-lane-B-p4`). Nothing in the plan changes.
+
+## Run 16 results (2026-10-08 22:42 to 2026-10-09 00:30): every gate passes; on a fresh seed the lane first is 150 of 161 correct (93.2%) with no wrong answer
+
+Image `d7e301c95e02` (code `8c329bb6`), lane first (arm B) for every arm; stage 1 was put back by the driver at 00:30 and checked (`FORENSIC_GOVERNED_SQL=true`, `_FIRST=false`, the same image). The arms: probes set 1 `-sh3`, probes set 2 `-sx3`, seed 6 `-s6mm3`/`-s6v3`, seed 7 `-s7mm`/`-s7v`, the five intents on seed 5 `-s5mmt3`/`-s5vt3`, the 15 corpus questions `replay-lane-B-p4t`, the pre-flight `preflight-lane-B-p4`; 108 minutes. Each result row now keeps the query the lane ran.
+
+| Gate | Result |
+|---|---|
+| R16-1 the named misses | **PASS.** Of the 9: `SHAPE-weekend-01` (2,980), `ACCE-latest-01` on both sets (the latest request time), `CDR-top_group-01` on both sets (the number as stored), `SUBS-count_distinct-01` (9, read from the subscribers) and `CDR-month_count-01` (994) are **correct**; `SHAPE-compare_months-01` and `SHAPE2-versus_months-01` are **declined** with their reason (one value where the question compares values) and answered by nothing; none is wrong |
+| R16-2 nothing known gets worse | **PASS.** 234 questions that were correct in the run 15 arms were asked again (probes 26 + 13, the five intents on seed 5 27 + 29, seed 6 69 + 70): all 234 are correct again; 11 more became correct (the miss list above, `SHAPE2-tod_cross-01`, `ACCE-night-01` on both sets, `SUBS-month_count-01`) |
+| R16-3 a new seed | **PASS.** Seed 7, never looked at before it was measured: multimodal 73 correct (92.4%), 0 wrong, 6 abstained; demo 77 correct (93.9%), 0 wrong, 5 abstained. Both: **150 of 161 correct (93.2%), 0 confident wrong (0.0%)**, 11 abstained (the 10 name questions and `SUBS-top_group-01` of the multimodal set, declined and withheld by the existing path). S1, S3 and S4 pass on both. The lane answered in a median of 9.9 s (multimodal) and 7.7 s (demo), p90 about 19 to 20 s |
+| R16-4 corpus and pre-flight | **PASS.** The 15 corpus questions: no scored check that passed in run 14 fails (`CDR-09`, the documented clock expectation, aside); the pre-flight is 32 of 38, the same six as runs 14 and 15 |
+| R16-5 engineering | **PASS.** 21 new specs (408 with a database), 13 of 13 mutations caught, lint 0, vet clean, the commit through the lane-scoped hook with no bypass |
+
+Seed 6 asked again after the fixes (no longer a fresh sample, since its failures were fixed against): multimodal 73 correct, 1 wrong, 5 abstained; demo 75 correct, 1 wrong, 6 abstained; **148 of 161 correct (91.9%), 2 wrong, both `ACCE-count_distinct-01`**, the question defect of Phase 1 (the factory words a count of the six status codes with "server error"; the lane counts the one status value 500). Before the fixes it was 139 correct and 8 wrong. All six real classes of seed 6 (R, T, W, X, Y, Q) are closed or accounted for, except that the two comparisons of two months are still declined, not answered.
+
+Each seed so far, lane first, wrong answers per 161: seed 5, 2 (run 14 code); seed 6, 8 (run 15 code, fixed against afterwards); seed 7, 0 (run 16 code). Seed 7 is the first sample the code was not fixed against, and it came out at none. One fresh seed is evidence, not proof: seeds 5 and 6 each found classes the earlier ones had not, and a next seed may find another. The flip rule asked for at most 1 wrong in about 160 on a seed nobody has fixed against; this meets it, once.
+
+**Open, not wrong:** the two month-against-month comparisons are declined four times in four; the hint "one row per value" names no column, and the run 16 acceptance of a one-row `FILTER` form did not change what the model writes. A hint that names the unit (`to_char(column, 'YYYY-MM')`) is written and tested locally and not deployed; run 17 (below) is its plan.
+
+## Run 17 plan (2026-10-09, 00:45): one change, for the two comparisons of months that are still declined; written before it is built
+
+**The change.** A question that compares two or more calendar units ("May 2026 versus June 2026", "2025 versus 2026", "2026-04-02 vs 2026-04-03") is told, in its own message, which units are compared and how a row per unit is written (`SELECT to_char(column, 'YYYY-MM') AS month, COUNT(*) ... WHERE the time is within one of those months GROUP BY 1 ORDER BY 1`), and the retry for one total says the same. Nothing else changes: the shared rules, every other question's message, every other check.
+
+**Reach, to be measured before the image is asked anything:** the prompt of every question of the 14 files built by the run 16 code and by this one. Expected: identical for every question except those that carry a comparison word and two or more calendar units (`SHAPE-compare_months-01`, `SHAPE2-versus_months-01`); the corpus `CDR-13` ("incoming versus outgoing") names no unit and is unchanged.
+
+**Predictions, fixed now.** The two questions are answered with one row per month (994 and 2,463; 5,177 and 994) or declined, none wrong. No other question changes (its prompt is byte-identical and the one check that differs reads only a question with units).
+
+**Gates.**
+
+| Gate | Pass condition |
+|---|---|
+| R17-1 the two comparisons | each CORRECT or ABSTAINED with its reason, none WRONG |
+| R17-2 nothing else changes | the prompt comparison finds no other question changed; probes sets 1 and 2 (43 questions) asked again: every question that is CORRECT in the run 16 arms (27 + 14 less the two comparisons) is CORRECT again |
+| R17-3 engineering | specs with and without a database, undoing each piece fails a spec, lint 0, vet clean, the commit through the lane-scoped hook with no bypass |
+
+Seeds 6 and 7, the five intents, the corpus and the pre-flight are not asked again: their prompts are the run 16 prompts and the only check that differs reads a question with units.
+
+**What follows.** All pass: the image is kept (rollback `nexusai-lane-arms-prev:case-clock-run16` = `d7e301c95e02`). Any fails: the run 16 image is put back with `docker tag` and `Enable-LaneStage1`, and the change stays a local patch. Either way stage 1 is on and stage 2 is off when the run ends, and the flip stays with the owner.
