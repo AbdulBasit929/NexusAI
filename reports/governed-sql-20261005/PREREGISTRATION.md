@@ -869,3 +869,18 @@ Both sets: 145 of 161 correct (90.1%), 2 wrong (1.2%), 14 abstained (the goal re
 | R15-5 nothing known gets worse | the intents these checks touch (`max`, `min`, `avg`, `earliest`, `latest`, `date_range`, `night`, `top_group`, `sum`, `month_count`) asked again on the two sets of run 14 (`questions-multimodal-clock.json` and `questions-demo-v2-clock.json`, the arms `-mmp2` and `-v2p2` of run 14 are the reference): no CORRECT of run 14 is anything else |
 
 **What follows.** All of R15-1 to R15-5 pass: stage 2 is flipped on the path the owner approved ("yes to all, recommended", 2026-10-08: the safeguard first, then the flip with the rollback ready), and recorded. Any gate fails or a new class appears: the switch stays off and the taxonomy goes to the owner. The Run 14 corpus and pre-flight are not repeated in full (71 minutes); the touched intents of the two known sets are (R15-5), and the corpus questions the checks can reach are named in the results.
+
+### F6, the existing path on the 28 probes (arm A, lane off, ended 18:40): the flip rule's second condition is met; stage 1 is back
+
+The control ran after the lane-first arms, as written, and stage 1 was put back at 18:40 (image `89e79efb5024`, `FORENSIC_GOVERNED_SQL=true`, `_FIRST=false`; checked). Scored with `check_phase1_gates.py arms --a arm-lane-A-sh --b arm-lane-B-sh`.
+
+| Arm | Correct | Wrong | Abstained |
+|---|---|---|---|
+| A, the existing path | 4 (14%) | 7 (25%) | 17 |
+| B, lane first | 23 (82%) | 2 (7%) | 3 |
+
+* **F6 passes.** None of the 4 probes the existing path answered correctly (`topn`, `negation`, `top_sum`, `sum_filtered`) is anything but correct with the lane first. S2 on the probes: no correct answer became a wrong one or an abstention; 19 probes went from not correct to correct (6 from wrong, 13 from abstained).
+* **One abstention became a wrong answer:** `SHAPE-busiest_day_for-01` (the existing path abstained; the lane answered "3", the day of the month). It is class J, and it is the kind of change the goal forbids ("a confident answer to a different question stays at zero"); it is in the run 15 fixes.
+* **Wrong in both:** `SHAPE-weekend-01` (existing path 2,592, the total of the case; lane 3,041; key 2,980), class N.
+* The existing path's 7 wrong answers on the probes (`weekend`, `count_in_month_for`, `value_list` twice, `two_conditions`, `median`, `first_last`) are not repeated here; they are in `arm-lane-A-sh`.
+* The flip rule stays unmet through F5 (2 wrong over the fresh sets against at most 1, and a new class).
