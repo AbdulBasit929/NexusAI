@@ -127,7 +127,7 @@ def probes_v2(db):
          "SELECT count(*) %s AND extract(hour from %s) BETWEEN 9 AND 16" % (log, alt), "number"),
         ("SHAPE2-minutes-01", "cdr", "minutes", "How many calls lasted longer than 20 minutes?",
          "SELECT count(*) %s AND %s > 1200" % (cdr, dur), "number"),
-        ("SHAPE2-minutes-02", "cdr", "minutes", "How many calls lasted at least 25 minutes?",
+        ("SHAPE2-minutes-02", "cdr", "minutes_at_least", "How many calls lasted at least 25 minutes?",
          "SELECT count(*) %s AND %s >= 1500" % (cdr, dur), "number"),
         ("SHAPE2-versus_methods-01", "access_log", "versus_methods", "How many GET versus POST requests are in the access log?",
          "SELECT count(*) %s AND %s IN ('GET', 'POST') GROUP BY %s ORDER BY %s" % (log, method, method, method), "all"),

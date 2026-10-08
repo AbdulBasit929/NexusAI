@@ -911,3 +911,61 @@ The system prompt is identical for every question of every file. The user prompt
 * the 15 corpus questions that carry a flag or a comparison word (demo `CDR-09`, `CDR-13`, `CDR-15`, `TXN-02`, `H4-CDR-MAXVOL`, `H12-HONESTY-BEAMWIDTH`; multimodal `M2-ANPR-AVG-OCR`, `M4-ANPR-MAX-DET`, `M6-VIDEO-MAX-SIGHTINGS`, `M8-VIDEO-FIRST-SEEN`, `M10-OCR-AVG-CONF`, `M15-AUDIO-MAX-END`, `M17-FACE-AVG-CONF`, `M21-FACE-MIN-CROP`, `H3-MEDIA-LONGEST-PLATE`), scored as in run 14 and compared with `replay-lane-B-p2`: no scored check that passed there fails now (arm `replay-lane-B-p3t`);
 * the 3 pre-flight questions that carry a flag (`PF11-model`, `PF13-model`, `PF20-refuse`) are asked with the corpus ones and compared with `preflight-lane-B-p2`.
 Nothing else in the plan changes: R15-1 to R15-4 are as written, the arms are `-sh2` (probes set 1), `-sx` (probes set 2), `-s6mm` and `-s6v` (seed 6), lane first, on this image; the control arm of the probes (F6) was read in the F6 section above.
+
+## Run 15 results (2026-10-08, 20:07 to 22:13): the named fixes work where they were aimed; the new seed finds classes the earlier ones did not, so R15-1 and R15-4 fail and the switch stays off
+
+Image `00d11ffc892e` (code `a744d98a`), lane first (arm B) for every arm below; stage 1 was put back at 22:04 and again at 22:13 (after the diagnostic asks) and checked (`FORENSIC_GOVERNED_SQL=true`, `_FIRST=false`, the same image). The arms: probes set 1 `-sh2`, probes set 2 `-sx`, the five intents on seed 5 `-s5mmt`/`-s5vt` and on the run 14 sets `-mmp3t`/`-v2p3t`, seed 6 `-s6mm`/`-s6v`, the 15 corpus questions `replay-lane-B-p3t`, the pre-flight `preflight-lane-B-p3`, and a diagnostic arm `-dx` (9 questions, 22:07 to 22:13) that keeps the query the lane ran, which the factory did not keep before (it does now: `sql` in each result row).
+
+| Gate | Result |
+|---|---|
+| R15-1 the fixes | **FAIL.** `window_midnight` (1,612), `minutes` (629), `busiest_day_for` (2026-04-03) and `TRAN-max-01` (75,000) are correct; `weekend` is **wrong** (853 for 2,980) and `compare_months` is declined. 3 of the 5 probe misses are correct (the plan said at least 4) and one is wrong (the plan said none) |
+| R15-2 probe set 1 | **PASS.** 26 of 28 correct (23 before), 1 wrong (weekend), 1 abstained; none of the 23 that were correct is anything else |
+| R15-3 probe set 2 | **PASS.** 13 of 15 correct, 0 wrong, the three controls correct. The two abstentions: `tod_cross`, a model timeout (240 s) while two diagnostic questions I asked by hand at 20:26 were queued on the same model, so not a verdict (asked again alone at 22:09: correct, 2,263); `versus_months`, declined with "the result was one value where the question compares values" (class Q below) |
+| R15-4 a new seed | **FAIL.** S1, S3 and S4 pass on both sets (multimodal 69 correct, 3 wrong, 7 abstained; demo 70 correct, 5 wrong, 7 abstained), but there are **8 confident wrong answers over 161 (5.0%)**, against at most 1 and none of a new class. The seed 5 sample (2 wrong, 1.2%) was luckier than the lane is: the rate on a fresh seed varies between 1% and 5% |
+| R15-5 nothing known gets worse | **PASS.** The five intents on 112 questions (the run 14 sets 27 + 29, seed 5 27 + 29): all correct, two gains (`TRAN-max-01`, `TOWE-min-01`), none lost. The 15 corpus questions: no scored check that passed in run 14 fails (`CDR-09`, the documented clock expectation, aside). The pre-flight: 32 of 38, the same six as run 14 |
+
+Both sets of seed 6: 139 of 161 correct (86.3%), 8 wrong (5.0%), 14 abstained (the 10 name questions, the absent value or the family the layer does not name). The lane answered in a median of 10.1 s (multimodal) and 7.8 s (demo). The first probe run was slower (identical prompts took 1.5 times as long as in run 14) because my own jobs (the prompt comparison, a lint) ran at the same time; the later arms were back to the run 14 speed.
+
+**The 8 wrong answers of seed 6, with the query the lane ran** (the diagnostic arm; ids only):
+
+| Question | The query (shape) | Cause |
+|---|---|---|
+| `ACCE-count_distinct-01`, both sets | `count(DISTINCT status) ... WHERE status IN ('500')` | the question defect of Phase 1, class G: "server error" is the factory's label, its key counts the six status codes; not the lane's |
+| `ACCE-latest-01`, both sets | `max(event_time) FROM v_access_log WHERE path LIKE '/web%'` | **W**: a filter invented from the name of the evidence ("web requests"); nothing matches, the answer is "no value" |
+| `CDR-top_group-01`, both sets | `SELECT msisdn AS most_common_caller ... LIMIT 1`, shown as "923,461,678,183" | **R**: the answer groups the digits of an identifier when the query renames its column (the view's own column name keeps it exact); the judge reads it as wrong, a person would read the number |
+| `SUBS-count_distinct-01`, demo | `count(DISTINCT account) FROM v_transaction` | **T**: "registered numbers" names no family in the layer, the shortlist offered the subscribers and the transactions (both have an account id), the model read the transactions |
+| `CDR-month_count-01`, demo | 1,066 for 994; the query was not kept; asked again it was right (994) | not reproduced: model variation at temperature 0; **hypothesis Y** (not shown): a May window one day too wide (+72, about one day of June), which nothing checks for a month |
+
+The 9th miss of the probes, `weekend` (853 for 2,980): `direction = 'OUTGOING' AND extract('isodow' FROM event_time) IN (6, 7)`. The new check read the days correctly (Saturday and Sunday); the layer lists "made" as a synonym of OUTGOING and the question says "calls were made", so the filter was grounded: **X**. The declined `compare_months` and `versus_months`: the result was one value where the question compares values; the first passed once on a `GROUP BY` of the month (diagnostic arm). **Q**: a comparison answered in ONE row whose columns each count one side (`COUNT(*) FILTER (WHERE ...)`) is declined as "one value" by the run 14 check, though it answers the question (the query of the declined runs was not kept, so this is a reading of the check, not of the query).
+
+Two corrections to "Run 15, built and measured scope": two flagged questions kept an identical prompt, `PF20-refuse` and `SHAPE-words-01` (a quantity whose unit needs no conversion), not one; and the 16 mutations were the 15 pieces named there plus the removal of the call of the window and days check.
+
+**What it changes.** Classes R, T, W, X, Y and Q are closable by deterministic checks of the kind the lane already has; none needs a prompt change. The seed 5 result was not wrong, it was a small sample: three classes in the answers of the lane (R, W, T) were simply not drawn. Another seed will draw others, so the pre-registered flip rule (at most 1 wrong in about 160 on a seed nobody has fixed against) is a real test, and it has not been met. The owner flips stage 2; this evidence says it is not ready, and what run 16 does about it follows.
+
+## Run 16 plan (2026-10-08, 22:30): the six classes of seed 6, one batch, one verification on a seed nobody has looked at; written before the new code is measured
+
+**The changes** (deterministic, read from the question and the query; the shared prompt rules stay the run 10 text; each is described in the commit that carries it):
+* **Q**, a comparison in one row: a result of one row whose columns are two or more conditional counts (`COUNT(*) FILTER (WHERE ...)`, `SUM(CASE WHEN ...)`) answers a question that compares values; one total and two unrelated measures still do not.
+* **R**, an identifier is not a quantity: a value in a text column of the result (by the database type, so by any alias) is shown exactly as stored. Counts and other numbers are grouped as before.
+* **T**, the lane's own words for a family: "log entries" and "log lines" name the access log, "registered numbers" and "registered lines" the subscribers (a word added to the shared layer would change what the existing path answers, so it is added to the lane only).
+* **W**, no filter from the name of the evidence: a string literal on a free-text column whose words are all words of the evidence's own name ('/web%' from "web requests") is refused once, then the lane abstains, unless the question quotes it.
+* **X**, "made" and "received" ask for a direction only beside an identifier ("calls made by 923001110001"): without one, a query that adds `direction = 'OUTGOING'` for "calls were made on weekends" is refused once, and the weak-value hint is not given.
+* **Y**, a calendar window: "in May 2026", "in 2025" and "on 2026-04-02" are read as the window they name, and the query's bounds on the record's time must start and end at its edges (the check of "between D1 and D2", run 14). A query that reads the month through EXTRACT, date_trunc or to_char is left alone: the check judges bounds it can read and nothing else. No change to the question's own message.
+* **Z**, the days check reads `to_char(x, 'D')` (Sunday 1 ... Saturday 7) and `to_char(x, 'ID')` (Monday 1) as it reads EXTRACT(DOW) and EXTRACT(ISODOW).
+
+**Predictions, fixed now.**
+* The named misses become correct, or abstain with a reason, none wrong: probes `weekend`, `compare_months`, `versus_months`; seed 6 `ACCE-latest-01` and `CDR-top_group-01` on both sets, `SUBS-count_distinct-01`, `CDR-month_count-01`. `ACCE-count_distinct-01` (class G) is unchanged.
+* Nothing that is correct in the run 15 arms becomes anything else: probes sets 1 and 2 (26 + 14), the five intents on seed 5 (56 of 56) and seed 6 (139 of 139), up to the model's own variation (a question that flips to ABSTAINED is read and its cause named).
+* A fresh seed, 7 (generated at 22:18 and 22:19, before any run 16 code was measured: `questions-demo-s7.json`, `questions-multimodal-s7.json`): the S1 thresholds of Phase 1 (multimodal at least 46 correct and at most 7 wrong, demo at least 55 and at most 8), and **at most 1 confident wrong answer over both sets, none of a class already named** (a wrong answer of a new class is reported and does not pass).
+
+**Gates, fixed now** (lane first on the new image; arms `-sh3` probes set 1, `-sx3` probes set 2, `-s5mmt3`/`-s5vt3` the five intents on seed 5, `-s6mm3`/`-s6v3` seed 6, `-s7mm`/`-s7v` seed 7, `replay-lane-B-p4t` the 15 corpus questions, `preflight-lane-B-p4`):
+
+| Gate | Pass condition |
+|---|---|
+| R16-1 the named misses | each of the 9 above is CORRECT or ABSTAINED with its reason, none WRONG |
+| R16-2 nothing known gets worse | no question that is CORRECT in the run 15 arms is WRONG; at most 3 move to ABSTAINED, each read and its cause named |
+| R16-3 a new seed | on each seed 7 set S1 (thresholds above), S3 and S4; at most 1 confident wrong answer over both sets, none of a named class |
+| R16-4 corpus and pre-flight | no scored check that passed in `replay-lane-B-p2` fails; the pre-flight is 32 of 38 or better |
+| R16-5 engineering | the specs pass with and without a database, undoing each piece fails a spec, lint 0, vet clean, the commit through the lane-scoped hook with no bypass |
+
+**What follows.** All pass: the lane-first numbers are reported to the owner as the evidence for the flip, which the owner alone makes. Any fails: the taxonomy is written, nothing is reworded after a failed gate, the switch stays off. The seed 6 questions are no longer a fresh sample (their failures are known and fixed against); only seed 7 is.

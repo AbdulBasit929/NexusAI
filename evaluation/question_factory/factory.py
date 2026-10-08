@@ -690,6 +690,10 @@ def main():
         row.update(expected=expected, verdict=verdict, why=why, route=blob.get("route"), seconds=round(seconds, 1), text=text[:500])
         if headers.get("x-governed-sql"):
             row["lane"] = headers["x-governed-sql"]
+        # the query the lane ran, when it answered: a wrong answer cannot be read without it (run 15, the weekend probe)
+        derivation = ((blob.get("enterprise") or {}).get("derivation") or {}) if isinstance(blob, dict) else {}
+        if derivation.get("sql"):
+            row["sql"] = str(derivation["sql"])[:800]
         rows.append(row)
         print("%-9s %-24s %-8s %6.1fs  %s" % (verdict, item["id"], item["kind"], seconds, item["question"]))
         with io.open(os.path.join(out_dir, "results.json"), "w", encoding="utf-8") as handle:
