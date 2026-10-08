@@ -137,8 +137,12 @@ var _ = Describe("Governed SQL verification", func() {
 			facts := factsFor("How many calls were made in April 2026?", "v_cdr")
 			Expect(unmetKinds(facts, "SELECT COUNT(*) AS calls FROM v_cdr")).To(ConsistOf("TIME"))
 			Expect(unmetKinds(facts, "SELECT MIN(call_start) AS first_call FROM v_cdr")).To(ConsistOf("TIME"))
-			Expect(unmetKinds(facts, "SELECT COUNT(*) AS calls FROM v_cdr WHERE call_start >= '2026-04-01' AND call_start < '2026-05-01'")).To(BeEmpty())
-			Expect(unmetKinds(facts, "SELECT COUNT(*) AS calls FROM v_cdr WHERE EXTRACT(MONTH FROM call_start) = 4 AND EXTRACT(YEAR FROM call_start) = 2026")).To(BeEmpty())
+			Expect(unmetKinds(facts, "SELECT COUNT(*) AS calls FROM v_cdr WHERE event_time >= '2026-04-01' AND event_time < '2026-05-01'")).To(BeEmpty())
+			Expect(unmetKinds(facts, "SELECT COUNT(*) AS calls FROM v_cdr WHERE EXTRACT(MONTH FROM event_time) = 4 AND EXTRACT(YEAR FROM event_time) = 2026")).To(BeEmpty())
+			// The question names no start, so the call's start is not "when the record happened": the time
+			// condition belongs on the record's own time (governed_sql_timecolumn.go, run 11).
+			Expect(unmetKinds(facts, "SELECT COUNT(*) AS calls FROM v_cdr WHERE call_start >= '2026-04-01' AND call_start < '2026-05-01'")).To(ConsistOf("TIME_COLUMN"))
+			Expect(unmetKinds(facts, "SELECT COUNT(*) AS calls FROM v_cdr WHERE EXTRACT(MONTH FROM call_start) = 4 AND EXTRACT(YEAR FROM call_start) = 2026")).To(ConsistOf("TIME_COLUMN"))
 		})
 
 		It("flags 'at night' answered without the hour", func() {

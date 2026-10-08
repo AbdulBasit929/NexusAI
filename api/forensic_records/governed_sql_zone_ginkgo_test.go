@@ -150,10 +150,14 @@ var _ = Describe("Governed SQL case clock", func() {
 			Expect(unmetKinds(night, "SELECT COUNT(*) AS sessions FROM v_ipdr WHERE EXTRACT(HOUR FROM event_time AT TIME ZONE 'Asia/Karachi') BETWEEN 0 AND 5")).To(ContainElement("TIME_ZONE"))
 		})
 
-		It("tells the model that times are already on the case clock", func() {
-			Expect(govSQLRules).To(ContainSubstring("Times are on the case clock"))
-			Expect(govSQLRules).To(ContainSubstring("never convert time zones"))
-			Expect(govSQLRules).NotTo(ContainSubstring("as recorded at the source"))
+		It("tells a time question, in its own hint, that times are already on the case clock", func() {
+			// The shared rules stay as they were (governed_sql_timecolumn_ginkgo_test.go pins them); only a
+			// question with a time cue is told.
+			Expect(govSQLRules).NotTo(ContainSubstring("case clock"))
+			offered := []*govSQLView{views["v_ipdr"]}
+			user := govSQLUserPrompt(night, govSQLExtractFacts(night, offered, all), offered)
+			Expect(user).To(ContainSubstring("Times are on the case clock"))
+			Expect(user).To(ContainSubstring("never convert time zones"))
 		})
 	})
 

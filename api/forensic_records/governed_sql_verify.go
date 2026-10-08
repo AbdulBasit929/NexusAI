@@ -598,7 +598,7 @@ func govSQLTimeConstraint(tree *pg.ParseResult, view *govSQLView) (onTimeColumn,
 
 // govSQLObligation is one thing the question demands that the query lacks.
 type govSQLObligation struct {
-	Kind    string // IDENTIFIER, VALUE, MAGNITUDE, TIME, TIME_OF_DAY, TIME_ZONE, NAME, WITHHELD
+	Kind    string // IDENTIFIER, VALUE, MAGNITUDE, TIME, TIME_OF_DAY, TIME_COLUMN, TIME_ZONE, NAME, WITHHELD
 	Subject string
 	Message string // written for the model
 	Reason  string // written for the analyst, when the lane abstains
@@ -692,7 +692,7 @@ func govSQLCheck(facts govSQLQuestionFacts, validated *govSQLValidated) []govSQL
 		if !onTime {
 			unmet = append(unmet, govSQLObligation{
 				Kind: "TIME", Subject: strings.Join(facts.TimeCues, ", "),
-				Message: fmt.Sprintf("The question restricts time (%s). Add a WHERE condition on a time column (%s).", strings.Join(facts.TimeCues, ", "), govSQLTimeColumns(view)),
+				Message: fmt.Sprintf("The question restricts time (%s). Add a WHERE condition on %s.", strings.Join(facts.TimeCues, ", "), govSQLTimeTarget(facts.Question, view)),
 				Reason:  fmt.Sprintf("the query did not apply the time condition (%s)", strings.Join(facts.TimeCues, ", ")),
 			})
 		} else if facts.TimeOfDay && !timeOfDay {
@@ -703,6 +703,10 @@ func govSQLCheck(facts govSQLQuestionFacts, validated *govSQLValidated) []govSQL
 			})
 		}
 	}
+
+	// TIME COLUMN: a time condition belongs on the record's own time unless the question names another
+	// (governed_sql_timecolumn.go).
+	unmet = append(unmet, govSQLCheckTimeColumn(facts, validated)...)
 
 	// TIME ZONE: the views already read time on the case clock, so a conversion to any other
 	// zone would count a different window than the one the question means and the answer states.

@@ -45,6 +45,13 @@ type govSQLModelFunc func(ctx context.Context, cfg config, model string, turns [
 
 var govSQLModel govSQLModelFunc = govSQLModelHTTP
 
+// THE SHARED RULES ARE FROZEN. They are the same for every question and the endpoint caches them with the
+// schema, so a change to one word reaches questions that have nothing to do with the change. Run 11 reworded
+// rule 6 for the case clock and a tower question the lane had answered was then declined, 6 asks in 6; that
+// the reword caused it is suspected, not proven (run 12 tests it). Rule 6 is therefore the run 10 wording on
+// purpose. What a time question needs to know about the case clock, and which time column to use, is said in
+// that question's own hint (govSQLTimeHint), which only a question with a time cue receives.
+// governed_sql_timecolumn_ginkgo_test.go pins this text by hash.
 const govSQLRules = `You write one PostgreSQL SELECT query that answers an investigator's question about the evidence in a case. A server runs your query, so it must be exact.
 
 RULES
@@ -53,7 +60,7 @@ RULES
 3. Compare text columns with the exact values listed for them (for example call_type = 'SMS'). When a value is listed, use it exactly as listed.
 4. "How many" is COUNT(*), or COUNT(DISTINCT column) when it asks for different or unique ones. "Which", "most" and "top" group, count, order by the count descending and use LIMIT. "Earliest" or "first" is MIN of the time column; "latest" or "last" is MAX. "Average", "total", "largest" and "smallest" use AVG, SUM, MAX and MIN of the matching numeric column.
 5. A number that can be either party of an event needs every identifier column that can hold it, joined with OR.
-6. Times are on the case clock: the hour, day and month of a time column already mean the case's local time, so never convert time zones. Night means the hours 0 to 5: use EXTRACT(HOUR FROM column) BETWEEN 0 AND 5.
+6. Times are as recorded at the source. Night means the hours 0 to 5: use EXTRACT(HOUR FROM column) BETWEEN 0 AND 5.
 7. Give every output column a short readable alias such as number_of_calls or earliest_call.
 8. If the question cannot be answered from the listed columns, set answerable to false and leave sql empty. Do not guess. A person's name is never a column value here, so a question about a named person is not answerable unless the name is a value of a listed column.
 
@@ -134,7 +141,7 @@ func govSQLUserPrompt(question string, facts govSQLQuestionFacts, views []*govSQ
 		hints = append(hints, fmt.Sprintf("The question states a condition: %q. Use > or < with the number.", facts.Magnitude))
 	}
 	if len(facts.TimeCues) > 0 && len(views) > 0 {
-		hints = append(hints, fmt.Sprintf("The question restricts time (%s). Put it in the WHERE clause on a time column (%s).", strings.Join(facts.TimeCues, ", "), govSQLTimeColumns(views[0])))
+		hints = append(hints, govSQLTimeHint(facts, views[0]))
 	}
 	for _, name := range facts.Names {
 		hints = append(hints, fmt.Sprintf("The question names %q. No column holds personal names; use it only as a value of a listed column, otherwise set answerable to false.", name))

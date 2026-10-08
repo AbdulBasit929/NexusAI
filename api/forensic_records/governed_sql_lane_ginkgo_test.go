@@ -406,6 +406,59 @@ var _ = Describe("Governed SQL lane (with a database)", func() {
 		Expect(strings.Join(toStrings(resp.Enterprise["limitations"]), " ")).To(ContainSubstring("The time condition was applied to: Event time (event_time)"))
 	})
 
+	// Run 11: "at night" was answered on the call's start OR end (1,771 against 1,768), a reading the
+	// question never asked for (governed_sql_timecolumn.go).
+	const startOrEnd = "SELECT COUNT(*) AS number_of_call_records FROM v_cdr WHERE EXTRACT(HOUR FROM call_start) BETWEEN 0 AND 5 OR EXTRACT(HOUR FROM call_end) BETWEEN 0 AND 5"
+
+	It("moves a time condition from the call's start and end to the record's own time, once, and the count is the one the key gives", func() {
+		model.replies = []string{
+			sqlReply(startOrEnd),
+			sqlReply("SELECT COUNT(*) AS number_of_call_records FROM v_cdr WHERE EXTRACT(HOUR FROM event_time) BETWEEN 0 AND 5"),
+		}
+		resp, audit := ask("How many call records were there at night?")
+		Expect(resp).NotTo(BeNil(), audit.Reason)
+		Expect(audit.State).To(Equal("answered"))
+		Expect(audit.Attempts).To(Equal(2))
+		Expect(model.calls[1][len(model.calls[1])-1].Content).To(ContainSubstring("belongs on event_time"))
+		want := oracle("SELECT count(*) " + cdr + " AND extract(hour from " + govSQLTestCaseClock("raw_payload->>'CALL_START_DT_TM'") + ") BETWEEN 0 AND 5")
+		Expect(headline(resp)).To(Equal("Number of call records: " + govSQLFormatNumber(want) + "."))
+		Expect(strings.Join(toStrings(resp.Enterprise["limitations"]), " ")).To(ContainSubstring("The time condition was applied to: Event time (event_time)"))
+	})
+
+	It("tells the model the record's own time in the first message, so the first attempt is usually the only one", func() {
+		model.replies = []string{sqlReply("SELECT COUNT(*) AS number_of_call_records FROM v_cdr WHERE EXTRACT(HOUR FROM event_time) BETWEEN 0 AND 5")}
+		_, audit := ask("How many call records were there at night?")
+		Expect(audit.State).To(Equal("answered"))
+		Expect(audit.Attempts).To(Equal(1))
+		Expect(model.calls[0][1].Content).To(ContainSubstring("on event_time, the time of the record"))
+		Expect(model.calls[0][1].Content).To(ContainSubstring("Times are on the case clock"))
+	})
+
+	It("abstains, and says which time it would not use, when the model keeps conditioning on the call's start and end", func() {
+		model.replies = []string{sqlReply(startOrEnd)}
+		resp, audit := ask("How many call records were there at night?")
+		Expect(audit.State).NotTo(Equal("answered"))
+		Expect(resp).NotTo(BeNil())
+		Expect(resp.Intent).To(Equal(intentClarify))
+		text := resp.Answer["clarification"].(string)
+		Expect(text).To(ContainSubstring("call_end, call_start"))
+		Expect(text).To(ContainSubstring("event_time"))
+		Expect(text).NotTo(MatchRegexp(`\d,\d{3}`))
+		Expect(audit.Attempts).To(Equal(2))
+	})
+
+	It("lets a question that says the call ended condition on the call's end", func() {
+		model.replies = []string{sqlReply("SELECT COUNT(*) AS number_of_calls FROM v_cdr WHERE EXTRACT(HOUR FROM call_end) BETWEEN 0 AND 5")}
+		resp, audit := ask("How many calls ended at night?")
+		Expect(resp).NotTo(BeNil(), audit.Reason)
+		Expect(audit.State).To(Equal("answered"))
+		Expect(audit.Attempts).To(Equal(1))
+		raw := "COALESCE(raw_payload->>'CALL_END_DT_TM', raw_payload->>'call_end_time', raw_payload->>'end_time')"
+		want := oracle("SELECT count(*) " + cdr + " AND extract(hour from " + govSQLTestCaseClock(raw) + ") BETWEEN 0 AND 5")
+		Expect(headline(resp)).To(Equal("Number of calls: " + govSQLFormatNumber(want) + "."))
+		Expect(strings.Join(toStrings(resp.Enterprise["limitations"]), " ")).To(ContainSubstring("The time condition was applied to: Call end time (call_end)"))
+	})
+
 	It("leaves text and media questions to the retrieval path, and relationships to a join it does not attempt", func() {
 		for _, q := range []string{"Is the number 03001234567 mentioned in any audio?", "Find OCR text mentioning Investigation Workspace", "Find plate LEB15491 in the images", "Do any subscribers share the same handset?"} {
 			resp, audit := ask(q)
