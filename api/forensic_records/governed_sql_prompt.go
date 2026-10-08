@@ -149,6 +149,9 @@ func govSQLUserPrompt(question string, facts govSQLQuestionFacts, views []*govSQ
 	if facts.WantsSingle {
 		hints = append(hints, "The question asks for one value: return one row, with no GROUP BY.")
 	}
+	if facts.WantsCompare {
+		hints = append(hints, "The question compares values: return one row per value (GROUP BY the column that holds them) with the count of each, not one total.")
+	}
 	if len(hints) > 0 {
 		b.WriteString("Notes from the question:\n")
 		for _, hint := range hints {

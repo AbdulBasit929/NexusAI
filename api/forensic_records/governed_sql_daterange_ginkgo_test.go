@@ -71,14 +71,18 @@ var _ = Describe("Governed SQL: a date range is a time condition, not a quantity
 		Expect(unmetKinds("How many CDR records are there between 2026-04-26 and 2026-05-30?", "v_cdr",
 			"SELECT COUNT(*) AS number_of_call_records FROM v_cdr WHERE event_time >= '2026-04-26' AND event_time < '2026-05-31'")).To(BeEmpty())
 		Expect(unmetKinds("How many CDR records are there between 2026-04-26 and 2026-05-30?", "v_cdr",
-			"SELECT COUNT(*) AS number_of_call_records FROM v_cdr WHERE event_time BETWEEN '2026-04-26' AND '2026-05-30'")).To(BeEmpty())
+			"SELECT COUNT(*) AS number_of_call_records FROM v_cdr WHERE event_time::date BETWEEN '2026-04-26' AND '2026-05-30'")).To(BeEmpty())
+		// Phase 1: BETWEEN on a timestamp stops at the midnight that begins the last day (921 where the key is 1,013);
+		// run 14 holds a range to both days in full (governed_sql_guards_ginkgo_test.go).
+		Expect(unmetKinds("How many CDR records are there between 2026-04-26 and 2026-05-30?", "v_cdr",
+			"SELECT COUNT(*) AS number_of_call_records FROM v_cdr WHERE event_time BETWEEN '2026-04-26' AND '2026-05-30'")).To(ConsistOf("RANGE"))
 		Expect(unmetKinds("How many subscribers have a activation date between 2025-03-09 and 2025-12-13?", "v_subscriber",
 			"SELECT COUNT(*) AS number_of_subscribers FROM v_subscriber WHERE activation_date >= '2025-03-09' AND activation_date < '2025-12-14'")).To(BeEmpty())
 	})
 
 	It("still demands the time condition: a date range answered without one is refused", func() {
 		Expect(unmetKinds("How many CDR records are there between 2026-04-26 and 2026-05-30?", "v_cdr",
-			"SELECT COUNT(*) AS number_of_call_records FROM v_cdr")).To(ConsistOf("TIME"))
+			"SELECT COUNT(*) AS number_of_call_records FROM v_cdr")).To(ConsistOf("TIME", "RANGE"))
 	})
 
 	It("still demands a comparison for a real quantity", func() {

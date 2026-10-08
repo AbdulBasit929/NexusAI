@@ -44,11 +44,25 @@ const (
 )
 
 type govSQLResult struct {
-	Columns   []string
+	Columns []string
+	// Labels is what each column is called in the answer, where that is not simply the column's own name
+	// (a count of distinct values says so). Empty means the humanised column name.
+	Labels    []string
 	Rows      [][]any
 	Truncated bool
 	ElapsedMS int64
 	PlanCost  float64
+}
+
+// label is the name the answer gives column i.
+func (r *govSQLResult) label(i int) string {
+	if i < len(r.Labels) && r.Labels[i] != "" {
+		return r.Labels[i]
+	}
+	if i < len(r.Columns) {
+		return govSQLHumanize(r.Columns[i])
+	}
+	return "Result"
 }
 
 // govSQLRunError carries what the model needs to correct itself, and what the

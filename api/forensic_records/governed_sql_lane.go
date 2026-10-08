@@ -139,6 +139,11 @@ func runGovernedSQLLane(ctx context.Context, cfg config, db *pgxpool.Pool, req h
 	if govSQLMediaCue.MatchString(req.Query) && (len(offered) == 0 || !offered[0].binding.Derived) {
 		return decline("text and media evidence is answered by the retrieval path")
 	}
+	// A search of what a recording, an image or a document says is the retrieval path's: no view holds that
+	// text, and a word of the search is not a person's name (Phase 1, corpus AUD-01).
+	if govSQLSearchesText(req.Query) {
+		return decline("a search of text evidence is answered by the retrieval path")
+	}
 	if len(offered) == 0 {
 		// A name the evidence cannot hold is answered "not answerable" even when no family is recognised:
 		// declining would hand the question to a path that answers it with a total (measured 2026-10-06).
@@ -264,6 +269,35 @@ func runGovernedSQLLane(ctx context.Context, cfg config, db *pgxpool.Pool, req h
 			retry(raw, shape.Message)
 			continue
 		}
+		// What the result shows, read against what the question asked (governed_sql_guards.go). A second miss
+		// declines, so the existing path answers as it would without the lane.
+		if compare := govSQLCheckCompare(facts, result); compare != nil {
+			if last {
+				return decline("the result was one value where the question compares values")
+			}
+			retry(raw, compare.Message)
+			continue
+		}
+		if subject := govSQLCheckSubject(facts, validated, result); subject != nil {
+			if last {
+				return decline("the ranking returned the number the question names; a contact ranking is left to the path that counts both directions")
+			}
+			retry(raw, subject.Message)
+			continue
+		}
+		if govSQLResultEmpty(result) {
+			mismatch, err := govSQLProbeCase(ctx, db, req, validated)
+			if err != nil {
+				return decline("could not check an empty result")
+			}
+			if mismatch != nil {
+				if last {
+					return finish(govSQLAbstainResponse(req, offered, facts, []govSQLObligation{mismatch.obligation()}, audit))
+				}
+				retry(raw, mismatch.obligation().Message)
+				continue
+			}
+		}
 
 		absence := ""
 		if govSQLResultEmpty(result) && len(facts.Identifiers) > 0 {
@@ -282,6 +316,7 @@ func runGovernedSQLLane(ctx context.Context, cfg config, db *pgxpool.Pool, req h
 			}
 		}
 
+		govSQLLabelResult(validated, result)
 		audit.State = "answered"
 		audit.Checked = govSQLConditionsChecked(facts)
 		return finish(govSQLAnswerResponse(req, validated, result, facts, absence, audit))
@@ -344,6 +379,12 @@ func govSQLConditionsChecked(facts govSQLQuestionFacts) []string {
 	}
 	if len(facts.TimeCues) > 0 {
 		out = append(out, "time: "+strings.Join(facts.TimeCues, ", "))
+	}
+	if facts.Range != nil {
+		out = append(out, fmt.Sprintf("range: %s to %s, both days in full", facts.Range.Start, facts.Range.End))
+	}
+	if facts.WantsCompare {
+		out = append(out, "comparison: one row per value")
 	}
 	return out
 }
@@ -533,13 +574,20 @@ func govSQLFormatValue(value any) string {
 	}
 }
 
-// govSQLFormatNumber groups thousands and rounds (never truncates) a long fraction to four places.
+// govSQLFormatNumber groups thousands and rounds (never truncates) a long fraction to four places. Rounding
+// never turns a value that is not whole into a whole number: 0.99996 is shown as 0.99996, not 1, and 0.00004 as
+// 0.00004, not 0 (Phase 1, multimodal ANPR-max-01).
 func govSQLFormatNumber(text string) string {
 	if !strings.ContainsAny(text, ".") {
 		return govSQLGroup(text)
 	}
 	if rat, ok := new(big.Rat).SetString(text); ok {
 		text = rat.FloatString(4)
+		if !rat.IsInt() {
+			for places := 5; places <= 12 && govSQLWholeText(text); places++ {
+				text = rat.FloatString(places)
+			}
+		}
 	}
 	whole, frac := text, ""
 	if i := strings.Index(text, "."); i >= 0 {
@@ -590,11 +638,11 @@ func govSQLHeadline(view *govSQLView, result *govSQLResult, facts govSQLQuestion
 	case len(result.Rows) == 0:
 		return "The query matched no rows."
 	case len(result.Rows) == 1 && len(result.Columns) == 1:
-		return fmt.Sprintf("%s: %s.", govSQLHumanize(result.Columns[0]), govSQLFormatCell(view, result.Columns[0], result.Rows[0][0]))
+		return fmt.Sprintf("%s: %s.", result.label(0), govSQLFormatCell(view, result.Columns[0], result.Rows[0][0]))
 	case len(result.Rows) == 1:
 		parts := make([]string, 0, len(result.Columns))
 		for i, column := range result.Columns {
-			parts = append(parts, fmt.Sprintf("%s: %s", govSQLHumanize(column), govSQLFormatCell(view, column, result.Rows[0][i])))
+			parts = append(parts, fmt.Sprintf("%s: %s", result.label(i), govSQLFormatCell(view, column, result.Rows[0][i])))
 		}
 		return strings.Join(parts, "; ") + "."
 	case len(result.Columns) == 2 && len(result.Rows) <= 12 && !facts.WantsSingle:
@@ -604,13 +652,13 @@ func govSQLHeadline(view *govSQLView, result *govSQLResult, facts govSQLQuestion
 		for _, row := range result.Rows {
 			parts = append(parts, fmt.Sprintf("%s: %s", govSQLFormatCell(view, result.Columns[0], row[0]), govSQLFormatCell(view, result.Columns[1], row[1])))
 		}
-		return fmt.Sprintf("%d rows (%s by %s). In full: %s.", len(result.Rows), strings.ToLower(govSQLHumanize(result.Columns[1])), strings.ToLower(govSQLHumanize(result.Columns[0])), strings.Join(parts, "; "))
+		return fmt.Sprintf("%d rows (%s by %s). In full: %s.", len(result.Rows), strings.ToLower(result.label(1)), strings.ToLower(result.label(0)), strings.Join(parts, "; "))
 	case len(result.Columns) == 1 && len(result.Rows) <= 10:
 		values := make([]string, 0, len(result.Rows))
 		for _, row := range result.Rows {
 			values = append(values, govSQLFormatCell(view, result.Columns[0], row[0]))
 		}
-		return fmt.Sprintf("%d values (%s): %s.", len(result.Rows), strings.ToLower(govSQLHumanize(result.Columns[0])), strings.Join(values, "; "))
+		return fmt.Sprintf("%d values (%s): %s.", len(result.Rows), strings.ToLower(result.label(0)), strings.Join(values, "; "))
 	default:
 		// A list is not ranked unless the analyst asked for a ranking; its first row is not "the top".
 		more := ""
@@ -618,8 +666,8 @@ func govSQLHeadline(view *govSQLView, result *govSQLResult, facts govSQLQuestion
 			more = fmt.Sprintf(" (showing the first %d; the query matched more)", len(result.Rows))
 		}
 		names := make([]string, 0, len(result.Columns))
-		for _, column := range result.Columns {
-			names = append(names, strings.ToLower(govSQLHumanize(column)))
+		for i := range result.Columns {
+			names = append(names, strings.ToLower(result.label(i)))
 		}
 		return fmt.Sprintf("%d rows%s. Columns: %s. The rows are in the table below.", len(result.Rows), more, strings.Join(names, ", "))
 	}
@@ -728,7 +776,7 @@ func govSQLMetrics(view *govSQLView, result *govSQLResult) []map[string]any {
 	}
 	metrics := make([]map[string]any, 0, len(result.Columns))
 	for i, column := range result.Columns {
-		metrics = append(metrics, map[string]any{"label": govSQLHumanize(column), "value": govSQLFormatCell(view, column, result.Rows[0][i]), "source": "governed_sql"})
+		metrics = append(metrics, map[string]any{"label": result.label(i), "value": govSQLFormatCell(view, column, result.Rows[0][i]), "source": "governed_sql"})
 	}
 	return metrics
 }

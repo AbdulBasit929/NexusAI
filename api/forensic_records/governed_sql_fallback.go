@@ -15,8 +15,9 @@ import (
 //
 // FORENSIC_GOVERNED_SQL=true alone runs the lane AFTER the existing path: the request
 // is answered exactly as it is today, and only when that answer is an abstention or a
-// refusal is the lane tried. An answer the existing path gave is never replaced, so
-// turning the switch on cannot change a single answer that was already given.
+// refusal (or a server error, which is no answer) is the lane tried. An answer the existing
+// path gave is never replaced, so turning the switch on cannot change a single answer that
+// was already given.
 //
 // (FORENSIC_GOVERNED_SQL_FIRST=true runs the lane before the existing path instead;
 // that is handled inline in query.go. It is what the measurement of the lane's own
@@ -89,7 +90,12 @@ func governedSQLFallback(core http.HandlerFunc, cfg config, db *pgxpool.Pool) ht
 		holder := &govSQLHolder{}
 		buffered := &govSQLBuffered{header: http.Header{}}
 		core(buffered, r.WithContext(context.WithValue(r.Context(), govSQLHolderKey{}, holder)))
-		if holder.req == nil || buffered.status != http.StatusOK || !govSQLOldPathDeclined(buffered.body.Bytes()) {
+		// A reply that declined, or a server error from a path that had already bound the request (the
+		// plate-count question's 500, "group cardinality exceeds 100"), is not an answer: the lane is tried.
+		// If it declines too, the original reply goes out unchanged.
+		failed := buffered.status >= http.StatusInternalServerError && buffered.status < 600
+		declined := buffered.status == http.StatusOK && govSQLOldPathDeclined(buffered.body.Bytes())
+		if holder.req == nil || !(failed || declined) {
 			buffered.flushTo(w)
 			return
 		}

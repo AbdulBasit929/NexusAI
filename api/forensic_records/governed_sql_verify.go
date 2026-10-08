@@ -49,6 +49,9 @@ type govSQLQuestionFacts struct {
 	TimeOfDay    bool
 	Names        []string
 	WantsSingle  bool
+	WantsCompare bool             // "A versus B": one row per value, never one total (governed_sql_guards.go)
+	WantsRanking bool             // "most", "top", "least": a ranking over a group
+	Range        *govSQLDateRange // two dates given outright: both days are in
 	WithheldAttr string
 	Fields       []govSQLFieldFact // columns the question names by a word only that column answers to
 	NamedViews   map[string]bool   // evidence families the question names outright
@@ -235,8 +238,13 @@ func govSQLExtractFacts(question string, views []*govSQLView, all []*govSQLView)
 	vocabulary := govSQLVocabulary(all)
 	facts.Names = govSQLUnknownNames(text, vocabulary, seen)
 
-	// Shape.
-	facts.WantsSingle = govSQLRxSingle.MatchString(text) && !govSQLRxGroupCue.MatchString(text)
+	// Shape. A comparison ("incoming versus outgoing") is a list of one row per value even when it begins "how
+	// many": the hint "return one row, with no GROUP BY" made the model answer it with one total (Phase 1,
+	// corpus CDR-13).
+	facts.WantsCompare = govSQLRxCompare.MatchString(text)
+	facts.WantsRanking = govSQLRxRanking.MatchString(text)
+	facts.Range = govSQLReadDateRange(text)
+	facts.WantsSingle = govSQLRxSingle.MatchString(text) && !govSQLRxGroupCue.MatchString(text) && !facts.WantsCompare
 
 	// An attribute the evidence withholds (a person's name, a national ID): the
 	// curated layer says which fields are PII or RESTRICTED and what they are called.
@@ -440,6 +448,7 @@ type govSQLComparison struct {
 	Column string
 	Consts []string
 	Op     string
+	Folded bool // the column side is wrapped in lower() or upper(): letter case is already ignored
 }
 
 func govSQLWalkTree(root protoreflect.Message, visit func(msg protoreflect.Message) bool) {
@@ -508,6 +517,13 @@ func govSQLConstsOf(node *pg.Node) []string {
 			}
 		case n.GetTypeCast() != nil:
 			walk(n.GetTypeCast().Arg)
+		case n.GetFuncCall() != nil:
+			// LOWER('Active') and UPPER('active') are the literal, written to ignore letter case.
+			if name := govSQLFuncName(n.GetFuncCall()); name == "lower" || name == "upper" {
+				for _, arg := range n.GetFuncCall().Args {
+					walk(arg)
+				}
+			}
 		case n.GetList() != nil:
 			for _, item := range n.GetList().Items {
 				walk(item)
@@ -536,10 +552,10 @@ func govSQLComparisons(tree *pg.ParseResult) []govSQLComparison {
 				op = expr.Name[0].GetString_().Sval
 			}
 			if col, consts := govSQLColumnOf(expr.Lexpr), govSQLConstsOf(expr.Rexpr); col != "" && len(consts) > 0 {
-				out = append(out, govSQLComparison{Column: col, Consts: consts, Op: op})
+				out = append(out, govSQLComparison{Column: col, Consts: consts, Op: op, Folded: govSQLIsFolded(expr.Lexpr)})
 			}
 			if col, consts := govSQLColumnOf(expr.Rexpr), govSQLConstsOf(expr.Lexpr); col != "" && len(consts) > 0 {
-				out = append(out, govSQLComparison{Column: col, Consts: consts, Op: op})
+				out = append(out, govSQLComparison{Column: col, Consts: consts, Op: op, Folded: govSQLIsFolded(expr.Rexpr)})
 			}
 			return true
 		})
@@ -611,7 +627,7 @@ func govSQLTimeConstraint(tree *pg.ParseResult, view *govSQLView) (onTimeColumn,
 
 // govSQLObligation is one thing the question demands that the query lacks.
 type govSQLObligation struct {
-	Kind    string // IDENTIFIER, VALUE, MAGNITUDE, TIME, TIME_OF_DAY, TIME_COLUMN, TIME_ZONE, NAME, WITHHELD
+	Kind    string // IDENTIFIER, VALUE, MAGNITUDE, TIME, TIME_OF_DAY, TIME_COLUMN, TIME_ZONE, RANGE, NAME, WITHHELD; after the run: SHAPE, CASE, SUBJECT
 	Subject string
 	Message string // written for the model
 	Reason  string // written for the analyst, when the lane abstains
@@ -720,6 +736,9 @@ func govSQLCheck(facts govSQLQuestionFacts, validated *govSQLValidated) []govSQL
 	// TIME COLUMN: a time condition belongs on the record's own time unless the question names another
 	// (governed_sql_timecolumn.go).
 	unmet = append(unmet, govSQLCheckTimeColumn(facts, validated)...)
+
+	// RANGE: "between D1 and D2" includes all of D2 (governed_sql_guards.go).
+	unmet = append(unmet, govSQLCheckRange(facts, validated)...)
 
 	// TIME ZONE: the views already read time on the case clock, so a conversion to any other
 	// zone would count a different window than the one the question means and the answer states.
