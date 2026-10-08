@@ -768,3 +768,23 @@ Against Phase 1 on the same questions: 3 gained (multimodal `ANPR-max-01` and `S
 **The goal reading, reported and not gated.** At least 90% correct: **149 of 161 (92.5%)**, 148 (91.9%) with the credited abstention counted as one. At most 1% confident wrong: **1 of 161 (0.6%)**, and none on the corpus. Both targets are met on these sets. They are not a promise about questions the factory and the corpus do not generate.
 
 **Reading for stage 2.** R14-1 to R14-5 pass: this is the evidence the plan fixed for **proposing stage 2 as the default for the structured families to the owner, who alone flips it**. The switch is off and verified. What the owner would be choosing: the lane answers (or abstains with its reason on) every structured question before the existing path, which it did in these 264 questions with 1 wrong answer where stage 1 gives 37 on the factory sets; text and media questions are declined to the retrieval path as today; the cost is about 7 to 17 seconds more per structured question on this laptop; `Disable-Lane` or `Enable-LaneStage1` rolls back in one command. What stays open: questions of shapes neither set contains (so a monitored start is advisable: the `X-Governed-SQL` header and the audit already record the state and the reason of every response), the six gaps above, and the commit gate (every further Go change needs a one-time authorisation or the proposed lane-scoped hook).
+
+## Fresh-seed check plan (2026-10-08): the independent safeguard before the stage 2 flip; written before the questions exist
+
+**Why.** Every gate of run 14 was read on questions the lane's failures had been found on, and the fixes were shaped by those failures; the repeat shows the fixes work, not that nothing else is wrong. A new seed gives the same question templates with values nobody has seen. It does not give new shapes (the factory has no templates for "versus", "contact of", "top 3"; the 103-question corpus is what covers those, and it was read in run 14). So this check measures the lane on new values and says nothing more than that.
+
+**What.** A new set for each case with seed 5 (seeds 1 to 3 are used): `questions-demo-s5.json` (demo case) and `questions-multimodal-s5.json` (multimodal case), keys on the case clock as generated. Arms A (the lane off, the existing path: the control) and B (lane first) on every spread question (`--per-intent 1`, about 80 per set), tags `-s5v` and `-s5mm`. Image `89e79efb5024`, same model, stage 1 put back at the end of the run. No arm C: the comparison that matters for the flip is the lane first against the existing path.
+
+**Gates, fixed now** (the Phase 1 thresholds, with the old path as the baseline in place of stage 1):
+
+| Gate | Pass condition |
+|---|---|
+| F1 accuracy (S1) | per set: correct at least arm A's plus 15 points; confident wrong at most half of arm A's and at most 10% of the questions; every abstention names its condition |
+| F2 nothing right gets worse than the existing path | per set: no question that is CORRECT in arm A is WRONG in arm B; at most 3 go to ABSTAINED, each listed with its reason |
+| F3 no silent drop (S3) | every `unbound_name` and `absent_value` question is answered correctly or abstained on, never with a total or a zero |
+| F4 instrument (S4) | 0 errors and 0 timeouts counted as verdicts |
+| F5 the flip rule | **at most 1 confident wrong answer over both sets** (the roadmap's 1% of about 160), each read and given a cause; a wrong answer whose cause is not one of classes A to G of "Phase 1 results" is a new failure class |
+
+**Predictions, fixed now.** Correct at least 88% on each set; at most 1 confident wrong answer over both sets; the questions the lane abstains on are the name questions and the rest are rare.
+
+**What follows.** All of F1 to F5 pass: the owner's approved path (2026-10-08, "yes to all, recommended") is to flip stage 2 as the default with the rollback ready (`Set-Arm -Arm B`; `Enable-LaneStage1` rolls back), and to record it. Any gate fails, or a new failure class appears: the switch stays off, the taxonomy is written and shown to the owner, and nothing is reworded. The goal reading (at least 90% correct, at most 1% confident wrong) is reported either way.

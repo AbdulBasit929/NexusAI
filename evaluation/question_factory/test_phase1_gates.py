@@ -123,6 +123,27 @@ def test_the_corpus_comparison_lists_losses_gains_and_the_lane_answers_whose_che
     assert g.compare_corpus(off, on)["errors"] == ["c"]
 
 
+# ---- a fresh-seed set has no stage 1 arm: the existing path is the baseline
+
+def test_without_a_stage_1_arm_the_existing_path_is_the_baseline_of_s2(capsys=None):
+    import contextlib
+    import io
+    a = arm(*many("c", 34, "CORRECT"), *many("w", 21, "WRONG"), *many("a", 24, "ABSTAINED"))
+    good = arm(*many("c", 71, "CORRECT"), *many("w", 3, "WRONG"), *many("a", 5, "ABSTAINED", text="I did not run this question, because I could not apply it."))
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        code = g.report_arms(a, good)
+    text = out.getvalue()
+    assert code == 0 and "S2 not worse (vs the existing path) PASS" in text and "stage 1" not in text.split("S2")[0]
+    # a question the existing path answered right and the lane first answers wrongly fails S2
+    worse = dict(good)
+    worse["c-000"] = row("c-000", "WRONG")
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        code = g.report_arms(a, worse)
+    assert code == 1 and "S2 not worse (vs the existing path) FAIL" in out.getvalue()
+
+
 if __name__ == "__main__":
     failed = 0
     for name, fn in sorted(globals().items()):

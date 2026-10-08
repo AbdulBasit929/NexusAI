@@ -3,6 +3,7 @@
 (reports/governed-sql-20261005/PREREGISTRATION.md, "Phase 1 plan"). Run 14 repeats them unchanged ("Run 14 plan", R14-2 to R14-5).
 
     python check_phase1_gates.py arms      --a arm-lane-A-mm --c arm-lane-C-mm13 --b arm-lane-B-mmp2 [--prev arm-lane-B-mmp1]
+    python check_phase1_gates.py arms      --a arm-lane-A-s5mm --b arm-lane-B-s5mm        (a fresh-seed set: no stage 1 arm)
     python check_phase1_gates.py corpus    --off replay-lane-A --on replay-lane-B-p2 [--convention CDR-09 --convention H13-HONESTY-NOPLATE]
     python check_phase1_gates.py preflight --off preflight-lane-A --on preflight-lane-B-p2
 
@@ -115,19 +116,24 @@ def timing(arm_b):
     return {"all": quantiles([r["seconds"] for r in arm_b.values()]), "lane_answered": quantiles([r["seconds"] for r in answered]), "lane_model": quantiles(model)}
 
 
-def run_arms(args):
-    a, c, b = load_results(args.a), load_results(args.c), load_results(args.b)
-    print("arm A %s: %s\nstage 1 %s: %s\nthis arm %s: %s" % (args.a, counts(a), args.c, counts(c), args.b, counts(b)))
-    s1, s2, s3, s4 = gate_s1(a, b), gate_s2(c, b), gate_s3(b), gate_s4(b)
+def report_arms(a, b, c=None, prev=None, names=("arm A", "stage 1", "this arm", "previous")):
+    """Print S1 to S4 and S6 for arm B against arm A. The S2 baseline is stage 1 (arm C) when it is given, otherwise the existing path (arm A):
+    a fresh-seed set is measured against the existing path only. Returns 0 when every gate passes."""
+    baseline = c if c is not None else a
+    print("%s: %s" % (names[0], counts(a)))
+    if c is not None:
+        print("%s: %s" % (names[1], counts(c)))
+    print("%s: %s" % (names[2], counts(b)))
+    s1, s2, s3, s4 = gate_s1(a, b), gate_s2(baseline, b), gate_s3(b), gate_s4(b)
     print("\nS1 accuracy       %s  correct %d (need %d), wrong %d (need <= %d), abstentions without a reason: %s"
           % ("PASS" if s1["pass"] else "FAIL", s1["correct"], s1["need_correct"], s1["wrong"], s1["max_wrong"], s1["abstentions_without_reason"] or "none"))
-    print("S2 not worse (vs stage 1) %s  correct to wrong %s, correct to abstained %s, gained %d, other moves %s"
-          % ("PASS" if s2["pass"] else "FAIL", s2["correct_to_wrong"], s2["correct_to_abstained"], s2["gained"], s2["other"]))
+    print("S2 not worse (vs %s) %s  correct to wrong %s, correct to abstained %s, gained %d, other moves %s"
+          % ("stage 1" if c is not None else "the existing path", "PASS" if s2["pass"] else "FAIL", s2["correct_to_wrong"], s2["correct_to_abstained"], s2["gained"], s2["other"]))
     ok = s1["pass"] and s2["pass"]
-    if args.prev:
-        s2p = gate_s2(load_results(args.prev), b)
+    if prev is not None:
+        s2p = gate_s2(prev, b)
         print("R14-3 not worse (vs %s) %s  correct to wrong %s, correct to abstained %s, gained %d, other moves %s"
-              % (args.prev, "PASS" if s2p["pass"] else "FAIL", s2p["correct_to_wrong"], s2p["correct_to_abstained"], s2p["gained"], s2p["other"]))
+              % (names[3], "PASS" if s2p["pass"] else "FAIL", s2p["correct_to_wrong"], s2p["correct_to_abstained"], s2p["gained"], s2p["other"]))
         ok = ok and s2p["pass"]
     print("S3 no silent drop %s  %d name and absent-value questions, not correct or abstained: %s" % ("PASS" if s3["pass"] else "FAIL", s3["questions"], s3["not_correct_or_abstained"] or "none"))
     print("S4 instrument     %s  verdicts other than correct, wrong, abstained: %s" % ("PASS" if s4["pass"] else "FAIL", s4["errors"] or "none"))
@@ -139,10 +145,17 @@ def run_arms(args):
     n = len(b)
     c_b = counts(b)
     print("goal reading (not gated): correct %.1f%%, confident wrong %.1f%%" % (100.0 * c_b.get("CORRECT", 0) / n, 100.0 * c_b.get("WRONG", 0) / n))
-    wrong = [r for r in b.values() if r["verdict"] == "WRONG"]
-    for r in wrong:
-        print("  WRONG %-24s %s | key %s | %s" % (r["id"], r["intent"], r.get("expected"), re.sub(r"\s+", " ", r["text"])[:110]))
+    for r in b.values():
+        if r["verdict"] == "WRONG":
+            print("  WRONG %-24s %s | key %s | %s" % (r["id"], r["intent"], r.get("expected"), re.sub(r"\s+", " ", r["text"])[:110]))
     return 0 if (ok and s3["pass"] and s4["pass"]) else 1
+
+
+def run_arms(args):
+    a, b = load_results(args.a), load_results(args.b)
+    c = load_results(args.c) if args.c else None
+    prev = load_results(args.prev) if args.prev else None
+    return report_arms(a, b, c, prev, (args.a, args.c, args.b, args.prev))
 
 
 # ---------------------------------------------------------------- the corpus (S5)
@@ -252,7 +265,7 @@ def main(argv=None):
     sub = parser.add_subparsers(dest="mode", required=True)
     arms = sub.add_parser("arms")
     arms.add_argument("--a", required=True, help="arm A (the lane off), the control")
-    arms.add_argument("--c", required=True, help="the stage 1 arm of the same set (run 13 arm C)")
+    arms.add_argument("--c", help="the stage 1 arm of the same set (run 13 arm C); without it the existing path (arm A) is the baseline of S2")
     arms.add_argument("--b", required=True, help="the lane-first arm under test")
     arms.add_argument("--prev", help="the previous lane-first arm of the same set (Phase 1), for the run 14 'nothing right gets worse' gate")
     corpus = sub.add_parser("corpus")
