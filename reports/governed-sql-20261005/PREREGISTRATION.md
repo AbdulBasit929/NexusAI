@@ -1015,3 +1015,9 @@ Each seed so far, lane first, wrong answers per 161: seed 5, 2 (run 14 code); se
 Seeds 6 and 7, the five intents, the corpus and the pre-flight are not asked again: their prompts are the run 16 prompts and the only check that differs reads a question with units.
 
 **What follows.** All pass: the image is kept (rollback `nexusai-lane-arms-prev:case-clock-run16` = `d7e301c95e02`). Any fails: the run 16 image is put back with `docker tag` and `Enable-LaneStage1`, and the change stays a local patch. Either way stage 1 is on and stage 2 is off when the run ends, and the flip stays with the owner.
+
+## Run 17, built and measured scope (2026-10-09, 00:55, before the new image is asked anything)
+
+**Built.** Code `5d3d0c8` (committed through the lane-scoped hook, no bypass: golangci-lint 0 issues, go vet clean on the host and linux/amd64, the package tests pass), 4 new specs (412 with a database, 408 before), undoing each of 3 pieces (the reading of the units, the line in the question's message, the line in the retry) fails a spec: 3 of 3. Rollback tag `nexusai-lane-arms-prev:case-clock-run16` = `d7e301c95e02` (the image of run 16, the last that was measured whole).
+
+**Reach.** The prompt built by the run 16 code and by this code for every question of the 14 files (the factory sets of runs 14, 5, 6 and 7 on both cases, the corpus, the pre-flight and both probe sets, 2,364 questions): the system prompt is identical for every question, and the user prompt changes for exactly two, `SHAPE-compare_months-01` and `SHAPE2-versus_months-01`. R17-2 asks probes sets 1 and 2 again for that reason and for no other.
