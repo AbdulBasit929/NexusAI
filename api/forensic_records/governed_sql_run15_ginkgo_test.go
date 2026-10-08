@@ -248,6 +248,9 @@ var _ = Describe("Governed SQL run 15 checks", func() {
 				"to_char(event_time, 'Day') IN ('Saturday ', 'Sunday   ')",
 				"TRIM(to_char(event_time, 'Day')) IN ('Saturday', 'Sunday')",
 				"LOWER(to_char(event_time, 'DY')) IN ('sat', 'sun')",
+				"to_char(event_time, 'D') IN ('1', '7')",
+				"to_char(event_time, 'ID') IN ('6', '7')",
+				"to_char(event_time, 'ID')::int >= 6",
 				"EXTRACT(ISODOW FROM event_time)::int IN (6, 7) AND call_duration_seconds > 0",
 			} {
 				Expect(kinds(facts, "SELECT COUNT(*) AS number_of_calls FROM v_cdr WHERE "+where)).To(BeEmpty(), where)
@@ -263,6 +266,8 @@ var _ = Describe("Governed SQL run 15 checks", func() {
 				"EXTRACT(ISODOW FROM event_time) IN (6, 7, 1)",
 				"EXTRACT(ISODOW FROM event_time) = 6",
 				"to_char(event_time, 'Dy') IN ('Fri', 'Sat')",
+				"to_char(event_time, 'D') IN ('6', '7')", // Friday and Saturday in this numbering
+				"to_char(event_time, 'ID') IN ('5', '6')",
 				"EXTRACT(DOW FROM event_time) BETWEEN 1 AND 5",
 			} {
 				Expect(kinds(facts, "SELECT COUNT(*) AS number_of_calls FROM v_cdr WHERE "+where)).To(ConsistOf("DAYS"), where)
@@ -479,6 +484,82 @@ var _ = Describe("Governed SQL run 15 checks", func() {
 		It("passes a month-by-month comparison that does not use the direction field", func() {
 			facts := factsFor("How many call records were there in May 2026 versus June 2026?", "v_cdr")
 			Expect(kinds(facts, "SELECT to_char(event_time, 'YYYY-MM') AS month, COUNT(*) AS number_of_call_records FROM v_cdr WHERE event_time >= '2026-05-01' AND event_time < '2026-07-01' GROUP BY 1 ORDER BY 1")).To(BeEmpty())
+		})
+
+		It("accepts a comparison answered in one row whose columns each count one side, and still refuses one total", func() {
+			facts := factsFor("How many call records were there in May 2026 versus June 2026?", "v_cdr")
+			validate := func(sql string) *govSQLValidated {
+				validated, rejection := govSQLValidate(sql, views)
+				Expect(rejection).To(BeNil())
+				return validated
+			}
+			oneRow := &govSQLResult{Columns: []string{"may_records", "june_records"}, Rows: [][]any{{int64(994), int64(2463)}}}
+			filtered := validate("SELECT COUNT(*) FILTER (WHERE event_time >= '2026-05-01' AND event_time < '2026-06-01') AS may_records, COUNT(*) FILTER (WHERE event_time >= '2026-06-01' AND event_time < '2026-07-01') AS june_records FROM v_cdr")
+			Expect(govSQLConditionalAggregates(filtered.Tree)).To(Equal(2))
+			Expect(govSQLCheckCompare(facts, filtered, oneRow)).To(BeNil())
+			cased := validate("SELECT SUM(CASE WHEN EXTRACT(MONTH FROM event_time) = 5 THEN 1 ELSE 0 END) AS may_records, SUM(CASE WHEN EXTRACT(MONTH FROM event_time) = 6 THEN 1 ELSE 0 END)::int AS june_records FROM v_cdr")
+			Expect(govSQLCheckCompare(facts, cased, oneRow)).To(BeNil())
+			// two unrelated measures are not two sides of a comparison, and one total of both months is not either
+			measures := validate("SELECT COUNT(*) AS records, COUNT(DISTINCT msisdn) AS numbers FROM v_cdr")
+			Expect(govSQLConditionalAggregates(measures.Tree)).To(Equal(0))
+			Expect(govSQLCheckCompare(facts, measures, &govSQLResult{Columns: []string{"records", "numbers"}, Rows: [][]any{{int64(5005), int64(12)}}})).NotTo(BeNil())
+			total := validate("SELECT COUNT(*) AS records FROM v_cdr WHERE event_time >= '2026-05-01' AND event_time < '2026-07-01'")
+			Expect(govSQLCheckCompare(facts, total, &govSQLResult{Columns: []string{"records"}, Rows: [][]any{{int64(3457)}}})).NotTo(BeNil())
+			one := validate("SELECT COUNT(*) FILTER (WHERE event_time >= '2026-05-01') AS since_may FROM v_cdr")
+			Expect(govSQLCheckCompare(facts, one, &govSQLResult{Columns: []string{"since_may"}, Rows: [][]any{{int64(3457)}}})).NotTo(BeNil())
+		})
+	})
+
+	Describe("words for a family that the layer does not list", func() {
+		It("names the subscribers by 'registered numbers' and the access log by 'log entries'", func() {
+			Expect(govSQLNamedViews("How many different account id are in the registered numbers?", all)).To(HaveKey("v_subscriber"))
+			Expect(govSQLNamedViews("How many log entries were there at night?", all)).To(HaveKey("v_access_log"))
+			Expect(govSQLNamedViews("How many calls were there?", all)).NotTo(HaveKey("v_subscriber"))
+			Expect(govSQLNamedViews("How many transactions were there?", all)).NotTo(HaveKey("v_access_log"))
+		})
+
+		It("offers the access log for log entries instead of declining, and the subscribers first for registered numbers", func() {
+			offered := govSQLOffer(all, "How many log entries were there at night?")
+			Expect(offered).NotTo(BeEmpty())
+			Expect(offered[0].Name).To(Equal("v_access_log"))
+			offered = govSQLOffer(all, "How many different account id are in the registered numbers?")
+			Expect(offered).NotTo(BeEmpty())
+			Expect(offered[0].Name).To(Equal("v_subscriber"))
+		})
+
+		It("holds a query about the registered numbers to the subscribers, not to the transactions that share a word with them", func() {
+			question := "How many different account id are in the registered numbers?"
+			facts := factsFor(question, "v_subscriber", "v_transaction")
+			Expect(kinds(facts, "SELECT COUNT(DISTINCT account) AS number_of_accounts FROM v_transaction")).To(ContainElement("VIEW"))
+			Expect(kinds(facts, "SELECT COUNT(DISTINCT subscriber_id) AS number_of_accounts FROM v_subscriber")).NotTo(ContainElement("VIEW"))
+		})
+
+		It("is the lane's own: the shared layer is not changed", func() {
+			layer, _ := defaultSemanticLayer()
+			for _, entity := range layer.Entities {
+				for _, synonym := range entity.Synonyms {
+					Expect(synonym).NotTo(BeElementOf("registered numbers", "log entries"))
+				}
+			}
+		})
+	})
+
+	Describe("an identifier is not a quantity", func() {
+		It("shows a text column exactly as stored whatever the query calls it, and still groups a count", func() {
+			view := &govSQLView{Display: "Call detail records"}
+			named := &govSQLResult{Columns: []string{"most_common_caller", "number_of_calls"}, Texts: []bool{true, false}, Rows: [][]any{{"923001110001", int64(872)}}}
+			Expect(govSQLHeadline(view, named, govSQLQuestionFacts{}, "", nil)).To(Equal("Most common caller: 923001110001; Number of calls: 872."))
+			Expect(govSQLMetrics(view, named)[0]["value"]).To(Equal("923001110001"))
+			Expect(govSQLMetrics(view, named)[1]["value"]).To(Equal("872"))
+			// a NUMERIC result also arrives as a string of digits; it is a quantity and is grouped
+			numeric := &govSQLResult{Columns: []string{"total"}, Texts: []bool{false}, Rows: [][]any{{"1234567"}}}
+			Expect(govSQLHeadline(view, numeric, govSQLQuestionFacts{}, "", nil)).To(Equal("Total: 1,234,567."))
+			// a result that carries no column types (a test double) is read as before
+			plain := &govSQLResult{Columns: []string{"total"}, Rows: [][]any{{"1234567"}}}
+			Expect(govSQLHeadline(view, plain, govSQLQuestionFacts{}, "", nil)).To(Equal("Total: 1,234,567."))
+			// a short list of identifiers, each as stored
+			list := &govSQLResult{Columns: []string{"caller"}, Texts: []bool{true}, Rows: [][]any{{"923001110001"}, {"923461678183"}}}
+			Expect(govSQLHeadline(view, list, govSQLQuestionFacts{}, "", nil)).To(Equal("2 values (caller): 923001110001; 923461678183."))
 		})
 	})
 

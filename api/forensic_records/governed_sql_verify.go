@@ -218,6 +218,23 @@ func govSQLExtractFacts(question string, views []*govSQLView, all []*govSQLView)
 		}
 	}
 
+	// "Calls were made on weekends" counts calls; "made" is a word for OUTGOING only beside an identifier (class X).
+	if len(facts.WeakValues) > 0 {
+		kept := facts.WeakValues[:0]
+		for _, weak := range facts.WeakValues {
+			var dropped bool
+			for _, view := range views {
+				if view.Name == weak.View && govSQLVerbOnlyValue(text, view.entity, govSQLFieldOfColumn(view, weak.Column), weak.Value, len(facts.Identifiers) > 0) {
+					dropped = true
+				}
+			}
+			if !dropped {
+				kept = append(kept, weak)
+			}
+		}
+		facts.WeakValues = kept
+	}
+
 	// A stated magnitude, with the numbers it names.
 	if phrase := questionStatesMagnitudeCondition(govSQLMagnitudeText(text)); phrase != "" {
 		facts.Magnitude = phrase
@@ -251,6 +268,9 @@ func govSQLExtractFacts(question string, views []*govSQLView, all []*govSQLView)
 	facts.WantsCompare = govSQLRxCompare.MatchString(text)
 	facts.WantsRanking = govSQLRxRanking.MatchString(text)
 	facts.Range = govSQLReadDateRange(text)
+	if facts.Range == nil {
+		facts.Range = govSQLReadCalendarWindow(text)
+	}
 	facts.WantsSingle = govSQLRxSingle.MatchString(text) && !govSQLRxGroupCue.MatchString(text) && !facts.WantsCompare
 
 	// A window of the day, the days of the week, and the function the question's superlative needs (run 15).
@@ -630,9 +650,18 @@ func govSQLTimeConstraint(tree *pg.ParseResult, view *govSQLView) (onTimeColumn,
 	}
 	for _, stmt := range tree.Stmts {
 		govSQLWalkTree(stmt.ProtoReflect(), func(msg protoreflect.Message) bool {
-			if sel, ok := msg.Interface().(*pg.SelectStmt); ok {
-				scan(sel.WhereClause)
-				scan(sel.HavingClause)
+			switch n := msg.Interface().(type) {
+			case *pg.SelectStmt:
+				scan(n.WhereClause)
+				scan(n.HavingClause)
+			case *pg.FuncCall:
+				// COUNT(*) FILTER (WHERE month = 5) and SUM(CASE WHEN month = 5 THEN 1 END) put the condition on the
+				// aggregate: a comparison of two months is written that way (run 16, class Q).
+				if n.AggFilter != nil {
+					scan(n.AggFilter)
+				}
+			case *pg.CaseWhen:
+				scan(n.Expr)
 			}
 			return true
 		})
@@ -809,6 +838,7 @@ func govSQLCheck(facts govSQLQuestionFacts, validated *govSQLValidated) []govSQL
 		}
 	}
 	unmet = append(unmet, govSQLCheckView(facts, validated)...)
+	unmet = append(unmet, govSQLCheckLiterals(facts, validated)...)
 	unmet = append(unmet, govSQLCheckGrouping(facts.Question, []*govSQLView{validated.View})...)
 	unmet = append(unmet, govSQLCheckFields(facts, validated)...)
 	unmet = append(unmet, govSQLCheckFilters(facts.Question, facts, validated)...)

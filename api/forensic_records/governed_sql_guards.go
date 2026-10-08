@@ -34,10 +34,67 @@ import (
 // govSQLDateRange is a range of two calendar dates the question gives outright. Both days are in it.
 type govSQLDateRange struct {
 	Start, End string // ISO dates, as written
+	// Calendar is set when the question names a calendar unit, not two dates ("in May 2026", "in 2025", "on 2026-04-02"):
+	// the window is the whole unit, and it is judged leniently (govSQLCheckRange).
+	Calendar string
 }
 
 // "until" and "before" are left out on purpose: they do not say whether the last day is in.
 var govSQLRxDateRange = regexp.MustCompile(`(?i)\b(?:between|from)\s+(\d{4}-\d{2}-\d{2})\s+(?:and|to|through|thru)\s+(\d{4}-\d{2}-\d{2})\b`)
+
+var govSQLMonthNumber = map[string]time.Month{
+	"january": time.January, "jan": time.January, "february": time.February, "feb": time.February, "march": time.March, "mar": time.March,
+	"april": time.April, "apr": time.April, "may": time.May, "june": time.June, "jun": time.June, "july": time.July, "jul": time.July,
+	"august": time.August, "aug": time.August, "september": time.September, "sep": time.September, "sept": time.September,
+	"october": time.October, "oct": time.October, "november": time.November, "nov": time.November, "december": time.December, "dec": time.December,
+}
+
+var (
+	govSQLRxMonthYear = regexp.MustCompile(`(?i)(?:\b(in|during|for|from|of|within)\s+)?\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec)\.?\s+((?:19|20)\d{2})\b`)
+	govSQLRxYearIn    = regexp.MustCompile(`(?i)\b(?:in|during|for|of)\s+((?:19|20)\d{2})\b`)
+	govSQLRxOnDate    = regexp.MustCompile(`(?i)\b(?:on|during)\s+(\d{4}-\d{2}-\d{2})\b`)
+	// A question that compares, or bounds one side, does not name a window.
+	govSQLRxNotAWindow = regexp.MustCompile(`(?i)\b(?:between|since|before|after|until|till|through|thru|versus|vs|compared|compare|last|past|next|previous|this|every|each)\b`)
+)
+
+// govSQLReadCalendarWindow reads the one calendar unit a question names: "in May 2026" is the whole of May, "in 2025"
+// the whole year, "on 2026-04-02" that day. Anything with two units, a comparison or a one-sided bound is not a
+// window and is left to the rest of the verifier.
+func govSQLReadCalendarWindow(text string) *govSQLDateRange {
+	if govSQLRxNotAWindow.MatchString(text) {
+		return nil
+	}
+	months := govSQLRxMonthYear.FindAllStringSubmatch(text, -1)
+	dates := govSQLRxISODate.FindAllString(text, -1)
+	switch {
+	case len(months) == 1 && len(dates) == 0 && !govSQLRxSlashDate.MatchString(text):
+		month, ok := govSQLMonthNumber[strings.ToLower(months[0][2])]
+		var year int
+		_, _ = fmt.Sscanf(months[0][3], "%d", &year)
+		if !ok || year == 0 {
+			return nil
+		}
+		first := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
+		last := first.AddDate(0, 1, -1)
+		return &govSQLDateRange{Start: first.Format("2006-01-02"), End: last.Format("2006-01-02"), Calendar: strings.TrimSpace(months[0][2] + " " + months[0][3])}
+	case len(months) == 0 && len(dates) == 0:
+		years := govSQLRxYearIn.FindAllStringSubmatch(text, -1)
+		if len(years) != 1 {
+			return nil
+		}
+		return &govSQLDateRange{Start: years[0][1] + "-01-01", End: years[0][1] + "-12-31", Calendar: years[0][1]}
+	case len(months) == 0 && len(dates) == 1:
+		on := govSQLRxOnDate.FindStringSubmatch(text)
+		if on == nil {
+			return nil
+		}
+		if _, err := time.Parse("2006-01-02", on[1]); err != nil {
+			return nil
+		}
+		return &govSQLDateRange{Start: on[1], End: on[1], Calendar: on[1]}
+	}
+	return nil
+}
 
 func govSQLReadDateRange(text string) *govSQLDateRange {
 	m := govSQLRxDateRange.FindStringSubmatch(text)
@@ -326,6 +383,11 @@ func govSQLCheckRange(facts govSQLQuestionFacts, validated *govSQLValidated) []g
 	for _, b := range govSQLTimeBounds(validated.Tree, view, loc) {
 		byColumn[b.Column] = append(byColumn[b.Column], b)
 	}
+	// A calendar unit is judged only by the bounds the query puts on a time column: a month read through EXTRACT,
+	// date_trunc or to_char is not a pair of bounds, and a query with no bounds at all is the time check's to flag.
+	if facts.Range.Calendar != "" && (len(byColumn) == 0 || govSQLReadsTimeByFunction(validated.Tree)) {
+		return nil
+	}
 	column := ""
 	for name, bounds := range byColumn {
 		lower, upper := false, false
@@ -462,10 +524,55 @@ var govSQLRxCompare = regexp.MustCompile(`(?i)\b(?:versus|vs\.?|compared\s+(?:to
 
 var govSQLRxRanking = regexp.MustCompile(`(?i)\b(?:most|least|top|highest|lowest|frequent(?:ly)?|common(?:ly)?|rank(?:ed|ing)?)\b`)
 
-// govSQLCheckCompare: a question that compares values asks for one row per value. One total answers a
-// different question (Phase 1, corpus CDR-13: "incoming versus outgoing" answered with one total of calls).
-func govSQLCheckCompare(facts govSQLQuestionFacts, result *govSQLResult) *govSQLObligation {
+// govSQLConditionalAggregates counts the columns of the outermost SELECT that count or add up one side of a
+// comparison inside a single row: COUNT(*) FILTER (WHERE month = 5), SUM(CASE WHEN ... THEN 1 END).
+func govSQLConditionalAggregates(tree *pg.ParseResult) int {
+	if tree == nil || len(tree.Stmts) == 0 || tree.Stmts[0].Stmt == nil || tree.Stmts[0].Stmt.GetSelectStmt() == nil {
+		return 0
+	}
+	count := 0
+	for _, target := range tree.Stmts[0].Stmt.GetSelectStmt().TargetList {
+		node := target
+		if res := target.GetResTarget(); res != nil {
+			node = res.Val
+		}
+		for node != nil && node.GetTypeCast() != nil {
+			node = node.GetTypeCast().Arg
+		}
+		if node == nil || node.GetFuncCall() == nil {
+			continue
+		}
+		call := node.GetFuncCall()
+		switch govSQLFuncName(call) {
+		case "count", "sum", "avg", "min", "max":
+		default:
+			continue
+		}
+		conditional := call.AggFilter != nil
+		for _, arg := range call.Args {
+			govSQLWalkTree(arg.ProtoReflect(), func(msg protoreflect.Message) bool {
+				if _, ok := msg.Interface().(*pg.CaseExpr); ok {
+					conditional = true
+				}
+				return !conditional
+			})
+		}
+		if conditional {
+			count++
+		}
+	}
+	return count
+}
+
+// govSQLCheckCompare: a question that compares values asks for a value for each: one row per value, or one row
+// whose columns each count one side (COUNT(*) FILTER (WHERE ...)). One total answers a different question (Phase 1,
+// corpus CDR-13: "incoming versus outgoing" answered with one total of calls). A one-row answer with two
+// conditional columns was declined as "one value" by run 14 (run 15 probe SHAPE-compare_months-01).
+func govSQLCheckCompare(facts govSQLQuestionFacts, validated *govSQLValidated, result *govSQLResult) *govSQLObligation {
 	if !facts.WantsCompare || len(result.Rows) >= 2 {
+		return nil
+	}
+	if validated != nil && len(result.Rows) == 1 && len(result.Columns) >= 2 && govSQLConditionalAggregates(validated.Tree) >= 2 {
 		return nil
 	}
 	return &govSQLObligation{

@@ -261,6 +261,8 @@ const (
 	govSQLTermDOW                // EXTRACT(DOW FROM x): Sunday 0 ... Saturday 6
 	govSQLTermISODOW             // EXTRACT(ISODOW FROM x): Monday 1 ... Sunday 7
 	govSQLTermDayName            // to_char(x, 'Dy') or 'Day'
+	govSQLTermDayD               // to_char(x, 'D'): Sunday 1 ... Saturday 7, as text
+	govSQLTermDayID              // to_char(x, 'ID'): Monday 1 ... Sunday 7, as text
 )
 
 var govSQLNumericCasts = map[string]bool{
@@ -314,6 +316,10 @@ func govSQLTermOf(node *pg.Node) govSQLTerm {
 				switch strings.TrimPrefix(strings.ToLower(strings.TrimSpace(format)), "fm") {
 				case "dy", "day":
 					return govSQLTermDayName
+				case "d":
+					return govSQLTermDayD
+				case "id":
+					return govSQLTermDayID
 				}
 				return govSQLTermNone
 			case "trim", "btrim", "ltrim", "rtrim", "lower", "upper":
@@ -520,6 +526,10 @@ func (e *govSQLEvaluation) atom(x *pg.A_Expr) govSQLPredicate {
 			}
 			seconds, good := govSQLClockSeconds(text)
 			return seconds, "", good
+		case (term == govSQLTermDayD || term == govSQLTermDayID) && isText:
+			// to_char returns text, so the day number is compared with '1', '7'
+			f, err := strconv.ParseFloat(strings.TrimSpace(text), 64)
+			return f, "", err == nil
 		default:
 			return n, "", isNum
 		}
@@ -836,13 +846,15 @@ func govSQLCheckWindow(facts govSQLQuestionFacts, validated *govSQLValidated) []
 	if s := facts.Days; s != nil {
 		e := &govSQLEvaluation{
 			reads: func(t govSQLTerm) bool {
-				return t == govSQLTermDOW || t == govSQLTermISODOW || t == govSQLTermDayName
+				return t == govSQLTermDOW || t == govSQLTermISODOW || t == govSQLTermDayName || t == govSQLTermDayD || t == govSQLTermDayID
 			},
 			value: func(t govSQLTerm, day int) (float64, string) {
 				switch t {
 				case govSQLTermDOW:
 					return float64(day), ""
-				case govSQLTermISODOW:
+				case govSQLTermDayD:
+					return float64(day + 1), ""
+				case govSQLTermISODOW, govSQLTermDayID:
 					if day == 0 {
 						return 7, ""
 					}
@@ -912,7 +924,7 @@ func govSQLWindowHints(facts govSQLQuestionFacts, view *govSQLView) []string {
 			w.Phrase, w.Start, w.End%24, govSQLJoinWords(govSQLIntWords(w.hours())), govSQLWindowAdvice(w, target)))
 	}
 	if s := facts.Days; s != nil {
-		hints = append(hints, fmt.Sprintf("The question names the days %s. Day numbers differ: EXTRACT(ISODOW FROM column) is 1 for Monday to 7 for Sunday (EXTRACT(DOW ...) is 0 for Sunday to 6 for Saturday). Use EXTRACT(ISODOW FROM column) IN (%s) on %s.",
+		hints = append(hints, fmt.Sprintf("The question names the days %s. Day numbers differ: EXTRACT(ISODOW FROM column) is 1 for Monday to 7 for Sunday (EXTRACT(DOW ...) is 0 for Sunday to 6 for Saturday, and to_char(column, 'D') is 1 for Sunday to 7 for Saturday). Use EXTRACT(ISODOW FROM column) IN (%s) on %s.",
 			govSQLJoinWords(s.names()), strings.Join(s.isodow(), ", "), target))
 	}
 	return hints

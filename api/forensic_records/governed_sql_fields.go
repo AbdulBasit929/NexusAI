@@ -277,6 +277,10 @@ func govSQLCheckFilters(question string, facts govSQLQuestionFacts, validated *g
 	}
 	grounded := func(column, value string) bool {
 		for _, phrase := range valuePhrases[column+"\x00"+strings.ToLower(value)] {
+			// "made" and "received" are words for a direction only beside an identifier (class X)
+			if govSQLVerbPhrase(phrase) && len(facts.Identifiers) == 0 {
+				continue
+			}
 			if phraseIn(phrase) {
 				return true
 			}
@@ -335,6 +339,16 @@ func govSQLCheckFilters(question string, facts govSQLQuestionFacts, validated *g
 		}
 	}
 	return unmet
+}
+
+// govSQLFieldOfColumn is the layer field a view column was made from.
+func govSQLFieldOfColumn(view *govSQLView, column string) string {
+	for _, c := range view.Columns {
+		if c.Name == column {
+			return c.FieldID
+		}
+	}
+	return ""
 }
 
 // govSQLNamedViews are the views whose own name the question uses ("data sessions" is

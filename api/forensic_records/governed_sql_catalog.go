@@ -193,7 +193,7 @@ func govSQLViews(layer *SemanticLayerV1, req hybridQueryRequest) []*govSQLView {
 		scoped.RecordType = entity.RecordType
 		view := &govSQLView{
 			Name: name, Family: entity.Family, RecordType: entity.RecordType, Display: entity.DisplayName,
-			Description: govSQLFirstSentence(entity.Description, 200), Synonyms: append([]string(nil), entity.Synonyms...),
+			Description: govSQLFirstSentence(entity.Description, 200), Synonyms: append(append([]string(nil), entity.Synonyms...), govSQLLaneSynonyms[prefix]...),
 			entity: entity,
 			binding: sourceNativeBinding{
 				Table: semanticSourceTables[entity.Source.resolvedTable()], Payload: entity.Source.resolvedPayload(),

@@ -497,7 +497,9 @@ var _ = Describe("Governed SQL lane (with a database)", func() {
 			Expect(resp).To(BeNil(), q)
 			Expect(audit.State).To(Equal("declined"), q)
 		}
-		resp, audit := ask("How many log entries did Nadia Farooqui have?")
+		// "log entries" named no family until run 16 gave the lane its own word for the access log, so the example is a noun
+		// no family has
+		resp, audit := ask("How many widgets did Nadia Farooqui have?")
 		Expect(resp).NotTo(BeNil(), audit.Reason)
 		Expect(audit.State).To(Equal("abstained"))
 		Expect(model.calls).To(BeEmpty())

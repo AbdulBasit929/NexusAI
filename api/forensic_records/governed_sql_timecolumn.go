@@ -145,9 +145,16 @@ func govSQLPredicateTimeColumns(tree *pg.ParseResult, view *govSQLView) []string
 	}
 	for _, stmt := range tree.Stmts {
 		govSQLWalkTree(stmt.ProtoReflect(), func(msg protoreflect.Message) bool {
-			if sel, ok := msg.Interface().(*pg.SelectStmt); ok {
-				scan(sel.WhereClause)
-				scan(sel.HavingClause)
+			switch n := msg.Interface().(type) {
+			case *pg.SelectStmt:
+				scan(n.WhereClause)
+				scan(n.HavingClause)
+			case *pg.FuncCall:
+				if n.AggFilter != nil {
+					scan(n.AggFilter)
+				}
+			case *pg.CaseWhen:
+				scan(n.Expr)
 			}
 			return true
 		})

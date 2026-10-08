@@ -11,6 +11,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -47,11 +48,36 @@ type govSQLResult struct {
 	Columns []string
 	// Labels is what each column is called in the answer, where that is not simply the column's own name
 	// (a count of distinct values says so). Empty means the humanised column name.
-	Labels    []string
+	Labels []string
+	// Texts says, for each column, that the database returned text: a phone number, a plate or a word, never a
+	// quantity, whatever alias the query gave the column.
+	Texts     []bool
 	Rows      [][]any
 	Truncated bool
 	ElapsedMS int64
 	PlanCost  float64
+}
+
+// cell formats the value of column i. A value in a text column is shown exactly as stored (an identifier is not a
+// quantity: 923001110001 is not "923,001,110,001"), whatever alias the query gave the column; the view's own labels
+// for a value are used where the column is the view's.
+func (r *govSQLResult) cell(view *govSQLView, i int, value any) string {
+	if text, ok := value.(string); ok && i < len(r.Texts) && r.Texts[i] {
+		if view != nil && i < len(r.Columns) {
+			for _, c := range view.Columns {
+				if c.Name == r.Columns[i] && c.Type == "text" {
+					if label := c.Labels[text]; label != "" {
+						return label
+					}
+				}
+			}
+		}
+		return text
+	}
+	if i < len(r.Columns) {
+		return govSQLFormatCell(view, r.Columns[i], value)
+	}
+	return govSQLFormatValue(value)
 }
 
 // label is the name the answer gives column i.
@@ -146,9 +172,11 @@ func govSQLRun(ctx context.Context, db *pgxpool.Pool, tenantID, final string, ar
 	descriptions := rows.FieldDescriptions()
 	result := &govSQLResult{Columns: make([]string, len(descriptions)), PlanCost: cost}
 	columnTypes := make([]uint32, len(descriptions))
+	result.Texts = make([]bool, len(descriptions))
 	for i, d := range descriptions {
 		result.Columns[i] = string(d.Name)
 		columnTypes[i] = d.DataTypeOID
+		result.Texts[i] = d.DataTypeOID == pgtype.TextOID || d.DataTypeOID == pgtype.VarcharOID || d.DataTypeOID == pgtype.BPCharOID
 	}
 	for rows.Next() {
 		values, err := rows.Values()

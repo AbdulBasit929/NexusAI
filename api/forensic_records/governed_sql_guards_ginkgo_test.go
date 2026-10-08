@@ -203,9 +203,9 @@ var _ = Describe("Governed SQL guards (no database)", func() {
 
 		It("refuses one total for a comparison and accepts one row per value", func() {
 			facts := factsFor("How many incoming versus outgoing calls are there?", "v_cdr")
-			Expect(govSQLCheckCompare(facts, &govSQLResult{Columns: []string{"n"}, Rows: [][]any{{int64(5500)}}})).NotTo(BeNil())
-			Expect(govSQLCheckCompare(facts, &govSQLResult{Columns: []string{"direction", "n"}, Rows: [][]any{{"INCOMING", int64(2906)}, {"OUTGOING", int64(2592)}}})).To(BeNil())
-			Expect(govSQLCheckCompare(factsFor("How many calls are there?", "v_cdr"), &govSQLResult{Columns: []string{"n"}, Rows: [][]any{{int64(5500)}}})).To(BeNil())
+			Expect(govSQLCheckCompare(facts, nil, &govSQLResult{Columns: []string{"n"}, Rows: [][]any{{int64(5500)}}})).NotTo(BeNil())
+			Expect(govSQLCheckCompare(facts, nil, &govSQLResult{Columns: []string{"direction", "n"}, Rows: [][]any{{"INCOMING", int64(2906)}, {"OUTGOING", int64(2592)}}})).To(BeNil())
+			Expect(govSQLCheckCompare(factsFor("How many calls are there?", "v_cdr"), nil, &govSQLResult{Columns: []string{"n"}, Rows: [][]any{{int64(5500)}}})).To(BeNil())
 		})
 	})
 

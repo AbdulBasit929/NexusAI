@@ -290,7 +290,7 @@ func runGovernedSQLLane(ctx context.Context, cfg config, db *pgxpool.Pool, req h
 		}
 		// What the result shows, read against what the question asked (governed_sql_guards.go). A second miss
 		// declines, so the existing path answers as it would without the lane.
-		if compare := govSQLCheckCompare(facts, result); compare != nil {
+		if compare := govSQLCheckCompare(facts, validated, result); compare != nil {
 			audit.noteUnmet(*compare)
 			if last {
 				return decline("the result was one value where the question compares values")
@@ -402,7 +402,9 @@ func govSQLConditionsChecked(facts govSQLQuestionFacts) []string {
 	if len(facts.TimeCues) > 0 {
 		out = append(out, "time: "+strings.Join(facts.TimeCues, ", "))
 	}
-	if facts.Range != nil {
+	if facts.Range != nil && facts.Range.Calendar != "" {
+		out = append(out, fmt.Sprintf("window: %s, the whole of it (%s to %s)", facts.Range.Calendar, facts.Range.Start, facts.Range.End))
+	} else if facts.Range != nil {
 		out = append(out, fmt.Sprintf("range: %s to %s, both days in full", facts.Range.Start, facts.Range.End))
 	}
 	if facts.WantsCompare {
@@ -680,11 +682,11 @@ func govSQLHeadline(view *govSQLView, result *govSQLResult, facts govSQLQuestion
 	case len(result.Rows) == 0:
 		return "The query matched no rows."
 	case len(result.Rows) == 1 && len(result.Columns) == 1:
-		return fmt.Sprintf("%s: %s.", result.label(0), govSQLFormatCell(view, result.Columns[0], result.Rows[0][0]))
+		return fmt.Sprintf("%s: %s.", result.label(0), result.cell(view, 0, result.Rows[0][0]))
 	case len(result.Rows) == 1:
 		parts := make([]string, 0, len(result.Columns))
-		for i, column := range result.Columns {
-			parts = append(parts, fmt.Sprintf("%s: %s", result.label(i), govSQLFormatCell(view, column, result.Rows[0][i])))
+		for i := range result.Columns {
+			parts = append(parts, fmt.Sprintf("%s: %s", result.label(i), result.cell(view, i, result.Rows[0][i])))
 		}
 		return strings.Join(parts, "; ") + "."
 	case len(result.Columns) == 2 && len(result.Rows) <= 12 && !facts.WantsSingle:
@@ -692,13 +694,13 @@ func govSQLHeadline(view *govSQLView, result *govSQLResult, facts govSQLQuestion
 		// instead of naming the first row "top".
 		parts := make([]string, 0, len(result.Rows))
 		for _, row := range result.Rows {
-			parts = append(parts, fmt.Sprintf("%s: %s", govSQLFormatCell(view, result.Columns[0], row[0]), govSQLFormatCell(view, result.Columns[1], row[1])))
+			parts = append(parts, fmt.Sprintf("%s: %s", result.cell(view, 0, row[0]), result.cell(view, 1, row[1])))
 		}
 		return fmt.Sprintf("%d rows (%s by %s). In full: %s.", len(result.Rows), strings.ToLower(result.label(1)), strings.ToLower(result.label(0)), strings.Join(parts, "; "))
 	case len(result.Columns) == 1 && len(result.Rows) <= 10:
 		values := make([]string, 0, len(result.Rows))
 		for _, row := range result.Rows {
-			values = append(values, govSQLFormatCell(view, result.Columns[0], row[0]))
+			values = append(values, result.cell(view, 0, row[0]))
 		}
 		return fmt.Sprintf("%d values (%s): %s.", len(result.Rows), strings.ToLower(result.label(0)), strings.Join(values, "; "))
 	default:
@@ -817,8 +819,8 @@ func govSQLMetrics(view *govSQLView, result *govSQLResult) []map[string]any {
 		return []map[string]any{}
 	}
 	metrics := make([]map[string]any, 0, len(result.Columns))
-	for i, column := range result.Columns {
-		metrics = append(metrics, map[string]any{"label": result.label(i), "value": govSQLFormatCell(view, column, result.Rows[0][i]), "source": "governed_sql"})
+	for i := range result.Columns {
+		metrics = append(metrics, map[string]any{"label": result.label(i), "value": result.cell(view, i, result.Rows[0][i]), "source": "governed_sql"})
 	}
 	return metrics
 }
