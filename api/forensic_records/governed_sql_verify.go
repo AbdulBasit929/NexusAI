@@ -49,15 +49,16 @@ type govSQLQuestionFacts struct {
 	TimeOfDay    bool
 	Names        []string
 	WantsSingle  bool
-	WantsCompare bool               // "A versus B": one row per value, never one total (governed_sql_guards.go)
-	WantsRanking bool               // "most", "top", "least": a ranking over a group
-	Range        *govSQLDateRange   // two dates given outright: both days are in
-	Window       *govSQLClockWindow // "between 11 pm and 3 am": the hours it keeps (governed_sql_window.go)
-	Days         *govSQLDaySet      // "weekends", "on a Saturday or a Sunday": the days it keeps
-	WantsMax     bool               // highest, largest, longest, latest ...: a MAX (governed_sql_aggregate.go)
-	WantsMin     bool               // lowest, smallest, shortest, earliest ...: a MIN
-	WantsAvg     bool               // average, mean: an AVG
-	WantsDate    bool               // "which day": the date, not the day of the month
+	WantsCompare bool                // "A versus B": one row per value, never one total (governed_sql_guards.go)
+	WantsRanking bool                // "most", "top", "least": a ranking over a group
+	Range        *govSQLDateRange    // two dates given outright: both days are in
+	Window       *govSQLClockWindow  // "between 11 pm and 3 am": the hours it keeps (governed_sql_window.go)
+	Days         *govSQLDaySet       // "weekends", "on a Saturday or a Sunday": the days it keeps
+	WantsMax     bool                // highest, largest, longest, latest ...: a MAX (governed_sql_aggregate.go)
+	WantsMin     bool                // lowest, smallest, shortest, earliest ...: a MIN
+	WantsAvg     bool                // average, mean: an AVG
+	WantsDate    bool                // "which day": the date, not the day of the month
+	CompareUnits *govSQLCompareUnits // "May 2026 versus June 2026": the months compared, one row each
 	WithheldAttr string
 	Fields       []govSQLFieldFact // columns the question names by a word only that column answers to
 	NamedViews   map[string]bool   // evidence families the question names outright
@@ -280,6 +281,7 @@ func govSQLExtractFacts(question string, views []*govSQLView, all []*govSQLView)
 	facts.WantsMin = govSQLRxWantsMin.MatchString(text)
 	facts.WantsAvg = govSQLRxWantsAvg.MatchString(text)
 	facts.WantsDate = govSQLRxWhichDay.MatchString(text) && !govSQLRxDayPart.MatchString(text)
+	facts.CompareUnits = govSQLReadCompareUnits(text)
 
 	// An attribute the evidence withholds (a person's name, a national ID): the
 	// curated layer says which fields are PII or RESTRICTED and what they are called.

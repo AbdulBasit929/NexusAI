@@ -524,6 +524,60 @@ var govSQLRxCompare = regexp.MustCompile(`(?i)\b(?:versus|vs\.?|compared\s+(?:to
 
 var govSQLRxRanking = regexp.MustCompile(`(?i)\b(?:most|least|top|highest|lowest|frequent(?:ly)?|common(?:ly)?|rank(?:ed|ing)?)\b`)
 
+// govSQLCompareUnits are the calendar units a comparison sets side by side: "May 2026 versus June 2026". The values
+// compared are not a column, so "one row per value" says nothing the model can act on (run 15, probes
+// SHAPE-compare_months-01 and SHAPE2-versus_months-01: declined four times in four); the unit and its keys can be said.
+type govSQLCompareUnits struct {
+	Unit   string   // "month", "year" or "day"
+	Keys   []string // 2026-05, 2026-06 / 2025, 2026 / 2026-04-02, 2026-04-03
+	Format string   // the to_char format that gives such a key
+}
+
+var govSQLRxBareYear = regexp.MustCompile(`\b((?:19|20)\d{2})\b`)
+
+// govSQLReadCompareUnits reads two or more months, years or days of a question that compares them.
+func govSQLReadCompareUnits(text string) *govSQLCompareUnits {
+	if !govSQLRxCompare.MatchString(text) {
+		return nil
+	}
+	if months := govSQLRxMonthYear.FindAllStringSubmatch(text, -1); len(months) >= 2 {
+		keys := make([]string, 0, len(months))
+		for _, m := range months {
+			month, ok := govSQLMonthNumber[strings.ToLower(m[2])]
+			if !ok {
+				return nil
+			}
+			var year int
+			_, _ = fmt.Sscanf(m[3], "%d", &year)
+			keys = append(keys, fmt.Sprintf("%04d-%02d", year, int(month)))
+		}
+		return &govSQLCompareUnits{Unit: "month", Keys: keys, Format: "YYYY-MM"}
+	}
+	if dates := govSQLRxISODate.FindAllString(text, -1); len(dates) >= 2 {
+		return &govSQLCompareUnits{Unit: "day", Keys: dates, Format: "YYYY-MM-DD"}
+	}
+	if !govSQLRxMonth.MatchString(text) {
+		seen := map[string]bool{}
+		var keys []string
+		for _, y := range govSQLRxBareYear.FindAllString(text, -1) {
+			if !seen[y] {
+				seen[y] = true
+				keys = append(keys, y)
+			}
+		}
+		if len(keys) >= 2 {
+			return &govSQLCompareUnits{Unit: "year", Keys: keys, Format: "YYYY"}
+		}
+	}
+	return nil
+}
+
+// advice says how to write such a comparison: one row per unit, grouped on the unit's key.
+func (c *govSQLCompareUnits) advice(target string) string {
+	return fmt.Sprintf("The question compares %ss (%s). Return one row per %s: SELECT to_char(column, '%s') AS %s, COUNT(*) AS number_of_records FROM the view WHERE the time column is within one of those %ss GROUP BY 1 ORDER BY 1, with the time condition on %s.",
+		c.Unit, strings.Join(c.Keys, ", "), c.Unit, c.Format, c.Unit, c.Unit, target)
+}
+
 // govSQLConditionalAggregates counts the columns of the outermost SELECT that count or add up one side of a
 // comparison inside a single row: COUNT(*) FILTER (WHERE month = 5), SUM(CASE WHEN ... THEN 1 END).
 func govSQLConditionalAggregates(tree *pg.ParseResult) int {
@@ -575,9 +629,17 @@ func govSQLCheckCompare(facts govSQLQuestionFacts, validated *govSQLValidated, r
 	if validated != nil && len(result.Rows) == 1 && len(result.Columns) >= 2 && govSQLConditionalAggregates(validated.Tree) >= 2 {
 		return nil
 	}
+	message := "The question compares values, so it needs one row per value: GROUP BY the column that holds them and return the count of each, not one total."
+	if facts.CompareUnits != nil {
+		target := "the record's time column"
+		if validated != nil && validated.View != nil {
+			target = govSQLTimeTarget(facts.Question, validated.View)
+		}
+		message = "The question compares values, so it needs one row per value, not one total. " + facts.CompareUnits.advice(target)
+	}
 	return &govSQLObligation{
 		Kind: "SHAPE", Subject: "comparison",
-		Message: "The question compares values, so it needs one row per value: GROUP BY the column that holds them and return the count of each, not one total.",
+		Message: message,
 		Reason:  "the query returned one value where the question compares values",
 	}
 }
