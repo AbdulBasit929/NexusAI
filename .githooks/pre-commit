@@ -47,12 +47,26 @@ if [ "$go_changed" -eq 1 ]; then
 		fi
 	done
 
-	echo "pre-commit ▶ golangci-lint (make lint${lint_base:+, new-from $lint_base})"
-	make lint LINT_NEW_FROM="$lint_base"
+	# A commit confined to the governed SQL lane's package (the Go files directly in api/forensic_records/) is held to that package's own
+	# checks. The coverage gate measures ./pkg, ./core and tests/e2e and never api/, so it cannot see these files;
+	# and the repo-wide lint and the gate need files this repository was imported without (tests/e2e/mock-backend,
+	# pkg/opus/shim), so they cannot pass here on any platform (docs/work/COMMIT_GATE_REPAIR_20261008.md).
+	# NEXUS_FULL_HOOK=1 runs the full gate anyway.
+	other_go="$(echo "$staged" | grep -E '\.go$' | grep -vE '^api/forensic_records/[^/]+\.go$' || true)"
+	if [ -z "$other_go" ] && [ "${NEXUS_FULL_HOOK:-0}" != "1" ]; then
+		echo "pre-commit ▶ lane-only Go change: golangci-lint, go vet (host and linux/amd64) and the package tests"
+		golangci-lint run ${lint_base:+--new-from-merge-base=$lint_base} ./api/forensic_records/
+		go vet ./api/forensic_records/
+		GOOS=linux GOARCH=amd64 go vet ./api/forensic_records/
+		go test -count=1 ./api/forensic_records/
+	else
+		echo "pre-commit ▶ golangci-lint (make lint${lint_base:+, new-from $lint_base})"
+		make lint LINT_NEW_FROM="$lint_base"
 
-	echo "pre-commit ▶ coverage gate (make test-coverage-check) — builds and runs the"
-	echo "             pkg/core suites plus tests/e2e; can take a few minutes."
-	make test-coverage-check
+		echo "pre-commit ▶ coverage gate (make test-coverage-check) — builds and runs the"
+		echo "             pkg/core suites plus tests/e2e; can take a few minutes."
+		make test-coverage-check
+	fi
 fi
 
 if [ "$ui_changed" -eq 1 ]; then
