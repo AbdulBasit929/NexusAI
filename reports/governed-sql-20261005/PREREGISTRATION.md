@@ -584,3 +584,30 @@ B-P1 held: **12 of 13**; the miss is the demo `CDR-date_range-01`, which the lan
 | S6 (G8) time | reported: median, 90th percentile and maximum of model time and total time for lane answers |
 
 **The goal reading, reported and not gated:** the roadmap's targets of at least 90% correct and at most 1% confident-wrong on in-scope questions. **If a gate fails:** a taxonomy and a smaller scope; the switch stays off and nothing is reworded. **What the result can and cannot decide:** passing S1 to S5 on these sets is the evidence for proposing stage 2 as the default for the structured families; it does not cover text and media evidence (roadmap R5) or any question the factory does not generate.
+
+## Run 13 results (2026-10-08): part A passes every gate; part B fixes two abstentions and finds the next defect
+
+Image `nexusai-forensic-records-api:latest` (`5d07f125d867`, built from `fbafd02b`, committed with the third and last one-time `--no-verify`, spent), stage 1; the previous images are tagged `nexusai-lane-arms-prev:case-clock-run12`, `:case-clock-run11` and `:before-case-clock`. Same `-clock` question files and spreads as runs 11 and 12; tags `-mm13`, `-v2-13` (part A) and `-mm13b`, `-v2-13b` (part B).
+
+**Part A (arm C, stage 1).**
+
+| Set | Run 12 arm C | **Run 13 arm C** |
+|---|---|---|
+| multimodal (79) | 56 correct, 19 wrong, 3 abstained, 1 error | **57 correct (72.2%), 19 wrong, 2 abstained, 1 error** |
+| demo unseen (82) | 61 correct, 18 wrong, 3 abstained | **61 correct (74.4%), 18 wrong, 3 abstained** (identical, no verdict or text change) |
+
+The lane answered 23 of 23 (multimodal) and 19 of 19 (demo) correctly. The only difference from run 12 on either set is the one predicted (P1): multimodal `SUBS-date_range-01`, the lane's abstention in every earlier run, is answered **2**, its key, on the first attempt. Gates: T1, T2, T3 (against run 10's arm C, multimodal), T3b, T4, T5 (12 and 13 asked again, all name the clock) and T6 all pass on both sets. P3 held.
+
+**Part B (lane first, the 42 time questions; stage 1 put back and checked).**
+
+| Set | Stage 1 (run 12 arm C, same questions) | Lane first |
+|---|---|---|
+| multimodal, 20 | 13 correct, 6 wrong, 1 abstained | **20 correct** |
+| demo unseen, 22 | 15 correct, 7 wrong | 21 correct, **1 wrong** |
+| both, 42 | 28 correct, 13 wrong, 1 abstained | **41 correct, 1 wrong** |
+
+B2 and B3 pass on both sets, and B2 now passes for the first time: the demo `SUBS-date_range-01` is answered **1** (it was the B2 miss in run 12). B-P1 held: 12 of the 13 questions the existing path got wrong are right. **B1 fails on the demo set: `CDR-date_range-01` ("between 2026-04-26 and 2026-05-30") was answered 914, key 1,013.** P2 (at least 2 of the 3 abstentions become right answers) held in number (multimodal subscriber 2, demo subscriber 1), but the third went from an abstention to a wrong number.
+
+**Taxonomy of the one wrong answer: the end date of a range was excluded.** Counted on the demo case, 914 is `>= '2026-04-26' AND < '2026-05-30'`: the whole last day (30 May) is missing. The key, 1,013, is `< '2026-05-31'`; `BETWEEN '2026-04-26' AND '2026-05-30'` on a timestamp gives 921 (the last day stops at its midnight); the existing path's 912 is a separate reading (stored UTC with midnight bounds). A person who writes "between the 26th and the 30th" means both days in full, and the verifier does not check it. The multimodal CDR date range was answered right (1,373) because that query covered whole days. It is a defect of the checker's coverage, not of the clock or the data, and it is not an abstention: it is the confident wrong number the lane exists to avoid, so it is fixed before stage 2.
+
+**Reading for stage 2.** Part B now shows 41 of 42 time questions right lane-first against 28 in stage 1, with 13 wrong answers removed and 1 added. **Smaller-scope fix, proposed and not implemented:** a deterministic check that a bound at the end date of "between D1 and D2" includes the whole day (`::date` comparison, or an upper bound at the day after), with the day after named in the question's own hint. It is held for the next fix round together with whatever Phase 1 finds, so that one Go commit carries all of it.

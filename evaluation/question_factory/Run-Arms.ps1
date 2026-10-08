@@ -308,14 +308,15 @@ function Compare-Arms {
 # Gate G2: the 103-question corpus and the 38-question pre-flight, with the lane off (A), after the old path (C) and first (B). Read the DIFFERENCES that
 # compare prints: every question the existing path answered must have identical text.
 function Run-Regression {
-  param([ValidateSet('A', 'B', 'C')][string]$Arm)
+  # -Tag keeps a new round apart from the earlier results (replay-lane-B-p1, preflight-lane-B-p1); without it the run overwrites replay-lane-B.
+  param([ValidateSet('A', 'B', 'C')][string]$Arm, [string]$Tag = '')
   $s = Set-Arm -Arm $Arm
   $keyLine = $s.Env | Where-Object { $_ -like 'FORENSIC_RECORDS_API_KEY=*' -or $_ -like 'FORENSIC_API_KEY=*' } | Select-Object -First 1
   $env:FORENSIC_RECORDS_API_KEY = $keyLine.Substring($keyLine.IndexOf('=') + 1)
   Push-Location (Join-Path $script:Repo "reports\free-question-baseline-20261002")
   try {
-    python replay_corpus.py run "replay-lane-$Arm"
-    $out = Join-Path (Get-Location) "preflight-lane-$Arm"; New-Item -ItemType Directory -Force $out | Out-Null
+    python replay_corpus.py run "replay-lane-$Arm$Tag"
+    $out = Join-Path (Get-Location) "preflight-lane-$Arm$Tag"; New-Item -ItemType Directory -Force $out | Out-Null
     $env:NEXUSAI_OUT = $out; python preflight.py; Remove-Item Env:\NEXUSAI_OUT -ErrorAction SilentlyContinue
   } finally { Pop-Location; Remove-Item Env:\FORENSIC_RECORDS_API_KEY -ErrorAction SilentlyContinue }
 }
