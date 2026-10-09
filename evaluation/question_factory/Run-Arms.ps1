@@ -225,7 +225,9 @@ function Disable-Lane { [void](Set-Arm -Arm A); Show-Stack }
 # Ask the running API one or more questions the way the UI does, and show the answer, which path produced it (the X-Governed-SQL header)
 # and the query the lane ran. Read-only. Example:  Ask-Case "How many calls did 923001110001 make?"
 function Ask-Case {
-  param([Parameter(Mandatory, ValueFromRemainingArguments)][string[]]$Question, [string]$Collection = 'nexusai-forensic-demo')
+  # Position = 0 is what lets Ask-Case "q1" "q2" work: without it a parameter that takes the remaining arguments is not positional,
+  # and the first question was bound to -Collection (an empty case, so a count of 0).
+  param([Parameter(Mandatory, Position = 0, ValueFromRemainingArguments)][string[]]$Question, [string]$Collection = 'nexusai-forensic-demo')
   $s = Get-Stack
   $keyLine = $s.Env | Where-Object { $_ -like 'FORENSIC_RECORDS_API_KEY=*' -or $_ -like 'FORENSIC_API_KEY=*' } | Select-Object -First 1
   $key = $keyLine.Substring($keyLine.IndexOf('=') + 1)
