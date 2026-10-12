@@ -34,7 +34,7 @@ DOT_DMY = re.compile(r"^(\d{2})\.(\d{2})\.(\d{4}) (\d{1,2}):(\d{2}):(\d{2})$")
 class TimeResult:
     value: datetime | None            # naive wall-clock time as written (or rounded from an Excel serial)
     format: str | None                # which declared format read it
-    issue: str | None = None          # unparsed | ambiguous_date_order
+    issue: str | None = None          # unparsed | ambiguous_date_order | date_order_conflict
     offset: str | None = None         # an explicit offset written in the value (such as +05:00), if any
     order: str | None = None          # DMY or MDY for slash dates, and how it was settled
     order_source: str | None = None   # declared | structure_proven
@@ -54,12 +54,20 @@ def excel_serial_to_datetime(text: str) -> datetime | None:
 
 
 def _slash_order(first: int, second: int, declared: str | None) -> tuple[str | None, str | None]:
-    if first > 12 and second <= 12:
-        return "DMY", "structure_proven"
-    if second > 12 and first <= 12:
-        return "MDY", "structure_proven"
-    if first <= 12 and second <= 12 and declared in ("DMY", "MDY"):
-        return declared, "declared"
+    """The day-or-month order of a slash date. Structure can prove it for one value (a part above 12 cannot be a month); a declared
+    order covers the values where both orders are possible; a value whose structure contradicts the declared order is a conflict
+    (the row is quarantined, never read in the other order)."""
+    proven = "DMY" if first > 12 and second <= 12 else "MDY" if second > 12 and first <= 12 else None
+    if declared in ("DMY", "MDY"):
+        if proven and proven != declared:
+            return "CONFLICT", None
+        if proven:
+            return proven, "structure_proven"
+        if first <= 12 and second <= 12:
+            return declared, "declared"
+        return None, None
+    if proven:
+        return proven, "structure_proven"
     return None, None
 
 
@@ -77,6 +85,7 @@ def parse_time(value: object, formats: Iterable[str], date_order: str | None = N
         return TimeResult(None, None, "unparsed")
     formats = list(formats)
     ambiguous = False
+    conflict = False
     for fmt in formats:
         if fmt == "excel_serial_1900" and EXCEL_SERIAL.match(text):
             parsed = excel_serial_to_datetime(text)
@@ -95,6 +104,9 @@ def parse_time(value: object, formats: Iterable[str], date_order: str | None = N
             if m and (fmt == "slash_24h_seconds") == (m.group(6) is not None):
                 first, second, year = int(m.group(1)), int(m.group(2)), int(m.group(3))
                 order, source = _slash_order(first, second, date_order)
+                if order == "CONFLICT":
+                    conflict = True
+                    continue
                 if order is None:
                     ambiguous = True
                     continue
@@ -107,6 +119,9 @@ def parse_time(value: object, formats: Iterable[str], date_order: str | None = N
             if m:
                 first, second, year = int(m.group(1)), int(m.group(2)), int(m.group(3))
                 order, source = _slash_order(first, second, date_order)
+                if order == "CONFLICT":
+                    conflict = True
+                    continue
                 if order is None:
                     ambiguous = True
                     continue
@@ -129,6 +144,9 @@ def parse_time(value: object, formats: Iterable[str], date_order: str | None = N
             if m:
                 first, second, year = int(m.group(1)), int(m.group(2)), int(m.group(3))
                 order, source = _slash_order(first, second, date_order)
+                if order == "CONFLICT":
+                    conflict = True
+                    continue
                 if order is None:
                     ambiguous = True
                     continue
@@ -136,7 +154,7 @@ def parse_time(value: object, formats: Iterable[str], date_order: str | None = N
                 parsed = _from_parts(year, month, day)
                 if parsed is not None:
                     return TimeResult(parsed, fmt, order=order, order_source=source)
-    return TimeResult(None, None, "ambiguous_date_order" if ambiguous else "unparsed")
+    return TimeResult(None, None, "date_order_conflict" if conflict else "ambiguous_date_order" if ambiguous else "unparsed")
 
 
 def to_utc(local: datetime, zone_name: str, offset: str | None = None) -> datetime:

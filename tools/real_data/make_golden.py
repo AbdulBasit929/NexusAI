@@ -273,6 +273,9 @@ def sample_labels(entry, rng):
 def generate(entry, rows=None, seed=1, date_order=None, defects=True):
     kind = entry["dataset_kind"]
     hints = dict((entry.get("golden") or {}).get("hints") or {})
+    declared = (entry.get("time") or {}).get("date_order")
+    if declared:
+        hints["date_order"] = declared  # an entry that has settled its order is written in that order
     if date_order:
         hints["date_order"] = date_order
     recipes = (entry.get("golden") or {}).get("columns") or {}
@@ -297,8 +300,16 @@ def generate(entry, rows=None, seed=1, date_order=None, defects=True):
     container, encoding, delimiter = _container(entry)
     preamble = _preamble(entry, ctx)
     header_cells = [c["name"] for c in entry["header"]["columns"]]
-    table = preamble + [header_cells] + data
     numeric = {index[column_ref(ref)] for ref in time_columns.values()} if fmt == "excel_serial_1900" else set()
+    # Real call-record templates carry empty, unnamed header cells between the data columns and the last two (Description, MACAddress);
+    # a blank cell at the very end would be trimmed by the readers, so the padding goes before the last two named columns.
+    padding = int((entry.get("golden") or {}).get("blank_columns") or 0)
+    if padding:
+        at = max(0, len(header_cells) - 2)
+        header_cells = header_cells[:at] + [""] * padding + header_cells[at:]
+        data = [cells[:at] + [""] * padding + cells[at:] for cells in data]
+        numeric = {i + padding if i >= at else i for i in numeric}
+    table = preamble + [header_cells] + data
     return Golden(entry["layout_id"], container, "Sheet1" if container != "spreadsheetml" else "TITLE", encoding, delimiter,
                   len(preamble), header_cells, table, truth, numeric, hints.get("date_order") if fmt and fmt.startswith(("slash", "dot")) else None)
 

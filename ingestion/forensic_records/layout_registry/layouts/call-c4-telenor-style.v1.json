@@ -159,16 +159,9 @@
     "Call_Network_Volume has no stated unit and is kept in the raw payload only"
   ],
   "confirmation": {
-    "headers": "structure_only_inspection_2026-10-12",
+    "headers": "confirmed_against_real_sample_structure_2026-10-12",
     "semantics_confirmed": false,
     "unconfirmed": [
-      {
-        "id": "header-list",
-        "what": "The header list was read by a structure-only inspection; confirm it against a shareable profile report of the real file (tools/real_data/confirm_layout.py).",
-        "affects": [
-          "header"
-        ]
-      },
       {
         "id": "source-time-zone",
         "what": "No file states a time zone. The zone is a job decision (time_basis assumed_by_profile or confirmed_by_analyst), never a property of the layout.",
@@ -204,6 +197,13 @@
           "cell"
         ]
       }
+    ],
+    "settled": [
+      {
+        "id": "header-list",
+        "how": "tools/real_data/confirm_layout.py passed against a shareable structure report of a real sample file (header names and order, time formats, vocabulary labels)",
+        "on": "2026-10-12"
+      }
     ]
   },
   "golden": {
@@ -227,6 +227,7 @@
       "Site_Id": "int:10000-99999",
       "Description": "noise_text",
       "MACAddress": "noise_mac"
-    }
+    },
+    "blank_columns": 10
   }
 }

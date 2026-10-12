@@ -299,7 +299,7 @@ def interpret_record(entry: Mapping[str, Any], record: Mapping[str, Any], *, row
     if "start" in (entry.get("time") or {}).get("columns", {}) and "start" not in times.results:
         return RowResult("quarantined", "time_missing", None, [], row_number)
     if times.issue:
-        return RowResult("quarantined", times.issue if times.issue == "ambiguous_date_order" else "time_unparsed", None, [], row_number)
+        return RowResult("quarantined", times.issue if times.issue in ("ambiguous_date_order", "date_order_conflict") else "time_unparsed", None, [], row_number)
     kind = entry["dataset_kind"]
     if kind in ("target_cdr", "tower_dump"):
         built = _comm_event(entry, view, times, flags)

@@ -468,7 +468,8 @@ class InterpretTests(unittest.TestCase):
     def test_slash_dates_without_an_order_are_quarantined_or_proven_by_structure(self):
         for layout_id in ("call-c2-strt-tm", "geofence-c7-ufone", "geofence-c8-zong", "ipdr-i4-zong-txt"):
             with self.subTest(layout=layout_id):
-                entry = REGISTRY.get(layout_id)
+                entry = entry_copy(layout_id)
+                entry["time"]["date_order"] = None  # as if the order were still unsettled
                 golden = make_golden.generate(entry, seed=1, defects=False)
                 results = list(interpret_rows(entry, golden.header, golden.rows, policy=KARACHI))
                 reasons = {r.reason for r in results if r.status == "quarantined"}
@@ -480,6 +481,34 @@ class InterpretTests(unittest.TestCase):
                     self.assertGreater(day, 12)
                 resolved = list(interpret_rows(entry, golden.header, golden.rows, policy=Policy("Asia/Karachi", "assumed_by_profile", golden.date_order)))
                 self.assertEqual({r.status for r in resolved}, {"accepted"})
+
+    def test_a_settled_date_order_reads_every_row_and_never_reinterprets_the_other_order(self):
+        # Settled by structure on the real samples (2026-10-12): C2 and C8 month first, C7 and I4 day first.
+        expected = {"call-c2-strt-tm": "MDY", "geofence-c8-zong": "MDY", "geofence-c7-ufone": "DMY", "ipdr-i4-zong-txt": "DMY"}
+        for layout_id, order in expected.items():
+            with self.subTest(layout=layout_id):
+                entry = REGISTRY.get(layout_id)
+                self.assertEqual(entry["time"]["date_order"], order)
+                golden = make_golden.generate(entry, seed=1, defects=False)
+                self.assertEqual(golden.date_order, order)
+                results = list(interpret_rows(entry, golden.header, golden.rows, policy=KARACHI))
+                self.assertEqual({r.status for r in results}, {"accepted"})
+                other = "DMY" if order == "MDY" else "MDY"
+                swapped = make_golden.generate(entry, seed=1, defects=False, date_order=other)
+                reasons = {r.reason for r in interpret_rows(entry, swapped.header, swapped.rows, policy=KARACHI) if r.status == "quarantined"}
+                self.assertIn("date_order_conflict", reasons, "a date whose structure contradicts the settled order is quarantined, not reread")
+
+    def test_the_zong_internet_layout_reads_both_of_its_forms(self):
+        # A real sample exists as UTF-16 text with slash dates and as an xlsx with Excel serials (2026-10-12).
+        entry = REGISTRY.get("ipdr-i4-zong-txt")
+        self.assertEqual(entry["time"]["formats"][-1], "excel_serial_1900")
+        golden = make_golden.generate(entry, seed=3, defects=False)
+        record = dict(next(iter(rows_to_records(golden.header, golden.rows))))
+        for column in ("Start Time", "End Time", "NAT Begin Time", "NAT End Time"):
+            record[column] = "46000.5"  # 2025-12-09 12:00:00 in the 1900 date system
+        result = interpret_record(entry, record, policy=KARACHI)
+        self.assertEqual(result.status, "accepted", result.reason)
+        self.assertTrue(result.record["start_local"].startswith("2025-12-09 12:00:00"))
 
     def test_unconfirmed_direction_codes_are_kept_as_unknown_and_flagged(self):
         entry = REGISTRY.get("geofence-c6-telenor")
@@ -531,7 +560,7 @@ class InterpretTests(unittest.TestCase):
 
     def test_duration_modes_and_end_before_start(self):
         c2 = REGISTRY.get("call-c2-strt-tm")
-        record = {"CALL_TYPE": "Call - Outgoing", "MSISDN": "923000000001", "STRT_TM": "25/04/2026 10:00:00", "BNUMBER": "3000000002",
+        record = {"CALL_TYPE": "Call - Outgoing", "MSISDN": "923000000001", "STRT_TM": "04/25/2026 10:00:00", "BNUMBER": "3000000002",
                   "MINS": "2", "SECS": "5", "LAC_ID": "100", "CELL_ID": "200", "IMEI": "001234560000009"}
         self.assertEqual(interpret_record(c2, record, policy=KARACHI).record["duration_s"], 125)
         record["MINS"], record["SECS"] = "x", "5"
@@ -655,6 +684,36 @@ class GoldenFileTests(unittest.TestCase):
             label_column["vocabulary"]["VIDEO"] = 0.1
             result = confirm_layout.confirm(entry, report)
             self.assertIn("not mapped by the entry: ['VIDEO']", result.text())
+
+    def test_empty_unnamed_columns_are_padding_and_populated_ones_are_not(self):
+        # The call-record templates carry many header cells that are empty (found on the real files, 2026-10-12).
+        if not TOOLS_AVAILABLE:
+            self.skipTest("tools/real_data not available")
+        with tempfile.TemporaryDirectory() as d:
+            entry = REGISTRY.get("call-c2-strt-tm")
+            self.assertEqual(entry["golden"]["blank_columns"], 14)
+            golden = make_golden.generate(entry, seed=2, defects=False)
+            self.assertEqual(golden.header.count(""), 14)
+            report = profile_structure.build_report(golden.write(d), "shareable", None, False, 0, 200000)
+            columns = report["sheets"][0]["columns"]
+            self.assertEqual(sum(1 for c in columns if c.get("blank_header")), 14)
+            result = confirm_layout.confirm(entry, report)
+            self.assertEqual(result.failed, 0, result.text())
+            self.assertIn("14 empty columns without a header name are ignored", result.text())
+            # the matcher ignores blank header cells too, so the padded header still selects the layout
+            self.assertEqual(REGISTRY.find_header(golden.table).matched_entry_id, "call-c2-strt-tm")
+            # data under a blank header cannot be placed by name: the check fails
+            blank = next(c for c in columns if c.get("blank_header"))
+            blank["nonempty_share"] = 0.5
+            result = confirm_layout.confirm(entry, report)
+            self.assertGreater(result.failed, 0)
+            self.assertIn("hold data", result.text())
+
+    def test_blank_columns_must_be_a_count(self):
+        entry = entry_copy("call-c2-strt-tm")
+        for bad in (-1, "3", True, 1.5):
+            entry["golden"]["blank_columns"] = bad
+            self.assertTrue(any("blank_columns" in p for p in validate_entry(entry)), bad)
 
     def test_command_lines(self):
         import io

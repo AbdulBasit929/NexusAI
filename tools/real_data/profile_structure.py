@@ -394,8 +394,9 @@ def find_header(head_rows):
 
 
 class Column:
-    def __init__(self, name, max_distinct):
+    def __init__(self, name, max_distinct, blank_header=False):
         self.name = name
+        self.blank_header = blank_header  # the header cell was empty: the name is a placeholder (col<N>), not something the file said
         self.max_distinct = max_distinct
         self.rows = 0
         self.nonempty = 0
@@ -511,6 +512,8 @@ class Column:
             "length_range": [self.min_len or 0, self.max_len],
             "top_patterns": [[p, round(c / max(1, self.nonempty), 3)] for p, c in self.patterns.most_common(8)],
         }
+        if self.blank_header:
+            entry["blank_header"] = True
         if self.pattern_overflow:
             entry["pattern_overflow_share"] = round(self.pattern_overflow / max(1, self.nonempty), 3)
         distinct = len(self.distinct)
@@ -583,7 +586,7 @@ def profile_rows(row_iter, mode, max_rows, max_distinct):
             cells = [c for c in row if str(c).strip()]
             if cells:
                 preamble.append({"cells": len(cells), "masked": " | ".join(mask(c, 32) for c in cells)[:200]})
-        columns.extend(Column(str(c).strip() or "col%d" % (i + 1), max_distinct) for i, c in enumerate(head[header_at]))
+        columns.extend(Column(str(c).strip() or "col%d" % (i + 1), max_distinct, blank_header=not str(c).strip()) for i, c in enumerate(head[header_at]))
         for row in head[header_at + 1:]:
             feed(row)
     for row in iterator:

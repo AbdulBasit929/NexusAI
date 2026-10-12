@@ -91,7 +91,7 @@
       "slash_24h_seconds",
       "iso_naive"
     ],
-    "date_order": null,
+    "date_order": "MDY",
     "source_tz": null,
     "tz_basis": "unknown"
   },
@@ -137,16 +137,9 @@
     "An 'updated' twin of the same export has no preamble and slightly fewer rows"
   ],
   "confirmation": {
-    "headers": "structure_only_inspection_2026-10-12",
+    "headers": "confirmed_against_real_sample_structure_2026-10-12",
     "semantics_confirmed": false,
     "unconfirmed": [
-      {
-        "id": "header-list",
-        "what": "The header list was read by a structure-only inspection; confirm it against a shareable profile report of the real file (tools/real_data/confirm_layout.py).",
-        "affects": [
-          "header"
-        ]
-      },
       {
         "id": "source-time-zone",
         "what": "No file states a time zone. The zone is a job decision (time_basis assumed_by_profile or confirmed_by_analyst), never a property of the layout.",
@@ -159,14 +152,6 @@
         "what": "The operator that produced the layout is not stated in the files; confirm against the export documentation before using a label.",
         "affects": [
           "operator_label"
-        ]
-      },
-      {
-        "id": "slash-date-order",
-        "what": "Day-first or month-first is not settled by the masks; confirm with the profile report (day_month_order) or the operator's documentation.",
-        "proposed": "DMY for dd/mm/yyyy exports; settle before activating",
-        "affects": [
-          "time"
         ]
       },
       {
@@ -189,6 +174,18 @@
         "affects": [
           "enums"
         ]
+      }
+    ],
+    "settled": [
+      {
+        "id": "header-list",
+        "how": "tools/real_data/confirm_layout.py passed against a shareable structure report of a real sample file (header names and order, time formats, vocabulary labels)",
+        "on": "2026-10-12"
+      },
+      {
+        "id": "slash-date-order",
+        "how": "settled by structure on the real sample: month first (a value whose second part is above 12 occurs); rows that contradict it are quarantined, not reinterpreted",
+        "on": "2026-10-12"
       }
     ]
   },
@@ -224,6 +221,7 @@
     "columns": {
       "Description": "noise_text",
       "MACAddress": "noise_mac"
-    }
+    },
+    "blank_columns": 14
   }
 }

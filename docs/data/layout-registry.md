@@ -1,6 +1,6 @@
 # Layout registry v1 (roadmap Phase 0) - DRAFT entries, tested on synthetic goldens
 
-Status: written and tested 2026-10-12. All 13 entries are **draft**: their header lists come from a structure-only inspection of the supplied samples, and each lists what is still unconfirmed. Nothing here reads a real file, touches a database or changes the worker; the entries are not wired into ingestion yet (Phase 1, "Ingest v2"). Code: `ingestion/forensic_records/layout_registry/`. Tests: `ingestion/forensic_records/tests/test_layout_registry.py` (50 tests). Golden generator and confirmation tool: `tools/real_data/make_golden.py`, `tools/real_data/confirm_layout.py`.
+Status: written and tested 2026-10-12. All 13 entries are **draft**, but their header lists, time formats and vocabularies were **confirmed on 2026-10-12 against structure reports of real sample files** (section 7a); what is still unconfirmed (time zone, operator, direction codes, units and so on) is listed per entry. Nothing here reads a real file, touches a database or changes the worker; the entries are not wired into ingestion yet (Phase 1, "Ingest v2"). Code: `ingestion/forensic_records/layout_registry/`. Tests: `ingestion/forensic_records/tests/test_layout_registry.py` (54 tests). Golden generator and confirmation tool: `tools/real_data/make_golden.py`, `tools/real_data/confirm_layout.py`.
 
 ## 1. What it is for
 
@@ -66,21 +66,21 @@ Header cells are normalised exactly as the worker does (`normalize_header`, kept
 
 | Code | Layout id | Kind | Container | Columns | Operator label | Unconfirmed items |
 |---|---|---|---|---|---|---|
-| C1 | `call-c1-company` | target_cdr | xlsx | 16 | - | header-list, source-time-zone, operator, duration-unit, noise-columns, coordinates, bare-call-labels, cell-id |
-| C2 | `call-c2-strt-tm` | target_cdr | xlsx | 14 | - | header-list, source-time-zone, operator, slash-date-order, noise-columns, preamble, event-types |
-| C3 | `call-c3-ufone-style` | target_cdr | xlsx | 17 | - | header-list, source-time-zone, operator, duration-unit, noise-columns, preamble, cell-id |
-| C4 | `call-c4-telenor-style` | target_cdr | xlsx | 18 | - | header-list, source-time-zone, operator, noise-columns, network-volume, cell-structure |
-| C5 | `geofence-c5-mobilink` | tower_dump | xlsx | 7 | mobilink | header-list, source-time-zone, duration-unit, implied-cell, party-roles, bare-call-labels |
-| C6 | `geofence-c6-telenor` | tower_dump | xlsx | 15 | telenor | header-list, source-time-zone, direction-codes, party-roles, network-volume |
-| C7 | `geofence-c7-ufone` | tower_dump | xlsx | 13 | ufone | header-list, source-time-zone, slash-date-order, duration-unit, cell-columns, event-type, party-roles |
-| C8 | `geofence-c8-zong` | tower_dump | xlsx | 13 | zong | header-list, source-time-zone, slash-date-order, duration-unit, party-roles, imei-side, activity-code |
-| I1 | `ipdr-i1-jazz-ufdr` | ipdr | csv | 32 | - | header-list, source-time-zone, operator, cell-identity, rat-codes, sub-protocol, companion |
-| I2 | `ipdr-i2-telenor-export` | ipdr | csv | 18 | - | header-list, source-time-zone, operator, ci-composite, type-columns, active-time |
-| I3 | `ipdr-i3-ufone-xls` | ipdr | spreadsheetml | 18 | ufone | header-list, source-time-zone, protocol-codes, cell-columns, src-dst |
-| I4 | `ipdr-i4-zong-txt` | ipdr | tsv, xlsx | 27 | zong | header-list, source-time-zone, slash-date-order, metadata-lines, rat-codes |
-| A1 | `appusage-a1` | app_usage | xlsx | 12 | - | header-list, source-time-zone, operator, province-city |
+| C1 | `call-c1-company` | target_cdr | xlsx | 16 | - | source-time-zone, operator, duration-unit, noise-columns, coordinates, bare-call-labels, cell-id |
+| C2 | `call-c2-strt-tm` | target_cdr | xlsx | 14 | - | source-time-zone, operator, noise-columns, preamble, event-types |
+| C3 | `call-c3-ufone-style` | target_cdr | xlsx | 17 | - | source-time-zone, operator, duration-unit, noise-columns, preamble, cell-id |
+| C4 | `call-c4-telenor-style` | target_cdr | xlsx | 18 | - | source-time-zone, operator, noise-columns, network-volume, cell-structure |
+| C5 | `geofence-c5-mobilink` | tower_dump | xlsx | 7 | mobilink | source-time-zone, duration-unit, implied-cell, party-roles, bare-call-labels |
+| C6 | `geofence-c6-telenor` | tower_dump | xlsx | 15 | telenor | source-time-zone, direction-codes, party-roles, network-volume |
+| C7 | `geofence-c7-ufone` | tower_dump | xlsx | 13 | ufone | source-time-zone, duration-unit, cell-columns, event-type, party-roles |
+| C8 | `geofence-c8-zong` | tower_dump | xlsx | 13 | zong | source-time-zone, duration-unit, party-roles, imei-side, activity-code |
+| I1 | `ipdr-i1-jazz-ufdr` | ipdr | csv | 32 | - | source-time-zone, operator, cell-identity, rat-codes, sub-protocol, companion |
+| I2 | `ipdr-i2-telenor-export` | ipdr | csv | 18 | - | source-time-zone, operator, ci-composite, type-columns, active-time |
+| I3 | `ipdr-i3-ufone-xls` | ipdr | spreadsheetml | 18 | ufone | source-time-zone, protocol-codes, cell-columns, src-dst |
+| I4 | `ipdr-i4-zong-txt` | ipdr | tsv, xlsx | 27 | zong | source-time-zone, metadata-lines, rat-codes |
+| A1 | `appusage-a1` | app_usage | xlsx | 12 | - | source-time-zone, operator, province-city |
 
-Every entry shares two open items. **The source time zone:** no file states one, so the job decides (and records how). **The header list:** established from a structure-only inspection, to be confirmed against a structure report of the real file.
+Every entry shares one open item: **the source time zone.** No file states one, so the job decides (and records how). The header list is no longer open (section 7a); the day-or-month order of slash dates is settled for the four layouts that use them (C2 and C8 month first, C7 and I4 day first).
 
 ## 7. Making a draft active
 
@@ -92,14 +92,25 @@ Every entry shares two open items. **The source time zone:** no file states one,
 
 Adding a layout: copy the closest entry, rename it (`<layout_id>.v1.json`), edit the header and rules, describe the golden, run the tests. The loader checks the file name, the specification and uniqueness, and the entry cannot contain a real-looking value (a test scans every entry).
 
+## 7a. Confirmation against real samples (2026-10-12)
+
+The owner supplied the sample files for testing and they were registered in the real-data vault (outside the repository) with that stated as their authority. Each file was profiled by structure (`profile_structure.py`, shareable mode) and compared with every entry (`confirm_layout.py`). Only the shareable reports were read.
+
+* **All 13 layouts confirm** (header names and order, header row position, time formats, vocabulary labels) against at least one real file. Layouts with several files: C2, C3, C6, C8, I1 and I4 two each, I2 three.
+* **Empty unnamed header cells.** The call-record templates (C1 to C4) carry 10 to 14 header cells that are empty, and C5 two; none holds data. Goldens could not show this, because they were built from the entry. The matcher already ignores blank header cells; `confirm_layout.py` now ignores a blank header column that holds no data and **fails** one that does (data under a blank header cannot be placed by name). The goldens of C1 to C4 now carry such padding (`golden.blank_columns`).
+* **Slash-date order settled by structure** on the real files: C2 and C8 month first, C7 and I4 day first (a value whose second, or first, part is above 12 occurs). The entries now state it (`time.date_order`), and a row that contradicts it is quarantined as `date_order_conflict`, never read in the other order.
+* **I4 has two forms:** UTF-16 text with slash dates and an xlsx (6 preamble rows) with Excel serial times. The entry accepts both.
+* **Three real files match no entry:** a template whose header cells are merged (data sits under the blank cells) and two small headerless two-column text files (the companion files of the Jazz export); they stay out of v1 as listed in section 9. One nested zip archive inside the internet-record archive was not opened.
+* This confirms **structure only**. It says nothing about what a column means beyond what the names and masks show (direction codes, units, the operator, the time zone); those stay in each entry's unconfirmed list. The reconciliation of loaded counts against the files (`reconcile_aggregates.py`) has not been run, because nothing is loaded yet.
+
 ## 8. What the tests prove, and what they do not
 
-50 tests (plain `unittest`, standard library only): `python -X utf8 -m unittest ingestion.forensic_records.tests.test_layout_registry`.
+54 tests (plain `unittest`, standard library only): `python -X utf8 -m unittest ingestion.forensic_records.tests.test_layout_registry`.
 
 * Every entry loads and validates; its definition hash ignores `status` and `confirmation` but changes with any rule; the specification's vocabularies equal the CHECK constraints of migration 012 (the test parses the SQL); header normalisation equals the worker's.
 * For every layout, a synthetic golden (same shape, header position, preamble, formats, enumerations, typos, duplicate headers, noise columns, a blank row, an unparsable time, a missing time, an unknown label, a sentinel party or a bad address) is matched to **only its own layout**, and every row reads back to the truth the generator recorded, for several seeds and sizes. The goldens contain only reserved values (the real-data scanner finds nothing in them).
 * Each golden is also written to its real container (xlsx, SpreadsheetML, CSV, UTF-16 text), profiled by the D1 tool, and confirmed by `confirm_layout.py`: the whole toolchain on synthetic input.
-* Seventeen deliberate breakages of the machinery and the entries (scoring, a guessed date order, a dropped flag, a wrong class, swapped columns, a removed alias, a wrong epoch, a flipped zone, and so on) were each caught by a test.
+* Twenty-one deliberate breakages of the machinery and the entries (scoring, a guessed date order, a dropped flag, a wrong class, swapped columns, a removed alias, a wrong epoch, a flipped zone, and so on) were each caught by a test.
 
 They do **not** prove that an entry is right about the real file: the golden is built from the entry, so a wrong belief about a column would be wrong on both sides. That is what the confirmation (step 2 above) and the real-file reconciliation are for. `ops/Test-MigrationsThrowaway.ps1` additionally registers all 13 entries in `forensic.layout_versions` on a disposable database (twice, then a changed definition under the same version is refused).
 

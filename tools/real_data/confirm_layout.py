@@ -78,7 +78,17 @@ def confirm(entry, report, sheet_index=0):
     else:
         result.add("PASS" if at < row["max_rows"] else "FAIL", "header row", "at %s (entry: scan within %s rows)" % (at, row["max_rows"]))
 
-    file_headers = [c["header"] for c in sheet["columns"]]
+    # A column whose header cell is empty and which holds no data is padding (the call-record templates carry many); one that holds
+    # data cannot be placed by name, so the entry cannot describe the file.
+    unnamed = [(i + 1, c) for i, c in enumerate(sheet["columns"]) if c.get("blank_header")]
+    padding = [i for i, c in unnamed if (c.get("nonempty_share") or 0) == 0]
+    populated = [(i, c.get("nonempty_share")) for i, c in unnamed if (c.get("nonempty_share") or 0) > 0]
+    if padding:
+        result.add("INFO", "unnamed columns", "%d empty columns without a header name are ignored (positions %s)" % (len(padding), padding))
+    if populated:
+        result.add("FAIL", "unnamed columns", "%d columns without a header name hold data (positions %s); the entry cannot place them by name" % (
+            len(populated), [i for i, _ in populated]))
+    file_headers = [c["header"] for c in sheet["columns"] if not (c.get("blank_header") and (c.get("nonempty_share") or 0) == 0)]
     entry_headers = [c["name"] for c in entry["header"]["columns"]]
     aliases = {column_ref(n): alts for n, alts in (entry["header"].get("aliases") or {}).items()}
     expected_norm = [normalize_header(n) for n in entry_headers]

@@ -237,6 +237,9 @@ def validate_entry(entry: Mapping[str, Any]) -> list[str]:
     elif entry.get("status") == "active" and confirmation.get("unconfirmed"):
         problems.append("an active layout cannot have unconfirmed items; resolve them or keep the layout in draft")
 
+    blank = (entry.get("golden") or {}).get("blank_columns", 0)
+    if isinstance(blank, bool) or not isinstance(blank, int) or blank < 0:
+        problems.append("golden.blank_columns must be a whole number of empty unnamed columns, 0 or more")
     for index, column in enumerate(((entry.get("golden") or {}).get("columns") or {})):
         if column not in {c.get("name") for c in header["columns"] if isinstance(c, Mapping)}:
             problems.append("golden.columns names %r, which is not a header column" % column)
