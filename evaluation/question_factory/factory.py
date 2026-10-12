@@ -16,7 +16,7 @@ Test-only: nothing here is shipped, and the product never sees these templates.
 
 Read-only: every statement is a SELECT inside a READ ONLY transaction with a statement timeout.
 Verdicts: CORRECT, WRONG (a confident answer that contradicts the key, including a total returned for a question that names something it cannot bind),
-ABSTAINED (a clarification or an honest "cannot verify"), NOT_STATED (no usable answer text), ERROR.
+ABSTAINED (a clarification or an honest "cannot verify"), NOT_STATED (no usable answer text, or no answer key to judge a date question by), ERROR.
 """
 import argparse
 import datetime
@@ -304,7 +304,12 @@ def string_in(text, token):
 
 
 def date_in(text, iso):
-    d = datetime.date.fromisoformat(iso)
+    """True when the text states the date `iso` ("2026-04-02") in one of the forms an answer uses. An empty or unreadable key names no date,
+    so no text can state it: False, never a crash (the key query returns NULL when the case holds no such rows)."""
+    try:
+        d = datetime.date.fromisoformat(iso)
+    except (TypeError, ValueError):
+        return False
     forms = [iso, "%s %d, %d" % (MONTHS[d.month - 1], d.day, d.year), "%d %s %d" % (d.day, MONTHS[d.month - 1], d.year), "%s %d %d" % (MONTHS[d.month - 1][:3], d.day, d.year)]
     return any(f.lower() in text.lower() for f in forms)
 
@@ -354,6 +359,10 @@ def _judge(item, expected, text, status, route):
             return "CORRECT", "states all %d" % len(wanted)
         return ("ABSTAINED", "withheld") if abstained else ("WRONG", "expected all of %s" % wanted)
     if kind == "date":
+        if expected in (None, ""):
+            # The key query returned no date on this case (the field holds no values there), so there is nothing to compare the answer
+            # with: the check does not apply. Neither a pass nor a failure; the question has no place in a file for this case.
+            return "NOT_STATED", "no answer key: the key query returned no date on this case"
         return ("CORRECT", "states %s" % expected) if date_in(text, expected) else (("ABSTAINED", "withheld") if abstained else ("WRONG", "expected %s" % expected))
     if kind == "top":
         winners, others = item["winners"], item["others"]

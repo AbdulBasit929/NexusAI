@@ -39,6 +39,28 @@ def test_top_and_date():
     assert case("date", "2026-04-02", "The earliest was May 3, 2026.") == "WRONG"
 
 
+def test_a_date_question_with_no_answer_key_is_not_judged():
+    # The key query returns NULL when the case holds no such rows (a probe's date field on a case that has none). That used to raise
+    # TypeError (fromisoformat: argument must be str) out of date_in and stop the whole run. With no key the check does not apply:
+    # neither a pass nor a failure, whatever the answer says.
+    said = "The earliest was April 2, 2026."
+    assert f.date_in(said, "2026-04-02")
+    assert not f.date_in(said, None)
+    assert not f.date_in(said, "")
+    assert not f.date_in(said, "not a date")
+    for key in (None, ""):
+        for text in (said, "I can only state this from a plan I can verify.", "There are no such records."):
+            assert case("date", key, text) == "NOT_STATED"
+            assert case("date", key, text, ["verified_only_withheld"]) == "NOT_STATED"
+    # a key that exists is judged as before, and an empty answer or an HTTP failure keeps its own verdict
+    assert case("date", "2026-04-02", said) == "CORRECT"
+    assert case("date", "2026-04-02", "The earliest was May 3, 2026.") == "WRONG"
+    assert case("date", None, "", status=200) == "NOT_STATED"
+    assert case("date", None, "x", status=500) == "ERROR"
+    why = f.judge({"kind": "date"}, None, said, 200, [])[1]
+    assert "no answer key" in why
+
+
 def test_tags_and_disclosure():
     item = {"kind": "number", "total": 8642}
     verdict, why = f.judge(item, "10", "Showing 20 of 8,642 CDR records that matched this question.", 200, [])
