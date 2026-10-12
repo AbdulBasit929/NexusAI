@@ -688,7 +688,7 @@ Severity: P1 blocks a trustworthy product, P2 degrades it, P3 is polish or proce
 | G11 | Free-word and value-list questions declined ("still need manual review", "what languages") | Rehearsal | P2 | 2 | |
 | G12 | A document question was sent to the access-log family | Rehearsal, DOC-05 | P2 | 0 | |
 | G13 | When the lane declines, the older path can take minutes | 458 s, 443 s, 409 s | P1 for demos | 0 | |
-| G14 | Lane switches are lost on a full stack restart | Handoff | P2 | 0 | D7 |
+| G14 | Lane switches are lost on a full stack restart. **Done 2026-10-12**: the compose file defaults both switches to true; proven by recreating the API container with no switch variable set | Handoff | P2 | 0 | D7 |
 | G15 | Front door off; greetings return an error | 28 Sep script | P2 | 2 | D6 |
 | G16 | Month-against-month comparisons sometimes declined | Run 17 | P3 | 2 | |
 | G17 | Speed on CPU: median 27 s on mixed families | Rehearsal | P1 for use | 0 and 2 | D3 |
@@ -800,7 +800,7 @@ Each phase ends at a gate. A gate is written before the phase's measurements, as
 | D4 | Downloads: models and datasets, item by item after the licence ledger | Standing rule | Approve per item |
 | D5 | Face policy: stay at detection only (L0) for now; licence route and legal sign-off for any recognition | Highest legal and reputational risk | Stay at L0; start the licence review |
 | D6 | Switch the conversation front door on | Greetings and help return errors today | Yes, behind its measured gates |
-| D7 | Persist the lane switches in the compose file and redeploy once | A restart silently turns the lane off | Yes |
+| D7 | Persist the lane switches in the compose file and redeploy once | A restart silently turns the lane off | **Done 2026-10-12** on the owner's instruction (compose defaults true/true, one recreate of the API container) |
 | D8 | Shared semantic layer: add an evidence-inventory view; promote lane-only synonyms | Common questions are withheld | Yes |
 | D9 | More real samples: subscriber exports, cell-site lists, other operators, plate images and video, call audio, under authority; operator documentation for direction codes | Layouts and models need real shapes | Provide what is lawful to share |
 | D10 | Languages and reviewers: native speakers for Urdu, Punjabi (Shahmukhi) and Pashto; consent for recordings | Gold sets cannot be made by the model | Name reviewers |
