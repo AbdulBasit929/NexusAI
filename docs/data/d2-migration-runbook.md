@@ -59,8 +59,9 @@ docker cp "${id}:/tmp/$name" ".phase2-backups\$name"
 
 ```powershell
 # copy the reviewed folder into the running container (ephemeral, in /tmp); the mount is read-only and belongs to the main checkout
+# (the trailing \. copies the contents, so running this again refreshes the copy; without it a second copy nests a forensic_records folder)
 $id = docker @base ps -q forensic-postgres
-docker cp .\db\forensic_records "${id}:/tmp/nx-mig"
+docker cp .\db\forensic_records\. "${id}:/tmp/nx-mig"
 
 function Run-Sql($file) { docker @base exec -T forensic-postgres psql -v ON_ERROR_STOP=1 -U localrecall -d localrecall -f "/tmp/nx-mig/$file" }
 
@@ -69,7 +70,7 @@ foreach ($m in '012_typed_families','013_reference_tables','014_entity_relations
   Run-Sql "$m.sql"                    # one transaction
   Run-Sql "ops/$m/verify.sql"         # prints migration_0NN_verified
 }
-Run-Sql '010_runtime_rls_policies.verify.sql'   # every RLS table still has a policy
+Run-Sql 'ops/010_runtime_rls_policies/verify.sql'   # every RLS table still has a policy
 ```
 
 Stop at the first error: the failed migration rolled itself back (single transaction), earlier ones stay applied and verified, and the rollback scripts below undo them in reverse order if you want a clean slate. **Never run any `smoke.sql` on the live database**: the smoke scripts insert synthetic evidence rows into the real registry's tables (and roll back), and are for disposable databases only.
@@ -100,7 +101,8 @@ Each rollback prints the row count of every table it drops. Extensions are left 
 - for each of 012 to 015: preflight, apply, verify, smoke (rolled back), apply a second time (idempotent), grants file again, verify and smoke again with the runtime role present;
 - 010 verify and the runtime RLS probe still pass; a catalog digest of everything created by 001 to 011 is identical before and after 012 to 015, and after a full rollback and re-application; legacy row counts unchanged;
 - each rollback refuses without its gate and succeeds with it; the 012 rollback refuses while the relationship layer exists;
-- last runs: **59 steps passed in 29.5 s** without the volume probe and **60 steps in 95.7 s** with it, on PostgreSQL 16.14 (musl), TimescaleDB 2.28, pgvector 0.8.1.
+- a fresh database through the real Docker entrypoint (step "fresh initialisation through the Docker entrypoint", run first): the folder is bind-mounted read-only at `/docker-entrypoint-initdb.d` of a throwaway container, as compose mounts it. Only `NNN_name.sql` and `runtime_role.*` files may sit at the top level (the helper scripts of 008 to 011 used to, which stopped a fresh initialisation at the first of them; they now live in `ops/<migration>/`). The entrypoint must run exactly those 17 files in name order and finish, every moved helper script must be at its `ops/` path, and the verify scripts of 008 to 015 must pass in the database it built; the container and its anonymous volume are then removed and shown to be gone. Four deliberate breakages each failed the harness: a helper script back at the top level, a top-level migration that fails during initialisation (exit code 3, log tail printed), a moved helper script missing, and a verify script that raises an error;
+- last runs: **61 steps passed in 59 s** without the volume probe and **62 steps in 158 s** with it, on PostgreSQL 16.14 (musl), TimescaleDB 2.28, pgvector 0.8.1. The earlier figures (59 steps in 29.5 s and 60 steps in 95.7 s) were taken before the fresh-initialisation step and a small step that checks how the operator scripts find a helper script in the old and in the new layout were added.
 
 **Volume probe** (`-VolumeRows 500000`; one laptop, 1.5 GB container, default memory settings, synthetic events spread evenly over 90 days, about 240 bytes of JSON per row). Orientation only: it is not the pre-registered performance budget.
 

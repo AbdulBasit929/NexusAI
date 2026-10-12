@@ -14,9 +14,11 @@ var _ = Describe("Forensic non-owner runtime boundary", func() {
 
 	BeforeEach(func() {
 		migrationRoot := filepath.Join("..", "..", "db", "forensic_records")
-		preflight = readMigrationContract(filepath.Join(migrationRoot, "010_runtime_rls_policies.preflight.sql"))
+		// Helper scripts sit under ops/ because the Docker entrypoint runs every top-level *.sql on a fresh database.
+		helperRoot := filepath.Join(migrationRoot, "ops", "010_runtime_rls_policies")
+		preflight = readMigrationContract(filepath.Join(helperRoot, "preflight.sql"))
 		forward = readMigrationContract(filepath.Join(migrationRoot, "010_runtime_rls_policies.sql"))
-		verify = readMigrationContract(filepath.Join(migrationRoot, "010_runtime_rls_policies.verify.sql"))
+		verify = readMigrationContract(filepath.Join(helperRoot, "verify.sql"))
 		grants = readMigrationContract(filepath.Join(migrationRoot, "runtime_role.grants.sql"))
 		rlsProof = readMigrationContract(filepath.Join(migrationRoot, "runtime_role.rls.verify.sql"))
 		apiQueueSource = readMigrationContract("queue_lifecycle.go")

@@ -23,7 +23,8 @@ and sealing an independent post-009 recovery point.
 ## 3. Files changed
 
 - Added the one-time gated recovery transaction:
-  `db/forensic_records/009_phase3_queue_lifecycle.legacy_recovery.sql`.
+  `db/forensic_records/ops/009_phase3_queue_lifecycle/legacy_recovery.sql` (moved there
+  from the top level of `db/forensic_records` on 2026-10-12; the content is unchanged).
 - Updated the database runbook and queue-lifecycle design status.
 - Updated the recovery disposition, team-lead brief, this completion report, and
   the living continuation checkpoint.

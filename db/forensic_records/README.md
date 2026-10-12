@@ -2,7 +2,7 @@
 
 This folder contains Phase 1 database migrations for the enterprise forensic records pipeline.
 
-Apply with the TimescaleDB container in `docker-compose.forensic-records.yaml`; the SQL files are mounted into `/docker-entrypoint-initdb.d` on first database initialization.
+Apply with the TimescaleDB container in `docker-compose.forensic-records.yaml`; the SQL files are mounted into `/docker-entrypoint-initdb.d` on first database initialization, and the entrypoint runs every top-level `*.sql` there in name order. Only the numbered migrations and the two `runtime_role.*` files therefore sit at the top level; the helper scripts (preflight, verify, rollback, smoke, fixtures) live in `ops/<migration>/`. See "Folder layout and helper scripts" below.
 
 Main objects:
 
@@ -57,7 +57,7 @@ Phase 3 evidence control-plane migration:
 # application have been explicitly approved.
 docker compose -f docker-compose.forensic-records.yaml exec forensic-postgres `
   psql -v ON_ERROR_STOP=1 -U localrecall -d localrecall `
-  -f /docker-entrypoint-initdb.d/008_phase3_evidence_control_plane.preflight.sql
+  -f /docker-entrypoint-initdb.d/ops/008_phase3_evidence_control_plane/preflight.sql
 
 docker compose -f docker-compose.forensic-records.yaml exec forensic-postgres `
   psql -v ON_ERROR_STOP=1 -U localrecall -d localrecall `
@@ -65,7 +65,7 @@ docker compose -f docker-compose.forensic-records.yaml exec forensic-postgres `
 
 docker compose -f docker-compose.forensic-records.yaml exec forensic-postgres `
   psql -v ON_ERROR_STOP=1 -U localrecall -d localrecall `
-  -f /docker-entrypoint-initdb.d/008_phase3_evidence_control_plane.verify.sql
+  -f /docker-entrypoint-initdb.d/ops/008_phase3_evidence_control_plane/verify.sql
 ```
 
 The migration normalizes immutable storage objects, evidence versions, source
@@ -90,8 +90,8 @@ version-ID collisions before schema work starts. The forward migration is one
 transaction: a failed statement leaves no partial Phase 3 schema.
 
 The `legacy_fixture.sql`, `smoke.sql`, `idempotency.verify.sql`, and
-`rls.smoke.sql` files are synthetic acceptance tools for a disposable database
-only. The RLS test assumes a temporary non-owner `NOBYPASSRLS` role, proves
+`rls.smoke.sql` files (in `ops/008_phase3_evidence_control_plane/`) are synthetic
+acceptance tools for a disposable database only. The RLS test assumes a temporary non-owner `NOBYPASSRLS` role, proves
 same-tenant access, requires a cross-tenant write to fail, and rolls back the
 role and test write. These files must not be run against a retained NexusAI
 registry.
@@ -103,7 +103,7 @@ Run it only from a verified backup and with explicit approval:
 docker compose -f docker-compose.forensic-records.yaml exec forensic-postgres `
   psql -v ON_ERROR_STOP=1 -U localrecall -d localrecall `
   -c "SET app.phase3_allow_destructive_rollback = 'true'" `
-  -f /docker-entrypoint-initdb.d/008_phase3_evidence_control_plane.rollback.sql
+  -f /docker-entrypoint-initdb.d/ops/008_phase3_evidence_control_plane/rollback.sql
 ```
 
 Phase 3 durable queue lifecycle migration:
@@ -114,11 +114,11 @@ Phase 3 durable queue lifecycle migration:
 docker compose -f docker-compose.forensic-records.yaml exec forensic-postgres `
   psql -v ON_ERROR_STOP=1 -U localrecall -d localrecall `
   -c "SET app.phase3_allow_legacy_queue_recovery = 'true'" `
-  -f /docker-entrypoint-initdb.d/009_phase3_queue_lifecycle.legacy_recovery.sql
+  -f /docker-entrypoint-initdb.d/ops/009_phase3_queue_lifecycle/legacy_recovery.sql
 
 docker compose -f docker-compose.forensic-records.yaml exec forensic-postgres `
   psql -v ON_ERROR_STOP=1 -U localrecall -d localrecall `
-  -f /docker-entrypoint-initdb.d/009_phase3_queue_lifecycle.preflight.sql
+  -f /docker-entrypoint-initdb.d/ops/009_phase3_queue_lifecycle/preflight.sql
 
 docker compose -f docker-compose.forensic-records.yaml exec forensic-postgres `
   psql -v ON_ERROR_STOP=1 -U localrecall -d localrecall `
@@ -126,7 +126,7 @@ docker compose -f docker-compose.forensic-records.yaml exec forensic-postgres `
 
 docker compose -f docker-compose.forensic-records.yaml exec forensic-postgres `
   psql -v ON_ERROR_STOP=1 -U localrecall -d localrecall `
-  -f /docker-entrypoint-initdb.d/009_phase3_queue_lifecycle.verify.sql
+  -f /docker-entrypoint-initdb.d/ops/009_phase3_queue_lifecycle/verify.sql
 ```
 
 The gated `legacy_recovery.sql` file is a one-time retained-registry disposition
@@ -147,12 +147,62 @@ requires terminal jobs to be lease-free. The preflight deliberately rejects
 legacy queued/running/failed rows: drain the old subscriber and resolve those
 jobs explicitly instead of guessing their state during DDL.
 
-`009_phase3_queue_lifecycle.smoke.sql` is for a disposable database after the 008
+`ops/009_phase3_queue_lifecycle/smoke.sql` is for a disposable database after the 008
 smoke fixture. It proves retry and terminal transitions, terminal immutability
 and processing-run synchronization, then rolls back. The 009 rollback drops
 operational history columns and is gated by
 `SET app.phase3_allow_destructive_rollback = 'true'`; never use it on retained
 evidence without a verified backup and explicit approval.
+
+## Folder layout and helper scripts
+
+The compose file mounts this folder read-only at `/docker-entrypoint-initdb.d`, and the PostgreSQL entrypoint runs **every
+top-level `*.sql`** there, in name order, when it initialises an empty data directory. The top level therefore holds only what a
+new database must run: the numbered migrations `001_*.sql` to `015_*.sql` and the two `runtime_role.*` files. Everything else
+(preflight, verify, smoke, rollback, fixtures, one-off recovery tools) lives in `ops/<migration>/<name>.sql`, for example
+`ops/010_runtime_rls_policies/verify.sql` or `ops/009_phase3_queue_lifecycle/legacy_recovery.sql`. The entrypoint ignores
+sub-folders and this README; `optional/` holds drafts that nothing runs automatically.
+
+Until 2026-10-12 the helper scripts of migrations 008 to 011 sat at the top level as `<migration>.<name>.sql`, so a fresh
+initialisation ran them in name order and stopped at the first one (the 008 idempotency check: "relation
+forensic.evidence_storage_objects does not exist"). They were moved with `git mv`, content unchanged.
+`ops/Test-MigrationsThrowaway.ps1` now has a step, "fresh initialisation through the Docker entrypoint", that mounts this folder
+read-only in a throwaway container exactly as compose does, checks that the entrypoint ran the top-level files and nothing
+else, and runs the verify scripts of 008 to 015 in the database it built; a helper script put back at the top level fails it.
+
+### Running a helper script while the live mount is still on the old layout
+
+The live database container mounts the **main checkout's** `db/forensic_records`. Until that checkout is brought to this layout,
+its mount still has the helper scripts of 008 to 011 under their old top-level names (`<migration>.<name>.sql`, such as the 010
+verify script) and has no `ops/` folders for 012 to 015, so the `-f /docker-entrypoint-initdb.d/ops/...` commands in this README
+fail there with "No such file or directory". Look at what the mount has:
+
+```powershell
+docker compose -f docker-compose.forensic-records.yaml exec -T forensic-postgres ls /docker-entrypoint-initdb.d
+```
+
+Then either run the old name from the old mount (`-f /docker-entrypoint-initdb.d/<migration>.<name>.sql`; same content,
+different path), or copy this checkout's folder into the container's `/tmp` and run from there. The copy works whatever the
+mount holds and is what `docs/data/d2-migration-runbook.md` does:
+
+```powershell
+$id = docker compose -f docker-compose.forensic-records.yaml ps -q forensic-postgres
+docker cp .\db\forensic_records\. "${id}:/tmp/nx-mig"
+
+docker compose -f docker-compose.forensic-records.yaml exec -T forensic-postgres `
+  psql -v ON_ERROR_STOP=1 -U localrecall -d localrecall `
+  -f /tmp/nx-mig/ops/010_runtime_rls_policies/verify.sql
+```
+
+The copy is ephemeral (it lives in that container's `/tmp` until the container is recreated) and changes nothing in the
+database. The trailing `\.` copies the folder's contents, so repeating the command refreshes the copy; without it a second
+`docker cp` nests a `forensic_records` folder inside the first. Copy from the checkout whose files you have reviewed. The rules
+for the scripts themselves do not change: never run a `smoke.sql`, `legacy_fixture.sql` or `rls.smoke.sql` against a retained
+database, and every `rollback.sql` and `legacy_recovery.sql` keeps its setting gate and needs a verified backup.
+
+`scripts/apply_nexusai_r5_custody_fix.ps1` and `scripts/apply_forensic_runtime_gate4.ps1` look for each helper script at the new
+path first and fall back to the old name, so they work against either layout; they stop before changing anything when a helper
+is in neither place.
 
 ## Non-owner runtime activation
 
@@ -163,7 +213,7 @@ least one policy:
 ```powershell
 docker compose -f docker-compose.forensic-records.yaml exec forensic-postgres `
   psql -v ON_ERROR_STOP=1 -U localrecall -d localrecall `
-  -f /docker-entrypoint-initdb.d/010_runtime_rls_policies.preflight.sql
+  -f /docker-entrypoint-initdb.d/ops/010_runtime_rls_policies/preflight.sql
 
 docker compose -f docker-compose.forensic-records.yaml exec forensic-postgres `
   psql -v ON_ERROR_STOP=1 -U localrecall -d localrecall `
@@ -171,7 +221,7 @@ docker compose -f docker-compose.forensic-records.yaml exec forensic-postgres `
 
 docker compose -f docker-compose.forensic-records.yaml exec forensic-postgres `
   psql -v ON_ERROR_STOP=1 -U localrecall -d localrecall `
-  -f /docker-entrypoint-initdb.d/010_runtime_rls_policies.verify.sql
+  -f /docker-entrypoint-initdb.d/ops/010_runtime_rls_policies/verify.sql
 ```
 
 `runtime_role.grants.sql` provisions the fixed `forensic_runtime` role with
@@ -193,6 +243,9 @@ retained row. Apply it only through
 the writers, creates and validates a timestamped custom-format backup, runs the
 read-only preflight, applies the transactional function replacement, verifies
 the installed definition, restarts API/worker, and writes a non-secret marker.
+The preflight, verify and rollback scripts it runs are in `ops/011_r5_custody_chain_tail/`; the script finds them there or
+under their old top-level names (see "Folder layout and helper scripts") and checks that all three exist before it stops
+anything.
 
 The API independently verifies chain topology by predecessor hash, including a
 single root, reachable events, missing predecessors, duplicate hashes, and
@@ -212,10 +265,9 @@ PostGIS decision) is `docs/data/d2-migration-runbook.md`.
 | `014_entity_relationship_layer.sql` | `derivation`, `entity`, `entity_mention`, `relationship`, `relationship_evidence`, `ip_assignment` |
 | `015_vectors_and_earth.sql` | extensions `vector`, `cube`, `earthdistance`; `content_embedding`; earth indexes |
 
-Layout of this folder: the Docker entrypoint runs **every top-level `*.sql`** in alphabetical order when it initialises a new
-database, so the helper scripts for 012 to 015 live in `ops/<migration>/` (`preflight.sql`, `verify.sql`, `smoke.sql`,
-`rollback.sql`) and the optional PostGIS draft in `optional/` (the entrypoint ignores sub-folders). Run them the same way as the
-older ones, with the path under the mount:
+Layout of this folder: see "Folder layout and helper scripts" above. The helper scripts for 012 to 015 live in
+`ops/<migration>/` (`preflight.sql`, `verify.sql`, `smoke.sql`, `rollback.sql`) and the optional PostGIS draft in `optional/`.
+Run them the same way as the older ones, with the path under the mount:
 
 ```powershell
 docker compose -f docker-compose.forensic-records.yaml exec forensic-postgres `
@@ -223,16 +275,8 @@ docker compose -f docker-compose.forensic-records.yaml exec forensic-postgres `
   -f /docker-entrypoint-initdb.d/ops/012_typed_families/preflight.sql
 ```
 
-(The mount belongs to the main checkout; if 012 to 015 are not there yet, copy the reviewed folder into the container as the
-runbook describes.) `smoke.sql` inserts synthetic evidence rows and rolls back: for disposable databases only.
+(The mount belongs to the main checkout; if 012 to 015 are not there yet, use the copy-in procedure under "Running a helper
+script while the live mount is still on the old layout", as the runbook does.) `smoke.sql` inserts synthetic evidence rows and rolls back: for disposable databases only.
 `ops/Test-MigrationsThrowaway.ps1` runs the whole sequence, including rollbacks and idempotency, on a throwaway container
 from the local image and prints `MigrationThrowawayTest=PASS`; add `-VolumeRows 500000` to also load synthetic events and print
 load time, sizes and query timings (`ops/volume_probe.sql`).
-
-Known problem, found while testing and not caused by 012 to 015: the auxiliary scripts of migrations 008 to 011 (`*.preflight.sql`,
-`*.verify.sql`, `*.rollback.sql`, `*.smoke.sql`, `*.legacy_*.sql`, `*.rls.smoke.sql`, `*.idempotency.verify.sql`) sit at the top
-level, so a **fresh** initialisation from this folder runs them in name order and stops at
-`008_phase3_evidence_control_plane.idempotency.verify.sql` ("relation forensic.evidence_storage_objects does not exist"). Databases
-created before 008 existed never hit it, because later migrations were applied by hand. With those scripts moved into `ops/`, a fresh
-initialisation runs 001 to 015 and both runtime-role files and all four verify scripts pass. Moving them also means updating
-the commands above and `scripts/apply_nexusai_r5_custody_fix.ps1`; not done here.

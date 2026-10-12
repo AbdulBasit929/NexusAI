@@ -105,11 +105,13 @@ var _ = Describe("Phase 3 durable queue lifecycle", func() {
 	It("enforces the additive migration, terminal immutability, and gated rollback contracts", func() {
 		root := filepath.Clean(filepath.Join("..", ".."))
 		migrationRoot := filepath.Join(root, "db", "forensic_records")
+		// Helper scripts sit under ops/ because the Docker entrypoint runs every top-level *.sql on a fresh database.
+		helperRoot := filepath.Join(migrationRoot, "ops", "009_phase3_queue_lifecycle")
 		forward := readQueueContract(filepath.Join(migrationRoot, "009_phase3_queue_lifecycle.sql"))
-		preflight := readQueueContract(filepath.Join(migrationRoot, "009_phase3_queue_lifecycle.preflight.sql"))
-		verify := readQueueContract(filepath.Join(migrationRoot, "009_phase3_queue_lifecycle.verify.sql"))
-		smoke := readQueueContract(filepath.Join(migrationRoot, "009_phase3_queue_lifecycle.smoke.sql"))
-		rollback := readQueueContract(filepath.Join(migrationRoot, "009_phase3_queue_lifecycle.rollback.sql"))
+		preflight := readQueueContract(filepath.Join(helperRoot, "preflight.sql"))
+		verify := readQueueContract(filepath.Join(helperRoot, "verify.sql"))
+		smoke := readQueueContract(filepath.Join(helperRoot, "smoke.sql"))
+		rollback := readQueueContract(filepath.Join(helperRoot, "rollback.sql"))
 
 		for _, column := range []string{
 			"queue_message_id", "queue_published_at", "queue_publish_lease_token",

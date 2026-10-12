@@ -3,13 +3,19 @@
   Proves migrations 012 to 015 on a THROWAWAY PostgreSQL container. It never touches the NexusAI stack.
 
 .DESCRIPTION
-  Starts a disposable container from an image that is already on this machine (it never pulls), applies migrations 001 to 011
+  First checks the layout of the folder and starts a throwaway container with the folder mounted read-only at
+  /docker-entrypoint-initdb.d, exactly as docker-compose.forensic-records.yaml mounts it: the entrypoint must run the top-level
+  files and nothing else (the numbered migrations and the runtime-role files; helper scripts live in ops/<migration>/), the
+  initialisation must finish, and the verify scripts of 008 to 015 must pass in the database it built. That container is removed
+  again, together with its data volume, before the next step.
+
+  Then starts a disposable container from an image that is already on this machine (it never pulls), applies migrations 001 to 011
   and the runtime-role grants as a fresh database would see them, then runs for 012 to 015: preflight, apply, verify, smoke,
   a second apply (idempotency), the runtime-role grants again, a gated rollback in reverse order (including a check that the
   gate refuses without its setting), re-application from the rolled-back state, and a final comparison that nothing created
   by migrations 001 to 011 changed. The container and its data are removed at the end.
 
-  The container has no published port and a random password that is never printed.
+  The containers have no published port and a random password that is never printed.
 
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File .\db\forensic_records\ops\Test-MigrationsThrowaway.ps1
@@ -48,24 +54,41 @@ $Typed = @(
   @{ Id = '014'; Name = '014_entity_relationship_layer'; Gate = 'app.entity_layer_allow_destructive_rollback'; Tables = @('derivation', 'entity', 'entity_mention', 'relationship', 'relationship_evidence', 'ip_assignment') },
   @{ Id = '015'; Name = '015_vectors_and_earth'; Gate = 'app.vectors_allow_destructive_rollback'; Tables = @('content_embedding') }
 )
+# The helper scripts of migrations 008 to 011 as ops/<migration>/<name>.sql. They used to sit at the top level of the folder,
+# where the Docker entrypoint ran them on every fresh database.
+$OlderHelpers = [ordered]@{
+  '008_phase3_evidence_control_plane' = @('idempotency.verify', 'legacy_fixture', 'preflight', 'rls.smoke', 'rollback', 'smoke', 'verify')
+  '009_phase3_queue_lifecycle' = @('legacy_recovery', 'preflight', 'rollback', 'smoke', 'verify')
+  '010_runtime_rls_policies' = @('preflight', 'verify')
+  '011_r5_custody_chain_tail' = @('preflight', 'rollback', 'verify')
+}
+# What may sit at the top level of the folder: the numbered migrations and the runtime-role files. Any other .sql there (a
+# preflight, verify, smoke or rollback script) would be run by the entrypoint on every fresh database.
+$TopLevelRule = '^(\d{3}_[a-z0-9_]+|runtime_role\.[a-z_.]+)\.sql$'
+$InitDir = '/docker-entrypoint-initdb.d'
+$FreshContainer = $null
 
 function Invoke-Psql {
   param(
     [Parameter(Mandatory = $true)][string]$RemoteFile,
     [string[]]$Before = @(),
     [string[]]$Variables = @(),
-    [switch]$AllowFailure
+    [switch]$AllowFailure,
+    # Default: the main test container, with the folder copied to $Remote. The fresh-initialisation step passes its own container
+    # and the mount point of the folder.
+    [string]$Target = $Container,
+    [string]$Root = $Remote
   )
   $psqlArgs = @('-v', 'ON_ERROR_STOP=1', '-U', 'localrecall', '-d', 'localrecall')
   foreach ($variable in $Variables) { $psqlArgs += @('-v', $variable) }
   foreach ($statement in $Before) { $psqlArgs += @('-c', $statement) }
-  $psqlArgs += @('-f', "$Remote/$RemoteFile")
+  $psqlArgs += @('-f', "$Root/$RemoteFile")
   $lines = @()
   $exit = 0
   $saved = $ErrorActionPreference
   try {
     $ErrorActionPreference = 'Continue'
-    $lines = @(& docker exec $Container psql @psqlArgs 2>&1 | ForEach-Object {
+    $lines = @(& docker exec $Target psql @psqlArgs 2>&1 | ForEach-Object {
         if ($_ -is [System.Management.Automation.ErrorRecord]) { $_.Exception.Message } else { "$_" }
       })
     $exit = $LASTEXITCODE
@@ -84,6 +107,63 @@ function Invoke-Scalar {
   $value = & docker exec $Container psql -v ON_ERROR_STOP=1 -U localrecall -d localrecall -tA -c $Sql
   if ($LASTEXITCODE -ne 0) { throw "query failed: $Sql" }
   return (($value | Out-String).Trim())
+}
+
+function Invoke-Docker {
+  # Runs docker with stderr folded into the output (Windows PowerShell 5.1 turns native stderr into errors under
+  # $ErrorActionPreference = 'Stop') and returns the exit code and the output. The arguments go in as one array so that a
+  # token such as -d is never read as an abbreviated parameter name of this function.
+  param([Parameter(Mandatory = $true)][string[]]$DockerArgs)
+  $saved = $ErrorActionPreference
+  try {
+    $ErrorActionPreference = 'Continue'
+    $lines = @(& docker @DockerArgs 2>&1 | ForEach-Object {
+        if ($_ -is [System.Management.Automation.ErrorRecord]) { $_.Exception.Message } else { "$_" }
+      })
+    return [pscustomobject]@{ Exit = $LASTEXITCODE; Output = ($lines -join "`n") }
+  } finally {
+    $ErrorActionPreference = $saved
+  }
+}
+
+function Wait-PostgresReady {
+  # Waits for the entrypoint to finish initialising ("init process complete; ready for start up") and for the server that then
+  # starts to accept connections. A container that exits first is reported with the end of its log: an init script that fails
+  # stops the entrypoint (exit code 3), which is what a helper script at the top level of the folder did.
+  param([Parameter(Mandatory = $true)][string]$Name, [int]$TimeoutSeconds = 180)
+  $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+  do {
+    Start-Sleep -Seconds 2
+    $state = Invoke-Docker @('inspect', '--format', '{{.State.Status}} {{.State.ExitCode}}', $Name)
+    if ($state.Exit -ne 0) { throw "container $Name disappeared before it became ready" }
+    $log = (Invoke-Docker @('logs', $Name)).Output
+    if ($state.Output -match '^(exited|dead) (\d+)') {
+      ($log -split "`n") | Select-Object -Last 15 | ForEach-Object { Write-Host "  log> $_" }
+      throw "container $Name stopped with exit code $($Matches[2]) before it became ready"
+    }
+    if ($log -match 'init process complete; ready for start up') {
+      if ((Invoke-Docker @('exec', $Name, 'pg_isready', '-h', '127.0.0.1', '-U', 'localrecall', '-d', 'localrecall')).Exit -eq 0) { return }
+    }
+  } while ((Get-Date) -lt $deadline)
+  throw "container $Name did not become ready in $TimeoutSeconds seconds"
+}
+
+function Remove-ThrowawayContainer {
+  # Removes a container together with its anonymous data volume (a plain removal would leave the volume behind) and returns
+  # $null when both are gone, or a message saying what is left.
+  param([Parameter(Mandatory = $true)][string]$Name)
+  $volumes = @()
+  $mounts = Invoke-Docker @('inspect', '--format', '{{json .Mounts}}', $Name)
+  if ($mounts.Exit -eq 0 -and $mounts.Output) {
+    $volumes = @(($mounts.Output | ConvertFrom-Json) | Where-Object { $_.Type -eq 'volume' } | ForEach-Object { $_.Name })
+  }
+  [void](Invoke-Docker @('rm', '-f', '-v', $Name))
+  $left = Invoke-Docker @('ps', '-a', '-q', '--filter', "name=$Name")
+  if ($left.Output.Trim()) { return "container $Name is still present after removal" }
+  foreach ($volume in $volumes) {
+    if ((Invoke-Docker @('volume', 'inspect', $volume)).Exit -eq 0) { return "volume $volume of container $Name is still present after removal" }
+  }
+  return $null
 }
 
 function Step {
@@ -132,28 +212,91 @@ $started = $false
 try {
   Step 'image is present locally (never pulled)' { Assert-ForensicImage $Image }
 
+  Step 'operator scripts accept a helper script in the new and in the old layout' {
+    # Resolve-ForensicHelperPath (scripts/forensic_runtime_common.ps1) is what apply_nexusai_r5_custody_fix.ps1 and
+    # apply_forensic_runtime_gate4.ps1 use against the live container, whose mount keeps the old names until the main checkout is
+    # updated. Here the container is replaced by a list of paths. The old name is <migration>.<helper>.sql.
+    $migration = '010_runtime_rls_policies'
+    $helper = 'verify'
+    $newPath = "/m/ops/$migration/$helper.sql"
+    $oldPath = "/m/$migration.$helper.sql"
+    $exists = { param($path) $script:PathsPresent -contains $path }
+    $cases = @(
+      @{ Present = @($newPath); Expect = $newPath },
+      @{ Present = @($oldPath); Expect = $oldPath },
+      @{ Present = @($oldPath, $newPath); Expect = $newPath }
+    )
+    foreach ($case in $cases) {
+      $script:PathsPresent = $case.Present
+      $got = Resolve-ForensicHelperPath -Migration $migration -Helper $helper -Root '/m' -FileExists $exists
+      if ($got -ne $case.Expect) { throw "with [$($case.Present -join ', ')] present it resolved to $got, expected $($case.Expect)" }
+    }
+    $script:PathsPresent = @()
+    $refused = $null
+    try { [void](Resolve-ForensicHelperPath -Migration $migration -Helper $helper -Root '/m' -FileExists $exists) } catch { $refused = $_.Exception.Message }
+    if (-not $refused) { throw 'a helper script found in neither layout was not refused' }
+    Assert-Contains $refused $newPath 'the refusal'
+    Assert-Contains $refused $oldPath 'the refusal'
+  }
+
+  Step 'fresh initialisation through the Docker entrypoint' {
+    # What a new database does with this folder: compose mounts it read-only at /docker-entrypoint-initdb.d, and the entrypoint
+    # runs every top-level *.sql in name order on an empty data directory. The helper scripts of 008 to 011 used to sit at the top
+    # level, and the first of them stopped the initialisation ("relation forensic.evidence_storage_objects does not exist").
+    $folder = (Resolve-Path -LiteralPath $MigrationDir).Path
+    $topLevel = @(Get-ChildItem -LiteralPath $folder -File -Filter '*.sql' | ForEach-Object { $_.Name })
+    [array]::Sort($topLevel, [System.StringComparer]::Ordinal)
+    $strays = @($topLevel | Where-Object { $_ -cnotmatch $TopLevelRule })
+    if ($strays.Count -gt 0) {
+      throw "the entrypoint would run these at the top level, and they are not migrations: $($strays -join ', ') (helper scripts belong in ops/<migration>/)"
+    }
+    $fresh = 'nx-migtest-init-' + ([guid]::NewGuid().ToString('N').Substring(0, 8))
+    $script:FreshContainer = $fresh
+    $leftover = $null
+    try {
+      $run = Invoke-Docker @('run', '-d', '--name', $fresh, '--label', 'nexusai.purpose=migration-test', '--memory', "${MemoryMB}m",
+        '-v', "${folder}:${InitDir}:ro", '-e', 'POSTGRES_USER=localrecall', '-e', 'POSTGRES_DB=localrecall',
+        '-e', "POSTGRES_PASSWORD=$Password", $Image)
+      if ($run.Exit -ne 0) { throw "docker run for the fresh initialisation failed: $($run.Output)" }
+      Wait-PostgresReady $fresh
+
+      $log = (Invoke-Docker @('logs', $fresh)).Output
+      $ran = @([regex]::Matches($log, 'running /docker-entrypoint-initdb\.d/(\S+\.sql)') | ForEach-Object { $_.Groups[1].Value })
+      if (($ran -join ',') -ne ($topLevel -join ',')) {
+        throw "the entrypoint ran [$($ran -join ', ')] but the top level holds [$($topLevel -join ', ')]"
+      }
+
+      # Every moved helper script is where the README, the runbooks and the operator scripts look for it.
+      $present = { param($path) (Invoke-Docker @('exec', $script:FreshContainer, 'test', '-f', $path)).Exit -eq 0 }
+      foreach ($migration in $OlderHelpers.Keys) {
+        foreach ($helper in $OlderHelpers[$migration]) {
+          $found = Resolve-ForensicHelperPath -Migration $migration -Helper $helper -Root $InitDir -FileExists $present
+          if ($found -ne "$InitDir/ops/$migration/$helper.sql") { throw "$migration/$helper is at $found, not under ops/" }
+        }
+      }
+
+      foreach ($migration in $OlderHelpers.Keys) {
+        [void](Invoke-Psql "ops/$migration/verify.sql" -Target $fresh -Root $InitDir)
+      }
+      foreach ($m in $Typed) {
+        $r = Invoke-Psql "ops/$($m.Name)/verify.sql" -Target $fresh -Root $InitDir
+        Assert-Contains $r.Output "migration_$($m.Id)_verified" "$($m.Id) verify after the fresh initialisation"
+      }
+      Write-Host "      the entrypoint ran $($ran.Count) top-level files in name order; verify scripts of 008 to 015 pass in the database it built"
+    } finally {
+      $leftover = Remove-ThrowawayContainer $fresh
+      $script:FreshContainer = $null
+      if ($leftover) { Write-Warning $leftover }
+    }
+    if ($leftover) { throw $leftover }
+  }
+
   Step 'start disposable container' {
     & docker run -d --rm --name $Container --label nexusai.purpose=migration-test --memory "${MemoryMB}m" `
       -e POSTGRES_USER=localrecall -e POSTGRES_DB=localrecall -e "POSTGRES_PASSWORD=$Password" $Image | Out-Null
     if ($LASTEXITCODE -ne 0) { throw 'docker run failed' }
     $script:started = $true
-    $deadline = (Get-Date).AddSeconds(180)
-    $ready = $false
-    do {
-      Start-Sleep -Seconds 2
-      $saved = $ErrorActionPreference
-      try {
-        $ErrorActionPreference = 'Continue'
-        $log = (@(& docker logs $Container 2>&1 | ForEach-Object { "$_" }) -join "`n")
-      } finally {
-        $ErrorActionPreference = $saved
-      }
-      if ($log -match 'init process complete; ready for start up') {
-        & docker exec $Container pg_isready -h 127.0.0.1 -U localrecall -d localrecall | Out-Null
-        if ($LASTEXITCODE -eq 0) { $ready = $true }
-      }
-    } until ($ready -or (Get-Date) -gt $deadline)
-    if (-not $ready) { throw 'container did not become ready in 180 seconds' }
+    Wait-PostgresReady $Container
   }
 
   Step 'copy migration files into the container' {
@@ -170,7 +313,7 @@ try {
     Step "base migration $file" { [void](Invoke-Psql $file) }
   }
   Step 'runtime role grants (before 012 to 015)' { [void](Invoke-Psql 'runtime_role.grants.sql') }
-  Step 'existing 010 verify passes before the new migrations' { [void](Invoke-Psql '010_runtime_rls_policies.verify.sql') }
+  Step 'existing 010 verify passes before the new migrations' { [void](Invoke-Psql 'ops/010_runtime_rls_policies/verify.sql') }
 
   $digestBefore = Get-CatalogDigest
   $legacyRows = Invoke-Scalar "SELECT (SELECT count(*) FROM forensic.records) || ',' || (SELECT count(*) FROM forensic.cdr_records) || ',' || (SELECT count(*) FROM forensic.evidence_items)"
@@ -195,7 +338,7 @@ try {
   }
 
   Step 'existing 010 verify and runtime RLS probe still pass' {
-    [void](Invoke-Psql '010_runtime_rls_policies.verify.sql')
+    [void](Invoke-Psql 'ops/010_runtime_rls_policies/verify.sql')
     [void](Invoke-Psql 'runtime_role.rls.verify.sql')
   }
   Step 'nothing from migrations 001 to 011 changed' {
@@ -255,6 +398,11 @@ try {
     if ($digestFinal -ne $digestBefore) { throw "catalog digest changed: $digestBefore -> $digestFinal" }
   }
 } finally {
+  if ($FreshContainer) {
+    # Only reached when the fresh-initialisation step was interrupted before its own clean-up ran.
+    $problem = Remove-ThrowawayContainer $FreshContainer
+    if ($problem) { Write-Warning $problem }
+  }
   if ($started -and -not $KeepContainer) {
     & docker stop $Container | Out-Null
     Write-Host "Container $Container stopped and removed (it ran with --rm)."

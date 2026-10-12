@@ -20,6 +20,7 @@ $LogRoot = Join-Path $RepoRoot 'reports\runtime-activation-20260810'
 $BackupDir = Join-Path $RepoRoot '.phase2-backups'
 $MarkerPath = Join-Path $LogRoot 'r5-custody-migration-011.json'
 $DbFiles = '/docker-entrypoint-initdb.d'
+$R5Migration = '011_r5_custody_chain_tail'
 . (Join-Path $PSScriptRoot 'forensic_runtime_common.ps1')
 
 Assert-ForensicMarker $ActivationMarker 'R5 activation'
@@ -27,15 +28,35 @@ Assert-ForensicMarker $ActivationMarker 'R5 activation'
 New-Item -ItemType Directory -Force -Path $LogRoot,$BackupDir | Out-Null
 
 function Invoke-R5MigrationSQL {
-  param([Parameter(Mandatory=$true)][string]$FileName)
+  # FileName names the step (and its log); RemotePath is where psql reads it. The default is the migration itself, which sits at
+  # the top level of the mounted folder. The helper scripts are resolved to a path first (Resolve-ForensicHelperPath).
+  param(
+    [Parameter(Mandatory=$true)][string]$FileName,
+    [string]$RemotePath = "$DbFiles/$FileName"
+  )
   Invoke-ForensicNative -FailureMessage "$FileName failed" `
     -LogPath (Join-Path $LogRoot "r5-$FileName.log") -Command {
       docker compose -p nexusai --env-file $RuntimeEnvPath `
         -f .\docker-compose.forensic-records.yaml `
         -f .\docker-compose.forensic-records.runtime.yaml `
         exec -T forensic-postgres psql -v ON_ERROR_STOP=1 `
-        -U localrecall -d localrecall -f "$DbFiles/$FileName"
+        -U localrecall -d localrecall -f $RemotePath
     }
+}
+
+function Test-R5ContainerFile {
+  param([Parameter(Mandatory=$true)][string]$Path)
+  $savedPreference = $ErrorActionPreference
+  try {
+    $ErrorActionPreference = 'Continue'
+    docker compose -p nexusai --env-file $RuntimeEnvPath `
+      -f .\docker-compose.forensic-records.yaml `
+      -f .\docker-compose.forensic-records.runtime.yaml `
+      exec -T forensic-postgres test -f $Path *> $null
+    return ($LASTEXITCODE -eq 0)
+  } finally {
+    $ErrorActionPreference = $savedPreference
+  }
 }
 
 $servicesStopped = $false
@@ -57,6 +78,15 @@ try {
       -f .\docker-compose.forensic-records.runtime.yaml ps -q $service
     if ($LASTEXITCODE -ne 0 -or -not $containerID) { throw "$service container is missing" }
     Wait-ForensicContainer -ContainerId $containerID -Label $service
+  }
+
+  # The helper scripts live in ops/011_r5_custody_chain_tail/ since 2026-10-12, and the mounted folder may still carry the old
+  # top-level names. Resolve all three now, before anything is stopped or changed, so that a missing rollback script is not
+  # discovered inside the catch block.
+  $r5Helper = @{}
+  foreach ($helper in @('preflight', 'verify', 'rollback')) {
+    $r5Helper[$helper] = Resolve-ForensicHelperPath -Migration $R5Migration -Helper $helper -Root $DbFiles `
+      -FileExists { param($path) Test-R5ContainerFile $path }
   }
 
   docker compose -p nexusai --env-file $RuntimeEnvPath `
@@ -93,10 +123,10 @@ try {
   if ($backup.Length -le 0) { throw 'R5 pre-migration backup is empty' }
   $backupHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $backupPath).Hash.ToLowerInvariant()
 
-  Invoke-R5MigrationSQL '011_r5_custody_chain_tail.preflight.sql'
-  Invoke-R5MigrationSQL '011_r5_custody_chain_tail.sql'
+  Invoke-R5MigrationSQL "$R5Migration.preflight.sql" -RemotePath $r5Helper.preflight
+  Invoke-R5MigrationSQL "$R5Migration.sql"
   $migrationApplied = $true
-  Invoke-R5MigrationSQL '011_r5_custody_chain_tail.verify.sql'
+  Invoke-R5MigrationSQL "$R5Migration.verify.sql" -RemotePath $r5Helper.verify
 
   docker compose -p nexusai --env-file $RuntimeEnvPath `
     -f .\docker-compose.forensic-records.yaml `
@@ -135,7 +165,7 @@ try {
   } | ConvertTo-Json | Set-Content -Encoding ascii -LiteralPath $MarkerPath
 } catch {
   if ($migrationApplied) {
-    try { Invoke-R5MigrationSQL '011_r5_custody_chain_tail.rollback.sql' } catch {
+    try { Invoke-R5MigrationSQL "$R5Migration.rollback.sql" -RemotePath $r5Helper.rollback } catch {
       Write-Warning "Migration rollback failed; preserve the verified backup and inspect before continuing: $($_.Exception.Message)"
     }
   }

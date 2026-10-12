@@ -14,21 +14,41 @@ $actualHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $backupPath).Hash.ToL
 if ($actualHash -ne $gate3.sha256) { throw 'Gate 3 backup hash no longer matches its marker' }
 $runtime = Get-ForensicRuntimeEnvironment $RuntimeEnvPath
 $DbFiles = '/docker-entrypoint-initdb.d'
+$Migration010 = '010_runtime_rls_policies'
+
+function Test-Gate4ContainerFile {
+  param([Parameter(Mandatory=$true)][string]$Path)
+  $savedPreference = $ErrorActionPreference
+  try {
+    $ErrorActionPreference = 'Continue'
+    docker compose -p nexusai -f .\docker-compose.forensic-records.yaml exec -T forensic-postgres test -f $Path *> $null
+    return ($LASTEXITCODE -eq 0)
+  } finally {
+    $ErrorActionPreference = $savedPreference
+  }
+}
 
 Push-Location $RepoRoot
 try {
+  # The helper scripts live in ops/010_runtime_rls_policies/ since 2026-10-12, and the mounted folder may still carry the old
+  # top-level names. Resolve them before the API and worker are stopped. The step name (and its log) keeps the old file name.
+  $steps = [ordered]@{
+    "$Migration010.preflight.sql" = Resolve-ForensicHelperPath -Migration $Migration010 -Helper 'preflight' -Root $DbFiles `
+      -FileExists { param($path) Test-Gate4ContainerFile $path }
+    "$Migration010.sql" = "$DbFiles/$Migration010.sql"
+    "$Migration010.verify.sql" = Resolve-ForensicHelperPath -Migration $Migration010 -Helper 'verify' -Root $DbFiles `
+      -FileExists { param($path) Test-Gate4ContainerFile $path }
+    'runtime_role.grants.sql' = "$DbFiles/runtime_role.grants.sql"
+  }
+
   Invoke-ForensicNative -FailureMessage 'Could not stop API/worker before database mutation' -Command {
     docker compose -p nexusai -f .\docker-compose.forensic-records.yaml stop forensic-records-api forensic-records-worker
   }
-  foreach ($sql in @(
-    '010_runtime_rls_policies.preflight.sql',
-    '010_runtime_rls_policies.sql',
-    '010_runtime_rls_policies.verify.sql',
-    'runtime_role.grants.sql'
-  )) {
+  foreach ($sql in $steps.Keys) {
+    $remotePath = $steps[$sql]
     Invoke-ForensicNative -FailureMessage "$sql failed" -LogPath (Join-Path $LogRoot "gate4-$sql.log") -Command {
       docker compose -p nexusai -f .\docker-compose.forensic-records.yaml exec -T forensic-postgres `
-        psql -v ON_ERROR_STOP=1 -U localrecall -d localrecall -f "$DbFiles/$sql"
+        psql -v ON_ERROR_STOP=1 -U localrecall -d localrecall -f $remotePath
     }
   }
 

@@ -74,7 +74,7 @@ idempotent mappings:
 - no canonical/legacy record row, job, KB asset, audit row or evidence item is
   deleted.
 
-`008_phase3_evidence_control_plane.preflight.sql` runs in a read-only transaction
+`ops/008_phase3_evidence_control_plane/preflight.sql` runs in a read-only transaction
 and rejects incompatible hashes, sizes, lifecycle times, cross-scope links, and
 version-ID collisions. The forward and rollback scripts are transactional so an
 error cannot leave a partially installed or partially removed control plane.
@@ -91,7 +91,7 @@ later Phase 3 slice.
 2. Record evidence/job/KB/record/audit counts and hashes before migration.
 3. Run the read-only preflight and resolve every reported incompatibility.
 4. Apply migrations with `psql -v ON_ERROR_STOP=1`.
-5. Run `008_phase3_evidence_control_plane.verify.sql`.
+5. Run `ops/008_phase3_evidence_control_plane/verify.sql`.
 6. Exercise a synthetic registration, KB source link, queued/running/completed
    job, custody chain and append-only mutation rejection.
 7. Reapply the forward migration to prove idempotency and exact count stability.

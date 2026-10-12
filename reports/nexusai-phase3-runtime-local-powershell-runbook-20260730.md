@@ -229,12 +229,20 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\apply_forensic
 It refuses to proceed unless the Gate 3 host backup still matches its recorded
 SHA-256. After `ActivationGate4=PASS`, do not run the expanded commands below.
 
+Since 2026-10-12 the 010 preflight and verify scripts live in
+`db/forensic_records/ops/010_runtime_rls_policies/` (they used to sit at the top
+level, where a fresh database would run them). The guarded runner finds them
+there or under their old top-level names. The expanded commands below use the
+new paths; while the mounted checkout still has the old layout, follow
+"Running a helper script while the live mount is still on the old layout" in
+`db/forensic_records/README.md`.
+
 ```powershell
 $DbFiles = "/docker-entrypoint-initdb.d"
 foreach ($sql in @(
-  "010_runtime_rls_policies.preflight.sql",
+  "ops/010_runtime_rls_policies/preflight.sql",
   "010_runtime_rls_policies.sql",
-  "010_runtime_rls_policies.verify.sql",
+  "ops/010_runtime_rls_policies/verify.sql",
   "runtime_role.grants.sql"
 )) {
   Write-Host "Running $sql"

@@ -121,3 +121,25 @@ function Assert-ForensicMarker {
   param([Parameter(Mandatory=$true)][string]$Path, [Parameter(Mandatory=$true)][string]$Gate)
   if (-not (Test-Path -LiteralPath $Path)) { throw "$Gate marker is missing: $Path" }
 }
+
+function Resolve-ForensicHelperPath {
+  # The helper scripts of migrations 008 to 011 (preflight, verify, rollback, ...) moved on 2026-10-12 from
+  # <root>/<migration>.<helper>.sql to <root>/ops/<migration>/<helper>.sql, so that the Docker entrypoint, which runs every
+  # top-level *.sql on a fresh database, no longer runs them. The database container mounts the MAIN checkout's
+  # db/forensic_records, which keeps the old names until that checkout is updated: accept either layout, new first, and stop
+  # naming both paths when neither exists. Resolve before anything is stopped or changed.
+  param(
+    [Parameter(Mandatory=$true)][string]$Migration,
+    [Parameter(Mandatory=$true)][string]$Helper,
+    # Receives a path inside the database container and returns $true when that file exists there.
+    [Parameter(Mandatory=$true)][scriptblock]$FileExists,
+    [string]$Root = '/docker-entrypoint-initdb.d'
+  )
+  $current = "$Root/ops/$Migration/$Helper.sql"
+  $legacy = "$Root/$Migration.$Helper.sql"
+  foreach ($candidate in @($current, $legacy)) {
+    $found = @(& $FileExists $candidate) | Select-Object -Last 1
+    if ($found -eq $true) { return $candidate }
+  }
+  throw "Helper script '$Helper' of migration $Migration is not in the database container (looked for $current and the old name $legacy), or the container is not running. Update the checkout that docker-compose.forensic-records.yaml mounts, or copy db/forensic_records into the container and run it from there (see db/forensic_records/README.md)."
+}

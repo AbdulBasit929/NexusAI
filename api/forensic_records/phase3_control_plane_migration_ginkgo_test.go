@@ -21,12 +21,14 @@ var _ = Describe("Phase 3 evidence control-plane migration", func() {
 	BeforeEach(func() {
 		repositoryRoot := filepath.Clean(filepath.Join("..", ".."))
 		migrationRoot := filepath.Join(repositoryRoot, "db", "forensic_records")
+		// Helper scripts sit under ops/ because the Docker entrypoint runs every top-level *.sql on a fresh database.
+		helperRoot := filepath.Join(migrationRoot, "ops", "008_phase3_evidence_control_plane")
 		forward = readMigrationContract(filepath.Join(migrationRoot, "008_phase3_evidence_control_plane.sql"))
-		rollback = readMigrationContract(filepath.Join(migrationRoot, "008_phase3_evidence_control_plane.rollback.sql"))
-		preflight = readMigrationContract(filepath.Join(migrationRoot, "008_phase3_evidence_control_plane.preflight.sql"))
-		verify = readMigrationContract(filepath.Join(migrationRoot, "008_phase3_evidence_control_plane.verify.sql"))
-		idempotencyVerify = readMigrationContract(filepath.Join(migrationRoot, "008_phase3_evidence_control_plane.idempotency.verify.sql"))
-		rlsSmoke = readMigrationContract(filepath.Join(migrationRoot, "008_phase3_evidence_control_plane.rls.smoke.sql"))
+		rollback = readMigrationContract(filepath.Join(helperRoot, "rollback.sql"))
+		preflight = readMigrationContract(filepath.Join(helperRoot, "preflight.sql"))
+		verify = readMigrationContract(filepath.Join(helperRoot, "verify.sql"))
+		idempotencyVerify = readMigrationContract(filepath.Join(helperRoot, "idempotency.verify.sql"))
+		rlsSmoke = readMigrationContract(filepath.Join(helperRoot, "rls.smoke.sql"))
 	})
 
 	It("normalizes every required control-plane object and tenant boundary", func() {
