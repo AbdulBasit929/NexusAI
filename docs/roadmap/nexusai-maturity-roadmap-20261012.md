@@ -732,7 +732,7 @@ Each phase ends at a gate. A gate is written before the phase's measurements, as
 - Migration (D2): typed tables, reference tables, entity and relationship tables, pgvector and earth-distance (all in the current image), with preflight, verify, smoke and rollback scripts (drafted and tested on a disposable database 2026-10-12: `db/forensic_records/012` to `015`, runbook `docs/data/d2-migration-runbook.md`); dual-write; backfill with SQL reconciliation; family-by-family view switch. PostGIS only as the separate D2b.
 - **Ingest v2:** parsers for C1 to C8, I1 to I4, A1; declared time zones and time basis; number classes; quarantine; completeness check; versions; quality report.
 - Cell reference, operator alias table, TAC list, server-IP enrichment.
-- **Case generator v1** with planted truth, and factory v2 intents (multi-provider, IP attribution, common contacts, path, co-location).
+- **Case generator v1** with planted truth, and factory v2 intents (multi-provider, IP attribution, common contacts, path, co-location). *Specification drafted 2026-10-12 for the owner's review: `docs/data/case-generator-spec.md` (no code yet).*
 - Verifier extensions (time basis, number class, direction semantics, IP interval).
 - Typed analyses A1 to A5, A8, A13 with oracles.
 - Import wizard and assumption chips in the UI.
