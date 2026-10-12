@@ -96,6 +96,28 @@ func semanticTermsContain(terms map[string]bool, values ...string) bool {
 	return false
 }
 
+// semanticFrameAccessIsOrdinaryWord is true when "access" is the only word in the question that points at the access-log
+// family and the question is plainly about something else: it names a document, an image, a recording or another media
+// artifact (questionNamesMediaArtifact, the same nouns the misroute guard keys on, so there is one definition of "a media
+// question"). "What remote access setup does the HP guide describe?" (rehearsal item DOC-05, 2026-10-09) is the case. Its one
+// family word was "access", so the frame hinted the access-log family, the access-log operation outranked every other, and the
+// answer was withheld as a misroute where the guide should have been searched.
+//
+// It is this narrow on purpose. "log", "login", "authentication", "http" and "security" still select the family beside any noun,
+// and so does "access" in a question that names no media artifact ("show failed access events", "how many times was access
+// denied"), so every access-log question that was routed before is routed the same way. Measured 2026-10-12 over the 2,080
+// distinct questions in the golden sets, the variant ledger, the corpora and the local factory question files: the frame's
+// family hint changes for exactly one, DOC-05.
+//
+// "guide" joins the document family's words in semanticFrameFamily for the same reason: the scope options
+// (mediaEvidenceScopes) and the misroute guard already read it as a document, and the family hint did not.
+func semanticFrameAccessIsOrdinaryWord(question string, terms map[string]bool) bool {
+	if !terms["access"] || semanticTermsContain(terms, "authentication", "login", "http", "security", "log", "logs") {
+		return false
+	}
+	return questionNamesMediaArtifact(question)
+}
+
 func semanticFrameFamily(req hybridQueryRequest, facts HybridFactsV1, terms map[string]bool) string {
 	if family := capabilityFamilyForRecordType(normalize(req.QueryScope.SourceFamily)); family != "" {
 		return family
@@ -118,6 +140,10 @@ func semanticFrameFamily(req hybridQueryRequest, facts HybridFactsV1, terms map[
 		family string
 		terms  []string
 	}
+	accessTerms := []string{"access", "authentication", "login", "http", "security"}
+	if semanticFrameAccessIsOrdinaryWord(req.Query, terms) {
+		accessTerms = []string{"authentication", "login", "http", "security"}
+	}
 	sets := []familyTerms{
 		{"network_ipdr", []string{"ipdr", "dns", "nat", "protocol", "session"}},
 		{"communications_cdr", []string{"cdr", "call", "calls", "callee", "caller", "contact", "contacts", "counterparty", "communication"}},
@@ -125,9 +151,9 @@ func semanticFrameFamily(req hybridQueryRequest, facts HybridFactsV1, terms map[
 		{"device_sim", []string{"imei", "imsi", "sim", "device"}},
 		{"tower_location", []string{"tower", "site", "cell", "lac", "tac", "cgi", "ecgi"}},
 		{"financial_transactions", []string{"financial", "transaction", "payment", "invoice", "amount", "bank"}},
-		{"access_security_logs", []string{"access", "authentication", "login", "http", "security"}},
+		{"access_security_logs", accessTerms},
 		{"generic_tabular", []string{"generic", "tabular", "spreadsheet"}},
-		{"document_intelligence", []string{"document", "documents", "pdf", "docx", "passage", "passages"}},
+		{"document_intelligence", []string{"document", "documents", "pdf", "docx", "passage", "passages", "guide"}},
 		{"knowledge_evidence", []string{"knowledge", "rag"}},
 		{"anpr_vehicles", []string{"anpr", "plate", "vehicle", "camera"}},
 		{"audio_intelligence", []string{"audio", "recording", "recordings", "transcript", "speech"}},
