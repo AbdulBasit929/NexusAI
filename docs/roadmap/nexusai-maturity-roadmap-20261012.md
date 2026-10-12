@@ -1,6 +1,6 @@
 # NexusAI maturity roadmap: every data family, models, schema, query intelligence and link analysis
 
-**Date:** 2026-10-12 · **Status:** proposed plan, nothing in it is approved or started · **Author:** Claude session `local_c615940b` for the product owner
+**Date:** 2026-10-12 · **Status:** proposed plan; decisions D1 and D2 were approved for drafting on 2026-10-12 and their drafts exist (nothing is applied to the live database, nothing else is approved or started) · **Author:** Claude session `local_c615940b` for the product owner
 
 **Precedence.** This file sequences work. It does not replace the rules in `docs/architecture/QUERY_ANSWERING_DECISION_20261005.md` (three outcomes, the verifier, the case clock), `AGENTS.md`, or the country profile `configuration/forensic_country_profiles/pakistan.json`. Where it conflicts with an older roadmap, section 2 says which one wins and why.
 
@@ -15,7 +15,7 @@
 **Where we are not.** Four things stand between this and a product that survives real data:
 
 1. **Real provider exports are mostly not ingested correctly yet.** I ran the repository's own CDR and IPDR adapters' `detect_schema` over the header rows of the 13 real layouts you supplied. The CDR adapter recognises **3 of 8** layouts and the IPDR adapter **0 of 5** (4 IPDR layouts and 1 application-usage layout; header-level check, no ingest was run; section 4). Everything downstream, every question, every link analysis, inherits that.
-2. **The database cannot yet do the analysis you asked for.** The forensic database has TimescaleDB and `pg_trgm` and nothing else: no PostGIS (distance, radius, co-location by geometry), no pgvector (face, image and text similarity), no relationship table (the entity index has 7 entity types and no edges). Only CDR has a typed table; IPDR, ANPR, tower and the rest live as JSON in `forensic.records`.
+2. **The database cannot yet do the analysis you asked for.** The forensic database has TimescaleDB and `pg_trgm` installed and no relationship table (the entity index has 7 entity types and no edges). The current image already ships pgvector 0.8.1, `cube` and `earthdistance` (available, not installed), so vector search and "cells within N metres" need no image change; PostGIS (containment, line-of-travel, ellipsoid distance) is not in the image and would need a new image and a dump and restore. Only CDR has a typed table; IPDR, ANPR, tower and the rest live as JSON in `forensic.records`. *(Corrected 2026-10-12: the first version of this line said pgvector was missing; the extension list of the image was checked while drafting D2.)*
 3. **Media models are weak where Pakistani evidence needs them most.** Measured in our own sealed tests: plate reading 13 of 22 exact on images, 3 of 41 on video at one frame per second, Urdu OCR 0 of 1 exact (line-level, one fixture), Urdu speech word error rate 45.5% and English 10.8% on small read-speech sets, and no Punjabi or Pashto speech support at all. These are small samples with wide uncertainty, which is itself the finding: we do not yet have test sets that match real evidence.
 4. **Link analysis exists on paper.** 79 operations are registered; 62 are only "registered", 4 are product certified, and `relationship_network`, `cross_family_correlation` and `co_travel_or_co_presence` are registered with no independent proof.
 
@@ -46,7 +46,7 @@ Weeks are planning estimates for one owner plus Claude sessions and will be re-p
 | Question answering, text evidence | Retrieval with citations (full-text, trigram, vector) | 8 of 15 hand-written multimodal text questions answered | Routing errors (a document question sent to the access-log family); evidence inventory ("how many images") withheld |
 | Operations catalogue | 79 registered operations | 4 product certified, 1 fixture certified, 12 source validated, 62 registered only | Independent proof for relationship and correlation operations |
 | Ingestion, structured | Worker with 5 adapters (CDR, IPDR, ANPR, subscriber, tower), time policy, XLSX and TSV readers, schema profile | Adapters tested on repository synthetic fixtures | Real provider layouts: 3 of 8 CDR, 0 of 5 IPDR recognised (section 4) |
-| Database | PostgreSQL 16, TimescaleDB 2.28 (hypertables `records`, `cdr_records`), RLS by tenant, `pg_trgm`, custody chain | 10,168 rows in the multimodal case, 23,080 across two cases | No PostGIS, no pgvector, no relationship table, no typed IPDR/ANPR/tower tables, no read-only analyst role, no case registry |
+| Database | PostgreSQL 16, TimescaleDB 2.28 (hypertables `records`, `cdr_records`), RLS by tenant, `pg_trgm`, custody chain | 10,168 rows in the multimodal case, 23,080 across two cases | No relationship table, no typed IPDR/ANPR/tower tables, no read-only analyst role, no case registry; pgvector 0.8.1, `cube` and `earthdistance` are in the image but not installed; PostGIS is not in the image |
 | Models in the worker | Qwen3-4B-Instruct (CPU, Q4_K_M), Qwen3-Embedding-0.6B, faster-whisper small (Urdu), whisper tiny, PaddleOCR PP-OCRv5 Arabic, FastALPR (YOLOv9-t 384 plus CCT-XS-v2), ONNX video ANPR V3, YuNet plus SFace, SigLIP base | See the media numbers in section 1 | TTS disabled; no diarization, language ID, reranker or tracker in the product |
 | Link analysis | `frequent_contacts` and `temporal_activity` (product certified), `multi_source_comparison` (fixture certified), a multi-CDR common-contact comparison | Hand-authored three-source golden | Path, co-location, chaining, community, IP attribution, cross-family links |
 | Governance | RLS, custody hash chain, country profile with real-data policy and provider onboarding steps | Isolation specs | Real per-user identity (the UI sends one fixed actor), case owner and members, read-only role |
@@ -138,7 +138,7 @@ flowchart LR
 | Plane | Contents | State |
 |---|---|---|
 | Ingest | Sniffing, layout registry, parsers, quality report, enrichment, media workers | Partly built: five adapters, shared worker; layout registry and quality report are new |
-| Store | Typed tables, reference tables, entity and relationship tables, derived artifacts, vectors, geometry | Partly built: TimescaleDB, `records`, `cdr_records`, `derived_artifacts`, `record_entities`; typed families, PostGIS, pgvector and relationships are new |
+| Store | Typed tables, reference tables, entity and relationship tables, derived artifacts, vectors, geometry | Partly built: TimescaleDB, `records`, `cdr_records`, `derived_artifacts`, `record_entities`; typed families, vectors (pgvector is in the image), earth-distance lookups and relationships are new; PostGIS needs a new image (D2b) |
 | Semantic layer | Curated families, synonyms, sensitivity, one YAML per family | Built for 17 families; extended with every new table |
 | Question answering | Front door, router, four lanes, verifier | Lanes 1 to 3 built; front door built and off; lane 4 is new |
 | Models | One registry with roles, hashes, licences, hardware needs | Catalogue exists in `configuration/`; a role-based registry with decision rules is new |
@@ -250,7 +250,7 @@ New tables, all with `tenant_id`, `collection_id`, row-level security, lineage (
 | `comm_event` | `event_type` (voice, sms, data, ussd, other), `direction`, `a_raw`, `a_norm`, `a_kind`, `b_raw`, `b_norm`, `b_kind`, `start_utc`, `end_utc`, `duration_s`, `source_tz`, `time_basis`, `imsi`, `imei`, `tac`, `cell_key`, `lac_tac`, `cell_raw`, `lat`, `lon`, `loc_method`, `peer_operator`, `volume_bytes`, `dataset_kind` | Replaces `cdr_records`; one row per event; `a_*` is the party the file is about |
 | `data_session` | `start_utc`, `end_utc`, `nat_start_utc`, `nat_end_utc`, `msisdn`, `imsi`, `imei`, `ue_ip`, `ue_port`, `public_ip`, `public_port_from`, `public_port_to`, `server_ip`, `server_port`, `protocol`, `apn`, `rat`, `cell_key`, `app_category`, `app`, `app_feature`, `host`, `url`, `user_agent`, `bytes_up`, `bytes_down`, `packets_up`, `packets_down`, `duration_ms`, `session_id` | IPv4 and IPv6 as `inet` |
 | `app_usage` | `start_utc`, `end_utc`, `msisdn`, `imsi`, `imei`, `terminal`, `apn`, `app_category`, `app`, `app_feature`, `province`, `city` | Own family; no IPs |
-| `cell_site` | `cell_key`, `operator`, `plmn`, `lac_tac`, `ci_eci`, `sector`, `azimuth`, `beamwidth`, `lat`, `lon`, `geom` (PostGIS), `radius_m`, `valid_from`, `valid_to`, `source` | Time-valid reference; never overwritten, retired sites kept |
+| `cell_site` | `cell_key`, `operator`, `plmn`, `lac_tac`, `ci_eci`, `sector`, `azimuth`, `beamwidth`, `lat`, `lon`, `geom` (PostGIS, optional D2b), `radius_m`, `valid_from`, `valid_to`, `source` | Time-valid reference; never overwritten, retired sites kept |
 | `subscriber` | `msisdn`, `imsi`, `iccid`, `status`, `activated_at`, `deactivated_at`, `valid_from`, `valid_to`, identity fields under field-level access | Exists as a family; typed |
 | `device` | `imei`, `tac`, `make`, `model`, `first_seen`, `last_seen` | Derived; TAC reference joined |
 | `ip_assignment` | `public_ip`, `port_from`, `port_to`, `valid_from`, `valid_to`, `msisdn`, `imsi`, `imei`, `source_row` | Derived from `data_session`; answers IP attribution |
@@ -262,7 +262,9 @@ New tables, all with `tenant_id`, `collection_id`, row-level security, lineage (
 | `derivation` | `derivation_id`, `procedure`, `parameters`, `code_version`, `run_at`, `seed` | Records how an inferred edge or score was produced |
 | `case_registry`, `case_member`, `case_authority` | owner, members, legal basis, enabled capabilities | R9; in Phase 5 |
 
-**Extensions needed:** PostGIS (distance, radius, containment, line-of-travel), pgvector (HNSW) for text, image and face vectors, `btree_gist`, existing `pg_trgm` and TimescaleDB. Both new extensions are database changes and need your approval.
+**Drafted 2026-10-12, not applied.** Migrations `012_typed_families.sql` to `015_vectors_and_earth.sql` implement this table with these differences: `subscriber` is split into `subscriber_registration` (facts) and `subscriber_identity` (name, national ID number and address, with no access for the runtime role until R9); `device` is not a table (an `imei` entity plus `device_tac` covers it); `layout_versions`, `camera_site`, `ip_range_reference`, `derivation` and `content_embedding` are added; `case_registry`, `case_member` and `case_authority` stay in Phase 5; face relationships and face vectors are excluded while the face policy is at L0. Each typed row keeps its own `raw_payload`, so the legacy JSON copy in `forensic.records` can be retired after parity. Runbook: `docs/data/d2-migration-runbook.md`.
+
+**Extensions.** Available in the current image and used by the drafted migration 015: pgvector 0.8.1 (text and image vectors; an HNSW index is created per model once a model is chosen; face vectors are excluded while the face policy is at L0), `cube` and `earthdistance` (radius lookups on cell sites and cameras now, as a spherical approximation). Not available: PostGIS (ellipsoid distance, containment in geofence polygons, line-of-travel). It needs a different image and a dump and restore, because the Alpine image (musl) and the usual PostGIS images (glibc) can order text differently, so it is proposed separately as D2b with a syntax-checked draft that has never been run. `btree_gist` is not needed by anything drafted. Installing extensions is a database change and needs your approval.
 
 **Indexes and performance.** Hash and B-tree on normalised identifiers; GiST on geometry; BRIN or Timescale chunk pruning on time; partial indexes by `dataset_kind`; Timescale continuous aggregates for the daily contact matrix and hourly cell activity so the lane and link analyses read small tables.
 
@@ -676,7 +678,7 @@ Severity: P1 blocks a trustworthy product, P2 degrades it, P3 is polish or proce
 | G1 | 5 of 8 call-record layouts and all 5 internet or application layouts are not recognised by the adapters | Section 4.3 | P1 | 1 | |
 | G2 | No layout registry and no assisted mapping | Section 4.4 | P1 | 0 and 1 | |
 | G3 | No typed tables for IPDR, ANPR, tower; those families are JSON | Database read 2026-10-12 | P1 | 1 | D2 |
-| G4 | No PostGIS and no pgvector | `pg_extension` lists only `pg_trgm`, `pgcrypto`, `plpgsql`, `timescaledb` | P1 | 1 | D2 |
+| G4 | Vectors, radius lookups and geometry are not installed; PostGIS is not even available | `pg_extension` lists only `pg_trgm`, `pgcrypto`, `plpgsql`, `timescaledb`; `pg_available_extensions` lists `vector` 0.8.1, `cube`, `earthdistance`, `btree_gist` and no `postgis` | P1 | 1 | D2, D2b |
 | G5 | No relationship layer: `record_entities` has 7 entity types and no edges | Database read | P1 | 1 | D2 |
 | G6 | Relationship and correlation operations are registered, not proven | 62 of 79 operations only registered | P1 | 1 and 4 | |
 | G7 | No sample file states a time zone; times are Excel serials or text | Section 4.2, F3 | P1 | 1 | |
@@ -727,7 +729,7 @@ Each phase ends at a gate. A gate is written before the phase's measurements, as
 
 ### Phase 1: real structured data and the link-analysis foundation (weeks 2 to 8)
 
-- Migration (D2): typed tables, PostGIS, pgvector, entity and relationship tables, with preflight, verify and rollback scripts; dual-write; backfill with SQL reconciliation; family-by-family view switch.
+- Migration (D2): typed tables, reference tables, entity and relationship tables, pgvector and earth-distance (all in the current image), with preflight, verify, smoke and rollback scripts (drafted and tested on a disposable database 2026-10-12: `db/forensic_records/012` to `015`, runbook `docs/data/d2-migration-runbook.md`); dual-write; backfill with SQL reconciliation; family-by-family view switch. PostGIS only as the separate D2b.
 - **Ingest v2:** parsers for C1 to C8, I1 to I4, A1; declared time zones and time basis; number classes; quarantine; completeness check; versions; quality report.
 - Cell reference, operator alias table, TAC list, server-IP enrichment.
 - **Case generator v1** with planted truth, and factory v2 intents (multi-provider, IP attribution, common contacts, path, co-location).
@@ -791,8 +793,9 @@ Each phase ends at a gate. A gate is written before the phase's measurements, as
 
 | # | Decision | Why now | Recommended |
 |---|---|---|---|
-| D1 | Real-data policy: vault location, recorded authority for each file, who may see it | Every later step uses the samples | Approve section 8.1 |
-| D2 | Database changes: PostGIS, pgvector, typed tables, entity and relationship tables (backup first) | Phase 1 cannot start without it | Approve the migration plan; preflight and rollback scripts come first |
+| D1 | Real-data policy: vault location, recorded authority for each file, who may see it | Every later step uses the samples | Approved for drafting 2026-10-12; policy and tools drafted (`docs/data/real-data-handling-policy.md`, `tools/real_data/`); in force once you approve it and fill the authority fields |
+| D2 | Database changes: typed tables, reference tables, entity and relationship tables, pgvector and earth-distance (all in the current image; backup first) | Phase 1 cannot start without it | Approved for drafting 2026-10-12; migrations 012 to 015 and scripts drafted and tested on a disposable database; applying to the live database needs a separate go-ahead |
+| D2b | PostGIS: a different image and a dump and restore | Only needed for polygons, line-of-travel and ellipsoid distance | Defer; `earthdistance` covers radius lookups now |
 | D3 | Hardware: measure the EliteDesk RTX 2080; buy a second RAM stick; later a GPU only if the bake-off needs it | Speed and the bake-off | Measure first, buy nothing yet |
 | D4 | Downloads: models and datasets, item by item after the licence ledger | Standing rule | Approve per item |
 | D5 | Face policy: stay at detection only (L0) for now; licence route and legal sign-off for any recognition | Highest legal and reputational risk | Stay at L0; start the licence review |
