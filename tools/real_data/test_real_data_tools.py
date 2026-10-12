@@ -9,6 +9,7 @@ import io
 import json
 import os
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -32,13 +33,18 @@ SYNTH_NUMBER = reserved.synthetic_msisdn(7)
 PLANTED_TEXT = "PLANTED" + "NAME" + "MARKER"
 
 
+def _make_writable_and_retry(func, path, _exc_info):
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
+
+
 @contextlib.contextmanager
 def workdir():
     path = tempfile.mkdtemp(prefix="rdtools-")
     try:
         yield path
     finally:
-        shutil.rmtree(path, ignore_errors=True)
+        shutil.rmtree(path, onerror=_make_writable_and_retry)  # git object files are read-only on Windows
 
 
 def write_csv(path, header, rows, delimiter=",", encoding="utf-8"):
