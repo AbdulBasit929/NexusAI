@@ -49,3 +49,36 @@ GRANT UPDATE ON
   forensic.kb_active_metadata,
   forensic.kb_collection_assets
 TO forensic_runtime;
+
+-- Typed families, reference tables, the entity and relationship layer and embeddings (migrations 012 to 015): append-only
+-- INSERT on every table that exists, column-level UPDATE only where an analyst decision must be recorded, and no access at
+-- all to the identity table. Applies only to tables that exist, so the file stays valid before those migrations.
+DO $$
+DECLARE
+  t text;
+BEGIN
+  FOREACH t IN ARRAY ARRAY[
+    'layout_versions', 'comm_event', 'data_session', 'app_usage', 'plate_sighting', 'subscriber_registration',
+    'cell_site', 'camera_site', 'device_tac', 'ip_range_reference',
+    'derivation', 'entity', 'entity_mention', 'relationship', 'relationship_evidence', 'ip_assignment',
+    'content_embedding'
+  ]
+  LOOP
+    IF to_regclass('forensic.' || t) IS NOT NULL THEN
+      EXECUTE format('GRANT INSERT ON forensic.%I TO forensic_runtime', t);
+    END IF;
+  END LOOP;
+
+  IF to_regclass('forensic.entity') IS NOT NULL THEN
+    GRANT UPDATE (display_label, first_seen, last_seen, attributes, merged_into, updated_at)
+      ON forensic.entity TO forensic_runtime;
+  END IF;
+  IF to_regclass('forensic.relationship') IS NOT NULL THEN
+    GRANT UPDATE (first_seen, last_seen, evidence_count, features, score, review_state, reviewed_by, reviewed_at, updated_at)
+      ON forensic.relationship TO forensic_runtime;
+  END IF;
+  IF to_regclass('forensic.subscriber_identity') IS NOT NULL THEN
+    REVOKE ALL ON forensic.subscriber_identity FROM forensic_runtime;
+  END IF;
+END
+$$;

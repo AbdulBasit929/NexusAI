@@ -197,3 +197,42 @@ the installed definition, restarts API/worker, and writes a non-secret marker.
 The API independently verifies chain topology by predecessor hash, including a
 single root, reachable events, missing predecessors, duplicate hashes, and
 forked links. It no longer derives continuity from timestamp/UUID ordering.
+
+## Typed families, reference tables, link-analysis layer and vectors (migrations 012 to 015) - DRAFT, not applied
+
+Drafted 2026-10-12 under decision D2 of `docs/roadmap/nexusai-maturity-roadmap-20261012.md`. All additive, idempotent, one
+transaction per file; tested on a disposable database only. **Do not apply to a retained database until the owner has said so
+and a validated backup exists.** The full procedure (backup, apply, verify, rollback, what is and is not tested, the separate
+PostGIS decision) is `docs/data/d2-migration-runbook.md`.
+
+| Migration | Adds |
+|---|---|
+| `012_typed_families.sql` | `layout_versions`, hypertables `comm_event`, `data_session`, `app_usage`, `plate_sighting`, `subscriber_registration`, `subscriber_identity`, `normalize_plate()` |
+| `013_reference_tables.sql` | `make_cell_key()`, `cell_site`, `camera_site`, `device_tac`, `ip_range_reference` |
+| `014_entity_relationship_layer.sql` | `derivation`, `entity`, `entity_mention`, `relationship`, `relationship_evidence`, `ip_assignment` |
+| `015_vectors_and_earth.sql` | extensions `vector`, `cube`, `earthdistance`; `content_embedding`; earth indexes |
+
+Layout of this folder: the Docker entrypoint runs **every top-level `*.sql`** in alphabetical order when it initialises a new
+database, so the helper scripts for 012 to 015 live in `ops/<migration>/` (`preflight.sql`, `verify.sql`, `smoke.sql`,
+`rollback.sql`) and the optional PostGIS draft in `optional/` (the entrypoint ignores sub-folders). Run them the same way as the
+older ones, with the path under the mount:
+
+```powershell
+docker compose -f docker-compose.forensic-records.yaml exec forensic-postgres `
+  psql -v ON_ERROR_STOP=1 -U localrecall -d localrecall `
+  -f /docker-entrypoint-initdb.d/ops/012_typed_families/preflight.sql
+```
+
+(The mount belongs to the main checkout; if 012 to 015 are not there yet, copy the reviewed folder into the container as the
+runbook describes.) `smoke.sql` inserts synthetic evidence rows and rolls back: for disposable databases only.
+`ops/Test-MigrationsThrowaway.ps1` runs the whole sequence, including rollbacks and idempotency, on a throwaway container
+from the local image and prints `MigrationThrowawayTest=PASS`; add `-VolumeRows 500000` to also load synthetic events and print
+load time, sizes and query timings (`ops/volume_probe.sql`).
+
+Known problem, found while testing and not caused by 012 to 015: the auxiliary scripts of migrations 008 to 011 (`*.preflight.sql`,
+`*.verify.sql`, `*.rollback.sql`, `*.smoke.sql`, `*.legacy_*.sql`, `*.rls.smoke.sql`, `*.idempotency.verify.sql`) sit at the top
+level, so a **fresh** initialisation from this folder runs them in name order and stops at
+`008_phase3_evidence_control_plane.idempotency.verify.sql` ("relation forensic.evidence_storage_objects does not exist"). Databases
+created before 008 existed never hit it, because later migrations were applied by hand. With those scripts moved into `ops/`, a fresh
+initialisation runs 001 to 015 and both runtime-role files and all four verify scripts pass. Moving them also means updating
+the commands above and `scripts/apply_nexusai_r5_custody_fix.ps1`; not done here.
