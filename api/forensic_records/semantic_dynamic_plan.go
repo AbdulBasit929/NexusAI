@@ -614,6 +614,12 @@ func resolveSemanticDynamicPlan(ctx context.Context, cfg config, req hybridQuery
 		req.SemanticPlannerAudit.IRPlanCacheHit = planCacheHit
 	}
 	if !planCacheHit {
+		// After a lane decline the existing path has one model attempt and it is short (governed_sql_budget.go). Asked only now,
+		// past the cache, because a cached completion is not an attempt.
+		timeout, attempt := olderPathModelAttempt(ctx, semanticPlannerRequestTimeout(cfg))
+		if !attempt {
+			return req, "model_budget_spent"
+		}
 		call, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimRight(cfg.LocalAIURL, "/")+"/v1/chat/completions", bytes.NewReader(payload))
 		if err != nil {
 			return req, "request_build_failed"
@@ -622,7 +628,7 @@ func resolveSemanticDynamicPlan(ctx context.Context, cfg config, req hybridQuery
 		if cfg.LocalAIAPIKey != "" {
 			call.Header.Set("Authorization", "Bearer "+cfg.LocalAIAPIKey)
 		}
-		response, err := httpclient.NewWithTimeout(semanticPlannerRequestTimeout(cfg)).Do(call)
+		response, err := httpclient.NewWithTimeout(timeout).Do(call)
 		if err != nil {
 			return req, "timeout_or_unavailable"
 		}

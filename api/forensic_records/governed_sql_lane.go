@@ -119,6 +119,10 @@ var govSQLWholeCase = regexp.MustCompile(`(?i)\b(?:this case|the case|entire cas
 
 var govSQLMediaCue = regexp.MustCompile(`(?i)\b(?:images?|photos?|pictures?|jpe?g|video|videos|footage|audio|recordings?|transcripts?|speech|spoken|documents?|pdfs?|ocr|scans?|scanned|faces?)\b`)
 
+// govSQLLaneRun is how the handler enters the lane when the lane is first. A variable only so that a spec can stand in for the
+// lane (its model is already one, govSQLModel) and drive the whole handler without a database.
+var govSQLLaneRun = runGovernedSQLLane
+
 // runGovernedSQLLane returns a response when the lane answered or abstained, and nil
 // when it declined. The audit is always filled.
 func runGovernedSQLLane(ctx context.Context, cfg config, db *pgxpool.Pool, req hybridQueryRequest, startedAt time.Time) (*hybridQueryResponse, GovSQLAuditV1) {

@@ -504,14 +504,19 @@ func resolveHybridPlanner(ctx context.Context, cfg config, req hybridQueryReques
 		if cfg.LocalAIURL == "" || !isForensicSynthesisModelName(req.SynthesisModel) {
 			return finish("unavailable")
 		}
-		audit.DecisionSource = "MODEL_DECISION"
-		decisionStart = time.Now()
-		choices, _ := json.Marshal(audit.Candidates)
-		body, _ := json.Marshal(map[string]any{"model": req.SynthesisModel, "temperature": 0, "max_tokens": dynamicPlannerMaxCompletionTokens, "response_format": map[string]any{"type": "json_schema", "json_schema": map[string]any{"name": "forensic_hybrid_decision_v2", "strict": true, "schema": hybridResidualSchema(audit.Candidates)}}, "messages": []map[string]string{{"role": "system", "content": "Choose one server-issued tuple matching the analyst's residual intent. Return only a one-field JSON object: {\"decision\":\"<one allowed enum value>\"}. Never generate facts, parameters, scope, tools or operations. Choose CLARIFY:AMBIGUOUS_INTENT for ambiguous intent or CLARIFY:INSUFFICIENT_FACTS for insufficient facts; otherwise choose one tuple ID."}, {"role": "user", "content": req.Query + "\nValid tuples:\n" + string(choices)}}})
 		timeout := languageAssistanceTimeout
 		if cfg.SynthesisTimeout > 0 && cfg.SynthesisTimeout < timeout {
 			timeout = cfg.SynthesisTimeout
 		}
+		// After a lane decline the existing path has one model attempt and it is short (governed_sql_budget.go).
+		timeout, attempt := olderPathModelAttempt(ctx, timeout)
+		if !attempt {
+			return finish("model_budget_spent")
+		}
+		audit.DecisionSource = "MODEL_DECISION"
+		decisionStart = time.Now()
+		choices, _ := json.Marshal(audit.Candidates)
+		body, _ := json.Marshal(map[string]any{"model": req.SynthesisModel, "temperature": 0, "max_tokens": dynamicPlannerMaxCompletionTokens, "response_format": map[string]any{"type": "json_schema", "json_schema": map[string]any{"name": "forensic_hybrid_decision_v2", "strict": true, "schema": hybridResidualSchema(audit.Candidates)}}, "messages": []map[string]string{{"role": "system", "content": "Choose one server-issued tuple matching the analyst's residual intent. Return only a one-field JSON object: {\"decision\":\"<one allowed enum value>\"}. Never generate facts, parameters, scope, tools or operations. Choose CLARIFY:AMBIGUOUS_INTENT for ambiguous intent or CLARIFY:INSUFFICIENT_FACTS for insufficient facts; otherwise choose one tuple ID."}, {"role": "user", "content": req.Query + "\nValid tuples:\n" + string(choices)}}})
 		callCtx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
 		httpReq, err := http.NewRequestWithContext(callCtx, http.MethodPost, strings.TrimRight(cfg.LocalAIURL, "/")+"/v1/chat/completions", bytes.NewReader(body))

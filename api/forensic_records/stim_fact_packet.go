@@ -437,7 +437,12 @@ func synthesizeFactPacketNarrativeWithTrace(ctx context.Context, cfg config, req
 	if cfg.LocalAIURL == "" || model == "" || !isForensicSynthesisModelName(model) {
 		return finish(NarrativeV1{}, "Grounded explanation unavailable; deterministic result retained", "UNAVAILABLE")
 	}
-	timeout := synthesisRequestTimeout(cfg)
+	// After a lane decline the existing path has one model attempt and it is short (governed_sql_budget.go); a narrative that
+	// is not attempted leaves the deterministic result, as a narrative that timed out does.
+	timeout, attempt := olderPathModelAttempt(ctx, synthesisRequestTimeout(cfg))
+	if !attempt {
+		return finish(NarrativeV1{}, "Grounded explanation skipped; deterministic result retained", "BUDGET_SPENT")
+	}
 	callCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	packetJSON, _ := json.Marshal(map[string]any{"fact_packet": packet.narrationPacket()})

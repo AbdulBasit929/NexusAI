@@ -344,12 +344,15 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			holder.reclassified = reclassified
 		}
 		if governedSQLFirstEnabled() {
-			laneResponse, laneAudit := runGovernedSQLLane(ctx, cfg, db, req, startedAt)
+			laneResponse, laneAudit := govSQLLaneRun(ctx, cfg, db, req, startedAt)
 			setGovernedSQLHeader(w, laneAudit)
 			if laneResponse != nil && (!reclassified || laneAudit.State == "answered") {
 				writeJSON(w, http.StatusOK, *laneResponse)
 				return
 			}
+			// A question the lane spent model time on and still declined goes on with ONE short model attempt, not the two that
+			// ran to their ceilings and took 409 to 458 s (governed_sql_budget.go).
+			ctx = govSQLContextAfterDecline(ctx, laneAudit)
 		}
 		if terminal, ok := terminalRequestResponse(req, startedAt); ok {
 			writeJSON(w, http.StatusOK, terminal)
