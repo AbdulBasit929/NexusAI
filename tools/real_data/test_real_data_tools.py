@@ -389,6 +389,7 @@ def test_scan_identifiers():
     real_imei = body + reserved.luhn_check_digit(body)
     assert ("review", "num.imei_like") in rules_of("a.csv", "imei,%s" % real_imei)
     assert not rules_of("a.csv", "imei,%s" % reserved.synthetic_imei(9))
+    assert not rules_of("a.csv", "coordinate,-59.%s" % real_imei)  # the fraction of a decimal number is not an IMEI
     assert ("review", "id.cnic_context") in rules_of("a.md", "the cnic is %s" % ("3" + "520212345671"))
 
 
@@ -402,7 +403,7 @@ def test_scan_ips_and_coordinates():
     assert ("block", "net.public_ip") in rules_of("flows.csv", "src,2606:4700:4700::1111,dst")  # real-data-ok: public resolver address
     assert not rules_of("flows.csv", "src,%s,dst" % reserved.synthetic_ipv6(1))
     assert not rules_of("flows.csv", "mac aa:bb:cc:dd:ee:ff at 12:30:45")
-    assert ("review", "geo.pk_coords") in rules_of("x.csv", "33.6844,73.0479")
+    assert ("review", "geo.pk_coords") in rules_of("x.csv", "33.6844,73.0479")  # real-data-ok: scanner test vector, a public landmark
     assert not rules_of("x.csv", "33.7,73.0")
 
 
@@ -475,6 +476,29 @@ def test_scan_staged_in_a_temporary_repository():
         assert code == 0, out  # nothing staged now: existing content never blocks
         code, out = run_scan("--all-tracked", "--repo", repo)
         assert code == 1 and "bad.csv" in out  # audit mode still finds it
+
+
+def test_scan_paths_reads_folders_and_refuses_a_missing_path():
+    with workdir() as root:
+        nested = os.path.join(root, "a", "b")
+        os.makedirs(nested)
+        os.makedirs(os.path.join(root, ".git"))
+        with open(os.path.join(nested, "bad.csv"), "w") as handle:
+            handle.write("n\n%s\n" % LOOKS_REAL_MSISDN)
+        with open(os.path.join(root, ".git", "ignored.csv"), "w") as handle:
+            handle.write("n\n%s\n" % LOOKS_REAL_MSISDN)
+        with open(os.path.join(root, "a", "ok.csv"), "w") as handle:
+            handle.write("n\n%s\n" % SYNTH_NUMBER)
+        code, out = run_scan("--paths", os.path.join(root, "a"))
+        assert code == 1 and "bad.csv:2" in out and "ok.csv" not in out and LOOKS_REAL_MSISDN not in out, out
+        code, out = run_scan("--paths", os.path.join(root, "a", "ok.csv"))
+        assert code == 0 and "0 block" in out, out
+        code, out = run_scan("--paths", root)
+        assert out.count("num.msisdn") == 1 and ".git" not in out, out  # the repository's own folder is not read
+        errors = io.StringIO()
+        with contextlib.redirect_stderr(errors):
+            code, out = run_scan("--paths", os.path.join(root, "a", "ok.csv"), os.path.join(root, "typo"), "--fail-on", "never")
+        assert code == 2 and "no such file or folder" in errors.getvalue(), (code, out, errors.getvalue())
 
 
 def test_scan_sql_casts_are_not_ipv6_addresses():

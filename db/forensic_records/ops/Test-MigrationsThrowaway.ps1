@@ -341,6 +341,35 @@ try {
     [void](Invoke-Psql 'ops/010_runtime_rls_policies/verify.sql')
     [void](Invoke-Psql 'runtime_role.rls.verify.sql')
   }
+  Step 'layout registry entries register in forensic.layout_versions (twice; a changed definition is refused)' {
+    $python = Get-Command python -ErrorAction SilentlyContinue
+    if (-not $python) { Write-Host '      python was not found on PATH: step skipped'; return }
+    $sqlFile = Join-Path ([System.IO.Path]::GetTempPath()) ('nx-layouts-' + [guid]::NewGuid().ToString('N').Substring(0, 8) + '.sql')
+    try {
+      # A module entry point, not python -c: Windows PowerShell 5.1 drops the double quotes inside an inline script.
+      Push-Location -LiteralPath $RepoRoot
+      try { & $python.Source -X utf8 -m ingestion.forensic_records.layout_registry sql --out $sqlFile } finally { Pop-Location }
+      if ($LASTEXITCODE -ne 0) { throw 'could not generate the layout registration SQL' }
+      & docker cp $sqlFile "${Container}:/tmp/layouts.sql" | Out-Null
+      if ($LASTEXITCODE -ne 0) { throw 'docker cp of the layout SQL failed' }
+      $psqlBase = @('exec', $Container, 'psql', '-v', 'ON_ERROR_STOP=1', '-U', 'localrecall', '-d', 'localrecall')
+      foreach ($pass in 1, 2) {
+        $saved = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+        try { & docker @psqlBase -q -f /tmp/layouts.sql 2>&1 | Out-Null } finally { $ErrorActionPreference = $saved }
+        if ($LASTEXITCODE -ne 0) { throw "registration pass $pass failed" }
+      }
+      $count = Invoke-Scalar "SELECT count(*) FROM forensic.layout_versions WHERE layout_id <> 'generic-unmapped' AND status = 'draft'"
+      if ($count -ne '13') { throw "expected 13 draft layouts, found $count" }
+      [void](Invoke-Scalar "UPDATE forensic.layout_versions SET definition_sha256 = repeat('0', 64) WHERE layout_id = 'call-c4-telenor-style' RETURNING 1")
+      $saved = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+      try { $out = (& docker @psqlBase -q -f /tmp/layouts.sql 2>&1 | ForEach-Object { "$_" }) -join "`n" } finally { $ErrorActionPreference = $saved }
+      if ($LASTEXITCODE -eq 0) { throw 'a changed definition under an old version was accepted' }
+      Assert-Contains $out 'changed without a version bump' 'the changed-definition guard'
+    } finally {
+      [void](Invoke-Scalar "DELETE FROM forensic.layout_versions WHERE layout_id <> 'generic-unmapped' RETURNING 1")
+      if (Test-Path -LiteralPath $sqlFile) { Microsoft.PowerShell.Management\Remove-Item -LiteralPath $sqlFile -Force }
+    }
+  }
   Step 'nothing from migrations 001 to 011 changed' {
     $digestAfter = Get-CatalogDigest
     if ($digestAfter -ne $digestBefore) { throw "catalog digest changed: $digestBefore -> $digestAfter" }

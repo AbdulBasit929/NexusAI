@@ -1,0 +1,202 @@
+{
+  "schema": "nexusai.layout/v1",
+  "layout_id": "ipdr-i2-telenor-export",
+  "layout_version": 1,
+  "status": "draft",
+  "family": "internet",
+  "dataset_kind": "ipdr",
+  "label": "Internet records, 18 columns (export with private and public source addresses and a composite CI)",
+  "operator_label": null,
+  "container": {
+    "kinds": [
+      "csv"
+    ],
+    "encoding": "utf-8",
+    "delimiter": ",",
+    "sheet": "first",
+    "header_row": {
+      "mode": "fixed",
+      "index": 0
+    }
+  },
+  "header": {
+    "columns": [
+      {
+        "name": "No."
+      },
+      {
+        "name": "Start Time"
+      },
+      {
+        "name": "End Time"
+      },
+      {
+        "name": "Duration(ms)"
+      },
+      {
+        "name": "Active Time"
+      },
+      {
+        "name": "IMSI"
+      },
+      {
+        "name": "MSISDN"
+      },
+      {
+        "name": "Private Source IP"
+      },
+      {
+        "name": "Private Source Port"
+      },
+      {
+        "name": "Protocol"
+      },
+      {
+        "name": "Public Source IP"
+      },
+      {
+        "name": "Public Source Port"
+      },
+      {
+        "name": "Dest IP"
+      },
+      {
+        "name": "Dest Port"
+      },
+      {
+        "name": "URL"
+      },
+      {
+        "name": "APP Type"
+      },
+      {
+        "name": "Service Type"
+      },
+      {
+        "name": "CI"
+      }
+    ],
+    "required": [
+      "Start Time",
+      "End Time",
+      "Duration(ms)",
+      "IMSI",
+      "MSISDN",
+      "Private Source IP",
+      "Private Source Port",
+      "Public Source IP",
+      "Public Source Port",
+      "Dest IP",
+      "Dest Port",
+      "CI"
+    ],
+    "min_score": 0.9
+  },
+  "fields": {
+    "msisdn": "MSISDN",
+    "imsi": "IMSI",
+    "ue_ip": "Private Source IP",
+    "ue_port": "Private Source Port",
+    "public_ip": "Public Source IP",
+    "public_port": "Public Source Port",
+    "server_ip": "Dest IP",
+    "server_port": "Dest Port",
+    "protocol": "Protocol",
+    "url": "URL",
+    "app": "APP Type",
+    "app_category": "Service Type",
+    "cell": {
+      "column": "CI"
+    },
+    "duration_ms": "Duration(ms)"
+  },
+  "time": {
+    "columns": {
+      "start": "Start Time",
+      "end": "End Time"
+    },
+    "formats": [
+      "iso_naive"
+    ],
+    "date_order": "YMD",
+    "source_tz": null,
+    "tz_basis": "unknown"
+  },
+  "duration": {
+    "mode": "none"
+  },
+  "null_tokens": {
+    "url": [
+      "0"
+    ]
+  },
+  "quirks": [
+    "Times carry milliseconds",
+    "URL holds '0' when absent",
+    "CI is one composite string of cell information (technology, area and cell codes)",
+    "Public Source Port is 0 on some rows"
+  ],
+  "confirmation": {
+    "headers": "structure_only_inspection_2026-10-12",
+    "semantics_confirmed": false,
+    "unconfirmed": [
+      {
+        "id": "header-list",
+        "what": "The header list was read by a structure-only inspection; confirm it against a shareable profile report of the real file (tools/real_data/confirm_layout.py).",
+        "affects": [
+          "header"
+        ]
+      },
+      {
+        "id": "source-time-zone",
+        "what": "No file states a time zone. The zone is a job decision (time_basis assumed_by_profile or confirmed_by_analyst), never a property of the layout.",
+        "affects": [
+          "time"
+        ]
+      },
+      {
+        "id": "operator",
+        "what": "The operator that produced the layout is not stated in the files; confirm against the export documentation before using a label.",
+        "affects": [
+          "operator_label"
+        ]
+      },
+      {
+        "id": "ci-composite",
+        "what": "The composite CI string is kept as cell_raw; its keys are not recorded.",
+        "affects": [
+          "cell"
+        ]
+      },
+      {
+        "id": "type-columns",
+        "what": "APP Type is read as the application and Service Type as the category.",
+        "affects": [
+          "fields.app",
+          "fields.app_category"
+        ]
+      },
+      {
+        "id": "active-time",
+        "what": "Active Time is not mapped.",
+        "affects": [
+          "time"
+        ]
+      }
+    ]
+  },
+  "golden": {
+    "rows": 48,
+    "hints": {
+      "port_style": "public_single"
+    },
+    "columns": {
+      "No.": "row_number",
+      "Active Time": "ts_ms_of_end",
+      "Protocol": "choice:TCP|UDP",
+      "APP Type": "choice:app_a|app_b|app_c",
+      "Service Type": "choice:Web Browsing|Streaming Media|Social Networking",
+      "CI": "choice:4G(LTE),TAC:101,ECI:1001|4G(LTE),TAC:101,ECI:1002"
+    }
+  }
+}

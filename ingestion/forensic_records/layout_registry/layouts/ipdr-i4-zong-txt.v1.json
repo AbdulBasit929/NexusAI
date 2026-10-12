@@ -1,0 +1,263 @@
+{
+  "schema": "nexusai.layout/v1",
+  "layout_id": "ipdr-i4-zong-txt",
+  "layout_version": 1,
+  "status": "draft",
+  "family": "internet",
+  "dataset_kind": "ipdr",
+  "label": "Internet records, 27 columns (UTF-16 tab-separated text with a metadata header, and the same data as xlsx)",
+  "operator_label": "zong",
+  "container": {
+    "kinds": [
+      "tsv",
+      "xlsx"
+    ],
+    "encoding": "utf-16",
+    "delimiter": "\t",
+    "sheet": "first",
+    "header_row": {
+      "mode": "scan",
+      "max_rows": 12
+    }
+  },
+  "header": {
+    "columns": [
+      {
+        "name": "No."
+      },
+      {
+        "name": "Public IP"
+      },
+      {
+        "name": "Public Port"
+      },
+      {
+        "name": "NAT Begin Time"
+      },
+      {
+        "name": "NAT End Time"
+      },
+      {
+        "name": "Start Time"
+      },
+      {
+        "name": "End Time"
+      },
+      {
+        "name": "IMSI"
+      },
+      {
+        "name": "MSISDN"
+      },
+      {
+        "name": "IMEISV"
+      },
+      {
+        "name": "MS IP"
+      },
+      {
+        "name": "Server IP"
+      },
+      {
+        "name": "MS Port"
+      },
+      {
+        "name": "Server Port"
+      },
+      {
+        "name": "APN"
+      },
+      {
+        "name": "Charging Characteristics"
+      },
+      {
+        "name": "RAT Type"
+      },
+      {
+        "name": "Serving Node IP"
+      },
+      {
+        "name": "Gateway Node IP"
+      },
+      {
+        "name": "Uplink Traffic(Byte)"
+      },
+      {
+        "name": "Downlink Traffic(Byte)"
+      },
+      {
+        "name": "Category Type"
+      },
+      {
+        "name": "Application Type"
+      },
+      {
+        "name": "Sub Application Type"
+      },
+      {
+        "name": "EGN Sub Protocol Type"
+      },
+      {
+        "name": "URL"
+      },
+      {
+        "name": "User Agent"
+      }
+    ],
+    "required": [
+      "Public IP",
+      "Public Port",
+      "NAT Begin Time",
+      "NAT End Time",
+      "Start Time",
+      "End Time",
+      "IMSI",
+      "MSISDN",
+      "MS IP",
+      "Server IP",
+      "MS Port",
+      "Server Port"
+    ],
+    "min_score": 0.9
+  },
+  "fields": {
+    "msisdn": "MSISDN",
+    "imsi": "IMSI",
+    "imei": "IMEISV",
+    "ue_ip": "MS IP",
+    "ue_port": "MS Port",
+    "public_ip": "Public IP",
+    "public_port": "Public Port",
+    "server_ip": "Server IP",
+    "server_port": "Server Port",
+    "apn": "APN",
+    "rat": "RAT Type",
+    "serving_node_ip": "Serving Node IP",
+    "gateway_ip": "Gateway Node IP",
+    "bytes_up": "Uplink Traffic(Byte)",
+    "bytes_down": "Downlink Traffic(Byte)",
+    "app_category": "Category Type",
+    "app": "Application Type",
+    "app_feature": "Sub Application Type",
+    "protocol": "EGN Sub Protocol Type",
+    "url": "URL",
+    "user_agent": "User Agent"
+  },
+  "time": {
+    "columns": {
+      "start": "Start Time",
+      "end": "End Time",
+      "nat_start": "NAT Begin Time",
+      "nat_end": "NAT End Time"
+    },
+    "formats": [
+      "slash_24h_minutes",
+      "slash_24h_seconds"
+    ],
+    "date_order": null,
+    "source_tz": null,
+    "tz_basis": "unknown"
+  },
+  "duration": {
+    "mode": "none"
+  },
+  "preamble": {
+    "kind": "metadata_lines",
+    "rows": 7,
+    "note": "seven lines before the header: a title, a start and an end time, the queried public address and labels"
+  },
+  "quirks": [
+    "The same data exists as UTF-16 tab-separated text (seven metadata lines first) and as xlsx (sheet 'IP DR')",
+    "Times have minute precision",
+    "Application Type and the sub-type columns sometimes hold numbers instead of names"
+  ],
+  "confirmation": {
+    "headers": "structure_only_inspection_2026-10-12",
+    "semantics_confirmed": false,
+    "unconfirmed": [
+      {
+        "id": "header-list",
+        "what": "The header list was read by a structure-only inspection; confirm it against a shareable profile report of the real file (tools/real_data/confirm_layout.py).",
+        "affects": [
+          "header"
+        ]
+      },
+      {
+        "id": "source-time-zone",
+        "what": "No file states a time zone. The zone is a job decision (time_basis assumed_by_profile or confirmed_by_analyst), never a property of the layout.",
+        "affects": [
+          "time"
+        ]
+      },
+      {
+        "id": "slash-date-order",
+        "what": "Day-first or month-first is not settled by the masks; confirm with the profile report (day_month_order) or the operator's documentation.",
+        "proposed": "DMY for dd/mm/yyyy exports; settle before activating",
+        "affects": [
+          "time"
+        ]
+      },
+      {
+        "id": "metadata-lines",
+        "what": "The seven metadata lines (query period and queried address) are skipped, not parsed.",
+        "affects": [
+          "preamble"
+        ]
+      },
+      {
+        "id": "rat-codes",
+        "what": "RAT Type is a numeric code; its names are not in the file.",
+        "affects": [
+          "fields.rat"
+        ]
+      }
+    ]
+  },
+  "golden": {
+    "rows": 40,
+    "preamble": [
+      [
+        "Query Result:"
+      ],
+      [
+        "Start Time",
+        "{ts_start};"
+      ],
+      [
+        "End Time",
+        "{ts_end};"
+      ],
+      [
+        "Public IP",
+        "{public_ip};"
+      ],
+      [
+        "Operator",
+        ""
+      ],
+      [
+        "Notes:"
+      ],
+      [
+        ""
+      ]
+    ],
+    "hints": {
+      "imei_digits": 16,
+      "port_style": "public_single",
+      "date_order": "DMY"
+    },
+    "columns": {
+      "No.": "row_number",
+      "Charging Characteristics": "choice:0100|0800",
+      "APN": "choice:internet.example|ims.example",
+      "RAT Type": "choice:6",
+      "Category Type": "choice:web|video|social",
+      "URL": "mostly_empty_host",
+      "User Agent": "mostly_empty_agent",
+      "Application Type": "choice:app_a|app_b|1001",
+      "Sub Application Type": "choice:sub_a|sub_b|2001",
+      "EGN Sub Protocol Type": "choice:http|tls|3001"
+    }
+  }
+}

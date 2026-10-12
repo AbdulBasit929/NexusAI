@@ -1,0 +1,195 @@
+{
+  "schema": "nexusai.layout/v1",
+  "layout_id": "ipdr-i3-ufone-xls",
+  "layout_version": 1,
+  "status": "draft",
+  "family": "internet",
+  "dataset_kind": "ipdr",
+  "label": "Internet records, 18 columns (SpreadsheetML saved as .xls, public port range, dotted dates)",
+  "operator_label": "ufone",
+  "container": {
+    "kinds": [
+      "spreadsheetml"
+    ],
+    "sheet": "first",
+    "header_row": {
+      "mode": "fixed",
+      "index": 0
+    }
+  },
+  "header": {
+    "columns": [
+      {
+        "name": "Public IP"
+      },
+      {
+        "name": "Public Port Start"
+      },
+      {
+        "name": "Public Port End"
+      },
+      {
+        "name": "Log Date"
+      },
+      {
+        "name": "app"
+      },
+      {
+        "name": "host"
+      },
+      {
+        "name": "imei"
+      },
+      {
+        "name": "imsi"
+      },
+      {
+        "name": "msisdn"
+      },
+      {
+        "name": "sid"
+      },
+      {
+        "name": "url"
+      },
+      {
+        "name": "cell/eci"
+      },
+      {
+        "name": "dst_address"
+      },
+      {
+        "name": "dst_port"
+      },
+      {
+        "name": "lac/tac"
+      },
+      {
+        "name": "protocol"
+      },
+      {
+        "name": "src_address"
+      },
+      {
+        "name": "src_port"
+      }
+    ],
+    "required": [
+      "Public IP",
+      "Public Port Start",
+      "Public Port End",
+      "Log Date",
+      "imei",
+      "imsi",
+      "msisdn",
+      "sid",
+      "dst_address",
+      "dst_port",
+      "src_address",
+      "src_port",
+      "protocol"
+    ],
+    "min_score": 0.9
+  },
+  "fields": {
+    "msisdn": "msisdn",
+    "imsi": "imsi",
+    "imei": "imei",
+    "ue_ip": "src_address",
+    "ue_port": "src_port",
+    "public_ip": "Public IP",
+    "public_port_from": "Public Port Start",
+    "public_port_to": "Public Port End",
+    "server_ip": "dst_address",
+    "server_port": "dst_port",
+    "protocol": "protocol",
+    "app": "app",
+    "host": "host",
+    "url": "url",
+    "session_ref": "sid"
+  },
+  "time": {
+    "columns": {
+      "start": "Log Date"
+    },
+    "formats": [
+      "dot_dmy_24h_seconds"
+    ],
+    "date_order": "DMY",
+    "source_tz": null,
+    "tz_basis": "unknown"
+  },
+  "duration": {
+    "mode": "none"
+  },
+  "cell": {
+    "lac_tac": "lac/tac",
+    "ci": "cell/eci",
+    "plmn": null
+  },
+  "protocol_numbers": "iana",
+  "quirks": [
+    "Saved with an .xls extension but the content is SpreadsheetML (XML)",
+    "A public port range per row",
+    "Protocol is a numeric code (1 or 2 digits)",
+    "One timestamp per row (no end time)",
+    "host and url are filled on about 3% of rows"
+  ],
+  "confirmation": {
+    "headers": "structure_only_inspection_2026-10-12",
+    "semantics_confirmed": false,
+    "unconfirmed": [
+      {
+        "id": "header-list",
+        "what": "The header list was read by a structure-only inspection; confirm it against a shareable profile report of the real file (tools/real_data/confirm_layout.py).",
+        "affects": [
+          "header"
+        ]
+      },
+      {
+        "id": "source-time-zone",
+        "what": "No file states a time zone. The zone is a job decision (time_basis assumed_by_profile or confirmed_by_analyst), never a property of the layout.",
+        "affects": [
+          "time"
+        ]
+      },
+      {
+        "id": "protocol-codes",
+        "what": "Numeric protocol codes are read as IANA protocol numbers (6 tcp, 17 udp, 1 icmp); other values are flagged.",
+        "proposed": "iana",
+        "affects": [
+          "protocol_numbers"
+        ]
+      },
+      {
+        "id": "cell-columns",
+        "what": "cell/eci (5 or 8 digits) is read as the cell identity and lac/tac (5 digits) as the area code.",
+        "affects": [
+          "cell"
+        ]
+      },
+      {
+        "id": "src-dst",
+        "what": "src_address is read as the subscriber side and dst_address as the server side.",
+        "affects": [
+          "fields.ue_ip",
+          "fields.server_ip"
+        ]
+      }
+    ]
+  },
+  "golden": {
+    "rows": 48,
+    "hints": {
+      "imei_digits": 15,
+      "cell_style": "digits8",
+      "lac_digits": 5,
+      "port_style": "public_range"
+    },
+    "columns": {
+      "app": "choice:app_a|app_b|app_c",
+      "host": "mostly_empty_host",
+      "url": "mostly_empty_path"
+    }
+  }
+}

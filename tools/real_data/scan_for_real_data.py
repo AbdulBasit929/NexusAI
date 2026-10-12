@@ -3,7 +3,7 @@
 
     python -I -X utf8 tools/real_data/scan_for_real_data.py --staged                 # what a commit is about to add
     python -I -X utf8 tools/real_data/scan_for_real_data.py --rev-range origin/main..HEAD   # what a push would publish
-    python -I -X utf8 tools/real_data/scan_for_real_data.py --paths FILE [FILE ...]  # whole files (audit)
+    python -I -X utf8 tools/real_data/scan_for_real_data.py --paths PATH [PATH ...]  # whole files; a folder is read recursively (audit)
     python -I -X utf8 tools/real_data/scan_for_real_data.py --all-tracked            # the whole tree (audit, slower)
 
 It reads ADDED lines only for --staged and --rev-range, so existing content never blocks new work, and it drops a finding whose
@@ -60,7 +60,7 @@ RE_CNIC = re.compile(r"(?<!\d)[1-7]\d{4}-\d{7}-\d(?!\d)")
 RE_CNIC_PLAIN = re.compile(r"(?<!\d)[1-7]\d{12}(?!\d)")
 RE_CNIC_WORD = re.compile(r"(?i)\b(cnic|nic|identity card|national id)\b")
 RE_IMSI_PK = re.compile(r"(?<!\d)410\d{12}(?!\d)")
-RE_DIGITS15 = re.compile(r"(?<!\d)\d{15}(?!\d)")
+RE_DIGITS15 = re.compile(r"(?<![\d.])\d{15}(?!\d)")  # not the fraction of a decimal number (a 15-place coordinate is not an IMEI)
 RE_IPV4 = re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d]|\.\d)")
 # Word boundaries on both sides keep SQL casts and identifiers (id::text, d::int) from reading as addresses.
 RE_IPV6 = re.compile(r"(?<![0-9A-Za-z_:.])(?:[0-9A-Fa-f]{0,4}:){2,7}[0-9A-Fa-f]{0,4}(?![0-9A-Za-z_:.])")
@@ -280,12 +280,30 @@ def scan_diff(args_for_diff, allow, cwd=None, base_rev=None):
     return drop_known(findings, base_rev, cwd)
 
 
+SKIPPED_FOLDERS = {".git", "__pycache__", "node_modules"}
+
+
+def expand_paths(paths):
+    """The files named directly plus every file under a named folder, and the names that are neither (a typo must not pass as clean)."""
+    files, missing = [], []
+    for p in paths:
+        if os.path.isfile(p):
+            files.append(p)
+        elif os.path.isdir(p):
+            for root, folders, names in os.walk(p):
+                folders[:] = sorted(f for f in folders if f not in SKIPPED_FOLDERS)
+                files.extend(os.path.join(root, n) for n in sorted(names))
+        else:
+            missing.append(p)
+    return files, missing
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Scan for real data, identifiers and secrets before they reach the public repository.")
     group = ap.add_mutually_exclusive_group(required=True)
     group.add_argument("--staged", action="store_true", help="added lines of the staged changes")
     group.add_argument("--rev-range", help="added lines of a revision range, for example origin/main..HEAD")
-    group.add_argument("--paths", nargs="+", help="scan whole files")
+    group.add_argument("--paths", nargs="+", help="scan whole files; a folder is read recursively")
     group.add_argument("--all-tracked", action="store_true", help="scan every tracked file (audit)")
     ap.add_argument("--fail-on", choices=["block", "review", "never"], default="block")
     ap.add_argument("--allowlist", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "allowlist.json"))
@@ -295,6 +313,7 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     allow = load_allowlist(args.allowlist)
+    missing = []
     if args.staged:
         base = None if args.no_known_values else (
             "HEAD" if subprocess.run(["git", "rev-parse", "--verify", "-q", "HEAD"], cwd=args.repo, capture_output=True).returncode == 0 else None)
@@ -304,9 +323,12 @@ def main(argv=None):
         findings = scan_diff([args.rev_range], allow, args.repo, base)
     elif args.paths:
         findings = []
-        for p in args.paths:
-            if os.path.isfile(p) and not path_ignored(p, allow):
+        files, missing = expand_paths(args.paths)
+        for p in files:
+            if not path_ignored(p, allow):
                 findings.extend(scan_file(p, allow))
+        for p in missing:
+            print("real-data scan: no such file or folder: %s" % p, file=sys.stderr)
     else:
         tracked = [p for p in run_git(["ls-files", "-z"], args.repo).split("\0") if p]
         findings = []
@@ -321,6 +343,8 @@ def main(argv=None):
     blocks = sum(1 for f in findings if f.severity == "block")
     reviews = len(findings) - blocks
     print("real-data scan: %d block, %d review" % (blocks, reviews))
+    if missing:
+        return 2  # a path that does not exist is a usage error whatever --fail-on says
     if blocks and args.fail_on in ("block", "review"):
         print("Blocked. Replace real values with synthetic ones from tools/real_data/reserved.py, or mark an intentional "
               "synthetic value with '%s' (see docs/data/real-data-handling-policy.md)." % PRAGMA)

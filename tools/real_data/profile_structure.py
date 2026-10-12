@@ -44,13 +44,13 @@ SS_2003 = "urn:schemas-microsoft-com:office:spreadsheet"
 
 # Columns whose values are a small closed vocabulary rather than data. Anything not matched here never has a value reported.
 CATEGORICAL_ALLOW = re.compile(
-    r"(^|[^a-z])(call.?type|event.?type|record.?type|direction|dir|inbound.?outbound|in.?out|protocol|proto|rat|network.?type|"
-    r"service.?type|bearer|status|category|sub.?category|app.?type|apn|termination|release.?cause)([^a-z]|$)", re.I)
+    r"(^|[^a-z])(call.?type|event.?type|record.?type|type|activity.?type|actvy.?type|direction|dir|inbound.?outbound|in.?out|protocol|proto|rat|"
+    r"network.?type|service.?type|service.?provider|bearer|status|category|sub.?category|app.?type|apn|termination|release.?cause)([^a-z]|$)", re.I)
 MEASURE_HINT = re.compile(r"(duration|dur|bytes|volume|packets|size|count|port|octets|seconds|secs)", re.I)
 TIME_HINT = re.compile(r"(time|date|_dt|_tm|stamp|start|end|begin|first|last|accessed|created|logged)", re.I)
 NUMBER_HINT = re.compile(r"(msisdn|a.?party|b.?party|a.?number|b.?number|call.?org|call.?dialed|dialed|originat|calling|called|"
                          r"imei|imsi|cell|lac|tac|sender|receiver|number)", re.I)
-SAFE_VOCAB_VALUE = re.compile(r"^[A-Za-z][A-Za-z0-9 _/.\-]{0,30}$")
+SAFE_VOCAB_VALUE = re.compile(r"^(?:[A-Za-z][A-Za-z0-9 _/.\-]{0,30}|\d{1,3})$")
 
 _ASCII_MASK = {}
 for _i in range(128):

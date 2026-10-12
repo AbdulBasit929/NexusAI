@@ -1,0 +1,176 @@
+{
+  "schema": "nexusai.layout/v1",
+  "layout_id": "geofence-c5-mobilink",
+  "layout_version": 1,
+  "status": "draft",
+  "family": "communications",
+  "dataset_kind": "tower_dump",
+  "label": "Geofence (tower dump), 7 columns (Mobilink-named file)",
+  "operator_label": "mobilink",
+  "container": {
+    "kinds": [
+      "xlsx"
+    ],
+    "sheet": "first",
+    "header_row": {
+      "mode": "scan",
+      "max_rows": 4
+    }
+  },
+  "header": {
+    "columns": [
+      {
+        "name": "Sr #"
+      },
+      {
+        "name": "Call Type"
+      },
+      {
+        "name": "A-Party"
+      },
+      {
+        "name": "B-Party"
+      },
+      {
+        "name": "Date & Time"
+      },
+      {
+        "name": "Duration"
+      },
+      {
+        "name": "IMEI"
+      }
+    ],
+    "required": [
+      "Call Type",
+      "A-Party",
+      "B-Party",
+      "Date & Time",
+      "Duration",
+      "IMEI"
+    ],
+    "min_score": 0.9
+  },
+  "fields": {
+    "a": "A-Party",
+    "b": "B-Party",
+    "imei": "IMEI"
+  },
+  "time": {
+    "columns": {
+      "start": "Date & Time"
+    },
+    "formats": [
+      "excel_serial_1900",
+      "iso_naive"
+    ],
+    "date_order": null,
+    "source_tz": null,
+    "tz_basis": "unknown"
+  },
+  "duration": {
+    "mode": "column_seconds",
+    "column": "Duration"
+  },
+  "enums": [
+    {
+      "column": "Call Type",
+      "confirmed": true,
+      "map": {
+        "Incoming SMS": {
+          "event_type": "sms",
+          "direction": "incoming"
+        },
+        "Outgoing SMS": {
+          "event_type": "sms",
+          "direction": "outgoing"
+        }
+      }
+    },
+    {
+      "column": "Call Type",
+      "confirmed": false,
+      "map": {
+        "InComing": {
+          "event_type": "voice",
+          "direction": "incoming"
+        },
+        "Outgoing": {
+          "event_type": "voice",
+          "direction": "outgoing"
+        }
+      }
+    }
+  ],
+  "quirks": [
+    "No cell, subscriber-identity or location columns: the cell is implied by the query (the file name carries a code)",
+    "B-Party mixes 11-digit and 12-digit numbers and sender names"
+  ],
+  "confirmation": {
+    "headers": "structure_only_inspection_2026-10-12",
+    "semantics_confirmed": false,
+    "unconfirmed": [
+      {
+        "id": "header-list",
+        "what": "The header list was read by a structure-only inspection; confirm it against a shareable profile report of the real file (tools/real_data/confirm_layout.py).",
+        "affects": [
+          "header"
+        ]
+      },
+      {
+        "id": "source-time-zone",
+        "what": "No file states a time zone. The zone is a job decision (time_basis assumed_by_profile or confirmed_by_analyst), never a property of the layout.",
+        "affects": [
+          "time"
+        ]
+      },
+      {
+        "id": "duration-unit",
+        "what": "The duration unit is read from the value range, not from documentation.",
+        "proposed": "seconds",
+        "affects": [
+          "duration"
+        ]
+      },
+      {
+        "id": "implied-cell",
+        "what": "The cell or area queried is not in the file; it must be supplied with the upload (query criteria).",
+        "affects": [
+          "cell"
+        ]
+      },
+      {
+        "id": "party-roles",
+        "what": "In a tower dump the subject number (the served subscriber) is not marked; A-Party is read as the subject.",
+        "affects": [
+          "fields.a"
+        ]
+      },
+      {
+        "id": "bare-call-labels",
+        "what": "'Outgoing' and 'InComing' with no 'SMS' are read as voice calls.",
+        "proposed": "voice",
+        "affects": [
+          "enums"
+        ]
+      }
+    ]
+  },
+  "golden": {
+    "rows": 48,
+    "hints": {
+      "subject_form": "e164_12",
+      "party_b_forms": [
+        "local_11",
+        "e164_12",
+        "sender_id",
+        "short_code"
+      ],
+      "imei_digits": 15,
+      "serial_decimals": 12
+    },
+    "columns": {
+      "Sr #": "row_number"
+    }
+  }
+}

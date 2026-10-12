@@ -1,0 +1,244 @@
+{
+  "schema": "nexusai.layout/v1",
+  "layout_id": "call-c1-company",
+  "layout_version": 1,
+  "status": "draft",
+  "family": "communications",
+  "dataset_kind": "target_cdr",
+  "label": "Call records, 16 columns ('company format', Mobilink-style)",
+  "operator_label": null,
+  "container": {
+    "kinds": [
+      "xlsx"
+    ],
+    "sheet": "first",
+    "header_row": {
+      "mode": "scan",
+      "max_rows": 6
+    }
+  },
+  "header": {
+    "columns": [
+      {
+        "name": "Sr #"
+      },
+      {
+        "name": "Call Type"
+      },
+      {
+        "name": "A-Party"
+      },
+      {
+        "name": "B-Party"
+      },
+      {
+        "name": "Date & Time"
+      },
+      {
+        "name": "Duration"
+      },
+      {
+        "name": "Cell ID"
+      },
+      {
+        "name": "IMEI"
+      },
+      {
+        "name": "IMSI"
+      },
+      {
+        "name": "Site"
+      },
+      {
+        "name": "Longitude and Latitude"
+      },
+      {
+        "name": "Node ID"
+      },
+      {
+        "name": "IP"
+      },
+      {
+        "name": "Port"
+      },
+      {
+        "name": "Description"
+      },
+      {
+        "name": "MACAddress"
+      }
+    ],
+    "required": [
+      "Call Type",
+      "A-Party",
+      "B-Party",
+      "Date & Time",
+      "Duration",
+      "Cell ID",
+      "IMEI",
+      "IMSI"
+    ],
+    "min_score": 0.9
+  },
+  "fields": {
+    "a": "A-Party",
+    "b": "B-Party",
+    "imsi": "IMSI",
+    "imei": "IMEI",
+    "location_text": "Site",
+    "lat": {
+      "combined": "Longitude and Latitude",
+      "order": "lon_lat"
+    }
+  },
+  "time": {
+    "columns": {
+      "start": "Date & Time"
+    },
+    "formats": [
+      "excel_serial_1900",
+      "iso_naive"
+    ],
+    "date_order": null,
+    "source_tz": null,
+    "tz_basis": "unknown"
+  },
+  "duration": {
+    "mode": "column_seconds",
+    "column": "Duration"
+  },
+  "enums": [
+    {
+      "column": "Call Type",
+      "confirmed": true,
+      "map": {
+        "Incoming SMS": {
+          "event_type": "sms",
+          "direction": "incoming"
+        },
+        "Outgoing SMS": {
+          "event_type": "sms",
+          "direction": "outgoing"
+        }
+      }
+    },
+    {
+      "column": "Call Type",
+      "confirmed": false,
+      "map": {
+        "InComing": {
+          "event_type": "voice",
+          "direction": "incoming"
+        },
+        "Outgoing": {
+          "event_type": "voice",
+          "direction": "outgoing"
+        }
+      }
+    }
+  ],
+  "cell": {
+    "ci": "Cell ID",
+    "plmn": null
+  },
+  "noise_columns": [
+    "Description",
+    "MACAddress"
+  ],
+  "quirks": [
+    "Cell ID is alphanumeric, with no area code column: the cell key is partial",
+    "Site holds '?' when unknown",
+    "B-Party mixes 12-digit, 11-digit and 3-digit numbers, sender names, and 13- and 14-digit numbers",
+    "A template file with merged header cells exists; it is not a data layout"
+  ],
+  "confirmation": {
+    "headers": "structure_only_inspection_2026-10-12",
+    "semantics_confirmed": false,
+    "unconfirmed": [
+      {
+        "id": "header-list",
+        "what": "The header list was read by a structure-only inspection; confirm it against a shareable profile report of the real file (tools/real_data/confirm_layout.py).",
+        "affects": [
+          "header"
+        ]
+      },
+      {
+        "id": "source-time-zone",
+        "what": "No file states a time zone. The zone is a job decision (time_basis assumed_by_profile or confirmed_by_analyst), never a property of the layout.",
+        "affects": [
+          "time"
+        ]
+      },
+      {
+        "id": "operator",
+        "what": "The operator that produced the layout is not stated in the files; confirm against the export documentation before using a label.",
+        "affects": [
+          "operator_label"
+        ]
+      },
+      {
+        "id": "duration-unit",
+        "what": "The duration unit is read from the value range, not from documentation.",
+        "proposed": "seconds",
+        "affects": [
+          "duration"
+        ]
+      },
+      {
+        "id": "noise-columns",
+        "what": "Description and MACAddress carry network-adapter text on a few rows (not call data); they are kept in the raw payload and flagged, never mapped.",
+        "affects": [
+          "noise_columns"
+        ]
+      },
+      {
+        "id": "coordinates",
+        "what": "The 'Longitude and Latitude' column is empty in the inspected file; the combined format is a placeholder.",
+        "proposed": "lon then lat",
+        "affects": [
+          "fields.lat"
+        ]
+      },
+      {
+        "id": "bare-call-labels",
+        "what": "'Outgoing' and 'InComing' with no 'SMS' are read as voice calls.",
+        "proposed": "voice",
+        "affects": [
+          "enums"
+        ]
+      },
+      {
+        "id": "cell-id",
+        "what": "Cell ID is alphanumeric; its structure (and any link to a cell reference) is unknown.",
+        "affects": [
+          "cell"
+        ]
+      }
+    ]
+  },
+  "golden": {
+    "rows": 48,
+    "hints": {
+      "subject_form": "e164_12",
+      "party_b_forms": [
+        "e164_12",
+        "local_11",
+        "short_code",
+        "sender_id",
+        "international_00"
+      ],
+      "imei_digits": 15,
+      "serial_decimals": 12,
+      "cell_style": "alnum7"
+    },
+    "columns": {
+      "Sr #": "row_number",
+      "Site": "choice:?|Site A|Site B",
+      "Node ID": "empty",
+      "IP": "empty",
+      "Port": "empty",
+      "Description": "noise_text",
+      "MACAddress": "noise_mac"
+    }
+  }
+}

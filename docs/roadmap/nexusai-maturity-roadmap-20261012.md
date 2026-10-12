@@ -719,7 +719,7 @@ Each phase ends at a gate. A gate is written before the phase's measurements, as
 ### Phase 0: safeguards and decisions (weeks 0 to 2)
 
 - Real-data vault and policy (D1). Confirm the extracted sample copies from this session are deleted.
-- **Layout registry v1:** specification, loader, the 13 entries (headers, maps, rules only), synthetic goldens built from the profile reports with reserved ranges, tests in `ingestion/forensic_records/tests`.
+- **Layout registry v1:** specification, loader, the 13 entries (headers, maps, rules only), synthetic goldens built from the profile reports with reserved ranges, tests in `ingestion/forensic_records/tests`. *Built 2026-10-12 as drafts* (`ingestion/forensic_records/layout_registry`, `docs/data/layout-registry.md`, 50 tests, goldens by `tools/real_data/make_golden.py`, entries registered in `forensic.layout_versions` on the disposable database): all 13 entries stay `draft`, because their headers come from a structure-only inspection; each is promoted only after `tools/real_data/confirm_layout.py` and the real-file reconciliation pass in the vault and its listed unconfirmed items (time zone, direction codes, slash-date order and so on) are settled.
 - **Reconciliation tool** (local, aggregates only) and its first run on the 13 real files.
 - Product fixes found in the rehearsal: cap the older path's model calls after a lane decline (G13); routing of the word "access" (G12); evidence-inventory view (G10, needs D8); persistent switches in the compose file (G14, needs D7); `factory.py` guard for an empty key (G31).
 - Licence ledger started; EliteDesk RTX 2080 measured; shared prompt start measured.

@@ -1,0 +1,225 @@
+{
+  "schema": "nexusai.layout/v1",
+  "layout_id": "geofence-c6-telenor",
+  "layout_version": 1,
+  "status": "draft",
+  "family": "communications",
+  "dataset_kind": "tower_dump",
+  "label": "Geofence (tower dump), 15 columns (Telenor-named file)",
+  "operator_label": "telenor",
+  "container": {
+    "kinds": [
+      "xlsx"
+    ],
+    "sheet": "first",
+    "header_row": {
+      "mode": "scan",
+      "max_rows": 4
+    }
+  },
+  "header": {
+    "columns": [
+      {
+        "name": "MSISDN"
+      },
+      {
+        "name": "CALL_ORIG_NUM"
+      },
+      {
+        "name": "IMSI"
+      },
+      {
+        "name": "IMEI"
+      },
+      {
+        "name": "CALL_START_DT_TM"
+      },
+      {
+        "name": "CALL_END_DT_TM"
+      },
+      {
+        "name": "INBOUND_OUTBOUND_IND"
+      },
+      {
+        "name": "Call_Network_Volume"
+      },
+      {
+        "name": "Lac_Id"
+      },
+      {
+        "name": "Site_Id"
+      },
+      {
+        "name": "CELL_SITE_ID"
+      },
+      {
+        "name": "LAT"
+      },
+      {
+        "name": "LONGITUDE"
+      },
+      {
+        "name": "CALL_TYPE"
+      },
+      {
+        "name": "LOCATION"
+      }
+    ],
+    "required": [
+      "MSISDN",
+      "CALL_ORIG_NUM",
+      "IMSI",
+      "IMEI",
+      "CALL_START_DT_TM",
+      "CALL_END_DT_TM",
+      "INBOUND_OUTBOUND_IND",
+      "CALL_TYPE"
+    ],
+    "min_score": 0.9,
+    "aliases": {
+      "CALL_ORIG_NUM": [
+        "call_org_num"
+      ]
+    }
+  },
+  "fields": {
+    "a": "MSISDN",
+    "b": {
+      "column": "CALL_ORIG_NUM",
+      "drop_if_equal_to_a": true
+    },
+    "imsi": "IMSI",
+    "imei": "IMEI",
+    "location_text": "LOCATION",
+    "lat": "LAT",
+    "lon": "LONGITUDE"
+  },
+  "time": {
+    "columns": {
+      "start": "CALL_START_DT_TM",
+      "end": "CALL_END_DT_TM"
+    },
+    "formats": [
+      "excel_serial_1900",
+      "iso_naive"
+    ],
+    "date_order": null,
+    "source_tz": null,
+    "tz_basis": "unknown"
+  },
+  "duration": {
+    "mode": "from_times"
+  },
+  "enums": [
+    {
+      "column": "INBOUND_OUTBOUND_IND",
+      "confirmed": false,
+      "proposed": {
+        "2": "incoming",
+        "1": "outgoing",
+        "0": "none"
+      },
+      "map": {
+        "0": {
+          "direction": "unknown"
+        },
+        "1": {
+          "direction": "unknown"
+        },
+        "2": {
+          "direction": "unknown"
+        }
+      }
+    },
+    {
+      "column": "CALL_TYPE",
+      "confirmed": true,
+      "map": {
+        "CALL": {
+          "event_type": "voice"
+        },
+        "SMS": {
+          "event_type": "sms"
+        },
+        "GPRS": {
+          "event_type": "data"
+        }
+      }
+    }
+  ],
+  "cell": {
+    "lac_tac": "Lac_Id",
+    "ci": "CELL_SITE_ID",
+    "plmn": null
+  },
+  "quirks": [
+    "The header says CALL_ORIG_NUM where the reference format says call_org_num",
+    "Direction is a numeric code (0, 1, 2); code 0 occurs exactly as often as GPRS rows",
+    "IMEI has 14 digits, and 13 on a few rows",
+    "CALL_ORIG_NUM holds numbers, short codes and labels"
+  ],
+  "confirmation": {
+    "headers": "structure_only_inspection_2026-10-12",
+    "semantics_confirmed": false,
+    "unconfirmed": [
+      {
+        "id": "header-list",
+        "what": "The header list was read by a structure-only inspection; confirm it against a shareable profile report of the real file (tools/real_data/confirm_layout.py).",
+        "affects": [
+          "header"
+        ]
+      },
+      {
+        "id": "source-time-zone",
+        "what": "No file states a time zone. The zone is a job decision (time_basis assumed_by_profile or confirmed_by_analyst), never a property of the layout.",
+        "affects": [
+          "time"
+        ]
+      },
+      {
+        "id": "direction-codes",
+        "what": "Meaning of INBOUND_OUTBOUND_IND codes 0, 1 and 2 is not documented in the file.",
+        "proposed": "2 incoming, 1 outgoing, 0 none (from counts)",
+        "affects": [
+          "enums"
+        ]
+      },
+      {
+        "id": "party-roles",
+        "what": "CALL_ORIG_NUM is the originating number; on an outgoing row it may equal the subscriber. The counterparty is dropped when it equals the subject.",
+        "affects": [
+          "fields.b"
+        ]
+      },
+      {
+        "id": "network-volume",
+        "what": "Call_Network_Volume has no stated unit.",
+        "affects": [
+          "fields.volume_bytes"
+        ]
+      }
+    ]
+  },
+  "golden": {
+    "rows": 48,
+    "hints": {
+      "subject_form": "e164_12",
+      "party_b_forms": [
+        "e164_12",
+        "short_code",
+        "sender_id",
+        "service_label",
+        "self"
+      ],
+      "imei_digits": 14,
+      "serial_decimals": 12,
+      "cell_style": "digits8",
+      "lac_digits": 3,
+      "coordinate_decimals": 15
+    },
+    "columns": {
+      "Call_Network_Volume": "int:0-999",
+      "Site_Id": "int:10000-99999"
+    }
+  }
+}

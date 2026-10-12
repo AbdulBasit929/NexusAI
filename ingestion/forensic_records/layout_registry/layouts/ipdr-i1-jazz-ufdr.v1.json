@@ -1,0 +1,276 @@
+{
+  "schema": "nexusai.layout/v1",
+  "layout_id": "ipdr-i1-jazz-ufdr",
+  "layout_version": 1,
+  "status": "draft",
+  "family": "internet",
+  "dataset_kind": "ipdr",
+  "label": "Internet records, 32 columns (UFDR export with NAT start and end; 'Jazz' is the analysis label)",
+  "operator_label": null,
+  "container": {
+    "kinds": [
+      "csv"
+    ],
+    "encoding": "utf-8-sig",
+    "delimiter": ",",
+    "sheet": "first",
+    "header_row": {
+      "mode": "fixed",
+      "index": 0
+    }
+  },
+  "header": {
+    "columns": [
+      {
+        "name": "UFDR start time"
+      },
+      {
+        "name": "UFDR end time"
+      },
+      {
+        "name": "IMSI"
+      },
+      {
+        "name": "MSISDN"
+      },
+      {
+        "name": "IMEISV"
+      },
+      {
+        "name": "NAT Start Time"
+      },
+      {
+        "name": "NAT End Time"
+      },
+      {
+        "name": "Public IP"
+      },
+      {
+        "name": "Public Port"
+      },
+      {
+        "name": "UE IP"
+      },
+      {
+        "name": "Server IP"
+      },
+      {
+        "name": "UE Port"
+      },
+      {
+        "name": "Server Port"
+      },
+      {
+        "name": "APN"
+      },
+      {
+        "name": "Charging Characteristics"
+      },
+      {
+        "name": "RAT type"
+      },
+      {
+        "name": "Gateway Node IP"
+      },
+      {
+        "name": "Serving Node IP"
+      },
+      {
+        "name": "ECGI"
+      },
+      {
+        "name": "SAI"
+      },
+      {
+        "name": "CGI"
+      },
+      {
+        "name": "Category Type"
+      },
+      {
+        "name": "Application Type"
+      },
+      {
+        "name": "Sub Application Type"
+      },
+      {
+        "name": "EGN Sub Protocol Type"
+      },
+      {
+        "name": "URL"
+      },
+      {
+        "name": "Uplink Traffic(Byte)"
+      },
+      {
+        "name": "Downlink Traffic(Byte)"
+      },
+      {
+        "name": "Uplink Packets"
+      },
+      {
+        "name": "Downlink Packets"
+      },
+      {
+        "name": "Duration (milliseconds)"
+      },
+      {
+        "name": "Data Source"
+      }
+    ],
+    "required": [
+      "UFDR start time",
+      "UFDR end time",
+      "IMSI",
+      "MSISDN",
+      "NAT Start Time",
+      "Public IP",
+      "Public Port",
+      "UE IP",
+      "Server IP",
+      "UE Port",
+      "Server Port",
+      "APN",
+      "RAT type",
+      "Uplink Traffic(Byte)",
+      "Downlink Traffic(Byte)"
+    ],
+    "min_score": 0.9
+  },
+  "fields": {
+    "msisdn": "MSISDN",
+    "imsi": "IMSI",
+    "imei": "IMEISV",
+    "ue_ip": "UE IP",
+    "ue_port": "UE Port",
+    "public_ip": "Public IP",
+    "public_port": "Public Port",
+    "server_ip": "Server IP",
+    "server_port": "Server Port",
+    "protocol": "EGN Sub Protocol Type",
+    "apn": "APN",
+    "rat": "RAT type",
+    "gateway_ip": "Gateway Node IP",
+    "serving_node_ip": "Serving Node IP",
+    "cell": {
+      "column": "ECGI"
+    },
+    "app_category": "Category Type",
+    "app": "Application Type",
+    "app_feature": "Sub Application Type",
+    "url": "URL",
+    "bytes_up": "Uplink Traffic(Byte)",
+    "bytes_down": "Downlink Traffic(Byte)",
+    "packets_up": "Uplink Packets",
+    "packets_down": "Downlink Packets",
+    "duration_ms": "Duration (milliseconds)"
+  },
+  "time": {
+    "columns": {
+      "start": "UFDR start time",
+      "end": "UFDR end time",
+      "nat_start": "NAT Start Time",
+      "nat_end": "NAT End Time"
+    },
+    "formats": [
+      "iso_naive"
+    ],
+    "date_order": "YMD",
+    "source_tz": null,
+    "tz_basis": "unknown"
+  },
+  "duration": {
+    "mode": "none"
+  },
+  "companions": [
+    {
+      "id": "basic-information",
+      "kind": "key_value_csv",
+      "file_name_pattern": "^Basic Information.*\\.csv$",
+      "carries": [
+        "query criteria (a number or a NAT source address)",
+        "time range",
+        "shown and total record counts"
+      ],
+      "parsed_in_v1": false
+    }
+  ],
+  "quirks": [
+    "Two address spaces: UE IP is private, Public IP is after address translation, with one public port per row",
+    "NAT End Time is empty on 40 to 60% of rows",
+    "ECGI, SAI and CGI are alternative cell identities (ECGI mostly)",
+    "Some files are queried by NAT source address, not by number",
+    "IMEISV has 16 digits (15 on some rows)"
+  ],
+  "confirmation": {
+    "headers": "structure_only_inspection_2026-10-12",
+    "semantics_confirmed": false,
+    "unconfirmed": [
+      {
+        "id": "header-list",
+        "what": "The header list was read by a structure-only inspection; confirm it against a shareable profile report of the real file (tools/real_data/confirm_layout.py).",
+        "affects": [
+          "header"
+        ]
+      },
+      {
+        "id": "source-time-zone",
+        "what": "No file states a time zone. The zone is a job decision (time_basis assumed_by_profile or confirmed_by_analyst), never a property of the layout.",
+        "affects": [
+          "time"
+        ]
+      },
+      {
+        "id": "operator",
+        "what": "The operator that produced the layout is not stated in the files; confirm against the export documentation before using a label.",
+        "affects": [
+          "operator_label"
+        ]
+      },
+      {
+        "id": "cell-identity",
+        "what": "ECGI structure (PLMN plus a hexadecimal cell identity) is a reading of the masks; the value is kept as cell_raw and not parsed.",
+        "affects": [
+          "cell"
+        ]
+      },
+      {
+        "id": "rat-codes",
+        "what": "RAT type is a numeric code; its names are not in the file.",
+        "affects": [
+          "fields.rat"
+        ]
+      },
+      {
+        "id": "sub-protocol",
+        "what": "EGN Sub Protocol Type mixes names and numeric codes; numeric codes are not assumed to be IANA protocol numbers.",
+        "affects": [
+          "fields.protocol"
+        ]
+      },
+      {
+        "id": "companion",
+        "what": "The Basic Information file's labels are not recorded here; shown and total record counts are not yet extracted.",
+        "affects": [
+          "companions"
+        ]
+      }
+    ]
+  },
+  "golden": {
+    "rows": 48,
+    "hints": {
+      "imei_digits": 16,
+      "port_style": "public_single"
+    },
+    "columns": {
+      "Charging Characteristics": "choice:0100|0800",
+      "SAI": "empty",
+      "CGI": "empty",
+      "Data Source": "choice:Source A|Source B",
+      "ECGI": "choice:0010100000001|0010100000002|0010100000003",
+      "RAT type": "choice:6",
+      "APN": "choice:internet.example|ims.example"
+    }
+  }
+}

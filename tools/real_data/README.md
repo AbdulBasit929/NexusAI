@@ -8,6 +8,8 @@ Tooling for decision D1 (real-data handling). The policy is `docs/data/real-data
 | `guard.py` | Location checks: refuses a git work tree, a cloud-synchronised folder, a scratch or Downloads folder |
 | `profile_structure.py` | Structure-only profile of CSV/TSV/UTF-16 text, XLSX and SpreadsheetML: shareable or local report, never the data |
 | `reconcile_aggregates.py` | `emit-sql` prints the read-only aggregate query for loaded rows; `compare` checks a local profile against it, aggregates only |
+| `make_golden.py` | Synthetic golden files (XLSX, SpreadsheetML, CSV, UTF-16 TSV) with the shape of each registered provider layout and values from the reserved ranges only, plus the truth they were generated from (`--list`, `--layout`, `--all`) |
+| `confirm_layout.py` | Compares one layout registry entry with a structure report of the real file (header names and order, time formats, vocabularies) and prints PASS, FAIL or INFO per check; a draft layout is promoted only after `CONFIRM=PASS` and the reconciliation |
 | `scan_for_real_data.py` | Fails a commit or push that adds real-looking numbers, identifiers, public IPs, media or secrets; masked output |
 | `Initialize-Vault.ps1` | Creates the vault folder with restricted access and reports encryption; `-WhatIf` supported |
 | `Register-Sample.ps1` | Registers one real file in the vault together with its authority; refuses without it; `-WhatIf` supported |

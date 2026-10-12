@@ -78,9 +78,15 @@ The report is what a model-assisted workflow may read. **The assistant never rea
 ## 5. From a real layout to a registry entry and a synthetic golden
 
 1. Register and profile the file (above).
-2. Write the layout registry entry (roadmap appendix A) from the shareable report: header fingerprint, column map, time rules, enumerations, number classes, quirks. An entry contains names and rules, never values.
-3. Generate the synthetic golden from the entry with the generators in `tools/real_data/reserved.py` (`synthetic_msisdn`, `synthetic_imsi`, `synthetic_imei`, `synthetic_ipv4`, `synthetic_ipv6`, `synthetic_cnic`): same headers (typos and duplicates included), same time formats, same enumerations, same share of junk rows, fake values from the reserved ranges.
-4. Run the pipeline on the golden and check exact expected counts.
+2. Write the layout registry entry (roadmap appendix A; specification in `docs/data/layout-registry.md`, entries in `ingestion/forensic_records/layout_registry/layouts/`) from the shareable report: header fingerprint, column map, time rules, enumerations, number classes, quirks. An entry contains names and rules, never values. Confirm it against the report:
+
+```powershell
+python -I -X utf8 tools\real_data\confirm_layout.py --layout <layout_id> --report "<vault>\reports\<id>.shareable.json"
+```
+
+It prints PASS, FAIL or INFO per check and `CONFIRM=PASS` or `CONFIRM=FAIL`. A pass confirms the header list and the vocabulary only; the entry's `confirmation.unconfirmed` list says what still needs the operator's documentation or an analyst (time zone, direction codes, day-month order ...).
+3. Generate the synthetic golden from the entry with `tools/real_data/make_golden.py` (`--layout <layout_id> --out <folder>`; it draws every value from the generators in `tools/real_data/reserved.py`: `synthetic_msisdn`, `synthetic_imsi`, `synthetic_imei`, `synthetic_ipv4`, `synthetic_ipv6`, `synthetic_cnic`): same headers (typos and duplicates included), same time formats, same enumerations, same share of junk rows, fake values from the reserved ranges.
+4. Run the pipeline on the golden and check exact expected counts (the golden is written together with the truth it was generated from).
 5. Run it on the real file inside the vault and reconcile on aggregates:
 
 ```powershell

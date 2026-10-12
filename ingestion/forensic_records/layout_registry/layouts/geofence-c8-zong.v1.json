@@ -1,0 +1,212 @@
+{
+  "schema": "nexusai.layout/v1",
+  "layout_id": "geofence-c8-zong",
+  "layout_version": 1,
+  "status": "draft",
+  "family": "communications",
+  "dataset_kind": "tower_dump",
+  "label": "Geofence (tower dump), 13 columns (Zong-named file, AM/PM times, header typos)",
+  "operator_label": "zong",
+  "container": {
+    "kinds": [
+      "xlsx"
+    ],
+    "sheet": "first",
+    "header_row": {
+      "mode": "scan",
+      "max_rows": 4
+    }
+  },
+  "header": {
+    "columns": [
+      {
+        "name": "DLD_NO"
+      },
+      {
+        "name": "CLD_IMIE"
+      },
+      {
+        "name": "DLG_NO"
+      },
+      {
+        "name": "CLG_IMEI"
+      },
+      {
+        "name": "DIR_FLG"
+      },
+      {
+        "name": "CLR_OEPRATOR"
+      },
+      {
+        "name": "RCVR_OPERATOR"
+      },
+      {
+        "name": "DRTN"
+      },
+      {
+        "name": "STRT_TM"
+      },
+      {
+        "name": "END_TM"
+      },
+      {
+        "name": "ACTVY_TYPE_CD"
+      },
+      {
+        "name": "LAC_ID"
+      },
+      {
+        "name": "CELL_ID"
+      }
+    ],
+    "required": [
+      "DLD_NO",
+      "DLG_NO",
+      "DIR_FLG",
+      "DRTN",
+      "STRT_TM",
+      "END_TM",
+      "LAC_ID",
+      "CELL_ID"
+    ],
+    "min_score": 0.9
+  },
+  "fields": {
+    "a": "DLG_NO",
+    "b": "DLD_NO"
+  },
+  "time": {
+    "columns": {
+      "start": "STRT_TM",
+      "end": "END_TM"
+    },
+    "formats": [
+      "slash_12h_seconds"
+    ],
+    "date_order": null,
+    "source_tz": null,
+    "tz_basis": "unknown"
+  },
+  "duration": {
+    "mode": "column_seconds",
+    "column": "DRTN"
+  },
+  "enums": [
+    {
+      "column": "DIR_FLG",
+      "confirmed": false,
+      "map": {
+        "Outgoing": {
+          "direction": "outgoing"
+        },
+        "Incomming": {
+          "direction": "incoming"
+        },
+        "Incoming": {
+          "direction": "incoming"
+        }
+      }
+    },
+    {
+      "column": "ACTVY_TYPE_CD",
+      "confirmed": false,
+      "map": {
+        "1": {
+          "event_type": "other"
+        }
+      }
+    }
+  ],
+  "cell": {
+    "lac_tac": "LAC_ID",
+    "ci": "CELL_ID",
+    "plmn": null
+  },
+  "quirks": [
+    "Header typos: CLD_IMIE, CLR_OEPRATOR",
+    "Value typo: 'Incomming'",
+    "Times are m/d/yyyy h:mm:ss AM/PM",
+    "An IMEI is present for only one side of each record (CLG_IMEI exactly on the 'Incomming' rows)",
+    "RCVR_OPERATOR holds operator names including PAKTEL, UFONE, MOBILINK, TELENOR, WARID and PTCL"
+  ],
+  "confirmation": {
+    "headers": "structure_only_inspection_2026-10-12",
+    "semantics_confirmed": false,
+    "unconfirmed": [
+      {
+        "id": "header-list",
+        "what": "The header list was read by a structure-only inspection; confirm it against a shareable profile report of the real file (tools/real_data/confirm_layout.py).",
+        "affects": [
+          "header"
+        ]
+      },
+      {
+        "id": "source-time-zone",
+        "what": "No file states a time zone. The zone is a job decision (time_basis assumed_by_profile or confirmed_by_analyst), never a property of the layout.",
+        "affects": [
+          "time"
+        ]
+      },
+      {
+        "id": "slash-date-order",
+        "what": "Day-first or month-first is not settled by the masks; confirm with the profile report (day_month_order) or the operator's documentation.",
+        "proposed": "DMY for dd/mm/yyyy exports; settle before activating",
+        "affects": [
+          "time"
+        ]
+      },
+      {
+        "id": "duration-unit",
+        "what": "The duration unit is read from the value range, not from documentation.",
+        "proposed": "seconds",
+        "affects": [
+          "duration"
+        ]
+      },
+      {
+        "id": "party-roles",
+        "what": "DLG_NO (dialling) is read as the subject and DLD_NO (dialled) as the counterparty; the direction flag may be relative to the network, not to the subject.",
+        "affects": [
+          "fields",
+          "enums"
+        ]
+      },
+      {
+        "id": "imei-side",
+        "what": "CLD_IMIE and CLG_IMEI belong to the called and calling side; neither is mapped until the side of the subject is confirmed.",
+        "affects": [
+          "fields.imei"
+        ]
+      },
+      {
+        "id": "activity-code",
+        "what": "ACTVY_TYPE_CD is 1 on every inspected row; its meaning is unknown.",
+        "proposed": "other until documented",
+        "affects": [
+          "enums"
+        ]
+      }
+    ]
+  },
+  "golden": {
+    "rows": 48,
+    "hints": {
+      "subject_form": "local_10",
+      "party_b_forms": [
+        "e164_12",
+        "local_11",
+        "local_10",
+        "short_code"
+      ],
+      "cell_style": "digits5",
+      "lac_digits": 5,
+      "date_order": "MDY"
+    },
+    "columns": {
+      "CLD_IMIE": "digits15_or_empty",
+      "CLG_IMEI": "digits15_or_empty",
+      "CLR_OEPRATOR": "choice:PAKTEL|UFONE|MOBILINK",
+      "RCVR_OPERATOR": "choice:PAKTEL|UFONE|MOBILINK|TELENOR|WARID|PTCL"
+    }
+  }
+}
