@@ -169,3 +169,10 @@ apps/investigation-workspace/fixtures/live-*/
 
 # Binary produced by `go build ./api/forensic_records` run from the repo root
 /forensic_records
+
+# Real operator or agency data never enters this public repository (docs/data/real-data-handling-policy.md).
+# The vault lives outside the repository; these entries only catch a mistaken copy, and the scanner in tools/real_data is the gate.
+/real-data-vault/
+/NexusAI-RealDataVault/
+tools/real_data/out/
+tools/real_data/allowlist.local.json
