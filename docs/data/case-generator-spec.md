@@ -1,6 +1,6 @@
-# Case generator with planted truth: specification v0.1 (roadmap Phase 1, section 7.5 and 8.3)
+# Case generator with planted truth: specification v0.2 (roadmap Phase 1, section 7.5 and 8.3)
 
-Status: **draft for the owner's review, 2026-10-12. No code exists yet.** Nothing here reads a real file, touches a database or changes the product. When the owner approves this document (or sends changes), the generator is built in the order of section 12.
+Status: **v0.2, 2026-10-12.** The owner approved the specification with the default answers of section 13. Step 2 of section 12 is built (`tools/case_generator/`, section 14); the changes the build forced are marked *(v0.2)*. Nothing here reads a real file, touches a database or changes the product.
 
 ## 1. Why, and what it is
 
@@ -53,7 +53,7 @@ Each plant states what is planted, the traces it leaves, the decoys, the analysi
 | Plant | Planted | Traces in the files | Decoys | Checked by | Key records |
 |---|---|---|---|---|---|
 | **P1 contact structure** | Communities (dense groups), chains (A to B to C), hubs, bridges between communities, one-way and reciprocal contacts | Calls and SMS with realistic rhythm (day and night, weekday and weekend), durations, missed calls, short-code traffic | Services contacted by many people; dormant ties | A1, A4, A3, A12 | Edges with counts, first and last, per-direction counts; community membership; hubs |
-| **P2 common contacts** | Pairs (X, Y) sharing a known set of contacts | Both subjects call or text the same third parties, at different times and in different operators' exports | A "common" contact that is only a service number or a hub above the threshold | A2 | Expected shared set per pair with each side's count, and the excluded ones with the reason |
+| **P2 common contacts** | Pairs (X, Y) sharing a known set of contacts *(v0.2: persons that no subject is linked to in the background graph, reached by planted calls only, so no third subject can turn one into a hub by chance; calls because not every layout can express a message)* | Both subjects call the same third parties, at different times and in different operators' exports | A "common" contact that is only a service number or a hub above the threshold | A2 | Expected shared set per pair with each side's count, and the excluded ones with the reason |
 | **P3 co-location** | Pairs at the same cell within a stated window, on known days | Events at the same `cell_key` for both subscriptions within W minutes | Same cell far apart in time; neighbouring sector; a cell that is busy for everyone (chance) | A5 | Windows per pair (start, end, cell, count), the chance baseline per cell and hour, expected lift |
 | **P4 possible meeting** | P3 windows preceded by a call or SMS between the pair within a stated gap; some meetings without any call | As P3 plus the contact event | Co-location with no contact; contact with no co-location | A7 | Meetings with the features that make them (gap, window, repeats) and the negatives |
 | **P5 device and SIM change** | A person changes handset, or SIM, or both, on a known date; a handset passes between two people | The IMEI under a number changes; the IMSI under an IMEI changes; both overlap or not | Dual-SIM phones (two IMSIs under one IMEI at once); a lost-and-found handset | A8 | Swap events with date, old and new identifiers, shared devices |
@@ -84,6 +84,8 @@ Files carry the provider's header names, header position, preamble, time formats
 **Round trip (the generator's own test).** Render, match the header with the registry, interpret every row, and compare with the canonical events. They must be equal except for the documented losses of each layout (minute-precision times, truncated durations) and the injected defects.
 
 **View differences between the two sides of one event.** Start times differ by a few seconds, durations by rounding, the counterparty form by operator (`923...`, `03...`, `3...`), and each operator sees only its own subscriber's cell. The key records the canonical event and both views.
+
+*(v0.2)* **What a layout cannot express is left out, and counted.** C2's labels cover calls only and it has no short-code or sender-id form, so its export has no SMS and no service traffic; the key lists the number of such events per subject (`events_not_representable`) and marks a decoy that is not visible in both files (`visible_in_both_files`).
 
 **Injected defects**, each with an expected outcome in the key: a blank row; an unparsable time; a missing time; an unknown label; a service number as counterparty; a duplicate row (same content twice); a row truncated mid-way; a counterparty equal to the subject; a slash date that contradicts the layout's settled order (expected: quarantined as `date_order_conflict`). Rates are parameters; the default injects each class a handful of times so counts stay checkable.
 
@@ -135,7 +137,7 @@ Every generated file and the key pass `scan_for_real_data.py` as a test.
 | `events_per_person_per_day` | 8 calls and SMS, 20 sessions | A case of about 40,000 to 150,000 rows |
 | `operators` | 4 (the four whose layouts exist) | Each subscription belongs to one |
 | `window_minutes` (A5) | 15 | A parameter of the oracle and of the key |
-| `hub_threshold` (A2) | contacted by more than 30 distinct subscriptions | Same value in oracle and product |
+| `hub_threshold` (A2) | *(v0.2)* distinct **subjects whose exports are loaded** in contact with a number: more than `subjects - 2` makes it a hub (4 for 6 subjects); 30 for a case with a tower dump | A product can only count subscriptions that appear in the loaded data, so the rule is stated over the loaded exports; same value in oracle and product |
 | `defect_rates` | each class 3 to 10 rows per file | |
 | `plant_counts` | 5 of each plant per case, each with 2 decoys | |
 
@@ -145,7 +147,7 @@ Seeds: development 1 to 99; judgement seeds 100 to 199 (generated before the cod
 
 These definitions are fixed before any code and are the contract between generator, oracle and product. They are written here so that the SQL implementation, the Python oracle and the key cannot drift apart.
 
-**A2 common contacts.** For a subject `S`, `contacts(S)` is the set of normalised counterparties of `S`'s calls and SMS (both directions) with class `person_like` or `international`; counterparties of class `short_code`, `sender_id`, `service_label` and `unknown` are excluded, and so is any number in contact with more than `hub_threshold` distinct subscriptions in the case. `common(X, Y) = contacts(X) ∩ contacts(Y)`, minus `X` and `Y` themselves. Output per shared number: the count of events with `X` and with `Y`, first and last time on each side. Excluded numbers are reported with the reason.
+**A2 common contacts.** For a subject `S`, `contacts(S)` is the set of normalised counterparties of `S`'s calls and SMS (both directions) with class `person_like` or `international`; counterparties of class `short_code`, `sender_id`, `service_label` and `unknown` are excluded, and so is any number in contact with more than `hub_threshold` distinct subjects *(v0.2: counted over the loaded exports)*. `common(X, Y) = contacts(X) ∩ contacts(Y)`, minus `X` and `Y` themselves. Output per shared number: the count of events with `X` and with `Y`, first and last time on each side. Excluded numbers are reported with the reason.
 
 **A5 co-location.** Two subscriptions are co-located at time `t` when each has an event with the same `cell_key` and the two event times differ by at most `W`. Co-located events are merged into windows (consecutive pairs within `W` of the previous one). Output per window: start, end, `cell_key`, number of event pairs. The chance baseline for a pair is the expected number of windows if the two subscriptions chose cells independently: for each hour-of-week bucket, the product of each subscription's share of its events in each cell, scaled by the number of event pairs falling in that bucket. `lift = observed windows / expected windows` (undefined when the expected value is below 0.5; the output then says "too few events"). The formula is **pre-registered here**; a change needs a new specification version. Every co-location result carries "proximity is not association".
 
@@ -167,7 +169,7 @@ Later oracles (A4 chaining, A3 paths, A7 meetings, A8, A9, A13) get their defini
 | Step | Deliverable | Acceptance |
 |---|---|---|
 | 1 | **This specification**, reviewed by the owner | Approved or amended |
-| 2 | Generator skeleton: world model, P1 and P2 (plants and decoys), rendering for the target-export layouts (C1 to C4), key, manifest, determinism and scanner tests | A seeded case renders; round trip equals the truth; the plant audit passes |
+| 2 | Generator skeleton: world model, P1 and P2 (plants and decoys), rendering for the target-export layouts (C1 to C4), key, manifest, determinism and scanner tests | A seeded case renders; round trip equals the truth; the plant audit passes. **Built 2026-10-12** (section 14) |
 | 3 | A2 and A5 oracles in plain Python with hand-checkable cases; P3 | Oracle parity; the deliberate breakages change the output |
 | 4 | Tower-dump and IPDR rendering (C5 to C8, I1 to I4, A1) and P7, P4; the defects of section 6 | Round trip for all 13 layouts; expected quarantine matches what the registry produces |
 | 5 | Load a case into the **throwaway** database (migrations 012 to 015 applied there only) and check that counts and plants survive; first brute-force SQL check of A2 and A5 against the oracle | Parity on the throwaway database. This is not the live database |
@@ -182,3 +184,24 @@ Later oracles (A4 chaining, A3 paths, A7 meetings, A8, A9, A13) get their defini
 5. **Time zone:** every case in `Asia/Karachi` with the zone declared (proposed), or one case in each of two zones to exercise the zone handling.
 
 Out of scope until separately approved: any use of the real samples to tune the generator's statistics (the generator is built from the layout entries and the documented formulas, not from real data), media generators, and loading a generated case into the live database.
+
+## 14. What exists after step 2 (2026-10-12)
+
+`tools/case_generator/` (Python 3.10, standard library only):
+
+| File | Role |
+|---|---|
+| `world.py` | Parameters, the canonical world (people, numbers, devices, cells), plant P1 (communities, chains, bridges, a hub) and plant P2 (shared contacts with a service decoy and a hub decoy), the event stream |
+| `render.py` | Inverse of the registry interpreter for the target exports C1 to C4: labels, number forms, times, durations, cells, coordinates, preamble and blank-header padding from the layout entry |
+| `oracle.py` | Reference answers A1 (contact profile) and A2 (common contacts), section 10 |
+| `generate.py` | Writes `case-<seed>/` with `files/`, `key/key.json`, `key/world.json`, `manifest.json`, `README.txt` |
+| `audit.py` | Independent audit: reads only the files and the key (with the vault tools' reader and the registry), recomputes A2, checks plants, decoys, hashes and reserved values |
+| `test_case_generator.py` | 16 tests: same seed same bytes, every export read back equal to the truth, audit passes (small and default size), scanner finds nothing, plants and decoys as keyed, hand-checked oracle, four deliberate breakages of a case noticed |
+
+```bash
+python -X utf8 tools/case_generator/generate.py --seed 1 --out CASES_DIR
+python -X utf8 tools/case_generator/audit.py CASES_DIR/case-1
+python -X utf8 tools/case_generator/test_case_generator.py
+```
+
+The default case (120 people, 6 subjects, 90 days) is written in about two seconds: six exports of a few hundred rows each, a key and a world file of a few megabytes (not for the repository). Not yet built: P3 to P9, the tower-dump and IPDR layouts, the injected defects, loading into the throwaway database (steps 3 to 6).

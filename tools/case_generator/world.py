@@ -1,0 +1,274 @@
+"""The canonical truth of a synthetic case: people, subscriptions, devices, cell sites, the contact structure (plant P1), the shared
+contacts with their decoys (plant P2) and the stream of events every file and every answer derives from.
+
+Specification: docs/data/case-generator-spec.md. Everything is drawn from the reserved ranges of tools/real_data/reserved.py.
+Only the standard library is used. The same Params give the same world, event for event.
+"""
+from __future__ import annotations
+
+import datetime
+import json
+import math
+import os
+import random
+import sys
+from dataclasses import asdict, dataclass, field
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
+sys.path.insert(0, os.path.join(REPO, "tools", "real_data"))
+import make_golden as mg  # noqa: E402
+import reserved  # noqa: E402
+
+GENERATOR_VERSION = "0.1"
+SPEC_VERSION = "0.1"
+LOCAL_ZONE = "Asia/Karachi"
+LOCAL_UTC_OFFSET_HOURS = 5   # Asia/Karachi has no daylight saving time
+
+OPERATOR_LABELS = ["ufone", "zong", "mobilink", "telenor"]
+OPERATOR_LAYOUTS = ["call-c1-company", "call-c2-strt-tm", "call-c3-ufone-style", "call-c4-telenor-style"]
+# Service counterparties: short codes and sender ids cannot be real person numbers (they are the ones the goldens use).
+SERVICES = [("short_code", s) for s in mg.SHORT_CODES] + [("sender_id", s) for s in mg.SENDERS]
+DECOY_SERVICE = "786"
+HOUR_WEIGHTS = [1, 1, 1, 1, 1, 2, 4, 6, 8, 9, 9, 9, 8, 8, 9, 9, 9, 9, 8, 8, 7, 6, 4, 2]
+CELLS_PER_OPERATOR = 12
+
+
+@dataclass
+class Params:
+    seed: int = 1
+    people: int = 120            # persons in the world (services are extra)
+    subjects: int = 6
+    associates: int = 24
+    period_days: int = 90
+    start_date: str = "2026-02-02"
+    events_per_person_per_day: float = 4.0   # events a person originates per day; each also involves a second party
+    communities: int = 6
+    p2_pairs: int = 5
+    shared_min: int = 3
+    shared_max: int = 5
+    hub_threshold: int | None = None  # distinct subjects (files) in contact with a number above which it is a hub; default subjects - 2
+
+    def resolved_hub_threshold(self) -> int:
+        return self.hub_threshold if self.hub_threshold is not None else max(2, self.subjects - 2)
+
+
+@dataclass
+class Person:
+    pid: str
+    role: str                    # subject | associate | bystander
+    community: int
+    operator: int
+    n: int                       # index into the reserved number block
+    msisdn: str
+    imsi: str
+    imei: str
+    home_cell: int
+    work_cell: int
+
+
+@dataclass
+class Event:
+    uid: str
+    kind: str                    # call | sms
+    orig: str                    # person id or service label
+    recip: str
+    start: datetime.datetime     # local (Asia/Karachi) wall clock
+    duration_s: int
+    plant: str | None = None     # plant id for planted events
+
+
+@dataclass
+class World:
+    params: Params
+    persons: list = field(default_factory=list)
+    events: list = field(default_factory=list)
+    structure: dict = field(default_factory=dict)   # plant P1: communities, chains, bridges, hubs
+    p2: list = field(default_factory=list)          # plant P2 records
+
+    def person(self, pid):
+        return next(p for p in self.persons if p.pid == pid)
+
+
+def _poisson(rng, lam):
+    limit, k, p = math.exp(-lam), 0, 1.0
+    while True:
+        p *= rng.random()
+        if p <= limit:
+            return k
+        k += 1
+
+
+def _hour(rng):
+    return rng.choices(range(24), weights=HOUR_WEIGHTS)[0]
+
+
+def cell_geometry(operator, idx):
+    """A fictional grid in the open ocean (specification section 8): about 2 km apart, a slightly different origin per operator."""
+    lat = 0.40 + 0.02 * (idx // 4) + 0.0007 * operator
+    lon = -30.60 + 0.02 * (idx % 4) + 0.0011 * operator
+    return round(lat, 6), round(lon, 6)
+
+
+def build_world(params: Params) -> World:
+    world = World(params)
+    rng = random.Random("world:%d" % params.seed)
+    n_people = params.people
+    roles = ["subject"] * params.subjects + ["associate"] * params.associates
+    roles += ["bystander"] * (n_people - len(roles))
+    # persons: ids P-000.., numbers from the reserved block (offset 1000 keeps clear of the numbers the goldens use)
+    for i, role in enumerate(roles):
+        community = i % params.communities if role != "bystander" else rng.randrange(params.communities)
+        operator = i % len(OPERATOR_LABELS) if role == "subject" else rng.randrange(len(OPERATOR_LABELS))
+        n = 1000 + i
+        world.persons.append(Person(
+            pid="P-%03d" % i, role=role, community=community, operator=operator, n=n, msisdn=reserved.synthetic_msisdn(n),
+            imsi=reserved.synthetic_imsi(n), imei=reserved.synthetic_imei(n),
+            home_cell=rng.randrange(CELLS_PER_OPERATOR), work_cell=rng.randrange(CELLS_PER_OPERATOR)))
+    persons = world.persons
+    by_community = {}
+    for p in persons:
+        by_community.setdefault(p.community, []).append(p.pid)
+
+    # --- plant P1: the contact structure -------------------------------------------------------------------------------------------
+    neighbours = {p.pid: {} for p in persons}
+
+    def link(a, b, weight):
+        neighbours[a][b] = max(neighbours[a].get(b, 0), weight)
+        neighbours[b][a] = max(neighbours[b].get(a, 0), weight)
+
+    for members in by_community.values():
+        for i, a in enumerate(members):
+            for b in members[i + 1:]:
+                if rng.random() < 0.35:
+                    link(a, b, round(0.5 + rng.random(), 3))
+    bridges = []
+    ids = [p.pid for p in persons]
+    for _ in range(max(2, params.communities)):
+        a, b = rng.sample(ids, 2)
+        if persons[int(a[2:])].community != persons[int(b[2:])].community:
+            link(a, b, 0.15)
+            bridges.append([a, b])
+    chains = []
+    non_subjects = [p.pid for p in persons if p.role != "subject"]
+    for _ in range(3):
+        chain = rng.sample(non_subjects, 4)
+        for a, b in zip(chain, chain[1:]):
+            link(a, b, 3.0)
+        chains.append(chain)
+    bystanders = [p.pid for p in persons if p.role == "bystander"]
+    hub = bystanders[0]
+    world.structure = {"communities": {str(k): v for k, v in sorted(by_community.items())}, "bridges": bridges, "chains": chains, "hubs": [hub]}
+    for pid, adj in neighbours.items():
+        if not adj:  # nobody is isolated
+            other = rng.choice([x for x in ids if x != pid])
+            link(pid, other, 0.5)
+
+    # --- background events ------------------------------------------------------------------------------------------------------------
+    start = datetime.date.fromisoformat(params.start_date)
+    raw = []
+    for day in range(params.period_days):
+        date = start + datetime.timedelta(days=day)
+        weekend = date.weekday() >= 5
+        for p in persons:
+            r = random.Random("ev:%d:%s:%d" % (params.seed, p.pid, day))
+            for _ in range(_poisson(r, params.events_per_person_per_day * (0.6 if weekend else 1.0))):
+                adj = sorted(neighbours[p.pid].items())
+                target = r.choices([k for k, _ in adj], weights=[w for _, w in adj])[0]
+                when = datetime.datetime.combine(date, datetime.time(_hour(r), r.randrange(60), r.randrange(60)))
+                sms = r.random() < 0.35
+                raw.append((when, "sms" if sms else "call", p.pid, target, 0 if sms else min(1800, max(3, int(r.lognormvariate(4.2, 0.9)))), None))
+            if r.random() < 0.15:  # an automated message from a service
+                label = r.choice(SERVICES)[1]
+                when = datetime.datetime.combine(date, datetime.time(_hour(r), r.randrange(60), r.randrange(60)))
+                raw.append((when, "sms", label, p.pid, 0, None))
+
+    # --- plant P2: shared contacts for pairs of subjects, with a service decoy and a hub decoy ----------------------------------------
+    subjects = [p for p in persons if p.role == "subject"]
+    pairs = [(a.pid, b.pid) for i, a in enumerate(subjects) for b in subjects[i + 1:]]
+    rng.shuffle(pairs)
+    operator_of = {p.pid: p.operator for p in persons}
+    # Shared contacts are persons no subject is linked to in the background graph, so the planted events are the only way a subject reaches them
+    # (otherwise a third subject could make a planted contact look like a hub).
+    subject_ids = {s.pid for s in subjects}
+    pool = [p.pid for p in persons if p.role != "subject" and p.pid != hub and not (set(neighbours[p.pid]) & subject_ids)]
+    rng.shuffle(pool)
+    threshold = params.resolved_hub_threshold()
+    # Subjects that do NOT contact the hub: those on the layout that shows no service traffic first, so more pairs see both decoys.
+    leave_out = sorted(subjects, key=lambda s: (s.operator != 1, s.pid))[: max(0, len(subjects) - (threshold + 1))]
+    skip_hub = set(s.pid for s in leave_out)
+    hub_contacts = [s.pid for s in subjects if s.pid not in skip_hub]
+    period_end = params.period_days
+
+    def planted(plant_id, who, other, count, kind=None):
+        r = random.Random("plant:%d:%s:%s:%s" % (params.seed, plant_id, who, other))
+        for _ in range(count):
+            date = start + datetime.timedelta(days=r.randrange(period_end))
+            when = datetime.datetime.combine(date, datetime.time(r.randrange(8, 21), r.randrange(60), r.randrange(60)))
+            sms = kind == "sms"  # shared contacts are reached by calls: every layout can express a call, not every layout an SMS
+            out = r.random() < 0.5
+            a, b = (who, other) if out else (other, who)
+            raw.append((when, "sms" if sms else "call", a, b, 0 if sms else r.randrange(20, 400), plant_id))
+
+    def both_decoys_visible(pair):
+        return all(operator_of[s] != 1 and s not in skip_hub for s in pair)  # operator 1 is the layout without service traffic
+    good = [pr for pr in pairs if both_decoys_visible(pr)]
+    others = [pr for pr in pairs if pr not in good[:2]]
+    pairs = good[:2] + others
+    cursor = 0
+    for number, (x, y) in enumerate(pairs[: params.p2_pairs], start=1):
+        plant_id = "P2-%03d" % number
+        size = rng.randint(params.shared_min, params.shared_max)
+        shared = [pool[(cursor + k) % len(pool)] for k in range(size)]
+        cursor += size
+        counts = {}
+        for s in shared:
+            counts[s] = {x: rng.randint(3, 8), y: rng.randint(3, 8)}
+            planted(plant_id, x, s, counts[s][x])
+            planted(plant_id, y, s, counts[s][y])
+        service_counts = {x: rng.randint(3, 6), y: rng.randint(3, 6)}
+        for who in (x, y):
+            planted(plant_id, who, DECOY_SERVICE, service_counts[who], kind="sms")
+        world.p2.append({"id": plant_id, "x": x, "y": y, "shared": shared, "counts": counts,
+                         "decoys": [{"kind": "service_in_common", "number": DECOY_SERVICE, "counts": service_counts},
+                                    {"kind": "hub_in_common", "person": hub, "contacted_by": hub_contacts}]})
+    for number, who in enumerate(hub_contacts, start=1):
+        planted("P2-hub", who, hub, 4)
+
+    raw.sort(key=lambda e: (e[0], e[2], e[3], e[1]))
+    for i, (when, kind, a, b, duration, plant) in enumerate(raw, start=1):
+        world.events.append(Event("E%07d" % i, kind, a, b, when, duration, plant))
+    return world
+
+
+def cell_for(world: World, person: Person, event: Event):
+    """The cell site a person is on at an event: home at night, work in office hours on weekdays, otherwise around them."""
+    r = random.Random("cell:%d:%s:%s" % (world.params.seed, person.pid, event.uid))
+    hour, weekday = event.start.hour, event.start.weekday()
+    if hour >= 22 or hour < 7:
+        idx = person.home_cell
+    elif 9 <= hour < 17 and weekday < 5:
+        idx = person.work_cell
+    else:
+        idx = r.choice([person.home_cell, person.work_cell, (person.home_cell + 1) % CELLS_PER_OPERATOR, (person.work_cell + 1) % CELLS_PER_OPERATOR])
+    return idx
+
+
+def to_utc(local: datetime.datetime) -> datetime.datetime:
+    return local - datetime.timedelta(hours=LOCAL_UTC_OFFSET_HOURS)
+
+
+def world_summary(world: World) -> dict:
+    return {"params": asdict(world.params), "persons": len(world.persons), "events": len(world.events),
+            "planted_events": sum(1 for e in world.events if e.plant)}
+
+
+def world_to_json(world: World) -> str:
+    doc = {
+        "generator_version": GENERATOR_VERSION, "spec_version": SPEC_VERSION, "params": asdict(world.params), "clock": {"local_zone": LOCAL_ZONE, "utc_offset_hours": LOCAL_UTC_OFFSET_HOURS},
+        "persons": [asdict(p) for p in world.persons],
+        "services": [{"kind": k, "label": v} for k, v in SERVICES],
+        "structure": world.structure, "p2": world.p2,
+        "events": [[e.uid, e.kind, e.orig, e.recip, e.start.isoformat(sep=" "), e.duration_s, e.plant] for e in world.events],
+    }
+    return json.dumps(doc, sort_keys=True, indent=1, ensure_ascii=True)

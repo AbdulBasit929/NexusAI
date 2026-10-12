@@ -84,6 +84,16 @@ def _col_letter(index):
     return letters
 
 
+FIXED_ZIP_TIME = (2026, 1, 1, 0, 0, 0)
+
+
+def _put_part(archive, name, data):
+    """A zip member with a fixed timestamp, so the same table always gives the same bytes."""
+    info = zipfile.ZipInfo(name, date_time=FIXED_ZIP_TIME)
+    info.compress_type = zipfile.ZIP_DEFLATED
+    archive.writestr(info, data)
+
+
 def write_xlsx(path, sheet_name, table, numeric_columns, header_index):
     ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
     rel_ns = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
@@ -100,23 +110,23 @@ def write_xlsx(path, sheet_name, table, numeric_columns, header_index):
                 cells.append('<c r="%s" t="inlineStr"><is><t xml:space="preserve">%s</t></is></c>' % (ref, escape(str(value))))
         body.append('<row r="%d">%s</row>' % (r, "".join(cells)))
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
-        z.writestr("[Content_Types].xml",
+        _put_part(z, "[Content_Types].xml",
                    '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
                    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
                    '<Default Extension="xml" ContentType="application/xml"/>'
                    '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
                    '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
                    '</Types>')
-        z.writestr("_rels/.rels",
+        _put_part(z, "_rels/.rels",
                    '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
                    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>')
-        z.writestr("xl/workbook.xml",
+        _put_part(z, "xl/workbook.xml",
                    '<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="%s" xmlns:r="%s"><sheets><sheet name="%s" sheetId="1" r:id="rId1"/></sheets></workbook>'
                    % (ns, rel_ns, escape(sheet_name, {'"': "&quot;"})))
-        z.writestr("xl/_rels/workbook.xml.rels",
+        _put_part(z, "xl/_rels/workbook.xml.rels",
                    '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
                    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>')
-        z.writestr("xl/worksheets/sheet1.xml",
+        _put_part(z, "xl/worksheets/sheet1.xml",
                    '<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="%s"><sheetData>%s</sheetData></worksheet>' % (ns, "".join(body)))
 
 
