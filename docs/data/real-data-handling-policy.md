@@ -1,6 +1,6 @@
-# Real-data handling policy (decision D1) - DRAFT for owner approval
+# Real-data handling policy (decision D1) - approved by the owner 2026-10-12
 
-Status: draft written 2026-10-12 under decision D1 of `docs/roadmap/nexusai-maturity-roadmap-20261012.md` (section 8.1). Nothing here is in force until the owner approves it and fills the authority fields that only the owner can fill (section 9). Tools: `tools/real_data/`. Tests: `python -I -X utf8 tools/real_data/test_real_data_tools.py` (31 tests) and `tools/real_data/Test-VaultTools.ps1` (13 checks).
+Status: draft written 2026-10-12 under decision D1 of `docs/roadmap/nexusai-maturity-roadmap-20261012.md` (section 8.1). **Approved by the owner on 2026-10-12**, and the vault was created the same day at `C:\NexusAI-RealDataVault` (access limited to the owner, SYSTEM and the local administrators; disk encryption not yet confirmed). The authority fields of each sample (section 9) are still the owner's to fill: no file is registered until they are given. Tools: `tools/real_data/`. Tests: `python -I -X utf8 tools/real_data/test_real_data_tools.py` (31 tests) and `tools/real_data/Test-VaultTools.ps1` (13 checks).
 
 This repository is **public**. The country profile already says it in one line (`configuration/forensic_country_profiles/pakistan.json`, `real_data_fixture_policy`): never commit real subscriber, location, identity, financial, biometric, image, audio or communications data; derive only synthetic, shape-preserving cases. This policy turns that line into a routine with tools, so that following it is easier than breaking it.
 
@@ -163,8 +163,8 @@ This draft does not change the hook.
 
 | # | Item | Needed from the owner |
 |---|---|---|
-| 1 | Approve this policy, or send changes | Yes |
-| 2 | Create the vault (`Initialize-Vault.ps1`) and confirm the disk is encrypted (BitLocker in an elevated shell, or `-EnableEfs`) | Yes |
+| 1 | Approve this policy, or send changes | **Done 2026-10-12** |
+| 2 | Create the vault (`Initialize-Vault.ps1`) and confirm the disk is encrypted (BitLocker in an elevated shell, or `-EnableEfs`) | Vault **created 2026-10-12**; encryption still to confirm before any file is registered |
 | 3 | Register the three samples received on 2026-10-12 with their real authority | Yes - the three originals are still in Downloads; extracted copies from the earlier session were deleted |
 | 4 | Approve wiring the staged scan into the pre-commit hook and the range scan before push | Yes |
 | 5 | Review the audit of existing tracked files (`--all-tracked`): synthetic-looking identifiers in fixtures, and seven secret-pattern matches in three test files (each contains a placeholder-style word such as "test" or "example", so they look like detector test inputs rather than live keys, but nobody has confirmed it; the values were not printed) | Yes - a few minutes |

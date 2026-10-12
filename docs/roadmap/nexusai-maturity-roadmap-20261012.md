@@ -793,7 +793,7 @@ Each phase ends at a gate. A gate is written before the phase's measurements, as
 
 | # | Decision | Why now | Recommended |
 |---|---|---|---|
-| D1 | Real-data policy: vault location, recorded authority for each file, who may see it | Every later step uses the samples | Approved for drafting 2026-10-12; policy and tools drafted (`docs/data/real-data-handling-policy.md`, `tools/real_data/`); in force once you approve it and fill the authority fields |
+| D1 | Real-data policy: vault location, recorded authority for each file, who may see it | Every later step uses the samples | Approved for drafting 2026-10-12; policy and tools drafted (`docs/data/real-data-handling-policy.md`, `tools/real_data/`); **approved 2026-10-12 and the vault created** (C:\NexusAI-RealDataVault; disk encryption still to confirm); a sample is registered only with its authority fields |
 | D2 | Database changes: typed tables, reference tables, entity and relationship tables, pgvector and earth-distance (all in the current image; backup first) | Phase 1 cannot start without it | Approved for drafting 2026-10-12; migrations 012 to 015 and scripts drafted and tested on a disposable database; applying to the live database needs a separate go-ahead |
 | D2b | PostGIS: a different image and a dump and restore | Only needed for polygons, line-of-travel and ellipsoid distance | Defer; `earthdistance` covers radius lookups now |
 | D3 | Hardware: measure the EliteDesk RTX 2080; buy a second RAM stick; later a GPU only if the bake-off needs it | Speed and the bake-off | Measure first, buy nothing yet |
