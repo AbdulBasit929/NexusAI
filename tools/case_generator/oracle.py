@@ -1,4 +1,4 @@
-"""Plain-Python reference answers (specification section 10): A1 contact profile, A2 common contacts and A5 co-location.
+"""Plain-Python reference answers (specification section 10): A1 contact profile, A2 common contacts and A5 co-location and A6 tower-dump population.
 
 They read the events as the files show them (the visible rows of each subject's export), not the product, SQL or the files themselves.
 """
@@ -140,3 +140,19 @@ def a5_colocation(rows_x, rows_y, window_minutes=15):
     lift = {"value": round(len(pairs) / expected, 4), "note": None} if expected >= 0.5 else {"value": None, "note": "too few events"}
     return {"window_minutes": window_minutes, "pairs_observed": len(pairs), "pairs_within_window": adjacent, "pairs_expected": round(expected, 4),
             "lift": lift, "windows": windows, "caveat": "proximity is not association"}
+
+
+def a6_population(rows, cell_keys):
+    """Who is in a tower dump (specification section 10, A6): per number the events and the cells they were seen at, and the numbers seen
+    at two or more of the dump's cells. A layout without a cell column (C5) lists numbers only: the cells are the dump's request, not a column."""
+    wanted = [k for k in cell_keys if k]
+    per = {}
+    for row in rows:
+        entry = per.setdefault(row["a_norm"], {"events": 0, "cells": {}})
+        entry["events"] += 1
+        if row["cell_key"] and (not wanted or row["cell_key"] in wanted):
+            entry["cells"][row["cell_key"]] = entry["cells"].get(row["cell_key"], 0) + 1
+    population = [{"number": n, "events": per[n]["events"], "cells": dict(sorted(per[n]["cells"].items()))} for n in sorted(per)]
+    seen_twice = sorted(n for n in per if len(per[n]["cells"]) >= 2) if wanted else None
+    return {"cell_keys": cell_keys, "population": population, "at_two_or_more_cells": seen_twice,
+            "note": None if wanted else "the layout has no cell column: the population is every number in the file"}

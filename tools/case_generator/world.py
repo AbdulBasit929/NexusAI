@@ -27,6 +27,8 @@ LOCAL_UTC_OFFSET_HOURS = 5   # Asia/Karachi has no daylight saving time
 
 OPERATOR_LABELS = ["ufone", "zong", "mobilink", "telenor"]
 OPERATOR_LAYOUTS = ["call-c1-company", "call-c2-strt-tm", "call-c3-ufone-style", "call-c4-telenor-style"]
+# The tower-dump layout of each operator (ufone, zong, mobilink, telenor), by the operator labels of the layout entries.
+OPERATOR_DUMP_LAYOUTS = ["geofence-c7-ufone", "geofence-c8-zong", "geofence-c5-mobilink", "geofence-c6-telenor"]
 # Service counterparties: short codes and sender ids cannot be real person numbers (they are the ones the goldens use).
 SERVICES = [("short_code", s) for s in mg.SHORT_CODES] + [("sender_id", s) for s in mg.SENDERS]
 DECOY_SERVICE = "786"
@@ -48,6 +50,8 @@ class Params:
     p3_pairs: int = 5            # co-location plants; limited by the pairs of subjects on the same operator
     windows_per_plant: int = 4
     window_minutes: int = 15     # W of the co-location definition (specification section 10)
+    dumps: bool = True           # one tower dump per operator that has a subject
+    dump_days: int = 2
     shared_min: int = 3
     shared_max: int = 5
     hub_threshold: int | None = None  # distinct subjects (files) in contact with a number above which it is a hub; default subjects - 2

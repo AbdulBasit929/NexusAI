@@ -1,6 +1,6 @@
-# Case generator with planted truth: specification v0.3 (roadmap Phase 1, section 7.5 and 8.3)
+# Case generator with planted truth: specification v0.4 (roadmap Phase 1, section 7.5 and 8.3)
 
-Status: **v0.3, 2026-10-13.** The owner approved the specification with the default answers of section 13. Steps 2 and 3 of section 12 are built (`tools/case_generator/`, section 14); the changes the builds forced are marked *(v0.2)* and *(v0.3)*. Nothing here reads a real file, touches a database or changes the product.
+Status: **v0.4, 2026-10-13.** The owner approved the specification with the default answers of section 13. Steps 2, 3 and (in parts) 4 of section 12 are built (`tools/case_generator/`, section 14); the changes the builds forced are marked *(v0.2)* to *(v0.4)*. Nothing here reads a real file, touches a database or changes the product.
 
 ## 1. Why, and what it is
 
@@ -85,6 +85,8 @@ Files carry the provider's header names, header position, preamble, time formats
 
 **View differences between the two sides of one event.** Start times differ by a few seconds, durations by rounding, the counterparty form by operator (`923...`, `03...`, `3...`), and each operator sees only its own subscriber's cell. The key records the canonical event and both views.
 
+*(v0.4)* **What a layout can only say vaguely, it says vaguely.** C6's direction codes have no confirmed meaning, so its rows carry the code whose *proposed* meaning is the planted one and read back as `unknown` (the key marks the assumption); C8 has one activity code, so every row reads as `other`; C7 has no call-type column, so its rows read as `other` too. The row keeps `true_direction` and `true_event_type` for the audit, but the oracles use what the file says.
+
 *(v0.2)* **What a layout cannot express is left out, and counted.** C2's labels cover calls only and it has no short-code or sender-id form, so its export has no SMS and no service traffic; the key lists the number of such events per subject (`events_not_representable`) and marks a decoy that is not visible in both files (`visible_in_both_files`).
 
 **Injected defects**, each with an expected outcome in the key: a blank row; an unparsable time; a missing time; an unknown label; a service number as counterparty; a duplicate row (same content twice); a row truncated mid-way; a counterparty equal to the subject; a slash date that contradicts the layout's settled order (expected: quarantined as `date_order_conflict`). Rates are parameters; the default injects each class a handful of times so counts stay checkable.
@@ -152,6 +154,8 @@ These definitions are fixed before any code and are the contract between generat
 
 **A5 co-location.** *(v0.3: the baseline is stated on event pairs; the v0.1 text compared windows with an expected number of windows, which had no independent definition, and used hour-of-week buckets, which are too sparse for one subscription.)* Two subscriptions on the same operator are co-located at a time when each has an event with the same `cell_key` and the two event times differ by at most `W` (a difference of exactly `W` counts). Co-located event pairs on one cell are merged into windows: a pair joins the open window when its earlier time is within `W` of the window's latest time. Output per window: start, end, `cell_key`, number of pairs. **Chance baseline:** take every pair of events, one of each subscription, within `W` of each other whatever their cells. For such a pair, the time-of-week class is (weekday or weekend, hour of the day) of the earlier event; each subscription's habit in that class is the share of its own events in each cell (its overall shares when it has no event in the class); the probability that both are at the same cell is the sum over cells of the product of the two shares. `expected = ` the sum of these probabilities over all pairs; `lift = observed pairs / expected`, undefined ("too few events") when `expected` is below 0.5. Two subscriptions on different operators never share a cell key, so they have no A5 answer. The formula is **pre-registered here**; a change needs a new specification version. Every co-location result carries "proximity is not association".
 
+**A6 tower-dump population.** *(v0.4)* A tower dump is the projection of every event in a window in which a party of one operator was at one of a stated set of cells, rendered as that party's row. Output: per number the events and the cells at which it appears, and the numbers seen at two or more of the dump's cells. A layout without a cell column (C5) lists the numbers only and says that the cells are the request, not a column. The result is authority-gated in the product (roadmap section 9); the generator only supplies the truth.
+
 Later oracles (A4 chaining, A3 paths, A7 meetings, A8, A9, A13) get their definitions added as each plant is built, before the code.
 
 ## 11. How the generator itself is verified
@@ -216,3 +220,5 @@ The default case (120 people, 6 subjects, 90 days) is written in about two secon
 * `audit.py` recomputes A5 with a separate brute-force implementation (every pair of events, no shortcuts) and checks that the key's windows, pair counts and chance baseline equal it, that each planted window is a co-location window in the files, and that no decoy event takes part in a co-located pair.
 * Tests: hand-checked windows, the exact boundary (W co-located, W + 1 second not), a chance baseline worked out by hand (lift 1.0), "too few events", a week-shift and cell-rename check, a planted window removed from a file is noticed.
 * The default case (6 subjects) has two co-location plants; a background co-location between subjects who share a home or work cell appears in the answer too, with its lift, and is not a plant.
+
+**Step 4, part a (2026-10-13): tower dumps.** `render.py` now renders any list of (event, person) views, so a tower dump is the view list of every party of an operator at a set of cells in a window (`dump_views`), in that operator's dump layout (ufone C7, zong C8, mobilink C5, telenor C6). `generate.py` plans one dump per operator that has a subject (the planted meeting cell first, then subjects' work and home cells; the window starts on the first planted co-location day of that operator), writes `dumps[]` and `oracle.A6` into the key, and `audit.py` reads each dump back, checks its window and cells, and recomputes the population. 37 tests. The default case has four dumps of 77 to 152 rows each; the people in them are mostly not subjects.

@@ -1,8 +1,11 @@
-"""Rendering: the canonical events of one subject as a provider export in one of the registered target-export layouts (C1 to C4).
+"""Rendering: the canonical events of one subscription, or of a whole cell population, as a provider export in one of the registered
+call-record layouts (target exports C1 to C4, tower dumps C5 to C8).
 
 The renderer is the inverse of the layout registry's reference interpreter. Labels, header names, time formats, number forms and
-cell identities all come from the layout entry; nothing here knows a real file. Each row carries the expectation the round trip
-must reproduce (see test_case_generator.py).
+cell identities all come from the layout entry; nothing here knows a real file. Each row carries the expectation the round trip must
+reproduce (see test_case_generator.py). What a layout cannot say, it does not say: C6's numeric direction codes read as `unknown`,
+C8's single activity code reads as `other`, C7 has no call-type column; the row's expectation holds what the interpreter will read,
+and `true_direction` / `true_event_type` hold what was planted.
 """
 from __future__ import annotations
 
@@ -21,6 +24,7 @@ from ingestion.forensic_records.layout_registry.spec import column_ref  # noqa: 
 mg = w.mg
 PERSON_FORMS = ("e164_12", "local_11", "local_10", "plus_e164")
 SERVICE_KIND = {label: kind for kind, label in w.SERVICES}
+CANNOT_SAY = {"event_type": "other", "direction": "unknown"}   # what the interpreter reads where the layout has no way to say it
 
 
 @dataclass
@@ -45,7 +49,13 @@ class RenderedFile:
 
 
 def label_choice(entry, event_type, direction):
-    """The labels that make the layout read (event_type, direction): [(column ref, label, confirmed)]. Confirmed rules are preferred."""
+    """The labels that make the layout read (event_type, direction).
+
+    Returns ([(column ref, label, confirmed)], what the file will say). Phase 1 picks labels that mean exactly what was planted (confirmed
+    rules first). Phase 2 covers a key the layout can only express as "unknown" or "other" (C6's codes, C8's activity code), preferring
+    the label whose proposed meaning is the planted one. Phase 3 covers a key the layout has no rule for at all (C7 has no call type).
+    A key the layout can express only wrongly (C2 has no message label) raises ValueError: the event is left out of that file.
+    """
     desired = {"event_type": event_type, "direction": direction}
     by_column = {}
     for rule in entry.get("enums") or []:
@@ -63,24 +73,80 @@ def label_choice(entry, event_type, direction):
         if best:
             picks.append((ref, best[1], best[2]))
             covered.update(best[3])
+    for key in sorted(set(desired) - set(covered)):
+        found = None
+        for ref, rules in sorted(by_column.items()):
+            if any(ref == p[0] for p in picks):
+                continue
+            for rule in rules:
+                for label in sorted(rule["map"]):
+                    meaning = rule["map"][label]
+                    if meaning.get(key) == CANNOT_SAY[key] and all(desired.get(k) == v for k, v in meaning.items() if k != key):
+                        score = ((rule.get("proposed") or {}).get(label) == desired[key], bool(rule["confirmed"]))
+                        if found is None or score > found[0]:
+                            found = (score, ref, label, bool(rule["confirmed"]), meaning)
+        if found:
+            picks.append((found[1], found[2], found[3]))
+            covered.update(found[4])
+    keys_with_rules = {k for rules in by_column.values() for rule in rules for meaning in rule["map"].values() for k in meaning}
+    for key in sorted(set(desired) - set(covered)):
+        if key not in keys_with_rules:
+            covered[key] = CANNOT_SAY[key]
     if set(desired) - set(covered):
         raise ValueError("layout %s cannot express %s" % (entry["layout_id"], desired))
-    return picks
+    return picks, covered
 
 
-def _cell_values(entry, hints, operator, site):
+def cell_identity(entry, hints, operator, site):
+    """(lac, ci, raw, cell_key) of a site on an operator, as the layout writes it."""
+    spec = entry.get("cell")
+    if not spec:
+        return None, None, None, None
     pool = operator * w.CELLS_PER_OPERATOR + site
     ci = mg.cell_value(hints.get("cell_style", "digits5"), None, pool)
     lac = str(100 + pool * 11) if hints.get("lac_digits", 3) == 3 else str(10000 + pool * 13)
-    return lac, ci
+    raw = str(3000000000 + pool * 104729) if spec.get("raw") else None
+    lac_used = lac if spec.get("lac_tac") else None
+    return lac_used, ci, raw, make_cell_key(spec.get("plmn"), lac_used, ci)
 
 
-def render_subject(world, entry, subject, only_events=None) -> RenderedFile:
-    """The export of one subject: every event the subject takes part in that this layout can express."""
+def layout_hints(entry):
     hints = dict((entry.get("golden") or {}).get("hints") or {})
     declared = (entry.get("time") or {}).get("date_order")
     if declared:
         hints["date_order"] = declared
+    return hints
+
+
+def site_cell_key(entry, operator, site):
+    return cell_identity(entry, layout_hints(entry), operator, site)[3]
+
+
+def subject_views(world, subject, only_events=None):
+    return [(ev, subject) for ev in world.events if subject.pid in (ev.orig, ev.recip) and (only_events is None or ev.uid in only_events)]
+
+
+def dump_views(world, operator, sites, start, end):
+    """A tower dump: every event in the window in which a party of this operator was at one of the cells, as that party's view."""
+    by_pid = {p.pid: p for p in world.persons}
+    views = []
+    for ev in world.events:
+        if not (start <= ev.start <= end):
+            continue
+        for pid in (ev.orig, ev.recip):
+            person = by_pid.get(pid)
+            if person is not None and person.operator == operator and w.cell_for(world, person, ev) in sites:
+                views.append((ev, person))
+    return views
+
+
+def render_subject(world, entry, subject, only_events=None) -> RenderedFile:
+    """The export of one subject: every event the subject takes part in that this layout can express."""
+    return render_views(world, entry, subject_views(world, subject, only_events), label=subject.pid, preamble_person=subject)
+
+
+def render_views(world, entry, views, label, preamble_person=None) -> RenderedFile:
+    hints = layout_hints(entry)
     fields = entry.get("fields") or {}
     index = mg.column_index(entry)
     n_columns = len(entry["header"]["columns"])
@@ -94,15 +160,11 @@ def render_subject(world, entry, subject, only_events=None) -> RenderedFile:
     subject_form = hints.get("subject_form", "e164_12")
     container, encoding, delimiter = entry["container"]["kinds"][0], entry["container"].get("encoding"), entry["container"].get("delimiter")
     numeric = {index[column_ref(ref)] for ref in time_columns.values()} if fmt == "excel_serial_1900" else set()
-    out = RenderedFile(entry["layout_id"], subject.pid, [], 0, numeric, container, "Sheet1", encoding, delimiter)
+    out = RenderedFile(entry["layout_id"], label, [], 0, numeric, container, "Sheet1", encoding, delimiter)
     by_pid = {p.pid: p for p in world.persons}
     data = []
     used_unconfirmed = set()
-    for ev in world.events:
-        if subject.pid not in (ev.orig, ev.recip):
-            continue
-        if only_events is not None and ev.uid not in only_events:
-            continue
+    for ev, subject in views:
         outgoing = ev.orig == subject.pid
         other_id = ev.recip if outgoing else ev.orig
         direction = "outgoing" if outgoing else "incoming"
@@ -124,7 +186,7 @@ def render_subject(world, entry, subject, only_events=None) -> RenderedFile:
         if event_type == "sms" and ev.duration_s:
             raise ValueError("an SMS has no duration")
         try:
-            labels = label_choice(entry, event_type, direction)
+            labels, visible = label_choice(entry, event_type, direction)
         except ValueError:
             out.skipped.append([ev.uid, "layout has no label for %s %s" % (direction, event_type)])
             continue
@@ -134,10 +196,10 @@ def render_subject(world, entry, subject, only_events=None) -> RenderedFile:
             key = ref if isinstance(ref, tuple) else column_ref(ref)
             cells[index[key]] = "" if value is None else str(value)
 
-        for ref, label, confirmed in labels:
-            put(ref, label)
+        for ref, text, confirmed in labels:
+            put(ref, text)
             if not confirmed:
-                used_unconfirmed.add("enum:%s=%s" % (ref[0], label))
+                used_unconfirmed.add("enum:%s=%s" % (ref[0], text))
         a_raw = mg.party_forms(subject.n)[subject_form]
         b_spec = fields.get("b")
         if isinstance(b_spec, dict) and "by_direction" in b_spec:
@@ -156,7 +218,7 @@ def render_subject(world, entry, subject, only_events=None) -> RenderedFile:
         start = ev.start
         end = start + datetime.timedelta(seconds=ev.duration_s)
         if fmt == "slash_24h_minutes":
-            raise ValueError("minute-precision layouts are not used by the target exports")
+            raise ValueError("minute-precision layouts are not used by the call-record exports")
         put(time_columns["start"], mg.render_time(start, fmt, hints))
         if "end" in time_columns:
             put(time_columns["end"], mg.render_time(end, fmt, hints))
@@ -170,14 +232,15 @@ def render_subject(world, entry, subject, only_events=None) -> RenderedFile:
             duration_expect = ev.duration_s
         elif dur_spec["mode"] == "from_times":
             duration_expect = ev.duration_s
-        cell_key = None
         site = w.cell_for(world, subject, ev)
+        cell_key = None
         if cell_spec:
-            lac, ci = _cell_values(entry, hints, subject.operator, site)
+            lac, ci, raw_id, cell_key = cell_identity(entry, hints, subject.operator, site)
             if cell_spec.get("lac_tac"):
                 put(cell_spec["lac_tac"], lac)
             put(cell_spec["ci"], ci)
-            cell_key = make_cell_key(cell_spec.get("plmn"), lac if cell_spec.get("lac_tac") else None, ci)
+            if cell_spec.get("raw"):
+                put(cell_spec["raw"], raw_id)
         lat, lon = w.cell_geometry(subject.operator, site)
         places = int(hints.get("coordinate_decimals", 5))
         lat_spec = fields.get("lat")
@@ -201,8 +264,9 @@ def render_subject(world, entry, subject, only_events=None) -> RenderedFile:
                     cells[pos] = mg.recipe_value(recipe, r, len(data), {"start": start, "end": end})
         data.append(cells)
         out.rows.append({
-            "uid": ev.uid, "a_norm": subject.msisdn, "b_norm": b_norm, "b_kind": b_kind, "b_raw_label": None if b_norm else b_raw, "direction": direction, "event_type": event_type,
-            "start_local": start.isoformat(sep=" "), "duration_s": duration_expect, "cell_key": cell_key,
+            "uid": ev.uid, "a_norm": subject.msisdn, "b_norm": b_norm, "b_kind": b_kind, "b_raw_label": None if b_norm else b_raw,
+            "direction": visible["direction"], "event_type": visible["event_type"], "true_direction": direction, "true_event_type": event_type,
+            "start_local": start.isoformat(sep=" "), "duration_s": duration_expect, "cell_key": cell_key, "site": site, "operator": subject.operator,
             "imsi": imsi, "imei": imei, "plant": ev.plant})
     header = [c["name"] for c in entry["header"]["columns"]]
     padding = int((entry.get("golden") or {}).get("blank_columns") or 0)
@@ -211,7 +275,7 @@ def render_subject(world, entry, subject, only_events=None) -> RenderedFile:
         header = header[:at] + [""] * padding + header[at:]
         data = [cells[:at] + [""] * padding + cells[at:] for cells in data]
         out.numeric_columns = {i + padding if i >= at else i for i in out.numeric_columns}
-    preamble = _preamble(entry, subject, random.Random("preamble:%d:%s" % (world.params.seed, subject.pid)))
+    preamble = _preamble(entry, preamble_person, random.Random("preamble:%d:%s" % (world.params.seed, label)))
     out.table = preamble + [header] + data
     out.header_index = len(preamble)
     out.assumptions = [{"layout_id": entry["layout_id"], "item": item, "used": "unconfirmed rule of the entry"} for item in sorted(used_unconfirmed)]
@@ -220,7 +284,7 @@ def render_subject(world, entry, subject, only_events=None) -> RenderedFile:
 
 def _preamble(entry, subject, rng):
     spec = (entry.get("golden") or {}).get("preamble")
-    if not spec:
+    if not spec or subject is None:
         return []
     values = {"{subject10}": mg.party_forms(subject.n)["local_10"], "{ref13}": "00000-%07d-0" % rng.randint(0, 9999999)}
     rows = []

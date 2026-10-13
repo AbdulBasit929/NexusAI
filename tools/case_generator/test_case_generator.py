@@ -293,6 +293,96 @@ class ColocationOracleTests(unittest.TestCase):
         self.assertEqual([w["pairs"] for w in later["windows"]], [w["pairs"] for w in base["windows"]])
 
 
+class DumpTests(unittest.TestCase):
+    """Tower dumps (C5 to C8) and the A6 population."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.params = w.Params(seed=21, people=60, subjects=4, associates=12, period_days=20, p2_pairs=2, p3_pairs=0)
+        cls.world, cls.renders, cls.key = generate.build_case(cls.params)
+        cls.root = generate.write_case(cls.params, cls.tmp.name)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def test_one_dump_per_operator_in_its_own_layout(self):
+        self.assertEqual([d["layout_id"] for d in self.key["dumps"]], ["geofence-c7-ufone", "geofence-c8-zong", "geofence-c5-mobilink", "geofence-c6-telenor"])
+        for dump in self.key["dumps"]:
+            self.assertGreater(dump["rows"], 20)
+        self.assertEqual(audit.audit(self.root), [])
+
+    def test_each_dump_reads_back_equal_to_the_truth(self):
+        for dump in self.key["dumps"]:
+            rendered = self.renders[dump["name"]]
+            entry = REGISTRY.get(dump["layout_id"])
+            self.assertEqual(REGISTRY.find_header(rendered.table).matched_entry_id, dump["layout_id"])
+            results = list(interpret_rows(entry, rendered.table[rendered.header_index], rendered.table[rendered.header_index + 1:], policy=POLICY))
+            self.assertEqual(len(results), len(rendered.rows))
+            for result, expected in zip(results, rendered.rows):
+                self.assertEqual(result.status, "accepted", result.reason)
+                for field in ("a_norm", "b_norm", "b_kind", "direction", "event_type", "start_local", "duration_s", "cell_key", "imsi", "imei"):
+                    self.assertEqual(result.record.get(field), expected[field], "%s %s" % (dump["layout_id"], field))
+
+    def test_a_layout_that_cannot_say_a_thing_says_unknown_and_the_key_says_so(self):
+        telenor = self.renders["dump-telenor"]       # C6: numeric direction codes with no confirmed meaning
+        self.assertEqual({r["direction"] for r in telenor.rows}, {"unknown"})
+        self.assertEqual({r["true_direction"] for r in telenor.rows}, {"incoming", "outgoing"})
+        zong = self.renders["dump-zong"]             # C8: one activity code
+        self.assertEqual({r["event_type"] for r in zong.rows}, {"other"})
+        ufone = self.renders["dump-ufone"]           # C7: no call-type column at all
+        self.assertEqual({r["event_type"] for r in ufone.rows}, {"other"})
+        items = {(a["layout_id"], a["item"]) for a in self.key["layout_assumptions"]}
+        self.assertTrue(any(layout == "geofence-c6-telenor" and item.startswith("enum:INBOUND_OUTBOUND_IND=") for layout, item in items))
+
+    def test_the_population_includes_people_who_are_not_subjects(self):
+        subjects = {s["msisdn"] for s in self.key["subjects"]}
+        for answer in self.key["oracle"]["A6"]:
+            numbers = {p["number"] for p in answer["population"]}
+            self.assertTrue(numbers - subjects, answer["dump"])
+
+    def test_the_c5_dump_has_no_cells_and_says_so(self):
+        c5 = next(a for a in self.key["oracle"]["A6"] if a["dump"] == "dump-mobilink")
+        self.assertIsNone(c5["at_two_or_more_cells"])
+        self.assertIn("no cell column", c5["note"])
+        self.assertTrue(all(not p["cells"] for p in c5["population"]))
+
+    def test_rows_stay_inside_the_cells_and_the_window(self):
+        for dump in self.key["dumps"]:
+            rows = self.renders[dump["name"]].rows
+            self.assertTrue(all(dump["window_start"] <= r["start_local"] <= dump["window_end"] for r in rows), dump["name"])
+            wanted = [k for k in dump["cell_keys"] if k]
+            if wanted:
+                self.assertTrue(all(r["cell_key"] in wanted for r in rows), dump["name"])
+
+    def test_a_dump_with_a_row_missing_is_noticed(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = generate.write_case(self.params, d)
+            with open(os.path.join(root, "key", "key.json"), encoding="utf-8") as handle:
+                dump = json.load(handle)["dumps"][1]
+            rendered = self.renders[dump["name"]]
+            rendered = render.RenderedFile(rendered.layout_id, rendered.subject, rendered.table[:-1], rendered.header_index, rendered.numeric_columns,
+                                           rendered.container, rendered.sheet_name, rendered.encoding, rendered.delimiter, rendered.rows[:-1])
+            path = rendered.write(os.path.join(root, "files"), os.path.basename(dump["file"]).rsplit(".", 1)[0])
+            with open(os.path.join(root, "manifest.json"), encoding="utf-8") as handle:
+                manifest = json.load(handle)
+            with open(path, "rb") as handle:
+                manifest["files"][dump["file"]]["sha256"] = hashlib.sha256(handle.read()).hexdigest()
+            with open(os.path.join(root, "manifest.json"), "w", encoding="utf-8") as handle:
+                json.dump(manifest, handle)
+            self.assertTrue(any("rows read" in p or "population" in p for p in audit.audit(root)), audit.audit(root))
+
+    def test_the_population_oracle_by_hand(self):
+        rows = [{"a_norm": "n1", "cell_key": "A"}, {"a_norm": "n1", "cell_key": "B"}, {"a_norm": "n1", "cell_key": "A"},
+                {"a_norm": "n2", "cell_key": "A"}, {"a_norm": "n3", "cell_key": "Z"}]
+        answer = oracle.a6_population(rows, ["A", "B"])
+        self.assertEqual(answer["at_two_or_more_cells"], ["n1"])
+        self.assertEqual({p["number"]: p["cells"] for p in answer["population"]}, {"n1": {"A": 2, "B": 1}, "n2": {"A": 1}, "n3": {}})
+        blind = oracle.a6_population(rows, [None])
+        self.assertIsNone(blind["at_two_or_more_cells"])
+
+
 class ColocationCaseTests(unittest.TestCase):
     PARAMS = dict(people=60, subjects=6, associates=12, period_days=30, p2_pairs=2, p3_pairs=2)
 

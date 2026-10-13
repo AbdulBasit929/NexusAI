@@ -42,6 +42,29 @@ def sha256_file(path):
     return digest.hexdigest()
 
 
+def dump_plan(world, operator):
+    """The cells and the window of an operator's tower dump: the planted meeting cell first, then the subjects' work and home cells;
+    the window starts on the day of the first planted co-location window of that operator, else on the third day of the case."""
+    import datetime
+    sites = []
+    plants = [p for p in world.p3 if p["operator"] == operator]
+    for plant in plants:
+        sites.append(plant["meeting_site"])
+    for p in world.persons:
+        if p.role == "subject" and p.operator == operator:
+            sites += [p.work_cell, p.home_cell]
+    sites = list(dict.fromkeys(sites))[:3]
+    if not sites:
+        return None
+    first = None
+    for ev in world.events:
+        if any(ev.plant and ev.plant.startswith(plant["id"] + ":w") for plant in plants):
+            first = ev.start
+            break
+    day = (first or datetime.datetime.combine(datetime.date.fromisoformat(world.params.start_date) + datetime.timedelta(days=2), datetime.time(0, 0))).replace(hour=0, minute=0, second=0)
+    return sorted(sites), day, day + datetime.timedelta(days=world.params.dump_days)
+
+
 def build_case(params, registry=None):
     """Returns (world, renders {pid: RenderedFile}, key dict)."""
     registry = registry or load_registry()
@@ -114,16 +137,36 @@ def build_case(params, registry=None):
             answer = oracle.a5_colocation(renders[x.pid].rows, renders[y.pid].rows, params.window_minutes)
             answer.update({"x": x.msisdn, "y": y.msisdn, "plant": p3_pair.get(frozenset((x.msisdn, y.msisdn)))})
             a5.append(answer)
+    # --- tower dumps and A6 ----------------------------------------------------------------------------------------------------------
+    dumps, a6 = [], []
+    if params.dumps:
+        for op, op_label in enumerate(w.OPERATOR_LABELS):
+            plan = dump_plan(world, op)
+            if plan is None:
+                continue
+            sites, win_start, win_end = plan
+            entry = registry.get(w.OPERATOR_DUMP_LAYOUTS[op])
+            rendered = render.render_views(world, entry, render.dump_views(world, op, set(sites), win_start, win_end), label="dump-%s" % op_label)
+            name = "dump-%s" % op_label
+            renders[name] = rendered
+            cell_keys = [render.site_cell_key(entry, op, s) for s in sites]
+            dumps.append({"name": name, "operator": op_label, "layout_id": entry["layout_id"], "file": None, "sites": sites, "cell_keys": cell_keys,
+                          "window_start": win_start.isoformat(sep=" "), "window_end": win_end.isoformat(sep=" "), "rows": len(rendered.rows),
+                          "events_not_representable": len(rendered.skipped)})
+            answer = oracle.a6_population(rendered.rows, cell_keys)
+            answer["dump"] = name
+            a6.append(answer)
     key = {
         "case_id": None, "seed": params.seed, "generator_version": w.GENERATOR_VERSION, "spec_version": w.SPEC_VERSION,
         "clock": {"local_zone": w.LOCAL_ZONE, "utc_offset_hours": w.LOCAL_UTC_OFFSET_HOURS, "key_time": "local wall clock as the files show it"},
         "params": json.loads(json.dumps(params.__dict__)),
         "subjects": [{"person": s.pid, "msisdn": s.msisdn, "operator": w.OPERATOR_LABELS[s.operator], "layout_id": renders[s.pid].layout_id,
                       "file": None, "rows": len(renders[s.pid].rows), "events_not_representable": len(renders[s.pid].skipped)} for s in subjects],
+        "dumps": dumps,
         "structure": world.structure,
         "plants": plants,
         "oracle": {"parameters": {"hub_threshold": threshold, "contact_kinds": list(oracle.PERSON_KINDS), "window_minutes": params.window_minutes},
-                   "A1": {s.msisdn: oracle.a1_profile(visible)[s.msisdn] for s in subjects}, "A2": a2, "A5": a5},
+                   "A1": {s.msisdn: oracle.a1_profile(visible)[s.msisdn] for s in subjects}, "A2": a2, "A5": a5, "A6": a6},
         "layout_assumptions": sorted({json.dumps(a, sort_keys=True) for r in renders.values() for a in r.assumptions}),
         "expected_quarantine": [], "expected_merge": [],
     }
@@ -141,6 +184,10 @@ def write_case(params, out_dir, registry=None):
     for entry in key["subjects"]:
         rendered = renders[entry["person"]]
         path = rendered.write(os.path.join(root, "files"), "export-%s-%s" % (entry["person"], rendered.layout_id))
+        entry["file"] = "files/" + os.path.basename(path)
+    for entry in key["dumps"]:
+        rendered = renders[entry["name"]]
+        path = rendered.write(os.path.join(root, "files"), "%s-%s" % (entry["name"], rendered.layout_id))
         entry["file"] = "files/" + os.path.basename(path)
     with open(os.path.join(root, "key", "world.json"), "w", encoding="utf-8", newline="\n") as handle:
         handle.write(w.world_to_json(world) + "\n")

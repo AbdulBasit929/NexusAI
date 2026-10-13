@@ -146,6 +146,51 @@ def audit(case_dir, registry=None):
         if found != expected:
             problems.append("A2 for %s and %s: the key and the files disagree" % (answer["x"][-5:], answer["y"][-5:]))
 
+    # --- tower dumps (A6): read back, checked against their window and cells, population recomputed --------------------------------------
+    answers = {a["dump"]: a for a in key["oracle"].get("A6", [])}
+    for dump in key.get("dumps", []):
+        path = os.path.join(case_dir, *dump["file"].split("/"))
+        rows = read_export(path)
+        report = registry.find_header(rows)
+        if report.matched_entry_id != dump["layout_id"]:
+            problems.append("%s: the registry selects %s, the key says %s" % (dump["file"], report.matched_entry_id, dump["layout_id"]))
+            continue
+        entry = registry.get(dump["layout_id"])
+        results = list(interpret_rows(entry, rows[report.header_row], rows[report.header_row + 1:], policy=POLICY))
+        if any(r.status != "accepted" for r in results):
+            problems.append("%s: rows are not accepted" % dump["file"])
+        if len(results) != dump["rows"]:
+            problems.append("%s: %d rows read, the key says %d" % (dump["file"], len(results), dump["rows"]))
+        low, high = dump["window_start"], dump["window_end"]
+        wanted = [k for k in dump["cell_keys"] if k]
+        population = {}
+        for r in results:
+            rec = r.record or {}
+            if not (low <= rec.get("start_local", "") <= high):
+                problems.append("%s: a row lies outside the dump's window" % dump["file"])
+                break
+        for r in results:
+            rec = r.record or {}
+            if wanted and rec.get("cell_key") not in wanted:
+                problems.append("%s: a row is at a cell the dump did not ask for" % dump["file"])
+                break
+        for r in results:
+            rec = r.record or {}
+            entry_ = population.setdefault(rec.get("a_norm"), {"events": 0, "cells": {}})
+            entry_["events"] += 1
+            if rec.get("cell_key") and (not wanted or rec["cell_key"] in wanted):
+                entry_["cells"][rec["cell_key"]] = entry_["cells"].get(rec["cell_key"], 0) + 1
+        answer = answers.get(dump["name"])
+        if answer is None:
+            problems.append("%s: no population answer in the key" % dump["name"])
+            continue
+        expected = {p["number"]: {"events": p["events"], "cells": p["cells"]} for p in answer["population"]}
+        if population != expected:
+            problems.append("%s: the population in the files differs from the key" % dump["name"])
+        twice = sorted(n for n, p in population.items() if len(p["cells"]) >= 2) if wanted else None
+        if twice != answer["at_two_or_more_cells"]:
+            problems.append("%s: the numbers seen at two or more cells differ from the key" % dump["name"])
+
     # --- co-location (A5): recomputed by brute force over the events read from the files -------------------------------------------------
     window = key["oracle"]["parameters"].get("window_minutes", 15)
     computed = {}
