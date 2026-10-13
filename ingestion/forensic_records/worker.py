@@ -813,6 +813,7 @@ def process_job(
             route = job.metadata.get("evidence_processing_route", "").strip().lower()
             if should_process_native_document(route):
                 document_profile, document_stats = process_document_job(conn, job, path)
+                run_typed_ingest_shadow_for_text(conn, job, path, document_profile)
                 conn.commit()
                 emit_progress(progress_cb, job, "completed", document_stats, document_profile, started_at)
                 LOG.info(
@@ -4104,6 +4105,30 @@ def run_typed_ingest_shadow(
         )
     except Exception:  # noqa: BLE001 - the shadow write must never fail the job
         LOG.exception("typed ingest shadow could not run; the job is not affected", extra={"job_id": job.job_id})
+
+
+TYPED_INGEST_TEXT_SUFFIXES = frozenset({".txt", ".csv", ".tsv"})
+
+
+def run_typed_ingest_shadow_for_text(
+    conn: psycopg.Connection[Any],
+    job: IngestJob,
+    path: Path,
+    profile: dict[str, Any],
+) -> None:
+    """Ingest v2 for a plain-text export that the API sent to the document pipeline.
+
+    A provider's tab-separated .txt internet-record export is classified as text, so the structured path, and with it the typed writer, never sees it.
+    The document pipeline has already stored its passages, exactly as before. Only files named .txt, .csv or .tsv are offered (by the original file name:
+    the stored object has none), and the typed writer writes nothing unless the first rows match a registered layout, so ordinary notes are left alone.
+    Everything else is as in run_typed_ingest_shadow: off unless FORENSIC_INGEST_V2 asks for it, a savepoint, and no failure reaches the job."""
+    if Path(job.source_file or "").suffix.lower() not in TYPED_INGEST_TEXT_SUFFIXES:
+        return
+    try:
+        with conn.cursor() as cur:
+            run_typed_ingest_shadow(conn, cur, job, path, profile)
+    except Exception:  # noqa: BLE001 - the shadow write must never fail the job
+        LOG.exception("typed ingest shadow for a text export could not run; the job is not affected", extra={"job_id": job.job_id})
 
 
 def validate_sample_profile(path: Path) -> dict[str, Any]:

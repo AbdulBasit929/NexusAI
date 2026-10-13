@@ -16,6 +16,7 @@ no second reject table next to version 1's; a quarantine table comes with the sw
 """
 from __future__ import annotations
 
+import csv
 import hashlib
 import itertools
 import json
@@ -203,7 +204,7 @@ def lineage_row(record: Mapping[str, Any], flags: list[str], lineage: Lineage, c
 @dataclass
 class SheetSummary:
     sheet: str
-    status: str = "unrecognised"            # loaded | unrecognised | ambiguous | no_header | skipped
+    status: str = "unrecognised"            # loaded | unrecognised | ambiguous | no_header | unreadable | skipped
     reason: str | None = None
     layout_id: str | None = None
     layout_version: int | None = None
@@ -240,7 +241,11 @@ def ingest_sheet(name: str, rows: Iterator[Sequence[Any]], lineage: Lineage, pol
                  include_draft: bool = True, max_rows: int = DEFAULT_MAX_ROWS, batch_rows: int = BATCH_ROWS) -> SheetSummary:
     """One sheet: find its layout, interpret every row, write the accepted rows. Raises nothing for a file the registry does not recognise."""
     summary = SheetSummary(sheet=name)
-    head = list(itertools.islice(rows, 12))
+    try:
+        head = list(itertools.islice(rows, 12))
+    except (csv.Error, UnicodeError) as exc:   # not a table at all (binary content under a text name): reported, nothing written
+        summary.status, summary.reason = "unreadable", type(exc).__name__
+        return summary
     if not head:
         summary.status, summary.reason = "no_header", "empty_sheet"
         return summary

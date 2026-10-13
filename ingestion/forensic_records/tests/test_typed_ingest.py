@@ -12,8 +12,11 @@ from __future__ import annotations
 import contextlib
 import csv
 import hashlib
+import dataclasses
+import inspect
 import json
 import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -22,6 +25,14 @@ from unittest import mock
 from ingestion.forensic_records import typed_ingest as ti
 from ingestion.forensic_records import worker
 from ingestion.forensic_records.layout_registry import Policy, load_registry
+
+REPO = Path(__file__).resolve().parents[3]
+try:
+    sys.path.insert(0, str(REPO / "tools" / "real_data"))
+    import make_golden  # noqa: E402
+    GOLDEN_AVAILABLE = True
+except Exception:  # pragma: no cover - the worker image carries no tools folder
+    GOLDEN_AVAILABLE = False
 
 HEADER = ["MSISDN", "call_org_num", "CALL_DIALED_NUM", "IMSI", "IMEI", "CALL_START_DT_TM", "CALL_END_DT_TM", "INBOUND_OUTBOUND_IND", "Call_Network_Volume",
           "Lac_Id", "Site_Id", "Cell_SITE_ID", "lat", "longitude", "CALL_TYPE", "location", "Description", "MACAddress"]
@@ -74,6 +85,10 @@ class FakeConn:
 
     def __init__(self):
         self.log = []
+
+    @contextlib.contextmanager
+    def cursor(self):
+        yield mock.Mock()
 
     @contextlib.contextmanager
     def transaction(self):
@@ -312,6 +327,60 @@ class ShadowTests(Workdir):
                          "all 13 layouts are drafts today, so excluding drafts recognises nothing")
 
 
+@unittest.skipUnless(GOLDEN_AVAILABLE, "tools/real_data/make_golden.py is not available (the worker image carries no tools folder)")
+class TextExportTests(Workdir):
+    """What a text export that took the document route looks like to the typed writer."""
+
+    def test_a_utf16_tab_separated_internet_record_export_is_read_and_written(self):
+        golden = make_golden.generate(REGISTRY.get("ipdr-i4-zong-txt"), seed=3, defects=False)
+        path = golden.write(self.tmp.name, stem="zong")
+        self.assertTrue(path.endswith(".txt"))
+        with open(path, "rb") as handle:
+            self.assertEqual(handle.read(2), bytes([0xFF, 0xFE]), "UTF-16 with a byte order mark, as the real export is")
+        sink = FakeSink(columns=COLUMNS + ("msisdn", "public_ip", "server_ip", "bytes_up", "bytes_down"))
+        out = ti.ingest_file(path, LINEAGE, KARACHI, sink, registry=REGISTRY)
+        sheet = out["sheets"][0]
+        self.assertEqual((out["container"], sheet["layout_id"], sheet["table"], sheet["loaded"], sheet["quarantined"], sheet["reconciles"]),
+                         ("text", "ipdr-i4-zong-txt", "data_session", len(golden.rows), {}, True))
+        self.assertEqual(len(sink.rows), len(golden.rows))
+        self.assertEqual({row["layout_id"] for row in sink.rows}, {"ipdr-i4-zong-txt"})
+
+    def test_the_same_export_with_its_defects_quarantines_them_with_reasons(self):
+        golden = make_golden.generate(REGISTRY.get("ipdr-i4-zong-txt"), seed=3, defects=True)
+        out = ti.ingest_file(golden.write(self.tmp.name, stem="zong-defects"), LINEAGE, KARACHI, FakeSink(), registry=REGISTRY)
+        sheet = out["sheets"][0]
+        self.assertGreater(sum(sheet["quarantined"].values()) + sum(sheet["skipped"].values()), 0)
+        self.assertTrue(sheet["reconciles"])
+
+    def test_ordinary_notes_in_a_text_file_are_left_alone(self):
+        path = os.path.join(self.tmp.name, "notes.txt")
+        newline = chr(10)
+        paragraph = ["We met on Tuesday and discussed the budget, the schedule, and the open questions.", "Nothing tabular here: sentences, commas, and words only."]
+        Path(path).write_text(newline.join(["Meeting notes, 12 March", ""] + paragraph * 30), encoding="utf-8")
+        sink = FakeSink()
+        out = ti.ingest_file(path, LINEAGE, KARACHI, sink, registry=REGISTRY)
+        self.assertEqual((out["status"], out["sheets"][0]["status"], sink.rows, sink.calls), ("unrecognised", "unrecognised", [], []))
+
+    def test_binary_content_under_a_text_name_is_reported_as_unreadable_and_not_written(self):
+        path = os.path.join(self.tmp.name, "blob.txt")
+        Path(path).write_bytes(bytes(range(256)) * 40)
+        sink = FakeSink()
+        out = ti.ingest_file(path, LINEAGE, KARACHI, sink, registry=REGISTRY)
+        self.assertEqual((out["status"], out["sheets"][0]["status"], out["sheets"][0]["reason"]), ("unrecognised", "unreadable", "Error"))
+        self.assertEqual((sink.rows, sink.calls), ([], []))
+
+    def test_a_reader_error_after_the_header_rolls_the_whole_file_back_rather_than_leave_half_of_it(self):
+        golden = make_golden.generate(REGISTRY.get("ipdr-i4-zong-txt"), seed=3, defects=False)
+        path = golden.write(self.tmp.name, stem="zong-damaged")
+        with open(path, "ab") as handle:
+            handle.write(("\x00\x00\x00" + chr(10)).encode("utf-16-le"))   # damage at the end of an otherwise good file
+        conn = FakeConn()
+        with self.assertLogs("forensic.typed_ingest", "ERROR"):
+            summary = ti.run_shadow(conn, path, LINEAGE, {"source_timezone": "Asia/Karachi", "timezone_state": "source_declared"}, registry=REGISTRY,
+                                    sink=FakeSink(columns=COLUMNS + ("msisdn",)), mode="shadow", )
+        self.assertEqual((summary["status"], conn.log), ("failed", ["begin", "rollback"]))
+
+
 class CopyTextTests(unittest.TestCase):
     def test_null_is_a_bare_marker_and_a_text_equal_to_it_stays_text(self):
         self.assertEqual(ti.copy_line([None, "\\N", "a,b", 'say "hi"', "line\nbreak", ""]), '\\N,"\\N","a,b","say ""hi""","line\nbreak",""\n')
@@ -400,6 +469,37 @@ class WorkerHookTests(Workdir):
             with self.assertLogs(worker.LOG, "ERROR"):
                 worker.run_typed_ingest_shadow(conn, mock.Mock(), self.job(), Path("x"), {})
         self.assertEqual(conn.log[-2:], ["begin", "rollback"], "a failed audit rolls back its own savepoint only")
+
+    def test_the_document_branch_offers_text_exports_after_the_document_pipeline_and_before_the_commit(self):
+        source = inspect.getsource(worker.process_job)
+        document = source.index("process_document_job(conn, job, path)")
+        offered = source.index("run_typed_ingest_shadow_for_text(conn, job, path, document_profile)")
+        self.assertLess(document, offered)
+        self.assertLess(offered, source.index("conn.commit()", document))
+        self.assertLess(offered, source.index('modality in {"image", "audio", "video"}'), "inside the document branch, not after it")
+
+    def test_only_text_exports_are_offered_judged_by_the_original_file_name(self):
+        names = (("ipdr.txt", True), ("IPDR.TXT", True), ("calls.csv", True), ("calls.tsv", True), ("notes.pdf", False), ("memo.docx", False),
+                 ("readme.md", False), ("mail.eml", False), ("noextension", False), ("", False), ("archive.txt.zip", False))
+        for name, offered in names:
+            job = dataclasses.replace(self.job(), source_file=name)
+            with mock.patch.object(worker, "run_typed_ingest_shadow") as run:
+                worker.run_typed_ingest_shadow_for_text(FakeConn(), job, Path("x"), {"format": "txt"})
+            self.assertEqual(run.called, offered, name)
+
+    def test_a_text_export_is_offered_with_the_jobs_own_cursor_path_and_profile(self):
+        job = dataclasses.replace(self.job(), source_file="ipdr.txt")
+        profile = {"format": "txt"}
+        with mock.patch.object(worker, "run_typed_ingest_shadow") as run:
+            worker.run_typed_ingest_shadow_for_text(FakeConn(), job, Path("spool/object"), profile)
+        conn, cur, offered_job, path, offered_profile = run.call_args.args
+        self.assertEqual((offered_job, path, offered_profile), (job, Path("spool/object"), profile))
+
+    def test_a_failure_in_the_text_helper_never_reaches_the_job(self):
+        job = dataclasses.replace(self.job(), source_file="ipdr.txt")
+        with mock.patch.object(worker, "run_typed_ingest_shadow", side_effect=RuntimeError("boom")):
+            with self.assertLogs(worker.LOG, "ERROR"):
+                self.assertIsNone(worker.run_typed_ingest_shadow_for_text(FakeConn(), job, Path("x"), {}))
 
     def test_a_none_summary_writes_no_audit_row(self):
         with mock.patch.dict(os.environ, {"FORENSIC_INGEST_V2": "shadow"}), mock.patch.object(ti, "run_shadow", return_value=None), \
