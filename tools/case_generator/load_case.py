@@ -9,6 +9,7 @@ the case into forensic.comm_event, forensic.data_session and forensic.app_usage.
 
   reconciliation  per export: rows read = loaded + quarantined + skipped, repeats flagged, and the quarantine and repeat counts equal the key's
   A1 contact profile of every subject      A2 common contacts of every pair      A5 co-location windows and pairs of every same-operator pair
+  A5 chance baseline (expected pairs and lift)                                  A7 possible meetings (windows preceded by a direct contact)
   A6 tower-dump population                 A13 who held each probed public address and port
 
 This loader is TEST-ONLY. The product's worker does not write the typed tables yet (roadmap Phase 1, Ingest v2); this proves the schema
@@ -259,6 +260,42 @@ def sql_a5_windows(key, x, y, minutes):
             "count(*)::int AS pairs FROM g GROUP BY cell_key, grp ORDER BY 2, 1" % (base, minutes, LOCAL, LOCAL))
 
 
+def sql_a5_expected(key, x, y, minutes):
+    """The chance baseline of A5 in SQL: over every pair of events (one of each subject, cell known, no more than W minutes apart, same cell or not),
+    the chance that both are at one cell if each chooses as they usually do at that time of week. A subject's habit is its share of events per
+    cell in the (weekday or weekend, hour) of the earlier event of the pair, and its share over the whole case when it has no event in that hour."""
+    return ("WITH ev AS (SELECT a_norm, cell_key, (start_utc AT TIME ZONE 'Asia/Karachi') AS lt FROM forensic.comm_event "
+            "WHERE %s AND dataset_kind = 'target_cdr' AND a_norm IN (%s, %s) AND cell_key IS NOT NULL AND %s), "
+            "ek AS (SELECT a_norm, cell_key, extract(isodow FROM lt) >= 6 AS wk, extract(hour FROM lt)::int AS hr FROM ev), "
+            "bucket AS (SELECT a_norm, wk, hr, cell_key, count(*) AS n FROM ek GROUP BY 1, 2, 3, 4), "
+            "overall AS (SELECT a_norm, cell_key, count(*) AS n FROM ek GROUP BY 1, 2), "
+            "need AS (SELECT extract(isodow FROM early AT TIME ZONE 'Asia/Karachi') >= 6 AS wk, extract(hour FROM early AT TIME ZONE 'Asia/Karachi')::int AS hr, "
+            "count(*) AS n FROM (%s) q GROUP BY 1, 2), "
+            "dist AS (SELECT need.wk, need.hr, s.a_norm, s.cell_key, s.n::float8 / sum(s.n) OVER (PARTITION BY need.wk, need.hr, s.a_norm) AS p "
+            "FROM need CROSS JOIN LATERAL (SELECT b.a_norm, b.cell_key, b.n FROM bucket b WHERE b.wk = need.wk AND b.hr = need.hr "
+            "UNION ALL SELECT o.a_norm, o.cell_key, o.n FROM overall o WHERE NOT EXISTS "
+            "(SELECT 1 FROM bucket b2 WHERE b2.a_norm = o.a_norm AND b2.wk = need.wk AND b2.hr = need.hr)) s), "
+            "same AS (SELECT dx.wk, dx.hr, sum(dx.p * dy.p) AS prob FROM dist dx JOIN dist dy ON dy.wk = dx.wk AND dy.hr = dx.hr AND dy.cell_key = dx.cell_key "
+            "WHERE dx.a_norm = %s AND dy.a_norm = %s GROUP BY 1, 2) "
+            "SELECT coalesce(sum(need.n * same.prob), 0)::float8 AS expected FROM need LEFT JOIN same USING (wk, hr)"
+            % (scope(key), sql_text(x), sql_text(y), NOT_DUPLICATE, sql_a5_pairs(key, x, y, minutes), sql_text(x), sql_text(y)))
+
+
+def sql_a7(key, x, y, minutes, gap_minutes):
+    """Possible meetings in SQL: the co-location windows of the pair, kept when a direct call or SMS between the two (either direction) fell within
+    `gap_minutes` before the window starts (at the start counts, after does not), with the gap to the latest such contact and the documented score."""
+    before = "c.ct BETWEEN w.start_local::timestamp - interval '%d minutes' AND w.start_local::timestamp" % gap_minutes
+    return ("WITH w AS (%s), "
+            "c AS (SELECT DISTINCT (start_utc AT TIME ZONE 'Asia/Karachi') AS ct FROM forensic.comm_event WHERE %s AND dataset_kind = 'target_cdr' AND %s "
+            "AND ((a_norm = %s AND b_norm = %s) OR (a_norm = %s AND b_norm = %s))), "
+            "j AS (SELECT w.cell_key, w.start_local, w.end_local, w.pairs, "
+            "(SELECT json_agg(to_char(c.ct, %s) ORDER BY c.ct) FROM c WHERE %s) AS contacts_before, "
+            "extract(epoch FROM w.start_local::timestamp - (SELECT max(c.ct) FROM c WHERE %s)) / 60.0 AS gap_minutes FROM w) "
+            "SELECT cell_key, start_local, end_local, pairs, contacts_before, gap_minutes::float8 AS gap_minutes, "
+            "(0.5 * least(pairs, 3) / 3.0 + 0.5 * (1 - gap_minutes / %d))::float8 AS score FROM j WHERE gap_minutes IS NOT NULL ORDER BY start_local, cell_key"
+            % (sql_a5_windows(key, x, y, minutes), scope(key), NOT_DUPLICATE, sql_text(x), sql_text(y), sql_text(y), sql_text(x), LOCAL, before, before, gap_minutes))
+
+
 def sql_a6(key, evidence_id, wanted):
     cells = ", ".join(sql_text(c) for c in wanted) if wanted else "NULL"
     return ("WITH seen AS (SELECT a_norm, cell_key FROM forensic.comm_event WHERE %s AND evidence_id = %s AND %s) "
@@ -332,6 +369,31 @@ def check_a5(db, key, report):
                    "%d pairs in %d windows" % (observed, len(want)) if ok else "SQL %d pairs/%d within/%s, key %d/%d/%s" % (observed, len(pairs), windows, answer["pairs_observed"], answer["pairs_within_window"], want))
 
 
+def check_a5_baseline(db, key, report):
+    minutes = key["oracle"]["parameters"]["window_minutes"]
+    for answer in key["oracle"]["A5"]:
+        expected = float(db.sql(sql_a5_expected(key, answer["x"], answer["y"], minutes)))
+        lift = round(answer["pairs_observed"] / expected, 4) if expected >= 0.5 else None
+        ok = abs(expected - answer["pairs_expected"]) <= 1e-4 and ((lift is None) == (answer["lift"]["value"] is None)) \
+            and (lift is None or abs(lift - answer["lift"]["value"]) <= 2e-4)
+        report.add("A5 chance baseline %s / %s%s" % (answer["x"][-4:], answer["y"][-4:], " (" + answer["plant"] + ")" if answer.get("plant") else ""), ok,
+                   ("expected %.2f pairs, lift %s" % (expected, "undefined" if lift is None else lift)) if ok
+                   else "SQL expected %.4f lift %s, key expected %s lift %s" % (expected, lift, answer["pairs_expected"], answer["lift"]["value"]))
+
+
+def check_a7(db, key, report):
+    minutes = key["oracle"]["parameters"]["window_minutes"]
+    gap = key["oracle"]["parameters"]["contact_gap_minutes"]
+    for answer in key["oracle"]["A7"]:
+        got = db.rows(sql_a7(key, answer["x"], answer["y"], minutes, gap))
+        want = answer["candidates"]
+        same = len(got) == len(want) and all(
+            (g["cell_key"], g["start_local"], g["end_local"], g["pairs"], g["contacts_before"]) == (c["cell_key"], c["start_local"], c["end_local"], c["pairs"], c["contacts_before"])
+            and abs(g["gap_minutes"] - c["gap_minutes"]) <= 1e-2 and abs(g["score"] - c["score"]) <= 1e-4 for g, c in zip(got, want))
+        report.add("A7 possible meetings %s / %s%s" % (answer["x"][-4:], answer["y"][-4:], " (" + answer["plant"] + ")" if answer.get("plant") else ""), same,
+                   "%d candidates" % len(want) if same else "SQL %s, key %s" % ([(g["start_local"], g["pairs"], g["gap_minutes"]) for g in got], [(c["start_local"], c["pairs"], c["gap_minutes"]) for c in want]))
+
+
 def check_a6(db, key, stats, report):
     for answer in key["oracle"]["A6"]:
         dump = next(d for d in key["dumps"] if d["name"] == answer["dump"])
@@ -358,6 +420,8 @@ def run_checks(db, key, stats):
     check_a1(db, key, report)
     check_a2(db, key, report)
     check_a5(db, key, report)
+    check_a5_baseline(db, key, report)
+    check_a7(db, key, report)
     check_a6(db, key, stats, report)
     check_a13(db, key, report)
     return report

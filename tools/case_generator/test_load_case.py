@@ -26,6 +26,23 @@ def docker_ready():
         return False
 
 
+def insert_hand(db, collection, evidence, events):
+    """Hand-made call events in a collection of their own. events: (who, 'YYYY-MM-DD', 'HH:MM' in UTC, cell key or None, counterparty or None)."""
+    db.script(
+        "INSERT INTO forensic.evidence_items (evidence_id, tenant_id, collection_id, case_id, user_id, original_filename, source_file, content_type, extension, "
+        "size_bytes, sha256, modality, detected_type, classifier_confidence, processing_route, processing_status, raw_storage_ref, metadata) VALUES "
+        "('%s', '%s', '%s', 'SYNTHETIC-HAND', 'case-loader', 'hand.csv', 'hand.csv', 'text/csv', 'csv', 1, repeat('d', 64), 'structured_records', 'cdr', 1, "
+        "'forensic_records_worker', 'completed', 'immutable://case/sha256/' || repeat('d', 64), jsonb_build_object('request_id', 'hand'));\n" % (evidence, load_case.TENANT, collection))
+    rows = []
+    for n, (who, day, stamp, cell, other) in enumerate(events, start=1):
+        rows.append("('%s', '%s', '%s', 'hand.csv', '5a000000-0000-4000-8000-0000000000a1', %d, '%s-h%d', '%s-c%d', 'call-c4-telenor-style', 1, 'voice', '%s', %s, %s, %s, "
+                    "timestamptz '%s %s:00+00', 'Asia/Karachi', 'declared', '{}')"
+                    % (load_case.TENANT, collection, evidence, n, collection, n, collection, n, who, load_case.sql_text(other), "'person_like'" if other else "NULL",
+                       load_case.sql_text(cell), day, stamp))
+    db.script("INSERT INTO forensic.comm_event (tenant_id, collection_id, evidence_id, file_id, batch_id, source_row, row_hash, content_hash, layout_id, "
+              "layout_version, event_type, a_norm, b_norm, b_kind, cell_key, start_utc, source_tz, time_basis, raw_payload) VALUES\n" + ",\n".join(rows) + ";\n")
+
+
 @unittest.skipUnless(docker_ready(), "Docker or the image %s is not available on this machine" % load_case.IMAGE)
 class LoadCaseTests(unittest.TestCase):
     @classmethod
@@ -59,7 +76,7 @@ class LoadCaseTests(unittest.TestCase):
 
     def test_the_checks_cover_every_answer_family(self):
         names = " ".join(name for name, _, _ in self.report.items)
-        for family in ("reconcile", "A1 ", "A2 ", "A5 ", "A6 ", "A13 ", "quarantined rows", "repeated rows"):
+        for family in ("reconcile", "A1 ", "A2 ", "A5 co-location", "A5 chance baseline", "A6 ", "A7 ", "A13 ", "quarantined rows", "repeated rows"):
             self.assertIn(family, names)
 
     def test_the_typed_tables_hold_exactly_the_accepted_rows(self):
@@ -124,6 +141,7 @@ class LoadCaseTests(unittest.TestCase):
                             "timestamptz '2026-03-02 %s:00+00', 'Asia/Karachi', 'declared', '{}')" % (load_case.TENANT, collection, evidence, n, n, n, who, stamp))
         self.db.script("INSERT INTO forensic.comm_event (tenant_id, collection_id, evidence_id, file_id, batch_id, source_row, row_hash, content_hash, layout_id, "
                        "layout_version, event_type, a_norm, cell_key, start_utc, source_tz, time_basis, raw_payload) VALUES\n" + ",\n".join(rows) + ";\n")
+        self.addCleanup(self.db.sql, "DELETE FROM forensic.comm_event WHERE collection_id = 'handcheck'")
         # the same cell throughout; pairs within 15 minutes: (05:00,05:05) (05:05,05:20) (05:20,05:25) and (05:50,05:57); 25 minutes separate the groups
         fake = {"case_id": collection}
         windows = [(w["start_local"], w["end_local"], w["pairs"]) for w in self.db.rows(load_case.sql_a5_windows(fake, "X", "Y", 15))]
@@ -131,6 +149,48 @@ class LoadCaseTests(unittest.TestCase):
         pairs = self.db.rows(load_case.sql_a5_pairs(fake, "X", "Y", 15))
         self.assertEqual(len(pairs), 4)
         self.assertEqual(len(self.db.rows(load_case.sql_a5_pairs(fake, "X", "Y", 14))), 3, "the 15-minute pair (05:05, 05:20) drops out at 14 minutes")
+
+    def test_the_chance_baseline_sql_by_hand(self):
+        """Nine pairs in one hour with different habits, and one pair in an hour where one subject has no event (its habit over the whole case is used)."""
+        day = "2026-03-02"
+        events = [("X", day, "05:00", "K1", None), ("X", day, "05:02", "K1", None), ("X", day, "05:04", "K2", None),
+                  ("Y", day, "05:01", "K1", None), ("Y", day, "05:03", "K2", None), ("Y", day, "05:05", "K2", None), ("Y", day, "05:30", "K1", None),
+                  ("X", day, "07:55", "K3", None), ("Y", day, "08:03", "K3", None)]
+        insert_hand(self.db, "handbase", "5a000000-0000-4000-8000-000000000002", events)
+        self.addCleanup(self.db.sql, "DELETE FROM forensic.comm_event WHERE collection_id = 'handbase'")     # the other tests count the whole table
+        fake = {"case_id": "handbase"}
+        # hour 10 (local): X is K1 2/3, K2 1/3 and Y is K1 1/2, K2 1/2, so a pair is at one cell with probability 1/2, and nine pairs are within 15 minutes: 4.5.
+        # hour 12: Y has no event, so its share over the whole case is used: K1 .4, K2 .4, K3 .2; X is K3 throughout: .2. In all 4.7 pairs expected.
+        expected = float(self.db.sql(load_case.sql_a5_expected(fake, "X", "Y", 15)))
+        self.assertAlmostEqual(expected, 4.7, places=6)
+        observed = sum(1 for p in self.db.rows(load_case.sql_a5_pairs(fake, "X", "Y", 15)) if p["cell_a"] == p["cell_b"])
+        self.assertEqual(observed, 5)
+        self.assertAlmostEqual(observed / expected, 1.0638, places=4)
+        self.assertAlmostEqual(float(self.db.sql(load_case.sql_a5_expected(fake, "Y", "X", 15))), 4.7, places=6, msg="the baseline does not depend on the order of the pair")
+        self.assertEqual(float(self.db.sql(load_case.sql_a5_expected(fake, "X", "Z", 15))), 0.0, msg="a subject with no events has no pairs")
+
+    def test_the_meeting_sql_by_hand(self):
+        """Windows with contacts 40 and 10 minutes before (the latest counts), exactly at the start, 61 minutes before (too early) and exactly 60 minutes before."""
+        events = []
+        for day, extra in (("2026-03-02", []), ("2026-03-03", [("X", "05:08", "K1", None), ("Y", "05:10", "K1", None)]), ("2026-03-04", []), ("2026-03-05", [])):
+            events += [("X", day, "05:00", "K1", None), ("Y", day, "05:05", "K1", None)] + [(w, day, s, c, o) for w, s, c, o in extra]
+        events += [("X", "2026-03-02", "04:20", None, "Y"),       # 09:20 local: 40 minutes before the window
+                   ("Y", "2026-03-02", "04:50", None, "X"),       # 09:50 local: 10 minutes before, the latest of the two, so the gap is 10
+                   ("Y", "2026-03-03", "05:00", None, "X"),       # at the start of the window, the other direction
+                   ("X", "2026-03-03", "06:00", None, "Y"),       # after the start: does not count
+                   ("X", "2026-03-04", "03:59", None, "Y"),       # 61 minutes before: too early
+                   ("X", "2026-03-05", "04:00", None, "Y")]       # exactly 60 minutes before: counts
+        insert_hand(self.db, "handmeet", "5a000000-0000-4000-8000-000000000003", events)
+        self.addCleanup(self.db.sql, "DELETE FROM forensic.comm_event WHERE collection_id = 'handmeet'")
+        got = self.db.rows(load_case.sql_a7({"case_id": "handmeet"}, "X", "Y", 15, 60))
+        self.assertEqual([(g["start_local"], g["end_local"], g["pairs"], g["contacts_before"]) for g in got],
+                         [("2026-03-02 10:00:00", "2026-03-02 10:05:00", 1, ["2026-03-02 09:20:00", "2026-03-02 09:50:00"]),
+                          ("2026-03-03 10:00:00", "2026-03-03 10:10:00", 4, ["2026-03-03 10:00:00"]),
+                          ("2026-03-05 10:00:00", "2026-03-05 10:05:00", 1, ["2026-03-05 09:00:00"])])
+        for g, (gap, score) in zip(got, [(10.0, 0.5833), (0.0, 1.0), (60.0, 0.1667)]):
+            self.assertAlmostEqual(g["gap_minutes"], gap, places=6)
+            self.assertAlmostEqual(g["score"], score, places=4)
+        self.assertEqual(len(self.db.rows(load_case.sql_a7({"case_id": "handmeet"}, "X", "Y", 15, 59))), 2, "a 59-minute gap rule drops the contact exactly 60 minutes before")
 
     def test_zz_damaged_data_is_noticed(self):
         subject = self.key["subjects"][0]["msisdn"]
