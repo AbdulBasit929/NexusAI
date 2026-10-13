@@ -179,8 +179,8 @@ class PsycopgSink:
 
 # ---- reading and interpreting a file --------------------------------------------------------------------------------------------------------
 
-class TooManyRows(Exception):
-    pass
+class TooManyRows(ValueError):
+    """A permanent input problem for a job that depends on this module (see ingest_required), so a ValueError."""
 
 
 def content_of(record: Mapping[str, Any]) -> str:
@@ -349,7 +349,13 @@ def ingest_file(path: str, lineage: Lineage, policy: Policy, sink: Sink, *, regi
         return out
     out["container"] = kind
     for name, rows in sheets:
-        out["sheets"].append(ingest_sheet(str(name), rows(), lineage, policy, sink, registry, include_draft=include_draft, max_rows=max_rows, batch_rows=batch_rows).as_dict())
+        iterator = rows()
+        try:
+            out["sheets"].append(ingest_sheet(str(name), iterator, lineage, policy, sink, registry, include_draft=include_draft, max_rows=max_rows, batch_rows=batch_rows).as_dict())
+        finally:
+            close = getattr(iterator, "close", None)   # a sheet that stops early (no layout, over the limit) must not leave its file open
+            if close is not None:
+                close()
     loaded = [s for s in out["sheets"] if s["status"] == "loaded"]
     out["status"] = "loaded" if loaded else "unrecognised"
     out["rows_loaded"] = sum(s["loaded"] for s in loaded)
@@ -384,3 +390,56 @@ def run_shadow(conn: Any, path: str, lineage: Lineage, time_policy: Mapping[str,
                 "evidence_id": lineage.evidence_id, "sheets": []}
     summary["mode"] = mode
     return summary
+
+
+# ---- files only this module can read ------------------------------------------------------------------------------------------------------
+
+WORKBOOK_SUFFIXES = frozenset({".xls", ".xml"})
+
+
+def is_spreadsheetml(path: str) -> bool:
+    """Whether the stored file is a SpreadsheetML 2003 workbook (an XML document in the Excel 2003 spreadsheet namespace). False for anything else, never an error."""
+    try:
+        return readers.sniff_kind(path) == "spreadsheetml"
+    except (readers.Unsupported, OSError):
+        return False
+
+
+def ingest_required(conn: Any, path: str, lineage: Lineage, time_policy: Mapping[str, Any], *, registry: Any = None, sink: Sink | None = None,
+                    mode: str | None = None, max_rows: int | None = None) -> dict[str, Any]:
+    """The typed write for a file that version 1 cannot read at all (a SpreadsheetML workbook): here the typed tables are the only store, so nothing is swallowed.
+
+    Unlike run_shadow there is no savepoint and no quiet outcome. The worker's own error handling sees every failure: a database error is retried like any other,
+    and a problem with the input is a ValueError, which the worker treats as permanent (no retry, dead letter with the message): the switch is off, the file
+    matches no registered layout (or matches two), there is no evidence id, or the file is over the row limit. Returns the quality summary of ingest_file.
+    """
+    mode = ingest_v2_mode(mode if mode is not None else os.environ.get("FORENSIC_INGEST_V2"))
+    if mode == "off":
+        raise ValueError("a SpreadsheetML workbook is read only by the typed ingest, and FORENSIC_INGEST_V2 is off on this worker")
+    limit = max_rows if max_rows is not None else int(os.environ.get("FORENSIC_INGEST_V2_MAX_ROWS", DEFAULT_MAX_ROWS))
+    include_draft = os.environ.get("FORENSIC_INGEST_V2_INCLUDE_DRAFT", "true").strip().lower() not in ("0", "false", "no")
+    summary = ingest_file(path, lineage, policy_from_time_policy(time_policy), sink or PsycopgSink(conn), registry=registry, include_draft=include_draft, max_rows=limit)
+    if summary["status"] != "loaded":
+        states = {s["status"] for s in summary["sheets"]}
+        if summary.get("reason"):
+            why = str(summary["reason"])
+        elif "ambiguous" in states:
+            why = "the header of a sheet matches more than one registered layout"
+        elif states and states <= {"unrecognised", "no_header", "unreadable"}:
+            why = "no registered layout matches the header of any sheet"
+        else:
+            why = ", ".join(sorted("%s (%s)" % (s["status"], s.get("reason") or "-") for s in summary["sheets"])) or "the workbook has no sheet"
+        raise ValueError("the workbook was not written to the typed tables: %s" % why)
+    summary["mode"] = mode
+    return summary
+
+
+def job_counts(summary: Mapping[str, Any]) -> dict[str, int]:
+    """The counts a job row keeps, from a quality summary: total = loaded + quarantined (blank and other skipped rows are not rows of data), accepted = newly inserted,
+    duplicate = loaded but already present, rejected = quarantined."""
+    sheets = [s for s in summary["sheets"] if s["status"] == "loaded"]
+    loaded = sum(s["loaded"] for s in sheets)
+    inserted = sum(s["inserted"] for s in sheets)
+    quarantined = sum(sum(s["quarantined"].values()) for s in sheets)
+    return {"total_rows": loaded + quarantined, "accepted_rows": inserted, "duplicate_rows": loaded - inserted, "rejected_rows": quarantined,
+            "skipped_rows": sum(sum(s["skipped"].values()) for s in sheets)}

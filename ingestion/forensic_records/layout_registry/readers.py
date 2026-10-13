@@ -54,6 +54,20 @@ def reject_entities(raw):
         raise Unsupported("XML with a DOCTYPE or entity declarations is refused")
 
 
+def reject_entities_in_file(path, chunk=1 << 20):
+    """The same refusal for a whole file, read in chunks: a DOCTYPE may follow a long comment, so the first 64 KB are not enough for a file that arrives from outside."""
+    keep = b""
+    with open(path, "rb") as handle:
+        while True:
+            block = handle.read(chunk)
+            if not block:
+                return
+            window = keep + block
+            if b"<!DOCTYPE" in window or b"<!ENTITY" in window:
+                raise Unsupported("XML with a DOCTYPE or entity declarations is refused")
+            keep = window[-16:]
+
+
 def decode_text_stream(path):
     with open(path, "rb") as handle:
         head = handle.read(4)
@@ -171,34 +185,35 @@ def iter_xlsx_sheets(path):
 
 
 def iter_spreadsheetml_sheets(path):
-    with open(path, "rb") as handle:
-        reject_entities(handle.read(65536))
+    reject_entities_in_file(path)
     names = []
-    for event, el in ET.iterparse(path, events=("start",)):
-        if el.tag == "{%s}Worksheet" % SS_2003:
-            names.append(el.get("{%s}Name" % SS_2003) or "sheet%d" % (len(names) + 1))
+    with open(path, "rb") as handle:
+        for event, el in ET.iterparse(handle, events=("start",)):
+            if el.tag == "{%s}Worksheet" % SS_2003:
+                names.append(el.get("{%s}Name" % SS_2003) or "sheet%d" % (len(names) + 1))
 
     def make(index):
         def rows():
             seen = -1
             root = None
-            for event, el in ET.iterparse(path, events=("start", "end")):
-                if root is None:
-                    root = el
-                if event == "start" and el.tag == "{%s}Worksheet" % SS_2003:
-                    seen += 1
-                if event == "end" and el.tag == "{%s}Row" % SS_2003:
-                    if seen == index:
-                        vals = []
-                        for c in el.findall("{%s}Cell" % SS_2003):
-                            idx = c.get("{%s}Index" % SS_2003)
-                            if idx:
-                                while len(vals) < int(idx) - 1:
-                                    vals.append("")
-                            d = c.find("{%s}Data" % SS_2003)
-                            vals.append("".join(d.itertext()) if d is not None else "")
-                        yield vals
-                    el.clear()
+            with open(path, "rb") as handle:
+                for event, el in ET.iterparse(handle, events=("start", "end")):
+                    if root is None:
+                        root = el
+                    if event == "start" and el.tag == "{%s}Worksheet" % SS_2003:
+                        seen += 1
+                    if event == "end" and el.tag == "{%s}Row" % SS_2003:
+                        if seen == index:
+                            vals = []
+                            for c in el.findall("{%s}Cell" % SS_2003):
+                                idx = c.get("{%s}Index" % SS_2003)
+                                if idx:
+                                    while len(vals) < int(idx) - 1:
+                                        vals.append("")
+                                d = c.find("{%s}Data" % SS_2003)
+                                vals.append("".join(d.itertext()) if d is not None else "")
+                            yield vals
+                        el.clear()
         return rows
 
     return {"encoding": "xml", "delimiter": None}, [(n, make(i)) for i, n in enumerate(names)]

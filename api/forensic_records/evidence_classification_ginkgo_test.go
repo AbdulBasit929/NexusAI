@@ -54,6 +54,11 @@ var _ = Describe("Universal forensic evidence classification", func() {
 		Entry("packet capture", "traffic.pcapng", "application/octet-stream", nil, nil, "network_or_system_capture", "capture", "capture_adapter_pending", false),
 		Entry("SQLite database", "device.sqlite", "application/vnd.sqlite3", nil, nil, "database", "database", "database_adapter_pending", false),
 		Entry("evidence archive", "export.zip", "application/zip", nil, nil, "container", "archive", "archive_inventory_pending", false),
+		Entry("SpreadsheetML 2003 workbook found by content under .xls is queued for the typed ingest", "ufone.xls", "application/vnd.ms-excel", nil, map[string]string{workbookFormatHint: workbookFormatSpreadsheetML2003}, "tabular", "spreadsheetml_2003", "forensic_records_worker", true),
+		Entry("SpreadsheetML 2003 workbook found by content under .xml is queued too", "export.xml", "text/xml", nil, map[string]string{workbookFormatHint: workbookFormatSpreadsheetML2003}, "tabular", "spreadsheetml_2003", "forensic_records_worker", true),
+		Entry("legacy workbook without the content hint stays registered", "legacy.xls", "application/vnd.ms-excel", nil, nil, "tabular", "tabular_data", "tabular_adapter_pending", false),
+		Entry("the workbook hint on a CSV changes nothing", "calls.csv", "text/csv", nil, map[string]string{workbookFormatHint: workbookFormatSpreadsheetML2003}, "tabular", "delimited_text", "structured_validation_pending", false),
+		Entry("the workbook hint on a PDF changes nothing", "policy.pdf", "application/pdf", nil, map[string]string{workbookFormatHint: workbookFormatSpreadsheetML2003}, "document", "pdf", "native_document_worker", true),
 		Entry("unknown binary", "device.dump", "application/octet-stream", nil, nil, "unknown", "unknown", "manual_review", false),
 	)
 

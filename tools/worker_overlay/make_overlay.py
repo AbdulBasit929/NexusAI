@@ -10,7 +10,8 @@ Why an overlay and not `docker build` of ingestion/forensic_records/Dockerfile (
 2026-08-23 and is seven weeks behind the repository (worker.py, media_pipeline.py, roman_urdu.py differ; multilingual_ocr.py, processor_readiness.py and the
 video_anpr_*.py modules are not in it; requirements.txt has since grown). A full rebuild would ship all of that, and pip-install the new packages, together with
 Ingest v2. The overlay changes nothing but Ingest v2: worker.py of the running image gets exactly the hunks of the repository's worker.py (the call after
-version 1's audit, the call in the document branch for text exports, and the functions `run_typed_ingest_shadow` and `run_typed_ingest_shadow_for_text`), and
+version 1's audit, the call in the document branch for text exports, the branch for SpreadsheetML workbooks, and the functions `run_typed_ingest_shadow`,
+`run_typed_ingest_shadow_for_text`, `is_typed_workbook_job`, `process_typed_workbook_job` and `mark_typed_workbook_completed`), and
 `typed_ingest.py` and the `layout_registry/` package are added. The base is always the ORIGINAL image (tag before-ingest-v2), never a previous overlay. Standard library only; needs git and the repository.
 """
 import os
@@ -32,6 +33,21 @@ CALL_TEXT = rb"run_typed_ingest_shadow_for_text(conn, job, path, document_profil
 HUNK_TEXT = re.compile(rb"(                document_profile, document_stats = process_document_job\(conn, job, path\)\r?\n)(                conn\.commit\(\)\r?\n)")
 
 
+# a SpreadsheetML workbook: version 1 has no reader for it, so it goes to the typed ingest alone, ahead of version 1's profiling
+HUNK_WORKBOOK = re.compile(rb"(            profile = profile_records\(path, job\.source_file\)\r?\n)")
+WORKBOOK_BRANCH = [
+    b"            if is_typed_workbook_job(job, path):",
+    b"                workbook_profile, workbook_stats = process_typed_workbook_job(conn, job, path)",
+    b"                conn.commit()",
+    b'                emit_progress(progress_cb, job, "completed", workbook_stats, workbook_profile, started_at)',
+    b"                LOG.info(",
+    b'                    "typed workbook processing completed",',
+    b'                    extra={"job_id": job.job_id, "format": workbook_profile.get("format"), "rows": workbook_stats["total_rows"]},',
+    b"                )",
+    b"                return",
+]
+
+
 def make(old_app, out):
     old = open(os.path.join(old_app, "worker.py"), "rb").read()
     new = open(os.path.join(SOURCE, "worker.py"), "rb").read()
@@ -45,6 +61,9 @@ def make(old_app, out):
     if len(HUNK_TEXT.findall(patched)) != 1:
         raise SystemExit("the document branch was not found exactly once in the old worker.py; the image has moved, so review by hand")
     patched = HUNK_TEXT.sub(lambda m: m.group(1) + b"                " + CALL_TEXT + eol + m.group(2), patched, count=1)
+    if len(HUNK_WORKBOOK.findall(patched)) != 1:
+        raise SystemExit("the profile_records call was not found exactly once in the old worker.py; the image has moved, so review by hand")
+    patched = HUNK_WORKBOOK.sub(lambda m: eol.join(WORKBOOK_BRANCH) + eol + m.group(1), patched, count=1)
     anchor = b"def validate_sample_profile("
     if patched.count(anchor) != 1:
         raise SystemExit("the insertion point for the function was not found exactly once")

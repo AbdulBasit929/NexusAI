@@ -114,6 +114,17 @@ func classifyEvidenceItem(sourceFile, contentType, detectedRecordType string, he
 			classification.Warnings = append(classification.Warnings, "structured format was recognized but no parseable schema was detected")
 		}
 	}
+	if len(hints) > 0 && hints[0][workbookFormatHint] == workbookFormatSpreadsheetML2003 && (ext == ".xls" || ext == ".xml") {
+		// Looked at the content, not the name: a SpreadsheetML 2003 workbook is queued for the records worker, which reads it only through the typed
+		// ingest against the registered provider layouts. A binary .xls or another XML document never carries this hint and stays registered.
+		classification.Modality = "tabular"
+		classification.DetectedType = workbookFormatSpreadsheetML2003
+		classification.ProcessingRoute = "forensic_records_worker"
+		classification.Confidence = 0.8
+		classification.ProcessingStatus = "queued"
+		classification.QueueRecords = true
+		classification.Warnings = append(classification.Warnings, "SpreadsheetML 2003 workbook: the records worker reads it only through the typed ingest against the registered provider layouts; a workbook that matches none is rejected")
+	}
 	if recordType == "generic" && profile.WorkerReadable && (profile.Modality == "image" || profile.Modality == "audio" || profile.Modality == "video") {
 		classification.ProcessingRoute = "unified_media_worker"
 		classification.ProcessingStatus = "queued"

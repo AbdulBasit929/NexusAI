@@ -839,6 +839,15 @@ def process_job(
                     },
                 )
                 return
+            if is_typed_workbook_job(job, path):
+                workbook_profile, workbook_stats = process_typed_workbook_job(conn, job, path)
+                conn.commit()
+                emit_progress(progress_cb, job, "completed", workbook_stats, workbook_profile, started_at)
+                LOG.info(
+                    "typed workbook processing completed",
+                    extra={"job_id": job.job_id, "format": workbook_profile.get("format"), "rows": workbook_stats["total_rows"]},
+                )
+                return
             profile = profile_records(path, job.source_file)
             validate_structured_profile_bounds(profile)
             xlsx_mappings: dict[int, dict[str, Any]] = {}
@@ -4129,6 +4138,96 @@ def run_typed_ingest_shadow_for_text(
             run_typed_ingest_shadow(conn, cur, job, path, profile)
     except Exception:  # noqa: BLE001 - the shadow write must never fail the job
         LOG.exception("typed ingest shadow for a text export could not run; the job is not affected", extra={"job_id": job.job_id})
+
+
+TYPED_WORKBOOK_SUFFIXES = frozenset({".xls", ".xml"})
+
+
+def _typed_ingest_module() -> Any:
+    try:
+        from ingestion.forensic_records import typed_ingest
+    except ModuleNotFoundError:  # pragma: no cover - supports direct worker.py execution
+        import typed_ingest
+    return typed_ingest
+
+
+def is_typed_workbook_job(job: IngestJob, path: Path) -> bool:
+    """A SpreadsheetML 2003 workbook, named .xls or .xml and judged by its content.
+
+    Version 1 has no reader for it (its CSV fallback would store the XML text as records), so such a job never goes to version 1: the typed ingest is its only path."""
+    if Path(job.source_file or "").suffix.lower() not in TYPED_WORKBOOK_SUFFIXES:
+        return False
+    return bool(_typed_ingest_module().is_spreadsheetml(str(path)))
+
+
+def process_typed_workbook_job(
+    conn: psycopg.Connection[Any],
+    job: IngestJob,
+    path: Path,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Ingest a SpreadsheetML workbook through the typed ingest alone, and complete the job and the evidence like the other branches do.
+
+    Nothing is swallowed here: the switch being off, a workbook that matches no registered layout, or a database error end the job through the worker's normal
+    error handling (a problem with the input is permanent, a database error is retried)."""
+    typed_ingest = _typed_ingest_module()
+    lineage = typed_ingest.Lineage(job.tenant_id, job.collection_id, job.evidence_id, job.file_id, job.job_id)
+    time_policy = time_policy_for_job(job)
+    summary = typed_ingest.ingest_required(conn, str(path), lineage, time_policy)
+    counts = typed_ingest.job_counts(summary)
+    with conn.cursor() as cur:
+        mark_typed_workbook_completed(cur, job, summary, counts)
+        audit(
+            cur,
+            job,
+            "records.ingest.typed_workbook.completed",
+            {"batch_id": job.job_id, "request_id": job.request_id, "evidence_id": job.evidence_id, "counts": counts, "typed_ingest": summary},
+        )
+    stats = empty_stats()
+    stats["total_rows"] = counts["total_rows"]
+    stats["rejected_rows"] = counts["rejected_rows"]
+    layouts = sorted({str(sheet.get("layout_id")) for sheet in summary["sheets"] if sheet.get("status") == "loaded"})
+    profile = {
+        "format": "spreadsheetml_2003",
+        "classification": {"modality": "tabular", "detected_type": "spreadsheetml_2003", "layouts": layouts, "time_policy": time_policy},
+    }
+    return profile, stats
+
+
+def mark_typed_workbook_completed(
+    cur: psycopg.Cursor[Any],
+    job: IngestJob,
+    summary: dict[str, Any],
+    counts: dict[str, int],
+) -> None:
+    sheets = [sheet for sheet in summary["sheets"] if sheet.get("status") == "loaded"]
+    typed = {
+        "layouts": [{"layout_id": sheet.get("layout_id"), "layout_version": sheet.get("layout_version"), "table": sheet.get("table")} for sheet in sheets],
+        "counts": counts,
+        "reconciles": bool(summary.get("reconciles")),
+        "mode": summary.get("mode"),
+    }
+    cur.execute(
+        """
+        UPDATE forensic.records_ingest_jobs
+        SET status='completed', completed_at=now(), total_rows=%s, accepted_rows=%s, duplicate_rows=%s, rejected_rows=%s,
+            worker_lease_token=NULL, worker_lease_owner=NULL, worker_lease_expires_at=NULL,
+            next_attempt_at=NULL, last_error_class=NULL, error_message=NULL,
+            metadata = metadata || jsonb_build_object('batch_id', %s::text, 'typed_workbook', %s::jsonb)
+        WHERE id=%s::uuid
+        """,
+        (counts["total_rows"], counts["accepted_rows"], counts["duplicate_rows"], counts["rejected_rows"], job.job_id, json.dumps(typed), job.job_id),
+    )
+    if not job.evidence_id:
+        return
+    cur.execute(
+        """
+        UPDATE forensic.evidence_items
+        SET processing_status='completed', records_batch_id=%s::uuid, processing_route='forensic_records_worker',
+            metadata = metadata || jsonb_build_object('completed_job_id', %s::text, 'request_id', %s::text, 'typed_workbook', %s::jsonb)
+        WHERE evidence_id=%s::uuid
+        """,
+        (job.job_id, job.job_id, job.request_id, json.dumps(typed), job.evidence_id),
+    )
 
 
 def validate_sample_profile(path: Path) -> dict[str, Any]:

@@ -422,6 +422,9 @@ func uploadHandler(cfg config, evidenceStore contentAddressedStore, publisher in
 		} else {
 			job.Metadata["kb_mirror_status"] = "disabled"
 		}
+		if isSpreadsheetML2003File(spoolPath, sourceFile) {
+			job.Metadata[workbookFormatHint] = workbookFormatSpreadsheetML2003
+		}
 		classificationRecordType := effectiveClassificationRecordType(job.RecordType, job.DetectedRecordType, recordTypeMode)
 		classification := finalizeEvidenceClassification(classifyEvidenceItem(
 			job.SourceFile,
