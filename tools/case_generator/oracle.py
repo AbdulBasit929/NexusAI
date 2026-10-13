@@ -1,4 +1,4 @@
-"""Plain-Python reference answers (specification section 10): A1 contact profile, A2 common contacts and A5 co-location and A6 tower-dump population, A7 possible meetings, A8 device history, A9 successor candidates and A13 address attribution.
+"""Plain-Python reference answers (specification section 10): A1 contact profile, A2 common contacts and A5 co-location and A6 tower-dump population, A7 possible meetings, A8 device history, A9 successor candidates, A10 movement, A11 change of rhythm and A13 address attribution.
 
 They read the events as the files show them (the visible rows of each subject's export), not the product, SQL or the files themselves.
 """
@@ -7,6 +7,7 @@ from __future__ import annotations
 import bisect
 import collections
 import datetime
+import math
 
 PERSON_KINDS = ("person_like", "international")
 
@@ -299,3 +300,132 @@ def a9_successors(visible_by_number, case_start, case_end, **overrides):
         candidates.sort(key=lambda c: (-c["score"], c["number"]))
         silent.append({"number": x, "last_event": last[x].isoformat(sep=" "), "candidates": candidates})
     return {"parameters": cfg, "silent": silent, "caveat": "behavioural similarity, not identity"}
+
+
+A10_DEFAULTS = {"week_days": 7, "min_events": 3, "confirm_weeks": 2, "speed_kmh": 200.0, "night": [22, 7], "day": [9, 17]}
+
+
+def haversine_km(lat1, lon1, lat2, lon2):
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    a = math.sin((p2 - p1) / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(math.radians(lon2 - lon1) / 2) ** 2
+    return 2 * 6371.0088 * math.asin(math.sqrt(a))
+
+
+def _weekly_anchors(rows, case_start, cfg, in_slot):
+    """{week: anchor cell key} where the most used cell of the slot's events has at least `min_events` events that week (ties: lowest key)."""
+    weeks = {}
+    for row in rows:
+        if row.get("cell_key") and in_slot(_time(row)):
+            week = (_time(row).date() - case_start.date()).days // cfg["week_days"]
+            weeks.setdefault(week, collections.Counter())[row["cell_key"]] += 1
+    out = {}
+    for week, counts in weeks.items():
+        if sum(counts.values()) >= cfg["min_events"]:
+            out[week] = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[0][0]
+    return out
+
+
+def a10_movement(visible_by_number, case_start, **overrides):
+    """Movement (specification section 10, A10), per number, from the cells and coordinates the rows show.
+
+    Anchors: the night anchor of a week is the cell with most events between 22:00 and 07:00 local, the day anchor the cell with most events
+    between 09:00 and 17:00 on weekdays; weeks are 7-day blocks counted from the start of the case, and a week with fewer than 3 events in the
+    slot has no anchor. An anchor change is a move to a different anchor that then holds for at least 2 weeks with an anchor (it is reported
+    at the first week of the new anchor, with the distance between the two cells); a different anchor for fewer weeks than that, between two
+    stretches, is a short deviation (a trip). Speed alerts: two consecutive events of one number at different places whose distance divided by
+    the time between them is at least 200 km/h (haversine on the coordinates in the rows, which are fictional)."""
+    cfg = dict(A10_DEFAULTS, **overrides)
+    night_from, night_to = cfg["night"]
+    day_from, day_to = cfg["day"]
+    slots = {"night": lambda t: t.hour >= night_from or t.hour < night_to, "day": lambda t: day_from <= t.hour < day_to and t.weekday() < 5}
+    numbers = {}
+    for number in sorted(visible_by_number):
+        rows = sorted((r for r in visible_by_number[number]), key=lambda r: (r["start_local"], r.get("uid") or ""))
+        position = {r["cell_key"]: (r["lat"], r["lon"]) for r in rows if r.get("cell_key") and r.get("lat") is not None}
+        report = {"anchors": {}, "changes": [], "short_deviations": [], "speed_alerts": []}
+        for slot, in_slot in slots.items():
+            weekly = _weekly_anchors(rows, case_start, cfg, in_slot)
+            runs = []   # stretches of weeks (with an anchor) that have the same anchor; a week without an anchor does not end a stretch
+            for week in sorted(weekly):
+                if runs and runs[-1]["cell"] == weekly[week]:
+                    runs[-1]["last"] = week
+                    runs[-1]["weeks"] += 1
+                else:
+                    runs.append({"cell": weekly[week], "first": week, "last": week, "weeks": 1})
+            persistent = [r for r in runs if r["weeks"] >= cfg["confirm_weeks"]]
+            merged = []
+            for run in persistent:
+                if merged and merged[-1]["cell"] == run["cell"]:
+                    merged[-1]["last"] = run["last"]
+                    merged[-1]["weeks"] += run["weeks"]
+                else:
+                    merged.append(dict(run))
+            report["anchors"][slot] = [{"cell_key": r["cell"], "first_week": r["first"], "last_week": r["last"]} for r in merged]
+            for old, new in zip(merged, merged[1:]):
+                a, b = position.get(old["cell"]), position.get(new["cell"])
+                report["changes"].append({"slot": slot, "from_cell": old["cell"], "to_cell": new["cell"], "first_week": new["first"],
+                                          "first_week_start": (case_start.date() + datetime.timedelta(days=new["first"] * cfg["week_days"])).isoformat(),
+                                          "distance_km": round(haversine_km(a[0], a[1], b[0], b[1]), 3) if a and b else None})
+            for run in runs:
+                if run not in persistent:
+                    report["short_deviations"].append({"slot": slot, "cell_key": run["cell"], "first_week": run["first"], "last_week": run["last"]})
+        previous = None
+        for row in rows:
+            if row.get("lat") is None or not row.get("cell_key"):
+                continue
+            if previous is not None and previous["cell_key"] != row["cell_key"]:
+                gap = (_time(row) - _time(previous)).total_seconds()
+                km = haversine_km(previous["lat"], previous["lon"], row["lat"], row["lon"])
+                kmh = km / (gap / 3600.0) if gap > 0 else None
+                if kmh is None or kmh >= cfg["speed_kmh"]:
+                    report["speed_alerts"].append({"from_time": previous["start_local"], "to_time": row["start_local"], "from_cell": previous["cell_key"], "to_cell": row["cell_key"],
+                                                   "distance_km": round(km, 3), "gap_s": int(gap), "speed_kmh": round(kmh, 1) if kmh is not None else None})
+            previous = row
+        numbers[number] = report
+    return {"parameters": cfg, "numbers": numbers, "caveat": "anchors and speeds from cell sites, not positions of a person"}
+
+
+A11_DEFAULTS = {"min_days": 10, "t_min": 5.0, "ratio_min": 1.5}
+
+
+def _welch_t(left, right):
+    nl, nr = len(left), len(right)
+    ml, mr = sum(left) / nl, sum(right) / nr
+    vl = sum((x - ml) ** 2 for x in left) / (nl - 1)
+    vr = sum((x - mr) ** 2 for x in right) / (nr - 1)
+    se = math.sqrt(vl / nl + vr / nr)
+    if se == 0:
+        return 0.0 if ml == mr else math.inf
+    return (mr - ml) / se
+
+
+def a11_rate_change(visible_by_number, **overrides):
+    """Change of rhythm (specification section 10, A11), per number. The daily count of events (local days, from the number's first to its last
+    event, empty days counted) is split at every day that leaves at least 10 days on each side; the split with the largest |Welch t| between the
+    two sides is the best change point. It is reported when |t| >= 5 and the larger daily mean is at least 1.5 times the smaller. One unusual day
+    does not move the means of 10 or more days enough to pass both tests."""
+    cfg = dict(A11_DEFAULTS, **overrides)
+    numbers = {}
+    for number in sorted(visible_by_number):
+        days = collections.Counter(_time(r).date() for r in visible_by_number[number])
+        entry = {"days": 0, "change": None}
+        if days:
+            first, last = min(days), max(days)
+            series = [days.get(first + datetime.timedelta(days=i), 0) for i in range((last - first).days + 1)]
+            entry["days"] = len(series)
+            best = None
+            for k in range(cfg["min_days"], len(series) - cfg["min_days"] + 1):
+                t = _welch_t(series[:k], series[k:])
+                if best is None or abs(t) > abs(best[1]):
+                    best = (k, t)
+            if best is not None:
+                k, t = best
+                before, after = sum(series[:k]) / k, sum(series[k:]) / (len(series) - k)
+                low, high = min(before, after), max(before, after)
+                ratio = high / low if low > 0 else math.inf
+                if abs(t) >= cfg["t_min"] and ratio >= cfg["ratio_min"]:
+                    entry["change"] = {"first_day": (first + datetime.timedelta(days=k)).isoformat(), "mean_before": round(before, 3), "mean_after": round(after, 3),
+                                       "t": round(t, 2) if math.isfinite(t) else None, "ratio": round(ratio, 3) if math.isfinite(ratio) else None,
+                                       "direction": "up" if after > before else "down"}
+        numbers[number] = entry
+    return {"parameters": cfg, "numbers": numbers, "caveat": "a change of rhythm in the records, not a cause"}

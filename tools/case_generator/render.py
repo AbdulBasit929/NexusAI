@@ -274,7 +274,8 @@ def render_views(world, entry, views, label, preamble_person=None) -> RenderedFi
             "status": "accepted", "flags": [], "uid": ev.uid, "a_norm": subject.msisdn, "b_norm": b_norm, "b_kind": b_kind, "b_raw_label": None if b_norm else b_raw,
             "direction": visible["direction"], "event_type": visible["event_type"], "true_direction": direction, "true_event_type": event_type,
             "start_local": start.isoformat(sep=" "), "duration_s": duration_expect, "cell_key": cell_key, "site": site, "operator": subject.operator,
-            "imsi": imsi, "imei": imei, "plant": ev.plant})
+            "imsi": imsi, "imei": imei, "plant": ev.plant, "lat": float("%.*f" % (places, lat)) if fields.get("lat") else None,
+            "lon": float("%.*f" % (places, lon)) if fields.get("lat") else None})
     data, out.rows, _ = defect_module.inject(entry, hints, index, time_columns, fmt, data, out.rows, world.params.defects_per_class,
                                              random.Random("defects:%d:%s" % (world.params.seed, label)))
     out.defects = defect_module.expectations(out.rows)

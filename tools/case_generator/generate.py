@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Write a synthetic case with planted truth (specification: docs/data/case-generator-spec.md).
 
-    python -X utf8 tools/case_generator/generate.py --seed 1 --out CASES_DIR [--people 120] [--subjects 6] [--days 90]
+    python -X utf8 tools/case_generator/generate.py --seed 1 --out CASES_DIR [--people 120] [--subjects 12] [--days 90]
 
 Output folder  <out>/case-<seed>/ :
     manifest.json   case id, seed, versions, parameters, SHA-256 and size of every file
@@ -241,6 +241,33 @@ def build_case(params, registry=None):
                            "first_day_new": (case_start + datetime.timedelta(days=record["first_day_new"])).strftime("%Y-%m-%d"), "with_device": record["with_device"]})
         else:
             plants.append({"id": record["id"], "type": record["kind"], "number": by_pid[record["pid"]].msisdn})
+    # --- plant P8 (movement and rhythm), A10 and A11 -----------------------------------------------------------------------------------
+    visible_all = {s.msisdn: renders[s.pid].visible for s in subjects}
+    a10 = oracle.a10_movement(visible_all, case_start)
+    a11 = oracle.a11_rate_change(visible_all)
+    p8_events = {}
+    for ev in world.events:
+        if ev.plant and ev.plant.startswith("P8-"):
+            p8_events.setdefault(ev.plant, []).append(ev.uid)
+    day_of = lambda n: (case_start + datetime.timedelta(days=n)).strftime("%Y-%m-%d")   # noqa: E731
+    for record in world.p8:
+        person = by_pid[record["pid"]]
+        entry = registry.get(w.OPERATOR_LAYOUTS[person.operator])
+        cell = lambda site: render.site_cell_key(entry, person.operator, site)   # noqa: E731
+        base = {"id": record["id"], "type": record["kind"], "number": person.msisdn}
+        if record["kind"] == "relocation":
+            base.update({"from_day": record["from_day"], "from_date": day_of(record["from_day"]), "old_cell_key": cell(record["old_cell"]), "new_cell_key": cell(record["new_cell"])})
+        elif record["kind"] in ("impossible_speed", "slow_decoy"):
+            base.update({"day": day_of(record["day"]), "from_cell_key": cell(record["from_site"]), "to_cell_key": cell(record["to_site"]), "gap_s": record["gap_s"],
+                         "events": [{"subject": person.msisdn, "start_local": row_of[uid][1]["start_local"], "cell_key": row_of[uid][1]["cell_key"]} for uid in p8_events[record["tag"]]]})
+        elif record["kind"] == "rate_change":
+            base.update({"from_day": record["from_day"], "from_date": day_of(record["from_day"]), "multiplier": record["multiplier"]})
+        elif record["kind"] == "outlier_day":
+            base.update({"day": day_of(record["day"]), "multiplier": record["multiplier"]})
+        elif record["kind"] == "short_trip":
+            base.update({"from_date": day_of(record["from_day"]), "to_date": day_of(record["to_day"]), "first_week": record["from_day"] // 7,
+                         "home_cell_key": cell(record["home_cell"]), "trip_cell_key": cell(record["trip_cell"])})
+        plants.append(base)
     key = {
         "case_id": None, "seed": params.seed, "generator_version": w.GENERATOR_VERSION, "spec_version": w.SPEC_VERSION,
         "clock": {"local_zone": w.LOCAL_ZONE, "utc_offset_hours": w.LOCAL_UTC_OFFSET_HOURS, "key_time": "local wall clock as the files show it"},
@@ -252,7 +279,7 @@ def build_case(params, registry=None):
         "plants": plants,
         "oracle": {"parameters": {"hub_threshold": threshold, "contact_kinds": list(oracle.PERSON_KINDS), "window_minutes": params.window_minutes,
                               "contact_gap_minutes": params.contact_gap_minutes},
-                   "A1": {s.msisdn: oracle.a1_profile(visible)[s.msisdn] for s in subjects}, "A2": a2, "A5": a5, "A6": a6, "A7": a7, "A8": a8, "A9": a9, "A13": a13},
+                   "A1": {s.msisdn: oracle.a1_profile(visible)[s.msisdn] for s in subjects}, "A2": a2, "A5": a5, "A6": a6, "A7": a7, "A8": a8, "A9": a9, "A10": a10, "A11": a11, "A13": a13},
         "layout_assumptions": sorted({json.dumps(a, sort_keys=True) for r in renders.values() for a in r.assumptions}),
         "defects": {name: r.defects for name, r in sorted(renders.items()) if r.defects},
         "expected_quarantine": [], "expected_merge": [],
@@ -307,7 +334,7 @@ def main(argv=None):
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--people", type=int, default=120)
-    ap.add_argument("--subjects", type=int, default=10)
+    ap.add_argument("--subjects", type=int, default=12)
     ap.add_argument("--associates", type=int, default=24)
     ap.add_argument("--days", type=int, default=90)
     ap.add_argument("--events-per-person-per-day", type=float, default=4.0)

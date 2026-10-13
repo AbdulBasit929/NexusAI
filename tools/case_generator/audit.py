@@ -10,6 +10,7 @@ match what the files show, and that every identifier is from a reserved range. P
 import datetime
 import hashlib
 import json
+import math
 import os
 import sys
 
@@ -94,6 +95,7 @@ def audit(case_dir, registry=None):
     visible = {}   # subject msisdn -> list of (counterparty norm or label, kind, direction)
     placed = {}    # subject msisdn -> list of (start time, cell key)
     identity_rows = {}   # subject msisdn -> list of (start time, imsi, 14-digit imei)
+    trail = {}   # subject msisdn -> list of (start time, cell key, lat, lon) in file order
     for subject in key["subjects"]:
         path = os.path.join(case_dir, *subject["file"].split("/"))
         rows = read_export(path)
@@ -107,7 +109,7 @@ def audit(case_dir, registry=None):
         check_rows(subject["file"], results, key.get("defects", {}).get(subject["person"], []), problems)
         if len(results) != subject["rows"]:
             problems.append("%s: %d rows read, the key says %d" % (subject["file"], len(results), subject["rows"]))
-        mine, where, repeated, identities = [], [], set(), []
+        mine, where, repeated, identities, steps = [], [], set(), [], []
         for r in results:
             rec = r.record or {}
             if r.status != "accepted":
@@ -127,9 +129,11 @@ def audit(case_dir, registry=None):
             identities.append((rec["start_local"], rec.get("imsi"), (rec.get("imei") or "")[:14] or None))
             if rec.get("cell_key"):
                 where.append((datetime.datetime.fromisoformat(rec["start_local"]), rec["cell_key"]))
+                steps.append((datetime.datetime.fromisoformat(rec["start_local"]), rec["cell_key"], rec.get("lat"), rec.get("lon")))
         visible[subject["msisdn"]] = mine
         placed[subject["msisdn"]] = where
         identity_rows[subject["msisdn"]] = identities
+        trail[subject["msisdn"]] = steps
 
     threshold = key["oracle"]["parameters"]["hub_threshold"]
 
@@ -483,6 +487,128 @@ def audit(case_dir, registry=None):
             elif plant["type"] == "late_without_predecessor":
                 if any(c[0] == plant["number"] for listed in found.values() for c in listed):
                     problems.append("%s: the late starter is listed as somebody's successor" % plant["id"])
+
+    # --- movement (A10) and change of rhythm (A11), recomputed from the files --------------------------------------------------------------
+    answer_a10, answer_a11 = key["oracle"].get("A10"), key["oracle"].get("A11")
+    if answer_a10 is not None and answer_a11 is not None:
+        cfg10, cfg11 = answer_a10["parameters"], answer_a11["parameters"]
+        key_numbers = [s_["msisdn"] for s_ in key["subjects"] if s_["msisdn"] in visible]
+        day0 = datetime.date.fromisoformat(key["params"]["start_date"])
+
+        def km_between(la1, lo1, la2, lo2):
+            a = math.sin(math.radians(la2 - la1) / 2) ** 2 + math.cos(math.radians(la1)) * math.cos(math.radians(la2)) * math.sin(math.radians(lo2 - lo1) / 2) ** 2
+            return 12742.0176 * math.asin(math.sqrt(a))
+        found_alerts, found_changes, found_short, found_rhythm = {}, {}, {}, {}
+        for number in key_numbers:
+            steps = sorted(trail.get(number, []), key=lambda s: s[0])
+            # speed alerts: consecutive events at different cells that are at least the threshold speed apart
+            alerts = []
+            for (t1, c1, la1, lo1), (t2, c2, la2, lo2) in zip(steps, steps[1:]):
+                if c1 == c2 or la1 is None or la2 is None:
+                    continue
+                seconds = (t2 - t1).total_seconds()
+                km = km_between(la1, lo1, la2, lo2)
+                if seconds <= 0 or km * 3600.0 / seconds >= cfg10["speed_kmh"]:
+                    alerts.append((t1.isoformat(sep=" "), t2.isoformat(sep=" "), c1, c2))
+            found_alerts[number] = alerts
+            # anchors: the most used cell of each slot per week of the case
+            found_changes[number], found_short[number] = [], []
+            for slot in ("night", "day"):
+                per_week = {}
+                for moment, cell, _, _ in steps:
+                    hour = moment.hour
+                    inside = (hour >= cfg10["night"][0] or hour < cfg10["night"][1]) if slot == "night" else (cfg10["day"][0] <= hour < cfg10["day"][1] and moment.weekday() < 5)
+                    if inside:
+                        per_week.setdefault((moment.date() - day0).days // cfg10["week_days"], {}).setdefault(cell, 0)
+                        per_week[(moment.date() - day0).days // cfg10["week_days"]][cell] += 1
+                stretches = []
+                for week in sorted(per_week):
+                    cells = per_week[week]
+                    if sum(cells.values()) < cfg10["min_events"]:
+                        continue
+                    top = min(cells, key=lambda c: (-cells[c], c))
+                    if stretches and stretches[-1][0] == top:
+                        stretches[-1][2] += 1
+                    else:
+                        stretches.append([top, week, 1])
+                kept = []
+                for cell, week, weeks in stretches:
+                    if weeks >= cfg10["confirm_weeks"]:
+                        if kept and kept[-1][0] == cell:
+                            kept[-1][2] += weeks
+                        else:
+                            kept.append([cell, week, weeks])
+                    else:
+                        found_short[number].append((slot, cell, week))
+                for before, after in zip(kept, kept[1:]):
+                    found_changes[number].append((slot, before[0], after[0], after[1]))
+            # rhythm: the split of the daily counts with the largest Welch t
+            days = {}
+            for _, _, _, when in visible.get(number, []):
+                moment = datetime.datetime.fromisoformat(when).date()
+                days[moment] = days.get(moment, 0) + 1
+            found_rhythm[number] = None
+            if days:
+                first_day = min(days)
+                series = [days.get(first_day + datetime.timedelta(days=i), 0) for i in range((max(days) - first_day).days + 1)]
+                best = None
+                for k in range(cfg11["min_days"], len(series) - cfg11["min_days"] + 1):
+                    a, b = series[:k], series[k:]
+                    ma, mb = sum(a) / len(a), sum(b) / len(b)
+                    va, vb = sum((x - ma) ** 2 for x in a) / (len(a) - 1), sum((x - mb) ** 2 for x in b) / (len(b) - 1)
+                    spread = math.sqrt(va / len(a) + vb / len(b))
+                    stat = (0.0 if ma == mb else math.inf) if spread == 0 else (mb - ma) / spread
+                    if best is None or abs(stat) > abs(best[1]):
+                        best = (k, stat, ma, mb)
+                if best is not None:
+                    k, stat, ma, mb = best
+                    ratio = max(ma, mb) / min(ma, mb) if min(ma, mb) > 0 else math.inf
+                    if abs(stat) >= cfg11["t_min"] and ratio >= cfg11["ratio_min"]:
+                        found_rhythm[number] = (first_day + datetime.timedelta(days=k), "up" if mb > ma else "down")
+        for number in key_numbers:
+            theirs = answer_a10["numbers"][number]
+            mine_alerts = [(a["from_time"], a["to_time"], a["from_cell"], a["to_cell"]) for a in theirs["speed_alerts"]]
+            if mine_alerts != found_alerts[number]:
+                problems.append("A10 for %s: the speed alerts in the key differ from the files" % number[-5:])
+            if [(c["slot"], c["from_cell"], c["to_cell"], c["first_week"]) for c in theirs["changes"]] != found_changes[number]:
+                problems.append("A10 for %s: the anchor changes in the key differ from the files" % number[-5:])
+            if [(d["slot"], d["cell_key"], d["first_week"]) for d in theirs["short_deviations"]] != found_short[number]:
+                problems.append("A10 for %s: the short deviations in the key differ from the files" % number[-5:])
+            change = answer_a11["numbers"][number]["change"]
+            if (change is None) != (found_rhythm[number] is None) or (change and (change["first_day"], change["direction"]) != (found_rhythm[number][0].isoformat(), found_rhythm[number][1])):
+                problems.append("A11 for %s: the change of rhythm in the key differs from the files" % number[-5:])
+        planted_moves = {pl["number"] for pl in key["plants"] if pl["type"] == "relocation"}
+        for number in key_numbers:
+            if found_changes[number] and number not in planted_moves:
+                problems.append("A10: %s has an anchor change that nothing planted" % number[-5:])
+        for plant in key["plants"]:
+            number = plant.get("number")
+            if plant["type"] == "relocation":
+                moves = [c for c in found_changes[number] if c[0] == "night" and c[1] == plant["old_cell_key"] and c[2] == plant["new_cell_key"]]
+                if len(moves) != 1 or not (7 * (moves[0][3] - 1) <= plant["from_day"] < 7 * (moves[0][3] + 1)):
+                    problems.append("%s: the planted move is not in the files once, within a week of its date" % plant["id"])
+                if any(c[0] == "day" for c in found_changes[number]):
+                    problems.append("%s: the day anchor changed although only the home moved" % plant["id"])
+            elif plant["type"] == "impossible_speed":
+                first, second = sorted(e["start_local"] for e in plant["events"])
+                if not any(a[0] == first and a[1] == second for a in found_alerts[number]):
+                    problems.append("%s: the impossible pair is not a speed alert in the files" % plant["id"])
+            elif plant["type"] == "slow_decoy":
+                first, second = sorted(e["start_local"] for e in plant["events"])
+                if any(a[0] >= first and a[1] <= second for a in found_alerts[number]):
+                    problems.append("%s: the slow pair is a speed alert" % plant["id"])
+            elif plant["type"] == "rate_change":
+                got = found_rhythm[number]
+                planted_day = datetime.date.fromisoformat(plant["from_date"])
+                if got is None or got[1] != "up" or abs((got[0] - planted_day).days) > 5:
+                    problems.append("%s: the change of rhythm is not found within five days of its date" % plant["id"])
+            elif plant["type"] == "outlier_day":
+                got = found_rhythm[number]
+                if got is not None and abs((got[0] - datetime.date.fromisoformat(plant["day"])).days) <= 3:
+                    problems.append("%s: the one unusual day was taken for a change of rhythm" % plant["id"])
+            elif plant["type"] == "short_trip":
+                if (("night", plant["trip_cell_key"], plant["first_week"]) not in found_short[number]) or any(c[0] == "night" for c in found_changes[number]):
+                    problems.append("%s: the week away is not a short deviation, or it was taken for a move" % plant["id"])
 
     # --- possible meetings (A7): co-location windows preceded by a direct contact, recomputed from the files ---------------------------------
     gap = key["oracle"]["parameters"].get("contact_gap_minutes", 60)

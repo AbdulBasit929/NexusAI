@@ -20,8 +20,8 @@ sys.path.insert(0, os.path.join(REPO, "tools", "real_data"))
 import make_golden as mg  # noqa: E402
 import reserved  # noqa: E402
 
-GENERATOR_VERSION = "0.1"
-SPEC_VERSION = "0.1"
+GENERATOR_VERSION = "0.6"
+SPEC_VERSION = "0.6"
 LOCAL_ZONE = "Asia/Karachi"
 LOCAL_UTC_OFFSET_HOURS = 5   # Asia/Karachi has no daylight saving time
 
@@ -48,7 +48,7 @@ CELLS_PER_OPERATOR = 12
 class Params:
     seed: int = 1
     people: int = 120            # persons in the world (services are extra)
-    subjects: int = 10
+    subjects: int = 12
     associates: int = 24
     period_days: int = 90
     start_date: str = "2026-02-02"
@@ -58,6 +58,7 @@ class Params:
     p3_pairs: int = 2            # co-location plants; each needs a pair of subjects on the same operator
     p6_pairs: int = 2            # successor-number pairs (plant P6); they take the same-operator pairs P3 leaves
     p5: int = 1                  # 1 plants the device and SIM changes (plant P5), 0 leaves identities alone
+    p8: int = 1                  # 1 plants movement and rhythm (plant P8) on the subjects left over by the other parts, 0 leaves them alone
     windows_per_plant: int = 4
     window_minutes: int = 15     # W of the co-location definition (specification section 10)
     dumps: bool = True           # one tower dump per operator that has a subject
@@ -142,6 +143,9 @@ class World:
     p6: list = field(default_factory=list)          # plant P6 records
     active: dict = field(default_factory=dict)      # person id -> (first day, last day) on which the number is in use, where it is not the whole period
     roles: dict = field(default_factory=dict)       # which subjects play which part (allocate_roles)
+    p8: list = field(default_factory=list)          # plant P8 records
+    moves: dict = field(default_factory=dict)       # person id -> home changes: {"from_day", "to_day" (None = for good), "cell"}, oldest first
+    rates: dict = field(default_factory=dict)       # person id -> {"change": [from_day, multiplier], "outlier": [day, multiplier]} on the calls the person originates
 
     def person(self, pid):
         return next(p for p in self.persons if p.pid == pid)
@@ -200,7 +204,7 @@ def allocate_roles(subjects, params):
         singles += [a, b]
     silent = singles.pop(0) if p6 and singles else None
     late = singles.pop(0) if p6 and singles else None
-    return {"p3_pairs": p3, "p6_pairs": p6, "p6_silent": silent, "p6_late": late, "free": singles}
+    return {"p3_pairs": p3, "p6_pairs": p6, "p6_silent": silent, "p6_late": late, "free": singles, "p8": singles[:2] if params.p8 else []}
 
 
 def build_world(params: Params) -> World:
@@ -292,6 +296,31 @@ def build_world(params: Params) -> World:
         world.p6.append({"id": "P6-%03d" % (len(world.p6) + 1), "kind": "late_without_predecessor", "pid": roles["p6_late"], "first_day": int(horizon * 0.30)})
     p6_subjects = {pid for pair in roles["p6_pairs"] for pid in pair} | {roles["p6_silent"], roles["p6_late"]} - {None}
 
+    # --- plant P8 (plan): movement and rhythm ------------------------------------------------------------------------------------------
+    # The first free subject moves house for good (the night anchor changes) and has two impossible-speed pairs and a slow decoy planted below;
+    # the second has one week away from home (a trip: the anchor changes and returns), one day with six times the usual calls (an outlier) and,
+    # from a known day, four times the calls it originates (a change of rhythm). A period under 42 days is too short for either.
+    r8 = random.Random("p8:%d" % params.seed)
+    p8_subjects = list(roles["p8"]) if params.period_days >= 42 else []
+
+    def far_from(cell):
+        return max(range(CELLS_PER_OPERATOR), key=lambda c: ((c // 4 - cell // 4) ** 2 + (c % 4 - cell % 4) ** 2, c))
+    if p8_subjects:
+        a = early_by_pid[p8_subjects[0]]
+        day_move = int(horizon * 0.5) + r8.randint(-3, 3)
+        world.moves[a.pid] = [{"from_day": day_move, "to_day": None, "cell": far_from(a.home_cell)}]
+        world.p8.append({"id": "P8-001", "kind": "relocation", "pid": a.pid, "from_day": day_move, "old_cell": a.home_cell, "new_cell": far_from(a.home_cell)})
+    if len(p8_subjects) > 1:
+        b = early_by_pid[p8_subjects[1]]
+        day_rate = int(horizon * 0.55) + r8.randint(-3, 3)
+        day_outlier = int(horizon * 0.25) + r8.randint(-3, 3)
+        trip_from = 7 * int(horizon * 0.8 / 7)   # a whole week of the case, so the week of the trip is one week
+        world.rates[b.pid] = {"change": [day_rate, 4.0], "outlier": [day_outlier, 6.0]}
+        world.moves[b.pid] = [{"from_day": trip_from, "to_day": trip_from + 6, "cell": far_from(b.home_cell)}]
+        world.p8.append({"id": "P8-005", "kind": "rate_change", "pid": b.pid, "from_day": day_rate, "multiplier": 4.0})
+        world.p8.append({"id": "P8-006", "kind": "outlier_day", "pid": b.pid, "day": day_outlier, "multiplier": 6.0})
+        world.p8.append({"id": "P8-007", "kind": "short_trip", "pid": b.pid, "from_day": trip_from, "to_day": trip_from + 6, "home_cell": b.home_cell, "trip_cell": far_from(b.home_cell)})
+
     # --- background events ------------------------------------------------------------------------------------------------------------
     start = datetime.date.fromisoformat(params.start_date)
     raw = []
@@ -300,12 +329,23 @@ def build_world(params: Params) -> World:
         weekend = date.weekday() >= 5
         for p in persons:
             r = random.Random("ev:%d:%s:%d" % (params.seed, p.pid, day))
-            for _ in range(_poisson(r, params.events_per_person_per_day * (0.6 if weekend else 1.0))):
+            factor = 1.0
+            rate = world.rates.get(p.pid)
+            if rate:
+                factor = rate["change"][1] if day >= rate["change"][0] else 1.0
+                if day == rate["outlier"][0]:
+                    factor = rate["outlier"][1]
+            for _ in range(_poisson(r, params.events_per_person_per_day * (0.6 if weekend else 1.0) * factor)):
                 adj = sorted(neighbours[p.pid].items())
                 target = r.choices([k for k, _ in adj], weights=[w for _, w in adj])[0]
                 when = datetime.datetime.combine(date, datetime.time(_hour(r), r.randrange(60), r.randrange(60)))
                 sms = r.random() < 0.35
                 raw.append((when, "sms" if sms else "call", p.pid, target, 0 if sms else min(1800, max(3, int(r.lognormvariate(4.2, 0.9)))), None, None))
+            if p.pid in p8_subjects and r.random() < 0.9:   # a night owl (plant P8): about one call a night, so the night anchor of every week is well supported
+                adj = sorted(neighbours[p.pid].items())
+                target = r.choices([k for k, _ in adj], weights=[w for _, w in adj])[0]
+                night = datetime.datetime.combine(date, datetime.time(r.choice([22, 23, 0, 1, 2, 3, 4, 5, 6]), r.randrange(60), r.randrange(60)))
+                raw.append((night, "call", p.pid, target, min(900, max(3, int(r.lognormvariate(3.5, 0.9)))), None, None))
             if r.random() < 0.15:  # an automated message from a service
                 label = r.choice(SERVICES)[1]
                 when = datetime.datetime.combine(date, datetime.time(_hour(r), r.randrange(60), r.randrange(60)))
@@ -442,6 +482,30 @@ def build_world(params: Params) -> World:
     before = len(raw)
     raw[:] = [e for e in raw if e[5] is not None or frozenset((e[2], e[3])) not in linked]
     world.removed_contacts = before - len(raw)
+
+    # --- plant P8 (events): impossible speed and its slow decoy ------------------------------------------------------------------------
+    # Two pairs of calls 90 seconds apart at the two corner sites of the grid (about 8 km: over 300 km/h) and, as the decoy, the same two
+    # sites three hours apart (under 3 km/h). The subject's background events within 30 minutes of a planted call are removed, so the
+    # neighbours of a planted call are far enough away never to make a second alert; the counterparty is a person no subject is linked to.
+    if p8_subjects and p3_cursor < len(pool):
+        a = by_pid[p8_subjects[0]]
+        party = pool[p3_cursor]
+        p3_cursor += 1
+        corner_a, corner_b = 0, CELLS_PER_OPERATOR - 1
+        days = r8.sample(range(int(horizon * 0.12), int(horizon * 0.45)), 3)
+        planted_times = []
+        for k, day in enumerate(sorted(days), start=1):
+            kind = "impossible" if k <= 2 else "slow"
+            t0 = local(day, r8.randrange(10, 15), r8.randrange(0, 50))
+            gap = datetime.timedelta(seconds=90) if kind == "impossible" else datetime.timedelta(hours=3)
+            tag = "P8-%03d:%d" % (k + 1, 1) if kind == "impossible" else "P8-004:d"
+            for when, site in ((t0, corner_a), (t0 + gap, corner_b)):
+                raw.append((when, "call", a.pid, party, r8.randrange(10, 40), tag, {a.pid: site}))
+                planted_times.append(when)
+            world.p8.append({"id": "P8-%03d" % (k + 1) if kind == "impossible" else "P8-004", "kind": "impossible_speed" if kind == "impossible" else "slow_decoy",
+                             "pid": a.pid, "day": day, "tag": tag, "from_site": corner_a, "to_site": corner_b, "gap_s": int(gap.total_seconds())})
+        near = datetime.timedelta(minutes=30)
+        raw[:] = [e for e in raw if e[5] is not None or a.pid not in (e[2], e[3]) or all(abs(e[0] - t) > near for t in planted_times)]
 
     if world.active:
         def in_use(pid, when):
@@ -603,15 +667,27 @@ def cell_for(world: World, person: Person, event: Event):
     """The cell site a person is on at an event: home at night, work in office hours on weekdays, otherwise around them."""
     if event.cells and person.pid in event.cells:
         return event.cells[person.pid]
-    r = random.Random("cell:%d:%s:%s" % (world.params.seed, person.pid, event.uid))
     hour, weekday = event.start.hour, event.start.weekday()
+    home = home_at(world, person, event.start.date())
     if hour >= 22 or hour < 7:
-        idx = person.home_cell
+        idx = home
     elif 9 <= hour < 17 and weekday < 5:
         idx = person.work_cell
     else:
-        idx = r.choice([person.home_cell, person.work_cell, (person.home_cell + 1) % CELLS_PER_OPERATOR, (person.work_cell + 1) % CELLS_PER_OPERATOR])
+        # one choice per three-hour block, so two calls minutes apart are at the same site unless a block boundary falls between them
+        r = random.Random("cell:%d:%s:%s:%d" % (world.params.seed, person.pid, event.start.date().isoformat(), hour // 3))
+        idx = r.choice([home, person.work_cell, (home + 1) % CELLS_PER_OPERATOR, (person.work_cell + 1) % CELLS_PER_OPERATOR])
     return idx
+
+
+def home_at(world: World, person: Person, date: datetime.date):
+    """The cell a person sleeps at on a date: the home cell, unless a move (for good, or a trip) is in force (plant P8)."""
+    day = (date - datetime.date.fromisoformat(world.params.start_date)).days
+    cell = person.home_cell
+    for move in world.moves.get(person.pid, []):
+        if move["from_day"] <= day and (move["to_day"] is None or day <= move["to_day"]):
+            cell = move["cell"]
+    return cell
 
 
 def to_utc(local: datetime.datetime) -> datetime.datetime:
@@ -628,7 +704,7 @@ def world_to_json(world: World) -> str:
         "generator_version": GENERATOR_VERSION, "spec_version": SPEC_VERSION, "params": asdict(world.params), "clock": {"local_zone": LOCAL_ZONE, "utc_offset_hours": LOCAL_UTC_OFFSET_HOURS},
         "persons": [asdict(p) for p in world.persons],
         "services": [{"kind": k, "label": v} for k, v in SERVICES],
-        "structure": world.structure, "p2": world.p2, "p3": world.p3, "p7": world.p7, "p5": world.p5, "p6": world.p6, "active": world.active, "roles": world.roles,
+        "structure": world.structure, "p2": world.p2, "p3": world.p3, "p7": world.p7, "p5": world.p5, "p6": world.p6, "p8": world.p8, "moves": world.moves, "rates": world.rates, "active": world.active, "roles": world.roles,
         "sessions": [[s.uid, s.pid, s.start.isoformat(sep=" "), s.end.isoformat(sep=" "), s.nat_start.isoformat(sep=" "), s.nat_end.isoformat(sep=" "), s.ue_ip, s.ue_port, s.public_ip, s.port_from, s.port_to, s.server_ip, s.server_port, s.protocol_num, s.bytes_up, s.bytes_down, s.packets_up, s.packets_down, list(s.app), s.site, s.plant] for s in world.sessions],
         "events": [[e.uid, e.kind, e.orig, e.recip, e.start.isoformat(sep=" "), e.duration_s, e.plant, e.cells] for e in world.events],
     }

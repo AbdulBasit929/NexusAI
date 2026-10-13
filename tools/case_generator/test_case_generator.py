@@ -536,6 +536,172 @@ class SuccessorTests(unittest.TestCase):
         self.assertEqual(oracle.a9_successors(recent, base, end)["silent"], [])
 
 
+class MovementTests(unittest.TestCase):
+    """Plant P8 (a move, a week away, impossible speed and its slow decoy, a change of rhythm and one unusual day) and the A10 and A11 oracles."""
+    PARAMS = dict(people=80, subjects=12, associates=16, period_days=60, p2_pairs=2, p3_pairs=2, p7_plants=0)
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.params = w.Params(seed=91, **cls.PARAMS)
+        cls.world, cls.renders, cls.key = generate.build_case(cls.params)
+        cls.root = generate.write_case(cls.params, cls.tmp.name)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def plants(self, kind):
+        return [p for p in self.key["plants"] if p["type"] == kind]
+
+    def test_every_part_is_planted_on_subjects_that_play_nothing_else(self):
+        for kind, count in (("relocation", 1), ("impossible_speed", 2), ("slow_decoy", 1), ("rate_change", 1), ("outlier_day", 1), ("short_trip", 1)):
+            self.assertEqual(len(self.plants(kind)), count, kind)
+        roles = self.world.roles
+        busy = {pid for pair in roles["p3_pairs"] + roles["p6_pairs"] for pid in pair} | {roles["p6_silent"], roles["p6_late"]}
+        self.assertFalse(busy & set(roles["p8"]))
+        self.assertEqual(len(roles["p8"]), 2)
+        self.assertEqual({p["pid"] for p in self.world.p8}, set(roles["p8"]))
+
+    def test_the_home_moves_for_good_and_the_trip_comes_back(self):
+        move = self.plants("relocation")[0]
+        found = [c for c in self.key["oracle"]["A10"]["numbers"][move["number"]]["changes"] if c["slot"] == "night"]
+        self.assertEqual([(c["from_cell"], c["to_cell"]) for c in found], [(move["old_cell_key"], move["new_cell_key"])])
+        self.assertTrue(7 * (found[0]["first_week"] - 1) <= move["from_day"] < 7 * (found[0]["first_week"] + 1))
+        self.assertGreater(found[0]["distance_km"], 4.0)
+        self.assertEqual([c for c in self.key["oracle"]["A10"]["numbers"][move["number"]]["changes"] if c["slot"] == "day"], [], "only the home moved")
+        trip = self.plants("short_trip")[0]
+        first = (datetime.date.fromisoformat(trip["from_date"]) - datetime.date.fromisoformat(self.params.start_date)).days
+        self.assertEqual((first % 7, (datetime.date.fromisoformat(trip["to_date"]) - datetime.date.fromisoformat(trip["from_date"])).days), (0, 6), "a whole week of the case")
+        report = self.key["oracle"]["A10"]["numbers"][trip["number"]]
+        self.assertEqual([c for c in report["changes"] if c["slot"] == "night"], [])
+        self.assertIn(("night", trip["trip_cell_key"], trip["first_week"]), [(d["slot"], d["cell_key"], d["first_week"]) for d in report["short_deviations"]])
+
+    def test_the_impossible_pairs_are_alerts_and_the_slow_pair_is_not(self):
+        alerts = self.key["oracle"]["A10"]["numbers"][self.plants("impossible_speed")[0]["number"]]["speed_alerts"]
+        self.assertEqual(len(alerts), 2, "the other calls of the subject are far enough away never to make a second alert")
+        for plant in self.plants("impossible_speed"):
+            first, second = sorted(e["start_local"] for e in plant["events"])
+            hit = [a for a in alerts if (a["from_time"], a["to_time"]) == (first, second)]
+            self.assertEqual(len(hit), 1)
+            self.assertEqual(hit[0]["gap_s"], 90)
+            self.assertGreater(hit[0]["speed_kmh"], 300)
+        slow = self.plants("slow_decoy")[0]
+        first, second = sorted(e["start_local"] for e in slow["events"])
+        self.assertFalse([a for a in alerts if a["from_time"] >= first and a["to_time"] <= second])
+
+    def test_only_the_planted_rhythm_is_a_change_and_the_unusual_day_is_not(self):
+        changes = {n: r["change"] for n, r in self.key["oracle"]["A11"]["numbers"].items() if r["change"]}
+        plant = self.plants("rate_change")[0]
+        self.assertEqual(list(changes), [plant["number"]])
+        change = changes[plant["number"]]
+        self.assertEqual(change["direction"], "up")
+        self.assertLessEqual(abs((datetime.date.fromisoformat(change["first_day"]) - datetime.date.fromisoformat(plant["from_date"])).days), 5)
+        self.assertGreater(change["ratio"], 1.5)
+        outlier = self.plants("outlier_day")[0]
+        self.assertEqual(outlier["number"], plant["number"])
+        self.assertGreater(abs((datetime.date.fromisoformat(change["first_day"]) - datetime.date.fromisoformat(outlier["day"])).days), 3)
+
+    def test_the_planted_speed_calls_have_no_neighbours_within_half_an_hour(self):
+        for plant in self.plants("impossible_speed") + self.plants("slow_decoy"):
+            pid = next(p.pid for p in self.world.persons if p.msisdn == plant["number"])
+            planted = [e for e in self.world.events if e.plant and e.plant.startswith("P8-") and pid in (e.orig, e.recip)]
+            others = [e for e in self.world.events if pid in (e.orig, e.recip) and not (e.plant or "").startswith("P8-")]
+            self.assertTrue(planted)
+            for e in planted:
+                for o in others:
+                    self.assertGreater(abs((o.start - e.start).total_seconds()), 1800, (plant["id"], o.uid))
+
+    def test_every_week_of_the_p8_subjects_has_enough_night_events_for_an_anchor(self):
+        base = datetime.datetime.combine(datetime.date.fromisoformat(self.params.start_date), datetime.time(0, 0))
+        for pid in self.world.roles["p8"]:
+            rows = self.renders[pid].visible
+            per_week = {}
+            for r in rows:
+                moment = datetime.datetime.fromisoformat(r["start_local"])
+                if moment.hour >= 22 or moment.hour < 7:
+                    per_week[(moment - base).days // 7] = per_week.get((moment - base).days // 7, 0) + 1
+            weeks = self.params.period_days // 7
+            self.assertTrue(all(per_week.get(wk, 0) >= 3 for wk in range(weeks)), (pid, sorted(per_week.items())))
+
+    def test_the_unusual_day_has_far_more_events_than_a_usual_one(self):
+        plant = self.plants("outlier_day")[0]
+        pid = next(p.pid for p in self.world.persons if p.msisdn == plant["number"])
+        per_day = {}
+        for r in self.renders[pid].visible:
+            per_day[r["start_local"][:10]] = per_day.get(r["start_local"][:10], 0) + 1
+        before = sorted(n for day, n in per_day.items() if day < self.plants("rate_change")[0]["from_date"])     # the days before the rhythm changes
+        usual = before[len(before) // 2]
+        self.assertGreater(per_day[plant["day"]], 2 * usual)
+
+    def test_the_audit_passes_with_movement(self):
+        self.assertEqual(audit.audit(self.root), [])
+
+    def test_a_wrongly_keyed_move_or_alert_is_noticed(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = generate.write_case(self.params, d)
+            key_path = os.path.join(root, "key", "key.json")
+            with open(key_path, encoding="utf-8") as handle:
+                key = json.load(handle)
+            for p in key["plants"]:
+                if p["type"] == "relocation":
+                    p["from_day"] = 0
+            number = next(p["number"] for p in key["plants"] if p["type"] == "impossible_speed")
+            key["oracle"]["A10"]["numbers"][number]["speed_alerts"].pop()
+            with open(key_path, "w", encoding="utf-8") as handle:
+                json.dump(key, handle)
+            problems = audit.audit(root)
+            self.assertTrue(any("planted move" in p for p in problems))
+            self.assertTrue(any("speed alerts in the key differ" in p for p in problems))
+
+    def test_anchors_and_speeds_by_hand(self):
+        base = datetime.datetime(2026, 2, 2)    # a Monday
+        place = {"K1": (0.0, 0.0), "K2": (0.0, 0.09), "K3": (0.09, 0.0), "K9": (0.0, 0.18)}
+
+        def row(when, cell):
+            return {"start_local": when.isoformat(sep=" "), "uid": "u%d" % abs(hash((when, cell))), "cell_key": cell, "lat": place[cell][0], "lon": place[cell][1]}
+
+        def nights(week, cell, count=3):
+            return [row(base + datetime.timedelta(days=7 * week + k, hours=23), cell) for k in range(count)]
+        moved = sum([nights(wk, "K1") for wk in range(4)], []) + sum([nights(wk, "K2") for wk in range(4, 8)], [])
+        trip = sum([nights(wk, "K1") for wk in (0, 1, 2, 4, 5, 6)], []) + nights(3, "K2")
+        thin = sum([nights(wk, "K1") for wk in (0, 1, 3, 4)], []) + nights(2, "K2", 2)    # the week with 2 events has no anchor
+        work = [row(base + datetime.timedelta(days=7 * wk + k, hours=10), "K9") for wk in range(4) for k in range(3)]
+        work += [row(base + datetime.timedelta(days=7 * wk + 5, hours=10, minutes=k), "K3") for wk in range(4) for k in range(3)]     # Saturdays are not the day anchor
+        answer = oracle.a10_movement({"MOVED": moved, "TRIP": trip, "THIN": thin, "WORK": work}, base)["numbers"]
+        self.assertEqual([(c["slot"], c["from_cell"], c["to_cell"], c["first_week"]) for c in answer["MOVED"]["changes"]], [("night", "K1", "K2", 4)])
+        self.assertAlmostEqual(answer["MOVED"]["changes"][0]["distance_km"], 10.007, places=2)
+        self.assertEqual(answer["MOVED"]["changes"][0]["first_week_start"], "2026-03-02")
+        self.assertEqual(answer["TRIP"]["changes"], [])
+        self.assertEqual([(d["slot"], d["cell_key"], d["first_week"]) for d in answer["TRIP"]["short_deviations"]], [("night", "K2", 3)])
+        self.assertEqual((answer["THIN"]["changes"], answer["THIN"]["short_deviations"]), ([], []))
+        self.assertEqual((answer["WORK"]["anchors"]["day"], answer["WORK"]["anchors"]["night"]), ([{"cell_key": "K9", "first_week": 0, "last_week": 3}], []))
+        # speed: 10.007 km in 3 minutes is 200 km/h (an alert); in 181 seconds it is not; the same cell twice is never one
+        noon = base + datetime.timedelta(hours=12)
+        pairs = {"AT": [row(noon, "K1"), row(noon + datetime.timedelta(minutes=3), "K2")], "SLOW": [row(noon, "K1"), row(noon + datetime.timedelta(seconds=181), "K2")],
+                 "SAME": [row(noon, "K1"), row(noon + datetime.timedelta(seconds=1), "K1")]}
+        alerts = {n: r["speed_alerts"] for n, r in oracle.a10_movement(pairs, base)["numbers"].items()}
+        self.assertEqual((len(alerts["AT"]), len(alerts["SLOW"]), len(alerts["SAME"])), (1, 0, 0))
+        self.assertAlmostEqual(alerts["AT"][0]["speed_kmh"], 200.15, delta=0.1)
+
+    def test_rhythm_by_hand(self):
+        base = datetime.datetime(2026, 2, 2)
+
+        def rows(counts):
+            return [{"start_local": (base + datetime.timedelta(days=d, hours=9, minutes=m)).isoformat(sep=" ")} for d, n in enumerate(counts) for m in range(n)]
+        steady = [4, 6] * 20
+        answer = oracle.a11_rate_change({"UP": rows(steady[:20] + [x * 2 for x in steady[:20]]),
+                                         "DOWN": rows([x * 2 for x in steady[:20]] + steady[:20]),
+                                         "SPIKE": rows(steady[:20] + [40] + steady[21:]),
+                                         "SMALL": rows([10, 11] * 10 + [12, 13] * 10),                    # 10.5 to 12.5 a day: far beyond chance, but a ratio of 1.2
+                                         "NOISY": rows([0, 10] * 10 + [0, 20] * 10),                    # a ratio of 2, but the days vary too much for t to reach 4
+                                         "SHORT": rows([2] * 8 + [20] * 8)})["numbers"]
+        self.assertEqual((answer["UP"]["change"]["first_day"], answer["UP"]["change"]["direction"]), ("2026-02-22", "up"))
+        self.assertEqual((answer["DOWN"]["change"]["first_day"], answer["DOWN"]["change"]["direction"]), ("2026-02-22", "down"))
+        for name in ("SPIKE", "SMALL", "NOISY", "SHORT"):
+            self.assertIsNone(answer[name]["change"], name)
+
+
 class SessionTests(unittest.TestCase):
     """Internet-record exports (I1 to I4) and application usage (A1)."""
     FIELDS = ("msisdn", "imsi", "imei", "tac", "ue_ip", "ue_port", "public_ip", "public_port_from", "public_port_to", "server_ip", "server_port", "protocol",
