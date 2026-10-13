@@ -31,7 +31,14 @@ POLICY = Policy(source_tz="Asia/Karachi", tz_basis="assumed_by_profile")
 
 
 def read_export(path):
-    meta, sheets = profile_structure.iter_xlsx_sheets(path)
+    """The rows of the first sheet of an export in any of the containers (xlsx, SpreadsheetML, CSV, UTF-16 text), read as the vault tools read them."""
+    kind = profile_structure.sniff_kind(path)
+    if kind == "xlsx":
+        meta, sheets = profile_structure.iter_xlsx_sheets(path)
+    elif kind == "spreadsheetml":
+        meta, sheets = profile_structure.iter_spreadsheetml_sheets(path)
+    else:
+        meta, sheets = profile_structure.iter_text_rows(path)
     name, rows = sheets[0]
     return [list(r) for r in rows()]
 
@@ -190,6 +197,64 @@ def audit(case_dir, registry=None):
         twice = sorted(n for n, p in population.items() if len(p["cells"]) >= 2) if wanted else None
         if twice != answer["at_two_or_more_cells"]:
             problems.append("%s: the numbers seen at two or more cells differ from the key" % dump["name"])
+
+    # --- internet-record and application-usage exports: read back, addresses reserved, no two sessions hold one address and port at once ----
+    held = []   # (public ip, port from, port to, start, end, msisdn)
+    for item in key.get("sessions", []):
+        rows = read_export(os.path.join(case_dir, *item["file"].split("/")))
+        report = registry.find_header(rows)
+        if report.matched_entry_id != item["layout_id"]:
+            problems.append("%s: the registry selects %s, the key says %s" % (item["file"], report.matched_entry_id, item["layout_id"]))
+            continue
+        entry = registry.get(item["layout_id"])
+        results = list(interpret_rows(entry, rows[report.header_row], rows[report.header_row + 1:], policy=POLICY))
+        if any(r.status != "accepted" for r in results):
+            problems.append("%s: rows are not accepted" % item["file"])
+        if len(results) != item["rows"]:
+            problems.append("%s: %d rows read, the key says %d" % (item["file"], len(results), item["rows"]))
+        for r in results:
+            rec = r.record or {}
+            if rec.get("msisdn") != item["msisdn"]:
+                problems.append("%s: a row belongs to another subscriber" % item["file"])
+                break
+            if not (reserved.is_reserved_ip(rec.get("public_ip") or "") and reserved.is_reserved_ip(rec.get("server_ip") or "")):
+                problems.append("%s: a public or server address is outside the documentation blocks" % item["file"])
+                break
+            if not rec.get("public_port_from") or rec["public_port_from"] > rec["public_port_to"]:
+                problems.append("%s: a public port block is empty or reversed" % item["file"])
+                break
+            begin = rec.get("nat_start_local") or rec["start_local"]
+            finish = rec.get("nat_end_local") or rec.get("end_local") or rec["start_local"]
+            if finish < begin:
+                problems.append("%s: a session ends before it starts" % item["file"])
+                break
+            held.append((rec["public_ip"], rec["public_port_from"], rec["public_port_to"], begin, finish, rec["msisdn"]))
+    by_ip = {}
+    for ip, lo, hi, begin, finish, who in held:
+        by_ip.setdefault(ip, []).append((lo, hi, begin, finish, who))
+    for ip, spans in by_ip.items():
+        spans.sort(key=lambda s: s[2])
+        for i, a in enumerate(spans):
+            clash = False
+            for b in spans[i + 1:]:
+                if b[2] > a[3]:
+                    break
+                if a[0] <= b[1] and b[0] <= a[1]:
+                    clash = True
+                    break
+            if clash:
+                problems.append("two sessions hold the same public address and port at the same time (%s)" % ip)
+                break
+    for item in key.get("app_usage", []):
+        rows = read_export(os.path.join(case_dir, *item["file"].split("/")))
+        report = registry.find_header(rows)
+        if report.matched_entry_id != item["layout_id"]:
+            problems.append("%s: the registry selects %s" % (item["file"], report.matched_entry_id))
+            continue
+        entry = registry.get(item["layout_id"])
+        results = list(interpret_rows(entry, rows[report.header_row], rows[report.header_row + 1:], policy=POLICY))
+        if any(r.status != "accepted" for r in results) or len(results) != item["rows"]:
+            problems.append("%s: rows differ from the key" % item["file"])
 
     # --- co-location (A5): recomputed by brute force over the events read from the files -------------------------------------------------
     window = key["oracle"]["parameters"].get("window_minutes", 15)

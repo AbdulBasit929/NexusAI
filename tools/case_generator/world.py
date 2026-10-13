@@ -29,6 +29,14 @@ OPERATOR_LABELS = ["ufone", "zong", "mobilink", "telenor"]
 OPERATOR_LAYOUTS = ["call-c1-company", "call-c2-strt-tm", "call-c3-ufone-style", "call-c4-telenor-style"]
 # The tower-dump layout of each operator (ufone, zong, mobilink, telenor), by the operator labels of the layout entries.
 OPERATOR_DUMP_LAYOUTS = ["geofence-c7-ufone", "geofence-c8-zong", "geofence-c5-mobilink", "geofence-c6-telenor"]
+# The internet-record export of each operator (ufone I3, zong I4, mobilink I1, telenor I2); I3 writes port ranges, the others one port.
+OPERATOR_IPDR_LAYOUTS = ["ipdr-i3-ufone-xls", "ipdr-i4-zong-txt", "ipdr-i1-jazz-ufdr", "ipdr-i2-telenor-export"]
+APP_USAGE_LAYOUT = "appusage-a1"
+PORT_BLOCK = {0: 64}                  # operators whose layout writes a range allocate blocks of this many ports; the others one port
+# Carrier-grade address translation: a few public addresses per operator (documentation block), shared by many subscriptions.
+PUBLIC_POOL = [[reserved.synthetic_ipv4(op * 3 + k) for k in range(3)] for op in range(4)]
+SERVER_IPS = [reserved.synthetic_ipv4(300 + k) for k in range(8)]
+APPS = [("Social Networking", "app_a", "feature_a"), ("Video", "app_b", "feature_b"), ("Messaging", "app_c", "feature_a"), ("Web Browsing", "app_a", "feature_b")]
 # Service counterparties: short codes and sender ids cannot be real person numbers (they are the ones the goldens use).
 SERVICES = [("short_code", s) for s in mg.SHORT_CODES] + [("sender_id", s) for s in mg.SENDERS]
 DECOY_SERVICE = "786"
@@ -52,6 +60,8 @@ class Params:
     window_minutes: int = 15     # W of the co-location definition (specification section 10)
     dumps: bool = True           # one tower dump per operator that has a subject
     dump_days: int = 2
+    sessions_per_subject_per_day: float = 6.0
+    app_usage_exports: int = 2   # subjects that also get an app-usage export (layout A1)
     shared_min: int = 3
     shared_max: int = 5
     hub_threshold: int | None = None  # distinct subjects (files) in contact with a number above which it is a hub; default subjects - 2
@@ -87,6 +97,31 @@ class Event:
 
 
 @dataclass
+class Session:
+    uid: str
+    pid: str
+    start: datetime.datetime
+    end: datetime.datetime
+    nat_start: datetime.datetime
+    nat_end: datetime.datetime
+    ue_ip: str
+    ue_port: int
+    public_ip: str
+    port_from: int
+    port_to: int
+    server_ip: str
+    server_port: int
+    protocol_num: int
+    bytes_up: int
+    bytes_down: int
+    packets_up: int
+    packets_down: int
+    app: tuple
+    site: int
+    plant: str | None = None
+
+
+@dataclass
 class World:
     params: Params
     persons: list = field(default_factory=list)
@@ -94,6 +129,7 @@ class World:
     structure: dict = field(default_factory=dict)   # plant P1: communities, chains, bridges, hubs
     p2: list = field(default_factory=list)          # plant P2 records
     p3: list = field(default_factory=list)          # plant P3 records
+    sessions: list = field(default_factory=list)    # data sessions (subjects, and the subscriptions of plant P7)
 
     def person(self, pid):
         return next(p for p in self.persons if p.pid == pid)
@@ -302,7 +338,48 @@ def build_world(params: Params) -> World:
     raw.sort(key=lambda e: (e[0], e[2], e[3], e[1]))
     for i, (when, kind, a, b, duration, plant, cells) in enumerate(raw, start=1):
         world.events.append(Event("E%07d" % i, kind, a, b, when, duration, plant, cells))
+    build_sessions(world)
     return world
+
+
+def allocate_port_block(allocations, public_ip, start, end, size, rng):
+    """A port block on a public address that no other session holds during [start, end]: the background never collides."""
+    taken = allocations.setdefault(public_ip, [])
+    for _ in range(400):
+        low = rng.randrange(1024, 65536 - size)
+        high = low + size - 1
+        if all(not (a_start <= end and start <= a_end and low <= a_high and a_low <= high) for a_start, a_end, a_low, a_high in taken):
+            taken.append((start, end, low, high))
+            return low, high
+    raise RuntimeError("no free port block on %s" % public_ip)
+
+
+def build_sessions(world):
+    """Data sessions of the subjects: a private address, a public address and port block that no one else holds at that time, a server,
+    volumes and an application. Other subscriptions have sessions only where a plant needs them (P7)."""
+    params = world.params
+    start_day = datetime.date.fromisoformat(params.start_date)
+    allocations = world.allocations = {}
+    counter = 0
+    for p in [x for x in world.persons if x.role == "subject"]:
+        block = PORT_BLOCK.get(p.operator, 1)
+        for day in range(params.period_days):
+            r = random.Random("sess:%d:%s:%d" % (params.seed, p.pid, day))
+            weekend = (start_day + datetime.timedelta(days=day)).weekday() >= 5
+            for _ in range(_poisson(r, params.sessions_per_subject_per_day * (0.7 if weekend else 1.0))):
+                when = datetime.datetime.combine(start_day + datetime.timedelta(days=day), datetime.time(_hour(r), r.randrange(60), r.randrange(60)))
+                length = min(2400, max(5, int(r.lognormvariate(4.5, 1.0))))
+                end = when + datetime.timedelta(seconds=length)
+                public_ip = PUBLIC_POOL[p.operator][r.randrange(len(PUBLIC_POOL[p.operator]))]
+                low, high = allocate_port_block(allocations, public_ip, when, end, block, r)
+                counter += 1
+                world.sessions.append(Session(
+                    "S%07d" % counter, p.pid, when, end, when, end, "10.%d.%d.%d" % (p.n % 200, r.randrange(256), r.randrange(1, 255)), r.randrange(1024, 65536),
+                    public_ip, low, high if block > 1 else low, r.choice(SERVER_IPS), r.choice([53, 80, 443, 8080]), r.choice([6, 6, 6, 17]),
+                    r.randrange(0, 99999), r.randrange(0, 999999), r.randrange(1, 99), r.randrange(1, 99), r.choice(APPS), r.randrange(CELLS_PER_OPERATOR), None))
+    world.sessions.sort(key=lambda s: (s.start, s.pid))
+    for i, s in enumerate(world.sessions, start=1):
+        s.uid = "S%07d" % i
 
 
 def cell_for(world: World, person: Person, event: Event):
@@ -335,6 +412,7 @@ def world_to_json(world: World) -> str:
         "persons": [asdict(p) for p in world.persons],
         "services": [{"kind": k, "label": v} for k, v in SERVICES],
         "structure": world.structure, "p2": world.p2, "p3": world.p3,
+        "sessions": [[s.uid, s.pid, s.start.isoformat(sep=" "), s.end.isoformat(sep=" "), s.nat_start.isoformat(sep=" "), s.nat_end.isoformat(sep=" "), s.ue_ip, s.ue_port, s.public_ip, s.port_from, s.port_to, s.server_ip, s.server_port, s.protocol_num, s.bytes_up, s.bytes_down, s.packets_up, s.packets_down, list(s.app), s.site, s.plant] for s in world.sessions],
         "events": [[e.uid, e.kind, e.orig, e.recip, e.start.isoformat(sep=" "), e.duration_s, e.plant, e.cells] for e in world.events],
     }
     return json.dumps(doc, sort_keys=True, indent=1, ensure_ascii=True)

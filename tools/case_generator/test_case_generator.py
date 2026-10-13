@@ -66,7 +66,7 @@ class CaseTests(unittest.TestCase):
 
     def test_zip_members_carry_a_fixed_timestamp(self):
         import zipfile
-        for name in sorted(os.listdir(os.path.join(self.root, "files"))):
+        for name in sorted(n for n in os.listdir(os.path.join(self.root, "files")) if n.endswith(".xlsx")):
             with zipfile.ZipFile(os.path.join(self.root, "files", name)) as archive:
                 self.assertEqual({info.date_time for info in archive.infolist()}, {(2026, 1, 1, 0, 0, 0)}, name)
 
@@ -82,6 +82,8 @@ class CaseTests(unittest.TestCase):
 
     def test_each_export_is_selected_read_and_equal_to_the_truth(self):
         for pid, rendered in self.renders.items():
+            if pid.startswith(("ipdr-", "usage-")):
+                continue  # internet-record and usage exports have their own tests
             with self.subTest(layout=rendered.layout_id):
                 entry = REGISTRY.get(rendered.layout_id)
                 report = REGISTRY.find_header(rendered.table)
@@ -291,6 +293,99 @@ class ColocationOracleTests(unittest.TestCase):
         for field in ("pairs_observed", "pairs_within_window", "pairs_expected", "lift"):
             self.assertEqual(later[field], base[field], field)
         self.assertEqual([w["pairs"] for w in later["windows"]], [w["pairs"] for w in base["windows"]])
+
+
+class SessionTests(unittest.TestCase):
+    """Internet-record exports (I1 to I4) and application usage (A1)."""
+    FIELDS = ("msisdn", "imsi", "imei", "tac", "ue_ip", "ue_port", "public_ip", "public_port_from", "public_port_to", "server_ip", "server_port", "protocol",
+              "session_ref", "start_local", "end_local", "nat_start_local", "nat_end_local", "bytes_up", "bytes_down", "packets_up", "packets_down",
+              "duration_ms", "cell_key", "apn", "rat", "app_category", "app", "app_feature", "host", "url", "user_agent")
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.params = w.Params(seed=31, people=60, subjects=4, associates=12, period_days=12, p2_pairs=1, p3_pairs=0)
+        cls.world, cls.renders, cls.key = generate.build_case(cls.params)
+        cls.root = generate.write_case(cls.params, cls.tmp.name)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def test_each_internet_layout_reads_back_equal_to_the_truth(self):
+        names = [n for n in self.renders if n.startswith("ipdr-")]
+        self.assertEqual(len(names), 4)
+        self.assertEqual({self.renders[n].layout_id for n in names}, set(w.OPERATOR_IPDR_LAYOUTS))
+        for name in names:
+            rendered = self.renders[name]
+            entry = REGISTRY.get(rendered.layout_id)
+            with self.subTest(layout=rendered.layout_id):
+                self.assertEqual(REGISTRY.find_header(rendered.table).matched_entry_id, rendered.layout_id)
+                results = list(interpret_rows(entry, rendered.table[rendered.header_index], rendered.table[rendered.header_index + 1:], policy=POLICY))
+                self.assertEqual(len(results), len(rendered.rows))
+                self.assertGreater(len(results), 20)
+                for result, expected in zip(results, rendered.rows):
+                    self.assertEqual(result.status, "accepted", result.reason)
+                    for field in self.FIELDS:
+                        if field in expected:
+                            self.assertEqual(result.record.get(field), expected[field], "%s %s" % (expected["uid"], field))
+
+    def test_application_usage_reads_back_equal_to_the_truth(self):
+        names = [n for n in self.renders if n.startswith("usage-")]
+        self.assertEqual(len(names), 2)
+        for name in names:
+            rendered = self.renders[name]
+            entry = REGISTRY.get(rendered.layout_id)
+            results = list(interpret_rows(entry, rendered.table[0], rendered.table[1:], policy=POLICY))
+            self.assertEqual(len(results), len(rendered.rows))
+            for result, expected in zip(results, rendered.rows):
+                self.assertEqual(result.status, "accepted", result.reason)
+                for field in ("msisdn", "imsi", "imei", "tac", "start_local", "end_local", "terminal", "apn", "app_category", "app", "app_feature", "province", "city"):
+                    self.assertEqual(result.record.get(field), expected[field], field)
+
+    def test_the_audit_passes_with_sessions(self):
+        self.assertEqual(audit.audit(self.root), [])
+
+    def test_no_two_background_sessions_hold_one_address_and_port_at_once(self):
+        sessions = sorted(self.world.sessions, key=lambda s: s.start)
+        self.assertGreater(len(sessions), 150)
+        for i, a in enumerate(sessions):
+            for b in sessions[i + 1:]:
+                if b.start > a.nat_end:
+                    break
+                if a.public_ip == b.public_ip and a.port_from <= b.port_to and b.port_from <= a.port_to:
+                    self.fail("two sessions share %s ports %s-%s" % (a.public_ip, a.port_from, a.port_to))
+
+    def test_port_blocks_follow_the_operators_layout(self):
+        operator_of = {p.pid: p.operator for p in self.world.persons}
+        for s in self.world.sessions:
+            width = s.port_to - s.port_from + 1
+            self.assertEqual(width, w.PORT_BLOCK.get(operator_of[s.pid], 1))
+            self.assertIn(s.public_ip, w.PUBLIC_POOL[operator_of[s.pid]])
+
+    def test_sessions_exist_for_subjects_only(self):
+        subjects = {p.pid for p in self.world.persons if p.role == "subject"}
+        self.assertEqual({s.pid for s in self.world.sessions}, subjects)
+
+    def test_a_session_file_with_a_forged_address_is_noticed(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = generate.write_case(self.params, d)
+            with open(os.path.join(root, "key", "key.json"), encoding="utf-8") as handle:
+                item = json.load(handle)["sessions"][0]
+            rendered = self.renders[item["name"]]
+            table = [list(row) for row in rendered.table]
+            columns = table[rendered.header_index]
+            table[rendered.header_index + 1][columns.index(next(c for c in columns if c.lower().replace(" ", "_") in ("public_ip", "public_source_ip")))] = "8.8.4.4"
+            damaged = render.RenderedFile(rendered.layout_id, rendered.subject, table, rendered.header_index, rendered.numeric_columns, rendered.container,
+                                          rendered.sheet_name, rendered.encoding, rendered.delimiter, rendered.rows)
+            path = damaged.write(os.path.join(root, "files"), os.path.basename(item["file"]).rsplit(".", 1)[0])
+            with open(os.path.join(root, "manifest.json"), encoding="utf-8") as handle:
+                manifest = json.load(handle)
+            with open(path, "rb") as handle:
+                manifest["files"][item["file"]]["sha256"] = hashlib.sha256(handle.read()).hexdigest()
+            with open(os.path.join(root, "manifest.json"), "w", encoding="utf-8") as handle:
+                json.dump(manifest, handle)
+            self.assertTrue(any("documentation blocks" in p for p in audit.audit(root)), audit.audit(root))
 
 
 class DumpTests(unittest.TestCase):

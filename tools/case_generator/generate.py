@@ -23,6 +23,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import oracle  # noqa: E402
 import render  # noqa: E402
+import render_sessions  # noqa: E402
 import world as w  # noqa: E402
 from ingestion.forensic_records.layout_registry import load_registry  # noqa: E402
 
@@ -156,13 +157,25 @@ def build_case(params, registry=None):
             answer = oracle.a6_population(rendered.rows, cell_keys)
             answer["dump"] = name
             a6.append(answer)
+    # --- internet-record exports and application usage ---------------------------------------------------------------------------------
+    session_files, usage_files = [], []
+    for s in subjects:
+        entry = registry.get(w.OPERATOR_IPDR_LAYOUTS[s.operator])
+        name = "ipdr-%s" % s.pid
+        renders[name] = render_sessions.render_sessions(world, entry, [(x, s) for x in world.sessions if x.pid == s.pid], label=s.pid)
+        session_files.append({"name": name, "person": s.pid, "msisdn": s.msisdn, "layout_id": entry["layout_id"], "file": None, "rows": len(renders[name].rows)})
+    for s in subjects[:params.app_usage_exports]:
+        entry = registry.get(w.APP_USAGE_LAYOUT)
+        name = "usage-%s" % s.pid
+        renders[name] = render_sessions.render_app_usage(world, entry, s, [x for x in world.sessions if x.pid == s.pid])
+        usage_files.append({"name": name, "person": s.pid, "msisdn": s.msisdn, "layout_id": entry["layout_id"], "file": None, "rows": len(renders[name].rows)})
     key = {
         "case_id": None, "seed": params.seed, "generator_version": w.GENERATOR_VERSION, "spec_version": w.SPEC_VERSION,
         "clock": {"local_zone": w.LOCAL_ZONE, "utc_offset_hours": w.LOCAL_UTC_OFFSET_HOURS, "key_time": "local wall clock as the files show it"},
         "params": json.loads(json.dumps(params.__dict__)),
         "subjects": [{"person": s.pid, "msisdn": s.msisdn, "operator": w.OPERATOR_LABELS[s.operator], "layout_id": renders[s.pid].layout_id,
                       "file": None, "rows": len(renders[s.pid].rows), "events_not_representable": len(renders[s.pid].skipped)} for s in subjects],
-        "dumps": dumps,
+        "dumps": dumps, "sessions": session_files, "app_usage": usage_files,
         "structure": world.structure,
         "plants": plants,
         "oracle": {"parameters": {"hub_threshold": threshold, "contact_kinds": list(oracle.PERSON_KINDS), "window_minutes": params.window_minutes},
@@ -185,7 +198,7 @@ def write_case(params, out_dir, registry=None):
         rendered = renders[entry["person"]]
         path = rendered.write(os.path.join(root, "files"), "export-%s-%s" % (entry["person"], rendered.layout_id))
         entry["file"] = "files/" + os.path.basename(path)
-    for entry in key["dumps"]:
+    for entry in key["dumps"] + key["sessions"] + key["app_usage"]:
         rendered = renders[entry["name"]]
         path = rendered.write(os.path.join(root, "files"), "%s-%s" % (entry["name"], rendered.layout_id))
         entry["file"] = "files/" + os.path.basename(path)
