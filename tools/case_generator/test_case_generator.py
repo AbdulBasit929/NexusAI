@@ -5,6 +5,7 @@ canonical truth; the independent audit passes; nothing in a case looks like real
 decoy stops being a decoy, or a file is the wrong layout. No real value appears here: values that look real are assembled at run time.
 """
 import copy
+import datetime
 import hashlib
 import io
 import json
@@ -239,6 +240,152 @@ class OracleTests(unittest.TestCase):
         self.assertEqual(oracle.a2_common(visible, x, y, threshold=1)["shared"], [])
         profile = oracle.a1_profile(visible)[x]
         self.assertEqual((profile[0]["number"], profile[0]["outgoing"], profile[0]["incoming"], profile[0]["voice_seconds"]), (a, 1, 1, 35))
+
+
+class ColocationOracleTests(unittest.TestCase):
+    """A5 on cases small enough to check by hand."""
+
+    @staticmethod
+    def rows(items):
+        return [{"start_local": when, "cell_key": cell} for when, cell in items]
+
+    def test_windows_pairs_and_the_boundary_by_hand(self):
+        x = self.rows([("2026-02-03 10:00:00", "A"), ("2026-02-03 10:06:00", "A"), ("2026-02-03 12:00:00", "B"), ("2026-02-03 15:00:00", "A")])
+        y = self.rows([("2026-02-03 10:03:00", "A"), ("2026-02-03 10:20:00", "A"), ("2026-02-03 12:20:00", "B"), ("2026-02-03 15:00:00", "C")])
+        answer = oracle.a5_colocation(x, y, 15)
+        # (10:00,10:03) (10:06,10:03) (10:06,10:20) are on cell A; (10:00,10:20) and (12:00,12:20) are over 15 minutes apart; 15:00 is two cells
+        self.assertEqual((answer["pairs_observed"], answer["pairs_within_window"]), (3, 4))
+        self.assertEqual(answer["windows"], [{"cell_key": "A", "start_local": "2026-02-03 10:00:00", "end_local": "2026-02-03 10:20:00", "pairs": 3}])
+        self.assertEqual(answer["caveat"], "proximity is not association")
+        exact = oracle.a5_colocation(self.rows([("2026-02-03 10:00:00", "A")]), self.rows([("2026-02-03 10:15:00", "A")]), 15)
+        self.assertEqual(exact["pairs_observed"], 1, "a difference of exactly W is co-located")
+        over = oracle.a5_colocation(self.rows([("2026-02-03 10:00:00", "A")]), self.rows([("2026-02-03 10:15:01", "A")]), 15)
+        self.assertEqual(over["pairs_observed"], 0)
+        self.assertEqual(oracle.a5_colocation(self.rows([("2026-02-03 10:00:00", "A")]), self.rows([("2026-02-03 10:01:00", "B")]), 15)["pairs_observed"], 0)
+
+    def test_the_chance_baseline_by_hand(self):
+        x = self.rows([("2026-02-03 10:0%d:00" % i, cell) for i, cell in enumerate("AAAB")])
+        y = self.rows([("2026-02-03 10:04:00", "A"), ("2026-02-03 10:05:00", "B")])
+        answer = oracle.a5_colocation(x, y, 15)
+        # eight pairs inside the window; X is at A three times in four, Y at A half the time: same cell with probability 0.5 each
+        self.assertEqual(answer["pairs_within_window"], 8)
+        self.assertAlmostEqual(answer["pairs_expected"], 4.0)
+        self.assertEqual(answer["pairs_observed"], 4)
+        self.assertEqual(answer["lift"], {"value": 1.0, "note": None})
+        # one co-located pair, but both subjects roam over four cells at that hour: only 0.0625 pairs are expected, too few for a ratio
+        x = self.rows([("2026-02-03 10:00:00", "A"), ("2026-02-04 10:00:00", "B"), ("2026-02-05 10:00:00", "C"), ("2026-02-06 10:00:00", "D")])
+        y = self.rows([("2026-02-03 10:01:00", "A"), ("2026-02-04 10:40:00", "E"), ("2026-02-05 10:40:00", "F"), ("2026-02-06 10:40:00", "G")])
+        few = oracle.a5_colocation(x, y, 15)
+        self.assertEqual((few["pairs_observed"], few["pairs_within_window"], few["pairs_expected"]), (1, 1, 0.0625))
+        self.assertEqual(few["lift"], {"value": None, "note": "too few events"})
+
+    def test_a_week_later_or_other_cell_names_change_nothing_but_the_labels(self):
+        x = self.rows([("2026-02-03 10:00:00", "A"), ("2026-02-03 10:06:00", "A"), ("2026-02-04 09:00:00", "B")] * 1)
+        y = self.rows([("2026-02-03 10:03:00", "A"), ("2026-02-03 10:20:00", "A"), ("2026-02-04 09:10:00", "B")])
+        base = oracle.a5_colocation(x, y, 15)
+        week = datetime.timedelta(days=7)
+
+        def shifted(rows, delta, rename):
+            return [{"start_local": (datetime.datetime.fromisoformat(r["start_local"]) + delta).isoformat(sep=" "), "cell_key": rename.get(r["cell_key"], r["cell_key"])} for r in rows]
+        later = oracle.a5_colocation(shifted(x, week, {"A": "cell-1", "B": "cell-2"}), shifted(y, week, {"A": "cell-1", "B": "cell-2"}), 15)
+        for field in ("pairs_observed", "pairs_within_window", "pairs_expected", "lift"):
+            self.assertEqual(later[field], base[field], field)
+        self.assertEqual([w["pairs"] for w in later["windows"]], [w["pairs"] for w in base["windows"]])
+
+
+class ColocationCaseTests(unittest.TestCase):
+    PARAMS = dict(people=60, subjects=6, associates=12, period_days=30, p2_pairs=2, p3_pairs=2)
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.params = w.Params(seed=11, **cls.PARAMS)
+        cls.root = generate.write_case(cls.params, cls.tmp.name)
+        with open(os.path.join(cls.root, "key", "key.json"), encoding="utf-8") as handle:
+            cls.key = json.load(handle)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def plants(self):
+        return [p for p in self.key["plants"] if p["type"] == "colocation"]
+
+    def test_the_audit_passes_with_co_location(self):
+        self.assertEqual(audit.audit(self.root), [])
+
+    def test_two_plants_on_the_same_operator(self):
+        plants = self.plants()
+        self.assertEqual(len(plants), 2)
+        operators = {s["msisdn"]: s["operator"] for s in self.key["subjects"]}
+        for plant in plants:
+            self.assertEqual(operators[plant["x"]["msisdn"]], operators[plant["y"]["msisdn"]])
+            self.assertEqual(len(plant["planted_windows"]), 4)
+            self.assertEqual({d["kind"] for d in plant["decoys"]}, {"same_cell_far_apart_in_time", "same_cell_just_outside_window", "same_moment_different_cells"})
+
+    def test_planted_windows_are_in_the_answer_and_decoys_are_not(self):
+        answers = {frozenset((a["x"], a["y"])): a for a in self.key["oracle"]["A5"]}
+        for plant in self.plants():
+            answer = answers[frozenset((plant["x"]["msisdn"], plant["y"]["msisdn"]))]
+            self.assertEqual(answer["plant"], plant["id"])
+            for planted in plant["planted_windows"]:
+                self.assertTrue(any(w_["cell_key"] == planted["cell_key"] and w_["start_local"] <= planted["start_local"] and w_["end_local"] >= planted["end_local"]
+                                    for w_ in answer["windows"]), planted["tag"])
+            decoy_times = {e["start_local"] for d in plant["decoys"] for e in d["events"]}
+            covered = set()
+            for w_ in answer["windows"]:
+                covered |= {t for t in decoy_times if w_["start_local"] <= t <= w_["end_local"] and w_["cell_key"] == plant["planted_windows"][0]["cell_key"]}
+            self.assertEqual(covered, set(), "no decoy event lies inside an answer window on the meeting cell")
+
+    def test_the_meeting_cell_is_nobody_s_background_cell(self):
+        world = w.build_world(self.params)
+        self.assertEqual(len(world.p3), 2)
+        for plant in world.p3:
+            for pid in (plant["x"], plant["y"]):
+                person = world.person(pid)
+                background = {person.home_cell, person.work_cell, (person.home_cell + 1) % w.CELLS_PER_OPERATOR, (person.work_cell + 1) % w.CELLS_PER_OPERATOR}
+                self.assertNotIn(plant["meeting_site"], background)
+                self.assertNotIn(plant["other_site"], background)
+            self.assertNotEqual(plant["meeting_site"], plant["other_site"])
+
+    def test_only_pairs_on_one_operator_have_an_answer(self):
+        operators = {s["msisdn"]: s["operator"] for s in self.key["subjects"]}
+        self.assertTrue(self.key["oracle"]["A5"])
+        for answer in self.key["oracle"]["A5"]:
+            self.assertEqual(operators[answer["x"]], operators[answer["y"]])
+
+    def test_a_planted_window_that_vanishes_from_the_files_is_noticed(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = generate.write_case(self.params, d)
+            world = generate.build_case(self.params)[0]
+            key = self.key
+            plant = key["plants"][[p["type"] for p in key["plants"]].index("colocation")]
+            tag = plant["planted_windows"][0]["tag"]
+            subject = next(s for s in key["subjects"] if s["msisdn"] == plant["y"]["msisdn"])
+            keep = {e.uid for e in world.events if e.plant != tag or plant["x"]["person"] in (e.orig, e.recip)}
+            damaged = render.render_subject(world, REGISTRY.get(subject["layout_id"]), world.person(subject["person"]), only_events=keep)
+            path = damaged.write(os.path.join(root, "files"), os.path.basename(subject["file"]).rsplit(".", 1)[0])
+            with open(os.path.join(root, "manifest.json"), encoding="utf-8") as handle:
+                manifest = json.load(handle)
+            with open(path, "rb") as handle:
+                manifest["files"][subject["file"]]["sha256"] = hashlib.sha256(handle.read()).hexdigest()
+            with open(os.path.join(root, "manifest.json"), "w", encoding="utf-8") as handle:
+                json.dump(manifest, handle)
+            problems = audit.audit(root)
+            self.assertTrue(any("A5" in p or "planted window" in p for p in problems), problems)
+
+    def test_nothing_in_the_co_location_case_looks_real(self):
+        for name in ("key.json", "world.json"):
+            with open(os.path.join(self.root, "key", name), encoding="utf-8") as handle:
+                self.assertEqual([f.format() for f in scan_for_real_data.scan_text(name, handle.read(), ALLOW)], [])
+
+    def test_the_default_case_has_two_co_location_plants(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = generate.write_case(w.Params(seed=5), d)
+            with open(os.path.join(root, "key", "key.json"), encoding="utf-8") as handle:
+                key = json.load(handle)
+            self.assertEqual(len([p for p in key["plants"] if p["type"] == "colocation"]), 2)
+            self.assertEqual(audit.audit(root), [])
 
 
 class CommandLineTests(unittest.TestCase):

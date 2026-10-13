@@ -79,6 +79,41 @@ def build_case(params, registry=None):
             answer = oracle.a2_common(visible, x.msisdn, y.msisdn, threshold)
             answer["plant"] = planted_pair.get(frozenset((x.msisdn, y.msisdn)))
             a2.append(answer)
+    # --- A5 co-location and plant P3 ---------------------------------------------------------------------------------------------
+    row_of = {row["uid"]: (p.msisdn, row) for p in subjects for row in renders[p.pid].rows}
+    by_tag = {}
+    for ev in world.events:
+        if ev.plant and ev.plant.startswith("P3-"):
+            by_tag.setdefault(ev.plant, []).append(ev.uid)
+
+    def natural(uid):
+        msisdn, row = row_of[uid]
+        return {"subject": msisdn, "start_local": row["start_local"], "cell_key": row["cell_key"]}
+    decoy_kind = {"far_apart": "same_cell_far_apart_in_time", "just_outside": "same_cell_just_outside_window", "other_cell": "same_moment_different_cells"}
+    for plant in world.p3:
+        x, y = by_pid[plant["x"]], by_pid[plant["y"]]
+        windows, decoys = [], []
+        for tag in sorted(by_tag):
+            if not tag.startswith(plant["id"] + ":"):
+                continue
+            events = [natural(uid) for uid in by_tag[tag]]
+            times = sorted(e["start_local"] for e in events)
+            if ":w" in tag:
+                windows.append({"tag": tag, "cell_key": events[0]["cell_key"], "start_local": times[0], "end_local": times[-1], "events": events})
+            else:
+                decoys.append({"kind": decoy_kind[tag.rsplit(":", 1)[1]], "tag": tag, "events": events, "must_not_pair": True})
+        plants.append({"id": plant["id"], "type": "colocation", "x": {"person": x.pid, "msisdn": x.msisdn}, "y": {"person": y.pid, "msisdn": y.msisdn},
+                       "operator": w.OPERATOR_LABELS[plant["operator"]], "window_minutes": plant["window_minutes"],
+                       "planted_windows": windows, "decoys": decoys})
+    p3_pair = {frozenset((p["x"]["msisdn"], p["y"]["msisdn"])): p["id"] for p in plants if p["type"] == "colocation"}
+    a5 = []
+    for i, x in enumerate(subjects):
+        for y in subjects[i + 1:]:
+            if x.operator != y.operator:
+                continue  # cell identities are per operator: two operators never share a cell key
+            answer = oracle.a5_colocation(renders[x.pid].rows, renders[y.pid].rows, params.window_minutes)
+            answer.update({"x": x.msisdn, "y": y.msisdn, "plant": p3_pair.get(frozenset((x.msisdn, y.msisdn)))})
+            a5.append(answer)
     key = {
         "case_id": None, "seed": params.seed, "generator_version": w.GENERATOR_VERSION, "spec_version": w.SPEC_VERSION,
         "clock": {"local_zone": w.LOCAL_ZONE, "utc_offset_hours": w.LOCAL_UTC_OFFSET_HOURS, "key_time": "local wall clock as the files show it"},
@@ -87,8 +122,8 @@ def build_case(params, registry=None):
                       "file": None, "rows": len(renders[s.pid].rows), "events_not_representable": len(renders[s.pid].skipped)} for s in subjects],
         "structure": world.structure,
         "plants": plants,
-        "oracle": {"parameters": {"hub_threshold": threshold, "contact_kinds": list(oracle.PERSON_KINDS)},
-                   "A1": {s.msisdn: oracle.a1_profile(visible)[s.msisdn] for s in subjects}, "A2": a2},
+        "oracle": {"parameters": {"hub_threshold": threshold, "contact_kinds": list(oracle.PERSON_KINDS), "window_minutes": params.window_minutes},
+                   "A1": {s.msisdn: oracle.a1_profile(visible)[s.msisdn] for s in subjects}, "A2": a2, "A5": a5},
         "layout_assumptions": sorted({json.dumps(a, sort_keys=True) for r in renders.values() for a in r.assumptions}),
         "expected_quarantine": [], "expected_merge": [],
     }
@@ -139,9 +174,10 @@ def main(argv=None):
     ap.add_argument("--days", type=int, default=90)
     ap.add_argument("--events-per-person-per-day", type=float, default=4.0)
     ap.add_argument("--p2-pairs", type=int, default=5)
+    ap.add_argument("--p3-pairs", type=int, default=5)
     args = ap.parse_args(argv)
     params = w.Params(seed=args.seed, people=args.people, subjects=args.subjects, associates=args.associates, period_days=args.days,
-                      events_per_person_per_day=args.events_per_person_per_day, p2_pairs=args.p2_pairs)
+                      events_per_person_per_day=args.events_per_person_per_day, p2_pairs=args.p2_pairs, p3_pairs=args.p3_pairs)
     root = write_case(params, args.out)
     print("wrote", root)
     return 0

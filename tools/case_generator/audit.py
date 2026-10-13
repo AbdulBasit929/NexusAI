@@ -7,6 +7,7 @@ It reads each export with the vault tools' file reader, selects the layout with 
 common contacts itself, and checks that every plant is present in the data, every decoy is not a plant, the key's reference answers
 match what the files show, and that every identifier is from a reserved range. Prints AUDIT=PASS or AUDIT=FAIL with the problems.
 """
+import datetime
 import hashlib
 import json
 import os
@@ -52,6 +53,7 @@ def audit(case_dir, registry=None):
                 problems.append("%s does not match its manifest hash" % rel)
 
     visible = {}   # subject msisdn -> list of (counterparty norm or label, kind, direction)
+    placed = {}    # subject msisdn -> list of (start time, cell key)
     for subject in key["subjects"]:
         path = os.path.join(case_dir, *subject["file"].split("/"))
         rows = read_export(path)
@@ -67,7 +69,7 @@ def audit(case_dir, registry=None):
             problems.append("%s: %d rows are not accepted (first reason: %s)" % (subject["file"], len(rejected), rejected[0].reason))
         if len(results) != subject["rows"]:
             problems.append("%s: %d rows read, the key says %d" % (subject["file"], len(results), subject["rows"]))
-        mine = []
+        mine, where = [], []
         for r in results:
             rec = r.record or {}
             if r.status != "accepted":
@@ -81,7 +83,10 @@ def audit(case_dir, registry=None):
                     break
             label = rec["b_norm"] if rec.get("b_norm") else rec.get("b_raw")
             mine.append((label, rec.get("b_kind"), rec["direction"], rec["start_local"]))
+            if rec.get("cell_key"):
+                where.append((datetime.datetime.fromisoformat(rec["start_local"]), rec["cell_key"]))
         visible[subject["msisdn"]] = mine
+        placed[subject["msisdn"]] = where
 
     threshold = key["oracle"]["parameters"]["hub_threshold"]
 
@@ -103,6 +108,8 @@ def audit(case_dir, registry=None):
         return {n: (len(cx[n]), len(cy[n])) for n in (set(cx) & set(cy)) - {x, y} - hubs}
 
     for plant in key["plants"]:
+        if plant["type"] != "common_contacts":
+            continue
         x, y = plant["x"]["msisdn"], plant["y"]["msisdn"]
         if x not in visible or y not in visible:
             problems.append("%s: a member's file could not be read" % plant["id"])
@@ -138,7 +145,89 @@ def audit(case_dir, registry=None):
         expected = {s["number"]: (s["x_count"], s["y_count"]) for s in answer["shared"]}
         if found != expected:
             problems.append("A2 for %s and %s: the key and the files disagree" % (answer["x"][-5:], answer["y"][-5:]))
+
+    # --- co-location (A5): recomputed by brute force over the events read from the files -------------------------------------------------
+    window = key["oracle"]["parameters"].get("window_minutes", 15)
+    computed = {}
+    for answer in key["oracle"].get("A5", []):
+        x, y = answer["x"], answer["y"]
+        if x not in placed or y not in placed:
+            continue
+        mine = brute_force_colocation(placed[x], placed[y], window)
+        computed[(x, y)] = mine
+        if (mine["pairs"], mine["adjacent"], [(w["cell_key"], w["start"], w["end"], w["pairs"]) for w in mine["windows"]]) != (
+                answer["pairs_observed"], answer["pairs_within_window"],
+                [(w["cell_key"], w["start_local"], w["end_local"], w["pairs"]) for w in answer["windows"]]):
+            problems.append("A5 for %s and %s: the key and the files disagree on the windows" % (x[-5:], y[-5:]))
+        elif abs(mine["expected"] - answer["pairs_expected"]) > 1e-3:
+            problems.append("A5 for %s and %s: the chance baseline differs (%.4f in the files, %.4f in the key)" % (x[-5:], y[-5:], mine["expected"], answer["pairs_expected"]))
+    for plant in key["plants"]:
+        if plant["type"] != "colocation":
+            continue
+        x, y = plant["x"]["msisdn"], plant["y"]["msisdn"]
+        mine = computed.get((x, y))
+        if mine is None:
+            problems.append("%s: no co-location answer for its pair" % plant["id"])
+            continue
+        for planted in plant["planted_windows"]:
+            if not any(w["cell_key"] == planted["cell_key"] and w["start"] <= planted["start_local"] and w["end"] >= planted["end_local"] for w in mine["windows"]):
+                problems.append("%s: planted window %s is not a co-location window in the files" % (plant["id"], planted["tag"]))
+        paired = {(subject, when, cell) for subject, events in ((x, mine["x_paired"]), (y, mine["y_paired"])) for when, cell in events}
+        for decoy in plant["decoys"]:
+            for event in decoy["events"]:
+                if (event["subject"], event["start_local"], event["cell_key"]) in paired:
+                    problems.append("%s: a %s event takes part in a co-located pair" % (plant["id"], decoy["kind"]))
     return problems
+
+
+def brute_force_colocation(events_x, events_y, window_minutes):
+    """Every pair of events, one of each subject (no shortcuts): co-located pairs, pairs within the window, the chance baseline, the windows."""
+    limit = window_minutes * 60
+
+    def klass(when):
+        return (when.weekday() >= 5, when.hour)
+
+    def habits(events):
+        per, overall = {}, {}
+        for when, cell in events:
+            per.setdefault(klass(when), {}).setdefault(cell, 0)
+            per[klass(when)][cell] += 1
+            overall[cell] = overall.get(cell, 0) + 1
+        return per, overall
+
+    def share(habit, bucket, cell):
+        per, overall = habit
+        counts = per.get(bucket) or overall
+        total = sum(counts.values())
+        return counts.get(cell, 0) / total if total else 0.0
+    hx, hy = habits(events_x), habits(events_y)
+    cells = sorted(set(c for _, c in events_x) | set(c for _, c in events_y))
+    adjacent, expected, pairs = 0, 0.0, []
+    x_paired, y_paired = set(), set()
+    for tx, cx in events_x:
+        for ty, cy in events_y:
+            if abs((tx - ty).total_seconds()) > limit:
+                continue
+            adjacent += 1
+            bucket = klass(min(tx, ty))
+            expected += sum(share(hx, bucket, c) * share(hy, bucket, c) for c in cells)
+            if cx == cy:
+                pairs.append((cx, min(tx, ty), max(tx, ty)))
+                x_paired.add((tx.isoformat(sep=" "), cx))
+                y_paired.add((ty.isoformat(sep=" "), cy))
+    windows = []
+    for cell in sorted(set(c for c, _, _ in pairs)):
+        current = None
+        for _, early, late in sorted(p for p in pairs if p[0] == cell):
+            if current and (early - current["end_dt"]).total_seconds() <= limit:
+                current["end_dt"] = max(current["end_dt"], late)
+                current["pairs"] += 1
+            else:
+                current = {"cell_key": cell, "start_dt": early, "end_dt": late, "pairs": 1}
+                windows.append(current)
+    out = [{"cell_key": w_["cell_key"], "start": w_["start_dt"].isoformat(sep=" "), "end": w_["end_dt"].isoformat(sep=" "), "pairs": w_["pairs"]} for w_ in windows]
+    out.sort(key=lambda w_: (w_["start"], w_["cell_key"]))
+    return {"pairs": len(pairs), "adjacent": adjacent, "expected": expected, "windows": out, "x_paired": x_paired, "y_paired": y_paired}
 
 
 def main(argv=None):

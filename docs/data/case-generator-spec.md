@@ -1,6 +1,6 @@
-# Case generator with planted truth: specification v0.2 (roadmap Phase 1, section 7.5 and 8.3)
+# Case generator with planted truth: specification v0.3 (roadmap Phase 1, section 7.5 and 8.3)
 
-Status: **v0.2, 2026-10-12.** The owner approved the specification with the default answers of section 13. Step 2 of section 12 is built (`tools/case_generator/`, section 14); the changes the build forced are marked *(v0.2)*. Nothing here reads a real file, touches a database or changes the product.
+Status: **v0.3, 2026-10-13.** The owner approved the specification with the default answers of section 13. Steps 2 and 3 of section 12 are built (`tools/case_generator/`, section 14); the changes the builds forced are marked *(v0.2)* and *(v0.3)*. Nothing here reads a real file, touches a database or changes the product.
 
 ## 1. Why, and what it is
 
@@ -54,7 +54,7 @@ Each plant states what is planted, the traces it leaves, the decoys, the analysi
 |---|---|---|---|---|---|
 | **P1 contact structure** | Communities (dense groups), chains (A to B to C), hubs, bridges between communities, one-way and reciprocal contacts | Calls and SMS with realistic rhythm (day and night, weekday and weekend), durations, missed calls, short-code traffic | Services contacted by many people; dormant ties | A1, A4, A3, A12 | Edges with counts, first and last, per-direction counts; community membership; hubs |
 | **P2 common contacts** | Pairs (X, Y) sharing a known set of contacts *(v0.2: persons that no subject is linked to in the background graph, reached by planted calls only, so no third subject can turn one into a hub by chance; calls because not every layout can express a message)* | Both subjects call the same third parties, at different times and in different operators' exports | A "common" contact that is only a service number or a hub above the threshold | A2 | Expected shared set per pair with each side's count, and the excluded ones with the reason |
-| **P3 co-location** | Pairs at the same cell within a stated window, on known days | Events at the same `cell_key` for both subscriptions within W minutes | Same cell far apart in time; neighbouring sector; a cell that is busy for everyone (chance) | A5 | Windows per pair (start, end, cell, count), the chance baseline per cell and hour, expected lift |
+| **P3 co-location** | Pairs of subjects *(v0.3: on the same operator, because cell identities are per operator)* at the same cell within W minutes, on several days, at a meeting cell neither uses in the background | Events at the same `cell_key` for both subscriptions within W minutes (one to three consecutive pairs per window) | Same cell three hours apart; same cell W + 1 minute apart; the same moment at a different cell. Chance co-location of habitual cells is what the baseline measures | A5 | Windows per pair (start, end, cell, pairs), the chance baseline and lift, the planted windows and the decoy events |
 | **P4 possible meeting** | P3 windows preceded by a call or SMS between the pair within a stated gap; some meetings without any call | As P3 plus the contact event | Co-location with no contact; contact with no co-location | A7 | Meetings with the features that make them (gap, window, repeats) and the negatives |
 | **P5 device and SIM change** | A person changes handset, or SIM, or both, on a known date; a handset passes between two people | The IMEI under a number changes; the IMSI under an IMEI changes; both overlap or not | Dual-SIM phones (two IMSIs under one IMEI at once); a lost-and-found handset | A8 | Swap events with date, old and new identifiers, shared devices |
 | **P6 successor number** | One number goes silent and a new number appears with a similar contact set and cell footprint | Last event of the old number, first of the new, overlapping contacts | A silent number with no successor; a new number with unrelated contacts | A9 | Successor pairs with the planted similarity, and the negatives |
@@ -137,6 +137,7 @@ Every generated file and the key pass `scan_for_real_data.py` as a test.
 | `events_per_person_per_day` | 8 calls and SMS, 20 sessions | A case of about 40,000 to 150,000 rows |
 | `operators` | 4 (the four whose layouts exist) | Each subscription belongs to one |
 | `window_minutes` (A5) | 15 | A parameter of the oracle and of the key |
+| `p3_pairs`, `windows_per_plant`, `window_minutes` | 5 plants (limited by the pairs of subjects on one operator: two with 6 subjects), 4 windows each, W = 15 | *(v0.3)* each plant has three decoys |
 | `hub_threshold` (A2) | *(v0.2)* distinct **subjects whose exports are loaded** in contact with a number: more than `subjects - 2` makes it a hub (4 for 6 subjects); 30 for a case with a tower dump | A product can only count subscriptions that appear in the loaded data, so the rule is stated over the loaded exports; same value in oracle and product |
 | `defect_rates` | each class 3 to 10 rows per file | |
 | `plant_counts` | 5 of each plant per case, each with 2 decoys | |
@@ -149,7 +150,7 @@ These definitions are fixed before any code and are the contract between generat
 
 **A2 common contacts.** For a subject `S`, `contacts(S)` is the set of normalised counterparties of `S`'s calls and SMS (both directions) with class `person_like` or `international`; counterparties of class `short_code`, `sender_id`, `service_label` and `unknown` are excluded, and so is any number in contact with more than `hub_threshold` distinct subjects *(v0.2: counted over the loaded exports)*. `common(X, Y) = contacts(X) ∩ contacts(Y)`, minus `X` and `Y` themselves. Output per shared number: the count of events with `X` and with `Y`, first and last time on each side. Excluded numbers are reported with the reason.
 
-**A5 co-location.** Two subscriptions are co-located at time `t` when each has an event with the same `cell_key` and the two event times differ by at most `W`. Co-located events are merged into windows (consecutive pairs within `W` of the previous one). Output per window: start, end, `cell_key`, number of event pairs. The chance baseline for a pair is the expected number of windows if the two subscriptions chose cells independently: for each hour-of-week bucket, the product of each subscription's share of its events in each cell, scaled by the number of event pairs falling in that bucket. `lift = observed windows / expected windows` (undefined when the expected value is below 0.5; the output then says "too few events"). The formula is **pre-registered here**; a change needs a new specification version. Every co-location result carries "proximity is not association".
+**A5 co-location.** *(v0.3: the baseline is stated on event pairs; the v0.1 text compared windows with an expected number of windows, which had no independent definition, and used hour-of-week buckets, which are too sparse for one subscription.)* Two subscriptions on the same operator are co-located at a time when each has an event with the same `cell_key` and the two event times differ by at most `W` (a difference of exactly `W` counts). Co-located event pairs on one cell are merged into windows: a pair joins the open window when its earlier time is within `W` of the window's latest time. Output per window: start, end, `cell_key`, number of pairs. **Chance baseline:** take every pair of events, one of each subscription, within `W` of each other whatever their cells. For such a pair, the time-of-week class is (weekday or weekend, hour of the day) of the earlier event; each subscription's habit in that class is the share of its own events in each cell (its overall shares when it has no event in the class); the probability that both are at the same cell is the sum over cells of the product of the two shares. `expected = ` the sum of these probabilities over all pairs; `lift = observed pairs / expected`, undefined ("too few events") when `expected` is below 0.5. Two subscriptions on different operators never share a cell key, so they have no A5 answer. The formula is **pre-registered here**; a change needs a new specification version. Every co-location result carries "proximity is not association".
 
 Later oracles (A4 chaining, A3 paths, A7 meetings, A8, A9, A13) get their definitions added as each plant is built, before the code.
 
@@ -170,7 +171,7 @@ Later oracles (A4 chaining, A3 paths, A7 meetings, A8, A9, A13) get their defini
 |---|---|---|
 | 1 | **This specification**, reviewed by the owner | Approved or amended |
 | 2 | Generator skeleton: world model, P1 and P2 (plants and decoys), rendering for the target-export layouts (C1 to C4), key, manifest, determinism and scanner tests | A seeded case renders; round trip equals the truth; the plant audit passes. **Built 2026-10-12** (section 14) |
-| 3 | A2 and A5 oracles in plain Python with hand-checkable cases; P3 | Oracle parity; the deliberate breakages change the output |
+| 3 | A2 and A5 oracles in plain Python with hand-checkable cases; P3 | Oracle parity; the deliberate breakages change the output. **Built 2026-10-13** (section 14) |
 | 4 | Tower-dump and IPDR rendering (C5 to C8, I1 to I4, A1) and P7, P4; the defects of section 6 | Round trip for all 13 layouts; expected quarantine matches what the registry produces |
 | 5 | Load a case into the **throwaway** database (migrations 012 to 015 applied there only) and check that counts and plants survive; first brute-force SQL check of A2 and A5 against the oracle | Parity on the throwaway database. This is not the live database |
 | 6 | P5, P6, P8; 20 cases; judgement and sealed seeds | Gate set after the baseline |
@@ -182,6 +183,8 @@ Later oracles (A4 chaining, A3 paths, A7 meetings, A8, A9, A13) get their defini
 3. **Who holds the sealed seeds** and when they may be opened.
 4. **Where cases live:** generator plus one tiny case in the repository, everything else regenerated locally and ignored by git (proposed), or a private store.
 5. **Time zone:** every case in `Asia/Karachi` with the zone declared (proposed), or one case in each of two zones to exercise the zone handling.
+
+6. *(v0.3)* **More subjects?** With 6 subjects only two pairs share an operator, so a default case has two co-location plants, not five. Eight subjects (two per operator) give four; the cost is two fewer bystanders. Default stays 6 unless you say otherwise.
 
 Out of scope until separately approved: any use of the real samples to tune the generator's statistics (the generator is built from the layout entries and the documented formulas, not from real data), media generators, and loading a generated case into the live database.
 
@@ -196,7 +199,7 @@ Out of scope until separately approved: any use of the real samples to tune the 
 | `oracle.py` | Reference answers A1 (contact profile) and A2 (common contacts), section 10 |
 | `generate.py` | Writes `case-<seed>/` with `files/`, `key/key.json`, `key/world.json`, `manifest.json`, `README.txt` |
 | `audit.py` | Independent audit: reads only the files and the key (with the vault tools' reader and the registry), recomputes A2, checks plants, decoys, hashes and reserved values |
-| `test_case_generator.py` | 16 tests: same seed same bytes, every export read back equal to the truth, audit passes (small and default size), scanner finds nothing, plants and decoys as keyed, hand-checked oracle, four deliberate breakages of a case noticed |
+| `test_case_generator.py` | 29 tests (18 at step 2, 11 at step 3): same seed same bytes, every export read back equal to the truth, audit passes (small and default size), scanner finds nothing, plants and decoys as keyed, hand-checked oracle, four deliberate breakages of a case noticed |
 
 ```bash
 python -X utf8 tools/case_generator/generate.py --seed 1 --out CASES_DIR
@@ -205,3 +208,11 @@ python -X utf8 tools/case_generator/test_case_generator.py
 ```
 
 The default case (120 people, 6 subjects, 90 days) is written in about two seconds: six exports of a few hundred rows each, a key and a world file of a few megabytes (not for the repository). Not yet built: P3 to P9, the tower-dump and IPDR layouts, the injected defects, loading into the throwaway database (steps 3 to 6).
+
+**Step 3 (2026-10-13).** Plant P3 and the A5 oracle are built.
+
+* `world.py` plants co-location for pairs of subjects on one operator: per pair a meeting cell neither uses in the background, four windows of one to three consecutive pairs, and three decoys (same cell three hours apart, same cell W + 1 minutes apart, same moment at another cell); events carry a planted cell (`Event.cells`).
+* `oracle.py` `a5_colocation` implements section 10 exactly; `generate.py` writes `oracle.A5` and the P3 plants (windows and decoys by natural key) into the key.
+* `audit.py` recomputes A5 with a separate brute-force implementation (every pair of events, no shortcuts) and checks that the key's windows, pair counts and chance baseline equal it, that each planted window is a co-location window in the files, and that no decoy event takes part in a co-located pair.
+* Tests: hand-checked windows, the exact boundary (W co-located, W + 1 second not), a chance baseline worked out by hand (lift 1.0), "too few events", a week-shift and cell-rename check, a planted window removed from a file is noticed.
+* The default case (6 subjects) has two co-location plants; a background co-location between subjects who share a home or work cell appears in the answer too, with its lift, and is not a plant.

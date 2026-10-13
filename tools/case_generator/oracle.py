@@ -1,8 +1,12 @@
-"""Plain-Python reference answers (specification section 10): A1 contact profile and A2 common contacts.
+"""Plain-Python reference answers (specification section 10): A1 contact profile, A2 common contacts and A5 co-location.
 
 They read the events as the files show them (the visible rows of each subject's export), not the product, SQL or the files themselves.
 """
 from __future__ import annotations
+
+import bisect
+import collections
+import datetime
 
 PERSON_KINDS = ("person_like", "international")
 
@@ -63,3 +67,76 @@ def a2_common(visible, x, y, threshold):
     for label in sorted(service_x & service_y):
         excluded.append({"number": label, "reason": "service"})
     return {"x": x, "y": y, "shared": shared, "excluded": excluded}
+
+
+def _time(row):
+    return datetime.datetime.fromisoformat(row["start_local"])
+
+
+def _bucket(when):
+    """Time-of-week class used by the chance baseline: weekday or weekend, and the hour of the day."""
+    return (when.weekday() >= 5, when.hour)
+
+
+def _cell_shares(events):
+    """({bucket: [events in the bucket, Counter of cells]}, overall Counter) from (time, cell) pairs."""
+    by_bucket, overall = {}, collections.Counter()
+    for when, cell in events:
+        entry = by_bucket.setdefault(_bucket(when), [0, collections.Counter()])
+        entry[0] += 1
+        entry[1][cell] += 1
+        overall[cell] += 1
+    return by_bucket, overall
+
+
+def _same_cell_probability(shares_x, shares_y, bucket):
+    """Chance that two subjects who choose their cell independently, each as they usually do at that time of week, pick the same one."""
+    def distribution(shares):
+        by_bucket, overall = shares
+        if bucket in by_bucket:
+            total, counter = by_bucket[bucket]
+        else:
+            counter = overall
+            total = sum(overall.values())
+        return {cell: n / total for cell, n in counter.items()} if total else {}
+    px, py = distribution(shares_x), distribution(shares_y)
+    return sum(p * py.get(cell, 0.0) for cell, p in px.items())
+
+
+def a5_colocation(rows_x, rows_y, window_minutes=15):
+    """Co-location of two subjects (specification section 10).
+
+    Two events, one of each subject, are co-located when they carry the same cell and their times differ by at most `window_minutes`.
+    Co-located pairs on one cell are merged into windows (a pair joins the open window when it starts within `window_minutes` of the
+    window's latest time). The chance baseline is the number of co-located pairs expected if the two subjects chose cells independently:
+    over every pair of events within the window (same cell or not), the probability that both are at the same cell given the time of
+    week (weekday or weekend, hour) of the earlier event, taken from each subject's own habits. lift = observed pairs / expected pairs,
+    undefined when fewer than 0.5 pairs are expected. Proximity is not association.
+    """
+    width = datetime.timedelta(minutes=window_minutes)
+    ex = sorted((_time(r), r["cell_key"]) for r in rows_x if r.get("cell_key"))
+    ey = sorted((_time(r), r["cell_key"]) for r in rows_y if r.get("cell_key"))
+    ytimes = [when for when, _ in ey]
+    shares_x, shares_y = _cell_shares(ex), _cell_shares(ey)
+    adjacent, expected, pairs = 0, 0.0, []
+    for tx, cx in ex:
+        for j in range(bisect.bisect_left(ytimes, tx - width), bisect.bisect_right(ytimes, tx + width)):
+            ty, cy = ey[j]
+            adjacent += 1
+            early = min(tx, ty)
+            expected += _same_cell_probability(shares_x, shares_y, _bucket(early))
+            if cx == cy:
+                pairs.append((cx, early, max(tx, ty)))
+    windows = []
+    for cell, early, late in sorted(pairs):
+        last = windows[-1] if windows else None
+        if last and last["cell_key"] == cell and early - datetime.datetime.fromisoformat(last["end_local"]) <= width:
+            if late > datetime.datetime.fromisoformat(last["end_local"]):
+                last["end_local"] = late.isoformat(sep=" ")
+            last["pairs"] += 1
+        else:
+            windows.append({"cell_key": cell, "start_local": early.isoformat(sep=" "), "end_local": late.isoformat(sep=" "), "pairs": 1})
+    windows.sort(key=lambda w: (w["start_local"], w["cell_key"]))
+    lift = {"value": round(len(pairs) / expected, 4), "note": None} if expected >= 0.5 else {"value": None, "note": "too few events"}
+    return {"window_minutes": window_minutes, "pairs_observed": len(pairs), "pairs_within_window": adjacent, "pairs_expected": round(expected, 4),
+            "lift": lift, "windows": windows, "caveat": "proximity is not association"}
