@@ -1,0 +1,12 @@
+# Ingest v2 (docs/data/ingest-v2.md): the worker also writes recognised structured files to the typed tables, as a SHADOW (version 1 is untouched,
+# a failure here never fails a job). Add this file AFTER docker-compose.forensic-records.yaml and keep the project directory of the main checkout:
+#
+#   docker compose --project-name nexusai --project-directory <main checkout> --env-file <main checkout>\.env.forensic-runtime.local `
+#     -f <main checkout>\docker-compose.forensic-records.yaml -f <this file> up -d --no-deps --no-build forensic-records-worker
+#
+# Recreating the worker WITHOUT this file turns the shadow off (the safe direction). To switch it off on purpose, set FORENSIC_INGEST_V2=off when starting.
+# FORENSIC_INGEST_V2_MAX_ROWS (default 2000000) and FORENSIC_INGEST_V2_INCLUDE_DRAFT (default true while every layout is a draft) can be set the same way.
+services:
+  forensic-records-worker:
+    environment:
+      FORENSIC_INGEST_V2: ${FORENSIC_INGEST_V2:-shadow}

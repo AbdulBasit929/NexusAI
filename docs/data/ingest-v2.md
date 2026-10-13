@@ -1,6 +1,6 @@
 # Ingest v2: the typed shadow write
 
-Status: **built and tested on 2026-10-13. Not deployed.** The switch is off by default, the worker image has not been rebuilt, and nothing in the live stack has changed. Roadmap: Phase 1, section 4.4.
+Status: **built and tested on 2026-10-13, and running in SHADOW mode on the live worker since 2026-10-13 14:25 UTC** (owner: "yes rebuild the worker image and set shadow"; section 9). The code's own default is still off; the shadow is set by a compose override file. Nothing reads the typed tables yet. Roadmap: Phase 1, section 4.4.
 
 ## 1. What it does, in plain words
 
@@ -16,7 +16,7 @@ It is a **shadow**: version 1 is not changed, nothing reads the typed tables yet
 | `FORENSIC_INGEST_V2_MAX_ROWS` | `2000000` | A file with more rows is skipped for the typed write (status `skipped`, reason `too_many_rows`); version 1 is unaffected. |
 | `FORENSIC_INGEST_V2_INCLUDE_DRAFT` | `true` | While every layout is `draft` (they are, until each is confirmed on a real file), `false` would recognise nothing. Set `false` before the typed rows are used for answers. |
 
-The compose files do not set any of these, so a rebuilt image behaves exactly as before until the owner sets `FORENSIC_INGEST_V2=shadow`.
+`docker-compose.forensic-records.ingest-v2.yaml` sets `FORENSIC_INGEST_V2` to `shadow` for the worker; the base compose file does not set any of these, so a worker recreated without the override file is back to off (the safe direction).
 
 ## 3. Where it sits
 
@@ -50,17 +50,17 @@ Quarantined rows are **counted, with sample row numbers, not stored row by row**
 
 The earlier suites still pass after the readers moved out of `profile_structure.py`: real-data tools 32, registry 54, licence ledger 13, case generator 106, case set 8, reference loader 12, worker 22, PowerShell vault checks 13.
 
-What was **not** run: a rebuild of the worker image (the Dockerfile has two new `COPY` lines, `typed_ingest.py` and `layout_registry/`, that a build would exercise; the mounted flat layout is the same file set), and any live upload.
+What was **not** run: a build of `ingestion/forensic_records/Dockerfile` itself (the repository's Dockerfile has two new `COPY` lines, `typed_ingest.py` and `layout_registry/`; the deployed image was built as an overlay, section 9), and any upload through the normal path (section 7, step 3).
 
 ## 7. Rollout plan (each step needs the owner's go-ahead)
 
-1. **Rebuild the worker image** with the two new `COPY` lines; tag the current image first as the rollback (`before-ingest-v2`). Behaviour is unchanged while the switch is off.
-2. **Set `FORENSIC_INGEST_V2=shadow`** for the worker (compose runtime override, like the lane settings). Recreate the worker only.
+1. **Rebuild the worker image** (done 2026-10-13 as an overlay on the running image, section 9); the current image was first tagged `before-ingest-v2` as the rollback.
+2. **Set `FORENSIC_INGEST_V2=shadow`** for the worker (done 2026-10-13 with a compose override; only the worker was recreated).
 3. **Upload one synthetic case file per layout** through the normal path; read the audit summaries (`records.ingest.typed_shadow`); compare the typed counts with version 1 for the same file. Expect equal accepted counts, and differences only where version 1 rejects what the registry accepts or the reverse; each difference is explained or fixed.
 4. **Watch** the worker log and the audit summaries for a period the owner sets; `failed` or a false `reconciles` is a stop.
 5. **Not before:** each layout confirmed on a real file inside the vault (`tools/real_data/confirm_layout.py`) and promoted from `draft`; then `INCLUDE_DRAFT=false`, a typed quarantine table, and the family-by-family switch of the questions.
 
-**Rollback.** Set `FORENSIC_INGEST_V2=off` (or remove it) and recreate the worker: the next job writes nothing new. Rows already written stay in the typed tables; they can be removed by `batch_id` or `evidence_id` as the database owner (the application role has no DELETE by design). Image rollback: the tag from step 1.
+**Rollback.** Set `FORENSIC_INGEST_V2=off` (or recreate the worker without the override file) and the next job writes nothing new. Rows already written stay in the typed tables; they can be removed by `batch_id` or `evidence_id` as the database owner (the application role has no DELETE by design). Image rollback: section 9.
 
 ## 8. Known limits
 
@@ -70,3 +70,36 @@ What was **not** run: a rebuild of the worker image (the Dockerfile has two new 
 - Draft layouts are accepted by default (see section 2). The typed tables are read by nothing yet, so this is safe in the shadow phase and must change before they are used.
 - No enrichment (cell reference join, handset from TAC, number classes beyond the registry's), no entity or relationship updates, no versioning of re-uploads (roadmap 4.4 steps 8 to 10).
 - Version 1's own counters, quality summary and the question API are untouched by design.
+
+## 9. Deployed on 2026-10-13: what exactly is running
+
+**Authority.** The owner said "yes rebuild the worker image and set shadow" in the conversation of 2026-10-13, after the rollout plan above.
+
+**Why an overlay and not a full rebuild.** The worker image that was running (`376bbf162777`, built 2026-08-23) is seven weeks behind the repository. Its `worker.py`, `media_pipeline.py` and `roman_urdu.py` differ from the repository's; `multilingual_ocr.py`, `processor_readiness.py` and the `video_anpr_*.py` modules, which the repository's Dockerfile copies, are not in it; and `requirements.txt` has since grown packages the image does not have (the licence ledger notes torch, safetensors, paddleocr and others). A build of the repository's Dockerfile would have shipped all of that, and installed the new packages from the network, together with Ingest v2, which was not what was asked. The image that runs is therefore **the running image plus only Ingest v2**: its own `worker.py` with exactly the two Ingest v2 hunks (35 added lines, none removed), `typed_ingest.py` and the `layout_registry/` package. Recipe: `tools/worker_overlay/make_overlay.py` (reproduces the deployed files byte for byte). **A full rebuild from the repository is a separate decision** (it also deploys the seven weeks of worker and media changes and the new dependencies).
+
+| | Image | Tags |
+|---|---|---|
+| Running now | `5682f75a18a3` | `nexusai-forensic-records-worker:latest`, `:ingest-v2-shadow-20261013` |
+| Rollback | `376bbf162777` | `nexusai-forensic-records-worker:before-ingest-v2` (also `nexusai/forensic-records-worker:rollback-before-unified-anpr-cast-20260823`) |
+
+**How it was started.** Only the worker container was recreated (`--no-deps --no-build --force-recreate`), with the main checkout as project directory and its `.env.forensic-runtime.local`, exactly as the worker had been created, plus `docker-compose.forensic-records.ingest-v2.yaml`, which sets `FORENSIC_INGEST_V2=shadow`. Checked before: the base compose file hashed to the same value the running worker was created from (no drift), and the rendered configuration with the override differed by that one line. The postgres, NATS and API containers were not touched. No job was running (87 completed, 5 dead-lettered, none in flight). After: healthy, subscribed to the durable JetStream consumer, no restarts, no error lines, metrics endpoint 200.
+
+Start command (PowerShell, from anywhere):
+
+```powershell
+$main = 'C:\Users\sheik\Workspace\Office\Projects\NexusAI'; $lw = 'C:\Users\sheik\Workspace\Office\Projects\NexusAI-localwork'
+docker compose --project-name nexusai --project-directory $main --env-file "$main\.env.forensic-runtime.local" `
+  -f "$main\docker-compose.forensic-records.yaml" -f "$lw\docker-compose.forensic-records.ingest-v2.yaml" `
+  up -d --no-deps --no-build --force-recreate forensic-records-worker
+```
+
+**Proof on the live database (rolled back).** Inside the running worker container, the worker's own hook (`run_typed_ingest_shadow`) was run on three synthetic files (a call-record workbook, an internet-record text file, an application-usage workbook from a generated case) in one transaction on the LIVE database, then rolled back. The layouts were found correctly (`call-c1-company`, `ipdr-i4-zong-txt`, `appusage-a1`); 700, 363 and 505 rows were written, every sheet reconciled, the three audit rows (`records.ingest.typed_shadow`) were written; a second run of the same files inserted nothing; the call rows carried `Asia/Karachi`, `confirmed_by_analyst` and UTC times. After the rollback the typed tables, `evidence_items` (79) and the audit log had exactly their earlier contents; the probe files were removed from the container. Real uploads will show the same audit action in `records_audit_log`.
+
+**Rollback.**
+
+```powershell
+docker tag nexusai-forensic-records-worker:before-ingest-v2 nexusai-forensic-records-worker:latest
+# then recreate the worker WITHOUT the override file (same command as above, without the second -f)
+```
+
+**What happens now.** Every structured file the worker ingests is also offered to the typed writer. Files in an unrecognised layout, media and documents are not affected. Watch `docker logs nexusai-forensic-records-worker-1` and the audit rows (`select created_at, file_id, details->'typed_ingest'->>'status', details->'typed_ingest'->>'rows_loaded', details->'typed_ingest'->>'reconciles' ...`). A `failed` status or a false `reconciles` is a stop (section 7, step 4). **Next:** step 3 of the plan, one synthetic file per layout through the normal upload path, compared with version 1 (this writes synthetic data to the live case database, so it needs its own go-ahead).
