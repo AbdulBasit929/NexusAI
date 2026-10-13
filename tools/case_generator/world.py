@@ -62,6 +62,7 @@ class Params:
     dump_days: int = 2
     sessions_per_subject_per_day: float = 6.0
     app_usage_exports: int = 2   # subjects that also get an app-usage export (layout A1)
+    p7_plants: int = 3           # address-translation plants, on operators whose layout gives a session end (not ufone)
     shared_min: int = 3
     shared_max: int = 5
     hub_threshold: int | None = None  # distinct subjects (files) in contact with a number above which it is a hub; default subjects - 2
@@ -130,6 +131,7 @@ class World:
     p2: list = field(default_factory=list)          # plant P2 records
     p3: list = field(default_factory=list)          # plant P3 records
     sessions: list = field(default_factory=list)    # data sessions (subjects, and the subscriptions of plant P7)
+    p7: list = field(default_factory=list)          # plant P7 records
 
     def person(self, pid):
         return next(p for p in self.persons if p.pid == pid)
@@ -377,9 +379,62 @@ def build_sessions(world):
                     "S%07d" % counter, p.pid, when, end, when, end, "10.%d.%d.%d" % (p.n % 200, r.randrange(256), r.randrange(1, 255)), r.randrange(1024, 65536),
                     public_ip, low, high if block > 1 else low, r.choice(SERVER_IPS), r.choice([53, 80, 443, 8080]), r.choice([6, 6, 6, 17]),
                     r.randrange(0, 99999), r.randrange(0, 999999), r.randrange(1, 99), r.randrange(1, 99), r.choice(APPS), r.randrange(CELLS_PER_OPERATOR), None))
+    plant_p7(world, start_day)
     world.sessions.sort(key=lambda s: (s.start, s.pid))
     for i, s in enumerate(world.sessions, start=1):
         s.uid = "S%07d" % i
+
+
+P7_OPERATORS = (1, 2, 3)   # zong, mobilink, telenor: their layouts write when a session ends (ufone's I3 writes only a log time)
+
+
+def plant_p7(world, start_day):
+    """Plant P7, address-translation collisions. On a public address of its own, three subscriptions of one operator (bystanders) hold ports:
+    two overlap in time and port (a collision: ambiguous), one shares the time but not the port, one repeats the port later, two use one
+    port back to back, one second apart. Each probe (address, port, instant) states the intended answer; the oracle must agree."""
+    params = world.params
+    r7 = random.Random("p7:%d" % params.seed)
+    used = set()
+    for number, op in enumerate([o for o in P7_OPERATORS][: params.p7_plants], start=1):
+        people = [p for p in world.persons if p.role == "bystander" and p.operator == op]
+        if len(people) < 3 or params.period_days < 2:
+            continue
+        s1, s2, s3 = r7.sample(people, 3)
+        plant_id = "P7-%03d" % number
+        ip = reserved.synthetic_ipv4(40 + op)   # a documentation address no other session uses
+        day = r7.randrange(params.period_days)
+        base = datetime.datetime.combine(start_day + datetime.timedelta(days=day), datetime.time(r7.randrange(8, 14), r7.randrange(60), 0))
+        block = PORT_BLOCK.get(op, 1)
+        port_a = r7.randrange(2000, 30000)
+        port_b, port_c = port_a + 1000, port_a + 2000
+        minute = datetime.timedelta(minutes=1)
+
+        def hold(tag, person, begin, finish, port):
+            world.sessions.append(Session(
+                "", person.pid, begin, finish, begin, finish, "10.%d.%d.%d" % (person.n % 200, r7.randrange(256), r7.randrange(1, 255)), r7.randrange(1024, 65536), ip,
+                port, port + block - 1, r7.choice(SERVER_IPS), r7.choice([80, 443]), 6, r7.randrange(0, 99999), r7.randrange(0, 999999), r7.randrange(1, 99),
+                r7.randrange(1, 99), r7.choice(APPS), r7.randrange(CELLS_PER_OPERATOR), "%s:%s" % (plant_id, tag)))
+        hold("collision-a", s1, base, base + 20 * minute, port_a)
+        hold("collision-b", s2, base + 10 * minute, base + 30 * minute, port_a)
+        hold("same-time-other-port", s3, base, base + 20 * minute, port_b)
+        hold("same-port-later", s2, base + 120 * minute, base + 140 * minute, port_a)
+        hold("back-to-back-a", s1, base + 180 * minute, base + 190 * minute, port_c)
+        hold("back-to-back-b", s3, base + 190 * minute + datetime.timedelta(seconds=1), base + 200 * minute, port_c)
+        iso = lambda t: t.isoformat(sep=" ")
+        probes = [
+            ("collision", port_a, base + 15 * minute, "ambiguous", [s1, s2]),
+            ("before the second holder starts", port_a, base + 5 * minute, "unique", [s1]),
+            ("same time, other port", port_b, base + 15 * minute, "unique", [s3]),
+            ("same port, later", port_a, base + 125 * minute, "unique", [s2]),
+            ("back to back: last second of the first", port_c, base + 190 * minute, "unique", [s1]),
+            ("back to back: first second of the second", port_c, base + 190 * minute + datetime.timedelta(seconds=1), "unique", [s3]),
+            ("nobody", port_a + 7, base + 15 * minute, "none", []),
+        ]
+        world.p7.append({"id": plant_id, "operator": op, "public_ip": ip, "block": block, "day": day,
+                         "window_start": iso(datetime.datetime.combine(start_day + datetime.timedelta(days=day), datetime.time(0, 0))),
+                         "window_end": iso(datetime.datetime.combine(start_day + datetime.timedelta(days=day + 1), datetime.time(0, 0))),
+                         "subscriptions": [s1.pid, s2.pid, s3.pid],
+                         "probes": [{"label": l, "port": port, "instant": iso(t), "intent": intent, "intended_holders": [p.pid for p in who]} for l, port, t, intent, who in probes]})
 
 
 def cell_for(world: World, person: Person, event: Event):
@@ -411,7 +466,7 @@ def world_to_json(world: World) -> str:
         "generator_version": GENERATOR_VERSION, "spec_version": SPEC_VERSION, "params": asdict(world.params), "clock": {"local_zone": LOCAL_ZONE, "utc_offset_hours": LOCAL_UTC_OFFSET_HOURS},
         "persons": [asdict(p) for p in world.persons],
         "services": [{"kind": k, "label": v} for k, v in SERVICES],
-        "structure": world.structure, "p2": world.p2, "p3": world.p3,
+        "structure": world.structure, "p2": world.p2, "p3": world.p3, "p7": world.p7,
         "sessions": [[s.uid, s.pid, s.start.isoformat(sep=" "), s.end.isoformat(sep=" "), s.nat_start.isoformat(sep=" "), s.nat_end.isoformat(sep=" "), s.ue_ip, s.ue_port, s.public_ip, s.port_from, s.port_to, s.server_ip, s.server_port, s.protocol_num, s.bytes_up, s.bytes_down, s.packets_up, s.packets_down, list(s.app), s.site, s.plant] for s in world.sessions],
         "events": [[e.uid, e.kind, e.orig, e.recip, e.start.isoformat(sep=" "), e.duration_s, e.plant, e.cells] for e in world.events],
     }

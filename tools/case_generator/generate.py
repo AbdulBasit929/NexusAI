@@ -169,17 +169,38 @@ def build_case(params, registry=None):
         name = "usage-%s" % s.pid
         renders[name] = render_sessions.render_app_usage(world, entry, s, [x for x in world.sessions if x.pid == s.pid])
         usage_files.append({"name": name, "person": s.pid, "msisdn": s.msisdn, "layout_id": entry["layout_id"], "file": None, "rows": len(renders[name].rows)})
+    # --- plant P7 (address translation) and A13 ----------------------------------------------------------------------------------------
+    ip_queries, a13 = [], []
+    for plant in world.p7:
+        entry = registry.get(w.OPERATOR_IPDR_LAYOUTS[plant["operator"]])
+        items = [(s, by_pid[s.pid]) for s in world.sessions if s.plant and s.plant.startswith(plant["id"] + ":")]
+        name = "ipquery-%s" % plant["id"]
+        rendered = render_sessions.render_sessions(world, entry, items, label=name, preamble_values={
+            "{ts_start}": plant["window_start"], "{ts_end}": plant["window_end"], "{public_ip}": plant["public_ip"]})
+        renders[name] = rendered
+        ip_queries.append({"name": name, "plant": plant["id"], "operator": w.OPERATOR_LABELS[plant["operator"]], "layout_id": entry["layout_id"], "file": None,
+                           "public_ip": plant["public_ip"], "window_start": plant["window_start"], "window_end": plant["window_end"], "rows": len(rendered.rows)})
+        seen = [{"public_ip": r["public_ip"], "port_from": r["public_port_from"], "port_to": r["public_port_to"],
+                 "begin": r["nat_start_local"] or r["start_local"], "end": r["nat_end_local"] or r["end_local"], "msisdn": r["msisdn"]} for r in rendered.rows]
+        probes = []
+        for probe in plant["probes"]:
+            answer = oracle.a13_holders(seen, plant["public_ip"], probe["port"], probe["instant"])
+            probes.append({"label": probe["label"], "port": probe["port"], "instant": probe["instant"], "intent": probe["intent"],
+                           "intended_holders": sorted(by_pid[pid].msisdn for pid in probe["intended_holders"]), "result": answer["result"], "holders": answer["holders"]})
+            a13.append({"plant": plant["id"], "public_ip": plant["public_ip"], **probes[-1]})
+        plants.append({"id": plant["id"], "type": "address_translation", "operator": w.OPERATOR_LABELS[plant["operator"]], "public_ip": plant["public_ip"],
+                       "subscriptions": {pid: by_pid[pid].msisdn for pid in plant["subscriptions"]}, "probes": probes})
     key = {
         "case_id": None, "seed": params.seed, "generator_version": w.GENERATOR_VERSION, "spec_version": w.SPEC_VERSION,
         "clock": {"local_zone": w.LOCAL_ZONE, "utc_offset_hours": w.LOCAL_UTC_OFFSET_HOURS, "key_time": "local wall clock as the files show it"},
         "params": json.loads(json.dumps(params.__dict__)),
         "subjects": [{"person": s.pid, "msisdn": s.msisdn, "operator": w.OPERATOR_LABELS[s.operator], "layout_id": renders[s.pid].layout_id,
                       "file": None, "rows": len(renders[s.pid].rows), "events_not_representable": len(renders[s.pid].skipped)} for s in subjects],
-        "dumps": dumps, "sessions": session_files, "app_usage": usage_files,
+        "dumps": dumps, "sessions": session_files, "app_usage": usage_files, "ip_queries": ip_queries,
         "structure": world.structure,
         "plants": plants,
         "oracle": {"parameters": {"hub_threshold": threshold, "contact_kinds": list(oracle.PERSON_KINDS), "window_minutes": params.window_minutes},
-                   "A1": {s.msisdn: oracle.a1_profile(visible)[s.msisdn] for s in subjects}, "A2": a2, "A5": a5, "A6": a6},
+                   "A1": {s.msisdn: oracle.a1_profile(visible)[s.msisdn] for s in subjects}, "A2": a2, "A5": a5, "A6": a6, "A13": a13},
         "layout_assumptions": sorted({json.dumps(a, sort_keys=True) for r in renders.values() for a in r.assumptions}),
         "expected_quarantine": [], "expected_merge": [],
     }
@@ -198,7 +219,7 @@ def write_case(params, out_dir, registry=None):
         rendered = renders[entry["person"]]
         path = rendered.write(os.path.join(root, "files"), "export-%s-%s" % (entry["person"], rendered.layout_id))
         entry["file"] = "files/" + os.path.basename(path)
-    for entry in key["dumps"] + key["sessions"] + key["app_usage"]:
+    for entry in key["dumps"] + key["sessions"] + key["app_usage"] + key["ip_queries"]:
         rendered = renders[entry["name"]]
         path = rendered.write(os.path.join(root, "files"), "%s-%s" % (entry["name"], rendered.layout_id))
         entry["file"] = "files/" + os.path.basename(path)

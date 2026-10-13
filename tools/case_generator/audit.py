@@ -256,6 +256,36 @@ def audit(case_dir, registry=None):
         if any(r.status != "accepted" for r in results) or len(results) != item["rows"]:
             problems.append("%s: rows differ from the key" % item["file"])
 
+    # --- address translation (A13): who held each probed address and port, recomputed from the query exports ---------------------------------
+    for query in key.get("ip_queries", []):
+        rows = read_export(os.path.join(case_dir, *query["file"].split("/")))
+        report = registry.find_header(rows)
+        if report.matched_entry_id != query["layout_id"]:
+            problems.append("%s: the registry selects %s, the key says %s" % (query["file"], report.matched_entry_id, query["layout_id"]))
+            continue
+        entry = registry.get(query["layout_id"])
+        results = list(interpret_rows(entry, rows[report.header_row], rows[report.header_row + 1:], policy=POLICY))
+        if any(r.status != "accepted" for r in results) or len(results) != query["rows"]:
+            problems.append("%s: rows differ from the key" % query["file"])
+        holds = []
+        for r in results:
+            rec = r.record or {}
+            if rec.get("public_ip") != query["public_ip"]:
+                problems.append("%s: a row is on another public address" % query["file"])
+                break
+            holds.append((rec["public_port_from"], rec["public_port_to"], rec.get("nat_start_local") or rec["start_local"], rec.get("nat_end_local") or rec.get("end_local"), rec["msisdn"]))
+        plant = next((p for p in key["plants"] if p["id"] == query["plant"]), None)
+        if plant is None:
+            problems.append("%s: no plant %s in the key" % (query["file"], query["plant"]))
+            continue
+        for probe in plant["probes"]:
+            who = sorted({m for lo, hi, begin, finish, m in holds if lo <= probe["port"] <= hi and begin <= probe["instant"] <= finish})
+            verdict = "none" if not who else "unique" if len(who) == 1 else "ambiguous"
+            if (verdict, who) != (probe["result"], probe["holders"]):
+                problems.append("%s: probe '%s' gives %s %s in the files, the key says %s %s" % (plant["id"], probe["label"], verdict, who, probe["result"], probe["holders"]))
+            if (verdict, who) != (probe["intent"], probe["intended_holders"]):
+                problems.append("%s: probe '%s' does not show what was planted (%s)" % (plant["id"], probe["label"], probe["intent"]))
+
     # --- co-location (A5): recomputed by brute force over the events read from the files -------------------------------------------------
     window = key["oracle"]["parameters"].get("window_minutes", 15)
     computed = {}

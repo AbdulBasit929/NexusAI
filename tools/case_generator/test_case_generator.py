@@ -82,7 +82,7 @@ class CaseTests(unittest.TestCase):
 
     def test_each_export_is_selected_read_and_equal_to_the_truth(self):
         for pid, rendered in self.renders.items():
-            if pid.startswith(("ipdr-", "usage-")):
+            if pid.startswith(("ipdr-", "usage-", "ipquery-")):
                 continue  # internet-record and usage exports have their own tests
             with self.subTest(layout=rendered.layout_id):
                 entry = REGISTRY.get(rendered.layout_id)
@@ -117,14 +117,15 @@ class CaseTests(unittest.TestCase):
 
     def test_plants_and_decoys_are_what_the_key_says(self):
         threshold = self.key["oracle"]["parameters"]["hub_threshold"]
-        self.assertEqual(len(self.key["plants"]), 3)
-        for plant in self.key["plants"]:
+        common = [p for p in self.key["plants"] if p["type"] == "common_contacts"]
+        self.assertEqual(len(common), 3)
+        for plant in common:
             self.assertGreaterEqual(len(plant["planted_shared"]), 3)
             service, hub = plant["decoys"]
             self.assertTrue(service["must_be_excluded"] and hub["must_be_excluded"])
             self.assertGreater(hub["subjects_in_contact"], threshold)
         answers = {frozenset((a["x"], a["y"])): a for a in self.key["oracle"]["A2"]}
-        for plant in self.key["plants"]:
+        for plant in common:
             answer = answers[frozenset((plant["x"]["msisdn"], plant["y"]["msisdn"]))]
             self.assertEqual(answer["plant"], plant["id"])
             shared = {s["number"] for s in answer["shared"]}
@@ -137,7 +138,7 @@ class CaseTests(unittest.TestCase):
             else:
                 self.assertNotIn(hub["number"], shared)
         # the first two plants are pairs whose files can show both decoys, so both decoys are actually tested
-        both = [p for p in self.key["plants"] if all(d["visible_in_both_files"] for d in p["decoys"])]
+        both = [p for p in common if all(d["visible_in_both_files"] for d in p["decoys"])]
         self.assertGreaterEqual(len(both), 2)
         # the service decoy is excluded wherever both files show it; layouts without a short-code form cannot show it at all
         c2 = next(s for s in self.key["subjects"] if s["layout_id"] == "call-c2-strt-tm")
@@ -347,7 +348,7 @@ class SessionTests(unittest.TestCase):
         self.assertEqual(audit.audit(self.root), [])
 
     def test_no_two_background_sessions_hold_one_address_and_port_at_once(self):
-        sessions = sorted(self.world.sessions, key=lambda s: s.start)
+        sessions = sorted((s for s in self.world.sessions if not s.plant), key=lambda s: s.start)
         self.assertGreater(len(sessions), 150)
         for i, a in enumerate(sessions):
             for b in sessions[i + 1:]:
@@ -358,14 +359,14 @@ class SessionTests(unittest.TestCase):
 
     def test_port_blocks_follow_the_operators_layout(self):
         operator_of = {p.pid: p.operator for p in self.world.persons}
-        for s in self.world.sessions:
+        for s in (x for x in self.world.sessions if not x.plant):
             width = s.port_to - s.port_from + 1
             self.assertEqual(width, w.PORT_BLOCK.get(operator_of[s.pid], 1))
             self.assertIn(s.public_ip, w.PUBLIC_POOL[operator_of[s.pid]])
 
     def test_sessions_exist_for_subjects_only(self):
         subjects = {p.pid for p in self.world.persons if p.role == "subject"}
-        self.assertEqual({s.pid for s in self.world.sessions}, subjects)
+        self.assertEqual({s.pid for s in self.world.sessions if not s.plant}, subjects)
 
     def test_a_session_file_with_a_forged_address_is_noticed(self):
         with tempfile.TemporaryDirectory() as d:
@@ -386,6 +387,104 @@ class SessionTests(unittest.TestCase):
             with open(os.path.join(root, "manifest.json"), "w", encoding="utf-8") as handle:
                 json.dump(manifest, handle)
             self.assertTrue(any("documentation blocks" in p for p in audit.audit(root)), audit.audit(root))
+
+
+class AddressTranslationTests(unittest.TestCase):
+    """Plant P7 and the A13 attribution."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.params = w.Params(seed=41, people=60, subjects=4, associates=12, period_days=12, p2_pairs=1, p3_pairs=0)
+        cls.world, cls.renders, cls.key = generate.build_case(cls.params)
+        cls.root = generate.write_case(cls.params, cls.tmp.name)
+        with open(os.path.join(cls.root, "key", "key.json"), encoding="utf-8") as handle:
+            cls.written = json.load(handle)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def plants(self):
+        return [p for p in self.key["plants"] if p["type"] == "address_translation"]
+
+    def test_three_plants_on_operators_whose_layout_gives_a_session_end(self):
+        self.assertEqual(len(self.plants()), 3)
+        self.assertEqual({p["operator"] for p in self.plants()}, {"zong", "mobilink", "telenor"})
+        self.assertEqual(len(self.key["ip_queries"]), 3)
+
+    def test_every_probe_shows_what_was_planted(self):
+        for plant in self.plants():
+            self.assertEqual(len(plant["probes"]), 7)
+            for probe in plant["probes"]:
+                self.assertEqual(probe["result"], probe["intent"], probe["label"])
+                self.assertEqual(probe["holders"], probe["intended_holders"], probe["label"])
+            self.assertEqual([p["result"] for p in plant["probes"]].count("ambiguous"), 1)
+            self.assertEqual([p["result"] for p in plant["probes"]].count("none"), 1)
+        self.assertEqual(len(self.key["oracle"]["A13"]), 21)
+
+    def test_the_query_exports_read_back_and_the_audit_passes(self):
+        self.assertEqual(audit.audit(self.root), [])
+        for query in self.key["ip_queries"]:
+            rendered = self.renders[query["name"]]
+            entry = REGISTRY.get(rendered.layout_id)
+            results = list(interpret_rows(entry, rendered.table[rendered.header_index], rendered.table[rendered.header_index + 1:], policy=POLICY))
+            self.assertEqual(len(results), 6)
+            self.assertTrue(all(r.status == "accepted" and r.record["public_ip"] == query["public_ip"] for r in results))
+
+    def test_the_zong_query_carries_its_criteria_in_the_preamble(self):
+        zong = next(q for q in self.key["ip_queries"] if q["operator"] == "zong")
+        table = self.renders[zong["name"]].table
+        text = " | ".join(",".join(row) for row in table[:self.renders[zong["name"]].header_index])
+        self.assertIn(zong["public_ip"], text)
+        self.assertIn(zong["window_start"], text)
+
+    def test_the_two_plants_that_hold_a_port_back_to_back_are_unique_either_side_of_the_second(self):
+        for plant in self.plants():
+            labels = {p["label"]: p for p in plant["probes"]}
+            first = labels["back to back: last second of the first"]
+            second = labels["back to back: first second of the second"]
+            self.assertEqual((first["result"], second["result"]), ("unique", "unique"))
+            self.assertNotEqual(first["holders"], second["holders"])
+
+    def test_attribution_by_hand_with_ranges_and_boundaries(self):
+        sessions = [
+            {"public_ip": "X", "port_from": 1000, "port_to": 1063, "begin": "2026-02-02 10:00:00", "end": "2026-02-02 10:20:00", "msisdn": "A"},
+            {"public_ip": "X", "port_from": 1032, "port_to": 1095, "begin": "2026-02-02 10:10:00", "end": "2026-02-02 10:30:00", "msisdn": "B"},
+            {"public_ip": "X", "port_from": 1032, "port_to": 1095, "begin": "2026-02-02 10:12:00", "end": "2026-02-02 10:13:00", "msisdn": "B"},
+        ]
+        who = lambda port, when, ip="X": oracle.a13_holders(sessions, ip, port, when)
+        self.assertEqual(who(1040, "2026-02-02 10:15:00"), {"result": "ambiguous", "holders": ["A", "B"]})
+        self.assertEqual(who(1010, "2026-02-02 10:15:00"), {"result": "unique", "holders": ["A"]})
+        self.assertEqual(who(1070, "2026-02-02 10:25:00"), {"result": "unique", "holders": ["B"]})
+        self.assertEqual(who(1040, "2026-02-02 10:20:00")["result"], "ambiguous")   # the last second counts
+        self.assertEqual(who(1040, "2026-02-02 10:20:01"), {"result": "unique", "holders": ["B"]})
+        self.assertEqual(who(1040, "2026-02-02 09:59:59")["result"], "none")
+        self.assertEqual(who(1040, "2026-02-02 10:15:00", ip="Y")["result"], "none")
+        self.assertEqual(who(1032, "2026-02-02 10:12:30"), {"result": "ambiguous", "holders": ["A", "B"]})
+        self.assertEqual(who(1100, "2026-02-02 10:15:00")["result"], "none")           # one past the block
+        self.assertEqual(who(1095, "2026-02-02 10:25:00"), {"result": "unique", "holders": ["B"]})  # the last port of the block
+
+    def test_removing_the_colliding_holder_from_the_export_is_noticed(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = generate.write_case(self.params, d)
+            query = self.written["ip_queries"][0]
+            plant = next(p for p in self.world.p7 if p["id"] == query["plant"])
+            rendered = self.renders[query["name"]]
+            keep = [i for i, row in enumerate(rendered.rows) if not (row["plant"] or "").endswith("collision-b")]
+            self.assertEqual(len(keep), len(rendered.rows) - 1)
+            table = rendered.table[:rendered.header_index + 1] + [rendered.table[rendered.header_index + 1 + i] for i in keep]
+            damaged = render.RenderedFile(rendered.layout_id, rendered.subject, table, rendered.header_index, rendered.numeric_columns, rendered.container,
+                                          rendered.sheet_name, rendered.encoding, rendered.delimiter, [rendered.rows[i] for i in keep])
+            path = damaged.write(os.path.join(root, "files"), os.path.basename(query["file"]).rsplit(".", 1)[0])
+            with open(os.path.join(root, "manifest.json"), encoding="utf-8") as handle:
+                manifest = json.load(handle)
+            with open(path, "rb") as handle:
+                manifest["files"][query["file"]]["sha256"] = hashlib.sha256(handle.read()).hexdigest()
+            with open(os.path.join(root, "manifest.json"), "w", encoding="utf-8") as handle:
+                json.dump(manifest, handle)
+            problems = audit.audit(root)
+            self.assertTrue(any("probe 'collision'" in p for p in problems), problems)
 
 
 class DumpTests(unittest.TestCase):

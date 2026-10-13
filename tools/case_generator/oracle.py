@@ -1,4 +1,4 @@
-"""Plain-Python reference answers (specification section 10): A1 contact profile, A2 common contacts and A5 co-location and A6 tower-dump population.
+"""Plain-Python reference answers (specification section 10): A1 contact profile, A2 common contacts and A5 co-location and A6 tower-dump population and A13 address attribution.
 
 They read the events as the files show them (the visible rows of each subject's export), not the product, SQL or the files themselves.
 """
@@ -156,3 +156,15 @@ def a6_population(rows, cell_keys):
     seen_twice = sorted(n for n in per if len(per[n]["cells"]) >= 2) if wanted else None
     return {"cell_keys": cell_keys, "population": population, "at_two_or_more_cells": seen_twice,
             "note": None if wanted else "the layout has no cell column: the population is every number in the file"}
+
+
+def a13_holders(sessions, public_ip, port, instant):
+    """Who held this public address and port at this instant (specification section 10, A13).
+
+    sessions: dicts with public_ip, port_from, port_to, begin, end (local 'YYYY-MM-DD HH:MM:SS') and msisdn. A session holds its address and
+    port block from `begin` to `end`, both included. Distinct subscriptions are counted: one holder is `unique`, two or more `ambiguous`,
+    none `none`. Ambiguity is stated, never resolved by guessing.
+    """
+    holders = sorted({s["msisdn"] for s in sessions
+                      if s["public_ip"] == public_ip and s["port_from"] <= port <= s["port_to"] and s["begin"] <= instant <= s["end"]})
+    return {"result": "none" if not holders else "unique" if len(holders) == 1 else "ambiguous", "holders": holders}
