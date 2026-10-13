@@ -32,6 +32,8 @@
 
 Weeks are planning estimates for one owner plus Claude sessions and will be re-planned at each gate; they are not commitments.
 
+**Every phase ships its interface.** *(Owner instruction, 2026-10-13.)* A capability is not finished until an analyst can use it in the interface, with charts, link charts, maps and timelines suited to it, drilling down to the evidence rows, and until it has been tested in the browser on generated cases and shown there. Section 7.7 is the programme; each phase in section 11 lists its interface work, and each gate includes a demonstration.
+
 **The first 14 days** are in section 11. **The decisions only you can make** are in section 12.
 
 ---
@@ -100,6 +102,8 @@ New in this plan:
 | P5 | Sensitive capabilities are off by default and enabled per case with recorded authority | Face matching, voice biometrics, tower dump and geofence queries carry a legal-basis field and an audit trail |
 | P6 | Time and place are first-class | Every event has a source time zone and a time basis; every location has a method and an uncertainty radius |
 | P7 | Licence before download | No model or dataset is fetched or shipped without a licence ledger entry; downloads stay behind your approval |
+| P8 | A capability is done when it has its interface | Every analysis ships with its view, its browser test on a generated case and a demonstration at the gate; the interface is reviewed and improved at every stage, not at the end (section 7.7) |
+| P9 | Pictures tell the truth the tables tell | A chart, graph or map shows nothing a query and its evidence rows do not support: it carries the observed / inferred / candidate labels, the uncertainty, the conditions and a way to see the rows behind every mark |
 
 ### 3.2 Target architecture
 
@@ -507,7 +511,7 @@ Measured on 2 Oct: a single memory channel (DDR4-3200), 7 to 9 tokens a second w
 
 ### 6.7 Answer and interface
 
-Numbers come from code and are shown with the query and the conditions checked; assumptions appear as chips; an abstention says which condition failed and what to change; every answer links to source rows, pages, boxes or seconds; answers can be exported with an evidence appendix; right-to-left layout and four-width responsive checks stay as acceptance items.
+Numbers come from code and are shown with the query and the conditions checked; assumptions appear as chips; an abstention says which condition failed and what to change; every answer links to source rows, pages, boxes or seconds; answers can be exported with an evidence appendix; right-to-left layout and four-width responsive checks stay as acceptance items. The views that answers open (charts, link charts, maps, timelines) are specified in section 7.7.
 
 ---
 
@@ -577,6 +581,49 @@ A first version is a **documented formula, not a learned model**: it combines fr
 ### 7.6 Presentation
 
 A link chart (node type by shape, relationship kind by line style, click an edge for its evidence rows), a path explanation in words, a map with cell uncertainty circles, one timeline per entity, export with an evidence appendix, and the labels `observed`, `inferred`, `candidate` everywhere. Co-location results carry the line "proximity is not association".
+
+### 7.7 Interface, visualisation and interaction programme (applies to every phase)
+
+*Added 2026-10-13 on the owner's instruction: the interface is built and improved as the capabilities are built, so that everything can be tested and shown through it; the best charts, graphs, maps and visualisations for link analysis; modern, interactive and accurate.* This section extends the binding contract `docs/ux/NEXUSAI_PRODUCT_UX.md` (screens, provenance, visual system, accessibility, definition of done); on any conflict that contract wins until it is amended, and the components below are added to its component inventory when built. Nothing here is built yet beyond what the contract and `core/http/react-ui` already hold: today the interface has no chart, graph or map library.
+
+**Working rules (for every stage).**
+
+| # | Rule |
+|---|---|
+| V1 | **Interface in the same stage.** The change that adds an analysis or a data family also adds its view, its empty, loading, abstention and error states, and a browser test (Playwright, `core/http/react-ui/e2e`) that runs on a generated case. A stage is not closed without them. |
+| V2 | **Test and show through the interface.** Generated cases (20-case set) are the standard demonstration data: a loader puts a case into a development tenant so that the interface, the API and the oracles are exercised together; the gate demonstration is run on a judgement case, never a development one. |
+| V3 | **Review and edit as we go.** Each stage begins with a short interface review of the previous stage (defects, friction, missing states, accessibility) and ends with the owner looking at the stage's views on a generated case; defects found are fixed in the next stage's first week and recorded in the interface defect list. |
+| V4 | **Honest pictures (P9).** Line style and label by relationship kind (`observed` solid, `inferred` dashed, `candidate` dotted); cell uncertainty drawn as circles or sectors; co-location views carry "proximity is not association"; successor and meeting views carry "candidate, not a finding"; no chart without its query, conditions and assumption chips; every mark opens its evidence rows (P1). |
+| V5 | **Scale.** Tables are virtualised; graphs switch to canvas or WebGL drawing, with community collapse and level of detail, beyond about 2,000 nodes; maps cluster and tile beyond about 10,000 points; time series are decimated for display with the exact values one click away. Proposed budgets, to be measured and fixed at the Phase 1 gate: first view of a default case under 2 seconds; pan, zoom and filter at 60 frames per second to 5,000 nodes and 50,000 map points on the 15.7 GB laptop. |
+| V6 | **Offline.** No external tile server, font, script or icon is loaded at run time; the product works with the network cut (the real-data rules already require this). A map has a self-hosted basemap or a neutral grid; every library and map dataset has a licence-ledger entry before it is added (P7). |
+| V7 | **Accessible and bilingual.** Every chart has a "view as table" and a text summary; the link chart and map are keyboard-operable (focus, arrow-key traversal, escape); colour is never the only encoding and palettes are colour-blind-safe in light and dark themes; right-to-left layout and Urdu labels are tested in the views; four widths. |
+| V8 | **Repeatable output.** The same view state gives the same picture; views can be saved, shared inside a case and exported to PNG, SVG and PDF with the query, conditions, case and layout versions and an evidence appendix (section 6.7). |
+| V9 | **One component library.** The views are built from a small set of reusable components, built once and reused by every analysis: `LinkChart`, `GeoMap`, `Timeline`, `SwimLanes`, `CalendarHeat`, `SeriesChart`, `EvidenceDrawer`, `AssumptionChips`, `QualityReport`; their states, tokens and tests are defined once. |
+
+**Views by analysis** (the first column is the analysis of section 7.2; "first built" is the phase that builds it).
+
+| Analysis | View | Interaction | First built |
+|---|---|---|---|
+| A1 contact profile | Ranked table with an inline bar for outgoing, incoming and unknown; activity sparkline per contact | Sort, filter by direction, family and time; row opens its events | Phase 1 |
+| A2 common contacts | Two-subject link chart with the shared numbers between them, sized by the smaller side's count; hubs and services shown as excluded, not hidden | Click a shared number for both sides' events; toggle the excluded decoys on | Phase 1 |
+| A3 paths | Link chart with the path highlighted, hop by hop, and a path explanation in words | Strongest or shortest; hop limit; click an edge for its evidence rows | Phase 4 (basic in 1) |
+| A4 chaining, A12 communities | Force-directed or layered link chart with community hulls, brokers marked, centrality ranking beside it | Expand a node by one hop; collapse a community; pin; filter by edge kind and strength; seed and parameters shown | Phase 4 |
+| A5 co-location, A7 meetings | Map of the cells involved with uncertainty circles; two aligned lanes (one per subject) on a shared time axis with the co-location windows and the contacts before them marked; chance baseline and lift as a small panel | Brush a window to see both subjects' events; step through windows; window width control (W) | Phase 1 |
+| A6 tower dump | Map of the dump's cells with counts per cell; population table; numbers seen at two or more cells highlighted | Select a cell or time slice; export the list with its authority record | Phase 1 (authority-gated) |
+| A8 devices and SIMs | Swim-lane chart: one lane per number, with the IMEI and IMSI as coloured runs and the change markers; shared devices joined across lanes, concurrent or sequential | Hover a run for first and last seen; click a change for the rows around it | Phase 1 |
+| A9 successors | Side-by-side activity lines of the silent number and each candidate; similarity score broken down into contacts, cells and handset | Choose a candidate; shared contacts list | Phase 4 |
+| A10 movement | Map path with dwell anchors (night and day) and uncertainty; impossible-speed pairs flagged on the path; time slider and play | Scrub time; filter weeks; compare anchors across weeks | Phase 4 |
+| A11 temporal behaviour | Calendar heat map (day by hour) and a daily-count line with the change point and its statistics | Select a range to list its events | Phase 4 |
+| A13 address translation | Query form (address, port, instant) and a result card: unique, ambiguous or none, with the competing holders and their intervals on a small timeline | Step the instant; export the result | Phase 1 |
+| A14 mentions, A15 convoys, A16 timeline, A17 flows, A18 anomalies | Mention list over evidence viewers (page boxes, waveform, frame); camera map with sightings; one timeline per entity across families; flow diagram (Sankey or graph); ranked flags with the rule that fired | Deep links to page, second and frame | Phase 3 and 4 |
+| Import and quality | Layout recognition card (matched layout, confidence, the header it saw), assumption chips, quarantine and repeat counts, completeness by day, reconciliation against declared totals | Accept, correct a mapping, rerun; the correction is a versioned data change (P2) | Phase 1 |
+| Case overview | Evidence inventory (what files, which numbers, which period), a coverage timeline per number, the alerts from the analyses with their evidence | Jump into any view from a number or an alert | Phase 0 (inventory) and 1 |
+
+**Library candidates** (to be proven on a generated case in Phase 0, then confirmed in the licence ledger before adoption; none is added yet): Cytoscape.js or Sigma.js with graphology for the link chart; MapLibre GL JS with deck.gl layers for the map; Apache ECharts or d3 for series, heat maps and Sankey; a timeline component only if swim lanes built from the series library are not enough. The choice rule is written before the spike: licence compatible with the ledger rules, works offline, handles the budgets in V5, keyboard and screen-reader support, right-to-left labels, and a deterministic export.
+
+**Map basemap.** Generated cases use a fictional grid in open ocean (specification section 8), so a map of one shows the cells on a neutral background with a distance scale; this is honest but plain. Real cases need an offline basemap (self-hosted vector tiles of the region); its source, licence and size are a decision (D14). Cells are drawn as sites with uncertainty, never as the position of a person.
+
+**Definition of done for a view.** It reads its data through the API (no query in the browser); its numbers equal the oracle on the 20 cases; every mark opens its evidence rows; the empty, loading, abstention and error states exist; it passes the keyboard, table-alternative, colour and right-to-left checks; its Playwright test passes on a generated case; it exports with the evidence appendix; and the owner has seen it on a judgement case.
 
 ---
 ## 8. Data and evaluation program
@@ -724,8 +771,9 @@ Each phase ends at a gate. A gate is written before the phase's measurements, as
 - Product fixes found in the rehearsal: cap the older path's model calls after a lane decline (G13); routing of the word "access" (G12); evidence-inventory view (G10, needs D8); persistent switches in the compose file (G14, needs D7); `factory.py` guard for an empty key (G31).
 - Licence ledger started (*done 2026-10-12*: `docs/compliance/licence-ledger.csv` and `.md`, 75 rows, `tools/licence_ledger/check_ledger.py` with 13 tests; three models that run today have unresolved weight terms and the AGPL video-plate stack is blocked, see the document); EliteDesk RTX 2080 measured; shared prompt start measured.
 - Phase 1 gates pre-registered.
+- **Interface (7.7):** interface review of the current analyst portal against the contract; evidence-inventory view (G10); chart and graph tokens (colour-blind-safe palettes, light and dark); a read-only **visual spike** that draws one generated case as a link chart, a map and a swim-lane timeline with the candidate libraries, to settle D15 and D14 on evidence; the Playwright harness against a generated case; the interface defect list opened.
 
-**Gate:** decisions D1 to D6 recorded; 13 registry entries load; synthetic goldens pass; ledger exists; one full run of corpus, pre-flight and probes shows no regression.
+**Gate:** decisions D1 to D6 recorded; the visual spike shown to the owner and the library and basemap choices (D14, D15) made; 13 registry entries load; synthetic goldens pass; ledger exists; one full run of corpus, pre-flight and probes shows no regression.
 
 ### Phase 1: real structured data and the link-analysis foundation (weeks 2 to 8)
 
@@ -736,8 +784,9 @@ Each phase ends at a gate. A gate is written before the phase's measurements, as
 - Verifier extensions (time basis, number class, direction semantics, IP interval).
 - Typed analyses A1 to A5, A8, A13 with oracles.
 - Import wizard and assumption chips in the UI.
+- **Interface (7.7):** the component library (`LinkChart`, `GeoMap`, `Timeline`, `SwimLanes`, `CalendarHeat`, `SeriesChart`, `EvidenceDrawer`, `QualityReport`); views for A1, A2, A5 with A7, A6, A8 and A13; the quality report and layout recognition card; a loader path that puts a generated case into a development tenant so the views run on it; a Playwright test per view; budgets (V5) measured and fixed; an owner review on a judgement case.
 
-**Gate (proposed):** all 13 layouts pass acceptance (4.4); zero silent drops; factory v2 at least 90% correct and at most 1% wrong on fresh seeds; exact analyses at 100% parity with their oracles; no regression on the corpus and pre-flight; a real-file aggregate reconciliation passes for each layout.
+**Gate (proposed):** every Phase 1 view passes the definition of done in 7.7 on a judgement case and is demonstrated to the owner; all 13 layouts pass acceptance (4.4); zero silent drops; factory v2 at least 90% correct and at most 1% wrong on fresh seeds; exact analyses at 100% parity with their oracles; no regression on the corpus and pre-flight; a real-file aggregate reconciliation passes for each layout.
 
 ### Phase 2: questions in every language, conversation and models (weeks 4 to 12, parallel with Phase 1)
 
@@ -745,8 +794,9 @@ Each phase ends at a gate. A gate is written before the phase's measurements, as
 - Multilingual synonyms and question sets with native reviewers (D10); baselines recorded.
 - **Pre-registered bake-off** of query-writer models on the GPU node (D3, D4); decision; optional adapter fine-tune only for a measured gap.
 - Free-word and value-list shapes (G11); typed-lane verifier (R2); speed work.
+- **Interface (7.7):** conversation surface with assumption chips, clarification prompts and abstention explanations; every answer type opens its view (table, series, link chart, map, timeline) with "show me"; Urdu, Roman Urdu, Punjabi and Pashto in the question box and in chart labels, right-to-left checked; interface review of Phase 1 and its defect fixes.
 
-**Gate:** bake-off decision recorded; multilingual baselines recorded; clarification metrics at target; no wrong answer from an invisible default.
+**Gate:** bake-off decision recorded; the conversation surface passes the contract's checks in four languages; multilingual baselines recorded; clarification metrics at target; no wrong answer from an invisible default.
 
 ### Phase 3: media depth (weeks 6 to 20, four tracks)
 
@@ -754,25 +804,28 @@ Each phase ends at a gate. A gate is written before the phase's measurements, as
 - **3B OCR and retrieval:** Urdu set, bake-off, synthetic fine-tune, BGE-M3, reranker, pgvector retrieval.
 - **3C plates and video:** dataset, detector and reader fine-tune, tracking and voting, confusion-aware search.
 - **3D faces:** L0 now; L1 and L2 only after D5, the evaluation set and approval.
+- **Interface (7.7):** evidence viewers with overlays (page and box for OCR, waveform and transcript for speech, frame and track for plates and video, candidate cards for faces with the authority banner); plate sightings on the camera map; each track's confusion and error views (what the model got wrong, by class).
 
-**Gate:** each track's pre-registered thresholds on its sealed set.
+**Gate:** each track's pre-registered thresholds on its sealed set, and its viewers pass the definition of done in 7.7.
 
 ### Phase 4: cross-family intelligence (weeks 14 to 26)
 
 - Identifier mention index across documents, OCR and speech into `entity_mention`.
 - Entity resolution rules, relationship derivations, the link-strength formula; analyses A6 to A12 and A14 to A18.
 - Link chart, map, timeline, export with evidence appendix.
+- **Interface (7.7):** the full link chart (communities, brokers, paths, expand and collapse, edge evidence), the movement map with time slider, the calendar heat map and change points, the per-entity timeline across families, the entity-resolution review screen (merge and split with undo and reason), saved views and the PDF export with the evidence appendix; an analyst usability test on a real-shaped case with a task list and timings.
 - New families: message exports and location history.
 
-**Gate:** precision and recall on planted cases at thresholds set after the baseline; an analyst usability test on a real-shaped case.
+**Gate:** precision and recall on planted cases at thresholds set after the baseline; an analyst usability test on a real-shaped case with the task completion and error rates written before it is run.
 
 ### Phase 5: enterprise (weeks 22 to 34)
 
 - Identity, case registry and authority (R9), read-only role.
 - Injection and isolation tests, load tests, backup and restore, observability.
 - Retire older-path families once parity is proven (R6); deployment on the GPU node; release documents and support runbooks.
+- **Interface (7.7):** roles and the read-only view in the interface, audit and custody views, shared and saved views inside a case, interface load tests at the V5 budgets, a full accessibility and right-to-left audit, print and export checks, and the interface part of the release document.
 
-**Gate:** NX-C2 release approval.
+**Gate:** NX-C2 release approval, including the interface checks of 7.7.
 
 ### The first 14 days
 
@@ -807,6 +860,9 @@ Each phase ends at a gate. A gate is written before the phase's measurements, as
 | D11 | Scope of tower-dump and geofence analyses and the legal-basis fields they require | Contested law; sensitive | Build with authority gating, off by default |
 | D12 | Priority if capacity is limited | Parallel work competes | Structured data and link analysis first, then media |
 | D13 | Commit the UI changes and decide the commit-gate repair | Process debt | Yes |
+| D14 | Map basemap for real cases: self-hosted vector tiles of the region (source, licence, size), or a neutral grid with cell sites only | The map view needs it; no external tile server may be used | Decide after the visual spike; self-hosted tiles if their licence fits the ledger |
+| D15 | Visual libraries for the link chart, map and series charts, and their licences | Components are built on them once | Decide after the visual spike on a generated case, against the rule in 7.7 |
+| D16 | Map style for generated cases: keep the open-ocean fictional grid (never resembles a real place) or add a fictional city layout (reads more naturally in a demonstration) | Changes the case generator's cell grid and every registered hash if changed | Keep the ocean grid; change only if the demonstration needs it, before the judgement and sealed register is used |
 
 ---
 
