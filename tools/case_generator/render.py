@@ -217,10 +217,10 @@ def render_views(world, entry, views, label, preamble_person=None) -> RenderedFi
         put(fields["a"], a_raw)
         imei = imsi = None
         if fields.get("imei"):
-            imei = mg.imei_for(subject.n, int(hints.get("imei_digits", 15)))
+            imei = mg.imei_for(w.identity_at(subject, ev.start)[1], int(hints.get("imei_digits", 15)))
             put(fields["imei"], imei)
         if fields.get("imsi"):
-            imsi = subject.imsi
+            imsi = w.identity_at(subject, ev.start)[0]
             put(fields["imsi"], imsi)
         start = ev.start
         end = start + datetime.timedelta(seconds=ev.duration_s)

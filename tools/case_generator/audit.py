@@ -93,6 +93,7 @@ def audit(case_dir, registry=None):
 
     visible = {}   # subject msisdn -> list of (counterparty norm or label, kind, direction)
     placed = {}    # subject msisdn -> list of (start time, cell key)
+    identity_rows = {}   # subject msisdn -> list of (start time, imsi, 14-digit imei)
     for subject in key["subjects"]:
         path = os.path.join(case_dir, *subject["file"].split("/"))
         rows = read_export(path)
@@ -106,7 +107,7 @@ def audit(case_dir, registry=None):
         check_rows(subject["file"], results, key.get("defects", {}).get(subject["person"], []), problems)
         if len(results) != subject["rows"]:
             problems.append("%s: %d rows read, the key says %d" % (subject["file"], len(results), subject["rows"]))
-        mine, where, repeated = [], [], set()
+        mine, where, repeated, identities = [], [], set(), []
         for r in results:
             rec = r.record or {}
             if r.status != "accepted":
@@ -123,10 +124,12 @@ def audit(case_dir, registry=None):
                     break
             label = rec["b_norm"] if rec.get("b_norm") else rec.get("b_raw")
             mine.append((label, rec.get("b_kind"), rec["direction"], rec["start_local"]))
+            identities.append((rec["start_local"], rec.get("imsi"), (rec.get("imei") or "")[:14] or None))
             if rec.get("cell_key"):
                 where.append((datetime.datetime.fromisoformat(rec["start_local"]), rec["cell_key"]))
         visible[subject["msisdn"]] = mine
         placed[subject["msisdn"]] = where
+        identity_rows[subject["msisdn"]] = identities
 
     threshold = key["oracle"]["parameters"]["hub_threshold"]
 
@@ -359,6 +362,128 @@ def audit(case_dir, registry=None):
             for event in decoy["events"]:
                 if (event["subject"], event["start_local"], event["cell_key"]) in paired:
                     problems.append("%s: a %s event takes part in a co-located pair" % (plant["id"], decoy["kind"]))
+    # --- device and SIM history (A8), recomputed from the identities in the files ----------------------------------------------------------
+    history, devices = {}, {}
+    for number, seen in identity_rows.items():
+        runs = []
+        for when, imsi, imei in sorted(x for x in seen if x[1] or x[2]):
+            if runs and runs[-1][0] == (imsi, imei):
+                runs[-1][2] = when
+            else:
+                runs.append([(imsi, imei), when, when])
+        history[number] = [(a[0], b[0], a[2], b[1]) for a, b in zip(runs, runs[1:])]    # (old identity, new identity, last old, first new)
+        for identity, first, last in runs:
+            if identity[1]:
+                devices.setdefault(identity[1], {}).setdefault(number, []).append((first, last))
+    answer_a8 = key["oracle"].get("A8")
+    if answer_a8 is not None:
+        for number, entry_ in answer_a8["numbers"].items():
+            mine = [(c["kind"], (c["old_imsi"], c["old_imei"]), (c["new_imsi"], c["new_imei"]), c["last_seen_old"], c["first_seen_new"]) for c in entry_["changes"]]
+            theirs = [("both" if o[0] != n[0] and o[1] != n[1] else "imei" if o[1] != n[1] else "imsi", o, n, lo, fn) for o, n, lo, fn in history.get(number, [])]
+            if mine != theirs:
+                problems.append("A8 for %s: the key and the files disagree on the identity changes" % number[-5:])
+        shared_mine = sorted(d for d, per in devices.items() if len(per) > 1)
+        if shared_mine != sorted(s["imei"] for s in answer_a8["shared_devices"]):
+            problems.append("A8: the devices shared by two numbers differ from the key")
+    planted_changes = {(p["number"], p["kind"]) for p in key["plants"] if p["type"] == "device_change"}
+    for plant in key["plants"]:
+        if plant["type"] == "device_change":
+            wanted = {"handset_change": "imei", "sim_change": "imsi", "both_change": "both"}[plant["kind"]]
+            found = [h for h in history.get(plant["number"], [])
+                     if ("both" if h[0][0] != h[1][0] and h[0][1] != h[1][1] else "imei" if h[0][1] != h[1][1] else "imsi") == wanted]
+            if len(found) != 1:
+                problems.append("%s: the %s of %s is not in the files exactly once" % (plant["id"], plant["kind"], plant["number"][-5:]))
+            else:
+                old, new, last_old, first_new = found[0]
+                if not (last_old < plant["from"] <= first_new):
+                    problems.append("%s: the planted date is not between the last old and the first new identity" % plant["id"])
+                if (old[1], new[1]) != (plant["old_imei"], plant["new_imei"]) and wanted != "imsi":
+                    problems.append("%s: the devices in the files differ from the planted ones" % plant["id"])
+                if (old[0], new[0]) != (plant["old_imsi"], plant["new_imsi"]) and wanted != "imei":
+                    problems.append("%s: the SIMs in the files differ from the planted ones" % plant["id"])
+        elif plant["type"] == "dual_sim":
+            per = devices.get(plant["imei"], {})
+            if sorted(per) != plant["numbers"]:
+                problems.append("%s: the device is not shared by exactly the planted numbers" % plant["id"])
+            else:
+                spans = [(min(f for f, _ in v), max(l for _, l in v)) for v in per.values()]
+                if not (spans[0][0] <= spans[1][1] and spans[1][0] <= spans[0][1]):
+                    problems.append("%s: the dual-SIM numbers do not use the device at the same time" % plant["id"])
+    changed_numbers = {n for n, h in history.items() if h}
+    unexpected = changed_numbers - {n for n, _ in planted_changes}
+    if unexpected:
+        problems.append("A8: identity changes in the files that nothing planted (%d numbers)" % len(unexpected))
+
+    # --- successor numbers (A9), recomputed from the files --------------------------------------------------------------------------------
+    answer_a9 = key["oracle"].get("A9")
+    if answer_a9 is not None:
+        cfg = answer_a9["parameters"]
+        case_start = datetime.datetime.fromisoformat(key["params"]["start_date"])
+        case_end = case_start + datetime.timedelta(days=key["params"]["period_days"])
+        day = datetime.timedelta(days=1)
+        stamps = {n: sorted(datetime.datetime.fromisoformat(w_) for _, _, _, w_ in rows) for n, rows in visible.items() if rows}
+        found = {}
+        for x in sorted(stamps):
+            if case_end - stamps[x][-1] < cfg["silence_days"] * day:
+                continue
+            listed = []
+            for y in sorted(stamps):
+                if y == x or stamps[y][0] - case_start < cfg["new_after_days"] * day:
+                    continue
+                if not (stamps[x][-1] - cfg["overlap_days"] * day <= stamps[y][0] <= stamps[x][-1] + cfg["window_days"] * day):
+                    continue
+                counts_x, counts_y = {}, {}
+                for label, kind, direction, when in visible[x]:
+                    moment = datetime.datetime.fromisoformat(when)
+                    if stamps[x][-1] - cfg["history_days"] * day < moment <= stamps[x][-1] and kind in ("person_like", "international") and label and label not in (x, y):
+                        counts_x[label] = counts_x.get(label, 0) + 1
+                for label, kind, direction, when in visible[y]:
+                    moment = datetime.datetime.fromisoformat(when)
+                    if stamps[y][0] <= moment < stamps[y][0] + cfg["history_days"] * day and kind in ("person_like", "international") and label and label not in (x, y):
+                        counts_y[label] = counts_y.get(label, 0) + 1
+                cells_x, cells_y = {}, {}
+                for moment, cell in placed.get(x, []):
+                    if stamps[x][-1] - cfg["history_days"] * day < moment <= stamps[x][-1]:
+                        cells_x[cell] = cells_x.get(cell, 0) + 1
+                for moment, cell in placed.get(y, []):
+                    if stamps[y][0] <= moment < stamps[y][0] + cfg["history_days"] * day:
+                        cells_y[cell] = cells_y.get(cell, 0) + 1
+                set_x, set_y = {c for c, n in cells_x.items() if n >= 2}, {c for c, n in cells_y.items() if n >= 2}
+                jaccard = len(set_x & set_y) / len(set_x | set_y) if set_x | set_y else 0.0
+                dot = sum(n * counts_y.get(k, 0) for k, n in counts_x.items())
+                norm = (sum(n * n for n in counts_x.values()) ** 0.5) * (sum(n * n for n in counts_y.values()) ** 0.5)
+                cosine = dot / norm if norm else 0.0
+                device = bool({i for _, _, i in identity_rows.get(x, []) if i} & {i for _, _, i in identity_rows.get(y, []) if i})
+                score = round(0.6 * cosine + 0.2 * jaccard + (0.2 if device else 0.0), 4)
+                if score >= cfg["threshold"]:
+                    listed.append((y, score, device))
+            listed.sort(key=lambda c: (-c[1], c[0]))
+            found[x] = listed
+        theirs = {s["number"]: [(c["number"], c["score"], c["shared_device"]) for c in s["candidates"]] for s in answer_a9["silent"]}
+        if sorted(found) != sorted(theirs):
+            problems.append("A9: the silent numbers in the files differ from the key")
+        for x in found:
+            mine, other = found[x], theirs.get(x, [])
+            if [m[0] for m in mine] != [o[0] for o in other] or any(abs(m[1] - o[1]) > 1e-3 or m[2] != o[2] for m, o in zip(mine, other)):
+                problems.append("A9 for %s: the key and the files disagree on the successor candidates" % x[-5:])
+        for plant in key["plants"]:
+            if plant["type"] == "successor":
+                top = found.get(plant["old"], [])
+                if not top or top[0][0] != plant["new"]:
+                    problems.append("%s: the planted successor is not the first candidate in the files" % plant["id"])
+                elif top[0][2] != plant["with_device"]:
+                    problems.append("%s: the shared handset differs from what was planted" % plant["id"])
+                if stamps.get(plant["old"]) and stamps[plant["old"]][-1].strftime("%Y-%m-%d") > plant["last_day_old"]:
+                    problems.append("%s: the old number is active after its planted last day" % plant["id"])
+                if stamps.get(plant["new"]) and stamps[plant["new"]][0].strftime("%Y-%m-%d") < plant["first_day_new"]:
+                    problems.append("%s: the new number is active before its planted first day" % plant["id"])
+            elif plant["type"] == "silent_without_successor":
+                if found.get(plant["number"]):
+                    problems.append("%s: the silent number has a successor candidate" % plant["id"])
+            elif plant["type"] == "late_without_predecessor":
+                if any(c[0] == plant["number"] for listed in found.values() for c in listed):
+                    problems.append("%s: the late starter is listed as somebody's successor" % plant["id"])
+
     # --- possible meetings (A7): co-location windows preceded by a direct contact, recomputed from the files ---------------------------------
     gap = key["oracle"]["parameters"].get("contact_gap_minutes", 60)
     candidates = {}

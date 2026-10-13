@@ -79,10 +79,11 @@ def render_sessions(world, entry, items, label, preamble_values=None, damage=Fal
         if "nat_end" in time_cols:
             put(time_cols["nat_end"], mg.render_time(session.nat_end, fmt, hints))
         put(fields["msisdn"], person.msisdn)
-        put(fields["imsi"], person.imsi)
+        imsi_now, imei_n = w.identity_at(person, start)
+        put(fields["imsi"], imsi_now)
         imei = None
         if fields.get("imei"):
-            imei = mg.imei_for(person.n, int(hints.get("imei_digits", 15)))
+            imei = mg.imei_for(imei_n, int(hints.get("imei_digits", 15)))
             put(fields["imei"], imei)
         put(fields["ue_ip"], session.ue_ip)
         put(fields["ue_port"], session.ue_port)
@@ -143,7 +144,7 @@ def render_sessions(world, entry, items, label, preamble_values=None, damage=Fal
             cell_expect["cell_raw"] = cells[index[column_ref(fields["cell"]["column"])]] or None
         data.append(cells)
         out.rows.append({
-            "status": "accepted", "flags": [], "uid": session.uid, "msisdn": person.msisdn, "imsi": person.imsi, "imei": imei, "ue_ip": session.ue_ip, "ue_port": session.ue_port,
+            "status": "accepted", "flags": [], "uid": session.uid, "msisdn": person.msisdn, "imsi": imsi_now, "imei": imei, "ue_ip": session.ue_ip, "ue_port": session.ue_port,
             "public_ip": session.public_ip, "public_port_from": session.port_from, "public_port_to": session.port_to, "server_ip": session.server_ip,
             "server_port": session.server_port, "protocol": protocol_expect, "protocol_num": protocol_num_expect, "session_ref": session_ref,
             "start_local": start.isoformat(sep=" "), "end_local": end.isoformat(sep=" ") if "end" in time_cols else None,
@@ -184,9 +185,10 @@ def render_app_usage(world, entry, person, sessions) -> RenderedFile:
             cells[index[ref if isinstance(ref, tuple) else column_ref(ref)]] = "" if value is None else str(value)
         put(time_cols["start"], mg.render_time(session.start, fmt, hints))
         put(time_cols["end"], mg.render_time(session.end, fmt, hints))
-        imei = mg.imei_for(person.n, int(hints.get("imei_digits", 15)))
+        imsi_now, imei_n = w.identity_at(person, session.start)
+        imei = mg.imei_for(imei_n, int(hints.get("imei_digits", 15)))
         put(fields["msisdn"], person.msisdn)
-        put(fields["imsi"], person.imsi)
+        put(fields["imsi"], imsi_now)
         put(fields["imei"], imei)
         category, app, feature = session.app
         put(fields["app_category"], category)
@@ -199,7 +201,7 @@ def render_app_usage(world, entry, person, sessions) -> RenderedFile:
                     cells[pos] = mg.recipe_value(recipe, r, len(data), {"start": session.start, "end": session.end})
         text = {name: (cells[index[column_ref(fields[name])]] or None) for name in ("terminal", "apn", "app_category", "app", "app_feature", "province", "city")}
         data.append(cells)
-        out.rows.append({"uid": session.uid, "msisdn": person.msisdn, "imsi": person.imsi, "imei": imei, "tac": imei[:8], "start_local": session.start.isoformat(sep=" "),
+        out.rows.append({"uid": session.uid, "msisdn": person.msisdn, "imsi": imsi_now, "imei": imei, "tac": imei[:8], "start_local": session.start.isoformat(sep=" "),
                          "end_local": session.end.isoformat(sep=" "), **text})
     out.table = [[c["name"] for c in entry["header"]["columns"]]] + data
     out.header_index = 0

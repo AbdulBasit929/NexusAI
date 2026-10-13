@@ -1,4 +1,4 @@
-"""Plain-Python reference answers (specification section 10): A1 contact profile, A2 common contacts and A5 co-location and A6 tower-dump population, A7 possible meetings and A13 address attribution.
+"""Plain-Python reference answers (specification section 10): A1 contact profile, A2 common contacts and A5 co-location and A6 tower-dump population, A7 possible meetings, A8 device history, A9 successor candidates and A13 address attribution.
 
 They read the events as the files show them (the visible rows of each subject's export), not the product, SQL or the files themselves.
 """
@@ -191,3 +191,111 @@ def a7_meetings(rows_x, rows_y, x, y, windows, gap_minutes=60):
                            "contacts_before": before, "gap_minutes": round(gap, 2),
                            "score": round(0.5 * min(window["pairs"], 3) / 3 + 0.5 * (1 - gap / gap_minutes), 4)})
     return {"gap_minutes": gap_minutes, "candidates": candidates, "caveat": "a candidate, not a finding: proximity and contact are not proof of a meeting"}
+
+
+def imei14(value):
+    """The first 14 digits of an IMEI: the same device whatever its layout writes (14, 15 or 16 digits)."""
+    return value[:14] if value else None
+
+
+def a8_device_history(visible_by_number):
+    """Device and SIM history (specification section 10, A8). Per number: its (IMSI, device) timeline as runs of unchanged identity, and each
+    change between two runs (`imei`: another handset, `imsi`: another SIM, `both`) with the last time the old identity and the first time the new
+    one was seen. Across numbers: a device (14-digit IMEI) seen under two or more numbers, `concurrent` when their periods of use overlap (a
+    dual-SIM phone, or one phone shared), `sequential` when one stops before the other starts (a handset passed on)."""
+    numbers, by_device = {}, {}
+    for number in sorted(visible_by_number):
+        seen = sorted((r["start_local"], r.get("imsi"), imei14(r.get("imei"))) for r in visible_by_number[number] if r.get("imsi") or r.get("imei"))
+        runs = []
+        for when, imsi, imei in seen:
+            if runs and (runs[-1]["imsi"], runs[-1]["imei"]) == (imsi, imei):
+                runs[-1]["last"] = when
+                runs[-1]["events"] += 1
+            else:
+                runs.append({"imsi": imsi, "imei": imei, "first": when, "last": when, "events": 1})
+        changes = []
+        for old, new in zip(runs, runs[1:]):
+            kind = "both" if old["imsi"] != new["imsi"] and old["imei"] != new["imei"] else "imei" if old["imei"] != new["imei"] else "imsi"
+            changes.append({"kind": kind, "last_seen_old": old["last"], "first_seen_new": new["first"], "old_imsi": old["imsi"], "new_imsi": new["imsi"],
+                            "old_imei": old["imei"], "new_imei": new["imei"]})
+        numbers[number] = {"runs": len(runs), "changes": changes}
+        for run in runs:
+            if run["imei"]:
+                by_device.setdefault(run["imei"], {}).setdefault(number, []).append((run["first"], run["last"]))
+    shared = []
+    for device in sorted(by_device):
+        per = by_device[device]
+        if len(per) < 2:
+            continue
+        span = {n: (min(f for f, _ in v), max(l for _, l in v)) for n, v in per.items()}
+        names = sorted(span)
+        overlap = any(span[a][0] <= span[b][1] and span[b][0] <= span[a][1] for i, a in enumerate(names) for b in names[i + 1:])
+        shared.append({"imei": device, "numbers": [{"number": n, "first": span[n][0], "last": span[n][1]} for n in names],
+                       "relation": "concurrent" if overlap else "sequential"})
+    return {"numbers": numbers, "shared_devices": shared}
+
+
+A9_DEFAULTS = {"silence_days": 7, "window_days": 14, "overlap_days": 2, "history_days": 30, "new_after_days": 7, "threshold": 0.35}
+
+
+def _cosine(a, b):
+    dot = sum(n * b.get(k, 0) for k, n in a.items())
+    na, nb = sum(n * n for n in a.values()) ** 0.5, sum(n * n for n in b.values()) ** 0.5
+    return dot / (na * nb) if na and nb else 0.0
+
+
+def a9_successors(visible_by_number, case_start, case_end, **overrides):
+    """Successor candidates (specification section 10, A9): who may have replaced a number that went silent.
+
+    A number is silent when its last event is at least `silence_days` before the end of the case. A candidate is another number whose first
+    event falls between `overlap_days` before and `window_days` after the silent number's last event, and that was not already in use in the
+    first `new_after_days` of the case. Features: the cosine of the two contact-count vectors (person-like counterparties, the silent number's last
+    `history_days` against the candidate's first `history_days`, the two numbers left out), the Jaccard index of the cells each used at least twice
+    in those windows, and whether they share a 14-digit IMEI at any time. score = 0.6 * cosine + 0.2 * jaccard + 0.2 * shared device; a
+    candidate is listed when score >= threshold. Behavioural similarity, not identity.
+    """
+    cfg = dict(A9_DEFAULTS, **overrides)
+    day = datetime.timedelta(days=1)
+    times = {n: sorted(_time(r) for r in rows) for n, rows in visible_by_number.items() if rows}
+    first = {n: t[0] for n, t in times.items()}
+    last = {n: t[-1] for n, t in times.items()}
+    silent = []
+    for x in sorted(times):
+        if case_end - last[x] < cfg["silence_days"] * day:
+            continue
+        x_from = last[x] - cfg["history_days"] * day
+        candidates = []
+        for y in sorted(times):
+            if y == x or (first[y] - case_start) < cfg["new_after_days"] * day:
+                continue
+            if not (last[x] - cfg["overlap_days"] * day <= first[y] <= last[x] + cfg["window_days"] * day):
+                continue
+            y_to = first[y] + cfg["history_days"] * day
+            cx, cy, cells_x, cells_y = {}, {}, {}, {}
+            for r in visible_by_number[x]:
+                when = _time(r)
+                if x_from < when <= last[x]:
+                    if r["b_kind"] in PERSON_KINDS and r["b_norm"] and r["b_norm"] not in (x, y):
+                        cx[r["b_norm"]] = cx.get(r["b_norm"], 0) + 1
+                    if r.get("cell_key"):
+                        cells_x[r["cell_key"]] = cells_x.get(r["cell_key"], 0) + 1
+            for r in visible_by_number[y]:
+                when = _time(r)
+                if first[y] <= when < y_to:
+                    if r["b_kind"] in PERSON_KINDS and r["b_norm"] and r["b_norm"] not in (x, y):
+                        cy[r["b_norm"]] = cy.get(r["b_norm"], 0) + 1
+                    if r.get("cell_key"):
+                        cells_y[r["cell_key"]] = cells_y.get(r["cell_key"], 0) + 1
+            set_x, set_y = {c for c, n in cells_x.items() if n >= 2}, {c for c, n in cells_y.items() if n >= 2}
+            jaccard = len(set_x & set_y) / len(set_x | set_y) if set_x | set_y else 0.0
+            devices_x = {imei14(r.get("imei")) for r in visible_by_number[x]} - {None}
+            devices_y = {imei14(r.get("imei")) for r in visible_by_number[y]} - {None}
+            shared_device = bool(devices_x & devices_y)
+            cosine = _cosine(cx, cy)
+            score = round(0.6 * cosine + 0.2 * jaccard + (0.2 if shared_device else 0.0), 4)
+            if score >= cfg["threshold"]:
+                candidates.append({"number": y, "first_event": first[y].isoformat(sep=" "), "score": score, "contact_cosine": round(cosine, 4),
+                                   "shared_contacts": len(set(cx) & set(cy)), "cell_jaccard": round(jaccard, 4), "shared_device": shared_device})
+        candidates.sort(key=lambda c: (-c["score"], c["number"]))
+        silent.append({"number": x, "last_event": last[x].isoformat(sep=" "), "candidates": candidates})
+    return {"parameters": cfg, "silent": silent, "caveat": "behavioural similarity, not identity"}

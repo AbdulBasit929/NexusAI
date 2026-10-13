@@ -48,14 +48,16 @@ CELLS_PER_OPERATOR = 12
 class Params:
     seed: int = 1
     people: int = 120            # persons in the world (services are extra)
-    subjects: int = 6
+    subjects: int = 10
     associates: int = 24
     period_days: int = 90
     start_date: str = "2026-02-02"
     events_per_person_per_day: float = 4.0   # events a person originates per day; each also involves a second party
     communities: int = 6
     p2_pairs: int = 5
-    p3_pairs: int = 5            # co-location plants; limited by the pairs of subjects on the same operator
+    p3_pairs: int = 2            # co-location plants; each needs a pair of subjects on the same operator
+    p6_pairs: int = 2            # successor-number pairs (plant P6); they take the same-operator pairs P3 leaves
+    p5: int = 1                  # 1 plants the device and SIM changes (plant P5), 0 leaves identities alone
     windows_per_plant: int = 4
     window_minutes: int = 15     # W of the co-location definition (specification section 10)
     dumps: bool = True           # one tower dump per operator that has a subject
@@ -86,6 +88,7 @@ class Person:
     imei: str
     home_cell: int
     work_cell: int
+    segments: list = field(default_factory=list)   # identity changes: {"from": local time, "imsi": str, "imei_n": int}, oldest first
 
 
 @dataclass
@@ -135,6 +138,10 @@ class World:
     p3: list = field(default_factory=list)          # plant P3 records
     sessions: list = field(default_factory=list)    # data sessions (subjects, and the subscriptions of plant P7)
     p7: list = field(default_factory=list)          # plant P7 records
+    p5: list = field(default_factory=list)          # plant P5 records
+    p6: list = field(default_factory=list)          # plant P6 records
+    active: dict = field(default_factory=dict)      # person id -> (first day, last day) on which the number is in use, where it is not the whole period
+    roles: dict = field(default_factory=dict)       # which subjects play which part (allocate_roles)
 
     def person(self, pid):
         return next(p for p in self.persons if p.pid == pid)
@@ -160,6 +167,42 @@ def cell_geometry(operator, idx):
     return round(lat, 6), round(lon, 6)
 
 
+def identity_at(person, when):
+    """(IMSI, device number) a person's handset reports at a local time: the last identity segment that has begun, else the original."""
+    imsi, imei_n = person.imsi, person.n
+    stamp = when.isoformat(sep=" ")
+    for segment in person.segments:
+        if segment["from"] <= stamp:
+            imsi, imei_n = segment["imsi"], segment["imei_n"]
+    return imsi, imei_n
+
+
+def allocate_roles(subjects, params):
+    """Who plays which part, so that plants do not collide. Subjects on one operator are paired (cell identities are per operator):
+    the first `p3_pairs` pairs carry co-location (P3), the next `p6_pairs` carry a successor number (P6, old first); the subjects
+    left over are the silent number without a successor and the late starter without a predecessor (P6 decoys), then the free ones."""
+    r = random.Random("roles:%d" % params.seed)
+    by_operator = {}
+    for s in subjects:
+        by_operator.setdefault(s.operator, []).append(s.pid)
+    pairs, singles = [], []
+    for op in sorted(by_operator):
+        members = list(by_operator[op])
+        r.shuffle(members)
+        while len(members) >= 2:
+            pairs.append(tuple(sorted((members.pop(), members.pop()))))   # ordered by subject number, so x < y wherever a pair is named
+        singles += members
+    r.shuffle(pairs)
+    r.shuffle(singles)
+    p3 = pairs[: params.p3_pairs]
+    p6 = pairs[params.p3_pairs: params.p3_pairs + params.p6_pairs]
+    for a, b in pairs[params.p3_pairs + params.p6_pairs:]:
+        singles += [a, b]
+    silent = singles.pop(0) if p6 and singles else None
+    late = singles.pop(0) if p6 and singles else None
+    return {"p3_pairs": p3, "p6_pairs": p6, "p6_silent": silent, "p6_late": late, "free": singles}
+
+
 def build_world(params: Params) -> World:
     world = World(params)
     rng = random.Random("world:%d" % params.seed)
@@ -176,6 +219,7 @@ def build_world(params: Params) -> World:
             imsi=reserved.synthetic_imsi(n), imei=reserved.synthetic_imei(n),
             home_cell=rng.randrange(CELLS_PER_OPERATOR), work_cell=rng.randrange(CELLS_PER_OPERATOR)))
     persons = world.persons
+    world.roles = allocate_roles([p for p in persons if p.role == "subject"], params)
     by_community = {}
     for p in persons:
         by_community.setdefault(p.community, []).append(p.pid)
@@ -214,6 +258,40 @@ def build_world(params: Params) -> World:
             other = rng.choice([x for x in ids if x != pid])
             link(pid, other, 0.5)
 
+    # --- plant P6: successor numbers, a silent number and a late starter ---------------------------------------------------------------
+    # An old number goes silent on a known day; a new number on the same operator starts a few days later with the old one's contacts (their
+    # edges are copied) and cell footprint (same home and work cells); in the first pair the new number also reuses the old handset. Decoys:
+    # a number that goes silent with no successor, and a number that starts late with contacts of its own.
+    r6 = random.Random("p6:%d" % params.seed)
+    early_by_pid = {p.pid: p for p in persons}
+    horizon = params.period_days
+    roles = world.roles
+    for number, pair in enumerate(roles["p6_pairs"], start=1):
+        old, new = pair if r6.random() < 0.5 else (pair[1], pair[0])
+        stop = int(horizon * (0.40 + 0.08 * (number - 1)))
+        gap = r6.randint(1, 3)
+        with_device = number % 2 == 1
+        o, n_ = early_by_pid[old], early_by_pid[new]
+        n_.home_cell, n_.work_cell = o.home_cell, o.work_cell
+        for q in list(neighbours[new]):
+            neighbours[q].pop(new, None)
+        neighbours[new] = {}
+        for q, weight in sorted(neighbours[old].items()):
+            if q != new:
+                link(new, q, weight)
+        if with_device:
+            n_.segments.append({"from": "0000-01-01 00:00:00", "imsi": n_.imsi, "imei_n": o.n})
+        world.active[old] = (0, stop - 1)
+        world.active[new] = (stop + gap, horizon - 1)
+        world.p6.append({"id": "P6-%03d" % number, "kind": "successor", "old": old, "new": new, "last_day_old": stop - 1, "first_day_new": stop + gap, "with_device": with_device})
+    if roles["p6_silent"]:
+        world.active[roles["p6_silent"]] = (0, int(horizon * 0.62) - 1)
+        world.p6.append({"id": "P6-%03d" % (len(world.p6) + 1), "kind": "silent_without_successor", "pid": roles["p6_silent"], "last_day": int(horizon * 0.62) - 1})
+    if roles["p6_late"]:
+        world.active[roles["p6_late"]] = (int(horizon * 0.30), horizon - 1)
+        world.p6.append({"id": "P6-%03d" % (len(world.p6) + 1), "kind": "late_without_predecessor", "pid": roles["p6_late"], "first_day": int(horizon * 0.30)})
+    p6_subjects = {pid for pair in roles["p6_pairs"] for pid in pair} | {roles["p6_silent"], roles["p6_late"]} - {None}
+
     # --- background events ------------------------------------------------------------------------------------------------------------
     start = datetime.date.fromisoformat(params.start_date)
     raw = []
@@ -235,7 +313,7 @@ def build_world(params: Params) -> World:
 
     # --- plant P2: shared contacts for pairs of subjects, with a service decoy and a hub decoy ----------------------------------------
     subjects = [p for p in persons if p.role == "subject"]
-    pairs = [(a.pid, b.pid) for i, a in enumerate(subjects) for b in subjects[i + 1:]]
+    pairs = [(a.pid, b.pid) for i, a in enumerate(subjects) for b in subjects[i + 1:] if a.pid not in p6_subjects and b.pid not in p6_subjects]
     rng.shuffle(pairs)
     operator_of = {p.pid: p.operator for p in persons}
     # Shared contacts are persons no subject is linked to in the background graph, so the planted events are the only way a subject reaches them
@@ -252,8 +330,11 @@ def build_world(params: Params) -> World:
 
     def planted(plant_id, who, other, count, kind=None):
         r = random.Random("plant:%d:%s:%s:%s" % (params.seed, plant_id, who, other))
+        first_day, last_day = world.active.get(who, (0, period_end - 1))
+        if first_day > last_day:
+            return
         for _ in range(count):
-            date = start + datetime.timedelta(days=r.randrange(period_end))
+            date = start + datetime.timedelta(days=r.randint(first_day, last_day))
             when = datetime.datetime.combine(date, datetime.time(r.randrange(8, 21), r.randrange(60), r.randrange(60)))
             sms = kind == "sms"  # shared contacts are reached by calls: every layout can express a call, not every layout an SMS
             out = r.random() < 0.5
@@ -293,8 +374,7 @@ def build_world(params: Params) -> World:
     r3 = random.Random("p3:%d" % params.seed)
     by_pid = {p.pid: p for p in persons}
     W = params.window_minutes
-    same_network = [(a.pid, b.pid) for i, a in enumerate(subjects) for b in subjects[i + 1:] if a.operator == b.operator]
-    r3.shuffle(same_network)
+    same_network = [tuple(pair) for pair in world.roles["p3_pairs"]]
     p3_cursor = cursor
 
     def background_cells(person):
@@ -308,7 +388,7 @@ def build_world(params: Params) -> World:
         a, b = (who, party) if out else (party, who)
         raw.append((when, "call", a, b, r3.randrange(20, 300), tag, {who: site}))
 
-    for number, (x, y) in enumerate(same_network[: params.p3_pairs], start=1):
+    for number, (x, y) in enumerate(same_network, start=1):
         px, py = by_pid[x], by_pid[y]
         free = [c for c in range(CELLS_PER_OPERATOR) if c not in background_cells(px) | background_cells(py)]
         if len(free) < 2 or p3_cursor + 2 > len(pool) or period_end < 4:
@@ -363,11 +443,64 @@ def build_world(params: Params) -> World:
     raw[:] = [e for e in raw if e[5] is not None or frozenset((e[2], e[3])) not in linked]
     world.removed_contacts = before - len(raw)
 
+    if world.active:
+        def in_use(pid, when):
+            window = world.active.get(pid)
+            return window is None or window[0] <= (when.date() - start).days <= window[1]
+        raw[:] = [e for e in raw if in_use(e[2], e[0]) and in_use(e[3], e[0])]
+    plant_p5(world, start)
     raw.sort(key=lambda e: (e[0], e[2], e[3], e[1]))
     for i, (when, kind, a, b, duration, plant, cells) in enumerate(raw, start=1):
         world.events.append(Event("E%07d" % i, kind, a, b, when, duration, plant, cells))
     build_sessions(world)
     return world
+
+
+IDENTIFIER_OPERATORS = (0, 2, 3)   # operators whose call-record layout (C1, C3, C4) shows both the IMSI and the IMEI; C2 shows the IMEI only
+
+
+def plant_p5(world, start_day):
+    """Plant P5, device and SIM changes. On a known local date a subject's handset, SIM or both change (the number stays); and two
+    subjects on one operator share a handset for the whole period (a dual-SIM phone: the decoy, since the IMEI sits under two numbers at
+    once and nothing was swapped). Only subjects whose layout shows the identifiers are used, and never a subject that plays a part in P6."""
+    params = world.params
+    if not params.p5:
+        return
+    r5 = random.Random("p5:%d" % params.seed)
+    roles = world.roles
+    busy = {pid for pair in roles["p6_pairs"] for pid in pair} | {roles["p6_silent"], roles["p6_late"]}
+    subjects = [p for p in world.persons if p.role == "subject" and p.pid not in busy]
+    # the dual-SIM decoy first, on an operator whose layout hides the IMSI if there is one (the IMSI-showing subjects are kept for the changes)
+    by_operator = {}
+    for p in subjects:
+        by_operator.setdefault(p.operator, []).append(p)
+    dual = None
+    for op in sorted(by_operator, key=lambda o: (o in IDENTIFIER_OPERATORS, o)):
+        if len(by_operator[op]) >= 2:
+            dual = by_operator[op][:2]
+            break
+    taken = {p.pid for p in dual} if dual else set()
+    eligible = [p for p in subjects if p.operator in IDENTIFIER_OPERATORS and p.pid not in taken]
+    r5.shuffle(eligible)
+    counter = [0]
+
+    def fresh():
+        counter[0] += 1
+        return 20000 + counter[0]
+    kinds = ["handset_change", "sim_change", "both_change"]
+    for number, (kind, person) in enumerate(zip(kinds, eligible), start=1):
+        day = r5.randrange(max(1, params.period_days * 3 // 10), max(2, params.period_days * 7 // 10))
+        stamp = datetime.datetime.combine(start_day + datetime.timedelta(days=day), datetime.time(0, 0)).isoformat(sep=" ")
+        old_imsi, old_imei_n = identity_at(person, datetime.datetime.fromisoformat(stamp))
+        new_imsi = reserved.synthetic_imsi(fresh()) if kind in ("sim_change", "both_change") else old_imsi
+        new_imei_n = fresh() if kind in ("handset_change", "both_change") else old_imei_n
+        person.segments.append({"from": stamp, "imsi": new_imsi, "imei_n": new_imei_n})
+        world.p5.append({"id": "P5-%03d" % number, "kind": kind, "pid": person.pid, "from": stamp, "old_imsi": old_imsi, "new_imsi": new_imsi,
+                         "old_imei_n": old_imei_n, "new_imei_n": new_imei_n})
+    if dual:
+        first, second = dual
+        second.segments.append({"from": "0000-01-01 00:00:00", "imsi": second.imsi, "imei_n": first.n})
+        world.p5.append({"id": "P5-%03d" % (len(world.p5) + 1), "kind": "dual_sim", "pids": [first.pid, second.pid], "imei_n": first.n})
 
 
 def allocate_port_block(allocations, public_ip, start, end, size, rng):
@@ -391,7 +524,10 @@ def build_sessions(world):
     counter = 0
     for p in [x for x in world.persons if x.role == "subject"]:
         block = PORT_BLOCK.get(p.operator, 1)
+        first_day, last_day = world.active.get(p.pid, (0, params.period_days - 1))
         for day in range(params.period_days):
+            if not (first_day <= day <= last_day):
+                continue
             r = random.Random("sess:%d:%s:%d" % (params.seed, p.pid, day))
             weekend = (start_day + datetime.timedelta(days=day)).weekday() >= 5
             for _ in range(_poisson(r, params.sessions_per_subject_per_day * (0.7 if weekend else 1.0))):
@@ -492,7 +628,7 @@ def world_to_json(world: World) -> str:
         "generator_version": GENERATOR_VERSION, "spec_version": SPEC_VERSION, "params": asdict(world.params), "clock": {"local_zone": LOCAL_ZONE, "utc_offset_hours": LOCAL_UTC_OFFSET_HOURS},
         "persons": [asdict(p) for p in world.persons],
         "services": [{"kind": k, "label": v} for k, v in SERVICES],
-        "structure": world.structure, "p2": world.p2, "p3": world.p3, "p7": world.p7,
+        "structure": world.structure, "p2": world.p2, "p3": world.p3, "p7": world.p7, "p5": world.p5, "p6": world.p6, "active": world.active, "roles": world.roles,
         "sessions": [[s.uid, s.pid, s.start.isoformat(sep=" "), s.end.isoformat(sep=" "), s.nat_start.isoformat(sep=" "), s.nat_end.isoformat(sep=" "), s.ue_ip, s.ue_port, s.public_ip, s.port_from, s.port_to, s.server_ip, s.server_port, s.protocol_num, s.bytes_up, s.bytes_down, s.packets_up, s.packets_down, list(s.app), s.site, s.plant] for s in world.sessions],
         "events": [[e.uid, e.kind, e.orig, e.recip, e.start.isoformat(sep=" "), e.duration_s, e.plant, e.cells] for e in world.events],
     }

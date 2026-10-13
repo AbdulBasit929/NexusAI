@@ -311,6 +311,231 @@ class ColocationOracleTests(unittest.TestCase):
         self.assertEqual([w["pairs"] for w in later["windows"]], [w["pairs"] for w in base["windows"]])
 
 
+class DeviceTests(unittest.TestCase):
+    """Plant P5 and the A8 oracle."""
+    PARAMS = dict(people=60, subjects=6, associates=12, period_days=30, p2_pairs=1, p3_pairs=2, p7_plants=0)
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.params = w.Params(seed=71, **cls.PARAMS)
+        cls.world, cls.renders, cls.key = generate.build_case(cls.params)
+        cls.root = generate.write_case(cls.params, cls.tmp.name)
+        with open(os.path.join(cls.root, "key", "key.json"), encoding="utf-8") as handle:
+            cls.written = json.load(handle)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def test_identifiers_are_only_changed_where_the_layout_shows_them(self):
+        for op in range(4):
+            fields = REGISTRY.get(w.OPERATOR_LAYOUTS[op])["fields"]
+            self.assertTrue(fields.get("imei"))
+            self.assertEqual(bool(fields.get("imsi")), op in w.IDENTIFIER_OPERATORS, w.OPERATOR_LAYOUTS[op])
+
+    def test_three_changes_and_a_dual_sim_phone(self):
+        changes = [p for p in self.key["plants"] if p["type"] == "device_change"]
+        self.assertEqual(sorted(p["kind"] for p in changes), ["both_change", "handset_change", "sim_change"])
+        dual = [p for p in self.key["plants"] if p["type"] == "dual_sim"]
+        self.assertEqual(len(dual), 1)
+        operators = {s["msisdn"]: s["operator"] for s in self.key["subjects"]}
+        self.assertEqual(len({operators[n] for n in dual[0]["numbers"]}), 1)
+
+    def test_every_planted_change_is_found_once_between_the_last_old_and_first_new(self):
+        numbers = self.key["oracle"]["A8"]["numbers"]
+        for plant in [p for p in self.key["plants"] if p["type"] == "device_change"]:
+            changes = numbers[plant["number"]]["changes"]
+            self.assertEqual(len(changes), 1, plant["id"])
+            change = changes[0]
+            self.assertEqual(change["kind"], {"handset_change": "imei", "sim_change": "imsi", "both_change": "both"}[plant["kind"]])
+            self.assertLess(change["last_seen_old"], plant["from"])
+            self.assertLessEqual(plant["from"], change["first_seen_new"])
+            self.assertEqual((change["old_imei"], change["new_imei"]), (plant["old_imei"], plant["new_imei"]))
+        planted = {p["number"] for p in self.key["plants"] if p["type"] == "device_change"}
+        self.assertEqual({n for n, v in numbers.items() if v["changes"]}, planted, "no number changes identity unless a plant says so")
+
+    def test_the_dual_sim_phone_is_one_device_under_two_numbers_at_once(self):
+        dual = next(p for p in self.key["plants"] if p["type"] == "dual_sim")
+        shared = {s["imei"]: s for s in self.key["oracle"]["A8"]["shared_devices"]}
+        self.assertEqual(set(shared), {dual["imei"]})
+        self.assertEqual(shared[dual["imei"]]["relation"], "concurrent")
+        self.assertEqual([n["number"] for n in shared[dual["imei"]]["numbers"]], dual["numbers"])
+
+    def test_identity_follows_the_segments(self):
+        person = next(p for p in self.world.persons if p.segments and p.pid in {r.get("pid") for r in self.world.p5})
+        segment = person.segments[0]
+        before = datetime.datetime.fromisoformat(segment["from"]) - datetime.timedelta(seconds=1)
+        after = datetime.datetime.fromisoformat(segment["from"])
+        self.assertEqual(w.identity_at(person, before), (person.imsi, person.n))
+        self.assertEqual(w.identity_at(person, after), (segment["imsi"], segment["imei_n"]))
+
+    def test_the_audit_passes_with_device_changes(self):
+        self.assertEqual(audit.audit(self.root), [])
+
+    def test_a_change_that_is_missing_from_the_files_is_noticed(self):
+        plant = next(p for p in self.written["plants"] if p["type"] == "device_change" and p["kind"] == "handset_change")
+        person = next(p for p in self.world.persons if p.msisdn == plant["number"])
+        subject = next(s for s in self.written["subjects"] if s["msisdn"] == plant["number"])
+        saved = list(person.segments)
+        person.segments.clear()
+        try:
+            damaged = render.render_subject(self.world, REGISTRY.get(subject["layout_id"]), person)
+        finally:
+            person.segments[:] = saved
+        with tempfile.TemporaryDirectory() as d:
+            root = generate.write_case(self.params, d)
+            path = damaged.write(os.path.join(root, "files"), os.path.basename(subject["file"]).rsplit(".", 1)[0])
+            with open(os.path.join(root, "manifest.json"), encoding="utf-8") as handle:
+                manifest = json.load(handle)
+            with open(path, "rb") as handle:
+                manifest["files"][subject["file"]]["sha256"] = hashlib.sha256(handle.read()).hexdigest()
+            with open(os.path.join(root, "manifest.json"), "w", encoding="utf-8") as handle:
+                json.dump(manifest, handle)
+            self.assertTrue(any("is not in the files exactly once" in p or "A8 for" in p for p in audit.audit(root)), audit.audit(root))
+        # the same damage by editing the key: pretend the change happened a month later than the files show
+        with tempfile.TemporaryDirectory() as d:
+            root = generate.write_case(self.params, d)
+            key_path = os.path.join(root, "key", "key.json")
+            with open(key_path, encoding="utf-8") as handle:
+                key = json.load(handle)
+            for p in key["plants"]:
+                if p["type"] == "device_change" and p["kind"] == "handset_change":
+                    p["from"] = "2026-12-31 00:00:00"
+            with open(key_path, "w", encoding="utf-8") as handle:
+                json.dump(key, handle)
+            self.assertTrue(any("planted date is not between" in p for p in audit.audit(root)), audit.audit(root))
+
+    def test_device_history_by_hand(self):
+        def rows(*items):
+            return [{"start_local": when, "imsi": imsi, "imei": imei} for when, imsi, imei in items]
+        a, b, c = "A" * 15, "B" * 15, "C" * 15
+        d1, d2 = "000000000000010", "000000000000020"
+        visible = {
+            "N1": rows(("2026-01-01 10:00:00", a, d1), ("2026-01-02 10:00:00", a, d1), ("2026-01-03 10:00:00", a, d2), ("2026-01-04 10:00:00", b, d2)),   # handset, then SIM
+            "N2": rows(("2026-01-01 11:00:00", c, d1[:14] + "7"), ("2026-01-05 11:00:00", c, d1[:14] + "7")),                                           # d1 again, another check digit
+            "N3": rows(("2026-01-10 09:00:00", "S", d2), ("2026-01-11 09:00:00", "S", d2)),                                                           # takes d2 after N1 left it? no: N1 still on d2 on 4th
+            "N4": rows(("2026-01-20 09:00:00", None, d1[:14] + "9")),
+        }
+        answer = oracle.a8_device_history(visible)
+        self.assertEqual([c["kind"] for c in answer["numbers"]["N1"]["changes"]], ["imei", "imsi"])
+        self.assertEqual(answer["numbers"]["N1"]["changes"][0]["last_seen_old"], "2026-01-02 10:00:00")
+        self.assertEqual(answer["numbers"]["N1"]["changes"][0]["first_seen_new"], "2026-01-03 10:00:00")
+        self.assertEqual(answer["numbers"]["N2"]["changes"], [])
+        shared = {s["imei"]: s["relation"] for s in answer["shared_devices"]}
+        self.assertEqual(shared[d1[:14]], "concurrent")      # N1 used it until the 2nd, N2 on the 1st and the 5th: their periods overlap
+        self.assertEqual(shared[d2[:14]], "sequential")      # N1 until the 4th, N3 from the 10th
+        both = oracle.a8_device_history({"X": rows(("2026-01-01 10:00:00", a, d1), ("2026-01-02 10:00:00", b, d2))})
+        self.assertEqual(both["numbers"]["X"]["changes"][0]["kind"], "both")
+
+
+class SuccessorTests(unittest.TestCase):
+    """Plant P6 and the A9 oracle."""
+    PARAMS = dict(people=80, subjects=10, associates=16, period_days=60, p2_pairs=2, p3_pairs=2, p7_plants=0)
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.params = w.Params(seed=81, **cls.PARAMS)
+        cls.world, cls.renders, cls.key = generate.build_case(cls.params)
+        cls.root = generate.write_case(cls.params, cls.tmp.name)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def plants(self, kind):
+        return [p for p in self.key["plants"] if p["type"] == kind]
+
+    def test_the_parts_are_allocated_without_overlap(self):
+        roles = self.world.roles
+        taken = [pid for pair in roles["p3_pairs"] + roles["p6_pairs"] for pid in pair] + [roles["p6_silent"], roles["p6_late"]]
+        self.assertEqual(len(taken), len(set(taken)), "no subject plays two of these parts")
+        self.assertEqual(len(roles["p3_pairs"]), 2)
+        self.assertEqual(len(roles["p6_pairs"]), 2)
+        operator = {p.pid: p.operator for p in self.world.persons}
+        for a, b in roles["p3_pairs"] + roles["p6_pairs"]:
+            self.assertEqual(operator[a], operator[b], "a pair shares an operator, so cell identities can be compared")
+
+    def test_two_successors_a_silent_number_and_a_late_starter(self):
+        self.assertEqual(len(self.plants("successor")), 2)
+        self.assertEqual(len(self.plants("silent_without_successor")), 1)
+        self.assertEqual(len(self.plants("late_without_predecessor")), 1)
+        self.assertEqual(sorted(p["with_device"] for p in self.plants("successor")), [False, True])
+
+    def test_each_successor_is_the_first_candidate_and_the_decoys_have_none(self):
+        silent = {s["number"]: s["candidates"] for s in self.key["oracle"]["A9"]["silent"]}
+        threshold = self.key["oracle"]["A9"]["parameters"]["threshold"]
+        for plant in self.plants("successor"):
+            candidates = silent[plant["old"]]
+            self.assertEqual(candidates[0]["number"], plant["new"])
+            self.assertGreaterEqual(candidates[0]["score"], threshold)
+            self.assertEqual(candidates[0]["shared_device"], plant["with_device"])
+            self.assertGreater(candidates[0]["contact_cosine"], 0.5)
+            self.assertGreater(candidates[0]["cell_jaccard"], 0.5)
+        decoy = self.plants("silent_without_successor")[0]["number"]
+        self.assertEqual(silent[decoy], [])
+        late = self.plants("late_without_predecessor")[0]["number"]
+        self.assertTrue(all(c["number"] != late for cands in silent.values() for c in cands))
+
+    def test_the_numbers_are_in_use_only_on_their_planted_days(self):
+        start = datetime.date.fromisoformat(self.params.start_date)
+        for pid, (first_day, last_day) in self.world.active.items():
+            days = [(e.start.date() - start).days for e in self.world.events if pid in (e.orig, e.recip)]
+            self.assertTrue(days)
+            self.assertGreaterEqual(min(days), first_day, pid)
+            self.assertLessEqual(max(days), last_day, pid)
+            sessions = [(s.start.date() - start).days for s in self.world.sessions if s.pid == pid]
+            self.assertTrue(all(first_day <= d <= last_day for d in sessions), pid)
+
+    def test_the_successor_that_keeps_the_handset_shows_as_a_sequential_shared_device(self):
+        with_device = next(p for p in self.plants("successor") if p["with_device"])
+        shared = [s for s in self.key["oracle"]["A8"]["shared_devices"] if {n["number"] for n in s["numbers"]} == {with_device["old"], with_device["new"]}]
+        self.assertEqual([s["relation"] for s in shared], ["sequential"])
+
+    def test_the_audit_passes_with_successors(self):
+        self.assertEqual(audit.audit(self.root), [])
+
+    def test_a_wrongly_keyed_handset_is_noticed(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = generate.write_case(self.params, d)
+            key_path = os.path.join(root, "key", "key.json")
+            with open(key_path, encoding="utf-8") as handle:
+                key = json.load(handle)
+            for p in key["plants"]:
+                if p["type"] == "successor":
+                    p["with_device"] = not p["with_device"]
+            with open(key_path, "w", encoding="utf-8") as handle:
+                json.dump(key, handle)
+            self.assertTrue(any("shared handset differs" in p for p in audit.audit(root)))
+
+    def test_successor_candidates_by_hand(self):
+        base = datetime.datetime(2026, 2, 1)
+
+        def row(day, contact, cell, imei=None):
+            return {"start_local": (base + datetime.timedelta(days=day, hours=10)).isoformat(sep=" "), "b_kind": "person_like", "b_norm": contact, "cell_key": cell, "imei": imei}
+        contacts = ["C1", "C2", "C3"]
+        old = [row(d, contacts[d % 3], "K1" if d % 2 else "K2", "000000000000010") for d in range(0, 30)]          # active days 0 to 29
+        new = [row(d, contacts[d % 3], "K1" if d % 2 else "K2", "000000000000019") for d in range(33, 60)]          # starts on day 33, same contacts and cells, same device (14 digits)
+        stranger = [row(d, "S%d" % (d % 3), "Z1" if d % 2 else "Z2") for d in range(33, 60)]                          # starts at the same time, shares nothing
+        early = [row(d, contacts[d % 3], "K1") for d in range(0, 60)]                                               # active all along: never a successor
+        visible = {"OLD": old, "NEW": new, "STR": stranger, "ALL": early}
+        end = base + datetime.timedelta(days=60)
+        answer = oracle.a9_successors(visible, base, end)
+        silent = {s["number"]: s["candidates"] for s in answer["silent"]}
+        self.assertEqual(set(silent), {"OLD"})
+        self.assertEqual([c["number"] for c in silent["OLD"]], ["NEW"])                # the stranger scores 0, the always-active number was never new
+        c = silent["OLD"][0]
+        self.assertAlmostEqual(c["contact_cosine"], 1.0, places=2)
+        self.assertEqual((c["cell_jaccard"], c["shared_device"], c["score"]), (1.0, True, 1.0))
+        # the window: a successor that starts 15 days after the last event is outside the 14-day window
+        late = {"OLD": old, "NEW": [row(d, contacts[d % 3], "K1") for d in range(45, 60)]}
+        self.assertEqual(oracle.a9_successors(late, base, end)["silent"][0]["candidates"], [])
+        # silence: a number whose last event is 6 days before the end is not silent yet
+        recent = {"OLD": [row(d, "C1", "K1") for d in range(0, 54)], "NEW": [row(d, "C1", "K1") for d in range(20, 60)]}
+        self.assertEqual(oracle.a9_successors(recent, base, end)["silent"], [])
+
+
 class SessionTests(unittest.TestCase):
     """Internet-record exports (I1 to I4) and application usage (A1)."""
     FIELDS = ("msisdn", "imsi", "imei", "tac", "ue_ip", "ue_port", "public_ip", "public_port_from", "public_port_to", "server_ip", "server_port", "protocol",
