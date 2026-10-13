@@ -45,6 +45,26 @@ def tree_hashes(root):
     return out
 
 
+COMPARED = ("a_norm", "b_norm", "b_kind", "direction", "event_type", "start_local", "duration_s", "cell_key", "imsi", "imei")
+
+
+def read_back(test, entry, rendered):
+    """Interpret a rendered call-record export and compare every row with what the generator says it must become."""
+    results = list(interpret_rows(entry, rendered.table[rendered.header_index], rendered.table[rendered.header_index + 1:], policy=POLICY))
+    test.assertEqual(len(results), len(rendered.rows))
+    for n, (result, expected) in enumerate(zip(results, rendered.rows)):
+        status = expected.get("status", "accepted")
+        test.assertEqual(result.status, status, "%s row %d (%s)" % (rendered.layout_id, n, expected.get("defect")))
+        if status != "accepted":
+            test.assertEqual(result.reason, expected["reason"])
+            continue
+        for flag in expected.get("flags", []):
+            test.assertIn(flag, result.flags)
+        for field in COMPARED:
+            test.assertEqual(result.record.get(field), expected[field], "%s row %d %s" % (rendered.layout_id, n, field))
+    return results
+
+
 class CaseTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -89,13 +109,8 @@ class CaseTests(unittest.TestCase):
                 report = REGISTRY.find_header(rendered.table)
                 self.assertEqual(report.matched_entry_id, rendered.layout_id, report.decision)
                 self.assertEqual(report.header_row, rendered.header_index)
-                results = list(interpret_rows(entry, rendered.table[rendered.header_index], rendered.table[rendered.header_index + 1:], policy=POLICY))
-                self.assertEqual(len(results), len(rendered.rows))
-                self.assertGreater(len(results), 20)
-                for result, expected in zip(results, rendered.rows):
-                    self.assertEqual(result.status, "accepted", result.reason)
-                    for field in ("a_norm", "b_norm", "b_kind", "direction", "event_type", "start_local", "duration_s", "cell_key", "imsi", "imei"):
-                        self.assertEqual(result.record.get(field), expected[field], "%s %s" % (expected["uid"], field))
+                self.assertGreater(len(rendered.rows), 20)
+                read_back(self, entry, rendered)
 
     def test_the_audit_passes(self):
         self.assertEqual(audit.audit(self.root), [])
@@ -151,7 +166,7 @@ class CaseTests(unittest.TestCase):
     def test_the_c2_export_never_carries_a_message(self):
         # C2's labels express calls only: its events of other kinds are left out, and the key counts them
         rendered = next(r for r in self.renders.values() if r.layout_id == "call-c2-strt-tm")
-        self.assertEqual({row["event_type"] for row in rendered.rows}, {"voice"})
+        self.assertEqual({row["event_type"] for row in rendered.visible}, {"voice"})
         self.assertTrue(all(reason.startswith("layout has no") for _, reason in rendered.skipped))
 
     # ---- deliberate breakages: the audit must notice ----------------------------------------------------------------------------------
@@ -326,7 +341,12 @@ class SessionTests(unittest.TestCase):
                 self.assertEqual(len(results), len(rendered.rows))
                 self.assertGreater(len(results), 20)
                 for result, expected in zip(results, rendered.rows):
-                    self.assertEqual(result.status, "accepted", result.reason)
+                    self.assertEqual(result.status, expected.get("status", "accepted"), "%s %s" % (expected.get("uid"), expected.get("defect")))
+                    if result.status != "accepted":
+                        self.assertEqual(result.reason, expected["reason"])
+                        continue
+                    for flag in expected.get("flags", []):
+                        self.assertIn(flag, result.flags)
                     for field in self.FIELDS:
                         if field in expected:
                             self.assertEqual(result.record.get(field), expected[field], "%s %s" % (expected["uid"], field))
@@ -356,6 +376,21 @@ class SessionTests(unittest.TestCase):
                     break
                 if a.public_ip == b.public_ip and a.port_from <= b.port_to and b.port_from <= a.port_to:
                     self.fail("two sessions share %s ports %s-%s" % (a.public_ip, a.port_from, a.port_to))
+
+    def test_the_allocator_never_hands_out_a_held_block(self):
+        import datetime as dt
+        import random
+        t0, t1 = dt.datetime(2026, 2, 2, 10, 0), dt.datetime(2026, 2, 2, 10, 30)
+        held = {"192.0.2.1": [(t0, t1, 1024, 60000)]}
+        for seed in range(5):
+            low, high = w.allocate_port_block(held, "192.0.2.1", t0 + dt.timedelta(minutes=5), t1, 64, random.Random(seed))
+            self.assertGreater(low, 60000, "a block that overlaps a held one was handed out")
+            held["192.0.2.1"].pop()                                   # keep only the first hold for the next seed
+        # the same ports are free once the earlier hold is over
+        low, _ = w.allocate_port_block({"192.0.2.1": [(t0, t1, 1024, 65534)]}, "192.0.2.1", t1 + dt.timedelta(minutes=1), t1 + dt.timedelta(minutes=9), 1, random.Random(1))
+        self.assertGreaterEqual(low, 1024)
+        with self.assertRaises(RuntimeError):                          # nothing free while everything is held
+            w.allocate_port_block({"192.0.2.1": [(t0, t1, 1024, 65534)]}, "192.0.2.1", t0, t1, 1, random.Random(1))
 
     def test_port_blocks_follow_the_operators_layout(self):
         operator_of = {p.pid: p.operator for p in self.world.persons}
@@ -387,6 +422,227 @@ class SessionTests(unittest.TestCase):
             with open(os.path.join(root, "manifest.json"), "w", encoding="utf-8") as handle:
                 json.dump(manifest, handle)
             self.assertTrue(any("documentation blocks" in p for p in audit.audit(root)), audit.audit(root))
+
+
+class DefectTests(unittest.TestCase):
+    """Damaged rows and what each must become."""
+    PARAMS = dict(people=60, subjects=6, associates=12, period_days=30, p2_pairs=1, p3_pairs=2, p7_plants=0)
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.params = w.Params(seed=51, **cls.PARAMS)
+        cls.world, cls.renders, cls.key = generate.build_case(cls.params)
+        cls.root = generate.write_case(cls.params, cls.tmp.name)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def kinds_in(self, layout_id):
+        return {d["kind"] for name, items in self.key["defects"].items() if self.renders[name].layout_id == layout_id for d in items}
+
+    def test_every_kind_appears_somewhere_and_at_most_three_times_per_export(self):
+        import defects as defect_module
+        seen = {d["kind"] for items in self.key["defects"].values() for d in items}
+        self.assertEqual(seen, set(defect_module.KINDS) | set(defect_module.SESSION_KINDS))
+        for name, items in self.key["defects"].items():
+            for kind in set(defect_module.KINDS) | set(defect_module.SESSION_KINDS):
+                self.assertLessEqual(sum(1 for d in items if d["kind"] == kind), 3, (name, kind))
+
+    def test_only_layouts_that_can_show_a_defect_get_it(self):
+        self.assertIn("date_order_conflict", self.kinds_in("call-c2-strt-tm"))              # settled slash order
+        self.assertNotIn("date_order_conflict", self.kinds_in("call-c1-company"))           # Excel serials have no order
+        self.assertIn("self_counterparty", self.kinds_in("geofence-c6-telenor"))            # the only layout that drops it
+        self.assertNotIn("self_counterparty", self.kinds_in("call-c4-telenor-style"))
+        self.assertNotIn("unknown_label", self.kinds_in("call-c1-company"))                 # its label also carries the event type
+        self.assertIn("unknown_label", self.kinds_in("call-c3-ufone-style"))
+
+    def test_no_planted_row_is_damaged(self):
+        for name, rendered in self.renders.items():
+            for row in rendered.rows:
+                if row.get("defect") and row.get("uid"):
+                    self.assertFalse(row["plant"], (name, row["uid"]))
+
+    def test_damaged_rows_are_not_visible_events_and_repeats_count_once(self):
+        for name, rendered in self.renders.items():
+            if not rendered.defects:
+                continue
+            uids = [(r["uid"], r.get("a_norm", r.get("msisdn"))) for r in rendered.visible]     # a dump shows one event once for each party
+            self.assertEqual(len(uids), len(set(uids)), name)
+            quarantined = {(r["uid"], r.get("a_norm", r.get("msisdn"))) for r in rendered.rows if r.get("status") == "quarantined"}
+            self.assertFalse(quarantined & set(uids), name)
+            self.assertEqual(len(rendered.visible), len(rendered.rows) - sum(1 for r in rendered.rows if r.get("status") != "accepted" or r.get("duplicate_of")))
+
+    def test_the_internet_record_exports_are_damaged_too(self):
+        import defects as defect_module
+        kinds = {d["kind"] for name, items in self.key["defects"].items() if name.startswith("ipdr-") for d in items}
+        self.assertEqual(kinds, set(defect_module.SESSION_KINDS))
+        flags = {f for name, rendered in self.renders.items() if name.startswith("ipdr-") for row in rendered.rows for f in row.get("flags", [])}
+        self.assertEqual(flags, {"ip_invalid:server_ip", "server_port_out_of_range"})
+        for name, rendered in self.renders.items():
+            if name.startswith("ipquery-"):
+                self.assertEqual(rendered.defects, [])      # the probes' evidence is never damaged
+
+    def test_every_damaged_call_record_export_reads_back_to_its_expectation(self):
+        for name, rendered in self.renders.items():
+            if name.startswith(("ipdr-", "usage-", "ipquery-")):
+                continue
+            read_back(self, REGISTRY.get(rendered.layout_id), rendered)
+        counted = sum(1 for r in self.renders.values() for row in r.rows if row.get("flags") == ["b_party_sentinel"])
+        self.assertGreater(counted, 0)
+
+    def test_the_key_lists_what_the_loader_must_quarantine_and_merge(self):
+        quarantine_reasons = {q["reason"] for q in self.key["expected_quarantine"]}
+        self.assertEqual(quarantine_reasons, {"time_unparsed", "time_missing", "date_order_conflict"})
+        self.assertTrue(self.key["expected_merge"])
+        self.assertTrue(all(m["duplicate_of"] for m in self.key["expected_merge"]))
+
+    def test_the_audit_passes_with_defects(self):
+        self.assertEqual(audit.audit(self.root), [])
+
+    def test_the_oracles_see_only_the_visible_rows(self):
+        total = sum(len(r.rows) for r in self.renders.values() if r.defects)
+        visible = sum(len(r.visible) for r in self.renders.values() if r.defects)
+        self.assertLess(visible, total)
+
+    def test_no_defects_when_switched_off(self):
+        params = w.Params(seed=51, defects_per_class=0, **self.PARAMS)
+        _, renders, key = generate.build_case(params)
+        self.assertEqual(key["defects"], {})
+        self.assertEqual(key["expected_quarantine"], [])
+        for name, rendered in renders.items():
+            self.assertEqual(len(rendered.visible), len(rendered.rows), name)
+
+    def test_a_damaged_row_the_registry_accepts_is_noticed(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = generate.write_case(self.params, d)
+            with open(os.path.join(root, "key", "key.json"), encoding="utf-8") as handle:
+                written = json.load(handle)
+            subject = next(s for s in written["subjects"] if any(e["kind"] == "time_unparsed" for e in written["defects"].get(s["person"], [])))
+            rendered = self.renders[subject["person"]]
+            entry = REGISTRY.get(rendered.layout_id)
+            row_number = next(e["data_row"] for e in written["defects"][subject["person"]] if e["kind"] == "time_unparsed")
+            table = [list(r) for r in rendered.table]
+            cells = table[rendered.header_index + 1 + row_number]
+            cells[[i for i, c in enumerate(cells) if c == "not-a-time"][0]] = "2026-02-03 10:00:00" if "iso_naive" in entry["time"]["formats"] else cells[0]
+            fixed = render.RenderedFile(rendered.layout_id, rendered.subject, table, rendered.header_index, rendered.numeric_columns, rendered.container,
+                                        rendered.sheet_name, rendered.encoding, rendered.delimiter, rendered.rows)
+            path = fixed.write(os.path.join(root, "files"), os.path.basename(subject["file"]).rsplit(".", 1)[0])
+            with open(os.path.join(root, "manifest.json"), encoding="utf-8") as handle:
+                manifest = json.load(handle)
+            with open(path, "rb") as handle:
+                manifest["files"][subject["file"]]["sha256"] = hashlib.sha256(handle.read()).hexdigest()
+            with open(os.path.join(root, "manifest.json"), "w", encoding="utf-8") as handle:
+                json.dump(manifest, handle)
+            self.assertTrue(any("should be quarantined" in p for p in audit.audit(root)), audit.audit(root))
+
+
+class MeetingTests(unittest.TestCase):
+    """Plant P4 and the A7 oracle."""
+    PARAMS = dict(people=60, subjects=6, associates=12, period_days=30, p2_pairs=1, p3_pairs=2, p7_plants=0)
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.params = w.Params(seed=11, **cls.PARAMS)
+        cls.world, cls.renders, cls.key = generate.build_case(cls.params)
+        cls.root = generate.write_case(cls.params, cls.tmp.name)
+        with open(os.path.join(cls.root, "key", "key.json"), encoding="utf-8") as handle:
+            cls.written = json.load(handle)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def plants(self):
+        return [p for p in self.key["plants"] if p["type"] == "possible_meeting"]
+
+    def test_one_meeting_plant_per_co_location_plant(self):
+        self.assertEqual(len(self.plants()), 2)
+        for plant in self.plants():
+            self.assertEqual(len(plant["planted_meetings"]), 2)
+            self.assertEqual({n["kind"] for n in plant["negatives"]}, {"contact_too_early", "co_location_without_contact", "contact_without_co_location"})
+
+    def test_the_planted_meetings_are_the_candidates_and_the_negatives_are_not(self):
+        answers = {frozenset((a["x"], a["y"])): a for a in self.key["oracle"]["A7"]}
+        for plant in self.plants():
+            answer = answers[frozenset((plant["x"]["msisdn"], plant["y"]["msisdn"]))]
+            starts = {c["start_local"] for c in answer["candidates"]}
+            self.assertEqual(starts, {m["window_start"] for m in plant["planted_meetings"]})
+            for negative in plant["negatives"]:
+                if negative["window_start"]:
+                    self.assertNotIn(negative["window_start"], starts, negative["kind"])
+            for candidate in answer["candidates"]:
+                self.assertLessEqual(candidate["gap_minutes"], 60)
+                self.assertTrue(0 < candidate["score"] <= 1)
+
+    def test_the_pairs_have_no_background_contact(self):
+        for plant in self.world.p3:
+            both = {plant["x"], plant["y"]}
+            direct = [e for e in self.world.events if {e.orig, e.recip} == both]
+            self.assertTrue(direct)
+            self.assertTrue(all(e.plant for e in direct))
+
+    def test_the_pairs_have_no_background_contact_even_when_they_share_a_community(self):
+        removed = 0
+        for seed in range(1, 21):
+            world = w.build_world(w.Params(seed=seed, people=60, subjects=8, associates=12, communities=4, period_days=20, p3_pairs=4))
+            removed += world.removed_contacts
+            for plant in world.p3:
+                both = {plant["x"], plant["y"]}
+                self.assertTrue(all(e.plant for e in world.events if {e.orig, e.recip} == both), (seed, plant["id"]))
+        self.assertGreater(removed, 0, "in twenty cases some pair was linked in the background, and its contacts were removed")
+
+    def test_a_contact_is_never_itself_a_co_location(self):
+        for plant in self.world.p3:
+            contacts = [e for e in self.world.events if {e.orig, e.recip} == {plant["x"], plant["y"]}]
+            for e in contacts:
+                self.assertNotEqual(e.cells[plant["x"]], e.cells[plant["y"]])
+
+    def test_the_audit_passes_with_meetings(self):
+        self.assertEqual(audit.audit(self.root), [])
+
+    def test_a_missing_planted_contact_is_noticed(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = generate.write_case(self.params, d)
+            plant = self.plants()[0]
+            tag = "%s:m1" % plant["pair"]
+            keep = {e.uid for e in self.world.events if e.plant != tag}
+            with open(os.path.join(root, "manifest.json"), encoding="utf-8") as handle:
+                manifest = json.load(handle)
+            for side in ("x", "y"):
+                subject = next(s for s in self.written["subjects"] if s["msisdn"] == plant[side]["msisdn"])
+                damaged = render.render_subject(self.world, REGISTRY.get(subject["layout_id"]), self.world.person(subject["person"]), only_events=keep)
+                path = damaged.write(os.path.join(root, "files"), os.path.basename(subject["file"]).rsplit(".", 1)[0])
+                with open(path, "rb") as handle:
+                    manifest["files"][subject["file"]]["sha256"] = hashlib.sha256(handle.read()).hexdigest()
+            with open(os.path.join(root, "manifest.json"), "w", encoding="utf-8") as handle:
+                json.dump(manifest, handle)
+            problems = audit.audit(root)
+            self.assertTrue(any("A7" in p or "planted meeting" in p for p in problems), problems)
+
+    def test_the_meeting_oracle_by_hand(self):
+        window = {"cell_key": "A", "start_local": "2026-02-03 10:00:00", "end_local": "2026-02-03 10:12:00", "pairs": 1}
+        three = dict(window, pairs=3)
+
+        def contacts(*times, y="Y", x="X"):
+            return ([{"start_local": t, "b_norm": y} for t in times], [])
+        rx, ry = contacts("2026-02-03 09:30:00")
+        answer = oracle.a7_meetings(rx, ry, "X", "Y", [window], 60)
+        self.assertEqual([(c["gap_minutes"], c["score"]) for c in answer["candidates"]], [(30.0, 0.4167)])
+        rx, ry = contacts("2026-02-03 08:59:59")
+        self.assertEqual(oracle.a7_meetings(rx, ry, "X", "Y", [window], 60)["candidates"], [])          # one second over the gap
+        rx, ry = contacts("2026-02-03 09:00:00")
+        self.assertEqual(len(oracle.a7_meetings(rx, ry, "X", "Y", [window], 60)["candidates"]), 1)      # exactly the gap
+        rx, ry = contacts("2026-02-03 10:00:00")
+        self.assertEqual(oracle.a7_meetings(rx, ry, "X", "Y", [three], 60)["candidates"][0]["score"], 1.0)  # contact at the start, three pairs
+        rx, ry = contacts("2026-02-03 10:00:01")
+        self.assertEqual(oracle.a7_meetings(rx, ry, "X", "Y", [window], 60)["candidates"], [])          # after the window started
+        own = [{"start_local": "2026-02-03 09:45:00", "b_norm": "Z"}]                                   # a contact with someone else is no contact
+        self.assertEqual(oracle.a7_meetings(own, [], "X", "Y", [window], 60)["candidates"], [])
+        from_y = [{"start_local": "2026-02-03 09:50:00", "b_norm": "X"}]                                 # the other side's file shows it too
+        self.assertEqual(len(oracle.a7_meetings([], from_y, "X", "Y", [window], 60)["candidates"]), 1)
 
 
 class AddressTranslationTests(unittest.TestCase):
@@ -510,23 +766,17 @@ class DumpTests(unittest.TestCase):
     def test_each_dump_reads_back_equal_to_the_truth(self):
         for dump in self.key["dumps"]:
             rendered = self.renders[dump["name"]]
-            entry = REGISTRY.get(dump["layout_id"])
             self.assertEqual(REGISTRY.find_header(rendered.table).matched_entry_id, dump["layout_id"])
-            results = list(interpret_rows(entry, rendered.table[rendered.header_index], rendered.table[rendered.header_index + 1:], policy=POLICY))
-            self.assertEqual(len(results), len(rendered.rows))
-            for result, expected in zip(results, rendered.rows):
-                self.assertEqual(result.status, "accepted", result.reason)
-                for field in ("a_norm", "b_norm", "b_kind", "direction", "event_type", "start_local", "duration_s", "cell_key", "imsi", "imei"):
-                    self.assertEqual(result.record.get(field), expected[field], "%s %s" % (dump["layout_id"], field))
+            read_back(self, REGISTRY.get(dump["layout_id"]), rendered)
 
     def test_a_layout_that_cannot_say_a_thing_says_unknown_and_the_key_says_so(self):
         telenor = self.renders["dump-telenor"]       # C6: numeric direction codes with no confirmed meaning
-        self.assertEqual({r["direction"] for r in telenor.rows}, {"unknown"})
-        self.assertEqual({r["true_direction"] for r in telenor.rows}, {"incoming", "outgoing"})
+        self.assertEqual({r["direction"] for r in telenor.visible}, {"unknown"})
+        self.assertEqual({r["true_direction"] for r in telenor.visible}, {"incoming", "outgoing"})
         zong = self.renders["dump-zong"]             # C8: one activity code
-        self.assertEqual({r["event_type"] for r in zong.rows}, {"other"})
+        self.assertEqual({r["event_type"] for r in zong.visible}, {"other"})
         ufone = self.renders["dump-ufone"]           # C7: no call-type column at all
-        self.assertEqual({r["event_type"] for r in ufone.rows}, {"other"})
+        self.assertEqual({r["event_type"] for r in ufone.visible}, {"other"})
         items = {(a["layout_id"], a["item"]) for a in self.key["layout_assumptions"]}
         self.assertTrue(any(layout == "geofence-c6-telenor" and item.startswith("enum:INBOUND_OUTBOUND_IND=") for layout, item in items))
 
@@ -544,7 +794,7 @@ class DumpTests(unittest.TestCase):
 
     def test_rows_stay_inside_the_cells_and_the_window(self):
         for dump in self.key["dumps"]:
-            rows = self.renders[dump["name"]].rows
+            rows = self.renders[dump["name"]].visible
             self.assertTrue(all(dump["window_start"] <= r["start_local"] <= dump["window_end"] for r in rows), dump["name"])
             wanted = [k for k in dump["cell_keys"] if k]
             if wanted:

@@ -75,7 +75,7 @@ def build_case(params, registry=None):
     for subject in subjects:
         layout_id = w.OPERATOR_LAYOUTS[subject.operator]
         renders[subject.pid] = render.render_subject(world, registry.get(layout_id), subject)
-    visible = {s.msisdn: renders[s.pid].rows for s in subjects}
+    visible = {s.msisdn: renders[s.pid].visible for s in subjects}
     threshold = params.resolved_hub_threshold()
     contacts = oracle.contacts_by_subject(visible)
     hubs = oracle.hub_numbers(contacts, threshold)
@@ -104,7 +104,7 @@ def build_case(params, registry=None):
             answer["plant"] = planted_pair.get(frozenset((x.msisdn, y.msisdn)))
             a2.append(answer)
     # --- A5 co-location and plant P3 ---------------------------------------------------------------------------------------------
-    row_of = {row["uid"]: (p.msisdn, row) for p in subjects for row in renders[p.pid].rows}
+    row_of = {row["uid"]: (p.msisdn, row) for p in subjects for row in renders[p.pid].visible}
     by_tag = {}
     for ev in world.events:
         if ev.plant and ev.plant.startswith("P3-"):
@@ -124,20 +124,45 @@ def build_case(params, registry=None):
             times = sorted(e["start_local"] for e in events)
             if ":w" in tag:
                 windows.append({"tag": tag, "cell_key": events[0]["cell_key"], "start_local": times[0], "end_local": times[-1], "events": events})
-            else:
+            elif tag.rsplit(":", 1)[1] in decoy_kind:
                 decoys.append({"kind": decoy_kind[tag.rsplit(":", 1)[1]], "tag": tag, "events": events, "must_not_pair": True})
         plants.append({"id": plant["id"], "type": "colocation", "x": {"person": x.pid, "msisdn": x.msisdn}, "y": {"person": y.pid, "msisdn": y.msisdn},
                        "operator": w.OPERATOR_LABELS[plant["operator"]], "window_minutes": plant["window_minutes"],
                        "planted_windows": windows, "decoys": decoys})
+    # --- plant P4 (possible meetings) --------------------------------------------------------------------------------------------------
+    for plant in world.p3:
+        windows_by_tag = {w_["tag"]: w_ for p_ in plants if p_["id"] == plant["id"] for w_ in p_["planted_windows"]}
+        x, y = by_pid[plant["x"]], by_pid[plant["y"]]
+        meetings, negatives = [], []
+        for k in range(1, len(windows_by_tag) + 1):
+            window = windows_by_tag.get("%s:w%d" % (plant["id"], k))
+            if window is None:
+                continue
+            contact = [row_of[uid][1]["start_local"] for uid in by_tag.get("%s:m%d" % (plant["id"], k), [])]
+            if k <= plant["meeting_windows"]:
+                meetings.append({"window_tag": window["tag"], "window_start": window["start_local"], "contacts": sorted(set(contact))})
+            elif k == plant["meeting_windows"] + 1:
+                early = sorted({row_of[uid][1]["start_local"] for uid in by_tag.get("%s:early" % plant["id"], [])})
+                negatives.append({"kind": "contact_too_early", "window_tag": window["tag"], "window_start": window["start_local"], "contacts": early})
+            else:
+                negatives.append({"kind": "co_location_without_contact", "window_tag": window["tag"], "window_start": window["start_local"], "contacts": []})
+        alone = sorted({row_of[uid][1]["start_local"] for uid in by_tag.get("%s:d:contact_alone" % plant["id"], [])})
+        if alone:
+            negatives.append({"kind": "contact_without_co_location", "window_tag": None, "window_start": None, "contacts": alone})
+        plants.append({"id": plant["id"].replace("P3", "P4"), "type": "possible_meeting", "pair": plant["id"], "x": {"person": x.pid, "msisdn": x.msisdn},
+                       "y": {"person": y.pid, "msisdn": y.msisdn}, "gap_minutes": plant["contact_gap_minutes"], "planted_meetings": meetings, "negatives": negatives})
     p3_pair = {frozenset((p["x"]["msisdn"], p["y"]["msisdn"])): p["id"] for p in plants if p["type"] == "colocation"}
-    a5 = []
+    a5, a7 = [], []
     for i, x in enumerate(subjects):
         for y in subjects[i + 1:]:
             if x.operator != y.operator:
                 continue  # cell identities are per operator: two operators never share a cell key
-            answer = oracle.a5_colocation(renders[x.pid].rows, renders[y.pid].rows, params.window_minutes)
+            answer = oracle.a5_colocation(renders[x.pid].visible, renders[y.pid].visible, params.window_minutes)
             answer.update({"x": x.msisdn, "y": y.msisdn, "plant": p3_pair.get(frozenset((x.msisdn, y.msisdn)))})
             a5.append(answer)
+            meetings_answer = oracle.a7_meetings(renders[x.pid].visible, renders[y.pid].visible, x.msisdn, y.msisdn, answer["windows"], params.contact_gap_minutes)
+            meetings_answer.update({"x": x.msisdn, "y": y.msisdn, "plant": p3_pair.get(frozenset((x.msisdn, y.msisdn)))})
+            a7.append(meetings_answer)
     # --- tower dumps and A6 ----------------------------------------------------------------------------------------------------------
     dumps, a6 = [], []
     if params.dumps:
@@ -154,7 +179,7 @@ def build_case(params, registry=None):
             dumps.append({"name": name, "operator": op_label, "layout_id": entry["layout_id"], "file": None, "sites": sites, "cell_keys": cell_keys,
                           "window_start": win_start.isoformat(sep=" "), "window_end": win_end.isoformat(sep=" "), "rows": len(rendered.rows),
                           "events_not_representable": len(rendered.skipped)})
-            answer = oracle.a6_population(rendered.rows, cell_keys)
+            answer = oracle.a6_population(rendered.visible, cell_keys)
             answer["dump"] = name
             a6.append(answer)
     # --- internet-record exports and application usage ---------------------------------------------------------------------------------
@@ -162,7 +187,7 @@ def build_case(params, registry=None):
     for s in subjects:
         entry = registry.get(w.OPERATOR_IPDR_LAYOUTS[s.operator])
         name = "ipdr-%s" % s.pid
-        renders[name] = render_sessions.render_sessions(world, entry, [(x, s) for x in world.sessions if x.pid == s.pid], label=s.pid)
+        renders[name] = render_sessions.render_sessions(world, entry, [(x, s) for x in world.sessions if x.pid == s.pid], label=s.pid, damage=True)
         session_files.append({"name": name, "person": s.pid, "msisdn": s.msisdn, "layout_id": entry["layout_id"], "file": None, "rows": len(renders[name].rows)})
     for s in subjects[:params.app_usage_exports]:
         entry = registry.get(w.APP_USAGE_LAYOUT)
@@ -199,12 +224,18 @@ def build_case(params, registry=None):
         "dumps": dumps, "sessions": session_files, "app_usage": usage_files, "ip_queries": ip_queries,
         "structure": world.structure,
         "plants": plants,
-        "oracle": {"parameters": {"hub_threshold": threshold, "contact_kinds": list(oracle.PERSON_KINDS), "window_minutes": params.window_minutes},
-                   "A1": {s.msisdn: oracle.a1_profile(visible)[s.msisdn] for s in subjects}, "A2": a2, "A5": a5, "A6": a6, "A13": a13},
+        "oracle": {"parameters": {"hub_threshold": threshold, "contact_kinds": list(oracle.PERSON_KINDS), "window_minutes": params.window_minutes,
+                              "contact_gap_minutes": params.contact_gap_minutes},
+                   "A1": {s.msisdn: oracle.a1_profile(visible)[s.msisdn] for s in subjects}, "A2": a2, "A5": a5, "A6": a6, "A7": a7, "A13": a13},
         "layout_assumptions": sorted({json.dumps(a, sort_keys=True) for r in renders.values() for a in r.assumptions}),
+        "defects": {name: r.defects for name, r in sorted(renders.items()) if r.defects},
         "expected_quarantine": [], "expected_merge": [],
     }
     key["layout_assumptions"] = [json.loads(a) for a in key["layout_assumptions"]]
+    key["expected_quarantine"] = [{"export": name, "data_row": d["data_row"], "reason": d["reason"], "uid": d["uid"]}
+                                  for name, items in sorted(key["defects"].items()) for d in items if d["status"] == "quarantined"]
+    key["expected_merge"] = [{"export": name, "data_row": d["data_row"], "duplicate_of": d["duplicate_of"]}
+                             for name, items in sorted(key["defects"].items()) for d in items if d["duplicate_of"]]
     return world, renders, key
 
 

@@ -62,6 +62,9 @@ class Params:
     dump_days: int = 2
     sessions_per_subject_per_day: float = 6.0
     app_usage_exports: int = 2   # subjects that also get an app-usage export (layout A1)
+    defects_per_class: int = 3   # rows damaged on purpose per defect class and call-record export (0 = none)
+    meeting_windows: int = 2     # co-location windows (per P3 plant) that are preceded by a direct contact: plant P4
+    contact_gap_minutes: int = 60   # G of the possible-meeting definition (specification section 10)
     p7_plants: int = 3           # address-translation plants, on operators whose layout gives a session end (not ufone)
     shared_min: int = 3
     shared_max: int = 5
@@ -315,9 +318,24 @@ def build_world(params: Params) -> World:
         p3_cursor += 2
         plant_id = "P3-%03d" % number
         windows = min(params.windows_per_plant, max(1, period_end - 3))
-        days = r3.sample(range(period_end), min(period_end, windows + 3))
+        days = r3.sample(range(period_end), min(period_end, windows + 4))
+        # plant P4: the pair's contacts are planted ones only, placed at cells that differ (so a contact is never itself a co-location)
+        cell_x, cell_y = px.home_cell, py.home_cell
+        if cell_x == cell_y:
+            cell_y = py.work_cell
+        if cell_x == cell_y:
+            cell_y = (cell_y + 1) % CELLS_PER_OPERATOR
+
+        def contact(tag, when, x=x, y=y, cell_x=cell_x, cell_y=cell_y):
+            out = r3.random() < 0.5
+            a, b = (x, y) if out else (y, x)
+            raw.append((when, "call", a, b, r3.randrange(20, 300), tag, {x: cell_x, y: cell_y}))
         for k, day in enumerate(days[:windows], start=1):
             t0 = local(day, r3.randrange(9, 19), r3.randrange(0, 40))
+            if k <= params.meeting_windows:
+                contact("%s:m%d" % (plant_id, k), t0 - datetime.timedelta(minutes=r3.randint(10, 40)))
+            elif k == params.meeting_windows + 1:
+                contact("%s:early" % plant_id, t0 - datetime.timedelta(minutes=params.contact_gap_minutes + 120))
             for i in range(r3.randint(1, 3)):
                 plant_call("%s:w%d" % (plant_id, k), t0 + datetime.timedelta(minutes=6 * i), x, cx, meet)
                 plant_call("%s:w%d" % (plant_id, k), t0 + datetime.timedelta(minutes=6 * i + 3), y, cy, meet)
@@ -334,8 +352,16 @@ def build_world(params: Params) -> World:
             t = local(spare[2], r3.randrange(8, 20), r3.randrange(60))
             plant_call("%s:d:other_cell" % plant_id, t, x, cx, meet)
             plant_call("%s:d:other_cell" % plant_id, t + datetime.timedelta(minutes=3), y, cy, elsewhere)
+        if len(spare) > 3:
+            contact("%s:d:contact_alone" % plant_id, local(spare[3], r3.randrange(10, 20), r3.randrange(60)))
         world.p3.append({"id": plant_id, "x": x, "y": y, "operator": px.operator, "meeting_site": meet, "other_site": elsewhere,
-                         "counterparties": {x: cx, y: cy}, "window_minutes": W})
+                         "counterparties": {x: cx, y: cy}, "window_minutes": W, "meeting_windows": params.meeting_windows,
+                         "contact_gap_minutes": params.contact_gap_minutes})
+    # the pairs of plant P3 have no background contact with each other: their only direct contacts are the planted ones (P4)
+    linked = {frozenset((p["x"], p["y"])) for p in world.p3}
+    before = len(raw)
+    raw[:] = [e for e in raw if e[5] is not None or frozenset((e[2], e[3])) not in linked]
+    world.removed_contacts = before - len(raw)
 
     raw.sort(key=lambda e: (e[0], e[2], e[3], e[1]))
     for i, (when, kind, a, b, duration, plant, cells) in enumerate(raw, start=1):

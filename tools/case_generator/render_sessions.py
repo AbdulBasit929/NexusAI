@@ -14,6 +14,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import world as w  # noqa: E402
+import defects as defect_module  # noqa: E402
 from render import RenderedFile, cell_identity, layout_hints  # noqa: E402
 from ingestion.forensic_records.layout_registry.spec import column_ref  # noqa: E402
 
@@ -47,7 +48,7 @@ def _preamble(entry, values):
     return rows
 
 
-def render_sessions(world, entry, items, label, preamble_values=None) -> RenderedFile:
+def render_sessions(world, entry, items, label, preamble_values=None, damage=False) -> RenderedFile:
     """items: [(Session, Person)] in time order. Returns the export and, per row, the expectation the round trip must reproduce."""
     hints = layout_hints(entry)
     fields = entry.get("fields") or {}
@@ -142,13 +143,17 @@ def render_sessions(world, entry, items, label, preamble_values=None) -> Rendere
             cell_expect["cell_raw"] = cells[index[column_ref(fields["cell"]["column"])]] or None
         data.append(cells)
         out.rows.append({
-            "uid": session.uid, "msisdn": person.msisdn, "imsi": person.imsi, "imei": imei, "ue_ip": session.ue_ip, "ue_port": session.ue_port,
+            "status": "accepted", "flags": [], "uid": session.uid, "msisdn": person.msisdn, "imsi": person.imsi, "imei": imei, "ue_ip": session.ue_ip, "ue_port": session.ue_port,
             "public_ip": session.public_ip, "public_port_from": session.port_from, "public_port_to": session.port_to, "server_ip": session.server_ip,
             "server_port": session.server_port, "protocol": protocol_expect, "protocol_num": protocol_num_expect, "session_ref": session_ref,
             "start_local": start.isoformat(sep=" "), "end_local": end.isoformat(sep=" ") if "end" in time_cols else None,
             "nat_start_local": session.nat_start.isoformat(sep=" ") if "nat_start" in time_cols else None,
             "nat_end_local": session.nat_end.isoformat(sep=" ") if "nat_end" in time_cols else None,
             "plant": session.plant, **expect_ints, **cell_expect, **{k: v for k, v in text_expect.items() if k != "protocol" or protocol_expect is None}})
+    if damage:
+        data, out.rows, _ = defect_module.inject_sessions(entry, index, time_cols, data, out.rows, world.params.defects_per_class,
+                                                          random.Random("defects:%d:%s" % (world.params.seed, label)))
+        out.defects = defect_module.expectations(out.rows)
     header = [c["name"] for c in entry["header"]["columns"]]
     values = dict(preamble_values or {})
     stamps = [s.start for s, _ in items] or [datetime.datetime(2026, 1, 1)]

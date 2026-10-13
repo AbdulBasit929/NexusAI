@@ -18,6 +18,7 @@ from dataclasses import dataclass, field
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import world as w  # noqa: E402  (sets up sys.path for the repository and the tools)
+import defects as defect_module  # noqa: E402
 from ingestion.forensic_records.layout_registry.parties import make_cell_key  # noqa: E402
 from ingestion.forensic_records.layout_registry.spec import column_ref  # noqa: E402
 
@@ -41,6 +42,12 @@ class RenderedFile:
     rows: list = field(default_factory=list)          # one expectation per data row, in order
     assumptions: list = field(default_factory=list)   # layout items the rendering relied on that are still unconfirmed
     skipped: list = field(default_factory=list)       # event uids not representable in this layout, with the reason
+    defects: list = field(default_factory=list)       # rows damaged on purpose: what each must become (defects.py)
+
+    @property
+    def visible(self):
+        """The rows a loader can use as events: accepted, and a repeated row only once."""
+        return [r for r in self.rows if r.get("status", "accepted") == "accepted" and not r.get("duplicate_of")]
 
     def write(self, directory, stem):
         golden = mg.Golden(self.layout_id, self.container, self.sheet_name, self.encoding, self.delimiter, self.header_index,
@@ -264,10 +271,13 @@ def render_views(world, entry, views, label, preamble_person=None) -> RenderedFi
                     cells[pos] = mg.recipe_value(recipe, r, len(data), {"start": start, "end": end})
         data.append(cells)
         out.rows.append({
-            "uid": ev.uid, "a_norm": subject.msisdn, "b_norm": b_norm, "b_kind": b_kind, "b_raw_label": None if b_norm else b_raw,
+            "status": "accepted", "flags": [], "uid": ev.uid, "a_norm": subject.msisdn, "b_norm": b_norm, "b_kind": b_kind, "b_raw_label": None if b_norm else b_raw,
             "direction": visible["direction"], "event_type": visible["event_type"], "true_direction": direction, "true_event_type": event_type,
             "start_local": start.isoformat(sep=" "), "duration_s": duration_expect, "cell_key": cell_key, "site": site, "operator": subject.operator,
             "imsi": imsi, "imei": imei, "plant": ev.plant})
+    data, out.rows, _ = defect_module.inject(entry, hints, index, time_columns, fmt, data, out.rows, world.params.defects_per_class,
+                                             random.Random("defects:%d:%s" % (world.params.seed, label)))
+    out.defects = defect_module.expectations(out.rows)
     header = [c["name"] for c in entry["header"]["columns"]]
     padding = int((entry.get("golden") or {}).get("blank_columns") or 0)
     if padding:

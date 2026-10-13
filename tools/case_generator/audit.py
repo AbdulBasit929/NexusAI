@@ -43,6 +43,38 @@ def read_export(path):
     return [list(r) for r in rows()]
 
 
+def check_rows(label, results, expectations, problems):
+    """Every row the key says was damaged must become what the key says; every other row must be accepted."""
+    expected = {e["data_row"]: e for e in expectations}
+    wrong = 0
+    for n, r in enumerate(results):
+        e = expected.get(n)
+        if e is None:
+            if r.status != "accepted":
+                problems.append("%s: row %d is %s (%s) but nothing was damaged there" % (label, n, r.status, r.reason))
+                wrong += 1
+            continue
+        if r.status != e["status"] or (e["reason"] and r.reason != e["reason"]):
+            problems.append("%s: the %s row %d should be %s (%s), the registry says %s (%s)" % (label, e["kind"], n, e["status"], e["reason"], r.status, r.reason))
+        elif e["status"] == "accepted":
+            rec = r.record or {}
+            if any(flag not in (r.flags or []) for flag in e["flags"]):
+                problems.append("%s: the %s row %d lacks the flag %s" % (label, e["kind"], n, e["flags"]))
+            if e["kind"] == "unknown_label" and rec.get("direction") != "unknown":
+                problems.append("%s: an unmapped direction label was guessed (%s)" % (label, rec.get("direction")))
+            if e["kind"] in ("party_sentinel", "self_counterparty") and rec.get("b_norm") is not None:
+                problems.append("%s: a sentinel counterparty was kept" % label)
+    for n in expected:
+        if n >= len(results):
+            problems.append("%s: the key damages row %d, the file has %d rows" % (label, n, len(results)))
+            break
+
+
+def record_signature(rec):
+    """What the loader's content hash covers: everything about the row except where it sits in the file."""
+    return tuple(sorted((k, str(v)) for k, v in rec.items() if k != "source_row"))
+
+
 def audit(case_dir, registry=None):
     problems = []
     registry = registry or load_registry()
@@ -71,16 +103,17 @@ def audit(case_dir, registry=None):
         entry = registry.get(subject["layout_id"])
         header = rows[report.header_row]
         results = list(interpret_rows(entry, header, rows[report.header_row + 1:], policy=POLICY))
-        rejected = [r for r in results if r.status != "accepted"]
-        if rejected:
-            problems.append("%s: %d rows are not accepted (first reason: %s)" % (subject["file"], len(rejected), rejected[0].reason))
+        check_rows(subject["file"], results, key.get("defects", {}).get(subject["person"], []), problems)
         if len(results) != subject["rows"]:
             problems.append("%s: %d rows read, the key says %d" % (subject["file"], len(results), subject["rows"]))
-        mine, where = [], []
+        mine, where, repeated = [], [], set()
         for r in results:
             rec = r.record or {}
             if r.status != "accepted":
                 continue
+            if record_signature(rec) in repeated:
+                continue   # an exact repeat is merged into the first row by the loader
+            repeated.add(record_signature(rec))
             if rec["a_norm"] != subject["msisdn"]:
                 problems.append("%s: a row belongs to another subscriber" % subject["file"])
             for value, check in ((rec.get("a_norm"), reserved.is_reserved_msisdn), (rec.get("b_norm") if rec.get("b_kind") == "person_like" else None, reserved.is_reserved_msisdn),
@@ -164,13 +197,19 @@ def audit(case_dir, registry=None):
             continue
         entry = registry.get(dump["layout_id"])
         results = list(interpret_rows(entry, rows[report.header_row], rows[report.header_row + 1:], policy=POLICY))
-        if any(r.status != "accepted" for r in results):
-            problems.append("%s: rows are not accepted" % dump["file"])
+        check_rows(dump["file"], results, key.get("defects", {}).get(dump["name"], []), problems)
         if len(results) != dump["rows"]:
             problems.append("%s: %d rows read, the key says %d" % (dump["file"], len(results), dump["rows"]))
         low, high = dump["window_start"], dump["window_end"]
         wanted = [k for k in dump["cell_keys"] if k]
         population = {}
+        unique, repeated = [], set()
+        for r in results:
+            if r.status != "accepted" or record_signature(r.record) in repeated:
+                continue
+            repeated.add(record_signature(r.record))
+            unique.append(r)
+        results = unique
         for r in results:
             rec = r.record or {}
             if not (low <= rec.get("start_local", "") <= high):
@@ -208,16 +247,19 @@ def audit(case_dir, registry=None):
             continue
         entry = registry.get(item["layout_id"])
         results = list(interpret_rows(entry, rows[report.header_row], rows[report.header_row + 1:], policy=POLICY))
-        if any(r.status != "accepted" for r in results):
-            problems.append("%s: rows are not accepted" % item["file"])
+        check_rows(item["file"], results, key.get("defects", {}).get(item["name"], []), problems)
         if len(results) != item["rows"]:
             problems.append("%s: %d rows read, the key says %d" % (item["file"], len(results), item["rows"]))
+        repeated = set()
         for r in results:
             rec = r.record or {}
+            if r.status != "accepted" or record_signature(rec) in repeated:
+                continue
+            repeated.add(record_signature(rec))
             if rec.get("msisdn") != item["msisdn"]:
                 problems.append("%s: a row belongs to another subscriber" % item["file"])
                 break
-            if not (reserved.is_reserved_ip(rec.get("public_ip") or "") and reserved.is_reserved_ip(rec.get("server_ip") or "")):
+            if not (reserved.is_reserved_ip(rec.get("public_ip") or "") and (rec.get("server_ip") is None or reserved.is_reserved_ip(rec["server_ip"]))):
                 problems.append("%s: a public or server address is outside the documentation blocks" % item["file"])
                 break
             if not rec.get("public_port_from") or rec["public_port_from"] > rec["public_port_to"]:
@@ -317,6 +359,40 @@ def audit(case_dir, registry=None):
             for event in decoy["events"]:
                 if (event["subject"], event["start_local"], event["cell_key"]) in paired:
                     problems.append("%s: a %s event takes part in a co-located pair" % (plant["id"], decoy["kind"]))
+    # --- possible meetings (A7): co-location windows preceded by a direct contact, recomputed from the files ---------------------------------
+    gap = key["oracle"]["parameters"].get("contact_gap_minutes", 60)
+    candidates = {}
+    for answer in key["oracle"].get("A7", []):
+        x, y = answer["x"], answer["y"]
+        if (x, y) not in computed or x not in visible or y not in visible:
+            continue
+        contacts = sorted({when for label, kind, direction, when in visible[x] if label == y} | {when for label, kind, direction, when in visible[y] if label == x})
+        mine = []
+        for window in computed[(x, y)]["windows"]:
+            begin = datetime.datetime.fromisoformat(window["start"])
+            near = [c for c in contacts if 0 <= (begin - datetime.datetime.fromisoformat(c)).total_seconds() <= gap * 60]
+            if near:
+                lag = (begin - datetime.datetime.fromisoformat(max(near))).total_seconds() / 60
+                mine.append((window["cell_key"], window["start"], window["end"], window["pairs"], near, round(lag, 2),
+                             round(0.5 * min(window["pairs"], 3) / 3 + 0.5 * (1 - lag / gap), 4)))
+        theirs = [(c["cell_key"], c["start_local"], c["end_local"], c["pairs"], c["contacts_before"], c["gap_minutes"], c["score"]) for c in answer["candidates"]]
+        if mine != theirs:
+            problems.append("A7 for %s and %s: the key and the files disagree on the candidate meetings" % (x[-5:], y[-5:]))
+        candidates[(x, y)] = {c[1] for c in mine}
+    for plant in key["plants"]:
+        if plant["type"] != "possible_meeting":
+            continue
+        pair = (plant["x"]["msisdn"], plant["y"]["msisdn"])
+        starts = candidates.get(pair)
+        if starts is None:
+            problems.append("%s: no meeting answer for its pair" % plant["id"])
+            continue
+        for meeting in plant["planted_meetings"]:
+            if meeting["window_start"] not in starts:
+                problems.append("%s: planted meeting %s is not a candidate in the files" % (plant["id"], meeting["window_tag"]))
+        for negative in plant["negatives"]:
+            if negative["window_start"] and negative["window_start"] in starts:
+                problems.append("%s: a '%s' window is a candidate meeting" % (plant["id"], negative["kind"]))
     return problems
 
 

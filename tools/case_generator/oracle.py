@@ -1,4 +1,4 @@
-"""Plain-Python reference answers (specification section 10): A1 contact profile, A2 common contacts and A5 co-location and A6 tower-dump population and A13 address attribution.
+"""Plain-Python reference answers (specification section 10): A1 contact profile, A2 common contacts and A5 co-location and A6 tower-dump population, A7 possible meetings and A13 address attribution.
 
 They read the events as the files show them (the visible rows of each subject's export), not the product, SQL or the files themselves.
 """
@@ -39,12 +39,15 @@ def a1_profile(visible):
         agg = {}
         for row in rows:
             label = row["b_norm"] if row["b_norm"] else row["b_raw_label"]
-            a = agg.setdefault(label, {"number": label, "kind": row["b_kind"], "outgoing": 0, "incoming": 0, "voice_seconds": 0, "first": row["start_local"], "last": row["start_local"]})
+            if label is None:
+                continue   # no usable counterparty (a sentinel or the subscriber itself): the event cannot be attributed to a contact
+            a = agg.setdefault(label, {"number": label, "kind": row["b_kind"], "outgoing": 0, "incoming": 0, "unknown": 0, "voice_seconds": 0,
+                                       "first": row["start_local"], "last": row["start_local"]})
             a[row["direction"]] += 1
             a["voice_seconds"] += row["duration_s"] or 0
             a["first"] = min(a["first"], row["start_local"])
             a["last"] = max(a["last"], row["start_local"])
-        out[subject] = sorted(agg.values(), key=lambda a: (-(a["outgoing"] + a["incoming"]), a["number"]))
+        out[subject] = sorted(agg.values(), key=lambda a: (-(a["outgoing"] + a["incoming"] + a["unknown"]), a["number"]))
     return out
 
 
@@ -168,3 +171,23 @@ def a13_holders(sessions, public_ip, port, instant):
     holders = sorted({s["msisdn"] for s in sessions
                       if s["public_ip"] == public_ip and s["port_from"] <= port <= s["port_to"] and s["begin"] <= instant <= s["end"]})
     return {"result": "none" if not holders else "unique" if len(holders) == 1 else "ambiguous", "holders": holders}
+
+
+def a7_meetings(rows_x, rows_y, x, y, windows, gap_minutes=60):
+    """Possible meetings of two subjects (specification section 10, A7): co-location windows (A5) preceded by a direct call or SMS between
+    them within `gap_minutes` before the window starts (a contact at the start counts, one after it does not). Output per candidate: the
+    window, the contacts in the gap, the gap to the latest of them and a documented score,
+    score = 0.5 * min(pairs, 3) / 3 + 0.5 * (1 - gap / gap_minutes). A candidate, not a finding."""
+    contact_times = sorted({r["start_local"] for r in rows_x if r["b_norm"] == y} | {r["start_local"] for r in rows_y if r["b_norm"] == x})
+    width = datetime.timedelta(minutes=gap_minutes)
+    candidates = []
+    for window in windows:
+        begin = datetime.datetime.fromisoformat(window["start_local"])
+        before = [c for c in contact_times if begin - width <= datetime.datetime.fromisoformat(c) <= begin]
+        if not before:
+            continue
+        gap = (begin - datetime.datetime.fromisoformat(max(before))).total_seconds() / 60
+        candidates.append({"cell_key": window["cell_key"], "start_local": window["start_local"], "end_local": window["end_local"], "pairs": window["pairs"],
+                           "contacts_before": before, "gap_minutes": round(gap, 2),
+                           "score": round(0.5 * min(window["pairs"], 3) / 3 + 0.5 * (1 - gap / gap_minutes), 4)})
+    return {"gap_minutes": gap_minutes, "candidates": candidates, "caveat": "a candidate, not a finding: proximity and contact are not proof of a meeting"}
