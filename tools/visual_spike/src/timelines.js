@@ -4,7 +4,7 @@ import * as echarts from 'echarts/core';
 import { CustomChart, ScatterChart, LineChart, HeatmapChart, LinesChart, BarChart } from 'echarts/charts';
 import { GridComponent, DataZoomComponent, TooltipComponent, MarkAreaComponent, MarkLineComponent, VisualMapComponent, AriaComponent, LegendComponent, TitleComponent } from 'echarts/components';
 import { CanvasRenderer, SVGRenderer } from 'echarts/renderers';
-import { label as lbl } from './common.js';
+import { label as lbl, state } from './common.js';
 import { h, badge, chip, help, table, download, fmtDT, plural, colourOf, siteName } from './ui.js';
 
 echarts.use([CustomChart, ScatterChart, LineChart, HeatmapChart, LinesChart, BarChart, GridComponent, DataZoomComponent, TooltipComponent, MarkAreaComponent, MarkLineComponent, VisualMapComponent, AriaComponent, LegendComponent, TitleComponent, CanvasRenderer, SVGRenderer]);
@@ -24,6 +24,15 @@ export function svgOf(option, width = 960, height = 360) {
   const c = echarts.init(null, null, { renderer: 'svg', ssr: true, width, height }); c.setOption({ ...option, animation: false }); const svg = normaliseSvg(c.renderToSVGString()); c.dispose(); return svg;
 }
 
+// ECharts does not mirror a chart for right-to-left reading by itself: time runs from the right, the lane names stand on the right, and the grid is swapped.
+function mirror(option) {
+  const list = v => (Array.isArray(v) ? v : v ? [v] : []);
+  list(option.xAxis).forEach(a => { a.inverse = true; });
+  list(option.yAxis).forEach(a => { a.position = 'right'; });
+  list(option.grid).forEach(gr => { const left = gr.left; gr.left = gr.right; gr.right = left; });
+  return option;
+}
+
 const charts = [];
 function makeCard({ analysis, title, question, chips = [], note, noteKind = 'note', chart, height = 340, helpTitle = 'How to read this', helpText = [], tableFn, side }) {
   const box = h('div', { class: 'chart', style: `height:${height}px`, role: 'img' });
@@ -40,7 +49,7 @@ function makeCard({ analysis, title, question, chips = [], note, noteKind = 'not
       tableFn ? h('button', { onclick: ev => { tableBox.hidden = !tableBox.hidden; ev.target.textContent = tableBox.hidden ? 'View as table' : 'Hide table'; if (!tableBox.hidden && !tableBox.firstChild) tableBox.append(tableFn()); } }, 'View as table') : null),
     tableBox, help(helpTitle, ...helpText));
   const paint = () => {
-    instance?.dispose(); instance = echarts.init(box, null, { renderer: 'canvas' }); option = { useUTC: true, animation: false, aria: { enabled: true }, ...chart(box) }; instance.setOption(option);
+    instance?.dispose(); instance = echarts.init(box, null, { renderer: 'canvas' }); option = { useUTC: true, animation: false, aria: { enabled: true }, ...(state.rtl ? mirror(chart(box)) : chart(box)) }; instance.setOption(option);
     aria.textContent = box.getAttribute('aria-label') || ''; charts.push(instance); card.chart = instance;
   };
   // a chart is only created when its box has a size: in a hidden view it waits until the view is shown
@@ -76,7 +85,7 @@ function deviceCard(views) {
         xAxis: { type: 'time', axisLabel: { color: muted() }, splitLine: { show: true, lineStyle: { color: line() } } },
         yAxis: { type: 'category', inverse: true, data: names, axisLabel: { color: ink(), fontSize: 12 }, axisTick: { show: false } },
         series: [
-          { type: 'custom', data: runs, encode: { x: [1, 2], y: 0 }, z: 2, renderItem: (params, api) => { const y = api.coord([0, api.value(0)])[1]; const a = api.coord([api.value(1), 0])[0], b = api.coord([api.value(2), 0])[0]; const hh = api.size([0, 1])[1] * 0.58; const d = runs[params.dataIndex]; const w = Math.max(3, b - a); return { type: 'group', children: [{ type: 'rect', shape: { x: a, y: y - hh / 2, width: w, height: hh, r: 3 }, style: { fill: handsetColour(d.imei), stroke: 'rgba(0,0,0,.25)' } }, w > 120 ? { type: 'text', style: { x: a + 6, y, text: d.imsi && d.imsi !== 'null' ? `SIM …${d.imsi} · handset …${d.imei}` : `handset …${d.imei}`, fill: '#fff', fontSize: 11, textVerticalAlign: 'middle', textShadowColor: 'rgba(0,0,0,.5)', textShadowBlur: 2 } } : null].filter(Boolean) }; } },
+          { type: 'custom', data: runs, encode: { x: [1, 2], y: 0 }, z: 2, renderItem: (params, api) => { const y = api.coord([0, api.value(0)])[1]; const p1 = api.coord([api.value(1), 0])[0], p2 = api.coord([api.value(2), 0])[0]; const a = Math.min(p1, p2), b = Math.max(p1, p2); const hh = api.size([0, 1])[1] * 0.58; const d = runs[params.dataIndex]; const w = Math.max(3, b - a); return { type: 'group', children: [{ type: 'rect', shape: { x: a, y: y - hh / 2, width: w, height: hh, r: 3 }, style: { fill: handsetColour(d.imei), stroke: 'rgba(0,0,0,.25)' } }, w > 120 ? { type: 'text', style: { x: a + 6, y, text: d.imsi && d.imsi !== 'null' ? `SIM …${d.imsi} · handset …${d.imei}` : `handset …${d.imei}`, fill: '#fff', fontSize: 11, textVerticalAlign: 'middle', textShadowColor: 'rgba(0,0,0,.5)', textShadowBlur: 2 } } : null].filter(Boolean) }; } },
           { type: 'scatter', data: marks, symbol: 'triangle', symbolSize: 16, z: 5, itemStyle: { color: '#dc2626', borderColor: '#fff', borderWidth: 1.5 }, label: { show: true, position: 'top', color: ink(), fontSize: 11, formatter: p => p.data.kind === 'imei' ? 'handset' : p.data.kind === 'imsi' ? 'SIM' : 'SIM + handset' } },
           { type: 'lines', coordinateSystem: 'cartesian2d', data: links, lineStyle: { color: '#7c3aed', width: 2.5, type: 'dashed' }, symbol: ['circle', 'circle'], symbolSize: 7, z: 4 },
         ],
@@ -148,7 +157,7 @@ function anchorsCard(views) {
         tooltip: { confine: true, formatter: p => `<b>${lanes[p.data.value[0]].name}</b><br>cell site ${siteName(p.data.cell)}<br>weeks ${p.data.value[1] + 1} to ${p.data.value[2]}${p.data.away ? '<br><b>a trip: back within two weeks</b>' : ''}` },
         grid: { left: 150, right: 24, top: 14, bottom: 44 }, xAxis: { type: 'value', min: 0, max: weeks, interval: 1, name: 'week of the case', nameLocation: 'middle', nameGap: 22, nameTextStyle: { color: muted() }, axisLabel: { color: muted(), formatter: v => (v < weeks ? String(v + 1) : '') }, splitLine: { show: true, lineStyle: { color: line() } } },
         yAxis: { type: 'category', inverse: true, data: lanes.map(l => l.name), axisLabel: { color: ink(), fontSize: 12 }, axisTick: { show: false } },
-        series: [{ type: 'custom', data: blocks, encode: { x: [1, 2], y: 0 }, renderItem: (params, api) => { const y = api.coord([0, api.value(0)])[1]; const a = api.coord([api.value(1), 0])[0], b = api.coord([api.value(2), 0])[0]; const hh = api.size([0, 1])[1] * 0.7; const d = blocks[params.dataIndex]; const w = Math.max(4, b - a - 2); return { type: 'group', children: [{ type: 'rect', shape: { x: a + 1, y: y - hh / 2, width: w, height: hh, r: 4 }, style: d.away ? { fill: colourOf(d.cell), opacity: 0.55, stroke: ink(), lineDash: [4, 3], lineWidth: 1.5 } : { fill: colourOf(d.cell), stroke: 'rgba(0,0,0,.25)' } }, w > 46 ? { type: 'text', style: { x: a + 7, y, text: (d.away ? 'away ' : '') + siteName(d.cell), fill: '#fff', fontSize: 11, textVerticalAlign: 'middle', textShadowColor: 'rgba(0,0,0,.55)', textShadowBlur: 2 } } : null].filter(Boolean) }; } }],
+        series: [{ type: 'custom', data: blocks, encode: { x: [1, 2], y: 0 }, renderItem: (params, api) => { const y = api.coord([0, api.value(0)])[1]; const p1 = api.coord([api.value(1), 0])[0], p2 = api.coord([api.value(2), 0])[0]; const a = Math.min(p1, p2), b = Math.max(p1, p2); const hh = api.size([0, 1])[1] * 0.7; const d = blocks[params.dataIndex]; const w = Math.max(4, b - a - 2); return { type: 'group', children: [{ type: 'rect', shape: { x: a + 1, y: y - hh / 2, width: w, height: hh, r: 4 }, style: d.away ? { fill: colourOf(d.cell), opacity: 0.55, stroke: ink(), lineDash: [4, 3], lineWidth: 1.5 } : { fill: colourOf(d.cell), stroke: 'rgba(0,0,0,.25)' } }, w > 46 ? { type: 'text', style: { x: a + 7, y, text: (d.away ? 'away ' : '') + siteName(d.cell), fill: '#fff', fontSize: 11, textVerticalAlign: 'middle', textShadowColor: 'rgba(0,0,0,.55)', textShadowBlur: 2 } } : null].filter(Boolean) }; } }],
       };
     },
   });

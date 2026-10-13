@@ -26,7 +26,7 @@ try {
   await send('Page.enable'); await send('Runtime.enable'); await view(1400, 900);
   await send('Page.navigate', { url }); await sleep(3000);
   console.log('webgl:', await evalJs(`(() => { const g = document.createElement('canvas').getContext('webgl2'); const e = g && g.getExtension('WEBGL_debug_renderer_info'); return g ? (e ? g.getParameter(e.UNMASKED_RENDERER_WEBGL) : g.getParameter(g.RENDERER)) : 'none'; })()`));
-  console.log('config tiles:', JSON.stringify(await evalJs(`window.__app.config.tiles && window.__app.config.tiles.url.replace(/\\d+\\.\\d+\\.\\d+\\.\\d+:\\d+/, 'HOST')`)));
+  console.log('config tiles:', JSON.stringify(await evalJs(`window.__app.config.tiles && (window.__app.config.tiles.tilejson || 'template')`)));
 
   // ---- link chart ----
   await shot('01-link-overview');

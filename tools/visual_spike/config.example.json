@@ -1,8 +1,6 @@
 {
   "tiles": {
-    "url": "http://TILE-SERVER-HOST:PORT/data/pakistan/{z}/{x}/{y}.png",
-    "minzoom": 4,
-    "maxzoom": 18,
-    "attribution": "Offline basemap (local tile server)"
+    "tilejson": "/tiles/pakistan.json",
+    "attribution": "Basemap: organisation tile service"
   }
 }

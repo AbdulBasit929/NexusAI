@@ -1,12 +1,16 @@
-// Run-time configuration. The offline basemap is a tile server on the local network; its address is never written into the repository:
-// it is read from /config.local.json (git-ignored; see config.example.json) or from ?tiles=URL in the address bar.
+// Run-time configuration. The offline basemap comes from the organisation tile service through our tile cache (tools/tilecache); the address of the shared
+// server is never written into the repository. The browser is told only the cache's TileJSON address, from /config.local.json (git-ignored) or ?tilejson=URL.
 export async function loadConfig() {
   let file = {};
   try { const r = await fetch('/config.local.json', { cache: 'no-store' }); if (r.ok && (r.headers.get('content-type') || '').includes('json')) file = await r.json(); } catch { /* no local file: no basemap */ }
-  const q = new URLSearchParams(location.search).get('tiles');
-  const url = q || file.tiles?.url || null;
+  const params = new URLSearchParams(location.search);
+  // Preferred: the address of the tile cache's TileJSON (tools/tilecache), which the browser then uses for everything: zoom range, bounds and tile addresses
+  // come from it, and the shared tile server is never asked by a browser. A tile address template is accepted too (?tiles=URL), for a quick look.
+  const tilejson = params.get('tilejson') || file.tiles?.tilejson || null;
+  const url = params.get('tiles') || file.tiles?.url || null;
+  const t = file.tiles || {};
   return {
-    tiles: url ? { url, minzoom: file.tiles?.minzoom ?? 4, maxzoom: file.tiles?.maxzoom ?? 18, tileSize: file.tiles?.tileSize ?? 256, attribution: file.tiles?.attribution || 'Offline basemap (local tile server)' } : null,
+    tiles: tilejson || url ? { tilejson, url: tilejson ? null : url, minzoom: t.minzoom ?? 4, maxzoom: t.maxzoom ?? 18, tileSize: t.tileSize ?? 256, attribution: t.attribution || 'Basemap: organisation tile service' } : null,
   };
 }
 

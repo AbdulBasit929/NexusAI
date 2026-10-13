@@ -68,6 +68,13 @@ $('#run-all').onclick = runAll;
 config = await loadConfig();
 views = await loadViews();
 registerSites(views.map.cells);
+{ // ?stress=N replaces the link chart's graph by a synthetic one of N numbers, to see overview mode (never real data)
+  const n = +(new URLSearchParams(location.search).get('stress') || 0);
+  if (n > 0) {
+    const { stressGraph } = await import('./layout.js'); const sg = stressGraph(n, 3);
+    views.graph = { nodes: sg.nodes.map(x => ({ ...x, label: 'x' + x.label, operator: ['ufone', 'zong', 'mobilink', 'telenor'][x.group % 4], events: 100, first: '2026-02-02 10:00:00', last: '2026-04-30 10:00:00' })), edges: sg.edges.map(e => ({ ...e, first: '2026-02-02 10:00:00', last: '2026-04-30 10:00:00', rows: [] })) };
+  }
+}
 $('#case-info').textContent = `synthetic case (seed ${views.case.seed}) · ${views.case.subjects} subjects · ${views.case.days} days · generated, no real data`;
 mounted.add('link'); await mount('link');
 window.__app = { showTab, mount, get link() { return link; }, get mapView() { return mapView; }, get timelines() { return timelines; }, config };

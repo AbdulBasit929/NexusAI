@@ -50,13 +50,13 @@ export function mountMapView(root, views, config) {
 
   // ---- map and basemap ----------------------------------------------------------------------------------------------------------------
   const sources = {}; const layers = [{ id: 'bg', type: 'background', paint: { 'background-color': dark ? '#141a22' : '#eef2f6' } }];
-  if (config.tiles) { sources.base = { type: 'raster', tiles: [config.tiles.url], tileSize: config.tiles.tileSize, minzoom: config.tiles.minzoom, maxzoom: config.tiles.maxzoom, attribution: config.tiles.attribution }; layers.push({ id: 'base', type: 'raster', source: 'base', paint: { 'raster-opacity': 0.85, 'raster-saturation': -0.55, 'raster-brightness-max': dark ? 0.55 : 1 } }); }
+  if (config.tiles) { sources.base = config.tiles.tilejson ? { type: 'raster', url: config.tiles.tilejson, tileSize: config.tiles.tileSize, attribution: config.tiles.attribution } : { type: 'raster', tiles: [config.tiles.url], tileSize: config.tiles.tileSize, minzoom: config.tiles.minzoom, maxzoom: config.tiles.maxzoom, attribution: config.tiles.attribution }; layers.push({ id: 'base', type: 'raster', source: 'base', paint: { 'raster-opacity': 0.85, 'raster-saturation': -0.55, 'raster-brightness-max': dark ? 0.55 : 1 } }); }
   const map = new maplibregl.Map({ container: mapDiv, style: { version: 8, sources, layers }, center: [origin.lon, origin.lat], zoom: 11, attributionControl: false, dragRotate: false, maxZoom: 19 });
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right'); map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left'); map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
   window.__map = map; let tileErrors = 0;
   map.on('error', e => { const msg = (e.error && e.error.message) || ''; if (config.tiles && e.sourceId === 'base') { tileErrors++; if (tileErrors === 3) status.replaceChildren(badge('basemap not reachable', 'warn', msg)); } });
   function applyBasemap() { if (!map.getLayer('base')) return; const v = dim.value / 100; map.setPaintProperty('base', 'raster-opacity', Math.max(0.05, v)); map.setPaintProperty('base', 'raster-brightness-max', dark ? 0.35 + 0.65 * v : 1); }
-  status.replaceChildren(config.tiles ? badge('offline basemap', 'good', 'Tiles come from the local tile server named in the configuration') : badge('no basemap configured: neutral grid', 'warn'));
+  status.replaceChildren(config.tiles ? badge('offline basemap', 'good', config.tiles.tilejson ? 'Tiles come through the organisation tile cache' : 'Tiles come from the tile server named in the configuration') : badge('no basemap configured: neutral grid', 'warn'));
 
   // ---- data for the layers (all coordinates go through st.place) ------------------------------------------------------------------------
   const pt = (lat, lon) => st.place(lat, lon);

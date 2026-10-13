@@ -2,6 +2,7 @@
 // Built on Cytoscape.js in its canvas mode, the one that draws every encoding (shapes, dashed and dotted lines, arrows).
 import cytoscape from 'cytoscape';
 import { layout } from './layout.js';
+import { communities, collapse } from './overview.js';
 import { label as lbl, palette, state } from './common.js';
 import { $, h, badge, chip, help, table, download, esc, fmtDT, plural, OPERATOR_COLOURS } from './ui.js';
 
@@ -22,12 +23,18 @@ export function mountLinkView(root, views, opts = {}) {
   const callsOf = (a, b) => edges.find(e => e.kind === 'observed' && ((e.source === a && e.target === b) || (e.source === b && e.target === a)));
 
   // ---- layout and elements ------------------------------------------------------------------------------------------------------------
-  const pos = layout(g.nodes, edges.filter(e => e.kind !== 'candidate'));
   const degree = id => (adj.get(id) || []).length;
-  const els = [
-    ...g.nodes.map(n => ({ data: { id: n.id, label: lbl(n.label, n.kind), kind: n.kind, size: 16 + Math.min(30, degree(n.id) * 2.2) + (n.kind === 'subject' ? 12 : 0), color: n.kind === 'subject' ? (OPERATOR_COLOURS[n.operator] || c.subject) : n.kind === 'hub' ? c.hub : '#8a94a6' }, position: pos.get(n.id) })),
-    ...edges.map(e => ({ data: { id: 'e' + e.idx, source: e.source, target: e.target, kind: e.kind, count: e.count, idx: e.idx, width: e.kind === 'observed' ? 1 + Math.min(4, Math.log2(1 + e.count) / 1.6) : e.kind === 'inferred' ? 1.5 + Math.min(3, e.count / 2) : 2 } })),
-  ];
+  // Above about 1,500 numbers the other numbers are grouped by community (overview mode, rule V5); a click on a group opens it.
+  const overviewAbove = opts.overviewAbove ?? 1500;
+  const label = g.nodes.length > overviewAbove ? communities(g.nodes, edges) : null;
+  const expanded = new Set();
+  const buildModel = () => (label ? collapse(g.nodes, edges, label, { expanded }) : { nodes: g.nodes, edges, groups: [], groupOf: new Map() });
+  let model = buildModel();
+  const modelEdgeId = (e, i) => (e.idx >= 0 ? 'e' + e.idx : 'm' + i);
+  const nodeEl = (n, position) => ({ data: { id: n.id, label: n.kind === 'group' ? lbl(n.label, 'group') : lbl(n.label, n.kind), kind: n.kind, size: n.kind === 'group' ? 26 + Math.min(40, Math.sqrt(n.members.length) * 5) : 16 + Math.min(30, degree(n.id) * 2.2) + (n.kind === 'subject' ? 12 : 0), color: n.kind === 'subject' ? (OPERATOR_COLOURS[n.operator] || c.subject) : n.kind === 'hub' ? c.hub : n.kind === 'group' ? '#64748b' : '#8a94a6' }, position });
+  const edgeEl = (e, i) => ({ data: { id: modelEdgeId(e, i), source: e.source, target: e.target, kind: e.kind, count: e.count, idx: e.idx, group: !!e.group, width: e.kind === 'observed' ? 1 + Math.min(4, Math.log2(1 + e.count) / 1.6) : e.kind === 'inferred' ? 1.5 + Math.min(3, e.count / 2) : 2 } });
+  const pos = layout(model.nodes, model.edges.filter(e => e.kind !== 'candidate'));
+  const els = [...model.nodes.map(n => nodeEl(n, pos.get(n.id))), ...model.edges.map(edgeEl)];
 
   // ---- page structure -----------------------------------------------------------------------------------------------------------------
   const tooltip = h('div', { class: 'tip', hidden: true });
@@ -64,6 +71,7 @@ export function mountLinkView(root, views, opts = {}) {
       { selector: 'node', style: { 'background-color': 'data(color)', width: 'data(size)', height: 'data(size)', label: 'data(label)', 'font-size': 11, color: c.ink, 'text-valign': 'bottom', 'text-margin-y': 3, 'min-zoomed-font-size': 9, 'text-outline-color': getComputedStyle(document.documentElement).getPropertyValue('--panel').trim(), 'text-outline-width': 2, 'border-width': 1.5, 'border-color': getComputedStyle(document.documentElement).getPropertyValue('--panel').trim() } },
       { selector: 'node[kind="subject"]', style: { shape: 'diamond', 'font-weight': 700, 'font-size': 12, 'min-zoomed-font-size': 5 } },
       { selector: 'node[kind="hub"]', style: { shape: 'triangle' } },
+      { selector: 'node[kind="group"]', style: { shape: 'round-hexagon', 'border-width': 3, 'border-style': 'double', 'font-weight': 700, 'min-zoomed-font-size': 4 } },
       { selector: 'edge', style: { width: 'data(width)', 'curve-style': 'haystack', 'line-color': '#7d8797', opacity: 0.65, 'haystack-radius': 0 } },
       { selector: 'edge[kind="inferred"]', style: { 'line-style': 'dashed', 'line-dash-pattern': [8, 5], 'line-color': c.inferred, 'curve-style': 'bezier', opacity: 0.95 } },
       { selector: 'edge[kind="candidate"]', style: { 'line-style': 'dotted', 'line-color': c.candidate, 'curve-style': 'bezier', 'target-arrow-shape': 'triangle', 'target-arrow-color': c.candidate, 'arrow-scale': 1.2, opacity: 1 } },
@@ -113,6 +121,7 @@ export function mountLinkView(root, views, opts = {}) {
     const top = g.nodes.filter(n => n.kind === 'contact').map(n => ({ n, d: edges.filter(e => e.kind === 'observed' && (e.source === n.id || e.target === n.id)).length })).sort((a, b) => b.d - a.d || a.n.id.localeCompare(b.n.id)).slice(0, 5);
     setPanel(
       h('h2', {}, 'This case at a glance'),
+      label ? h('p', { class: 'note' }, `Overview: ${plural(g.nodes.filter(n => n.kind === 'contact').length, 'other number')} are shown as ${plural(model.groups.length, 'group')} so that the chart stays readable. `, h('button', { class: 'linkish', onclick: () => expandAll() }, 'Open all'), expanded.size ? [' · ', h('button', { class: 'linkish', onclick: () => collapseAll() }, 'Group again')] : null) : null,
       h('div', { class: 'chips' }, chip(subjects.length, 'subjects'), chip(g.nodes.filter(n => n.kind === 'contact').length, 'other numbers'), chip(hubs.length, plural(hubs.length, 'hub')), chip(counts('observed'), 'observed links'), chip(counts('inferred'), 'shared-contact links'), chip(counts('candidate'), 'successor candidates')),
       help('How to read this chart', 'Each diamond is a subject (a number whose records we hold); its colour is its operator. Circles are other numbers they called. A triangle is a number contacted by most subjects: it is left out when comparing subjects, because it says little.', 'A solid line is calls or messages seen in the records (thicker means more). A dashed purple line joins two subjects who share contacts. A dotted amber arrow joins a number that went silent to a candidate successor.', 'Click a number or a line to see the rows behind it. Mark two numbers as A and B to list their shared contacts or to find how they connect.'),
       h('h3', {}, 'Where to start'),
@@ -124,6 +133,43 @@ export function mountLinkView(root, views, opts = {}) {
       h('ul', { class: 'jump' }, ...top.map(t => h('li', {}, h('button', { class: 'linkish', onclick: () => selectNode(t.n.id) }, lbl(t.n.label)), ` called by ${plural(t.d, 'subject')}`))),
     );
   }
+  function showGroup(id) {
+    const gr = model.groups.find(x => x.id === id); if (!gr) return;
+    const top = gr.members.map(m => ({ m, d: degree(m) })).sort((a, b) => b.d - a.d || a.m.localeCompare(b.m)).slice(0, 8);
+    const callers = new Set(gr.members.flatMap(m => (adj.get(m) || []).filter(x => byId.get(x.to)?.kind === 'subject').map(x => x.to)));
+    setPanel(
+      h('h2', {}, `Group of ${gr.members.length} numbers`, ' ', badge('overview', 'info')),
+      h('div', { class: 'chips' }, chip(gr.members.length, 'numbers'), chip(callers.size, plural(callers.size, 'subject') + ' call them')),
+      h('p', { class: 'note' }, 'These numbers call each other and the same subjects more than they call the rest: a community found by label propagation. The chart groups them so it stays readable.'),
+      h('div', { class: 'row' }, h('button', { onclick: () => expandGroup(id) }, 'Open this group'), h('button', { class: 'ghost', onclick: () => expandAll() }, 'Open all groups')),
+      h('h3', {}, 'Best-connected members'), h('ul', { class: 'jump' }, ...top.map(x => h('li', {}, h('button', { class: 'linkish', onclick: () => selectNode(x.m) }, nodeLabel(x.m)), ` ${plural(x.d, 'link')}`))),
+    );
+  }
+  function showGroupEdge(e) {
+    const d = e.data();
+    setPanel(h('h2', {}, 'Summarised links'), h('div', { class: 'chips' }, chip(d.count, 'calls and messages'), chip(d.links ?? '', 'links summarised')),
+      h('p', { class: 'note' }, 'Several links between numbers inside two groups, added up. Open a group to see them one by one.'));
+  }
+  // Rebuild the chart after a group is opened or closed, keeping every number that stays where it is; members of a group that opens appear around it.
+  function rebuild(opened) {
+    const old = new Map(); cy.nodes().forEach(n => old.set(n.id(), { ...n.position() }));
+    model = buildModel();
+    const around = new Map();
+    for (const n of model.nodes) if (!old.has(n.id)) { const grp = opened && opened.members?.includes(n.id) ? old.get(opened.id) : null; if (grp) { const i = opened.members.indexOf(n.id); const a = (i / opened.members.length) * 6.283; const r = 40 + Math.sqrt(opened.members.length) * 14; around.set(n.id, { x: grp.x + Math.cos(a) * r, y: grp.y + Math.sin(a) * r }); } }
+
+    cy.batch(() => {
+      cy.elements().remove();
+      const fresh = layout(model.nodes.filter(n => !old.has(n.id) && !around.has(n.id)), []);
+      cy.add([...model.nodes.map(n => nodeEl(n, old.get(n.id) || around.get(n.id) || fresh.get(n.id))), ...model.edges.map(edgeEl)]);
+    });
+    applyFilters(); setSlot('A', slots.A); setSlot('B', slots.B); resetStyles();
+  }
+  function expandGroup(id) { const gr = model.groups.find(x => x.id === id); if (!gr) return; expanded.add(id); rebuild(gr); showOverview(); cy.animate({ fit: { eles: cy.nodes().filter(n => gr.members.includes(n.id())), padding: 60 } }, { duration: 250 }); }
+  function expandAll() { model.groups.forEach(x => expanded.add(x.id)); rebuild(null); cy.fit(undefined, 40); showOverview(); }
+  function collapseAll() { expanded.clear(); rebuild(null); cy.fit(undefined, 40); showOverview(); }
+  // Make sure numbers that are about to be shown or highlighted are on the chart, opening the groups that hide them.
+  function ensureVisible(ids) { const need = [...new Set(ids.map(i => model.groupOf.get(i)).filter(Boolean))]; if (!need.length) return; need.forEach(x => expanded.add(x)); rebuild(null); }
+
   function showNode(id) {
     const n = byId.get(id); const mine = edges.filter(e => e.source === id || e.target === id);
     const obs = mine.filter(e => e.kind === 'observed').sort((a, b) => b.count - a.count);
@@ -154,6 +200,7 @@ export function mountLinkView(root, views, opts = {}) {
     const na = nb(A), nbb = nb(B); const both = [...na.keys()].filter(k => nbb.has(k) && k !== A && k !== B);
     const shared = both.filter(k => byId.get(k).kind !== 'hub'); const left = both.filter(k => byId.get(k).kind === 'hub');
     const oracle = edges.find(e => e.kind === 'inferred' && ((e.source === A && e.target === B) || (e.source === B && e.target === A)));
+    ensureVisible([A, B, ...shared]);
     const eles = cy.collection(); [A, B, ...shared].forEach(id => eles.merge(cy.getElementById(id)));
     shared.forEach(k => { eles.merge(cy.getElementById(k)); cy.edges().filter(e => (e.data('source') === k || e.data('target') === k) && (e.data('source') === A || e.data('target') === A || e.data('source') === B || e.data('target') === B) && e.data('kind') === 'observed').forEach(e => { e.addClass('shared'); eles.merge(e); }); cy.getElementById(k).addClass('shared'); });
     dimExcept(eles); cy.animate({ fit: { eles, padding: 70 } }, { duration: 300 });
@@ -173,6 +220,7 @@ export function mountLinkView(root, views, opts = {}) {
     while (queue.length) { const u = queue.shift(); if (u === B) break; if (depth.get(u) >= 4) continue; for (const { to, e } of [...(adj.get(u) || [])].sort((x, y) => (y.e.kind === 'observed') - (x.e.kind === 'observed') || y.e.count - x.e.count || x.to.localeCompare(y.to))) if (!prev.has(to)) { prev.set(to, { from: u, e }); depth.set(to, depth.get(u) + 1); queue.push(to); } }
     if (!prev.has(B)) { setPanel(h('h2', {}, 'Connection path'), h('p', {}, `No connection from ${nodeLabel(A)} to ${nodeLabel(B)} within four hops over observed and shared-contact links.`), h('p', { class: 'muted small' }, 'Absence of a path in these records is not proof that there is none.')); return; }
     const steps = []; let cur = B; while (prev.get(cur)) { steps.unshift({ from: prev.get(cur).from, to: cur, e: prev.get(cur).e }); cur = prev.get(cur).from; }
+    ensureVisible([A, ...steps.map(s => s.to)]);
     const eles = cy.collection(); eles.merge(cy.getElementById(A)); steps.forEach(s => { eles.merge(cy.getElementById(s.to)); const ce = cy.getElementById('e' + s.e.idx); ce.addClass('path'); eles.merge(ce); cy.getElementById(s.to).addClass('path'); }); cy.getElementById(A).addClass('path');
     dimExcept(eles); cy.animate({ fit: { eles, padding: 80 } }, { duration: 300 });
     setPanel(
@@ -187,6 +235,7 @@ export function mountLinkView(root, views, opts = {}) {
   function toggleTable() { tableBox.hidden = !tableBox.hidden; $('#table-toggle', root).textContent = tableBox.hidden ? 'View as table' : 'Hide table'; if (!tableBox.hidden) showTable(); }
 
   function selectNode(id) {
+    if (cy.getElementById(id).empty()) ensureVisible([id]);
     resetStyles(); const n = cy.getElementById(id); if (n.empty()) return; if (n.hasClass('hidden')) { n.removeClass('hidden'); }
     n.select(); n.addClass('hl'); const nb = n.closedNeighborhood(':visible'); nb.edges().addClass('hl'); dimExcept(nb); showNode(id);
     if (!cy.extent() || !isInView(n)) cy.animate({ center: { eles: n } }, { duration: 200 });
@@ -194,11 +243,12 @@ export function mountLinkView(root, views, opts = {}) {
   function isInView(n) { const e = cy.extent(), p = n.position(); return p.x > e.x1 && p.x < e.x2 && p.y > e.y1 && p.y < e.y2; }
   function selectEdge(e) { if (e.empty()) return; resetStyles(); e.select(); e.addClass('hl'); const nb = e.connectedNodes(); nb.addClass('hl'); dimExcept(e.union(nb)); showEdge(e); }
 
-  cy.on('tap', 'node', ev => selectNode(ev.target.id()));
-  cy.on('tap', 'edge', ev => selectEdge(ev.target));
+  cy.on('tap', 'node', ev => { if (ev.target.data('kind') === 'group') { resetStyles(); ev.target.select(); showGroup(ev.target.id()); } else selectNode(ev.target.id()); });
+  cy.on('tap', 'edge', ev => { if (ev.target.data('group')) { resetStyles(); ev.target.select(); showGroupEdge(ev.target); } else selectEdge(ev.target); });
+  cy.on('dbltap', 'node[kind="group"]', ev => expandGroup(ev.target.id()));
   cy.on('tap', ev => { if (ev.target === cy) { resetStyles(); showOverview(); } });
-  cy.on('dbltap', 'node', ev => cy.animate({ fit: { eles: ev.target.closedNeighborhood(':visible'), padding: 60 } }, { duration: 250 }));
-  const tipText = ele => ele.isNode() ? `${ele.data('label')} · ${byId.get(ele.id()).kind}${byId.get(ele.id()).operator ? ' · ' + byId.get(ele.id()).operator : ''} · ${plural(degree(ele.id()), 'link')}` : `${ele.data('kind')} · ${ele.data('kind') === 'inferred' ? plural(ele.data('count'), 'shared contact') : ele.data('kind') === 'observed' ? plural(ele.data('count'), 'call or message', 'calls or messages') : 'candidate'}`;
+  cy.on('dbltap', 'node[kind != "group"]', ev => cy.animate({ fit: { eles: ev.target.closedNeighborhood(':visible'), padding: 60 } }, { duration: 250 }));
+  const tipText = ele => ele.isNode() ? (ele.data('kind') === 'group' ? `${ele.data('label')} · group, click to see` : `${ele.data('label')} · ${byId.get(ele.id())?.kind}${byId.get(ele.id())?.operator ? ' · ' + byId.get(ele.id()).operator : ''} · ${plural(degree(ele.id()), 'link')}`) : `${ele.data('kind')} · ${ele.data('kind') === 'inferred' ? plural(ele.data('count'), 'shared contact') : ele.data('kind') === 'observed' ? plural(ele.data('count'), 'call or message', 'calls or messages') : 'candidate'}`;
   cy.on('mouseover', 'node, edge', ev => { const p = ev.renderedPosition || ev.target.renderedMidpoint(); tooltip.textContent = tipText(ev.target); tooltip.style.left = (p.x + 12) + 'px'; tooltip.style.top = (p.y + 12) + 'px'; tooltip.hidden = false; canvas.style.cursor = 'pointer'; });
   cy.on('mouseout', 'node, edge', () => { tooltip.hidden = true; canvas.style.cursor = ''; });
   cy.on('pan zoom', () => { tooltip.hidden = true; });
@@ -217,5 +267,5 @@ export function mountLinkView(root, views, opts = {}) {
     canvas.setAttribute('aria-label', `Link chart. Number ${kbIndex + 1} of ${order.length}: ${nodeLabel(id)}. Enter opens it.`);
   });
   window.__cy = cy; showOverview();
-  return { cy, destroy: () => cy.destroy(), selectNode, setSlot, showCompare, showPath };
+  return { cy, destroy: () => cy.destroy(), selectNode, setSlot, showCompare, showPath, get model() { return model; }, expandAll, collapseAll };
 }

@@ -3,7 +3,8 @@ import { spawn } from 'node:child_process';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-const [url] = process.argv.slice(2); const port = 9335; const profile = mkdtempSync(join(tmpdir(), 'spike-chrome-'));
+import { writeFileSync } from 'node:fs';
+const [url, shotFile] = process.argv.slice(2); const port = 9335; const profile = mkdtempSync(join(tmpdir(), 'spike-chrome-'));
 const proc = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe', ['--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, '--window-size=1400,900', '--no-first-run', 'about:blank'], { stdio: 'ignore' });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 try {
@@ -17,7 +18,8 @@ try {
   await send('Page.navigate', { url }); await sleep(3000);
   await ev(`window.__app.showTab('lanes')`); await sleep(1500);
   console.log('after first mount, errors:', errors.length);
-  for (let i = 0; i < 3; i++) { await ev(`window.__app.mount('lanes')`); await sleep(1500); console.log('after toggle', i + 1, 'errors:', errors.length); }
+  for (let i = 0; i < 3; i++) { await ev(`document.getElementById('rtl').click(); 0`); await sleep(1500); console.log('after toggle', i + 1, 'errors:', errors.length); }
+  if (shotFile) { await send('Emulation.setDeviceMetricsOverride', { width: 1400, height: 3000, deviceScaleFactor: 1, mobile: false }); await sleep(1500); const r = await send('Page.captureScreenshot', { format: 'png' }); writeFileSync(shotFile, Buffer.from(r.result.data, 'base64')); }
   console.log(errors.join('\n---\n'));
   ws.close();
 } finally { proc.kill(); }
