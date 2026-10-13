@@ -112,7 +112,7 @@ def audit(case_dir, registry=None):
             if r.status != "accepted":
                 continue
             if record_signature(rec) in repeated:
-                continue   # an exact repeat is merged into the first row by the loader
+                continue   # an exact repeat is kept and flagged by the loader and counted once by the analyses
             repeated.add(record_signature(rec))
             if rec["a_norm"] != subject["msisdn"]:
                 problems.append("%s: a row belongs to another subscriber" % subject["file"])

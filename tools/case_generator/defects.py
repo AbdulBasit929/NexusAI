@@ -11,14 +11,14 @@ never a planted one, and writes down what each damaged row must become under the
   unknown_label        a direction label the layout does not map     accepted, direction unknown, flag unmapped_label:direction
   party_sentinel       the counterparty is -1                        accepted, no counterparty, flag b_party_sentinel
   self_counterparty    the counterparty is the subscriber (C6)       accepted, no counterparty, flag counterparty_equals_subject
-  duplicate_row        a row repeated verbatim                       accepted twice; merged into one by the loader
+  duplicate_row        a row repeated verbatim                       accepted twice; kept with lineage, flagged duplicate_row, counted once
 
 Internet-record exports get blank_row, time_unparsed, time_missing, duplicate_row and two of their own:
   invalid_server_ip    the server address is 999.1.1.1              accepted, server address none, flag ip_invalid:server_ip
   server_port_range    the server port is 70000                      accepted, server port none, flag server_port_out_of_range
 
 The expectations come from these documented rules, not from running the interpreter; the audit checks the interpreter against them.
-A row that cannot become a visible event is left out of `visible`, so the reference answers are computed from what a loader can use.
+A row that cannot become a visible event is left out of `visible` (a repeat counts once), so the reference answers are computed from what a loader can use.
 """
 from __future__ import annotations
 
