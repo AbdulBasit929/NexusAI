@@ -1,0 +1,28 @@
+{
+  "name": "nexusai-visual-spike",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Roadmap 7.7 spike: link chart, map, swim lanes and series on a generated case. Throwaway; not part of the product build.",
+  "type": "module",
+  "scripts": {
+    "copy-worker": "node scripts/copy-worker.mjs",
+    "predev": "npm run copy-worker",
+    "dev": "vite",
+    "prebuild": "npm run copy-worker",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@deck.gl/core": "9.4.0",
+    "@deck.gl/layers": "9.4.0",
+    "@deck.gl/mapbox": "9.4.0",
+    "cytoscape": "3.34.3",
+    "echarts": "6.1.0",
+    "graphology": "0.26.0",
+    "maplibre-gl": "6.11.2",
+    "sigma": "3.0.3"
+  },
+  "devDependencies": {
+    "vite": "8.0.14"
+  }
+}

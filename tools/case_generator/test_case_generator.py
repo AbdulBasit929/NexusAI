@@ -1313,6 +1313,94 @@ class ColocationCaseTests(unittest.TestCase):
             self.assertEqual(audit.audit(root), [])
 
 
+class ViewExportTests(unittest.TestCase):
+    """The data the interface views read (export_views.py): shaped like an API answer, consistent with the oracles, deterministic, nothing real."""
+    PARAMS = dict(people=80, subjects=12, associates=16, period_days=60, p2_pairs=2, p3_pairs=2, p7_plants=3)
+
+    @classmethod
+    def setUpClass(cls):
+        import export_views
+        cls.module = export_views
+        cls.params = w.Params(seed=93, **cls.PARAMS)
+        cls.views = export_views.build_views(cls.params)
+
+    def test_the_same_seed_gives_the_same_file(self):
+        again = self.module.build_views(self.params)
+        self.assertEqual(json.dumps(again, sort_keys=True), json.dumps(self.views, sort_keys=True))
+
+    def test_every_subject_is_a_node_and_every_edge_ends_at_nodes(self):
+        g = self.views["graph"]
+        ids = {n["id"] for n in g["nodes"]}
+        self.assertEqual(sum(1 for n in g["nodes"] if n["kind"] == "subject"), self.params.subjects)
+        for e in g["edges"]:
+            self.assertIn(e["source"], ids)
+            self.assertIn(e["target"], ids)
+            self.assertIn(e["kind"], ("observed", "inferred", "candidate"))
+            self.assertLessEqual(len(e["rows"]), 6)
+            if e["kind"] == "observed":
+                self.assertGreaterEqual(e["count"], len(e["rows"]))
+        for n in g["nodes"]:
+            self.assertTrue(w.reserved.is_reserved_msisdn(n["id"]), "numbers stay inside the reserved block")
+
+    def test_a_shared_contact_link_counts_what_the_chart_can_list(self):
+        """The link chart lists the shared contacts of two subjects from the observed links (hubs left out); that list must equal the count of the inferred link."""
+        g = self.views["graph"]
+        kind = {n["id"]: n["kind"] for n in g["nodes"]}
+        seen = {}
+        for e in g["edges"]:
+            if e["kind"] == "observed":
+                seen.setdefault(e["source"], set()).add(e["target"])
+                seen.setdefault(e["target"], set()).add(e["source"])
+        inferred = [e for e in g["edges"] if e["kind"] == "inferred"]
+        self.assertTrue(inferred)
+        for e in inferred:
+            shared = {c for c in seen.get(e["source"], set()) & seen.get(e["target"], set()) if kind[c] != "hub" and c not in (e["source"], e["target"])}
+            self.assertEqual(len(shared), e["count"], (e["source"], e["target"]))
+            self.assertEqual(sorted(shared), sorted(e["shared"]))
+
+    def test_the_map_data_refers_only_to_known_cells(self):
+        m = self.views["map"]
+        cells = {c["key"] for c in m["cells"]}
+        self.assertTrue(cells)
+        for mover in m["movers"]:
+            self.assertTrue(mover["changes"] or mover["speed_alerts"] or mover["short_deviations"], "only subjects with something to show")
+            self.assertTrue(all(p[3] in cells for p in mover["points"]))
+            self.assertTrue(all(a["from_cell"] in cells and a["to_cell"] in cells for a in mover["speed_alerts"]))
+            self.assertEqual(sum(mover["visits"].values()), len(mover["points"]))
+        for pair in m["colocation"]:
+            self.assertTrue(all(win["cell_key"] in cells for win in pair["windows"]))
+
+    def test_possible_meetings_are_windows_of_their_pair(self):
+        for pair in self.views["pairs"]:
+            starts = {win["start_local"] for win in pair["windows"]}
+            self.assertTrue(all(m["start_local"] in starts for m in pair["meetings"]))
+            self.assertGreaterEqual(len(pair["events"][pair["x"]]), 1)
+
+    def test_a_change_of_rhythm_is_in_the_daily_series_and_goes_the_way_it_says(self):
+        self.assertTrue(self.views["rhythm"], "this case has a number whose rhythm changes")
+        for r in self.views["rhythm"]:
+            days = [d[0] for d in r["daily"]]
+            self.assertIn(r["change"]["first_day"], days)
+            k = days.index(r["change"]["first_day"])
+            before = sum(d[1] for d in r["daily"][:k]) / max(1, k)
+            after = sum(d[1] for d in r["daily"][k:]) / max(1, len(days) - k)
+            self.assertEqual(after > before, r["change"]["direction"] == "up")
+
+    def test_device_lanes_cover_every_number_and_changes_have_two_runs(self):
+        lanes = self.views["lanes"]["devices"]
+        self.assertEqual(len(lanes), self.params.subjects)
+        for lane in lanes:
+            self.assertEqual(len(lane["changes"]), max(0, len(lane["runs"]) - 1), "each change of identity separates two runs")
+        for d in self.views["lanes"]["shared_devices"]:
+            self.assertIn(d["relation"], ("concurrent", "sequential"))
+
+    def test_address_lookups_say_ambiguous_only_with_two_holders(self):
+        for a in self.views["addresses"]:
+            self.assertEqual(len(a["holders"]), 0 if a["result"] == "none" else 1 if a["result"] == "unique" else len(a["holders"]))
+            if a["result"] == "ambiguous":
+                self.assertGreaterEqual(len(a["holders"]), 2)
+
+
 class CommandLineTests(unittest.TestCase):
     def test_main_writes_a_case(self):
         with tempfile.TemporaryDirectory() as d:

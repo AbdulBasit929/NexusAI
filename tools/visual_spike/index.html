@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NexusAI visual spike</title>
+  <link rel="stylesheet" href="/src/spike.css">
+</head>
+<body>
+  <header>
+    <h1>Link analysis views <small id="case-info">synthetic case · generated, no real data</small></h1>
+    <nav id="tabs" role="tablist" aria-label="Views">
+      <button role="tab" data-tab="link" aria-selected="true">Link chart</button>
+      <button role="tab" data-tab="map" aria-selected="false">Map</button>
+      <button role="tab" data-tab="lanes" aria-selected="false">Timelines</button>
+      <button role="tab" data-tab="metrics" aria-selected="false">Measurements</button>
+    </nav>
+    <label class="tog"><input type="checkbox" id="rtl"> Urdu labels, right to left</label>
+  </header>
+  <main>
+    <section id="view-link" class="view"></section>
+    <section id="view-map" class="view" hidden></section>
+    <section id="view-lanes" class="view" hidden></section>
+    <section id="view-metrics" class="view" hidden>
+      <div class="toolbar"><button id="run-all">Run all measurements</button><output id="run-status"></output></div>
+      <div id="bench" aria-hidden="true"></div>
+      <table id="results" class="data"><thead><tr><th>Measurement</th><th>Result</th></tr></thead><tbody></tbody></table>
+      <p class="muted">Measured in this browser on this machine. Times include the browser's own work after the call.</p>
+    </section>
+  </main>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
