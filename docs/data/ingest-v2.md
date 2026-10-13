@@ -102,4 +102,37 @@ docker tag nexusai-forensic-records-worker:before-ingest-v2 nexusai-forensic-rec
 # then recreate the worker WITHOUT the override file (same command as above, without the second -f)
 ```
 
-**What happens now.** Every structured file the worker ingests is also offered to the typed writer. Files in an unrecognised layout, media and documents are not affected. Watch `docker logs nexusai-forensic-records-worker-1` and the audit rows (`select created_at, file_id, details->'typed_ingest'->>'status', details->'typed_ingest'->>'rows_loaded', details->'typed_ingest'->>'reconciles' ...`). A `failed` status or a false `reconciles` is a stop (section 7, step 4). **Next:** step 3 of the plan, one synthetic file per layout through the normal upload path, compared with version 1 (this writes synthetic data to the live case database, so it needs its own go-ahead).
+**What happens now.** Every structured file the worker ingests is also offered to the typed writer. Files in an unrecognised layout, media and documents are not affected. Watch `docker logs nexusai-forensic-records-worker-1` and the audit rows (`select created_at, file_id, details->'typed_ingest'->>'status', details->'typed_ingest'->>'rows_loaded', details->'typed_ingest'->>'reconciles' ...`). A `failed` status or a false `reconciles` is a stop (section 7, step 4). **Next:** step 3 of the plan, one synthetic file per layout through the normal upload path, compared with version 1 (done on 2026-10-13: section 10).
+
+## 10. Step 3 on 2026-10-13: one synthetic file per layout through the normal upload
+
+**Authority.** The owner said "go, upload one synthetic file per layout" after section 9.
+
+**What was done.** 13 files of the generated case (`seed 7`: one per layout, all with identifiers from the reserved synthetic ranges) were posted to `POST /webhooks/records/upload` of the live forensic API like an analyst's upload: the runtime tenant and API key from the local runtime environment file (as the repository's own acceptance scripts do), `source_timezone=Asia/Karachi` declared as `analyst_confirmed`, record type left to auto-detection, into a **new collection of their own, `ingest-v2-shadow-synthetic-20261013`** (case `ingest-v2-shadow-synthetic-20261013`), so no existing collection was touched. 12 became ingest jobs, all `completed`; one was only registered (below). The live tables moved by exactly what the jobs report: `evidence_items` 79 to 92, `records_ingest_jobs` 92 to 104, `records` and `generic_records` +5,090 each, `cdr_records` unchanged (13,654), `comm_event` 0 to 3,580, `data_session` 0 to 1,019, `app_usage` 0 to 505, 11 audit rows `records.ingest.typed_shadow`. The synthetic collection stays in the live database (clearly labelled); it is separate from the existing cases.
+
+| Layout | File | Version 1 (job) | Typed shadow (audit summary) |
+|---|---|---|---|
+| C1 `call-c1-company` | xlsx | 706 of 706 stored, **event time = ingestion time** | 709 read, **700 loaded**, 6 quarantined (3 time missing, 3 time unparsed), 3 blank |
+| C2 `call-c2-strt-tm` | xlsx | 356 of 356, ingestion time | 356 read, **344 loaded**, 9 quarantined (3 missing, 3 unparsed, 3 date-order conflict), 3 blank |
+| C3 `call-c3-ufone-style` | xlsx | 766 of 766, ingestion time | 766 read, **757 loaded**, 6 quarantined, 3 blank |
+| C4 `call-c4-telenor-style` | xlsx | 1,304 of 1,304, ingestion time | 1,307 read, **1,298 loaded**, 6 quarantined, 3 blank |
+| C5 `geofence-c5-mobilink` | xlsx | 141 of 141, ingestion time | 144 read, **135 loaded**, 6 quarantined, 3 blank |
+| C6 `geofence-c6-telenor` | xlsx | 156 of 156, ingestion time | 159 read, **150 loaded**, 6 quarantined, 3 blank |
+| C7 `geofence-c7-ufone` | xlsx | **0 of 73 stored, all 73 rejected** | 76 read, **67 loaded**, 6 quarantined, 3 blank |
+| C8 `geofence-c8-zong` | xlsx | 135 of 135, **event time in the year 2065** | 138 read, **129 loaded**, 6 quarantined, 3 blank |
+| I1 `ipdr-i1-jazz-ufdr` | csv | 501 stored of 509 (5 repeats dropped, 3 rejected), times right | 509 read, **500 loaded** (3 repeats kept and flagged), 6 quarantined, 3 blank |
+| I2 `ipdr-i2-telenor-export` | csv | 520 of 528 (5 repeats, 3 rejected), times right | 528 read, **519 loaded**, 6 quarantined, 3 blank |
+| I3 `ipdr-i3-ufone-xls` | .xls (SpreadsheetML 2003) | **no job: registered only** (`tabular_adapter_pending`) | not reached |
+| I4 `ipdr-i4-zong-txt` | .txt (UTF-16) | job ran as a **document** (69 passages, route `native_document_worker`) | **not reached** |
+| A1 `appusage-a1` | xlsx | 505 of 505, times right | 505 read, **505 loaded** |
+
+**What was checked.** (1) The registry chose the right layout for each of the 11 files that reached the writer, and every sheet reconciled (rows read = loaded + quarantined + skipped; loaded = inserted + already present). (2) **The deployed worker wrote exactly the rows the tested code produces:** for all 11 files the content hashes in the live typed tables equal those of an offline run of `typed_ingest.py` on the same files (`ALL IDENTICAL`). (3) Where version 1 parses the time correctly (I1, I2, A1) the typed rows have **the same UTC instant on every aligned row** (497 of 497, 516 of 516, 505 of 505; version 1 numbers rows from the header, so version 1 row n is typed `source_row` n minus 1). (4) The injected defects of the generated case behave as designed: 3 rows with no time and 3 with an unparsable time quarantined per file, 3 date-order conflicts in C2, blank rows skipped, repeats flagged.
+
+**Findings (none was fixed in this step; each needs a decision).**
+
+1. **I4: a UTF-16 `.txt` export never reaches the typed writer.** The upload route sends text files to the document pipeline (`native_document_worker`), which returns before the hook. The Zong IPDR layout therefore cannot be ingested as records by either path today. Fix options: offer text files whose header the registry recognises to the typed writer from the document branch, or classify them as tabular at intake.
+2. **I3: a `.xls` export is registered but never queued** (the intake marks it `tabular_adapter_pending`). The file is SpreadsheetML 2003, which the shared readers parse. Fix: intake must accept `.xls` as a tabular source and queue a job. This is a change in the Go API (the commit gate needs the owner's one-time `--no-verify` for any Go commit).
+3. **Version 1 gives wrong event times to eight workbook layouts** (measured on synthetic files with the shape of the real exports; the real files may differ). For C1 to C6 the source holds Excel serial times that version 1 does not parse, and it stores the ingestion instant on every row (all 706 rows of C1 carry 2026-10-13 14:34:49); for C8 it stores the year 2065; for C7 it rejects every row. Any time-based question over such a file is wrong in version 1. The typed rows have the right instants. This is the concrete case for moving families to the typed tables (roadmap 4.8).
+4. **Differences by design.** The typed path quarantines a row that has no usable time (version 1 keeps it, with the ingestion instant), keeps and flags repeated rows (version 1 drops them), and skips blank rows (version 1 also drops them from its total). The row counts therefore differ by the quarantined rows only, which the summary lists by reason.
+
+**Not done.** Nothing was removed from the live database; the synthetic collection is retained. No code or image changed in this step.
