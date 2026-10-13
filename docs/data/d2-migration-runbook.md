@@ -127,7 +127,7 @@ The real-data tools have their own evidence: 31 Python tests and 13 PowerShell c
 ## 8. What happens after the apply (not part of this change)
 
 1. Layout registry v1 (files, not code) for the layouts seen so far, with synthetic goldens.
-2. Worker dual-write into the typed tables, behind a switch, with idempotent upserts on `(tenant_id, collection_id, file_id, row_hash, start_utc)`.
+2. Worker dual-write into the typed tables, behind a switch, with idempotent upserts on `(tenant_id, collection_id, file_id, row_hash, start_utc)`. *Built and tested 2026-10-13, not deployed: `docs/data/ingest-v2.md`.*
 3. Backfill from `forensic.records` and `forensic.cdr_records`; reconcile with SQL and `tools/real_data/reconcile_aggregates.py`.
 4. Switch one family's semantic-layer views to the typed table; the lane's gates must hold or the family stays on the old view.
 
@@ -164,4 +164,14 @@ Outline, if approved: choose and pin an image that ships PostgreSQL 16, Timescal
 
 **Rollback.** Still as in section 6 (gated scripts in reverse order, or a restore of the dump above into a fresh database). Not needed.
 
-**What this does not do yet.** The tables are empty: nothing writes to them (section 8). The 13 provider layouts are not yet recorded in `layout_versions` (a separate step with its own go-ahead: `python -m ingestion.forensic_records.layout_registry sql`). The worker, the API and the interface are unchanged.
+**What this does not do yet.** The tables are empty: nothing writes to them (section 8). The 13 provider layouts were not yet recorded in `layout_versions` (done later the same day: section 12). The worker, the API and the interface are unchanged.
+
+## 12. The 13 provider layouts recorded on 2026-10-13
+
+**Authority.** The owner said "yes go with step 1 then step 2" (step 1 = record the layouts) after the apply in section 11.
+
+**What was run.** The SQL printed by `python -m ingestion.forensic_records.layout_registry sql` (13 `INSERT ... ON CONFLICT DO NOTHING` rows into `forensic.layout_versions`, `registered_by = 'layout-registry'`, each preceded by a guard that raises if a registered version's definition hash differs: a changed layout needs a new version), as the database owner, in one `BEGIN ... COMMIT`. **Before:** one row (`generic-unmapped`, seeded by migration 012). **After:** 14 rows, at 2026-10-13 10:59:14 UTC: `appusage-a1`, `call-c1-company`, `call-c2-strt-tm`, `call-c3-ufone-style`, `call-c4-telenor-style`, `geofence-c5-mobilink` to `geofence-c8-zong`, `ipdr-i1-jazz-ufdr` to `ipdr-i4-zong-txt`, all version 1 and status `draft`, each with the SHA-256 of its definition file. **A second pass inserted nothing** (the conflict key held). No other table changed; the typed tables are still empty (0 rows).
+
+**What it enables.** The typed tables point at `(layout_id, layout_version)` by foreign key, so a row can only be written for a registered layout. Promotion from `draft` to `active` is a separate act per layout, after it has been confirmed on a real file inside the vault (`docs/data/layout-registry.md`).
+
+**Next.** The first writer of the typed tables, behind a switch that is off: `docs/data/ingest-v2.md`.

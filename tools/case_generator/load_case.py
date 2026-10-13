@@ -12,7 +12,8 @@ the case into forensic.comm_event, forensic.data_session and forensic.app_usage.
   A5 chance baseline (expected pairs and lift)                                  A7 possible meetings (windows preceded by a direct contact)
   A6 tower-dump population                 A13 who held each probed public address and port
 
-This loader is TEST-ONLY. The product's worker does not write the typed tables yet (roadmap Phase 1, Ingest v2); this proves the schema
+This loader is TEST-ONLY and independent of the product: it is the reference. The product's worker has its own shadow writer (ingestion/forensic_records/typed_ingest.py,
+behind FORENSIC_INGEST_V2, off by default); test_ingest_v2.py runs these same checks on what that code writes. This proves the schema
 and the oracles against real SQL until it does. It never touches the NexusAI stack, and the container and its volume are removed at the end.
 """
 import argparse
@@ -145,6 +146,27 @@ def copy_script(table, columns, rows):
     return "COPY forensic.%s (%s) FROM STDIN WITH (FORMAT csv, NULL '\\N');\n%s\\.\n" % (table, ", ".join(columns), buf.getvalue())
 
 
+def export_list(key):
+    """Every export of a case as (key entry, family, name): the target call records, the tower dumps, the data sessions, the address queries and the app usage."""
+    return ([(item, "call", item["person"]) for item in key["subjects"]] + [(item, "call", item["name"]) for item in key["dumps"]] +
+            [(item, "session", item["name"]) for item in key["sessions"]] + [(item, "session", item["name"]) for item in key["ip_queries"]] +
+            [(item, "usage", item["name"]) for item in key["app_usage"]])
+
+
+def lineage_ids(case_id, rel):
+    """The evidence id and the batch id the loaders give an export: fixed by the case and the file, so a second load meets the same keys."""
+    return (str(uuid.uuid5(uuid.NAMESPACE_URL, "nexusai-case/%s/%s" % (case_id, rel))), str(uuid.uuid5(uuid.NAMESPACE_URL, "nexusai-case-batch/%s/%s" % (case_id, rel))))
+
+
+def evidence_statement(evidence_id, case_id, filename, extension, size, sha):
+    """The evidence item the typed rows point at (the tables' foreign key)."""
+    return ("INSERT INTO forensic.evidence_items (evidence_id, tenant_id, collection_id, case_id, user_id, original_filename, source_file, content_type, extension, "
+            "size_bytes, sha256, modality, detected_type, classifier_confidence, processing_route, processing_status, raw_storage_ref, metadata) VALUES "
+            "(%s, %s, %s, %s, 'case-loader', %s, %s, 'application/octet-stream', %s, %d, %s, 'structured_records', 'cdr', 1, 'forensic_records_worker', 'completed', %s, "
+            "jsonb_build_object('request_id', 'case-load'));" % (sql_text(evidence_id), sql_text(TENANT), sql_text(case_id), sql_text("SYNTHETIC-" + case_id), sql_text(filename),
+                                                               sql_text(filename), sql_text(extension), size, sql_text(sha), sql_text("immutable://case/sha256/" + sha)))
+
+
 def load_case(db, case_dir, registry):
     """Read every export through the registry and load the accepted rows. Returns (key, per-export statistics)."""
     with open(os.path.join(case_dir, "key", "key.json"), encoding="utf-8") as handle:
@@ -157,9 +179,7 @@ def load_case(db, case_dir, registry):
         columns[table] = [r["column_name"] for r in db.rows(
             "SELECT column_name FROM information_schema.columns WHERE table_schema = 'forensic' AND table_name = %s "
             "AND is_generated = 'NEVER' AND column_default IS DISTINCT FROM 'nextval' AND identity_generation IS NULL ORDER BY ordinal_position" % sql_text(table))]
-    exports = ([(item, "call", item["person"]) for item in key["subjects"]] + [(item, "call", item["name"]) for item in key["dumps"]] +
-               [(item, "session", item["name"]) for item in key["sessions"]] + [(item, "session", item["name"]) for item in key["ip_queries"]] +
-               [(item, "usage", item["name"]) for item in key["app_usage"]])
+    exports = export_list(key)
     stats, bulk, evidence = {}, {t: [] for t in TABLE_OF.values()}, []
     for item, family, name in exports:
         rel = item["file"]
@@ -167,8 +187,7 @@ def load_case(db, case_dir, registry):
         report = registry.find_header(rows)
         entry = registry.get(item["layout_id"])
         results = list(interpret_rows(entry, rows[report.header_row], rows[report.header_row + 1:], policy=audit.POLICY))
-        evidence_id = str(uuid.uuid5(uuid.NAMESPACE_URL, "nexusai-case/%s/%s" % (case_id, rel)))
-        batch_id = str(uuid.uuid5(uuid.NAMESPACE_URL, "nexusai-case-batch/%s/%s" % (case_id, rel)))
+        evidence_id, batch_id = lineage_ids(case_id, rel)
         sha = manifest["files"][rel]["sha256"]
         evidence.append((evidence_id, os.path.basename(rel), os.path.splitext(rel)[1].lstrip("."), manifest["files"][rel]["bytes"], sha))
         counts = {"name": name, "family": family, "evidence_id": evidence_id, "table": TABLE_OF[family], "read": len(results), "loaded": 0, "quarantined": 0,
@@ -199,12 +218,7 @@ def load_case(db, case_dir, registry):
         stats[name] = counts
     statements = ["SELECT set_config('app.tenant_id', %s, false);" % sql_text(TENANT)]
     for evidence_id, filename, extension, size, sha in evidence:
-        statements.append(
-            "INSERT INTO forensic.evidence_items (evidence_id, tenant_id, collection_id, case_id, user_id, original_filename, source_file, content_type, extension, "
-            "size_bytes, sha256, modality, detected_type, classifier_confidence, processing_route, processing_status, raw_storage_ref, metadata) VALUES "
-            "(%s, %s, %s, %s, 'case-loader', %s, %s, 'application/octet-stream', %s, %d, %s, 'structured_records', 'cdr', 1, 'forensic_records_worker', 'completed', %s, "
-            "jsonb_build_object('request_id', 'case-load'));" % (sql_text(evidence_id), sql_text(TENANT), sql_text(case_id), sql_text("SYNTHETIC-" + case_id), sql_text(filename),
-                                                               sql_text(filename), sql_text(extension), size, sql_text(sha), sql_text("immutable://case/sha256/" + sha)))
+        statements.append(evidence_statement(evidence_id, case_id, filename, extension, size, sha))
     for table, rows_ in bulk.items():
         if rows_:
             cols = [c for c in columns[table] if any(c in r for r in rows_)]

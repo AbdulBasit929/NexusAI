@@ -914,6 +914,7 @@ def process_job(
                         "evidence_id": job.evidence_id,
                     },
                 )
+                run_typed_ingest_shadow(conn, cur, job, path, profile)
             conn.commit()
             emit_progress(progress_cb, job, "completed", stats, profile, started_at)
             LOG.info(
@@ -4069,6 +4070,40 @@ def audit(cur: psycopg.Cursor[Any], job: IngestJob, action: str, details: dict[s
         """,
         (job.tenant_id, job.user_id, action, job.collection_id, job.file_id, details.get("batch_id"), json.dumps(details)),
     )
+
+
+def run_typed_ingest_shadow(
+    conn: psycopg.Connection[Any],
+    cur: psycopg.Cursor[Any],
+    job: IngestJob,
+    path: Path,
+    profile: dict[str, Any],
+) -> None:
+    """Ingest v2 (roadmap Phase 1): also write the file's rows to the typed tables, behind FORENSIC_INGEST_V2 (off unless "shadow").
+
+    Runs after version 1 has finished and been audited, inside its transaction but in a savepoint of its own, so that no failure in it can change
+    what version 1 stored or fail the job. The module is imported only when the mode asks for it. The quality summary goes to the audit log."""
+    if (os.environ.get("FORENSIC_INGEST_V2") or "").strip().lower() in ("", "off", "0", "false", "no"):
+        return
+    try:
+        try:
+            from ingestion.forensic_records import typed_ingest
+        except ModuleNotFoundError:  # pragma: no cover - supports direct worker.py execution
+            import typed_ingest
+        lineage = typed_ingest.Lineage(job.tenant_id, job.collection_id, job.evidence_id, job.file_id, job.job_id)
+        time_policy = (profile.get("classification") or {}).get("time_policy") or time_policy_for_job(job)
+        summary = typed_ingest.run_shadow(conn, str(path), lineage, time_policy)
+        if summary is None:
+            return
+        with conn.transaction():
+            audit(cur, job, "records.ingest.typed_shadow", {"batch_id": job.job_id, "request_id": job.request_id, "evidence_id": job.evidence_id, "typed_ingest": summary})
+        LOG.info(
+            "typed ingest %s",
+            summary.get("status"),
+            extra={"job_id": job.job_id, "rows_loaded": summary.get("rows_loaded"), "rows_inserted": summary.get("rows_inserted")},
+        )
+    except Exception:  # noqa: BLE001 - the shadow write must never fail the job
+        LOG.exception("typed ingest shadow could not run; the job is not affected", extra={"job_id": job.job_id})
 
 
 def validate_sample_profile(path: Path) -> dict[str, Any]:

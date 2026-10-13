@@ -121,3 +121,7 @@ They do **not** prove that an entry is right about the real file: the golden is 
 * Parsing ECGI and the composite CI cell strings (kept as raw text); the template file with merged header cells.
 * Operator-documented meanings (direction codes, activity code, network volume unit, RAT names): listed as unconfirmed, not assumed.
 * Learned or assisted mapping for an unknown layout (roadmap 4.4, step 4).
+
+## Where the registry is used now
+
+`ingestion/forensic_records/layout_registry/readers.py` holds the one set of row readers (xlsx, SpreadsheetML 2003, delimited text, with the archive and size limits); the vault tools (`tools/real_data/profile_structure.py`) and the worker's typed ingest (`typed_ingest.py`, `docs/data/ingest-v2.md`) both import it, so a file is read the same way when it is profiled, confirmed and ingested. The 13 entries are recorded in `forensic.layout_versions` of the live database as drafts (2026-10-13, `docs/data/d2-migration-runbook.md` section 12).

@@ -1,0 +1,418 @@
+"""Ingest v2 (typed_ingest.py): the shadow write of recognised provider exports to the typed tables, tested without a database.
+
+Plain unittest:  python -m unittest ingestion.forensic_records.tests.test_typed_ingest
+
+A fake sink stands in for PostgreSQL and keeps the idempotency key the real tables have, so these tests check what the module decides (which rows,
+which hashes, which flags, what is counted, what is refused). That the SQL does what the sink here only imitates is proved by the throwaway-database
+tests in tools/case_generator/test_ingest_v2.py (a generated case through this module, then the 174 SQL checks against the key).
+"""
+
+from __future__ import annotations
+
+import contextlib
+import csv
+import hashlib
+import json
+import os
+import tempfile
+import unittest
+from pathlib import Path
+from unittest import mock
+
+from ingestion.forensic_records import typed_ingest as ti
+from ingestion.forensic_records import worker
+from ingestion.forensic_records.layout_registry import Policy, load_registry
+
+HEADER = ["MSISDN", "call_org_num", "CALL_DIALED_NUM", "IMSI", "IMEI", "CALL_START_DT_TM", "CALL_END_DT_TM", "INBOUND_OUTBOUND_IND", "Call_Network_Volume",
+          "Lac_Id", "Site_Id", "Cell_SITE_ID", "lat", "longitude", "CALL_TYPE", "location", "Description", "MACAddress"]
+KARACHI = Policy(source_tz="Asia/Karachi", tz_basis="declared")
+EVIDENCE = "5a000000-0000-4000-8000-0000000000a1"
+BATCH = "6a000000-0000-4000-8000-0000000000b1"
+LINEAGE = ti.Lineage("tenant-1", "case-1", EVIDENCE, "calls.csv", BATCH)
+REGISTRY = load_registry()
+COLUMNS = ("tenant_id", "collection_id", "evidence_id", "file_id", "batch_id", "source_row", "row_hash", "content_hash", "layout_id", "layout_version",
+           "dataset_kind", "event_type", "direction", "a_raw", "a_norm", "a_kind", "b_raw", "b_norm", "b_kind", "start_utc", "end_utc", "duration_s",
+           "source_tz", "time_basis", "raw_payload", "quality_flags")
+
+
+def call(a, other, start, end, direction="OUTGOING", kind="CALL"):
+    incoming = other if direction == "INCOMING" else ""
+    outgoing = other if direction == "OUTGOING" else ""
+    return [a, incoming, outgoing, "001010000000001", "00000000000001", start, end, direction, "0", "1001", "1", "2002", "", "", kind, "Somewhere", "", ""]
+
+
+GOOD = [
+    call("923000000001", "923000000002", "2026-03-01 10:00:00", "2026-03-01 10:01:00"),
+    call("923000000001", "923000000002", "2026-03-01 10:00:00", "2026-03-01 10:01:00"),     # the same row again: kept and flagged
+    call("923000000001", "923000000003", "2026-03-02 11:00:00", "2026-03-02 11:05:00", "INCOMING"),
+]
+
+
+class FakeSink:
+    """Keeps rows under the key of the real tables, as ON CONFLICT DO NOTHING would."""
+
+    def __init__(self, columns=COLUMNS):
+        self.columns, self.rows, self.keys, self.calls = columns, [], set(), []
+
+    def table_columns(self, table):
+        return [(c, "text") for c in self.columns]
+
+    def insert_batch(self, table, columns, rows):
+        self.calls.append((table, list(columns), len(rows)))
+        new = 0
+        for row in rows:
+            key = tuple(row[c] for c in ("tenant_id", "collection_id", "file_id", "row_hash", "start_utc"))
+            if key not in self.keys:
+                self.keys.add(key)
+                self.rows.append(row)
+                new += 1
+        return new
+
+
+class FakeConn:
+    """A connection whose transaction() is a savepoint: a failure inside is recorded as a rollback and still raised."""
+
+    def __init__(self):
+        self.log = []
+
+    @contextlib.contextmanager
+    def transaction(self):
+        self.log.append("begin")
+        try:
+            yield
+        except BaseException:
+            self.log.append("rollback")
+            raise
+        self.log.append("commit")
+
+
+class Workdir(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+
+    def write_csv(self, rows, header=HEADER, name="calls.csv"):
+        path = os.path.join(self.tmp.name, name)
+        with open(path, "w", newline="", encoding="utf-8") as handle:
+            writer = csv.writer(handle)
+            writer.writerow(header)
+            writer.writerows(rows)
+        return path
+
+    def ingest(self, rows, policy=KARACHI, sink=None, header=HEADER, **kwargs):
+        sink = sink if sink is not None else FakeSink()
+        return ti.ingest_file(self.write_csv(rows, header), LINEAGE, policy, sink, registry=REGISTRY, **kwargs), sink
+
+
+class ModeTests(unittest.TestCase):
+    def test_off_is_the_default_and_a_typo_never_turns_the_write_on(self):
+        for value in (None, "", "off", "OFF", "0", "false", "no", "  "):
+            self.assertEqual(ti.ingest_v2_mode(value), "off", value)
+        with self.assertLogs("forensic.typed_ingest", "WARNING"):
+            self.assertEqual(ti.ingest_v2_mode("shadw"), "off")
+        self.assertEqual(ti.ingest_v2_mode("Shadow"), "shadow")
+
+    def test_the_jobs_time_policy_becomes_the_registrys_policy(self):
+        policy = ti.policy_from_time_policy({"source_timezone": "Asia/Karachi", "timezone_state": "analyst_confirmed", "date_order": "DMY"})
+        self.assertEqual((policy.source_tz, policy.tz_basis, policy.date_order), ("Asia/Karachi", "confirmed_by_analyst", "DMY"))
+        self.assertEqual(ti.policy_from_time_policy({"source_timezone": "UTC", "timezone_state": "profile_defaulted"}).tz_basis, "assumed_by_profile")
+        self.assertEqual(ti.policy_from_time_policy({"source_timezone": "UTC", "timezone_state": "source_declared"}).tz_basis, "declared")
+        none = ti.policy_from_time_policy({"source_timezone": None, "timezone_state": "unknown", "date_order": None})
+        self.assertEqual((none.source_tz, none.tz_basis, none.date_order), (None, None, None))
+
+
+class ReadingTests(Workdir):
+    def test_every_row_read_is_loaded_quarantined_or_skipped_and_the_counts_add_up(self):
+        rows = GOOD + [call("923000000001", "923000000003", "not a time", "2026-03-02 11:05:00"), [""] * 18]
+        out, sink = self.ingest(rows)
+        sheet = out["sheets"][0]
+        self.assertEqual((sheet["rows_read"], sheet["loaded"], sheet["inserted"], sheet["already_present"]), (5, 3, 3, 0))
+        self.assertEqual(sheet["quarantined"], {"quarantined:time_unparsed": 1})
+        self.assertEqual(sheet["skipped"], {"skipped:blank_row": 1})
+        self.assertEqual(sheet["first_rows"], {"quarantined:time_unparsed": [4], "skipped:blank_row": [5]})
+        self.assertTrue(sheet["reconciles"] and out["reconciles"])
+        self.assertEqual((out["status"], out["rows_loaded"], out["rows_inserted"], len(sink.rows)), ("loaded", 3, 3, 3))
+        self.assertEqual((sheet["layout_id"], sheet["layout_version"], sheet["layout_status"], sheet["table"], sheet["header_row"]),
+                         ("call-c4-telenor-style", 1, "draft", "comm_event", 0))
+        self.assertEqual((sheet["first_start_local"], sheet["last_start_local"]), ("2026-03-01 10:00:00", "2026-03-02 11:00:00"))
+
+    def test_a_repeated_row_is_kept_and_flagged_not_dropped(self):
+        out, sink = self.ingest(GOOD)
+        self.assertEqual(out["sheets"][0]["duplicates_in_file"], 1)
+        self.assertEqual(out["sheets"][0]["flags"]["duplicate_row"], 1)
+        flagged = [r for r in sink.rows if "duplicate_row" in r["quality_flags"]]
+        self.assertEqual([r["source_row"] for r in flagged], [2])
+        self.assertEqual(len({r["content_hash"] for r in sink.rows}), 2, "the repeat has the same content hash as the first")
+        self.assertEqual(len({r["row_hash"] for r in sink.rows}), 3, "but its own row hash, so the idempotency key keeps all three")
+
+    def test_the_rows_carry_their_lineage_and_the_two_hashes_by_the_documented_formulas(self):
+        _, sink = self.ingest(GOOD)
+        first = sink.rows[0]
+        self.assertEqual([first[k] for k in ("tenant_id", "collection_id", "evidence_id", "file_id", "batch_id")], ["tenant-1", "case-1", EVIDENCE, "calls.csv", BATCH])
+        self.assertEqual((first["layout_id"], first["layout_version"], first["source_row"]), ("call-c4-telenor-style", 1, 1))
+        self.assertEqual((len(first["content_hash"]), len(first["row_hash"])), (64, 64))
+        self.assertEqual((first["source_tz"], first["time_basis"], first["start_utc"]), ("Asia/Karachi", "declared", "2026-03-01T05:00:00+00:00"))
+        self.assertEqual(first["raw_payload"]["CALL_DIALED_NUM"], "923000000002")
+
+    def test_the_row_hash_follows_the_file_the_source_row_and_the_content(self):
+        record = {"source_row": 7, "a_norm": "x", "start_utc": "2026-03-01T05:00:00+00:00", "raw_payload": {"k": "v"}, "quality_flags": ["f"]}
+        row = ti.lineage_row(record, ["f"], LINEAGE, ["a_norm", "start_utc", "source_row", "raw_payload", "quality_flags", "row_hash", "content_hash"])
+        content = json.dumps({"a_norm": "x", "start_utc": "2026-03-01T05:00:00+00:00"}, sort_keys=True)
+        self.assertEqual(row["content_hash"], hashlib.sha256(content.encode()).hexdigest())
+        self.assertEqual(row["row_hash"], hashlib.sha256(("calls.csv|7|" + content).encode()).hexdigest())
+        other = ti.lineage_row(record, ["f"], ti.Lineage("tenant-1", "case-1", EVIDENCE, "other.csv", BATCH), ["a_norm"])
+        self.assertNotEqual(other["row_hash"], row["row_hash"], "the same row in another file is another row")
+        self.assertEqual(other["content_hash"], row["content_hash"])
+
+    def test_a_second_run_of_the_same_file_inserts_nothing(self):
+        sink = FakeSink()
+        first, _ = self.ingest(GOOD, sink=sink)
+        again, _ = self.ingest(GOOD, sink=sink)
+        self.assertEqual((first["rows_inserted"], again["rows_inserted"], len(sink.rows)), (3, 0, 3))
+        sheet = again["sheets"][0]
+        self.assertEqual((sheet["loaded"], sheet["inserted"], sheet["already_present"]), (3, 0, 3))
+        self.assertTrue(sheet["reconciles"])
+
+    def test_the_same_file_under_another_file_id_is_new_rows(self):
+        sink = FakeSink()
+        self.ingest(GOOD, sink=sink)
+        again = ti.ingest_file(self.write_csv(GOOD), ti.Lineage("tenant-1", "case-1", EVIDENCE, "copy.csv", BATCH), KARACHI, sink, registry=REGISTRY)
+        self.assertEqual(again["rows_inserted"], 3)
+
+    def test_without_a_declared_zone_no_time_is_guessed_and_every_row_is_quarantined_with_that_reason(self):
+        out, sink = self.ingest(GOOD, policy=Policy())
+        sheet = out["sheets"][0]
+        self.assertEqual((sheet["loaded"], sheet["quarantined"]), (0, {"quarantined:source_timezone_unknown": 3}))
+        self.assertEqual((sink.rows, sink.calls), ([], []))
+        self.assertTrue(sheet["reconciles"])
+
+    def test_batches_are_written_in_the_size_asked_for(self):
+        out, sink = self.ingest(GOOD, batch_rows=2)
+        self.assertEqual([n for _, _, n in sink.calls], [2, 1])
+        self.assertEqual(out["rows_inserted"], 3)
+        self.assertTrue(all(cols for _, cols, _ in sink.calls))
+
+    def test_only_columns_the_table_has_are_written(self):
+        sink = FakeSink(columns=[c for c in COLUMNS if c not in ("a_kind", "b_kind", "dataset_kind")])
+        out, _ = self.ingest(GOOD, sink=sink)
+        self.assertEqual(out["rows_inserted"], 3)
+        self.assertTrue(all("a_kind" not in r and "dataset_kind" not in r for r in sink.rows))
+
+    def test_a_row_limit_stops_the_file_one_row_past_it(self):
+        out, _ = self.ingest(GOOD, max_rows=3)
+        self.assertEqual(out["rows_loaded"], 3)
+        with self.assertRaises(ti.TooManyRows):
+            self.ingest(GOOD, max_rows=2)
+
+
+class RefusalTests(Workdir):
+    def test_a_file_the_registry_does_not_recognise_is_reported_and_writes_nothing(self):
+        out, sink = self.ingest([["a", "b", "c", "d"]], header=["alpha", "beta", "gamma", "delta"])
+        self.assertEqual((out["status"], out["sheets"][0]["status"], out["sheets"][0]["reason"]), ("unrecognised", "unrecognised", "none"))
+        self.assertEqual((sink.rows, sink.calls), ([], []))
+
+    def test_an_ambiguous_header_is_reported_not_guessed(self):
+        class Registry:
+            def find_header(self, rows, include_draft=True):
+                best = mock.Mock(layout_id="call-c4-telenor-style", score=0.91)
+                return mock.Mock(decision="ambiguous", best=best, header_row=0)
+
+        out = ti.ingest_file(self.write_csv(GOOD), LINEAGE, KARACHI, FakeSink(), registry=Registry())
+        self.assertEqual((out["status"], out["sheets"][0]["status"], out["sheets"][0]["layout_id"]), ("unrecognised", "ambiguous", "call-c4-telenor-style"))
+
+    def test_a_layout_family_without_a_typed_table_is_skipped(self):
+        entry = dict(REGISTRY.get("call-c4-telenor-style"), family="subscriber")
+
+        class Registry:
+            def find_header(self, rows, include_draft=True):
+                return mock.Mock(decision="match", best=mock.Mock(layout_id="x", score=1.0), header_row=0)
+
+            def get(self, layout_id):
+                return entry
+
+        out = ti.ingest_file(self.write_csv(GOOD), LINEAGE, KARACHI, sink := FakeSink(), registry=Registry())
+        self.assertEqual((out["sheets"][0]["status"], out["sheets"][0]["reason"]), ("skipped", "family_without_typed_table"))
+        self.assertEqual(sink.rows, [])
+
+    def test_a_table_without_the_lineage_columns_is_skipped(self):
+        out, sink = self.ingest(GOOD, sink=FakeSink(columns=[c for c in COLUMNS if c != "row_hash"]))
+        self.assertEqual((out["sheets"][0]["status"], out["sheets"][0]["reason"]), ("skipped", "typed_table_lacks_row_hash"))
+        self.assertEqual(sink.rows, [])
+
+    def test_no_evidence_id_or_a_bad_id_means_no_write(self):
+        path = self.write_csv(GOOD)
+        for evidence, batch, reason in (("", BATCH, "no_evidence_id"), ("not-a-uuid", BATCH, "invalid_evidence_id"), (EVIDENCE, "nope", "invalid_batch_id")):
+            sink = FakeSink()
+            out = ti.ingest_file(path, ti.Lineage("t", "c", evidence, "calls.csv", batch), KARACHI, sink, registry=REGISTRY)
+            self.assertEqual((out["status"], out["reason"], sink.calls), ("skipped", reason, []))
+
+    def test_an_unsupported_container_is_reported(self):
+        path = os.path.join(self.tmp.name, "legacy.xls")
+        Path(path).write_bytes(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1" + b"\x00" * 64)
+        out = ti.ingest_file(path, LINEAGE, KARACHI, FakeSink(), registry=REGISTRY)
+        self.assertEqual(out["status"], "skipped")
+        self.assertTrue(out["reason"].startswith("unsupported_container"))
+
+    def test_an_empty_sheet_is_reported(self):
+        path = os.path.join(self.tmp.name, "empty.csv")
+        Path(path).write_text("", encoding="utf-8")
+        out = ti.ingest_file(path, LINEAGE, KARACHI, FakeSink(), registry=REGISTRY)
+        self.assertNotEqual(out["status"], "loaded")
+
+
+class ShadowTests(Workdir):
+    def shadow(self, conn=None, **kwargs):
+        return ti.run_shadow(conn or FakeConn(), self.write_csv(GOOD), LINEAGE, {"source_timezone": "Asia/Karachi", "timezone_state": "source_declared"},
+                             registry=REGISTRY, **kwargs)
+
+    def test_off_does_nothing_at_all(self):
+        conn = FakeConn()
+        self.assertIsNone(self.shadow(conn, sink=FakeSink(), mode="off"))
+        with mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("FORENSIC_INGEST_V2", None)
+            self.assertIsNone(self.shadow(conn, sink=FakeSink()))
+        self.assertEqual(conn.log, [])
+
+    def test_shadow_writes_inside_a_savepoint_and_returns_the_summary(self):
+        conn, sink = FakeConn(), FakeSink()
+        summary = self.shadow(conn, sink=sink, mode="shadow")
+        self.assertEqual((summary["mode"], summary["status"], summary["rows_inserted"], conn.log), ("shadow", "loaded", 3, ["begin", "commit"]))
+        self.assertEqual(len(sink.rows), 3)
+
+    def test_a_failure_is_contained_rolled_back_and_summarised_without_the_error_text(self):
+        class Boom(RuntimeError):
+            diag = mock.Mock(constraint_name="comm_event_time_basis_chk")
+
+        class Sink(FakeSink):
+            def insert_batch(self, table, columns, rows):
+                raise Boom("Key (a_raw)=(923000000001) violates a check")
+
+        conn = FakeConn()
+        with self.assertLogs("forensic.typed_ingest", "ERROR"):
+            summary = self.shadow(conn, sink=Sink(), mode="shadow")
+        self.assertEqual((summary["status"], summary["reason"], summary["constraint"], conn.log), ("failed", "Boom", "comm_event_time_basis_chk", ["begin", "rollback"]))
+        self.assertNotIn("923000000001", json.dumps(summary))
+
+    def test_too_many_rows_is_a_skip_with_a_rollback(self):
+        conn = FakeConn()
+        with self.assertLogs("forensic.typed_ingest", "WARNING"):
+            summary = self.shadow(conn, sink=FakeSink(), mode="shadow", max_rows=2)
+        self.assertEqual((summary["status"], summary["reason"], conn.log), ("skipped", "too_many_rows", ["begin", "rollback"]))
+
+    def test_the_environment_sets_the_mode_and_the_row_limit(self):
+        with mock.patch.dict(os.environ, {"FORENSIC_INGEST_V2": "shadow", "FORENSIC_INGEST_V2_MAX_ROWS": "1"}):
+            with self.assertLogs("forensic.typed_ingest", "WARNING"):
+                summary = self.shadow(sink=FakeSink())
+        self.assertEqual(summary["reason"], "too_many_rows")
+
+    def test_draft_layouts_can_be_switched_off(self):
+        with mock.patch.dict(os.environ, {"FORENSIC_INGEST_V2_INCLUDE_DRAFT": "false"}):
+            summary = self.shadow(sink=FakeSink(), mode="shadow")
+        self.assertEqual((summary["status"], summary["sheets"][0]["status"]), ("unrecognised", "unrecognised"),
+                         "all 13 layouts are drafts today, so excluding drafts recognises nothing")
+
+
+class CopyTextTests(unittest.TestCase):
+    def test_null_is_a_bare_marker_and_a_text_equal_to_it_stays_text(self):
+        self.assertEqual(ti.copy_line([None, "\\N", "a,b", 'say "hi"', "line\nbreak", ""]), '\\N,"\\N","a,b","say ""hi""","line\nbreak",""\n')
+
+    def test_values_are_written_by_the_column_type(self):
+        self.assertIsNone(ti.format_cell(None, "text"))
+        self.assertEqual(ti.format_cell(["b", 'a"c', "d\\e"], "_text"), '{"b","a\\"c","d\\\\e"}')
+        self.assertEqual(ti.format_cell([], "_text"), "{}")
+        self.assertEqual(ti.format_cell({"b": "2", "a": "é"}, "jsonb"), '{"a": "\\u00e9", "b": "2"}')
+        self.assertEqual(ti.format_cell(True, "bool"), "t")
+        self.assertEqual(ti.format_cell(12.5, "float8"), "12.5")
+
+    def test_a_nul_character_is_dropped_so_it_cannot_cost_the_batch(self):
+        self.assertEqual(ti.format_cell("a\x00b", "text"), "ab")
+        self.assertEqual(ti.format_cell({"k": "a\x00b"}, "jsonb"), '{"k": "ab"}')
+        self.assertEqual(ti.format_cell(["x\x00"], "_text"), '{"x"}')
+
+    def test_copy_text_is_one_line_per_row_in_the_column_order_asked_for(self):
+        text = ti.copy_text(["a", "b"], {"a": "text", "b": "jsonb"}, [{"a": "1", "b": {"k": 1}}, {"a": None}])
+        self.assertEqual(text, '"1","{""k"": 1}"\n\\N,\\N\n')
+
+
+class SqlTests(unittest.TestCase):
+    def test_the_insert_is_idempotent_on_the_documented_key_and_counts_only_new_rows(self):
+        sql = ti.insert_sql("comm_event", ["tenant_id", "row_hash"])
+        self.assertIn("ON CONFLICT (tenant_id, collection_id, file_id, row_hash, start_utc) DO NOTHING", sql)
+        self.assertIn("RETURNING 1", sql)
+        self.assertIn("INSERT INTO forensic.comm_event (tenant_id, row_hash) SELECT tenant_id, row_hash FROM _v2_stage", sql)
+
+    def test_the_stage_is_a_temporary_empty_copy_of_the_table_loaded_by_copy(self):
+        self.assertEqual(ti.stage_sql("data_session", ["a", "b"]), "CREATE TEMP TABLE _v2_stage ON COMMIT DROP AS SELECT a, b FROM forensic.data_session WITH NO DATA")
+        self.assertEqual(ti.copy_sql(["a", "b"]), "COPY _v2_stage (a, b) FROM STDIN WITH (FORMAT csv, NULL '\\N')")
+        self.assertEqual(ti.drop_stage_sql(), "DROP TABLE IF EXISTS _v2_stage")
+
+    def test_the_conflict_key_is_the_one_migration_012_declares(self):
+        sql = (Path(__file__).resolve().parents[3] / "db" / "forensic_records" / "012_typed_families.sql").read_text(encoding="utf-8")
+        self.assertIn("UNIQUE (" + ti.CONFLICT_KEY + ")", sql)
+
+    def test_every_family_maps_to_a_table_the_migration_creates(self):
+        sql = (Path(__file__).resolve().parents[3] / "db" / "forensic_records" / "012_typed_families.sql").read_text(encoding="utf-8")
+        for table in ti.TABLE_FOR_FAMILY.values():
+            self.assertIn("CREATE TABLE IF NOT EXISTS forensic.%s (" % table, sql)
+        families = {e["family"] for e in REGISTRY.entries}
+        self.assertEqual(families - set(ti.TABLE_FOR_FAMILY), set(), "every family a registered layout has is written somewhere")
+
+
+class WorkerHookTests(Workdir):
+    def job(self):
+        fields = {"job_id": BATCH, "tenant_id": "tenant-1", "user_id": "u", "collection_id": "case-1", "file_id": "calls.csv", "source_file": "calls.csv",
+                  "object_key": "k", "storage_path": "p", "record_type": "auto", "metadata": {"source_timezone": "Asia/Karachi"}, "evidence_id": EVIDENCE}
+        import dataclasses
+        wanted = {f.name: fields[f.name] if f.name in fields else "" for f in dataclasses.fields(worker.IngestJob)
+                  if f.default is dataclasses.MISSING or f.name in fields}
+        return worker.IngestJob(**wanted)
+
+    def test_off_means_the_module_is_not_even_imported(self):
+        for value in ("", "off", "OFF", "0", "false", "no"):
+            with mock.patch.dict(os.environ, {"FORENSIC_INGEST_V2": value}), mock.patch.object(worker, "audit") as audit,                     mock.patch.object(ti, "run_shadow") as run:
+                conn = FakeConn()
+                self.assertIsNone(worker.run_typed_ingest_shadow(conn, mock.Mock(), self.job(), Path("x"), {}))
+            run.assert_not_called()
+            audit.assert_not_called()
+            self.assertEqual(conn.log, [])
+
+    def test_shadow_audits_the_summary_in_its_own_savepoint(self):
+        conn, cur = FakeConn(), mock.Mock()
+        summary = {"status": "loaded", "rows_loaded": 3, "rows_inserted": 3}
+        with mock.patch.dict(os.environ, {"FORENSIC_INGEST_V2": "shadow"}), mock.patch.object(ti, "run_shadow", return_value=summary) as run, \
+                mock.patch.object(worker, "audit") as audit:
+            worker.run_typed_ingest_shadow(conn, cur, self.job(), Path("x"), {"classification": {"time_policy": {"source_timezone": "UTC"}}})
+        lineage = run.call_args.args[2]
+        self.assertEqual((lineage.tenant_id, lineage.collection_id, lineage.evidence_id, lineage.file_id, lineage.batch_id),
+                         ("tenant-1", "case-1", EVIDENCE, "calls.csv", BATCH))
+        self.assertEqual(run.call_args.args[3], {"source_timezone": "UTC"})
+        self.assertEqual(audit.call_args.args[2], "records.ingest.typed_shadow")
+        self.assertEqual(audit.call_args.args[3]["typed_ingest"], summary)
+        self.assertEqual(conn.log, ["begin", "commit"])
+
+    def test_anything_that_goes_wrong_in_the_hook_leaves_the_job_alone(self):
+        conn = FakeConn()
+        with mock.patch.dict(os.environ, {"FORENSIC_INGEST_V2": "shadow"}), mock.patch.object(ti, "run_shadow", side_effect=RuntimeError("boom")):
+            with self.assertLogs(worker.LOG, "ERROR"):
+                self.assertIsNone(worker.run_typed_ingest_shadow(conn, mock.Mock(), self.job(), Path("x"), {}))
+        with mock.patch.dict(os.environ, {"FORENSIC_INGEST_V2": "shadow"}), mock.patch.object(ti, "run_shadow", return_value={"status": "loaded"}), \
+                mock.patch.object(worker, "audit", side_effect=RuntimeError("audit failed")):
+            with self.assertLogs(worker.LOG, "ERROR"):
+                worker.run_typed_ingest_shadow(conn, mock.Mock(), self.job(), Path("x"), {})
+        self.assertEqual(conn.log[-2:], ["begin", "rollback"], "a failed audit rolls back its own savepoint only")
+
+    def test_a_none_summary_writes_no_audit_row(self):
+        with mock.patch.dict(os.environ, {"FORENSIC_INGEST_V2": "shadow"}), mock.patch.object(ti, "run_shadow", return_value=None), \
+                mock.patch.object(worker, "audit") as audit:
+            worker.run_typed_ingest_shadow(FakeConn(), mock.Mock(), self.job(), Path("x"), {})
+        audit.assert_not_called()
+
+    def test_process_job_calls_the_hook_after_version_one_audits_and_before_it_commits(self):
+        import inspect
+        source = inspect.getsource(worker.process_job)
+        self.assertLess(source.index('"records.ingest.completed"'), source.index("run_typed_ingest_shadow("))
+        self.assertLess(source.index("run_typed_ingest_shadow("), source.index("conn.commit()\n            emit_progress(progress_cb, job, \"completed\", stats, profile"))
+
+
+if __name__ == "__main__":
+    unittest.main()
