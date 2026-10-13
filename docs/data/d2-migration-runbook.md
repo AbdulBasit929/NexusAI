@@ -1,6 +1,6 @@
-# Database changes (decision D2): migrations 012 to 015 - runbook - DRAFT, NOT APPLIED
+# Database changes (decision D2): migrations 012 to 015 - runbook - APPLIED to the live database on 2026-10-13 (section 11)
 
-Status: drafted and tested on a disposable database on 2026-10-12. **Nothing in this runbook has been run against the live NexusAI database.** Applying it needs a separate go-ahead from the owner, after the backup in section 4 has been taken and validated. Design source: `docs/roadmap/nexusai-maturity-roadmap-20261012.md`, sections 4.5 and 4.6 and 7.
+Status: drafted and tested on a disposable database on 2026-10-12; **applied to the live NexusAI database on 2026-10-13 on the owner's explicit "apply D2"** (record and evidence in section 11; the sections below are the procedure as it was followed, with one addition: a rehearsal on a restored copy first). Design source: `docs/roadmap/nexusai-maturity-roadmap-20261012.md`, sections 4.5 and 4.6 and 7.
 
 ## 1. What the four migrations add
 
@@ -147,3 +147,21 @@ Outline, if approved: choose and pin an image that ships PostgreSQL 16, Timescal
 - **Chunk interval:** seven days matches the existing tables; revisit after real volumes are known.
 - **Retention:** no deletion schedule is encoded. Case policy is set with counsel.
 - **Face data:** the case-authority migration (roadmap R9) must exist before any face table or relationship type does.
+
+## 11. Applied on 2026-10-13: record and evidence
+
+**Authority.** The owner said "apply D2" in the conversation of 2026-10-13, after the drafts (2026-10-12) and the visual-spike decisions.
+
+**Before.** The stack was healthy (database PostgreSQL 16.14, TimescaleDB 2.28.3, 443 MB, no active sessions, none of the new tables present; 17 tables in `forensic` holding 183,975 rows, among them 26,780 `records`, 13,654 `cdr_records`, 79 `evidence_items`). Exact row counts of every table and every catalog line of the schema (tables, constraints, policies, functions, indexes, grants: 487 lines) were recorded.
+
+**Backup.** `d2-pre-migration-012-015-20261013T105230Z.dump`, custom format, 21,405,256 bytes, SHA-256 `4f473e254f65bc77b9341bb5c1d23e12693bc9986acbeb08b3482a6839225e4e`, 1,334 table-of-contents entries, kept with the exact counts and a copy of the apply log in the git-ignored `.phase2-backups` folder of the main checkout (outside any repository's tracked files). **Restore proven:** the dump was restored into a throwaway container from the same image (TimescaleDB pre- and post-restore calls; the `forensic_runtime` role created first so that its 42 grants restored) and the three headline counts matched (26,780, 13,654, 79).
+
+**Rehearsal.** The four migrations were applied to that restored copy of the real data with the same script as the live apply (preflight, apply, verify for each, then the 010 runtime-RLS verify): all passed in about five seconds, **0 catalog lines changed or removed, 524 added, and the exact row counts of the 17 existing tables identical**. The container was removed.
+
+**Live apply** (UTC 10:55, one run, no restart, no rebuild): 012 preflight 0.3 s, apply 0.6 s, verify 0.2 s (`migration_012_verified`); 013 0.2 s, 0.3 s, 0.3 s (`migration_013_verified`); 014 0.2 s, 0.5 s, 0.3 s (`migration_014_verified`); 015 0.3 s, 0.4 s, 0.3 s (`migration_015_verified`); the 010 runtime-RLS verify still passed. **Result identical to the rehearsal: 524 new catalog lines, 0 changed or removed, 0 of the 17 existing tables' row counts different.** New: 18 tables (`layout_versions`, `comm_event`, `data_session`, `app_usage`, `plate_sighting`, `subscriber_registration`, `subscriber_identity`, `cell_site`, `camera_site`, `device_tac`, `ip_range_reference`, `derivation`, `entity`, `entity_mention`, `relationship`, `relationship_evidence`, `ip_assignment`, `content_embedding`) and the extensions `cube 1.5`, `earthdistance 1.2`, `vector 0.8.1` (alongside `pg_trgm`, `pgcrypto`, `timescaledb 2.28.3`).
+
+**After.** The forensic API health endpoint (`/healthz`) and the worker metrics endpoint answered 200; all containers stayed up and healthy; no error, panic or fatal line in the logs of the API, the forensic API and the worker in the ten minutes after. Row-level security is enabled with one policy on 17 of the 18 new tables; the 18th, `layout_versions`, is global by design (no tenant, no personal data; the 012 file says so). The runtime role has its grants on the new tables. No `smoke.sql` was run on the live database (they insert rows). The temporary copies inside the container were removed.
+
+**Rollback.** Still as in section 6 (gated scripts in reverse order, or a restore of the dump above into a fresh database). Not needed.
+
+**What this does not do yet.** The tables are empty: nothing writes to them (section 8). The 13 provider layouts are not yet recorded in `layout_versions` (a separate step with its own go-ahead: `python -m ingestion.forensic_records.layout_registry sql`). The worker, the API and the interface are unchanged.
