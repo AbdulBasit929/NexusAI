@@ -1,10 +1,12 @@
 # NexusAI maturity roadmap: every data family, models, schema, query intelligence and link analysis
 
-**Date:** 2026-10-12 · **Status:** proposed plan; decisions D1 and D2 were approved for drafting on 2026-10-12 and their drafts exist (nothing is applied to the live database, nothing else is approved or started) · **Author:** Claude session `local_c615940b` for the product owner
+**Date:** 2026-10-12, revised 2026-10-14 · **Status:** plan in progress. Decisions D1, D2 and D14 to D16 are made and carried out as recorded in section 12; Phase 0 is mostly done and Phase 1 is under way (section 1); the owner's directions of 2026-10-13 and 2026-10-14 on the interface, the Ask engine and the acceptance collection are merged in (sections 6.8, 7.8, 7.9 and 8.5), and decisions D17 to D21 are waiting for the owner · **Author:** Claude session `local_c615940b` for the product owner
 
 **Precedence.** This file sequences work. It does not replace the rules in `docs/architecture/QUERY_ANSWERING_DECISION_20261005.md` (three outcomes, the verifier, the case clock), `AGENTS.md`, or the country profile `configuration/forensic_country_profiles/pakistan.json`. Where it conflicts with an older roadmap, section 2 says which one wins and why.
 
 **Evidence rules used here.** Facts about this repository were read from files or the running database. Facts about the real provider samples come from their structure only (column names, value formats, counts); no value, number, name or address from them appears in this file, and the extracted copies are deleted after use. Facts about outside models, datasets and papers come from web searches made on 2026-10-12; where a source was a vendor page, a mirror or a summary, the table says "verify". Figures from outside are leads to test, not predictions.
+
+**Revision of 2026-10-14.** Merged here, on the owner's instructions: (a) the state of the work since 2026-10-12 (section 1 and 2.1a); (b) **the Ask engine becomes model-written SQL for every data family, link analysis included, with no per-question templates or predefined operations; the model understands the question, writes the query from the schema, and explains the result under the safety wall that stays in code** (sections 3.2, 6.1, 6.2 and 6.8, with 7.2 and 7.4 adjusted); (c) where each new view belongs in the application served at `http://localhost:4181`, with the visual spike's views integrated into it (7.8) and the offline-map defect (7.9); (d) the multimodal acceptance collection as the standing place to test and demonstrate on real-shaped data, and how files are added to it (8.5); (e) new gaps G35 to G45 (section 10); (f) the phases re-planned and the next 14 days counted from 2026-10-14 (section 11); (g) decisions D17 to D21 (section 12). Earlier text is kept; where it was overtaken, an italic *Update 2026-10-14* line says so. **This revision is a plan only: nothing in sections 6.8, 7.8 and 8.5 has been built.**
 
 ---
 
@@ -12,23 +14,41 @@
 
 **Where we are.** The question-answering core is strong on test data: on 161 questions with independent keys the lane (model drafts one SELECT, code verifies it, the database computes the answer) went from 39 wrong with the lane off to 0 wrong on the newest fresh seed (2 and 8 on the two seeds before it; the 8 became 2 after fixes, both a defect in how the factory words one question), and 40 of 42 new-shape probes on the multimodal case were right with none wrong. The measurement discipline (keys written independently, gates written first, fresh seeds) is the most valuable asset we have.
 
-**Where we are not.** Four things stand between this and a product that survives real data:
+**Where we are not.** Five things stand between this and a product that survives real data:
 
-1. **Real provider exports are mostly not ingested correctly yet.** I ran the repository's own CDR and IPDR adapters' `detect_schema` over the header rows of the 13 real layouts you supplied. The CDR adapter recognises **3 of 8** layouts and the IPDR adapter **0 of 5** (4 IPDR layouts and 1 application-usage layout; header-level check, no ingest was run; section 4). Everything downstream, every question, every link analysis, inherits that.
-2. **The database cannot yet do the analysis you asked for.** The forensic database has TimescaleDB and `pg_trgm` installed and no relationship table (the entity index has 7 entity types and no edges). The current image already ships pgvector 0.8.1, `cube` and `earthdistance` (available, not installed), so vector search and "cells within N metres" need no image change; PostGIS (containment, line-of-travel, ellipsoid distance) is not in the image and would need a new image and a dump and restore. Only CDR has a typed table; IPDR, ANPR, tower and the rest live as JSON in `forensic.records`. *(Corrected 2026-10-12: the first version of this line said pgvector was missing; the extension list of the image was checked while drafting D2.)*
+1. **Real provider exports are mostly not ingested correctly yet.** I ran the repository's own CDR and IPDR adapters' `detect_schema` over the header rows of the 13 real layouts you supplied. The CDR adapter recognises **3 of 8** layouts and the IPDR adapter **0 of 5** (4 IPDR layouts and 1 application-usage layout; header-level check, no ingest was run; section 4). Everything downstream, every question, every link analysis, inherits that. *Update 2026-10-14: the registry and Ingest v2 now read all 13 layouts and write typed rows (proven through the live upload on synthetic files of every layout); questions still read version 1 for the cases that exist, and the registry recognises only 6 of the 34 files of the four older collections (`docs/data/typed-family-switch.md`).*
+2. **The database cannot yet do the analysis you asked for.** The forensic database has TimescaleDB and `pg_trgm` installed and no relationship table (the entity index has 7 entity types and no edges). The current image already ships pgvector 0.8.1, `cube` and `earthdistance` (available, not installed), so vector search and "cells within N metres" need no image change; PostGIS (containment, line-of-travel, ellipsoid distance) is not in the image and would need a new image and a dump and restore. Only CDR has a typed table; IPDR, ANPR, tower and the rest live as JSON in `forensic.records`. *(Corrected 2026-10-12: the first version of this line said pgvector was missing; the extension list of the image was checked while drafting D2.)* *Update 2026-10-14: the typed tables, pgvector, `cube` and `earthdistance` were applied to the live database on 2026-10-13; the entity and relationship tables exist and are empty; PostGIS is still not in the image.*
 3. **Media models are weak where Pakistani evidence needs them most.** Measured in our own sealed tests: plate reading 13 of 22 exact on images, 3 of 41 on video at one frame per second, Urdu OCR 0 of 1 exact (line-level, one fixture), Urdu speech word error rate 45.5% and English 10.8% on small read-speech sets, and no Punjabi or Pashto speech support at all. These are small samples with wide uncertainty, which is itself the finding: we do not yet have test sets that match real evidence.
-4. **Link analysis exists on paper.** 79 operations are registered; 62 are only "registered", 4 are product certified, and `relationship_network`, `cross_family_correlation` and `co_travel_or_co_presence` are registered with no independent proof.
+4. **Link analysis exists on paper.** 79 operations are registered; 62 are only "registered", 4 are product certified, and `relationship_network`, `cross_family_correlation` and `co_travel_or_co_presence` are registered with no independent proof. *Update 2026-10-14: the case generator now holds the answer keys for A1, A2 and A5 to A11 and A13, and a loader shows that the typed tables reproduce them (174 SQL checks); no product path answers them yet.*
+5. **The Ask engine is still partly rule-based and cannot yet answer link-analysis or typed-family questions.** *(Added 2026-10-14 on the owner's direction.)* Today a question reaches the model-written SQL lane through a router and a view shortlist built from curated vocabulary (the code says so: the shortlist is deterministic and "not an embedding ranker", because embeddings caused two live defects), the lane reads curated views over `forensic.records`, and the typed lane, the older ladder and retrieval answer the rest. That is safe and measured, and it is also the dependence on predefined paths that you asked us to remove. Nothing lets the model write a query over the typed tables, the entity and relationship layer or a chain of joins, so a question such as "how are X and Y connected" has no path to an answer. Section 6.8 is the design.
+
+**Progress since this plan was written (2026-10-12 to 2026-10-14).** Each line is recorded in a commit and, where it touched the live system, in a runbook or handoff entry.
+
+| Item | State on 2026-10-14 | Where |
+|---|---|---|
+| Real-data vault and policy (D1), reconciliation and structure tools | Done; vault created; samples registered with their authority; 32 tool tests and 13 vault checks | `docs/data/real-data-handling-policy.md`, `tools/real_data/` |
+| Layout registry v1 | 13 layouts, all `draft` until each is confirmed on a real file; recorded in the live `forensic.layout_versions` (14 rows) on 2026-10-13; 54 tests | `docs/data/layout-registry.md` |
+| Licence ledger | 83 rows (18 approved, 34 conditional, 8 blocked, 23 unverified) with a checker | `docs/compliance/` |
+| Database migration (D2) | Applied to the live database on 2026-10-13 after a validated backup and a rehearsal: 18 tables and 3 extensions, nothing existing changed | `docs/data/d2-migration-runbook.md` |
+| Case generator with planted truth | Steps 1 to 6 built: 20 cases with a hash register, oracles for A1, A2, A5 to A11 and A13, a loader whose 174 SQL checks equal the key | `docs/data/case-generator-spec.md`, `tools/case_generator/` |
+| Phase 0 visual spike (D14 to D16) | Built and decided: Cytoscape.js, MapLibre GL JS, Apache ECharts; the shared tile service reached through our own cache (built and tested, not deployed) | `docs/roadmap/visual-spike-findings-20261013.md`, `tools/visual_spike/`, `tools/tilecache/` |
+| Ingest v2 (typed writer) | Running in shadow on the live worker since 2026-10-13: call records, internet records and application usage are also written to the typed tables with lineage; proven on one synthetic file per layout (live upload); a UTF-16 `.txt` export and an Excel 2003 XML `.xls` export now reach it; version 1 was found to give wrong event times to eight workbook layouts | `docs/data/ingest-v2.md` |
+| Typed family switch | First slice for call records, lane only: migration 016 (a view with the columns of `forensic.records`) and `FORENSIC_TYPED_FAMILIES`; built and tested, **not applied, not deployed** | `docs/data/typed-family-switch.md` |
+| Product fixes from the rehearsal | G12, G13, G14 and G31 fixed and deployed on 2026-10-12 (API image `012863c71aad`) | handoff |
+| The application as it is | Read on 2026-10-14: seven analyst pages and ECharts, no graph or map library, two of the five collections configured (section 7.8) | section 7.8 |
 
 **The plan, in one line.** Make the data right first (ingestion and typed schema for real layouts), then make the questions right for that data in every language we need, then deepen each media family against test sets built from real-shaped evidence, then build link analysis on top of an entity-and-relationship layer that is verified against planted ground truth. Hardware and licensing are decided early because they gate the rest.
 
-| Phase | Weeks (estimate) | Outcome you can see | Gate to leave it |
-|---|---|---|---|
-| 0. Safeguards and decisions | 0 to 2 | Real-data vault and policy; provider layout registry v1; licence and hardware answers; two demo gaps closed | Owner decisions D1 to D6 made |
-| 1. Real structured data | 2 to 8 | The 13 layouts ingest correctly; typed CDR/IPDR/app-usage/cell tables; entity and relationship layer v1; first link analyses (contacts, common contacts, path, co-location, IP attribution) | Parity and reconciliation gates in section 11 |
-| 2. Questions in every language | 4 to 12 (parallel) | Conversation front door on; clarification policy; Urdu, Roman Urdu, Punjabi, Pashto question sets; model bake-off on the GPU | Pre-registered bake-off decision |
-| 3. Media depth | 6 to 20 (parallel by family) | Speech in 5 languages, Urdu OCR, plate reading and video tracking, face candidates, each with its own sealed test set | Per-family gates |
-| 4. Cross-family intelligence | 14 to 26 | Identifier mention index, entity resolution, relationship scoring, link chart, map, timeline | Planted-truth precision and recall |
-| 5. Enterprise | 22 to 34 | Identity and case registry, read-only role, security and load proof, backup and restore | Release approval |
+**The owner's direction of 2026-10-14, in one line.** The Ask engine understands the question, writes the SQL from the schema, runs it and explains the result, for every data family and for link analysis, without per-question templates; the safety wall, the verifier and the number lock stay in code; every new view is placed where an analyst would look for it in the application at `localhost:4181`; and the multimodal acceptance collection is where each step is tested and shown on real-shaped data.
+
+| Phase | Weeks (estimate) | Outcome you can see | Status 2026-10-14 | Gate to leave it |
+|---|---|---|---|---|
+| 0. Safeguards and decisions | 0 to 2 | Real-data vault and policy; provider layout registry v1; licence and hardware answers; two demo gaps closed | **Mostly done.** Open: D3 (EliteDesk and shared-prompt-start measurements), D5, D6, D8 (evidence inventory, G10), the Phase 1 gates written down | Owner decisions D1 to D6 made |
+| 1. Real structured data | 2 to 8 | The 13 layouts ingest correctly; typed CDR/IPDR/app-usage/cell tables; entity and relationship layer v1; first link analyses (contacts, common contacts, path, co-location, IP attribution) | **Under way.** Typed tables applied, typed writer live in shadow, generator and oracles built, call-record switch built. Open: the switch applied and measured, the other families, the relationship layer populated, real-file confirmation of the layouts | Parity and reconciliation gates in section 11 |
+| 2. **Ask engine v2**, questions in every language, conversation and models | 4 to 14 (parallel) | **The engine of 6.8: model-written SQL for every family and for link analysis**; conversation front door on; clarification policy; Urdu, Roman Urdu, Punjabi, Pashto question sets; model bake-off on the GPU | **Not started.** Design in 6.8; first milestone M1 proposed for the next 14 days | Pre-registered engine and bake-off gates |
+| 3. Media depth | 6 to 20 (parallel by family) | Speech in 5 languages, Urdu OCR, plate reading and video tracking, face candidates, each with its own sealed test set | Not started | Per-family gates |
+| 4. Cross-family intelligence | 14 to 26 | Identifier mention index, entity resolution, relationship scoring, link chart, map, timeline in the workspace | Not started (the spike's views exist outside the workspace) | Planted-truth precision and recall |
+| 5. Enterprise | 22 to 34 | Identity and case registry, read-only role (**moved earlier, see D19**), security and load proof, backup and restore | Not started | Release approval |
 
 Weeks are planning estimates for one owner plus Claude sessions and will be re-planned at each gate; they are not commitments.
 
@@ -53,6 +73,18 @@ Weeks are planning estimates for one owner plus Claude sessions and will be re-p
 | Link analysis | `frequent_contacts` and `temporal_activity` (product certified), `multi_source_comparison` (fixture certified), a multi-CDR common-contact comparison | Hand-authored three-source golden | Path, co-location, chaining, community, IP attribution, cross-family links |
 | Governance | RLS, custody hash chain, country profile with real-data policy and provider onboarding steps | Isolation specs | Real per-user identity (the UI sends one fixed actor), case owner and members, read-only role |
 
+### 2.1a What changed between 2026-10-12 and 2026-10-14
+
+| Area | Now (2026-10-14) | Still missing |
+|---|---|---|
+| Ingestion, structured | Layout registry (13 drafts); shared readers; typed writer in shadow on the live worker (call records, internet records, application usage); UTF-16 `.txt` and Excel 2003 XML `.xls` exports reach it; quality summary in the audit log | Typed writers for ANPR, subscriber, tower reference, transactions and access logs; layouts for the canonical-header files of the existing cases; a typed quarantine table; each draft layout confirmed on a real file |
+| Database | Typed, reference, entity and relationship tables, pgvector, `cube`, `earthdistance` applied; typed rows only for the synthetic collection (3,580 call, 1,534 session and 505 application-usage rows) | Relationship tables empty; no backfill of the existing cases; no read-only analyst role; PostGIS not in the image |
+| Question answering | Governed lane first and persistent; G12, G13, G14, G31 fixed; call-record typed switch (lane only) built, migration 016 not applied | **The Ask engine of 6.8**; the other families; the typed compiler and the older path still read version 1 |
+| Link analysis | Generator oracles for A1, A2, A5 to A11, A13; typed tables reproduce them | Any product path: no model-written SQL over the typed tables, no entity or relationship population |
+| Interface | Workspace with Dashboard, Cases, Overview, Evidence with viewers, Ask, Timeline, Activity and ECharts; the spike's Cytoscape link chart, MapLibre map and ECharts timelines outside it | None of the spike's views in the workspace; no graph or map library in it; two of five collections configured; the spike's map shows nothing while the tile cache is not running (7.9) |
+| Test data | 20-case generated set with hash register; 13 synthetic uploads in `ingest-v2-shadow-synthetic-20261013`; the acceptance collection (43 sources, 10,168 structured rows) | Real-shaped files in the acceptance collection and a repeatable way to add them (8.5) |
+| Governance | Licence ledger; vault and policy | Read-only role, case registry, identity |
+
 ### 2.2 Conflicts between documents, and the ruling
 
 | Conflict | Ruling |
@@ -63,6 +95,10 @@ Weeks are planning estimates for one owner plus Claude sessions and will be re-p
 | The decision record says names of people are not answerable because no field holds one. The subscriber layer does hold `full_name` (PII, masked). | Not a conflict in behaviour: the field exists but is not exposed to the model. Keep it, and state it as policy: names are masked, a question that names a person abstains and asks for a number, and a person-to-number link needs a verified source (section 7). |
 | Accuracy so far was measured on synthetic and demo cases; real samples now exist. | **New rule: real data is a test input, never a repository file.** Real files are profiled for structure, and shape-preserving synthetic goldens are generated from the profile (the country profile already requires this). |
 | The decision record's hardware section assumes the CPU laptop. | Re-measure on the owned HP EliteDesk with the RTX 2080 before any purchase (section 9). |
+| This plan (10-12) made lanes 1 and 4 (typed operations and analytics procedures, written by code) the home of link analysis and left the model as a parameter filler there. The owner's direction of 2026-10-14 is model-written SQL for every family and for link analysis, without per-question templates. | **The owner's direction wins.** Lane 2 becomes the Ask engine for every family (6.8); typed operations stay as independent oracles in the tests and as optional, measured accelerators, never as a prerequisite; heavy graph computations that SQL cannot express are tools the model calls with its own parameters. The safety wall of the decision record is unchanged. |
+| Section 6.2 and principle P1 say the model never sees case rows. Explaining a result "through the model" needs the model to see the result. | **A decision is needed (D17).** Proposal: the model sees only the query result the analyst is already looking at, with sensitive columns masked, capped in size, never free evidence text outside the retrieval lane, on local models with no network egress; the number lock stays. Until D17 is made the engine shows the deterministic sentence and uses the model only to understand the question and write the query. |
+| `docs/ux/NEXUSAI_PRODUCT_UX.md` 6.6 keeps the compiled plan and SQL "one level deeper, for admins and audit" and fixes the order of the Ask screen. | The contract's order and states stay. Section 9 and 13.3 also say an analyst never sees SQL or a model, and 6.6 allows narration below the deterministic answer. Decision D17 chooses between two options. Option A (recommended, no amendment): the analyst sees the derivation and the checks in plain words, the query stays one level deeper for administrators and audit as the contract says, and narration stays visually separate from the deterministic result. Option B: a named power-user role may open, edit and re-run the query (needs contract 9 and 13.3 amended). |
+| Section 7.7 said the interface has no chart library. | Out of date for the workspace: `apps/investigation-workspace` already uses Apache ECharts 6.1 (and has no graph or map library). The statement was about `core/http/react-ui`. Corrected in 7.7. |
 
 ### 2.3 How the two sequences map
 
@@ -144,10 +180,29 @@ flowchart LR
 | Ingest | Sniffing, layout registry, parsers, quality report, enrichment, media workers | Partly built: five adapters, shared worker; layout registry and quality report are new |
 | Store | Typed tables, reference tables, entity and relationship tables, derived artifacts, vectors, geometry | Partly built: TimescaleDB, `records`, `cdr_records`, `derived_artifacts`, `record_entities`; typed families, vectors (pgvector is in the image), earth-distance lookups and relationships are new; PostGIS needs a new image (D2b) |
 | Semantic layer | Curated families, synonyms, sensitivity, one YAML per family | Built for 17 families; extended with every new table |
-| Question answering | Front door, router, four lanes, verifier | Lanes 1 to 3 built; front door built and off; lane 4 is new |
+| Question answering | Front door, router, four lanes, verifier | Lanes 1 to 3 built; front door built and off; lane 4 is new. *Revised 2026-10-14: the Ask engine of 6.8 replaces the lane split as the main path.* |
 | Models | One registry with roles, hashes, licences, hardware needs | Catalogue exists in `configuration/`; a role-based registry with decision rules is new |
 | Governance | Tenant isolation, custody chain, audit, masking, authority metadata | Partly built; identity, case registry, read-only role, per-capability policy are new |
 | Evaluation | Question factory, probes, corpus, pre-flight, gates | Built for structured data; case generator with planted truth, per-modality sealed sets, multilingual sets are new |
+
+**Question answering, revised 2026-10-14 (the Ask engine; detail in 6.8).** The diagram above shows the plan as written on 2026-10-12. On the owner's direction the main path is one engine for every family:
+
+```mermaid
+flowchart LR
+  Q["Question<br/>(any language)"] --> U["Understand: frame, entities,<br/>time window, families<br/>(model)"]
+  U --> SL["Schema linking: choose tables<br/>and views from the catalogue<br/>(model with retrieval)"]
+  SL --> W["Write the SQL<br/>(model: sees the schema and<br/>verified examples, never rows)"]
+  W --> V["Validate: parse tree, scope,<br/>read-only, recursion, cost<br/>and time caps (code)"]
+  V -->|rejected| R["Repair: the model gets the<br/>validator's reason, two tries"]
+  R --> W
+  V --> X["Execute read-only<br/>(statement timeout, row cap)"]
+  X --> C["Check: obligations from the question,<br/>result shape, sanity, agreement (code)"]
+  C -->|fails| R
+  C --> A["Answer: model composes the text<br/>under the number lock; the view<br/>is chosen by the result shape"]
+  A --> UI["Interface: answer, result view,<br/>citations, SQL and checks"]
+```
+
+Retrieval (text, transcripts, OCR with citations) stays its own path and is called by the engine for questions about what a document or recording says. The model writes and explains; code validates, executes, checks and counts. Section 6.8 has the steps, the catalogue the model reads, how link analysis is asked, the checks, the safety prerequisites, the evaluation and the milestones.
 
 ---
 
@@ -444,7 +499,15 @@ This capability is the one with the strongest legal, bias and reputational risk,
 | 3. Retrieval | Text, transcripts, OCR with citations | Code (full-text, trigram, vector, reranker) | Built; routing errors and inventory gap to fix |
 | 4. Analytics procedures | Bounded graph, co-location and trajectory procedures with stored parameters | Code | New (section 7) |
 
-**Router.** Deterministic rules first (an identifier in the question, "between A and B", time words, a family word), then a model classification constrained to the lane labels. Every routing decision is logged and scored against an intent test set. An ambiguous question gets a clarification (6.3), not a guess.
+**Revised 2026-10-14 (owner direction; the engine is section 6.8).** The table above is the plan as written on 2026-10-12. The owner's direction is that the model understands the question, writes the SQL from the schema for every family and for link analysis, runs it and explains the result, without per-question templates or predefined operations. So:
+
+| Path | Role after the revision | Who writes the query |
+|---|---|---|
+| **Ask engine** (lane 2, generalised) | The main path for every structured, typed, derived-media and link-analysis question | The model, from the schema catalogue; code validates, executes and checks |
+| Retrieval (lane 3) | Questions about what a document, transcript, OCR text or caption says; called by the engine for those parts | Code (full-text, trigram, vector) |
+| Typed operations and analytics procedures (lanes 1 and 4) | **No longer a prerequisite or a default.** Kept as (a) independent oracles in the tests, (b) optional accelerators the engine may use for an exact match, only after measured parity and only where faster, (c) tools for computations SQL cannot express (communities, centrality) | Code; the model only fills the tool's parameters |
+
+**Router.** Deterministic rules first (an identifier in the question, "between A and B", time words, a family word), then a model classification constrained to the lane labels. Every routing decision is logged and scored against an intent test set. An ambiguous question gets a clarification (6.3), not a guess. *Update 2026-10-14: in the Ask engine the first routing decision is the model's understanding step and the schema linking (6.8.2); the deterministic rules remain as a guard (an identifier named in the question must appear in the query), and the router is scored against the intent set as before.*
 
 **Answer types.** Every answer is one of: scalar, ranked list, table, time series, path or graph, text or transcript passages, map. Each type has a display schema and its own result checks in the verifier (the lane's result-shape checks already do this for scalars and comparisons).
 
@@ -454,8 +517,8 @@ This capability is the one with the strongest legal, bias and reputational risk,
 
 | # | Role | Rule |
 |---|---|---|
-| R1 | Query writer for lane 2 | Sees view definitions and the question, never rows |
-| R2 | Parameter filler for lanes 1 and 4 | Fills a JSON schema; code validates entity existence, time range, hop caps and case scope |
+| R1 | Query writer for every family (the Ask engine, 6.8) | Sees the schema catalogue (views, columns, descriptions, value domains, verified examples) and the question, never rows; link analysis is asked the same way |
+| R2 | Parameter filler for the few tools (6.8.4) | Only for computations SQL cannot express (community detection, centrality): fills a JSON schema; code validates entity existence, time range, hop caps and case scope |
 | R3 | Clarifier | Writes at most one question with at most four options; the options come from the data (candidate entities, the unmet condition), never from imagination |
 | R4 | Concierge (front door) | Greetings, "what can I ask here?", help, concept explanations. Suggested questions are generated from what the case actually holds (families present, real counts) by code; concept answers come from a curated glossary (CDR, IPDR, IMSI, IMEI, CGNAT, LAC, cell identity) and contain no case facts |
 | R5 | Follow-up resolver | Resolves "and in June?" or "their top contacts" from a structured memory of the last result (entities, time window, family), and shows the assumption it made |
@@ -463,8 +526,9 @@ This capability is the one with the strongest legal, bias and reputational risk,
 | R7 | Narrator (optional) | Summarises multi-part results under the same number lock; never adds a fact |
 | R8 | Mapper | Suggests a column mapping for an unknown layout; suggestion only |
 | R9 | Question normaliser | Turns Urdu, Roman Urdu, Punjabi, Pashto and mixed questions into the same frame (entity, time, measure, family) |
+| R10 | Answer composer and reasoner (6.8.7, needs D17) | Writes the answer sentence and the reasoning about the result, under the number lock; sees the masked, capped result of the analyst's own question; the deterministic sentence is the fallback |
 
-The model never: sees case rows; computes a number; judges legality; names a person from a face, voice or number; writes a query outside lane 2.
+The model never: sees case rows (except as D17 may allow: the masked, capped result of the analyst's own question); computes a number; judges legality; names a person from a face, voice or number; writes a query that has not passed the validator of 6.8.4.
 
 ### 6.3 Clarification and assumptions
 
@@ -513,7 +577,129 @@ Measured on 2 Oct: a single memory channel (DDR4-3200), 7 to 9 tokens a second w
 
 ### 6.7 Answer and interface
 
-Numbers come from code and are shown with the query and the conditions checked; assumptions appear as chips; an abstention says which condition failed and what to change; every answer links to source rows, pages, boxes or seconds; answers can be exported with an evidence appendix; right-to-left layout and four-width responsive checks stay as acceptance items. The views that answers open (charts, link charts, maps, timelines) are specified in section 7.7.
+Numbers come from code and are shown with the query and the conditions checked; assumptions appear as chips; an abstention says which condition failed and what to change; every answer links to source rows, pages, boxes or seconds; answers can be exported with an evidence appendix; right-to-left layout and four-width responsive checks stay as acceptance items. The views that answers open (charts, link charts, maps, timelines) are specified in section 7.7, and where they sit in the application in 7.8. *Update 2026-10-14: the answer text may be composed by the model under the number lock (D17); the view is chosen from the shape of the result (6.8.5); the derivation and the checks are explained in plain words in "How this was derived", with the query one level deeper for administrators and audit (contract 6.6, and 9: analysts never see SQL or a model).*
+
+### 6.8 The Ask engine: model-written SQL for every family (owner direction of 2026-10-14)
+
+*This section is a design. Nothing in it is built; the first milestone is proposed in section 11.*
+
+#### 6.8.1 What is asked, and what this plan takes it to mean
+
+The direction: a real user asks a real question in their own words and gets a correct, relevant answer from the database; the system understands the question, creates the SQL from the schema that is there, runs it, and explains the result with the language model; this holds for every family (call records, internet records, application usage, subscribers, towers, transactions, access logs, plates, documents, audio, images, video) and for link analysis, so that a user can ask connection questions in the same box; and it does not rest on predefined operations or code templates.
+
+Taken to mean: (1) **no per-question or per-intent template and no hand-written plan per analysis**: the engine's code is generic (catalogue, validator, executor, checks) and a new family or analysis needs a view and a description, not new answering code; (2) the model chooses the tables and writes the joins, aggregates, window functions and recursive queries; (3) the model composes the explanation. **What stays in code, and why:** scope (tenant and case), read-only execution, resource limits, masking, the number lock, the result checks and the audit, because a confident answer to a different question is the one defect that must reach zero (section 3.1). The operations of 7.2 stay as **independent oracles** (plain Python and reference SQL used only in tests), which is how correctness is measured without templates in the product path.
+
+Said plainly: removing templates raises the variance of what the engine produces. It is compensated by verification, an agreement check between independent drafts, retrieved verified examples and abstention, and it is **measured against today's lane** before it replaces anything. Where it cannot match the current path on a family, that family stays on the current path; that is how every earlier switch in this project was decided.
+
+#### 6.8.2 The steps
+
+| # | Step | Who | What happens | If it fails |
+|---|---|---|---|---|
+| 1 | Understand | Model | Extracts the frame: entities (numbers, IMEI, IP, plate, cell), time window on the case clock, measure, families, direction, comparison; detects the language; writes the assumptions it made | A clarification (6.3), or an abstention |
+| 2 | Link to the schema | Model with retrieval | Chooses the views and columns from the catalogue (6.8.3), at most six relations | Abstains and names what the catalogue lacks |
+| 3 | Write | Model | One SELECT (a WITH is allowed), using the catalogue and retrieved verified examples; never rows | The validator's reason goes back to the model |
+| 4 | Validate | Code | Parse-tree allowlist; scope injected by the server; only catalogue relations and allowlisted functions; no writes; recursion rules (6.8.4); a cost ceiling from EXPLAIN; time and row caps | Repair, at most twice, then abstain |
+| 5 | Execute | Code | Read-only role, `statement_timeout`, row cap, tenant and case set on the connection | A timeout is reported as "too broad" with a prompt to narrow it |
+| 6 | Check | Code | Obligations (every entity, condition and time window of the question is in the query and satisfied by the result); result-shape checks; plausibility (empty against known coverage, totals within known bounds, time basis stated); agreement of two independent drafts for exact questions; back-translation (6.8.6) | Repair, then abstain with the reason |
+| 7 | Compose | Model | The answer sentence, the assumptions and the reasoning, under the number lock (6.8.7) | The deterministic sentence is shown |
+| 8 | Present | Code and interface | The view is chosen from the result's shape (6.8.5); citations to rows; the derivation and the checks in plain words, the query one level deeper for administrators | A table |
+
+#### 6.8.3 The schema catalogue: what the model reads
+
+Generated by code from the database, the layout registry and the semantic layer; versioned; regenerated whenever a migration or a layout changes. For every analyst view or table: name, a one-sentence description, columns (name, type, unit, time basis, number class), value domains, sensitivity (masked or withheld), keys and join hints (`cell_key`, number, `evidence_id`), per-case facts (row count, time span, which layouts), and three to five **verified example questions with their SQL** (from the factory, the case generator and approved analyst questions). Examples are retrieved for the model to imitate; the code never executes one. Today's 17 curated families are the first source; the typed tables and the entity and relationship layer get descriptions from their migration comments plus a reviewed file (drafted by code, reviewed by a person, not written by the model alone). A catalogue test fails the build when a view or column has no description.
+
+**Analyst views, never base tables**, so masking and scope are structural, and the read-only role (D19) can read only the views.
+
+**Choosing from a large catalogue.** The model sees a shortlist from retrieval over the descriptions and then re-selects. This is **measured against today's deterministic shortlist** before it is adopted: the code records that embeddings once caused two live defects, so the rule is no worse on the factory, fewer declines and no added wrong answers, family by family.
+
+#### 6.8.4 Link analysis through the same path
+
+The analyses A1 to A18 are questions, not operations. The model answers them with SQL over reviewed, read-only views:
+
+- **Views (new):** `v_comm_events` (calls and SMS, typed, repeats excluded, UTC), `v_data_sessions`, `v_app_usage`, `v_contact_pairs` (per pair: counts, durations, first and last, directions), `v_cell_visits` (entity, cell, time, source), `v_device_pairings` (number, IMSI, IMEI with dates), `v_ip_holders` (intervals), `v_entities`, `v_relationships` (with kind and evidence count), `v_mentions` (identifier mentions across documents, audio and OCR, with confidence), `v_entity_timeline`.
+- **Patterns the model writes** (listed as capabilities, not as templates; examples are retrieved): joins on time ranges and cell keys (co-location), `WITH RECURSIVE` with a depth bound (connectivity, chaining), window functions (gaps, silences, first and last), set operations (common contacts), conditional aggregates (hour-of-week profiles), range types (address and port intervals).
+- **Validator rules for this:** a recursive query must carry a depth column bounded by a literal of at most 4 (a case setting), a cycle guard and a LIMIT; services and hubs are excluded by the views' own flags, not by the prompt; a join of an event view to itself without a time or key predicate is rejected as a cross product; an EXPLAIN cost ceiling and a statement timeout (proposed 15 s); at most 5,000 rows leave the database, aggregated results preferred.
+- **Tools, only where SQL cannot:** community detection and centrality (NetworkX, with parameters and seed recorded) run on the edge set that a validated query returned; the model fills the parameters; the answer states the method. Nothing else is a tool.
+- **Caveats are attached by the engine**, by relationship kind and view, so the model cannot drop them: "proximity is not association", "candidate, not a finding", `observed` / `inferred` / `candidate` and the evidence count (7.1, 7.6).
+- **Authority-gated analyses** (tower dump, geofence, face levels) are views that exist only for cases whose authority record enables them (section 9).
+
+#### 6.8.5 Result shapes: how the interface knows what to draw
+
+The prompt gives the model a small naming convention for result columns; the interface chooses the view from the columns present and falls back to the table. It is a presentation convention, not a template: any query may produce any shape, and one result may offer several.
+
+| Shape | Columns | View |
+|---|---|---|
+| scalar | one row, one numeric column | the answer sentence, no chart |
+| table | any | `ResultTable` |
+| series | `t`, `value` (and `series`) | `SeriesChart` (ECharts) |
+| ranked list | `label`, `value` | bar and table |
+| graph | `src`, `dst` (and `kind`, `weight`, `evidence_count`, `src_label`) | `LinkChart` |
+| map | `lat`, `lon` (and `radius_m`, `t`, `label`), or `cell_key` joined to the cell reference | `GeoMap` |
+| lanes | `lane`, `start`, `end` (and `label`, `kind`) | `SwimLanes` and `Timeline` |
+
+#### 6.8.6 Checks and the wrong-answer budget
+
+1. **Obligations** from the understood frame are checked in the parse tree and in the result (the existing verifier's method, generalised from the curated views to any catalogue relation).
+2. **Back-translation:** the model restates in words what the query computes; code compares that statement with the understood frame on entities, time window and measure; a mismatch abstains. This is the defence against the defect that matters, a confident answer to a different question.
+3. **Agreement:** for exact questions two independent drafts are written (different examples or temperature) and executed; equal results pass, unequal results abstain and show both queries.
+4. **Plausibility:** an empty result against known coverage, a total above the known row count, a time condition without a stated basis, a counterparty that is a service number.
+5. **Metamorphic tests** (relabelling entities, a consistent time-zone shift, below-threshold noise must not change the answer) run in the evaluation, not at run time.
+6. **Budget:** confident-wrong answers stay at or below the current lane's rate, with zero as the target; abstention is a success.
+
+#### 6.8.7 Explaining the result (needs D17)
+
+- The model is given a **result descriptor** by code: the shape, the row count, the columns with their display names, the first rows (capped), the checks that passed and the assumptions. Sensitive columns are masked as aliases. The text is composed on local models only, with no network egress.
+- **The number lock:** every number in the composed text must exist in the result (or in the descriptor); otherwise the deterministic sentence is shown. The contract's order holds: the deterministic result appears first and complete; the model's text is visually distinguished interpretation and streams below or into the answer line only when it passes the lock.
+- **"How this was derived"** is generated from the query and the checks and verified against the parse tree (the words must name the same filters and tables). It is plain words for the analyst; the query, the model id and hash and the raw checks are one level deeper, for administrators and audit.
+- **Follow-ups** (2 to 4) are proposed by the model and run through steps 1 to 4 before they are shown, so each one is answerable.
+- The answer is in the question's language; the numbers come from the database.
+
+#### 6.8.8 Conversation and power use
+
+Follow-ups rewrite the previous query and frame rather than start again (R5). An administrator can open the query; editing and re-running it through the same validator (every use audited) is an option for a named power-user role only if the owner amends the contract (D17, option B). "This answer is wrong" files the question with its query and checks into the triage queue (8.4).
+
+#### 6.8.9 Safety prerequisites (gates for widening the schema the model can reach)
+
+1. A **read-only database role that can read only the analyst views** (G24, promoted to P1; D19).
+2. Per-statement limits: cost ceiling, timeout, row cap, and a per-user rate limit.
+3. Masking and withholding inside the views, so the model's SQL cannot select what a plan could not name.
+4. **Injection:** evidence text never enters the SQL prompt; retrieved passages travel in a separate, labelled channel and are never executed; the red-team set (SQL escape, instruction injection in documents, PII extraction, cost bombs) runs at every gate.
+5. An audit record for every question: frame, SQL, checks, result digest, model id and hash, custody-chain style.
+6. A default-off switch per family (`FORENSIC_ASK_V2`), measured in arms (current path against the engine) with the Run-Arms procedure, and the existing rule that gates are written before measuring.
+
+#### 6.8.10 Evaluation
+
+| Set | For | Notes |
+|---|---|---|
+| The question factory, the 103-question corpus, the 38-question pre-flight, the probes | No regression on structured families | Exist |
+| **Link-analysis question bank** on the planted-truth cases | A1 to A13 | At least 20 questions per analysis with paraphrases and three languages; the generator's keys are the answers (the oracles of 7.5) |
+| Acceptance-collection questions (the hand-written multimodal questions: 43 in the 9 October rehearsal, of which 15 are text questions; the 79-question structured spread; new ones on real-shaped files) | The product on its demonstration data | 8.5 |
+| Red-team set | Safety | 8.3 |
+| Latency traces | Hardware | p50 and p90 by shape, repairs per question |
+
+Metrics: correct, correctly abstained, wrong, clarification rate, repairs per question, validator rejection reasons, latency, tokens per question. **Gates (proposed; thresholds are set after the baseline, as always):** on structured families, correct at least the lane's on the same fresh seed, wrong at most the lane's (target 0), declines not above the lane's; on the exact link analyses (A1, A2, A5, A13), at least 90% correct and no wrong answer on judgement cases, with the rest abstaining; inferred analyses report precision and recall against thresholds set after the baseline; p90 latency at most 15 s for a single-statement question and 30 s for a recursive one on the GPU node; no cost-bomb statement executed in the red-team set. A fresh seed before a fix and another after, a prompt-hash comparison to show what a change can reach, and mutation tests on the validator and the checks stay.
+
+#### 6.8.11 Milestones
+
+| # | Milestone | Weeks (estimate) | Gate | Interface piece |
+|---|---|---|---|---|
+| M1 | Catalogue generator (typed tables and the 17 curated families), validator extensions (recursion, cost ceiling), result-shape convention, the read-only role drafted, `FORENSIC_ASK_V2` skeleton; call records on generated cases | 2 | The validator rejects the whole red-team set; the catalogue test passes and is reviewed | Ask page: "How this was derived" shows the checks in plain words, the query one level deeper for administrators |
+| M2 | Call records end to end: A1, A2 and the factory's call-record intents, measured in arms against the lane | 2 | Correct at least the lane's on a fresh seed, wrong not above | Result views by shape: table, series |
+| M3 | Link analysis: A3, A4, A5, A7, A8, A13 with the views and recursive rules; the planted-truth bank | 3 | Exact analyses at least 90% correct, zero wrong | `LinkChart`, `GeoMap`, `SwimLanes` inside answers (7.8) |
+| M4 | Other families: internet records and application usage (typed), then the derived-media views, then subscriber, tower, transactions, access logs and plates as their typed writers exist | 4 | Per family, as M2 | Family chips and per-family empty states |
+| M5 | Answer composition and reasoning under the number lock; the UX contract amendment | 2 | Lock never violated in the red-team and evaluation sets; the owner's review of the wording | AnswerBlock and the derivation disclosure |
+| M6 | Model bake-off on the GPU node under the pre-registered rule (6.5) | 3 | Decision recorded | Model and latency shown in the admin view |
+| M7 | Languages: native-speaker sets and the frame in Urdu, Roman Urdu, Punjabi, Pashto | 6 | Frame accuracy and end-to-end targets after the baseline | Right-to-left answers and chart labels |
+| M8 | Retire the rule-based shortlist and the templated paths family by family where the gate passed; keep the operations as oracles | 8 | No regression on the corpus; the owner's go | Settings: the engine's switches |
+
+#### 6.8.12 Risks, stated plainly
+
+1. A 4-billion-parameter model on the CPU may not write reliable multi-join or recursive SQL. Expect lower correctness than today's curated-view lane on hard shapes, and answers taking tens of seconds. **The GPU node and the bake-off are therefore prerequisites for link analysis, not options** (6.6).
+2. Free SQL can be expensive. The cost ceiling and timeouts make "too broad" a normal outcome that the interface explains and helps narrow.
+3. Without templates the same question phrased twice can give two queries. The agreement check and the retrieved examples reduce this and do not remove it; the metamorphic tests measure it.
+4. Explaining the result widens what the model sees (D17).
+5. The catalogue is a new asset to maintain: every migration or layout change regenerates and reviews it.
+6. All of this is a plan, to be believed only at its gates.
 
 ---
 
@@ -538,6 +724,8 @@ Entities are things with strong keys: phone number, IMSI, IMEI (device), IP, pla
 | `face_candidate` | image and image | face embeddings (case-enabled) | candidate | Candidate, review required |
 
 ### 7.2 Analyses to build
+
+*Update 2026-10-14: the table lists the questions a user can ask and the checks each answer must pass. It is not a list of operations to hard-code. Each is answered through the Ask engine (6.8): the model writes the SQL over the reviewed views, and the "Method" column is the reference method that the oracle and the reference SQL use in the tests.*
 
 | # | Analysis | Example question | Method | Output | Check |
 |---|---|---|---|---|---|
@@ -569,13 +757,13 @@ A first version is a **documented formula, not a learned model**: it combines fr
 - **SQL first.** Relationship tables, Timescale continuous aggregates for contact pairs and cell activity, recursive queries with hop caps and cycle guards, range joins on time and cell for co-location.
 - **Graph algorithms in a worker** on bounded subgraphs, using NetworkX (BSD) including its Louvain implementation; igraph and leidenalg are GPL and avoided. Results are stored with parameters and seed.
 - **A graph database is not adopted now.** Apache AGE's newest release is 1.8.0 (6 Aug 2026), packaged for PostgreSQL 18 with release-candidate labels; PostgreSQL 17 stays on 1.7.x; the database here is PostgreSQL 16. Revisit only if recursive SQL fails the performance budget below at a measured scale.
-- **Operations are typed.** Each analysis has a parameter schema, an oracle, a caveat text that is always displayed, and a switch.
+- **Analyses are questions, not operations (revised 2026-10-14).** Each analysis has a reference SQL recipe and an oracle in plain Python; these are **test instruments**. The product answers the question through the Ask engine (6.8), where the model writes the SQL over the reviewed views. What each analysis keeps in code: a caveat text that is always displayed (attached by the engine by relationship kind and view, so the model cannot drop it), a result-shape contract (6.8.5) and a switch. A reference recipe becomes an optional accelerator only after measured parity and a measured speed gain on the target hardware.
 - **Performance budget (proposed):** contact profile at most 2 s on 10 million events; a path at 3 hops at most 5 s; co-location for two entities over three months at most 10 s; communities on 50,000 nodes at most 60 s.
 
 ### 7.5 Verification
 
 1. **Planted-truth case generator** (section 8): synthetic multi-provider cases with known communities, chains, co-location events, meetings, device swaps, successor numbers, address-translation collisions, mentions in documents and speech, and messy layouts. The generator writes the answer keys.
-2. **Independent oracle:** each analysis is re-implemented in plain Python over the same rows and compared with the SQL result.
+2. **Independent oracle:** each analysis is re-implemented in plain Python over the same rows and compared with the SQL result. *Update 2026-10-14: the oracle also scores the engine's own answer to the same question (6.8.10), which is how the no-templates direction is measured. The 100% parity in item 5 is the reference SQL against the oracle; the engine's gates are the ones in 6.8.10.*
 3. **Metamorphic tests:** relabelling entities, shifting time zones consistently, or adding below-threshold noise must not change the answer.
 4. **Explanation completeness:** every edge shown maps to at least one evidence row.
 5. **Gates (proposed):** exact analyses (A1 to A6, A13) at 100% parity with the oracle on every planted case; inferred analyses report precision and recall with thresholds set after the baseline; nothing ships without its caveat text.
@@ -586,13 +774,13 @@ A link chart (node type by shape, relationship kind by line style, click an edge
 
 ### 7.7 Interface, visualisation and interaction programme (applies to every phase)
 
-*Added 2026-10-13 on the owner's instruction: the interface is built and improved as the capabilities are built, so that everything can be tested and shown through it; the best charts, graphs, maps and visualisations for link analysis; modern, interactive and accurate.* This section extends the binding contract `docs/ux/NEXUSAI_PRODUCT_UX.md` (screens, provenance, visual system, accessibility, definition of done); on any conflict that contract wins until it is amended, and the components below are added to its component inventory when built. Nothing here is built yet beyond what the contract and `core/http/react-ui` already hold: today the interface has no chart, graph or map library.
+*Added 2026-10-13 on the owner's instruction: the interface is built and improved as the capabilities are built, so that everything can be tested and shown through it; the best charts, graphs, maps and visualisations for link analysis; modern, interactive and accurate.* This section extends the binding contract `docs/ux/NEXUSAI_PRODUCT_UX.md` (screens, provenance, visual system, accessibility, definition of done); on any conflict that contract wins until it is amended, and the components below are added to its component inventory when built. *Corrected 2026-10-14:* the interface the analysts use is the investigation workspace (`apps/investigation-workspace`, served at http://localhost:4181/), which already has Apache ECharts 6.1 behind one wrapper (`components/charts/EChart.jsx`), virtualised tables and four evidence viewers; it has no graph or map library. The link chart, map and timelines exist only in the spike (`tools/visual_spike`, section 7.9 and `docs/roadmap/visual-spike-findings-20261013.md`) and are not yet in the workspace. Section 7.8 says where each one goes.
 
 **Working rules (for every stage).**
 
 | # | Rule |
 |---|---|
-| V1 | **Interface in the same stage.** The change that adds an analysis or a data family also adds its view, its empty, loading, abstention and error states, and a browser test (Playwright, `core/http/react-ui/e2e`) that runs on a generated case. A stage is not closed without them. |
+| V1 | **Interface in the same stage.** The change that adds an analysis or a data family also adds its view, its empty, loading, abstention and error states, and a browser test (Playwright, `apps/investigation-workspace/e2e` for the workspace; the older `core/http/react-ui/e2e` suite covers the original interface) that runs on a generated case. A stage is not closed without them. |
 | V2 | **Test and show through the interface.** Generated cases (20-case set) are the standard demonstration data: a loader puts a case into a development tenant so that the interface, the API and the oracles are exercised together; the gate demonstration is run on a judgement case, never a development one. |
 | V3 | **Review and edit as we go.** Each stage begins with a short interface review of the previous stage (defects, friction, missing states, accessibility) and ends with the owner looking at the stage's views on a generated case; defects found are fixed in the next stage's first week and recorded in the interface defect list. |
 | V4 | **Honest pictures (P9).** Line style and label by relationship kind (`observed` solid, `inferred` dashed, `candidate` dotted); cell uncertainty drawn as circles or sectors; co-location views carry "proximity is not association"; successor and meeting views carry "candidate, not a finding"; no chart without its query, conditions and assumption chips; every mark opens its evidence rows (P1). |
@@ -626,6 +814,106 @@ A link chart (node type by shape, relationship kind by line style, click an edge
 **Map basemap.** Generated cases use a fictional grid in open ocean (specification section 8), so a map of one shows the cells on a neutral background with a distance scale; this is honest but plain. Real cases need an offline basemap (self-hosted vector tiles of the region); its source, licence and size are a decision (D14). The owner's offline raster tile server works as a basemap for local display (its source provider is not recorded, so its terms are unverified and it is not to be shipped; ledger row DAT-017); a generated case can be laid over a chosen city in the interface, with a "synthetic case" banner. Cells are drawn as sites with uncertainty, never as the position of a person.
 
 **Definition of done for a view.** It reads its data through the API (no query in the browser); its numbers equal the oracle on the 20 cases; every mark opens its evidence rows; the empty, loading, abstention and error states exist; it passes the keyboard, table-alternative, colour and right-to-left checks; its Playwright test passes on a generated case; it exports with the evidence appendix; and the owner has seen it on a judgement case.
+
+### 7.8 Where everything goes in the application at http://localhost:4181/ (added 2026-10-14)
+
+*A plan. Nothing in this section is built in the workspace yet. The spike is the evidence that the pieces work; this section is where they are integrated, in the existing screens and not in a second tool.*
+
+#### 7.8.1 The owner's interface instructions, collected
+
+| # | Instruction (2026-10-13 and 2026-10-14) | Where it is met |
+|---|---|---|
+| U1 | The interface is built, improved, tested and shown at every stage, not at the end | V1 to V3 above; the gate demonstration of each phase is run in the workspace |
+| U2 | The best charts, graphs, link charts, maps and timelines for link analysis: modern, interactive, accurate | 7.7 (choices), 7.8.3 (placement), 7.8.5 (components) |
+| U3 | New functionality is integrated into the present application, at the best place, with top-notch and accurate UX | This section; the screens are the existing ones, extended |
+| U4 | Link analysis is asked in the same Ask box, and the answer is reasoned by the model | 6.8; 7.8.2 (the answer page) |
+| U5 | Everything is tested with real-shaped data and in real time, and shown for demonstration | 8.5 (the acceptance collection) and the demonstration panel (7.8.3, row 12) |
+| U6 | The map works offline with the owner's tile server | V6; 7.9 |
+| U7 | Where the contract and this plan differ, the contract wins until it is amended | 7.8.7 lists the amendments to propose |
+
+#### 7.8.2 The Ask page: the one place questions are answered
+
+The case page "Ask this case" (`/cases/:id/investigate`) and the global "Investigate" page (`/investigate`, across cases) stay the front door. The contract's fixed order is kept (`docs/ux/NEXUSAI_PRODUCT_UX.md`): Answer, Result, Citations, How this was derived, Limitations, Follow-ups. What changes inside it:
+
+| Block | Today | After the Ask engine (6.8) |
+|---|---|---|
+| Progress | A waiting state | Steps in plain words with elapsed time: understanding your question, finding the right records, working out the answer, checking it, writing it up (the contract's non-technical rule: no model, query or backend words, section 9 of the contract). A question that needs more than 30 s shows the step it is on and a way to cancel; nothing waits silently past 60 s (6.6) |
+| Answer | One deterministic sentence | The deterministic sentence first and complete; below it, visually distinguished and labelled as interpretation, the model's explanation and reasoning, shown only if it passes the number lock and the contract's grounding validation. The contract already allows this (6.6, "Streaming"); what D17 decides is what the model may see |
+| Result | Table, chart or comparison | The view is chosen from the result's shape (6.8.5): scalar, table, series, ranked list, **graph (`LinkChart`)**, **map (`GeoMap`)**, **lanes (`SwimLanes`)**. A small view switcher offers the other valid views of the same result; the table is always one click away. Each view has an **Open in workbench** button that passes the same result to the Connections tab, the Timeline page or the map, with the question kept |
+| Citations | Source rows, pages, seconds | Unchanged; each mark in a chart, graph or map opens the same evidence drawer, and the drawer links into the viewers (page box, waveform second, video frame) |
+| How this was derived | Plain-language steps; the plan and SQL one level deeper for administrators and audit | Collapsed by default, and the contract's rule is kept: **analysts never see SQL, a model or an engine** (contract section 9 and 13.3). Open: the derivation in words (generated from the query and verified against it), the **checks** in words with pass or fail ("both numbers appear in the results", "the time window matches your question", "two independent attempts agree"), the assumptions as editable chips, the time taken. One level deeper, for administrators and audit as in 6.6: the query, the model id and hash, the engine version, the raw checks. An **Edit and re-run** console for a named power-user role is an option that needs the contract amended (D17); it is not in the first build |
+| Limitations | Caveats | Attached by the engine by kind and view: "proximity is not association", "candidate, not a finding", the cell-is-not-a-position note, the time basis, and the observed, inferred and candidate labels on every edge |
+| Follow-ups | Suggested questions | Proposed by the model, and shown only after each one has passed steps 1 to 4 of 6.8.2, so each one can be answered |
+| New | none | **This answer is wrong**: files the question with its query and checks into the triage queue (8.4). **Too broad**: a normal outcome with narrowing chips (time window, entity, family). **Engine unavailable**: says so and offers the current path, never a silent fallback |
+
+The same Ask box takes English, Urdu, Roman Urdu, Punjabi, Pashto and mixed questions: the page direction follows the question's language; chart and map labels, the answer and the follow-ups are localised (6.4).
+
+#### 7.8.3 Placement, screen by screen
+
+| # | Capability | Where it goes | What the user sees | Notes and states |
+|---|---|---|---|---|
+| 1 | Answers to any question, with the reasoning | Ask this case; Investigate (global) | 7.8.2 | Empty: suggested questions generated from what the case holds (R4). Error: a plain statement and a retry |
+| 2 | **Link chart**: contact chaining, common contacts, paths, communities (A2, A3, A4, A12) | In an answer (shape: graph) and in a **new case tab, Connections**, placed between Ask this case and Timeline | A canvas link chart: node shape by type, line style by kind (solid, dashed, dotted), width by evidence count, community hulls, brokers marked, centrality beside it; a left list of entities; filters by kind, family and time; expand by one hop, collapse a community, pin; selecting an edge or node opens the evidence drawer | Empty: "no relationships within the limits" with the limits. Large: the level-of-detail rules of V5. Keyboard traversal and a table alternative are mandatory (V7). The tab is hidden until the case has at least one family with relationships |
+| 3 | **Map**: co-location, tower dump, movement and anchors, camera sightings (A5, A6, A10, A15) | In an answer (shape: map), as the **Places** view of the Timeline page, and from any cell, IP or plate chip | A map with uncertainty circles, a time slider with play, dwell anchors, impossible-speed flags, a cell table beside it; a banner "synthetic case" on generated cases | The basemap status (7.9) is always visible in the corner; with no basemap, a neutral grid with a scale. Tower dump and geofence views exist only when the case's authority record enables them |
+| 4 | **Lanes, calendar and device timelines** (A5 pair lanes, A7, A8, A11) | The **Timeline** page, as a switch beside the existing event stream: Chronology, Lanes, Places, Calendar | Lanes for number, IMEI and IMSI runs with change markers; two aligned lanes for co-location; a day-by-hour heat map with change points | The existing event stream, family rail and inspector are kept as the Chronology view |
+| 5 | Charts for counts, rankings and series (A1, A11, A18) | In an answer and in Overview cards | ECharts through the existing wrapper; ranked bars with inline direction split; sparklines | "View as table" and the text summary on every chart (V7) |
+| 6 | Layout recognition, quality report, import wizard, reconciliation | **Evidence**: list (a layout chip per file) and detail (a new **Quality** tab); the existing **Add data** dropzone opens the wizard | Matched layout with confidence and the header it saw; time zone and date order as assumption chips; quarantine, repeats and completeness by day; reconciliation against declared totals; correct a mapping and rerun (a versioned data change, P2) | States: not recognised (the wizard offers the profile and the mapper suggestion), recognised-draft (clearly labelled), confirmed. Layout confirmation is a role action and is audited |
+| 7 | Evidence inventory and coverage; alerts from the analyses; data-basis chip | **Case Overview** | An inventory by family and number with the period each covers, a coverage timeline per number, alert cards with their evidence, a chip "synthetic", "real-shaped" or "real" | The existing readiness ring and activity calendar stay |
+| 8 | Entity drawer | Everywhere an identifier appears (number, IMEI, IMSI, IP, plate, cell, name) | A side drawer: what the case holds about it (families, counts, first and last), its strongest relationships with kind and evidence count, and **Ask about this** with generated questions | One generic read of the entity view, not a per-question template; the questions it suggests go through the Ask engine |
+| 9 | Data-quality and engine health | **Dashboard** | A data-quality tile (jobs recognised, quarantined, unrecognised) and an engine tile (model, p50 and p90 latency, abstention and repair rates) | The dashboard currently covers 2 of the 5 collections; D20 decides the scope |
+| 10 | Audit, triage of wrong answers | **Activity** (case and global) | Every question with its answer and checks in plain language (contract 6.8), the technical trace one level down for administrators; for reviewers, the triage queue with "add to the test sets" | Role-gated |
+| 11 | Engine and basemap settings | **Settings** (administrator) | Per-family switch for the engine, the model registry entry (id, hash, licence), limits (timeout, rows, recursion depth), language, basemap source and cache status | Every change is audited and has a default |
+| 12 | **Demonstration panel** | **Case Overview** of the acceptance collection only | A list of the demonstration questions with the expected outcome, one-click run, pass or fail against the answer key, and a reset | For rehearsals and gate demonstrations (8.5) |
+| 13 | Mentions across evidence (A14) | **Evidence detail** viewers | Highlights on the page, the waveform second, the video frame, reached by deep links from any answer or edge | The viewers exist and take the deep link |
+| 14 | New components | **Design pages** (`/design/type-proof`, `/design/route-states`, the gallery) | Every new component with its loading, empty, abstention, error and large-data states, in light and dark and in right-to-left | The component library entry is part of the definition of done (V9) |
+
+#### 7.8.4 Navigation changes
+
+Case tabs become: Overview, Evidence, Ask this case, **Connections**, Timeline, Activity. Timeline gains the switch (Chronology, Lanes, Places, Calendar). The global rail and top navigation are unchanged. Every view's state (question, result, filters, time window, selection) is in the URL so that a view can be shared inside a case and reopened exactly (V8).
+
+#### 7.8.5 Components to build, and where they come from
+
+| Component | From the spike | Library | Added to the workspace in |
+|---|---|---|---|
+| `LinkChart` | `tools/visual_spike/src/linkview.js` and `layout.js` | Cytoscape.js (canvas) | M3 (6.8.11), Phase 1 for A2 |
+| `GeoMap` | `tools/visual_spike/src/map.js` | MapLibre GL JS with the tile cache (7.9) | Phase 1 (A5, A6), M3 |
+| `SwimLanes`, `CalendarHeat`, `SeriesChart` | `tools/visual_spike/src/timelines.js` | Apache ECharts (already present) | Phase 1 |
+| `EvidenceDrawer`, `EntityDrawer`, `AssumptionChips` | `tools/visual_spike/src/ui.js`; the workspace's scope chips | none | M1 |
+| `QualityReport`, `LayoutCard`, `ImportWizard` | new | none | Phase 1 (ingest v2) |
+| `AnswerBlock`, `DerivationDisclosure`, `StepProgress` | new, extending `InvestigationResult` | none | M1 and M5 |
+
+The spike's code is a reference, not a dependency: components are rewritten to the workspace's conventions (React 18, the design tokens, the vitest and Playwright patterns) and tested in the workspace. `cytoscape` and `maplibre-gl` are added to `apps/investigation-workspace/package.json` only after their licence-ledger entries (P7), are loaded lazily by the routes that use them, and are measured against the V5 budgets so that the Dashboard and the Evidence list do not get heavier.
+
+#### 7.8.6 Where the code lives, and how it reaches the running interface
+
+The workspace is built from `apps/investigation-workspace`; the interface at :4181 is currently served from the main checkout, whose working tree holds the latest workspace (uncommitted there). The lane branch (`lane-arms`) holds the API, ingestion and tools. A plan for how the workspace code and the lane branch meet (one repository history, one deploy) is decision D13, and D20 adds the scope of the workspace's collections. Until they are decided, new interface code is written in the workspace, tested there, and shown from :4181; nothing is merged or pushed without the owner's go.
+
+#### 7.8.7 Amendments to the interface contract to propose (the contract wins until each is accepted)
+
+What needs **no** amendment: model-written narration below the deterministic answer, visually distinguished and grounding-validated (6.6 "Streaming"); the SQL one level deeper for administrators and audit (6.6, 6.8); the fixed order of the Ask screen; the analyst never seeing a model, an operation or SQL (section 9, 13.3). The proposals below are the changes:
+
+1. New first-class states in 6.6: "too broad" (a normal outcome with narrowing chips), "engine unavailable" (never a silent fallback), and, for maps, "basemap unavailable".
+2. Section 6.6 and the component inventory: the result views `LinkChart`, `GeoMap` and `SwimLanes`, the view switcher, the **Open in workbench** button and the wrong-answer button.
+3. Section 6 (new): a screen contract for the **Connections** case tab (`/cases/:id/connections`), and the Timeline page's switch (Chronology, Lanes, Places, Calendar) in 6.7.
+4. Section 9 and 13.3, **only if the owner chooses it (D17, option B):** a named power-user role that may open, edit and re-run the query, every use audited. Option A, recommended, leaves the contract as it is.
+5. Right-to-left rules for charts, graphs and maps.
+
+### 7.9 The offline map defect (reported 2026-10-14)
+
+**Report.** The owner's offline tile server (Pakistan, raster, `http://HOST:PORT/data/pakistan/`, the address kept outside the repository) does not display on the map sections of the visual spike.
+
+**Cause found.** The spike reads its basemap from `/tiles/pakistan.json` (`public/config.local.json`), which is served by the local tile cache `tools/tilecache`. The cache was not running when the spike was opened, so the map requested tiles from a service that was not there and drew nothing, with no message. Two defects, not one: (1) the cache is a separate process that nothing starts with the spike; (2) the map says nothing when tiles are unavailable.
+
+**Fix (small, separate from this plan).**
+
+1. Start the cache with the upstream on the command line only (`-upstream http://HOST:PORT/data -sets pakistan -cache-dir <dir> -listen 127.0.0.1:8099`); the upstream address is never written to a tracked file.
+2. The map shows its basemap status in the corner: loaded, from cache, unreachable (with the reason), and falls back to the neutral grid with a scale within 3 seconds.
+3. The launch configuration starts the cache and the development server together.
+4. The same status and fallback are required of `GeoMap` in the workspace (7.8.3, row 3).
+
+**Acceptance.** With the cache stopped: the grid and a visible message. With the cache running and the upstream reachable: raster tiles at the owner's view (zoom 9 near 30.29 N, 70.38 E) and at the Pakistan overview. With the upstream cut after a warm-up: cached tiles for the visited area and a "cached only" status. No request leaves for any host other than the cache (checked in the network panel). Recorded here when done, with the result.
+
+**Status (2026-10-14):** cause confirmed; the fix is the next small task after this revision.
 
 ---
 ## 8. Data and evaluation program
@@ -689,6 +977,57 @@ Nothing here is downloaded without your approval, and each gets a licence ledger
 
 Keep as they are: the 103-question corpus, the 38-question pre-flight, the factory seeds, the probes. Add the new sets above. Rules that stay: gates written before measuring; a fresh seed before a fix and a different fresh seed after; a prompt-hash comparison to prove what a change can reach; mutation tests that prove the specs catch a broken check. New: an analyst "this answer is wrong" button that files the question with its query and checks into a triage queue, so every field error becomes a test.
 
+### 8.5 The acceptance collection and the demonstration-data programme (added 2026-10-14)
+
+*A plan. Nothing was loaded by this revision. The files the owner said were attached with the message of 2026-10-14 did not reach this session (no attachment was visible), so nothing about their content is assumed here; section 8.5.6 says how to hand them over.*
+
+#### 8.5.1 What the collection is for
+
+`nexusai-multimodal-product-acceptance` is the standing collection on which each step is tested through the interface and shown: the hand-written multimodal questions, the probes and the demonstrations run against it. Today it holds 43 sources (42 ready) and 10,168 structured rows, with documents, images, audio, video and structured exports. The owner's direction is that files provided earlier, files provided later and datasets downloaded online are added to it in an orderly way, so that each capability is tested and demonstrated on real-shaped data and in real time. This section is that order.
+
+#### 8.5.2 What goes where (using the tiers of `docs/data/nexusai-evidence-test-and-demo-program.md`)
+
+| Kind of file | Tier | Goes into the acceptance collection? | Conditions |
+|---|---|---|---|
+| Synthetic goldens, one per provider layout (13), and the other committed synthetic fixtures | T0 and T1 | **Yes (wave 1)** | Built from reserved ranges; each upload follows the normal path, with no special case in production code |
+| Generated cases with planted truth: the **eight development cases** | T1 | **Yes (wave 1)**, rendered as exports in the target layouts | The eight judgement cases and the four sealed cases are **never** loaded anywhere a developer or a demonstration can see them |
+| Controlled virtual scenes (plates, documents, speech) from the evidence programme | T2-V | Yes (wave 2) | Labelled synthetic in the interface (data-basis chip) |
+| Public datasets and downloaded files (speech slices, OCR images, plate sets) | T3 | Yes (wave 2), small slices | Licence-ledger entry first (P7), your approval per item (D4), a hash manifest, a malware scan before opening, kept in a cache outside the repository, recorded provenance; not mixed into any sealed set |
+| **The owner's real files** (the 13 real layouts and any others) | T4 | **No: a separate private sibling collection (D18)** | An authority record (policy rule 2); on this machine only; no screenshot, paste or commit of values (rule 3); a local model may read them only if the owner says so for that task (policy section 8); the assistant sees only aggregates; checked by aggregate reconciliation (rule 6) |
+
+The reason for the split: the demonstration collection is the one shown, screenshotted and written about in briefings; the policy forbids showing real values. Real-shaped synthetic goldens give the same layouts and quirks without the exposure, and the private sibling lets the owner test the same product on the real files locally.
+
+#### 8.5.3 The intake procedure (every file, every wave)
+
+1. **Place** the file in the right drop folder outside every repository: the vault for real files (policy section 3), an `acceptance-dropbox\<wave>` folder for synthetic and public files.
+2. **Register** it: source, tier, licence-ledger id (public files) or authority id (real files), SHA-256, wave, date, who added it. A file without these is refused.
+3. **Profile by structure** (`tools/real_data/profile_structure.py`): layout recognised? If not, write a draft registry entry and a synthetic golden (D1 flow); the file waits.
+4. **Confirm the layout and the assumptions:** declared time zone and date order as assumption chips; draft layouts are labelled draft in the interface until confirmed on a real file (`tools/real_data/confirm_layout.py`).
+5. **Upload** through the interface's Add data dropzone or the API, so that the product path itself is the thing tested.
+6. **Read the quality report:** recognised layout, rows read, quarantined, repeats, completeness by day.
+7. **Reconcile** on aggregates (count, distinct counts, time range, null shares); only pass or fail is recorded.
+8. **Add the questions:** the expected answers go to the demonstration panel (7.8.3 row 12) and the question bank (6.8.10), with the key from the generator or the aggregate; run them; record the result in the handoff.
+
+#### 8.5.4 Waves, and protecting the baseline
+
+| Wave | Content | Purpose | Status |
+|---|---|---|---|
+| 0 | The 43 sources of today | The baseline: the corpus, the pre-flight set and the probes depend on its exact contents | In place |
+| 1 | 13 synthetic layout goldens; 8 development cases; their answer keys | Structured families for call records, internet records, application usage and tower dumps, so that link analysis (A1 to A13) and the typed switch can be tried and shown in the interface | Proposed, after D18 |
+| 2 | Public speech, OCR and plate slices; controlled virtual scenes | Media depth (Phase 3) on non-synthetic acoustics and scans | After D4 and the ledger |
+| 3 | The owner's real files | Real-data confirmation of layouts and accuracy | Private sibling only |
+| 4 | Multilingual question sets with native-speaker answers | Section 6.4 | After D10 |
+
+Adding files changes counts, and the baseline's answer keys are counts. So every source carries its wave tag, and **before wave 1 goes in**, the baseline is protected in one of two ways, chosen by D18: (A) the same collection, with the baseline questions scoped to wave 0 through the Ask page's selected-evidence scope, gated by a full regression run (corpus, pre-flight, probes) that must give the same answers before and after; or (B) a sibling collection for each new wave. Option A is what the owner asked for; it stands only if the regression run proves the scope holds on every path (the lane, the older path and retrieval). If it does not hold, B is used and the reason is recorded.
+
+#### 8.5.5 Demonstrating in real time
+
+A demonstration of "drop a file, ask a question" is a measured path: time from drop to ready, to typed rows, to the first correct answer. The budget is set after the first measurement (structured files first). The demonstration panel keeps a checklist per capability (the data it needs, the questions, the expected outcome), and every phase gate in section 11 includes one run of it in the workspace.
+
+#### 8.5.6 Handing over the attachments
+
+Put real files in the vault (`Register-Sample.ps1` with the authority fields) and say the path; put synthetic, public or downloaded files in a new folder and say the path. The assistant will register and profile them by structure, report which layouts are recognised and where each belongs under 8.5.2, and wait for D18 before loading anything.
+
 ---
 
 ## 9. Governance, security and licensing
@@ -724,19 +1063,19 @@ Severity: P1 blocks a trustworthy product, P2 degrades it, P3 is polish or proce
 
 | ID | Gap | Evidence | Sev | Phase | Needs you |
 |---|---|---|---|---|---|
-| G1 | 5 of 8 call-record layouts and all 5 internet or application layouts are not recognised by the adapters | Section 4.3 | P1 | 1 | |
-| G2 | No layout registry and no assisted mapping | Section 4.4 | P1 | 0 and 1 | |
-| G3 | No typed tables for IPDR, ANPR, tower; those families are JSON | Database read 2026-10-12 | P1 | 1 | D2 |
-| G4 | Vectors, radius lookups and geometry are not installed; PostGIS is not even available | `pg_extension` lists only `pg_trgm`, `pgcrypto`, `plpgsql`, `timescaledb`; `pg_available_extensions` lists `vector` 0.8.1, `cube`, `earthdistance`, `btree_gist` and no `postgis` | P1 | 1 | D2, D2b |
-| G5 | No relationship layer: `record_entities` has 7 entity types and no edges | Database read | P1 | 1 | D2 |
+| G1 | 5 of 8 call-record layouts and all 5 internet or application layouts are not recognised by the adapters. *Update 2026-10-14: the registry and Ingest v2 read all 13 (drafts; proven on synthetic files); on the 34 files of the four older collections only 6 are recognised (G40)* | Section 4.3 | P1, partly closed | 1 | |
+| G2 | No layout registry and no assisted mapping. *Update 2026-10-14: registry v1 built (13 drafts, none confirmed on a real file); the assisted mapping and the import wizard are not built* | Section 4.4 | P1, partly closed | 0 and 1 | |
+| G3 | No typed tables for IPDR, ANPR, tower; those families are JSON. *Update 2026-10-14: typed tables applied (D2); written for call records, internet records and application usage; questions still read version 1 (G44)* | Database read 2026-10-12 | P1, partly closed | 1 | D2 |
+| G4 | Vectors, radius lookups and geometry are not installed; PostGIS is not even available. *Update 2026-10-14: pgvector, `cube` and `earthdistance` installed 2026-10-13; PostGIS still not in the image* | `pg_extension` lists only `pg_trgm`, `pgcrypto`, `plpgsql`, `timescaledb`; `pg_available_extensions` lists `vector` 0.8.1, `cube`, `earthdistance`, `btree_gist` and no `postgis` | P1 | 1 | D2, D2b |
+| G5 | No relationship layer: `record_entities` has 7 entity types and no edges. *Update 2026-10-14: the entity and relationship tables exist and are empty; nothing populates them yet* | Database read | P1 | 1 | D2 |
 | G6 | Relationship and correlation operations are registered, not proven | 62 of 79 operations only registered | P1 | 1 and 4 | |
 | G7 | No sample file states a time zone; times are Excel serials or text | Section 4.2, F3 | P1 | 1 | |
 | G8 | Foreign rows (adapter names, MAC addresses) inside call-record files | F11 | P2 | 1 | |
 | G9 | No completeness check against a declared total | F10 | P2 | 1 | |
 | G10 | "How many images are in this case?" is withheld: no evidence-inventory view | Rehearsal 9 Oct | P2 | 0 | D8 |
 | G11 | Free-word and value-list questions declined ("still need manual review", "what languages") | Rehearsal | P2 | 2 | |
-| G12 | A document question was sent to the access-log family | Rehearsal, DOC-05 | P2 | 0 | |
-| G13 | When the lane declines, the older path can take minutes | 458 s, 443 s, 409 s | P1 for demos | 0 | |
+| G12 | A document question was sent to the access-log family. **Fixed 2026-10-12 (the word "access" no longer hijacks it); DOC-05 itself is still unanswered, a retrieval question** | Rehearsal, DOC-05 | P2 | 0 | |
+| G13 | When the lane declines, the older path can take minutes. **Fixed and deployed 2026-10-12: one 30 s model attempt after a decline** | 458 s, 443 s, 409 s | P1 for demos, closed | 0 | |
 | G14 | Lane switches are lost on a full stack restart. **Done 2026-10-12**: the compose file defaults both switches to true; proven by recreating the API container with no switch variable set | Handoff | P2 | 0 | D7 |
 | G15 | Front door off; greetings return an error | 28 Sep script | P2 | 2 | D6 |
 | G16 | Month-against-month comparisons sometimes declined | Run 17 | P3 | 2 | |
@@ -747,23 +1086,37 @@ Severity: P1 blocks a trustworthy product, P2 degrades it, P3 is polish or proce
 | G21 | Plates: 59% exact on images, 7% on video at one frame per second | NX-MMR benchmarks | P1 | 3 | D4 |
 | G22 | Face model licence and policy unresolved | Section 5.5 | P1 for recognition | owner | D5 |
 | G23 | No accuracy evidence on real-shaped data | All measured sets are synthetic or demo | P1 | 0 and 1 | D1 |
-| G24 | No read-only database role | R9 | P2 | 5 (earlier if possible) | D2 |
+| G24 | No read-only database role. *Update 2026-10-14: promoted to P1 and moved to the first Ask-engine milestone (6.8.9, G36)* | R9 | P1 | 2 (M1) | D19 |
 | G25 | No case registry, one fixed actor | 2 Oct research | P2 | 5 | |
 | G26 | UI changes (query panel, fixtures) uncommitted in the main checkout | Handoff | P3 | 0 | D13 |
 | G27 | The repository commit gate cannot pass as imported | Commit gate repair note | P3 | 0 | D13 |
 | G28 | Lane-only synonyms not in the shared semantic layer | Run 16 | P3 | 0 | D8 |
 | G29 | Text to speech blocked | Readiness matrix | P3 | not planned | |
 | G30 | Dashboard counts 750 plate sightings, the lane 1,057 | Rehearsal | P3 | 0 (copy) | |
-| G31 | `factory.py` crashes on an empty answer key (`date_in`) | Rehearsal | P3 | 0 | |
+| G31 | `factory.py` crashes on an empty answer key (`date_in`). **Fixed 2026-10-12** | Rehearsal | P3, closed | 0 | |
 | G32 | Three sources show "retained copy missing" | Dashboard | P2 | 0 | |
 | G33 | Multilingual embedding and reranker unmeasured | Section 6.5 | P2 | 3 | |
 | G34 | No legal-basis fields for sensitive analyses | Section 9 | P1 before A6 or face L2 | 4 | D5, D11 |
+| G35 | **The Ask engine is partly rule-based and has no path to the typed tables, the entity and relationship layer or link analysis**: a deterministic shortlist over curated views, templated typed operations, an older ladder | Section 1 item 5; section 6.8 | P1 | 2 (M1 to M4) | D17 |
+| G36 | Model-written SQL over a wider schema needs a database role that can read only the analyst views, plus cost and time ceilings | Section 6.8.9 | P1 before M2 | 2 (M1) | D19 |
+| G37 | The visual spike's link chart, map and timelines are not in the workspace, which has no graph or map library | Section 7.8 | P2 | 1 and 2 | D13, D20 |
+| G38 | The offline map shows nothing in the spike when the tile cache is not running, and says nothing | Section 7.9 | P3 | now | |
+| G39 | Version 1 gives wrong event times to eight workbook layouts, and every question still reads version 1 | `docs/data/ingest-v2.md` | P1 | 1 | the switch needs your go |
+| G40 | The registry recognises 6 of the 34 files of the four older collections (all as one draft tower-dump layout); 28 are not recognised | `docs/data/typed-family-switch.md` | P2 | 1 | D9 |
+| G41 | The acceptance collection holds no real-shaped structured data for link analysis, so A1 to A13 cannot be demonstrated in the interface | Section 8.5 | P2 | 1 | D18 |
+| G42 | The workspace lists 2 of the 5 collections | Dashboard text | P3 | 1 | D20 |
+| G43 | No typed writer or layout for access logs, plates (ANPR), transactions, subscribers, or tower lists | Typed-switch audit | P2 | 1 and 4 | D9 |
+| G44 | The typed compiler and the older path still read version 1; only the lane can use a typed view | `docs/data/typed-family-switch.md` | P2 | 1 and 2 | |
+| G45 | CPU latency for multi-step generation: each repair costs tens of seconds, and link-analysis SQL may take minutes | Section 6.6; 6.8.12 | P1 for use | 2 | D3, D21 |
+| G46 | No question bank for link analysis through the engine (20 or more per analysis, with paraphrases and languages) | Section 6.8.10 | P1 | 2 (M3) | D10 |
 
 ---
 
 ## 11. Phases, gates and the first 14 days
 
 Each phase ends at a gate. A gate is written before the phase's measurements, as every gate in this project has been. Estimates are for planning.
+
+**Status on 2026-10-14.** Phase 0 is mostly done (open: D3 measurements, D5, D6, D8). Phase 1 is under way: typed tables applied, the typed writer live in shadow, the generator and oracles built, the call-record switch built but not applied. Phase 2 is re-planned around the Ask engine (6.8) and has not started. Phases 3 to 5 have not started. This revision changes the order inside Phases 1 and 2 and adds the interface placement of 7.8; it does not change the gates already written.
 
 ### Phase 0: safeguards and decisions (weeks 0 to 2)
 
@@ -779,26 +1132,32 @@ Each phase ends at a gate. A gate is written before the phase's measurements, as
 
 ### Phase 1: real structured data and the link-analysis foundation (weeks 2 to 8)
 
+**Where it stands (2026-10-14):** migration applied; Ingest v2 in shadow (call records, internet records, application usage; `.xlsx`, `.csv`, UTF-16 `.txt` and Excel 2003 XML `.xls`); generator steps 1 to 6; call-record switch built, not applied. **Order from here:** (1) the wave-1 files into the acceptance collection (8.5), so there is typed data in the live product; (2) apply migration 016 and the call-record switch on your go, measured in arms; (3) the remaining families' writers (G43); (4) the entity and relationship layer populated; (5) real-file confirmation of the layouts. Link-analysis questions are answered by the Ask engine (6.8), not by new typed operations.
+
 - Migration (D2): typed tables, reference tables, entity and relationship tables, pgvector and earth-distance (all in the current image), with preflight, verify, smoke and rollback scripts (drafted and tested on a disposable database 2026-10-12: `db/forensic_records/012` to `015`, runbook `docs/data/d2-migration-runbook.md`); dual-write; backfill with SQL reconciliation; family-by-family view switch. PostGIS only as the separate D2b. *The migration was applied to the live database on 2026-10-13; the tables are empty until Ingest v2 writes to them.*
 - **Ingest v2:** parsers for C1 to C8, I1 to I4, A1; declared time zones and time basis; number classes; quarantine; completeness check; versions; quality report. *First part built 2026-10-13 (shadow write, off by default, not deployed; `docs/data/ingest-v2.md`); the 13 layouts are recorded in the live `layout_versions` as drafts.*
 - Cell reference, operator alias table, TAC list, server-IP enrichment.
 - **Case generator v1** with planted truth, and factory v2 intents (multi-provider, IP attribution, common contacts, path, co-location). *Specification v0.2 approved 2026-10-12 (`docs/data/case-generator-spec.md`); step 2 built the same day: `tools/case_generator/` writes a seeded case (people, contact structure, planted common contacts with a service decoy and a hub decoy) as exports in the four target-export layouts, with an answer key and an independent audit; 16 tests. Step 3 built 2026-10-13: plant P3 (co-location with three decoys) and the A5 oracle with its chance baseline, audited by a separate brute-force implementation; 29 tests. Step 4 built 2026-10-13: tower dumps (C5 to C8, A6), data sessions in the internet-record layouts (I1 to I4) and application usage (A1), address-translation collisions (P7, A13), possible meetings (P4, A7) and injected defects with expected outcomes; all 13 layouts are now rendered, 71 tests. Step 5 built 2026-10-13: a test-only loader puts a case into the typed tables of a throwaway database and 71 SQL checks (A1, A2, A5, A6, A13, reconciliation) equal the oracles. Step 6 built 2026-10-13: device and SIM changes (P5, A8), successor numbers (P6, A9), movement and rhythm (P8, A10 and A11), roles allocated once (the default case is 12 subjects), and the set of 20 cases (8 development, 8 judgement, 4 sealed) with a register of their hashes; every case passes the audit and every new rule was broken on purpose and caught. The SQL for the A5 chance baseline (lift) and for A7 is in the loader too (each equals the oracle on a default case; ten breakages caught).*
 - Verifier extensions (time basis, number class, direction semantics, IP interval).
-- Typed analyses A1 to A5, A8, A13 with oracles.
-- Import wizard and assumption chips in the UI.
+- Typed analyses A1 to A5, A8, A13 with oracles. *Update 2026-10-14: read as "reference SQL and oracles" (7.2, 7.4); the analyses are answered through the Ask engine.*
+- Import wizard and assumption chips in the UI (placement in 7.8.3, row 6).
 - **Interface (7.7):** the component library (`LinkChart`, `GeoMap`, `Timeline`, `SwimLanes`, `CalendarHeat`, `SeriesChart`, `EvidenceDrawer`, `QualityReport`); views for A1, A2, A5 with A7, A6, A8 and A13; the quality report and layout recognition card; a loader path that puts a generated case into a development tenant so the views run on it; a Playwright test per view; budgets (V5) measured and fixed; an owner review on a judgement case.
 
 **Gate (proposed):** every Phase 1 view passes the definition of done in 7.7 on a judgement case and is demonstrated to the owner; all 13 layouts pass acceptance (4.4); zero silent drops; factory v2 at least 90% correct and at most 1% wrong on fresh seeds; exact analyses at 100% parity with their oracles; no regression on the corpus and pre-flight; a real-file aggregate reconciliation passes for each layout.
 
-### Phase 2: questions in every language, conversation and models (weeks 4 to 12, parallel with Phase 1)
+### Phase 2: the Ask engine v2, questions in every language, conversation and models (weeks 4 to 14, parallel with Phase 1)
+
+- **The Ask engine (6.8), milestones M1 to M8** (catalogue and validator and the read-only role; call records end to end in arms against the lane; link analysis; the other families; answer composition under the number lock; model bake-off on the GPU node; languages; retire the rule-based paths family by family). Each milestone is behind `FORENSIC_ASK_V2`, off by default, with its gate written first.
+- **Interface placement (7.8):** the Ask page's derivation disclosure, step progress and result-shape views come with M1 and M2; `LinkChart`, `GeoMap`, `SwimLanes` and the Connections tab with M3; family chips and states with M4; the answer composition and its wording review with M5.
+- **Question bank for link analysis** (G46) written with the planted-truth cases; the engine is scored against the generator's keys.
 
 - Front door on (D6), concierge and glossary, clarification policy, follow-up memory, explainer with number lock.
 - Multilingual synonyms and question sets with native reviewers (D10); baselines recorded.
 - **Pre-registered bake-off** of query-writer models on the GPU node (D3, D4); decision; optional adapter fine-tune only for a measured gap.
-- Free-word and value-list shapes (G11); typed-lane verifier (R2); speed work.
+- Free-word and value-list shapes (G11); typed-lane verifier (R2); speed work. *Update 2026-10-14: the typed-lane verifier and the typed operations are no longer prerequisites; the engine's checks (6.8.6) replace them, and the typed operations remain as oracles.*
 - **Interface (7.7):** conversation surface with assumption chips, clarification prompts and abstention explanations; every answer type opens its view (table, series, link chart, map, timeline) with "show me"; Urdu, Roman Urdu, Punjabi and Pashto in the question box and in chart labels, right-to-left checked; interface review of Phase 1 and its defect fixes.
 
-**Gate:** bake-off decision recorded; the conversation surface passes the contract's checks in four languages; multilingual baselines recorded; clarification metrics at target; no wrong answer from an invisible default.
+**Gate:** bake-off decision recorded; the conversation surface passes the contract's checks in four languages; multilingual baselines recorded; clarification metrics at target; no wrong answer from an invisible default. *Added 2026-10-14: the engine gates of 6.8.10 (no regression on structured families on a fresh seed, the link-analysis bank at its thresholds, latency, the red-team set) and the interface definition of done (7.7) for the Ask page's new views.*
 
 ### Phase 3: media depth (weeks 6 to 20, four tracks)
 
@@ -829,7 +1188,7 @@ Each phase ends at a gate. A gate is written before the phase's measurements, as
 
 **Gate:** NX-C2 release approval, including the interface checks of 7.7.
 
-### The first 14 days
+### The first 14 days (original plan of 2026-10-12; mostly done, kept for the record)
 
 | Days | Work | Output |
 |---|---|---|
@@ -841,6 +1200,23 @@ Each phase ends at a gate. A gate is written before the phase's measurements, as
 | 7 to 10 | Migration drafts with preflight, verify and rollback; Phase 1 gates pre-registered | Files for your approval |
 | 8 to 12 | Case generator skeleton with planted contacts and co-location; oracles for A2 and A5; factory v2 intents | First planted case passes |
 | 10 to 14 | C3 and C4 (already recognised) moved onto the registry as the pilot, then C1 and C2 | First quality reports; Phase 1 go or no-go |
+
+### The next 14 days (2026-10-14 to 2026-10-28; an estimate, re-planned when you decide D17 to D21)
+
+| Days | Work | Output | Needs you |
+|---|---|---|---|
+| 0 | This roadmap revision; the small offline-map fix (7.9) | The plan; the map shows tiles or says why not | Read the revision |
+| 1 to 2 | Decisions D17 to D21; say where the attached files are (8.5.6) | Written decisions; files registered and profiled by structure | D17 to D21 |
+| 1 to 5 | **M1a:** the schema-catalogue generator for the typed tables and the 17 curated families, with its test; the read-only role drafted and rehearsed on a throwaway database (not applied live) | Catalogue in the repository, tests green | D19 for the live role |
+| 3 to 7 | **M1b:** validator extensions (recursion bound, cycle guard, cost ceiling, row cap), the red-team set v1, mutation tests of the validator | The validator rejects the whole red-team set | |
+| 2 to 6 | **Wave 1 intake** (8.5): synthetic layout goldens and the eight development cases into the acceptance collection, after the baseline is protected; quality reports; baseline regression run before and after | Typed data in the live product; the baseline unchanged | D18 |
+| 1 to 5 | D3: measure the EliteDesk RTX 2080 and the shared prompt start (the latency numbers 6.8 needs) | Measured tokens per second and latency | Access to the machine |
+| 5 to 10 | **Interface, first pieces in the workspace:** the "How this was derived" disclosure with checks, the step progress, result views for table and series; `GeoMap` with the basemap status (7.9) | Shown on a development case at :4181 | Your review |
+| 7 to 12 | Apply migration 016 and set `FORENSIC_TYPED_FAMILIES=communications_cdr` (on your go); **M2 pre-registration** and the first arms comparison of the engine against the lane on call records, fresh seed | Gate written first, then the measured result | Go for the live change |
+| 10 to 14 | Start M3: the link-analysis views (`v_contact_pairs`, `v_cell_visits`, `v_entities`), A2 and A5 through the engine on the development cases; `LinkChart` prototype in the Connections tab on a loader case | First link-analysis answers from model-written SQL, with failures listed | |
+| 14 | Review: what worked, the repair and abstention counts, latency; re-plan Phase 1 and 2 | A one-page status and the next 14 days | |
+
+**Gate for these 14 days (proposed):** decisions recorded; catalogue, validator and red-team green with the mutation tests catching the planted faults; wave 1 loaded and the baseline answers unchanged; one arms comparison on call records recorded whatever its result; the first interface pieces shown on a development case.
 
 ---
 
@@ -865,6 +1241,11 @@ Each phase ends at a gate. A gate is written before the phase's measurements, as
 | D14 | Map basemap for real cases: self-hosted vector tiles of the region (source, licence, size), or a neutral grid with cell sites only | The map view needs it; no external tile server may be used | **Decided 2026-10-13 (owner):** the basemap is the organisation's own offline tile service, shared with the other applications of the organisation, used **through our tile cache** (`tools/tilecache`: one request per tile, kept on disk, coalesced, at most six at a time, a failing server left alone; `docs/data/offline-basemap-usage.md`). Its address stays out of the repository; the original tile terms are the service owner's to confirm (ledger DAT-017); not redistributed with a product. Vector tiles from OpenStreetMap data stay an option for a dark style and Urdu labels, not needed now |
 | D15 | Visual libraries for the link chart, map and series charts, and their licences | Components are built on them once | **Decided 2026-10-13 (owner: implement the recommendation):** Cytoscape.js (canvas), MapLibre GL JS and Apache ECharts; not deck.gl or Sigma now (measurements and reasons in the findings; ledger LIB-022 to LIB-028, the three adopted are `approved`) |
 | D16 | Map style for generated cases: keep the open-ocean fictional grid (never resembles a real place) or add a fictional city layout (reads more naturally in a demonstration) | Changes the case generator's cell grid and every registered hash if changed | **Decided 2026-10-13 (owner: implement the recommendation):** the ocean grid stays, and the interface lays a case over Islamabad, Lahore, Karachi, Peshawar or Quetta with a visible banner (offsets in metres are kept); the generator and every registered hash are untouched |
+| D17 | **What the model may see, and who may see the query.** (a) To explain a result the model sees the result the analyst is already looking at (sensitive columns masked, capped in size), on local models with no network egress, never free evidence text outside retrieval, under the number lock. (b) The interface contract (sections 9 and 13.3) says analysts never see SQL or a model. Option A: the analyst sees the derivation and the checks in plain words; the query and the model identity are one level deeper for administrators and audit (6.6, unchanged). Option B: also a named power-user role that can open, edit and re-run the query, every use audited (the contract is amended) | Explaining results through the model is part of the direction; it changes principle P1's wording and the contract's assumptions | (a) Yes, with the limits stated; (b) **Option A now**, B later if analysts ask for it |
+| D18 | **The acceptance collection.** (a) Wave 1 (synthetic goldens and the eight development cases) into `nexusai-multimodal-product-acceptance`, with wave tags and a before-and-after regression run; if the baseline answers change, a sibling collection instead. (b) The owner's real files only in a separate private sibling collection, never screenshotted or written about by the assistant. (c) Public datasets after the ledger and D4 | Decides where the demonstration data goes and protects the baseline | (a) Yes, with the regression gate; (b) yes; (c) per item |
+| D19 | **Read-only analyst role, moved to the first Ask-engine milestone:** a database role that can read only the analyst views, with timeouts, applied to the live database after a backup and a rehearsal (a migration, like D2) | Model-written SQL over a wider schema must not be able to read base tables or write | Yes: draft and rehearse first, apply on your go |
+| D20 | **The workspace's scope and its path to the main line:** the Dashboard covers 2 of 5 collections; the workspace code lives in the main checkout's working tree (uncommitted there) while the lane branch holds the API and tools; how they meet (D13) | New views must be built, tested and shown in the same place the analysts look | List all collections from the API; commit the workspace; one repository history |
+| D21 | **Where the model runs and the latency budget:** the EliteDesk GPU node as the inference node for the query writer, and the budget of 15 s at the 90th percentile for a single statement and 30 s for a recursive one | Link analysis by model-written SQL is slow on the CPU laptop (G45) | Measure first (D3), then decide; no purchase yet |
 
 ---
 
@@ -949,3 +1330,53 @@ Not every page was read in full; vendor pages, mirrors and summaries are marked 
 - Text to SQL: [Arctic-Text2SQL-R1 (arXiv 2505.20315)](https://arxiv.org/abs/2505.20315); [On-prem open LLMs on BIRD (arXiv 2606.29733)](https://arxiv.org/abs/2606.29733); [Pervasive annotation errors in text-to-SQL benchmarks](https://rmarcus.info/dbscholar/papers/14621)
 - Graph and link analysis: [Apache AGE 1.8.0 release notes](https://www.enterprisedb.com/docs/pg_extensions/apache_age/rel_notes/apache_age_1.8.0_rel_notes/); [Cellular tower dump analysis (MSAB)](https://www.msab.com/glossary/cellular-tower-dump-analysis/); [Calabrese et al., PLoS ONE 2011](https://doi.org/10.1371/journal.pone.0020814); [Techdirt on 2026 tower-dump rulings](https://techdirt.com/2026/08/07/another-federal-judge-says-cell-tower-dumps-are-unconstitutional)
 - Repository sources used: `docs/architecture/QUERY_ANSWERING_DECISION_20261005.md`, `docs/work/ROADMAP_FREE_QUESTION_20261005.md`, `docs/roadmap/nexusai-next-generation-roadmap.md`, `docs/research/*`, `reports/nxb21/*`, `reports/nexusai-nxmmr-*benchmark*`, `configuration/forensic_country_profiles/pakistan.json`, `configuration/nexusai_test_dataset_registry.json`, `api/forensic_records/contracts/operation-certification-v1.json`, `reports/governed-sql-20261005/PREREGISTRATION.md`
+
+### D. The Ask engine: result-shape contract, validator rules and an illustration (added 2026-10-14)
+
+**D.1 Result-shape columns** (the interface chooses a view from the columns present; any query may return any shape).
+
+| Shape | Required columns (type) | Optional | View |
+|---|---|---|---|
+| scalar | one numeric column, one row | `label` | answer line |
+| table | any | any | `ResultTable` |
+| series | `t` (timestamptz or date), `value` (numeric) | `series` (text) | `SeriesChart` |
+| ranked list | `label` (text), `value` (numeric) | `share` | bars and table |
+| graph | `src` (text), `dst` (text) | `kind` (observed, inferred, candidate), `weight`, `evidence_count`, `src_label`, `dst_label` | `LinkChart` |
+| map | `lat`, `lon` (double), or `cell_key` joined to the cell reference | `radius_m`, `t`, `label`, `series` | `GeoMap` |
+| lanes | `lane` (text), `start`, `end` (timestamptz) | `label`, `kind` | `SwimLanes`, `Timeline` |
+
+**D.2 Validator rules** (all in code; the model is told them in the prompt and is not trusted to follow them).
+
+1. One statement; SELECT or WITH ... SELECT only; no data-modifying CTE; no function that writes, sleeps, reads files or opens connections.
+2. Every relation is in the catalogue and in the analyst-view allowlist; no system catalogue, no base table; no relation outside the question's linked shortlist.
+3. Tenant and case scope are applied by the server to the views, not written by the model; the model cannot name another case.
+4. Every function and operator is on an allowlist; casts are allowed within it.
+5. `WITH RECURSIVE` only with a depth column compared with a literal of at most 4 (a case setting), a cycle guard (path array, or visited set) and an outer LIMIT.
+6. A join between two event views needs a key or a time predicate; a join without one is rejected as a cross product.
+7. An outer LIMIT of at most 5,000; aggregated results preferred; an EXPLAIN cost above the ceiling is rejected before it runs.
+8. A statement timeout (proposed 15 s) and a row cap on the connection, whatever the query says.
+9. Services and hubs are excluded by the views' own flags (`is_service`, `is_hub`), not by the prompt; the answer says when they were excluded.
+10. Obligations: every entity, time bound and condition of the understood frame appears in the query and is satisfied by the result.
+
+**D.3 An illustration** (not a template: the engine never stores or executes it; it is the kind of query the model is expected to write, and the checks it must pass). Question: "How are A and B connected, within three hops, not through services?" The numbers `<A>` and `<B>` stand for two numbers named in the question.
+
+```sql
+WITH RECURSIVE walk AS (
+  SELECT src, dst, 1 AS depth, ARRAY[src, dst] AS path
+  FROM v_contact_pairs
+  WHERE src = '<A>' AND NOT is_service AND NOT is_hub
+  UNION ALL
+  SELECT w.src, e.dst, w.depth + 1, w.path || e.dst
+  FROM walk w
+  JOIN v_contact_pairs e ON e.src = w.dst
+  WHERE w.depth < 3 AND NOT e.dst = ANY (w.path)
+    AND NOT e.is_service AND NOT e.is_hub
+), found AS (
+  SELECT path FROM walk WHERE dst = '<B>' ORDER BY depth LIMIT 10
+)
+SELECT DISTINCT f.path[i] AS src, f.path[i + 1] AS dst, 'observed' AS kind
+FROM found f, generate_series(1, cardinality(f.path) - 1) AS i
+LIMIT 200;
+```
+
+How the engine treats it: the relation is on the allowlist (rule 2); the depth is bounded by the literal 3 and the path array is the cycle guard (rule 5); the LIMIT is present (rule 7); services and hubs are excluded by the view flags (rule 9); both numbers of the question are in the query (rule 10); the result has `src`, `dst` and `kind`, so the interface draws a link chart with solid lines for observed contacts and offers the table; an empty result is accepted only if both numbers exist in the entity view and the contact view covers their time span (plausibility, 6.8.6), and then the answer says "no connection within three hops over observed contacts, services excluded", with the limits stated. The independent oracle for this question is the generator's key for the planted chain (A3 and A4).
