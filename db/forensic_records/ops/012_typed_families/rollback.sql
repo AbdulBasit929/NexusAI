@@ -15,6 +15,12 @@ BEGIN
       USING ERRCODE = '55000';
   END IF;
 
+  -- The newest migration first: 016 adds a view over comm_event.
+  IF to_regclass('forensic.records_effective_cdr') IS NOT NULL THEN
+    RAISE EXCEPTION 'roll back migration 016 before 012 (the effective call-record view reads comm_event)'
+      USING ERRCODE = '55000';
+  END IF;
+
   -- Later migrations (013 to 015) must be rolled back first if they were applied: they keep no foreign key to these
   -- tables today, but the relationship layer's evidence rows point at them by name.
   IF to_regclass('forensic.relationship_evidence') IS NOT NULL THEN

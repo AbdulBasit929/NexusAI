@@ -3,7 +3,7 @@
 
     python -X utf8 tools/case_generator/load_case.py CASE_DIR [--keep]
 
-It starts a disposable container from an image that is already on this machine (it never pulls), with no published port and a random
+It starts a disposable container from an image that is already on this machine (it never pulls), with no published port (unless a caller opts in) and a random
 password, applies migrations 001 to 015 and the runtime-role grants as a fresh database sees them, registers the 13 layouts, and loads
 the case into forensic.comm_event, forensic.data_session and forensic.app_usage. It then checks, with SQL:
 
@@ -39,7 +39,7 @@ MIGRATIONS = ["001_phase1_records.sql", "002_job_row_counters.sql", "003_phase2_
               "005_backfill_canonical_records.sql", "006_canonical_normalized_fields.sql", "007_evidence_items.sql",
               "008_phase3_evidence_control_plane.sql", "009_phase3_queue_lifecycle.sql", "010_runtime_rls_policies.sql",
               "011_r5_custody_chain_tail.sql", "runtime_role.grants.sql", "012_typed_families.sql", "013_reference_tables.sql",
-              "014_entity_relationship_layer.sql", "015_vectors_and_earth.sql"]
+              "014_entity_relationship_layer.sql", "015_vectors_and_earth.sql", "016_effective_records.sql"]
 TENANT = "case"
 TABLE_OF = {"call": "comm_event", "session": "data_session", "usage": "app_usage"}
 NOT_DUPLICATE = "NOT ('duplicate_row' = ANY(quality_flags))"
@@ -53,8 +53,9 @@ def sql_text(value):
 class Throwaway:
     """A disposable PostgreSQL container: local image only, no published port, random password, removed with its volume."""
 
-    def __init__(self, image=IMAGE, memory_mb=1536):
-        self.image, self.memory_mb = image, memory_mb
+    def __init__(self, image=IMAGE, memory_mb=1536, publish_port=None):
+        # publish_port: opt-in, for the one check that a program on this machine (the Go specs) must connect to; it is published on 127.0.0.1 only.
+        self.image, self.memory_mb, self.publish_port = image, memory_mb, publish_port
         self.name = "nx-caseload-" + uuid.uuid4().hex[:8]
         self.password = uuid.uuid4().hex
         self.started = False
@@ -68,7 +69,8 @@ class Throwaway:
     def start(self):
         if self.docker("image", "inspect", self.image, check=False).returncode != 0:
             raise RuntimeError("the image %s is not on this machine; this tool never pulls" % self.image)
-        self.docker("run", "-d", "--rm", "--name", self.name, "--label", "nexusai.purpose=case-load-test", "--memory", "%dm" % self.memory_mb,
+        publish = ["-p", "127.0.0.1:%d:5432" % self.publish_port] if self.publish_port else []
+        self.docker("run", "-d", "--rm", "--name", self.name, "--label", "nexusai.purpose=case-load-test", "--memory", "%dm" % self.memory_mb, *publish,
                     "-e", "POSTGRES_USER=localrecall", "-e", "POSTGRES_DB=localrecall", "-e", "POSTGRES_PASSWORD=" + self.password, self.image)
         self.started = True
         for _ in range(90):

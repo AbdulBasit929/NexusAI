@@ -158,7 +158,7 @@ evidence without a verified backup and explicit approval.
 
 The compose file mounts this folder read-only at `/docker-entrypoint-initdb.d`, and the PostgreSQL entrypoint runs **every
 top-level `*.sql`** there, in name order, when it initialises an empty data directory. The top level therefore holds only what a
-new database must run: the numbered migrations `001_*.sql` to `015_*.sql` and the two `runtime_role.*` files. Everything else
+new database must run: the numbered migrations `001_*.sql` to `016_*.sql` and the two `runtime_role.*` files. Everything else
 (preflight, verify, smoke, rollback, fixtures, one-off recovery tools) lives in `ops/<migration>/<name>.sql`, for example
 `ops/010_runtime_rls_policies/verify.sql` or `ops/009_phase3_queue_lifecycle/legacy_recovery.sql`. The entrypoint ignores
 sub-folders and this README; `optional/` holds drafts that nothing runs automatically.
@@ -280,3 +280,12 @@ script while the live mount is still on the old layout", as the runbook does.) `
 `ops/Test-MigrationsThrowaway.ps1` runs the whole sequence, including rollbacks and idempotency, on a throwaway container
 from the local image and prints `MigrationThrowawayTest=PASS`; add `-VolumeRows 500000` to also load synthetic events and print
 load time, sizes and query timings (`ops/volume_probe.sql`).
+
+## Effective record views (migration 016) - DRAFT, not applied
+
+`016_effective_records.sql` adds **one view**, `forensic.records_effective_cdr`: the call-record family as the question lane reads it, with exactly the columns and
+types of `forensic.records`, serving per evidence item the typed rows (`comm_event`, `dataset_kind = target_cdr`, repeats excluded) if it has any and its
+`forensic.records` rows otherwise. It changes no table, row or policy, is `security_invoker` (the caller's row-level security applies), and is read only by the lane
+when `FORENSIC_TYPED_FAMILIES` lists the family. Design, evidence and the steps to turn it on: `docs/data/typed-family-switch.md`. Helper scripts in
+`ops/016_effective_records/` (`preflight.sql`, `verify.sql`, `smoke.sql`, `rollback.sql`); the rollback drops the view and nothing else, so it needs no gate, but
+migration 012's rollback refuses while the view exists. `ops/Test-MigrationsThrowaway.ps1` drives 016 like 012 to 015.

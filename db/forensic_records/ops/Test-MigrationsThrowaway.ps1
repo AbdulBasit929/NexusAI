@@ -1,16 +1,16 @@
 <#
 .SYNOPSIS
-  Proves migrations 012 to 015 on a THROWAWAY PostgreSQL container. It never touches the NexusAI stack.
+  Proves migrations 012 to 016 on a THROWAWAY PostgreSQL container. It never touches the NexusAI stack.
 
 .DESCRIPTION
   First checks the layout of the folder and starts a throwaway container with the folder mounted read-only at
   /docker-entrypoint-initdb.d, exactly as docker-compose.forensic-records.yaml mounts it: the entrypoint must run the top-level
   files and nothing else (the numbered migrations and the runtime-role files; helper scripts live in ops/<migration>/), the
-  initialisation must finish, and the verify scripts of 008 to 015 must pass in the database it built. That container is removed
+  initialisation must finish, and the verify scripts of 008 to 016 must pass in the database it built. That container is removed
   again, together with its data volume, before the next step.
 
   Then starts a disposable container from an image that is already on this machine (it never pulls), applies migrations 001 to 011
-  and the runtime-role grants as a fresh database would see them, then runs for 012 to 015: preflight, apply, verify, smoke,
+  and the runtime-role grants as a fresh database would see them, then runs for 012 to 016: preflight, apply, verify, smoke,
   a second apply (idempotency), the runtime-role grants again, a gated rollback in reverse order (including a check that the
   gate refuses without its setting), re-application from the rolled-back state, and a final comparison that nothing created
   by migrations 001 to 011 changed. The container and its data are removed at the end.
@@ -52,7 +52,9 @@ $Typed = @(
   @{ Id = '012'; Name = '012_typed_families'; Gate = 'app.typed_families_allow_destructive_rollback'; Tables = @('comm_event', 'data_session', 'app_usage', 'plate_sighting', 'subscriber_registration', 'subscriber_identity', 'layout_versions') },
   @{ Id = '013'; Name = '013_reference_tables'; Gate = 'app.reference_tables_allow_destructive_rollback'; Tables = @('cell_site', 'camera_site', 'device_tac', 'ip_range_reference') },
   @{ Id = '014'; Name = '014_entity_relationship_layer'; Gate = 'app.entity_layer_allow_destructive_rollback'; Tables = @('derivation', 'entity', 'entity_mention', 'relationship', 'relationship_evidence', 'ip_assignment') },
-  @{ Id = '015'; Name = '015_vectors_and_earth'; Gate = 'app.vectors_allow_destructive_rollback'; Tables = @('content_embedding') }
+  @{ Id = '015'; Name = '015_vectors_and_earth'; Gate = 'app.vectors_allow_destructive_rollback'; Tables = @('content_embedding') },
+  # 016 only adds a view: its rollback drops the view and no data, so it has no gate.
+  @{ Id = '016'; Name = '016_effective_records'; Gate = ''; Tables = @(); Views = @('records_effective_cdr') }
 )
 # The helper scripts of migrations 008 to 011 as ops/<migration>/<name>.sql. They used to sit at the top level of the folder,
 # where the Docker entrypoint ran them on every fresh database.
@@ -282,7 +284,7 @@ try {
         $r = Invoke-Psql "ops/$($m.Name)/verify.sql" -Target $fresh -Root $InitDir
         Assert-Contains $r.Output "migration_$($m.Id)_verified" "$($m.Id) verify after the fresh initialisation"
       }
-      Write-Host "      the entrypoint ran $($ran.Count) top-level files in name order; verify scripts of 008 to 015 pass in the database it built"
+      Write-Host "      the entrypoint ran $($ran.Count) top-level files in name order; verify scripts of 008 to 016 pass in the database it built"
     } finally {
       $leftover = Remove-ThrowawayContainer $fresh
       $script:FreshContainer = $null
@@ -312,7 +314,7 @@ try {
   foreach ($file in $BaseMigrations) {
     Step "base migration $file" { [void](Invoke-Psql $file) }
   }
-  Step 'runtime role grants (before 012 to 015)' { [void](Invoke-Psql 'runtime_role.grants.sql') }
+  Step 'runtime role grants (before 012 to 016)' { [void](Invoke-Psql 'runtime_role.grants.sql') }
   Step 'existing 010 verify passes before the new migrations' { [void](Invoke-Psql 'ops/010_runtime_rls_policies/verify.sql') }
 
   $digestBefore = Get-CatalogDigest
@@ -331,7 +333,7 @@ try {
   foreach ($m in $Typed) {
     Step "$($m.Id) apply a second time (idempotent)" { [void](Invoke-Psql "$($m.Name).sql") }
   }
-  Step 'runtime role grants again, after 012 to 015' { [void](Invoke-Psql 'runtime_role.grants.sql') }
+  Step 'runtime role grants again, after 012 to 016' { [void](Invoke-Psql 'runtime_role.grants.sql') }
   foreach ($m in $Typed) {
     Step "$($m.Id) verify after re-run and grants" { $r = Invoke-Psql "ops/$($m.Name)/verify.sql"; Assert-Contains $r.Output "migration_$($m.Id)_verified" "$($m.Id) verify" }
     Step "$($m.Id) smoke with the runtime role present" { $r = Invoke-Psql "ops/$($m.Name)/smoke.sql"; Assert-Contains $r.Output "migration_$($m.Id)_smoke_passed" "$($m.Id) smoke" }
@@ -391,6 +393,16 @@ try {
   [array]::Reverse($reverse)
   foreach ($m in $reverse) {
     $dir = "ops/$($m.Name)"
+    if (-not $m.Gate) {
+      Step "$($m.Id) rollback (drops the view only; no gate)" {
+        [void](Invoke-Psql "$dir/rollback.sql")
+        foreach ($v in $m.Views) {
+          $present = Invoke-Scalar "SELECT to_regclass('forensic.$v') IS NOT NULL"
+          if ($present -ne 'f') { throw "forensic.$v still exists after the $($m.Id) rollback" }
+        }
+      }
+      continue
+    }
     Step "$($m.Id) rollback refuses without its gate" {
       $r = Invoke-Psql "$dir/rollback.sql" -AllowFailure
       if ($r.Exit -eq 0) { throw "$($m.Id) rollback ran without the gate setting" }
@@ -413,8 +425,15 @@ try {
     Assert-Contains $r.Output 'roll back migrations 015, 014 and 013 before 012' '012 ordering guard'
   }
 
-  # Re-apply everything from the rolled-back state (014 and 013 and 012 were just re-created; add 015).
-  Step '015 re-apply and full verify of 012 to 015 from the rolled-back state' {
+  Step 'the 012 rollback refuses while the effective call-record view exists' {
+    [void](Invoke-Psql '016_effective_records.sql')
+    $r = Invoke-Psql 'ops/012_typed_families/rollback.sql' -AllowFailure -Before @("SET app.typed_families_allow_destructive_rollback = 'true'")
+    if ($r.Exit -eq 0) { throw 'the 012 rollback ran while the effective view was present' }
+    Assert-Contains $r.Output 'roll back migration 016 before 012' '012 ordering guard for 016'
+  }
+
+  # Re-apply everything from the rolled-back state (014 and 013 and 012 were just re-created, 016 was just applied again; add 015).
+  Step '015 re-apply and full verify of 012 to 016 from the rolled-back state' {
     [void](Invoke-Psql '015_vectors_and_earth.sql')
     [void](Invoke-Psql 'runtime_role.grants.sql')
     foreach ($m in $Typed) {

@@ -281,7 +281,7 @@ New tables, all with `tenant_id`, `collection_id`, row-level security, lineage (
 1. Add the new tables and extensions in a numbered migration with preflight, verify and rollback scripts, following the pattern of `008_phase3_evidence_control_plane.sql` with its helper scripts in `ops/008_phase3_evidence_control_plane/` (helper scripts never sit at the top level, where a fresh database would run them).
 2. Make the worker dual-write the old and new shapes.
 3. Backfill from `forensic.records` JSON and `cdr_records`; reconcile with SQL (row counts, distinct counts, hashes) before anything reads the new tables.
-4. Switch one family's semantic-layer views to the typed table, re-run that family's factory set and the corpus; the lane's gates must hold or the family stays on the old view.
+4. Switch one family's semantic-layer views to the typed table, re-run that family's factory set and the corpus; the lane's gates must hold or the family stays on the old view. *First slice built 2026-10-14 for call records, lane only, switch off and migration 016 not applied: `docs/data/typed-family-switch.md`.*
 5. Retire the JSON-backed view for a family only after two weeks of parity. Keep the old table for rollback until then.
 
 ---
