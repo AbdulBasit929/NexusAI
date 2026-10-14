@@ -2,50 +2,91 @@
   {
     "id": "top-contacts",
     "question": "Who does 923000000101 talk to most? Give the five people with the most events.",
-    "views": ["v_contact_pairs"],
+    "views": [
+      "v_contact_pairs"
+    ],
     "shape": "ranked",
     "sql": "SELECT dst AS label, events AS value FROM v_contact_pairs WHERE src = '923000000101' AND NOT is_service ORDER BY events DESC LIMIT 5"
   },
   {
     "id": "common-contacts",
     "question": "Who do 923000000101 and 923000000102 both contact, leaving out services and numbers that everyone contacts?",
-    "views": ["v_contact_pairs"],
+    "views": [
+      "v_contact_pairs"
+    ],
     "shape": "table",
     "sql": "SELECT x.dst AS number, x.events AS events_first, y.events AS events_second FROM v_contact_pairs x JOIN v_contact_pairs y ON y.dst = x.dst WHERE x.src = '923000000101' AND y.src = '923000000102' AND NOT x.is_service AND NOT x.is_hub AND x.dst NOT IN ('923000000101', '923000000102') ORDER BY x.events + y.events DESC LIMIT 50"
   },
   {
     "id": "connection-path",
     "question": "How are 923000000101 and 923000000102 connected within three hops, not through services or hubs?",
-    "views": ["v_contact_pairs"],
+    "views": [
+      "v_contact_pairs"
+    ],
     "shape": "graph",
     "sql": "WITH RECURSIVE walk AS (SELECT src, dst, 1 AS depth, ARRAY[src, dst] AS path FROM v_contact_pairs WHERE src = '923000000101' AND NOT is_service AND NOT is_hub UNION ALL SELECT w.src, e.dst, w.depth + 1, w.path || e.dst FROM walk w JOIN v_contact_pairs e ON e.src = w.dst WHERE w.depth < 3 AND NOT e.dst = ANY (w.path) AND NOT e.is_service AND NOT e.is_hub), found AS (SELECT path FROM walk WHERE dst = '923000000102' ORDER BY depth LIMIT 10) SELECT DISTINCT f.path[i] AS src, f.path[i + 1] AS dst FROM found f, generate_series(1, cardinality(f.path) - 1) AS i LIMIT 200"
   },
   {
     "id": "cells-used",
     "question": "Which cell sites did 923000000101 use most between 2026-03-01 and 2026-03-08 (local time)?",
-    "views": ["v_cell_visits"],
+    "views": [
+      "v_cell_visits"
+    ],
     "shape": "map",
     "sql": "SELECT cell_key, site_name, lat, lon, radius_m, sum(events) AS visits FROM v_cell_visits WHERE src = '923000000101' AND hour_utc >= '2026-03-01 00:00:00+05' AND hour_utc < '2026-03-08 00:00:00+05' GROUP BY cell_key, site_name, lat, lon, radius_m ORDER BY visits DESC LIMIT 20"
   },
   {
     "id": "address-holder",
     "question": "Who held the public address 203.0.113.7 on port 40000 at 2026-03-04 10:15 (local time)?",
-    "views": ["v_data_sessions"],
+    "views": [
+      "v_data_sessions"
+    ],
     "shape": "table",
     "sql": "SELECT DISTINCT src FROM v_data_sessions WHERE public_ip = '203.0.113.7'::inet AND 40000 BETWEEN public_port_from AND public_port_to AND timestamp '2026-03-04 10:15:00' AT TIME ZONE 'Asia/Karachi' BETWEEN holds_from AND holds_to ORDER BY src LIMIT 20"
   },
   {
     "id": "device-changes",
     "question": "Did 923000000101 change phone or SIM? Show each handset and SIM with first and last seen.",
-    "views": ["v_device_pairings"],
+    "views": [
+      "v_device_pairings"
+    ],
     "shape": "table",
     "sql": "SELECT imei, imsi, events, first_seen, last_seen FROM v_device_pairings WHERE src = '923000000101' ORDER BY first_seen LIMIT 50"
   },
   {
     "id": "daily-activity",
     "question": "How many events per day did 923000000101 have in March 2026 (local time)?",
-    "views": ["v_comm_events"],
+    "views": [
+      "v_comm_events"
+    ],
     "shape": "series",
     "sql": "SELECT date_trunc('day', start_utc AT TIME ZONE 'Asia/Karachi') AS t, count(*) AS value FROM v_comm_events WHERE src = '923000000101' AND start_utc >= '2026-03-01 00:00:00+05' AND start_utc < '2026-04-01 00:00:00+05' GROUP BY 1 ORDER BY 1 LIMIT 400"
+  },
+  {
+    "id": "co-location",
+    "question": "Were 923000000101 and 923000000102 ever at the same cell in the same hour? Show where and when.",
+    "views": [
+      "v_cell_visits"
+    ],
+    "shape": "map",
+    "sql": "SELECT a.cell_key, a.site_name, a.lat, a.lon, a.radius_m, a.hour_utc, a.events AS events_first, b.events AS events_second FROM v_cell_visits a JOIN v_cell_visits b ON b.cell_key = a.cell_key AND b.hour_utc = a.hour_utc WHERE a.src = '923000000101' AND b.src = '923000000102' ORDER BY a.hour_utc LIMIT 200"
+  },
+  {
+    "id": "top-apps",
+    "question": "Which applications did 923000000101 use most in March 2026?",
+    "views": [
+      "v_app_usage"
+    ],
+    "shape": "ranked",
+    "sql": "SELECT app AS label, count(*) AS value FROM v_app_usage WHERE src = '923000000101' AND start_utc >= '2026-03-01 00:00:00+05' AND start_utc < '2026-04-01 00:00:00+05' GROUP BY app ORDER BY value DESC LIMIT 10"
+  },
+  {
+    "id": "data-by-host",
+    "question": "Which hosts did 923000000101 send the most data to in February 2026?",
+    "views": [
+      "v_data_sessions"
+    ],
+    "shape": "ranked",
+    "sql": "SELECT host AS label, sum(bytes_up) AS value FROM v_data_sessions WHERE src = '923000000101' AND start_utc >= '2026-02-01 00:00:00+05' AND start_utc < '2026-03-01 00:00:00+05' AND host IS NOT NULL GROUP BY host ORDER BY value DESC LIMIT 10"
   }
 ]

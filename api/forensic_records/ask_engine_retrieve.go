@@ -1,0 +1,393 @@
+package main
+
+import (
+	"math"
+	"regexp"
+	"sort"
+	"strings"
+)
+
+// ASK ENGINE V2: THE SHORTLIST AND EXAMPLE RETRIEVAL (roadmap 6.8.3).
+//
+// The prompt must stay short, because on the CPU laptop every token is latency, so the model is shown only the views the question needs and the one or two
+// verified examples closest to it. Both choices are made here by rules over the question's words, the kinds of identifier it contains and the catalogue's
+// own descriptions, with no embedding and no model call. The code records that an embedding shortlist once caused two live defects in this project, so
+// the rule is written first and measured against a labelled set (ask_engine_retrieval_cases.json); an embedding ranker is adopted only if it measurably
+// beats it, family by family.
+//
+// What this is not: a router that decides to answer or not. A weak signal returns the three best views and Confident=false, and the caller may ask the
+// user to clarify. The model can still abstain; the validator and checks still run on whatever it writes.
+
+// askStopwords are dropped from a question before matching. Words that carry intent ("most", "between", "both") are NOT stopwords.
+var askStopwords = map[string]bool{
+	"a": true, "an": true, "the": true, "of": true, "in": true, "on": true, "at": true, "to": true, "for": true, "by": true, "with": true, "and": true,
+	"or": true, "is": true, "are": true, "was": true, "were": true, "be": true, "been": true, "did": true, "do": true, "does": true, "has": true, "have": true,
+	"had": true, "it": true, "its": true, "this": true, "that": true, "these": true, "those": true, "from": true, "as": true, "me": true, "my": true,
+	"show": true, "list": true, "give": true, "tell": true, "what": true, "which": true, "who": true, "whom": true, "whose": true, "how": true,
+	"many": true, "much": true, "any": true, "ever": true, "please": true, "can": true, "you": true, "i": true, "they": true, "them": true, "their": true,
+	"there": true, "than": true, "january": true, "february": true, "march": true, "april": true, "may": true, "june": true, "july": true, "august": true,
+	"september": true, "october": true, "november": true, "december": true, "local": true, "time": true, "past": true, "since": true, "during": true, "then": true, "also": true, "all": true, "each": true, "per": true, "into": true, "out": true, "up": true, "about": true,
+}
+
+// askStem is a deliberately crude stemmer: enough to match call/calls/called/calling and site/sites/websites, not a language model. Lexicon words and
+// question words go through the same function, so what matters is that it is consistent.
+func askStem(w string) string {
+	for i := 0; i < 2; i++ { // twice, so that pairings and pairing meet
+		next := askStemOnce(w)
+		if next == w {
+			break
+		}
+		w = next
+	}
+	return w
+}
+
+func askStemOnce(w string) string {
+	rest := func(suffix string) bool { return strings.HasSuffix(w, suffix) && len(w)-len(suffix) >= 3 }
+	switch {
+	case rest("ies"):
+		return strings.TrimSuffix(w, "ies") + "y"
+	case rest("sses"), rest("xes"), rest("zes"), rest("ches"), rest("shes"):
+		return strings.TrimSuffix(w, "es")
+	case rest("ing"):
+		return strings.TrimSuffix(w, "ing")
+	case rest("ed"):
+		return strings.TrimSuffix(w, "ed")
+	case rest("s") && !strings.HasSuffix(w, "ss") && !strings.HasSuffix(w, "us") && !strings.HasSuffix(w, "is"):
+		return strings.TrimSuffix(w, "s")
+	}
+	return w
+}
+
+var (
+	askWordRE   = regexp.MustCompile(`[a-z]+`)
+	askIPv4RE   = regexp.MustCompile(`\b\d{1,3}(?:\.\d{1,3}){3}\b`)
+	askDateRE   = regexp.MustCompile(`\b\d{4}-\d{2}-\d{2}(?:[ t]\d{2}:\d{2}(?::\d{2})?)?\b`)
+	askDigitsRE = regexp.MustCompile(`\+?\d{9,15}`)
+	askCellRE   = regexp.MustCompile(`\b[0-9a-f]{3,6}:[0-9a-f]{1,6}:[0-9a-f]{1,10}\b`)
+)
+
+// askFeatures are the identifiers found in a question.
+type askFeatures struct {
+	Phones, IMEIs, IPs, Dates, Cells int
+}
+
+// askNormalise lowercases a question, replaces identifiers by placeholder words (so that examples with other numbers still match) and returns the
+// features found.
+func askNormalise(question string) (string, askFeatures) {
+	text := strings.ToLower(question)
+	var f askFeatures
+	text = askIPv4RE.ReplaceAllStringFunc(text, func(string) string { f.IPs++; return " ipaddr " })
+	text = askCellRE.ReplaceAllStringFunc(text, func(string) string { f.Cells++; return " cellkey " })
+	text = askDateRE.ReplaceAllStringFunc(text, func(string) string { f.Dates++; return " datevalue " })
+	text = askDigitsRE.ReplaceAllStringFunc(text, func(s string) string {
+		digits := strings.TrimPrefix(s, "+")
+		if len(digits) == 15 {
+			f.IMEIs++
+			return " imeinumber "
+		}
+		f.Phones++
+		return " phonenumber "
+	})
+	return text, f
+}
+
+// askQuestionTokens returns the stemmed, non-stop words of a normalised question.
+func askQuestionTokens(normalised string) []string {
+	var out []string
+	for _, w := range askWordRE.FindAllString(normalised, -1) {
+		if askStopwords[w] {
+			continue
+		}
+		out = append(out, askStem(w))
+	}
+	return out
+}
+
+// askLexicon maps each view to the words (stems) that point at it. It is curated, not generated, so that a native speaker can extend it per language the
+// way the semantic layer's synonyms are extended (roadmap 6.4). English only today; Urdu, Roman Urdu, Punjabi and Pashto lists are a later addition.
+var askLexicon = map[string][]string{
+	"v_contact_pairs": {"contact", "talk", "spoke", "speak", "phone", "text", "sms", "message", "common", "both", "mutual", "shared", "share", "connect",
+		"connection", "path", "link", "hop", "chain", "network", "acquainted", "associate", "frequent", "often", "service", "shortcode", "hub",
+		"everyone", "never", "back", "lead", "relationship", "between"},
+	"v_comm_events": {"call", "sms", "text", "message", "event", "duration", "long", "longest", "minute", "hour", "day", "daily", "night", "midnight", "week", "weekday",
+		"month", "date", "when", "incoming", "outgoing", "receive", "abroad", "international", "history", "conversation", "exchange", "activity", "texting"},
+	"v_cell_visits": {"cell", "tower", "site", "location", "where", "place", "visit", "area", "movement", "move", "travel", "near", "located", "colocation",
+		"meet", "same", "sleep", "anchor", "map", "simultaneously"},
+	"v_cells":           {"cell", "tower", "site", "coverage", "radius", "position", "latitude", "longitude", "operator", "operated", "cover", "km", "within"},
+	"v_device_pairings": {"handset", "imei", "imsi", "sim", "device", "swap", "swapped", "change", "new", "model", "phone", "card"},
+	"v_data_sessions": {"ip", "address", "port", "internet", "session", "browse", "website", "domain", "host", "server", "download", "upload", "byte", "traffic",
+		"nat", "held", "public", "data", "web", "subscriber"},
+	"v_app_usage": {"app", "application", "whatsapp", "facebook", "tiktok", "youtube", "social", "usage", "feature", "province", "city", "networking",
+		"lahore", "karachi", "peshawar", "quetta", "islamabad"},
+}
+
+// askJoinPartners lists the views that are usually wanted together: a question about a cell's name or position needs the cell list too.
+var askJoinPartners = map[string][]string{}
+
+// askShortlist is the views chosen for one question, best first, with the reasons that put each there.
+type askShortlist struct {
+	Views     []string
+	Scores    map[string]float64
+	Reasons   map[string][]string
+	Confident bool
+}
+
+const (
+	askShortlistMax       = 3
+	askShortlistRelative  = 0.45 // a view stays if it scores at least this share of the best one
+	askShortlistMinScore  = 1.5
+	askShortlistConfident = 2.5
+	askDescribedCap       = 0.9 // the most the words of a view's own description can add
+)
+
+// viewDocument is the words of one view's own description: its name, its description, its column names and their descriptions.
+func askViewTokens(v *askView) map[string]bool {
+	var b strings.Builder
+	b.WriteString(strings.ReplaceAll(v.Name, "_", " "))
+	b.WriteString(" ")
+	b.WriteString(v.Description)
+	for _, c := range v.Columns {
+		b.WriteString(" ")
+		b.WriteString(strings.ReplaceAll(c.Name, "_", " "))
+		b.WriteString(" ")
+		b.WriteString(c.Description)
+	}
+	out := map[string]bool{}
+	for _, t := range askQuestionTokens(strings.ToLower(b.String())) {
+		out[t] = true
+	}
+	return out
+}
+
+// Shortlist ranks the catalogue's views for a question. Three signals add up: the curated lexicon (weight 2 per distinct hit), the question's words found
+// in the view's own description and columns (inverse-frequency weighted, at most 1.5 each), and the kinds of identifier in the question (an address
+// points at internet sessions, a 15-digit number at devices, two phone numbers with a linking word at contact pairs).
+func (c *askCatalogue) Shortlist(question string, max int) askShortlist {
+	if max <= 0 {
+		max = askShortlistMax
+	}
+	normalised, features := askNormalise(question)
+	tokens := askQuestionTokens(normalised)
+	tokenSet := map[string]bool{}
+	for _, t := range tokens {
+		tokenSet[t] = true
+	}
+
+	docs := map[string]map[string]bool{}
+	frequency := map[string]int{}
+	for i := range c.Views {
+		doc := askViewTokens(&c.Views[i])
+		docs[c.Views[i].Name] = doc
+		for t := range doc {
+			frequency[t]++
+		}
+	}
+
+	scores := map[string]float64{}
+	reasons := map[string][]string{}
+	add := func(view string, points float64, why string) {
+		scores[view] += points
+		reasons[view] = append(reasons[view], why)
+	}
+	for _, v := range c.Views {
+		for _, word := range askLexicon[v.Name] {
+			if tokenSet[askStem(word)] {
+				add(v.Name, 2, "word: "+word)
+			}
+		}
+		// The words of a view's own description are a weak signal (generic words such as number and used are in most of them), so the sum is capped
+		// below the shortlist's minimum score: a description alone can order views but never select one among stronger ones.
+		described, why := 0.0, []string{}
+		for t := range tokenSet {
+			if docs[v.Name][t] {
+				idf := math.Log(1 + float64(len(c.Views))/float64(frequency[t]))
+				if idf > 1.5 {
+					idf = 1.5
+				}
+				described += idf * 0.6
+				why = append(why, t)
+			}
+		}
+		if described > askDescribedCap {
+			described = askDescribedCap
+		}
+		if described > 0 {
+			sort.Strings(why)
+			add(v.Name, described, "described: "+strings.Join(why, " "))
+		}
+	}
+	askApplyFeatures(c, features, tokenSet, add)
+
+	ranked := make([]string, 0, len(c.Views))
+	for _, v := range c.Views {
+		if scores[v.Name] > 0 {
+			ranked = append(ranked, v.Name)
+		}
+	}
+	sort.SliceStable(ranked, func(i, j int) bool {
+		if scores[ranked[i]] != scores[ranked[j]] {
+			return scores[ranked[i]] > scores[ranked[j]]
+		}
+		return ranked[i] < ranked[j]
+	})
+	out := askShortlist{Scores: scores, Reasons: reasons}
+	if len(ranked) == 0 {
+		return out
+	}
+	best := scores[ranked[0]]
+	out.Confident = best >= askShortlistConfident
+	for _, name := range ranked {
+		if len(out.Views) >= max {
+			break
+		}
+		if len(out.Views) > 0 && (scores[name] < askShortlistRelative*best || scores[name] < askShortlistMinScore) {
+			continue
+		}
+		out.Views = append(out.Views, name)
+	}
+	for _, name := range append([]string(nil), out.Views...) {
+		for _, partner := range askJoinPartners[name] {
+			if c.View(partner) != nil && !askContains(out.Views, partner) {
+				out.Views = append(out.Views, partner)
+			}
+		}
+	}
+	// A weak signal still gets an answer attempt, with the best three views, and says it is not confident.
+	if !out.Confident && len(out.Views) < askShortlistMax {
+		for _, name := range ranked {
+			if len(out.Views) >= askShortlistMax {
+				break
+			}
+			if !askContains(out.Views, name) {
+				out.Views = append(out.Views, name)
+			}
+		}
+	}
+	return out
+}
+
+// askApplyFeatures adds the points the kinds of identifier in a question give.
+func askApplyFeatures(c *askCatalogue, f askFeatures, tokens map[string]bool, add func(string, float64, string)) {
+	has := func(name string) bool { return c.View(name) != nil }
+	if f.IPs > 0 && has("v_data_sessions") {
+		add("v_data_sessions", 3, "an IP address is named")
+	}
+	if f.IMEIs > 0 && has("v_device_pairings") {
+		add("v_device_pairings", 3, "a 15-digit identifier is named")
+	}
+	if f.Cells > 0 && has("v_cells") {
+		add("v_cells", 2, "a cell key is named")
+	}
+	linking := false
+	for _, w := range []string{"between", "both", "common", "mutual", "connect", "link", "path", "chain", "acquainted", "lead"} {
+		if tokens[askStem(w)] {
+			linking = true
+		}
+	}
+	spatial := false
+	for _, w := range []string{"place", "cell", "tower", "location", "where", "area", "map", "site"} {
+		if tokens[askStem(w)] {
+			spatial = true
+		}
+	}
+	if f.Phones >= 2 && linking && !spatial && has("v_contact_pairs") {
+		add("v_contact_pairs", 2, "two numbers and a linking word")
+	}
+	if f.Phones >= 1 {
+		for _, name := range []string{"v_contact_pairs", "v_comm_events"} {
+			if has(name) {
+				add(name, 0.5, "a phone number is named")
+			}
+		}
+	}
+}
+
+func askContains(list []string, s string) bool {
+	for _, x := range list {
+		if x == s {
+			return true
+		}
+	}
+	return false
+}
+
+// askShapeCues maps words in a question to the kind of result it asks for. The cue only orders examples; it never constrains the query.
+var askShapeCues = map[string][]string{
+	"graph":  {"connect", "connection", "path", "link", "hop", "chain", "network", "acquainted", "lead"},
+	"map":    {"where", "map", "location", "moved", "movement", "place", "tower", "cell", "same", "meet", "sleep"},
+	"series": {"daily", "weekly", "monthly", "trend", "over", "weekday", "hourly", "perday"},
+	"ranked": {"most", "top", "often", "frequent", "rank", "biggest", "highest"},
+}
+
+// RetrieveExamples returns up to n verified examples for the question: those whose views are in the shortlist, ordered by how close their question is
+// (identifier-free words, weighted by rarity) plus a bonus when the question's cues match the example's result shape. An example whose views are not all
+// in the shortlist is never returned, because the model would be shown a view it was not offered.
+func askRetrieveExamples(question string, shortlist []string, examples []askExample, n int) []askExample {
+	if n <= 0 || len(examples) == 0 {
+		return nil
+	}
+	normalised, _ := askNormalise(question)
+	qTokens := map[string]bool{}
+	for _, t := range askQuestionTokens(normalised) {
+		qTokens[t] = true
+	}
+	exTokens := make([]map[string]bool, len(examples))
+	frequency := map[string]int{}
+	for i, e := range examples {
+		en, _ := askNormalise(e.Question)
+		exTokens[i] = map[string]bool{}
+		for _, t := range askQuestionTokens(en) {
+			exTokens[i][t] = true
+			frequency[t]++
+		}
+	}
+	type scored struct {
+		example askExample
+		score   float64
+	}
+	var all []scored
+	for i, e := range examples {
+		inside := true
+		for _, v := range e.Views {
+			if !askContains(shortlist, v) {
+				inside = false
+			}
+		}
+		if !inside {
+			continue
+		}
+		score := 0.0
+		for t := range qTokens {
+			if exTokens[i][t] {
+				score += math.Log(1 + float64(len(examples))/float64(frequency[t]))
+			}
+		}
+		for _, cue := range askShapeCues[e.Shape] {
+			if qTokens[askStem(cue)] {
+				score += 1.5
+				break
+			}
+		}
+		if len(shortlist) > 0 && len(e.Views) == 1 && e.Views[0] == shortlist[0] {
+			score += 0.5 // with no word in common, the example for the best view is still the closest
+		}
+		if score > 0 {
+			all = append(all, scored{e, score})
+		}
+	}
+	sort.SliceStable(all, func(i, j int) bool {
+		if all[i].score != all[j].score {
+			return all[i].score > all[j].score
+		}
+		return all[i].example.ID < all[j].example.ID
+	})
+	var out []askExample
+	for _, s := range all {
+		if len(out) >= n {
+			break
+		}
+		out = append(out, s.example)
+	}
+	return out
+}
