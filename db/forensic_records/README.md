@@ -158,7 +158,7 @@ evidence without a verified backup and explicit approval.
 
 The compose file mounts this folder read-only at `/docker-entrypoint-initdb.d`, and the PostgreSQL entrypoint runs **every
 top-level `*.sql`** there, in name order, when it initialises an empty data directory. The top level therefore holds only what a
-new database must run: the numbered migrations `001_*.sql` to `016_*.sql` and the two `runtime_role.*` files. Everything else
+new database must run: the numbered migrations `001_*.sql` to `017_*.sql` and the two `runtime_role.*` files. Everything else
 (preflight, verify, smoke, rollback, fixtures, one-off recovery tools) lives in `ops/<migration>/<name>.sql`, for example
 `ops/010_runtime_rls_policies/verify.sql` or `ops/009_phase3_queue_lifecycle/legacy_recovery.sql`. The entrypoint ignores
 sub-folders and this README; `optional/` holds drafts that nothing runs automatically.
@@ -289,3 +289,7 @@ types of `forensic.records`, serving per evidence item the typed rows (`comm_eve
 when `FORENSIC_TYPED_FAMILIES` lists the family. Design, evidence and the steps to turn it on: `docs/data/typed-family-switch.md`. Helper scripts in
 `ops/016_effective_records/` (`preflight.sql`, `verify.sql`, `smoke.sql`, `rollback.sql`); the rollback drops the view and nothing else, so it needs no gate, but
 migration 012's rollback refuses while the view exists. `ops/Test-MigrationsThrowaway.ps1` drives 016 like 012 to 015.
+
+## Analyst views and the read-only analyst role (migration 017) - DRAFT, not applied
+
+`017_analyst_views.sql` adds schema `analyst` with seven reviewed, thick, scoped views (`v_comm_events`, `v_contact_pairs`, `v_cells`, `v_cell_visits`, `v_device_pairings`, `v_data_sessions`, `v_app_usage`) and the NOLOGIN role `forensic_analyst_ro`, which can read those views and nothing else; `forensic_runtime` may `SET LOCAL ROLE` to it. Scope is in the views (settings `app.tenant_id`, `app.collection_id`; unset returns no rows). Changes no table, row or policy. Design, evidence and traps: `docs/data/analyst-views.md`. Helper scripts in `ops/017_analyst_views/` (`preflight.sql`, `verify.sql`, `rollback.sql`); the test is `tools/case_generator/test_analyst_views.py`. The repository's throwaway migration gate does not drive 017 yet.
