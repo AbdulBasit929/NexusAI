@@ -45,6 +45,8 @@ table.data th[aria-sort="ascending"]::after { content: " ▲"; font-size: 10px; 
 ul.jump { padding-inline-start: 18px; margin: 4px 0; } ul.jump li { margin: 3px 0; } ol.steps { padding-inline-start: 22px; } ol.steps li { margin: 5px 0; }
 hr { border: 0; border-top: 1px solid var(--line); margin: 14px 0; }
 .banner { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 6; background: #b45309; color: #fff; padding: 3px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; box-shadow: 0 1px 4px rgba(0,0,0,.35); white-space: nowrap; }
+.notice { position: absolute; top: 44px; left: 8px; z-index: 6; max-width: min(460px, calc(100% - 70px)); background: var(--warn-bg); color: var(--ink); border: 1px solid var(--candidate); padding: 6px 10px; border-radius: 8px; font-size: 12.5px; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+.notice[hidden] { display: none; }
 .timebar { position: absolute; left: 10px; right: 56px; bottom: 28px; z-index: 6; display: flex; align-items: center; gap: 10px; padding: 6px 10px; background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--line); border-radius: 8px; } .timebar input[type=range] { flex: 1; } .clock { font-variant-numeric: tabular-nums; min-width: 9.5em; }
 .pin { position: relative; transform: translate(-50%, -100%); } .pin span { display: inline-block; white-space: nowrap; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 5px; color: #fff; background: #1d4ed8; box-shadow: 0 1px 3px rgba(0,0,0,.4); }
 .pin.day span { background: #7c3aed; } .pin.later span { outline: 2px solid #fbbf24; } .pin.away span { background: #6b7280; } .pin.alert span { background: #dc2626; }

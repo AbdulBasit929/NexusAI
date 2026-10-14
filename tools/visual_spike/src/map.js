@@ -21,12 +21,15 @@ export function mountMapView(root, views, config) {
   const cells = new Map(views.map.cells.map(c => [c.key, c]));
   const movers = views.map.movers; const pairs = views.pairs;
   const origin = views.case.origin;
-  const st = { place: placer(origin, origin), placement: 'ocean', mover: movers[0]?.number || null, pair: 0, time: 1, playing: null, layers: { cells: true, dwell: true, trail: true, alerts: true, anchors: true, colocation: true }, operator: '', markers: [], popup: null, overlay: null, cur: null };
+  // With a basemap configured the case is first drawn over a Pakistani city: the basemap has no tiles in the open ocean where a generated case sits.
+  const firstPlace = config.tiles ? PLACEMENTS.find(p => p.id === 'islamabad') : origin;
+  const st = { place: placer(origin, firstPlace), placement: config.tiles ? 'islamabad' : 'ocean', mover: movers[0]?.number || null, pair: 0, time: 1, playing: null, layers: { cells: true, dwell: true, trail: true, alerts: true, anchors: true, colocation: true }, operator: '', markers: [], popup: null, overlay: null, cur: null };
 
   // ---- structure ----------------------------------------------------------------------------------------------------------------------
   const mapDiv = h('div', { id: 'map' });
   const status = h('span', { class: 'status' });
-  const placeSel = h('select', { 'aria-label': 'Where to draw this case', onchange: () => { st.placement = placeSel.value; const t = PLACEMENTS.find(p => p.id === st.placement); st.place = placer(origin, t); redrawAll(true); showMover(); } }, PLACEMENTS.map(p => h('option', { value: p.id }, p.label)));
+  const placeSel = h('select', { 'aria-label': 'Where to draw this case', onchange: () => { st.placement = placeSel.value; const t = PLACEMENTS.find(p => p.id === st.placement); st.place = placer(origin, t); redrawAll(true); showMover(); showBasemap(); } }, PLACEMENTS.map(p => h('option', { value: p.id }, p.label)));
+  placeSel.value = st.placement;
   const opSel = h('select', { 'aria-label': 'Operator', onchange: () => { st.operator = opSel.value; applyOperator(); } }, h('option', { value: '' }, 'All operators'), [...new Set(views.map.cells.map(c => c.operator))].sort().map(o => h('option', { value: o }, o)));
   const moverSel = h('select', { 'aria-label': 'Subject to follow', onchange: () => { st.mover = moverSel.value; st.time = 1; slider.value = 1000; followOperator(); redrawMover(true); showMover(); } }, movers.map(m => h('option', { value: m.number }, `${lbl(m.label, 'subject')} · ${m.operator}${m.changes.length ? ' · moved' : ''}${m.short_deviations.length ? ' · away a week' : ''}${m.speed_alerts.length ? ' · speed alert' : ''}`)));
   const pairSel = h('select', { 'aria-label': 'Pair of subjects', onchange: () => { st.pair = +pairSel.value; redrawColocation(); showMover(); } }, pairs.map((p, i) => h('option', { value: i }, `${lbl(p.labels[0], 'subject')} and ${lbl(p.labels[1], 'subject')}${p.meetings.length ? ' · possible meeting' : ''}`)));
@@ -46,17 +49,46 @@ export function mountMapView(root, views, config) {
   const timeBar = h('div', { class: 'timebar' }, playBtn, slider, clock, speedSel);
   const panel = h('aside', { class: 'panel', id: 'map-panel' });
   const banner = h('div', { class: 'banner', hidden: true });
-  root.append(toolbar, h('div', { class: 'split' }, h('div', { class: 'canvasbox' }, mapDiv, banner, timeBar), panel));
+  const notice = h('div', { class: 'notice', role: 'status', hidden: true });   // why the basemap is not showing; the map is never left blank without a reason
+  root.append(toolbar, h('div', { class: 'split' }, h('div', { class: 'canvasbox' }, mapDiv, banner, notice, timeBar), panel));
 
   // ---- map and basemap ----------------------------------------------------------------------------------------------------------------
   const sources = {}; const layers = [{ id: 'bg', type: 'background', paint: { 'background-color': dark ? '#141a22' : '#eef2f6' } }];
   if (config.tiles) { sources.base = config.tiles.tilejson ? { type: 'raster', url: config.tiles.tilejson, tileSize: config.tiles.tileSize, attribution: config.tiles.attribution } : { type: 'raster', tiles: [config.tiles.url], tileSize: config.tiles.tileSize, minzoom: config.tiles.minzoom, maxzoom: config.tiles.maxzoom, attribution: config.tiles.attribution }; layers.push({ id: 'base', type: 'raster', source: 'base', paint: { 'raster-opacity': 0.85, 'raster-saturation': -0.55, 'raster-brightness-max': dark ? 0.55 : 1 } }); }
-  const map = new maplibregl.Map({ container: mapDiv, style: { version: 8, sources, layers }, center: [origin.lon, origin.lat], zoom: 11, attributionControl: false, dragRotate: false, maxZoom: 19 });
+  const map = new maplibregl.Map({ container: mapDiv, style: { version: 8, sources, layers }, center: st.place(origin.lat, origin.lon), zoom: 11, attributionControl: false, dragRotate: false, maxZoom: 19 });
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right'); map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left'); map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
   window.__map = map; let tileErrors = 0;
-  map.on('error', e => { const msg = (e.error && e.error.message) || ''; if (config.tiles && e.sourceId === 'base') { tileErrors++; if (tileErrors === 3) status.replaceChildren(badge('basemap not reachable', 'warn', msg)); } });
+  // Basemap state. checking -> ok | down (the tile cache does not answer) | upstream (the cache answers, the shared server does not); off = nothing configured.
+  // A 404 is normal (a tile outside the set's coverage) and is not an outage.
+  let basemapState = config.tiles ? 'checking' : 'off';
+  const BASEMAP_TEXT = {
+    off: ['no basemap configured: plain background', 'warn', 'No basemap is configured, so the map shows a plain background. Start the tile cache and the spike together with "npm run dev:tiles" (see the README).'],
+    down: ['basemap not reachable', 'warn', 'The tile cache did not answer, so the map shows a plain background. Start it with "npm run dev:tiles" (see the README).'],
+    upstream: ['basemap server not reachable', 'warn', 'The tile cache is running but the shared tile server did not answer: only tiles that are already cached are shown.'],
+    outside: ['basemap covers Pakistan only', 'info', 'This case is drawn in the open ocean, where the Pakistan basemap has no tiles. Choose a demo place to see the basemap.'],
+    ok: ['offline basemap', 'good', config.tiles && config.tiles.tilejson ? 'Tiles come through the organisation tile cache' : 'Tiles come from the tile server named in the configuration'],
+  };
+  function showBasemap() {
+    const kind = basemapState === 'ok' && st.placement === 'ocean' ? 'outside' : basemapState;
+    const t = BASEMAP_TEXT[kind];
+    status.replaceChildren(t ? badge(t[0], t[1], t[2]) : badge('checking the basemap', 'info'));
+    notice.hidden = !t || kind === 'ok'; notice.textContent = t && kind !== 'ok' ? t[2] : '';
+  }
+  map.on('error', e => {
+    if (!config.tiles || e.sourceId !== 'base') return;
+    const code = e.error && e.error.status; if (code === 404) return;
+    tileErrors++; if (tileErrors >= 3 && basemapState === 'ok') { basemapState = code >= 500 ? 'upstream' : 'down'; showBasemap(); }
+  });
+  if (config.tiles && config.tiles.tilejson) {   // ask for the TileJSON once, so that a stopped cache is reported at once and not after the first failed tiles
+    const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), 4000);
+    fetch(config.tiles.tilejson, { signal: ctl.signal, cache: 'no-store' })
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(j => { if (!j || !j.tiles || !j.tiles.length) throw new Error('no tile address'); basemapState = 'ok'; })
+      .catch(() => { basemapState = 'down'; })
+      .finally(() => { clearTimeout(timer); showBasemap(); });
+  } else if (config.tiles) basemapState = 'ok';
   function applyBasemap() { if (!map.getLayer('base')) return; const v = dim.value / 100; map.setPaintProperty('base', 'raster-opacity', Math.max(0.05, v)); map.setPaintProperty('base', 'raster-brightness-max', dark ? 0.35 + 0.65 * v : 1); }
-  status.replaceChildren(config.tiles ? badge('offline basemap', 'good', config.tiles.tilejson ? 'Tiles come through the organisation tile cache' : 'Tiles come from the tile server named in the configuration') : badge('no basemap configured: neutral grid', 'warn'));
+  showBasemap();
 
   // ---- data for the layers (all coordinates go through st.place) ------------------------------------------------------------------------
   const pt = (lat, lon) => st.place(lat, lon);

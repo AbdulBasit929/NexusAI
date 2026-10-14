@@ -3,3 +3,4 @@ node_modules/
 public/maplibre/
 public/config.local.json
 public/views.json
+tiles.local.json

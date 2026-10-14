@@ -8,6 +8,7 @@
     "copy-worker": "node scripts/copy-worker.mjs",
     "predev": "npm run copy-worker",
     "dev": "vite",
+    "dev:tiles": "node scripts/dev-with-tiles.mjs",
     "prebuild": "npm run copy-worker",
     "build": "vite build",
     "preview": "vite preview"

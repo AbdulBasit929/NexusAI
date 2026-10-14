@@ -12,7 +12,9 @@ npm run dev                                                                     
 Offline basemap (optional): the organisation's tile service is reached **through our tile cache** (`tools/tilecache`, see `docs/data/offline-basemap-usage.md`),
 never directly from the browser. Start the cache (`go run ./tools/tilecache -upstream http://HOST:PORT/data -sets pakistan -listen 127.0.0.1:8099`), copy
 `config.example.json` to `public/config.local.json` (ignored by git), and the development and preview servers forward `/tiles` to it (`TILE_CACHE_URL`
-changes where). Without it the map shows a neutral grid. Never commit tiles or the address of the shared server.
+changes where). Without it the map shows a plain background and says why (a badge and a notice: no basemap configured, tile cache not reachable, shared server not reachable, or outside the basemap's coverage). Never commit tiles or the address of the shared server.
+
+**One command:** `npm run dev:tiles` starts the tile cache and the development server together. Put the shared server's address in the environment (`TILE_UPSTREAM=http://HOST:PORT/data`) or in `tiles.local.json` (`{ "upstream": "http://HOST:PORT/data", "sets": "pakistan" }`, ignored by git, never served to a browser); the cache keeps its tiles in `%LOCALAPPDATA%\NexusAI\tilecache-data` (`TILE_CACHE_DIR` changes it). With a basemap configured the case is first drawn over Islamabad, because the Pakistan basemap has no tiles in the open ocean where a generated case sits.
 
 `?stress=3000` replaces the link chart's graph by a synthetic one of that many numbers, to see overview mode (groups of numbers). `node --test scripts/test-overview.mjs`
 tests the grouping; `node scripts/check-overview.mjs BASE_URL` checks it in the browser.
