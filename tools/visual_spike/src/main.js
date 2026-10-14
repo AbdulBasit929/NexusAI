@@ -75,6 +75,10 @@ registerSites(views.map.cells);
     views.graph = { nodes: sg.nodes.map(x => ({ ...x, label: 'x' + x.label, operator: ['ufone', 'zong', 'mobilink', 'telenor'][x.group % 4], events: 100, first: '2026-02-02 10:00:00', last: '2026-04-30 10:00:00' })), edges: sg.edges.map(e => ({ ...e, first: '2026-02-02 10:00:00', last: '2026-04-30 10:00:00', rows: [] })) };
   }
 }
-$('#case-info').textContent = `synthetic case (seed ${views.case.seed}) · ${views.case.subjects} subjects · ${views.case.days} days · generated, no real data`;
+{
+  const real = !!views.case.real; const other = real ? '?data=synthetic' : '?';
+  $('#case-info').textContent = real ? `REAL DATA supplied for testing · ${views.case.subjects} subjects · ${views.case.days} days · shown on this machine only · ` : `synthetic case (seed ${views.case.seed}) · ${views.case.subjects} subjects · ${views.case.days} days · generated, no real data · `;
+  $('#case-info').append(h('a', { href: other, style: 'margin-inline-start:6px' }, real ? 'show the generated case (every analysis)' : 'show the real data'));
+}
 mounted.add('link'); await mount('link');
 window.__app = { showTab, mount, get link() { return link; }, get mapView() { return mapView; }, get timelines() { return timelines; }, config };

@@ -1,6 +1,13 @@
 // Shared helpers: data loading, a seeded generator for stress data, labels (English and Urdu), colours read from the stylesheet.
+// The real data (served from outside the repository, see vite.config.js) is the default when it is there; ?data=synthetic shows the generated case with every analysis.
 export async function loadViews() {
-  return (await fetch('/views.json')).json();
+  if (new URLSearchParams(location.search).get('data') !== 'synthetic') {
+    try {
+      const r = await fetch('/views.real.json', { cache: 'no-store' });
+      if (r.ok && (r.headers.get('content-type') || '').includes('json')) { const v = await r.json(); v.dataset = 'real'; return v; }
+    } catch { /* no real data on this machine: the generated case is shown */ }
+  }
+  const v = await (await fetch('/views.json')).json(); v.dataset = 'synthetic'; return v;
 }
 
 export function rng(seed) {   // mulberry32: the same seed gives the same stress data every time

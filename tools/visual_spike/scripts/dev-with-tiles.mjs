@@ -1,6 +1,6 @@
 // Starts the tile cache (tools/tilecache) and the development server together, so the offline basemap is there when the map tab opens.
 // The address of the organisation's shared tile server is read from the environment (TILE_UPSTREAM) or from tiles.local.json (git-ignored, never served
-// to a browser); it is passed to the cache on its command line and is never written to a tracked file. Without an address only the development server
+// to a browser; "realViews" there names the real view data file in the vault, served at /views.real.json); it is passed to the cache on its command line and is never written to a tracked file. Without an address only the development server
 // starts and the map says so. Usage: npm run dev:tiles [-- --port 5199]
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync } from 'node:fs';
@@ -49,6 +49,6 @@ if (!upstream) {
 
 const copy = spawn(process.execPath, [join(here, 'copy-worker.mjs')], { cwd: spike, stdio: 'inherit' });
 await new Promise(r => copy.on('exit', r));
-const vite = spawn(process.execPath, [join(spike, 'node_modules', 'vite', 'bin', 'vite.js'), ...process.argv.slice(2)], { cwd: spike, stdio: 'inherit', env: { ...process.env, TILE_CACHE_URL: `http://${listen}` } });
+const vite = spawn(process.execPath, [join(spike, 'node_modules', 'vite', 'bin', 'vite.js'), ...process.argv.slice(2)], { cwd: spike, stdio: 'inherit', env: { ...process.env, TILE_CACHE_URL: `http://${listen}`, SPIKE_REAL_VIEWS: process.env.SPIKE_REAL_VIEWS || local.realViews || '' } });
 children.push(vite);
 vite.on('exit', code => { stop(); process.exit(code ?? 0); });

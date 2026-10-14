@@ -21,19 +21,22 @@ export function mountMapView(root, views, config) {
   const cells = new Map(views.map.cells.map(c => [c.key, c]));
   const movers = views.map.movers; const pairs = views.pairs;
   const origin = views.case.origin;
+  const dumpList = views.map.dumps || [];   // tower dumps (A6): the cells a dump covers and the numbers seen at them
+  const real = !!views.case.real;   // real positions are drawn where they are: no demo placement, no synthetic banner
+  const placements = real ? [{ id: 'recorded', label: 'Real positions (as recorded)', lat: origin.lat, lon: origin.lon }] : PLACEMENTS;
   // With a basemap configured the case is first drawn over a Pakistani city: the basemap has no tiles in the open ocean where a generated case sits.
-  const firstPlace = config.tiles ? PLACEMENTS.find(p => p.id === 'islamabad') : origin;
-  const st = { place: placer(origin, firstPlace), placement: config.tiles ? 'islamabad' : 'ocean', mover: movers[0]?.number || null, pair: 0, time: 1, playing: null, layers: { cells: true, dwell: true, trail: true, alerts: true, anchors: true, colocation: true }, operator: '', markers: [], popup: null, overlay: null, cur: null };
+  const firstPlace = real ? placements[0] : config.tiles ? PLACEMENTS.find(p => p.id === 'islamabad') : origin;
+  const st = { place: placer(origin, firstPlace), placement: real ? 'recorded' : config.tiles ? 'islamabad' : 'ocean', mover: movers[0]?.number || null, pair: 0, time: 1, playing: null, layers: { cells: true, dwell: true, trail: true, alerts: true, anchors: true, colocation: true, dumps: true }, operator: '', markers: [], popup: null, overlay: null, cur: null };
 
   // ---- structure ----------------------------------------------------------------------------------------------------------------------
   const mapDiv = h('div', { id: 'map' });
   const status = h('span', { class: 'status' });
-  const placeSel = h('select', { 'aria-label': 'Where to draw this case', onchange: () => { st.placement = placeSel.value; const t = PLACEMENTS.find(p => p.id === st.placement); st.place = placer(origin, t); redrawAll(true); showMover(); showBasemap(); } }, PLACEMENTS.map(p => h('option', { value: p.id }, p.label)));
+  const placeSel = h('select', { 'aria-label': 'Where to draw this case', onchange: () => { st.placement = placeSel.value; const t = placements.find(p => p.id === st.placement); st.place = placer(origin, t); redrawAll(true); showMover(); showBasemap(); } }, placements.map(p => h('option', { value: p.id }, p.label)));
   placeSel.value = st.placement;
   const opSel = h('select', { 'aria-label': 'Operator', onchange: () => { st.operator = opSel.value; applyOperator(); } }, h('option', { value: '' }, 'All operators'), [...new Set(views.map.cells.map(c => c.operator))].sort().map(o => h('option', { value: o }, o)));
   const moverSel = h('select', { 'aria-label': 'Subject to follow', onchange: () => { st.mover = moverSel.value; st.time = 1; slider.value = 1000; followOperator(); redrawMover(true); showMover(); } }, movers.map(m => h('option', { value: m.number }, `${lbl(m.label, 'subject')} · ${m.operator}${m.changes.length ? ' · moved' : ''}${m.short_deviations.length ? ' · away a week' : ''}${m.speed_alerts.length ? ' · speed alert' : ''}`)));
   const pairSel = h('select', { 'aria-label': 'Pair of subjects', onchange: () => { st.pair = +pairSel.value; redrawColocation(); showMover(); } }, pairs.map((p, i) => h('option', { value: i }, `${lbl(p.labels[0], 'subject')} and ${lbl(p.labels[1], 'subject')}${p.meetings.length ? ' · possible meeting' : ''}`)));
-  const layerBox = Object.entries({ cells: 'Cell sites', colocation: 'Co-location', trail: 'Movement trail', dwell: 'Time spent', alerts: 'Speed alerts', anchors: 'Sleep and work places' }).map(([k, text]) => h('label', { class: 'tog' }, h('input', { type: 'checkbox', checked: true, onchange: e => { st.layers[k] = e.target.checked; applyLayerVisibility(); } }), ' ', text));
+  const layerBox = Object.entries({ ...(dumpList.length ? { dumps: 'Tower dump cells' } : {}), cells: 'Cell sites', colocation: 'Co-location', trail: 'Movement trail', dwell: 'Time spent', alerts: 'Speed alerts', anchors: 'Sleep and work places' }).map(([k, text]) => h('label', { class: 'tog' }, h('input', { type: 'checkbox', checked: true, onchange: e => { st.layers[k] = e.target.checked; applyLayerVisibility(); } }), ' ', text));
   const dim = h('input', { type: 'range', min: 0, max: 100, value: dark ? 45 : 85, 'aria-label': 'Basemap strength', oninput: () => applyBasemap() });
   const toolbar = h('div', { class: 'toolbar' },
     h('div', { class: 'group' }, h('span', { class: 'gl' }, 'Place'), placeSel, status),
@@ -122,6 +125,9 @@ export function mountMapView(root, views, config) {
     map.addLayer({ id: 'trail', type: 'line', source: 'trail', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': ['case', ['==', ['get', 'latest'], 1], '#10b981', '#047857'], 'line-width': ['interpolate', ['linear'], ['get', 'n'], 1, 1.5, 20, 4, 200, 8], 'line-opacity': ['case', ['==', ['get', 'latest'], 1], 1, 0.7] } });
     map.addLayer({ id: 'dots', type: 'circle', source: 'dots', paint: { 'circle-radius': 4, 'circle-color': '#047857', 'circle-opacity': ['*', 0.9, ['get', 'age']], 'circle-stroke-color': '#fff', 'circle-stroke-width': 0.6 } });
     map.addLayer({ id: 'alerts', type: 'line', source: 'alerts', paint: { 'line-color': '#dc2626', 'line-width': 4 } });
+    map.addSource('dumps', { type: 'geojson', data: dumpFeatures() });
+    map.addLayer({ id: 'dumps', type: 'circle', source: 'dumps', paint: { 'circle-radius': ['interpolate', ['linear'], ['sqrt', ['get', 'numbers']], 0, 3, 6, 9, 30, 22], 'circle-color': '#7c3aed', 'circle-opacity': 0.35, 'circle-stroke-color': '#7c3aed', 'circle-stroke-width': 1 } });
+    map.on('click', 'dumps', ev => { const p = ev.features[0].properties; popup(ev.lngLat, `<strong>Tower dump cell</strong><br>${p.numbers} numbers, ${p.events} events<br><em>${esc(p.dump)}</em>`); });
     map.on('click', 'cell-fill', ev => { const k = ev.features[0].properties.key; const c = cells.get(k); const m = mover(); const n = m && m.visits[k]; popup(ev.lngLat, `<strong>Cell site ${esc(siteName(k))}</strong> <span style="color:#667">(…${esc(shortCell(k))})</span><br>${esc(c.operator)}<br>Drawn with an assumed radius of ${c.radius_m} m: a site, not the position of a person.${n ? `<br>${esc(lbl(m.label, 'subject'))} used it in ${plural(n, 'event')}.` : ''}`); });
     map.on('click', 'alerts', ev => { const p = ev.features[0].properties; popup(ev.lngLat, `<strong>Speed alert</strong><br>${p.km} km in ${p.gap} s = ${p.kmh} km/h<br>${esc(fmtDT(p.when))}<br><em>Consecutive events at two cell sites; a cell site is not a position.</em>`); });
     for (const l of ['cell-fill', 'alerts']) { map.on('mouseenter', l, () => { map.getCanvas().style.cursor = 'pointer'; }); map.on('mouseleave', l, () => { map.getCanvas().style.cursor = ''; }); }
@@ -132,7 +138,7 @@ export function mountMapView(root, views, config) {
   // ---- drawing ------------------------------------------------------------------------------------------------------------------------
   function clearMarkers() { st.markers.forEach(m => m.remove()); st.markers = []; }
   function pin(lonlat, text, cls, anchor = 'bottom', offset = [0, -12]) { const el = h('div', { class: 'pin ' + cls }, h('span', {}, text)); const m = new maplibregl.Marker({ element: el, anchor, offset }).setLngLat(lonlat).addTo(map); st.markers.push(m); return m; }
-  function redrawAll(refit) { if (!map.getSource('cells')) return; map.getSource('cells').setData(cellFeatures()); map.getSource('centres').setData(centreFeatures()); redrawMover(false); redrawColocation(); applyOperator(); applyLayerVisibility(); if (refit) fit(); }
+  function redrawAll(refit) { if (!map.getSource('cells')) return; if (map.getSource('dumps')) map.getSource('dumps').setData(dumpFeatures()); map.getSource('cells').setData(cellFeatures()); map.getSource('centres').setData(centreFeatures()); redrawMover(false); redrawColocation(); applyOperator(); applyLayerVisibility(); if (refit) fit(); }
   function redrawMover(refit) { if (!map.getSource('dwell')) return; map.getSource('dwell').setData(dwellFeatures()); map.getSource('alerts').setData(alertFeatures()); redrawTrail(); drawAnchors(); applyLayerVisibility(); if (refit) fit(); }
   function redrawTrail() {
     const d = trailData(); map.getSource('trail').setData(d.line); map.getSource('dots').setData(d.dots);
@@ -145,7 +151,7 @@ export function mountMapView(root, views, config) {
   function applyLayerVisibility() {
     const vis = (id, on) => { if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none'); };
     vis('cell-fill', st.layers.cells); vis('cell-line', st.layers.cells); vis('centres', st.layers.cells); vis('colo-fill', st.layers.colocation); vis('colo-line', st.layers.colocation);
-    vis('trail', st.layers.trail); vis('dots', st.layers.trail); vis('dwell', st.layers.dwell); vis('alerts', st.layers.alerts);
+    vis('trail', st.layers.trail); vis('dots', st.layers.trail); vis('dwell', st.layers.dwell); vis('alerts', st.layers.alerts); vis('dumps', st.layers.dumps);
     st.markers.forEach(m => { m.getElement().style.display = st.layers.anchors ? '' : 'none'; }); if (st.cur) st.cur.getElement().style.display = st.layers.trail ? '' : 'none';
     timeBar.hidden = !(st.layers.trail && mover());
   }
@@ -167,7 +173,7 @@ export function mountMapView(root, views, config) {
   function setPanel(...kids) { panel.replaceChildren(...kids.filter(Boolean)); }
   function showMover() {
     const m = mover(); const sections = [];
-    banner.hidden = st.placement === 'ocean'; banner.textContent = st.placement === 'ocean' ? '' : 'SYNTHETIC CASE: the cell sites are fictional and only laid over this place for demonstration';
+    banner.hidden = !real && st.placement === 'ocean'; banner.textContent = real ? 'REAL DATA supplied for testing: shown on this machine only' : st.placement === 'ocean' ? '' : 'SYNTHETIC CASE: the cell sites are fictional and only laid over this place for demonstration';
     if (!m) { setPanel(h('h2', {}, 'No movement to show'), h('p', {}, 'No subject in this case has a change of sleeping place, a week away or a speed alert.'), colocationSection()); return; }
     const ch = m.changes[0]; const nights = m.anchors.night || [];
     sections.push(h('h2', {}, `Movement of ${lbl(m.label, 'subject')}`, ' ', badge(m.operator, 'op')),
@@ -180,7 +186,18 @@ export function mountMapView(root, views, config) {
     sections.push(h('h3', {}, 'Where the time was spent'), table(['Cell site', 'Events'], Object.entries(m.visits).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([k, n]) => ({ cells: [h('button', { class: 'linkish', title: shortCell(k), onclick: () => flyCell(k) }, siteName(k)), n], sort: [k, n] }))));
     setPanel(...sections, h('hr'), colocationSection());
   }
+  function dumpFeatures() { return fc(dumpList.flatMap(d => d.cells.map(c => { const [lo, la] = pt(c.lat, c.lon); return { type: 'Feature', properties: { dump: d.name, numbers: c.numbers, events: c.events }, geometry: { type: 'Point', coordinates: [lo, la] } }; }))); }
+  function dumpSection() {
+    if (!dumpList.length) return null;
+    return h('div', { class: 'colo' }, h('h3', {}, 'Tower dumps'),
+      help('How to read this', 'A tower dump lists every number a set of cells served in a time window. Purple circles are the dump cells, sized by how many different numbers they served. A number seen at two or more cells of one dump is a lead, not a finding.'),
+      ...dumpList.map(d => h('div', {}, h('p', { class: 'muted small' }, `${d.name}: ${d.cells_total ?? d.cells.length} cells (${d.cells.length} with a position on the map), ${d.numbers} numbers, ${d.events} events, ${d.at_two_or_more_total} seen at two or more cells`),
+        d.at_two_or_more.length ? table(['Number', 'Cells', 'Events'], d.at_two_or_more.map(n => ({ cells: [n.number, n.cells, n.events] }))) : null)));
+  }
   function colocationSection() {
+    const a = colocationOnly(), d = dumpSection(); return a || d ? h('div', {}, a, d) : null;
+  }
+  function colocationOnly() {
     const p = colo(); if (!p) return null;
     const meet = new Map(p.meetings.map(m => [m.start_local, m]));
     return h('div', { class: 'colo' },

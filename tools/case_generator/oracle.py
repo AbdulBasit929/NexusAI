@@ -206,7 +206,8 @@ def a8_device_history(visible_by_number):
     dual-SIM phone, or one phone shared), `sequential` when one stops before the other starts (a handset passed on)."""
     numbers, by_device = {}, {}
     for number in sorted(visible_by_number):
-        seen = sorted((r["start_local"], r.get("imsi"), imei14(r.get("imei"))) for r in visible_by_number[number] if r.get("imsi") or r.get("imei"))
+        seen = sorted(((r["start_local"], r.get("imsi"), imei14(r.get("imei"))) for r in visible_by_number[number] if r.get("imsi") or r.get("imei")),
+                      key=lambda x: (x[0], x[1] or "", x[2] or ""))   # real files leave either identifier empty
         runs = []
         for when, imsi, imei in seen:
             if runs and (runs[-1]["imsi"], runs[-1]["imei"]) == (imsi, imei):
