@@ -703,6 +703,29 @@ The engine is built on the available laptop, and its quality and speed are measu
 3. **Report:** per question shape, correct, abstained and wrong; p50 and p90 latency; repairs. The budgets of the gates are set from this baseline, not from a GPU assumption.
 4. **The GPU question is answered with numbers:** if a budget cannot be met on the laptop, or a bigger model is clearly needed for accuracy, the report says so and what a GPU would change; the owner then plans a GPU system for the future. Until then nothing depends on one.
 
+**First measurements on this laptop (2026-10-14).** The local model (Qwen3-4B-Instruct-2507, Q4_K_M, CPU, served by the existing LocalAI container) was given a schema catalogue of invented views and invented placeholder numbers (no case rows) and asked to write SQL in the lane's own strict JSON format, temperature 0. Streaming reported no token counts, so the figures are wall-clock; generation runs at roughly 5 tokens a second.
+
+| Case | Prompt | Total | First token | Result |
+|---|---|---|---|---|
+| First call after idle | 3 views | 82.7 s | not reported | Model load; no output captured. A cold start costs over a minute |
+| Join question (cells used last week) | 3 views | 36.6 s | 2.0 s | Valid SQL, but invented the dates (no clock in the prompt) and kept only the top cell |
+| Same question | 8 views | 44.4 s | 14.6 s | Valid SQL, used a base view and CURRENT_DATE; the larger catalogue adds about 12 s of prompt processing when the start is not cached |
+| A different question with the identical 8-view prompt start | 8 views | 4.6 s | 2.2 s | The server's prompt cache works: a repeated prompt start costs about 2 s. This answer was an abstention, which was wrong |
+| "Top five contacts" | 2 views plus a clock | 38.0 s | 4.3 s | Wrong: filtered on incoming calls only, and a SELECT DISTINCT with an ORDER BY on a column it did not select (an invalid statement). The checks and the repair loop are what would catch this |
+| "How are A and B connected within three hops" (recursive), no example | 2 views | 33.2 s | 6.2 s | Wrong: the anchor already required the destination, so the recursion never walked |
+| The same question with one **verified recursive example** in the prompt | 2 views plus an example | 54.0 s and 39.8 s (two pairs) | 15.6 s and 1.9 s | **Correct pattern both times**, including the depth bound, the cycle guard and the LIMIT, with the new numbers and hop limit |
+
+What this says, honestly:
+
+1. **It is feasible on the laptop, and slow.** One generation attempt is about 35 to 55 s, nearly all of it output tokens at about 5 a second. There is no room for a second attempt inside 60 s. At this speed the 15 s target of 6.8.10 cannot be met by prompt tuning alone.
+2. **Output length is the latency.** The lever is to make the SQL short: **thick views, thin SQL.** Reviewed views that already carry the joins, the exclusions (`is_service`, `is_hub`), the unit conversions and the pre-aggregates let a question be answered by a SELECT of about 60 tokens (roughly 12 s) instead of 200. This changes the design of 6.8.4: the views become richer, and the model's job is to choose and filter, not to rebuild the logic.
+3. **Verified examples are what make recursion work on a 4B model.** Without one it failed; with one it imitated correctly. Example retrieval (6.8.3) is therefore a core part of the engine, not an extra, and the examples are the generator's reference recipes (7.2) turned into verified question and SQL pairs.
+4. **Unaided free SQL on ordinary shapes is not reliable on this model** (wrong direction filter, an invalid statement, invented dates). The case clock must be in the prompt, and the validator, the obligation checks and the repair loop are required, not optional.
+5. **The fixed prompt start must be exactly identical across questions** so the server's cache is reused (4.6 s against 44 s). The catalogue shortlist therefore goes after the fixed part, and the fixed part is never edited per question.
+6. **The GPU verdict for now: not a must for correctness, a must for comfort.** With thick views, retrieved examples, a compact shortlist and a warm model, the laptop can be tuned toward a typical question in the 15 to 25 s range and a recursive one near 40 s; a GPU would bring generation to a few seconds and make a larger model (and the 15 s target for every shape) possible. The decision is made after the thick views and the example retrieval exist and the engine's arms are measured on the laptop (6.8.13 item 3); this measurement is the baseline to beat.
+
+Scripts: the measurements were taken with throwaway scripts that sent only invented schema text; they are not part of the repository.
+
 #### 6.8.12 Risks, stated plainly
 
 1. A 4-billion-parameter model on the CPU may not write reliable multi-join or recursive SQL. Expect lower correctness than today's curated-view lane on hard shapes, and answers taking tens of seconds. *Revised 2026-10-14 (D21): the build starts on the laptop. The first measurements (6.8.13) decide whether link analysis is usable on the CPU; if not, the report says what a GPU would change and by how much, and the GPU becomes a planned future system, not a blocker.*
