@@ -21,3 +21,20 @@ tests the grouping; `node scripts/check-overview.mjs BASE_URL` checks it in the 
 
 `node scripts/measure.mjs URL OUT_DIR [--skip-bench]` drives an installed Chrome, exercises every view, writes screenshots and (without
 `--skip-bench`) the measurements. `node scripts/size.mjs` prints the size of each library. All data on screen is generated; the numbers are not real.
+
+## Targets, filters and SIM carriers (ready to lift into the workspace)
+
+Two files hold everything the views share, with no dependency on the rest of the spike except `ui.js` helpers, so that they can be moved into the workspace as they are (roadmap 7.8.5):
+
+| File | What it gives |
+|---|---|
+| `src/carriers.js` | The carrier registry (Jazz, Zong, Ufone, Telenor, SCOM, other): names, colours, IMSI network codes. `carrierFor({ number, imsi, operator })` finds the carrier from the SIM's own network code first, then from a file layout that names a carrier, then from the number's range (a ported number may differ, and the result says how it was found). `formatNumber` writes 923001234567 as 0300 1234567. `carrierIcon(id, px)` / `carrierIconUrl(id)` / `carrierLabel(id)` draw the badge. |
+| `src/filters.js` | `decorate(views)` adds the carrier to every number and puts the same number format in every view; `FilterState` keeps targets, carriers and period in the address (`?t=...&c=jazz,zong&from=2026-03-01&to=2026-03-31`, so a view can be shared or reopened); `filterViews(views, state)` is pure and returns the views for one set of filters; `mountFilterBar(...)` draws the bar (target picker with search, All, None and Top 5; carrier chips with counts; period with presets; Reset; Copy link; a line saying how much is shown). |
+
+What the filters mean: **Targets** are the subjects to look at (the link chart shows each target and the numbers in contact with it; the map and the timelines show the targets). **Carrier** keeps the subjects whose SIM is on the chosen carriers and, around them, the other numbers on those carriers. **Period** keeps a link when its first and last contact overlap the period and cuts the movement trail to it; shared-contact and successor links are computed on the whole record, so they are hidden while a period is chosen, and the bar says so.
+
+**Logos.** The badges are original placeholder marks (a rounded square and the carrier's initial in a colour near its brand colour), not the carriers' logos: a logo is a trademark and may not be fetched or shipped without a licence-ledger entry (roadmap P7). To use the official artwork, add one file per carrier as `public/carriers/<id>.svg` (or `.png`; ids `jazz`, `zong`, `ufone`, `telenor`, `scom`) once the entry exists. The spike uses the file when it is there and the placeholder otherwise; nothing is fetched from the network.
+
+**Numbers.** Real numbers are shown in full, written the way a person says them (0300 1234567), in every view; there are no short labels. Cell sites keep their short names (J-03, U-12), given on the whole case so that a filter does not rename them.
+
+`node scripts/check-filters.mjs BASE_URL [synthetic]` drives an installed Chrome through the targets, carriers and period filters, the empty state, the address round trip and the number format, and prints counts and true/false only (no numbers, no screenshots), so that it is safe to run on the real data. In the page, `window.__app.filters.set({ targets: [...], carriers: [...], from, to })` and `window.__app.views` show the same state.

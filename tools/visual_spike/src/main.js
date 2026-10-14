@@ -1,9 +1,12 @@
 import { loadViews, state, timed, rng } from './common.js';
 import { loadConfig } from './config.js';
 import { $, h, registerSites } from './ui.js';
+import { probeOfficialIcons } from './carriers.js';
+import { decorate, FilterState, filterViews, mountFilterBar } from './filters.js';
 
 const results = []; window.__spike = { results };
-let views, config, link = null, mapView = null, timelines = null; const mounted = new Set();
+let base, views, config, bar, link = null, mapView = null, timelines = null; const mounted = new Set();
+const filters = new FilterState();
 
 async function showTab(tab) {
   document.querySelectorAll('#tabs button').forEach(x => x.setAttribute('aria-selected', String(x.dataset.tab === tab)));
@@ -12,7 +15,16 @@ async function showTab(tab) {
   if (tab === 'map') mapView?.map.resize();
   if (tab === 'lanes') timelines?.resize();
 }
+const SHOWN = { link: 'the link chart', map: 'the map', lanes: 'the timelines' };
+function emptyState(root, tab) {
+  root.replaceChildren(h('div', { class: 'empty', role: 'status' }, h('h2', {}, 'Nothing matches these filters'), h('p', {}, `No subject is left to show in ${SHOWN[tab]}. Widen the targets, the carriers or the period.`), h('button', { onclick: () => filters.reset() }, 'Reset the filters')));
+}
 async function mount(tab) {
+  if (!views.graph.nodes.some(n => n.kind === 'subject') && SHOWN[tab]) {
+    if (tab === 'link') { link?.destroy(); link = null; }
+    if (tab === 'map') { mapView?.destroy(); mapView = null; }
+    emptyState($('#view-' + tab), tab); return;
+  }
   if (tab === 'link') { const { mountLinkView } = await import('./linkview.js'); link?.destroy(); link = mountLinkView($('#view-link'), views); }
   if (tab === 'map') { const { mountMapView } = await import('./map.js'); mapView?.destroy(); mapView = mountMapView($('#view-map'), views, config); }
   if (tab === 'lanes') { const { mountTimelines } = await import('./timelines.js'); timelines = mountTimelines($('#view-lanes'), views); }
@@ -34,6 +46,7 @@ function stressPositions(nodes) {
   return pos;
 }
 async function runAll() {
+  if (filters.active) filters.reset();   // the measurements are for the whole case
   const { mountCytoscape, mountCytoscapeWebgl, mountSigma, layout, measureGraph, stressGraph } = await import('./libs.js');
   $('#results tbody').replaceChildren(); results.length = 0; const status = $('#run-status'); const bench = $('#bench');
   bench.style.cssText = 'width:900px;height:600px;position:relative'; bench.setAttribute('aria-hidden', 'false');
@@ -66,19 +79,38 @@ async function runAll() {
 $('#run-all').onclick = runAll;
 
 config = await loadConfig();
-views = await loadViews();
-registerSites(views.map.cells);
+const raw = await loadViews();
 { // ?stress=N replaces the link chart's graph by a synthetic one of N numbers, to see overview mode (never real data)
   const n = +(new URLSearchParams(location.search).get('stress') || 0);
   if (n > 0) {
     const { stressGraph } = await import('./layout.js'); const sg = stressGraph(n, 3);
-    views.graph = { nodes: sg.nodes.map(x => ({ ...x, label: 'x' + x.label, operator: ['ufone', 'zong', 'mobilink', 'telenor'][x.group % 4], events: 100, first: '2026-02-02 10:00:00', last: '2026-04-30 10:00:00' })), edges: sg.edges.map(e => ({ ...e, first: '2026-02-02 10:00:00', last: '2026-04-30 10:00:00', rows: [] })) };
+    raw.graph = { nodes: sg.nodes.map(x => ({ ...x, label: 'x' + x.label, operator: ['ufone', 'zong', 'mobilink', 'telenor'][x.group % 4], events: 100, first: '2026-02-02 10:00:00', last: '2026-04-30 10:00:00' })), edges: sg.edges.map(e => ({ ...e, first: '2026-02-02 10:00:00', last: '2026-04-30 10:00:00', rows: [] })) };
   }
 }
+await probeOfficialIcons();
+base = decorate(raw);
+views = filterViews(base, filters);
+registerSites(base.map.cells);   // site names (J-03, U-12) are given on the whole case, so that they do not change when a filter does
 {
-  const real = !!views.case.real; const other = real ? '?data=synthetic' : '?';
-  $('#case-info').textContent = real ? `REAL DATA supplied for testing · ${views.case.subjects} subjects · ${views.case.days} days · shown on this machine only · ` : `synthetic case (seed ${views.case.seed}) · ${views.case.subjects} subjects · ${views.case.days} days · generated, no real data · `;
-  $('#case-info').append(h('a', { href: other, style: 'margin-inline-start:6px' }, real ? 'show the generated case (every analysis)' : 'show the real data'));
+  const real = !!base.case.real;
+  $('#case-info').textContent = real ? `REAL DATA supplied for testing · ${base.case.days} days · shown on this machine only` : `synthetic case (seed ${base.case.seed}) · ${base.case.days} days · generated, no real data`;
+  const seg = (text, href, on) => h('a', { href, role: 'button', 'aria-current': on ? 'true' : null }, text);
+  $('#dataset').replaceChildren(seg('Real data', '?', real), seg('Generated case', '?data=synthetic', !real));
+  if (!real && new URLSearchParams(location.search).get('data') !== 'synthetic') $('#case-info').append(' · no real data on this machine');
 }
+
+// A change of filter rebuilds the view on show and the shown one at once; the filter bar says what is left.
+const current = () => document.querySelector('#tabs [aria-selected="true"]').dataset.tab;
+bar = mountFilterBar($('#filterbar'), base, filters, () => (filters.from || filters.to ? 'shared-contact and successor links are hidden for a period (they are computed on the whole record)' : ''));
+let pending = 0;
+filters.on(async () => {
+  const mine = ++pending;
+  views = filterViews(base, filters);
+  bar.refresh(views);
+  const tab = current();
+  mounted.clear();
+  if (tab !== 'metrics') { mounted.add(tab); await mount(tab); if (mine !== pending) return; if (tab === 'map') mapView?.map.resize(); if (tab === 'lanes') timelines?.resize(); }
+});
+bar.refresh(views);
 mounted.add('link'); await mount('link');
-window.__app = { showTab, mount, get link() { return link; }, get mapView() { return mapView; }, get timelines() { return timelines; }, config };
+window.__app = { showTab, mount, filters, base, get views() { return views; }, get link() { return link; }, get mapView() { return mapView; }, get timelines() { return timelines; }, config };

@@ -5,7 +5,8 @@ import { CustomChart, ScatterChart, LineChart, HeatmapChart, LinesChart, BarChar
 import { GridComponent, DataZoomComponent, TooltipComponent, MarkAreaComponent, MarkLineComponent, VisualMapComponent, AriaComponent, LegendComponent, TitleComponent } from 'echarts/components';
 import { CanvasRenderer, SVGRenderer } from 'echarts/renderers';
 import { label as lbl, state } from './common.js';
-import { h, badge, chip, help, table, download, fmtDT, plural, colourOf, siteName } from './ui.js';
+import { h, badge, chip, help, table, download, fmtDT, plural, colourOf, siteName, carrierName } from './ui.js';
+import { carrierOfImsi } from './carriers.js';
 
 echarts.use([CustomChart, ScatterChart, LineChart, HeatmapChart, LinesChart, BarChart, GridComponent, DataZoomComponent, TooltipComponent, MarkAreaComponent, MarkLineComponent, VisualMapComponent, AriaComponent, LegendComponent, TitleComponent, CanvasRenderer, SVGRenderer]);
 
@@ -61,7 +62,7 @@ function makeCard({ analysis, title, question, chips = [], note, noteKind = 'not
 function deviceCard(views) {
   const lanes = [...views.lanes.devices].sort((a, b) => b.changes.length - a.changes.length || a.label.localeCompare(b.label));
   const changed = lanes.filter(l => l.changes.length); const shared = views.lanes.shared_devices;
-  const names = lanes.map(l => `${lbl(l.label, 'subject')}  ${l.operator}`);
+  const names = lanes.map(l => `${lbl(l.label, 'subject')}  ${carrierName(l.operator)}`);
   const seenIn = new Map(); lanes.forEach(l => l.runs.forEach(r => { if (!seenIn.has(r.imei)) seenIn.set(r.imei, new Set()); seenIn.get(r.imei).add(l.label); }));
   const PALETTE = ['#e69f00', '#56b4e9', '#009e73', '#d55e00', '#cc79a7', '#0072b2', '#b8860b', '#9467bd', '#8c564b', '#17becf'];
   const interesting = [...new Set(lanes.flatMap(l => (l.runs.length > 1 ? l.runs.map(r => r.imei) : [])).concat([...seenIn].filter(([, s]) => s.size > 1).map(([k]) => k)))];
@@ -71,7 +72,7 @@ function deviceCard(views) {
     chips: [chip(changed.length, plural(changed.length, 'number') + ' changed SIM or handset', changed.length ? 'hot' : ''), chip(shared.length, plural(shared.length, 'handset') + ' under two numbers'), chip(lanes.length, 'numbers')],
     note: shared.length ? 'A handset under two numbers at the same time is usually a dual-SIM phone, not a swap. One passed on from one number to the next is a handover.' : null,
     helpText: ['One row per number. A bar is a stretch of time in which the SIM and the handset stayed the same; its colour is the handset. When the colour changes, so did the handset; the triangle marks the change and says what changed. A dashed line joins two numbers that used the same handset. Colours are only used for handsets that matter (one that changed, or one used under two numbers); a grey-blue bar is a handset that never changed.', 'Some operators write only the handset in their files and not the SIM, so a SIM change there cannot be seen.'],
-    tableFn: () => table(['Number', 'Operator', 'SIM', 'Handset', 'From', 'To'], lanes.flatMap(l => l.runs.map(r => ({ cells: [lbl(l.label, 'subject'), l.operator, r.imsi && r.imsi !== 'null' ? '…' + r.imsi : 'not in export', '…' + r.imei, fmtDT(r.first), fmtDT(r.last)], sort: [l.label, l.operator, r.imsi, r.imei, r.first, r.last] })))),
+    tableFn: () => table(['Number', 'Carrier', 'SIM', 'Handset', 'From', 'To'], lanes.flatMap(l => l.runs.map(r => ({ cells: [lbl(l.label, 'subject'), carrierName(l.operator), r.imsi && r.imsi !== 'null' ? (carrierOfImsi(r.imsi) ? carrierName(carrierOfImsi(r.imsi).id) + ' SIM · ' : '') + '…' + r.imsi : 'not in export', '…' + r.imei, fmtDT(r.first), fmtDT(r.last)], sort: [l.label, carrierName(l.operator), r.imsi, r.imei, r.first, r.last] })))),
     height: Math.max(300, 44 + lanes.length * 30),
     chart: () => {
       const runs = lanes.flatMap((l, i) => l.runs.map(r => ({ value: [i, T(r.first), T(r.last)], imsi: r.imsi, imei: r.imei, number: l.label })));

@@ -1,4 +1,5 @@
 // Small DOM helpers shared by the views: elements, badges, statistic chips, help boxes, tables, downloads.
+import { CARRIERS } from './carriers.js';
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
@@ -54,8 +55,10 @@ export const pct = x => (x == null ? '—' : (x * 100).toFixed(0) + '%');
 export const plural = (n, one, many) => `${n} ${n === 1 ? one : many || one + 's'}`;
 
 // Colours that stay apart in both themes and for colour-blind readers (Okabe-Ito based), by operator and by cell.
-export const OPERATOR_COLOURS = { ufone: '#0072B2', zong: '#009E73', mobilink: '#CC79A7', telenor: '#E69F00', company: '#CC79A7', 'strt-tm': '#009E73', other: '#7a8494' };
-export const OPERATOR_SHAPE = { ufone: 'U', zong: 'Z', mobilink: 'M', telenor: 'T', company: 'C', 'strt-tm': 'S', other: 'X' };
+// The views carry a carrier id (jazz, zong, ufone, telenor, scom, other) where they used to carry a file layout's name; the colours and letters come from the carrier registry.
+export const OPERATOR_COLOURS = Object.fromEntries(Object.values(CARRIERS).map(c => [c.id, c.colour]));
+export const OPERATOR_SHAPE = Object.fromEntries(Object.values(CARRIERS).map(c => [c.id, c.initial]));
+export const carrierName = id => (CARRIERS[id] || CARRIERS.other).name;
 export function hueOf(text) { let x = 0; for (const ch of String(text)) x = (x * 31 + ch.charCodeAt(0)) % 360; return x; }
 export const colourOf = text => `hsl(${hueOf(text)} 58% 50%)`;
 export const shortCell = key => String(key).split(':').slice(-1)[0];
