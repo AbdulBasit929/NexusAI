@@ -29,6 +29,7 @@ const typedFamiliesEnv = "FORENSIC_TYPED_FAMILIES"
 // typedEffectiveTables maps a family to the view that serves it. Nothing else may reach SQL.
 var typedEffectiveTables = map[string]string{
 	"communications_cdr": "forensic.records_effective_cdr",
+	"network_ipdr":       "forensic.records_effective_ipdr",
 }
 
 const typedViewRecheck = 30 * time.Second

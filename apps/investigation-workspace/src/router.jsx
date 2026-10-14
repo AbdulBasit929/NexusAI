@@ -15,6 +15,7 @@ const routeLoaders = {
   investigate: () => import('./pages/InvestigatePage.jsx'),
   timeline: () => import('./pages/TimelinePage.jsx'),
   activity: () => import('./pages/ActivityPage.jsx'),
+  data: () => import('./pages/DataPage.jsx'),
   globalActivity: () => import('./pages/GlobalActivityPage.jsx'),
   settings: () => import('./pages/SettingsPage.jsx'),
   typeProof: () => import('./pages/TypeProofPage.jsx'),
@@ -30,6 +31,7 @@ const EvidenceDetailPage = lazy(routeLoaders.evidenceDetail)
 const InvestigatePage = lazy(routeLoaders.investigate)
 const TimelinePage = lazy(routeLoaders.timeline)
 const ActivityPage = lazy(routeLoaders.activity)
+const DataPage = lazy(routeLoaders.data)
 const GlobalActivityPage = lazy(routeLoaders.globalActivity)
 const SettingsPage = lazy(routeLoaders.settings)
 const TypeProofPage = lazy(routeLoaders.typeProof)
@@ -70,6 +72,7 @@ export function WorkspaceRouter() {
           )} />
           <Route path="/cases/:id/timeline" element={<TimelinePage />} />
           <Route path="/cases/:id/activity" element={<ActivityPage />} />
+          <Route path="/cases/:id/data" element={<DataPage />} />
           <Route path="/design/type-proof" element={<TypeProofPage />} />
           <Route path="/design/route-states" element={<RouteStatesPage />} />
           <Route path="*" element={<Navigate replace to="/" />} />

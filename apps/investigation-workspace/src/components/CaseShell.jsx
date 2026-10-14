@@ -47,6 +47,8 @@ const caseLinks = [
   { label: 'Timeline', path: 'timeline', icon: 'timeline' },
   { label: 'Activity', path: 'activity', icon: 'activity' },
 ]
+// Cases with a local data inventory (public/runtime-config.js, dataInventoryCaseIds) get a Data tab.
+const dataCaseIds = () => globalThis.__INVESTIGATION_WORKSPACE_CONFIG__?.dataInventoryCaseIds || []
 const focusable = 'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
 const railPreferenceKey = 'nexusai.viewer.navigation-collapsed'
 
@@ -169,7 +171,7 @@ function CaseTabs({ caseId, badges }) {
   return (
     <nav className="case-tabs" aria-label="Case sections">
       <ul>
-        {caseLinks.map(item => {
+        {caseLinks.concat(dataCaseIds().includes(caseId) ? [{ label: 'Data', path: 'data', icon: 'evidence' }] : []).map(item => {
           const path = `/cases/${encodeURIComponent(caseId)}/${item.path}`
           const badge = badges[path]
           return (

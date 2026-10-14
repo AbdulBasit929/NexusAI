@@ -86,6 +86,21 @@ var _ = Describe("Typed families in the governed SQL lane", func() {
 		Expect(sql).NotTo(ContainSubstring("FROM forensic.records r"))
 	})
 
+	It("reads the internet records from their own effective view, and each family only when it is listed", func() {
+		GinkgoT().Setenv(typedFamiliesEnv, "network_ipdr")
+		built := views()
+		apply(built)
+		Expect(built).To(HaveKey("network_ipdr"))
+		Expect(built["network_ipdr"].binding.Table).To(Equal("forensic.records_effective_ipdr"))
+		Expect(cte(built["network_ipdr"])).To(ContainSubstring("FROM forensic.records_effective_ipdr r WHERE"))
+		Expect(built["communications_cdr"].binding.Table).To(Equal("forensic.records"), "listing one family does not switch another")
+		GinkgoT().Setenv(typedFamiliesEnv, "communications_cdr,network_ipdr")
+		both := views()
+		apply(both)
+		Expect(both["communications_cdr"].binding.Table).To(Equal("forensic.records_effective_cdr"))
+		Expect(both["network_ipdr"].binding.Table).To(Equal("forensic.records_effective_ipdr"))
+	})
+
 	It("accepts spaces, capitals and other names in the list, and ignores what it does not know", func() {
 		GinkgoT().Setenv(typedFamiliesEnv, " Communications_CDR , not_a_family ,, subscriber")
 		built := views()

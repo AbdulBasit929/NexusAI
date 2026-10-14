@@ -59,3 +59,15 @@ The first family is **call records** (`communications_cdr`, typed table `comm_ev
 - **The three demo CDR files match a draft tower-dump layout** (`geofence-c6-telenor`, score 0.94 on 15 of 16 columns). If they were ever backfilled they would become `tower_dump` rows and stay out of the call-record view, which is right only if they really are tower dumps. Whether they are is a question for whoever confirms layouts on real files (the registry's drafts are unconfirmed).
 - **Line numbers.** A file with lines above its header numbers its rows differently in version 1 and in the typed path; recording the header row in the typed row would remove the difference.
 - **Draft layouts.** All 13 are drafts; `FORENSIC_INGEST_V2_INCLUDE_DRAFT` is true. Before the typed rows decide answers on real data, each layout should be confirmed on a real file in the vault and promoted.
+
+## Applied on the live stack, 2026-10-14 (call records and internet records)
+
+On the owner's instruction to implement the private real-data demonstration collection (`nexusai-real-private-demo`) as well as possible, the switch was turned on for two families.
+
+- **Migration 016** applied to the live database (an additive view; preflight, apply, verify). One correction first: an evidence item whose typed rows are all tower-dump rows no longer falls back to its version-1 rows, because version 1 had read a tower dump as call records (634 tower rows were being counted as calls).
+- **Migration 018** (`018_effective_ipdr.sql`, `ops/018_effective_ipdr/`) applied: `forensic.records_effective_ipdr`, the same design for internet records (family `network_ipdr`). It was needed because version 1 stores most real internet-record layouts as `generic`, and "How many internet sessions are there?" answered 0 while the typed table held 14,969: a confident wrong answer.
+- **API:** a new image (`nexusai-forensic-records-api:latest`, built from the committed tree; rollback tags `before-typed-switch` = the previous image, `typed-switch-cdr-20261014`), recreated alone through the Run-Arms helpers with `docker-compose.forensic-records.typed-families.yaml` (default `communications_cdr,network_ipdr`). The only environment variable that differs from before is `FORENSIC_TYPED_FAMILIES`.
+- **Checked:** on the private collection every count equals the typed table (call records 21,371, night 1,016, incoming 14,272, distinct handsets 7, internet sessions 14,895, distinct domains 6, total volume 273,520,424); the demo case still answers 8,642 call records and 497 records for its address as before; `test_effective_cdr.py` (8) and `test_effective_ipdr.py` (7) pass, and so do the Go specs.
+- **Rollback:** recreate the API without the override file (or with the variable empty); drop the views with the two `rollback.sql` scripts. Nothing else changed.
+- **Still on version 1:** every other family, the typed compiler and the older path (a question the lane declines is answered from version 1's rows, which for this collection are mostly `generic`).
+

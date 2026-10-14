@@ -1,0 +1,11 @@
+# Typed family switch (docs/data/typed-family-switch.md): the question lane reads the call-record family from the typed tables through the effective view
+# (migration 016) instead of forensic.records. Needs migration 016 applied and an API image that contains api/forensic_records/typed_families.go. Add this file AFTER
+# docker-compose.forensic-records.yaml and recreate ONLY the API, through evaluation/question_factory/Run-Arms.ps1's helpers (never a bare `compose up`):
+#
+#   docker compose -p nexusai -f <main checkout>\docker-compose.forensic-records.yaml -f <this file> --env-file <env> up -d --no-deps --no-build --force-recreate forensic-records-api
+#
+# Rollback: recreate the API without this file (or with FORENSIC_TYPED_FAMILIES= empty). The lane then reads forensic.records again. Nothing in the database changes.
+services:
+  forensic-records-api:
+    environment:
+      FORENSIC_TYPED_FAMILIES: ${FORENSIC_TYPED_FAMILIES:-communications_cdr,network_ipdr}

@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { fileURLToPath, URL } from 'node:url'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 // DEV ONLY, and a fallback -- `process.env` still wins.
 //
@@ -54,8 +55,26 @@ function apiProxy() {
   }
 }
 
+
+// The data inventory of a case holds real values, so it lives in the vault, outside the repository. This dev server (127.0.0.1 only) serves it, and the CSV extracts next to it,
+// at /real-data/ and nowhere else; with no vault folder there is nothing to serve (docs/data/real-data-handling-policy.md, extension of 2026-10-14).
+const REAL_DATA_FILES = new Set(['inventory.json', 'files.csv', 'subscribers.csv', 'towers.csv', 'devices.csv', 'call_records.csv', 'tower_dump_rows.csv', 'internet_sessions.csv', 'app_usage.csv', 'numbers_seen.csv'])
+function realDataExports() {
+  const serve = server => server.middlewares.use('/real-data', (request, response) => {
+    const name = decodeURIComponent((request.url || '').split('?')[0].replace(/^\//, ''))
+    const dir = join(process.env.NEXUSAI_REAL_DATA_VAULT || 'C:\\NexusAI-RealDataVault', 'exports')
+    const file = join(dir, name)
+    if (!REAL_DATA_FILES.has(name) || !existsSync(file)) { response.statusCode = 404; response.end(); return }
+    response.setHeader('content-type', name.endsWith('.json') ? 'application/json' : 'text/csv; charset=utf-8')
+    response.setHeader('cache-control', 'no-store')
+    if (name.endsWith('.csv')) response.setHeader('content-disposition', `attachment; filename="${name}"`)
+    response.end(readFileSync(file))
+  })
+  return { name: 'real-data-exports', configureServer(server) { serve(server) }, configurePreviewServer(server) { serve(server) } }
+}
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [realDataExports(), react()],
   resolve: {
     alias: {
       '@semantic-layer': fileURLToPath(new URL('../../semantic_layer', import.meta.url)),

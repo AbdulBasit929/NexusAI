@@ -6,7 +6,8 @@
 -- row_hash, raw_payload, metadata, ingested_at, evidence_id). This view has exactly those columns and types, so the family's source is a table name:
 -- the Go side chooses between forensic.records and forensic.records_effective_cdr per family, behind a switch (FORENSIC_TYPED_FAMILIES, default empty).
 --
--- What a row is. For every evidence item, the typed rows if the item has any (dataset_kind 'target_cdr'), otherwise its rows in forensic.records
+-- What a row is. For every evidence item, the typed rows if the item has any (dataset_kind 'target_cdr'; an item whose typed rows are all tower dump rows contributes
+-- nothing, because version 1 may have read a tower dump as call records), otherwise its rows in forensic.records
 -- (record_type 'cdr'). So no backfill is needed to switch, an item is never counted twice, and writing typed rows for an old item changes its
 -- answers only from that moment.
 --
@@ -89,8 +90,7 @@ FROM forensic.records r
 WHERE r.record_type = 'cdr'
   AND NOT EXISTS (
     SELECT 1 FROM forensic.comm_event t
-    WHERE t.tenant_id = r.tenant_id AND t.collection_id = r.collection_id AND t.evidence_id = r.evidence_id
-      AND t.dataset_kind = 'target_cdr');
+    WHERE t.tenant_id = r.tenant_id AND t.collection_id = r.collection_id AND t.evidence_id = r.evidence_id);
 
 COMMENT ON VIEW forensic.records_effective_cdr IS
   'Call records as the question lane and the typed compiler read them: per evidence item the typed rows (forensic.comm_event, dataset_kind target_cdr, repeats excluded) if it has any, else its forensic.records rows. Same columns and types as forensic.records. security_invoker: the caller''s row-level security applies.';
