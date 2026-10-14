@@ -1,0 +1,451 @@
+{
+  "views": [
+    {
+      "name": "v_app_usage",
+      "description": "Application usage records per subscriber: application, category, feature, time, province and city.",
+      "columns": [
+        {
+          "name": "usage_id",
+          "type": "bigint",
+          "description": "Identifier of the usage row."
+        },
+        {
+          "name": "evidence_id",
+          "type": "uuid",
+          "description": "The evidence file the row came from."
+        },
+        {
+          "name": "src",
+          "type": "text",
+          "description": "The subscriber number."
+        },
+        {
+          "name": "imei",
+          "type": "text",
+          "description": "Handset identity, when recorded."
+        },
+        {
+          "name": "app_category",
+          "type": "text",
+          "description": "Category of the application."
+        },
+        {
+          "name": "app",
+          "type": "text",
+          "description": "Application name as classified by the provider."
+        },
+        {
+          "name": "app_feature",
+          "type": "text",
+          "description": "Feature of the application used (for example a call or a message), when recorded."
+        },
+        {
+          "name": "start_utc",
+          "type": "timestamp with time zone",
+          "description": "Start of the usage record, UTC."
+        },
+        {
+          "name": "end_utc",
+          "type": "timestamp with time zone",
+          "description": "End of the usage record, UTC."
+        },
+        {
+          "name": "province",
+          "type": "text",
+          "description": "Province, when recorded."
+        },
+        {
+          "name": "city",
+          "type": "text",
+          "description": "City, when recorded."
+        }
+      ]
+    },
+    {
+      "name": "v_cell_visits",
+      "description": "Per subscriber, cell and hour: the number of events, with the cell name, position and radius. For where a number was and when.",
+      "columns": [
+        {
+          "name": "src",
+          "type": "text",
+          "description": "The subscriber."
+        },
+        {
+          "name": "cell_key",
+          "type": "text",
+          "description": "The cell the events were served by."
+        },
+        {
+          "name": "hour_utc",
+          "type": "timestamp with time zone",
+          "description": "The hour (UTC) the events fall in."
+        },
+        {
+          "name": "events",
+          "type": "bigint",
+          "description": "Number of events of the subscriber on that cell in that hour."
+        },
+        {
+          "name": "site_name",
+          "type": "text",
+          "description": "Name of the cell site."
+        },
+        {
+          "name": "lat",
+          "type": "double precision",
+          "description": "Latitude of the site."
+        },
+        {
+          "name": "lon",
+          "type": "double precision",
+          "description": "Longitude of the site."
+        },
+        {
+          "name": "radius_m",
+          "type": "integer",
+          "description": "Stated coverage radius in metres."
+        }
+      ]
+    },
+    {
+      "name": "v_cells",
+      "description": "Cell sites known to the case: name, position and the stated coverage radius. A cell is not a position of a person; show the radius with any location claim.",
+      "columns": [
+        {
+          "name": "cell_key",
+          "type": "text",
+          "description": "Canonical cell key; joins to v_comm_events.cell_key and v_cell_visits.cell_key."
+        },
+        {
+          "name": "site_name",
+          "type": "text",
+          "description": "Name of the site, when known."
+        },
+        {
+          "name": "operator",
+          "type": "text",
+          "description": "Operator that runs the cell."
+        },
+        {
+          "name": "lat",
+          "type": "double precision",
+          "description": "Latitude of the site, degrees."
+        },
+        {
+          "name": "lon",
+          "type": "double precision",
+          "description": "Longitude of the site, degrees."
+        },
+        {
+          "name": "radius_m",
+          "type": "integer",
+          "description": "Stated coverage radius in metres. A phone is somewhere within roughly this distance, not at the point."
+        }
+      ]
+    },
+    {
+      "name": "v_comm_events",
+      "description": "Calls and SMS of the target call records, one row per event, repeats excluded, times in UTC. src is the subscriber whose records these are; dst is the other party.",
+      "columns": [
+        {
+          "name": "event_id",
+          "type": "bigint",
+          "description": "Identifier of the event row."
+        },
+        {
+          "name": "evidence_id",
+          "type": "uuid",
+          "description": "The evidence file the row came from; use it to cite the source."
+        },
+        {
+          "name": "source_row",
+          "type": "bigint",
+          "description": "Row number in the source file, counting from 0."
+        },
+        {
+          "name": "event_type",
+          "type": "text",
+          "description": "voice, sms, mms, data, ussd or other."
+        },
+        {
+          "name": "direction",
+          "type": "text",
+          "description": "outgoing, incoming, none or unknown, as the provider recorded it."
+        },
+        {
+          "name": "src",
+          "type": "text",
+          "description": "The subscriber number whose records these are (digits, normalised)."
+        },
+        {
+          "name": "dst",
+          "type": "text",
+          "description": "The other party: a normalised number, or a short code, sender name or service label as written. Null when the file gives no usable counterparty (a sentinel value, the subscriber itself)."
+        },
+        {
+          "name": "dst_kind",
+          "type": "text",
+          "description": "Class of the other party: person_like, international, short_code, sender_id, service_label or unknown."
+        },
+        {
+          "name": "dst_is_person_like",
+          "type": "boolean",
+          "description": "True when the other party is an ordinary or international number; false for short codes, sender names and services."
+        },
+        {
+          "name": "start_utc",
+          "type": "timestamp with time zone",
+          "description": "Start of the event as a UTC instant. The case clock is Asia/Karachi: convert with AT TIME ZONE 'Asia/Karachi' for local times."
+        },
+        {
+          "name": "end_utc",
+          "type": "timestamp with time zone",
+          "description": "End of the event as a UTC instant, when recorded."
+        },
+        {
+          "name": "duration_s",
+          "type": "integer",
+          "description": "Duration in seconds, when recorded."
+        },
+        {
+          "name": "imsi",
+          "type": "text",
+          "description": "SIM identity seen with the event, when recorded."
+        },
+        {
+          "name": "imei",
+          "type": "text",
+          "description": "Handset identity seen with the event, when recorded."
+        },
+        {
+          "name": "cell_key",
+          "type": "text",
+          "description": "Key of the serving cell, joins to v_cells.cell_key; null when the file gives no cell."
+        },
+        {
+          "name": "time_basis",
+          "type": "text",
+          "description": "How the source time zone is known: declared, assumed_by_profile, confirmed_by_analyst or explicit_offset."
+        },
+        {
+          "name": "source_tz",
+          "type": "text",
+          "description": "The time zone the source file was written in."
+        }
+      ]
+    },
+    {
+      "name": "v_contact_pairs",
+      "description": "One row per subscriber (src) and other party (dst): event counts by direction, total duration, first and last contact. Use is_service and is_hub to leave out short codes, sender names and numbers that everyone contacts.",
+      "columns": [
+        {
+          "name": "src",
+          "type": "text",
+          "description": "The subscriber whose records these are."
+        },
+        {
+          "name": "dst",
+          "type": "text",
+          "description": "The other party."
+        },
+        {
+          "name": "is_service",
+          "type": "boolean",
+          "description": "True when the other party is not an ordinary or international number: a short code, a sender name, a service label."
+        },
+        {
+          "name": "is_hub",
+          "type": "boolean",
+          "description": "True when the other party is in contact with more than the case's threshold of distinct subscribers (app.hub_threshold, 20 when unset): a number everyone contacts."
+        },
+        {
+          "name": "events",
+          "type": "bigint",
+          "description": "Number of events between the two."
+        },
+        {
+          "name": "outgoing",
+          "type": "bigint",
+          "description": "Events recorded as outgoing."
+        },
+        {
+          "name": "incoming",
+          "type": "bigint",
+          "description": "Events recorded as incoming."
+        },
+        {
+          "name": "unknown",
+          "type": "bigint",
+          "description": "Events whose direction is none or unknown."
+        },
+        {
+          "name": "total_duration_s",
+          "type": "bigint",
+          "description": "Sum of the durations in seconds over all events (null when none was recorded)."
+        },
+        {
+          "name": "first_seen",
+          "type": "timestamp with time zone",
+          "description": "Time of the first event, UTC."
+        },
+        {
+          "name": "last_seen",
+          "type": "timestamp with time zone",
+          "description": "Time of the last event, UTC."
+        }
+      ]
+    },
+    {
+      "name": "v_data_sessions",
+      "description": "Internet sessions: the subscriber, the public address and port range (for who held an address at a time), the server, the application and the volumes.",
+      "columns": [
+        {
+          "name": "session_id",
+          "type": "bigint",
+          "description": "Identifier of the session row."
+        },
+        {
+          "name": "evidence_id",
+          "type": "uuid",
+          "description": "The evidence file the row came from."
+        },
+        {
+          "name": "src",
+          "type": "text",
+          "description": "The subscriber number of the session."
+        },
+        {
+          "name": "imsi",
+          "type": "text",
+          "description": "SIM identity, when recorded."
+        },
+        {
+          "name": "imei",
+          "type": "text",
+          "description": "Handset identity, when recorded."
+        },
+        {
+          "name": "public_ip",
+          "type": "inet",
+          "description": "The public (translated) address the session used."
+        },
+        {
+          "name": "public_port_from",
+          "type": "integer",
+          "description": "First port of the public port block."
+        },
+        {
+          "name": "public_port_to",
+          "type": "integer",
+          "description": "Last port of the public port block (inclusive)."
+        },
+        {
+          "name": "ue_ip",
+          "type": "inet",
+          "description": "The private address of the device, when recorded."
+        },
+        {
+          "name": "server_ip",
+          "type": "inet",
+          "description": "The address of the server contacted."
+        },
+        {
+          "name": "server_port",
+          "type": "integer",
+          "description": "The port of the server contacted."
+        },
+        {
+          "name": "start_utc",
+          "type": "timestamp with time zone",
+          "description": "Session start, UTC."
+        },
+        {
+          "name": "end_utc",
+          "type": "timestamp with time zone",
+          "description": "Session end, UTC."
+        },
+        {
+          "name": "holds_from",
+          "type": "timestamp with time zone",
+          "description": "Start of the interval during which the public address and port block belonged to this subscriber (the translation start, else the session start)."
+        },
+        {
+          "name": "holds_to",
+          "type": "timestamp with time zone",
+          "description": "End of that interval (the translation end, else the session end, else the start). Both ends are inclusive."
+        },
+        {
+          "name": "app_category",
+          "type": "text",
+          "description": "Category of the application, as classified by the provider."
+        },
+        {
+          "name": "app",
+          "type": "text",
+          "description": "Application, as classified by the provider (a vendor label, not content)."
+        },
+        {
+          "name": "host",
+          "type": "text",
+          "description": "Host name contacted, when recorded."
+        },
+        {
+          "name": "bytes_up",
+          "type": "bigint",
+          "description": "Bytes sent."
+        },
+        {
+          "name": "bytes_down",
+          "type": "bigint",
+          "description": "Bytes received."
+        },
+        {
+          "name": "duration_ms",
+          "type": "bigint",
+          "description": "Duration in milliseconds, when recorded."
+        },
+        {
+          "name": "cell_key",
+          "type": "text",
+          "description": "Serving cell, when recorded."
+        }
+      ]
+    },
+    {
+      "name": "v_device_pairings",
+      "description": "Which handset (IMEI) and SIM (IMSI) a number was seen with, with first and last time. For device and SIM changes.",
+      "columns": [
+        {
+          "name": "src",
+          "type": "text",
+          "description": "The subscriber number."
+        },
+        {
+          "name": "imsi",
+          "type": "text",
+          "description": "SIM identity."
+        },
+        {
+          "name": "imei",
+          "type": "text",
+          "description": "Handset identity."
+        },
+        {
+          "name": "events",
+          "type": "bigint",
+          "description": "Number of events seen with this pairing."
+        },
+        {
+          "name": "first_seen",
+          "type": "timestamp with time zone",
+          "description": "First time the pairing was seen, UTC."
+        },
+        {
+          "name": "last_seen",
+          "type": "timestamp with time zone",
+          "description": "Last time the pairing was seen, UTC."
+        }
+      ]
+    }
+  ]
+}

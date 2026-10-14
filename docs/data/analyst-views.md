@@ -35,6 +35,7 @@ The views are **not** `security_invoker`: they read the tables as their owner, a
 BEGIN READ ONLY;
 SET LOCAL ROLE forensic_analyst_ro;
 SET LOCAL statement_timeout = '15s';
+SET LOCAL search_path = analyst, pg_catalog;   -- the model names views without a schema
 SELECT set_config('app.tenant_id', $1, true);
 SELECT set_config('app.collection_id', $2, true);
 SELECT set_config('app.hub_threshold', $3, true);
