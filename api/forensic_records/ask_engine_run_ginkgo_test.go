@@ -261,6 +261,7 @@ var _ = Describe("Ask engine run", func() {
 		savedExec    = askExec
 		savedProbeFn = askProbeFn
 		savedSink    = askAuditSink
+		savedCover   = askCoverageRead
 		audits       []map[string]any
 	)
 	BeforeEach(func() {
@@ -282,13 +283,17 @@ var _ = Describe("Ask engine run", func() {
 		askProbeFn = func(context.Context, *pgxpool.Pool, string, string, *askCatalogue, string, askLimits) ([]string, error) {
 			return nil, nil
 		}
+		askCoverageCache.entries = nil
+		askCoverageRead = func(context.Context, *pgxpool.Pool, string, string) (askCoverage, error) {
+			return askCoverage{Files: 3, Typed: 3, AnyComm: true, AnySession: true, AnyUsage: true}, nil
+		}
 		audits = nil
 		askAuditSink = func(_ context.Context, _ *pgxpool.Pool, req hybridQueryRequest, a AskAuditV2, f askFrame, digest string) {
 			audits = append(audits, askAuditDetails(req, a, f, digest))
 		}
 	})
 	AfterEach(func() {
-		askModel, askCatalogueLoader, askExec, askProbeFn, askAuditSink = savedModel, savedLoader, savedExec, savedProbeFn, savedSink
+		askModel, askCatalogueLoader, askExec, askProbeFn, askAuditSink, askCoverageRead = savedModel, savedLoader, savedExec, savedProbeFn, savedSink, savedCover
 	})
 
 	const q = "How many incoming SMS did 923000000101 receive?"
@@ -343,6 +348,31 @@ var _ = Describe("Ask engine run", func() {
 		Expect(askResultDigest(a)).To(Equal(askResultDigest(b)))
 		Expect(askResultDigest(a)).NotTo(Equal(askResultDigest(c)))
 		Expect(askResultDigest(nil)).To(Equal(""))
+	})
+
+	It("declines, before any model time, a case the typed tables cannot speak for: none typed, or only some of its files", func() {
+		script(reply(good))
+		for _, c := range []struct {
+			cover askCoverage
+			want  string
+		}{
+			{askCoverage{Files: 6}, "the case has no typed call records"},
+			{askCoverage{Files: 6, Typed: 3, AnyComm: true}, "only 3 of the case's 6 call and internet record files are in the typed tables"},
+		} {
+			askCoverageCache.entries = nil
+			cover := c.cover
+			askCoverageRead = func(context.Context, *pgxpool.Pool, string, string) (askCoverage, error) { return cover, nil }
+			_, audit := run(q)
+			Expect(audit.State).To(Equal("declined"))
+			Expect(audit.Reason).To(ContainSubstring("cannot speak for this case"))
+			Expect(audit.Reason).To(ContainSubstring(c.want))
+		}
+		Expect(prompts).To(BeEmpty())
+		Expect(execs).To(BeEmpty())
+		Expect(askCoverageGap(askCoverage{Files: 2, Typed: 1, AnySession: true}, []string{"v_data_sessions"})).To(ContainSubstring("1 of the case's 2 call and internet record files"))
+		Expect(askCoverageGap(askCoverage{}, []string{"v_app_usage"})).To(ContainSubstring("application-usage"))
+		Expect(askCoverageGap(askCoverage{}, []string{"v_cells"})).To(BeEmpty())
+		Expect(askCoverageGap(askCoverage{AnyComm: true, Files: 1, Typed: 1}, []string{"v_comm_events", "v_contact_pairs"})).To(BeEmpty())
 	})
 
 	It("shows the model the canonical number, the hints, the fixed rules first, and no case data", func() {

@@ -198,6 +198,45 @@ var _ = Describe("Ask engine executor on a case database", Ordered, func() {
 		Expect(other).To(BeEmpty(), "the probe is scoped like every other statement")
 	})
 
+	It("reads the coverage of a case: a fully typed case is covered, a case with a call-record file that has no typed rows, or no typed rows at all, is not", func() {
+		cover, err := askCoverageRead(ctx, pool, truth.Tenant, truth.CaseID)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(cover.AnyComm).To(BeTrue())
+		Expect(cover.Files).To(BeNumerically(">", 0))
+		Expect(cover.Typed).To(Equal(cover.Files))
+		Expect(askCoverageGap(cover, []string{"v_comm_events", "v_contact_pairs"})).To(BeEmpty())
+
+		// an older case: a call-record file, no typed row
+		tx, err := pool.Begin(ctx)
+		Expect(err).NotTo(HaveOccurred())
+		_, err = tx.Exec(ctx, "SELECT set_config('app.tenant_id', 'cov-tenant', true)")
+		Expect(err).NotTo(HaveOccurred())
+		_, err = tx.Exec(ctx, `INSERT INTO forensic.evidence_items (evidence_id, tenant_id, collection_id, case_id, user_id, original_filename, source_file, content_type, extension, size_bytes, sha256,
+modality, detected_type, classifier_confidence, processing_route, processing_status, raw_storage_ref, metadata) VALUES ('3a000000-0000-4000-8000-000000000001', 'cov-tenant', 'cov-old-case', 'SYNTHETIC-COV', 'u',
+'old.csv', 'old.csv', 'text/csv', 'csv', 1, repeat('c', 64), 'structured_records', 'cdr', 1, 'w', 'completed', 'immutable://cov/1', jsonb_build_object('request_id', 'r'))`)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(tx.Commit(ctx)).To(Succeed())
+		old, err := askCoverageRead(ctx, pool, "cov-tenant", "cov-old-case")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(old.Files).To(Equal(1))
+		Expect(old.Typed).To(Equal(0))
+		Expect(askCoverageGap(old, []string{"v_comm_events"})).To(Equal("the case has no typed call records"))
+		empty, err := askCoverageRead(ctx, pool, "cov-tenant", "nothing-here")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(askCoverageGap(empty, []string{"v_comm_events"})).NotTo(BeEmpty())
+		// the engine, asked about the older case, declines before the model is called
+		saved := askModel
+		defer func() { askModel = saved }()
+		called := false
+		askModel = func(context.Context, config, string, []govSQLTurn) (string, string) { called = true; return "", "NO" }
+		resp, audit := runAskEngineV2(ctx, config{SynthesisModel: "scripted"}, pool, hybridQueryRequest{TenantID: "cov-tenant", CollectionID: "cov-old-case", RequestClass: forensicrequest.GovernedAnalysis,
+			Query: "How many incoming SMS did 923000000101 receive?"}, time.Now())
+		Expect(resp).To(BeNil())
+		Expect(audit.State).To(Equal("declined"))
+		Expect(audit.Reason).To(ContainSubstring("cannot speak for this case"))
+		Expect(called).To(BeFalse())
+	})
+
 	It("reads a pair in both orientations, so that swapped roles can be told from a true zero", func() {
 		subject, other, events, _ := pair()
 		for _, ab := range [][2]string{{subject, other}, {other, subject}} {

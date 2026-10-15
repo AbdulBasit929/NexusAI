@@ -306,6 +306,14 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 	chosen := append([]string{}, short.Views...)
 	sort.Strings(chosen)
 	audit.Views = chosen
+	// The views read the typed tables only: a case that is not (fully) in them gets no answer from the engine (ask_engine_coverage.go).
+	coverage, err := askCoverageFor(ctx, db, req.TenantID, req.CollectionID)
+	if err != nil {
+		return decline("could not read the case's coverage of the typed tables")
+	}
+	if gap := askCoverageGap(coverage, chosen); gap != "" {
+		return decline("the analyst views cannot speak for this case: " + gap)
+	}
 	shown := askRetrieveExamples(frame.Question, chosen, examples, 2)
 	for _, e := range shown {
 		audit.Examples = append(audit.Examples, e.ID)
