@@ -27,9 +27,11 @@ function safeText(value) {
 // narrates them. They are the answer, or the stated reason for not answering, and must reach the analyst as written.
 // The vocabulary filter above is for the older paths, whose text can leak implementation words. Applied to the lane
 // it drops an answer about a "model" or a "route", and the reason an abstention gives ("unreviewed model observations").
-const LANE_POLICY = 'governed_sql_lane'
+// The Ask engine (api/forensic_records/ask_engine_run.go) builds its sentences on the server in the same way, from the result and the parse tree of the query, so it is held to the
+// same rule: its text reaches the analyst as written.
+const LANE_POLICIES = ['governed_sql_lane', 'ask_engine_v2']
 function fromLane(response) {
-  return response?.policy === LANE_POLICY
+  return LANE_POLICIES.includes(response?.policy)
 }
 function textOf(response, value) {
   return fromLane(response) ? text(value) : safeText(value)
@@ -43,10 +45,18 @@ function methodFor(response) {
   const derivation = response?.enterprise?.derivation
   const sql = text(derivation?.sql)
   if (!sql) return null
-  return { sql, checked: array(derivation?.conditions_checked).map(item => text(item)).filter(Boolean) }
+  // `steps` is the query restated in plain words by the server from the query's own parse tree (the Ask engine only); `shape` says what kind of result it is.
+  const method = { sql, checked: array(derivation?.conditions_checked).map(item => text(item)).filter(Boolean) }
+  const steps = array(derivation?.steps).map(item => text(item)).filter(Boolean)
+  if (steps.length > 0) method.steps = steps
+  const shape = text(response?.enterprise?.result_shape)
+  if (shape) method.shape = shape
+  return method
 }
 
 const LANE_METHOD = 'A model wrote one read-only query over this case’s records, and the server checked it against what you asked before running it. The model saw no case data and wrote none of the numbers: the database computed them.'
+
+const ENGINE_METHOD = 'A model wrote one read-only query over this case’s analyst views. The server checked that it applies everything you asked (every number, date, direction and limit) and ran it with no access to anything else. The model saw no case data and wrote none of the numbers: the database computed them.'
 
 // Every consumer of a presentation (the thread, the evidence panel, the result components) reads `result`, `citations`
 // and the lists without asking which state produced it. A state that carries no evidence, a failure or a clarification
@@ -322,7 +332,7 @@ export function presentInvestigationResponse(response, { caseId = response?.coll
     result: resultTable(response, catalog, caseId),
     citations,
     claimSegments: claimSegments(answer || (state === 'processing' ? 'The available evidence is still being prepared.' : 'No verified answer is available.'), response, citations),
-    derivation: state === 'unsupported' ? '' : method ? LANE_METHOD : derivationFor(response, catalog),
+    derivation: state === 'unsupported' ? '' : method ? (response?.policy === 'ask_engine_v2' ? ENGINE_METHOD : LANE_METHOD) : derivationFor(response, catalog),
     method,
     limitations: limitationsFor(response, state),
     followUps: followUpsFor(response),

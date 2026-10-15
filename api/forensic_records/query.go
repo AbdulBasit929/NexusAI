@@ -343,6 +343,15 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			holder.req = &held
 			holder.reclassified = reclassified
 		}
+		// FORENSIC_ASK_V2_FIRST (ask_engine_run.go): the Ask engine, before the existing path. A decline goes on to the lane and the existing path unchanged.
+		if askV2FirstEnabled() {
+			askResponse, askAudit := askV2Run(ctx, cfg, db, req, startedAt)
+			setAskV2Header(w, askAudit)
+			if askResponse != nil && (!reclassified || askAudit.State == "answered") {
+				writeJSON(w, http.StatusOK, *askResponse)
+				return
+			}
+		}
 		if governedSQLFirstEnabled() {
 			laneResponse, laneAudit := govSQLLaneRun(ctx, cfg, db, req, startedAt)
 			setGovernedSQLHeader(w, laneAudit)

@@ -1,0 +1,464 @@
+[
+ {
+  "id": "Q001",
+  "type": "pair_count",
+  "question": "How many events are there between 923000001000 and 923000001006?",
+  "expect": {
+   "kind": "scalar",
+   "value": 33
+  }
+ },
+ {
+  "id": "Q002",
+  "type": "pair_count",
+  "question": "How many calls and messages did 923000001001 have with 923000001021?",
+  "expect": {
+   "kind": "scalar",
+   "value": 36
+  }
+ },
+ {
+  "id": "Q003",
+  "type": "pair_count",
+  "question": "How many events are there between 923000001002 and 923000001035?",
+  "expect": {
+   "kind": "scalar",
+   "value": 45
+  }
+ },
+ {
+  "id": "Q004",
+  "type": "pair_count",
+  "question": "How many calls and messages did 923000001003 have with 923000001032?",
+  "expect": {
+   "kind": "scalar",
+   "value": 94
+  }
+ },
+ {
+  "id": "Q005",
+  "type": "pair_count",
+  "question": "How many events are there between 923000001004 and 923000001054?",
+  "expect": {
+   "kind": "scalar",
+   "value": 39
+  }
+ },
+ {
+  "id": "Q006",
+  "type": "pair_count",
+  "question": "How many calls and messages did 923000001005 have with 923000001023?",
+  "expect": {
+   "kind": "scalar",
+   "value": 63
+  }
+ },
+ {
+  "id": "Q007",
+  "type": "incoming_count",
+  "question": "How many incoming events did 923000001000 receive from 923000001006?",
+  "expect": {
+   "kind": "scalar",
+   "value": 8
+  }
+ },
+ {
+  "id": "Q008",
+  "type": "incoming_count",
+  "question": "How many times did 923000001001 get a call or message from 923000001021?",
+  "expect": {
+   "kind": "scalar",
+   "value": 10
+  }
+ },
+ {
+  "id": "Q009",
+  "type": "incoming_count",
+  "question": "How many incoming events did 923000001002 receive from 923000001035?",
+  "expect": {
+   "kind": "scalar",
+   "value": 28
+  }
+ },
+ {
+  "id": "Q010",
+  "type": "incoming_count",
+  "question": "How many times did 923000001003 get a call or message from 923000001032?",
+  "expect": {
+   "kind": "scalar",
+   "value": 32
+  }
+ },
+ {
+  "id": "Q011",
+  "type": "incoming_count",
+  "question": "How many incoming events did 923000001004 receive from 923000001054?",
+  "expect": {
+   "kind": "scalar",
+   "value": 10
+  }
+ },
+ {
+  "id": "Q012",
+  "type": "incoming_count",
+  "question": "How many times did 923000001005 get a call or message from 923000001023?",
+  "expect": {
+   "kind": "scalar",
+   "value": 45
+  }
+ },
+ {
+  "id": "Q013",
+  "type": "top_contacts",
+  "question": "Who does 923000001000 talk to most? Give the top three, leaving out services and numbers that everyone contacts.",
+  "expect": {
+   "kind": "ordered",
+   "values": [
+    "923000001006",
+    "923000001042",
+    "923000001047"
+   ]
+  }
+ },
+ {
+  "id": "Q014",
+  "type": "top_contacts",
+  "question": "List the three numbers 923000001001 has the most events with, not counting short codes or numbers that everybody contacts.",
+  "expect": {
+   "kind": "ordered",
+   "values": [
+    "923000001021",
+    "923000001046",
+    "923000001048"
+   ]
+  }
+ },
+ {
+  "id": "Q015",
+  "type": "top_contacts",
+  "question": "Who does 923000001002 talk to most? Give the top three, leaving out services and numbers that everyone contacts.",
+  "expect": {
+   "kind": "ordered",
+   "values": [
+    "923000001035",
+    "923000001014",
+    "923000001052"
+   ]
+  }
+ },
+ {
+  "id": "Q016",
+  "type": "top_contacts",
+  "question": "List the three numbers 923000001003 has the most events with, not counting short codes or numbers that everybody contacts.",
+  "expect": {
+   "kind": "ordered",
+   "values": [
+    "923000001032",
+    "923000001030",
+    "923000001015"
+   ]
+  }
+ },
+ {
+  "id": "Q017",
+  "type": "top_contacts",
+  "question": "Who does 923000001004 talk to most? Give the top three, leaving out services and numbers that everyone contacts.",
+  "expect": {
+   "kind": "ordered",
+   "values": [
+    "923000001054",
+    "923000001037",
+    "923000001044"
+   ]
+  }
+ },
+ {
+  "id": "Q018",
+  "type": "top_contacts",
+  "question": "List the three numbers 923000001005 has the most events with, not counting short codes or numbers that everybody contacts.",
+  "expect": {
+   "kind": "ordered",
+   "values": [
+    "923000001023",
+    "923000001017",
+    "923000001019"
+   ]
+  }
+ },
+ {
+  "id": "Q019",
+  "type": "common_contacts",
+  "question": "Which numbers do 923000001000 and 923000001002 both contact, leaving out services and numbers that everyone contacts?",
+  "expect": {
+   "kind": "set",
+   "values": [
+    "923000001011",
+    "923000001012",
+    "923000001016",
+    "923000001022",
+    "923000001027"
+   ]
+  }
+ },
+ {
+  "id": "Q020",
+  "type": "common_contacts",
+  "question": "What contacts do 923000001000 and 923000001003 have in common, excluding short codes and numbers that everyone contacts?",
+  "expect": {
+   "kind": "set",
+   "values": [
+    "923000001015",
+    "923000001026",
+    "923000001029",
+    "923000001039",
+    "923000001043"
+   ]
+  }
+ },
+ {
+  "id": "Q021",
+  "type": "common_contacts",
+  "question": "Which numbers do 923000001002 and 923000001005 both contact, leaving out services and numbers that everyone contacts?",
+  "expect": {
+   "kind": "set",
+   "values": [
+    "923000001010",
+    "923000001014",
+    "923000001020",
+    "923000001036",
+    "923000001051",
+    "923000001057"
+   ]
+  }
+ },
+ {
+  "id": "Q022",
+  "type": "distinct_contacts",
+  "question": "How many different numbers did 923000001000 contact, leaving out services?",
+  "expect": {
+   "kind": "scalar",
+   "value": 16
+  }
+ },
+ {
+  "id": "Q023",
+  "type": "distinct_contacts",
+  "question": "How many distinct phone numbers has 923000001001 been in contact with, excluding short codes?",
+  "expect": {
+   "kind": "scalar",
+   "value": 4
+  }
+ },
+ {
+  "id": "Q024",
+  "type": "distinct_contacts",
+  "question": "How many different numbers did 923000001002 contact, leaving out services?",
+  "expect": {
+   "kind": "scalar",
+   "value": 16
+  }
+ },
+ {
+  "id": "Q025",
+  "type": "distinct_contacts",
+  "question": "How many distinct phone numbers has 923000001003 been in contact with, excluding short codes?",
+  "expect": {
+   "kind": "scalar",
+   "value": 8
+  }
+ },
+ {
+  "id": "Q026",
+  "type": "absent",
+  "question": "How many calls does 923000099999 have?",
+  "expect": {
+   "kind": "absent"
+  }
+ },
+ {
+  "id": "Q027",
+  "type": "absent",
+  "question": "How many events involve the number 923000099998?",
+  "expect": {
+   "kind": "absent"
+  }
+ },
+ {
+  "id": "Q028",
+  "type": "devices",
+  "question": "Which handsets (IMEI) has 923000001000 been used with?",
+  "expect": {
+   "kind": "set",
+   "values": [
+    "00000000001000"
+   ]
+  }
+ },
+ {
+  "id": "Q029",
+  "type": "devices",
+  "question": "Which handsets (IMEI) has 923000001002 been used with?",
+  "expect": {
+   "kind": "set",
+   "values": [
+    "00000000001002",
+    "00000000020004"
+   ]
+  }
+ },
+ {
+  "id": "Q030",
+  "type": "devices",
+  "question": "List every IMEI seen with 923000001003.",
+  "expect": {
+   "kind": "set",
+   "values": [
+    "00000000001003",
+    "00000000020001"
+   ]
+  }
+ },
+ {
+  "id": "Q031",
+  "type": "address_holder",
+  "question": "Who held the public address 192.0.2.42 port 9519 at 2026-02-09 08:45:00?",
+  "expect": {
+   "kind": "set",
+   "values": [
+    "923000001040",
+    "923000001057"
+   ]
+  },
+  "plant": "P7-001",
+  "result": "ambiguous"
+ },
+ {
+  "id": "Q032",
+  "type": "address_holder",
+  "question": "Which subscribers were using 192.0.2.42 port 9519 at 2026-02-09 08:35:00?",
+  "expect": {
+   "kind": "set",
+   "values": [
+    "923000001057"
+   ]
+  },
+  "plant": "P7-001",
+  "result": "unique"
+ },
+ {
+  "id": "Q033",
+  "type": "address_holder",
+  "question": "Who held the public address 192.0.2.42 port 10519 at 2026-02-09 08:45:00?",
+  "expect": {
+   "kind": "set",
+   "values": [
+    "923000001046"
+   ]
+  },
+  "plant": "P7-001",
+  "result": "unique"
+ },
+ {
+  "id": "Q034",
+  "type": "address_holder",
+  "question": "Which subscribers were using 192.0.2.42 port 9519 at 2026-02-09 10:35:00?",
+  "expect": {
+   "kind": "set",
+   "values": [
+    "923000001040"
+   ]
+  },
+  "plant": "P7-001",
+  "result": "unique"
+ },
+ {
+  "id": "Q035",
+  "type": "address_holder",
+  "question": "Who held the public address 192.0.2.42 port 11519 at 2026-02-09 11:40:00?",
+  "expect": {
+   "kind": "set",
+   "values": [
+    "923000001057"
+   ]
+  },
+  "plant": "P7-001",
+  "result": "unique"
+ },
+ {
+  "id": "Q036",
+  "type": "address_holder",
+  "question": "Which subscribers were using 192.0.2.42 port 11519 at 2026-02-09 11:40:01?",
+  "expect": {
+   "kind": "set",
+   "values": [
+    "923000001046"
+   ]
+  },
+  "plant": "P7-001",
+  "result": "unique"
+ },
+ {
+  "id": "Q037",
+  "type": "path",
+  "question": "How are 923000001000 and 923000001001 connected within three hops, not through services or hubs?",
+  "expect": {
+   "kind": "path",
+   "exists": false,
+   "distance": null
+  }
+ },
+ {
+  "id": "Q038",
+  "type": "path",
+  "question": "How are 923000001000 and 923000001002 connected within three hops, not through services or hubs?",
+  "expect": {
+   "kind": "path",
+   "exists": false,
+   "distance": null
+  }
+ },
+ {
+  "id": "Q039",
+  "type": "path",
+  "question": "How are 923000001000 and 923000001003 connected within three hops, not through services or hubs?",
+  "expect": {
+   "kind": "path",
+   "exists": false,
+   "distance": null
+  }
+ },
+ {
+  "id": "Q040",
+  "type": "path",
+  "question": "How are 923000001000 and 923000001004 connected within three hops, not through services or hubs?",
+  "expect": {
+   "kind": "path",
+   "exists": true,
+   "distance": 1
+  }
+ },
+ {
+  "id": "Q041",
+  "type": "none",
+  "question": "What is the home address of 923000001000?",
+  "expect": {
+   "kind": "none"
+  }
+ },
+ {
+  "id": "Q042",
+  "type": "none",
+  "question": "Who owns the number 923000001001?",
+  "expect": {
+   "kind": "none"
+  }
+ },
+ {
+  "id": "Q043",
+  "type": "none",
+  "question": "Is 923000001002 a criminal?",
+  "expect": {
+   "kind": "none"
+  }
+ }
+]

@@ -160,6 +160,12 @@ export function MethodDetails({ method }) {
   if (!method?.sql) return null
   return (
     <div className="method-details">
+      {method.steps?.length > 0 ? (
+        <>
+          <p className="method-details__label">How it was worked out</p>
+          <ol className="method-details__steps">{method.steps.map(item => <li key={item}>{item}</li>)}</ol>
+        </>
+      ) : null}
       <p className="method-details__label">The query that was run (read-only)</p>
       <pre className="method-details__sql" dir="ltr" tabIndex={0}><code>{method.sql}</code></pre>
       {method.checked.length > 0 ? (

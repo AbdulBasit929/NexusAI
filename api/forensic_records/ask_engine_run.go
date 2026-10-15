@@ -1,0 +1,629 @@
+package main
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"regexp"
+	"sort"
+	"strings"
+	"sync"
+	"time"
+	"unicode/utf8"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/mudler/LocalAI/pkg/forensicrequest"
+	"github.com/mudler/LocalAI/pkg/httpclient"
+)
+
+// ASK ENGINE V2: THE RUN (roadmap 6.8.2).
+//
+// One question goes through: eligibility, the frame (ask_engine_frame.go), the shortlist and the retrieved examples (ask_engine_retrieve.go), the prompt
+// (ask_engine_catalogue.go), the model, the validator (ask_engine_validate.go), the obligations, the executor (ask_engine_exec.go), the checks on the result,
+// and the answer built from the result by code. The model writes one query and nothing else: it sees no case data, composes no sentence and computes no
+// number (the composition under the number lock is milestone M5).
+//
+// The switches (all default off; the engine changes nothing until one is on):
+//
+//	FORENSIC_ASK_V2=true         run the engine AFTER the existing path declines (and before the governed SQL lane when that is on): an answer the existing path
+//	                             gave is never replaced
+//	FORENSIC_ASK_V2_FIRST=true   run it BEFORE the existing path (what the measurement of the engine's own accuracy uses)
+//	FORENSIC_ASK_V2_AGREE=true   write two independent drafts and answer only when their results are equal (doubles the model time)
+//
+// A decline hands the question to the next path unchanged; an abstention is an answer ("not answered, and why") that the user sees. The engine abstains,
+// rather than declines, when it HAS a query but cannot show that the query answers THIS question, because the existing path would answer a different one.
+const (
+	askV2Env         = "FORENSIC_ASK_V2"
+	askV2FirstEnv    = "FORENSIC_ASK_V2_FIRST"
+	askV2AgreeEnv    = "FORENSIC_ASK_V2_AGREE"
+	askMaxTokens     = 480
+	askMaxAttempts   = 3 // the first draft and at most two repairs
+	askModelTimeout  = 240 * time.Second
+	askRepairBudget  = 170 * time.Second // no further repair is started after this much time: the laptop writes about five tokens a second
+	askCatalogueTTL  = 5 * time.Minute
+	askAnswerPolicy  = "ask_engine_v2"
+	askAnswerGround  = "ASK_ENGINE_V2"
+	askHeaderName    = "X-Ask-Engine-V2"
+	askHeadlineItems = 5
+)
+
+func askEnvTrue(name string) bool {
+	return strings.EqualFold(strings.TrimSpace(os.Getenv(name)), "true") //nolint:forbidigo // forensic records product API reads its feature switches from the environment by design (docker compose)
+}
+
+func askV2Enabled() bool      { return askEnvTrue(askV2Env) || askV2FirstEnabled() }
+func askV2FirstEnabled() bool { return askEnvTrue(askV2FirstEnv) }
+func askV2AgreeEnabled() bool { return askEnvTrue(askV2AgreeEnv) }
+
+// AskAuditV2 is what the engine records about a question it looked at: on the response, in the header and in the log. It holds no row of the case.
+type AskAuditV2 struct {
+	State       string   `json:"state"` // answered | abstained | declined
+	Reason      string   `json:"reason,omitempty"`
+	Views       []string `json:"views,omitempty"`
+	Examples    []string `json:"examples,omitempty"`
+	Attempts    int      `json:"attempts"`
+	SQL         string   `json:"sql,omitempty"`
+	Checks      []string `json:"checks,omitempty"`
+	Repairs     []string `json:"repairs,omitempty"` // the kind of each thing that had to be repaired, in order
+	Shape       string   `json:"shape,omitempty"`
+	Rows        int      `json:"rows"`
+	Truncated   bool     `json:"truncated,omitempty"`
+	Hops        int      `json:"hops,omitempty"`
+	PlanCost    float64  `json:"plan_cost,omitempty"`
+	Agreement   string   `json:"agreement,omitempty"` // "", agreed or disagreed
+	Model       string   `json:"model,omitempty"`
+	PromptBytes int      `json:"prompt_bytes,omitempty"`
+	PromptID    string   `json:"prompt_id,omitempty"`
+	ModelMS     int64    `json:"model_ms"`
+	ExecMS      int64    `json:"exec_ms"`
+	TotalMS     int64    `json:"total_ms"`
+}
+
+func (a *AskAuditV2) repaired(kinds ...string) {
+	a.Repairs = append(a.Repairs, kinds...)
+}
+
+// ---- the model -------------------------------------------------------------------------------------------------------------------------------------------------
+
+type askModelFunc func(ctx context.Context, cfg config, model string, turns []govSQLTurn) (content string, failure string)
+
+// askModel is a variable only so that the specs can stand in a scripted model without a network.
+var askModel askModelFunc = askModelHTTP
+
+func askResponseSchema() map[string]any {
+	return map[string]any{
+		"type": "object",
+		"properties": map[string]any{
+			"answerable": map[string]any{"type": "boolean"},
+			"sql":        map[string]any{"type": "string"},
+		},
+		"required":             []string{"answerable", "sql"},
+		"additionalProperties": false,
+	}
+}
+
+// askModelHTTP asks the LocalAI endpoint as the lane does: a strict JSON schema, temperature 0, a hard cap on output tokens (the output length IS the latency
+// on the laptop), and a completion that must have stopped by itself.
+func askModelHTTP(ctx context.Context, cfg config, model string, turns []govSQLTurn) (string, string) {
+	messages := make([]map[string]string, 0, len(turns))
+	for _, turn := range turns {
+		messages = append(messages, map[string]string{"role": turn.Role, "content": turn.Content})
+	}
+	payload, _ := json.Marshal(map[string]any{
+		"model": model, "temperature": 0, "max_tokens": askMaxTokens,
+		"response_format": map[string]any{"type": "json_schema", "json_schema": map[string]any{"name": "forensic_ask_engine_v2", "strict": true, "schema": askResponseSchema()}},
+		"messages":        messages,
+	})
+	timeout := askModelTimeout
+	if cfg.SynthesisTimeout > timeout {
+		timeout = cfg.SynthesisTimeout
+	}
+	callCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	request, err := http.NewRequestWithContext(callCtx, http.MethodPost, strings.TrimRight(cfg.LocalAIURL, "/")+"/v1/chat/completions", bytes.NewReader(payload))
+	if err != nil {
+		return "", "REQUEST_FAILED"
+	}
+	request.Header.Set("Content-Type", "application/json")
+	if cfg.LocalAIAPIKey != "" {
+		request.Header.Set("Authorization", "Bearer "+cfg.LocalAIAPIKey)
+	}
+	response, err := httpclient.NewWithTimeout(timeout).Do(request)
+	if err != nil {
+		return "", "TIMEOUT_OR_UNAVAILABLE"
+	}
+	defer func() { _ = response.Body.Close() }()
+	if response.StatusCode != http.StatusOK {
+		return "", fmt.Sprintf("HTTP_%d", response.StatusCode)
+	}
+	raw, err := io.ReadAll(io.LimitReader(response.Body, (1<<20)+1))
+	if err != nil || len(raw) > 1<<20 || !utf8.Valid(raw) {
+		return "", "MALFORMED_TRANSPORT"
+	}
+	var envelope struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+			FinishReason string `json:"finish_reason"`
+		} `json:"choices"`
+	}
+	if json.Unmarshal(raw, &envelope) != nil || len(envelope.Choices) != 1 {
+		return "", "MALFORMED_ENVELOPE"
+	}
+	if envelope.Choices[0].FinishReason != "stop" {
+		return "", "INCOMPLETE_COMPLETION"
+	}
+	return envelope.Choices[0].Message.Content, ""
+}
+
+// ---- the catalogue and the seams the specs replace -----------------------------------------------------------------------------------------------
+
+var askCatalogueCache struct {
+	sync.Mutex
+	cat *askCatalogue
+	at  time.Time
+}
+
+// askCatalogueFor is the catalogue of the analyst views of the connected database, read from its own comments at most every five minutes. The engine
+// declines, and says why, when the views are not installed (migration 017) or are not fully described.
+func askCatalogueFor(ctx context.Context, db *pgxpool.Pool) (*askCatalogue, error) {
+	askCatalogueCache.Lock()
+	defer askCatalogueCache.Unlock()
+	if askCatalogueCache.cat != nil && time.Since(askCatalogueCache.at) < askCatalogueTTL {
+		return askCatalogueCache.cat, nil
+	}
+	cat, err := loadAskCatalogue(ctx, db)
+	if err != nil {
+		return nil, err
+	}
+	askCatalogueCache.cat, askCatalogueCache.at = cat, time.Now()
+	return cat, nil
+}
+
+var (
+	// askV2Run is how the handler enters the engine; a variable only so that a spec can stand in for it.
+	askV2Run           = runAskEngineV2
+	askCatalogueLoader = askCatalogueFor
+	askExec            = askExecute
+	askProbeFn         = askProbe
+)
+
+// ---- eligibility -------------------------------------------------------------------------------------------------------------------------------------------
+
+func askEligible(req hybridQueryRequest) (bool, string) {
+	switch {
+	case strings.TrimSpace(req.Query) == "":
+		return false, "no question"
+	case !govSQLReclassifiable(req) && req.RequestClass != forensicrequest.GovernedAnalysis:
+		return false, "not a data question"
+	case req.Template != "":
+		return false, "an explicit operation was requested"
+	case req.Group != nil || req.Compare != nil || len(req.Projection) > 0:
+		return false, "a structured request"
+	case req.TenantID == "" || req.CollectionID == "":
+		return false, "no authorised scope"
+	}
+	return true, ""
+}
+
+// ---- the prompt's question turn -------------------------------------------------------------------------------------------------------------------
+
+// askUserPrompt is the question (with every number in its canonical form) and the hints that say what the checks will demand, so that the first draft is the
+// one that passes. The hints come from the frame by code.
+func askUserPrompt(f askFrame) string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "Q: %s\n", f.Question)
+	var hints []string
+	if ids := f.Identifiers(); len(ids) > 0 {
+		hints = append(hints, "Use these exactly, as text constants, and no other numbers: "+strings.Join(ids, ", ")+".")
+	}
+	if len(f.Dates) > 0 {
+		hints = append(hints, "Dates: "+strings.Join(f.Dates, ", ")+".")
+	}
+	for _, m := range f.Months {
+		hints = append(hints, fmt.Sprintf("Month %d%s: compare the time with its first day and the first day of the next month.", m.Month, askYearNote(m.Year)))
+	}
+	if f.Limit > 0 {
+		hints = append(hints, fmt.Sprintf("Keep exactly %d rows (LIMIT %d).", f.Limit, f.Limit))
+	}
+	if f.Hops > 0 {
+		hints = append(hints, fmt.Sprintf("Recursion: depth < %d.", f.Hops))
+	}
+	if f.Cues["incoming"] {
+		hints = append(hints, "Incoming events only.")
+	}
+	if f.Cues["outgoing"] {
+		hints = append(hints, "Outgoing events only.")
+	}
+	for _, kind := range []string{"sms", "mms", "ussd"} {
+		if f.Cues[kind] {
+			hints = append(hints, "Event type "+kind+".")
+		}
+	}
+	if f.Cues["night"] {
+		hints = append(hints, "Night is the hours 0 to 5 of the case clock.")
+	}
+	if len(hints) > 0 {
+		b.WriteString("Hints: " + strings.Join(hints, " ") + "\n")
+	}
+	return b.String()
+}
+
+// ---- the run -----------------------------------------------------------------------------------------------------------------------------------------------
+
+func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybridQueryRequest, startedAt time.Time) (*hybridQueryResponse, AskAuditV2) {
+	audit := AskAuditV2{State: "declined"}
+	finish := func(resp *hybridQueryResponse) (*hybridQueryResponse, AskAuditV2) {
+		if resp != nil && audit.State == "declined" {
+			audit.State = "abstained"
+		}
+		audit.TotalMS = time.Since(startedAt).Milliseconds()
+		if resp != nil {
+			resp.Telemetry.TotalLatencyMS = audit.TotalMS
+			if resp.Planner != nil {
+				resp.Planner["ask_engine_v2"] = audit
+			}
+		}
+		return resp, audit
+	}
+	decline := func(reason string) (*hybridQueryResponse, AskAuditV2) {
+		audit.State, audit.Reason = "declined", reason
+		return finish(nil)
+	}
+	if ok, reason := askEligible(req); !ok {
+		return decline(reason)
+	}
+	if db == nil {
+		return decline("no database")
+	}
+	cat, err := askCatalogueLoader(ctx, db)
+	if err != nil {
+		return decline("the analyst views are not available: " + govSQLClip(err.Error(), 120))
+	}
+	examples, err := askExamples()
+	if err != nil {
+		return decline("the verified examples are not valid")
+	}
+	frame := askExtractFrame(req.Query)
+	if frame.Relative != "" {
+		// "last week" has no meaning without a reference day, and a model that is not given one invents it (measured 2026-10-14). The question is not run.
+		return decline("the question uses a relative time (" + frame.Relative + ") and no reference day is stated")
+	}
+	short := cat.Shortlist(frame.Question, askShortlistMax)
+	if len(short.Views) == 0 || !short.Confident {
+		return decline("no analyst view fits the question closely enough")
+	}
+	chosen := append([]string{}, short.Views...)
+	sort.Strings(chosen)
+	audit.Views = chosen
+	shown := askRetrieveExamples(frame.Question, chosen, examples, 2)
+	for _, e := range shown {
+		audit.Examples = append(audit.Examples, e.ID)
+	}
+	model := strings.TrimSpace(req.SynthesisModel)
+	if model == "" {
+		model = cfg.SynthesisModel
+	}
+	audit.Model = model
+	system := askPrompt(cat, append([]string{}, chosen...), shown)
+	turns := []govSQLTurn{{Role: "system", Content: system}, {Role: "user", Content: askUserPrompt(frame)}}
+	audit.PromptBytes = len(turns[0].Content) + len(turns[1].Content)
+	audit.PromptID = govSQLDigest(turns[:1])
+	limits := askDefaultLimits()
+
+	retry := func(raw string, problems ...string) {
+		turns = append(turns, govSQLTurn{Role: "assistant", Content: raw}, govSQLTurn{Role: "user", Content: govSQLRetryPrompt(problems)})
+	}
+	for attempt := 1; attempt <= askMaxAttempts; attempt++ {
+		audit.Attempts = attempt
+		last := attempt == askMaxAttempts || time.Since(startedAt) > askRepairBudget
+		modelStart := time.Now()
+		raw, failure := askModel(ctx, cfg, model, turns)
+		audit.ModelMS += time.Since(modelStart).Milliseconds()
+		if failure != "" {
+			return decline("model: " + failure)
+		}
+		answerable, sql, bad := govSQLParseOutput(raw)
+		if bad != "" {
+			if last {
+				return decline("the model's output was not the requested JSON")
+			}
+			audit.repaired("JSON")
+			retry(raw, "Return exactly one JSON object with answerable and sql.")
+			continue
+		}
+		if !answerable || sql == "" {
+			return decline("the model judged that the views cannot answer the question")
+		}
+		validated, rejection := askValidate(sql, cat, chosen)
+		if rejection != nil {
+			audit.SQL = govSQLClip(sql, 400)
+			if last {
+				return decline("query rejected: " + rejection.Code)
+			}
+			audit.repaired("VALIDATOR:" + rejection.Code)
+			retry(raw, rejection.Message)
+			continue
+		}
+		audit.SQL, audit.Hops = validated.SQL, validated.MaxHops
+
+		if unmet := askCheckFrame(frame, validated); len(unmet) > 0 {
+			problems := make([]string, 0, len(unmet))
+			for _, item := range unmet {
+				problems = append(problems, item.Message)
+				audit.repaired("OBLIGATION:" + item.Kind)
+			}
+			if last {
+				return finish(askAbstainResponse(req, cat, frame, validated, unmet, audit))
+			}
+			retry(raw, problems...)
+			continue
+		}
+
+		execStart := time.Now()
+		result, err := askExec(ctx, db, req.TenantID, req.CollectionID, validated, limits)
+		audit.ExecMS += time.Since(execStart).Milliseconds()
+		if err != nil {
+			run, _ := err.(*govSQLRunError)
+			code := "DATABASE"
+			if run != nil {
+				code = run.Code
+			}
+			switch code {
+			case "QUERY_ERROR", "TOO_EXPENSIVE", "TIMEOUT":
+				if last {
+					if code == "QUERY_ERROR" {
+						return decline("execution: " + code)
+					}
+					return finish(askTooBroadResponse(req, run, audit))
+				}
+				audit.repaired("EXECUTION:" + code)
+				retry(raw, "The database could not run it: "+run.Message)
+				continue
+			}
+			return decline("execution: " + code)
+		}
+		audit.Rows, audit.Truncated, audit.PlanCost = len(result.Rows), result.Truncated, result.PlanCost
+
+		if shape := askCheckResult(frame, validated, result.Columns, len(result.Rows)); shape != nil {
+			audit.repaired("RESULT:" + shape.Kind)
+			if last {
+				return finish(askAbstainResponse(req, cat, frame, validated, []askObligation{*shape}, audit))
+			}
+			retry(raw, shape.Message)
+			continue
+		}
+
+		absence := ""
+		if askResultEmpty(result) {
+			verdict, err := askReadEmpty(ctx, db, req, cat, frame, validated, limits)
+			if err != nil {
+				return decline("could not check an empty result")
+			}
+			switch {
+			case verdict.elsewhere != "" && !last:
+				audit.repaired("RESULT:EMPTY_WRONG_COLUMN")
+				retry(raw, fmt.Sprintf("Nothing matched, but %s occurs in %s. Look there.", verdict.identifier, verdict.elsewhere))
+				continue
+			case verdict.elsewhere != "":
+				return finish(askAbstainResponse(req, cat, frame, validated, []askObligation{{Kind: "EMPTY", Reason: "the query found nothing although the identifier occurs elsewhere in the case"}}, audit))
+			}
+			absence = verdict.absence
+		}
+
+		if askV2AgreeEnabled() && len(result.Rows) > 0 {
+			agreed, err := askAgree(ctx, cfg, model, db, req, cat, chosen, frame, examples, shown, result, limits)
+			audit.Agreement = "agreed"
+			if err != nil || !agreed {
+				audit.Agreement = "disagreed"
+				return finish(askAbstainResponse(req, cat, frame, validated, []askObligation{{Kind: "AGREEMENT", Reason: "two independent drafts of the query gave different results"}}, audit))
+			}
+		}
+
+		audit.State = "answered"
+		audit.Shape = askShape(result.Columns, len(result.Rows))
+		audit.Checks = askChecksPassed(frame, validated)
+		return finish(askAnswerResponse(req, cat, validated, result, frame, absence, audit))
+	}
+	return decline("no draft passed the checks")
+}
+
+// askResultEmpty is true when the result holds nothing: no row, or one row whose every value is a zero or a null (a COUNT or a SUM over nothing). A zero is the
+// answer an analyst would take for "there is no such record", so it is read the same way: the identifiers of the question are searched for before a zero is shown
+// (the project's own history: "0 internet sessions" was a confident wrong answer about a case that held 14,895).
+func askResultEmpty(r *govSQLResult) bool {
+	if len(r.Rows) == 0 {
+		return true
+	}
+	if len(r.Rows) != 1 {
+		return false
+	}
+	for _, v := range r.Rows[0] {
+		switch x := v.(type) {
+		case nil:
+		case int:
+			if x != 0 {
+				return false
+			}
+		case int32:
+			if x != 0 {
+				return false
+			}
+		case int64:
+			if x != 0 {
+				return false
+			}
+		case float64:
+			if x != 0 {
+				return false
+			}
+		default:
+			return false
+		}
+	}
+	return true
+}
+
+// askEmptyVerdict is what an empty result means: the identifier is nowhere in the case (so "no record" is true), or it is somewhere the query did not look.
+type askEmptyVerdict struct {
+	absence    string // the sentence that says what was searched, when nothing was found anywhere
+	elsewhere  string // "view.column" where the identifier does occur, when the query looked elsewhere
+	identifier string
+}
+
+func askReadEmpty(ctx context.Context, db *pgxpool.Pool, req hybridQueryRequest, cat *askCatalogue, f askFrame, v *askValidated, limits askLimits) (askEmptyVerdict, error) {
+	ids := f.Identifiers()
+	if len(ids) == 0 {
+		return askEmptyVerdict{}, nil
+	}
+	var absent []string
+	for _, id := range ids {
+		hits, err := askProbeFn(ctx, db, req.TenantID, req.CollectionID, cat, id, limits)
+		if err != nil {
+			return askEmptyVerdict{}, err
+		}
+		if len(hits) == 0 {
+			absent = append(absent, id)
+			continue
+		}
+		// The query looked where it compared the identifier. A hit in any other column means it looked in the wrong place.
+		compared := askComparedColumns(v.SQL, id)
+		var elsewhere []string
+		for _, hit := range hits {
+			if column := hit[strings.Index(hit, ".")+1:]; !compared[column] {
+				elsewhere = append(elsewhere, hit)
+			}
+		}
+		if len(elsewhere) == len(hits) {
+			return askEmptyVerdict{elsewhere: strings.Join(elsewhere, ", "), identifier: id}, nil
+		}
+	}
+	if len(absent) == len(ids) {
+		return askEmptyVerdict{absence: "No record of this case holds " + strings.Join(absent, ", ") + " in any number, device, SIM, address or cell column."}, nil
+	}
+	return askEmptyVerdict{}, nil
+}
+
+// askComparedColumns is the set of columns the query compares with the identifier (column = 'id', column IN (..., 'id', ...), 'id' = column), read from the
+// parser's canonical text. An identifier the query never compares (a LIKE pattern, a computed expression) leaves the set empty, which reads as "looked in the
+// wrong place" and costs one repair at most.
+func askComparedColumns(sql, id string) map[string]bool {
+	quoted := regexp.QuoteMeta("'" + id + "'")
+	out := map[string]bool{}
+	for _, pattern := range []string{
+		`([a-z_][a-z0-9_.]*)\s*(?:=|<>|!=)\s*` + quoted,
+		quoted + `\s*(?:=|<>|!=)\s*([a-z_][a-z0-9_.]*)`,
+		`([a-z_][a-z0-9_.]*)\s+(?:not\s+)?in\s*\([^)]*` + quoted,
+		`host\(([a-z_][a-z0-9_.]*)\)\s*=\s*` + quoted,
+	} {
+		for _, m := range regexp.MustCompile("(?i)"+pattern).FindAllStringSubmatch(sql, -1) {
+			name := strings.ToLower(m[1])
+			out[name[strings.LastIndex(name, ".")+1:]] = true
+		}
+	}
+	return out
+}
+
+// askAgree writes a second draft with other examples and compares the two results. Equal results pass; unequal ones abstain, with both queries in the audit.
+func askAgree(ctx context.Context, cfg config, model string, db *pgxpool.Pool, req hybridQueryRequest, cat *askCatalogue, chosen []string, f askFrame, all, used []askExample, first *govSQLResult, limits askLimits) (bool, error) {
+	var other []askExample
+	for _, e := range all {
+		skip := false
+		for _, u := range used {
+			skip = skip || u.ID == e.ID
+		}
+		if !skip {
+			other = append(other, e)
+		}
+	}
+	second := askRetrieveExamples(f.Question, chosen, other, 2)
+	turns := []govSQLTurn{{Role: "system", Content: askPrompt(cat, append([]string{}, chosen...), second)}, {Role: "user", Content: askUserPrompt(f)}}
+	raw, failure := askModel(ctx, cfg, model, turns)
+	if failure != "" {
+		return false, fmt.Errorf("second draft: %s", failure)
+	}
+	answerable, sql, bad := govSQLParseOutput(raw)
+	if bad != "" || !answerable {
+		return false, nil
+	}
+	validated, rejection := askValidate(sql, cat, chosen)
+	if rejection != nil || len(askCheckFrame(f, validated)) > 0 {
+		return false, nil
+	}
+	result, err := askExec(ctx, db, req.TenantID, req.CollectionID, validated, limits)
+	if err != nil {
+		return false, nil //nolint:nilerr // a second draft that cannot run is a disagreement, not a failure of the question
+	}
+	return askSameResult(first, result), nil
+}
+
+// askSameResult compares two results by their rows, ignoring the order of rows and the names of columns.
+func askSameResult(a, b *govSQLResult) bool {
+	if len(a.Columns) != len(b.Columns) || len(a.Rows) != len(b.Rows) {
+		return false
+	}
+	key := func(r *govSQLResult) []string {
+		out := make([]string, len(r.Rows))
+		for i, row := range r.Rows {
+			parts := make([]string, len(row))
+			for j, v := range row {
+				parts[j] = fmt.Sprint(v)
+			}
+			out[i] = strings.Join(parts, "\x1f")
+		}
+		sort.Strings(out)
+		return out
+	}
+	ka, kb := key(a), key(b)
+	for i := range ka {
+		if ka[i] != kb[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// askChecksPassed says, in plain words, what was checked: it is shown to the analyst under the answer.
+func askChecksPassed(f askFrame, v *askValidated) []string {
+	checks := []string{"The query is one read-only SELECT over the case's analyst views, checked against an allowlist before it ran."}
+	if ids := f.Identifiers(); len(ids) > 0 {
+		checks = append(checks, fmt.Sprintf("Every identifier of the question (%d) is in the query, and the query names none the question does not.", len(ids)))
+	}
+	if len(f.Dates)+len(f.Months)+len(f.Years) > 0 {
+		checks = append(checks, "Every date, month and year of the question is applied by the query.")
+	}
+	if f.Limit > 0 {
+		checks = append(checks, fmt.Sprintf("The query keeps exactly the %d results the question asks for.", f.Limit))
+	}
+	if v.Recursive {
+		checks = append(checks, fmt.Sprintf("The path search is bounded to %d hops and never revisits a number.", v.MaxHops))
+	}
+	for _, cue := range []struct{ key, text string }{
+		{"incoming", "The question's direction (incoming) is applied."}, {"outgoing", "The question's direction (outgoing) is applied."},
+		{"sms", "The kind of event (SMS) is applied."}, {"night", "The hours of the night are applied on the case clock."},
+	} {
+		if f.Cues[cue.key] {
+			checks = append(checks, cue.text)
+		}
+	}
+	return checks
+}
+
+// ---- the header and the log ---------------------------------------------------------------------------------------------------------------------------
+
+func setAskV2Header(w http.ResponseWriter, a AskAuditV2) {
+	parts := []string{"state=" + a.State, fmt.Sprintf("attempts=%d", a.Attempts), fmt.Sprintf("ms=%d", a.TotalMS)}
+	if a.Reason != "" {
+		parts = append(parts, "reason="+strings.NewReplacer(";", ",", "\n", " ").Replace(govSQLClip(a.Reason, 120)))
+	}
+	if len(a.Views) > 0 {
+		parts = append(parts, "views="+strings.Join(a.Views, ","))
+	}
+	w.Header().Set(askHeaderName, strings.Join(parts, "; "))
+	askLogAudit(a)
+}

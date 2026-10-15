@@ -1,0 +1,438 @@
+package main
+
+import (
+	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
+)
+
+// ASK ENGINE V2: THE FRAME OF A QUESTION AND THE OBLIGATIONS (roadmap 6.8.6, checks 1 and 2).
+//
+// The defect that matters is a confident answer to a different question. The validator (ask_engine_validate.go) judges that a query is SAFE; it cannot judge that
+// it is the query this question asked for. So the question is read ONCE, by code, into a frame of what it states (the numbers, devices and addresses it names, its
+// dates and months, how many it wants, how many hops, the direction, the kind of event, the time of day, whether it counts, ranks or wants a first or last), and
+// the validated query is held against that frame:
+//
+//   - every identifier the question names must appear in the query as a constant, and the query may name no identifier the question did not (a model that copies the
+//     number of a retrieved example into its query gives a confident answer about somebody else);
+//   - every date, month and year the question names must be in the query; a relative time ("last week") cannot be resolved without a stated reference day, so the
+//     question is declined before any model time is spent;
+//   - a limit or a hop count the question states is the query's limit or hop bound; a connection question is a recursive query;
+//   - a direction, a kind of event, a night, a count, a ranking, a distinct count and the services-and-hubs rule each leave a mark that the query must carry.
+//
+// This is "back-translation by code": the plain-words restatement of the query (ask_engine_describe.go) is generated from the parse tree, so it cannot say
+// something the query does not do, and the frame is read from the question, so the comparison needs no second model call, which on the CPU laptop would cost tens
+// of seconds (roadmap 6.8.13). Every rule below is generic: a new view needs a description, not a new rule.
+
+type askMonth struct {
+	Year  int // 0 when the question names no year
+	Month int
+}
+
+type askFrame struct {
+	Question string // the question with every number written in its canonical form (923001234567)
+	Numbers  []string
+	IMEIs    []string
+	IPs      []string
+	Cells    []string
+	Dates    []string // ISO yyyy-mm-dd
+	Months   []askMonth
+	Years    []int
+	Limit    int // the N of "top five", "first 10"; 0 when none
+	Hops     int
+	Cues     map[string]bool
+	Relative string // the relative time words found ("last week"), which a query cannot resolve without a reference day
+}
+
+// Identifiers are every identifier of the frame in the order they were written.
+func (f askFrame) Identifiers() []string {
+	out := append([]string{}, f.Numbers...)
+	out = append(out, f.IMEIs...)
+	out = append(out, f.IPs...)
+	return append(out, f.Cells...)
+}
+
+var (
+	askFramePKPhone  = regexp.MustCompile(`(?:\+?\s?92[\s-]?|\b0)?3\d{2}[\s-]?\d{7}\b`)
+	askFrameIntl     = regexp.MustCompile(`\+\d{1,3}[\s-]?\d{6,12}\b`)
+	askFrameIMEI     = regexp.MustCompile(`\b\d{15}\b`)
+	askFrameBare     = regexp.MustCompile(`\b\d{10,14}\b`)
+	askFrameYear     = regexp.MustCompile(`\b(20\d{2})\b`)
+	askFrameMonths   = regexp.MustCompile(`\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec)\b(?:\s+(?:of\s+)?(20\d{2}))?`)
+	askFrameHops     = regexp.MustCompile(`\b(\d+|one|two|three|four|five)\s+(?:hops?|steps?|links?|degrees?)\b`)
+	askFrameRelative = regexp.MustCompile(`\b(?:yesterday|today|tonight|this (?:week|month|year)|last (?:week|month|year|night|weekend)|past (?:\d+|few|several|one|two|three|four|five|six|seven|ten|twelve) (?:days?|weeks?|months?|years?|hours?)|(?:last|previous) (?:\d+|few|several|one|two|three|four|five|six|seven|ten|twelve) (?:days?|weeks?|months?|years?|hours?)|recent(?:ly)?|these days|so far this)\b`)
+	askFrameTopN     = regexp.MustCompile(`\b(?:top|first|last|bottom|latest|earliest|most|busiest|highest|largest|biggest|longest|shortest|lowest|oldest|newest)\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten|twelve|fifteen|twenty)\b`)
+	askFrameNTop     = regexp.MustCompile(`\b(\d+|one|two|three|four|five|six|seven|eight|nine|ten|twelve|fifteen|twenty)\s+(?:most|top|busiest|highest|largest|biggest|longest|frequent|common|active|recent|earliest|latest|people|persons|numbers|contacts|callers|cells|towers|sites|devices|handsets|apps|applications|hosts|domains|websites|addresses)\b`)
+	askFrameWord     = regexp.MustCompile(`[a-z]+`)
+)
+
+var askNumberWords = map[string]int{"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10, "twelve": 12, "fifteen": 15, "twenty": 20}
+
+var askMonthNumber = map[string]int{
+	"january": 1, "jan": 1, "february": 2, "feb": 2, "march": 3, "mar": 3, "april": 4, "apr": 4, "may": 5, "june": 6, "jun": 6, "july": 7, "jul": 7,
+	"august": 8, "aug": 8, "september": 9, "sept": 9, "sep": 9, "october": 10, "oct": 10, "november": 11, "nov": 11, "december": 12, "dec": 12,
+}
+
+func askNumberOf(token string) int {
+	if n, ok := askNumberWords[token]; ok {
+		return n
+	}
+	n, err := strconv.Atoi(token)
+	if err != nil {
+		return 0
+	}
+	return n
+}
+
+// askCanonicalNumber writes a Pakistani mobile number the way the views store it (92 and ten digits). Anything else is returned as its digits.
+func askCanonicalNumber(raw string) string {
+	digits := strings.Map(func(r rune) rune {
+		if r >= '0' && r <= '9' {
+			return r
+		}
+		return -1
+	}, raw)
+	switch {
+	case len(digits) == 12 && strings.HasPrefix(digits, "92"):
+		return digits
+	case len(digits) == 11 && strings.HasPrefix(digits, "03"):
+		return "92" + digits[1:]
+	case len(digits) == 10 && strings.HasPrefix(digits, "3"):
+		return "92" + digits
+	}
+	return digits
+}
+
+// askExtractFrame reads a question. The identifiers are replaced in the returned Question by their canonical forms, so the model is shown, and the checks
+// compare, one form of each.
+func askExtractFrame(question string) askFrame {
+	f := askFrame{Cues: map[string]bool{}}
+	text := strings.TrimSpace(question)
+	// Identifiers first, longest first, so that a date or an address is not taken for a number. Each found item is replaced by a placeholder and restored.
+	var held []string
+	hold := func(canonical string) string {
+		held = append(held, canonical)
+		return fmt.Sprintf(" \x00%d\x00 ", len(held)-1)
+	}
+	text = askIPv4RE.ReplaceAllStringFunc(text, func(s string) string { f.IPs = append(f.IPs, s); return hold(s) })
+	text = askCellRE.ReplaceAllStringFunc(text, func(s string) string { f.Cells = append(f.Cells, strings.ToLower(s)); return hold(strings.ToLower(s)) })
+	text = askDateRE.ReplaceAllStringFunc(text, func(s string) string {
+		f.Dates = append(f.Dates, s[:10])
+		return hold(s)
+	})
+	text = askFrameIMEI.ReplaceAllStringFunc(text, func(s string) string { f.IMEIs = append(f.IMEIs, s); return hold(s) })
+	text = askFramePKPhone.ReplaceAllStringFunc(text, func(s string) string {
+		c := askCanonicalNumber(s)
+		if len(c) != 12 {
+			return s
+		}
+		f.Numbers = append(f.Numbers, c)
+		return hold(c)
+	})
+	text = askFrameIntl.ReplaceAllStringFunc(text, func(s string) string { c := askCanonicalNumber(s); f.Numbers = append(f.Numbers, c); return hold(c) })
+	text = askFrameBare.ReplaceAllStringFunc(text, func(s string) string { c := askCanonicalNumber(s); f.Numbers = append(f.Numbers, c); return hold(c) })
+	f.Numbers, f.IMEIs, f.IPs, f.Cells, f.Dates = askUnique(f.Numbers), askUnique(f.IMEIs), askUnique(f.IPs), askUnique(f.Cells), askUnique(f.Dates)
+
+	// The words, read from the text with the identifiers held back.
+	lower := strings.ToLower(text)
+	for _, m := range askFrameMonths.FindAllStringSubmatch(lower, -1) {
+		name := m[1]
+		year := 0
+		if m[2] != "" {
+			year, _ = strconv.Atoi(m[2])
+		}
+		if name == "may" && year == 0 && !regexp.MustCompile(`\b(?:in|of|during|on|since|until|before|after|from|through) may\b`).MatchString(lower) {
+			continue
+		}
+		f.Months = append(f.Months, askMonth{Year: year, Month: askMonthNumber[name]})
+	}
+	named := map[int]bool{}
+	for _, m := range f.Months {
+		if m.Year != 0 {
+			named[m.Year] = true
+		}
+	}
+	for _, m := range askFrameYear.FindAllStringSubmatch(lower, -1) {
+		year, _ := strconv.Atoi(m[1])
+		if !named[year] {
+			f.Years = append(f.Years, year)
+			named[year] = true
+		}
+	}
+	if m := askFrameHops.FindStringSubmatch(lower); m != nil {
+		f.Hops = askNumberOf(m[1])
+		f.Cues["path"] = true
+	}
+	if m := askFrameRelative.FindString(lower); m != "" {
+		f.Relative = m
+	}
+	if m := askFrameTopN.FindStringSubmatch(lower); m != nil {
+		f.Limit = askNumberOf(m[1])
+	} else if m := askFrameNTop.FindStringSubmatch(lower); m != nil {
+		f.Limit = askNumberOf(m[1])
+	}
+	if f.Limit > 100 {
+		f.Limit = 0
+	}
+	words := map[string]bool{}
+	for _, w := range askFrameWord.FindAllString(lower, -1) {
+		words[w] = true
+	}
+	anyWord := func(list ...string) bool {
+		for _, w := range list {
+			if words[w] {
+				return true
+			}
+		}
+		return false
+	}
+	phrase := func(p string) bool {
+		return strings.Contains(" "+strings.Join(askFrameWord.FindAllString(lower, -1), " ")+" ", " "+p+" ")
+	}
+	f.Cues["incoming"] = anyWord("incoming", "inbound", "received")
+	f.Cues["outgoing"] = anyWord("outgoing", "outbound", "dial", "dials", "dialled", "dialed", "dialling", "dialing", "made")
+	f.Cues["outgoing"] = f.Cues["outgoing"] && !phrase("made by")
+	f.Cues["sms"] = anyWord("sms", "texts") || phrase("text message") || phrase("text messages")
+	f.Cues["mms"] = anyWord("mms")
+	f.Cues["ussd"] = anyWord("ussd")
+	f.Cues["night"] = anyWord("night", "overnight", "midnight")
+	f.Cues["count"] = phrase("how many") || phrase("number of") || anyWord("count", "total") && !anyWord("duration", "minutes", "seconds", "hours")
+	f.Cues["distinct"] = anyWord("different", "distinct", "unique")
+	f.Cues["rank"] = anyWord("top", "most", "busiest", "highest", "largest", "biggest", "frequently", "often")
+	f.Cues["earliest"] = anyWord("earliest", "first", "oldest")
+	f.Cues["latest"] = anyWord("latest", "last", "newest") && !f.Cues["rank"]
+	f.Cues["services"] = anyWord("services", "shortcodes") || phrase("short codes") || phrase("service numbers") || phrase("sender names")
+	f.Cues["hubs"] = anyWord("hubs", "hub") || phrase("everyone contacts") || phrase("everybody contacts")
+	f.Cues["exclude"] = anyWord("without", "excluding", "except", "ignoring") || phrase("leave out") || phrase("leaving out") || phrase("not through") || phrase("not counting") || phrase("other than")
+	f.Cues["path"] = f.Cues["path"] || (len(f.Numbers) >= 2 && (anyWord("connected", "connection", "connections", "path", "chain", "route", "linked") || phrase("how are")) && !phrase("in contact"))
+	f.Cues["duration"] = anyWord("duration", "minutes", "seconds", "longest", "shortest", "talk") && !anyWord("call") || phrase("how long") || phrase("longest call")
+	f.Cues["time"] = len(f.Dates) > 0 || len(f.Months) > 0 || len(f.Years) > 0 || anyWord("between", "since", "before", "after", "during")
+	// A "first" or "last" that is a number of the question's ("the first five") is a ranking, not a request for one earliest value.
+	if f.Limit > 0 {
+		f.Cues["earliest"], f.Cues["latest"] = false, false
+		f.Cues["rank"] = true
+	}
+
+	for i, value := range held {
+		text = strings.Replace(text, fmt.Sprintf(" \x00%d\x00 ", i), " "+value+" ", 1)
+	}
+	f.Question = strings.Join(strings.Fields(text), " ")
+	return f
+}
+
+func askUnique(in []string) []string {
+	seen := map[string]bool{}
+	var out []string
+	for _, s := range in {
+		if !seen[s] {
+			seen[s] = true
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
+// askObligation is one thing the question demands that the query does not do. Kind is a fixed word (the audit keeps it), Message is what the model is told
+// so that it can repair the query, Reason is what the analyst is told when the question is abstained.
+type askObligation struct {
+	Kind    string
+	Message string
+	Reason  string
+}
+
+var (
+	askSQLIdentRE = regexp.MustCompile(`^\+?\d{9,15}$`)
+	askSQLIPRE    = regexp.MustCompile(`^\d{1,3}(?:\.\d{1,3}){3}(?:/\d+)?$`)
+)
+
+// askConstText returns the string constants of the query and the numeric ones.
+func askConstants(v *askValidated) (texts []string, numbers map[int]bool) {
+	numbers = map[int]bool{}
+	for _, c := range v.Consts {
+		if c.Numeric {
+			if n, err := strconv.Atoi(c.Text); err == nil {
+				numbers[n] = true
+			}
+			continue
+		}
+		texts = append(texts, c.Text)
+	}
+	return texts, numbers
+}
+
+func askSQLMentions(sql string, words ...string) bool {
+	for _, w := range words {
+		if strings.Contains(sql, w) {
+			return true
+		}
+	}
+	return false
+}
+
+func askUsesColumn(v *askValidated, names ...string) bool {
+	for _, c := range v.Columns {
+		for _, n := range names {
+			if c == n {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// askCheckFrame holds a validated query against the frame of its question. It returns what is unmet, in a fixed order.
+func askCheckFrame(f askFrame, v *askValidated) []askObligation {
+	var unmet []askObligation
+	add := func(kind, message, reason string) {
+		unmet = append(unmet, askObligation{Kind: kind, Message: message, Reason: reason})
+	}
+	texts, numbers := askConstants(v)
+	sql := strings.ToLower(v.SQL)
+	has := func(identifier string) bool {
+		plain := strings.TrimPrefix(identifier, "+")
+		for _, t := range texts {
+			t = strings.TrimPrefix(strings.TrimSpace(t), "+")
+			if t == plain || strings.EqualFold(t, plain) || strings.Contains(strings.ReplaceAll(t, "%", ""), plain) && strings.ContainsAny(t, "%") {
+				return true
+			}
+			if strings.HasPrefix(strings.ToLower(t), strings.ToLower(plain)+"/") { // an address written with its mask
+				return true
+			}
+		}
+		return false
+	}
+
+	// 1. Every identifier the question names is in the query, and the query names none the question did not.
+	for _, id := range f.Identifiers() {
+		if !has(id) {
+			add("IDENTIFIER", fmt.Sprintf("The question names %s but the query does not use it as a text constant. Compare against it exactly as written.", id), "the question names an identifier that the query does not use")
+		}
+	}
+	asked := map[string]bool{}
+	for _, id := range f.Identifiers() {
+		asked[strings.TrimPrefix(id, "+")] = true
+		asked[strings.ToLower(id)] = true
+	}
+	for _, t := range texts {
+		t = strings.TrimPrefix(strings.TrimSpace(t), "+")
+		bare := strings.ToLower(strings.Split(t, "/")[0])
+		if (askSQLIdentRE.MatchString(t) || askSQLIPRE.MatchString(t)) && !asked[t] && !asked[bare] {
+			add("FOREIGN_IDENTIFIER", fmt.Sprintf("The query names %s, which the question does not mention. Use only the identifiers of the question.", t), "the query names an identifier that the question does not")
+		}
+	}
+
+	// 2. Every date, month and year of the question is in the query.
+	for _, d := range f.Dates {
+		found := false
+		for _, t := range texts {
+			found = found || strings.HasPrefix(strings.TrimSpace(t), d)
+		}
+		if !found {
+			add("DATE", fmt.Sprintf("The question names the date %s but the query does not compare against it.", d), "the question names a date that the query does not apply")
+		}
+	}
+	for _, m := range f.Months {
+		found := false
+		for _, t := range texts {
+			t = strings.TrimSpace(t)
+			if len(t) >= 7 && t[4] == '-' {
+				year, _ := strconv.Atoi(t[:4])
+				month, _ := strconv.Atoi(t[5:7])
+				if month == m.Month && (m.Year == 0 || year == m.Year) {
+					found = true
+				}
+			}
+		}
+		if !found && numbers[m.Month] && askSQLMentions(sql, "month") {
+			found = true
+		}
+		if !found {
+			add("MONTH", fmt.Sprintf("The question names month %d%s but the query has no date in it. Write the first day of the month and the first day of the next month as explicit dates.", m.Month, askYearNote(m.Year)), "the question names a month that the query does not apply")
+		}
+	}
+	for _, year := range f.Years {
+		found := numbers[year]
+		for _, t := range texts {
+			found = found || strings.HasPrefix(strings.TrimSpace(t), strconv.Itoa(year))
+		}
+		if !found {
+			add("YEAR", fmt.Sprintf("The question names the year %d but the query does not apply it.", year), "the question names a year that the query does not apply")
+		}
+	}
+
+	// 3. A limit or a hop count the question states is the query's.
+	if f.Limit > 0 && v.Limit != f.Limit && !numbers[f.Limit] {
+		add("LIMIT", fmt.Sprintf("The question asks for %d, so the query must keep exactly %d rows (LIMIT %d).", f.Limit, f.Limit, f.Limit), "the question asks for a number of results that the query does not return")
+	}
+	if f.Hops > 0 {
+		switch {
+		case !v.Recursive:
+			add("RECURSION", fmt.Sprintf("The question asks about connections within %d hops, so the query must be a bounded recursive query (WITH RECURSIVE) with depth < %d.", f.Hops, f.Hops), "a connection question needs a path search that the query does not do")
+		case v.MaxHops != f.Hops:
+			add("HOPS", fmt.Sprintf("The question asks for %d hops but the query's depth bound allows %d.", f.Hops, v.MaxHops), "the query searches a different number of hops from the one asked")
+		}
+	} else if f.Cues["path"] && len(f.Numbers) >= 2 && !v.Recursive {
+		add("RECURSION", "The question asks how two numbers are connected, so the query must walk the contacts with a bounded WITH RECURSIVE (depth <= 3).", "a connection question needs a path search that the query does not do")
+	}
+
+	// 4. Marks that the question's words leave in the query.
+	if f.Cues["incoming"] && !askSQLMentions(sql, "'incoming'") && !askUsesColumn(v, "incoming") {
+		add("DIRECTION", "The question is about incoming events: filter direction = 'incoming' (or use the incoming column).", "the question is about incoming events and the query does not say so")
+	}
+	if f.Cues["outgoing"] && !askSQLMentions(sql, "'outgoing'") && !askUsesColumn(v, "outgoing") {
+		add("DIRECTION", "The question is about outgoing events: filter direction = 'outgoing' (or use the outgoing column).", "the question is about outgoing events and the query does not say so")
+	}
+	for _, kind := range []string{"sms", "mms", "ussd"} {
+		if f.Cues[kind] && !askSQLMentions(sql, "'"+kind+"'") {
+			add("EVENT_TYPE", fmt.Sprintf("The question is about %s: filter event_type = '%s'.", strings.ToUpper(kind), kind), "the question is about one kind of event and the query does not say so")
+		}
+	}
+	if f.Cues["night"] && !askSQLMentions(sql, "hour", "::time", "time '") {
+		add("TIME_OF_DAY", "The question is about the night: restrict the hour of day (EXTRACT(HOUR FROM start_utc) BETWEEN 0 AND 5 on the case clock).", "the question is about the night and the query does not restrict the hour")
+	}
+	if f.Cues["count"] && !askSQLMentions(sql, "count(", "sum(") && !askUsesColumn(v, "events", "incoming", "outgoing") {
+		add("AGGREGATE", "The question asks how many: count the rows (COUNT) or sum the counts of the view.", "the question asks for a count that the query does not compute")
+	}
+	if f.Cues["distinct"] && !askSQLMentions(sql, "distinct") && !askSQLMentions(sql, "group by") {
+		add("DISTINCT", "The question asks for different values: count DISTINCT values or group by them.", "the question asks for different values and the query does not take them")
+	}
+	if f.Cues["rank"] && !f.Cues["count"] && !askSQLMentions(sql, "order by") {
+		add("ORDER", "The question asks for the most or the top: ORDER BY the measure descending and LIMIT.", "the question asks for a ranking and the query does not order")
+	}
+	if f.Cues["earliest"] && f.Limit == 0 && !askSQLMentions(sql, "min(", "order by", "first_seen") {
+		add("EARLIEST", "The question asks for the earliest: use MIN of the time, or ORDER BY the time ascending with LIMIT 1.", "the question asks for the earliest and the query does not take it")
+	}
+	if f.Cues["latest"] && f.Limit == 0 && !askSQLMentions(sql, "max(", "order by", "last_seen") {
+		add("LATEST", "The question asks for the latest: use MAX of the time, or ORDER BY the time descending with LIMIT 1.", "the question asks for the latest and the query does not take it")
+	}
+	if f.Cues["services"] && f.Cues["exclude"] && !askUsesColumn(v, "is_service", "dst_is_person_like") && !askSQLMentions(sql, "dst_kind", "is_service") {
+		add("SERVICES", "The question leaves out services and short codes: use NOT is_service (or dst_is_person_like).", "the question leaves out services and the query does not")
+	}
+	if f.Cues["hubs"] && f.Cues["exclude"] && !askUsesColumn(v, "is_hub") {
+		add("HUBS", "The question leaves out numbers that everyone contacts: use NOT is_hub.", "the question leaves out hubs and the query does not")
+	}
+	return unmet
+}
+
+func askYearNote(year int) string {
+	if year == 0 {
+		return ""
+	}
+	return fmt.Sprintf(" of %d", year)
+}
+
+// askCheckResult holds the result against the frame: a count is one value, and a question that names an identifier is not answered by a list of
+// everything. It returns nil when the result is acceptable. (Emptiness is handled by the probe in the run, because an empty result is sometimes the truth.)
+func askCheckResult(f askFrame, v *askValidated, columns []string, rows int) *askObligation {
+	grouped := askSQLMentions(strings.ToLower(v.SQL), "group by", "partition by") || askSQLMentions(strings.ToLower(v.SQL), " per ")
+	asksPer := strings.Contains(" "+strings.ToLower(f.Question)+" ", " per ") || strings.Contains(strings.ToLower(f.Question), "each ") || strings.Contains(strings.ToLower(f.Question), " by ") ||
+		strings.Contains(strings.ToLower(f.Question), "which ") || strings.Contains(strings.ToLower(f.Question), "who ") || strings.Contains(strings.ToLower(f.Question), "list")
+	if f.Cues["count"] && !f.Cues["rank"] && !asksPer && !grouped && (rows != 1 || len(columns) != 1) {
+		return &askObligation{Kind: "SHAPE", Message: "The question asks for one number, but the query returns several rows or columns. Return one row with one value.", Reason: "the question asks for one value and the result is a list"}
+	}
+	if rows > 1 && f.Cues["earliest"] && f.Limit == 0 && !asksPer && !grouped && len(columns) == 1 {
+		return &askObligation{Kind: "SHAPE", Message: "The question asks for the earliest one; return only that one.", Reason: "the question asks for one value and the result is a list"}
+	}
+	return nil
+}

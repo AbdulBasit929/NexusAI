@@ -74,7 +74,7 @@ func (b *govSQLBuffered) flushTo(w http.ResponseWriter) {
 // hybridQueryHandler is the public handler. With the lane off it is the core handler
 // and nothing else.
 func hybridQueryHandler(cfg config, db *pgxpool.Pool) http.HandlerFunc {
-	return governedSQLFallback(hybridQueryHandlerCore(cfg, db), cfg, db)
+	return governedSQLFallback(askEngineFallback(hybridQueryHandlerCore(cfg, db), cfg, db), cfg, db)
 }
 
 // governedSQLFallback wraps a handler so that, when only FORENSIC_GOVERNED_SQL is on,

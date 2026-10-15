@@ -55,6 +55,55 @@ The prompt must stay short (every token is latency on the CPU laptop), so the mo
 
 - Shortlist and retrieval: 17 deliberate faults (stemming, the identifier signals, the spatial exception, the lexicon, the description cap, the shortlist cap and cut, confidence, examples outside the shortlist, the shape cue, the best-view fallback, placeholders, month words, repeated stemming), each made the specs fail; five were missed by the first set of specs and the specs were added.
 
+## The run, the executor and the switch (milestone M1 second part, 2026-10-15)
+
+Status: **built and tested on throwaway databases; not deployed; the switch is off by default; migration 017 is still not applied to the live database.** Everything below is new Go in `api/forensic_records/` and changes no answer while `FORENSIC_ASK_V2` is off.
+
+| File | What it is |
+|---|---|
+| `ask_engine_frame.go` | Reads a question once, by code, into a frame: numbers (every written form, 0300 1234567 or +92 300 1234567, becomes 923001234567), devices, addresses, cells, dates, months, years, "top N", hops, relative times, and the cues (incoming, outgoing, SMS, night, count, rank, earliest, latest, services, hubs, path). `askCheckFrame` holds a validated query against it (the obligations, table below); `askCheckResult` holds the result against it |
+| `ask_engine_exec.go` | The executor: `SET LOCAL ROLE forensic_analyst_ro`, scope settings, the case clock as the session time zone, read-only transaction, statement timeout (15 s), EXPLAIN cost ceiling (5,000,000 planner units), row cap (1,000, one extra row fetched to notice truncation). `askProbe` says where an identifier occurs in the case |
+| `ask_engine_describe.go` | "How this was derived" in plain words, generated from the query's own parse tree (conditions, what it returns, grouping, ordering, limit, hops, case clock): back-translation by code, so it cannot claim what the query does not do |
+| `ask_engine_run.go` | The run (eligibility, frame, shortlist, examples, prompt, model, validator, obligations, executor, result checks, answer), the model call (strict JSON schema, temperature 0, 480 output tokens at most), the switches and the audit record |
+| `ask_engine_response.go` | The answer built from the result by code: headline by shape, `result_shape`, derivation steps, limitations, the abstention and the "too broad" replies, the log line |
+| `ask_engine_fallback.go` | `FORENSIC_ASK_V2=true`: the engine runs after the existing path declines and never replaces an answer the existing path gave; `FORENSIC_ASK_V2_FIRST=true` (in `query.go`): before it. A decline passes the request on unchanged |
+
+**Declined and abstained are different.** A decline hands the question to the next path (no analyst view fits, a relative time, the model cannot answer, no database). An abstention is an answer the user sees ("not answered, and why"): the engine HAS a query but cannot show that it asks everything the question asks, and the existing path would answer a different question.
+
+### The obligations (what the validated query must carry)
+
+| Obligation | Refused when |
+|---|---|
+| IDENTIFIER | the question names a number, device, address or cell that the query does not use as a text constant |
+| FOREIGN_IDENTIFIER | the query names a number, device or address the question does not (a model copying the number of a retrieved example) |
+| DATE, MONTH, YEAR | a date, month or year of the question is not in the query (a month needs a date inside it, or `EXTRACT(MONTH ...)`) |
+| LIMIT, HOPS, RECURSION | "top five" is not a limit of five; "within three hops" is not a recursion bounded to three; a connection question is not recursive |
+| DIRECTION, EVENT_TYPE, TIME_OF_DAY | incoming, outgoing, SMS (MMS, USSD) or night is in the question and not in the query |
+| AGGREGATE, DISTINCT, ORDER, EARLIEST, LATEST | a count, a "different", a ranking, a first or a last is asked and the query does not compute it |
+| SERVICES, HUBS | services or numbers everyone contacts are to be left out and the query does not use the flags |
+| SHAPE | one number is asked and the result is a list |
+
+An unmet obligation goes back to the model with the reason (at most two repairs; no repair is started after 170 s); the last draft that still misses one is abstained. A relative time ("last week") is declined before any model time is spent: without a stated reference day a model invents one.
+
+**A zero is not an absence.** When the result is empty, or one row of zeros, the identifiers of the question are searched for in every analyst relation: found nowhere, the answer says "No record of this case holds ... in any number, device, SIM, address or cell column" instead of "0"; found in a column the query did not compare, the model is told where and repairs; found where the query looked, the empty result is the truth.
+
+### The walls of the executor, proved on a real database
+
+`tools/case_generator/check_ask_engine.py` (12 specs, about 4 minutes): a generated case through the production typed ingest, migrations 016 to 018, the specs run as the application role. They prove: counts through the role equal the planted-truth keys for every subject and counterparty; times are read and shown on the case clock; another tenant, another collection and no scope see nothing; a base table cannot be reached by whatever text reaches the executor; a query priced above the ceiling is refused before it runs; the row cap is reported as truncation; a query that runs too long is `TIMEOUT` ("too broad"), a mistake the model can repair is `QUERY_ERROR`; the probe finds an identifier where it occurs and finds a stranger nowhere, scoped like every statement; a scripted model gives the planted truth end to end; a number the case does not hold is answered as no record, not as zero.
+
+## The evaluation against the lane
+
+`tools/ask_eval/build_questions.py` builds questions from the planted-truth keys of a generated case (pair counts, incoming counts, top contacts, common contacts, distinct contacts, devices, who held an address, connections within three hops, a number the case does not hold, questions the data cannot answer), two phrasings each, every expectation from the generator's oracle. `check_ask_engine.py --questions ... --arms engine,lane` puts them to the engine and to the governed SQL lane with the real local model and writes one JSON line per question and arm; `tools/ask_eval/judge.py` scores them: correct, wrong (answered, not the expected answer), abstained, declined.
+
+**Calibration (seed 61, 8 questions, one of each kind, 2026-10-15): 8 correct, 0 wrong, p50 45 s, p90 79 s.** This was used to see that the path works and is not a measurement; the questions were built from the same seed. One answer needed a repair: the first draft looked at `dst` only, found nothing, the probe found the number in `src` and the second draft was right.
+
+### Gates for the measured run, written before it (fresh seed 73, all 43 questions, both arms)
+
+1. **Wrong answers: zero for the engine**, and not above the lane's. One wrong answer fails the gate and is investigated before anything else is claimed.
+2. **Correct: not below the lane's**, question by question and in total.
+3. **The exact kinds** (pair, incoming, top contacts, common contacts, distinct contacts, devices, address holder, absent) at least 85% correct for the engine; the questions the data cannot answer: always an abstention or a decline.
+4. Connection questions (milestone M3) and latency are **reported, not gated**: the laptop's budgets are set from this baseline (roadmap 6.8.13).
+
 ## Next
 
-The model call with the laptop's output cap and repair loop (at most two), the EXPLAIN cost ceiling and row cap in the executor, the obligation checks and back-translation, the audit record, and the `FORENSIC_ASK_V2` switch with its arms against the lane: roadmap 6.8.11, M1 and M2.
+Measured arms on a fresh seed (above), then the engine on the typed families beyond call records and internet sessions, the interface pieces of 7.8 (result views by shape), the composition of the sentence under the number lock (M5), and applying migration 017 to the live database on the owner's go, after a backup, so that the engine can be deployed and measured on the live stack.

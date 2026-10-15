@@ -7,6 +7,8 @@ import breakdown from './__fixtures__/lane_breakdown.json'
 import absence from './__fixtures__/lane_absence.json'
 import abstain from './__fixtures__/lane_abstain.json'
 import list from './__fixtures__/lane_list.json'
+import engineRanked from './__fixtures__/engine_ranked.json'
+import engineAbstain from './__fixtures__/engine_abstain.json'
 import { presentInvestigationResponse } from './investigationPresentation'
 
 // Responses of the governed SQL lane (api/forensic_records/governed_sql_lane.go), as the API sends them.
@@ -166,5 +168,38 @@ describe('the lane shows its work', () => {
     await open(container, 'Read the analysis method')
     expect(container.querySelector('.method-details__sql')).toBeTruthy()
     expect(container.querySelector('.method-details__checked')).toBeNull()
+  })
+})
+
+// Responses of the Ask engine (api/forensic_records/ask_engine_run.go): same presentation as the lane, plus the plain-words steps the server restates from the query's parse tree.
+describe('Ask engine responses in the workspace', () => {
+  it('an answer is presented as an answer, with its steps, its query and its checks', async () => {
+    const presentation = presentInvestigationResponse(engineRanked, { caseId: 'records-demo' })
+    expect(['answered', 'partial']).toContain(presentation.state)
+    expect(presentation.answer).toMatch(/923000000201 \(14\)/)
+    expect(presentation.method.steps[0]).toMatch(/^Read: v_contact_pairs/)
+    expect(presentation.method.shape).toBe('ranked')
+    expect(presentation.method.checked.length).toBeGreaterThan(0)
+    expect(presentation.derivation).toMatch(/analyst views/)
+    const { container } = render(<InvestigationResult presentation={presentation} onAsk={() => {}} onClarificationChoice={() => {}} onRetry={() => {}} />)
+    const user = (await import('@testing-library/user-event')).default.setup()
+    await user.click(within(container).getByRole('button', { name: 'Read the analysis method' }))
+    expect(container.querySelector('.method-details__steps').textContent).toMatch(/Kept only the rows where src = '923000000101'/)
+    expect(container.querySelector('.method-details__sql').textContent).toMatch(/^SELECT dst AS label/)
+  })
+
+  it('an abstention keeps its reason as written and has the empty shapes every consumer reads', () => {
+    const presentation = presentInvestigationResponse(engineAbstain, { caseId: 'records-demo' })
+    expect(presentation.state).toBe('clarify')
+    expect(JSON.stringify(presentation.clarification)).toMatch(/incoming events and the query does not say so/)
+    expect(presentation.citations).toMatchObject({ items: [], groups: [] })
+  })
+
+  it('renders without throwing', () => {
+    for (const response of [engineRanked, engineAbstain]) {
+      const presentation = presentInvestigationResponse(response, { caseId: 'records-demo' })
+      const { container } = render(<InvestigationResult presentation={presentation} onAsk={() => {}} onClarificationChoice={() => {}} onRetry={() => {}} />)
+      expect(container.textContent.length).toBeGreaterThan(10)
+    }
   })
 })
