@@ -135,6 +135,21 @@ As judged by the judge of run 1: **41 correct, 2 wrong, 0 abstained**, p50 23 s,
 
 Specs: 56 on the frame, obligations, run and fallback with the swapped-roles case (including the true zero that must not be repaired), 14 on a real database (the pair is read in both orientations, scoped), the examples run as the analyst role. **The next measurement is on a fresh seed (89)**; gate 1 is not met until a run on a fresh seed has no wrong answer, whatever the earlier runs said after a correction.
 
+### Measured run 4: seed 89, engine only, after the fixes of run 3, nothing changed after seeing the result
+
+**42 of 42 correct, 0 wrong, 0 abstained, 0 declined**; p50 23.6 s, p90 41.3 s, max 53.0 s, 5 repairs. Every kind was fully correct, including the six incoming counts, the six pair counts, the four connection questions, the six address-holder instants, and the three questions the data cannot answer (all non-answers).
+
+**Gates (written before run 1), read against the last clean run:**
+
+| Gate | Result |
+|---|---|
+| 1. No wrong answer from the engine, and not above the lane's | **Met on a fresh seed** (run 4: 0 wrong). Not met earlier: run 1 (2 real wrong), run 3 (2 real wrong, two confident zeros); each time the cause was found, fixed and measured again on a fresh seed |
+| 2. Correct not below the lane's | Met: run 1 on the same questions, engine 33 (36 corrected) against the lane's 7 (8), wrong 5 (2) against 14 (13) |
+| 3. Exact kinds at least 85% | Met: 100% in run 4; 86% in run 1 as corrected |
+| 4. Latency and connection questions reported | p50 about 24 s and p90 about 41 to 55 s on the CPU laptop in runs 2 to 4 (run 1: 29 s and 79 s, with more repairs); connection questions 4 of 4 in runs 2 and 4 |
+
+**Read this with care.** Four runs of 42 or 43 questions on four generated cases are evidence that the engine is accurate on these question kinds, not a guarantee: one clean run after two runs that each found a new defect says there may be another kind of mistake not yet seen. The questions are generated, written by the author, in English, and the case is small; analysts' own questions, the other families and the other languages are untested. That is why the switch goes on **after the existing path declines** (it never replaces an answer the existing path gave), every question is audited, and the next measurement is on the real collection's known numbers and on further fresh seeds.
+
 ## Next
 
 Measured arms on a fresh seed (above), then the engine on the typed families beyond call records and internet sessions, the interface pieces of 7.8 (result views by shape), the composition of the sentence under the number lock (M5), and applying migration 017 to the live database on the owner's go, after a backup, so that the engine can be deployed and measured on the live stack.
