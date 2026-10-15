@@ -198,6 +198,19 @@ var _ = Describe("Ask engine executor on a case database", Ordered, func() {
 		Expect(other).To(BeEmpty(), "the probe is scoped like every other statement")
 	})
 
+	It("reads a pair in both orientations, so that swapped roles can be told from a true zero", func() {
+		subject, other, events, _ := pair()
+		for _, ab := range [][2]string{{subject, other}, {other, subject}} {
+			pairs, err := askPairs(ctx, pool, truth.Tenant, truth.CaseID, ab[0], ab[1], limits)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(pairs).To(HaveLen(1), "the other party is not a subscriber, so only one orientation exists")
+			Expect(pairs[[2]string{subject, other}].Events).To(Equal(int64(events)))
+		}
+		none, err := askPairs(ctx, pool, "another-tenant", truth.CaseID, subject, other, limits)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(none).To(BeEmpty())
+	})
+
 	It("answers a question end to end with a scripted model, and the answer is the planted truth", func() {
 		subject, other, events, _ := pair()
 		savedModel := askModel

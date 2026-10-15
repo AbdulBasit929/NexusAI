@@ -120,7 +120,20 @@ An unmet obligation goes back to the model with the reason (at most two repairs;
 
 **What was changed, from those two findings only:** (1) the frame reads a direction from the way the question is put ("get or receive ... from" is incoming; "send, call or message ... to" is outgoing), so the direction obligation applies to such questions; (2) the prompt's fixed rules say what `src` and `dst` are and give the two examples ("A got a call from B": `src = A, dst = B, direction = 'incoming'`); (3) when an empty result is repaired, the model is told which number is never a subscriber (it occurs only as the other party) instead of "look elsewhere"; (4) an empty result of a path search is no longer treated as a query that looked in the wrong place (two path questions with a correct empty answer had been abstained). The lane's 14 wrong answers are the reason the lane is not a baseline to be proud of: 13 of its 14 are about joins and counterparty direction that its one-view, no-join design cannot express.
 
-**Measured run 2 (fresh seed 79, engine only) follows; this section is completed with it.**
+### Measured run 2: seed 79, engine only (after the fixes of run 1)
+
+As judged by the judge of run 1: **41 correct, 2 wrong, 0 abstained**, p50 23 s, p90 55 s, max 68 s, 6 repairs. Both "wrong" answers were the judge's: a top-three list with a tie (18 and 18) judged against one order, and a handset question where the layout stores the 14-digit identifier (run 1's fix had assumed the 15-digit form everywhere). The judge now accepts any order among equal counts (the question carries every contact's count) and compares IMEIs on their first 14 digits. Re-judged: 43 of 43. **The change was made after seeing the result, so it was measured again on another fresh seed.** The incoming-count questions, the failure of run 1, were all right (6 of 6), and the two connection questions that run 1 had abstained were right.
+
+### Measured run 3: seed 83, engine only, the judge of run 2's correction
+
+**41 correct, 2 wrong, 0 abstained**, p50 24 s, p90 51 s, max 91 s, 8 repairs. Gate 1 (zero wrong) failed again, and this time both wrong answers were the engine's: **two confident zeros** for "how many events are there between A and B" (the truth was 86) and "how many times did A get a call or message from B" (22). Both put the two numbers the wrong way round (the other party in `src`, the subscriber in `dst`) and found nothing. The empty-result probe did not catch them: it asks whether the identifier occurs in a column the query did not compare, and a subscriber can also be somebody's contact, so both numbers occurred in both columns. In the first the result was the text "0" (a numeric sum), which was not recognised as a zero.
+
+**What was changed, from these two findings only:**
+1. A zero that the database returns as text ("0", "0.00") is a zero, so it is checked like one.
+2. **Swapped roles are told from the pair itself.** When the question names two numbers and the result is empty or zero, the engine reads `v_contact_pairs` for the two numbers in both orientations. If the orientation the query used holds nothing for what was asked (events, or incoming, or outgoing) and the opposite orientation does, the model is told exactly which number is the subscriber ("write src = ... AND dst = ..."); if the query's own orientation holds the pair (a direction that never happened), the zero is the truth and is shown.
+3. A tenth verified example, "how many times did A get a call or message from B", with the right roles, is retrieved for such questions.
+
+Specs: 56 on the frame, obligations, run and fallback with the swapped-roles case (including the true zero that must not be repaired), 14 on a real database (the pair is read in both orientations, scoped), the examples run as the analyst role. **The next measurement is on a fresh seed (89)**; gate 1 is not met until a run on a fresh seed has no wrong answer, whatever the earlier runs said after a correction.
 
 ## Next
 

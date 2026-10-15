@@ -95,7 +95,8 @@ def build(key):
             continue
         text = ("Who does %s talk to most? Give the top three, leaving out services and numbers that everyone contacts." if i % 2 == 0
                 else "List the three numbers %s has the most events with, not counting short codes or numbers that everybody contacts.") % s
-        add("top_contacts", text, {"kind": "ordered", "values": [r["number"] for r in ranked[:n]]})
+        # `scores` lets the judge accept any order among numbers with equal counts (a tie inside the top three has no single right order).
+        add("top_contacts", text, {"kind": "ordered", "values": [r["number"] for r in ranked[:n]], "scores": {r["number"]: events(r) for r in ranked}})
     # 4. common contacts (A2)
     for i, answer in enumerate(a for a in oracle["A2"] if a["shared"]):
         text = ("Which numbers do %s and %s both contact, leaving out services and numbers that everyone contacts?" if i % 2 == 0
@@ -113,9 +114,9 @@ def build(key):
     for i, (s, entry) in enumerate(sorted(oracle["A8"]["numbers"].items())):
         if not entry["changes"]:
             continue
-        # The key holds the 14-digit identifier; the typed ingest stores the 15-digit IMEI, the same digits and the Luhn check digit (found 2026-10-15: all five stored
-        # values equal the key's plus the check digit), so the expectation is written the way the data holds it.
-        imeis = sorted(with_check_digit(i) for i in ({c["old_imei"] for c in entry["changes"]} | {c["new_imei"] for c in entry["changes"]}))
+        # The key holds the 14-digit identifier. Some provider layouts store the 14 digits and others the 15-digit IMEI (the same digits and the Luhn check digit), so the
+        # expectation is the 14 digits and the judge compares the first 14 digits of any 15-digit value (found 2026-10-15, in two measured runs).
+        imeis = sorted({c["old_imei"] for c in entry["changes"]} | {c["new_imei"] for c in entry["changes"]})
         text = ("Which handsets (IMEI) has %s been used with?" if i % 2 == 0 else "List every IMEI seen with %s.") % s
         add("devices", text, {"kind": "set", "values": imeis})
     # 8. who held an address at an instant (A13), unique and ambiguous instants

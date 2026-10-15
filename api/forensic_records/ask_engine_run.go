@@ -10,6 +10,7 @@ import (
 	"os"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -471,6 +472,11 @@ func askResultEmpty(r *govSQLResult) bool {
 			if x != 0 {
 				return false
 			}
+		case string:
+			// a number the database returned as text (a numeric sum): "0" and "0.00" are zeros
+			if strings.Trim(x, "0.") != "" || x == "" {
+				return false
+			}
 		default:
 			return false
 		}
@@ -484,6 +490,63 @@ type askEmptyVerdict struct {
 	elsewhere  string // "view.column" where the identifier does occur, when the query looked elsewhere
 	identifier string
 	hint       string // what to tell the model, in words
+}
+
+// askPairCount is what v_contact_pairs holds for one subscriber (src) and one other party (dst).
+type askPairCount struct{ Events, Incoming, Outgoing int64 }
+
+// askPairs reads v_contact_pairs for two numbers, in both orientations, scoped like every statement. A variable only so that a spec can stand in for the database.
+var askPairs = func(ctx context.Context, db *pgxpool.Pool, tenantID, collectionID, a, b string, limits askLimits) (map[[2]string]askPairCount, error) {
+	result, err := askRun(ctx, db, tenantID, collectionID,
+		"SELECT src, dst, events, incoming, outgoing FROM v_contact_pairs WHERE (src = $1 AND dst = $2) OR (src = $2 AND dst = $1)", []any{a, b}, limits, 4, false)
+	if err != nil {
+		return nil, err
+	}
+	out := map[[2]string]askPairCount{}
+	num := func(v any) int64 {
+		n, _ := strconv.ParseInt(fmt.Sprint(v), 10, 64)
+		return n
+	}
+	for _, row := range result.Rows {
+		out[[2]string{fmt.Sprint(row[0]), fmt.Sprint(row[1])}] = askPairCount{Events: num(row[2]), Incoming: num(row[3]), Outgoing: num(row[4])}
+	}
+	return out, nil
+}
+
+// askSwappedRoles catches the confident zero that survives the column probe: the question names two numbers, the query puts them the wrong way round (the other party in
+// src, the subscriber in dst) and finds nothing, while the records do hold the pair in the opposite roles (measured 2026-10-15, seed 83: two confident zeros for "how many
+// times did A get a call from B" where 22 and 86 were the truth). A subscriber can also be somebody's contact, so the numbers' own columns do not settle it: the pair does.
+// It speaks only when the orientation the query used has nothing for what was asked and the opposite one has something.
+func askSwappedRoles(ctx context.Context, db *pgxpool.Pool, req hybridQueryRequest, f askFrame, v *askValidated, limits askLimits) string {
+	a, b := f.Numbers[0], f.Numbers[1]
+	ca, cb := askComparedColumns(v.SQL, a), askComparedColumns(v.SQL, b)
+	var src, dst string
+	switch {
+	case ca["src"] && cb["dst"] && !ca["dst"] && !cb["src"]:
+		src, dst = a, b
+	case cb["src"] && ca["dst"] && !cb["dst"] && !ca["src"]:
+		src, dst = b, a
+	default:
+		return ""
+	}
+	pairs, err := askPairs(ctx, db, req.TenantID, req.CollectionID, a, b, limits)
+	if err != nil {
+		return ""
+	}
+	relevant := func(c askPairCount) int64 {
+		switch {
+		case f.Cues["incoming"] && !f.Cues["outgoing"]:
+			return c.Incoming
+		case f.Cues["outgoing"] && !f.Cues["incoming"]:
+			return c.Outgoing
+		}
+		return c.Events
+	}
+	used, opposite := pairs[[2]string{src, dst}], pairs[[2]string{dst, src}]
+	if relevant(used) > 0 || relevant(opposite) == 0 {
+		return ""
+	}
+	return fmt.Sprintf("Nothing matched, because the roles are the wrong way round. In these records %s is the subscriber (src) and %s is the other party (dst), not the opposite: write src = '%s' AND dst = '%s'.", dst, src, dst, src)
 }
 
 // askRoleHint says, for an identifier that the query compared in one column and that occurs in others, what the columns mean. In the call views src is the subscriber
@@ -530,6 +593,11 @@ func askReadEmpty(ctx context.Context, db *pgxpool.Pool, req hybridQueryRequest,
 		}
 		if len(elsewhere) == len(hits) && wrongPlaceMatters {
 			return askEmptyVerdict{elsewhere: strings.Join(elsewhere, ", "), identifier: id, hint: askRoleHint(id, compared, hits)}, nil
+		}
+	}
+	if len(absent) == 0 && wrongPlaceMatters && len(f.Numbers) >= 2 {
+		if hint := askSwappedRoles(ctx, db, req, f, v, limits); hint != "" {
+			return askEmptyVerdict{elsewhere: "v_contact_pairs (the roles of src and dst)", identifier: f.Numbers[0], hint: hint}, nil
 		}
 	}
 	if len(absent) == len(ids) {

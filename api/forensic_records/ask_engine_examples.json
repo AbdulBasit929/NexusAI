@@ -88,5 +88,14 @@
     ],
     "shape": "ranked",
     "sql": "SELECT host AS label, sum(bytes_up) AS value FROM v_data_sessions WHERE src = '923000000101' AND start_utc >= '2026-02-01 00:00:00+05' AND start_utc < '2026-03-01 00:00:00+05' AND host IS NOT NULL GROUP BY host ORDER BY value DESC LIMIT 10"
+  },
+  {
+    "id": "incoming-from",
+    "question": "How many times did 923000000101 get a call or message from 923000000102?",
+    "views": [
+      "v_comm_events"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT count(*) AS n FROM v_comm_events WHERE src = '923000000101' AND dst = '923000000102' AND direction = 'incoming'"
   }
 ]

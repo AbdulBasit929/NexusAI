@@ -28,8 +28,13 @@ def text_values(rows):
     return [v for row in rows for v in row.values() if isinstance(v, str)]
 
 
+def imei14(value):
+    # Some layouts store the 14-digit identifier and others the 15-digit IMEI (the same digits and a check digit): both are the same handset.
+    return value[:14] if len(value) == 15 else value
+
+
 def identifiers(rows):
-    return {v for v in text_values(rows) if DIGITS.match(v)}
+    return {imei14(v) for v in text_values(rows) if DIGITS.match(v)}
 
 
 def numbers(rows):
@@ -72,6 +77,14 @@ def judge(question, result):
         return "correct" if identifiers(rows) == set(expect["values"]) else "wrong"
     if kind == "ordered":
         got = first_text_column(rows)
+        scores = expect.get("scores")
+        if scores:
+            # a valid top list: the right number of rows, every one a known contact, counts not increasing, and the same counts as the expected top list
+            n = len(expect["values"])
+            if len(got) != n or any(g not in scores for g in got):
+                return "wrong"
+            counts = [scores[g] for g in got]
+            return "correct" if counts == sorted(counts, reverse=True) and counts == [scores[v] for v in expect["values"]] else "wrong"
         return "correct" if got[: len(expect["values"])] == expect["values"] and len(got) == len(expect["values"]) else "wrong"
     if kind == "absent":
         return "correct" if "no record" in answer or "not hold" in answer else "wrong"

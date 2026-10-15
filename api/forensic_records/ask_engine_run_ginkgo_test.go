@@ -532,6 +532,52 @@ var _ = Describe("Ask engine run", func() {
 		Expect(audit.Repairs).To(BeEmpty())
 	})
 
+	It("catches a confident zero from swapped roles even when both numbers occur in both columns, and leaves a true zero alone", func() {
+		bothColumns := func(_ context.Context, _ *pgxpool.Pool, _, _ string, _ *askCatalogue, id string, _ askLimits) ([]string, error) {
+			return []string{"v_comm_events.src", "v_comm_events.dst", "v_contact_pairs.src", "v_contact_pairs.dst"}, nil
+		}
+		askProbeFn = bothColumns
+		savedPairs := askPairs
+		defer func() { askPairs = savedPairs }()
+		askPairs = func(context.Context, *pgxpool.Pool, string, string, string, string, askLimits) (map[[2]string]askPairCount, error) {
+			return map[[2]string]askPairCount{{"923000001005", "923000001032"}: {Events: 86, Incoming: 22, Outgoing: 64}}, nil
+		}
+		const asked = "How many times did 923000001005 get a call or message from 923000001032?"
+		swapped := reply("SELECT count(*) AS n FROM v_comm_events WHERE src = '923000001032' AND dst = '923000001005' AND direction = 'incoming'")
+		right := reply("SELECT count(*) AS n FROM v_comm_events WHERE src = '923000001005' AND dst = '923000001032' AND direction = 'incoming'")
+		script(swapped, right)
+		execBody = func(v *askValidated) (*govSQLResult, error) {
+			if strings.Contains(v.SQL, "src = '923000001005'") {
+				return scalar(22)
+			}
+			return scalar(0)
+		}
+		resp, audit := run(asked)
+		Expect(audit.State).To(Equal("answered"))
+		Expect(audit.Repairs).To(ContainElement("RESULT:EMPTY_WRONG_COLUMN"))
+		Expect(prompts[1][len(prompts[1])-1].Content).To(ContainSubstring("write src = '923000001005' AND dst = '923000001032'"))
+		Expect(resp.Answer["answer"]).To(Equal("N: 22."))
+
+		// a zero in the orientation that holds the pair, for a direction that never happened, is the truth and is shown as such
+		askPairs = func(context.Context, *pgxpool.Pool, string, string, string, string, askLimits) (map[[2]string]askPairCount, error) {
+			return map[[2]string]askPairCount{{"923000001005", "923000001032"}: {Events: 86, Incoming: 0, Outgoing: 86}}, nil
+		}
+		execBody = func(*askValidated) (*govSQLResult, error) { return scalar(0) }
+		script(right)
+		resp, audit = run(asked)
+		Expect(audit.State).To(Equal("answered"))
+		Expect(audit.Repairs).To(BeEmpty())
+		Expect(resp.Answer["answer"]).To(Equal("N: 0."))
+	})
+
+	It("reads a zero the database returned as text like any other zero", func() {
+		Expect(askResultEmpty(&govSQLResult{Rows: [][]any{{"0"}}})).To(BeTrue())
+		Expect(askResultEmpty(&govSQLResult{Rows: [][]any{{"0.00"}}})).To(BeTrue())
+		Expect(askResultEmpty(&govSQLResult{Rows: [][]any{{"10"}}})).To(BeFalse())
+		Expect(askResultEmpty(&govSQLResult{Rows: [][]any{{"923000001001"}}})).To(BeFalse())
+		Expect(askResultEmpty(&govSQLResult{Rows: [][]any{{""}}})).To(BeFalse())
+	})
+
 	It("tells a query that is too broad apart from a mistake, and asks to narrow it", func() {
 		execBody = func(*askValidated) (*govSQLResult, error) {
 			return nil, &govSQLRunError{Code: "TOO_EXPENSIVE", Message: "the query would read far too much data"}
