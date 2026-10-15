@@ -230,6 +230,54 @@ var _ = Describe("Ask engine executor on a case database", Ordered, func() {
 		Expect(resp.Answer["answer"]).To(Equal("No record of this case holds 923000099999 in any number, device, SIM, address or cell column."))
 	})
 
+	It("writes one audit row for the question, in the tenant's own rows, and the application role cannot change or remove it", func() {
+		subject, other, events, _ := pair()
+		savedModel := askModel
+		defer func() { askModel = savedModel }()
+		sql := fmt.Sprintf("SELECT events AS n FROM v_contact_pairs WHERE src = '%s' AND dst = '%s'", subject, other)
+		askModel = func(context.Context, config, string, []govSQLTurn) (string, string) {
+			raw, _ := json.Marshal(map[string]any{"answerable": true, "sql": sql})
+			return string(raw), ""
+		}
+		question := fmt.Sprintf("Count the events between %s and %s for the audit check.", subject, other)
+		req := hybridQueryRequest{TenantID: truth.Tenant, UserID: "audit-spec", CollectionID: truth.CaseID, RequestClass: forensicrequest.GovernedAnalysis, Query: question}
+		_, audit := runAskEngineV2(ctx, config{SynthesisModel: "scripted"}, pool, req, time.Now())
+		Expect(audit.State).To(Equal("answered"))
+
+		read := func(tenant string) (n int, details map[string]any) {
+			tx, err := pool.Begin(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			defer func() { _ = tx.Rollback(ctx) }()
+			_, err = tx.Exec(ctx, "SELECT set_config('app.tenant_id', $1, true)", tenant)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(tx.QueryRow(ctx, "SELECT count(*) FROM forensic.records_audit_log WHERE action = $1 AND details->>'question' = $2", askAuditAction, question).Scan(&n)).To(Succeed())
+			var raw []byte
+			if n > 0 {
+				Expect(tx.QueryRow(ctx, "SELECT details FROM forensic.records_audit_log WHERE action = $1 AND details->>'question' = $2 ORDER BY id DESC LIMIT 1", askAuditAction, question).Scan(&raw)).To(Succeed())
+				Expect(json.Unmarshal(raw, &details)).To(Succeed())
+			}
+			return n, details
+		}
+		n, details := read(truth.Tenant)
+		Expect(n).To(Equal(1))
+		Expect(details["question"]).To(Equal(question))
+		Expect(details["state"]).To(Equal("answered"))
+		Expect(details["sql"]).To(ContainSubstring("v_contact_pairs"))
+		Expect(details["result_digest"]).To(HaveLen(64))
+		Expect(fmt.Sprint(details["rows"])).To(Equal("1"))
+		Expect(fmt.Sprint(events)).NotTo(BeEmpty())
+		other2, _ := read("another-tenant")
+		Expect(other2).To(Equal(0), "another tenant sees none of it")
+
+		tx, err := pool.Begin(ctx)
+		Expect(err).NotTo(HaveOccurred())
+		defer func() { _ = tx.Rollback(ctx) }()
+		_, err = tx.Exec(ctx, "SELECT set_config('app.tenant_id', $1, true)", truth.Tenant)
+		Expect(err).NotTo(HaveOccurred())
+		_, err = tx.Exec(ctx, "DELETE FROM forensic.records_audit_log WHERE action = $1", askAuditAction)
+		Expect(err).To(HaveOccurred(), "the application role may append to the audit log, not remove from it")
+	})
+
 	It("leaves the case unchanged: the engine wrote nothing", func() {
 		var writes int
 		Expect(pool.QueryRow(ctx, "SELECT coalesce(sum(n_tup_ins + n_tup_upd + n_tup_del), 0)::int FROM pg_stat_user_tables WHERE schemaname = 'analyst'").Scan(&writes)).To(Succeed())

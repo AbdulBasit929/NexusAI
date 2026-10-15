@@ -258,11 +258,15 @@ func askUserPrompt(f askFrame) string {
 
 func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybridQueryRequest, startedAt time.Time) (*hybridQueryResponse, AskAuditV2) {
 	audit := AskAuditV2{State: "declined"}
+	engineStart := time.Now() // the repair budget counts the engine's own time, not what the existing path spent before it declined
+	var frame askFrame
+	var digest string
 	finish := func(resp *hybridQueryResponse) (*hybridQueryResponse, AskAuditV2) {
 		if resp != nil && audit.State == "declined" {
 			audit.State = "abstained"
 		}
 		audit.TotalMS = time.Since(startedAt).Milliseconds()
+		askAuditSink(ctx, db, req, audit, frame, digest)
 		if resp != nil {
 			resp.Telemetry.TotalLatencyMS = audit.TotalMS
 			if resp.Planner != nil {
@@ -289,7 +293,7 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 	if err != nil {
 		return decline("the verified examples are not valid")
 	}
-	frame := askExtractFrame(req.Query)
+	frame = askExtractFrame(req.Query)
 	if frame.Relative != "" {
 		// "last week" has no meaning without a reference day, and a model that is not given one invents it (measured 2026-10-14). The question is not run.
 		return decline("the question uses a relative time (" + frame.Relative + ") and no reference day is stated")
@@ -321,7 +325,7 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 	}
 	for attempt := 1; attempt <= askMaxAttempts; attempt++ {
 		audit.Attempts = attempt
-		last := attempt == askMaxAttempts || time.Since(startedAt) > askRepairBudget
+		last := attempt == askMaxAttempts || time.Since(engineStart) > askRepairBudget
 		modelStart := time.Now()
 		raw, failure := askModel(ctx, cfg, model, turns)
 		audit.ModelMS += time.Since(modelStart).Milliseconds()
@@ -408,7 +412,11 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 			switch {
 			case verdict.elsewhere != "" && !last:
 				audit.repaired("RESULT:EMPTY_WRONG_COLUMN")
-				retry(raw, fmt.Sprintf("Nothing matched, but %s occurs in %s. Look there.", verdict.identifier, verdict.elsewhere))
+				message := verdict.hint
+				if message == "" {
+					message = fmt.Sprintf("Nothing matched, but %s occurs in %s. Look there.", verdict.identifier, verdict.elsewhere)
+				}
+				retry(raw, message)
 				continue
 			case verdict.elsewhere != "":
 				return finish(askAbstainResponse(req, cat, frame, validated, []askObligation{{Kind: "EMPTY", Reason: "the query found nothing although the identifier occurs elsewhere in the case"}}, audit))
@@ -426,6 +434,7 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 		}
 
 		audit.State = "answered"
+		digest = askResultDigest(result)
 		audit.Shape = askShape(result.Columns, len(result.Rows))
 		audit.Checks = askChecksPassed(frame, validated)
 		return finish(askAnswerResponse(req, cat, validated, result, frame, absence, audit))
@@ -474,6 +483,24 @@ type askEmptyVerdict struct {
 	absence    string // the sentence that says what was searched, when nothing was found anywhere
 	elsewhere  string // "view.column" where the identifier does occur, when the query looked elsewhere
 	identifier string
+	hint       string // what to tell the model, in words
+}
+
+// askRoleHint says, for an identifier that the query compared in one column and that occurs in others, what the columns mean. In the call views src is the subscriber
+// whose records these are and dst is the other party; a number that only ever occurs as the other party cannot be a subscriber, and the model that puts it in src
+// gets an empty result (measured 2026-10-15: five questions of the form "how many times did A get a call from B").
+func askRoleHint(id string, compared map[string]bool, hits []string) string {
+	hitColumns := map[string]bool{}
+	for _, hit := range hits {
+		hitColumns[hit[strings.Index(hit, ".")+1:]] = true
+	}
+	switch {
+	case compared["src"] && !hitColumns["src"] && hitColumns["dst"]:
+		return fmt.Sprintf("Nothing matched. %s is never a subscriber (src) in this case: it occurs only as the other party (dst). src is the subscriber whose records these are and dst is the other party, so put %s in dst and the other number of the question in src.", id, id)
+	case compared["dst"] && !hitColumns["dst"] && hitColumns["src"]:
+		return fmt.Sprintf("Nothing matched. %s is a subscriber (src) in this case and never the other party (dst). src is the subscriber whose records these are and dst is the other party, so put %s in src.", id, id)
+	}
+	return ""
 }
 
 func askReadEmpty(ctx context.Context, db *pgxpool.Pool, req hybridQueryRequest, cat *askCatalogue, f askFrame, v *askValidated, limits askLimits) (askEmptyVerdict, error) {
@@ -481,6 +508,8 @@ func askReadEmpty(ctx context.Context, db *pgxpool.Pool, req hybridQueryRequest,
 	if len(ids) == 0 {
 		return askEmptyVerdict{}, nil
 	}
+	// A path search over the subscribers' contacts is empty when no path exists: that is an answer, not a query that looked in the wrong place.
+	wrongPlaceMatters := !v.Recursive
 	var absent []string
 	for _, id := range ids {
 		hits, err := askProbeFn(ctx, db, req.TenantID, req.CollectionID, cat, id, limits)
@@ -499,8 +528,8 @@ func askReadEmpty(ctx context.Context, db *pgxpool.Pool, req hybridQueryRequest,
 				elsewhere = append(elsewhere, hit)
 			}
 		}
-		if len(elsewhere) == len(hits) {
-			return askEmptyVerdict{elsewhere: strings.Join(elsewhere, ", "), identifier: id}, nil
+		if len(elsewhere) == len(hits) && wrongPlaceMatters {
+			return askEmptyVerdict{elsewhere: strings.Join(elsewhere, ", "), identifier: id, hint: askRoleHint(id, compared, hits)}, nil
 		}
 	}
 	if len(absent) == len(ids) {

@@ -39,6 +39,18 @@ def load_key(seed):
         return json.load(handle)
 
 
+def with_check_digit(imei14):
+    total = 0
+    for i, ch in enumerate(reversed(imei14)):
+        d = int(ch)
+        if i % 2 == 0:
+            d *= 2
+            if d > 9:
+                d -= 9
+        total += d
+    return imei14 + str((10 - total % 10) % 10)
+
+
 def events(row):
     return row["incoming"] + row["outgoing"] + row["unknown"]
 
@@ -101,7 +113,9 @@ def build(key):
     for i, (s, entry) in enumerate(sorted(oracle["A8"]["numbers"].items())):
         if not entry["changes"]:
             continue
-        imeis = sorted({c["old_imei"] for c in entry["changes"]} | {c["new_imei"] for c in entry["changes"]})
+        # The key holds the 14-digit identifier; the typed ingest stores the 15-digit IMEI, the same digits and the Luhn check digit (found 2026-10-15: all five stored
+        # values equal the key's plus the check digit), so the expectation is written the way the data holds it.
+        imeis = sorted(with_check_digit(i) for i in ({c["old_imei"] for c in entry["changes"]} | {c["new_imei"] for c in entry["changes"]}))
         text = ("Which handsets (IMEI) has %s been used with?" if i % 2 == 0 else "List every IMEI seen with %s.") % s
         add("devices", text, {"kind": "set", "values": imeis})
     # 8. who held an address at an instant (A13), unique and ambiguous instants

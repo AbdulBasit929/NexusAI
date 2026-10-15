@@ -190,8 +190,10 @@ func askExtractFrame(question string) askFrame {
 	phrase := func(p string) bool {
 		return strings.Contains(" "+strings.Join(askFrameWord.FindAllString(lower, -1), " ")+" ", " "+p+" ")
 	}
-	f.Cues["incoming"] = anyWord("incoming", "inbound", "received")
-	f.Cues["outgoing"] = anyWord("outgoing", "outbound", "dial", "dials", "dialled", "dialed", "dialling", "dialing", "made")
+	words2 := strings.Join(askFrameWord.FindAllString(lower, -1), " ")
+	f.Cues["incoming"] = anyWord("incoming", "inbound", "received") || regexp.MustCompile(`\b(?:get|gets|got|getting|receive|receives|receiving)\b.*\bfrom\b`).MatchString(words2) ||
+		regexp.MustCompile(`\b(?:calls?|messages?|sms|texts?)\s+from\b`).MatchString(words2)
+	f.Cues["outgoing"] = anyWord("outgoing", "outbound", "dial", "dials", "dialled", "dialed", "dialling", "dialing", "made") || regexp.MustCompile(`\b(?:send|sends|sent|sending|call|calls|called|calling|message|messages|messaged|text|texted)\b.*\bto\b`).MatchString(words2) && !f.Cues["incoming"]
 	f.Cues["outgoing"] = f.Cues["outgoing"] && !phrase("made by")
 	f.Cues["sms"] = anyWord("sms", "texts") || phrase("text message") || phrase("text messages")
 	f.Cues["mms"] = anyWord("mms")
@@ -199,9 +201,14 @@ func askExtractFrame(question string) askFrame {
 	f.Cues["night"] = anyWord("night", "overnight", "midnight")
 	f.Cues["count"] = phrase("how many") || phrase("number of") || anyWord("count", "total") && !anyWord("duration", "minutes", "seconds", "hours")
 	f.Cues["distinct"] = anyWord("different", "distinct", "unique")
-	f.Cues["rank"] = anyWord("top", "most", "busiest", "highest", "largest", "biggest", "frequently", "often")
-	f.Cues["earliest"] = anyWord("earliest", "first", "oldest")
-	f.Cues["latest"] = anyWord("latest", "last", "newest") && !f.Cues["rank"]
+	f.Cues["rank"] = anyWord("top", "busiest", "highest", "largest", "biggest", "frequently", "often") || anyWord("most") && !phrase("most recent")
+	// "first" and "last" ask for one earliest or latest value only when they qualify an event ("the first call", "when was the last message"); "the first week of March"
+	// is a period. "earliest", "oldest", "latest", "newest" and "most recent" always do.
+	followed := func(word string) bool {
+		return regexp.MustCompile(`\b` + word + `\s+(?:\w+\s+)?(?:call|calls|event|events|contact|contacts|message|messages|sms|time|record|records|seen|appearance|activity|connection|session|sessions|use)\b`).MatchString(lower)
+	}
+	f.Cues["earliest"] = anyWord("earliest", "oldest") || followed("first") || phrase("when was the first") || phrase("when did it first")
+	f.Cues["latest"] = (anyWord("latest", "newest") || phrase("most recent") || followed("last") || phrase("when was the last")) && !f.Cues["rank"]
 	f.Cues["services"] = anyWord("services", "shortcodes") || phrase("short codes") || phrase("service numbers") || phrase("sender names")
 	f.Cues["hubs"] = anyWord("hubs", "hub") || phrase("everyone contacts") || phrase("everybody contacts")
 	f.Cues["exclude"] = anyWord("without", "excluding", "except", "ignoring") || phrase("leave out") || phrase("leaving out") || phrase("not through") || phrase("not counting") || phrase("other than")

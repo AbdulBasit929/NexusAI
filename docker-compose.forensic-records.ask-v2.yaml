@@ -1,0 +1,19 @@
+# Ask engine v2 (docs/data/ask-engine-v2.md): the language model writes one read-only query over the analyst views (migration 017), and code checks that the query asks what the
+# question asks before it runs as the role forensic_analyst_ro. Needs migration 017 applied (and 016 and 018 for call records and internet sessions) and an API image that
+# contains api/forensic_records/ask_engine_*.go. Add this file AFTER docker-compose.forensic-records.yaml (and the typed-families file) and recreate ONLY the API, through
+# evaluation/question_factory/Run-Arms.ps1's helpers (never a bare `compose up`).
+#
+# Every switch is OFF unless set. FORENSIC_ASK_V2=true runs the engine after the existing path declines (an answer the existing path gave is never replaced);
+# FORENSIC_ASK_V2_FIRST=true runs it before the existing path (what the measurement of the engine's own accuracy uses); FORENSIC_ASK_V2_AGREE=true answers only when two
+# independent drafts agree (doubles the model time). The limits have the defaults of the code and are listed so that the laptop's measurements can set them.
+#
+# Rollback: recreate the API without this file. The database keeps the views and the role; nothing else changed.
+services:
+  forensic-records-api:
+    environment:
+      FORENSIC_ASK_V2: ${FORENSIC_ASK_V2:-false}
+      FORENSIC_ASK_V2_FIRST: ${FORENSIC_ASK_V2_FIRST:-false}
+      FORENSIC_ASK_V2_AGREE: ${FORENSIC_ASK_V2_AGREE:-false}
+      FORENSIC_ASK_V2_TIMEOUT_S: ${FORENSIC_ASK_V2_TIMEOUT_S:-15}
+      FORENSIC_ASK_V2_ROW_CAP: ${FORENSIC_ASK_V2_ROW_CAP:-1000}
+      FORENSIC_ASK_V2_MAX_COST: ${FORENSIC_ASK_V2_MAX_COST:-5000000}

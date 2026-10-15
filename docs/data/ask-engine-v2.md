@@ -104,6 +104,24 @@ An unmet obligation goes back to the model with the reason (at most two repairs;
 3. **The exact kinds** (pair, incoming, top contacts, common contacts, distinct contacts, devices, address holder, absent) at least 85% correct for the engine; the questions the data cannot answer: always an abstention or a decline.
 4. Connection questions (milestone M3) and latency are **reported, not gated**: the laptop's budgets are set from this baseline (roadmap 6.8.13).
 
+### Measured run 1: seed 73, 43 questions, both arms (2026-10-15, commit 1b21a6ba's engine, the gates above)
+
+| | Engine | Lane |
+|---|---|---|
+| Correct as judged | 33 | 7 |
+| Wrong | **5** | 14 |
+| Abstained / declined | 5 / 0 | 2 / 20 |
+| Latency p50 / p90 / max | 28.6 s / 79.1 s / 150.2 s | 23.9 s / 58.3 s / 89.6 s |
+
+**Against the gates as written: gate 1 failed (5 wrong, the gate says 0), gate 2 passed (33 against 7 correct, 5 against 14 wrong), gate 3 failed (28 of 36 exact-kind questions correct, 78%).** What the five wrong answers were:
+
+* **Three were the oracle's, not the engine's.** The three "which handsets" questions were marked wrong because the generator's key holds a 14-digit identifier and the typed ingest stores the 15-digit IMEI (the same digits and the Luhn check digit; all five stored values equal the key's plus the check digit). The engine's answers were right. `build_questions.py` now writes the expectation the way the data holds it. Re-judged with the corrected expectation, the same results are **36 correct, 2 wrong, 5 abstained** and the exact kinds are 31 of 36 (86%); the gates as pre-registered were still failed by the run as judged, and this correction was made after seeing the result, so it is measured again on a fresh seed (below).
+* **Two were the engine's, both "how many times did A get a call or message from B"** (Q008 answered 0, Q012 answered 53, the true value being 24 and 42). In Q008 the model put the other party in `src` (the subscriber column) and the subscriber in `dst`, so the count was empty, and a zero was shown. In Q012 it dropped the direction: the question never says "incoming", so no obligation demanded it. Three more questions of the same form were abstained after two repairs in which the model repeated the swap.
+
+**What was changed, from those two findings only:** (1) the frame reads a direction from the way the question is put ("get or receive ... from" is incoming; "send, call or message ... to" is outgoing), so the direction obligation applies to such questions; (2) the prompt's fixed rules say what `src` and `dst` are and give the two examples ("A got a call from B": `src = A, dst = B, direction = 'incoming'`); (3) when an empty result is repaired, the model is told which number is never a subscriber (it occurs only as the other party) instead of "look elsewhere"; (4) an empty result of a path search is no longer treated as a query that looked in the wrong place (two path questions with a correct empty answer had been abstained). The lane's 14 wrong answers are the reason the lane is not a baseline to be proud of: 13 of its 14 are about joins and counterparty direction that its one-view, no-join design cannot express.
+
+**Measured run 2 (fresh seed 79, engine only) follows; this section is completed with it.**
+
 ## Next
 
 Measured arms on a fresh seed (above), then the engine on the typed families beyond call records and internet sessions, the interface pieces of 7.8 (result views by shape), the composition of the sentence under the number lock (M5), and applying migration 017 to the live database on the owner's go, after a backup, so that the engine can be deployed and measured on the live stack.

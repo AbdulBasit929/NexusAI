@@ -71,6 +71,33 @@ var _ = Describe("Ask engine frame", func() {
 		Expect(askExtractFrame("Calls made by 923000000101").Cues["outgoing"]).To(BeFalse())
 	})
 
+	It("reads a direction from the way the question is put, not only from the word incoming", func() {
+		for _, q := range []string{"How many times did 923000001001 get a call or message from 923000001036?", "How many calls did 923000001001 receive from 923000001036?", "Messages from 923000001036 to 923000001001"} {
+			Expect(askExtractFrame(q).Cues["incoming"]).To(BeTrue(), q)
+		}
+		for _, q := range []string{"How many calls did 923000001001 make to 923000001036?", "How many messages did 923000001001 send to 923000001036?", "How many times did 923000001001 call 923000001036 to talk?"} {
+			Expect(askExtractFrame(q).Cues["outgoing"]).To(BeTrue(), q)
+		}
+		for _, q := range []string{"How many events are there between 923000001001 and 923000001036?", "How many calls and messages did 923000001001 have with 923000001036?"} {
+			f := askExtractFrame(q)
+			Expect(f.Cues["incoming"]).To(BeFalse(), q)
+			Expect(f.Cues["outgoing"]).To(BeFalse(), q)
+		}
+	})
+
+	It("reads first and last as a request for one value only when they qualify an event", func() {
+		for _, q := range []string{"When was the first call of 923000000101?", "Which is the earliest event?", "What was the first message 923000000101 received?"} {
+			Expect(askExtractFrame(q).Cues["earliest"]).To(BeTrue(), q)
+		}
+		for _, q := range []string{"How many calls were there in the first week of March 2026?", "Who called in the last days of 2025?"} {
+			f := askExtractFrame(q)
+			Expect(f.Cues["earliest"]).To(BeFalse(), q)
+			Expect(f.Cues["latest"]).To(BeFalse(), q)
+		}
+		Expect(askExtractFrame("When was the last call of 923000000101?").Cues["latest"]).To(BeTrue())
+		Expect(askExtractFrame("Show the most recent event of 923000000101").Cues["latest"]).To(BeTrue())
+	})
+
 	It("flags a relative time, which cannot be resolved without a reference day", func() {
 		for _, q := range []string{"calls last week", "What happened yesterday?", "calls in the past 30 days", "recent contacts of 923000000101", "this month"} {
 			Expect(askExtractFrame(q).Relative).NotTo(BeEmpty(), q)
@@ -233,6 +260,8 @@ var _ = Describe("Ask engine run", func() {
 		savedLoader  = askCatalogueLoader
 		savedExec    = askExec
 		savedProbeFn = askProbeFn
+		savedSink    = askAuditSink
+		audits       []map[string]any
 	)
 	BeforeEach(func() {
 		var err error
@@ -253,9 +282,13 @@ var _ = Describe("Ask engine run", func() {
 		askProbeFn = func(context.Context, *pgxpool.Pool, string, string, *askCatalogue, string, askLimits) ([]string, error) {
 			return nil, nil
 		}
+		audits = nil
+		askAuditSink = func(_ context.Context, _ *pgxpool.Pool, req hybridQueryRequest, a AskAuditV2, f askFrame, digest string) {
+			audits = append(audits, askAuditDetails(req, a, f, digest))
+		}
 	})
 	AfterEach(func() {
-		askModel, askCatalogueLoader, askExec, askProbeFn = savedModel, savedLoader, savedExec, savedProbeFn
+		askModel, askCatalogueLoader, askExec, askProbeFn, askAuditSink = savedModel, savedLoader, savedExec, savedProbeFn, savedSink
 	})
 
 	const q = "How many incoming SMS did 923000000101 receive?"
@@ -278,6 +311,38 @@ var _ = Describe("Ask engine run", func() {
 		Expect(strings.Join(derivation["steps"].([]string), " ")).To(ContainSubstring("event_type = 'sms'"))
 		Expect(derivation["conditions_checked"]).NotTo(BeEmpty())
 		Expect(execs).To(HaveLen(1))
+	})
+
+	It("records every question it looked at: answered, abstained and declined, with the digest of the result and never the rows", func() {
+		script(reply(good))
+		run(q)
+		bad := reply("SELECT count(*) AS n FROM v_comm_events WHERE src = '923000000101'")
+		script(bad, bad, bad)
+		run(q)
+		run("How many SMS did 923000000101 receive last week?")
+		Expect(audits).To(HaveLen(3))
+		Expect(audits[0]["state"]).To(Equal("answered"))
+		Expect(audits[0]["question"]).To(Equal(q))
+		Expect(audits[0]["identifiers"]).To(Equal([]string{"923000000101"}))
+		Expect(audits[0]["sql"]).To(ContainSubstring("v_comm_events"))
+		Expect(audits[0]["result_digest"]).To(HaveLen(64))
+		Expect(audits[0]["model"]).To(Equal("test-model"))
+		Expect(audits[0]["prompt_id"]).NotTo(BeEmpty())
+		Expect(audits[0]).NotTo(HaveKey("rows_data"))
+		Expect(audits[1]["state"]).To(Equal("abstained"))
+		Expect(audits[1]["repairs"]).To(ContainElement("OBLIGATION:DIRECTION"))
+		Expect(audits[1]["result_digest"]).To(Equal(""))
+		Expect(audits[2]["state"]).To(Equal("declined"))
+		Expect(audits[2]["reason"]).To(ContainSubstring("relative time"))
+	})
+
+	It("gives the same digest to the same rows and another to other rows", func() {
+		a := &govSQLResult{Columns: []string{"n"}, Rows: [][]any{{int64(1)}, {int64(2)}}}
+		b := &govSQLResult{Columns: []string{"n"}, Rows: [][]any{{int64(1)}, {int64(2)}}}
+		c := &govSQLResult{Columns: []string{"n"}, Rows: [][]any{{int64(2)}, {int64(1)}}}
+		Expect(askResultDigest(a)).To(Equal(askResultDigest(b)))
+		Expect(askResultDigest(a)).NotTo(Equal(askResultDigest(c)))
+		Expect(askResultDigest(nil)).To(Equal(""))
 	})
 
 	It("shows the model the canonical number, the hints, the fixed rules first, and no case data", func() {
@@ -425,6 +490,46 @@ var _ = Describe("Ask engine run", func() {
 		resp, audit = run("Which SMS did 923000000101 have?")
 		Expect(audit.State).To(Equal("answered"))
 		Expect(resp.Answer["answer"]).To(Equal("No row matches what you asked."))
+	})
+
+	It("tells the model which number is the subscriber when it put the other party in src, and never calls an empty path wrong", func() {
+		askProbeFn = func(_ context.Context, _ *pgxpool.Pool, _, _ string, _ *askCatalogue, id string, _ askLimits) ([]string, error) {
+			if id == "923000001036" {
+				return []string{"v_comm_events.dst", "v_contact_pairs.dst"}, nil
+			}
+			return []string{"v_comm_events.src", "v_contact_pairs.src"}, nil
+		}
+		empty := func(*askValidated) (*govSQLResult, error) {
+			return &govSQLResult{Columns: []string{"n"}, Texts: []bool{false}, Rows: [][]any{{int64(0)}}}, nil
+		}
+		execBody = empty
+		const asked = "How many times did 923000001001 get a call or message from 923000001036?"
+		swapped := reply("SELECT count(*) AS n FROM v_comm_events WHERE src = '923000001036' AND dst = '923000001001' AND direction = 'incoming'")
+		right := reply("SELECT count(*) AS n FROM v_comm_events WHERE src = '923000001001' AND dst = '923000001036' AND direction = 'incoming'")
+		script(swapped, right)
+		execBody = func(v *askValidated) (*govSQLResult, error) {
+			if strings.Contains(v.SQL, "src = '923000001001'") {
+				return scalar(24)
+			}
+			return empty(v)
+		}
+		resp, audit := run(asked)
+		Expect(audit.State).To(Equal("answered"))
+		Expect(audit.Repairs).To(ContainElement("RESULT:EMPTY_WRONG_COLUMN"))
+		Expect(prompts[1][len(prompts[1])-1].Content).To(SatisfyAny(ContainSubstring("never a subscriber (src)"), ContainSubstring("never the other party (dst)")))
+		Expect(resp.Answer["answer"]).To(Equal("N: 24."))
+
+		execBody = empty
+		walk := reply("WITH RECURSIVE walk AS (SELECT src, dst, 1 AS depth, ARRAY[src, dst] AS path FROM v_contact_pairs WHERE src = '923000001001' AND NOT is_service AND NOT is_hub " +
+			"UNION ALL SELECT w.src, e.dst, w.depth + 1, w.path || e.dst FROM walk w JOIN v_contact_pairs e ON e.src = w.dst WHERE w.depth < 3 AND NOT e.dst = ANY (w.path) AND NOT e.is_service AND NOT e.is_hub) " +
+			"SELECT src, dst FROM walk WHERE dst = '923000001036' LIMIT 20")
+		execBody = func(*askValidated) (*govSQLResult, error) {
+			return &govSQLResult{Columns: []string{"src", "dst"}, Texts: []bool{true, true}, Rows: [][]any{}}, nil
+		}
+		script(walk)
+		_, audit = run("How are 923000001001 and 923000001036 connected within three hops?")
+		Expect(audit.State).To(Equal("answered"))
+		Expect(audit.Repairs).To(BeEmpty())
 	})
 
 	It("tells a query that is too broad apart from a mistake, and asks to narrow it", func() {
