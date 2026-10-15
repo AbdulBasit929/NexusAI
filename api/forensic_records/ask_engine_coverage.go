@@ -34,7 +34,7 @@ SELECT
     EXISTS (SELECT 1 FROM forensic.comm_event c WHERE c.tenant_id = e.tenant_id AND c.evidence_id = e.evidence_id)
     OR EXISTS (SELECT 1 FROM forensic.data_session s WHERE s.tenant_id = e.tenant_id AND s.evidence_id = e.evidence_id)
     OR EXISTS (SELECT 1 FROM forensic.app_usage u WHERE u.tenant_id = e.tenant_id AND u.evidence_id = e.evidence_id))),
-  EXISTS (SELECT 1 FROM forensic.comm_event c WHERE c.tenant_id = $1 AND c.collection_id = $2),
+  EXISTS (SELECT 1 FROM forensic.comm_event c WHERE c.tenant_id = $1 AND c.collection_id = $2 AND c.dataset_kind = 'target_cdr' AND NOT ('duplicate_row' = ANY (c.quality_flags))),
   EXISTS (SELECT 1 FROM forensic.data_session s WHERE s.tenant_id = $1 AND s.collection_id = $2),
   EXISTS (SELECT 1 FROM forensic.app_usage u WHERE u.tenant_id = $1 AND u.collection_id = $2)
 FROM forensic.evidence_items e
@@ -87,6 +87,9 @@ func askCoverageFor(ctx context.Context, db *pgxpool.Pool, tenantID, collectionI
 	askCoverageCache.Unlock()
 	return c, nil
 }
+
+// AnyComm is true only for TARGET call records: the views leave tower-dump rows out, so a case whose only typed call rows are a dump has nothing for v_comm_events (found
+// 2026-10-15: the demonstration files, read by the registry as a dump layout, would have passed a check for "any call row" and answered zero).
 
 // askCoverageGap says, for the views a question would read, why the analyst views cannot speak for this case; "" when they can.
 func askCoverageGap(c askCoverage, views []string) string {

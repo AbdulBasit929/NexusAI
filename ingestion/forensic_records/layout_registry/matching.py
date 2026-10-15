@@ -160,7 +160,10 @@ def score_entry(entry: Mapping[str, Any], cells: Sequence[HeaderCell]) -> Layout
         for cell in extra:
             if len(norm) >= 6 and cell.occurrence == occurrence and _edit_distance_at_most_one(norm, cell.norm):
                 near.append((name, cell.raw))
-    denominator = max(len(columns), len(cells)) or 1
+    # A column the layout lists as optional and the file does not have costs nothing: a Telenor-style export without its two trailing optional columns is still that layout
+    # (found 2026-10-15: the synthetic demonstration files lack them and were read as a tower-dump layout that has one column fewer and no counterparty). A column the
+    # file has and the layout does not know still costs, as before.
+    denominator = max(len(columns) - len(missing_optional), len(cells)) or 1
     score = matched / denominator
     min_score = float(entry["header"].get("min_score", 0.85))
     required_ok = not missing_required

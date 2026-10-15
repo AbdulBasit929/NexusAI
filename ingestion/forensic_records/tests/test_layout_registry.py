@@ -392,6 +392,24 @@ class MatchingTests(unittest.TestCase):
         rows = [["Title"], ["Report", "x"], [], ["a", "b", "c", "d", "e"]]
         self.assertEqual(find_header_row(REGISTRY.entries, rows).decision, "none")
 
+
+    def test_an_export_without_its_optional_columns_is_still_that_layout_and_not_a_layout_with_one_column_fewer(self):
+        # found 2026-10-15: the synthetic demonstration CDR files are the Telenor-style layout without its two trailing optional columns; they were read as the
+        # tower-dump layout (one column fewer, no counterparty), whose rows the analyst views leave out
+        entry = REGISTRY.get("call-c4-telenor-style")
+        optional = [c["name"] for c in entry["header"]["columns"] if c["name"] not in entry["header"]["required"]]
+        self.assertGreaterEqual(len(optional), 2)
+        header = [c["name"] for c in entry["header"]["columns"] if c["name"] not in optional[-2:]]
+        report = REGISTRY.find_header([header])
+        self.assertEqual(report.matched_entry_id, "call-c4-telenor-style")
+        by_id = {m.layout_id: m for m in report.candidates}
+        self.assertEqual(by_id["call-c4-telenor-style"].score, 1.0)
+        # a column the layout does not know still costs, as before
+        noisy = REGISTRY.find_header([header + ["unrelated extra column"]])
+        self.assertLess({m.layout_id: m for m in noisy.candidates}["call-c4-telenor-style"].score, 1.0)
+        # a required column missing is still a refusal
+        missing_required = [c for c in header if c != entry["header"]["required"][0]]
+        self.assertNotEqual(REGISTRY.find_header([missing_required]).matched_entry_id, "call-c4-telenor-style")
     def test_two_entries_with_the_same_columns_are_ambiguous_not_arbitrary(self):
         a = entry_copy("geofence-c5-mobilink")
         b = copy.deepcopy(a)
