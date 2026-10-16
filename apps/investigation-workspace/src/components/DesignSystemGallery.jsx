@@ -24,6 +24,8 @@ import {
 import { BrandLockup } from './BrandLockup.jsx'
 import { PaletteOptions } from './PaletteOptions.jsx'
 import { PageTemplatesDemo } from './PageTemplatesDemo.jsx'
+import { CarrierBadge } from './CarrierBadge.jsx'
+import { CARRIER_ORDER } from '../lib/carriers.js'
 
 const focusable = 'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
@@ -206,6 +208,24 @@ export function DesignSystemGallery() {
         <div className="gallery-state-grid">
           <div><span className="gallery-label">Processing</span><div className="gallery-badges">{statuses.map(({ id, label, icon: Icon }) => <span key={id} className={`gallery-badge gallery-badge--${id}`}><Icon />{label}</span>)}</div></div>
           <div><span className="gallery-label">Evidence strength</span><div className="gallery-strengths">{evidenceStrength.map(item => <div key={item.id} className={`gallery-strength gallery-strength--${item.id}`}><span><ShieldCheck />{item.label}</span><small>{item.detail}</small></div>)}</div></div>
+        </div>
+      </section>
+
+      <section className="gallery-section" aria-labelledby="gallery-links-title">
+        <div className="gallery-section__heading"><div><span className="eyebrow">Link analysis</span><h2 id="gallery-links-title">Who is in contact with whom, and where</h2></div><p>Carrier badges name the SIM's network and are never the only carrier of meaning. The shapes and lines of the link chart each have one meaning.</p></div>
+        <div className="gallery-state-grid">
+          <div><span className="gallery-label">Carrier of the SIM (placeholder marks, not logos)</span><div className="gallery-badges">{CARRIER_ORDER.map(id => <CarrierBadge key={id} carrier={id} size={22} showName />)}</div></div>
+          <div>
+            <span className="gallery-label">Link chart key</span>
+            <div className="cx-legend" aria-label="Link chart key">
+              <span className="cx-legend__item"><i className="cx-sw cx-sw--square" />subscriber (badge = carrier)</span>
+              <span className="cx-legend__item"><i className="cx-sw cx-sw--circle" />other number (ring = carrier by range)</span>
+              <span className="cx-legend__item"><i className="cx-sw cx-sw--triangle" />everyone contacts it</span>
+              <span className="cx-legend__item"><i className="cx-sw cx-sw--diamond" />service or short code</span>
+              <span className="cx-legend__item"><i className="cx-ln cx-ln--solid" />contact, thicker = more events</span>
+              <span className="cx-legend__item"><i className="cx-ln cx-ln--dashed" />shared contacts (inferred, not contact between the two)</span>
+            </div>
+          </div>
         </div>
       </section>
 

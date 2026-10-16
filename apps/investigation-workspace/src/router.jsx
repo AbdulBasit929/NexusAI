@@ -13,6 +13,7 @@ const routeLoaders = {
   evidence: () => import('./pages/EvidenceListPage.jsx'),
   evidenceDetail: () => import('./pages/EvidenceDetailPage.jsx'),
   investigate: () => import('./pages/InvestigatePage.jsx'),
+  connections: () => import('./pages/ConnectionsPage.jsx'),
   timeline: () => import('./pages/TimelinePage.jsx'),
   activity: () => import('./pages/ActivityPage.jsx'),
   data: () => import('./pages/DataPage.jsx'),
@@ -29,6 +30,7 @@ const CaseOverviewPage = lazy(routeLoaders.overview)
 const EvidenceListPage = lazy(routeLoaders.evidence)
 const EvidenceDetailPage = lazy(routeLoaders.evidenceDetail)
 const InvestigatePage = lazy(routeLoaders.investigate)
+const ConnectionsPage = lazy(routeLoaders.connections)
 const TimelinePage = lazy(routeLoaders.timeline)
 const ActivityPage = lazy(routeLoaders.activity)
 const DataPage = lazy(routeLoaders.data)
@@ -70,6 +72,7 @@ export function WorkspaceRouter() {
               <InvestigatePage />
             </CapabilityGate>
           )} />
+          <Route path="/cases/:id/connections" element={<ConnectionsPage />} />
           <Route path="/cases/:id/timeline" element={<TimelinePage />} />
           <Route path="/cases/:id/activity" element={<ActivityPage />} />
           <Route path="/cases/:id/data" element={<DataPage />} />

@@ -109,7 +109,7 @@
     },
     {
       "name": "v_cells",
-      "description": "Cell sites known to the case: name, position and the stated coverage radius. A cell is not a position of a person; show the radius with any location claim.",
+      "description": "Cell sites known to the case: name, position and the stated coverage radius. The case's own list wins, then the tenant-wide one; for a cell neither describes, the position is the average of the positions the records themselves give it (no name, and a radius only if the records state one). A cell is not a position of a person; show the radius with any location claim.",
       "columns": [
         {
           "name": "cell_key",

@@ -718,3 +718,22 @@ var _ = Describe("Ask engine fallback entry", func() {
 		Expect(called).To(BeFalse())
 	})
 })
+
+var _ = Describe("Ask engine headline", func() {
+	It("counts in the right number: one link is a link, not 1 links", func() {
+		graph := func(pairs ...[2]string) *govSQLResult {
+			rows := make([][]any, 0, len(pairs))
+			for _, p := range pairs {
+				rows = append(rows, []any{p[0], p[1]})
+			}
+			return &govSQLResult{Columns: []string{"src", "dst"}, Texts: []bool{true, true}, Rows: rows}
+		}
+		Expect(askHeadline(graph([2]string{"923000000101", "923000000102"}), "graph", "")).To(Equal("1 link between 2 numbers."))
+		Expect(askHeadline(graph([2]string{"923000000101", "923000000102"}, [2]string{"923000000102", "923000000103"}), "graph", "")).To(Equal("2 links between 3 numbers."))
+		one := &govSQLResult{Columns: []string{"label", "value"}, Texts: []bool{true, false}, Rows: [][]any{{"923000000201", int64(14)}}}
+		Expect(askHeadline(one, "ranked", "")).To(Equal("1 result: 923000000201 (14)."))
+		points := &govSQLResult{Columns: []string{"t", "value"}, Texts: []bool{true, false}, Rows: [][]any{{"2026-03-01", int64(3)}}}
+		Expect(askHeadline(points, "series", "")).To(Equal("1 point."))
+		Expect(askHeadline(points, "map", "")).To(Equal("1 position."))
+	})
+})

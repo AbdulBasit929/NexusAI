@@ -9,6 +9,7 @@ import './styles/workspace.css'
 import './styles/identity-a.css'
 import './styles/shell.css'
 import './styles/canvas.css'
+import './styles/connections.css'
 
 document.documentElement.classList.add('analyst-portal')
 document.getElementById('root').classList.add('analyst-portal__root')

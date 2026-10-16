@@ -214,6 +214,8 @@ func main() {
 	mux.HandleFunc("GET /evidence/{evidence_id}/content", evidenceContentHandler(db, evidenceStore))
 	mux.HandleFunc("GET /evidence/{evidence_id}/reprocess-plan", evidenceReprocessPlanHandler(db))
 	mux.HandleFunc("POST /evidence/{evidence_id}/reprocess", evidenceReprocessHandler(db, publisher))
+	mux.HandleFunc("GET /analysis/connections", connectionsHandler(db))
+	mux.HandleFunc("GET /analysis/places", placesHandler(db))
 	mux.HandleFunc("GET /query/templates", queryTemplatesHandler())
 	mux.HandleFunc("GET /query/capabilities", forensicCapabilitiesHandler(db))
 	mux.HandleFunc("POST /query/hybrid", hybridQueryHandler(cfg, db))

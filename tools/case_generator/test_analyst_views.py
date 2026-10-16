@@ -228,6 +228,42 @@ class AnalystViewTests(unittest.TestCase):
             self.assertIn(b"permission denied", escalate.stderr, target)
 
     # ---- verify.sql must notice damage ---------------------------------------------------------------------------------------------------
+    def test_i_migration_019_gives_a_cell_the_position_its_records_carry_and_leaves_the_reference_list_first(self):
+        ops19 = "/tmp/mig/ops/019_observed_cell_positions/"
+        mig19 = "/tmp/mig/019_observed_cell_positions.sql"
+        self.db.psql("-f", ops19 + "preflight.sql")
+        self.db.psql("-f", mig19)
+        self.db.psql("-f", mig19)
+        self.db.psql("-f", ops19 + "verify.sql")
+        self.run_ops("verify.sql")
+        # with the reference list in place nothing changes: every cell is the case's own list's
+        sites = self.ask("SELECT count(*) AS n, count(*) FILTER (WHERE site_name LIKE 'Case site%') AS own FROM analyst.v_cells")[0]
+        self.assertGreater(sites["n"], 0)
+        self.assertEqual(sites["n"], sites["own"])
+        # without it, a cell takes the position of its records (inside one rolled-back transaction: nothing is left changed)
+        scope = load_case.sql_text(self.key["case_id"])
+        script = "\n".join([
+            "BEGIN;", "DELETE FROM forensic.cell_site WHERE collection_id IN (%s, '');" % scope,
+            "SET LOCAL ROLE forensic_analyst_ro;",
+            "SELECT set_config('app.tenant_id', %s, true);" % load_case.sql_text(load_case.TENANT), "SELECT set_config('app.collection_id', %s, true);" % scope,
+            "SELECT 'cells', count(*), count(lat), count(*) FILTER (WHERE site_name IS NOT NULL), count(*) - count(DISTINCT cell_key) FROM analyst.v_cells;",
+            "SELECT 'bounds', count(*) FILTER (WHERE lat NOT BETWEEN -90 AND 90 OR lon NOT BETWEEN -180 AND 180) FROM analyst.v_cells;",
+            "SELECT 'visits', count(*) FILTER (WHERE lat IS NOT NULL) FROM analyst.v_cell_visits;", "ROLLBACK;"])
+        rows = {line.split("|")[0]: line.split("|")[1:] for line in self.db.psql("-At", "-f", "-", input=script.encode()).splitlines() if "|" in line}
+        want = int(self.db.sql("SELECT count(DISTINCT cell_key) FROM forensic.comm_event WHERE %s AND cell_key IS NOT NULL AND lat IS NOT NULL AND lon IS NOT NULL AND %s" % (load_case.scope(self.key), load_case.NOT_DUPLICATE)))
+        self.assertGreater(want, 0, "the generated case carries positions in its call records")
+        self.assertEqual(int(rows["cells"][0]), want, "one row for each cell that has a position in the records")
+        self.assertEqual(rows["cells"][1], rows["cells"][0], "every one of them has its position")
+        self.assertEqual(rows["cells"][2], "0", "a cell taken from the records has no name")
+        self.assertEqual(rows["cells"][3], "0", "and appears once")
+        self.assertEqual(rows["bounds"][0], "0")
+        self.assertGreater(int(rows["visits"][0]), 0, "the visits of a subscriber to those cells carry the position")
+        # rollback puts migration 017's view back (positions from the reference list only), and the migration comes back
+        self.db.psql("-f", ops19 + "rollback.sql")
+        self.run_ops("verify.sql")
+        self.db.psql("-f", mig19)
+        self.db.psql("-f", ops19 + "verify.sql")
+
     def test_y_verify_fails_for_each_kind_of_damage_and_the_migration_repairs_it(self):
         def damage(sql, needle):
             try:

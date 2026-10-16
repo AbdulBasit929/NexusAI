@@ -43,6 +43,14 @@ func askColumnIndex(r *govSQLResult, name string) int {
 	return -1
 }
 
+// askCount is a count with its noun in the right number: "1 link", "2 links".
+func askCount(n int, one, many string) string {
+	if n == 1 {
+		return "1 " + one
+	}
+	return fmt.Sprintf("%d %s", n, many)
+}
+
 // askHeadline is the one sentence that states the result.
 func askHeadline(r *govSQLResult, shape, absence string) string {
 	n := len(r.Rows)
@@ -72,20 +80,20 @@ func askHeadline(r *govSQLResult, shape, absence string) string {
 		if n > askHeadlineItems {
 			tail = fmt.Sprintf(", and %d more", n-askHeadlineItems)
 		}
-		return fmt.Sprintf("%d results%s: %s%s.", n, more, strings.Join(items, ", "), tail)
+		return fmt.Sprintf("%s%s: %s%s.", askCount(n, "result", "results"), more, strings.Join(items, ", "), tail)
 	case "graph":
 		s, d := askColumnIndex(r, "src"), askColumnIndex(r, "dst")
 		nodes := map[string]bool{}
 		for _, row := range r.Rows {
 			nodes[fmt.Sprint(row[s])], nodes[fmt.Sprint(row[d])] = true, true
 		}
-		return fmt.Sprintf("%d links between %d numbers%s.", n, len(nodes), more)
+		return fmt.Sprintf("%s between %s%s.", askCount(n, "link", "links"), askCount(len(nodes), "number", "numbers"), more)
 	case "map":
-		return fmt.Sprintf("%d positions%s.", n, more)
+		return fmt.Sprintf("%s%s.", askCount(n, "position", "positions"), more)
 	case "series":
-		return fmt.Sprintf("%d points%s.", n, more)
+		return fmt.Sprintf("%s%s.", askCount(n, "point", "points"), more)
 	case "lanes":
-		return fmt.Sprintf("%d intervals%s.", n, more)
+		return fmt.Sprintf("%s%s.", askCount(n, "interval", "intervals"), more)
 	}
 	if n == 1 {
 		parts := make([]string, 0, len(r.Columns))

@@ -18,7 +18,7 @@
 window.__INVESTIGATION_WORKSPACE_CONFIG__ = window.__INVESTIGATION_WORKSPACE_CONFIG__ || {
   apiBaseUrl: '/api',
   capabilities: { hybrid_query: true },
-  caseIds: ['nexusai-multimodal-product-acceptance', 'nexusai-forensic-demo', 'nexusai-real-private-demo'],
+  caseIds: ['nexusai-multimodal-product-acceptance', 'nexusai-forensic-demo', 'nexusai-real-private-demo', 'ingest-v2-shadow-synthetic-20261013'],
   dataInventoryCaseIds: ['nexusai-real-private-demo'],   // cases with a local data inventory: they get a Data tab
 }
 

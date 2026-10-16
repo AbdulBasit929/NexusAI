@@ -851,7 +851,7 @@ A link chart (node type by shape, relationship kind by line style, click an edge
 
 ### 7.8 Where everything goes in the application at http://localhost:4181/ (added 2026-10-14)
 
-*A plan. Nothing in this section is built in the workspace yet. The spike is the evidence that the pieces work; this section is where they are integrated, in the existing screens and not in a second tool.*
+*A plan. **Status 2026-10-16: rows 2 and 3 of 7.8.3 and the result views of 7.8.2 are built and tested** (the Connections tab, the Places switch of the Timeline, the link chart and map views of an answer; `docs/data/analysis-views.md`); the other rows are still a plan. The spike is the evidence that the pieces work; this section is where they are integrated, in the existing screens and not in a second tool.*
 
 #### 7.8.1 The owner's interface instructions, collected
 

@@ -1,0 +1,54 @@
+# Analysis views: Connections and Places (roadmap 7.8.3 rows 2 and 3)
+
+Status 2026-10-16: **built, tested and shown on the synthetic Ingest v2 case; served at http://localhost:4181 from the main checkout; endpoints live in the API image `591e0076cc11` (migration 019 applied live the same day).** The workspace code is a commit of this branch (see the end of this page).
+
+Two things came out of one decision of the owner (2026-10-16: "visibility matters a lot"): the Ask page shows an answer in the view that fits its shape, and the case gets two pages that read the same analyst views the Ask engine reads, without a model.
+
+## The two endpoints (`api/forensic_records/analysis_views.go`)
+
+| Request | What it returns |
+|---|---|
+| `GET /analysis/connections?per_subject=N` | the subscribers (`subjects`: number, events, contacts, first, last, IMSI, IMEI), their strongest counterparties as `edges` (source, target, events, outgoing, incoming, unknown, duration_s, first, last, `is_service`, `is_hub`) and `totals` |
+| `GET /analysis/places` | the cell sites (`sites`: cell_key, name, lat, lon, radius_m, events, visitors) and the visits (`visits`: subject, cell_key, hour, events), `totals` |
+
+Both are **fixed, reviewed reads** of the analyst views of migration 017 and 019, not model-written SQL. They run through the same executor as the Ask engine (read-only role `forensic_analyst_ro`, the tenant and collection settings, the case clock, a statement timeout, a row cap), so a chart shows the numbers that a question about the same thing would give. They carry the **coverage guard** of the Ask engine: a case whose call records are not (all) in the typed tables answers `available: false` with the reason, never an empty chart that would look like a finding. Times are RFC 3339 in the case zone (the executor's "PKT" is not parseable by a browser and two zones can share it). Contract id `forensics.analysis-views/v1`; the `caveats` of the response are shown by the pages as written.
+
+Caps: 40 counterparties per subscriber by default (`per_subject`, at most 200), 60 subscribers, 6,000 edges, 3,000 sites, 30,000 visits. A response over a cap says `truncated: true` and the page says what it shows.
+
+**Migration 019** (`db/forensic_records/019_observed_cell_positions.sql`, with `ops/019_observed_cell_positions/{preflight,verify,rollback}.sql`): `analyst.v_cells` takes a cell's position from the records that observed it when the reference list does not describe the cell. Nothing is written; rollback restores migration 017's definition. Applied live 2026-10-16. A cell site is a **coverage area**, and the views, the endpoint and both pages say so.
+
+Specs (`ask_engine_exec_db_ginkgo_test.go`, run by `tools/case_generator/check_ask_engine.py`, 17 live specs): planted-truth counts for connections, +05:00 times, another tenant's case unavailable, 400 and 405, places sums equal to the events, positions, coverage and pairs.
+
+## What the workspace shows and where
+
+| Place | What |
+|---|---|
+| Case tab **Connections** (between Ask this case and Timeline), `/cases/:id/connections` | the link chart (Cytoscape, canvas), a filter bar (targets, carriers, period, what to show; all in the address, so a view can be copied), a panel for the selected number or link with **Ask about this** questions written in the forms the engine answers best, shared contacts and shortest path between two numbers (A and B), a table twin of every number and link (sortable, CSV), a legend, **Save picture**. Above about 1,500 numbers the contacts are drawn as groups that open on a click |
+| **Timeline**, switch Chronology / **Places**, `/cases/:id/timeline?view=places` | the map (MapLibre GL, offline basemap through the tile cache), a "follow" choice per subscriber with its located visits, a play slider along the movement, the busiest sites, and a site panel |
+| **Ask this case** and Investigate, in an answer | when the answer has `src` and `dst` columns it opens on a **Link chart** (Table one click away, "Open in Connections" with the answer's starting numbers); when it has `lat` and `lon` it opens on a **Map** ("Open in Places"); other answers are shown as before (bar chart over the table) |
+| `/design/type-proof` | the carrier badges and the link chart key |
+
+How an answer's view is chosen is `src/lib/resultShapes.js` (the columns that are really there decide; the engine's stated shape only picks the first view). A graph answer gets no bar chart: its rows are pairs of numbers and a bar over one end of each pair hides the other.
+
+**Carrier badges** are original placeholder marks (a coloured square and a letter), not logos; a logo needs a licence-ledger entry. Drop an official file at `apps/investigation-workspace/public/carriers/<id>.svg` and it is used. The carrier of a subscriber comes from its IMSI/range; for a contact only from its number range, which a ported number can contradict: the panel says how each carrier was found.
+
+**Basemap.** `apps/investigation-workspace/public/basemap.local.json` (git-ignored; `{ "tiles": { "tilejson": "/tiles/pakistan.json", "attribution": "..." } }`) names the offline tiles. The browser asks its own origin at `/tiles`, which the dev server forwards to the tile cache (`npm run dev:tiles` in `tools/visual_spike`, listening on 127.0.0.1:8099); the shared tile server's address is never in the repository or the browser. With no file, or no answer, the map is a plain background **and says so** in a badge on the map. MapLibre's worker file is served at `/maplibre/` by a small plugin in `vite.config.js` (no CDN). A map of cell sites never zooms closer than level 13.
+
+**Theme and right-to-left.** Canvases read their colours from the design tokens when drawn; a change of theme (the menu, or the system's setting) repaints the link chart in place and redraws the map (`src/lib/useThemeVersion.js`). Identifiers are isolated so that a number stays left-to-right inside right-to-left text. Phone width: the page frame is the shared `catalog-page`; a long case name no longer pushes the whole app sideways (`styles/shell.css`).
+
+## How it was checked
+
+- Workspace tests: 424 pass in the whole suite (53 of them are the new files: `resultShapes` 13, `connectionsModel` 15, `ResultViews` 6, `ConnectionsPage` 7, `PlacesView` 7, `GeoMap` 5). The two suites that read `reports/` fixtures pass only in the main checkout, which holds them (as before). The canvas libraries are replaced in these tests (jsdom has no canvas or WebGL); what they draw is checked in a real browser.
+- Real browser (headless Chrome, 1440 wide, dark and light, 390 wide, right-to-left), on the synthetic collection `ingest-v2-shadow-synthetic-20261013`: Connections (4 subscribers, 55 numbers in contact of which 51 are drawn with services left out, 3,072 events, 50 links), Places (19 of 19 sites with a position, 1,295 events on a located cell for the first subscriber), no page error.
+- **End to end through the real engine**, from the Ask page, on the same collection: "How are 923000001003 and 923000001036 connected within three hops, not through services or hubs?" answered "1 link between 2 numbers" and opened on the **Link chart** with the subscriber's badge and its contact; "Which cell sites did 923000001003 use most between 2026-03-01 and 2026-03-08 (local time)?" answered "4 positions" and opened on the **Map** with the offline basemap badge. Both: "Open in Connections" and "Open in Places" point at the right page.
+- Build: the main chunk is 202 kB (67 kB gzipped); the link chart (450 kB, 145 kB gzipped) and the map (1,039 kB, 284 kB gzipped) are separate chunks fetched only when a page or an answer needs them.
+
+## Findings that need a decision or a deployment
+
+1. **"How are A and B connected?" means a directed walk in the engine, and two subscribers who share a contact are not connected by that definition.** The example `connection-path` in `ask_engine_examples.json` walks `v_contact_pairs` from `src` to `dst`; contacts are never a `src` unless they are subscribers, so a walk from subscriber A reaches a shared contact C and stops. In the synthetic case 923000001003 and 923000001002 **both contact** 923000001036 (the Connections page draws it as a shared contact), and the engine answered "No row matches what you asked." The planted-truth oracle (`tools/ask_eval/build_questions.py`, question type `path`) uses the same directed definition, so the evaluation counted such answers correct. The answer is honest under that definition and may not be what an analyst means. **Decision D22 for the owner:** keep the directed meaning and say so in the answer, or define "connected" as a walk over contacts in either direction (A, then C, then B) and change the example, the oracle and the answer text together (it changes the prompt, so a fresh seed and the regression gate must be run again).
+2. **The answer line said "1 links"** (and "1 results", "1 points"): fixed in `ask_engine_response.go` (`askCount`, one spec); not deployed, the live API still says it. The page's own caption is fixed.
+3. **That question took 125 s** (model 121 s, execution 0.4 s) on a machine that was running other work: the latency work of Phase 1 is needed before these views feel live.
+
+## Not done
+
+Lanes and calendar (the Timeline switch has two of its four views), the entity drawer, link chart and map for the families beyond call and internet records, pan-and-zoom persistence in the address, a real basemap in the Playwright tests, official carrier logos. The map has no radius circle for a site whose radius is not stated, by design.

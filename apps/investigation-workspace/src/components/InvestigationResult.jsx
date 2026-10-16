@@ -1,8 +1,7 @@
 import { ClaimText, SourcePanel } from './Citations.jsx'
 import { ClarificationPrompt } from './ClarificationPrompt.jsx'
-import { ResultChart } from './ResultChart.jsx'
+import { ResultViews } from './ResultViews.jsx'
 import { answerSummary } from '../lib/answerSummary.js'
-import { ResultTable } from './ResultTable.jsx'
 import { EmptyState, FindingCard, LanguageText, MethodDetails, ResultStateBanner, TechnicalDisclosure } from './AnalystComponents.jsx'
 
 function SectionHeading({ children }) {
@@ -100,7 +99,7 @@ export function InvestigationResult({ presentation, onAsk, onClarificationChoice
             <section className="result-section result-section--result" aria-labelledby={headingId("result-heading")}>
               <SectionHeading><span id={headingId("result-heading")}>The result</span></SectionHeading>
               {presentation.state === 'zero-result' && <ScopeChips scope={presentation.scope} />}
-              {hasResult ? <><ResultChart presentation={presentation} /><ResultTable result={presentation.result} citations={presentation.citations} /></> : <EmptyState kind="complete-zero" />}
+              {hasResult ? <ResultViews presentation={presentation} /> : <EmptyState kind="complete-zero" />}
             </section>
           ) : null}
           {!compact && (

@@ -154,7 +154,7 @@ def main(argv):
             if summary.get("status") != "loaded" and args.only_recognised:
                 # the case under test holds only the files the registry reads: the coverage guard (rightly) declines a case with a file that has no typed rows
                 db.psql("-c", "UPDATE forensic.evidence_items SET detected_type = 'generic' WHERE evidence_id = '%s'" % evidence)
-        for name in ("016_effective_records.sql", "018_effective_ipdr.sql", "017_analyst_views.sql"):
+        for name in ("016_effective_records.sql", "018_effective_ipdr.sql", "017_analyst_views.sql", "019_observed_cell_positions.sql"):
             db.psql("-f", "/tmp/mig/" + name)
         password = uuid.uuid4().hex
         db.psql("-c", "ALTER ROLE forensic_runtime PASSWORD '%s'" % password)

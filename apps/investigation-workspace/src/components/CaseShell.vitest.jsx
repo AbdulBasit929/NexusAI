@@ -57,7 +57,7 @@ describe('case context bar', () => {
     openCase('/cases/case-a/evidence/e1', failing)
     const bar = screen.getByRole('navigation', { name: 'Case sections' })
     const links = [...bar.querySelectorAll('a')].map(link => link.getAttribute('href'))
-    expect(links).toEqual(['overview', 'evidence', 'investigate', 'timeline', 'activity'].map(section => `/cases/case-a/${section}`))
+    expect(links).toEqual(['overview', 'evidence', 'investigate', 'connections', 'timeline', 'activity'].map(section => `/cases/case-a/${section}`))
     expect(bar.querySelector('[aria-current="page"]').getAttribute('href')).toBe('/cases/case-a/evidence')
   })
 

@@ -84,6 +84,16 @@ export function getQueryCapabilities({ caseId, signal, fetchImpl }) {
   return scopedGet('/query/capabilities', caseId, { signal, fetchImpl })
 }
 
+// The connections and the places of a case, read from the analyst views by the API (api/forensic_records/analysis_views.go). `available: false` carries the reason the views
+// cannot speak for this case (its records are not all in the typed tables); a page says so and draws nothing.
+export function getConnections({ caseId, perSubject, signal, fetchImpl }) {
+  return scopedGet(`/analysis/connections${perSubject ? `?per_subject=${Number(perSubject)}` : ''}`, caseId, { signal, fetchImpl })
+}
+
+export function getPlaces({ caseId, signal, fetchImpl }) {
+  return scopedGet('/analysis/places', caseId, { signal, fetchImpl })
+}
+
 export function listEvidence({ caseId, filters = {}, signal, fetchImpl }) {
   const query = new URLSearchParams()
   if (filters.modality) query.set('modality', filters.modality)

@@ -176,3 +176,5 @@ apps/investigation-workspace/fixtures/live-*/
 /NexusAI-RealDataVault/
 tools/real_data/out/
 tools/real_data/allowlist.local.json
+# the workspace map: the offline basemap setting (a tile cache address), local only
+apps/investigation-workspace/public/basemap.local.json

@@ -73,8 +73,32 @@ function realDataExports() {
   return { name: 'real-data-exports', configureServer(server) { serve(server) }, configurePreviewServer(server) { serve(server) } }
 }
 
+// MapLibre GL 6 starts its worker from a file that has to be served by us (no CDN): the worker and the module it imports are served at /maplibre/ in development and
+// written next to the built page. (The basemap tiles come through /tiles, which tools/tilecache answers; see `tileCache` below.)
+const MAPLIBRE_FILES = ['maplibre-gl-worker.mjs', 'maplibre-gl-shared.mjs']
+function maplibreWorker() {
+  const dir = fileURLToPath(new URL('./node_modules/maplibre-gl/dist/', import.meta.url))
+  const serve = server => server.middlewares.use('/maplibre', (request, response) => {
+    const name = decodeURIComponent((request.url || '').split('?')[0].replace(/^\//, ''))
+    if (!MAPLIBRE_FILES.includes(name) || !existsSync(join(dir, name))) { response.statusCode = 404; response.end(); return }
+    response.setHeader('content-type', 'text/javascript; charset=utf-8')
+    response.end(readFileSync(join(dir, name)))
+  })
+  return {
+    name: 'maplibre-worker',
+    configureServer(server) { serve(server) },
+    configurePreviewServer(server) { serve(server) },
+    generateBundle() {
+      for (const name of MAPLIBRE_FILES) if (existsSync(join(dir, name))) this.emitFile({ type: 'asset', fileName: `maplibre/${name}`, source: readFileSync(join(dir, name)) })
+    },
+  }
+}
+
+// The offline basemap: the browser asks this origin for /tiles/..., and the tile cache (tools/tilecache, npm run dev:tiles in tools/visual_spike) answers; only the cache talks to the shared server.
+const tileCache = { '/tiles': { target: process.env.TILE_CACHE_URL || 'http://127.0.0.1:8099', changeOrigin: false } }
+
 export default defineConfig({
-  plugins: [realDataExports(), react()],
+  plugins: [realDataExports(), maplibreWorker(), react()],
   resolve: {
     alias: {
       '@semantic-layer': fileURLToPath(new URL('../../semantic_layer', import.meta.url)),
@@ -84,9 +108,9 @@ export default defineConfig({
     host: '127.0.0.1',
     port: 4181,
     fs: { allow: [fileURLToPath(new URL('../..', import.meta.url))] },
-    proxy: { '/api': apiProxy() },
+    proxy: { '/api': apiProxy(), ...tileCache },
   },
-  preview: { host: '127.0.0.1', port: 4182, proxy: { '/api': apiProxy() } },
+  preview: { host: '127.0.0.1', port: 4182, proxy: { '/api': apiProxy(), ...tileCache } },
   test: {
     environment: 'jsdom',
     // user-event typing is slow while the dev server and browsers share the laptop; assertions are unchanged.

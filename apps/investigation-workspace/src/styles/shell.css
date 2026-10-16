@@ -132,7 +132,7 @@
 .case-breadcrumb li { min-inline-size: 0; }
 .case-breadcrumb li:last-child { flex: 1 1 auto; }
 .case-breadcrumb li + li::before { content: '/'; color: var(--analyst-text-muted); }
-.case-breadcrumb .language-text { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-inline-size: 42ch; color: var(--analyst-text); font-weight: var(--analyst-font-weight-bold); }
+.case-breadcrumb .language-text { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-inline-size: min(42ch, 48vw); color: var(--analyst-text); font-weight: var(--analyst-font-weight-bold); }
 .case-breadcrumb a .language-text { color: var(--analyst-accent); }
 .case-context-band__summary {
   margin-inline-start: auto;

@@ -4,7 +4,7 @@ import { formatNumber } from './format.js'
 // service marked as such. It reads the same rows as the table below it (the table stays the exact, linkable version), so
 // the chart can never say something the table does not. Anything ambiguous, such as an identifier that merely looks
 // numeric (a phone number), gets no chart rather than a wrong one. Rules: UI_REDESIGN_BRIEF §6.
-const MEASURE_KEY = /^m\d+$|(^|_)(count|total|events?|calls?|records?|amount|sum|duration|hits)($|_)/i
+const MEASURE_KEY = /^m\d+$|(^|_)(count|total|events?|calls?|records?|amount|sum|duration|hits|value|weight)($|_)/i
 const MAX_POINTS = 12
 const MIN_POINTS = 2
 const MAX_TIME_POINTS = 60

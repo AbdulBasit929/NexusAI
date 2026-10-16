@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"sort"
 	"strconv"
@@ -196,6 +198,104 @@ var _ = Describe("Ask engine executor on a case database", Ordered, func() {
 		other, err := askProbe(ctx, pool, "another-tenant", truth.CaseID, cat, subject, limits)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(other).To(BeEmpty(), "the probe is scoped like every other statement")
+	})
+
+	It("serves the connections of the case: every subscriber's strongest counterparties with the planted-truth counts, and says so when the case is not covered", func() {
+		handler := connectionsHandler(pool)
+		call := func(collection string) map[string]any {
+			rec := httptest.NewRecorder()
+			request := httptest.NewRequest(http.MethodGet, "/analysis/connections?tenant_id="+truth.Tenant+"&collection_id="+collection+"&per_subject=200", nil)
+			handler(rec, request)
+			Expect(rec.Code).To(Equal(http.StatusOK))
+			var out map[string]any
+			Expect(json.Unmarshal(rec.Body.Bytes(), &out)).To(Succeed())
+			return out
+		}
+		out := call(truth.CaseID)
+		Expect(out["available"]).To(BeTrue())
+		Expect(out["contract"]).To(Equal("forensics.analysis-views/v1"))
+		edges := map[[2]string]map[string]any{}
+		for _, e := range out["edges"].([]any) {
+			m := e.(map[string]any)
+			edges[[2]string{m["source"].(string), m["target"].(string)}] = m
+		}
+		checked := 0
+		for _, s := range truth.Subjects {
+			for _, p := range truth.Oracle.A1[s.MSISDN] {
+				e, found := edges[[2]string{s.MSISDN, p.Number}]
+				Expect(found).To(BeTrue(), s.MSISDN+" with "+p.Number)
+				Expect(int(e["outgoing"].(float64))).To(Equal(p.Outgoing))
+				Expect(int(e["incoming"].(float64))).To(Equal(p.Incoming))
+				Expect(int(e["events"].(float64))).To(Equal(p.Outgoing + p.Incoming + p.Unknown))
+				checked++
+			}
+		}
+		Expect(checked).To(BeNumerically(">", 10))
+		subjects := out["subjects"].([]any)
+		Expect(subjects).To(HaveLen(len(truth.Subjects)))
+		for _, e := range out["edges"].([]any) {
+			first := e.(map[string]any)["first"].(string)
+			_, parseErr := time.Parse(time.RFC3339, first)
+			Expect(parseErr).NotTo(HaveOccurred(), "times are RFC 3339 with the case clock's offset: "+first)
+			Expect(first).To(HaveSuffix("+05:00"))
+		}
+		withSIM := 0
+		for _, s := range subjects {
+			if s.(map[string]any)["imsi"] != nil {
+				withSIM++
+			}
+		}
+		Expect(withSIM).To(BeNumerically(">", 0), "a subscriber carries the SIM it was seen with")
+		// another tenant's scope sees an empty case (the coverage read finds nothing typed), never this case
+		rec := httptest.NewRecorder()
+		handler(rec, httptest.NewRequest(http.MethodGet, "/analysis/connections?tenant_id=another-tenant&collection_id="+truth.CaseID, nil))
+		var other map[string]any
+		Expect(json.Unmarshal(rec.Body.Bytes(), &other)).To(Succeed())
+		Expect(other["available"]).To(BeFalse())
+		Expect(other["edges"]).To(BeEmpty())
+		// no collection is a refusal
+		rec = httptest.NewRecorder()
+		handler(rec, httptest.NewRequest(http.MethodGet, "/analysis/connections", nil))
+		Expect(rec.Code).To(Equal(http.StatusBadRequest))
+		rec = httptest.NewRecorder()
+		handler(rec, httptest.NewRequest(http.MethodPost, "/analysis/connections?collection_id=x", nil))
+		Expect(rec.Code).To(Equal(http.StatusMethodNotAllowed))
+	})
+
+	It("serves the places of the case: the cell sites with their events and the hourly visits, scoped", func() {
+		handler := placesHandler(pool)
+		rec := httptest.NewRecorder()
+		handler(rec, httptest.NewRequest(http.MethodGet, "/analysis/places?tenant_id="+truth.Tenant+"&collection_id="+truth.CaseID, nil))
+		Expect(rec.Code).To(Equal(http.StatusOK))
+		var out map[string]any
+		Expect(json.Unmarshal(rec.Body.Bytes(), &out)).To(Succeed())
+		Expect(out["available"]).To(BeTrue())
+		sites := out["sites"].([]any)
+		visits := out["visits"].([]any)
+		Expect(sites).NotTo(BeEmpty())
+		Expect(visits).NotTo(BeEmpty())
+		var fromSites, fromVisits float64
+		for _, s := range sites {
+			fromSites += s.(map[string]any)["events"].(float64)
+		}
+		for _, v := range visits {
+			fromVisits += v.(map[string]any)["events"].(float64)
+		}
+		Expect(fromSites).To(Equal(fromVisits), "the sites' events are the visits' events")
+		withPosition := 0
+		for _, s := range sites {
+			site := s.(map[string]any)
+			if site["lat"] != nil && site["lon"] != nil {
+				withPosition++
+				Expect(site["lat"].(float64)).To(And(BeNumerically(">=", -90), BeNumerically("<=", 90)), "a position taken from the records is a latitude")
+			}
+		}
+		Expect(withPosition).To(BeNumerically(">", 0), "migration 019: the positions the records carry reach the places view")
+		rec = httptest.NewRecorder()
+		handler(rec, httptest.NewRequest(http.MethodGet, "/analysis/places?tenant_id=another-tenant&collection_id="+truth.CaseID, nil))
+		var other map[string]any
+		Expect(json.Unmarshal(rec.Body.Bytes(), &other)).To(Succeed())
+		Expect(other["available"]).To(BeFalse())
 	})
 
 	It("reads the coverage of a case: a fully typed case is covered, a case with a call-record file that has no typed rows, or no typed rows at all, is not", func() {

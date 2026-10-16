@@ -12,6 +12,7 @@ import {
   ChevronDown,
   Menu,
   MessageSquareText,
+  Network,
   Milestone,
   PanelLeftClose,
   PanelLeftOpen,
@@ -44,6 +45,7 @@ const caseLinks = [
   { label: 'Overview', path: 'overview', icon: 'overview' },
   { label: 'Evidence', path: 'evidence', icon: 'evidence' },
   { label: 'Ask this case', path: 'investigate', icon: 'ask' },
+  { label: 'Connections', path: 'connections', icon: 'connections' },
   { label: 'Timeline', path: 'timeline', icon: 'timeline' },
   { label: 'Activity', path: 'activity', icon: 'activity' },
 ]
@@ -60,6 +62,7 @@ function ShellIcon({ name }) {
     appearance: SunMoon,
     cases: Folders,
     check: CircleCheckBig,
+    connections: Network,
     close: X,
     dashboard: LayoutDashboard,
     evidence: Database,

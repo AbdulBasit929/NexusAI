@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { CircleAlert, ClipboardCopy, Download, RotateCcw, Search } from 'lucide-react'
 import { CaseShell } from '../components/CaseShell.jsx'
 import { SkeletonRows } from '../components/Skeleton.jsx'
@@ -14,6 +14,7 @@ import { usePins } from '../lib/timelineAnnotations.js'
 import { activityFailureText, useCaseActivity } from '../lib/useCaseActivity.js'
 import { FamilyStrip, InsightsCard, RhythmPanel, SavedPanel } from './timeline/FamilyRail.jsx'
 import { Inspector } from './timeline/Inspector.jsx'
+import { PlacesView } from './timeline/PlacesView.jsx'
 
 // Code-split with the other charts: ECharts is fetched only when the timeline is shown.
 const EChart = lazy(() => import('../components/charts/EChart.jsx'))
@@ -86,6 +87,7 @@ function download(name, text, type) {
 // never used, and events inside a day open in Investigate until the service supplies them.
 export default function TimelinePage() {
   const { id: caseId = '' } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [token, setToken] = useState(0)
   const caseIds = useMemo(() => [caseId], [caseId])
   const { status, activity: all, failures } = useCaseActivity(caseIds, { refreshToken: token })
@@ -170,6 +172,8 @@ export default function TimelinePage() {
   function reset() { setChosen([]); setRange('all'); setSelected(''); setJump('') }
 
   const ready = activity.available && all.total > 0
+  const places = searchParams.get('view') === 'places'
+  const setView = id => setSearchParams(previous => { const next = new URLSearchParams(previous); if (id === 'places') next.set('view', 'places'); else next.delete('view'); return next }, { replace: true })
   return (
     <CaseShell caseId={caseId}>
       <main id="workspace-main" className="timeline-page tw" tabIndex={-1} onKeyDown={onKey}>
@@ -187,6 +191,12 @@ export default function TimelinePage() {
             </dl>
           ) : null}
         </header>
+        <div className="seg tw-views" role="group" aria-label="Timeline view">
+          <button type="button" aria-pressed={!places} onClick={() => setView('chronology')}>Chronology</button>
+          <button type="button" aria-pressed={places} onClick={() => setView('places')}>Places</button>
+        </div>
+        {places ? <PlacesView caseId={caseId} /> : null}
+        {places ? null : <>
 
         {status === 'loading' && !all.available ? <SkeletonRows rows={6} label="Reading the timeline" /> : null}
         {!all.available && status !== 'loading' ? (
@@ -251,6 +261,7 @@ export default function TimelinePage() {
             <p className="tw-note">Counts are per calendar day (UTC) from each record&rsquo;s own date; upload and processing dates are never used.{activity.truncated ? ' Partial: the service returns at most 100 day-and-family groups, oldest first.' : ''}</p>
           </>
         ) : null}
+        </>}
       </main>
     </CaseShell>
   )
