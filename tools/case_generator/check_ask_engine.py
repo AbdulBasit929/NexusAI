@@ -32,7 +32,7 @@ from ingestion.forensic_records.layout_registry import load_registry  # noqa: E4
 from test_ingest_v2 import PsqlSink, ingest_case  # noqa: E402
 
 SPEC_FOCUS = "Ask engine executor on a case database"
-EXPECTED_SPECS = 17
+EXPECTED_SPECS = 18
 PARAMS = dict(seed=61, people=60, subjects=6, associates=12, period_days=20, p2_pairs=3, p3_pairs=2, p7_plants=3)
 
 
@@ -88,8 +88,10 @@ def main(argv):
             focus = "Ask engine evaluation"
         else:
             focus = SPEC_FOCUS
-        proc = subprocess.run(["go", "test", "./api/forensic_records/", "-count=1", "-timeout", "6h", "-v", "-ginkgo.no-color", "-ginkgo.focus", focus],
-                              cwd=load_case.REPO, env=env, capture_output=True, text=True)
+        command = ["go", "test", "./api/forensic_records/", "-count=1", "-timeout", "6h", "-v", "-ginkgo.no-color", "-ginkgo.focus", focus]
+        if os.environ.get("ASK_CHECK_VERBOSE"):
+            command.append("-ginkgo.v")  # the specs' own notes (for example what the executor's red team found) go to the log
+        proc = subprocess.run(command, cwd=load_case.REPO, env=env, capture_output=True, text=True)
         output = proc.stdout + proc.stderr
         log = os.environ.get("ASK_CHECK_LOG")
         if log:

@@ -430,6 +430,49 @@ modality, detected_type, classifier_confidence, processing_route, processing_sta
 		Expect(err).To(HaveOccurred(), "the application role may append to the audit log, not remove from it")
 	})
 
+	// The red team of the executor (the validator's is in ask_engine_redteam_ginkgo_test.go): statements the validator ACCEPTS, because each is a valid read of the views, but that
+	// would be costly on a large case. Each must be refused by the planner's cost, stopped by the statement timeout, or return a result under the row cap, and none may run past
+	// the timeout. What the validator refuses is not run, and counts as refused.
+	It("holds the costly statements that the validator lets through: refused by cost, stopped by the timeout or capped, never unbounded", func() {
+		cat, err := loadAskCatalogue(ctx, pool)
+		Expect(err).NotTo(HaveOccurred())
+		bombs := []string{
+			"SELECT count(*) FROM v_comm_events a JOIN v_comm_events b ON a.src <> b.src",
+			"SELECT count(*) FROM v_comm_events a JOIN v_comm_events b ON a.start_utc < b.start_utc",
+			"SELECT count(*) FROM v_comm_events a JOIN v_comm_events b ON a.dst <> b.dst JOIN v_comm_events c ON b.dst <> c.dst",
+			"SELECT array_agg(event_id) FROM v_comm_events",
+			"SELECT string_agg(a.dst, ',') FROM v_comm_events a JOIN v_comm_events b ON a.src <> b.src",
+			"SELECT src, count(*) FROM v_comm_events GROUP BY src, dst, start_utc, end_utc ORDER BY 2 DESC",
+			"WITH RECURSIVE walk AS (SELECT src, dst, 1 AS depth, ARRAY[src, dst] AS path FROM v_contact_pairs UNION ALL SELECT w.src, e.dst, w.depth + 1, w.path || e.dst FROM walk w JOIN v_contact_pairs e ON e.src = w.dst WHERE w.depth < 4 AND NOT e.dst = ANY (w.path)) SELECT src, dst FROM walk LIMIT 200",
+			"SELECT a.src, b.src AS other, count(*) AS n FROM v_comm_events a JOIN v_comm_events b ON a.dst = b.dst GROUP BY a.src, b.src",
+			"SELECT * FROM v_comm_events a JOIN v_comm_events b ON a.dst = b.dst LIMIT 5000",
+			"SELECT count(*) FROM v_comm_events WHERE dst ~ '(a+)+$'",
+			"SELECT count(*) FROM v_comm_events WHERE dst ~ '^(([a-z])+.)+[A-Z]([a-z])+$'",
+		}
+		outcomes := map[string]int{}
+		for _, sql := range bombs {
+			valid, rej := askValidate(sql, cat, nil)
+			if rej != nil {
+				outcomes["refused by the validator"]++
+				continue
+			}
+			started := time.Now()
+			result, err := askExecute(ctx, pool, truth.Tenant, truth.CaseID, valid, limits)
+			elapsed := time.Since(started)
+			Expect(elapsed).To(BeNumerically("<", limits.Timeout+10*time.Second), sql)
+			if err != nil {
+				run, ok := err.(*govSQLRunError)
+				Expect(ok).To(BeTrue(), fmt.Sprint(err))
+				Expect([]string{"TOO_EXPENSIVE", "TIMEOUT"}).To(ContainElement(run.Code), sql+" -> "+run.Code+" "+run.Message)
+				outcomes["stopped: "+run.Code]++
+				continue
+			}
+			Expect(len(result.Rows)).To(BeNumerically("<=", limits.RowCap), sql)
+			outcomes["ran within the limits"]++
+		}
+		GinkgoWriter.Printf("red team of the executor, %d statements: %v\n", len(bombs), outcomes)
+	})
+
 	It("leaves the case unchanged: the engine wrote nothing", func() {
 		var writes int
 		Expect(pool.QueryRow(ctx, "SELECT coalesce(sum(n_tup_ins + n_tup_upd + n_tup_del), 0)::int FROM pg_stat_user_tables WHERE schemaname = 'analyst'").Scan(&writes)).To(Succeed())

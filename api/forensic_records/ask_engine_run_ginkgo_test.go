@@ -453,6 +453,7 @@ var _ = Describe("Ask engine run", func() {
 		r.CollectionID = ""
 		_, audit = runAskEngineV2(context.Background(), cfg, db, r, time.Now())
 		Expect(audit.Reason).To(Equal("no authorised scope"))
+		Expect(audits).To(BeEmpty(), "a request that is not a question for the engine writes no audit row")
 		_, audit = runAskEngineV2(context.Background(), cfg, nil, request(q), time.Now())
 		Expect(audit.Reason).To(Equal("no database"))
 		Expect(prompts).To(BeEmpty())

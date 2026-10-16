@@ -281,7 +281,10 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 		return finish(nil)
 	}
 	if ok, reason := askEligible(req); !ok {
-		return decline(reason)
+		// Not a question for the engine: the interface's own template and structured requests (its summaries, its activity cards), a general-knowledge question, a request with no
+		// scope. Nothing was evaluated, so nothing is audited: the live table had grown by 347 such rows in two days, two thirds of all of its rows, and hid the real questions.
+		audit.State, audit.Reason = "declined", reason
+		return nil, audit
 	}
 	if db == nil {
 		return decline("no database")
