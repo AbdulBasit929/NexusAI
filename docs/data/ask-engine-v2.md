@@ -215,6 +215,26 @@ Reading: on this CPU the time of a question is its answer being written (5.5 tok
 
 **Not done in Phase 1, and why:** the model server on this laptop is configured for 4,096 tokens and one slot; a larger context was not tried because the fixed prefix did not pay (above). A GPU measurement needs the other machine. The red team for the older answer paths (the lane and version 1) is out of scope here: a question the engine declines is handed to them.
 
+## Decision D22 carried out: "connected" means the shared-contact meaning (2026-10-19)
+
+**Decision (owner, 2026-10-19):** two numbers are connected when they are in contact with each other or through other numbers, **in either direction**; two subscribers who both contact the same number are connected through that shared contact, and **the answer names the shared number**. Recommended and authorised as written in the findings above (directed walk: 2 of 15 subscriber pairs; shared contact or direct contact: 11 or 12).
+
+**What changed (code; not deployed):**
+- the verified example `connection-path` walks the contact pairs **both ways** (the pairs and their reverse, services and hubs left out, depth bound, cycle guard, outer LIMIT; the validator's recursion rules are unchanged and accept it);
+- the answer line for a connection question is built by code from the returned edges (`askPathHeadline`, `ask_engine_response.go`): "A and B are in direct contact.", "A and B are connected through a shared contact, X.", "... through N shared contacts: X, Y, ...", "... connected in N hops; the numbers between them on the shortest routes are ...", or "No connection between A and B was found within N hops through the calls and messages of this case."; every number in the sentence is a number of the question or of the result (the number lock), and the shortest routes are found in the returned graph, so a longer route in the same result adds no number; when the result does not join the two numbers the generic sentence is used;
+- the evaluation's oracle (`build_questions.py`) is a breadth-first search over the subscribers' own ordinary contacts in either direction, and each connection question carries the distance, the numbers on the shortest routes (`via`) and the real edges (`graph`); eight connection questions per set (shared contact 3, direct 1, no connection within two hops 2, two intermediate numbers 2); the judge (`judge.py`, `judge_path`) scores a connection as correct only if every returned row is a real contact, the two numbers are joined at exactly the expected distance, and the answer names a number between them (and no number that is not on a shortest route), says "direct contact" for one hop, and says "no connection" with no rows when there is none. Files written before D22 are judged as before (rows exist or not).
+- specs: 5 for the headline, 1 on a generated case (the example run as the analyst role returns only real edges, joins two subscribers who share a contact, and the sentence names a contact both have); 192 engine specs and 19 live specs pass.
+
+**Reach of the change:** the example is shown in the prompt of 16 of the 47 questions of seed 101: the 8 connection questions, 3 top-contacts, 3 common-contacts and 2 distinct-contacts questions. Nothing else in any prompt changed (the fixed start of the prompt is untouched).
+
+### Gates for the run, written before it (fresh seed 101, 47 questions, the engine arm, agreement off)
+
+1. **Connection questions (8):** wrong answers **zero**; correct at least **7 of 8** (the rest abstained or declined, never answered wrongly); every correct answer names the shared number or numbers, as the judge enforces. (The roadmap's 90% bar for exact analyses needs 20 or more questions per analysis, which is the question bank of G46; with eight, "at least 7 of 8 and none wrong" is the honest bar.)
+2. **The other 39 questions:** wrong zero; the exact kinds at least 85% correct; the questions the data cannot answer and the absent numbers always an abstention, a decline or "no record".
+3. **The 8 questions that share the example's reach with other kinds** (top contacts, common contacts, distinct contacts, 8 of the 39) are listed in the result, because they are where an unintended effect would show.
+4. **Latency is reported, not gated:** the connection class took 89 to 144 s with the directed example; the new one is longer (an extra edge CTE), so its p50 and p90 are the new baseline.
+5. If a gate fails, only the cause the run shows is fixed, and the fix is measured on another fresh seed (103); nothing is tuned on seed 101 and rerun.
+
 ## Next
 
 Measured arms on a fresh seed (above), then the engine on the typed families beyond call records and internet sessions, the remaining interface pieces of 7.8 (lanes, calendar, the entity drawer), the composition of the sentence under the number lock (M5), and applying migration 017 to the live database on the owner's go, after a backup, so that the engine can be deployed and measured on the live stack.
