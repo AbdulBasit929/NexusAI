@@ -59,6 +59,14 @@ function Frame({ caseId, header, children }) {
   return <CaseShell caseId={caseId}><main id="workspace-main" className="catalog-page cx-page" tabIndex={-1}>{header}{children}</main></CaseShell>
 }
 
+// The panel offers about twenty number buttons before the table: a keyboard user can jump over them (the accessibility check of 2026-10-16 found the 20 stops)
+function skipToTable() {
+  const table = globalThis.document.getElementById('cx-table')
+  if (!table) return
+  table.scrollIntoView?.({ block: 'start' })
+  table.focus()
+}
+
 export default function ConnectionsPage() {
   const { id: caseId } = useParams()
   const [search, setSearch] = useSearchParams()
@@ -156,6 +164,7 @@ export default function ConnectionsPage() {
   }
   return (
     <Frame caseId={caseId} header={header}>
+      <button type="button" className="skip-link" onClick={skipToTable}>Skip to the table of the same numbers</button>
       <ConnectionsFilterBar base={base} shown={shown} filters={filters} onChange={setFilters} onCopyLink={copyLink} copied={copied} />
       <div className="cx-split">
         <section className="cx-canvas" aria-label="Link chart">

@@ -34,7 +34,7 @@ export function ConnectionsTable({ model, selectedId, onSelect }) {
   const exportCsv = () => save(`connections-${tab}.csv`, csv([columns.map(c => c[1]), ...sorted.map(r => columns.map(([key]) => r[key]))]))
   const header = key => setSort(s => ({ key, dir: s.key === key ? -s.dir : (key === 'events' || key === 'links' ? -1 : 1) }))
   return (
-    <section className="cx-table" aria-label="The same numbers as a table">
+    <section className="cx-table" id="cx-table" tabIndex={-1} aria-label="The same numbers as a table">
       <div className="cx-table__bar">
         <div role="tablist" aria-label="Table">
           {[['numbers', `Numbers (${formatNumber(numbers.length)})`], ['links', `Links (${formatNumber(links.length)})`]].map(([key, text]) => (

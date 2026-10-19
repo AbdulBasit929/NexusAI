@@ -100,6 +100,14 @@ describe('ConnectionsPage', () => {
     expect(within(table).getByRole('button', { name: /Save as CSV/ })).toBeInTheDocument()
   })
 
+  it('offers a way past the number buttons to the table, for a keyboard user', async () => {
+    getConnections.mockResolvedValue(response)
+    mount()
+    await screen.findByTestId('link-chart')
+    await userEvent.click(screen.getByRole('button', { name: 'Skip to the table of the same numbers' }))
+    expect(document.activeElement).toBe(screen.getByRole('region', { name: 'The same numbers as a table' }))
+  })
+
   it('reads two numbers from the address and marks their shared contact on the chart', async () => {
     getConnections.mockResolvedValue(response)
     mount(`/cases/case-a/connections?a=${A}&b=${B}`)
