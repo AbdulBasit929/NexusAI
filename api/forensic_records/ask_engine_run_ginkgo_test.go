@@ -187,6 +187,39 @@ var _ = Describe("Ask engine obligations", func() {
 	})
 })
 
+var _ = Describe("Ask engine connection result (decision D22)", func() {
+	It("requires the edges of the connection, not a yes or no, so that the answer can name the numbers between", func() {
+		cat, err := askGoldenCatalogue()
+		Expect(err).NotTo(HaveOccurred())
+		examples, err := askExamples()
+		Expect(err).NotTo(HaveOccurred())
+		var path askExample
+		for _, e := range examples {
+			if e.ID == "connection-path" {
+				path = e
+			}
+		}
+		valid, rej := askValidate(path.SQL, cat, nil)
+		Expect(rej).To(BeNil())
+		Expect(valid.Recursive).To(BeTrue())
+		both := []string{"923000000101", "923000000102"}
+		for _, q := range []string{
+			"Is there a link between " + both[0] + " and " + both[1] + " within three hops, leaving out services and numbers everyone contacts?",
+			"How are " + both[0] + " and " + both[1] + " connected within three hops, not through services or hubs?",
+			"How are " + both[0] + " and " + both[1] + " connected?",
+		} {
+			bad := askCheckResult(askExtractFrame(q), valid, []string{"has_link"}, 1)
+			Expect(bad).NotTo(BeNil(), q)
+			Expect(bad.Kind).To(Equal("SHAPE"))
+			Expect(bad.Message).To(ContainSubstring("src and dst"))
+			Expect(askCheckResult(askExtractFrame(q), valid, []string{"src", "dst"}, 4)).To(BeNil(), q)
+			Expect(askCheckResult(askExtractFrame(q), valid, []string{"SRC", "Dst"}, 0)).To(BeNil(), q)
+		}
+		// a question that is not about a connection of two numbers is untouched
+		Expect(askCheckResult(askExtractFrame("Who does "+both[0]+" call most?"), valid, []string{"label", "value"}, 5)).To(BeNil())
+	})
+})
+
 var _ = Describe("Ask engine derivation in plain words", func() {
 	It("restates the query from its own parse tree", func() {
 		cat, err := askGoldenCatalogue()
@@ -717,6 +750,45 @@ var _ = Describe("Ask engine fallback entry", func() {
 		}
 		post(askEngineFallback(core(declined), cfg, db))
 		Expect(called).To(BeFalse())
+	})
+})
+
+var _ = Describe("Ask engine connection headline (decision D22)", func() {
+	edges := func(pairs ...[2]string) *govSQLResult {
+		rows := make([][]any, 0, len(pairs))
+		for _, p := range pairs {
+			rows = append(rows, []any{p[0], p[1]})
+		}
+		return &govSQLResult{Columns: []string{"src", "dst"}, Texts: []bool{true, true}, Rows: rows}
+	}
+	const a, b, x, y, z = "923000000101", "923000000102", "923000000201", "923000000202", "923000000203"
+	frame := askExtractFrame("How are " + a + " and " + b + " connected within three hops, not through services or hubs?")
+
+	It("names the shared contact of two subscribers, whatever the direction of the edges", func() {
+		Expect(askPathHeadline(edges([2]string{a, x}, [2]string{x, b}), frame, 3)).To(Equal(a + " and " + b + " are connected through a shared contact, " + x + "."))
+		Expect(askPathHeadline(edges([2]string{a, x}, [2]string{b, x}), frame, 3)).To(Equal(a + " and " + b + " are connected through a shared contact, " + x + "."))
+	})
+
+	It("names every shared contact, the direct contact, and the numbers between on a longer route", func() {
+		Expect(askPathHeadline(edges([2]string{a, x}, [2]string{x, b}, [2]string{a, y}, [2]string{y, b}), frame, 3)).To(Equal(a + " and " + b + " are connected through 2 shared contacts: " + x + ", " + y + "."))
+		Expect(askPathHeadline(edges([2]string{a, b}), frame, 3)).To(Equal(a + " and " + b + " are in direct contact."))
+		Expect(askPathHeadline(edges([2]string{a, x}, [2]string{x, y}, [2]string{y, b}), frame, 3)).To(Equal(a + " and " + b + " are connected in 3 hops; the numbers between them on the shortest routes are " + x + ", " + y + "."))
+	})
+
+	It("uses the shortest routes only: a longer route in the same result adds no number to the sentence", func() {
+		Expect(askPathHeadline(edges([2]string{a, x}, [2]string{x, b}, [2]string{a, y}, [2]string{y, z}, [2]string{z, b}), frame, 3)).To(Equal(a + " and " + b + " are connected through a shared contact, " + x + "."))
+	})
+
+	It("says no connection was found within the hops asked, and falls back when the result does not join the two numbers", func() {
+		Expect(askPathHeadline(edges(), frame, 3)).To(Equal("No connection between " + a + " and " + b + " was found within 3 hops through the calls and messages of this case."))
+		Expect(askPathHeadline(edges([2]string{a, x}, [2]string{y, b}), frame, 3)).To(Equal(""))
+		Expect(askPathHeadline(&govSQLResult{Columns: []string{"n"}, Rows: [][]any{{int64(1)}}}, frame, 3)).To(Equal(""))
+		Expect(askPathHeadline(edges([2]string{a, x}), askExtractFrame("Who does "+a+" call most?"), 3)).To(Equal(""))
+	})
+
+	It("takes the hop count from the query when the question gives none", func() {
+		open := askExtractFrame("How are " + a + " and " + b + " connected?")
+		Expect(askPathHeadline(edges(), open, 2)).To(ContainSubstring("within 2 hops"))
 	})
 })
 

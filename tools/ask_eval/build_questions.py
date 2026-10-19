@@ -11,7 +11,7 @@ its expectation:
     set      a set of identifiers                          the identifiers in the result must be exactly that set
     ordered  an ordered list of identifiers                the first rows must be those identifiers in that order
     absent   (no value)                                    the answer must say that no record exists, not give a number
-    path     whether a connection exists within N hops     rows exist exactly when a path exists
+    path     whether a connection exists within N hops     rows exist exactly when a path exists, every row is a real contact, and the answer names the numbers between the two (D22)
     none     (no value)                                    a question the data cannot answer: the right outcome is an abstention or a decline, never an answer
 
 Each type has two phrasings (the subjects alternate between them) so that the result is not the accident of one sentence. Run the judge with tools/ask_eval/judge.py.
@@ -123,33 +123,57 @@ def build(key):
     for i, a in enumerate(oracle["A13"][:6]):
         text = ("Who held the public address %s port %d at %s?" if i % 2 == 0 else "Which subscribers were using %s port %d at %s?") % (a["public_ip"], a["port"], a["instant"])
         add("address_holder", text, {"kind": "set", "values": sorted(a["holders"])}, plant=a["plant"], result=a["result"])
-    # 9. a connection within three hops, over the subjects' own records (directed, services and hubs not passed through)
-    edges = collections.defaultdict(set)
+    # 9. connections (decision D22, 2026-10-16): two numbers are connected when they are in contact with each other or through other numbers, in EITHER direction, so
+    #    two subscribers who both contact the same number are connected through that shared contact. Services and numbers everyone contacts are not passed through.
+    #    The oracle is a breadth-first search over the subscribers' own ordinary contacts; each question carries the distance, the numbers on the shortest routes
+    #    (`via`, which the answer must name) and the real edges (`graph`, which the returned rows must all belong to).
+    adjacent = collections.defaultdict(set)
     for s in subjects:
-        for r in a1[s]:
-            if r["kind"] not in SERVICE_KINDS:
-                edges[s].add(r["number"])
-    def distance(a, b, limit=3):
-        frontier, seen = {a}, {a}
+        for r in ordinary(s):
+            adjacent[s].add(r["number"])
+            adjacent[r["number"]].add(s)
+
+    def distances(start_at, limit=6):
+        dist = {start_at: 0}
+        frontier = [start_at]
         for d in range(1, limit + 1):
-            nxt = set()
+            nxt = []
             for n in frontier:
-                for m in edges.get(n, ()):
-                    if m == b:
-                        return d
-                    if m not in seen and m not in hubs:
-                        seen.add(m)
-                        nxt.add(m)
+                for m in sorted(adjacent.get(n, ())):
+                    if m not in dist:
+                        dist[m] = d
+                        nxt.append(m)
             frontier = nxt
-        return None
-    seen_pairs = 0
+        return dist
+
+    edge_list = sorted({tuple(sorted((x, y))) for x in adjacent for y in adjacent[x]})
+    words = {2: "two", 3: "three"}
+    chosen = []  # (a, b, hops asked)
+    d1, d2, d3 = [], [], []
     for a in subjects:
+        dist = distances(a)
         for b in subjects:
-            if a < b and seen_pairs < 4:
-                d = distance(a, b)
-                text = "How are %s and %s connected within three hops, not through services or hubs?" % (a, b)
-                add("path", text, {"kind": "path", "exists": d is not None, "distance": d})
-                seen_pairs += 1
+            if a < b and a not in hubs and b not in hubs:
+                (d1 if dist.get(b) == 1 else d2 if dist.get(b) == 2 else d3).append((a, b))
+    chosen += [(a, b, 3) for a, b in d2[:3]] + [(a, b, 3) for a, b in d1[:1]] + [(a, b, 2) for a, b in d3[:2]]
+    mixed = []
+    for a in subjects:
+        dist = distances(a)
+        for n in sorted(dist):
+            if dist[n] == 3 and n not in subjects and n not in hubs:
+                mixed.append((a, n, 3))
+                break
+    chosen += mixed[:2]
+    for i, (a, b, limit) in enumerate(chosen):
+        dist_a, dist_b = distances(a), distances(b)
+        d = dist_a.get(b)
+        exists = d is not None and d <= limit
+        via = sorted(n for n in dist_a if n in dist_b and n not in (a, b) and dist_a[n] + dist_b[n] == d) if exists else []
+        if i % 2 == 0:
+            text = "How are %s and %s connected within %s hops, not through services or hubs?" % (a, b, words[limit])
+        else:
+            text = "Is there a link between %s and %s within %s hops, leaving out services and numbers everyone contacts?" % (a, b, words[limit])
+        add("path", text, {"kind": "path", "a": a, "b": b, "hops": limit, "exists": exists, "distance": d if exists else None, "via": via, "graph": [list(e) for e in edge_list]})
     # 10. questions the data cannot answer
     for text in ["What is the home address of %s?" % subjects[0], "Who owns the number %s?" % subjects[1], "Is %s a criminal?" % subjects[2]]:
         add("none", text, {"kind": "none"})

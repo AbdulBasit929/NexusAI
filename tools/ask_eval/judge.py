@@ -59,6 +59,42 @@ def first_text_column(rows):
     return []
 
 
+def judge_path(expect, rows, answer):
+    """A connection question under decision D22. Nothing here reads the arm's own SQL.
+
+    No connection (expect.exists false): no rows, and the answer says so. A connection: every returned row is a real contact (an edge of the key, either way round), the two
+    numbers are joined in the returned rows at exactly the expected distance, and the answer names a number between them (a shared contact for two hops) and no number that is
+    not on a shortest route. A direct contact (one hop) is said to be direct."""
+    if not expect["exists"]:
+        return "correct" if "no connection" in answer else "wrong"
+    edges = {tuple(sorted(e)) for e in expect["graph"]}
+    adjacent = {}
+    for row in rows:
+        x, y = str(row.get("src")), str(row.get("dst"))
+        if tuple(sorted((x, y))) not in edges:
+            return "wrong"
+        adjacent.setdefault(x, set()).add(y)
+        adjacent.setdefault(y, set()).add(x)
+    dist = {expect["a"]: 0}
+    frontier = [expect["a"]]
+    while frontier:
+        nxt = []
+        for n in frontier:
+            for m in adjacent.get(n, ()):
+                if m not in dist:
+                    dist[m] = dist[n] + 1
+                    nxt.append(m)
+        frontier = nxt
+    if dist.get(expect["b"]) != expect["distance"]:
+        return "wrong"
+    if expect["distance"] == 1:
+        return "correct" if "direct contact" in answer else "wrong"
+    named = {n for n in re.findall(r"92\d{10}", answer) if n not in (expect["a"], expect["b"])}
+    if not named or not named <= set(expect["via"]):
+        return "wrong"
+    return "correct"
+
+
 def judge(question, result):
     expect = question["expect"]
     kind = expect["kind"]
@@ -100,7 +136,11 @@ def judge(question, result):
     if kind == "absent":
         return "correct" if "no record" in answer or "not hold" in answer else "wrong"
     if kind == "path":
-        return "correct" if bool(rows) == bool(expect["exists"]) else "wrong"
+        if bool(rows) != bool(expect["exists"]):
+            return "wrong"
+        if "graph" not in expect:
+            return "correct"  # a file written before decision D22 (2026-10-16): only whether rows exist
+        return judge_path(expect, rows, answer)
     return "wrong"
 
 

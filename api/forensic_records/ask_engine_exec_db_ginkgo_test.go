@@ -9,6 +9,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -428,6 +429,66 @@ modality, detected_type, classifier_confidence, processing_route, processing_sta
 		Expect(err).NotTo(HaveOccurred())
 		_, err = tx.Exec(ctx, "DELETE FROM forensic.records_audit_log WHERE action = $1", askAuditAction)
 		Expect(err).To(HaveOccurred(), "the application role may append to the audit log, not remove from it")
+	})
+
+	// Decision D22 (2026-10-16): two numbers are connected when they are in contact with each other or through others, in either direction. The verified example is the
+	// reference: run on the case with the numbers of two subscribers who share a contact, it must return only edges that are real contacts of the key, join the two, and the
+	// sentence built from it must name a contact that both really have.
+	It("finds two subscribers who share a contact: the example's walk goes both ways, returns real edges only, and the answer names the shared number", func() {
+		examples, err := askExamples()
+		Expect(err).NotTo(HaveOccurred())
+		var example askExample
+		for _, e := range examples {
+			if e.ID == "connection-path" {
+				example = e
+			}
+		}
+		Expect(example.SQL).NotTo(BeEmpty())
+		contacts := map[string]map[string]bool{}
+		edge := map[[2]string]bool{}
+		for subject, list := range truth.Oracle.A1 {
+			contacts[subject] = map[string]bool{}
+			for _, p := range list {
+				if p.Kind == "person_like" {
+					contacts[subject][p.Number] = true
+					edge[[2]string{subject, p.Number}], edge[[2]string{p.Number, subject}] = true, true
+				}
+			}
+		}
+		var s1, s2 string
+		var shared []string
+		for _, x := range truth.Subjects {
+			for _, y := range truth.Subjects {
+				if x.MSISDN >= y.MSISDN || contacts[x.MSISDN][y.MSISDN] || contacts[y.MSISDN][x.MSISDN] {
+					continue
+				}
+				var both []string
+				for c := range contacts[x.MSISDN] {
+					if contacts[y.MSISDN][c] {
+						both = append(both, c)
+					}
+				}
+				if len(both) > 0 && s1 == "" {
+					s1, s2, shared = x.MSISDN, y.MSISDN, both
+				}
+			}
+		}
+		Expect(s1).NotTo(BeEmpty(), "the generated case has two subscribers who share a contact and do not call each other")
+		sql := strings.NewReplacer("923000000101", s1, "923000000102", s2).Replace(example.SQL)
+		result, err := scoped(sql)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result.Rows).NotTo(BeEmpty())
+		for _, row := range result.Rows {
+			Expect(edge[[2]string{fmt.Sprint(row[0]), fmt.Sprint(row[1])}]).To(BeTrue(), fmt.Sprint(row)+" is not a contact of the key")
+		}
+		frame := askExtractFrame("How are " + s1 + " and " + s2 + " connected within three hops, not through services or hubs?")
+		headline := askPathHeadline(result, frame, 3)
+		Expect(headline).To(HavePrefix(s1 + " and " + s2 + " are connected"))
+		named := false
+		for _, c := range shared {
+			named = named || strings.Contains(headline, c)
+		}
+		Expect(named).To(BeTrue(), headline)
 	})
 
 	// The red team of the executor (the validator's is in ask_engine_redteam_ginkgo_test.go): statements the validator ACCEPTS, because each is a valid read of the views, but that

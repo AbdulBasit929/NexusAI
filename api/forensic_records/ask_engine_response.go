@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"sort"
 	"strings"
 	"time"
 
@@ -105,12 +106,98 @@ func askHeadline(r *govSQLResult, shape, absence string) string {
 	return fmt.Sprintf("%d rows%s.", n, more)
 }
 
+// askPathHeadline is the sentence for a connection question (decision D22, 2026-10-16: two numbers are connected when they are in contact with each other or through
+// other numbers, in either direction; two subscribers who both contact the same number are connected through that shared contact). It names the numbers that connect
+// the two the question names, read from the result's own edges: the shortest routes between them are found in the returned graph, and every number of the sentence
+// is a number of the question or of the result. "" when the question is not a connection question of two numbers or the result does not join them (the generic
+// sentence is then used).
+func askPathHeadline(r *govSQLResult, f askFrame, maxHops int) string {
+	if !f.Cues["path"] || len(f.Numbers) < 2 {
+		return ""
+	}
+	a, b := f.Numbers[0], f.Numbers[1]
+	hops := f.Hops
+	if hops == 0 {
+		hops = maxHops
+	}
+	if len(r.Rows) == 0 {
+		if hops > 0 {
+			return fmt.Sprintf("No connection between %s and %s was found within %d hops through the calls and messages of this case.", a, b, hops)
+		}
+		return fmt.Sprintf("No connection between %s and %s was found through the calls and messages of this case.", a, b)
+	}
+	s, d := askColumnIndex(r, "src"), askColumnIndex(r, "dst")
+	if s < 0 || d < 0 {
+		return ""
+	}
+	next := map[string][]string{}
+	for _, row := range r.Rows {
+		x, y := fmt.Sprint(row[s]), fmt.Sprint(row[d])
+		next[x] = append(next[x], y)
+		next[y] = append(next[y], x)
+	}
+	distances := func(from string) map[string]int {
+		dist := map[string]int{from: 0}
+		queue := []string{from}
+		for len(queue) > 0 {
+			at := queue[0]
+			queue = queue[1:]
+			for _, to := range next[at] {
+				if _, seen := dist[to]; !seen {
+					dist[to] = dist[at] + 1
+					queue = append(queue, to)
+				}
+			}
+		}
+		return dist
+	}
+	fromA, fromB := distances(a), distances(b)
+	total, ok := fromA[b]
+	if !ok || total < 1 {
+		return ""
+	}
+	var between []string
+	for node, da := range fromA {
+		if db, reached := fromB[node]; reached && node != a && node != b && da+db == total {
+			between = append(between, node)
+		}
+	}
+	sort.Strings(between)
+	list := func() string {
+		shown := between
+		if len(shown) > 5 {
+			shown = shown[:5]
+		}
+		text := strings.Join(shown, ", ")
+		if len(between) > len(shown) {
+			text += fmt.Sprintf(" and %d more", len(between)-len(shown))
+		}
+		return text
+	}
+	switch {
+	case total == 1:
+		return fmt.Sprintf("%s and %s are in direct contact.", a, b)
+	case total == 2 && len(between) == 1:
+		return fmt.Sprintf("%s and %s are connected through a shared contact, %s.", a, b, between[0])
+	case total == 2:
+		return fmt.Sprintf("%s and %s are connected through %d shared contacts: %s.", a, b, len(between), list())
+	case len(between) == 0:
+		return ""
+	}
+	return fmt.Sprintf("%s and %s are connected in %d hops; the numbers between them on the shortest routes are %s.", a, b, total, list())
+}
+
 func askRowMaps(r *govSQLResult) []map[string]any { return govSQLRowMaps(r) }
 
 // askAnswerResponse is the response of an answered question.
 func askAnswerResponse(req hybridQueryRequest, cat *askCatalogue, v *askValidated, r *govSQLResult, f askFrame, absence string, audit AskAuditV2) *hybridQueryResponse {
 	shape := askShape(r.Columns, len(r.Rows))
 	headline := askHeadline(r, shape, absence)
+	if absence == "" && shape == "graph" {
+		if text := askPathHeadline(r, f, v.MaxHops); text != "" {
+			headline = text
+		}
+	}
 	derivation := askDescribe(v, cat)
 	sentences := derivation.Sentences()
 	limitations := []string{

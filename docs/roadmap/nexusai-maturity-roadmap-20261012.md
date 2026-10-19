@@ -1,12 +1,14 @@
 # NexusAI maturity roadmap: every data family, models, schema, query intelligence and link analysis
 
-**Date:** 2026-10-12, revised 2026-10-14 · **Status:** plan in progress. Decisions D1, D2 and D14 to D16 are made and carried out as recorded in section 12; Phase 0 is mostly done and Phase 1 is under way (section 1); the owner's directions of 2026-10-13 and 2026-10-14 on the interface, the Ask engine and the acceptance collection are merged in (sections 6.8, 7.8, 7.9 and 8.5), and decisions D17 to D21 were made by the owner on 2026-10-14 (D21 laptop first) · **Author:** Claude session `local_c615940b` for the product owner
+**Date:** 2026-10-12, revised 2026-10-14, **reconciled with the code and the live system on 2026-10-19** · **Status:** plan in progress. Decisions D1, D2 and D14 to D16 are made and carried out as recorded in section 12; Phase 0 is mostly done and Phase 1 is under way (section 1); the owner's directions of 2026-10-13 and 2026-10-14 on the interface, the Ask engine and the acceptance collection are merged in (sections 6.8, 7.8, 7.9 and 8.5), and decisions D17 to D21 were made by the owner on 2026-10-14 (D21 laptop first) · **Author:** Claude session `local_c615940b` for the product owner
 
 **Precedence.** This file sequences work. It does not replace the rules in `docs/architecture/QUERY_ANSWERING_DECISION_20261005.md` (three outcomes, the verifier, the case clock), `AGENTS.md`, or the country profile `configuration/forensic_country_profiles/pakistan.json`. Where it conflicts with an older roadmap, section 2 says which one wins and why.
 
 **Evidence rules used here.** Facts about this repository were read from files or the running database. Facts about the real provider samples come from their structure only (column names, value formats, counts); no value, number, name or address from them appears in this file, and the extracted copies are deleted after use. Facts about outside models, datasets and papers come from web searches made on 2026-10-12; where a source was a vendor page, a mirror or a summary, the table says "verify". Figures from outside are leads to test, not predictions.
 
-**Revision of 2026-10-14.** Merged here, on the owner's instructions: (a) the state of the work since 2026-10-12 (section 1 and 2.1a); (b) **the Ask engine becomes model-written SQL for every data family, link analysis included, with no per-question templates or predefined operations; the model understands the question, writes the query from the schema, and explains the result under the safety wall that stays in code** (sections 3.2, 6.1, 6.2 and 6.8, with 7.2 and 7.4 adjusted); (c) where each new view belongs in the application served at `http://localhost:4181`, with the visual spike's views integrated into it (7.8) and the offline-map defect (7.9); (d) the multimodal acceptance collection as the standing place to test and demonstrate on real-shaped data, and how files are added to it (8.5); (e) new gaps G35 to G45 (section 10); (f) the phases re-planned and the next 14 days counted from 2026-10-14 (section 11); (g) decisions D17 to D21 (section 12). Earlier text is kept; where it was overtaken, an italic *Update 2026-10-14* line says so. **This revision is a plan only: nothing in sections 6.8, 7.8 and 8.5 has been built.**
+**Revision of 2026-10-14.** Merged here, on the owner's instructions: (a) the state of the work since 2026-10-12 (section 1 and 2.1a); (b) **the Ask engine becomes model-written SQL for every data family, link analysis included, with no per-question templates or predefined operations; the model understands the question, writes the query from the schema, and explains the result under the safety wall that stays in code** (sections 3.2, 6.1, 6.2 and 6.8, with 7.2 and 7.4 adjusted); (c) where each new view belongs in the application served at `http://localhost:4181`, with the visual spike's views integrated into it (7.8) and the offline-map defect (7.9); (d) the multimodal acceptance collection as the standing place to test and demonstrate on real-shaped data, and how files are added to it (8.5); (e) new gaps G35 to G45 (section 10); (f) the phases re-planned and the next 14 days counted from 2026-10-14 (section 11); (g) decisions D17 to D21 (section 12). Earlier text is kept; where it was overtaken, an italic *Update 2026-10-14* line says so. **This revision is a plan only: nothing in sections 6.8, 7.8 and 8.5 has been built.** *Update 2026-10-19: superseded. Milestones M1 and M2 of 6.8 are built, measured and live behind their switches, M3 is partly built, rows 1 to 3 of 7.8.3 are built, 8.5 (wave 1) is not started. The reconciliation paragraph below and the sections it points to (1, 2.1b, 6.8.11, 6.8.13, 10, 11, 12) say exactly what is true.*
+
+**Reconciliation of 2026-10-19.** The plan was read against the repository, the live database and stack, and the measurements recorded in `docs/data/ask-engine-v2.md`, `docs/data/analysis-views.md` and the handoff. Nothing in the plan was removed. What changed: section 1 has a progress table for 2026-10-14 to 2026-10-19; 2.1b says what is now true by area; 6.8.11 carries a status for each milestone and 6.8.13 the laptop measurements and the budgets they set; 7.8.3 says which rows are built; section 10 lists the gaps whose status changed and six new gaps (G47 to G52); section 11 has the outcome of the last 14 days and a new plan for 2026-10-19 to 2026-11-02; section 12 adds D22 (decided) and lists the decisions still open. **Where this paragraph and an older sentence disagree, this paragraph wins.**
 
 ---
 
@@ -20,7 +22,7 @@
 2. **The database cannot yet do the analysis you asked for.** The forensic database has TimescaleDB and `pg_trgm` installed and no relationship table (the entity index has 7 entity types and no edges). The current image already ships pgvector 0.8.1, `cube` and `earthdistance` (available, not installed), so vector search and "cells within N metres" need no image change; PostGIS (containment, line-of-travel, ellipsoid distance) is not in the image and would need a new image and a dump and restore. Only CDR has a typed table; IPDR, ANPR, tower and the rest live as JSON in `forensic.records`. *(Corrected 2026-10-12: the first version of this line said pgvector was missing; the extension list of the image was checked while drafting D2.)* *Update 2026-10-14: the typed tables, pgvector, `cube` and `earthdistance` were applied to the live database on 2026-10-13; the entity and relationship tables exist and are empty; PostGIS is still not in the image.*
 3. **Media models are weak where Pakistani evidence needs them most.** Measured in our own sealed tests: plate reading 13 of 22 exact on images, 3 of 41 on video at one frame per second, Urdu OCR 0 of 1 exact (line-level, one fixture), Urdu speech word error rate 45.5% and English 10.8% on small read-speech sets, and no Punjabi or Pashto speech support at all. These are small samples with wide uncertainty, which is itself the finding: we do not yet have test sets that match real evidence.
 4. **Link analysis exists on paper.** 79 operations are registered; 62 are only "registered", 4 are product certified, and `relationship_network`, `cross_family_correlation` and `co_travel_or_co_presence` are registered with no independent proof. *Update 2026-10-14: the case generator now holds the answer keys for A1, A2 and A5 to A11 and A13, and a loader shows that the typed tables reproduce them (174 SQL checks); no product path answers them yet.*
-5. **The Ask engine is still partly rule-based and cannot yet answer link-analysis or typed-family questions.** *(Added 2026-10-14 on the owner's direction.)* Today a question reaches the model-written SQL lane through a router and a view shortlist built from curated vocabulary (the code says so: the shortlist is deterministic and "not an embedding ranker", because embeddings caused two live defects), the lane reads curated views over `forensic.records`, and the typed lane, the older ladder and retrieval answer the rest. That is safe and measured, and it is also the dependence on predefined paths that you asked us to remove. Nothing lets the model write a query over the typed tables, the entity and relationship layer or a chain of joins, so a question such as "how are X and Y connected" has no path to an answer. Section 6.8 is the design.
+5. **The Ask engine is still partly rule-based and cannot yet answer link-analysis or typed-family questions.** *(Added 2026-10-14 on the owner's direction.)* Today a question reaches the model-written SQL lane through a router and a view shortlist built from curated vocabulary (the code says so: the shortlist is deterministic and "not an embedding ranker", because embeddings caused two live defects), the lane reads curated views over `forensic.records`, and the typed lane, the older ladder and retrieval answer the rest. That is safe and measured, and it is also the dependence on predefined paths that you asked us to remove. Nothing lets the model write a query over the typed tables, the entity and relationship layer or a chain of joins, so a question such as "how are X and Y connected" has no path to an answer. Section 6.8 is the design. *Update 2026-10-19: built as milestones M1 and M2 and live (see the table below); the shortlist and the example retrieval are rule-based by design and are measured (recall 100% on the author's English set, which says little about analysts' own phrasing); the older paths still answer whatever the engine declines.*
 
 **Progress since this plan was written (2026-10-12 to 2026-10-14).** Each line is recorded in a commit and, where it touched the live system, in a runbook or handoff entry.
 
@@ -37,6 +39,20 @@
 | Product fixes from the rehearsal | G12, G13, G14 and G31 fixed and deployed on 2026-10-12 (API image `012863c71aad`) | handoff |
 | The application as it is | Read on 2026-10-14: seven analyst pages and ECharts, no graph or map library, two of the five collections configured (section 7.8) | section 7.8 |
 
+**Progress since 2026-10-14 (to 2026-10-19).** Each line is in a commit and, where it touched the live system, in the handoff.
+
+| Item | State on 2026-10-19 | Where |
+|---|---|---|
+| Analyst views and the read-only role (M1, D19) | Migration 017 (schema `analyst`, seven views, role `forensic_analyst_ro`) **applied to the live database on 2026-10-15** after a backup and a rehearsal; migration 019 (a cell's position from the records that observed it) applied 2026-10-16 | `docs/data/analyst-views.md`, `db/forensic_records/017_*`, `019_*` |
+| **The Ask engine v2 (M1, M2)** | Built and live: catalogue, validator (a 96-statement red team, all refused, with a control), obligations, probe, executor with cost ceiling, timeout, row cap, audit row for every question, coverage guard; `FORENSIC_ASK_V2` and `_FIRST` on, **agreement off** (measured: it abstains on half the questions and doubles the time, 0 wrong prevented); API image `591e0076cc11` | `docs/data/ask-engine-v2.md` |
+| Measured runs on fresh seeds (generated cases, independent oracle) | Seeds 73, 79 and 83 each found a defect (the oracle's, the judge's or the engine's) that was fixed and measured again on a fresh seed; **seed 89: 42 of 42, 0 wrong; seed 97: 43 of 43, 0 wrong** (p50 30.5 s, p90 51.4 s on the CPU laptop); factory with the engine first: no verdict changed (the guard declined the 173 questions of the two untyped cases); the project's own demonstration files 25 of 26, 0 wrong; the real collection 6 of 6 | same |
+| Coverage guard | The views read typed tables only; a case that is not fully typed is declined with the reason and the older path answers; the live typed cases are the real-data collection and the Ingest v2 synthetic one | same |
+| Interface (7.8 rows 2 and 3, 7.7) | The case tab **Connections** (link chart, filters in the address, shared contacts, path, panel with questions, table twin and CSV), **Timeline: Chronology or Places** (map with the offline basemap and a movement slider), **result views by shape** in an Ask answer (link chart, map, with the table one click away), carrier badges, theme and right-to-left checked, accessibility script clean; two read-only endpoints `GET /analysis/connections` and `/places`; 424 workspace tests | `docs/data/analysis-views.md` |
+| Phase 1 measurements (laptop CPU, idle) | Reading the prompt about 22 tokens a second, writing about 5.5; a repeated prompt start costs 2 s, a changed one 49 s; a fixed all-in prefix saves about 5 s at the median and changes the SQL in 7 of 12 questions, so it is not adopted; the 18-question red team of the question text: 0 escapes | `docs/data/ask-engine-v2.md` (Phase 1) |
+| Audit review of the live table | 541 rows: 21 answered, 520 declined; **347 were the interface's own template requests written as rows** (fixed in source, not deployed) | same |
+| **D22: what "connected" means** | **Decided by the owner 2026-10-19: the shared-contact meaning** (two numbers are connected directly or through others, in either direction; the answer names the shared number). Example, answer sentence, oracle and judge changed. **First measurement (seed 101): the connection-class gate failed** on the form of three yes-or-no answers (right truth values, no number named; 39 of the other 39 questions correct); one result rule was added and is measured on seed 103 | `docs/data/ask-engine-v2.md` |
+| Not deployed (source only) | The answer wording fix, no audit rows for the interface's template requests, the D22 change | the handoff |
+
 **The plan, in one line.** Make the data right first (ingestion and typed schema for real layouts), then make the questions right for that data in every language we need, then deepen each media family against test sets built from real-shaped evidence, then build link analysis on top of an entity-and-relationship layer that is verified against planted ground truth. Hardware and licensing are decided early because they gate the rest.
 
 **The owner's direction of 2026-10-14, in one line.** The Ask engine understands the question, writes the SQL from the schema, runs it and explains the result, for every data family and for link analysis, without per-question templates; the safety wall, the verifier and the number lock stay in code; every new view is placed where an analyst would look for it in the application at `localhost:4181`; and the multimodal acceptance collection is where each step is tested and shown on real-shaped data.
@@ -51,6 +67,8 @@
 | 5. Enterprise | 22 to 34 | Identity and case registry, read-only role (**moved earlier, see D19**), security and load proof, backup and restore | Not started | Release approval |
 
 Weeks are planning estimates for one owner plus Claude sessions and will be re-planned at each gate; they are not commitments.
+
+**Status of the phases on 2026-10-19.** Phase 0: decisions D1 to D4, D7, D14 to D21 and D22 are made; open are D3 (the RTX 2080 measurement, optional under D21), D5 (stays at detection only), D6 (front door), D8 (evidence inventory), D9, D10 (reviewers), D11, D12 and D13 with D20 (one repository history). Phase 1: typed tables applied, typed writer live in shadow, the call-record and internet-record switch applied **for the real-data collection only** (the four older collections are not typed: G40, G43), generator and oracles built; open: wave 1 into the acceptance collection (D18), the other families' writers, the relationship layer populated, real-file confirmation of the 13 layouts. Phase 2: **started**: M1 and M2 done, M3 partly (6.8.11), the interface placement rows 2 and 3 done; open: M3's question bank (G46), M4 to M8, the front door, languages, the bake-off. Phases 3 to 5: not started.
 
 **Every phase ships its interface.** *(Owner instruction, 2026-10-13.)* A capability is not finished until an analyst can use it in the interface, with charts, link charts, maps and timelines suited to it, drilling down to the evidence rows, and until it has been tested in the browser on generated cases and shown there. Section 7.7 is the programme; each phase in section 11 lists its interface work, and each gate includes a demonstration.
 
@@ -84,6 +102,17 @@ Weeks are planning estimates for one owner plus Claude sessions and will be re-p
 | Interface | Workspace with Dashboard, Cases, Overview, Evidence with viewers, Ask, Timeline, Activity and ECharts; the spike's Cytoscape link chart, MapLibre map and ECharts timelines outside it | None of the spike's views in the workspace; no graph or map library in it; two of five collections configured; the spike's map shows nothing while the tile cache is not running (7.9) |
 | Test data | 20-case generated set with hash register; 13 synthetic uploads in `ingest-v2-shadow-synthetic-20261013`; the acceptance collection (43 sources, 10,168 structured rows) | Real-shaped files in the acceptance collection and a repeatable way to add them (8.5) |
 | Governance | Licence ledger; vault and policy | Read-only role, case registry, identity |
+
+### 2.1b What changed between 2026-10-14 and 2026-10-19
+
+| Area | Now (2026-10-19) | Still missing |
+|---|---|---|
+| Question answering | The Ask engine v2 answers call-record and internet-record questions on the typed cases, first and persistent (`FORENSIC_ASK_V2`, `_FIRST`), over the analyst views, with the obligations, the probe, a coverage guard and one audit row per question; p50 30.5 s and p90 51.4 s on the laptop, 0 wrong on the last two fresh seeds | M3's bank (A5 co-location, A7 possible meetings, A8 device and SIM changes through the engine at scale), M4 to M8; the untyped cases are still answered by the older paths (minutes when the lane declines) |
+| Link analysis | Common contacts, connections (shared-contact meaning, D22), devices, address holder and cells used are answered through the engine and drawn in the workspace (Connections, Places, result views); the oracles of A1, A2, A5 to A11, A13 exist | Questions for A5, A7 to A11 through the engine; the relationship tables are empty; the question bank of G46 |
+| Database | 017 and 019 applied (the analyst schema and role); typed rows for the real-data collection and the synthetic Ingest v2 collection | The four older collections are not typed; PostGIS not in the image; no per-user rate limit |
+| Interface | Connections, Places, result views by shape, carrier badges, a theme-aware link chart and map, the Data tab for the real-data collection; 4 collections configured | Lanes, calendar, entity drawer, the quality tab and import wizard, the demonstration panel, the dashboard engine tile, the Activity triage queue (7.8.3 rows 1 and 4 to 14); the code lives in two working trees that are copied by hand (D20, G51) |
+| Governance | Read-only analyst role live; per-statement cost, timeout and row cap; audit row per question; commit gate repaired for the lane (`.githooks/pre-commit`, lane-only Go changes); real-data scanner | Per-user identity, case registry, rate limit |
+| Process | Gates written before runs and recorded; fresh seed after every fix; the oracle's and the judge's own defects reported (three in run 1, two in run 2) | The judgement and sealed cases of the generator's register have not been used for an engine gate yet |
 
 ### 2.2 Conflicts between documents, and the ruling
 
@@ -694,6 +723,19 @@ Metrics: correct, correctly abstained, wrong, clarification rate, repairs per qu
 | M7 | Languages: native-speaker sets and the frame in Urdu, Roman Urdu, Punjabi, Pashto | 6 | Frame accuracy and end-to-end targets after the baseline | Right-to-left answers and chart labels |
 | M8 | Retire the rule-based shortlist and the templated paths family by family where the gate passed; keep the operations as oracles | 8 | No regression on the corpus; the owner's go | Settings: the engine's switches |
 
+**Status of the milestones on 2026-10-19.**
+
+| # | Status | Evidence |
+|---|---|---|
+| M1 | **Done and live.** Catalogue (pinned snapshot, 7 views), validator (96-statement red team refused, mutation-tested), obligations, result-shape convention, read-only role live, `FORENSIC_ASK_V2` | specs 192 plus 19 live; `docs/data/ask-engine-v2.md` |
+| M2 | **Done.** Call records end to end in arms: four fresh seeds, the last two with 0 wrong; the lane's own rate beaten (run 1: 33 against 7 correct); the regression gate met (no verdict changed) | runs 1 to 4, P1-A |
+| M3 | **Partly.** Views and recursive rules built; the engine answers common contacts, connections (D22), devices, address holder, cells used; the Connections and Places pages and the result views exist. **Not done:** the question bank of 20 or more per analysis (G46), A5 co-location and A7 possible meetings and A8 to A11 at scale through the engine, the gate on judgement cases | 6.8.10 |
+| M4 | **Started.** Internet records and application usage have typed views and a first measurement (the real collection, the project's demonstration files); the other families wait for typed writers (G43) | `docs/data/ask-engine-v2.md` |
+| M5 | Not started (D17 decided: the model may explain a result under the limits stated). The deterministic sentence is built by code, including the connection sentence that names the shared number | 6.8.7 |
+| M6 | Not started; D21 puts the laptop first. The measurements for the decision exist (6.8.13) | below |
+| M7 | Not started; needs the reviewers of D10 | G18 |
+| M8 | Not started, and not before parity per family | |
+
 #### 6.8.13 Laptop-first track (D21, 2026-10-14)
 
 The engine is built on the available laptop, and its quality and speed are measured there before any hardware is discussed.
@@ -725,6 +767,19 @@ What this says, honestly:
 6. **The GPU verdict for now: not a must for correctness, a must for comfort.** With thick views, retrieved examples, a compact shortlist and a warm model, the laptop can be tuned toward a typical question in the 15 to 25 s range and a recursive one near 40 s; a GPU would bring generation to a few seconds and make a larger model (and the 15 s target for every shape) possible. The decision is made after the thick views and the example retrieval exist and the engine's arms are measured on the laptop (6.8.13 item 3); this measurement is the baseline to beat.
 
 Scripts: the measurements were taken with throwaway scripts that sent only invented schema text; they are not part of the repository.
+
+**Measurements of 2026-10-16 and the budgets they set (read the engine's own audit rows and an idle machine).** *Update 2026-10-19; this closes item 3 of the track.*
+
+| Measure | Value |
+|---|---|
+| Reading the prompt | about 22 tokens a second; writing about 5.5 (the live model config is `context_size 4096`, `parallel 1`, 8 threads) |
+| Prompt cache | a repeated prompt start 1.5 to 2 s; a changed start 49 s for about 1,100 tokens; the fixed start of the prompt (`askPromptRules`) is already identical for every question |
+| A fixed all-in prefix (every relation and every example, 3,650 tokens) | the first request 195 s, then p50 25.9 s against 30.9 s for today's layout; the SQL changed in 7 of 12 questions; needs a larger context: **not adopted** |
+| The engine on a fresh seed (43 questions, idle machine) | **p50 30.5 s, p90 51.4 s**, longest 137 s, 4 repairs in 43 |
+| The connection class (a recursive query is the longest thing the model writes) | 89 to 144 s in the live audit rows (the directed example); with the shared-contact example, seed 101: 64 to 87 s for the "how are" phrasing and 116 to 170 s for the "is there a link" phrasing (two or three attempts) |
+| Two agreeing drafts | p50 66.8 s: twice the time, and half the questions abstained |
+
+**Laptop budgets (set from this baseline, as the track says): a single-statement question p50 about 30 s and p90 about 50 s; a recursive question 90 to 145 s.** The targets of 6.8.10 (15 s at the 90th percentile for a single statement, 30 s for a recursive one) are **not met on the laptop**. The time of a question is its answer being written (5.5 tokens a second) plus the part of the prompt that is not cached, so the levers are, in order: **thicker views so the SQL is shorter** (the largest, and a migration), the speed of writing (a second memory stick for dual channel, if a slot is free: the cheapest hardware lever; the RTX 2080 machine; a faster model), never a longer prompt. **The report the track asks for:** a GPU would bring a typical question to a few seconds and make the 15 s and 30 s targets possible; the owner decides whether to measure it (D3, optional under D21).
 
 #### 6.8.12 Risks, stated plainly
 
@@ -900,6 +955,8 @@ The same Ask box takes English, Urdu, Roman Urdu, Punjabi, Pashto and mixed ques
 | 12 | **Demonstration panel** | **Case Overview** of the acceptance collection only | A list of the demonstration questions with the expected outcome, one-click run, pass or fail against the answer key, and a reset | For rehearsals and gate demonstrations (8.5) |
 | 13 | Mentions across evidence (A14) | **Evidence detail** viewers | Highlights on the page, the waveform second, the video frame, reached by deep links from any answer or edge | The viewers exist and take the deep link |
 | 14 | New components | **Design pages** (`/design/type-proof`, `/design/route-states`, the gallery) | Every new component with its loading, empty, abstention, error and large-data states, in light and dark and in right-to-left | The component library entry is part of the definition of done (V9) |
+
+**Status of the rows on 2026-10-19.** Row 1 (answers with the reasoning): the derivation steps and the checks passed are shown with every engine answer (the evidence panel), and the answer is shown in the view that fits its shape. **Row 2 (link chart, Connections tab) built. Row 3 (map, Places switch) built.** Rows 4 (lanes and calendar), 6 (quality report, layout chip, wizard), 7 (inventory and coverage), 8 (entity drawer), 9 (dashboard tiles), 10 (triage in Activity), 11 (settings), 12 (demonstration panel) and 13 (mentions): not built; row 5 (charts of counts and series): built (ECharts); row 14 (the design page): the carrier badges and the link chart key are in. The Timeline switch has two of its four views.
 
 #### 7.8.4 Navigation changes
 
@@ -1145,6 +1202,31 @@ Severity: P1 blocks a trustworthy product, P2 degrades it, P3 is polish or proce
 | G45 | CPU latency for multi-step generation: each repair costs tens of seconds, and link-analysis SQL may take minutes. Laptop first (D21): measured and tuned in 6.8.13 before any GPU is proposed | Section 6.6; 6.8.12 | P1 for use | 2 | D21 (decided) |
 | G46 | No question bank for link analysis through the engine (20 or more per analysis, with paraphrases and languages) | Section 6.8.10 | P1 | 2 (M3) | D10 |
 
+**Status changes of 2026-10-19 (the table above is kept as written).**
+
+| ID | Now |
+|---|---|
+| G17 | Measured: p50 30.5 s, p90 51.4 s on a fresh seed; the cause is the speed of writing (6.8.13) |
+| G24, G36 | **Closed except one part:** the read-only role is live (017, 2026-10-15), with cost ceiling, timeout and row cap; a per-user rate limit is not built |
+| G35 | **Closed for the call and internet families on typed cases** (the engine, M1 and M2); open for the others (M4) and for the untyped cases |
+| G37 | **Closed for rows 2 and 3**: Cytoscape, MapLibre and the result views are in the workspace |
+| G38 | **Closed**: the cache is used and the map says when it has no basemap |
+| G39 | Partly: the switch is applied for the real-data collection; the four older collections still read version 1 |
+| G41 | Open; the synthetic Ingest v2 collection is a stand-in (13 uploads), wave 1 is not loaded |
+| G42 | 4 collections are configured; listing all from the API (D20) is not built |
+| G45 | Measured (6.8.13); the laptop budgets are set; the 15 s and 30 s targets are not met on the laptop |
+| G46 | Open: the evaluation set has 47 questions of ten kinds (8 connection questions); the bank of 20 or more per analysis, with paraphrases and languages, is not built |
+
+| ID | New gap | Evidence | Sev | Phase | Needs you |
+|---|---|---|---|---|---|
+| G47 | "Connected" was a one-direction walk: two subscribers who share a contact were "not connected" (2 of 15 pairs found against 11 or 12). **Decided 2026-10-19 (D22): the shared-contact meaning; carried out in code and the evaluation. Seed 101: 4 of 8 connection questions correct and naming the number, 3 "is there a link" answers were a bare true or false (right values, no number named), 1 declined; one result rule added, measured on seed 103** | `docs/data/ask-engine-v2.md` | P1, open until seed 103 is read | 2 (M3) | |
+| G48 | Two thirds of the live audit table was the interface's own template requests, recorded as declined rows. Fixed in source | audit review, 2026-10-16 | P2 | 2 | deploy go |
+| G49 | Agreement as built is unusable: the second draft is written without the best examples and is mostly the worse draft (21 of 43 correct answers abstained, p50 doubled). Off; a second opinion that keeps the examples is a design to measure | run P1-B | P2 | 2 | |
+| G50 | The live API runs an image without the answer wording fix, the audit fix and D22; the next deploy is a rebuild and a recreate of the API only | image `591e0076cc11` | P2 | 2 | deploy go |
+| G51 | **Two working trees:** the workspace is committed on the lane branch, while the interface at `localhost:4181` is served from the main checkout's working tree, and files are copied between them by hand (a parallel session also edits styles there; one overwrite had to be restored on 2026-10-16). D20 decided one repository history; the merge is not done | handoff | P2 | 1 | the step-by-step merge |
+| G52 | The executor's red team (costly statements the validator accepts) is proven on a small case only; the cost ceiling is not shown right for a case of 21,000 call records | `docs/data/ask-engine-v2.md` | P2 | 2 | |
+| G53 | At least eleven pushed commits (1b21a6b to bb39b05) carry a `Co-Authored-By: <AI>` trailer, which AGENTS.md forbids; later commits use `Assisted-by:`. Rewriting them needs a force-push | `git log` | P3 | process | your choice |
+
 ---
 
 ## 11. Phases, gates and the first 14 days
@@ -1152,6 +1234,8 @@ Severity: P1 blocks a trustworthy product, P2 degrades it, P3 is polish or proce
 Each phase ends at a gate. A gate is written before the phase's measurements, as every gate in this project has been. Estimates are for planning.
 
 **Status on 2026-10-14.** Phase 0 is mostly done (open: D3 measurements, D5, D6, D8). Phase 1 is under way: typed tables applied, the typed writer live in shadow, the generator and oracles built, the call-record switch built but not applied. Phase 2 is re-planned around the Ask engine (6.8) and has not started. Phases 3 to 5 have not started. This revision changes the order inside Phases 1 and 2 and adds the interface placement of 7.8; it does not change the gates already written.
+
+**Status on 2026-10-19.** The status paragraph under the table in section 1 is current. In short: Phase 0 done except the open decisions; Phase 1 under way (typed data live for one collection); **Phase 2 started** (M1 and M2 done, M3 partly, the interface rows 2 and 3 built); Phases 3 to 5 not started. The gates already written are unchanged.
 
 ### Phase 0: safeguards and decisions (weeks 0 to 2)
 
@@ -1253,6 +1337,24 @@ Each phase ends at a gate. A gate is written before the phase's measurements, as
 
 **Gate for these 14 days (proposed):** decisions recorded; catalogue, validator and red-team green with the mutation tests catching the planted faults; wave 1 loaded and the baseline answers unchanged; one arms comparison on call records recorded whatever its result; the first interface pieces shown on a development case.
 
+**Outcome of those 14 days (read 2026-10-19).** Decisions D17 to D21: recorded. M1a and M1b (catalogue, validator, red team, role): done and applied live. Laptop measurements: done and extended (6.8.13). Apply 016 and the typed switch: done for the real-data collection; the arms comparison of the engine against the lane on call records (M2): done, four fresh seeds, then the factory regression gate. Interface first pieces: done, and more than planned (Connections, Places, result views). M3 start: partly (see 6.8.11). **Not done:** wave 1 into the acceptance collection (D18 decided, nothing of wave 1 loaded); the synthetic and public waves of 8.5.4 are not loaded (the owner's 24 real files arrived later and went into the private sibling collection, D18b, and were used by aggregates only); the Phase 1 gates of the data side (the other families' writers, the relationship layer). **The gate was met for what was built, and not met for wave 1.**
+
+### The next 14 days (2026-10-19 to 2026-11-02; an estimate, re-planned at the next gate)
+
+| Days | Work | Output | Needs you |
+|---|---|---|---|
+| 0 to 1 | **This reconciliation** (roadmap, handoff); D22 carried out in the engine and read on a fresh seed (seed 101: connection gate failed on the form of yes-or-no answers; seed 103 pending) | Roadmap and handoff true to the code; the connection class measured | |
+| 1 to 3 | **Deploy** the three source-only changes (answer wording, no audit rows for interface requests, D22): rebuild and recreate the API only, with its rollback tag; the six live checks on the real collection and a fresh-seed spot check | Live system equal to the repository | **A go** |
+| 1 to 5 | **M3 bank (G46):** pre-register, then write 20 or more questions per analysis for A1, A2, A5, A7, A8, A13 with paraphrases, from the generator's keys; run on the development cases (fix), then once on the judgement cases | M3's gate read: at least 90% correct, no wrong, the rest abstained; p50 and p90 by class | |
+| 2 to 6 | **One repository history (D20, G51):** agree with the parallel session, commit its styles on the lane branch, then bring the main checkout to that branch step by step so that the copying stops | One tree; no hand copies | The step-by-step merge |
+| 3 to 8 | **Wave 1 (D18):** the 13 synthetic layouts and the eight development cases into the acceptance collection (or a sibling), with the before and after regression run | A1 to A13 demonstrable at :4181 on the acceptance collection (G41) | |
+| 4 to 10 | **Type the four older collections (G40, G43):** layouts for the 28 unrecognised files so that the guard stops declining them (77 live questions declined for this reason); gate: no regression on the factory and the corpus | The engine answers on the demonstration cases | |
+| 5 to 12 | **Interface, the pieces that use data we have:** the dashboard engine tile (p50, p90, abstentions), the triage queue in Activity (feeds the question bank), the evidence inventory (G10, D8), the layout chip and quality tab | Rows 9, 10, 7, 6 of 7.8.3 | D8 |
+| 6 to 14 | **Speed:** thicker views for the call-pair questions (a migration, the largest lever) measured against 30.5 s and 51.4 s; the executor red team on a case of 21,000 rows (G52); a memory stick for dual channel if a slot is free; the RTX 2080 measurement if you want it (D3) | A smaller baseline, or the numbers that justify a GPU | D3 |
+| any | **D10:** name the reviewers for Urdu, Punjabi (Shahmukhi) and Pashto; the lead time gates M7 and G18 | A start date for the language sets | **Names** |
+
+**Gate for these 14 days (proposed, written before they are run):** the live system equals the repository and the six live checks pass; the M3 bank read against its gate on judgement cases with no wrong answer; wave 1 loaded and the baseline answers unchanged; one tree; the four older collections no longer declined for a missing typed record or, if not done, the reason recorded.
+
 ---
 
 ## 12. Decisions only you can make
@@ -1281,6 +1383,9 @@ Each phase ends at a gate. A gate is written before the phase's measurements, as
 | D19 | **Read-only analyst role, moved to the first Ask-engine milestone:** a database role that can read only the analyst views, with timeouts, applied to the live database after a backup and a rehearsal (a migration, like D2) | Model-written SQL over a wider schema must not be able to read base tables or write | **Decided 2026-10-14 (owner: as recommended):** yes; draft and rehearse first on a throwaway database; applying it to the live database still waits for your explicit go, after a backup |
 | D20 | **The workspace's scope and its path to the main line:** the Dashboard covers 2 of 5 collections; the workspace code lives in the main checkout's working tree (uncommitted there) while the lane branch holds the API and tools; how they meet (D13) | New views must be built, tested and shown in the same place the analysts look | **Decided 2026-10-14 (owner: as recommended):** list all collections from the API; commit the workspace; one repository history. The merge itself touches the main checkout and is done step by step with you |
 | D21 | **Where the model runs and the latency budget:** the EliteDesk GPU node as the inference node for the query writer, and the budget of 15 s at the 90th percentile for a single statement and 30 s for a recursive one | Link analysis by model-written SQL is slower on the CPU laptop (G45); the owner decided to start on the laptop | **Decided 2026-10-14 (owner, changed from the recommendation): laptop first.** The engine is built and tuned on the available 15.7 GB laptop (CPU) and the budgets are set from what it measures; no GPU is assumed. A GPU is raised only if the measurements show it is a must (a 14B model, or a latency that cannot be brought under the budget), and then as a future system, not a dependency of the build. Budgets for the laptop are set after the first measurements (6.6, 6.8.13) |
+| D22 | **What "connected" means.** The engine's example walked the contact pairs one way, so two subscribers who both contact the same number were "not connected"; the evaluation's oracle had the same meaning (6 generated cases: 2 of 15 subscriber pairs found, against 11 or 12 with a shared contact) | An analyst who asks "how are A and B connected" most likely means the second | **Decided 2026-10-19 (owner: as recommended): the shared-contact meaning, in either direction, with the shared number named in the answer.** Carried out in the example, the answer sentence, the oracle and the judge; gates written first; seed 101 failed the connection gate on the form of three yes-or-no answers, a result rule was added, seed 103 is the measurement (`docs/data/ask-engine-v2.md`) |
+
+**Decisions still open on 2026-10-19:** **a go to deploy** the three source-only changes (G50); **the step-by-step merge to one repository history** (D13 with D20, G51); **D10** (reviewer names, the lead time gates M7); D3 (the RTX 2080 measurement, optional under D21); D6 (the front door); D8 (the evidence inventory view); D9 (more real samples under authority); D11 (scope of tower-dump analyses); D12 (priority if capacity is limited); **G53** (whether to rewrite the eleven or more pushed commits that carry an AI `Co-Authored-By` trailer: a force-push, only on your word). D5 stays at detection only; D2b (PostGIS) is deferred.
 
 ---
 

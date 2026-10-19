@@ -235,6 +235,32 @@ Reading: on this CPU the time of a question is its answer being written (5.5 tok
 4. **Latency is reported, not gated:** the connection class took 89 to 144 s with the directed example; the new one is longer (an extra edge CTE), so its p50 and p90 are the new baseline.
 5. If a gate fails, only the cause the run shows is fixed, and the fix is measured on another fresh seed (103); nothing is tuned on seed 101 and rerun.
 
+### Result of the seed-101 run (2026-10-19): the gate for the connection class was **not met**
+
+47 questions, the engine arm, agreement off, nothing changed between the gates and the run: **43 correct, 3 wrong, 0 abstained, 1 declined**; p50 31.2 s, p90 81.0 s, longest 170 s; 8 repairs.
+
+| Gate (written before the run) | Result |
+|---|---|
+| 1. Connection questions: wrong zero, correct at least 7 of 8, the shared number named | **Failed: 4 correct, 3 wrong, 1 declined** |
+| 2. The other 39 questions: wrong zero, exact kinds at least 85% | Met: **39 of 39 correct**, including the three questions the data cannot answer and the two absent numbers |
+| 3. The 8 questions that share the example's reach (top contacts 3, common contacts 3, distinct contacts 2) | Met: all 8 correct |
+| 4. Latency reported | Connection class 64 to 170 s (the "how are A and B connected" phrasing 64 to 87 s; the "is there a link" phrasing 116 to 170 s, two or three attempts each); the other kinds p50 30.0 s, p90 57.7 s |
+
+**What happened.** The four questions phrased "How are A and B connected within N hops, not through services or hubs?" were **all correct and named the numbers**: "A and B are connected through 4 shared contacts: ...", "... through 5 shared contacts: ...", "... connected in 3 hops; the numbers between them on the shortest routes are ...", and, for the pair with no route inside two hops, "No connection between A and B was found within 2 hops through the calls and messages of this case." (no rows). The four questions phrased **"Is there a link between A and B within N hops, leaving out services and numbers everyone contacts?"** went differently: for three the model walked correctly and then wrote **an existence test** (`SELECT EXISTS (SELECT 1 FROM found) AS has_link`), so the answer was one row, "Has link: true." (twice) and "Has link: false." (once). **The truth values were right in all three** (the pairs are connected at 2 and 3 hops, and not within two), but the answer names no shared number, which is what the owner decided, and the result is not the connection, so the judge, as pre-registered, scored them wrong. The fourth (a direct contact, "is there a link") was declined after three attempts (`REC_LIMIT`: the recursive query kept lacking an outer LIMIT); a decline hands the question to the older path and is not a wrong answer.
+
+**Reading.** The gate is failed as written and is not re-read in the engine's favour. It is a failure of the form of the answer (a bare yes or no where the decision asks for the connection), not a false claim: no answer said a pair was connected when it was not, or the reverse. It is also the first run in which the engine was asked a yes-or-no connection question; the earlier question sets had only the "how are" form.
+
+**The one change, from this finding only.** A result obligation (`askCheckResult`, kind SHAPE): a connection question (two numbers and a hop count or a connection cue, answered by a recursive query) must return the columns `src` and `dst`, one row per edge, "not a yes or no"; a draft that returns anything else goes back to the model with that reason, as every unmet obligation does (at most two repairs). One spec (a yes-or-no result is refused in all three phrasings, the edges pass in either case of column names, a question that is not about a connection is untouched). The `REC_LIMIT` decline is left as it is: the validator's message already says what is missing, and a decline is the safe outcome.
+
+### Gates for the run of seed 103, written before it (47 questions, the engine arm, agreement off)
+
+The gates are those of seed 101, unchanged, because the change reaches only connection questions and the whole set is run again as the regression check.
+
+1. **Connection questions (8, four of each phrasing):** wrong answers **zero**; correct at least **7 of 8**; every correct answer names the shared number or numbers, as the judge enforces; a decline is not wrong but counts against the 7.
+2. **The other 39:** wrong zero; the exact kinds at least 85% correct; what the data cannot answer always an abstention, a decline or "no record".
+3. **The 8 questions that share the example's reach with other kinds** are listed in the result.
+4. Latency is reported (the connection class is the new baseline). If a gate fails, only the cause shown is fixed and the fix is measured on seed 107; nothing is tuned on seed 103.
+
 ## Next
 
 Measured arms on a fresh seed (above), then the engine on the typed families beyond call records and internet sessions, the remaining interface pieces of 7.8 (lanes, calendar, the entity drawer), the composition of the sentence under the number lock (M5), and applying migration 017 to the live database on the owner's go, after a backup, so that the engine can be deployed and measured on the live stack.

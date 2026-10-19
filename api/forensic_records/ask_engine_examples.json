@@ -24,7 +24,7 @@
       "v_contact_pairs"
     ],
     "shape": "graph",
-    "sql": "WITH RECURSIVE walk AS (SELECT src, dst, 1 AS depth, ARRAY[src, dst] AS path FROM v_contact_pairs WHERE src = '923000000101' AND NOT is_service AND NOT is_hub UNION ALL SELECT w.src, e.dst, w.depth + 1, w.path || e.dst FROM walk w JOIN v_contact_pairs e ON e.src = w.dst WHERE w.depth < 3 AND NOT e.dst = ANY (w.path) AND NOT e.is_service AND NOT e.is_hub), found AS (SELECT path FROM walk WHERE dst = '923000000102' ORDER BY depth LIMIT 10) SELECT DISTINCT f.path[i] AS src, f.path[i + 1] AS dst FROM found f, generate_series(1, cardinality(f.path) - 1) AS i LIMIT 200"
+    "sql": "WITH RECURSIVE contacts AS (SELECT src AS a, dst AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub UNION SELECT dst AS a, src AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub), walk AS (SELECT a AS src, b AS dst, 1 AS depth, ARRAY[a, b] AS path FROM contacts WHERE a = '923000000101' UNION ALL SELECT w.src, c.b, w.depth + 1, w.path || c.b FROM walk w JOIN contacts c ON c.a = w.dst WHERE w.depth < 3 AND NOT c.b = ANY (w.path)), found AS (SELECT path FROM walk WHERE dst = '923000000102' ORDER BY depth LIMIT 10) SELECT DISTINCT f.path[i] AS src, f.path[i + 1] AS dst FROM found f, generate_series(1, cardinality(f.path) - 1) AS i LIMIT 200"
   },
   {
     "id": "cells-used",

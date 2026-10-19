@@ -432,6 +432,18 @@ func askYearNote(year int) string {
 // askCheckResult holds the result against the frame: a count is one value, and a question that names an identifier is not answered by a list of
 // everything. It returns nil when the result is acceptable. (Emptiness is handled by the probe in the run, because an empty result is sometimes the truth.)
 func askCheckResult(f askFrame, v *askValidated, columns []string, rows int) *askObligation {
+	// A connection question (decision D22) is answered with the edges of the connections found, so that the answer can name the numbers between the two. Measured on seed
+	// 101: asked "is there a link between A and B within three hops", the model wrote an existence test and the answer was a bare "Has link: true", which is true and names
+	// nothing. The result must carry src and dst, as the verified example's does.
+	if (f.Hops > 0 || f.Cues["path"]) && len(f.Numbers) >= 2 && v.Recursive {
+		has := map[string]bool{}
+		for _, c := range columns {
+			has[strings.ToLower(c)] = true
+		}
+		if !has["src"] || !has["dst"] {
+			return &askObligation{Kind: "SHAPE", Message: "A connection question is answered with the edges of the connections found: return the columns src and dst, one row per edge of the shortest routes between the two numbers, as in the verified example, not a yes or no.", Reason: "the question asks how two numbers are connected and the result is not the connection itself"}
+		}
+	}
 	grouped := askSQLMentions(strings.ToLower(v.SQL), "group by", "partition by") || askSQLMentions(strings.ToLower(v.SQL), " per ")
 	asksPer := strings.Contains(" "+strings.ToLower(f.Question)+" ", " per ") || strings.Contains(strings.ToLower(f.Question), "each ") || strings.Contains(strings.ToLower(f.Question), " by ") ||
 		strings.Contains(strings.ToLower(f.Question), "which ") || strings.Contains(strings.ToLower(f.Question), "who ") || strings.Contains(strings.ToLower(f.Question), "list")
