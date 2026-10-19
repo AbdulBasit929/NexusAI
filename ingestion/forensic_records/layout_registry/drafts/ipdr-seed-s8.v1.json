@@ -1,0 +1,129 @@
+{
+  "schema": "nexusai.layout/v1",
+  "layout_id": "ipdr-seed-s8",
+  "layout_version": 1,
+  "status": "draft",
+  "family": "internet",
+  "dataset_kind": "ipdr",
+  "label": "Internet records, 8 columns (the repository's synthetic seed export: one instant, one volume)",
+  "operator_label": null,
+  "container": {
+    "kinds": [
+      "csv"
+    ],
+    "encoding": "utf-8",
+    "delimiter": ",",
+    "sheet": "first",
+    "header_row": {
+      "mode": "fixed",
+      "index": 0
+    }
+  },
+  "header": {
+    "columns": [
+      {
+        "name": "timestamp"
+      },
+      {
+        "name": "source_ip"
+      },
+      {
+        "name": "destination_ip"
+      },
+      {
+        "name": "domain"
+      },
+      {
+        "name": "protocol"
+      },
+      {
+        "name": "bytes"
+      },
+      {
+        "name": "subscriber_id"
+      },
+      {
+        "name": "session_id"
+      }
+    ],
+    "required": [
+      "timestamp",
+      "source_ip",
+      "destination_ip",
+      "protocol",
+      "bytes",
+      "subscriber_id",
+      "session_id"
+    ],
+    "min_score": 0.9
+  },
+  "fields": {
+    "msisdn": "subscriber_id",
+    "ue_ip": "source_ip",
+    "server_ip": "destination_ip",
+    "host": "domain",
+    "protocol": "protocol",
+    "session_ref": "session_id"
+  },
+  "time": {
+    "columns": {
+      "start": "timestamp"
+    },
+    "formats": [
+      "iso_naive"
+    ],
+    "date_order": "YMD",
+    "source_tz": "UTC",
+    "tz_basis": "explicit_offset"
+  },
+  "duration": {
+    "mode": "none"
+  },
+  "null_tokens": {},
+  "quirks": [
+    "Each row is one instant: there is no end time and no duration",
+    "The instant carries a Z suffix (UTC); the typed path stores it as stated",
+    "One volume column, `bytes`, with no direction: it is NOT mapped to bytes_up or bytes_down, because assigning a direction would be a guess; it stays in the raw row",
+    "The source address is a private address of the subscriber's device (UE); no public address or port is stated, so address attribution (who held a public address) cannot be answered from these files"
+  ],
+  "confirmation": {
+    "headers": "read_from_the_repository_synthetic_seed_files_2026-10-19",
+    "semantics_confirmed": false,
+    "unconfirmed": [
+      {
+        "id": "bytes-direction",
+        "what": "The single bytes column has no stated direction (up, down or both); it is not mapped.",
+        "affects": [
+          "fields.bytes_up",
+          "fields.bytes_down"
+        ]
+      },
+      {
+        "id": "source-ip-role",
+        "what": "source_ip is read as the device's address (UE IP) and destination_ip as the server's; the files do not say whether a private address was translated.",
+        "affects": [
+          "fields.ue_ip",
+          "fields.public_ip"
+        ]
+      },
+      {
+        "id": "operator",
+        "what": "The files are the project's own synthetic seed data and name no operator.",
+        "affects": [
+          "operator_label"
+        ]
+      }
+    ],
+    "settled": []
+  },
+  "golden": {
+    "rows": 48,
+    "hints": {},
+    "columns": {
+      "domain": "choice:chat.example.test|storage.example.test|maps.example.test",
+      "protocol": "choice:TCP|UDP|DNS",
+      "bytes": "choice:2048|4096|8192",
+      "session_id": "row_number"
+    }
+  }
+}
