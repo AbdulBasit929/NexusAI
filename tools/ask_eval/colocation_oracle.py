@@ -79,8 +79,9 @@ def bank_questions(params, per_case_limit=12):
         else:
             text = "At which cells did %s and %s have events in the same hour?" % (x, y)
         questions.append({"type": "coloc_cells", "question": text, "expect": {"kind": "cells", "x": x, "y": y, "values": cells}})
-        text = ("In how many different hours were %s and %s at the same cell?" if i % 2 == 0 else "How many hours did %s and %s spend at the same cell site together, counting each cell and hour once?") % (x, y)
-        questions.append({"type": "coloc_hours", "question": text, "expect": {"kind": "scalar", "x": x, "y": y, "value": len(hits)}})
+        hours = len({h[1] for h in hits})  # different hours, whatever the cell: two cells in one hour are one hour
+        text = ("In how many different hours were %s and %s at the same cell?" if i % 2 == 0 else "How many different hours did %s and %s spend at the same cell site together?") % (x, y)
+        questions.append({"type": "coloc_hours", "question": text, "expect": {"kind": "scalar", "x": x, "y": y, "value": hours}})
     for n, q in enumerate(questions, start=1):
         q["id"] = "C%03d" % n
     return questions
