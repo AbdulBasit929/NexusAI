@@ -298,7 +298,37 @@ The gates are those of seeds 101 and 103, unchanged; the whole set is run again 
 
 The hint did what the seed-103 finding asked: the "is there a link" phrasing now gets the edges at the first attempt in two of three (against three attempts and 184 to 190 s on seed 103), and no connection question was declined. **Read with care:** this is one clean run after a run that failed on the form of the answer and a run that was one answer short, on seven connection questions; it says the change works on this kind of question, not that the yes-or-no phrasing is solved for every pair and every case. The connection class is still the slowest (59 to 120 s, a recursive query being the longest thing the model writes); the remedy for speed is a thicker view (an undirected contact-links view in the analyst schema, a migration that needs the owner's go) and the speed of writing.
 
-**D22 is carried out and measured on three fresh seeds** (101: the form of three yes-or-no answers failed the gate; 103: wrong zero, two declines; 107: clean). The change is in source on the branch and **not deployed**.
+**D22 is carried out and measured on three fresh seeds** (101: the form of three yes-or-no answers failed the gate; 103: wrong zero, two declines; 107: clean). **Deployed 2026-10-19** (the owner's go): see the next paragraph.
+
+**Deployed 2026-10-19.** API image `0b65976498f3` (rollback tag `before-d22-20261019` = `591e0076cc11`) with the answer wording fix, no audit row for the interface's own template requests, and D22. The in-container build failed twice on the network (TLS timeouts to `proxy.golang.org`), so the binary was cross-built on the host and layered onto the previous image; the API was recreated alone with the typed-families and Ask v2 overlays and the variables did not change (V2 and FIRST on, agreement off). Live checks: **the six questions on the real collection 6 of 6**; **D22 on the synthetic collection 3 of 3** ("connected through a shared contact, X", "through 2 shared contacts: X, Y" for the yes-or-no phrasing, "in direct contact"; 99.5, 66.7 and 56.0 s); **a template request returned 200 and wrote no audit row** (713 rows before and after; 347 of the 541 rows at the review were such requests). On the real collection a connection question took 182 s, the same class that takes 60 to 120 s on the small generated cases: the thicker view is the remedy. After a recreate the workspace's dev servers keep their connection to the old container and hang until restarted.
+
+## Milestone M3: the link-analysis question bank and its gate (G46; written 2026-10-19, before any bank question is run)
+
+**The bank** (`tools/ask_eval/build_questions.py --bank`; a case of the register is read with `--register-case --seed N`, and the harness loads the same case with `check_ask_engine.py --register-case`). Every expectation comes from the generator's planted-truth key by plain Python (a breadth-first search for the connection and chaining questions), never from the engine's SQL. Per case of 12 subjects the bank holds about 80 questions in these analyses:
+
+| Analysis | Questions per case | Expectation |
+|---|---|---|
+| A1 contact profile (a pair's events, incoming from one number, top three contacts, how many distinct contacts) | 4 kinds, 6 subjects each | the key's counts and ranking |
+| A2 common contacts | up to 12 pairs | the shared numbers of the key |
+| A3 connections (decision D22) | 12 (shared contact, direct, no connection within two hops, two intermediate numbers; two phrasings) | distance, the numbers on the shortest routes, the real edges |
+| A4 contact chaining ("who can be reached from X within two hops, not through services or hubs") | up to 12 | the numbers within two hops, from the key's contact graph |
+| A8 handsets (which handsets a number that changed handset used; which numbers shared a handset) | 3 to 5 | the key's handsets and shared devices |
+| A13 who held a public address at an instant | up to 12, unique and ambiguous | the key's holders |
+| controls | 5 | two numbers the case does not hold (no record), three questions the data cannot answer (a refusal) |
+
+**Not in this bank, and why.** A5 co-location and A7 possible meetings: the generator's key holds windows of 15 minutes and the analyst view `v_cell_visits` holds one row per subscriber, cell and **hour**, so the same question has two different truths until an oracle at the view's granularity (or a finer view) exists; A6 (authority-gated), A9 to A12 (no verified example and no view yet). They are the next stage of M3, not claimed here. **A8 has fewer than 20 questions over three cases** (about 15) and is reported as a small sample.
+
+**Seed policy, stated plainly.** Judgement seeds 100 to 199 are for measurement only. On 2026-10-19 the D22 runs used seeds 101, 103 and 107 with the *calibration case's* parameters (people 60, subjects 6), which are not the register's parameters for those seeds; the register's cases 101, 103 and 107 were not generated or opened by those runs, but to keep the rule plain **they are treated as spent**. The judgement cases for the gate are the register's **102, 104 and 106** (75 days; 3.5 events a day; 14 subjects); 105 and 108 are kept unopened for the measurement of a fix. Before the judgement run the three cases are verified against the register's hashes (`case_set.py verify`), so the run proves it measured the registered cases.
+
+**Procedure.** (1) The bank is run on development case 1 (and others if needed) to find defects; only what that run shows is fixed, and each fix is measured again on another development case; a verified example is added only for a shape the run shows missing. (2) The code is then frozen and committed. (3) **The judgement run is made once, on 102, 104 and 106; nothing is changed after seeing it.** A failure is written up and its fix is measured on 105 or 108, never on 102, 104 or 106 again.
+
+### Gates for the judgement run, written before any bank question is run (the engine arm, agreement off)
+
+1. **Wrong answers: zero**, in every analysis and in total. One wrong answer fails the gate and is investigated before anything else is claimed.
+2. **Correct at least 90% in each analysis** (A1, A2, A3, A4, A13, and A8 as a reported small sample), counted over the three cases; a decline or an abstention counts against the 90%, because the owner's measure is an answer. The rest must be abstentions or declines, never answers.
+3. **The controls:** the two absent numbers say "no record"; the three questions the data cannot answer are always an abstention or a decline.
+4. **Latency is reported, not gated:** p50 and p90 by analysis (the connection and chaining classes are expected to be the slowest), repairs per question, and the declines by reason.
+5. **The red team of the question text** (`redteam_questions.json`, 18 questions) is run once more on one of the three cases: zero escapes.
 
 ## Next
 

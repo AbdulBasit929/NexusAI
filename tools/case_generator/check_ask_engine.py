@@ -64,16 +64,25 @@ def main(argv):
     parser.add_argument("--keep-truth", help="also keep the planted-truth keys in this file")
     parser.add_argument("--seed", type=int, default=PARAMS["seed"])
     parser.add_argument("--ids", help="evaluation mode: only these question ids, comma separated")
+    parser.add_argument("--register-case", action="store_true", help="read --seed as a case of the register of 20 (development 1 to 8, judgement 101 to 108; sealed are refused)")
     args = parser.parse_args(argv)
     evaluation = bool(args.questions)
 
     params = dict(PARAMS, seed=args.seed)
+    register_params = None
+    if args.register_case:
+        import case_set  # noqa: E402
+        for kind, number, overrides in case_set.CASES:
+            if number == args.seed and kind != "sealed":
+                register_params = case_set.params_for(number, overrides)
+        if register_params is None:
+            raise SystemExit("seed %d is not a development or judgement case of the register" % args.seed)
     tmp = tempfile.TemporaryDirectory()
     registry = load_registry()
     port = free_port()
     db = load_case.Throwaway(publish_port=port)
     try:
-        root = generate.write_case(w.Params(**params), tmp.name)
+        root = generate.write_case(register_params or w.Params(**params), tmp.name)
         key, dsn = build_case_database(db, root, registry, port)
         truth_path = args.keep_truth or os.path.join(tmp.name, "truth.json")  # the evaluation judge reads the keys the questions file carries, not this file
         with open(truth_path, "w", encoding="utf-8") as handle:

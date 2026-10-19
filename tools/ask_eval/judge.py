@@ -135,6 +135,9 @@ def judge(question, result):
         return "correct" if got[: len(expect["values"])] == expect["values"] and len(got) == len(expect["values"]) else "wrong"
     if kind == "absent":
         return "correct" if "no record" in answer or "not hold" in answer else "wrong"
+    if kind == "reach":
+        # contact chaining (A4): the numbers within the hops, from the anchor, without the anchor itself; an edge list is accepted (its intermediate numbers are within the hops)
+        return "correct" if identifiers(rows) - {expect["anchor"]} == set(expect["values"]) else "wrong"
     if kind == "path":
         if bool(rows) != bool(expect["exists"]):
             return "wrong"

@@ -55,7 +55,7 @@ def events(row):
     return row["incoming"] + row["outgoing"] + row["unknown"]
 
 
-def build(key):
+def build(key, bank=False):
     oracle = key["oracle"]
     a1 = oracle["A1"]
     threshold = oracle["parameters"]["hub_threshold"]
@@ -72,7 +72,7 @@ def build(key):
         questions.append(dict(id="Q%03d" % (len(questions) + 1), type=kind, question=text, expect=expect, **extra))
 
     # 1. one pair's event count (v_contact_pairs.events)
-    for i, s in enumerate(subjects):
+    for i, s in enumerate(subjects[:6] if bank else subjects):
         pairs = [r for r in ordinary(s) if events(r) >= 3]
         if not pairs:
             continue
@@ -80,7 +80,7 @@ def build(key):
         text = ("How many events are there between %s and %s?" if i % 2 == 0 else "How many calls and messages did %s have with %s?") % (s, r["number"])
         add("pair_count", text, {"kind": "scalar", "value": events(r)})
     # 2. incoming from one number
-    for i, s in enumerate(subjects):
+    for i, s in enumerate(subjects[:6] if bank else subjects):
         pairs = [r for r in ordinary(s) if r["incoming"] >= 2]
         if not pairs:
             continue
@@ -88,7 +88,7 @@ def build(key):
         text = ("How many incoming events did %s receive from %s?" if i % 2 == 0 else "How many times did %s get a call or message from %s?") % (s, r["number"])
         add("incoming_count", text, {"kind": "scalar", "value": r["incoming"]})
     # 3. top contacts, services and hubs left out
-    for i, s in enumerate(subjects):
+    for i, s in enumerate(subjects[:6] if bank else subjects):
         ranked = sorted(ordinary(s), key=lambda r: -events(r))
         n = 3
         if len(ranked) <= n or events(ranked[n - 1]) == events(ranked[n]):
@@ -98,12 +98,12 @@ def build(key):
         # `scores` lets the judge accept any order among numbers with equal counts (a tie inside the top three has no single right order).
         add("top_contacts", text, {"kind": "ordered", "values": [r["number"] for r in ranked[:n]], "scores": {r["number"]: events(r) for r in ranked}})
     # 4. common contacts (A2)
-    for i, answer in enumerate(a for a in oracle["A2"] if a["shared"]):
+    for i, answer in enumerate([a for a in oracle["A2"] if a["shared"]][:12 if bank else None]):
         text = ("Which numbers do %s and %s both contact, leaving out services and numbers that everyone contacts?" if i % 2 == 0
                 else "What contacts do %s and %s have in common, excluding short codes and numbers that everyone contacts?") % (answer["x"], answer["y"])
         add("common_contacts", text, {"kind": "set", "values": sorted(s["number"] for s in answer["shared"])})
     # 5. how many different ordinary numbers
-    for i, s in enumerate(subjects[:4]):
+    for i, s in enumerate(subjects[:6] if bank else subjects[:4]):
         text = ("How many different numbers did %s contact, leaving out services?" if i % 2 == 0 else "How many distinct phone numbers has %s been in contact with, excluding short codes?") % s
         add("distinct_contacts", text, {"kind": "scalar", "value": len([r for r in a1[s] if r["kind"] not in SERVICE_KINDS])})
     # 6. a number the case does not hold
@@ -120,7 +120,7 @@ def build(key):
         text = ("Which handsets (IMEI) has %s been used with?" if i % 2 == 0 else "List every IMEI seen with %s.") % s
         add("devices", text, {"kind": "set", "values": imeis})
     # 8. who held an address at an instant (A13), unique and ambiguous instants
-    for i, a in enumerate(oracle["A13"][:6]):
+    for i, a in enumerate(oracle["A13"][:12 if bank else 6]):
         text = ("Who held the public address %s port %d at %s?" if i % 2 == 0 else "Which subscribers were using %s port %d at %s?") % (a["public_ip"], a["port"], a["instant"])
         add("address_holder", text, {"kind": "set", "values": sorted(a["holders"])}, plant=a["plant"], result=a["result"])
     # 9. connections (decision D22, 2026-10-16): two numbers are connected when they are in contact with each other or through other numbers, in EITHER direction, so
@@ -155,7 +155,7 @@ def build(key):
         for b in subjects:
             if a < b and a not in hubs and b not in hubs:
                 (d1 if dist.get(b) == 1 else d2 if dist.get(b) == 2 else d3).append((a, b))
-    chosen += [(a, b, 3) for a, b in d2[:3]] + [(a, b, 3) for a, b in d1[:1]] + [(a, b, 2) for a, b in d3[:2]]
+    chosen += [(a, b, 3) for a, b in d2[:5 if bank else 3]] + [(a, b, 3) for a, b in d1[:2 if bank else 1]] + [(a, b, 2) for a, b in d3[:3 if bank else 2]]
     mixed = []
     for a in subjects:
         dist = distances(a)
@@ -174,18 +174,48 @@ def build(key):
         else:
             text = "Is there a link between %s and %s within %s hops, leaving out services and numbers everyone contacts?" % (a, b, words[limit])
         add("path", text, {"kind": "path", "a": a, "b": b, "hops": limit, "exists": exists, "distance": d if exists else None, "via": via, "graph": [list(e) for e in edge_list]})
+    # 9b. the bank (M3, 2026-10-19): contact chaining (A4) and a shared handset (A8), expectations from the same breadth-first search and the key
+    if bank:
+        for i, a in enumerate(subjects):
+            if a in hubs:
+                continue
+            reached = sorted(n for n, d in distances(a, 2).items() if 1 <= d <= 2)
+            if not reached:
+                continue
+            text = ("Who can be reached from %s within two hops, not through services or hubs?" if i % 2 == 0
+                    else "List every number within two hops of %s, leaving out services and numbers everyone contacts.") % a
+            add("reach", text, {"kind": "reach", "anchor": a, "hops": 2, "values": reached})
+        for i, entry in enumerate(oracle["A8"]["shared_devices"][:6]):
+            text = ("Which numbers were used with the handset with IMEI %s?" if i % 2 == 0 else "Which subscribers shared the handset %s?") % with_check_digit(entry["imei"])
+            add("shared_handset", text, {"kind": "set", "values": sorted(n["number"] for n in entry["numbers"])})
     # 10. questions the data cannot answer
     for text in ["What is the home address of %s?" % subjects[0], "Who owns the number %s?" % subjects[1], "Is %s a criminal?" % subjects[2]]:
         add("none", text, {"kind": "none"})
     return questions
 
 
+def load_register_key(seed):
+    """The key of a case of the register of 20 (tools/case_generator/case_set.py), by its seed: development 1 to 8, judgement 101 to 108. Sealed cases are refused."""
+    import case_set  # noqa: E402
+    for kind, number, overrides in case_set.CASES:
+        if number == seed:
+            if kind == "sealed":
+                raise SystemExit("sealed cases are not opened here")
+            tmp = tempfile.mkdtemp()
+            root = generate.write_case(case_set.params_for(seed, overrides), tmp)
+            with open(os.path.join(root, "key", "key.json"), encoding="utf-8") as handle:
+                return json.load(handle)
+    raise SystemExit("seed %d is not a case of the register" % seed)
+
+
 def main(argv):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--seed", type=int, default=61)
+    parser.add_argument("--register-case", action="store_true", help="read --seed as a case of the register (development 1 to 8, judgement 101 to 108), not the calibration case")
+    parser.add_argument("--bank", action="store_true", help="the question bank of milestone M3: more questions per analysis, contact chaining and a shared handset")
     parser.add_argument("--out", default=os.path.join(HERE, "questions-seed61.json"))
     args = parser.parse_args(argv)
-    questions = build(load_key(args.seed))
+    questions = build(load_register_key(args.seed) if args.register_case else load_key(args.seed), bank=args.bank)
     with open(args.out, "w", encoding="utf-8") as handle:
         json.dump(questions, handle, indent=1)
         handle.write("\n")
