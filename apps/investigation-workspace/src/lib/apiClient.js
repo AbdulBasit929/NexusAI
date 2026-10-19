@@ -94,6 +94,11 @@ export function getPlaces({ caseId, signal, fetchImpl }) {
   return scopedGet('/analysis/places', caseId, { signal, fetchImpl })
 }
 
+// How the Ask engine has done on this case over the last days, from its own audit rows (counts and times, never a question): GET /analysis/engine-health.
+export function getEngineHealth({ caseId, days = 7, signal, fetchImpl }) {
+  return scopedGet(`/analysis/engine-health?days=${Number(days) || 7}`, caseId, { signal, fetchImpl })
+}
+
 export function listEvidence({ caseId, filters = {}, signal, fetchImpl }) {
   const query = new URLSearchParams()
   if (filters.modality) query.set('modality', filters.modality)
