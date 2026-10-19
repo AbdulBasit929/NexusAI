@@ -285,6 +285,21 @@ The gates are those of seeds 101 and 103, unchanged; the whole set is run again 
 3. **The questions that share the example's reach with other kinds** are listed in the result.
 4. **If the connection gate fails again, the prompt is not tuned a third time.** The finding is then that a 4B model on this CPU does not reliably write the recursive walk for the yes-or-no phrasing within three attempts, and the remedy is a thicker view (an undirected contact-links view in the analyst schema, so that the SQL is a short walk over it; a migration, which needs the owner's go) and the speed of writing, not more words in the prompt.
 
+### Result of the seed-107 run (2026-10-19): the connection gate is met
+
+45 questions (this seed's case gave seven connection questions, four "how are" and three "is there a link", not eight), engine arm, agreement off, the hint of seed 103's finding and nothing else: **45 correct, 0 wrong, 0 abstained, 0 declined**; p50 31.3 s, p90 74.0 s, longest 120 s; 6 repairs.
+
+| Gate (written before the run) | Result |
+|---|---|
+| 1. Connection questions: wrong zero, at least 7 of 8 correct (here 7 questions), the shared number named | **Met: 7 of 7 correct, 0 wrong**, every answer naming the numbers ("through 4 shared contacts: ...", "in direct contact", "connected in 3 hops; the numbers between them ...", and "No connection ... within 2 hops" twice) |
+| 2. The other 38 questions | Met: 38 of 38 correct |
+| 3. The questions that share the example's reach (top contacts 5, common contacts 3, distinct contacts 4) | Met: all 12 correct |
+| 4. Latency reported | "how are": 59, 65, 67 and 82 s (one attempt each); "is there a link": 60, 83 and 120 s (the 120 s answer needed two attempts); the other kinds p50 29.6 s, p90 58.9 s |
+
+The hint did what the seed-103 finding asked: the "is there a link" phrasing now gets the edges at the first attempt in two of three (against three attempts and 184 to 190 s on seed 103), and no connection question was declined. **Read with care:** this is one clean run after a run that failed on the form of the answer and a run that was one answer short, on seven connection questions; it says the change works on this kind of question, not that the yes-or-no phrasing is solved for every pair and every case. The connection class is still the slowest (59 to 120 s, a recursive query being the longest thing the model writes); the remedy for speed is a thicker view (an undirected contact-links view in the analyst schema, a migration that needs the owner's go) and the speed of writing.
+
+**D22 is carried out and measured on three fresh seeds** (101: the form of three yes-or-no answers failed the gate; 103: wrong zero, two declines; 107: clean). The change is in source on the branch and **not deployed**.
+
 ## Next
 
 Measured arms on a fresh seed (above), then the engine on the typed families beyond call records and internet sessions, the remaining interface pieces of 7.8 (lanes, calendar, the entity drawer), the composition of the sentence under the number lock (M5), and applying migration 017 to the live database on the owner's go, after a backup, so that the engine can be deployed and measured on the live stack.
