@@ -3,6 +3,7 @@ import { ArrowUpRight, History, Sparkles } from 'lucide-react'
 import { LanguageText } from '../../components/AnalystComponents.jsx'
 import { formatNumber } from '../../lib/format.js'
 import { summariseCase } from '../../lib/useCaseOverview.js'
+import { LinkStarters } from './LinkStarters.jsx'
 
 // What is searched, in one sentence, from the case's own counts. Sources that are not ready are named as not searched.
 export function coverageLine(overview) {
@@ -36,6 +37,7 @@ export function CaseStart({ caseId, overview, starters, recent, onPick, children
           </ul>
         </div>
       ) : null}
+      <LinkStarters caseId={caseId} onPick={onPick} />
       {recent.length ? (
         <div className="gi-recent">
           <h2><History aria-hidden="true" />Your last questions here</h2>
