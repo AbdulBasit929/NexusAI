@@ -261,6 +261,30 @@ The gates are those of seed 101, unchanged, because the change reaches only conn
 3. **The 8 questions that share the example's reach with other kinds** are listed in the result.
 4. Latency is reported (the connection class is the new baseline). If a gate fails, only the cause shown is fixed and the fix is measured on seed 107; nothing is tuned on seed 103.
 
+### Result of the seed-103 run (2026-10-19): wrong zero, and the connection class one answer short of its bar
+
+46 questions, engine arm, agreement off, the result rule added after seed 101 and nothing else: **44 correct, 0 wrong, 0 abstained, 2 declined**; p50 34.8 s, p90 105.4 s, longest 190 s; 14 repairs.
+
+| Gate (written before the run) | Result |
+|---|---|
+| 1. Connection questions: wrong zero, correct at least 7 of 8, the shared number named | **Wrong zero: met. Correct 6 of 8: not met** (2 declined; a decline counts against the 7) |
+| 2. The other 38 questions: wrong zero, exact kinds at least 85% | Met: **38 of 38 correct** |
+| 3. The questions that share the example's reach (top contacts 4, common contacts 4, distinct contacts 4) | Met: all 12 correct |
+| 4. Latency reported | The "how are A and B connected" phrasing: 65, 65, 84 and 105 s, one attempt each; the "is there a link" phrasing: 184 to 190 s, three attempts each; the other kinds p50 30.0 s, p90 64.8 s |
+
+**What happened.** The four "how are" questions were right at the first attempt and named the numbers ("through 3 shared contacts: ...", "connected in 3 hops; the numbers between them on the shortest routes are ...", and "No connection ... within 2 hops"). Of the four "is there a link" questions, two were **correct after three attempts** (a shared contact named; "no connection within 2 hops") and two were **declined after three attempts** (`REC_LIMIT`; one a direct contact, one at three hops). The result rule of seed 101 worked: no bare yes or no was answered (0 wrong). But it stacked on a second fault: the first draft for this phrasing is an existence test **without the outer LIMIT** that a recursive query needs (rejected), the repair adds the LIMIT and is still an existence test (rejected by the result rule), and the third and last attempt either gets it right or runs out. That is why the answers took three minutes and why two were declined, which hands the question to the older path (not a wrong answer).
+
+**The one change, from this finding only.** A hint in the question turn (not in the fixed start of the prompt, so no other question's prompt changes and the cache of the fixed start is untouched), added when the question names two numbers and a hop count or a connection cue: "Connection: return the edges of the routes between the two numbers as src and dst, one row per edge, as in the verified example (never a yes or no), and end with LIMIT 200." One spec (the hint is in the question turn of both phrasings and absent from a top-contacts and a pair-count question).
+
+### Gates for the run of seed 107, written before it (the engine arm, agreement off)
+
+The gates are those of seeds 101 and 103, unchanged; the whole set is run again as the regression check.
+
+1. **Connection questions (8, four of each phrasing):** wrong **zero**; correct at least **7 of 8**; every correct answer names the shared number or numbers; reported besides: attempts and seconds per phrasing.
+2. **The other questions:** wrong zero; the exact kinds at least 85% correct; what the data cannot answer always an abstention, a decline or "no record".
+3. **The questions that share the example's reach with other kinds** are listed in the result.
+4. **If the connection gate fails again, the prompt is not tuned a third time.** The finding is then that a 4B model on this CPU does not reliably write the recursive walk for the yes-or-no phrasing within three attempts, and the remedy is a thicker view (an undirected contact-links view in the analyst schema, so that the SQL is a short walk over it; a migration, which needs the owner's go) and the speed of writing, not more words in the prompt.
+
 ## Next
 
 Measured arms on a fresh seed (above), then the engine on the typed families beyond call records and internet sessions, the remaining interface pieces of 7.8 (lanes, calendar, the entity drawer), the composition of the sentence under the number lock (M5), and applying migration 017 to the live database on the owner's go, after a backup, so that the engine can be deployed and measured on the live stack.

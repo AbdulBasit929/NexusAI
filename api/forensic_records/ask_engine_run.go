@@ -235,6 +235,11 @@ func askUserPrompt(f askFrame) string {
 	if f.Hops > 0 {
 		hints = append(hints, fmt.Sprintf("Recursion: depth < %d.", f.Hops))
 	}
+	if (f.Hops > 0 || f.Cues["path"]) && len(f.Numbers) >= 2 {
+		// Measured on seeds 101 and 103: asked "is there a link between A and B within N hops", the first draft was an existence test with no outer LIMIT, which used up the
+		// repairs (two answers took 190 s, two were declined) or answered with a bare yes or no. The answer to a connection question is the connection, as the example's.
+		hints = append(hints, "Connection: return the edges of the routes between the two numbers as src and dst, one row per edge, as in the verified example (never a yes or no), and end with LIMIT 200.")
+	}
 	if f.Cues["incoming"] {
 		hints = append(hints, "Incoming events only.")
 	}

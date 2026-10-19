@@ -188,6 +188,20 @@ var _ = Describe("Ask engine obligations", func() {
 })
 
 var _ = Describe("Ask engine connection result (decision D22)", func() {
+	It("tells the model, in the question turn only, that a connection is answered with its edges", func() {
+		for _, q := range []string{
+			"Is there a link between 923000000101 and 923000000102 within three hops, leaving out services and numbers everyone contacts?",
+			"How are 923000000101 and 923000000102 connected?",
+		} {
+			prompt := askUserPrompt(askExtractFrame(q))
+			Expect(prompt).To(ContainSubstring("Connection: return the edges"), q)
+			Expect(prompt).To(ContainSubstring("end with LIMIT 200"), q)
+		}
+		for _, q := range []string{"Who does 923000000101 call most? Give the top three.", "How many events are there between 923000000101 and 923000000102?"} {
+			Expect(askUserPrompt(askExtractFrame(q))).NotTo(ContainSubstring("Connection:"), q)
+		}
+	})
+
 	It("requires the edges of the connection, not a yes or no, so that the answer can name the numbers between", func() {
 		cat, err := askGoldenCatalogue()
 		Expect(err).NotTo(HaveOccurred())
