@@ -309,6 +309,9 @@ var _ = Describe("Ask engine executor on a case database", Ordered, func() {
 		if cover.AnySession {
 			Expect(cover.AnyVolume).To(BeTrue(), "the planted case's internet records state their volumes")
 		}
+		Expect(cover.Unpopulated).NotTo(BeNil(), "the population probes ran")
+		Expect(cover.Unpopulated).NotTo(HaveKey("v_comm_events.imsi"), "the planted case's call records state their SIM")
+		Expect(cover.Repeats).To(BeNumerically(">=", 0))
 
 		// an older case: a call-record file, no typed row
 		tx, err := pool.Begin(ctx)

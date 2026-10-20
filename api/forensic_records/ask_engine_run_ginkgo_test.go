@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -371,6 +372,55 @@ var _ = Describe("Ask engine run", func() {
 
 	const q = "How many incoming SMS did 923000000101 receive?"
 	const good = "SELECT count(*) AS n FROM v_comm_events WHERE src = '923000000101' AND event_type = 'sms' AND direction = 'incoming'"
+
+	It("declines a query that reads a column no row of the case fills, and an answer says how many exact repeats were left out", func() {
+		withCoverage := func(c askCoverage) {
+			askCoverageCache.entries = nil
+			askCoverageRead = func(context.Context, *pgxpool.Pool, string, string) (askCoverage, error) { return c, nil }
+		}
+		filled := askCoverage{Files: 3, Typed: 3, AnyComm: true, AnySession: true, AnyUsage: true, AnyVolume: true, Repeats: 2702}
+		// the duration column of the call records is empty in this case (an export that gives no duration): a question about the longest call is declined, with the reason, before it runs
+		empty := filled
+		empty.Unpopulated = map[string]bool{"v_comm_events.duration_s": true}
+		withCoverage(empty)
+		script(reply("SELECT max(duration_s) AS n FROM v_comm_events WHERE src = '923000000101'"))
+		_, audit := run("What is the longest call duration of 923000000101?")
+		Expect(audit.State).To(Equal("declined"))
+		Expect(audit.Reason).To(ContainSubstring("cannot speak for this case"))
+		Expect(audit.Reason).To(ContainSubstring("v_comm_events.duration_s"))
+		Expect(execs).To(BeEmpty(), "nothing ran")
+
+		// a question that does not touch it is answered, and the answer says how many repeats the views leave out
+		prompts, execs = nil, nil
+		script(reply("SELECT count(*) AS n FROM v_comm_events WHERE src = '923000000101'"))
+		resp, audit := run("How many events does 923000000101 have?")
+		Expect(audit.State).To(Equal("answered"), audit.Reason)
+		Expect(audit.RepeatsLeftOut).To(Equal(int64(2702)))
+		Expect(fmt.Sprint(resp.Enterprise["limitations"])).To(ContainSubstring("2,702 rows of this case's call and internet records are exact repeats"))
+
+		// a case with no repeats says nothing about them
+		withCoverage(askCoverage{Files: 3, Typed: 3, AnyComm: true, AnySession: true, AnyUsage: true, AnyVolume: true})
+		prompts, execs = nil, nil
+		script(reply("SELECT count(*) AS n FROM v_comm_events WHERE src = '923000000101'"))
+		resp, audit = run("How many events does 923000000101 have?")
+		Expect(audit.State).To(Equal("answered"), audit.Reason)
+		Expect(fmt.Sprint(resp.Enterprise["limitations"])).NotTo(ContainSubstring("exact repeats"))
+	})
+
+	It("names an unfilled column only when every view the query reads is empty for it", func() {
+		v := func(views []string, columns ...string) *askValidated { return &askValidated{Views: views, Columns: columns} }
+		none := askCoverage{}
+		Expect(askPopulationGap(none, v([]string{"v_data_sessions"}, "bytes_up"))).To(BeEmpty(), "nil means every column is filled")
+		bytesEmpty := askCoverage{Unpopulated: map[string]bool{"v_data_sessions.bytes_up": true, "v_data_sessions.bytes_down": true}}
+		Expect(askPopulationGap(bytesEmpty, v([]string{"v_data_sessions"}, "bytes_up", "src"))).To(ContainSubstring("v_data_sessions.bytes_up"))
+		Expect(askPopulationGap(bytesEmpty, v([]string{"v_data_sessions"}, "server_ip", "src"))).To(BeEmpty(), "a filled column")
+		Expect(askPopulationGap(bytesEmpty, v([]string{"v_data_sessions"}, "src"))).To(BeEmpty(), "an untracked column is never named")
+		imeiBoth := askCoverage{Unpopulated: map[string]bool{"v_comm_events.imei": true}}
+		Expect(askPopulationGap(imeiBoth, v([]string{"v_comm_events", "v_data_sessions"}, "imei"))).To(BeEmpty(), "another view that the query reads fills a column of that name")
+		allEmpty := askCoverage{Unpopulated: map[string]bool{"v_comm_events.imei": true, "v_data_sessions.imei": true}}
+		Expect(askPopulationGap(allEmpty, v([]string{"v_comm_events", "v_data_sessions"}, "imei"))).To(ContainSubstring(".imei"))
+		Expect(askPopulationGap(bytesEmpty, nil)).To(BeEmpty())
+	})
 
 	It("answers when the first draft passes every check, and builds the answer by code", func() {
 		script(reply(good))

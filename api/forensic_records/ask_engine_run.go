@@ -82,6 +82,8 @@ type AskAuditV2 struct {
 	ModelMS     int64    `json:"model_ms"`
 	ExecMS      int64    `json:"exec_ms"`
 	TotalMS     int64    `json:"total_ms"`
+	// RepeatsLeftOut is how many exact repeated rows of the case's call and internet records the views leave out; an answer over them says so.
+	RepeatsLeftOut int64 `json:"repeats_left_out,omitempty"`
 }
 
 func (a *AskAuditV2) repaired(kinds ...string) {
@@ -383,6 +385,10 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 			continue
 		}
 		audit.SQL, audit.Hops = validated.SQL, validated.MaxHops
+		audit.RepeatsLeftOut = coverage.Repeats
+		if gap := askPopulationGap(coverage, validated); gap != "" {
+			return decline("the analyst views cannot speak for this case: " + gap)
+		}
 
 		if unmet := askCheckFrame(frame, validated); len(unmet) > 0 {
 			problems := make([]string, 0, len(unmet))

@@ -199,6 +199,17 @@ func askPathHeadline(r *govSQLResult, f askFrame, maxHops int) string {
 func askRowMaps(r *govSQLResult) []map[string]any { return govSQLRowMaps(r) }
 
 // askAnswerResponse is the response of an answered question.
+// askReadsRecords is whether the query reads a view over the typed call or internet records (the views that leave exact repeats out).
+func askReadsRecords(v *askValidated) bool {
+	for _, view := range v.Views {
+		switch view {
+		case "v_comm_events", "v_contact_pairs", "v_cell_visits", "v_device_pairings", "v_data_sessions":
+			return true
+		}
+	}
+	return false
+}
+
 func askAnswerResponse(req hybridQueryRequest, cat *askCatalogue, v *askValidated, r *govSQLResult, f askFrame, absence string, audit AskAuditV2) *hybridQueryResponse {
 	shape := askShape(r.Columns, len(r.Rows))
 	headline := askHeadline(r, shape, absence)
@@ -218,6 +229,9 @@ func askAnswerResponse(req hybridQueryRequest, cat *askCatalogue, v *askValidate
 	}
 	if r.Truncated {
 		limitations = append(limitations, fmt.Sprintf("Only the first %s rows are shown; the query matched more.", govSQLGroup(fmt.Sprint(len(r.Rows)))))
+	}
+	if audit.RepeatsLeftOut > 0 && askReadsRecords(v) {
+		limitations = append(limitations, fmt.Sprintf("%s rows of this case's call and internet records are exact repeats of another row and are left out of these counts.", govSQLGroup(fmt.Sprint(audit.RepeatsLeftOut))))
 	}
 	if shape == "graph" {
 		limitations = append(limitations, "A link is a record of contact between two numbers; it is not a finding about the people. Services and numbers that everyone contacts are left out where the query says so.")
