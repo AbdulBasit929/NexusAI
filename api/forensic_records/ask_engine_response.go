@@ -90,7 +90,16 @@ func askHeadline(r *govSQLResult, shape, absence string) string {
 		}
 		return fmt.Sprintf("%s between %s%s.", askCount(n, "link", "links"), askCount(len(nodes), "number", "numbers"), more)
 	case "map":
-		return fmt.Sprintf("%s%s.", askCount(n, "position", "positions"), more)
+		// Rows of (cell, hour) visits are positions on the map, but the question was about cell sites: say how many sites the positions are at.
+		head := askCount(n, "position", "positions")
+		if c := askColumnIndex(r, "cell_key"); c >= 0 {
+			sites := map[string]bool{}
+			for _, row := range r.Rows {
+				sites[fmt.Sprint(row[c])] = true
+			}
+			head += " at " + askCount(len(sites), "cell site", "cell sites")
+		}
+		return head + more + "."
 	case "series":
 		return fmt.Sprintf("%s%s.", askCount(n, "point", "points"), more)
 	case "lanes":

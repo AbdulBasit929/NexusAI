@@ -876,4 +876,14 @@ var _ = Describe("Ask engine headline", func() {
 		Expect(askHeadline(points, "series", "")).To(Equal("1 point."))
 		Expect(askHeadline(points, "map", "")).To(Equal("1 position."))
 	})
+
+	It("says how many cell sites the positions of a map answer are at, when the rows carry a cell key", func() {
+		visits := &govSQLResult{Columns: []string{"cell_key", "hour_utc", "lat", "lon"}, Texts: []bool{true, true, false, false}, Rows: [][]any{
+			{"cell-a", "2026-02-03 09:00", 0.44, -30.59}, {"cell-a", "2026-02-08 09:00", 0.44, -30.59}, {"cell-b", "2026-02-08 18:00", 0.43, -30.57}}}
+		Expect(askHeadline(visits, "map", "")).To(Equal("3 positions at 2 cell sites."))
+		visits.Rows = visits.Rows[:1]
+		Expect(askHeadline(visits, "map", "")).To(Equal("1 position at 1 cell site."))
+		visits.Truncated = true
+		Expect(askHeadline(visits, "map", "")).To(Equal("1 position at 1 cell site (the first 1; there are more)."))
+	})
 })
