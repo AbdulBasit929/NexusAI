@@ -332,6 +332,10 @@ The hint did what the seed-103 finding asked: the "is there a link" phrasing now
 4. **Latency is reported, not gated:** p50 and p90 by analysis (the connection and chaining classes are expected to be the slowest), repairs per question, and the declines by reason.
 5. **The red team of the question text** (`redteam_questions.json`, 18 questions) is run once more on one of the three cases: zero escapes.
 
+### The judgement run was interrupted by the machine sleeping (2026-10-19 to 2026-10-20): the rule for it, written before the results were read
+
+The laptop went to sleep in the middle of case 104 and the run resumed in the morning. One question was in flight: **Q039 of case 104 was declined with `model: TIMEOUT_OR_UNAVAILABLE` after 14,280 s (3 h 58 min)**; every other question of cases 102 and 104 has a normal time (the slowest of the others 112 s). The rule, decided from the cause (the sleep) and before any answer of the run was scored: **a question whose model call failed because the machine slept is an infrastructure failure, not an engine result. It is run once more, alone, on the same case with the same code after the run has finished, both records are kept and shown, and the second replaces the first in the count.** Nothing else is run again. The machine is now held awake for the rest of the run (the session's keep-awake request).
+
 ## Next
 
 Measured arms on a fresh seed (above), then the engine on the typed families beyond call records and internet sessions, the remaining interface pieces of 7.8 (lanes, calendar, the entity drawer), the composition of the sentence under the number lock (M5), and applying migration 017 to the live database on the owner's go, after a backup, so that the engine can be deployed and measured on the live stack.
