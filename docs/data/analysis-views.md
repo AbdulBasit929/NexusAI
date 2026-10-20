@@ -19,7 +19,7 @@ Caps: 40 counterparties per subscriber by default (`per_subject`, at most 200), 
 
 Specs (`ask_engine_exec_db_ginkgo_test.go`, run by `tools/case_generator/check_ask_engine.py`, 17 live specs): planted-truth counts for connections, +05:00 times, another tenant's case unavailable, 400 and 405, places sums equal to the events, positions, coverage and pairs.
 
-## The engine-health read (`api/forensic_records/analysis_engine_health.go`; written 2026-10-20, **not deployed**; roadmap 7.8.3 row 9)
+## The engine-health read (`api/forensic_records/analysis_engine_health.go`; written and deployed 2026-10-20; roadmap 7.8.3 row 9)
 
 `GET /analysis/engine-health?collection_id=...&days=7` says how the Ask engine has done on a case in the last days (1 to 90): `totals` (questions, answered, abstained, declined), `latency_ms` (median, 90th percentile and longest of the answered ones), `repairs` (extra attempts of the answered ones), `declines` (up to 8 reasons with counts) and `agreement` (on or off). Contract `forensics.engine-health/v1`.
 
@@ -56,7 +56,7 @@ How an answer's view is chosen is `src/lib/resultShapes.js` (the columns that ar
 ## Findings that need a decision or a deployment
 
 1. **"How are A and B connected?" means a directed walk in the engine, and two subscribers who share a contact are not connected by that definition.** The example `connection-path` in `ask_engine_examples.json` walks `v_contact_pairs` from `src` to `dst`; contacts are never a `src` unless they are subscribers, so a walk from subscriber A reaches a shared contact C and stops. In the synthetic case 923000001003 and 923000001002 **both contact** 923000001036 (the Connections page draws it as a shared contact), and the engine answered "No row matches what you asked." The planted-truth oracle (`tools/ask_eval/build_questions.py`, question type `path`) uses the same directed definition, so the evaluation counted such answers correct. The answer is honest under that definition and may not be what an analyst means. **Measured on the generated cases (six seeds): of the 15 pairs of subscribers the directed walk finds 2, and 11 or 12 are connected through a shared contact or a direct contact.** **Decided 2026-10-19 (owner): the shared-contact meaning, with the shared number named in the answer; carried out and measured on three fresh seeds (`docs/data/ask-engine-v2.md`, last one clean: 7 of 7 connection questions, 45 of 45 in all).** The question put to the owner was: keep the directed meaning and say so in the answer, or define "connected" as a walk over contacts in either direction (A, then C, then B) and change the example, the oracle and the answer text together (it changes the prompt, so a fresh seed and the regression gate must be run again).
-2. **The answer line said "1 links"** (and "1 results", "1 points"): fixed in `ask_engine_response.go` (`askCount`, one spec); not deployed, the live API still says it. The page's own caption is fixed.
+2. **The answer line said "1 links"** (and "1 results", "1 points"): fixed in `ask_engine_response.go` (`askCount`, one spec); deployed 2026-10-19. The page's own caption is fixed.
 3. **That question took 125 s** (model 121 s, execution 0.4 s) on a machine that was running other work: the latency work of Phase 1 is needed before these views feel live.
 
 ## Not done
