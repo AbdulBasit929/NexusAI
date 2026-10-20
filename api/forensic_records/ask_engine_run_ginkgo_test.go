@@ -149,6 +149,7 @@ var _ = Describe("Ask engine obligations", func() {
 		{"a dropped month", "How many calls did 923000000101 have in March 2026?", "SELECT count(*) AS n FROM v_comm_events WHERE src = '923000000101'", "MONTH"},
 		{"another month", "How many calls did 923000000101 have in March 2026?", "SELECT count(*) AS n FROM v_comm_events WHERE src = '923000000101' AND start_utc >= '2026-04-01' AND start_utc < '2026-05-01'", "MONTH"},
 		{"a wrong limit", "Give the top five contacts of 923000000101", "SELECT dst AS label, events AS value FROM v_contact_pairs WHERE src = '923000000101' ORDER BY events DESC LIMIT 10", "LIMIT"},
+		{"a person's name compared with a number column", "How many call records did Hamza Ghauri have?", "SELECT count(*) AS n FROM v_comm_events WHERE src = 'Hamza Ghauri'", "NAME"},
 		{"a direction filter nobody asked for", "What is the latest call start time in the calls?", "SELECT max(start_utc) AS t FROM v_comm_events WHERE direction = 'outgoing'", "DIRECTION"},
 		{"no ordering for a ranking", "Who does 923000000101 talk to most?", "SELECT dst AS label, events AS value FROM v_contact_pairs WHERE src = '923000000101' LIMIT 5", "ORDER"},
 		{"the wrong direction dropped", "How many incoming calls did 923000000101 get?", "SELECT count(*) AS n FROM v_comm_events WHERE src = '923000000101'", "DIRECTION"},
@@ -165,6 +166,11 @@ var _ = Describe("Ask engine obligations", func() {
 			Expect(check(p.q, p.sql)).To(ContainElement(p.kind))
 		})
 	}
+
+	It("lets a sender id be compared with dst, and leaves a name in a text column alone", func() {
+		Expect(check("How many messages came from JAZZ to 923000000101?", "SELECT count(*) AS n FROM v_comm_events WHERE src = '923000000101' AND dst = 'JAZZ'")).NotTo(ContainElement("NAME"))
+		Expect(check("Which numbers visited Lahore Cantt?", "SELECT DISTINCT src FROM v_cell_visits WHERE site_name = 'Lahore Cantt' LIMIT 20")).NotTo(ContainElement("NAME"))
+	})
 
 	It("lets a query group by direction, filter on it when the question names a direction, or when it asks about direction", func() {
 		Expect(check("What is the latest call start time in the calls?", "SELECT max(start_utc) AS t FROM v_comm_events")).To(BeEmpty())

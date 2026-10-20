@@ -272,6 +272,9 @@ func askConstants(v *askValidated) (texts []string, numbers map[int]bool) {
 	return texts, numbers
 }
 
+// askNameAsNumber finds src or dst compared with a constant of two or more capitalised words, which is a person's name (a single token such as a sender id is not matched).
+var askNameAsNumber = regexp.MustCompile(`(?i:\b(?:src|dst)\s*=\s*)'[A-Z][a-z]+(?: [A-Z][a-z]+)+'`)
+
 // askDirectionFilter finds a condition on the direction column (a comparison, a list or a pattern); grouping or selecting it is not a filter.
 var askDirectionFilter = regexp.MustCompile(`\bdirection\s*(?:=|<>|!=|in\s*\(|like\b)`)
 
@@ -400,6 +403,11 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	}
 	if f.Cues["outgoing"] && !askSQLMentions(sql, "'outgoing'") && !askUsesColumn(v, "outgoing") {
 		add("DIRECTION", "The question is about outgoing events: filter direction = 'outgoing' (or use the outgoing column).", "the question is about outgoing events and the query does not say so")
+	}
+	// A person's name compared with a number column. src and dst hold phone numbers and no view maps a name to one, so the query counts nothing and the answer would be a confident 0
+	// about a person the case may well hold (found 2026-10-20 on forensic-demo: "How many call records did Hamza Ghauri have?" answered 0).
+	if askNameAsNumber.MatchString(v.SQL) {
+		add("NAME", "src and dst hold phone numbers; a person's name is not one, and no view maps names to numbers. If the question names a person and no number, set answerable to false instead of comparing a number column with a name.", "the query compares a number column with a person's name")
 	}
 	// A filter on direction that the question never asked for narrows the answer without saying so (found 2026-10-20: "the latest call start time in the calls" was answered from
 	// outgoing voice calls only, and the answer was a day early).
