@@ -148,7 +148,7 @@ class ReadingTests(Workdir):
         self.assertTrue(sheet["reconciles"] and out["reconciles"])
         self.assertEqual((out["status"], out["rows_loaded"], out["rows_inserted"], len(sink.rows)), ("loaded", 3, 3, 3))
         self.assertEqual((sheet["layout_id"], sheet["layout_version"], sheet["layout_status"], sheet["table"], sheet["header_row"]),
-                         ("call-c4-telenor-style", 1, "draft", "comm_event", 0))
+                         ("call-c4-telenor-style", 2, "draft", "comm_event", 0))
         self.assertEqual((sheet["first_start_local"], sheet["last_start_local"]), ("2026-03-01 10:00:00", "2026-03-02 11:00:00"))
 
     def test_a_repeated_row_is_kept_and_flagged_not_dropped(self):
@@ -164,7 +164,7 @@ class ReadingTests(Workdir):
         _, sink = self.ingest(GOOD)
         first = sink.rows[0]
         self.assertEqual([first[k] for k in ("tenant_id", "collection_id", "evidence_id", "file_id", "batch_id")], ["tenant-1", "case-1", EVIDENCE, "calls.csv", BATCH])
-        self.assertEqual((first["layout_id"], first["layout_version"], first["source_row"]), ("call-c4-telenor-style", 1, 1))
+        self.assertEqual((first["layout_id"], first["layout_version"], first["source_row"]), ("call-c4-telenor-style", 2, 1))
         self.assertEqual((len(first["content_hash"]), len(first["row_hash"])), (64, 64))
         self.assertEqual((first["source_tz"], first["time_basis"], first["start_utc"]), ("Asia/Karachi", "declared", "2026-03-01T05:00:00+00:00"))
         self.assertEqual(first["raw_payload"]["CALL_DIALED_NUM"], "923000000002")

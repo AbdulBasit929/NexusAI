@@ -53,11 +53,19 @@ class Registry:
             raise KeyError("no layout %s%s" % (layout_id, "" if version is None else " v%d" % version))
         return max(candidates, key=lambda e: e["layout_version"])
 
+    def current_entries(self) -> list[dict[str, Any]]:
+        """The latest version of each layout. Matching reads these only: a superseded version stays for history and for the rows already typed under it, and would
+        otherwise tie with its successor on every header (and make every match ambiguous)."""
+        latest: dict[str, int] = {}
+        for e in self.entries:
+            latest[e["layout_id"]] = max(latest.get(e["layout_id"], 0), e["layout_version"])
+        return [e for e in self.entries if e["layout_version"] == latest[e["layout_id"]]]
+
     def match(self, header_cells: Iterable[Any], *, include_draft: bool = True) -> MatchReport:
-        return match_header(self.entries, header_cells, include_draft=include_draft)
+        return match_header(self.current_entries(), header_cells, include_draft=include_draft)
 
     def find_header(self, rows: list, *, include_draft: bool = True, max_rows: int = 12) -> MatchReport:
-        return find_header_row(self.entries, rows, include_draft=include_draft, max_rows=max_rows)
+        return find_header_row(self.current_entries(), rows, include_draft=include_draft, max_rows=max_rows)
 
     def register_sql(self, registered_by: str = "layout-registry") -> str:
         """SQL that records every entry in forensic.layout_versions and refuses a changed definition under an old version."""

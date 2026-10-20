@@ -1,0 +1,179 @@
+{
+  "schema": "nexusai.layout/v1",
+  "layout_id": "call-demo-8",
+  "layout_version": 1,
+  "status": "draft",
+  "family": "communications",
+  "dataset_kind": "target_cdr",
+  "label": "Call records, 8 columns (the two small synthetic demonstration files of the forensic-demo collection: a tab-separated one and a comma-separated one with the two type columns swapped)",
+  "operator_label": null,
+  "container": {
+    "kinds": [
+      "csv",
+      "tsv"
+    ],
+    "encoding": "utf-8",
+    "delimiter": ",",
+    "sheet": "first",
+    "header_row": {
+      "mode": "fixed",
+      "index": 0
+    }
+  },
+  "header": {
+    "columns": [
+      {
+        "name": "MSISDN"
+      },
+      {
+        "name": "CALL_DIALED_NUM"
+      },
+      {
+        "name": "CALL_START_DT_TM"
+      },
+      {
+        "name": "CALL_END_DT_TM"
+      },
+      {
+        "name": "CALL_TYPE"
+      },
+      {
+        "name": "INBOUND_OUTBOUND_IND"
+      },
+      {
+        "name": "Cell_SITE_ID"
+      },
+      {
+        "name": "location"
+      }
+    ],
+    "required": [
+      "MSISDN",
+      "CALL_DIALED_NUM",
+      "CALL_START_DT_TM",
+      "CALL_END_DT_TM",
+      "CALL_TYPE",
+      "INBOUND_OUTBOUND_IND",
+      "Cell_SITE_ID"
+    ],
+    "min_score": 0.9
+  },
+  "fields": {
+    "a": "MSISDN",
+    "b": "CALL_DIALED_NUM",
+    "location_text": "location"
+  },
+  "time": {
+    "columns": {
+      "start": "CALL_START_DT_TM",
+      "end": "CALL_END_DT_TM"
+    },
+    "formats": [
+      "iso_naive"
+    ],
+    "date_order": "YMD",
+    "source_tz": null,
+    "tz_basis": "unknown"
+  },
+  "duration": {
+    "mode": "from_times"
+  },
+  "enums": [
+    {
+      "column": "INBOUND_OUTBOUND_IND",
+      "confirmed": true,
+      "map": {
+        "INCOMING": {
+          "direction": "incoming"
+        },
+        "OUTGOING": {
+          "direction": "outgoing"
+        }
+      }
+    },
+    {
+      "column": "INBOUND_OUTBOUND_IND",
+      "confirmed": false,
+      "map": {
+        "INBOUND": {
+          "direction": "incoming"
+        },
+        "OUTBOUND": {
+          "direction": "outgoing"
+        },
+        "DATA": {
+          "direction": "none"
+        }
+      }
+    },
+    {
+      "column": "CALL_TYPE",
+      "confirmed": true,
+      "map": {
+        "CALL": {
+          "event_type": "voice"
+        },
+        "VOICE": {
+          "event_type": "voice"
+        },
+        "SMS": {
+          "event_type": "sms"
+        },
+        "GPRS": {
+          "event_type": "data"
+        }
+      }
+    }
+  ],
+  "cell": {
+    "ci": "Cell_SITE_ID",
+    "plmn": null
+  },
+  "null_tokens": {},
+  "quirks": [
+    "The same column names as the 16-column Telenor-style layout, in 8 columns, so it is told apart by the column count: that layout needs the columns this one lacks",
+    "The two files order the two type columns differently; the header is matched by name",
+    "The cell identity is a site name such as PK-LHR-SYN-001, not digits; it is kept as stated and the cell key is partial",
+    "A data row (GPRS) carries the text INTERNET where a number is dialled"
+  ],
+  "confirmation": {
+    "headers": "read_from_the_forensic_demo_collection_files_2026-10-20",
+    "semantics_confirmed": false,
+    "unconfirmed": [
+      {
+        "id": "source-time-zone",
+        "what": "No file states a time zone. The zone is a job decision, never a property of the layout.",
+        "affects": [
+          "time"
+        ]
+      },
+      {
+        "id": "inbound-outbound-words",
+        "what": "INBOUND, OUTBOUND and DATA in the direction column are read as incoming, outgoing and none; they are in the project's own test files only.",
+        "affects": [
+          "enums.INBOUND_OUTBOUND_IND"
+        ]
+      },
+      {
+        "id": "operator",
+        "what": "The files are the project's own synthetic test data and name no operator.",
+        "affects": [
+          "operator_label"
+        ]
+      }
+    ],
+    "settled": []
+  },
+  "golden": {
+    "rows": 48,
+    "hints": {
+      "subject_form": "e164_12",
+      "party_b_forms": [
+        "e164_12",
+        "short_code"
+      ],
+      "cell_style": "digits8"
+    },
+    "columns": {}
+  }
+}

@@ -1,0 +1,257 @@
+{
+  "schema": "nexusai.layout/v1",
+  "layout_id": "call-c4-telenor-style",
+  "layout_version": 2,
+  "status": "draft",
+  "family": "communications",
+  "dataset_kind": "target_cdr",
+  "label": "Call records, 18 columns (Telenor-style; the repository's reference format)",
+  "operator_label": null,
+  "container": {
+    "kinds": [
+      "xlsx"
+    ],
+    "sheet": "first",
+    "header_row": {
+      "mode": "scan",
+      "max_rows": 6
+    }
+  },
+  "header": {
+    "columns": [
+      {
+        "name": "MSISDN"
+      },
+      {
+        "name": "call_org_num"
+      },
+      {
+        "name": "CALL_DIALED_NUM"
+      },
+      {
+        "name": "IMSI"
+      },
+      {
+        "name": "IMEI"
+      },
+      {
+        "name": "CALL_START_DT_TM"
+      },
+      {
+        "name": "CALL_END_DT_TM"
+      },
+      {
+        "name": "INBOUND_OUTBOUND_IND"
+      },
+      {
+        "name": "Call_Network_Volume"
+      },
+      {
+        "name": "Lac_Id"
+      },
+      {
+        "name": "Site_Id"
+      },
+      {
+        "name": "Cell_SITE_ID"
+      },
+      {
+        "name": "lat"
+      },
+      {
+        "name": "longitude"
+      },
+      {
+        "name": "CALL_TYPE"
+      },
+      {
+        "name": "location"
+      },
+      {
+        "name": "Description"
+      },
+      {
+        "name": "MACAddress"
+      }
+    ],
+    "required": [
+      "MSISDN",
+      "call_org_num",
+      "CALL_DIALED_NUM",
+      "IMSI",
+      "IMEI",
+      "CALL_START_DT_TM",
+      "CALL_END_DT_TM",
+      "INBOUND_OUTBOUND_IND",
+      "CALL_TYPE"
+    ],
+    "min_score": 0.9
+  },
+  "fields": {
+    "a": "MSISDN",
+    "b": {
+      "by_direction": {
+        "incoming": "call_org_num",
+        "outgoing": "CALL_DIALED_NUM"
+      }
+    },
+    "imsi": "IMSI",
+    "imei": "IMEI",
+    "location_text": "location",
+    "lat": "lat",
+    "lon": "longitude"
+  },
+  "time": {
+    "columns": {
+      "start": "CALL_START_DT_TM",
+      "end": "CALL_END_DT_TM"
+    },
+    "formats": [
+      "excel_serial_1900",
+      "iso_naive"
+    ],
+    "date_order": null,
+    "source_tz": null,
+    "tz_basis": "unknown"
+  },
+  "duration": {
+    "mode": "from_times"
+  },
+  "enums": [
+    {
+      "column": "INBOUND_OUTBOUND_IND",
+      "confirmed": true,
+      "map": {
+        "INCOMING": {
+          "direction": "incoming"
+        },
+        "OUTGOING": {
+          "direction": "outgoing"
+        }
+      }
+    },
+    {
+      "column": "CALL_TYPE",
+      "confirmed": true,
+      "map": {
+        "CALL": {
+          "event_type": "voice"
+        },
+        "SMS": {
+          "event_type": "sms"
+        },
+        "GPRS": {
+          "event_type": "data"
+        }
+      }
+    },
+    {
+      "column": "CALL_TYPE",
+      "confirmed": false,
+      "map": {
+        "VOLTE": {
+          "event_type": "voice"
+        }
+      }
+    }
+  ],
+  "cell": {
+    "lac_tac": "Lac_Id",
+    "ci": "Cell_SITE_ID",
+    "plmn": null
+  },
+  "noise_columns": [
+    "Description",
+    "MACAddress"
+  ],
+  "quirks": [
+    "The counterparty is call_org_num on incoming rows and CALL_DIALED_NUM on outgoing rows",
+    "call_org_num also holds short codes and labels",
+    "IMEI has 14 digits (no check digit)",
+    "Call_Network_Volume has no stated unit and is kept in the raw payload only"
+  ],
+  "confirmation": {
+    "headers": "confirmed_against_real_sample_structure_2026-10-12",
+    "semantics_confirmed": false,
+    "unconfirmed": [
+      {
+        "id": "source-time-zone",
+        "what": "No file states a time zone. The zone is a job decision (time_basis assumed_by_profile or confirmed_by_analyst), never a property of the layout.",
+        "affects": [
+          "time"
+        ]
+      },
+      {
+        "id": "operator",
+        "what": "The operator that produced the layout is not stated in the files; confirm against the export documentation before using a label.",
+        "affects": [
+          "operator_label"
+        ]
+      },
+      {
+        "id": "noise-columns",
+        "what": "Description and MACAddress carry network-adapter text on a few rows (not call data); they are kept in the raw payload and flagged, never mapped.",
+        "affects": [
+          "noise_columns"
+        ]
+      },
+      {
+        "id": "network-volume",
+        "what": "Call_Network_Volume has no stated unit.",
+        "affects": [
+          "fields.volume_bytes"
+        ]
+      },
+      {
+        "id": "cell-structure",
+        "what": "Cell_SITE_ID (8 digits) is read as the cell identity and Lac_Id (3 digits) as the area code; the PLMN is not in the file.",
+        "affects": [
+          "cell"
+        ]
+      },
+      {
+        "id": "volte-label",
+        "what": "VOLTE is read as voice over LTE, a voice call, so it is mapped to voice and flagged enum_unconfirmed. The label is in the repository's own seed files and in no real sample. Version 1 left it, and GPRS, as event type other; GPRS to data is the reading the confirmed Telenor-style geofence layout already makes.",
+        "affects": [
+          "enums.CALL_TYPE"
+        ]
+      }
+    ],
+    "settled": [
+      {
+        "id": "header-list",
+        "how": "tools/real_data/confirm_layout.py passed against a shareable structure report of a real sample file (header names and order, time formats, vocabulary labels)",
+        "on": "2026-10-12"
+      },
+      {
+        "id": "event-type-vocabulary-v2",
+        "how": "decided by the owner on 2026-10-20 (\"yes map VOLTE to voice\"); GPRS to data follows the confirmed geofence-c6-telenor mapping",
+        "on": "2026-10-20"
+      }
+    ]
+  },
+  "golden": {
+    "rows": 48,
+    "hints": {
+      "subject_form": "e164_12",
+      "party_b_forms": [
+        "e164_12",
+        "short_code",
+        "sender_id",
+        "service_label"
+      ],
+      "imei_digits": 14,
+      "serial_decimals": 12,
+      "cell_style": "digits8",
+      "lac_digits": 3,
+      "coordinate_decimals": 5
+    },
+    "columns": {
+      "Call_Network_Volume": "int:0-999",
+      "Site_Id": "int:10000-99999",
+      "Description": "noise_text",
+      "MACAddress": "noise_mac"
+    },
+    "blank_columns": 10
+  }
+}

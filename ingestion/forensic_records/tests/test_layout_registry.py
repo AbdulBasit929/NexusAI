@@ -38,7 +38,7 @@ TOOLS = REPO / "tools" / "real_data"
 EXPECTED_IDS = {
     "appusage-a1", "call-c1-company", "call-c2-strt-tm", "call-c3-ufone-style", "call-c4-telenor-style", "geofence-c5-mobilink",
     "geofence-c6-telenor", "geofence-c7-ufone", "geofence-c8-zong", "ipdr-i1-jazz-ufdr", "ipdr-i2-telenor-export", "ipdr-i3-ufone-xls",
-    "ipdr-i4-zong-txt", "ipdr-seed-s8",
+    "ipdr-i4-zong-txt", "ipdr-seed-s8", "call-demo-8",
 }
 KARACHI = Policy(source_tz="Asia/Karachi", tz_basis="assumed_by_profile")
 
@@ -105,10 +105,10 @@ class EntryTests(unittest.TestCase):
 
     def test_command_line_validates_lists_and_writes_sql(self):
         code, text = self.run_cli("validate")
-        self.assertEqual((code, text.strip()), (0, "LAYOUTS=PASS entries=14"))
+        self.assertEqual((code, text.strip()), (0, "LAYOUTS=PASS entries=16"))
         code, text = self.run_cli("list")
         self.assertEqual(code, 0)
-        self.assertEqual(len(text.strip().splitlines()), 15, "a header line and one line per layout")
+        self.assertEqual(len(text.strip().splitlines()), 17, "a header line and one line per layout version")
         for layout_id in EXPECTED_IDS:
             self.assertIn(layout_id, text)
         code, text = self.run_cli("sql")
@@ -547,6 +547,59 @@ class InterpretTests(unittest.TestCase):
         others = [e["layout_id"] for e in REGISTRY.entries if e["layout_id"] != "ipdr-seed-s8" and set(header) <= {c["name"] for c in e["header"]["columns"]}]
         self.assertEqual(others, [], "no other layout carries these eight columns")
 
+    def test_matching_reads_the_latest_version_of_a_layout_and_the_old_version_stays_for_history(self):
+        header = [c["name"] for c in REGISTRY.get("call-c4-telenor-style", 2)["header"]["columns"]]
+        self.assertEqual([e["layout_version"] for e in REGISTRY.entries if e["layout_id"] == "call-c4-telenor-style"], [1, 2])
+        report = REGISTRY.match(header)
+        self.assertEqual((report.decision, report.best.layout_id, report.best.layout_version), ("match", "call-c4-telenor-style", 2), "two versions of one layout must not tie")
+        self.assertEqual(REGISTRY.get("call-c4-telenor-style", 1)["layout_version"], 1)
+        self.assertEqual(REGISTRY.get("call-c4-telenor-style")["layout_version"], 2)
+        self.assertEqual(len(REGISTRY.current_entries()), len(REGISTRY.entries) - 1)
+
+    def test_version_two_of_the_telenor_style_layout_reads_voip_as_voice_and_gprs_as_data_and_flags_the_unconfirmed_label(self):
+        entry = REGISTRY.get("call-c4-telenor-style", 2)
+        golden = make_golden.generate(entry, seed=1, defects=False)
+        header = list(golden.header)
+        row = list(next(r for r in golden.rows if any(c for c in r)))
+        index = header.index("CALL_TYPE")
+        seen = {}
+        for label in ("CALL", "SMS", "GPRS", "VOLTE", "SOMETHING"):
+            row[index] = label
+            result = next(interpret_rows(entry, header, [row], policy=KARACHI))
+            self.assertEqual(result.status, "accepted", label)
+            seen[label] = (result.record["event_type"], sorted(f for f in result.flags if f.startswith("enum_")))
+        self.assertEqual(seen["CALL"][0], "voice")
+        self.assertEqual(seen["SMS"][0], "sms")
+        self.assertEqual(seen["GPRS"][0], "data")
+        self.assertEqual(seen["VOLTE"], ("voice", ["enum_unconfirmed:event_type"]), "mapped to voice, and said to be unconfirmed")
+        self.assertEqual(seen["SOMETHING"][0], "other", "an unmapped label is still never guessed")
+        v1 = REGISTRY.get("call-c4-telenor-style", 1)
+        volte_row = [("VOLTE" if h == "CALL_TYPE" else v) for h, v in zip(header, row)]
+        old = next(interpret_rows(v1, header, [volte_row], policy=KARACHI))
+        self.assertEqual(old.record["event_type"], "other", "version 1 is unchanged")
+
+    def test_the_demonstration_call_layout_reads_both_small_files_and_is_not_taken_for_the_sixteen_column_layout(self):
+        entry = REGISTRY.get("call-demo-8")
+        tsv_header = ["MSISDN", "CALL_DIALED_NUM", "CALL_START_DT_TM", "CALL_END_DT_TM", "INBOUND_OUTBOUND_IND", "CALL_TYPE", "Cell_SITE_ID", "location"]
+        csv_header = ["MSISDN", "CALL_DIALED_NUM", "CALL_START_DT_TM", "CALL_END_DT_TM", "CALL_TYPE", "INBOUND_OUTBOUND_IND", "Cell_SITE_ID", "location"]
+        for header in (tsv_header, csv_header):
+            self.assertEqual(REGISTRY.match(header).matched_entry_id, "call-demo-8", header)
+        rows = {
+            "OUTGOING": ["923221110001", "923331110002", "2026-07-21 08:00:00", "2026-07-21 08:00:30", "CALL", "OUTGOING", "PK-LHR-SYN-001", "Lahore"],
+            "OUTBOUND": ["923221110001", "923331110002", "2026-07-21 08:00:00", "2026-07-21 08:00:42", "VOICE", "OUTBOUND", "R5-LIVE-001", "Islamabad"],
+            "INBOUND": ["923221110001", "923331110002", "2026-07-21 08:03:00", "2026-07-21 08:03:18", "VOICE", "INBOUND", "R5-LIVE-002", "Islamabad"],
+            "DATA": ["923221110001", "INTERNET", "2026-07-21 08:01:00", "2026-07-21 08:01:20", "GPRS", "DATA", "PK-LHR-SYN-001", "Lahore"],
+        }
+        want = {"OUTGOING": ("voice", "outgoing"), "OUTBOUND": ("voice", "outgoing"), "INBOUND": ("voice", "incoming"), "DATA": ("data", "none")}
+        for name, row in rows.items():
+            result = next(interpret_rows(entry, csv_header, [row], policy=KARACHI))
+            self.assertEqual(result.status, "accepted", name)
+            self.assertEqual((result.record["event_type"], result.record["direction"]), want[name], name)
+            self.assertEqual(result.record["a_norm"], "923221110001", name)
+            self.assertTrue(result.record["start_local"].startswith("2026-07-21"), name)
+        sixteen = [c["name"] for c in REGISTRY.get("call-c4-telenor-style", 2)["header"]["columns"]]
+        self.assertEqual(REGISTRY.match(sixteen).matched_entry_id, "call-c4-telenor-style")
+
     def test_unconfirmed_direction_codes_are_kept_as_unknown_and_flagged(self):
         entry = REGISTRY.get("geofence-c6-telenor")
         golden = make_golden.generate(entry, seed=1, defects=False)
@@ -760,7 +813,7 @@ class GoldenFileTests(unittest.TestCase):
             with redirect_stdout(buf):
                 self.assertEqual(make_golden.main(["--list"]), 0)
                 self.assertEqual(make_golden.main(["--all", "--out", d, "--rows", "12"]), 0)
-            self.assertEqual(len(list(Path(d).iterdir())), 14)
+            self.assertEqual(len(list(Path(d).iterdir())), 15)
             self.assertEqual(set(buf.getvalue().split()) & EXPECTED_IDS, EXPECTED_IDS)
 
 
