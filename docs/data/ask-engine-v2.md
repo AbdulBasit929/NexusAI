@@ -338,6 +338,35 @@ The laptop went to sleep in the middle of case 104 and the run resumed in the mo
 
 **The same fault had a second symptom, found when the run was scored (2026-10-20), and the same rule is applied to it.** The throwaway database of the harness lost its connection pool when the machine slept, so **the 40 questions after Q039 of case 104 (Q040 to Q079) were declined in 0 seconds with `the analyst views are not available: reading the analyst catalogue: closed pool`**: the model was never called and there is no answer to score. This is the sleep again, and it is told apart from an engine result by its reason and its time, not by any answer. Cases 102 and 106 have none of it (every one of their 163 questions has an answer). The 40 are run once more, alone, on case 104 with the same code; their first records are kept and shown; the second records replace them in the count. If the re-run itself shows a failure of the harness, it is reported as that.
 
+### Result of the M3 judgement run (cases 102, 104 and 106; 2026-10-19 to 2026-10-20): the gate is **not met**, by one wrong answer
+
+245 questions, the engine arm, agreement off, the code of the commit that carries the gates (nothing changed between the gates and the run). Case 104 was disturbed by the machine sleeping, and 41 of its questions (Q039 to Q079) were run a second time under the rule written before the results were read; their first records are kept. Counted as the rule says:
+
+| Analysis | Questions | Correct | Wrong | Declined or abstained | Time p50 / p90 / longest |
+|---|---|---|---|---|---|
+| A1 contact profile (pair events, incoming, top contacts, distinct contacts) | 72 | **72 (100%)** | 0 | 0 | 33 / 57 / 91 s |
+| A2 common contacts | 33 | **33 (100%)** | 0 | 0 | 38 / 44 / 58 s |
+| A3 connections (D22) | 36 | **36 (100%)** | 0 | 0 | 73 / 112 / 235 s |
+| A4 contact chaining | 38 | **38 (100%)** | 0 | 0 | 44 / 76 / 88 s |
+| A8 handsets (changed handset, shared handset), a small sample | 15 | 14 (93.3%) | **1** | 0 | 19 / 39 / 66 s |
+| A13 who held a public address | 36 | **36 (100%)** | 0 | 0 | 27 / 39 / 60 s |
+| Controls (absent numbers, questions the data cannot answer) | 15 | **15 (100%)** | 0 | 0 | 17 / 29 / 34 s |
+| **All** | **245** | **244 (99.6%)** | **1** | 0 | 39 / 74 / 235 s; 19 repairs |
+
+| Gate (written before the run) | Result |
+|---|---|
+| 1. Wrong answers zero, in every analysis and in total | **Not met: 1 wrong (A8, case 104, Q079)** |
+| 2. Correct at least 90% in each analysis | Met in every analysis (A8, the smallest, 93.3%) |
+| 3. Controls: absent numbers say "no record"; what the data cannot answer is refused | Met: 15 of 15 |
+| 4. Latency reported | Reported: the connection class is the slowest (p50 73 s, p90 112 s, longest 235 s); everything else p50 under 45 s |
+| 5. The red team of the question text, once, on one case | Met: **18 of 18, 0 escapes** (14 declined, 4 answered inside the limits; a broad question answered with its first 1,000 rows and said there are more) |
+
+**The one wrong answer, and its cause.** Q079 asked "Which subscribers shared the handset 000000000010116?"; the engine answered **"No record of this case holds 000000000010116 in any number, device, SIM, address or cell column."** The case does hold that handset, for two subscribers (the key says 923000001007 and 923000001011): their export layout (`call-c4-telenor-style`) stores the IMEI as **14 digits**, without the check digit, and the question gives the standard **15-digit** form (the 14 digits and their check digit; the other layout of the same case stores 15). The query compared the 15-digit text, found nothing, and the probe searched for the same 15-digit text in every column and found nothing, so the engine stated an absence that is not true. Another shared-handset question of the same case, whose subscribers' layout stores 15 digits, was right (Q078), and both handset questions of development case 1 were right (both subscribers on a 15-digit layout): the defect needs the two forms to meet. **It is a defect of the engine, not of the oracle:** an analyst who types a 15-digit IMEI must find a handset that an operator exported without its check digit, and "no record" is the one answer that must never be wrong.
+
+**What this run says and does not say.** 244 of 245 correct on three judgement cases, 100% in five of the six analyses, a defect found by a question kind that development case 1 could not show (it needed the two forms in one case). It is not "zero wrong", so the gate is failed as written, and it is not re-read in the engine's favour.
+
+**The fix is made from this finding only and is measured on an unspent judgement case (105), never again on 102, 104 or 106** (see the next section).
+
 ## Next
 
 Measured arms on a fresh seed (above), then the engine on the typed families beyond call records and internet sessions, the remaining interface pieces of 7.8 (lanes, calendar, the entity drawer), the composition of the sentence under the number lock (M5), and applying migration 017 to the live database on the owner's go, after a backup, so that the engine can be deployed and measured on the live stack.
