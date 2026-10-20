@@ -38,7 +38,7 @@ TOOLS = REPO / "tools" / "real_data"
 EXPECTED_IDS = {
     "appusage-a1", "call-c1-company", "call-c2-strt-tm", "call-c3-ufone-style", "call-c4-telenor-style", "geofence-c5-mobilink",
     "geofence-c6-telenor", "geofence-c7-ufone", "geofence-c8-zong", "ipdr-i1-jazz-ufdr", "ipdr-i2-telenor-export", "ipdr-i3-ufone-xls",
-    "ipdr-i4-zong-txt",
+    "ipdr-i4-zong-txt", "ipdr-seed-s8",
 }
 KARACHI = Policy(source_tz="Asia/Karachi", tz_basis="assumed_by_profile")
 
@@ -105,10 +105,10 @@ class EntryTests(unittest.TestCase):
 
     def test_command_line_validates_lists_and_writes_sql(self):
         code, text = self.run_cli("validate")
-        self.assertEqual((code, text.strip()), (0, "LAYOUTS=PASS entries=13"))
+        self.assertEqual((code, text.strip()), (0, "LAYOUTS=PASS entries=14"))
         code, text = self.run_cli("list")
         self.assertEqual(code, 0)
-        self.assertEqual(len(text.strip().splitlines()), 14, "a header line and one line per layout")
+        self.assertEqual(len(text.strip().splitlines()), 15, "a header line and one line per layout")
         for layout_id in EXPECTED_IDS:
             self.assertIn(layout_id, text)
         code, text = self.run_cli("sql")
@@ -528,6 +528,25 @@ class InterpretTests(unittest.TestCase):
         self.assertEqual(result.status, "accepted", result.reason)
         self.assertTrue(result.record["start_local"].startswith("2025-12-09 12:00:00"))
 
+    def test_the_seed_internet_layout_reads_a_row_of_the_repository_export_and_states_nothing_it_does_not_have(self):
+        # The 8-column internet-record export of the repository's synthetic seed data (2026-10-19): one instant ending in Z, one volume column with no direction, no IMSI, no ports.
+        entry = REGISTRY.get("ipdr-seed-s8")
+        header = ["timestamp", "source_ip", "destination_ip", "domain", "protocol", "bytes", "subscriber_id", "session_id"]
+        row = ["2026-02-03T10:15:30Z", "10.20.30.40", "203.0.113.9", "chat.example.test", "TCP", "2048", "923000001000", "7"]
+        result = next(interpret_rows(entry, header, [row], policy=Policy(source_tz="UTC", tz_basis="explicit_offset", date_order="YMD")))
+        self.assertEqual(result.status, "accepted", result.reason)
+        self.assertEqual(result.record["msisdn"], "923000001000")
+        self.assertEqual(result.record["ue_ip"], "10.20.30.40")
+        self.assertEqual(result.record["server_ip"], "203.0.113.9")
+        self.assertEqual(result.record["host"], "chat.example.test")
+        self.assertEqual(result.record["protocol"], "tcp")
+        self.assertEqual(result.record["session_ref"], "7")
+        self.assertTrue(result.record["start_local"].startswith("2026-02-03 10:15:30"), "the instant is stored as stated, in UTC")
+        for unstated in ("imsi", "imei", "ue_port", "public_ip", "server_port", "bytes_up", "bytes_down", "end_local"):
+            self.assertIsNone(result.record.get(unstated), unstated + " is not in this export and is not invented")
+        others = [e["layout_id"] for e in REGISTRY.entries if e["layout_id"] != "ipdr-seed-s8" and set(header) <= {c["name"] for c in e["header"]["columns"]}]
+        self.assertEqual(others, [], "no other layout carries these eight columns")
+
     def test_unconfirmed_direction_codes_are_kept_as_unknown_and_flagged(self):
         entry = REGISTRY.get("geofence-c6-telenor")
         golden = make_golden.generate(entry, seed=1, defects=False)
@@ -741,7 +760,7 @@ class GoldenFileTests(unittest.TestCase):
             with redirect_stdout(buf):
                 self.assertEqual(make_golden.main(["--list"]), 0)
                 self.assertEqual(make_golden.main(["--all", "--out", d, "--rows", "12"]), 0)
-            self.assertEqual(len(list(Path(d).iterdir())), 13)
+            self.assertEqual(len(list(Path(d).iterdir())), 14)
             self.assertEqual(set(buf.getvalue().split()) & EXPECTED_IDS, EXPECTED_IDS)
 
 

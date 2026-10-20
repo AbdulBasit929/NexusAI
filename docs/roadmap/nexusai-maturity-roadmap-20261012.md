@@ -1194,7 +1194,7 @@ Severity: P1 blocks a trustworthy product, P2 degrades it, P3 is polish or proce
 | G37 | The visual spike's link chart, map and timelines are not in the workspace, which has no graph or map library | Section 7.8 | P2 | 1 and 2 | D13, D20 |
 | G38 | The offline map shows nothing in the spike when the tile cache is not running, and says nothing | Section 7.9 | P3 | now | |
 | G39 | Version 1 gives wrong event times to eight workbook layouts, and every question still reads version 1 | `docs/data/ingest-v2.md` | P1 | 1 | the switch needs your go |
-| G40 | The registry recognises 6 of the 34 files of the four older collections (all as one draft tower-dump layout); 28 are not recognised | `docs/data/typed-family-switch.md` | P2 | 1 | D9 |
+| G40 | The registry recognised 6 of the 34 files of the four older collections (all as one draft tower-dump layout); 28 were not recognised. *Update 2026-10-20: with the seed internet-record layout (`ipdr-seed-s8`, in the repository, not yet in the worker or `layout_versions`) 10 of the 16 call-record and internet-record files are recognised, holding 26,450 of 26,466 rows; the 6 left are test fixtures of 2 to 4 rows in three collections (`docs/data/layout-registry.md`, 6a)* | `docs/data/typed-family-switch.md` | P2 | 1 | D9 |
 | G41 | The acceptance collection holds no real-shaped structured data for link analysis, so A1 to A13 cannot be demonstrated in the interface | Section 8.5 | P2 | 1 | D18 |
 | G42 | The workspace lists 2 of the 5 collections | Dashboard text | P3 | 1 | D20 |
 | G43 | No typed writer or layout for access logs, plates (ANPR), transactions, subscribers, or tower lists | Typed-switch audit | P2 | 1 and 4 | D9 |

@@ -30,7 +30,7 @@ file --> container reader (xlsx, SpreadsheetML, csv, utf-16 tsv) --> header row 
 | Number classes, device identifiers, cell keys, coordinates | `layout_registry/parties.py` |
 | Reference interpreter and summary | `layout_registry/interpret.py` |
 | Command line (`list`, `validate`, `sql [--out FILE]`; run from the repository root as `python -X utf8 -m ingestion.forensic_records.layout_registry <command>`) | `layout_registry/__main__.py` |
-| The 13 entries | `layout_registry/layouts/<layout_id>.v1.json` |
+| The 14 entries (13 provider layouts and the seed export, section 6a) | `layout_registry/layouts/<layout_id>.v1.json` |
 | Synthetic goldens with their truth | `tools/real_data/make_golden.py` |
 | Confirmation of an entry against a structure report | `tools/real_data/confirm_layout.py` |
 
@@ -81,6 +81,16 @@ Header cells are normalised exactly as the worker does (`normalize_header`, kept
 | A1 | `appusage-a1` | app_usage | xlsx | 12 | - | source-time-zone, operator, province-city |
 
 Every entry shares one open item: **the source time zone.** No file states one, so the job decides (and records how). The header list is no longer open (section 7a); the day-or-month order of slash dates is settled for the four layouts that use them (C2 and C8 month first, C7 and I4 day first).
+
+## 6a. The fourteenth entry: the repository's own seed export (2026-10-20)
+
+`ipdr-seed-s8` is **not a provider layout.** It is the 8-column internet-record export that the repository's synthetic seed data uses (`timestamp, source_ip, destination_ip, domain, protocol, bytes, subscriber_id, session_id`), and it is the shape of the internet-record files of the four older (synthetic demonstration) collections. It was parked on 2026-10-19 (the golden tool assumed an IMSI) and is in `layouts/` now.
+
+* **What it states:** the subscriber's number (`subscriber_id`), the device's address (`source_ip`, read as the UE address) and the server's, the host (`domain`), the protocol, a session reference, and one instant ending in `Z` (stored as UTC, as stated). **What it does not state, and the entry does not invent:** an end time or duration, an IMSI or IMEI, any port, a public address, and the direction of `bytes` (one volume column; not mapped to up or down, it stays in the raw row). So address attribution (who held a public address) cannot be answered from these files.
+* **Status:** draft, like the other thirteen; the header list was read from the repository's own files, the semantics (direction of `bytes`, role of the source address, operator) are listed as unconfirmed in the entry.
+* **Tooling:** `tools/real_data/make_golden.py` now builds an internet-record golden for an entry that does not state IMSI, ports, a public address or a server port (what it does not state is `None` in the truth; the out-of-range-port defect is skipped for an entry with no server port). Tests: the registry suite is 56 (was 55; one new test reads a row of the export and proves the unstated fields stay empty and that no other layout carries these eight columns), the typed-ingest suite 47, the real-data tool suite 32, all pass; `layout_registry validate` says `entries=14`; the case register still describes the generator.
+* **Sizing of the four older collections, read-only, 2026-10-20** (the 16 stored call-record and internet-record files, copied out of the worker with `docker cp`, matched on the host; header names and counts only): **10 of 16 are recognised, and they hold 26,450 of the 26,466 rows**: the 16-column call records as `call-c4-telenor-style` at 1.00 (forensic-demo, multimodal, records-demo, and one runtime-acceptance file) and the three 2,500-row internet files as `ipdr-seed-s8` at 1.00. **The 6 not recognised are test fixtures of 2 to 4 rows** (header shapes of 8, 8, 10, 9, 11 and 10 columns: a tab-separated and a comma-separated 8-column call file, a 10-column and a 9-column call file, an 11-column internet file with a time zone and a 10-column one with a URL and the volumes in both directions). They matter because the engine's guard declines a case unless **every** call-record and internet-record file of it is typed: forensic-demo has 2 of them, runtime-acceptance 3, records-demo 1, and the multimodal case none, so **the multimodal case is ready to be typed as soon as the entry is registered and its rows are written; the other three need the fixtures typed, or a decision about them** (a layout per fixture shape, five or six small drafts; or taking the 16 rows out of those cases; or a guard that answers on the typed part and says what is not typed).
+* **Not done, and why:** the entry is in the repository only. It is not in the worker image and not in `forensic.layout_versions` (the worker reads its registry from its image: an overlay rebuild), and no row of the older collections has been written to the typed tables (a live write, after a backup, on the owner's go).
 
 ## 7. Making a draft active
 

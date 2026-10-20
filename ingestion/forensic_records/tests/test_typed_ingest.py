@@ -324,7 +324,7 @@ class ShadowTests(Workdir):
         with mock.patch.dict(os.environ, {"FORENSIC_INGEST_V2_INCLUDE_DRAFT": "false"}):
             summary = self.shadow(sink=FakeSink(), mode="shadow")
         self.assertEqual((summary["status"], summary["sheets"][0]["status"]), ("unrecognised", "unrecognised"),
-                         "all 13 layouts are drafts today, so excluding drafts recognises nothing")
+                         "all 14 layouts are drafts today, so excluding drafts recognises nothing")
 
 
 @unittest.skipUnless(GOLDEN_AVAILABLE, "tools/real_data/make_golden.py is not available (the worker image carries no tools folder)")

@@ -537,6 +537,8 @@ def _session_row(i, ctx, defect):
     subject_n = (i % 4) + 1
     forms = party_forms(subject_n)
     msisdn = forms["e164_12"]
+    if defect == "party_sentinel" and not fields.get("server_port"):
+        defect = None  # the defect is an out-of-range server port, and this layout states none
     start = _times(i, ctx)
     dur_ms = rng.randint(50, 600000)
     end = _trunc(start + datetime.timedelta(milliseconds=dur_ms), ctx)
@@ -558,8 +560,10 @@ def _session_row(i, ctx, defect):
         _put(cells, index, time_cols["nat_end"], render_time(nat_end or end, fmt, hints))
     flags = set()
     _put(cells, index, fields["msisdn"], msisdn)
-    imsi = reserved.synthetic_imsi(subject_n)
-    _put(cells, index, fields["imsi"], imsi)
+    # a layout need not state every field (the 8-column seed export has no IMSI, ports or public address): what it does not state is None in the truth
+    imsi = reserved.synthetic_imsi(subject_n) if fields.get("imsi") else None
+    if imsi:
+        _put(cells, index, fields["imsi"], imsi)
     imei = None
     if fields.get("imei"):
         imei = imei_for(subject_n, int(hints.get("imei_digits", 15)))
@@ -578,15 +582,26 @@ def _session_row(i, ctx, defect):
         server_port = 70000
         flags.add("server_port_out_of_range")
     _put(cells, index, fields["ue_ip"], ue_ip)
-    _put(cells, index, fields["ue_port"], ue_port)
-    _put(cells, index, fields["public_ip"], public_ip)
+    if fields.get("ue_port"):
+        _put(cells, index, fields["ue_port"], ue_port)
+    else:
+        ue_port = None
+    if fields.get("public_ip"):
+        _put(cells, index, fields["public_ip"], public_ip)
+    else:
+        public_ip = None
     if "public_port" in fields:
         _put(cells, index, fields["public_port"], port_from)
-    else:
+    elif fields.get("public_port_from"):
         _put(cells, index, fields["public_port_from"], port_from)
         _put(cells, index, fields["public_port_to"], port_to)
+    else:
+        port_from = port_to = None
     _put(cells, index, fields["server_ip"], server_ip)
-    _put(cells, index, fields["server_port"], server_port)
+    if fields.get("server_port"):
+        _put(cells, index, fields["server_port"], server_port)
+    else:
+        server_port = None
     protocol_expect, protocol_num_expect = None, None
     if "protocol" in fields:
         if entry.get("protocol_numbers") == "iana":
