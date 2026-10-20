@@ -51,6 +51,10 @@ func executeSourceNativePlanSQL(ctx context.Context, db *pgxpool.Pool, req hybri
 	if binding.Derived && !derivedArtifactExecutionEnabled() {
 		return nil, fmt.Errorf("reading %s is not enabled", binding.Table)
 	}
+	// A plan over ONE family that is switched to its typed view reads that view, so that on a typed case the older path and the lane and the engine count the same rows (typed_families.go).
+	if !binding.Derived {
+		binding.RecordsTable = typedRecordsTable(ctx, db, binding.Family)
+	}
 
 	var args []any
 	var where []string
@@ -133,14 +137,14 @@ func executeSourceNativeProjectionSQL(ctx context.Context, db *pgxpool.Pool, req
 	}
 	args = append(args, limit)
 	limitPlaceholder := fmt.Sprintf("$%d", len(args))
-	countSQL := `SELECT COUNT(*) FROM forensic.records r WHERE ` + whereSQL
+	countSQL := `SELECT COUNT(*) FROM ` + binding.records() + ` r WHERE ` + whereSQL
 	total, err := scanScalarInt64(ctx, db, req.TenantID, countSQL, whereArgs...)
 	if err != nil {
 		return nil, err
 	}
 	sql := `SELECT ` + strings.Join(selects, ",") +
 		`,r.record_id::text AS __record_id,r.record_type::text AS __record_type,r.source_file AS __source_file,r.row_number AS __row_number,r.batch_id::text AS __batch_id,r.file_id AS __file_id,r.row_hash AS __row_hash,r.timestamp AS __timestamp,e.evidence_id AS __evidence_id,e.evidence_version_id AS __evidence_version_id` +
-		` FROM forensic.records r LEFT JOIN LATERAL (SELECT item.evidence_id::text AS evidence_id,item.current_version_id::text AS evidence_version_id FROM forensic.evidence_items item WHERE item.tenant_id=r.tenant_id AND item.collection_id=r.collection_id AND item.records_batch_id=r.batch_id ORDER BY item.evidence_id LIMIT 1) e ON true` +
+		` FROM ` + binding.records() + ` r LEFT JOIN LATERAL (SELECT item.evidence_id::text AS evidence_id,item.current_version_id::text AS evidence_version_id FROM forensic.evidence_items item WHERE item.tenant_id=r.tenant_id AND item.collection_id=r.collection_id AND item.records_batch_id=r.batch_id ORDER BY item.evidence_id LIMIT 1) e ON true` +
 		` WHERE ` + whereSQL + orderSQL + ` LIMIT ` + limitPlaceholder
 	rows, err := queryRows(ctx, db, req.TenantID, sql, args...)
 	if err != nil {
@@ -158,7 +162,7 @@ func executeSourceNativeProjectionSQL(ctx context.Context, db *pgxpool.Pool, req
 			out[fields[id].NormalizedName] = row[sourceNativeSQLAlias(fields[id].FieldID)]
 		}
 		out["metadata"] = map[string]any{"source_rows": []map[string]any{{
-			"source": "records_sql", "source_table": "forensic.records", "collection_id": req.CollectionID,
+			"source": "records_sql", "source_table": binding.records(), "collection_id": req.CollectionID,
 			"record_id": row["__record_id"], "record_type": row["__record_type"], "source_file": row["__source_file"],
 			"row_number": row["__row_number"], "batch_id": row["__batch_id"], "file_id": row["__file_id"],
 			"row_hash": row["__row_hash"], "timestamp": row["__timestamp"],
@@ -261,7 +265,7 @@ func executeSourceNativeAggregateSQL(ctx context.Context, db *pgxpool.Pool, req 
 	// A derived artifact already carries its own evidence_id and version_id, so
 	// it needs no lateral join to reach them -- and it could not use that join
 	// anyway, since it has no records_batch_id to match on.
-	from := ` FROM forensic.records r` +
+	from := ` FROM ` + binding.records() + ` r` +
 		` LEFT JOIN LATERAL (SELECT item.evidence_id::text AS evidence_id,item.current_version_id::text AS evidence_version_id FROM forensic.evidence_items item WHERE item.tenant_id=r.tenant_id AND item.collection_id=r.collection_id AND item.records_batch_id=r.batch_id ORDER BY item.evidence_id LIMIT 1) e ON true`
 	if binding.Derived {
 		from = ` FROM ` + binding.Table + ` d`
@@ -621,7 +625,7 @@ func sourceNativeLineageAggExpr(binding sourceNativeBinding) string {
 		return "to_jsonb((array_agg(" + object + " ORDER BY d.artifact_id))[1:" + strconv.Itoa(sourceNativeSQLLineageLimit) + "])"
 	}
 	object := "jsonb_build_object(" +
-		"'source','records_sql','source_table','forensic.records'," +
+		"'source','records_sql','source_table','" + binding.records() + "'," +
 		"'record_id',r.record_id::text,'record_type',r.record_type::text,'source_file',r.source_file," +
 		"'row_number',r.row_number,'batch_id',r.batch_id::text,'file_id',r.file_id,'row_hash',r.row_hash," +
 		"'timestamp',r.timestamp,'evidence_id',e.evidence_id,'version_id',e.evidence_version_id" +

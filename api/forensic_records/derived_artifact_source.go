@@ -160,6 +160,19 @@ type sourceNativeBinding struct {
 	ArtifactType    string
 	ObservationType string
 	Derived         bool
+	// Family is the curated family that EVERY field of an ingested-records plan belongs to; empty when the plan mixes families or names an uncurated field. It is set after the
+	// plans are compared (so two families are never "mixed sources" for that reason) and is read only to decide which table a single-family plan reads.
+	Family string
+	// RecordsTable is the table an ingested-records plan reads: forensic.records unless the family is switched to its effective view (typed_families.go). Empty means forensic.records.
+	RecordsTable string
+}
+
+// records is the table an ingested-records plan reads.
+func (b sourceNativeBinding) records() string {
+	if b.RecordsTable != "" {
+		return b.RecordsTable
+	}
+	return semanticSourceTables[semanticSourceTableRecords]
 }
 
 // sourceNativeRecordsBinding is the default: ingested source records, exactly
@@ -242,6 +255,7 @@ func sourceNativeBindingForPlan(question string, plan *SourceNativePlanV1, catal
 				ArtifactType:    strings.TrimSpace(entity.Source.ArtifactType),
 				ObservationType: strings.TrimSpace(entity.Source.ObservationType),
 				Derived:         entity.Source.IsDerived(),
+				Family:          entity.Family,
 			}, nil
 		}
 	}
@@ -262,12 +276,15 @@ func sourceNativeBindingForFieldIDs(ids []string) (sourceNativeBinding, error) {
 	}
 	binding := sourceNativeRecordsBinding()
 	owner, found := "", false
+	families, curated := map[string]bool{}, true
 	for _, id := range ids {
 		entity, ok := layer.EntityByFieldID(id)
 		if !ok {
 			// An inferred field: forensic.records by definition.
 			entity = SemanticLayerEntityV1{Family: semanticSourceTableRecords}
+			curated = false
 		}
+		families[entity.Family] = true
 		candidate := sourceNativeBinding{
 			Table:           semanticSourceTables[entity.Source.resolvedTable()],
 			Payload:         entity.Source.resolvedPayload(),
@@ -285,6 +302,9 @@ func sourceNativeBindingForFieldIDs(ids []string) (sourceNativeBinding, error) {
 					"an ingested record and a model observation cannot be counted together",
 				owner, binding.Table, entity.Family, candidate.Table)
 		}
+	}
+	if curated && len(families) == 1 {
+		binding.Family = owner
 	}
 	return binding, nil
 }

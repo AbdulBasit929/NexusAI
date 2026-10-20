@@ -226,3 +226,79 @@ var _ = Describe("Typed families in the governed SQL lane", func() {
 		}
 	})
 })
+
+var _ = Describe("Typed families in the older path (the source-native executor, S2b)", func() {
+	var original = struct {
+		exists func(context.Context, *pgxpool.Pool, string) bool
+		now    func() time.Time
+	}{typedViewExists, typedViewNow}
+	var probes []string
+	exists := true
+
+	BeforeEach(func() {
+		probes, exists = nil, true
+		typedViewExists = func(_ context.Context, _ *pgxpool.Pool, qualified string) bool {
+			probes = append(probes, qualified)
+			return exists
+		}
+		typedViewNow = time.Now
+		typedViewMu.Lock()
+		typedViewStates = map[string]typedViewState{}
+		typedViewMu.Unlock()
+	})
+	AfterEach(func() {
+		typedViewExists, typedViewNow = original.exists, original.now
+		Expect(os.Unsetenv(typedFamiliesEnv)).To(Succeed())
+	})
+
+	It("reads the family's effective view only when the family is requested, the view exists and the plan is over that family", func() {
+		db := &pgxpool.Pool{}
+		ctx := context.Background()
+		Expect(typedRecordsTable(ctx, db, "communications_cdr")).To(BeEmpty(), "nothing requested: forensic.records, as before")
+		Expect(probes).To(BeEmpty(), "and the database is not even asked")
+
+		Expect(os.Setenv(typedFamiliesEnv, "communications_cdr,network_ipdr")).To(Succeed())
+		Expect(typedRecordsTable(ctx, db, "communications_cdr")).To(Equal("forensic.records_effective_cdr"))
+		Expect(typedRecordsTable(ctx, db, "network_ipdr")).To(Equal("forensic.records_effective_ipdr"))
+		Expect(typedRecordsTable(ctx, db, "")).To(BeEmpty(), "a plan that mixes families or names an uncurated field has no family")
+		Expect(typedRecordsTable(ctx, db, "access_log")).To(BeEmpty(), "a family with no effective view")
+		Expect(typedRecordsTable(ctx, nil, "communications_cdr")).To(BeEmpty())
+
+		Expect(os.Setenv(typedFamiliesEnv, "network_ipdr")).To(Succeed())
+		Expect(typedRecordsTable(ctx, db, "communications_cdr")).To(BeEmpty(), "a family that is not requested")
+
+		Expect(os.Setenv(typedFamiliesEnv, "communications_cdr")).To(Succeed())
+		exists = false
+		typedViewMu.Lock()
+		typedViewStates = map[string]typedViewState{}
+		typedViewMu.Unlock()
+		Expect(typedRecordsTable(ctx, db, "communications_cdr")).To(BeEmpty(), "migration 016 not applied: stay on forensic.records")
+	})
+
+	It("tells the binding which family every field of a plan belongs to, and says none when the plan mixes families or names an uncurated field", func() {
+		layer, _ := defaultSemanticLayer()
+		Expect(layer).NotTo(BeNil())
+		first := func(family string) string {
+			entity, ok := layer.EntityByFamily(family)
+			Expect(ok).To(BeTrue(), family)
+			Expect(entity.Fields).NotTo(BeEmpty())
+			return entity.Fields[0].ID
+		}
+		cdr, ipdr := first("communications_cdr"), first("network_ipdr")
+		binding, err := sourceNativeBindingForFieldIDs([]string{cdr})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(binding.Family).To(Equal("communications_cdr"))
+		Expect(binding.records()).To(Equal("forensic.records"), "the table is chosen by the executor, not by the binding alone")
+
+		binding, err = sourceNativeBindingForFieldIDs([]string{cdr, ipdr})
+		Expect(err).NotTo(HaveOccurred(), "two ingested families are not a mix of sources")
+		Expect(binding.Family).To(BeEmpty())
+
+		binding, err = sourceNativeBindingForFieldIDs([]string{cdr, "an_uncurated_field"})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(binding.Family).To(BeEmpty())
+
+		binding.RecordsTable = "forensic.records_effective_cdr"
+		Expect(binding.records()).To(Equal("forensic.records_effective_cdr"))
+	})
+})
