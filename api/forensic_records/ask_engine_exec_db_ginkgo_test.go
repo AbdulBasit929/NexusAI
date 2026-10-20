@@ -456,6 +456,11 @@ modality, detected_type, classifier_confidence, processing_route, processing_sta
 		Expect(before["contract"]).To(Equal("forensics.engine-health/v1"))
 		was := totals(before)
 
+		// requests that were not questions for the engine (the interface's own template and structured requests; older rows were audited as declined questions) are not its questions
+		for _, reason := range []string{"an explicit operation was requested", "a structured request"} {
+			askWriteAudit(ctx, pool, hybridQueryRequest{TenantID: truth.Tenant, UserID: "health-spec", CollectionID: truth.CaseID, Query: "template request"}, AskAuditV2{State: "declined", Reason: reason}, askFrame{}, "")
+		}
+
 		subject, other, _, _ := pair()
 		savedModel := askModel
 		defer func() { askModel = savedModel }()
@@ -489,6 +494,7 @@ modality, detected_type, classifier_confidence, processing_route, processing_sta
 		}
 		Expect(reasons).To(ContainSubstring("the question uses a relative time (#) and no reference day is stated"), "the phrase of the question is replaced by a mark")
 		Expect(body).NotTo(ContainSubstring("last week"), "no word of a question is returned")
+		Expect(reasons).NotTo(ContainSubstring("explicit operation"), "a request that was not a question is not counted among the engine's declines")
 
 		// another tenant's case and another collection see none of it; the method and the scope are checked like every analysis read
 		code, none, _ := call("some-other-tenant", truth.CaseID)

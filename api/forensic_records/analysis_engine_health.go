@@ -23,6 +23,11 @@ const (
 	engineHealthMaxDays  = 90
 )
 
+// engineHealthNotEngine are the reasons of askEligible: a request that was not a question for the engine (the interface's own template and structured requests, a request with no
+// scope). Until 2026-10-19 such requests were audited as declined questions (347 of the first 541 rows of the live table); the engine did not look at them, so they are not
+// counted as its questions.
+var engineHealthNotEngine = []string{"no question", "not a data question", "an explicit operation was requested", "a structured request", "no authorised scope"}
+
 type engineHealthLatency struct {
 	P50 *int64 `json:"p50"`
 	P90 *int64 `json:"p90"`
@@ -111,8 +116,8 @@ func engineHealthHandler(db *pgxpool.Pool) http.HandlerFunc {
 			       (percentile_cont(0.9) WITHIN GROUP (ORDER BY (details->>'total_ms')::double precision) FILTER (WHERE details->>'state' = 'answered')),
 			       (max((details->>'total_ms')::double precision) FILTER (WHERE details->>'state' = 'answered'))
 			FROM forensic.records_audit_log
-			WHERE tenant_id = $1 AND collection_id = $2 AND action = $3 AND created_at >= $4`,
-			scope.TenantID, scope.CollectionID, askAuditAction, out.Since).Scan(&questions, &answered, &abstained, &declined, &repairs, &p50, &p90, &longest); err != nil {
+			WHERE tenant_id = $1 AND collection_id = $2 AND action = $3 AND created_at >= $4 AND NOT (coalesce(details->>'reason', '') = ANY($5))`,
+			scope.TenantID, scope.CollectionID, askAuditAction, out.Since, engineHealthNotEngine).Scan(&questions, &answered, &abstained, &declined, &repairs, &p50, &p90, &longest); err != nil {
 			writeError(w, http.StatusInternalServerError, errors.New("the engine's health could not be read"))
 			return
 		}
@@ -122,8 +127,8 @@ func engineHealthHandler(db *pgxpool.Pool) http.HandlerFunc {
 		rows, err := tx.Query(ctx, `
 			SELECT regexp_replace(regexp_replace(left(coalesce(details->>'reason', ''), 120), '\([^)]*\)', '(#)', 'g'), '[0-9]{3,}', '#', 'g') AS reason, count(*)
 			FROM forensic.records_audit_log
-			WHERE tenant_id = $1 AND collection_id = $2 AND action = $3 AND created_at >= $4 AND details->>'state' = 'declined' AND coalesce(details->>'reason', '') <> ''
-			GROUP BY 1 ORDER BY 2 DESC, 1 LIMIT 8`, scope.TenantID, scope.CollectionID, askAuditAction, out.Since)
+			WHERE tenant_id = $1 AND collection_id = $2 AND action = $3 AND created_at >= $4 AND details->>'state' = 'declined' AND coalesce(details->>'reason', '') <> '' AND NOT (coalesce(details->>'reason', '') = ANY($5))
+			GROUP BY 1 ORDER BY 2 DESC, 1 LIMIT 8`, scope.TenantID, scope.CollectionID, askAuditAction, out.Since, engineHealthNotEngine)
 		if err != nil {
 			writeError(w, http.StatusInternalServerError, errors.New("the engine's health could not be read"))
 			return
