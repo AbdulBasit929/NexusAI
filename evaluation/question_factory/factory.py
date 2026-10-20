@@ -58,7 +58,7 @@ class Db:
     def rows(self, sql):
         if not re.match(r"^\s*(select|with)\b", sql, re.I):
             raise ValueError("only SELECT statements are allowed: " + sql[:80])
-        script = ("BEGIN READ ONLY;\nSET LOCAL statement_timeout = '60s';\nSELECT set_config('app.tenant_id', '%s', true);\n%s;\nCOMMIT;\n" % (self.tenant, sql.rstrip().rstrip(";")))
+        script = ("BEGIN READ ONLY;\nSET LOCAL statement_timeout = '60s';\nSET LOCAL max_parallel_workers_per_gather = 0;\nSELECT set_config('app.tenant_id', '%s', true);\n%s;\nCOMMIT;\n" % (self.tenant, sql.rstrip().rstrip(";")))
         done = subprocess.run(self.command, input=script, capture_output=True, text=True, timeout=180)
         if done.returncode != 0:
             raise RuntimeError("psql failed: " + done.stderr[:300])
@@ -410,10 +410,23 @@ def answer_text(blob):
     return "\n".join(p.strip() for p in parts if isinstance(p, str) and p.strip())
 
 
-def expected_of(db, item):
+# On a case that is TYPED, the engine and the lane read the effective views (records_effective_cdr / _ipdr: typed rows, exact repeats left out, numbers normalised, times as UTC instants),
+# so a key built on version 1's table is another definition and a "wrong" verdict can be only that (forensic-demo, 2026-10-20: 6 of 7). --effective-views reads the keys from the views.
+EFFECTIVE_TABLES = {"cdr": "forensic.records_effective_cdr", "ipdr": "forensic.records_effective_ipdr"}
+_RECORDS_TABLE = re.compile(r"forensic\.records(?=\s|$)")
+
+
+def key_sql(item, effective=False):
+    """The oracle SQL of a question; with effective=True the table of a call-record or internet-record question is the effective view of its family."""
+    table = EFFECTIVE_TABLES.get(item.get("family")) if effective else None
+    return _RECORDS_TABLE.sub(table, item["oracle_sql"]) if table else item["oracle_sql"]
+
+
+def expected_of(db, item, effective=False):
+    sql = key_sql(item, effective)
     if item["kind"] == "all":  # the key is every value the query returns, one per row (a top 3, a pair of counts, a list of domains)
-        return [row[0] for row in db.rows(item["oracle_sql"]) if row and row[0] != ""]
-    return db.scalar(item["oracle_sql"]) if item["kind"] in ("number", "date") else None
+        return [row[0] for row in db.rows(sql) if row and row[0] != ""]
+    return db.scalar(sql) if item["kind"] in ("number", "date") else None
 
 
 def select_items(items, per_intent=0, intents=None, limit=0):
@@ -449,6 +462,22 @@ def rejudge_on_the_case_clock(rows, items, key_of):
         if (key, verdict) != (row.get("expected"), row["verdict"]):
             changed.append((row["id"], row.get("expected"), key, row["verdict"], verdict))
         row["expected"], row["verdict"], row["why"] = key, verdict, why
+    return changed
+
+
+def rejudge_on_effective_views(rows, items, key_of):
+    """Judge the saved answers of a TYPED case again against keys read from the effective views (no model, no new question). Only call-record and internet-record questions move; a row that
+    was an ERROR stays one. Returns [(id, old key, new key, old verdict, new verdict)] for the rows whose key or verdict changed."""
+    changed = []
+    for row in rows:
+        item = items.get(row["id"])
+        if item is None or item.get("family") not in EFFECTIVE_TABLES or row["verdict"] == "ERROR":
+            continue
+        key = key_of(item)
+        verdict, why = judge(item, key, row.get("text", ""), 200, row.get("route"))
+        if (key, verdict) != (row.get("expected"), row["verdict"]):
+            changed.append((row["id"], row.get("expected"), key, row["verdict"], verdict))
+        row["expected"], row["verdict"], row["why"], row["key_source"] = key, verdict, why, "effective"
     return changed
 
 
@@ -569,6 +598,10 @@ def main():
     rc.add_argument("arms", nargs="+")
     rc.add_argument("--questions", required=True)
     rc.add_argument("--psql", required=True)
+    re_ = sub.add_parser("reeffective", help="judge an arm's saved answers of a TYPED case again against keys read from the effective views (no model); writes <arm>/results-effective.json and prints what changed")
+    re_.add_argument("arms", nargs="+")
+    re_.add_argument("--questions", required=True)
+    re_.add_argument("--psql", required=True)
     c = sub.add_parser("compare")
     c.add_argument("a")
     c.add_argument("b")
@@ -582,6 +615,7 @@ def main():
     r.add_argument("--intents", help="ask only these intents (comma-separated, for example night,month_count,date_range,earliest,latest); applied before --per-intent")
     r.add_argument("--budget-minutes", type=float, default=0, help="stop cleanly after this long; results so far are kept and --resume continues")
     r.add_argument("--resume", action="store_true", help="skip ids already in <arm>/results.json")
+    r.add_argument("--effective-views", action="store_true", help="read the answer keys of call-record and internet-record questions from forensic.records_effective_cdr / _ipdr (use on a TYPED case: the answers are read from them)")
     args = parser.parse_args()
 
     if args.cmd == "compare":
@@ -631,6 +665,26 @@ def main():
             for qid, old_key, key, old_verdict, verdict in changed:
                 print("   %-22s key %s -> %s   %s -> %s" % (qid, old_key, key, old_verdict, verdict))
             print("   " + "  ".join("%s %d" % (v, sum(1 for r in rows if r["verdict"] == v)) for v in ("CORRECT", "WRONG", "ABSTAINED", "NOT_STATED", "ERROR")))
+        return 0
+
+    if args.cmd == "reeffective":
+        with io.open(args.questions, encoding="utf-8") as handle:
+            data = json.load(handle)
+        db = Db(args.psql, data["collection"])
+        items = {i["id"]: i for i in data["questions"]}
+        for arm in args.arms:
+            with io.open(os.path.join(HERE, arm, "results.json"), encoding="utf-8") as handle:
+                rows = json.load(handle)
+            before = {v: sum(1 for r in rows if r["verdict"] == v) for v in ("CORRECT", "WRONG", "ABSTAINED", "NOT_STATED", "ERROR")}
+            changed = rejudge_on_effective_views(rows, items, lambda item: expected_of(db, item, True))
+            with io.open(os.path.join(HERE, arm, "results-effective.json"), "w", encoding="utf-8") as handle:
+                json.dump(rows, handle, indent=1, ensure_ascii=False)
+            after = {v: sum(1 for r in rows if r["verdict"] == v) for v in before}
+            print("== %s: %d answer(s) changed key or verdict on the effective views" % (arm, len(changed)))
+            for qid, old_key, key, old_verdict, verdict in changed:
+                print("   %-24s key %s -> %s   %s -> %s" % (qid, old_key, key, old_verdict, verdict))
+            print("   version 1 keys : " + "  ".join("%s %d" % kv for kv in before.items()))
+            print("   effective keys : " + "  ".join("%s %d" % kv for kv in after.items()))
         return 0
 
     if args.cmd == "explain":
@@ -691,12 +745,20 @@ def main():
         if args.budget_minutes and (time.time() - started_all) > args.budget_minutes * 60:
             print("time budget reached; stopping cleanly. Continue with --resume.")
             break
-        expected = expected_of(db, item) if db else item.get("expected")
+        try:
+            expected = expected_of(db, item, args.effective_views) if db else item.get("expected")
+        except (RuntimeError, ValueError, subprocess.TimeoutExpired) as exc:
+            # not asked, not scored: a failed key query (a timeout after the machine slept, a statement that failed) ended a run of 30 questions after 27 on 2026-10-20
+            row = {k: item[k] for k in ("id", "family", "intent", "question", "kind")}
+            row.update(expected=None, verdict="ERROR", why="NOKEY: the answer key could not be computed (%s)" % type(exc).__name__, route=None, seconds=0, text="")
+            rows.append(row)
+            print("%-9s %-24s %-8s %6.1fs  %s" % ("NOKEY", item["id"], item["kind"], 0, item["question"]))
+            continue
         status, blob, seconds, headers = ask(url, key, item["collection"], item["question"])
         text = answer_text(blob)
         verdict, why = judge(item, expected, text, status, blob.get("route"))
         row = {k: item[k] for k in ("id", "family", "intent", "question", "kind")}
-        row.update(expected=expected, verdict=verdict, why=why, route=blob.get("route"), seconds=round(seconds, 1), text=text[:500])
+        row.update(expected=expected, verdict=verdict, why=why, route=blob.get("route"), seconds=round(seconds, 1), text=text[:500], key_source="effective" if args.effective_views and item.get("family") in EFFECTIVE_TABLES else "version1")
         if headers.get("x-governed-sql"):
             row["lane"] = headers["x-governed-sql"]
         # the query the lane ran, when it answered: a wrong answer cannot be read without it (run 15, the weekend probe)
@@ -708,6 +770,8 @@ def main():
         with io.open(os.path.join(out_dir, "results.json"), "w", encoding="utf-8") as handle:
             json.dump(rows, handle, indent=1, ensure_ascii=False)
     print("\n" + summarise(rows) + lane_summary(rows))
+    if args.effective_views:
+        print("answer keys of call-record and internet-record questions: read from the effective views (typed definition)")
     wrong = [r for r in rows if r["verdict"] == "WRONG"]
     with io.open(os.path.join(out_dir, "summary.txt"), "w", encoding="utf-8") as handle:
         handle.write(summarise(rows) + lane_summary(rows) + "\n\nCONFIDENT-WRONG (%d):\n" % len(wrong))
