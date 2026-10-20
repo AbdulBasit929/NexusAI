@@ -367,6 +367,22 @@ The laptop went to sleep in the middle of case 104 and the run resumed in the mo
 
 **The fix is made from this finding only and is measured on an unspent judgement case (105), never again on 102, 104 or 106** (see the next section).
 
+### The fix for the one wrong answer, and the gates for its measurement on judgement case 108 (written before the run)
+
+**The change, from the finding only (code; not deployed).** An IMEI is 15 digits with its check digit, and some exports store the first 14. The engine now treats the two forms as one handset: (1) the question turn of a question that names an IMEI says "Handsets: an IMEI is stored with its 15 digits or, by some exports, with 14 (no check digit); both are one handset, so compare imei IN ('<15>', '<14>')"; (2) the validator's foreign-identifier rule accepts the 14-digit form of an IMEI of the question as the question's own; (3) when the result is empty and the 15-digit form is nowhere in the case, the probe looks for the 14-digit form, and if the case holds it the model is told ("this case holds the handset X as Y ... compare imei with both forms") and repairs, so **"no record" is stated only when neither form is held**. Specs: one on the question turn, the repair, the true absence and the foreign identifier (195 engine specs pass). **Not handled, and said so:** the reverse (14 digits asked, 15 stored), which needs a pattern match that the validator does not allow and which no measured question needed.
+
+**Development check (case 5, which stores one shared handset in 14 digits):** the five handset questions (three "which handsets has X been used with", two "which subscribers shared the handset") were **5 of 5 correct**, the shared-handset questions at the first attempt with no repair.
+
+**Why judgement case 108.** Of the unspent judgement cases only 108 has a shared handset stored in 14 digits (105 stores both in 15, so it would not exercise the fix). The measurement is the whole bank on 108 (about 80 questions), once; 102, 104 and 106 are not used again.
+
+### Gates for the run on judgement case 108 (written before it; the engine arm, agreement off)
+
+1. **Wrong answers zero**, in total and in every analysis.
+2. **Correct at least 90% in each analysis**; a decline or an abstention counts against it.
+3. **Both shared-handset questions correct** (one of the two is the 14-digit case), and the controls 100%.
+4. Latency is reported, and so is every repair and decline with its reason.
+5. If a gate fails, it is written up and the fix measured on 105; nothing is tuned on 108 and rerun. A harness failure (a closed pool, a timeout of the machine) is told apart from an engine result by its reason and its time, as in the rule above.
+
 ## Next
 
 Measured arms on a fresh seed (above), then the engine on the typed families beyond call records and internet sessions, the remaining interface pieces of 7.8 (lanes, calendar, the entity drawer), the composition of the sentence under the number lock (M5), and applying migration 017 to the live database on the owner's go, after a backup, so that the engine can be deployed and measured on the live stack.

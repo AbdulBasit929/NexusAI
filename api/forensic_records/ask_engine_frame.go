@@ -321,6 +321,10 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 		asked[strings.TrimPrefix(id, "+")] = true
 		asked[strings.ToLower(id)] = true
 	}
+	// An IMEI is 15 digits with its check digit; some exports store the 14 digits without it. The 14-digit form of an IMEI of the question is that IMEI, not another identifier.
+	for _, imei := range f.IMEIs {
+		asked[askIMEI14(imei)] = true
+	}
 	for _, t := range texts {
 		t = strings.TrimPrefix(strings.TrimSpace(t), "+")
 		bare := strings.ToLower(strings.Split(t, "/")[0])
@@ -431,6 +435,14 @@ func askYearNote(year int) string {
 
 // askCheckResult holds the result against the frame: a count is one value, and a question that names an identifier is not answered by a list of
 // everything. It returns nil when the result is acceptable. (Emptiness is handled by the probe in the run, because an empty result is sometimes the truth.)
+// askIMEI14 is an IMEI without its check digit: the first 14 digits of a 15-digit IMEI (the type approval code and the serial number).
+func askIMEI14(imei string) string {
+	if len(imei) == 15 {
+		return imei[:14]
+	}
+	return imei
+}
+
 func askCheckResult(f askFrame, v *askValidated, columns []string, rows int) *askObligation {
 	// A connection question (decision D22) is answered with the edges of the connections found, so that the answer can name the numbers between the two. Measured on seed
 	// 101: asked "is there a link between A and B within three hops", the model wrote an existence test and the answer was a bare "Has link: true", which is true and names

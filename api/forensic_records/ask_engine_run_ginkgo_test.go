@@ -570,6 +570,59 @@ var _ = Describe("Ask engine run", func() {
 		Expect(resp.Answer["answer"]).To(Equal("No row matches what you asked."))
 	})
 
+	It("treats the 14-digit form of an IMEI as the same handset: the question turn says so, the empty result is repaired when the case holds the other form, and absence is stated only when neither is held", func() {
+		const imei, short = "356938035643809", "35693803564380"
+		empty := func(*askValidated) (*govSQLResult, error) {
+			return &govSQLResult{Columns: []string{"src"}, Texts: []bool{true}, Rows: [][]any{}}, nil
+		}
+		// the case holds only the 14-digit form (an export without the check digit)
+		askProbeFn = func(_ context.Context, _ *pgxpool.Pool, _, _ string, _ *askCatalogue, id string, _ askLimits) ([]string, error) {
+			if id == short {
+				return []string{"v_device_pairings.imei"}, nil
+			}
+			return nil, nil
+		}
+		execBody = func(v *askValidated) (*govSQLResult, error) {
+			if strings.Contains(v.SQL, "'"+short+"'") {
+				return &govSQLResult{Columns: []string{"src"}, Texts: []bool{true}, Rows: [][]any{{"923000000101"}, {"923000000102"}}}, nil
+			}
+			return empty(v)
+		}
+		script(reply("SELECT src FROM v_device_pairings WHERE imei = '"+imei+"' ORDER BY src"), reply("SELECT src FROM v_device_pairings WHERE imei IN ('"+imei+"', '"+short+"') ORDER BY src"))
+		resp, audit := run("Which subscribers shared the handset " + imei + "?")
+		Expect(prompts).NotTo(BeEmpty())
+		Expect(prompts[0][1].Content).To(ContainSubstring("Handsets: an IMEI is stored with its 15 digits or, by some exports, with 14"))
+		Expect(prompts[0][1].Content).To(ContainSubstring("imei IN ('" + imei + "', '" + short + "')"))
+		Expect(audit.Repairs).To(ContainElement("RESULT:EMPTY_WRONG_COLUMN"))
+		Expect(audit.State).To(Equal("answered"))
+		Expect(resp.Answer["answer"]).To(ContainSubstring("2 rows"))
+		Expect(strings.Join(execs, " ")).To(ContainSubstring("'" + short + "'"))
+		repair := prompts[len(prompts)-1]
+		Expect(repair[len(repair)-1].Content).To(ContainSubstring("holds the handset " + imei + " as " + short))
+
+		// neither form is held: that, and only that, is a true absence
+		askProbeFn = func(context.Context, *pgxpool.Pool, string, string, *askCatalogue, string, askLimits) ([]string, error) {
+			return nil, nil
+		}
+		execBody = empty
+		script(reply("SELECT src FROM v_device_pairings WHERE imei IN ('" + imei + "', '" + short + "') ORDER BY src"))
+		resp, audit = run("Which subscribers shared the handset " + imei + "?")
+		Expect(audit.State).To(Equal("answered"))
+		Expect(resp.Answer["answer"]).To(Equal("No record of this case holds " + imei + " in any number, device, SIM, address or cell column."))
+
+		// a foreign 14-digit identifier is still foreign
+		valid, rej := askValidate("SELECT src FROM v_device_pairings WHERE imei IN ('"+imei+"', '99999999999999')", cat, nil)
+		Expect(rej).To(BeNil())
+		problems := askCheckFrame(askExtractFrame("Which subscribers shared the handset "+imei+"?"), valid)
+		kinds := []string{}
+		for _, p := range problems {
+			kinds = append(kinds, p.Kind)
+		}
+		Expect(kinds).To(ContainElement("FOREIGN_IDENTIFIER"))
+		valid, _ = askValidate("SELECT src FROM v_device_pairings WHERE imei IN ('"+imei+"', '"+short+"')", cat, nil)
+		Expect(askCheckFrame(askExtractFrame("Which subscribers shared the handset "+imei+"?"), valid)).To(BeEmpty())
+	})
+
 	It("tells the model which number is the subscriber when it put the other party in src, and never calls an empty path wrong", func() {
 		askProbeFn = func(_ context.Context, _ *pgxpool.Pool, _, _ string, _ *askCatalogue, id string, _ askLimits) ([]string, error) {
 			if id == "923000001036" {

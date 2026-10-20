@@ -235,6 +235,14 @@ func askUserPrompt(f askFrame) string {
 	if f.Hops > 0 {
 		hints = append(hints, fmt.Sprintf("Recursion: depth < %d.", f.Hops))
 	}
+	if len(f.IMEIs) > 0 {
+		// Measured on the judgement run of 2026-10-19 (case 104): an export that stores the 14 digits of an IMEI, asked with its 15 digits, was answered "no record". Both forms are one handset.
+		var forms []string
+		for _, imei := range f.IMEIs {
+			forms = append(forms, fmt.Sprintf("imei IN ('%s', '%s')", imei, askIMEI14(imei)))
+		}
+		hints = append(hints, "Handsets: an IMEI is stored with its 15 digits or, by some exports, with 14 (no check digit); both are one handset, so compare "+strings.Join(forms, " and ")+".")
+	}
 	if (f.Hops > 0 || f.Cues["path"]) && len(f.Numbers) >= 2 {
 		// Measured on seeds 101 and 103: asked "is there a link between A and B within N hops", the first draft was an existence test with no outer LIMIT, which used up the
 		// repairs (two answers took 190 s, two were declined) or answered with a bare yes or no. The answer to a connection question is the connection, as the example's.
@@ -596,6 +604,12 @@ func askReadEmpty(ctx context.Context, db *pgxpool.Pool, req hybridQueryRequest,
 			return askEmptyVerdict{}, err
 		}
 		if len(hits) == 0 {
+			// The other form of a handset identifier: 15 digits asked and 14 stored, or 14 asked and 15 stored. A record under the other form is a record of this handset.
+			if other, form, err := askOtherIMEIForm(ctx, db, req, cat, id, limits); err != nil {
+				return askEmptyVerdict{}, err
+			} else if len(other) > 0 {
+				return askEmptyVerdict{elsewhere: strings.Join(other, ", "), identifier: id, hint: fmt.Sprintf("Nothing matched, because this case holds the handset %s as %s (the other form of the same IMEI: 15 digits with the check digit, or 14 without). Compare imei with both forms: imei IN ('%s', '%s').", id, form, id, form)}, nil
+			}
 			absent = append(absent, id)
 			continue
 		}
@@ -620,6 +634,17 @@ func askReadEmpty(ctx context.Context, db *pgxpool.Pool, req hybridQueryRequest,
 		return askEmptyVerdict{absence: "No record of this case holds " + strings.Join(absent, ", ") + " in any number, device, SIM, address or cell column."}, nil
 	}
 	return askEmptyVerdict{}, nil
+}
+
+// askOtherIMEIForm looks for the 14-digit form of a 15-digit IMEI of the question (the form some exports store, without the check digit) and returns the columns that hold it and
+// that form. The reverse (14 digits asked, 15 stored) is not handled: it needs a pattern match, which the validator does not allow, and no measured question needed it.
+func askOtherIMEIForm(ctx context.Context, db *pgxpool.Pool, req hybridQueryRequest, cat *askCatalogue, id string, limits askLimits) ([]string, string, error) {
+	if len(id) != 15 {
+		return nil, "", nil
+	}
+	short := askIMEI14(id)
+	hits, err := askProbeFn(ctx, db, req.TenantID, req.CollectionID, cat, short, limits)
+	return hits, short, err
 }
 
 // askComparedColumns is the set of columns the query compares with the identifier (column = 'id', column IN (..., 'id', ...), 'id' = column), read from the
