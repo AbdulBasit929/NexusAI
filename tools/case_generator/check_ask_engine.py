@@ -97,7 +97,7 @@ def main(argv):
             focus = "Ask engine evaluation"
         else:
             focus = SPEC_FOCUS
-        command = ["go", "test", "./api/forensic_records/", "-count=1", "-timeout", "6h", "-v", "-ginkgo.no-color", "-ginkgo.focus", focus]
+        command = ["go", "test", "./api/forensic_records/", "-count=1", "-timeout", "6h", "-ginkgo.timeout", "6h", "-v", "-ginkgo.no-color", "-ginkgo.focus", focus]
         if os.environ.get("ASK_CHECK_VERBOSE"):
             command.append("-ginkgo.v")  # the specs' own notes (for example what the executor's red team found) go to the log
         proc = subprocess.run(command, cwd=load_case.REPO, env=env, capture_output=True, text=True)
