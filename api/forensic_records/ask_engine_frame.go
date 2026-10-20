@@ -195,6 +195,10 @@ func askExtractFrame(question string) askFrame {
 		regexp.MustCompile(`\b(?:calls?|messages?|sms|texts?)\s+from\b`).MatchString(words2)
 	f.Cues["outgoing"] = anyWord("outgoing", "outbound", "dial", "dials", "dialled", "dialed", "dialling", "dialing", "made") || regexp.MustCompile(`\b(?:send|sends|sent|sending|call|calls|called|calling|message|messages|messaged|text|texted)\b.*\bto\b`).MatchString(words2) && !f.Cues["incoming"]
 	f.Cues["outgoing"] = f.Cues["outgoing"] && !phrase("made by")
+	// any word that gives a question a direction, wider than the incoming and outgoing cues (which need the right phrasing): the obligation below refuses a direction filter only when none is there
+	f.Cues["direction"] = anyWord("direction", "directions", "incoming", "outgoing", "inbound", "outbound", "received", "receive", "receives", "receiving", "get", "gets", "got", "getting", "make", "makes", "made", "making",
+		"send", "sends", "sent", "sending", "dial", "dials", "dialled", "dialed", "dialling", "dialing", "called", "calling", "from", "to")
+	f.Cues["volume"] = anyWord("bytes", "volume", "volumes", "transferred", "megabytes", "gigabytes", "kilobytes", "upload", "uploaded", "download", "downloaded") || phrase("data used") || phrase("data usage")
 	f.Cues["sms"] = anyWord("sms", "texts") || phrase("text message") || phrase("text messages")
 	f.Cues["mms"] = anyWord("mms")
 	f.Cues["ussd"] = anyWord("ussd")
@@ -267,6 +271,9 @@ func askConstants(v *askValidated) (texts []string, numbers map[int]bool) {
 	}
 	return texts, numbers
 }
+
+// askDirectionFilter finds a condition on the direction column (a comparison, a list or a pattern); grouping or selecting it is not a filter.
+var askDirectionFilter = regexp.MustCompile(`\bdirection\s*(?:=|<>|!=|in\s*\(|like\b)`)
 
 func askSQLMentions(sql string, words ...string) bool {
 	for _, w := range words {
@@ -393,6 +400,11 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	}
 	if f.Cues["outgoing"] && !askSQLMentions(sql, "'outgoing'") && !askUsesColumn(v, "outgoing") {
 		add("DIRECTION", "The question is about outgoing events: filter direction = 'outgoing' (or use the outgoing column).", "the question is about outgoing events and the query does not say so")
+	}
+	// A filter on direction that the question never asked for narrows the answer without saying so (found 2026-10-20: "the latest call start time in the calls" was answered from
+	// outgoing voice calls only, and the answer was a day early).
+	if !f.Cues["incoming"] && !f.Cues["outgoing"] && !f.Cues["direction"] && askDirectionFilter.MatchString(sql) {
+		add("DIRECTION", "The question does not ask about incoming or outgoing events: remove the filter on direction.", "the query filters on direction and the question does not ask about it")
 	}
 	for _, kind := range []string{"sms", "mms", "ussd"} {
 		if f.Cues[kind] && !askSQLMentions(sql, "'"+kind+"'") {

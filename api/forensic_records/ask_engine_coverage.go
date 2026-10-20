@@ -25,6 +25,9 @@ type askCoverage struct {
 	Files, Typed        int
 	AnyComm, AnySession bool
 	AnyUsage            bool
+	// AnyVolume is whether any typed internet record states a byte count in a direction. An export that gives one undirected volume keeps it in the raw row (the entry does not
+	// guess a direction), so the view has nothing to add up for it (found 2026-10-20 on the multimodal case: a sum of the volume answered "no value").
+	AnyVolume bool
 }
 
 const askCoverageQuery = `
@@ -36,7 +39,8 @@ SELECT
     OR EXISTS (SELECT 1 FROM forensic.app_usage u WHERE u.tenant_id = e.tenant_id AND u.evidence_id = e.evidence_id))),
   EXISTS (SELECT 1 FROM forensic.comm_event c WHERE c.tenant_id = $1 AND c.collection_id = $2 AND c.dataset_kind = 'target_cdr' AND NOT ('duplicate_row' = ANY (c.quality_flags))),
   EXISTS (SELECT 1 FROM forensic.data_session s WHERE s.tenant_id = $1 AND s.collection_id = $2),
-  EXISTS (SELECT 1 FROM forensic.app_usage u WHERE u.tenant_id = $1 AND u.collection_id = $2)
+  EXISTS (SELECT 1 FROM forensic.app_usage u WHERE u.tenant_id = $1 AND u.collection_id = $2),
+  EXISTS (SELECT 1 FROM forensic.data_session s WHERE s.tenant_id = $1 AND s.collection_id = $2 AND (s.bytes_up IS NOT NULL OR s.bytes_down IS NOT NULL))
 FROM forensic.evidence_items e
 WHERE e.tenant_id = $1 AND e.collection_id = $2 AND coalesce(e.processing_status, '') <> 'failed'`
 
@@ -51,7 +55,7 @@ var askCoverageRead = func(ctx context.Context, db *pgxpool.Pool, tenantID, coll
 	if _, err := tx.Exec(ctx, "SELECT set_config('app.tenant_id', $1, true)", tenantID); err != nil {
 		return c, err
 	}
-	err = tx.QueryRow(ctx, askCoverageQuery, tenantID, collectionID).Scan(&c.Files, &c.Typed, &c.AnyComm, &c.AnySession, &c.AnyUsage)
+	err = tx.QueryRow(ctx, askCoverageQuery, tenantID, collectionID).Scan(&c.Files, &c.Typed, &c.AnyComm, &c.AnySession, &c.AnyUsage, &c.AnyVolume)
 	return c, err
 }
 
@@ -90,6 +94,19 @@ func askCoverageFor(ctx context.Context, db *pgxpool.Pool, tenantID, collectionI
 
 // AnyComm is true only for TARGET call records: the views leave tower-dump rows out, so a case whose only typed call rows are a dump has nothing for v_comm_events (found
 // 2026-10-15: the demonstration files, read by the registry as a dump layout, would have passed a check for "any call row" and answered zero).
+
+// askVolumeGap says why a question about volumes cannot be answered from the typed internet records of this case; "" when it can, or when the question is not about volumes.
+func askVolumeGap(c askCoverage, f askFrame, views []string) string {
+	if !f.Cues["volume"] || !c.AnySession || c.AnyVolume {
+		return ""
+	}
+	for _, v := range views {
+		if v == "v_data_sessions" {
+			return "the case's internet records state no byte count per direction (an export with one undirected volume keeps it in the raw row)"
+		}
+	}
+	return ""
+}
 
 // askCoverageGap says, for the views a question would read, why the analyst views cannot speak for this case; "" when they can.
 func askCoverageGap(c askCoverage, views []string) string {

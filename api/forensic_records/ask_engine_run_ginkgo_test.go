@@ -149,6 +149,7 @@ var _ = Describe("Ask engine obligations", func() {
 		{"a dropped month", "How many calls did 923000000101 have in March 2026?", "SELECT count(*) AS n FROM v_comm_events WHERE src = '923000000101'", "MONTH"},
 		{"another month", "How many calls did 923000000101 have in March 2026?", "SELECT count(*) AS n FROM v_comm_events WHERE src = '923000000101' AND start_utc >= '2026-04-01' AND start_utc < '2026-05-01'", "MONTH"},
 		{"a wrong limit", "Give the top five contacts of 923000000101", "SELECT dst AS label, events AS value FROM v_contact_pairs WHERE src = '923000000101' ORDER BY events DESC LIMIT 10", "LIMIT"},
+		{"a direction filter nobody asked for", "What is the latest call start time in the calls?", "SELECT max(start_utc) AS t FROM v_comm_events WHERE direction = 'outgoing'", "DIRECTION"},
 		{"no ordering for a ranking", "Who does 923000000101 talk to most?", "SELECT dst AS label, events AS value FROM v_contact_pairs WHERE src = '923000000101' LIMIT 5", "ORDER"},
 		{"the wrong direction dropped", "How many incoming calls did 923000000101 get?", "SELECT count(*) AS n FROM v_comm_events WHERE src = '923000000101'", "DIRECTION"},
 		{"the kind of event dropped", "How many SMS did 923000000101 send?", "SELECT count(*) AS n FROM v_comm_events WHERE src = '923000000101' AND direction = 'outgoing'", "EVENT_TYPE"},
@@ -164,6 +165,25 @@ var _ = Describe("Ask engine obligations", func() {
 			Expect(check(p.q, p.sql)).To(ContainElement(p.kind))
 		})
 	}
+
+	It("lets a query group by direction, filter on it when the question names a direction, or when it asks about direction", func() {
+		Expect(check("What is the latest call start time in the calls?", "SELECT max(start_utc) AS t FROM v_comm_events")).To(BeEmpty())
+		Expect(check("How many events does each direction have?", "SELECT direction AS label, count(*) AS value FROM v_comm_events GROUP BY direction ORDER BY value DESC LIMIT 20")).To(BeEmpty())
+		Expect(check("How many events with direction unknown does 923000000101 have?", "SELECT count(*) AS n FROM v_comm_events WHERE src = '923000000101' AND direction = 'unknown'")).To(BeEmpty())
+		Expect(check("How many incoming calls did 923000000101 get?", "SELECT count(*) AS n FROM v_comm_events WHERE src = '923000000101' AND direction = 'incoming'")).To(BeEmpty())
+	})
+
+	It("declines a volume question when the case's internet records state no byte count per direction, and only then", func() {
+		volume := askExtractFrame("What is the sum of the volume across the internet sessions?")
+		Expect(volume.Cues["volume"]).To(BeTrue())
+		Expect(askExtractFrame("How many internet sessions are there?").Cues["volume"]).To(BeFalse())
+		undirected := askCoverage{Files: 1, Typed: 1, AnySession: true}
+		Expect(askVolumeGap(undirected, volume, []string{"v_data_sessions"})).To(ContainSubstring("no byte count per direction"))
+		Expect(askVolumeGap(askCoverage{Files: 1, Typed: 1, AnySession: true, AnyVolume: true}, volume, []string{"v_data_sessions"})).To(BeEmpty())
+		Expect(askVolumeGap(undirected, askExtractFrame("How many internet sessions are there?"), []string{"v_data_sessions"})).To(BeEmpty())
+		Expect(askVolumeGap(undirected, volume, []string{"v_comm_events"})).To(BeEmpty())
+		Expect(askVolumeGap(askCoverage{}, volume, []string{"v_data_sessions"})).To(BeEmpty(), "a case with no internet records is the coverage guard's business")
+	})
 
 	It("holds the hop bound to the hops asked", func() {
 		q := "How are 923000000101 and 923000000102 connected within three hops?"
@@ -332,7 +352,7 @@ var _ = Describe("Ask engine run", func() {
 		}
 		askCoverageCache.entries = nil
 		askCoverageRead = func(context.Context, *pgxpool.Pool, string, string) (askCoverage, error) {
-			return askCoverage{Files: 3, Typed: 3, AnyComm: true, AnySession: true, AnyUsage: true}, nil
+			return askCoverage{Files: 3, Typed: 3, AnyComm: true, AnySession: true, AnyUsage: true, AnyVolume: true}, nil
 		}
 		audits = nil
 		askAuditSink = func(_ context.Context, _ *pgxpool.Pool, req hybridQueryRequest, a AskAuditV2, f askFrame, digest string) {

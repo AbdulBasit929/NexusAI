@@ -306,6 +306,9 @@ var _ = Describe("Ask engine executor on a case database", Ordered, func() {
 		Expect(cover.Files).To(BeNumerically(">", 0))
 		Expect(cover.Typed).To(Equal(cover.Files))
 		Expect(askCoverageGap(cover, []string{"v_comm_events", "v_contact_pairs"})).To(BeEmpty())
+		if cover.AnySession {
+			Expect(cover.AnyVolume).To(BeTrue(), "the planted case's internet records state their volumes")
+		}
 
 		// an older case: a call-record file, no typed row
 		tx, err := pool.Begin(ctx)

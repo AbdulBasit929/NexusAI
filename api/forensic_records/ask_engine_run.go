@@ -330,6 +330,9 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 	if gap := askCoverageGap(coverage, chosen); gap != "" {
 		return decline("the analyst views cannot speak for this case: " + gap)
 	}
+	if gap := askVolumeGap(coverage, frame, chosen); gap != "" {
+		return decline("the analyst views cannot speak for this case: " + gap)
+	}
 	shown := askRetrieveExamples(frame.Question, chosen, examples, 2)
 	for _, e := range shown {
 		audit.Examples = append(audit.Examples, e.ID)
