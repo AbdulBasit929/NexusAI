@@ -95,6 +95,16 @@ def judge_path(expect, rows, answer):
     return "correct"
 
 
+def judge_cells(expect, rows, answer):
+    """A set of cells (co-location at the hour, M3 stage 2). The cells the arm returned are the values of its rows that are cell keys of the case (expect.universe, every cell key
+    the case holds; nothing is read from the arm's own SQL or column names). They must be exactly the expected set. Nothing expected: no rows, and the answer is the plain "no row"
+    statement, never "no record of this case" (the numbers are held)."""
+    got = {v for v in text_values(rows) if v in set(expect["universe"])}
+    if not expect["values"]:
+        return "correct" if not rows and "no row matches" in answer and "no record" not in answer else "wrong"
+    return "correct" if got == set(expect["values"]) else "wrong"
+
+
 def judge(question, result):
     expect = question["expect"]
     kind = expect["kind"]
@@ -119,7 +129,14 @@ def judge(question, result):
     if state == "abstained":
         return "abstained"
     if kind == "scalar":
-        return "correct" if len(rows) == 1 and expect["value"] in numbers(rows) and "no record" not in answer else "wrong"
+        if "no record" in answer:
+            return "wrong"
+        if expect.get("empty_is_zero") and expect["value"] == 0 and not rows:
+            # a count of what has no rows (co-location in an hour, M3 stage 2): "No row matches what you asked." is the honest form of zero when the numbers are held
+            return "correct" if "no row matches" in answer else "wrong"
+        return "correct" if len(rows) == 1 and expect["value"] in numbers(rows) else "wrong"
+    if kind == "cells":
+        return judge_cells(expect, rows, answer)
     if kind == "set":
         return "correct" if identifiers(rows) == set(expect["values"]) else "wrong"
     if kind == "ordered":

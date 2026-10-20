@@ -56,6 +56,7 @@ def bank_questions(params, per_case_limit=12):
     # renders are keyed by person id; the key's subjects carry the person id
     for s in subjects:
         visible[s["msisdn"]] = renders[s["person"]].visible
+    universe = sorted({row["cell_key"] for rows in visible.values() for row in rows if row.get("cell_key")})
     pairs = []
     for i, x in enumerate(sorted(visible)):
         for y in sorted(visible)[i + 1:]:
@@ -78,10 +79,10 @@ def bank_questions(params, per_case_limit=12):
             text = "Which cell sites were %s and %s both at during the same hour?" % (x, y)
         else:
             text = "At which cells did %s and %s have events in the same hour?" % (x, y)
-        questions.append({"type": "coloc_cells", "question": text, "expect": {"kind": "cells", "x": x, "y": y, "values": cells}})
+        questions.append({"type": "coloc_cells", "question": text, "expect": {"kind": "cells", "x": x, "y": y, "values": cells, "universe": universe}})
         hours = len({h[1] for h in hits})  # different hours, whatever the cell: two cells in one hour are one hour
         text = ("In how many different hours were %s and %s at the same cell?" if i % 2 == 0 else "How many different hours did %s and %s spend at the same cell site together?") % (x, y)
-        questions.append({"type": "coloc_hours", "question": text, "expect": {"kind": "scalar", "x": x, "y": y, "value": hours}})
+        questions.append({"type": "coloc_hours", "question": text, "expect": {"kind": "scalar", "x": x, "y": y, "value": hours, "empty_is_zero": True}})
     for n, q in enumerate(questions, start=1):
         q["id"] = "C%03d" % n
     return questions

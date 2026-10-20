@@ -398,6 +398,26 @@ The whole bank (81 questions: A1, A2, A3, A4, A8 and A13 with their paraphrases,
 
 **What this does and does not say.** The gate on the three first judgement cases (102, 104, 106) stays recorded as **not met** (244 of 245; one wrong). The cause was found, fixed from the finding alone, and the fix was measured on a case never used before, as the rule written before the judgement run requires: it is met there, with zero wrong. That is one case and 81 questions: it shows the fix holds, not a new accuracy rate. The reverse form (14 digits asked, 15 stored) is still not handled and no measured question needed it. The connection class is still the slowest. Nothing of this is deployed: the live API still runs the image built before the IMEI fix.
 
+### Stage 2 of the bank, co-location at the hour: the development check, and the gates for the judgement run (written 2026-10-20, before the run)
+
+**What stage 2 asks.** For two subscribers on the same operator: which cell sites both used in the same hour (`coloc_cells`), and in how many different hours they were at the same cell (`coloc_hours`), two phrasings each. The truth is computed by `tools/ask_eval/colocation_oracle.py` in plain Python from the generator's visible rows, at the granularity of the analyst view `v_cell_visits` (subscriber, cell, hour). Pairs that never meet are the controls: the right answer is "no row" for the cells and 0 for the hours. **What it does not cover:** the generator's 15-minute co-location key (A5 as the generator states it) and A7 possible meetings, which need a finer reading than one row per hour; they stay open.
+
+**The judge.** `judge.py` has a new kind `cells`: the cells the arm returned are the values of its rows that are cell keys of the case (the case's whole list of cell keys is in the question's `expect.universe`; no column name and no SQL of the arm is read); they must be exactly the expected set. Nothing expected: no rows and the plain statement "No row matches what you asked.", never "no record of this case". A count of zero (`empty_is_zero`) is right as a row holding 0 or as that plain statement. Five unit tests (`tools/ask_eval/test_judge_cells.py`).
+
+**Development check, case 2 (20 questions, engine arm, agreement off, code of 280af5c): 20 of 20 correct, no wrong, no repair, nothing declined or abstained; median 27 s, 90th percentile 30 s, longest 97 s** (the first question, which carries the cold start; every other question 24 to 30 s). The ten control questions (five pairs that never meet) were all right: "No row matches what you asked." for the cells and a row holding 0 for the hours. No code was changed after this check; nothing needed a fix.
+
+**One finding, not a gate.** The sentence over a cells answer says "13 positions." because the rows are (cell, hour) visits drawn as positions on the map; the question asked for cell sites, and the two cells are in the rows and on the map but not in the sentence. It is correct as a count of rows and weak as an answer; making the sentence say "13 visits at 2 cell sites" is a change to the headline for the map shape and is noted for the interface work, not made here.
+
+**The run.** The judgement cases **102, 104 and 106** (the register's cases of the stage-1 judgement run; this question class has never been run on them and no co-location answer of theirs has been looked at: the oracle printed only counts), the engine arm, agreement off, 24 questions each: **72 questions, 36 of each kind, 13 pairs that never meet (26 control questions)**. The register was verified against the generator on 2026-10-20 before the run (`case_set.py verify`, all eight judgement cases: "the register still describes the generator"). **105 stays unopened for the measurement of a fix**, and 101, 103 and 107 stay treated as spent. The harness passes `-ginkgo.timeout 6h`; the rule for a harness failure (a closed pool, a timeout, a machine's sleep) is the one above: told apart by its reason and time, the questions that did not run are run alone once, both records are kept.
+
+### Gates for the stage-2 judgement run (written before it)
+
+1. **Wrong answers zero**, in total and in each of the two kinds.
+2. **Correct at least 90% in each kind**; a decline or an abstention counts against it.
+3. **The 26 control questions 100% correct** (a pair that never meets gets "no row" and 0, never an invented cell or hour).
+4. Latency is reported (median, 90th percentile, longest), and so is every repair and decline with its reason.
+5. If a gate fails, it is written up, only the cause the run shows is fixed, and the fix is measured on 105; nothing is tuned on 102, 104 or 106 and rerun. The headline wording above is not a gate.
+
 ## Next
 
 Stage 2 of the M3 bank (A5 co-location and A7 meetings: a judge for the cell-set kind, a measurement on a development case, gates written first), then the engine on the typed families beyond call records and internet sessions, the remaining interface pieces of 7.8 (lanes, calendar, the entity drawer), the composition of the sentence under the number lock (M5), and applying migration 017 to the live database on the owner's go, after a backup, so that the engine can be deployed and measured on the live stack.
