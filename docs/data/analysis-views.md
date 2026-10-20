@@ -19,6 +19,14 @@ Caps: 40 counterparties per subscriber by default (`per_subject`, at most 200), 
 
 Specs (`ask_engine_exec_db_ginkgo_test.go`, run by `tools/case_generator/check_ask_engine.py`, 17 live specs): planted-truth counts for connections, +05:00 times, another tenant's case unavailable, 400 and 405, places sums equal to the events, positions, coverage and pairs.
 
+## The engine-health read (`api/forensic_records/analysis_engine_health.go`; written 2026-10-20, **not deployed**; roadmap 7.8.3 row 9)
+
+`GET /analysis/engine-health?collection_id=...&days=7` says how the Ask engine has done on a case in the last days (1 to 90): `totals` (questions, answered, abstained, declined), `latency_ms` (median, 90th percentile and longest of the answered ones), `repairs` (extra attempts of the answered ones), `declines` (up to 8 reasons with counts) and `agreement` (on or off). Contract `forensics.engine-health/v1`.
+
+It reads only the engine's own audit rows (`ask_engine_v2.question` in `forensic.records_audit_log`), in the tenant's own rows (row-level security, the tenant set for the read) and for the collection asked for. **It never returns a question, an answer, a query or a number of the case**: the select does not read those fields, a decline reason is clipped to 120 characters, its parenthesised part (the phrase of a relative time, which comes from the question) is replaced by `(#)` and any run of three or more digits by `#`. A method other than GET is 405, no collection 400.
+
+Spec (`ask_engine_exec_db_ginkgo_test.go`, the 20th live spec): the counts rise by the questions asked, the median is present, the reasons show `relative time (#)` and not the words of the question, the secret text and the case's number are not in the body, another tenant and another collection see zero questions, POST is 405. The component that draws it, `EngineHealthCard` (with its tests), exists in the workspace and is **not yet mounted**: the dashboard (Case Overview, the placement of row 9) is being edited in the working tree by another session, so the card goes in when that work is committed.
+
 ## What the workspace shows and where
 
 | Place | What |

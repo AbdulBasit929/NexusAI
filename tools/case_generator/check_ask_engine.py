@@ -32,7 +32,7 @@ from ingestion.forensic_records.layout_registry import load_registry  # noqa: E4
 from test_ingest_v2 import PsqlSink, ingest_case  # noqa: E402
 
 SPEC_FOCUS = "Ask engine executor on a case database"
-EXPECTED_SPECS = 19
+EXPECTED_SPECS = 20
 PARAMS = dict(seed=61, people=60, subjects=6, associates=12, period_days=20, p2_pairs=3, p3_pairs=2, p7_plants=3)
 
 

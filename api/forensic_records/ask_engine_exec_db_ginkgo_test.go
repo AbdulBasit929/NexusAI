@@ -431,6 +431,77 @@ modality, detected_type, classifier_confidence, processing_route, processing_sta
 		Expect(err).To(HaveOccurred(), "the application role may append to the audit log, not remove from it")
 	})
 
+	// The engine's health for a case (roadmap 7.8.3 row 9): counts and times from the engine's own audit rows, only the tenant's own, only the collection asked for, and never a
+	// question, an answer or a query.
+	It("reports how the engine has done on a case from its audit rows: counts, times and reasons for declines, for the tenant's own case only, and no question text", func() {
+		handler := engineHealthHandler(pool)
+		call := func(tenant, collection string) (int, map[string]any, string) {
+			rec := httptest.NewRecorder()
+			handler(rec, httptest.NewRequest(http.MethodGet, "/analysis/engine-health?tenant_id="+tenant+"&collection_id="+collection+"&days=7", nil))
+			var out map[string]any
+			if rec.Code == http.StatusOK {
+				Expect(json.Unmarshal(rec.Body.Bytes(), &out)).To(Succeed())
+			}
+			return rec.Code, out, rec.Body.String()
+		}
+		totals := func(out map[string]any) map[string]float64 {
+			m := map[string]float64{}
+			for k, v := range out["totals"].(map[string]any) {
+				m[k] = v.(float64)
+			}
+			return m
+		}
+		code, before, _ := call(truth.Tenant, truth.CaseID)
+		Expect(code).To(Equal(http.StatusOK))
+		Expect(before["contract"]).To(Equal("forensics.engine-health/v1"))
+		was := totals(before)
+
+		subject, other, _, _ := pair()
+		savedModel := askModel
+		defer func() { askModel = savedModel }()
+		sql := fmt.Sprintf("SELECT events AS n FROM v_contact_pairs WHERE src = '%s' AND dst = '%s'", subject, other)
+		askModel = func(context.Context, config, string, []govSQLTurn) (string, string) {
+			raw, _ := json.Marshal(map[string]any{"answerable": true, "sql": sql})
+			return string(raw), ""
+		}
+		secret := "ENGINE-HEALTH-SPEC-QUESTION-TEXT"
+		answered := hybridQueryRequest{TenantID: truth.Tenant, UserID: "health-spec", CollectionID: truth.CaseID, RequestClass: forensicrequest.GovernedAnalysis, Query: fmt.Sprintf("Count the events between %s and %s. %s", subject, other, secret)}
+		_, audit := runAskEngineV2(ctx, config{SynthesisModel: "scripted"}, pool, answered, time.Now())
+		Expect(audit.State).To(Equal("answered"))
+		declined := hybridQueryRequest{TenantID: truth.Tenant, UserID: "health-spec", CollectionID: truth.CaseID, RequestClass: forensicrequest.GovernedAnalysis, Query: "How many calls were made last week? " + secret}
+		_, audit = runAskEngineV2(ctx, config{SynthesisModel: "scripted"}, pool, declined, time.Now())
+		Expect(audit.State).To(Equal("declined"))
+
+		code, after, body := call(truth.Tenant, truth.CaseID)
+		Expect(code).To(Equal(http.StatusOK))
+		now := totals(after)
+		Expect(now["questions"]).To(Equal(was["questions"] + 2))
+		Expect(now["answered"]).To(Equal(was["answered"] + 1))
+		Expect(now["declined"]).To(Equal(was["declined"] + 1))
+		Expect(after["latency_ms"].(map[string]any)["p50"]).NotTo(BeNil())
+		Expect(body).NotTo(ContainSubstring(secret), "no question text is returned")
+		Expect(body).NotTo(ContainSubstring(subject), "no number of the case is returned")
+		declines := after["declines"].([]any)
+		Expect(declines).NotTo(BeEmpty())
+		reasons := ""
+		for _, d := range declines {
+			reasons += d.(map[string]any)["reason"].(string) + ";"
+		}
+		Expect(reasons).To(ContainSubstring("the question uses a relative time (#) and no reference day is stated"), "the phrase of the question is replaced by a mark")
+		Expect(body).NotTo(ContainSubstring("last week"), "no word of a question is returned")
+
+		// another tenant's case and another collection see none of it; the method and the scope are checked like every analysis read
+		code, none, _ := call("some-other-tenant", truth.CaseID)
+		Expect(code).To(Equal(http.StatusOK))
+		Expect(totals(none)["questions"]).To(BeZero())
+		code, empty, _ := call(truth.Tenant, "another-collection")
+		Expect(code).To(Equal(http.StatusOK))
+		Expect(totals(empty)["questions"]).To(BeZero())
+		rec := httptest.NewRecorder()
+		handler(rec, httptest.NewRequest(http.MethodPost, "/analysis/engine-health?tenant_id="+truth.Tenant+"&collection_id="+truth.CaseID, nil))
+		Expect(rec.Code).To(Equal(http.StatusMethodNotAllowed))
+	})
+
 	// Decision D22 (2026-10-16): two numbers are connected when they are in contact with each other or through others, in either direction. The verified example is the
 	// reference: run on the case with the numbers of two subscribers who share a contact, it must return only edges that are real contacts of the key, join the two, and the
 	// sentence built from it must name a contact that both really have.
