@@ -418,6 +418,19 @@ The whole bank (81 questions: A1, A2, A3, A4, A8 and A13 with their paraphrases,
 4. Latency is reported (median, 90th percentile, longest), and so is every repair and decline with its reason.
 5. If a gate fails, it is written up, only the cause the run shows is fixed, and the fix is measured on 105; nothing is tuned on 102, 104 or 106 and rerun. The headline wording above is not a gate.
 
+### Result of the stage-2 judgement run (cases 102, 104 and 106; 2026-10-20): every gate is **met**; 72 of 72 correct
+
+The engine arm, agreement off, code of 280af5c, 24 questions on each case, in one pass; no question was re-asked and no run was interrupted (each case ran 14 to 17 minutes).
+
+| Gate | Result |
+|---|---|
+| 1. Wrong answers zero, in total and in each kind | **Met: 0 wrong of 72**, in `coloc_cells` (36 of 36) and in `coloc_hours` (36 of 36) |
+| 2. At least 90% correct in each kind | **Met: 100% in each kind**; nothing declined, nothing abstained |
+| 3. The 26 control questions 100% correct | **Met: 26 of 26** (13 pairs that never meet: "No row matches what you asked." for the cells, a row holding 0 for the hours) |
+| 4. Latency, repairs, declines | Answered 72: median 31 s, 90th percentile 40 s, longest 79.5 s (case 102: 34 / 48 / 80 s; 104: 34 / 40 / 42 s; 106: 27 / 29 / 31 s). **No repair on any question** (every one was right at the first attempt). No decline |
+
+**What this does and does not say.** On the unseen cases the engine answers "which cells did X and Y both use in the same hour" and "in how many hours were they at the same cell" with the right cells and the right count, and says "no row" and 0 for a pair that never meets, from `v_cell_visits` and the verified co-location example, with no change to the engine after the development check. It is the hourly question only. **Still open:** the 15-minute co-location of the generator's A5 key, A7 possible meetings (they need a finer reading than one row per hour), the weak sentence over a cells answer ("13 positions"), and the larger and noisier cases. The seeds 102, 104 and 106 are now used for this class as well; 105 stays unopened for a fix.
+
 ## Next
 
-Stage 2 of the M3 bank (A5 co-location and A7 meetings: a judge for the cell-set kind, a measurement on a development case, gates written first), then the engine on the typed families beyond call records and internet sessions, the remaining interface pieces of 7.8 (lanes, calendar, the entity drawer), the composition of the sentence under the number lock (M5), and applying migration 017 to the live database on the owner's go, after a backup, so that the engine can be deployed and measured on the live stack.
+The rest of A5 and A7 (the 15-minute co-location and possible meetings, which need a finer reading than the hourly view), the sentence over a cells answer, then the engine on the typed families beyond call records and internet sessions, the remaining interface pieces of 7.8 (lanes, calendar, the entity drawer), the composition of the sentence under the number lock (M5), and applying migration 017 to the live database on the owner's go, after a backup, so that the engine can be deployed and measured on the live stack.
