@@ -1,0 +1,81 @@
+# Reconciliation of 2026-10-20 (evening): where the product is, what comes next, and how to test less
+
+Written after the engine's deploy, the M3 bank (stages 1 and 2), and the typing of two more collections. It reconciles the maturity roadmap (`nexusai-maturity-roadmap-20261012.md`), the handoff (`docs/work/HANDOFF_LOCAL_20261007.md`) and the live system. Where this page and an older table disagree, this page is the later reading; the roadmap's own tables carry short pointers to it.
+
+## 1. The truth, item by item
+
+**Live system.** API image `cc98f7e8c8fb` (rollbacks `before-name-20261020` = `3132ff0a9630`, `before-guards-20261020`, `before-imei-20261020`, `before-d22-20261019`), worker overlay `0651ab31e9c1` (rollbacks `before-c4v2-20261020`, `before-seed-layout-20261020`, `before-match-fix-20261016`), Ask engine first (`FORENSIC_ASK_V2`, `_FIRST` on, `_AGREE` off), the governed lane on, the read-only analyst role live (migration 017, 019 applied), 16 layout entries registered. Two backups taken today in `C:/tmp/nexusai-backups/`.
+
+| Area | Done | Partly | Open | Needs you |
+|---|---|---|---|---|
+| **Phase 0 decisions** | D1, D2, D4 (per item), D7, D14 to D22 | | D3 (RTX 2080, optional), D5, D6 (front door), D8 (inventory view), D9, D10 (reviewers), D11, D12, D13 with D20 (one repository history), G53 | yes, see 7 |
+| **Typed data (Phase 1)** | Tables and migrations 012 to 019 applied; Ingest v2 live in shadow; 16 layout entries; the real collection typed; the multimodal acceptance case typed (5,000 + 2,500, VoLTE as voice); forensic-demo typed (8,941 + 2,500; 6,239 call rows effective) | 12 of the 16 call and internet files of the four older collections are recognised; two collections are still untyped because of four 2 to 4-row fixtures | Wave 1 into the acceptance collection (D18, G41); typed writers for plates, access logs, transactions, subscribers, tower lists (G43); entity and relationship tables are empty (G5); assisted mapping and import wizard (G2); real-file reconciliation per layout (G23); completeness check against a declared total (G9) | D9 (real samples), D18 |
+| **Case generator and oracles** | 20-case register, oracles A1 to A13, verified against the generator today | | | |
+| **Ask engine (Phase 2)** | M1 and M2 (catalogue, validator, role, call records end to end); M3 link analysis: D22 meaning, bank stage 1 (A1, A2, A3, A4, A8, A13: judgement 244 of 245, the one wrong fixed, **81 of 81** on a fresh case), stage 2 (co-location at the hour: **72 of 72**); engine-health read live | M4 (internet and application usage typed and measured; the other families answered by the older lane, no engine path) | A5 at 15 minutes and A7 meetings (need a finer reading than one row per hour); M5 composition under the number lock (D17 decided); M6 model bake-off (laptop first, D21); M7 languages; M8 retire the old paths; conversation surface and front door | D6, D10 |
+| **Interface** | Connections, Places, result views by shape, carrier badges, link starters, engine-health card (built) | Another session is redesigning the workspace (Stitch, stage by stage) and has uncommitted edits to the Case Overview | Engine card mount, triage queue, evidence inventory (G10), layout chip and quality tab, conversation surface | D8; one owner of the workspace code |
+| **Speed** | Measured and tuned (6.8.13) | p50 about 31 to 44 s; connection questions 1 to 3 minutes (200 s on the real collection); the 15 s and 30 s targets of D21 are not met on the laptop | Thick views (a migration), dual-channel RAM, the RTX 2080 measurement | go for the migration; D3 |
+| **Media (Phase 3)** | NX-MMR baselines exist | | Speech (Urdu 45.5% word error, no Punjabi, no Pashto), Urdu OCR (0 of 1), plates (59% on images, 7% on video): G19 to G21 | D4, D10 |
+| **Process** | Gates written before runs; fresh seeds; deploys by host-built binary with rollback tags | Two working trees (G51) | One history (D20); the `Co-Authored-By` trailers on 11 pushed commits (G53) | yes |
+
+## 2. What today's runs taught (new evidence)
+
+1. **Typing changes numbers by design.** The typed layer keeps exact repeats and flags them; the effective view leaves them out. In forensic-demo one 3,931-row file is 68.7% exact repeats (identical to the second), so the case's call count goes from 8,642 to 6,239. Time zones, event types and directions are read by rule, not as version 1 read them.
+2. **The question factory's keys are built on version 1,** so on a typed case a verdict mixes two things: a real engine error and a changed definition. Of the 30 call and internet questions on the multimodal case, 4 were real engine faults (fixed, below); on forensic-demo 6 of 7 wrong verdicts are the definition change and 1 was a real fault (section 8).
+3. **The engine can silently narrow or answer from nothing.** The model added a direction filter nobody asked for ("latest call" answered from outgoing voice only); three volume questions were answered "no value" over a column no row populates. Both are fixed by general guards (a DIRECTION obligation; a volume guard fed by the coverage read), but the class is wider than volume: **any column the query reads that the case never populates.**
+4. **Vocabulary gaps hide until a question hits them.** `VOLTE` (598 rows) and `GPRS` (2,721) were event type `other`, 66% of one case; nothing said so. Version 2 of the layout fixed it, after the owner's decision.
+5. **A change cycle costs 40 to 90 minutes.** Unit specs 2 minutes (pre-commit), image and deploy 8, live checks 8, a 30-question spread 20, a bank of 81 questions 65, because one question takes 25 to 45 seconds on the laptop and the model serves one at a time.
+6. **Most of what the runs found was visible in the data before any question.** Four of the five surprises (undirected volume, labels read as other, repeats dropped, a zone assumed) appear in a few seconds in `tools/dev/typing_report.py` (counts and shares only, no model). That is the lever for testing less.
+
+## 3. What is critical, and in what order
+
+The limit on progress is not the number of features; it is **the cost of finding out that a change is wrong.** Two things set that cost: the model's speed (every question is 30 seconds or more, and tests are questions) and the fact that data and definition problems are found by asking questions instead of by reading the data. So the order is: make wrong data visible without a model; make the engine refuse to answer from unpopulated columns; make the model faster; then widen.
+
+## 4. The next steps, in order
+
+| # | Step | Time | Why now | Needs you |
+|---|---|---|---|---|
+| S1 | **Close forensic-demo:** classify its wrong verdicts as real faults or definition changes, fix the real ones, re-key the factory on the effective view for typed cases, record | today | it is typed live and its answers differ from version 1 | confirm the Asia/Karachi assumption for the one file with no zone |
+| S2 | **Column-population guard** (general form of the volume guard): the coverage read lists which analyst-view columns a case populates; a query that filters or aggregates an unpopulated column is declined with the reason; an answer says how many exact repeats were left out | 1 day | closes the class found today, and lets the engine say why instead of "no value" | |
+| S3 | **Test policy and one live smoke** (section 6): consolidate the live scripts into `tools/dev` (10 questions, about 5 minutes); the typing report after every data change; heavy runs only at milestones and in the background | 0.5 day | the owner's request; it removes most of the waiting | |
+| S4 | **Speed:** measure the RTX 2080 on the EliteDesk (about 2 hours; a 5-fold decode gain would cut every run to a fifth), and/or build the shared-contacts thick view (a migration, a short query instead of a recursive one) | 2 to 4 days | the dominant cost of use and of testing | D3; a go for the migration |
+| S5 | **Finish the data:** the four fixtures of runtime-acceptance and records-demo (one needs the interpreter to pick the subject by direction), wave 1 into a sibling collection (D18) so A1 to A13 can be shown | 3 to 5 days | the demonstration cases and the generated cases are the product's showroom (G41) | |
+| S6 | **Interface** (one owner of the workspace code, with the redesign session): mount the engine card; typing report as a quality tab and layout chip; evidence inventory (G10); front door (D6) | 4 to 10 days | what is built is not yet where the analyst looks | D6, D8 |
+| S7 | **Widen the engine:** A5 at 15 minutes and A7; M5 composition under the number lock; M4 only for the families where the engine beats the lane; M7 when reviewers are named | weeks 2 to 4 | after reliability and speed | D10 |
+| S8 | **Process:** one repository history (D20), the trailers (G53) | 1 day | stops hand copying between trees | yes |
+
+## 5. The phases, re-sequenced
+
+* **Phase 1.5, "dependable and fast" (new, 1 to 2 weeks): S1 to S4.** Gate: the typing report is clean or explained for every typed case; the column-population guard has its specs; the live smoke is green in 6 minutes or less; the connection class has a measured plan (GPU measurement or thick view); the factory keys know the effective view.
+* **Phase 1, finished by S5; Phase 2 continues with S6 and S7** (interface, M4 to M8). Gate as in the roadmap, plus the new test tiers.
+* **Phase 3 (media depth)** runs in parallel only when its inputs exist (D4 downloads, D10 reviewers); its numbers (G19 to G21) are the weakest in the product, but the owner's order (D12) is structured data and link analysis first.
+* **Phase 4 (cross-family intelligence: an index of identifiers mentioned across documents, OCR and speech) and Phase 5 (enterprise: identity, case registry, authority)** stay as written; nothing today changes their order.
+
+## 6. Testing policy: tiers, so that no change waits an hour
+
+| Tier | What | Time | When |
+|---|---|---|---|
+| T0 | Unit and live-database specs (Go engine specs, Python registry, loader) | 1 to 3 minutes | every change, automatic (pre-commit) |
+| T1 | **Typing report** (`tools/dev/typing_report.py COLLECTION`) | seconds | after any layout, typing or back-fill change, before any question |
+| T2 | **Live smoke:** about 10 questions (connections, IMEI, a template request, the cell-site sentence, engine health; the six real-collection checks with `--real`, counts only) | 5 to 6 minutes | after every deploy |
+| T3 | **Re-ask only what changed:** the questions that failed or that the change can touch | 1 to 3 minutes | after a fix |
+| T4 | **Milestone runs:** the full banks and the factory spreads on fresh seeds, gates written first | 20 to 70 minutes | once per milestone or phase, **in the background**; read the summary, never wait on it |
+
+Rules: a fix is measured on another unspent seed (unchanged); a bank is never re-run because of a change that cannot touch it; a run that hits a limit (a one-hour suite timeout, a sleeping machine) re-runs only the questions that did not run; no per-change spread.
+
+## 7. What only you can decide, with the recommendation
+
+| Decision | Recommended |
+|---|---|
+| Time zone for the one forensic-demo file with none (3,931 rows, assumed Asia/Karachi and marked so) | confirm, or remove the file from the case |
+| D3: measure the RTX 2080 (optional under D21) | **yes, now**: it is the largest lever on waiting time, for use and for tests |
+| A migration for a shared-contacts thick view | yes, after the GPU measurement shows whether it is still needed |
+| D6 front door on; D8 inventory view | yes, behind their gates |
+| D10 reviewers for Urdu, Punjabi, Pashto | name them; the lead time gates M7 |
+| D20 one repository history; G53 trailers | start the step-by-step merge; do not force-push without a separate yes |
+| Type runtime-acceptance and records-demo (four tiny files) | only if those two collections are used in a demonstration |
+
+## 8. The forensic-demo check (the first use of the new method)
+
+27 of the 30 call and internet questions, engine first: 19 correct, 1 abstained, 7 wrong against the factory's version-1 keys. **Re-keyed on the effective views by SQL, with no model: 6 of the 7 equal the typed answer** (6,239 calls against 8,642; 9 distinct callers against 10; average latitude 31.5523; a month 378; night 1,425; a date range 996). **One real fault:** a person's name compared with a number column was answered "0" (fixed by a NAME obligation, deployed, asked again: no count is stated). The method worked: the typing report named the cause of the six before any question was asked, and the re-keying took seconds where the run took 40 minutes. Its cost was the run itself: this is why section 6's tiers put a spread at a milestone, not at a change.
+
+Findings for the plan (added to S2): the engine's guards so far are per class (volume, direction, name); the general form is a **column-population guard** (S2) plus a **question-meaning guard** for identifiers (a name or any constant that cannot be a value of the column it is compared with). And an environment safeguard: the Postgres container's shared memory is the 64 MB default, and a large parallel query failed on it (`shm_size` or no parallel workers for the analyst role).
