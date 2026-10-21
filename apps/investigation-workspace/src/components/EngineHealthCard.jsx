@@ -27,7 +27,14 @@ export function EngineHealthCard({ caseId, days = 7 }) {
   if (state.status !== 'ready') return null
   const { totals, latency_ms: latency, repairs, declines = [] } = state.data
   const answeredShare = totals.questions ? Math.round((100 * totals.answered) / totals.questions) : 0
-  const most = Math.max(1, ...declines.map(d => d.count))
+  // reasons that differ only by a number ("only 3 of 6 files ...") read the same to an analyst: one line each, counts added
+  const grouped = Object.values(declines.reduce((acc, d) => {
+    const label = reasonLabel(d.reason)
+    acc[label] = acc[label] || { label, count: 0 }
+    acc[label].count += d.count
+    return acc
+  }, {})).sort((a, b) => b.count - a.count)
+  const most = Math.max(1, ...grouped.map(d => d.count))
   return (
     <section className="eh" aria-labelledby={`eh-title-${caseId}`}>
       <h2 id={`eh-title-${caseId}`}>How the Ask engine has done here, last {days} days</h2>
@@ -38,13 +45,13 @@ export function EngineHealthCard({ caseId, days = 7 }) {
         <div><dt>Time to answer, 9 in 10</dt><dd>{seconds(latency?.p90)}</dd></div>
         <div><dt>Repairs per answer</dt><dd>{totals.answered ? (repairs / totals.answered).toFixed(1) : '-'}</dd></div>
       </dl>
-      {declines.length ? (
+      {grouped.length ? (
         <>
           <h3 className="visually-hidden">Why it did not answer</h3>
           <ul className="eh__list" aria-label="Why the engine did not answer">
-            {declines.slice(0, 4).map(d => (
-              <li key={d.reason}>
-                <span>{reasonLabel(d.reason)}</span><b>{formatNumber(d.count)}</b>
+            {grouped.slice(0, 4).map(d => (
+              <li key={d.label}>
+                <span>{d.label}</span><b>{formatNumber(d.count)}</b>
                 <span className="eh__bar" aria-hidden="true"><i style={{ inlineSize: `${Math.round((100 * d.count) / most)}%` }} /></span>
               </li>
             ))}

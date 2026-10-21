@@ -12,7 +12,8 @@ const health = {
   repairs: 6,
   declines: [
     { reason: 'no analyst view fits the question closely enough', count: 6 },
-    { reason: 'the analyst views cannot speak for this case: the case has no typed call records', count: 3 },
+    { reason: 'the analyst views cannot speak for this case: the case has no typed call records', count: 2 },
+    { reason: "the analyst views cannot speak for this case: only 3 of the case's 6 call and internet record files are in the typed tables", count: 1 },
   ],
 }
 

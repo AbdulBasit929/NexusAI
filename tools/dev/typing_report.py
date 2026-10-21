@@ -58,8 +58,8 @@ def main(argv):
         findings.append("only %d of %d call and internet files are typed: the engine declines this case (coverage guard)" % (typed, files))
 
     comm = psql("SELECT layout_id || ' v' || layout_version, dataset_kind, time_basis, count(*), count(*) FILTER (WHERE 'duplicate_row' = ANY (quality_flags)) FROM forensic.comm_event WHERE %s GROUP BY 1, 2, 3 ORDER BY 1, 3" % where)
-    total = sum(int(r[3]) for r in comm)
-    dups = sum(int(r[4]) for r in comm)
+    total = sum(int(r[3]) for r in comm if r[1] == 'target_cdr')  # tower dumps are not in the analyst views
+    dups = sum(int(r[4]) for r in comm if r[1] == 'target_cdr')
     if comm:
         print("\ncall records (comm_event): %d typed, %d flagged as exact repeats (%s), %d in the effective view" % (total, dups, pct(dups, total), total - dups))
         for layout, kind, basis, n, d in comm:
@@ -68,19 +68,19 @@ def main(argv):
                 findings.append("%s: %s rows carry the time basis '%s' (a zone was assumed, not declared)" % (layout, n, basis))
         if total and dups / total > FLAG_DUP_SHARE:
             findings.append("%s of the call rows are exact repeats and are left out of the effective view: counts differ from version 1 and from any key built on it" % pct(dups, total))
-        kinds = psql("SELECT event_type, count(*) FROM forensic.comm_event WHERE %s AND NOT ('duplicate_row' = ANY (quality_flags)) GROUP BY 1 ORDER BY 2 DESC" % where)
+        kinds = psql("SELECT event_type, count(*) FROM forensic.comm_event WHERE %s AND dataset_kind = 'target_cdr' AND NOT ('duplicate_row' = ANY (quality_flags)) GROUP BY 1 ORDER BY 2 DESC" % where)
         eff = sum(int(r[1]) for r in kinds)
         print("  event types: " + ", ".join("%s %s (%s)" % (k, n, pct(int(n), eff)) for k, n in kinds))
         other = sum(int(n) for k, n in kinds if k == "other")
         if eff and other / eff > FLAG_OTHER_SHARE:
             raw = psql("SELECT coalesce(upper(raw_payload->>'CALL_TYPE'), upper(raw_payload->>'Call_Type'), upper(raw_payload->>'call_type'), '(no label column)'), count(*) FROM forensic.comm_event WHERE %s AND event_type = 'other' AND NOT ('duplicate_row' = ANY (quality_flags)) GROUP BY 1 ORDER BY 2 DESC LIMIT 6" % where)
             findings.append("%s of the call rows are event type 'other': a question about voice or sms leaves them out. Labels behind it: %s" % (pct(other, eff), ", ".join("%s %s" % (a, b) for a, b in raw)))
-        dirs = psql("SELECT direction, count(*) FROM forensic.comm_event WHERE %s AND NOT ('duplicate_row' = ANY (quality_flags)) GROUP BY 1 ORDER BY 2 DESC" % where)
+        dirs = psql("SELECT direction, count(*) FROM forensic.comm_event WHERE %s AND dataset_kind = 'target_cdr' AND NOT ('duplicate_row' = ANY (quality_flags)) GROUP BY 1 ORDER BY 2 DESC" % where)
         print("  directions: " + ", ".join("%s %s (%s)" % (k, n, pct(int(n), eff)) for k, n in dirs))
         unknown = sum(int(n) for k, n in dirs if k in ("unknown", "none"))
         if eff and unknown / eff > FLAG_UNKNOWN_DIRECTION:
             findings.append("%s of the call rows have no known direction: incoming and outgoing counts are partial" % pct(unknown, eff))
-        pop = psql("SELECT count(*) FILTER (WHERE imei IS NOT NULL), count(*) FILTER (WHERE imsi IS NOT NULL), count(*) FILTER (WHERE cell_key IS NOT NULL), count(*) FILTER (WHERE lat IS NOT NULL) FROM forensic.comm_event WHERE %s AND NOT ('duplicate_row' = ANY (quality_flags))" % where)[0]
+        pop = psql("SELECT count(*) FILTER (WHERE imei IS NOT NULL), count(*) FILTER (WHERE imsi IS NOT NULL), count(*) FILTER (WHERE cell_key IS NOT NULL), count(*) FILTER (WHERE lat IS NOT NULL) FROM forensic.comm_event WHERE %s AND dataset_kind = 'target_cdr' AND NOT ('duplicate_row' = ANY (quality_flags))" % where)[0]
         print("  populated: imei %s, imsi %s, cell %s, position %s" % tuple(pct(int(x), eff) for x in pop))
         q = psql("SELECT count(*) FROM forensic.records_audit_log WHERE %s AND action = 'records.ingest.typed_shadow' AND (details->'typed_ingest'->>'rows_quarantined')::int > 0" % where)
         print("  typed-ingest audit rows that report quarantined rows: %s" % q[0][0])

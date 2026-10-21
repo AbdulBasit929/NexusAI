@@ -27,6 +27,10 @@ It reads only the engine's own audit rows (`ask_engine_v2.question` in `forensic
 
 Spec (`ask_engine_exec_db_ginkgo_test.go`, the 20th live spec): the counts rise by the questions asked and not by two audited interface requests, the median is present, the reasons show `relative time (#)` and not the words of the question, the secret text and the case's number are not in the body, another tenant and another collection see zero questions, POST is 405. The component that draws it, `EngineHealthCard` (with its tests), exists in the workspace and is **not yet mounted**: the dashboard (Case Overview, the placement of row 9) is being edited in the working tree by another session, so the card goes in when that work is committed.
 
+## The typing report read (`api/forensic_records/analysis_typing_report.go`; 2026-10-21; roadmap 7.8.3 rows 6 and 10)
+
+`GET /analysis/typing-report?collection_id=...` says what the typed tables hold for a case, with counts and shares only (never a value, a number of the case, a name or a question): the call and internet files in the typed records against the files the engine's guard counts, the call rows with the exact repeats left out (tower dumps are not counted, as in the views), the kinds of event and the directions, the columns that are filled, the time basis of each layout, what the internet records state (a volume, a public address, a server port), the evidence files by modality with the failed ones, and `findings` in plain words from the counts (files not typed, a zone assumed, repeats, event type other, unknown direction, no volume, no public address). The tenant's own rows and the collection asked for. The Ask start page shows it (and the engine-health card) in a closed panel, `DataQualityCard`; the command-line form is `tools/dev/typing_report.py`. Migration 020 adds `v_contact_links`, `v_connection_edges` and `v_evidence_inventory` to the analyst views the engine reads (see `docs/data/ask-engine-v2.md`).
+
 ## What the workspace shows and where
 
 | Place | What |

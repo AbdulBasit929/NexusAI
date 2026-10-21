@@ -101,6 +101,12 @@ Every entry shares one open item: **the source time zone.** No file states one, 
 * **Live (2026-10-20, the owner's go: "write the layouts and type forensic-demo"):** both entries are in the worker image (`0651ab31e9c1`; the previous worker, `40a9a7195685`, is kept as `before-c4v2-20261020`) and registered in `forensic.layout_versions`; the multimodal call records were typed again under version 2 (voice 1,486, data 2,721, sms 793); **`nexusai-forensic-demo` is typed** (see `docs/data/ask-engine-v2.md`).
 * **Tests:** registry 59 (three new), typed ingest 47 (two pins moved to version 2), real-data tools 32, loader 12; `layout_registry validate` says `entries=16`; the case register still describes the generator.
 
+## 6c. The last four fixtures, and a subject chosen by direction (2026-10-21)
+
+The four 2-to-4-row files left in runtime-acceptance and records-demo have draft layouts read from the files: `call-iso-10-demo` (subscriber, source and target numbers, ISO times with an offset, MO and MT), `call-ab-9-demo` (`a_number` and `b_number` are caller and callee, no subscriber column, 00-prefixed numbers, ORIGINATING and TERMINATING), `ipdr-sessions-11-demo` (ports, one undirected volume, a time-zone column that stays in the raw row) and `ipdr-url-10-demo` (one instant ending in Z, URL, cell, volumes in both directions). For the caller-and-callee file the interpreter learned `fields.a.by_direction`: the subscriber is the caller on an outgoing event and the callee on an incoming one; a direction that is not known leaves the subscriber unknown (flags `subject_direction_unresolved` and `subject_missing`), never a guess. **With them all 16 call and internet files of the four older collections are recognised and read** (every row accepted on the stored files; subscriber and counterparty right in both directions). 20 entries; tests: registry 61, typed ingest 47, real-data tools 32.
+
+**Live (2026-10-21):** worker `db43bb68c042` (rollback `before-s5-layouts-20261021`), layouts registered, runtime-acceptance and records-demo typed; **records-demo's four jobs state no time zone, so Asia/Karachi was assumed and the rows are `assumed_by_profile`, awaiting the owner's confirmation.** Every collection that holds call or internet files is typed.
+
 ## 7. Making a draft active
 
 1. Put the real file in the vault, register it with its authority, and profile it (`docs/data/real-data-handling-policy.md`, sections 3 and 4).

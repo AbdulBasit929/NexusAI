@@ -1164,7 +1164,7 @@ Severity: P1 blocks a trustworthy product, P2 degrades it, P3 is polish or proce
 | G7 | No sample file states a time zone; times are Excel serials or text | Section 4.2, F3 | P1 | 1 | |
 | G8 | Foreign rows (adapter names, MAC addresses) inside call-record files | F11 | P2 | 1 | |
 | G9 | No completeness check against a declared total | F10 | P2 | 1 | |
-| G10 | "How many images are in this case?" is withheld: no evidence-inventory view | Rehearsal 9 Oct | P2 | 0 | D8 |
+| G10 | "How many images are in this case?" is withheld: no evidence-inventory view. **Closed for the engine 2026-10-21:** migration 020 adds `v_evidence_inventory`; the question is answered (23 images, 22 completed, 1 failed). The interface page for it is not built. | Rehearsal 9 Oct | P2 | 0 | D8 |
 | G11 | Free-word and value-list questions declined ("still need manual review", "what languages") | Rehearsal | P2 | 2 | |
 | G12 | A document question was sent to the access-log family. **Fixed 2026-10-12 (the word "access" no longer hijacks it); DOC-05 itself is still unanswered, a retrieval question** | Rehearsal, DOC-05 | P2 | 0 | |
 | G13 | When the lane declines, the older path can take minutes. **Fixed and deployed 2026-10-12: one 30 s model attempt after a decline** | 458 s, 443 s, 409 s | P1 for demos, closed | 0 | |
@@ -1195,10 +1195,10 @@ Severity: P1 blocks a trustworthy product, P2 degrades it, P3 is polish or proce
 | G38 | The offline map shows nothing in the spike when the tile cache is not running, and says nothing | Section 7.9 | P3 | now | |
 | G39 | Version 1 gives wrong event times to eight workbook layouts, and every question still reads version 1 | `docs/data/ingest-v2.md` | P1 | 1 | the switch needs your go |
 | G40 | The registry recognised 6 of the 34 files of the four older collections (all as one draft tower-dump layout); 28 were not recognised. *Update 2026-10-20: with the seed internet-record layout (`ipdr-seed-s8`, now in the worker image and in `layout_versions`) 10 of the 16 call-record and internet-record files are recognised, holding 26,450 of 26,466 rows; the 6 left are test fixtures of 2 to 4 rows in three collections (`docs/data/layout-registry.md`, 6a). The multimodal acceptance case is typed live (5,000 call records, 2,500 internet sessions) and so is forensic-demo (8,941 call rows, 2,500 internet sessions; the effective call count is 6,239 because the typed layer drops exact repeats); 12 of the 16 files are recognised, the four left are fixtures of runtime-acceptance and records-demo* | `docs/data/typed-family-switch.md` | P2 | 1 | D9 |
-| G41 | The acceptance collection holds no real-shaped structured data for link analysis, so A1 to A13 cannot be demonstrated in the interface | Section 8.5 | P2 | 1 | D18 |
+| G41 | The acceptance collection holds no real-shaped structured data for link analysis, so A1 to A13 cannot be demonstrated in the interface. **Started 2026-10-21:** development case 1 of the generator is in the sibling collection `nexusai-wave1-dev1-20261021` (33 files typed); the other seven development cases are not loaded. | Section 8.5 | P2 | 1 | D18 |
 | G42 | The workspace lists 2 of the 5 collections | Dashboard text | P3 | 1 | D20 |
 | G43 | No typed writer or layout for access logs, plates (ANPR), transactions, subscribers, or tower lists | Typed-switch audit | P2 | 1 and 4 | D9 |
-| G44 | The typed compiler and the older path still read version 1; only the lane can use a typed view | `docs/data/typed-family-switch.md` | P2 | 1 and 2 | |
+| G44 | The typed compiler and the older path still read version 1; only the lane can use a typed view. **Partly closed 2026-10-20/21:** the older path reads the effective view for a plan over one switched family (S2b); the interface templates and the helpers that read `forensic.records` directly are still version 1. | `docs/data/typed-family-switch.md` | P2 | 1 and 2 | |
 | G45 | CPU latency for multi-step generation: each repair costs tens of seconds, and link-analysis SQL may take minutes. Laptop first (D21): measured and tuned in 6.8.13 before any GPU is proposed | Section 6.6; 6.8.12 | P1 for use | 2 | D21 (decided) |
 | G46 | No question bank for link analysis through the engine (20 or more per analysis, with paraphrases and languages) | Section 6.8.10 | P1 | 2 (M3) | D10 |
 
