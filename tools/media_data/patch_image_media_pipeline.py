@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-"""Patch the media_pipeline.py that is INSIDE the running worker image (not the repository's newer file) so it can start the new OCR backends, and write the result for the overlay build.
+"""Patch the media_pipeline.py that is INSIDE the running worker image (not the repository's newer file) so it can start the new OCR backends and choose a speech model by duration, and write the
+result for the overlay build.
 
     python -X utf8 tools/media_data/patch_image_media_pipeline.py <extracted image media_pipeline.py> <output path>
 
 Why: the worker image in production is the older build plus the Ingest v2 overlay; its media_pipeline.py is 500 lines older than the repository's and a straight copy of the repository file would
-bring in unrelated, unreviewed changes (video plate readers, contextual routing) next to an older worker.py. This script makes exactly two edits to the image's own file, each of which must match
-once: (1) the Tesseract processor can take its languages and page mode as arguments (the router builds an English and an Urdu reader from the same pinned data); (2) the OCR branch of the factory
-selects the `auto` router or the `onnx` backend from FORENSIC_OCR_BACKEND and otherwise keeps the existing Tesseract behaviour byte for byte. Line endings of the input are preserved.
+bring in unrelated, unreviewed changes (video plate readers, contextual routing) next to an older worker.py. This script makes a few edits to the image's own file, each of which must match once:
+(1) the Tesseract processor can take its languages and page mode as arguments (the OCR router builds an English and an Urdu reader from the same pinned data); (2) the OCR branch of the factory
+selects the `auto` router or the `onnx` backend from FORENSIC_OCR_BACKEND and otherwise keeps the existing Tesseract behaviour byte for byte; (3) the speech client can name a fast model for long
+recordings (FORENSIC_ASR_LONG_AUDIO_MODEL above FORENSIC_ASR_LONG_AUDIO_SECONDS) and records which model read each recording. Line endings of the input are preserved.
 """
 import sys
 
@@ -37,6 +39,37 @@ EDITS = [
         '            image_processors.append(OnnxPaddleOCRProcessor.from_environment())\n'
         '        else:\n'
         '            image_processors.append(TesseractImageOCRProcessor.from_environment())\n',
+    ),
+    (
+        '    def __init__(self, endpoint: str, model: str, timeout_seconds: int = 300) -> None:\n        self.endpoint = endpoint\n        self.model = model\n        self.timeout_seconds = timeout_seconds\n',
+        '    def __init__(self, endpoint: str, model: str, timeout_seconds: int = 300, long_model: str = "", long_seconds: int = 0) -> None:\n'
+        '        self.endpoint = endpoint\n        self.model = model\n        self.timeout_seconds = timeout_seconds\n'
+        '        self.long_model = long_model.strip()\n        self.long_seconds = max(0, int(long_seconds))\n',
+    ),
+    (
+        '        return cls(endpoint, model, max(15, int(os.getenv("FORENSIC_ASR_TIMEOUT_SECONDS", "300"))))\n',
+        '        return cls(endpoint, model, max(15, int(os.getenv("FORENSIC_ASR_TIMEOUT_SECONDS", "300"))),\n'
+        '                   long_model=os.getenv("FORENSIC_ASR_LONG_AUDIO_MODEL", ""), long_seconds=int(os.getenv("FORENSIC_ASR_LONG_AUDIO_SECONDS", "0") or 0))\n'
+        '\n'
+        '    def _model_for(self, path: Path) -> str:\n'
+        '        """The accurate model for a recording up to long_seconds, the fast one above it (real-time factor 1.7 against 1.0 on the laptop CPU); the duration is read with ffprobe."""\n'
+        '        if not self.long_model or self.long_seconds <= 0:\n'
+        '            return self.model\n'
+        '        try:\n'
+        '            duration = float((_ffprobe(path).get("format") or {}).get("duration") or 0)\n'
+        '        except (MediaProcessingError, ValueError):\n'
+        '            return self.model\n'
+        '        return self.long_model if duration > self.long_seconds else self.model\n',
+    ),
+    (
+        '        boundary = f"nexusai-{uuid.uuid4().hex}"\n        audio = path.read_bytes()\n        fields = {"model": self.model, "response_format": "verbose_json"}\n',
+        '        boundary = f"nexusai-{uuid.uuid4().hex}"\n        audio = path.read_bytes()\n        model_used = self._model_for(path)\n        fields = {"model": model_used, "response_format": "verbose_json"}\n',
+    ),
+    (
+        '                        "processor_revision": self.processor_revision,\n                        "model": self.model,\n                        "parent_evidence_id": evidence_id,\n'
+        '                        "parent_version_id": version_id,\n                        "manual_review_required": True,\n',
+        '                        "processor_revision": self.processor_revision,\n                        "model": model_used,\n                        "parent_evidence_id": evidence_id,\n'
+        '                        "parent_version_id": version_id,\n                        "manual_review_required": True,\n',
     ),
 ]
 

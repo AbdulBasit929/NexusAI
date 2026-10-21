@@ -45,21 +45,29 @@ def main():
         texts = [arabic.recognize(engine._crop_quad(image, q))[0] for q in boxes]
         return arabic_share(" ".join(texts))
 
-    sets = {}
-    rows = [json.loads(l) for l in open(Path(DATA) / "generated" / "ocr_ur" / "truth.jsonl", encoding="utf-8")]
-    sets["urdu pages (expect high)"] = [cv2.imread(str(Path(DATA) / "generated" / "ocr_ur" / r["file"])) for r in rows if r["kind"] == "page" and r["partition"] == "dev"]
-    rows = [json.loads(l) for l in open(Path(DATA) / "generated" / "ocr_en" / "truth.jsonl", encoding="utf-8")]
-    sets["english pages (expect low)"] = [cv2.imread(str(Path(DATA) / "generated" / "ocr_en" / r["file"])) for r in rows if r["partition"] == "dev"][:64]
+    def pages(folder, rows):
+        for r in rows:
+            yield cv2.imread(str(Path(DATA) / "generated" / folder / r["file"]))
+
+    ur_rows = [json.loads(l) for l in open(Path(DATA) / "generated" / "ocr_ur" / "truth.jsonl", encoding="utf-8")]
+    en_rows = [json.loads(l) for l in open(Path(DATA) / "generated" / "ocr_en" / "truth.jsonl", encoding="utf-8")]
     table = pq.read_table(Path(DATA) / "cord" / "test.parquet")
-    receipts = []
-    for i in range(table.num_rows):
-        if partition(f"cord-{i}") == "dev":
-            data = table.slice(i, 1).to_pylist()[0]["image"]["bytes"]
-            receipts.append(cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR))
-    sets["receipts (expect low)"] = receipts[:64]
-    for name, images in sets.items():
-        shares = [page_share(image) for image in images]
-        shares = [s for s in shares if s is not None]
+
+    def receipts():
+        count = 0
+        for i in range(table.num_rows):
+            if partition(f"cord-{i}") == "dev" and count < 64:
+                count += 1
+                data = table.slice(i, 1).to_pylist()[0]["image"]["bytes"]
+                yield cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
+
+    sets = {
+        "urdu pages (expect high)": pages("ocr_ur", [r for r in ur_rows if r["kind"] == "page" and r["partition"] == "dev"]),
+        "english pages (expect low)": pages("ocr_en", [r for r in en_rows if r["partition"] == "dev"][:64]),
+        "receipts (expect low)": receipts(),
+    }
+    for name, images in sets.items():  # one image in memory at a time
+        shares = [s for s in (page_share(image) for image in images) if s is not None]
         shares.sort()
         print(f"{name:28} n={len(shares):3}  min {shares[0]:.2f}  p10 {shares[len(shares) // 10]:.2f}  median {st.median(shares):.2f}  p90 {shares[(len(shares) * 9) // 10]:.2f}  max {shares[-1]:.2f}")
 

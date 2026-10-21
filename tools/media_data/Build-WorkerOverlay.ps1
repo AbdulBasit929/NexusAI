@@ -16,6 +16,7 @@
 #>
 param(
   [Parameter(Mandatory = $true)][string]$Tag,
+  [string]$BaseTag = '',   # build on `before-<BaseTag>` (an earlier, unpatched rollback image) instead of the running one: the patch of media_pipeline.py applies to the ORIGINAL file only
   [string[]]$NewFiles = @('onnx_text_ocr.py', 'onnx_ocr_processor.py', 'ocr_router.py', 'multilingual_ocr.py')
 )
 $ErrorActionPreference = 'Stop'
@@ -23,6 +24,7 @@ $repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $source = Join-Path $repo 'ingestion\forensic_records'
 $image = 'nexusai-forensic-records-worker'
 $rollback = "$($image):before-$Tag"
+$base = if ($BaseTag) { "$($image):before-$BaseTag" } else { $rollback }
 
 function Invoke-Docker { param([string[]]$Arguments)
   # docker writes progress to stderr, which PowerShell 5.1 treats as an error under -ErrorAction Stop: judge by the exit code
@@ -47,7 +49,7 @@ try {
   # the image's own media_pipeline.py, patched in two places
   $extracted = Join-Path $context 'image_media_pipeline.py'
   $previous = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
-  $container = (& docker create $rollback 2>$null | Out-String).Trim()
+  $container = (& docker create $base 2>$null | Out-String).Trim()
   & docker cp "$($container):/app/media_pipeline.py" $extracted 2>&1 | Out-Null
   & docker rm $container 2>&1 | Out-Null
   $ErrorActionPreference = $previous
@@ -56,10 +58,10 @@ try {
   if ($LASTEXITCODE -ne 0) { throw 'the image media_pipeline.py did not match the expected text; nothing was built' }
   Remove-Item -LiteralPath $extracted
   $files = @('media_pipeline.py') + $NewFiles
-  $lines = @("FROM $rollback") + ($files | ForEach-Object { "COPY $_ /app/$_" })
+  $lines = @("FROM $base") + ($files | ForEach-Object { "COPY $_ /app/$_" })
   Set-Content -LiteralPath (Join-Path $context 'Dockerfile') -Value $lines -Encoding ascii
   Invoke-Docker @('build', '-t', "$($image):latest", $context)
-  Write-Host "built $($image):latest on top of $rollback ($($files -join ', '))"
+  Write-Host "built $($image):latest on top of $base ($($files -join ', ')); rollback of this step: $rollback"
 } finally {
   Remove-Item -LiteralPath $context -Recurse -Force -ErrorAction SilentlyContinue
 }

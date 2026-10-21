@@ -61,6 +61,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--part", default="dev", choices=("dev", "sealed"))
     parser.add_argument("--limit", type=int, default=0)
+    parser.add_argument("--reader", default="fastplate", choices=("fastplate", "paddle"), help="fastplate = the worker's CCT-XS reader; paddle = the PP-OCRv5 Latin recogniser (Apache-2.0) on the detected plate crop")
     args = parser.parse_args()
     import media_pipeline
     processor = media_pipeline.FastALPRImageProcessor.from_environment(minimum_confidence=0.05)
@@ -116,6 +117,12 @@ def main():
         print(f"  conf>={threshold:<4}  box recall {100 * curve[-1]['recall']:5.1f}%  false boxes/image {curve[-1]['fp_per_image']:.2f}  image recall {100 * curve[-1]['image_recall']:5.1f}%  by width {curve[-1]['by_width']}")
     report["detection_real_photos"] = {"images": len(photos), "curve": curve, "seconds_per_image": sum(secs) / len(secs)}
 
+    paddle = None
+    if args.reader == "paddle":
+        import onnx_text_ocr as engine
+        folder = Path(DATA) / "models" / "ocr" / "latin_PP-OCRv5_mobile_rec_onnx"
+        paddle = engine.PaddleOnnxRecognizer(folder / "inference.onnx", folder / "inference.yml", arabic_script=False)
+
     # (2) detection and reading on generated Pakistani-format scenes
     folder = Path(DATA) / "generated" / "plates"
     scenes = [json.loads(line) for line in open(folder / "truth.jsonl", encoding="utf-8")]
@@ -132,6 +139,13 @@ def main():
             rows.append({"id": scene["id"], "detected": False})
             continue
         detected += 1
+        if paddle is not None:
+            frame = cv2.imread(str(folder / scene["file"]))
+            x0, y0, x1, y1 = (int(v) for v in best["box"])
+            pad_x, pad_y = int(0.04 * (x1 - x0)), int(0.08 * (y1 - y0))
+            crop = frame[max(0, y0 - pad_y):y1 + pad_y, max(0, x0 - pad_x):x1 + pad_x]
+            read_text, read_conf = paddle.recognize(crop)
+            best = dict(best, text=read_text, ocr_conf=read_conf)
         text = re.sub(r"[^A-Z0-9]", "", best["text"].upper())
         truth = scene["normalised"]
         ok = text == truth
