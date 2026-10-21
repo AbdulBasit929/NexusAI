@@ -25,6 +25,7 @@ import editdistance
 
 sys.path.insert(0, "/repo/ingestion/forensic_records")
 DATA = os.environ.get("NEXUSAI_MEDIA_DATA", "/data")
+SORT_RTL = os.environ.get("OCR_SORT_RTL", "0") == "1"
 ZERO_WIDTH = dict.fromkeys(map(ord, "\u200b\u200c\u200d\u200e\u200f\u2060\ufeff"), None)
 
 
@@ -72,7 +73,9 @@ def make_tesseract(spec):
 
     def run(path):
         result = processor.process_image(path, evidence_id="e", version_id="v", source_sha256="0" * 64, source_file=path.name)
-        lines = [o.payload["raw_text"] for o in result.observations]
+        # reading order: lines top to bottom by their box (Tesseract's block order puts a left-hand table before right-hand Urdu text on a right-to-left page)
+        ordered = sorted(result.observations, key=lambda o: (o.payload["bbox"]["y"] // 12, -o.payload["bbox"]["x"] if SORT_RTL else o.payload["bbox"]["x"]))
+        lines = [o.payload["raw_text"] for o in ordered]
         confidences = [o.confidence for o in result.observations if o.confidence is not None]
         return "\n".join(lines), (sum(confidences) / len(confidences) if confidences else None)
     return run

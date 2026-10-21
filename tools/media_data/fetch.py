@@ -68,6 +68,10 @@ GROUPS = {
                      "PaddlePaddle/PP-OCRv5_mobile_det_onnx", "PaddlePaddle/PP-OCRv5_server_det_onnx")
         for name in ("inference.onnx", "inference.yml")
     ],
+    "face_models": [
+        dict(url=hf("models", "opencv/face_detection_yunet", name), rel=f"models/face/yunet/{name}", licence="MIT (OpenCV Zoo LICENSE)", ledger="MOD-008", note="YuNet face detector (OpenCV Zoo), the detector inside the worker's face role")
+        for name in ("face_detection_yunet_2023mar.onnx", "LICENSE")
+    ],
 }
 
 

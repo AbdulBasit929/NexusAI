@@ -865,7 +865,8 @@ class TesseractImageOCRProcessor:
         self.runtime_version = self._runtime_version()
 
     @classmethod
-    def from_environment(cls) -> "TesseractImageOCRProcessor":
+    def from_environment(cls, *, languages: str | None = None, page_segmentation_mode: int | None = None) -> "TesseractImageOCRProcessor":
+        """`languages` and `page_segmentation_mode` override the environment for one instance (the OCR router builds a Latin and an Urdu reader from the same pinned data)."""
         executable_value = os.getenv("FORENSIC_OCR_TESSERACT_PATH", "tesseract").strip()
         executable = Path(executable_value) if Path(executable_value).is_file() else Path(shutil.which(executable_value) or "")
         tessdata_path = Path(os.getenv("FORENSIC_OCR_TESSDATA_PATH", "").strip())
@@ -876,14 +877,14 @@ class TesseractImageOCRProcessor:
         return cls(
             executable,
             tessdata_path,
-            languages=os.getenv("FORENSIC_OCR_LANGUAGES", "eng+urd"),
+            languages=languages or os.getenv("FORENSIC_OCR_LANGUAGES", "eng+urd"),
             tessdata_revision=os.getenv("FORENSIC_OCR_TESSDATA_REVISION", ""),
             tessdata_hashes=hashes,
             timeout_seconds=max(1, int(os.getenv("FORENSIC_OCR_TIMEOUT_SECONDS", "60"))),
             max_input_bytes=max(1, int(os.getenv("FORENSIC_OCR_MAX_INPUT_BYTES", str(16 * 1024 * 1024)))),
             max_output_bytes=max(1, int(os.getenv("FORENSIC_OCR_MAX_OUTPUT_BYTES", str(4 * 1024 * 1024)))),
             max_observations=max(1, int(os.getenv("FORENSIC_OCR_MAX_OBSERVATIONS", "256"))),
-            page_segmentation_mode=int(os.getenv("FORENSIC_OCR_PSM", "11")),
+            page_segmentation_mode=int(os.getenv("FORENSIC_OCR_PSM", "11")) if page_segmentation_mode is None else page_segmentation_mode,
         )
 
     def process_image(
@@ -1735,6 +1736,18 @@ def configured_media_processor() -> DeterministicMediaProcessor:
             except ModuleNotFoundError:  # pragma: no cover - direct worker image execution
                 from multilingual_ocr import PaddleMultilingualOCRProcessor
             image_processors.append(PaddleMultilingualOCRProcessor.from_environment())
+        elif os.getenv("FORENSIC_OCR_BACKEND", "tesseract").strip().lower() == "auto":
+            try:
+                from ingestion.forensic_records.ocr_router import OcrRouter
+            except ModuleNotFoundError:  # pragma: no cover - direct worker image execution
+                from ocr_router import OcrRouter
+            image_processors.append(OcrRouter.from_environment())
+        elif os.getenv("FORENSIC_OCR_BACKEND", "tesseract").strip().lower() == "onnx":
+            try:
+                from ingestion.forensic_records.onnx_ocr_processor import OnnxPaddleOCRProcessor
+            except ModuleNotFoundError:  # pragma: no cover - direct worker image execution
+                from onnx_ocr_processor import OnnxPaddleOCRProcessor
+            image_processors.append(OnnxPaddleOCRProcessor.from_environment())
         else:
             image_processors.append(TesseractImageOCRProcessor.from_environment())
     if os.getenv("FORENSIC_ASR_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}:
@@ -1760,7 +1773,7 @@ def configured_media_processor() -> DeterministicMediaProcessor:
     ocr_processors = [
         item for item in image_processors
         if isinstance(item, TesseractImageOCRProcessor)
-        or getattr(item, "processor_id", "") == "paddleocr-v5-multilingual-cpu"
+        or getattr(item, "processor_id", "") in {"paddleocr-v5-multilingual-cpu", "paddleocr-v5-onnx-cpu", "ocr-router-cpu"}
     ]
     if len(image_processors) == 2 and len(anpr_processors) == 1 and len(ocr_processors) == 1:
         image_processor = ContextualImageProcessor(anpr_processors[0], ocr_processors[0])
