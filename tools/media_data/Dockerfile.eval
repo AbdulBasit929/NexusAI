@@ -1,0 +1,10 @@
+# Evaluation image for the media roles: the live worker image plus the libraries a measurement needs. Built locally, never deployed, never run as a service.
+# Measurements run in the same runtime as production (same Python, onnxruntime, torch, tesseract, Pillow with raqm) with the data mounted read-only.
+#
+#   docker build -t nexusai-media-eval:latest -f tools/media_data/Dockerfile.eval tools/media_data
+#   docker run --rm --network none -v C:/tmp/nexusai-media-data:/data:ro -v <repo>:/repo:ro nexusai-media-eval:latest python /repo/tools/media_data/<script>.py
+#
+# The base is the image the worker runs today (rollback-safe: nothing here changes that image or its tag).
+FROM nexusai-forensic-records-worker:latest
+USER root
+RUN pip install --no-cache-dir pyarrow jiwer editdistance huggingface_hub soundfile scipy
