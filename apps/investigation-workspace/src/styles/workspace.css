@@ -143,9 +143,8 @@ button:disabled {
 }
 
 .workspace-frame {
-  width: 100%;
-  max-width: 100%;
-  margin-inline: 0;
+  width: min(var(--analyst-content-wide), 100%);
+  margin-inline: auto;
 }
 
 .case-navigation {
@@ -203,16 +202,17 @@ button:disabled {
   font-variant-numeric: tabular-nums;
 }
 
-.investigate-page,
-.catalog-page,
-.detail-page,
-.dashboard-page {
+.investigate-page {
   min-width: 0;
-  width: 100%;
-  max-width: 1440px;
-  margin-inline: auto;
   padding-block: var(--analyst-space-24) var(--analyst-space-48);
-  padding-inline: clamp(var(--analyst-space-20), 3vw, var(--analyst-space-36));
+  padding-inline: var(--analyst-space-24);
+}
+
+.catalog-page,
+.detail-page {
+  min-width: 0;
+  padding-block: var(--analyst-space-32) var(--analyst-space-48);
+  padding-inline: var(--analyst-space-24);
 }
 
 .page-heading {
