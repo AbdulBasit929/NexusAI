@@ -1,0 +1,137 @@
+{
+  "schema": "nexusai.layout/v1",
+  "layout_id": "ipdr-sessions-11-demo",
+  "layout_version": 1,
+  "status": "draft",
+  "family": "internet",
+  "dataset_kind": "ipdr",
+  "label": "Internet records, 11 columns: start and end, addresses and ports, one volume, a time-zone column (a synthetic test fixture of the runtime acceptance collection)",
+  "operator_label": null,
+  "container": {
+    "kinds": [
+      "csv"
+    ],
+    "encoding": "utf-8",
+    "delimiter": ",",
+    "sheet": "first",
+    "header_row": {
+      "mode": "fixed",
+      "index": 0
+    }
+  },
+  "header": {
+    "columns": [
+      {
+        "name": "session_start"
+      },
+      {
+        "name": "session_end"
+      },
+      {
+        "name": "source_ip"
+      },
+      {
+        "name": "destination_ip"
+      },
+      {
+        "name": "source_port"
+      },
+      {
+        "name": "destination_port"
+      },
+      {
+        "name": "protocol"
+      },
+      {
+        "name": "bytes"
+      },
+      {
+        "name": "subscriber_id"
+      },
+      {
+        "name": "session_id"
+      },
+      {
+        "name": "source_timezone"
+      }
+    ],
+    "required": [
+      "session_start",
+      "source_ip",
+      "destination_ip",
+      "protocol",
+      "subscriber_id",
+      "session_id"
+    ],
+    "min_score": 0.9
+  },
+  "null_tokens": {},
+  "confirmation": {
+    "headers": "read_from_the_project_own_test_fixture_files_2026-10-21",
+    "semantics_confirmed": false,
+    "unconfirmed": [
+      {
+        "id": "source-time-zone",
+        "what": "No file states a time zone. The zone is a job decision, never a property of the layout.",
+        "affects": [
+          "time"
+        ]
+      },
+      {
+        "id": "operator",
+        "what": "The file is one of the project's own synthetic test fixtures and names no operator.",
+        "affects": [
+          "operator_label"
+        ]
+      },
+      {
+        "id": "bytes-direction",
+        "what": "The single bytes column has no stated direction; it is not mapped.",
+        "affects": [
+          "fields.bytes_up",
+          "fields.bytes_down"
+        ]
+      }
+    ],
+    "settled": []
+  },
+  "fields": {
+    "msisdn": "subscriber_id",
+    "ue_ip": "source_ip",
+    "ue_port": "source_port",
+    "server_ip": "destination_ip",
+    "server_port": "destination_port",
+    "protocol": "protocol",
+    "session_ref": "session_id"
+  },
+  "time": {
+    "columns": {
+      "start": "session_start",
+      "end": "session_end"
+    },
+    "formats": [
+      "iso_naive"
+    ],
+    "date_order": "YMD",
+    "source_tz": null,
+    "tz_basis": "unknown"
+  },
+  "duration": {
+    "mode": "from_times"
+  },
+  "quirks": [
+    "The file has a source_timezone column on every row; the layout cannot read a zone from a column, so the zone stays a job decision and the column stays in the raw row",
+    "One volume column (bytes) with no direction: it is not mapped to bytes_up or bytes_down",
+    "The source address is read as the device's address (UE) and the destination as the server's"
+  ],
+  "golden": {
+    "rows": 48,
+    "hints": {},
+    "columns": {
+      "protocol": "choice:TCP|UDP",
+      "bytes": "choice:512|1024|2048",
+      "source_timezone": "choice:Asia/Karachi",
+      "session_id": "row_number"
+    }
+  }
+}

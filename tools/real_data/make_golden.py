@@ -432,7 +432,17 @@ def _comm_row(i, ctx, defect):
             _put(cells, index, other, a_raw)
     elif b_spec is not None:
         _put(cells, index, b_spec["column"] if isinstance(b_spec, dict) else b_spec, b_raw)
-    _put(cells, index, fields["a"], a_raw)
+    a_spec = fields["a"]
+    a_unresolved = isinstance(a_spec, dict) and "by_direction" in a_spec and direction not in ("incoming", "outgoing")
+    if a_unresolved:
+        flags.add("subject_direction_unresolved")
+        flags.add("subject_missing")
+    if isinstance(a_spec, dict) and "by_direction" in a_spec:
+        # a caller and a callee and no subscriber column: the b by_direction block above has written the subject into the column the direction picks
+        if not (isinstance(b_spec, dict) and "by_direction" in b_spec):
+            raise ValueError("a layout whose subject depends on the direction must say the same for the other party")
+    else:
+        _put(cells, index, a_spec, a_raw)
     # identifiers
     imei = None
     imei_flags = set()
@@ -515,7 +525,7 @@ def _comm_row(i, ctx, defect):
     expect = {
         "status": "accepted", "tag": defect or "normal", "flags": sorted(flags),
         "record": {
-            "event_type": event_type, "direction": direction, "a_raw": a_raw, "a_kind": "person_like", "a_norm": forms["e164_12"],
+            "event_type": event_type, "direction": direction, "a_raw": None if a_unresolved else a_raw, "a_kind": None if a_unresolved else "person_like", "a_norm": None if a_unresolved else forms["e164_12"],
             **b_expect, "start_local": start.isoformat(sep=" "), "end_local": end.isoformat(sep=" ") if "end" in time_cols else None,
             "duration_s": duration_expect, "imsi": imsi, "imei": imei, "tac": imei[:8] if imei and len(imei) >= 14 else None,
             **cell_expect, "lat": lat, "lon": lon, "location_text": loc_text, "peer_operator": peer,

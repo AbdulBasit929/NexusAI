@@ -330,7 +330,15 @@ def _comm_event(entry: Mapping[str, Any], view: RecordView, times: _Times, flags
     if event_type is None:
         event_type = "other"
         flags.append("event_type_not_in_layout")
-    a_raw = _text(entry, view, "a", fields.get("a"))
+    a_spec = fields.get("a")
+    if isinstance(a_spec, Mapping) and "by_direction" in a_spec:
+        # a file with a caller and a callee and no subscriber column: the subscriber is the caller on an outgoing event and the callee on an incoming one
+        a_column = a_spec["by_direction"].get(direction) or a_spec.get("fallback")
+        if a_column is None:
+            flags.append("subject_direction_unresolved")
+        a_raw = _text(entry, view, "a", a_column)
+    else:
+        a_raw = _text(entry, view, "a", a_spec)
     b_spec = fields.get("b")
     b_raw: str | None
     if isinstance(b_spec, Mapping) and "by_direction" in b_spec:

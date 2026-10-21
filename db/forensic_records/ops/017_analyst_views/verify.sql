@@ -4,7 +4,7 @@ BEGIN TRANSACTION READ ONLY;
 DO $$
 DECLARE
   problem text;
-  expected text[] := ARRAY['v_app_usage', 'v_cell_visits', 'v_cells', 'v_comm_events', 'v_contact_pairs', 'v_data_sessions', 'v_device_pairings'];
+  expected text[] := ARRAY['v_app_usage', 'v_cell_visits', 'v_cells', 'v_comm_events', 'v_connection_edges', 'v_contact_links', 'v_contact_pairs', 'v_data_sessions', 'v_device_pairings', 'v_evidence_inventory']; -- the last three views are migration 020's, reviewed there
   found text[];
 BEGIN
   SELECT array_agg(c.relname::text ORDER BY c.relname) INTO found

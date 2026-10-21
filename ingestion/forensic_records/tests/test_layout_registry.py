@@ -38,7 +38,7 @@ TOOLS = REPO / "tools" / "real_data"
 EXPECTED_IDS = {
     "appusage-a1", "call-c1-company", "call-c2-strt-tm", "call-c3-ufone-style", "call-c4-telenor-style", "geofence-c5-mobilink",
     "geofence-c6-telenor", "geofence-c7-ufone", "geofence-c8-zong", "ipdr-i1-jazz-ufdr", "ipdr-i2-telenor-export", "ipdr-i3-ufone-xls",
-    "ipdr-i4-zong-txt", "ipdr-seed-s8", "call-demo-8",
+    "ipdr-i4-zong-txt", "ipdr-seed-s8", "call-demo-8", "call-ab-9-demo", "call-iso-10-demo", "ipdr-sessions-11-demo", "ipdr-url-10-demo",
 }
 KARACHI = Policy(source_tz="Asia/Karachi", tz_basis="assumed_by_profile")
 
@@ -105,10 +105,10 @@ class EntryTests(unittest.TestCase):
 
     def test_command_line_validates_lists_and_writes_sql(self):
         code, text = self.run_cli("validate")
-        self.assertEqual((code, text.strip()), (0, "LAYOUTS=PASS entries=16"))
+        self.assertEqual((code, text.strip()), (0, "LAYOUTS=PASS entries=20"))
         code, text = self.run_cli("list")
         self.assertEqual(code, 0)
-        self.assertEqual(len(text.strip().splitlines()), 17, "a header line and one line per layout version")
+        self.assertEqual(len(text.strip().splitlines()), 21, "a header line and one line per layout version")
         for layout_id in EXPECTED_IDS:
             self.assertIn(layout_id, text)
         code, text = self.run_cli("sql")
@@ -600,6 +600,32 @@ class InterpretTests(unittest.TestCase):
         sixteen = [c["name"] for c in REGISTRY.get("call-c4-telenor-style", 2)["header"]["columns"]]
         self.assertEqual(REGISTRY.match(sixteen).matched_entry_id, "call-c4-telenor-style")
 
+    def test_a_file_with_a_caller_and_a_callee_gets_its_subscriber_from_the_direction(self):
+        # call-ab-9-demo has no subscriber column: the subscriber is the caller on an originating call and the callee on a terminating one (the fixture of the runtime acceptance collection)
+        entry = REGISTRY.get("call-ab-9-demo")
+        header = ["a_number", "b_number", "timestamp", "call_end_time", "direction", "call_type", "imei", "imsi", "cell_id"]
+        rows = [["00923001234567", "00923110000001", "2026-08-18 10:00:00", "2026-08-18 10:01:00", "ORIGINATING", "VOICE", "490154203237518", "410010123456789", "LHR-001"],
+                ["00923440000004", "00923001234567", "2026-08-18 10:30:00", "2026-08-18 10:30:45", "TERMINATING", "VOICE", "490154203237518", "410010123456789", "LHR-004"],
+                ["00923440000004", "00923001234567", "2026-08-18 10:40:00", "2026-08-18 10:40:45", "SIDEWAYS", "VOICE", "490154203237518", "410010123456789", "LHR-004"]]
+        out, back, lost = list(interpret_rows(entry, header, rows, policy=KARACHI))
+        self.assertEqual((out.record["direction"], out.record["a_norm"], out.record["b_norm"]), ("outgoing", "923001234567", "923110000001"))
+        self.assertEqual((back.record["direction"], back.record["a_norm"], back.record["b_norm"]), ("incoming", "923001234567", "923440000004"), "the same subscriber, the other party is the caller")
+        self.assertIsNone(lost.record["a_norm"], "a direction that is not known leaves the subscriber unknown, never guessed")
+        self.assertIn("subject_direction_unresolved", lost.flags)
+        self.assertIn("subject_missing", lost.flags)
+
+    def test_the_ten_column_fixture_with_offsets_is_read_in_utc_and_the_subscriber_column_wins(self):
+        entry = REGISTRY.get("call-iso-10-demo")
+        header = ["msisdn", "source_number", "target_number", "call_time", "end_time", "direction", "call_type", "imei", "imsi", "site_id"]
+        rows = [["923001234567", "923001234567", "923110000001", "2026-08-18T10:00:00+05:00", "2026-08-18T10:02:00+05:00", "MO", "CALL", "490154203237518", "410010123456789", "LHR-001"],
+                ["923001234567", "923330000003", "923001234567", "2026-08-18T10:20:00+05:00", "2026-08-18T10:20:15+05:00", "MT", "CALL", "490154203237518", "410010123456789", "LHR-003"]]
+        out, back = list(interpret_rows(entry, header, rows, policy=Policy(source_tz="Asia/Karachi", tz_basis="assumed_by_profile")))
+        self.assertEqual((out.record["a_norm"], out.record["b_norm"], out.record["direction"]), ("923001234567", "923110000001", "outgoing"))
+        self.assertEqual((back.record["a_norm"], back.record["b_norm"], back.record["direction"]), ("923001234567", "923330000003", "incoming"))
+        self.assertEqual(out.record["time_basis"], "explicit_offset")
+        self.assertTrue(str(out.record["start_utc"]).startswith("2026-08-18T05:00:00"))
+        self.assertEqual(out.record["duration_s"], 120)
+
     def test_unconfirmed_direction_codes_are_kept_as_unknown_and_flagged(self):
         entry = REGISTRY.get("geofence-c6-telenor")
         golden = make_golden.generate(entry, seed=1, defects=False)
@@ -813,7 +839,7 @@ class GoldenFileTests(unittest.TestCase):
             with redirect_stdout(buf):
                 self.assertEqual(make_golden.main(["--list"]), 0)
                 self.assertEqual(make_golden.main(["--all", "--out", d, "--rows", "12"]), 0)
-            self.assertEqual(len(list(Path(d).iterdir())), 15)
+            self.assertEqual(len(list(Path(d).iterdir())), 19)
             self.assertEqual(set(buf.getvalue().split()) & EXPECTED_IDS, EXPECTED_IDS)
 
 

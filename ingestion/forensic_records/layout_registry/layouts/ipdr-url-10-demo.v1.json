@@ -1,0 +1,129 @@
+{
+  "schema": "nexusai.layout/v1",
+  "layout_id": "ipdr-url-10-demo",
+  "layout_version": 1,
+  "status": "draft",
+  "family": "internet",
+  "dataset_kind": "ipdr",
+  "label": "Internet records, 10 columns: one instant, addresses, domain and URL, subscriber, cell, volumes up and down (a synthetic test fixture of the records-demo collection)",
+  "operator_label": null,
+  "container": {
+    "kinds": [
+      "csv"
+    ],
+    "encoding": "utf-8",
+    "delimiter": ",",
+    "sheet": "first",
+    "header_row": {
+      "mode": "fixed",
+      "index": 0
+    }
+  },
+  "header": {
+    "columns": [
+      {
+        "name": "timestamp"
+      },
+      {
+        "name": "source_ip"
+      },
+      {
+        "name": "destination_ip"
+      },
+      {
+        "name": "domain"
+      },
+      {
+        "name": "url"
+      },
+      {
+        "name": "msisdn"
+      },
+      {
+        "name": "cell_id"
+      },
+      {
+        "name": "location"
+      },
+      {
+        "name": "bytes_up"
+      },
+      {
+        "name": "bytes_down"
+      }
+    ],
+    "required": [
+      "timestamp",
+      "source_ip",
+      "destination_ip",
+      "domain",
+      "msisdn",
+      "bytes_up",
+      "bytes_down"
+    ],
+    "min_score": 0.9
+  },
+  "null_tokens": {},
+  "confirmation": {
+    "headers": "read_from_the_project_own_test_fixture_files_2026-10-21",
+    "semantics_confirmed": false,
+    "unconfirmed": [
+      {
+        "id": "operator",
+        "what": "The file is one of the project's own synthetic test fixtures and names no operator.",
+        "affects": [
+          "operator_label"
+        ]
+      },
+      {
+        "id": "source-ip-role",
+        "what": "source_ip is read as the device's address (UE) and destination_ip as the server's; the file does not say whether a private address was translated.",
+        "affects": [
+          "fields.ue_ip",
+          "fields.public_ip"
+        ]
+      }
+    ],
+    "settled": []
+  },
+  "fields": {
+    "msisdn": "msisdn",
+    "ue_ip": "source_ip",
+    "server_ip": "destination_ip",
+    "host": "domain",
+    "url": "url",
+    "bytes_up": "bytes_up",
+    "bytes_down": "bytes_down",
+    "cell": {
+      "column": "cell_id"
+    }
+  },
+  "time": {
+    "columns": {
+      "start": "timestamp"
+    },
+    "formats": [
+      "iso_naive"
+    ],
+    "date_order": "YMD",
+    "source_tz": "UTC",
+    "tz_basis": "explicit_offset"
+  },
+  "duration": {
+    "mode": "none"
+  },
+  "quirks": [
+    "Each row is one instant ending in Z (UTC): there is no end time and no duration",
+    "The cell identity is a site name such as LHR-GUL-014 and a free-text location sits beside it; the location stays in the raw row",
+    "Volumes are stated in both directions"
+  ],
+  "golden": {
+    "rows": 48,
+    "hints": {},
+    "columns": {
+      "domain": "choice:mail.example.org|storage.example.net|maps.example.com",
+      "url": "choice:https://mail.example.org/login|https://maps.example.com/route",
+      "location": "choice:Gulberg|F-7 Islamabad|Clifton"
+    }
+  }
+}
