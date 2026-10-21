@@ -28,6 +28,7 @@ import {
 import { configuredCaseIds } from '../lib/apiClient.js'
 import { BrandLockup } from './BrandLockup.jsx'
 import { LanguageText } from './AnalystComponents.jsx'
+import { CaseTitle } from './CaseTitle.jsx'
 import { AppearanceMenu } from './AppearanceMenu.jsx'
 import { WorkspaceCommands } from './WorkspaceCommands.jsx'
 import { clearCaseSessionScope } from '../lib/workspaceState.js'
@@ -136,7 +137,7 @@ function CasesCategory({ entries, activeCaseId, onNavigate, badges }) {
               <li key={item.caseId}>
                 <NavLink className={`rail-case rail-case--${item.state}${inside ? ' is-current' : ''}`} to={`/cases/${encodeURIComponent(item.caseId)}/overview`} aria-current={inside ? 'true' : undefined} title={`${item.caseId} · ${state.label}`} onClick={() => { if (item.caseId !== activeCaseId) clearCaseSessionScope(); onNavigate?.() }}>
                   <ShellIcon name={state.icon} />
-                  <LanguageText as="bdi" identifier>{item.caseId}</LanguageText>
+                  <CaseTitle caseId={item.caseId} />
                   <span className="visually-hidden">, {state.label}{failed ? `, ${failed} failed ${failed === 1 ? 'source' : 'sources'}` : ''}</span>
                   {failed ? <span className="rail-case__flag" aria-hidden="true">{formatNumber(failed)}</span> : null}
                 </NavLink>
@@ -237,7 +238,7 @@ function CaseBreadcrumb({ caseId, pathname }) {
     <nav className="case-breadcrumb" aria-label="Breadcrumb">
       <ol>
         <li><NavLink to="/cases">Cases</NavLink></li>
-        <li>{onOverview ? <LanguageText as="span" identifier aria-current="page">{caseId}</LanguageText> : <NavLink to={`/cases/${encodeURIComponent(caseId)}/overview`}><LanguageText as="bdi" identifier>{caseId}</LanguageText></NavLink>}</li>
+        <li>{onOverview ? <CaseTitle caseId={caseId} as="span" aria-current="page" /> : <NavLink to={`/cases/${encodeURIComponent(caseId)}/overview`}><CaseTitle caseId={caseId} /></NavLink>}</li>
       </ol>
     </nav>
   )

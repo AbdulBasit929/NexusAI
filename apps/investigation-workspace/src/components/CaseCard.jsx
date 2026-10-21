@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { LanguageText } from './AnalystComponents.jsx'
+import { CaseTitle } from './CaseTitle.jsx'
 import { formatNumber } from '../lib/format.js'
 import { curatedFamilyLabel } from '../lib/semanticCatalog.js'
 import { summariseCase, useCaseOverview } from '../lib/useCaseOverview.js'
@@ -45,7 +45,7 @@ export function CaseCard({ caseId, headingLevel: Heading = 'h3' }) {
       <div className="case-card__head">
         <Heading className="case-card__title">
           <Link to={`/cases/${encodeURIComponent(caseId)}/overview`}>
-            <LanguageText as="bdi" identifier>{caseId}</LanguageText>
+            <CaseTitle caseId={caseId} />
           </Link>
         </Heading>
         {summary && (

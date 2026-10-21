@@ -18,6 +18,8 @@ import {
 } from 'lucide-react'
 import { CaseShell } from '../components/CaseShell.jsx'
 import { LanguageText, RouteState } from '../components/AnalystComponents.jsx'
+import { CaseTitle } from '../components/CaseTitle.jsx'
+import { CaseNameEditor } from '../components/CaseNameEditor.jsx'
 import { ProportionBar } from '../components/DataVisualizations.jsx'
 import { reviewTarget } from './dashboard/AttentionCauses.jsx'
 import { ActivityCalendar } from './case/ActivityCalendar.jsx'
@@ -149,7 +151,7 @@ export default function CaseOverviewPage() {
 
                 <div className="co-hero__id-row">
                   <h1 className="co-hero__id">
-                    <LanguageText as="bdi" identifier>{caseId}</LanguageText>
+                    <CaseTitle caseId={caseId} showId />
                   </h1>
                   <button
                     type="button"
@@ -161,6 +163,7 @@ export default function CaseOverviewPage() {
                     {copied ? <Check size={13} aria-hidden="true" /> : <Copy size={13} aria-hidden="true" />}
                     <span>{copied ? 'Copied' : 'Copy ID'}</span>
                   </button>
+                  <CaseNameEditor caseId={caseId} />
                 </div>
 
                 <p className="co-hero__verdict">{verdict.headline}</p>

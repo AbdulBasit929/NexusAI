@@ -3,6 +3,7 @@ import { LayoutGrid, Table2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { EmptyState, LanguageText, RouteState } from '../components/AnalystComponents.jsx'
 import { AppShell } from '../components/CaseShell.jsx'
+import { CaseTitle } from '../components/CaseTitle.jsx'
 import { ProportionBar, StackedBar } from '../components/DataVisualizations.jsx'
 import { PageHeader } from '../components/PageHeader.jsx'
 import { configuredCaseIds } from '../lib/apiClient.js'
@@ -146,9 +147,9 @@ function CaseDirectoryRow({ row }) {
       <th scope="row" data-label="Case">
         {summary ? (
           <Link className="case-directory__case-link" to={overview} onKeyDown={moveBetweenCaseRows} aria-keyshortcuts="ArrowUp ArrowDown Home End">
-            <LanguageText as="bdi" identifier>{caseId}</LanguageText>
+            <CaseTitle caseId={caseId} showId />
           </Link>
-        ) : <LanguageText as="bdi" className="case-directory__case-id" identifier>{caseId}</LanguageText>}
+        ) : <CaseTitle caseId={caseId} className="case-directory__case-id" />}
         <span className={`case-directory__state case-directory__state--${status}`}>
           <StateIcon state={status} /><span>{STATE_LABEL[status]}</span>
         </span>
@@ -214,7 +215,7 @@ function CaseCard({ row }) {
         {activity ? <time dateTime={activity.date.toISOString()} title={formatTimestamp(activity.date)}>Updated {relativeAge(activity.date)}</time> : null}
       </div>
       <h3 className="case-tile__id">
-        {summary ? <Link to={overview}><LanguageText as="bdi" identifier>{caseId}</LanguageText></Link> : <LanguageText as="bdi" identifier>{caseId}</LanguageText>}
+        {summary ? <Link to={overview}><CaseTitle caseId={caseId} /></Link> : <CaseTitle caseId={caseId} />}
       </h3>
       {summary ? (
         <>

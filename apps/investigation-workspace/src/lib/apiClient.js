@@ -104,6 +104,48 @@ export function getTypingReport({ caseId, signal, fetchImpl }) {
   return scopedGet('/analysis/typing-report', caseId, { signal, fetchImpl })
 }
 
+// The case record (decision D30): the name analysts gave each case and whether it is open, on hold or closed. GET /cases lists every case of the tenant, so it is sent
+// without a collection header (a key bound to one collection still sees only that case); PATCH /cases/{id} changes the name, the status or both for one case.
+export async function listCaseRecords({ signal, fetchImpl = globalThis.fetch } = {}) {
+  const { baseUrl, tenantId, headers } = requestContext('')
+  const { 'X-Forensic-Collection-ID': _omitted, ...tenantHeaders } = headers
+  const url = endpoint(baseUrl, '/cases')
+  url.searchParams.set('tenant_id', tenantId)
+  const response = await fetchImpl(url, { signal, headers: tenantHeaders })
+  if (!response.ok) {
+    const error = new Error('The case names could not be read.')
+    error.reference = response.headers.get('x-request-id') || `HTTP-${response.status}`
+    error.status = response.status
+    throw error
+  }
+  return response.json()
+}
+
+export async function updateCaseRecord({ caseId, patch, signal, fetchImpl = globalThis.fetch }) {
+  const { baseUrl, tenantId, headers } = requestContext(caseId)
+  const id = collectionIdForCase(caseId)
+  const url = endpoint(baseUrl, `/cases/${encodeURIComponent(id)}`)
+  url.searchParams.set('tenant_id', tenantId)
+  const response = await fetchImpl(url, {
+    method: 'PATCH',
+    signal,
+    headers: { ...headers, 'X-Forensic-Collection-ID': id, 'Content-Type': 'application/json' },
+    body: JSON.stringify(patch),
+  })
+  if (!response.ok) {
+    // The service answers a refused change with a sentence (too long, unknown status); show it. Anything else is a plain failure.
+    let message = 'The case name could not be saved. Nothing was changed.'
+    if (response.status === 400) {
+      try { message = (await response.json())?.error || message } catch { /* keep the plain sentence */ }
+    }
+    const error = new Error(message)
+    error.reference = response.headers.get('x-request-id') || `HTTP-${response.status}`
+    error.status = response.status
+    throw error
+  }
+  return response.json()
+}
+
 export function listEvidence({ caseId, filters = {}, signal, fetchImpl }) {
   const query = new URLSearchParams()
   if (filters.modality) query.set('modality', filters.modality)
