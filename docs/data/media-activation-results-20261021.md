@@ -47,4 +47,21 @@ Medians for Tesseract are 0% (Naskh) and 18% (Nastaliq): most lines are exact an
 
 **Public Urdu training crops are not a fair test (found today).** `PuristanLabs1/urdu-ocr-1M` Naskh images are fixed 64 x 512 windows that cut long lines (a 207-character label for a window that shows about 60), and its Nastaliq images are 64 pixels high; scoring against them gives Tesseract a 24% mean error on Naskh and 57% on Nastaliq that mostly measure the crop, not the engine. They are kept only as a source of Urdu sentences.
 
-*(The Urdu page results and the mixed-script routing follow when the last runs finish.)*
+**English pages, the ONNX engine on the same 34 dev pages x 4 variants:** character error 0.0% on all four variants, identifiers exact 99.7 to 99.8%, about 3 to 4 seconds a page (measured while other jobs ran). The same identifier score as Tesseract `best` in document mode, and far better than either on photographs.
+
+**Urdu pages (T1, 64 dev pages x variants: 7 Naskh and 9 Nastaliq pages per variant, eight to twelve Urdu lines and a Latin table, lines put in position order before scoring; the truth first omitted the Latin table, a mistake of mine found and fixed before the final numbers):**
+
+| Configuration | Naskh CER (clean / noisy / low-res / skewed) | Naskh F1 | Naskh identifiers | Nastaliq CER (clean) | Nastaliq F1 |
+|---|---|---|---|---|---|
+| As deployed (fast `eng+urd`, PSM 11) | 8.8 / 8.3 / 5.3 / 14.7% | 84 to 91% | 60 to 71% | 33% | 38 to 44% |
+| fast `urd+eng`, PSM 3 | 9.9 / 10.7 / 9.2 / 14.4% | 92 to 94% | 88 to 98% | 31% | 43 to 44% |
+| **best `urd+eng`, PSM 3** | **9.1 / 9.3 / 7.4 / 13.7%** | **93 to 95%** | **94 to 98%** | 32% | 43 to 45% |
+| best `urd+eng`, PSM 6 | 21.6 / 21.5 / 21.5 / 24.0% | 92 to 94% | 84 to 98% | 47% | 42% |
+| PaddleOCR Arabic recogniser through the ONNX pipeline | 91 to 94% | 22 to 28% | 67% | 96% | 1% |
+
+**Gate for Urdu (character error at most 15% on Naskh, at most 25% on Nastaliq): Naskh PASS on every variant at page level (9% with best `urd+eng` in document mode, identifiers 94 to 98%); Nastaliq FAILS (32%; words found 45%).** Nastaliq therefore stays "read with low confidence, review required" and is reported as not certified; the Urdu route is Tesseract `best` `urd+eng` in document mode. The page-level numbers match the line-level ones.
+
+**Routing: Tesseract's script pass is not reliable.** On the dev images it called 49 of 64 Urdu pages Arabic and the rest Japanese (13) or Katakana (2); it called 57 of 60 English pages Latin; on 60 receipts it gave Latin 15 times and Cyrillic, Greek, Arabic, Han and others or nothing for the rest. A router built on it would send a quarter of the Urdu pages and almost all receipts to the wrong engine. The PaddleOCR-Latin recogniser is also confidently wrong on Urdu pages (median confidence 0.89, only 8% below 0.75), so low confidence cannot catch a misrouted page either. The router therefore decides the script with a **probe**: the small Arabic recogniser reads the longest six text lines and the share of Arabic-script letters in what it writes separates the scripts (measurement below). Its text is never stored.
+
+**What went live (2026-10-21):** the OCR role (`FORENSIC_OCR_BACKEND=auto`): script probe, Urdu pages to Tesseract `best` `urd+eng` in document mode, everything else to PP-OCRv5 on onnxruntime with a Tesseract second opinion when the reading is not confident. Language data and ONNX models are pinned by SHA-256 in `docker-compose.forensic-records.media.yaml`; the model folder is `models/media` of the lane checkout (git-ignored; provisioned by `tools/media_data/provision_models.py`). The worker image in production carries a media_pipeline.py 500 lines older than the repository's, so the overlay patches **the image's own file** in four places instead of copying the repository file (a straight copy failed to import `roman_urdu`); rollback image `before-media-ocr-20261021` (`db43bb68c042`). Live check: two uploads to the synthetic collection `nexusai-media-wave1-20261021` completed with 40 OCR observations of mean confidence 0.988.
+

@@ -32,7 +32,7 @@ except ModuleNotFoundError:  # pragma: no cover - direct worker image execution
 
 
 PROCESSOR_ID = "ocr-router-cpu"
-PROCESSOR_REVISION = "nexusai-ocr-router-v3"
+PROCESSOR_REVISION = "nexusai-ocr-router-v4"
 TESSERACT_LATIN = "tesseract-eng-psm3"
 TESSERACT_URDU = "tesseract-urd+eng-psm3"
 ONNX_LATIN = "onnx-ppocrv5-latin"
@@ -63,13 +63,15 @@ class OcrRouter:
     processor_id = PROCESSOR_ID
     processor_revision = PROCESSOR_REVISION
 
-    def __init__(self, tesseract_latin: Any, tesseract_urdu: Any | None, onnx_latin: Any | None, script_detector: Any, *, confident: float = 0.75, minimum_characters: int = 12) -> None:
+    def __init__(self, tesseract_latin: Any, tesseract_urdu: Any | None, onnx_latin: Any | None, script_detector: Any, *, confident: float = 0.75, minimum_characters: int = 12,
+                 arabic_share_threshold: float = 0.5) -> None:
         if tesseract_latin is None and onnx_latin is None:
             raise ValueError("at least one Latin reader is required")
         if not 0 < confident <= 1 or minimum_characters < 0:
             raise ValueError("router thresholds are invalid")
         self.tesseract_latin, self.tesseract_urdu, self.onnx_latin, self.script_detector = tesseract_latin, tesseract_urdu, onnx_latin, script_detector
         self.confident, self.minimum_characters = confident, minimum_characters
+        self.arabic_share_threshold = arabic_share_threshold
 
     @classmethod
     def from_environment(cls) -> "OcrRouter":
@@ -94,32 +96,42 @@ class OcrRouter:
             latin, urdu, onnx, lambda image: detect_script(executable, tessdata, image),
             confident=float(os.getenv("FORENSIC_OCR_ROUTER_CONFIDENT", "0.75")),
             minimum_characters=int(os.getenv("FORENSIC_OCR_ROUTER_MIN_CHARACTERS", "12")),
+            arabic_share_threshold=float(os.getenv("FORENSIC_OCR_ROUTER_ARABIC_SHARE", "0.5")),
         )
 
+    def page_script(self, path: Path) -> tuple[str | None, float | None]:
+        """('Arabic' or 'Latin' or None, Arabic-script share). The ONNX Arabic probe decides when it is configured (Tesseract's own script pass called 15 of 64 generated Urdu pages Japanese or
+        Katakana and 7% of receipts Arabic); without it the script pass of Tesseract is used as it is."""
+        probe = getattr(self.onnx_latin, "arabic_script_share", None)
+        if probe is not None and getattr(self.onnx_latin, "script_probe", None) is not None:
+            share = probe(path)
+            if share is not None:
+                return ("Arabic" if share >= self.arabic_share_threshold else "Latin"), share
+        return self.script_detector(path), None
+
     def process_image(self, path: Path, **context: Any) -> MediaProcessResult:
-        script = self.script_detector(path)
+        script, arabic_share = self.page_script(path)
         arabic = script == "Arabic" and self.tesseract_urdu is not None
         tried: list[str] = []
         notes: list[str] = []
         alternative_confidence = None
+        second_engine = None
         if arabic:
             first, first_name = self.tesseract_urdu.process_image(path, **context), TESSERACT_URDU
             notes.append("Arabic-script page: Urdu line order and low-quality Nastaliq are not certified; review required")
-            second = None
         elif self.onnx_latin is not None:
             first, first_name = self.onnx_latin.process_image(path, **context), ONNX_LATIN
-            # the second opinion uses the Urdu data when the script is not clearly Latin: the script pass is not reliable on its own (it called 15 of 64 generated Urdu pages Japanese or Katakana)
+            # the second opinion uses the Urdu data when the script is not clearly Latin
             if script != "Latin" and self.tesseract_urdu is not None:
                 second_engine, second_name = self.tesseract_urdu, TESSERACT_URDU
             else:
                 second_engine, second_name = self.tesseract_latin, TESSERACT_LATIN
         else:
             first, first_name = self.tesseract_latin.process_image(path, **context), TESSERACT_LATIN
-            second_engine = None
         tried.append(first_name)
         confidence, characters = reading_quality(first)
-        chosen, used, chosen_confidence = first, first_name, confidence
-        if not arabic and second_engine is not None and (confidence < self.confident or characters < self.minimum_characters):
+        chosen, used = first, first_name
+        if second_engine is not None and (confidence < self.confident or characters < self.minimum_characters):
             try:
                 second = second_engine.process_image(path, **context)
             except MediaProcessingError as exc:
@@ -128,8 +140,9 @@ class OcrRouter:
                 tried.append(second_name)
                 alternative_confidence, _ = reading_quality(second)
                 if second.observations and (not first.observations or alternative_confidence > confidence):
-                    chosen, used, chosen_confidence = second, second_name, alternative_confidence
-        route = {"script_detected": script, "engine_used": used, "engines_tried": tried, "first_confidence": round(confidence, 4),
-                 "alternative_confidence": None if alternative_confidence is None else round(alternative_confidence, 4), "confident_threshold": self.confident}
+                    chosen, used = second, second_name
+        route = {"script_detected": script, "arabic_script_share": None if arabic_share is None else round(arabic_share, 3), "engine_used": used, "engines_tried": tried,
+                 "first_confidence": round(confidence, 4), "alternative_confidence": None if alternative_confidence is None else round(alternative_confidence, 4),
+                 "confident_threshold": self.confident}
         limitations = tuple(dict.fromkeys([*chosen.limitations, *notes]))
         return replace(chosen, metadata={**chosen.metadata, "ocr_route": route}, limitations=limitations)

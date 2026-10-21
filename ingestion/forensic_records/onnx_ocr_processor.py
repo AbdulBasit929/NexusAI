@@ -44,6 +44,7 @@ except ModuleNotFoundError:  # pragma: no cover - direct worker image execution
     from multilingual_ocr import _identifiers, _normalize_text, _script_and_direction, _select_candidate
 
 
+_ARABIC_LETTER = re.compile("[" + "".join(f"{chr(a)}-{chr(b)}" for a, b in ((0x0600, 0x06FF), (0x0750, 0x077F), (0xFB50, 0xFDFF), (0xFE70, 0xFEFF))) + "]")  # Arabic, Arabic Supplement and the two presentation forms blocks
 PROCESSOR_ID = "paddleocr-v5-onnx-cpu"
 PROCESSOR_REVISION = "nexusai-onnx-ocr-v1"
 DETECTOR_ID = "PP-OCRv5_mobile_det_onnx"
@@ -76,7 +77,7 @@ class OnnxPaddleOCRProcessor:
     processor_id = PROCESSOR_ID
     processor_revision = PROCESSOR_REVISION
 
-    def __init__(self, detector: Any, recognizers: dict[str, Any], *, model_hashes: dict[str, str], maximum_regions: int = 256, cv2_module: Any = cv2) -> None:
+    def __init__(self, detector: Any, recognizers: dict[str, Any], *, model_hashes: dict[str, str], maximum_regions: int = 256, cv2_module: Any = cv2, script_probe: Any | None = None) -> None:
         if "latin" not in recognizers:
             raise ValueError("the Latin recogniser is required")
         if not 1 <= maximum_regions <= 2048:
@@ -86,6 +87,7 @@ class OnnxPaddleOCRProcessor:
         self.model_hashes = dict(model_hashes)
         self.maximum_regions = maximum_regions
         self.cv2 = cv2_module
+        self.script_probe = script_probe  # an Arabic-script recogniser used only to tell the script of a page; its text is never stored
 
     @classmethod
     def from_environment(cls) -> "OnnxPaddleOCRProcessor":
@@ -100,7 +102,29 @@ class OnnxPaddleOCRProcessor:
             arabic_config = Path(os.getenv("FORENSIC_ONNX_OCR_ARABIC_CONFIG_PATH", "").strip() or str(arabic_path.with_name("inference.yml")))
             recognizers["arabic_multilingual"] = engine.PaddleOnnxRecognizer(arabic_path, arabic_config, arabic_script=True, providers=providers)
             hashes["arabic_multilingual"] = arabic_hash
-        return cls(engine.PaddleOnnxDetector(detector_path, providers=providers), recognizers, model_hashes=hashes)
+        probe = None
+        if os.getenv("FORENSIC_ONNX_OCR_SCRIPT_PROBE_MODEL_PATH", "").strip():
+            probe_path, probe_hash = _pinned("FORENSIC_ONNX_OCR_SCRIPT_PROBE_MODEL_PATH", "FORENSIC_ONNX_OCR_SCRIPT_PROBE_SHA256")
+            probe_config = Path(os.getenv("FORENSIC_ONNX_OCR_SCRIPT_PROBE_CONFIG_PATH", "").strip() or str(probe_path.with_name("inference.yml")))
+            probe = engine.PaddleOnnxRecognizer(probe_path, probe_config, arabic_script=True, providers=providers)
+            hashes["script_probe"] = probe_hash
+        return cls(engine.PaddleOnnxDetector(detector_path, providers=providers), recognizers, model_hashes=hashes, script_probe=probe)
+
+    def arabic_script_share(self, path: Path, *, lines: int = 6) -> float | None:
+        """Share of Arabic-script letters in what the Arabic recogniser writes for the longest few text lines of the page, or None without a probe or without text. Urdu pages give a high share
+        (the model writes Arabic-script letters, right or wrong), Latin pages a low one; Tesseract's own script pass was not reliable enough for routing (docs/data/media-activation-results)."""
+        if self.script_probe is None:
+            return None
+        frame = self.cv2.imread(str(path))
+        if frame is None or len(frame.shape) < 2:
+            return None
+        boxes = sorted(self.detector.detect(frame), key=lambda quad: -float(np.linalg.norm(quad[0] - quad[1])))[:lines]
+        texts = [self.script_probe.recognize(engine._crop_quad(frame, quad))[0] for quad in boxes]
+        letters = [ch for ch in " ".join(texts) if ch.isalpha()]
+        if not letters:
+            return None
+        arabic = len(_ARABIC_LETTER.findall("".join(letters)))
+        return arabic / len(letters)
 
     def process_image(self, path: Path, **context: Any) -> MediaProcessResult:
         frame = self.cv2.imread(str(path))

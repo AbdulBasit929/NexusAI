@@ -109,5 +109,43 @@ class RouterTests(unittest.TestCase):
             OcrRouter(None, None, None, lambda image: None)
 
 
+class ProbedOnnx(FakeEngine):
+    """An ONNX engine with the Arabic-script probe: `share` is what the probe reports."""
+
+    def __init__(self, outcome, share):
+        super().__init__(outcome)
+        self.share = share
+        self.script_probe = object()
+
+    def arabic_script_share(self, path):
+        return self.share
+
+
+class ProbeRoutingTests(unittest.TestCase):
+    path = Path("page.png")
+
+    def test_a_high_arabic_share_routes_to_urdu_even_when_the_script_pass_says_latin(self):
+        urdu = FakeEngine(result(("urdu text line one", 0.9)))
+        onnx = ProbedOnnx(result(("garbage", 0.9)), 0.92)
+        out = OcrRouter(FakeEngine(result()), urdu, onnx, lambda image: "Latin").process_image(self.path)
+        self.assertEqual((urdu.calls, onnx.calls), (1, 0))
+        self.assertEqual(out.metadata["ocr_route"]["engine_used"], TESSERACT_URDU)
+        self.assertEqual(out.metadata["ocr_route"]["arabic_script_share"], 0.92)
+
+    def test_a_low_arabic_share_stays_latin_even_when_the_script_pass_says_arabic(self):
+        urdu = FakeEngine(result(("never used", 0.9)))
+        onnx = ProbedOnnx(result(("Receipt total 1,200 cash 1,500", 0.95)), 0.05)
+        out = OcrRouter(FakeEngine(result()), urdu, onnx, lambda image: "Arabic").process_image(self.path)
+        self.assertEqual((urdu.calls, onnx.calls), (0, 1))
+        self.assertEqual(out.metadata["ocr_route"]["engine_used"], ONNX_LATIN)
+
+    def test_a_probe_with_no_text_falls_back_to_the_script_pass(self):
+        urdu = FakeEngine(result(("urdu text line one", 0.9)))
+        onnx = ProbedOnnx(result(("x", 0.9)), None)
+        out = OcrRouter(FakeEngine(result()), urdu, onnx, lambda image: "Arabic").process_image(self.path)
+        self.assertEqual(out.metadata["ocr_route"]["engine_used"], TESSERACT_URDU)
+        self.assertIsNone(out.metadata["ocr_route"]["arabic_script_share"])
+
+
 if __name__ == "__main__":
     unittest.main()

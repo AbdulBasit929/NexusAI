@@ -81,6 +81,9 @@ def main():
     add("models/ocr/PP-OCRv5_mobile_det_onnx/inference.yml", "onnx-ocr/PP-OCRv5_mobile_det/inference.yml", "detector configuration", "Apache-2.0 (hub tag)")
     pins["onnx-latin"] = add("models/ocr/latin_PP-OCRv5_mobile_rec_onnx/inference.onnx", "onnx-ocr/latin_PP-OCRv5_mobile_rec/inference.onnx", "PaddlePaddle/latin_PP-OCRv5_mobile_rec_onnx", "Apache-2.0 (hub tag)")
     add("models/ocr/latin_PP-OCRv5_mobile_rec_onnx/inference.yml", "onnx-ocr/latin_PP-OCRv5_mobile_rec/inference.yml", "recogniser configuration and character dictionary", "Apache-2.0 (hub tag)")
+    pins["onnx-script-probe"] = add("models/ocr/arabic_PP-OCRv5_mobile_rec_onnx/inference.onnx", "onnx-ocr/arabic_PP-OCRv5_mobile_rec/inference.onnx",
+                                    "PaddlePaddle/arabic_PP-OCRv5_mobile_rec_onnx, used ONLY to tell Arabic-script pages from Latin ones (not read as OCR output)", "Apache-2.0 (hub tag)")
+    add("models/ocr/arabic_PP-OCRv5_mobile_rec_onnx/inference.yml", "onnx-ocr/arabic_PP-OCRv5_mobile_rec/inference.yml", "script probe configuration and character dictionary", "Apache-2.0 (hub tag)")
     with open(os.path.join(DEST, "PROVENANCE.json"), "w", encoding="utf-8") as handle:
         json.dump({"written": time.strftime("%Y-%m-%dT%H:%M:%S"), "files": provenance}, handle, indent=1)
     print("\nenvironment pins (set in docker-compose.forensic-records.media.yaml):")
