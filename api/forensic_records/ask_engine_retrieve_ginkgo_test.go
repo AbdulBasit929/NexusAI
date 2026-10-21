@@ -216,8 +216,10 @@ var _ = Describe("Ask engine shortlist and example retrieval", func() {
 	})
 
 	It("matches an example even when its numbers differ, and prefers the one whose result shape the question asks for", func() {
-		got := askRetrieveExamples("How are 923009990001 and 923009990002 connected?", []string{"v_contact_pairs", "v_comm_events"}, examples, 1)
-		Expect(askExampleIDs(got)).To(Equal([]string{"connection-path"}))
+		got := askRetrieveExamples("How are 923009990001 and 923009990002 connected?", []string{"v_connection_edges"}, examples, 1)
+		Expect(askExampleIDs(got)).To(Or(Equal([]string{"connection-path"}), Equal([]string{"connection-path-any"})), "an example on the view the question was offered")
+		got = askRetrieveExamples("How are 923009990001 and 923009990002 connected within four hops?", []string{"v_contact_pairs"}, examples, 1)
+		Expect(askExampleIDs(got)).To(Equal([]string{"connection-path-long"}), "more than three hops is the recursive example over the contact pairs")
 		got = askRetrieveExamples("Who do 923009990001 and 923009990002 both contact?", []string{"v_contact_pairs"}, examples, 1)
 		Expect(askExampleIDs(got)).To(Equal([]string{"common-contacts"}))
 	})

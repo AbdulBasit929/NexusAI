@@ -185,7 +185,7 @@ var _ = Describe("Ask engine catalogue, examples and prompt", func() {
 		for _, v := range cat.Views {
 			names = append(names, v.Name)
 		}
-		Expect(names).To(Equal([]string{"v_app_usage", "v_cell_visits", "v_cells", "v_comm_events", "v_contact_pairs", "v_data_sessions", "v_device_pairings"}))
+		Expect(names).To(Equal([]string{"v_app_usage", "v_cell_visits", "v_cells", "v_comm_events", "v_connection_edges", "v_contact_links", "v_contact_pairs", "v_data_sessions", "v_device_pairings", "v_evidence_inventory"}))
 		Expect(cat.View("v_contact_pairs").Columns).NotTo(BeEmpty())
 		Expect(cat.View("v_nothing")).To(BeNil())
 	})

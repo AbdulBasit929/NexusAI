@@ -235,6 +235,78 @@
       ]
     },
     {
+      "name": "v_connection_edges",
+      "description": "How two numbers are connected, through calls and messages in either direction, within three links: ask for a pair with a = first number AND b = second number. Each row is one link (src to dst) of a path from a to b; hops is how many links the path has (1 direct, 2 through one shared contact, 3 through two numbers); ordinary is true when no link of the path goes to a service or through a number everyone contacts; rank_any = 1 marks the shortest paths, rank_ordinary = 1 the shortest ordinary paths. Use for connected, connection, path, link, chain, route, shared contact, how are A and B related, within N hops (up to 3).",
+      "columns": [
+        {
+          "name": "a",
+          "type": "text",
+          "description": "The first number of the pair asked about: always write a = '...' in the query."
+        },
+        {
+          "name": "b",
+          "type": "text",
+          "description": "The second number of the pair asked about: always write b = '...' in the query."
+        },
+        {
+          "name": "src",
+          "type": "text",
+          "description": "One end of a link of a path from a to b."
+        },
+        {
+          "name": "dst",
+          "type": "text",
+          "description": "The other end of that link."
+        },
+        {
+          "name": "hops",
+          "type": "integer",
+          "description": "Number of links of the path the row belongs to: 1 direct contact, 2 through one shared contact, 3 through two numbers."
+        },
+        {
+          "name": "ordinary",
+          "type": "boolean",
+          "description": "True when no link of the path goes to a service or through a number everyone contacts; use it when the question leaves services and hubs out."
+        },
+        {
+          "name": "rank_any",
+          "type": "bigint",
+          "description": "1 for the shortest paths between a and b, 2 for the next length, and so on."
+        },
+        {
+          "name": "rank_ordinary",
+          "type": "bigint",
+          "description": "1 for the shortest ORDINARY paths (null for a path that is not ordinary); use rank_ordinary = 1 with ordinary when services and hubs are left out."
+        }
+      ]
+    },
+    {
+      "name": "v_contact_links",
+      "description": "Every contact of the case as an undirected link between two numbers (both orders are present), with the number of events and whether the link is ordinary: neither to a service nor through a number everyone contacts. The building block of v_connection_edges.",
+      "columns": [
+        {
+          "name": "a",
+          "type": "text",
+          "description": "One of the two numbers of the link; each link is present in both orders."
+        },
+        {
+          "name": "b",
+          "type": "text",
+          "description": "The other number of the link."
+        },
+        {
+          "name": "ordinary",
+          "type": "boolean",
+          "description": "True when the link comes from an ordinary contact: neither to a service nor to a number everyone contacts."
+        },
+        {
+          "name": "events",
+          "type": "bigint",
+          "description": "Number of events between the two numbers, both directions together."
+        }
+      ]
+    },
+    {
       "name": "v_contact_pairs",
       "description": "One row per subscriber (src) and other party (dst): event counts by direction, total duration, first and last contact. Use is_service and is_hub to leave out short codes, sender names and numbers that everyone contacts.",
       "columns": [
@@ -444,6 +516,52 @@
           "name": "last_seen",
           "type": "timestamp with time zone",
           "description": "Last time the pairing was seen, UTC."
+        }
+      ]
+    },
+    {
+      "name": "v_evidence_inventory",
+      "description": "The evidence files of the case, one row each: name, modality (image, audio, video, document, structured_records), detected type, extension, size, processing status and time added. For how many files, images, documents or recordings the case holds, and which failed.",
+      "columns": [
+        {
+          "name": "evidence_id",
+          "type": "uuid",
+          "description": "Identifier of the evidence item."
+        },
+        {
+          "name": "original_filename",
+          "type": "text",
+          "description": "File name as it was added."
+        },
+        {
+          "name": "modality",
+          "type": "text",
+          "description": "image, audio, video, document or structured_records."
+        },
+        {
+          "name": "detected_type",
+          "type": "text",
+          "description": "What the file was recognised as: cdr, ipdr, anpr, subscriber, transaction, access_log, tower_location, pdf, image, audio, video, document or generic."
+        },
+        {
+          "name": "extension",
+          "type": "text",
+          "description": "File extension."
+        },
+        {
+          "name": "size_bytes",
+          "type": "bigint",
+          "description": "Size of the file in bytes."
+        },
+        {
+          "name": "processing_status",
+          "type": "text",
+          "description": "completed, failed or still processing."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "description": "When the item was added to the case, UTC."
         }
       ]
     }

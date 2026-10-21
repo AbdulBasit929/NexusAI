@@ -203,7 +203,7 @@ func askRowMaps(r *govSQLResult) []map[string]any { return govSQLRowMaps(r) }
 func askReadsRecords(v *askValidated) bool {
 	for _, view := range v.Views {
 		switch view {
-		case "v_comm_events", "v_contact_pairs", "v_cell_visits", "v_device_pairings", "v_data_sessions":
+		case "v_comm_events", "v_contact_pairs", "v_contact_links", "v_connection_edges", "v_cell_visits", "v_device_pairings", "v_data_sessions":
 			return true
 		}
 	}

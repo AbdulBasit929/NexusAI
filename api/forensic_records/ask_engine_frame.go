@@ -287,6 +287,39 @@ func askSQLMentions(sql string, words ...string) bool {
 	return false
 }
 
+// askUsesView is whether the query reads the named analyst view.
+func askUsesView(v *askValidated, name string) bool {
+	for _, view := range v.Views {
+		if view == name {
+			return true
+		}
+	}
+	return false
+}
+
+var askHopsBound = regexp.MustCompile(`\bhops\s*(<=|<|=)\s*(\d+)`)
+
+// askHopsBounded is whether the query limits the number of links to at most n (hops <= n, hops < n+1 or hops = k with k <= n).
+func askHopsBounded(sql string, n int) bool {
+	for _, m := range askHopsBound.FindAllStringSubmatch(sql, -1) {
+		k, err := strconv.Atoi(m[2])
+		if err != nil {
+			continue
+		}
+		switch m[1] {
+		case "<=", "=":
+			if k <= n {
+				return true
+			}
+		case "<":
+			if k-1 <= n {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func askUsesColumn(v *askValidated, names ...string) bool {
 	for _, c := range v.Columns {
 		for _, n := range names {
@@ -386,14 +419,21 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	if f.Limit > 0 && v.Limit != f.Limit && !numbers[f.Limit] {
 		add("LIMIT", fmt.Sprintf("The question asks for %d, so the query must keep exactly %d rows (LIMIT %d).", f.Limit, f.Limit, f.Limit), "the question asks for a number of results that the query does not return")
 	}
+	links := askUsesView(v, "v_connection_edges")
 	if f.Hops > 0 {
 		switch {
+		case links && f.Hops > 3:
+			add("RECURSION", fmt.Sprintf("v_connection_edges covers at most three hops and the question asks for %d: use a bounded recursive query over v_contact_pairs (depth < %d).", f.Hops, f.Hops), "the view reaches three hops and the question asks for more")
+		case links && f.Hops < 3 && !askHopsBounded(sql, f.Hops):
+			add("HOPS", fmt.Sprintf("The question asks for %d hops: add hops <= %d.", f.Hops, f.Hops), "the query does not limit the number of links to the one asked")
+		case links:
+			// v_connection_edges walks up to three links itself
 		case !v.Recursive:
 			add("RECURSION", fmt.Sprintf("The question asks about connections within %d hops, so the query must be a bounded recursive query (WITH RECURSIVE) with depth < %d.", f.Hops, f.Hops), "a connection question needs a path search that the query does not do")
 		case v.MaxHops != f.Hops:
 			add("HOPS", fmt.Sprintf("The question asks for %d hops but the query's depth bound allows %d.", f.Hops, v.MaxHops), "the query searches a different number of hops from the one asked")
 		}
-	} else if f.Cues["path"] && len(f.Numbers) >= 2 && !v.Recursive {
+	} else if f.Cues["path"] && len(f.Numbers) >= 2 && !v.Recursive && !links {
 		add("RECURSION", "The question asks how two numbers are connected, so the query must walk the contacts with a bounded WITH RECURSIVE (depth <= 3).", "a connection question needs a path search that the query does not do")
 	}
 
@@ -437,10 +477,10 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	if f.Cues["latest"] && f.Limit == 0 && !askSQLMentions(sql, "max(", "order by", "last_seen") {
 		add("LATEST", "The question asks for the latest: use MAX of the time, or ORDER BY the time descending with LIMIT 1.", "the question asks for the latest and the query does not take it")
 	}
-	if f.Cues["services"] && f.Cues["exclude"] && !askUsesColumn(v, "is_service", "dst_is_person_like") && !askSQLMentions(sql, "dst_kind", "is_service") {
+	if f.Cues["services"] && f.Cues["exclude"] && !askUsesColumn(v, "is_service", "dst_is_person_like", "ordinary") && !askSQLMentions(sql, "dst_kind", "is_service") {
 		add("SERVICES", "The question leaves out services and short codes: use NOT is_service (or dst_is_person_like).", "the question leaves out services and the query does not")
 	}
-	if f.Cues["hubs"] && f.Cues["exclude"] && !askUsesColumn(v, "is_hub") {
+	if f.Cues["hubs"] && f.Cues["exclude"] && !askUsesColumn(v, "is_hub", "ordinary") {
 		add("HUBS", "The question leaves out numbers that everyone contacts: use NOT is_hub.", "the question leaves out hubs and the query does not")
 	}
 	return unmet
@@ -467,7 +507,7 @@ func askCheckResult(f askFrame, v *askValidated, columns []string, rows int) *as
 	// A connection question (decision D22) is answered with the edges of the connections found, so that the answer can name the numbers between the two. Measured on seed
 	// 101: asked "is there a link between A and B within three hops", the model wrote an existence test and the answer was a bare "Has link: true", which is true and names
 	// nothing. The result must carry src and dst, as the verified example's does.
-	if (f.Hops > 0 || f.Cues["path"]) && len(f.Numbers) >= 2 && v.Recursive {
+	if (f.Hops > 0 || f.Cues["path"]) && len(f.Numbers) >= 2 && (v.Recursive || askUsesView(v, "v_connection_edges")) {
 		has := map[string]bool{}
 		for _, c := range columns {
 			has[strings.ToLower(c)] = true

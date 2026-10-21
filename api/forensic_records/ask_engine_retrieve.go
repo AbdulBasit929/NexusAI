@@ -112,6 +112,8 @@ var askLexicon = map[string][]string{
 		"everyone", "never", "back", "lead", "relationship", "between"},
 	"v_comm_events": {"call", "sms", "text", "message", "event", "duration", "long", "longest", "minute", "hour", "day", "daily", "night", "midnight", "week", "weekday",
 		"month", "date", "when", "incoming", "outgoing", "receive", "abroad", "international", "history", "conversation", "exchange", "activity", "texting"},
+	"v_connection_edges": {"connect", "connection", "path", "link", "chain", "route", "related", "relationship", "acquainted", "lead", "separation", "linked"},
+	"v_evidence_inventory": {"file", "evidence", "image", "photo", "picture", "audio", "recording", "video", "document", "pdf", "inventory", "upload", "attachment", "item", "failed"},
 	"v_cell_visits": {"cell", "tower", "site", "location", "where", "place", "visit", "area", "movement", "move", "travel", "near", "located", "colocation",
 		"meet", "same", "sleep", "anchor", "map", "simultaneously"},
 	"v_cells":           {"cell", "tower", "site", "coverage", "radius", "position", "latitude", "longitude", "operator", "operated", "cover", "km", "within"},
@@ -253,6 +255,17 @@ func (c *askCatalogue) Shortlist(question string, max int) askShortlist {
 			}
 		}
 	}
+	// A question about how two numbers are connected is answered from v_connection_edges alone: the contact pairs would only tempt the model to write the walk again. The common-contact
+	// questions ("both", "common", "mutual", "shared") and the single-number reach questions keep their views.
+	if askContains(out.Views, "v_connection_edges") && askContains(out.Views, "v_contact_pairs") && features.Phones >= 2 && askConnectionWords(tokenSet) && !askCommonWords(tokenSet) {
+		kept := out.Views[:0]
+		for _, name := range out.Views {
+			if name != "v_contact_pairs" {
+				kept = append(kept, name)
+			}
+		}
+		out.Views = kept
+	}
 	// A weak signal still gets an answer attempt, with the best three views, and says it is not confident.
 	if !out.Confident && len(out.Views) < askShortlistMax {
 		for _, name := range ranked {
@@ -294,6 +307,9 @@ func askApplyFeatures(c *askCatalogue, f askFeatures, tokens map[string]bool, ad
 	if f.Phones >= 2 && linking && !spatial && has("v_contact_pairs") {
 		add("v_contact_pairs", 2, "two numbers and a linking word")
 	}
+	if f.Phones >= 2 && askConnectionWords(tokens) && !spatial && has("v_connection_edges") {
+		add("v_connection_edges", 6, "two numbers and a connection word")
+	}
 	if f.Phones >= 1 {
 		for _, name := range []string{"v_contact_pairs", "v_comm_events"} {
 			if has(name) {
@@ -301,6 +317,26 @@ func askApplyFeatures(c *askCatalogue, f askFeatures, tokens map[string]bool, ad
 			}
 		}
 	}
+}
+
+// askConnectionWords is whether the question speaks of a connection between two things.
+func askConnectionWords(tokens map[string]bool) bool {
+	for _, w := range []string{"connect", "connection", "path", "link", "chain", "route", "relate", "relationship", "acquainted", "lead", "separation"} {
+		if tokens[askStem(w)] {
+			return true
+		}
+	}
+	return false
+}
+
+// askCommonWords is whether the question asks for what two numbers share (common contacts) rather than how they are connected.
+func askCommonWords(tokens map[string]bool) bool {
+	for _, w := range []string{"both", "common", "mutual", "shared", "share"} {
+		if tokens[askStem(w)] {
+			return true
+		}
+	}
+	return false
 }
 
 func askContains(list []string, s string) bool {

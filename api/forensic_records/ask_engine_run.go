@@ -248,7 +248,7 @@ func askUserPrompt(f askFrame) string {
 	if (f.Hops > 0 || f.Cues["path"]) && len(f.Numbers) >= 2 {
 		// Measured on seeds 101 and 103: asked "is there a link between A and B within N hops", the first draft was an existence test with no outer LIMIT, which used up the
 		// repairs (two answers took 190 s, two were declined) or answered with a bare yes or no. The answer to a connection question is the connection, as the example's.
-		hints = append(hints, "Connection: return the edges of the routes between the two numbers as src and dst, one row per edge, as in the verified example (never a yes or no), and end with LIMIT 200.")
+		hints = append(hints, "Connection: return the edges of the routes between the two numbers as src and dst, one row per edge, as in the verified example (never a yes or no), and end with LIMIT 200. With v_connection_edges: a = first number AND b = second number, then AND ordinary AND rank_ordinary = 1 when services and hubs are left out, else AND rank_any = 1, and hops <= N when fewer than three hops are asked.")
 	}
 	if f.Cues["incoming"] {
 		hints = append(hints, "Incoming events only.")
@@ -268,6 +268,22 @@ func askUserPrompt(f askFrame) string {
 		b.WriteString("Hints: " + strings.Join(hints, " ") + "\n")
 	}
 	return b.String()
+}
+
+// askReplaceView swaps one view of a shortlist for another (once, keeping no duplicate).
+func askReplaceView(views []string, from, to string) []string {
+	out := make([]string, 0, len(views))
+	seen := map[string]bool{}
+	for _, v := range views {
+		if v == from {
+			v = to
+		}
+		if !seen[v] {
+			seen[v] = true
+			out = append(out, v)
+		}
+	}
+	return out
 }
 
 // ---- the run -----------------------------------------------------------------------------------------------------------------------------------------------
@@ -322,6 +338,10 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 		return decline("no analyst view fits the question closely enough")
 	}
 	chosen := append([]string{}, short.Views...)
+	if frame.Hops > 3 {
+		// v_connection_edges walks up to three links: a question for more is answered by the recursive query over the contact pairs
+		chosen = askReplaceView(chosen, "v_connection_edges", "v_contact_pairs")
+	}
 	sort.Strings(chosen)
 	audit.Views = chosen
 	// The views read the typed tables only: a case that is not (fully) in them gets no answer from the engine (ask_engine_coverage.go).
@@ -604,8 +624,9 @@ func askReadEmpty(ctx context.Context, db *pgxpool.Pool, req hybridQueryRequest,
 	if len(ids) == 0 {
 		return askEmptyVerdict{}, nil
 	}
-	// A path search over the subscribers' contacts is empty when no path exists: that is an answer, not a query that looked in the wrong place.
-	wrongPlaceMatters := !v.Recursive
+	// A path search over the subscribers' contacts (a recursive query, or a query on v_connection_edges, whose columns a and b hold the two numbers) is empty when no path exists: that is
+	// an answer, not a query that looked in the wrong place.
+	wrongPlaceMatters := !v.Recursive && !askUsesView(v, "v_connection_edges")
 	var absent []string
 	for _, id := range ids {
 		hits, err := askProbeFn(ctx, db, req.TenantID, req.CollectionID, cat, id, limits)

@@ -5,8 +5,8 @@
   {"q": "What is the longest call made by 923001110001?", "views": ["v_comm_events"]},
   {"q": "Show daily SMS counts for 923001110001 in April", "views": ["v_comm_events"], "example": "daily-activity"},
   {"q": "Who do 923001110001 and 923001110002 both contact?", "views": ["v_contact_pairs"], "example": "common-contacts"},
-  {"q": "How are 923001110001 and 923001110002 connected?", "views": ["v_contact_pairs"], "example": "connection-path"},
-  {"q": "Is there a link between 923001110003 and 923001110004 within two hops?", "views": ["v_contact_pairs"], "example": "connection-path"},
+  {"q": "How are 923001110001 and 923001110002 connected?", "views": ["v_connection_edges"], "example": "connection-path"},
+  {"q": "Is there a link between 923001110003 and 923001110004 within two hops?", "views": ["v_connection_edges"], "example": "connection-path"},
   {"q": "Which cell towers did 923001110001 use most last month?", "views": ["v_cell_visits"], "example": "cells-used"},
   {"q": "Where was 923001110001 on 3 March at night?", "views": ["v_cell_visits"], "example": "cells-used"},
   {"q": "Show the coverage radius and position of site Gulberg", "views": ["v_cells"]},
@@ -42,7 +42,7 @@
 
   {"q": "Whom does 923001110005 phone the most often?", "views": ["v_contact_pairs"], "example": "top-contacts", "heldout": true},
   {"q": "Are 923001110006 and 923001110007 acquainted through a mutual number?", "views": ["v_contact_pairs"], "example": "common-contacts", "heldout": true},
-  {"q": "What chain of calls leads from 923001110008 to 923001110009?", "views": ["v_contact_pairs"], "example": "connection-path", "heldout": true},
+  {"q": "What chain of calls leads from 923001110008 to 923001110009?", "views": ["v_connection_edges"], "example": "connection-path", "heldout": true},
   {"q": "Towers visited by 923001110010 this past weekend", "views": ["v_cell_visits"], "example": "cells-used", "heldout": true},
   {"q": "Has 923001110011 swapped SIM or phone recently?", "views": ["v_device_pairings"], "example": "device-changes", "heldout": true},
   {"q": "Identify the subscriber behind public address 192.0.2.44 port 40000 on 2026-03-04 at 10:15", "views": ["v_data_sessions"], "example": "address-holder", "heldout": true},
@@ -59,5 +59,8 @@
   {"q": "Top apps by usage in Quetta", "views": ["v_app_usage"], "example": "top-apps", "heldout": true},
   {"q": "Show who exchanged messages with 923001110023 on 2026-03-05", "views": ["v_comm_events"], "heldout": true},
   {"q": "What is the typical call duration between 923001110024 and 923001110025?", "views": ["v_contact_pairs"], "heldout": true},
-  {"q": "How many sessions used port 443?", "views": ["v_data_sessions"], "heldout": true}
+  {"q": "How many sessions used port 443?", "views": ["v_data_sessions"], "heldout": true},
+  {"q": "How many images are in this case?", "views": ["v_evidence_inventory"], "example": "evidence-count"},
+  {"q": "How many files did the case fail to process?", "views": ["v_evidence_inventory"], "example": "evidence-count"},
+  {"q": "How are 923001110005 and 923001110006 connected within four hops?", "views": ["v_contact_pairs"], "example": "connection-path-long"}
 ]

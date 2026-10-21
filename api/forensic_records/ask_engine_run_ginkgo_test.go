@@ -236,13 +236,24 @@ var _ = Describe("Ask engine connection result (decision D22)", func() {
 		Expect(err).NotTo(HaveOccurred())
 		var path askExample
 		for _, e := range examples {
-			if e.ID == "connection-path" {
+			if e.ID == "connection-path-long" {
 				path = e
 			}
 		}
 		valid, rej := askValidate(path.SQL, cat, nil)
 		Expect(rej).To(BeNil())
 		Expect(valid.Recursive).To(BeTrue())
+		for _, e := range examples {
+			if e.ID == "connection-path" {
+				onView, rej := askValidate(e.SQL, cat, nil)
+				Expect(rej).To(BeNil())
+				Expect(onView.Recursive).To(BeFalse(), "the view walks the contacts itself")
+				Expect(askUsesView(onView, "v_connection_edges")).To(BeTrue())
+				bad := askCheckResult(askExtractFrame("How are 923000000101 and 923000000102 connected?"), onView, []string{"has_link"}, 1)
+				Expect(bad).NotTo(BeNil(), "a yes or no is refused for a query on the view too")
+				Expect(askCheckResult(askExtractFrame("How are 923000000101 and 923000000102 connected?"), onView, []string{"src", "dst"}, 3)).To(BeNil())
+			}
+		}
 		both := []string{"923000000101", "923000000102"}
 		for _, q := range []string{
 			"Is there a link between " + both[0] + " and " + both[1] + " within three hops, leaving out services and numbers everyone contacts?",
@@ -282,14 +293,14 @@ var _ = Describe("Ask engine derivation in plain words", func() {
 		Expect(err).NotTo(HaveOccurred())
 		var path askExample
 		for _, e := range examples {
-			if e.ID == "connection-path" {
+			if e.ID == "connection-path-long" {
 				path = e
 			}
 		}
 		valid, rej := askValidate(path.SQL, cat, nil)
 		Expect(rej).To(BeNil())
 		text := strings.Join(askDescribe(valid, cat).Sentences(), " ")
-		Expect(text).To(ContainSubstring("up to 3 hops"))
+		Expect(text).To(ContainSubstring("up to 4 hops"))
 		valid, _ = askValidate("SELECT count(*) AS n FROM v_comm_events WHERE start_utc >= '2026-03-01' AND start_utc < '2026-04-01'", cat, nil)
 		Expect(strings.Join(askDescribe(valid, cat).Sentences(), " ")).To(ContainSubstring("case clock"))
 	})
@@ -727,15 +738,13 @@ var _ = Describe("Ask engine run", func() {
 		Expect(resp.Answer["answer"]).To(Equal("N: 24."))
 
 		execBody = empty
-		walk := reply("WITH RECURSIVE walk AS (SELECT src, dst, 1 AS depth, ARRAY[src, dst] AS path FROM v_contact_pairs WHERE src = '923000001001' AND NOT is_service AND NOT is_hub " +
-			"UNION ALL SELECT w.src, e.dst, w.depth + 1, w.path || e.dst FROM walk w JOIN v_contact_pairs e ON e.src = w.dst WHERE w.depth < 3 AND NOT e.dst = ANY (w.path) AND NOT e.is_service AND NOT e.is_hub) " +
-			"SELECT src, dst FROM walk WHERE dst = '923000001036' LIMIT 20")
+		walk := reply("SELECT src, dst FROM v_connection_edges WHERE a = '923000001001' AND b = '923000001036' AND rank_any = 1 LIMIT 20")
 		execBody = func(*askValidated) (*govSQLResult, error) {
 			return &govSQLResult{Columns: []string{"src", "dst"}, Texts: []bool{true, true}, Rows: [][]any{}}, nil
 		}
 		script(walk)
 		_, audit = run("How are 923000001001 and 923000001036 connected within three hops?")
-		Expect(audit.State).To(Equal("answered"))
+		Expect(audit.State).To(Equal("answered"), audit.Reason+" repairs="+strings.Join(audit.Repairs, ",")+" views="+strings.Join(audit.Views, ","))
 		Expect(audit.Repairs).To(BeEmpty())
 	})
 

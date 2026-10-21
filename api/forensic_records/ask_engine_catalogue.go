@@ -176,6 +176,7 @@ Rules:
 - A recursive query must keep a depth column that starts at 1 and grows by 1, bounded in the recursive part by a literal (depth < 3 means three hops, at most 4 hops), keep the visited numbers in an array and test NOT x = ANY (path), and end with LIMIT.
 - Name result columns so that they can be drawn: src and dst for a graph (add kind and weight if known); lat and lon for a map; lane, start and "end" for lanes; t and value for a series; label and value for a ranking.
 - In the call views src is the subscriber whose records these are and dst is the other party: "A got a call from B" is src = A, dst = B, direction = 'incoming'; "A called B" is src = A, dst = B, direction = 'outgoing'. A number that only appears as someone's contact is dst. When two numbers are named, the first is usually the subscriber.
+- When v_connection_edges is listed, use it for how two numbers are connected (up to three hops): WHERE a = first AND b = second, never a recursive query.
 - Keep the query short: the views already do the joins and exclusions.
 - Return JSON {"answerable": boolean, "sql": string}. If the relations cannot answer the question, answerable is false and sql is empty.`
 

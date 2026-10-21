@@ -50,7 +50,7 @@ var _ = Describe("Ask engine on a real database", Ordered, func() {
 		for _, v := range cat.Views {
 			names = append(names, v.Name)
 		}
-		Expect(names).To(Equal([]string{"v_app_usage", "v_cell_visits", "v_cells", "v_comm_events", "v_contact_pairs", "v_data_sessions", "v_device_pairings"}))
+		Expect(names).To(Equal([]string{"v_app_usage", "v_cell_visits", "v_cells", "v_comm_events", "v_connection_edges", "v_contact_links", "v_contact_pairs", "v_data_sessions", "v_device_pairings", "v_evidence_inventory"}))
 		text := cat.Render(nil)
 		Expect(text).To(ContainSubstring("is_hub"))
 		Expect(text).To(ContainSubstring("holds_from"))

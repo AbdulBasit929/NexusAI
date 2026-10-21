@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mudler/LocalAI/pkg/forensicrequest"
 	. "github.com/onsi/ginkgo/v2"
@@ -572,6 +573,114 @@ modality, detected_type, classifier_confidence, processing_route, processing_sta
 			named = named || strings.Contains(headline, c)
 		}
 		Expect(named).To(BeTrue(), headline)
+	})
+
+	// Migration 020 (the thick views): v_connection_edges must agree with a search of the key's own contact graph, for every ordered pair of the first subscribers, and the
+	// recursive example over five hops stays valid for questions the view cannot answer.
+	It("answers how two numbers are connected from v_connection_edges exactly as a search of the key's contact graph does, in both orders", func() {
+		contacts := map[string]map[string]bool{}
+		for subject, list := range truth.Oracle.A1 {
+			if contacts[subject] == nil {
+				contacts[subject] = map[string]bool{}
+			}
+			for _, p := range list {
+				if p.Kind != "person_like" {
+					continue
+				}
+				if contacts[p.Number] == nil {
+					contacts[p.Number] = map[string]bool{}
+				}
+				contacts[subject][p.Number], contacts[p.Number][subject] = true, true
+			}
+		}
+		distance := func(from, to string) int { // breadth-first, at most three links; 0 when there is no path
+			seen, frontier := map[string]bool{from: true}, []string{from}
+			for depth := 1; depth <= 3; depth++ {
+				var next []string
+				for _, n := range frontier {
+					for m := range contacts[n] {
+						if m == to {
+							return depth
+						}
+						if !seen[m] {
+							seen[m] = true
+							next = append(next, m)
+						}
+					}
+				}
+				frontier = next
+			}
+			return 0
+		}
+		subjects := []string{}
+		for _, s := range truth.Subjects {
+			subjects = append(subjects, s.MSISDN)
+			if len(subjects) == 6 {
+				break
+			}
+		}
+		Expect(len(subjects)).To(BeNumerically(">=", 4))
+		found, none := 0, 0
+		for _, x := range subjects {
+			for _, y := range subjects {
+				if x == y {
+					continue
+				}
+				result, err := scoped(fmt.Sprintf("SELECT min(hops) FROM v_connection_edges WHERE a = '%s' AND b = '%s' AND ordinary", x, y))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(result.Rows).To(HaveLen(1))
+				want := distance(x, y)
+				if result.Rows[0][0] == nil {
+					Expect(want).To(Equal(0), x+" to "+y+": the view finds no path and the key has one")
+					none++
+					continue
+				}
+				got, _ := strconv.Atoi(fmt.Sprint(result.Rows[0][0]))
+				Expect(got).To(Equal(want), x+" to "+y)
+				found++
+			}
+		}
+		Expect(found).To(BeNumerically(">", 0), "the planted case has connected subscribers")
+		// the edges of the shortest ordinary paths are links of the graph, and rank 1 is the shortest
+		x, y := subjects[0], subjects[1]
+		result, err := scoped(fmt.Sprintf("SELECT src, dst, hops FROM v_connection_edges WHERE a = '%s' AND b = '%s' AND ordinary AND rank_ordinary = 1 LIMIT 200", x, y))
+		Expect(err).NotTo(HaveOccurred())
+		for _, row := range result.Rows {
+			Expect(contacts[fmt.Sprint(row[0])][fmt.Sprint(row[1])]).To(BeTrue(), fmt.Sprint(row))
+		}
+		_ = none
+	})
+
+	It("counts the evidence of a case by modality and status from v_evidence_inventory, for that case only", func() {
+		tx, err := pool.Begin(ctx)
+		Expect(err).NotTo(HaveOccurred())
+		_, err = tx.Exec(ctx, "SELECT set_config('app.tenant_id', 'inv-tenant', true)")
+		Expect(err).NotTo(HaveOccurred())
+		for i, row := range []struct{ collection, name, modality, detected, status string }{
+			{"inv-case", "a.png", "image", "image", "completed"}, {"inv-case", "b.png", "image", "image", "completed"},
+			{"inv-case", "c.png", "image", "image", "failed"}, {"inv-case", "d.pdf", "document", "pdf", "completed"}, {"other-case", "e.png", "image", "image", "completed"},
+		} {
+			_, err = tx.Exec(ctx, `INSERT INTO forensic.evidence_items (evidence_id, tenant_id, collection_id, case_id, user_id, original_filename, source_file, content_type, extension, size_bytes, sha256,
+modality, detected_type, classifier_confidence, processing_route, processing_status, raw_storage_ref, metadata) VALUES ($1::uuid, 'inv-tenant', $2, 'SYNTHETIC-INV', 'u', $3, $3, 'application/octet-stream', 'x', 10, repeat('d', 64),
+$4, $5, 1, 'w', $6, 'immutable://inv/'||$3, jsonb_build_object('request_id', 'r'))`, fmt.Sprintf("3b000000-0000-4000-8000-00000000000%d", i+1), row.collection, row.name, row.modality, row.detected, row.status)
+			Expect(err).NotTo(HaveOccurred())
+		}
+		Expect(tx.Commit(ctx)).To(Succeed())
+		read := func(sql string) string {
+			tx, err := pool.BeginTx(ctx, pgx.TxOptions{AccessMode: pgx.ReadOnly})
+			Expect(err).NotTo(HaveOccurred())
+			defer func() { _ = tx.Rollback(ctx) }()
+			for _, statement := range []string{"SET LOCAL ROLE forensic_analyst_ro", "SET LOCAL search_path = analyst, pg_catalog", "SELECT set_config('app.tenant_id', 'inv-tenant', true)", "SELECT set_config('app.collection_id', 'inv-case', true)"} {
+				_, err = tx.Exec(ctx, statement)
+				Expect(err).NotTo(HaveOccurred())
+			}
+			var out string
+			Expect(tx.QueryRow(ctx, sql).Scan(&out)).To(Succeed())
+			return out
+		}
+		Expect(read("SELECT count(*)::text FROM v_evidence_inventory")).To(Equal("4"), "this case's files only")
+		Expect(read("SELECT count(*)::text FROM v_evidence_inventory WHERE modality = 'image'")).To(Equal("3"))
+		Expect(read("SELECT count(*)::text FROM v_evidence_inventory WHERE processing_status = 'failed'")).To(Equal("1"))
 	})
 
 	// The red team of the executor (the validator's is in ask_engine_redteam_ginkgo_test.go): statements the validator ACCEPTS, because each is a valid read of the views, but that
