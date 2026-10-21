@@ -1,5 +1,7 @@
 # Handoff to a local session (2026-10-07)
 
+> **Plan of record: `docs/roadmap/master-plan-20261021.md` (2026-10-21)**: the ledger of every open item, programmes P0 to P5, the interface programme and the media plan. This handoff stays the live log (images, rollback tags, tools, traps); the state file is `NEXUSAI_CONTINUATION.md`.
+
 Read this first, then `docs/architecture/QUERY_ANSWERING_DECISION_20261005.md`, then `reports/governed-sql-20261005/PREREGISTRATION.md` (every run, every gate, every fix, as measured) and `AGENTS.md`.
 
 **Current state: see the last section (2026-10-19, reconciliation). The sections before it are history and many are superseded (the lane is now the second path behind the Ask engine; the running API image, the switches, the typed cases and the commit rules all changed).**

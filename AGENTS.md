@@ -17,12 +17,16 @@ Then read the document that matches your task:
 | Query, planning, answer or Fact Packet work | same, §G (Governed Semantic Compiler) — **binding** |
 | How a free question is answered end to end (two lanes, one verifier) | [`docs/architecture/QUERY_ANSWERING_DECISION_20261005.md`](docs/architecture/QUERY_ANSWERING_DECISION_20261005.md) — **binding**; amends §G.5 rule 1 |
 | Any UI work | [`docs/ux/NEXUSAI_PRODUCT_UX.md`](docs/ux/NEXUSAI_PRODUCT_UX.md) — **binding** |
-| What do I implement, exactly? | [`docs/work/MASTER_EXECUTION_PROMPT.md`](docs/work/MASTER_EXECUTION_PROMPT.md) |
+| What is the plan, what is left, and in what order? | [`docs/roadmap/master-plan-20261021.md`](docs/roadmap/master-plan-20261021.md) — **the plan of record** (ledger of every open item, programmes, interface programme, media plan, decisions) |
+| Design detail, gaps G1 to G53, decisions D1 to D22 | [`docs/roadmap/nexusai-maturity-roadmap-20261012.md`](docs/roadmap/nexusai-maturity-roadmap-20261012.md) |
+| What do I implement, exactly? | [`docs/work/MASTER_EXECUTION_PROMPT.md`](docs/work/MASTER_EXECUTION_PROMPT.md) (older; the plan of record sequences the work) |
 | Joining as Codex | [`.agents/CODEX.md`](.agents/CODEX.md) |
 | What is actually broken? | [`reports/nexusai-tl-audit-20260918/P0-baseline-report.md`](reports/nexusai-tl-audit-20260918/P0-baseline-report.md) |
 
 **Precedence:** source code and live behavior > `NEXUSAI_CONTINUATION.md` >
 `docs/architecture/RECONCILIATION_20260921.md` > this file > everything else.
+For **sequencing** (what to do next and in what order) the plan of record is
+`docs/roadmap/master-plan-20261021.md`; it does not change any binding rule.
 Reports are immutable evidence, never a statement of current state.
 
 **Superseded where they conflict, kept for provenance only:**

@@ -1,5 +1,7 @@
 # Reconciliation of 2026-10-20 (evening): where the product is, what comes next, and how to test less
 
+> **Superseded for sequencing by `master-plan-20261021.md` (2026-10-21).** S1 to S5 are done; S6 (interface) is programme P2, S7 (widen the engine) is P1, S8 (process) is P0 there. This page stays the record of 2026-10-20 and 21 and the testing policy.
+
 Written after the engine's deploy, the M3 bank (stages 1 and 2), and the typing of two more collections. It reconciles the maturity roadmap (`nexusai-maturity-roadmap-20261012.md`), the handoff (`docs/work/HANDOFF_LOCAL_20261007.md`) and the live system. Where this page and an older table disagree, this page is the later reading; the roadmap's own tables carry short pointers to it.
 
 ## 1. The truth, item by item
