@@ -115,20 +115,20 @@ drafts (no real-file confirmation yet) · `VOICE` label not mapped in `call-c4` 
   the package's tests (2 to 5 min); `worker.py` has mixed line endings (an Edit made a 2,600-line diff).
 - An empty JSON-Schema `enum` is an unparseable grammar (HTTP 500). Ginkgo has a 1 h suite limit: pass
   `-ginkgo.timeout 6h` for the live specs.
-- Two interface trees (`NexusAI` main on :4181, `NexusAI-localwork` lane on :4190) are copied by hand until P0.4.
+- One canonical tree since 2026-10-21 (P0.4 done): `NexusAI-localwork` (`lane-arms`) serves :4181 and :4190; the old `NexusAI` checkout is archived untouched (not reset).
 
 ## 7. The live system (read 2026-10-21)
 
 | Part | State |
 |---|---|
-| API | image `6935d14271c7`; rollbacks `before-s6-20261021` (`77ec230274a2`), `before-020-20261021` (`ee276c1f9bcd`), `before-s2b-20261020` (`0dcf72adddf8`), `before-s2-20261020`, `before-name-20261020`, `before-guards-20261020`, `before-imei-20261020`, `before-d22-20261019`, `before-ask-v2-20261015` |
+| API | image `293f55838d74` (case record `GET/PATCH /cases`, repair dry-run fix); rollbacks `before-case-record-20261021` (`6935d14271c7`), `before-s6-20261021` (`77ec230274a2`), `before-020-20261021` (`ee276c1f9bcd`), `before-s2b-20261020` (`0dcf72adddf8`), `before-s2-20261020`, `before-name-20261020`, `before-guards-20261020`, `before-imei-20261020`, `before-d22-20261019`, `before-ask-v2-20261015` |
 | Worker | overlay `db43bb68c042` (rollback `before-s5-layouts-20261021`); Ingest v2 shadow; **all media roles off** (`FORENSIC_OCR_`, `_ASR_`, `_FACE_`, `_IMAGE_EMBEDDING_`, `_VIDEO_ANPR_V2_`, `_V3_ENABLED=false`) |
 | Models | one container: Qwen3-4B-Instruct Q4_K_M on CPU (context 4096, one request at a time), Qwen3-Embedding-0.6B; ~22 tok/s reading, ~5.5 writing; 15.7 GB laptop, no GPU (D21; the RTX 2080 machine is not available) |
 | Switches on | `GOVERNED_SQL` (+`_FIRST`), `ASK_V2` (+`_FIRST`), `TYPED_FAMILIES`, `VERIFIED_ONLY`, `PLAN_CACHE`, `IR_ARBITRATION`, `IR_FALLBACK`, `LADDER_ROUTING`, `MEDIA_FAMILY_ROUTING`, `DERIVED_ARTIFACT_EXECUTION`, `TEXT_BROWSE_GUARD`, `CONSTRAINT_OBLIGATIONS`, `BOOLEAN_RESTRICTION` and the A1 to A4, S1 to S4 presentation switches |
 | Switches off | `ASK_V2_AGREE`, `CONVERSATION_FRONT_DOOR`, `CONVERSATION_ROUTER`, `PII_MASKED_PROJECTION`, `IR_CROSSCHECK`, `BREAKDOWN_GOAL`, `GOAL_TAXONOMY_SLICES`, `IDENTIFIER_BINDING`, `FRAME_FAMILY_PRECEDENCE` |
-| Database | PostgreSQL 16 + TimescaleDB; migrations 001 to 020 applied (012 to 015 typed tables, entity and relationship tables (empty), pgvector, `cube`, `earthdistance`; 016/018 effective views; 017 analyst schema and role; 019 observed cell positions; 020 thick views); PostGIS not in the image; backups in `C:/tmp/nexusai-backups/` |
+| Database | PostgreSQL 16 + TimescaleDB; migrations 001 to 021 applied (021 case record: applied 2026-10-21 after backup `localrecall-before-migration-021-20261021.dump`; 012 to 015 typed tables, entity and relationship tables (empty), pgvector, `cube`, `earthdistance`; 016/018 effective views; 017 analyst schema and role; 019 observed cell positions; 020 thick views); PostGIS not in the image; backups in `C:/tmp/nexusai-backups/` |
 | Analyst views (10) | `v_comm_events`, `v_data_sessions`, `v_app_usage`, `v_cells`, `v_cell_visits`, `v_contact_pairs`, `v_contact_links`, `v_connection_edges`, `v_device_pairings`, `v_evidence_inventory` |
-| Reads | `GET /analysis/connections`, `/places`, `/engine-health`, `/typing-report` (fixed reads of the views, scoped, behind the coverage guard) |
+| Reads | `GET /analysis/connections`, `/places`, `/engine-health`, `/typing-report` (fixed reads of the views, scoped, behind the coverage guard); `GET /cases`, `GET /cases/{id}`, `PATCH /cases/{id}` (the case record: name and status, audited) |
 | Derived media | 865 artifacts on the acceptance case (309 OCR, 307 ANPR, 115 document passages, 26 image, 24 video plate groups, 22 fingerprints, 20 face, 18 embeddings, 23 audio); plus ~1,900 document passages in the generated cases |
 
 **Regression anchors:** forensic-demo call records 8,642 in version 1, **6,239 effective** (2,702 exact repeats)
@@ -145,12 +145,8 @@ and 2,500 internet sessions; the acceptance case 10,168 structured rows (43 sour
 
 ## 9. Next — the exact next action
 
-**P0.1:** archive the main checkout's uncommitted state outside the repository, then classify the 574 paths by
-content against `lane-arms` and the merge base `3fca698` (master plan 6.2). In parallel the **U0 direction proof**
-(master plan 7.6) and the **P1-A pre-registration** of the stage-3 link-analysis bank. **Needs the owner:** D23
-interface direction (after the proof), D24 one tree and one stage owner, D25 media activation order, D26 who
-captures and labels, D30 a minimal case record (migration 021), D31 plate-component licence route, D10 reviewer
-names, and a go for each live step. **Ask the owner first** for: rebuild or redeploy, compose actions beyond
+**Done 2026-10-21:** P0 (archive, classification, one tree, restore rehearsal, retained-copy repair: 68 asset rows), the direction proof, decisions D23 to D32 recorded in the master plan (D23: the existing teal light and dark themes stay), the case record (D30: migration 021 applied, API deployed, the interface shows case names and has a rename control), licence ledger rows, the media readiness tool and the capture kit. The style files `shell.css` and `workspace.css` were restored to the owner's versions after the tree switch (see the handoff).
+**Next:** the **P1-A pre-registration** of the stage-3 link-analysis bank (gates committed before any view is built); interface stages U2 onward on the current identity; migration 022 (typed tables for access logs and transactions) and 023 (media views) as drafts with rehearsal. **Needs the owner:** names for D26 (plate captures, Urdu labels, speech with consent, the 50 questions) and D10 reviewers; a go for each media role switched on (all are off), and for the later live steps. **Ask the owner first** for: rebuild or redeploy, compose actions beyond
 `ps` and `logs`, any database write, migration or backfill, model downloads or backend installs, any git write
 beyond a plain push to the working branch, long builds, live evaluation suites, worker role activation,
 anything touching retained evidence.
