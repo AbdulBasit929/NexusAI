@@ -88,20 +88,9 @@ func collectionRepairHandler(db *pgxpool.Pool) http.HandlerFunc {
 		}
 		if r.Body != nil {
 			defer r.Body.Close()
-			var body collectionRepairRequest
-			if err := json.NewDecoder(io.LimitReader(r.Body, 1<<20)).Decode(&body); err != nil && !errors.Is(err, io.EOF) {
-				writeError(w, http.StatusBadRequest, fmt.Errorf("decode repair request: %w", err))
+			if err := applyRepairBody(&req, io.LimitReader(r.Body, 1<<20)); err != nil {
+				writeError(w, http.StatusBadRequest, err)
 				return
-			}
-			if strings.TrimSpace(body.TenantID) != "" {
-				req.TenantID = strings.TrimSpace(body.TenantID)
-			}
-			if strings.TrimSpace(body.CollectionID) != "" {
-				req.CollectionID = strings.TrimSpace(body.CollectionID)
-			}
-			req.DryRun = body.DryRun
-			if body.Limit != 0 {
-				req.Limit = body.Limit
 			}
 		}
 		boundScope, err := bindForensicScope(r, req.TenantID, req.CollectionID, "", "")
@@ -123,6 +112,33 @@ func collectionRepairHandler(db *pgxpool.Pool) http.HandlerFunc {
 		}
 		writeJSON(w, http.StatusOK, resp)
 	}
+}
+
+// applyRepairBody merges an optional JSON body into a repair request. A field the body does not mention keeps the value from the query string:
+// an empty body ({}) must never switch a dry run into a write (found 2026-10-21, when dry_run=true with an empty body repaired 68 asset links).
+func applyRepairBody(req *collectionRepairRequest, body io.Reader) error {
+	var parsed struct {
+		TenantID     string `json:"tenant_id"`
+		CollectionID string `json:"collection_id"`
+		DryRun       *bool  `json:"dry_run"`
+		Limit        int    `json:"limit"`
+	}
+	if err := json.NewDecoder(body).Decode(&parsed); err != nil && !errors.Is(err, io.EOF) {
+		return fmt.Errorf("decode repair request: %w", err)
+	}
+	if strings.TrimSpace(parsed.TenantID) != "" {
+		req.TenantID = strings.TrimSpace(parsed.TenantID)
+	}
+	if strings.TrimSpace(parsed.CollectionID) != "" {
+		req.CollectionID = strings.TrimSpace(parsed.CollectionID)
+	}
+	if parsed.DryRun != nil {
+		req.DryRun = *parsed.DryRun
+	}
+	if parsed.Limit != 0 {
+		req.Limit = parsed.Limit
+	}
+	return nil
 }
 
 func loadCollectionStatus(ctx context.Context, db *pgxpool.Pool, scope collectionScope, limit int) (map[string]any, error) {
