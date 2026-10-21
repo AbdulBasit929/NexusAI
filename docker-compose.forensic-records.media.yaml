@@ -1,0 +1,29 @@
+# Media roles (docs/data/media-activation-programme-20261021.md and media-activation-results-20261021.md): which worker roles are on, with their pinned models.
+# Add this file AFTER the main compose file and the Ingest v2 overlay, keep the project directory of the main checkout, and point the model folder at this checkout's models/media:
+#
+#   $env:NEXUSAI_MEDIA_MODEL_DIR = '<this checkout>\models\media'
+#   docker compose --project-name nexusai --project-directory <main checkout> --env-file <main checkout>\.env.forensic-runtime.local `
+#     -f <main checkout>\docker-compose.forensic-records.yaml -f <this checkout>\docker-compose.forensic-records.ingest-v2.yaml `
+#     -f <this checkout>\docker-compose.forensic-records.media.yaml up -d --no-deps --no-build forensic-records-worker
+#
+# One role at a time (decision D25): a role is switched on here only after its gate passed in docs/data/media-activation-results-20261021.md; every switch is a default that an environment
+# variable can override, and recreating the worker WITHOUT this file turns every media role off again (the safe direction). Models are pinned by SHA-256; the worker refuses one that differs.
+# Provision the model folder with tools/media_data/provision_models.py (it prints the pins used below) and build the code with tools/media_data/Build-WorkerOverlay.ps1.
+services:
+  forensic-records-worker:
+    environment:
+      # D: documents and printed OCR. `auto` = script detection, Urdu data for Arabic-script pages, English data in document mode, ONNX PP-OCRv5 when the first reading is not confident.
+      FORENSIC_OCR_ENABLED: ${FORENSIC_OCR_ENABLED:-true}
+      FORENSIC_OCR_BACKEND: ${FORENSIC_OCR_BACKEND:-auto}
+      FORENSIC_OCR_LANGUAGES: ${FORENSIC_OCR_LANGUAGES:-eng+urd}
+      FORENSIC_OCR_TIMEOUT_SECONDS: ${FORENSIC_OCR_TIMEOUT_SECONDS:-120}
+      FORENSIC_OCR_TESSDATA_PATH: ${FORENSIC_OCR_TESSDATA_PATH:-/models/media/nexusai/models/tessdata-best/e12c65a915945e4c28e237a9b52bc4a8f39a0cec}
+      FORENSIC_OCR_TESSDATA_REVISION: ${FORENSIC_OCR_TESSDATA_REVISION:-e12c65a915945e4c28e237a9b52bc4a8f39a0cec}
+      FORENSIC_OCR_ENG_SHA256: ${FORENSIC_OCR_ENG_SHA256:-8280aed0782fe27257a68ea10fe7ef324ca0f8d85bd2fd145d1c2b560bcb66ba}
+      FORENSIC_OCR_URD_SHA256: ${FORENSIC_OCR_URD_SHA256:-65af3f6e50a3c3df15d7b405aab5d467e53433207745c8f5be5b8ff1a58a67c8}
+      FORENSIC_OCR_ROUTER_CONFIDENT: ${FORENSIC_OCR_ROUTER_CONFIDENT:-0.88}
+      FORENSIC_ONNX_OCR_DETECTOR_PATH: ${FORENSIC_ONNX_OCR_DETECTOR_PATH:-/models/media/onnx-ocr/PP-OCRv5_mobile_det/inference.onnx}
+      FORENSIC_ONNX_OCR_DETECTOR_SHA256: ${FORENSIC_ONNX_OCR_DETECTOR_SHA256:-a431985659dc921974177a95adcfbb90fd9e51989a5e04d70d0b75f597b6e61d}
+      FORENSIC_ONNX_OCR_LATIN_MODEL_PATH: ${FORENSIC_ONNX_OCR_LATIN_MODEL_PATH:-/models/media/onnx-ocr/latin_PP-OCRv5_mobile_rec/inference.onnx}
+      FORENSIC_ONNX_OCR_LATIN_SHA256: ${FORENSIC_ONNX_OCR_LATIN_SHA256:-7888113072263cb471b93f66dd5e2ad70548dc526fa1ace760d0d973dd121498}
+      FORENSIC_ONNX_OCR_THREADS: ${FORENSIC_ONNX_OCR_THREADS:-4}

@@ -2,12 +2,14 @@
 """One image OCR role that picks the engine the evidence needs (FORENSIC_OCR_BACKEND=auto).
 
 Measured on generated pages and public receipt photographs (docs/data/media-activation-results-20261021.md):
-  * clean printed pages: Tesseract `best` in document mode reads identifiers exactly 99.7% of the time; scene mode (the old setting) 79%;
-  * photographed receipts: Tesseract reads 33% of the words, the PP-OCRv5 ONNX engine 80%;
+  * clean printed pages: the PP-OCRv5 ONNX engine and Tesseract `best` in document mode both read identifiers exactly 99.7% of the time; Tesseract in scene mode (the old setting) 79%;
+  * photographed receipts: the PP-OCRv5 ONNX engine reads 80% of the words, Tesseract 33%;
   * printed Urdu: only Tesseract's Urdu data reads it; the PP-OCRv5 Arabic recogniser does not.
-So: detect the script (Tesseract's orientation and script pass), read Arabic-script pages with `urd+eng`, read everything else with `eng` in document mode, and when that reading is not confident
-(mean line confidence below a threshold, or almost no text) read it again with the ONNX engine and keep the reading with the higher mean confidence. The route taken, both confidences and the
-script are written to the result metadata so a reader can see why a page was read the way it was. No reading is merged with another; one engine's observations are returned whole.
+So: detect the script (Tesseract's orientation and script pass); read Arabic-script pages with Tesseract `urd+eng`; read everything else with the ONNX engine, and when that reading is not
+confident (mean line confidence below a threshold, or almost no text) read it again with Tesseract in document mode (`urd+eng` when the script was not clearly Latin, `eng` otherwise) and keep the
+reading with the higher mean confidence. When the ONNX
+models are not configured the Latin path is Tesseract alone. The route taken, both confidences and the script are written to the result metadata so a reader can see why a page was read the way
+it was. No reading is merged with another; one engine's observations are returned whole.
 """
 
 from __future__ import annotations
@@ -21,18 +23,19 @@ from typing import Any
 
 try:
     from ingestion.forensic_records.media_pipeline import (
-        READY,
-        READY_WITH_WARNINGS,
         MediaProcessResult,
         MediaProcessingError,
         TesseractImageOCRProcessor,
     )
 except ModuleNotFoundError:  # pragma: no cover - direct worker image execution
-    from media_pipeline import READY, READY_WITH_WARNINGS, MediaProcessResult, MediaProcessingError, TesseractImageOCRProcessor
+    from media_pipeline import MediaProcessResult, MediaProcessingError, TesseractImageOCRProcessor
 
 
 PROCESSOR_ID = "ocr-router-cpu"
-PROCESSOR_REVISION = "nexusai-ocr-router-v1"
+PROCESSOR_REVISION = "nexusai-ocr-router-v3"
+TESSERACT_LATIN = "tesseract-eng-psm3"
+TESSERACT_URDU = "tesseract-urd+eng-psm3"
+ONNX_LATIN = "onnx-ppocrv5-latin"
 
 
 def detect_script(executable: Path, tessdata_path: Path, image: Path, *, timeout: int = 30) -> str | None:
@@ -60,62 +63,73 @@ class OcrRouter:
     processor_id = PROCESSOR_ID
     processor_revision = PROCESSOR_REVISION
 
-    def __init__(self, latin: Any, urdu: Any | None, fallback: Any | None, script_detector: Any, *, confident: float = 0.88, minimum_characters: int = 20) -> None:
+    def __init__(self, tesseract_latin: Any, tesseract_urdu: Any | None, onnx_latin: Any | None, script_detector: Any, *, confident: float = 0.75, minimum_characters: int = 12) -> None:
+        if tesseract_latin is None and onnx_latin is None:
+            raise ValueError("at least one Latin reader is required")
         if not 0 < confident <= 1 or minimum_characters < 0:
             raise ValueError("router thresholds are invalid")
-        self.latin, self.urdu, self.fallback, self.script_detector = latin, urdu, fallback, script_detector
+        self.tesseract_latin, self.tesseract_urdu, self.onnx_latin, self.script_detector = tesseract_latin, tesseract_urdu, onnx_latin, script_detector
         self.confident, self.minimum_characters = confident, minimum_characters
 
     @classmethod
     def from_environment(cls) -> "OcrRouter":
+        import shutil
+
         executable_value = os.getenv("FORENSIC_OCR_TESSERACT_PATH", "tesseract").strip()
         executable = Path(executable_value)
         if not executable.is_file():
-            import shutil
             executable = Path(shutil.which(executable_value) or "")
         tessdata = Path(os.getenv("FORENSIC_OCR_TESSDATA_PATH", "").strip())
+        languages = os.getenv("FORENSIC_OCR_LANGUAGES", "eng+urd").split("+")
         latin = TesseractImageOCRProcessor.from_environment(languages="eng", page_segmentation_mode=3)
-        urdu = None
-        if "urd" in os.getenv("FORENSIC_OCR_LANGUAGES", "eng+urd").split("+"):
-            urdu = TesseractImageOCRProcessor.from_environment(languages="urd+eng", page_segmentation_mode=3)
-        fallback = None
+        urdu = TesseractImageOCRProcessor.from_environment(languages="urd+eng", page_segmentation_mode=3) if "urd" in languages else None
+        onnx = None
         if os.getenv("FORENSIC_ONNX_OCR_DETECTOR_PATH", "").strip():
             try:
                 from ingestion.forensic_records.onnx_ocr_processor import OnnxPaddleOCRProcessor
             except ModuleNotFoundError:  # pragma: no cover - direct worker image execution
                 from onnx_ocr_processor import OnnxPaddleOCRProcessor
-            fallback = OnnxPaddleOCRProcessor.from_environment()
+            onnx = OnnxPaddleOCRProcessor.from_environment()
         return cls(
-            latin, urdu, fallback, lambda image: detect_script(executable, tessdata, image),
-            confident=float(os.getenv("FORENSIC_OCR_ROUTER_CONFIDENT", "0.88")),
-            minimum_characters=int(os.getenv("FORENSIC_OCR_ROUTER_MIN_CHARACTERS", "20")),
+            latin, urdu, onnx, lambda image: detect_script(executable, tessdata, image),
+            confident=float(os.getenv("FORENSIC_OCR_ROUTER_CONFIDENT", "0.75")),
+            minimum_characters=int(os.getenv("FORENSIC_OCR_ROUTER_MIN_CHARACTERS", "12")),
         )
 
     def process_image(self, path: Path, **context: Any) -> MediaProcessResult:
         script = self.script_detector(path)
-        route, notes = [], []
-        arabic = script == "Arabic" and self.urdu is not None
-        primary = self.urdu if arabic else self.latin
-        first = primary.process_image(path, **context)
-        confidence, characters = reading_quality(first)
-        route.append("tesseract-urd+eng-psm3" if arabic else "tesseract-eng-psm3")
-        chosen, chosen_confidence = first, confidence
+        arabic = script == "Arabic" and self.tesseract_urdu is not None
+        tried: list[str] = []
+        notes: list[str] = []
         alternative_confidence = None
-        if not arabic and self.fallback is not None and (confidence < self.confident or characters < self.minimum_characters):
-            try:
-                second = self.fallback.process_image(path, **context)
-            except MediaProcessingError as exc:
-                notes.append(f"onnx fallback failed: {exc}")
-            else:
-                alternative_confidence, alternative_characters = reading_quality(second)
-                route.append("onnx-ppocrv5-latin")
-                if second.observations and (not first.observations or alternative_confidence > confidence):
-                    chosen, chosen_confidence = second, alternative_confidence
         if arabic:
+            first, first_name = self.tesseract_urdu.process_image(path, **context), TESSERACT_URDU
             notes.append("Arabic-script page: Urdu line order and low-quality Nastaliq are not certified; review required")
-        used = route[-1] if chosen is not first else route[0]
-        metadata = {**chosen.metadata, "ocr_route": {"script_detected": script, "engine_used": used, "engines_tried": route, "first_confidence": round(confidence, 4),
-                                                       "alternative_confidence": None if alternative_confidence is None else round(alternative_confidence, 4),
-                                                       "confident_threshold": self.confident}}
+            second = None
+        elif self.onnx_latin is not None:
+            first, first_name = self.onnx_latin.process_image(path, **context), ONNX_LATIN
+            # the second opinion uses the Urdu data when the script is not clearly Latin: the script pass is not reliable on its own (it called 15 of 64 generated Urdu pages Japanese or Katakana)
+            if script != "Latin" and self.tesseract_urdu is not None:
+                second_engine, second_name = self.tesseract_urdu, TESSERACT_URDU
+            else:
+                second_engine, second_name = self.tesseract_latin, TESSERACT_LATIN
+        else:
+            first, first_name = self.tesseract_latin.process_image(path, **context), TESSERACT_LATIN
+            second_engine = None
+        tried.append(first_name)
+        confidence, characters = reading_quality(first)
+        chosen, used, chosen_confidence = first, first_name, confidence
+        if not arabic and second_engine is not None and (confidence < self.confident or characters < self.minimum_characters):
+            try:
+                second = second_engine.process_image(path, **context)
+            except MediaProcessingError as exc:
+                notes.append(f"{second_name} fallback failed: {exc}")
+            else:
+                tried.append(second_name)
+                alternative_confidence, _ = reading_quality(second)
+                if second.observations and (not first.observations or alternative_confidence > confidence):
+                    chosen, used, chosen_confidence = second, second_name, alternative_confidence
+        route = {"script_detected": script, "engine_used": used, "engines_tried": tried, "first_confidence": round(confidence, 4),
+                 "alternative_confidence": None if alternative_confidence is None else round(alternative_confidence, 4), "confident_threshold": self.confident}
         limitations = tuple(dict.fromkeys([*chosen.limitations, *notes]))
-        return replace(chosen, metadata=metadata, limitations=limitations)
+        return replace(chosen, metadata={**chosen.metadata, "ocr_route": route}, limitations=limitations)
