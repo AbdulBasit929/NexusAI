@@ -1,0 +1,7 @@
+# Speech evaluation image: the media evaluation image plus faster-whisper (CTranslate2). Local only, never deployed.
+# faster-whisper is installed without dependencies so it cannot replace the onnxruntime build of the worker runtime (the voice-activity filter that needs onnxruntime is not used).
+#
+#   docker build -t nexusai-media-eval-asr:latest -f tools/media_data/Dockerfile.eval-asr tools/media_data
+FROM nexusai-media-eval:latest
+USER root
+RUN pip install --no-cache-dir --no-deps faster-whisper && pip install --no-cache-dir ctranslate2 tokenizers av
