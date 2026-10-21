@@ -149,3 +149,14 @@
 .eh__list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--analyst-space-8); align-items: center; }
 .eh__bar { grid-column: 1 / -1; block-size: 6px; background: var(--analyst-line); border-radius: 3px; overflow: hidden; }
 .eh__bar i { display: block; block-size: 100%; background: var(--analyst-accent); }
+
+/* The data panel under the question box (S6): closed by default; the quality card reuses the engine card's tiles and lists. */
+.case-data { margin-block-start: var(--analyst-space-16); text-align: start; }
+.case-data > summary { cursor: pointer; color: var(--analyst-text-muted); font-size: var(--analyst-type-caption-size); }
+.case-data__body { display: grid; gap: var(--analyst-space-12); margin-block-start: var(--analyst-space-8); }
+.dq { padding: var(--analyst-space-16); background: var(--analyst-surface-1); border: 1px solid var(--analyst-line); border-radius: var(--analyst-radius-md); }
+.dq h2 { margin: 0 0 var(--analyst-space-8); font-size: var(--analyst-type-heading-sm-size, 1rem); }
+.dq__evidence { margin: var(--analyst-space-8) 0 0; }
+.dq__findings { margin-block-start: var(--analyst-space-12); padding: var(--analyst-space-12); border-inline-start: 3px solid var(--analyst-warning, #b7791f); background: var(--analyst-surface-2, transparent); }
+.dq__findings h3 { margin: 0 0 var(--analyst-space-4, 4px); font-size: var(--analyst-type-body-size, 0.9rem); }
+.dq__findings ul { margin: 0; padding-inline-start: 1.1rem; display: grid; gap: 4px; }

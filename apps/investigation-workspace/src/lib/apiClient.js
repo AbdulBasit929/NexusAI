@@ -99,6 +99,11 @@ export function getEngineHealth({ caseId, days = 7, signal, fetchImpl }) {
   return scopedGet(`/analysis/engine-health?days=${Number(days) || 7}`, caseId, { signal, fetchImpl })
 }
 
+// What the typed records of this case hold and what to read before trusting an answer (files typed, exact repeats left out, event types, time basis, volumes): GET /analysis/typing-report.
+export function getTypingReport({ caseId, signal, fetchImpl }) {
+  return scopedGet('/analysis/typing-report', caseId, { signal, fetchImpl })
+}
+
 export function listEvidence({ caseId, filters = {}, signal, fetchImpl }) {
   const query = new URLSearchParams()
   if (filters.modality) query.set('modality', filters.modality)

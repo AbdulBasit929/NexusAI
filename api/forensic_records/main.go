@@ -217,6 +217,7 @@ func main() {
 	mux.HandleFunc("GET /analysis/connections", connectionsHandler(db))
 	mux.HandleFunc("GET /analysis/places", placesHandler(db))
 	mux.HandleFunc("GET /analysis/engine-health", engineHealthHandler(db))
+	mux.HandleFunc("GET /analysis/typing-report", typingReportHandler(db))
 	mux.HandleFunc("GET /query/templates", queryTemplatesHandler())
 	mux.HandleFunc("GET /query/capabilities", forensicCapabilitiesHandler(db))
 	mux.HandleFunc("POST /query/hybrid", hybridQueryHandler(cfg, db))

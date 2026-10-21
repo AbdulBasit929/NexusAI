@@ -683,6 +683,59 @@ $4, $5, 1, 'w', $6, 'immutable://inv/'||$3, jsonb_build_object('request_id', 'r'
 		Expect(read("SELECT count(*)::text FROM v_evidence_inventory WHERE processing_status = 'failed'")).To(Equal("1"))
 	})
 
+	It("reports what the typed tables of a case hold, equal to the views, for that tenant and case only, with no value in it", func() {
+		report, err := readTypingReport(ctx, pool, truth.Tenant, truth.CaseID)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(report.Contract).To(Equal("forensics.typing-report/v1"))
+		Expect(report.Calls.Typed).To(BeNumerically(">", 0))
+		Expect(report.Calls.Effective).To(Equal(report.Calls.Typed - report.Calls.Repeats))
+		viewCount, err := scoped("SELECT count(*) FROM v_comm_events")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(fmt.Sprint(viewCount.Rows[0][0])).To(Equal(fmt.Sprint(report.Calls.Effective)), "the report's effective count is the view's")
+		var total int64
+		for _, s := range report.Calls.EventTypes {
+			total += s.Count
+		}
+		Expect(total).To(Equal(report.Calls.Effective), "the event types add up to the effective rows")
+		total = 0
+		for _, s := range report.Calls.Directions {
+			total += s.Count
+		}
+		Expect(total).To(Equal(report.Calls.Effective), "so do the directions")
+		Expect(report.Calls.Populated).To(HaveKey("imei"))
+		Expect(report.Files.Typed).To(BeNumerically("<=", report.Files.Counted))
+
+		// another tenant's case and a case that does not exist report nothing, and nothing that identifies a number leaks into the report
+		other, err := readTypingReport(ctx, pool, "another-tenant", truth.CaseID)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(other.Calls.Typed).To(BeZero())
+		Expect(other.Sessions.Typed).To(BeZero())
+		raw, err := json.Marshal(report)
+		Expect(err).NotTo(HaveOccurred())
+		for _, s := range truth.Subjects {
+			Expect(string(raw)).NotTo(ContainSubstring(s.MSISDN), "no number of the case is in the report")
+		}
+
+		// the findings say what to read: a case whose internet records state no volume gets the finding, a plain one does not
+		quiet := &typingReport{}
+		quiet.Calls.Layouts = []typingLayoutRow{{Layout: "x v1", Kind: "target_cdr", TimeBasis: "declared", Rows: 100}}
+		quiet.Calls.Typed, quiet.Calls.Effective = 100, 100
+		quiet.Calls.EventTypes = []typingShare{{Name: "voice", Count: 100}}
+		Expect(typingFindings(quiet)).To(BeEmpty())
+		noisy := &typingReport{}
+		noisy.Files.Counted, noisy.Files.Typed = 4, 3
+		noisy.Calls.Layouts = []typingLayoutRow{{Layout: "x v1", Kind: "target_cdr", TimeBasis: "assumed_by_profile", Rows: 100, Repeats: 30}}
+		noisy.Calls.Typed, noisy.Calls.Repeats, noisy.Calls.Effective = 100, 30, 70
+		noisy.Calls.EventTypes = []typingShare{{Name: "voice", Count: 40}, {Name: "other", Count: 30}}
+		noisy.Calls.Directions = []typingShare{{Name: "incoming", Count: 40}, {Name: "unknown", Count: 30}}
+		noisy.Sessions.Layouts = []typingLayoutRow{{Layout: "y v1", TimeBasis: "explicit_offset", Rows: 10}}
+		codes := []string{}
+		for _, f := range typingFindings(noisy) {
+			codes = append(codes, f.Code)
+		}
+		Expect(codes).To(ConsistOf("files_not_typed", "time_assumed", "repeats", "other_events", "unknown_direction", "no_volume", "no_public_address"))
+	})
+
 	// The red team of the executor (the validator's is in ask_engine_redteam_ginkgo_test.go): statements the validator ACCEPTS, because each is a valid read of the views, but that
 	// would be costly on a large case. Each must be refused by the planner's cost, stopped by the statement timeout, or return a result under the row cap, and none may run past
 	// the timeout. What the validator refuses is not run, and counts as refused.
