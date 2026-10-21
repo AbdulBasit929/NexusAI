@@ -32,7 +32,7 @@ from ingestion.forensic_records.layout_registry import load_registry  # noqa: E4
 from test_ingest_v2 import PsqlSink, ingest_case  # noqa: E402
 
 SPEC_FOCUS = "Ask engine executor on a case database"
-EXPECTED_SPECS = 23
+EXPECTED_SPECS = 28
 PARAMS = dict(seed=61, people=60, subjects=6, associates=12, period_days=20, p2_pairs=3, p3_pairs=2, p7_plants=3)
 
 
@@ -46,7 +46,7 @@ def build_case_database(db, root, registry, port):
     db.start()
     load_case.prepare(db, registry)
     key, _stats, _summaries = ingest_case(db, root, registry, PsqlSink(db))
-    for name in ("016_effective_records.sql", "018_effective_ipdr.sql", "017_analyst_views.sql", "019_observed_cell_positions.sql", "020_contact_links_and_inventory.sql"):
+    for name in ("016_effective_records.sql", "018_effective_ipdr.sql", "017_analyst_views.sql", "019_observed_cell_positions.sql", "020_contact_links_and_inventory.sql", "021_case_record.sql"):
         db.psql("-f", "/tmp/mig/" + name)
     runtime_password = uuid.uuid4().hex
     db.psql("-c", "ALTER ROLE forensic_runtime PASSWORD '%s'" % runtime_password)
