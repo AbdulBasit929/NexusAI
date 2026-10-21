@@ -15,6 +15,7 @@ const refreshedDirectories = [
 
 function loadFixtureSet(fixtureSet) {
   const fixtureDirectory = fixtureDirectories[fixtureSet]
+  if (!fixtureDirectory || !fs.existsSync(fixtureDirectory)) return []
   return fs.readdirSync(fixtureDirectory)
     .filter(name => name.endsWith('.json'))
     .sort()

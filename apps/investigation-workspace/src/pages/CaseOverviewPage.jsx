@@ -1,6 +1,21 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowRight, CircleAlert, CircleCheckBig, Clock3, Plus, Send } from 'lucide-react'
+import {
+  ArrowRight,
+  Calendar,
+  Check,
+  CircleAlert,
+  CircleCheckBig,
+  Clock3,
+  Copy,
+  Layers,
+  Plus,
+  Send,
+  Share2,
+  ShieldCheck,
+  Sparkles,
+  Trash2,
+} from 'lucide-react'
 import { CaseShell } from '../components/CaseShell.jsx'
 import { LanguageText, RouteState } from '../components/AnalystComponents.jsx'
 import { ProportionBar } from '../components/DataVisualizations.jsx'
@@ -17,6 +32,7 @@ import { formatNumber } from '../lib/format.js'
 import { summariseCase, useCaseOverview } from '../lib/useCaseOverview.js'
 import { useCaseActivity } from '../lib/useCaseActivity.js'
 import { useQuestionHistory } from '../lib/workspaceState.js'
+import { addCaseNote, deleteCaseNote, useCaseNotes } from '../lib/caseNotes.js'
 
 const FAMILIES_SHOWN = 8
 const CAUSES_SHOWN = 3
@@ -34,11 +50,17 @@ export function qualityNotes(summary, counts) {
   ].filter(Boolean)
 }
 
-function Panel({ id, title, hint = null, className = '', children }) {
+function Panel({ id, title, hint = null, icon: Icon = null, className = '', children }) {
   const headingId = `${id}-title`
   return (
     <section id={id} className={`co-panel${className ? ` ${className}` : ''}`} aria-labelledby={headingId}>
-      <header><h2 id={headingId}>{title}</h2>{hint ? <p>{hint}</p> : null}</header>
+      <header>
+        <h2 id={headingId}>
+          {Icon ? <Icon size={18} className="co-panel__icon" aria-hidden="true" /> : null}
+          <span>{title}</span>
+        </h2>
+        {hint ? <p>{hint}</p> : null}
+      </header>
       {children}
     </section>
   )
@@ -54,8 +76,12 @@ export default function CaseOverviewPage() {
   const [suggestions, setSuggestions] = useState([])
   const [activityToken, setActivityToken] = useState(0)
   const [draft, setDraft] = useState('')
+  const [copied, setCopied] = useState(false)
   const activity = useCaseActivity([caseId], { refreshToken: activityToken })
   const recent = useQuestionHistory(caseId).slice(0, 3)
+  const analystNotes = useCaseNotes(caseId)
+  const [noteDraft, setNoteDraft] = useState('')
+  const [noteCategory, setNoteCategory] = useState('lead')
 
   const row = useMemo(() => ({ caseId, index: 0, state, status: dashboardRowState(state), summary: state.data ? summariseCase(state.data) : null, activity: state.data ? latestEvidenceActivity(state.data) : null }), [caseId, state])
   const summary = row.summary
@@ -82,6 +108,25 @@ export default function CaseOverviewPage() {
     if (draft.trim()) navigate(`/cases/${encoded}/investigate?question=${encodeURIComponent(draft.trim())}`)
   }
 
+  async function handleCopyId() {
+    try {
+      if (globalThis.navigator?.clipboard?.writeText) {
+        await globalThis.navigator.clipboard.writeText(caseId)
+      }
+    } catch {
+      // In-browser fallback
+    }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1600)
+  }
+
+  function handleAddNote(event) {
+    event.preventDefault()
+    if (!noteDraft.trim()) return
+    addCaseNote(caseId, { text: noteDraft.trim(), category: noteCategory })
+    setNoteDraft('')
+  }
+
   return (
     <CaseShell caseId={caseId}>
       <main id="workspace-main" className="catalog-page case-overview" tabIndex={-1}>
@@ -91,14 +136,77 @@ export default function CaseOverviewPage() {
           <>
             <header className={`co-hero co-hero--${verdict.tone}`}>
               <div className="co-hero__text">
-                <h1 className="co-hero__label">Case overview</h1>
-                <p className="co-hero__id"><LanguageText as="bdi" identifier>{caseId}</LanguageText></p>
+                <div className="co-hero__eyebrow">
+                  <span className="co-hero__tag">
+                    <Layers size={13} aria-hidden="true" />
+                    Forensic Case Dossier
+                  </span>
+                  <span className={`co-hero__status-badge co-hero__status-badge--${verdict.tone}`}>
+                    <span className="co-hero__status-dot" aria-hidden="true" />
+                    {verdict.headline}
+                  </span>
+                </div>
+
+                <div className="co-hero__id-row">
+                  <h1 className="co-hero__id">
+                    <LanguageText as="bdi" identifier>{caseId}</LanguageText>
+                  </h1>
+                  <button
+                    type="button"
+                    className="co-hero__copy-btn"
+                    onClick={handleCopyId}
+                    title={copied ? 'Copied identifier' : 'Copy case identifier'}
+                    aria-label={copied ? 'Copied identifier' : 'Copy case identifier'}
+                  >
+                    {copied ? <Check size={13} aria-hidden="true" /> : <Copy size={13} aria-hidden="true" />}
+                    <span>{copied ? 'Copied' : 'Copy ID'}</span>
+                  </button>
+                </div>
+
                 <p className="co-hero__verdict">{verdict.headline}</p>
                 {verdict.detail ? <p className="co-hero__detail">{verdict.detail}</p> : null}
-                <div className="co-hero__actions">
-                  <Link className="co-btn co-btn--primary" to={`/cases/${encoded}/investigate`}>Ask about this case<ArrowRight aria-hidden="true" /></Link>
-                  <Link className="co-btn" to={`/cases/${encoded}/evidence#add-evidence`}>Add evidence</Link>
+
+                {/* Palantir-class Hero Metrics Bento Strip */}
+                <div className="co-hero__stats" aria-label="Key case metrics">
+                  <div className="co-hero__stat-card">
+                    <span className="co-hero__stat-label">Sources</span>
+                    <span className="co-hero__stat-value">{formatNumber(summary.total)}</span>
+                  </div>
+                  <div className="co-hero__stat-card">
+                    <span className="co-hero__stat-label">Structured Records</span>
+                    <span className="co-hero__stat-value">{formatNumber(summary.acceptedRows)}</span>
+                  </div>
+                  <div className="co-hero__stat-card">
+                    <span className="co-hero__stat-label">Ingestion Yield</span>
+                    <span className="co-hero__stat-value">
+                      {read ? `${Math.floor((counts.accepted / read) * 100)}%` : '—'}
+                    </span>
+                  </div>
+                  {row.activity ? (
+                    <div className="co-hero__stat-card">
+                      <span className="co-hero__stat-label">Last Ingested</span>
+                      <span className="co-hero__stat-value">
+                        <time dateTime={row.activity.date.toISOString()}>{relativeAge(row.activity.date)}</time>
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
+
+                <div className="co-hero__actions">
+                  <Link className="co-btn co-btn--primary" to={`/cases/${encoded}/investigate`}>
+                    Ask about this case
+                    <ArrowRight aria-hidden="true" />
+                  </Link>
+                  <Link className="co-btn" to={`/cases/${encoded}/evidence#add-evidence`}>
+                    <Plus size={15} aria-hidden="true" />
+                    Add evidence
+                  </Link>
+                  <Link className="co-btn" to={`/cases/${encoded}/connections`}>
+                    <Share2 size={15} aria-hidden="true" />
+                    Connections graph
+                  </Link>
+                </div>
+
                 <p className="co-hero__meta">
                   <span>{formatNumber(summary.total)} {summary.total === 1 ? 'source' : 'sources'}</span>
                   <span>{formatNumber(summary.acceptedRows)} structured rows</span>
@@ -110,7 +218,12 @@ export default function CaseOverviewPage() {
 
             <div className="co-grid">
               <div className="co-main">
-                <Panel id="case-families" title="What is in this case" hint={families.length ? `${formatNumber(summary.acceptedRows)} accepted rows across ${formatNumber(families.length)} record ${families.length === 1 ? 'family' : 'families'}` : null}>
+                <Panel
+                  id="case-families"
+                  title="What is in this case"
+                  icon={Layers}
+                  hint={families.length ? `${formatNumber(summary.acceptedRows)} accepted rows across ${formatNumber(families.length)} record ${families.length === 1 ? 'family' : 'families'}` : null}
+                >
                   {families.length ? (
                     <>
                       <ul className="co-families">
@@ -131,18 +244,36 @@ export default function CaseOverviewPage() {
                   ) : <p className="dash-card__empty">No structured records have been accepted yet.</p>}
                 </Panel>
 
-                <Panel id="case-activity" title="When did activity happen?">
+                <Panel
+                  id="case-activity"
+                  title="When did activity happen?"
+                  icon={Calendar}
+                >
                   <ActivityCalendar caseId={caseId} activity={activity.activity} status={activity.status} failures={activity.failures} onRetry={() => setActivityToken(token => token + 1)} />
                 </Panel>
 
-                <Panel id="case-quality" title="Data-quality notes" hint={read ? 'Did ingestion keep every row? Shares are of all rows read.' : 'No structured rows have been read yet.'}>
+                <Panel
+                  id="case-quality"
+                  title="Data-quality notes"
+                  icon={ShieldCheck}
+                  hint={read ? 'Did ingestion keep every row? Shares are of all rows read.' : 'No structured rows have been read yet.'}
+                >
                   {read ? (
                     <div className="cq-rows">
                       <ProportionBar total={read} ready={counts.accepted} processing={counts.duplicates} failed={counts.rejected} label={`${caseId} structured rows`} />
                       <dl className="cq-figures">
-                        <div><dt>Accepted</dt><dd>{formatNumber(counts.accepted)}</dd></div>
-                        <div><dt>Duplicate</dt><dd>{formatNumber(counts.duplicates)}<small>{formatRate(counts.duplicates / read)}</small></dd></div>
-                        <div className={counts.rejected ? 'is-flagged' : undefined}><dt>Rejected</dt><dd>{formatNumber(counts.rejected)}<small>{formatRate(counts.rejected / read)}</small></dd></div>
+                        <div className="cq-card cq-card--accepted">
+                          <dt>Accepted</dt>
+                          <dd>{formatNumber(counts.accepted)}</dd>
+                        </div>
+                        <div className="cq-card cq-card--duplicate">
+                          <dt>Duplicate</dt>
+                          <dd>{formatNumber(counts.duplicates)}<small>{formatRate(counts.duplicates / read)}</small></dd>
+                        </div>
+                        <div className={`cq-card cq-card--rejected${counts.rejected ? ' is-flagged' : ''}`}>
+                          <dt>Rejected</dt>
+                          <dd>{formatNumber(counts.rejected)}<small>{formatRate(counts.rejected / read)}</small></dd>
+                        </div>
                       </dl>
                     </div>
                   ) : null}
@@ -201,6 +332,61 @@ export default function CaseOverviewPage() {
                       {recent.map(entry => <li key={entry.id}><button type="button" className="is-recent" onClick={() => setDraft(entry.query)} title="Asked before"><LanguageText>{entry.label || entry.query}</LanguageText></button></li>)}
                     </ul>
                   ) : null}
+                </Panel>
+
+                {/* Palantir-class Analyst Hypotheses & Lead Notes Tile */}
+                <Panel id="case-notes" title="Analyst notes & leads" icon={Sparkles} hint="Local investigative notes (persisted in workspace)">
+                  <form className="co-notes-form" onSubmit={handleAddNote}>
+                    <div className="co-notes-form__controls">
+                      <select
+                        className="co-notes-select"
+                        value={noteCategory}
+                        onChange={e => setNoteCategory(e.target.value)}
+                        aria-label="Note category"
+                      >
+                        <option value="lead">Lead</option>
+                        <option value="hypothesis">Hypothesis</option>
+                        <option value="finding">Finding</option>
+                      </select>
+                      <input
+                        type="text"
+                        className="co-notes-input"
+                        value={noteDraft}
+                        onChange={e => setNoteDraft(e.target.value)}
+                        placeholder="Record investigative lead…"
+                        aria-label="New case note text"
+                      />
+                      <button type="submit" className="co-notes-submit" disabled={!noteDraft.trim()} aria-label="Add note">
+                        <Plus size={14} aria-hidden="true" />
+                      </button>
+                    </div>
+                  </form>
+                  {analystNotes.length ? (
+                    <ul className="co-notes-list" aria-label="Recorded analyst notes">
+                      {analystNotes.map(note => (
+                        <li key={note.id} className={`co-note-item co-note-item--${note.category}`}>
+                          <div className="co-note-item__header">
+                            <span className={`co-note-pill co-note-pill--${note.category}`}>{note.category}</span>
+                            <time className="co-note-time" dateTime={note.createdAt}>
+                              {new Date(note.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </time>
+                            <button
+                              type="button"
+                              className="co-note-delete"
+                              onClick={() => deleteCaseNote(caseId, note.id)}
+                              aria-label={`Delete note: ${note.text}`}
+                              title="Delete note"
+                            >
+                              <Trash2 size={13} aria-hidden="true" />
+                            </button>
+                          </div>
+                          <p className="co-note-text">{note.text}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="co-notes-empty">No analyst notes recorded yet. Add hypotheses or operational leads to track context.</p>
+                  )}
                 </Panel>
               </aside>
             </div>

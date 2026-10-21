@@ -219,10 +219,12 @@ export function activityOption(activity, theme, order, { range = 'all' } = {}) {
     tooltip: {
       trigger: 'axis',
       confine: true,
-      axisPointer: { type: 'shadow' },
+      axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(255, 255, 255, 0.05)' } },
       backgroundColor: theme.card,
       borderColor: theme.line,
-      textStyle: { color: theme.text },
+      borderWidth: 1,
+      textStyle: { color: theme.text, fontSize: 12 },
+      extraCssText: 'box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 14px;',
       formatter: points => {
         const bucket = activity.days[points[0]?.dataIndex]
         const lines = points.filter(point => point.value > 0).map(point => `${point.marker}${point.seriesName}: <strong>${formatNumber(point.value)}</strong>`)
@@ -240,7 +242,7 @@ export function activityOption(activity, theme, order, { range = 'all' } = {}) {
       stack: 'activity',
       barMaxWidth: 32,
       emphasis: { focus: 'series' },
-      itemStyle: { color: familyColour(family.id, order, theme.data), borderRadius: 0 },
+      itemStyle: { color: familyColour(family.id, order, theme.data), borderRadius: [3, 3, 0, 0] },
       data: activity.days.map(day => day.byFamily[family.id] || 0),
       ...(index === 0 && typical ? { markLine: { silent: true, symbol: 'none', animation: false, lineStyle: { type: 'dashed', color: theme.muted, width: 1.25 }, label: { formatter: `Typical ${formatNumber(typical)}`, color: theme.muted, fontSize: 11, position: 'end' }, data: [{ yAxis: typical }] } } : {}),
     })),

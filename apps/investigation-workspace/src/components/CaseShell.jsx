@@ -23,6 +23,7 @@ import {
   SunMoon,
   TriangleAlert,
   X,
+  Calendar,
 } from 'lucide-react'
 import { configuredCaseIds } from '../lib/apiClient.js'
 import { BrandLockup } from './BrandLockup.jsx'
@@ -31,6 +32,7 @@ import { AppearanceMenu } from './AppearanceMenu.jsx'
 import { WorkspaceCommands } from './WorkspaceCommands.jsx'
 import { clearCaseSessionScope } from '../lib/workspaceState.js'
 import { useCaseOverview } from '../lib/useCaseOverview.js'
+import { useCaseActivity } from '../lib/useCaseActivity.js'
 import { sidebarCases, useWorkspaceAttention, withPending } from '../lib/workspaceAttention.js'
 import { formatNumber } from '../lib/format.js'
 
@@ -60,6 +62,7 @@ function ShellIcon({ name }) {
     ask: MessageSquareText,
     alert: TriangleAlert,
     appearance: SunMoon,
+    calendar: Calendar,
     cases: Folders,
     check: CircleCheckBig,
     connections: Network,
@@ -170,23 +173,49 @@ function Navigation({ close, collapsed = false, badges = {}, entries = [], activ
 
 // Case sections are links (not ARIA tabs): each is a different page, so aria-current marks the location.
 // Counts appear only once the status has loaded, so the bar never shifts after first paint.
+// Enhanced with keyboard arrow navigation (Linear/Vercel standard) and fluid horizontal scrolling.
 function CaseTabs({ caseId, badges }) {
+  const navRef = useRef(null)
+
+  function handleKeyDown(event) {
+    if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) return
+    const links = Array.from(navRef.current?.querySelectorAll('a.case-tabs__link') || [])
+    if (!links.length) return
+    const currentIndex = links.indexOf(globalThis.document?.activeElement)
+    if (currentIndex === -1) return
+
+    event.preventDefault()
+    let nextIndex = currentIndex
+    if (event.key === 'ArrowRight') {
+      nextIndex = (currentIndex + 1) % links.length
+    } else if (event.key === 'ArrowLeft') {
+      nextIndex = (currentIndex - 1 + links.length) % links.length
+    } else if (event.key === 'Home') {
+      nextIndex = 0
+    } else if (event.key === 'End') {
+      nextIndex = links.length - 1
+    }
+    links[nextIndex]?.focus()
+  }
+
   return (
-    <nav className="case-tabs" aria-label="Case sections">
-      <ul>
-        {caseLinks.concat(dataCaseIds().includes(caseId) ? [{ label: 'Data', path: 'data', icon: 'evidence' }] : []).map(item => {
-          const path = `/cases/${encodeURIComponent(caseId)}/${item.path}`
-          const badge = badges[path]
-          return (
-            <li key={item.path}>
-              <NavLink className="case-tabs__link" to={path} aria-label={badge ? `${item.label}, ${badge.label}` : undefined}>
-                <ShellIcon name={item.icon} /><span>{item.label}</span>
-                {badge ? <span className={`case-tabs__badge case-tabs__badge--${badge.tone}`} aria-hidden="true">{formatNumber(badge.count)}</span> : null}
-              </NavLink>
-            </li>
-          )
-        })}
-      </ul>
+    <nav ref={navRef} className="case-tabs" aria-label="Case sections" onKeyDown={handleKeyDown}>
+      <div className="case-tabs__scroll">
+        <ul>
+          {caseLinks.concat(dataCaseIds().includes(caseId) ? [{ label: 'Data', path: 'data', icon: 'evidence' }] : []).map(item => {
+            const path = `/cases/${encodeURIComponent(caseId)}/${item.path}`
+            const badge = badges[path]
+            return (
+              <li key={item.path}>
+                <NavLink className="case-tabs__link" to={path} aria-label={badge ? `${item.label}, ${badge.label}` : undefined}>
+                  <ShellIcon name={item.icon} /><span>{item.label}</span>
+                  {badge ? <span className={`case-tabs__badge case-tabs__badge--${badge.tone}`} aria-hidden="true">{formatNumber(badge.count)}</span> : null}
+                </NavLink>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
     </nav>
   )
 }
@@ -215,7 +244,7 @@ function CaseBreadcrumb({ caseId, pathname }) {
 }
 
 function CaseReadiness({ state }) {
-  if (state.loading) return <div className="case-context-band__summary" role="status"><ShellIcon name="activity" /><span><strong>Checking evidence readiness</strong><small>Waiting for the case status response.</small></span></div>
+  if (state.loading) return <div className="case-context-band__summary case-context-band__summary--loading" role="status"><ShellIcon name="activity" /><span><strong>Checking evidence readiness</strong><small>Waiting for the case status response.</small></span></div>
   if (state.error) return <div className="case-context-band__summary case-context-band__summary--unavailable" role="status"><ShellIcon name="alert" /><span><strong>Evidence readiness unavailable</strong><small>The case status service did not respond.</small></span></div>
   const summary = state.data?.summary
   if (!summary || !Object.prototype.hasOwnProperty.call(summary, 'evidence_total')) return <div className="case-context-band__summary case-context-band__summary--unavailable" role="status"><ShellIcon name="alert" /><span><strong>Evidence readiness unavailable</strong><small>No authoritative total was reported.</small></span></div>
@@ -223,10 +252,10 @@ function CaseReadiness({ state }) {
   const ready = Number(summary.evidence_completed || 0)
   const processing = Number(summary.evidence_in_flight || 0)
   const failed = Number(summary.evidence_failed || 0)
-  if (total === 0) return <div className="case-context-band__summary" role="status"><ShellIcon name="evidence" /><span><strong>No evidence reported</strong><small>This collection has no processed evidence.</small></span></div>
+  if (total === 0) return <div className="case-context-band__summary case-context-band__summary--empty" role="status"><ShellIcon name="evidence" /><span><strong>No evidence reported</strong><small>This collection has no processed evidence.</small></span></div>
   if (failed > 0) return <div className="case-context-band__summary case-context-band__summary--attention" role="status"><ShellIcon name="alert" /><span><strong>Evidence needs review</strong><small>{formatNumber(failed)} failed · {formatNumber(ready)} ready</small></span></div>
-  if (processing > 0) return <div className="case-context-band__summary" role="status"><ShellIcon name="activity" /><span><strong>Evidence processing</strong><small>{formatNumber(ready)} ready · {formatNumber(processing)} processing</small></span></div>
-  return <div className="case-context-band__summary" role="status"><ShellIcon name="check" /><span><strong>Evidence ready</strong><small>{formatNumber(ready)} of {formatNumber(total)} sources ready</small></span></div>
+  if (processing > 0) return <div className="case-context-band__summary case-context-band__summary--processing" role="status"><ShellIcon name="activity" /><span><strong>Evidence processing</strong><small>{formatNumber(ready)} ready · {formatNumber(processing)} processing</small></span></div>
+  return <div className="case-context-band__summary case-context-band__summary--ready" role="status"><ShellIcon name="check" /><span><strong>Evidence ready</strong><small>{formatNumber(ready)} of {formatNumber(total)} sources ready</small></span></div>
 }
 
 function CaseSwitcherDialog({ caseId, cases, onClose, onSwitch, restoreFocusRef, trigger }) {
@@ -272,14 +301,35 @@ export function CaseShell({ caseId = '', children, identityLed = false }) {
   const [collapsed, setCollapsed] = useState(readRailPreference)
   const cases = configuredCaseIds()
   const caseOverview = useCaseOverview(caseId)
+  const caseActivity = useCaseActivity(caseId ? [caseId] : [])
   const attention = useWorkspaceAttention()
   const badges = railBadges(attention, caseId, caseOverview)
   const railEntries = withPending(cases, attention.cases, attention.settled)
+
+  const activityHorizon = caseActivity.activity?.first && caseActivity.activity?.last
+    ? `${caseActivity.activity.first} → ${caseActivity.activity.last}`
+    : null
+  const acceptedRows = caseOverview.data?.summary?.accepted_rows
+    ? Number(caseOverview.data.summary.accepted_rows)
+    : null
 
   useEffect(() => { setDrawerOpen(false) }, [location.pathname])
   useEffect(() => {
     try { globalThis.localStorage?.setItem(railPreferenceKey, String(collapsed)) } catch { /* the shell remains usable in privacy modes */ }
   }, [collapsed])
+  useEffect(() => {
+    function handleGlobalKeyDown(event) {
+      if (event.altKey && (event.key === 's' || event.key === 'S')) {
+        if (cases.length > 1) {
+          event.preventDefault()
+          caseSwitchRestore.current = true
+          setCaseSwitcherTrigger(globalThis.document?.querySelector('.case-switcher-trigger') || globalThis.document?.body)
+        }
+      }
+    }
+    globalThis.document?.addEventListener('keydown', handleGlobalKeyDown)
+    return () => globalThis.document?.removeEventListener('keydown', handleGlobalKeyDown)
+  }, [cases.length])
   useEffect(() => {
     if (!drawerOpen) return undefined
     const previous = globalThis.document.activeElement
@@ -335,9 +385,61 @@ export function CaseShell({ caseId = '', children, identityLed = false }) {
         <div className="workspace-content">
           {caseId ? (
             <section className="case-context-band" aria-label="Case context">
-              <div className="case-context-band__identity"><span className="case-context-band__mark"><Folders aria-hidden="true" /></span><span className="case-context-band__copy"><CaseBreadcrumb caseId={caseId} pathname={location.pathname} /></span></div>
-              <CaseReadiness state={caseOverview} />
-              {cases.length > 1 ? <button type="button" className="case-switcher-trigger" onClick={openCaseSwitcher}><span>Switch case</span><ShellIcon name="switch" /></button> : null}
+              <div className="case-context-band__identity">
+                <span className="case-context-band__mark"><Folders aria-hidden="true" /></span>
+                <span className="case-context-band__copy"><CaseBreadcrumb caseId={caseId} pathname={location.pathname} /></span>
+                <div className="case-context-band__badges">
+                  {acceptedRows ? (
+                    <span className="case-context-pill case-context-pill--metrics" title="Total ingested forensic records">
+                      <ShellIcon name="evidence" />
+                      <span className="tabular-numbers">{formatNumber(acceptedRows)}</span>
+                      <span className="case-context-pill__label">records</span>
+                    </span>
+                  ) : null}
+                  {activityHorizon ? (
+                    <span className="case-context-pill case-context-pill--horizon" title="Forensic event time horizon">
+                      <ShellIcon name="calendar" />
+                      <span className="tabular-numbers">{activityHorizon}</span>
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+              <div className="case-context-band__controls">
+                <CaseReadiness state={caseOverview} />
+                <div className="case-context-band__actions">
+                  <NavLink
+                    className="case-context-action"
+                    to={`/cases/${encodeURIComponent(caseId)}/investigate`}
+                    title="Ask a question about this case"
+                    aria-label="Ask this case"
+                  >
+                    <ShellIcon name="ask" />
+                    <span>Ask case</span>
+                  </NavLink>
+                  <NavLink
+                    className="case-context-action"
+                    to={`/cases/${encodeURIComponent(caseId)}/evidence`}
+                    title="Inspect or upload evidence for this case"
+                    aria-label="Add evidence"
+                  >
+                    <ShellIcon name="plus" />
+                    <span>Add evidence</span>
+                  </NavLink>
+                  {cases.length > 1 ? (
+                    <button
+                      type="button"
+                      className="case-switcher-trigger"
+                      onClick={openCaseSwitcher}
+                      aria-label="Switch case"
+                      title="Switch active case scope (Alt+S)"
+                    >
+                      <ShellIcon name="switch" />
+                      <span>Switch case</span>
+                      <kbd className="case-switcher-shortcut" aria-hidden="true">Alt+S</kbd>
+                    </button>
+                  ) : null}
+                </div>
+              </div>
             </section>
           ) : null}
           {caseId ? <CaseTabs caseId={caseId} badges={badges} /> : null}

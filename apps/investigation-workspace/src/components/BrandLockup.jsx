@@ -25,5 +25,5 @@ export function BrandLockup({ identityLed = false }) {
     link.href = favicon
   }, [name, runtime.favicon_url])
   if (horizontal) return <img className="brand-lockup__custom" src={horizontal} alt={name} />
-  return <span className="brand-lockup"><BrandMark /><span><strong>{name}</strong>{identityLed ? <small>{tagline}</small> : null}</span></span>
+  return <span className="brand-lockup"><BrandMark /><span className="brand-lockup__text"><strong>{name}</strong>{identityLed ? <small>{tagline}</small> : null}</span></span>
 }

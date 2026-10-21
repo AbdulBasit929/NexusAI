@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Search, X } from 'lucide-react'
 import { configuredCaseIds, listEvidence } from '../lib/apiClient.js'
@@ -144,33 +145,39 @@ export function WorkspaceCommands({ caseId = '', showTrigger = false }) {
       <Search aria-hidden="true" />
       <span>Find a case, source or question</span><kbd>Ctrl K</kbd>
     </button> : null}
-    {paletteOpen ? <div className="command-backdrop" onMouseDown={event => event.target === event.currentTarget && setPaletteOpen(false)}>
-      <section ref={palette} className="command-palette" role="dialog" aria-modal="true" aria-labelledby="command-title" onKeyDown={paletteKeys}>
-        <header><div><span className="eyebrow">Workspace navigation</span><h2 id="command-title">Quick find</h2></div><button type="button" aria-label="Close quick find" onClick={() => setPaletteOpen(false)}><X aria-hidden="true" /></button></header>
-        <label className="command-search"><span>Search configured cases, active-case evidence, routes and browser-local questions</span><span className="command-search__field"><Search aria-hidden="true" /><input ref={input} value={query} placeholder="Search the workspace" onChange={event => { setQuery(event.target.value); setActive(0) }} role="combobox" aria-expanded="true" aria-controls="command-results" aria-autocomplete="list" /><kbd>Esc</kbd></span></label>
-        <div id="command-results" className="command-results" role="listbox" aria-label="Quick find results">
-          {groups.map(group => {
-            let offset = 0
-            for (const candidate of groups) { if (candidate.id === group.id) break; offset += candidate.items.length }
-            return <section key={group.id} className="command-group" role="group" aria-labelledby={`command-group-${group.id}`}>
-              <header><h3 id={`command-group-${group.id}`}>{group.label}</h3><small>{group.scope}</small></header>
-              {group.items.map((command, index) => {
-                const commandIndex = offset + index
-                return <div key={`${command.path}-${command.label}`} role="option" aria-selected={active === commandIndex}><button type="button" onMouseEnter={() => setActive(commandIndex)} onClick={() => run(command)}><span className="command-result__copy"><strong>{command.label}</strong><small>{command.detail}</small></span><ArrowRight aria-hidden="true" /></button></div>
-              })}
-              {group.id === 'evidence' && group.status === 'loading' ? <p className="command-group__state" role="status">Loading active-case evidence…</p> : null}
-              {group.id === 'evidence' && group.status === 'unavailable' ? <p className="command-group__state">Evidence search is unavailable. Routes, configured cases and local questions remain available.</p> : null}
-            </section>
-          })}
-          {!commands.length && query ? <p className="command-empty">No result matches this search. The scope was not widened.</p> : null}
-        </div>
-      </section>
-    </div> : null}
-    {shortcutsOpen ? <div className="command-backdrop" onMouseDown={event => event.target === event.currentTarget && setShortcutsOpen(false)}>
-      <section ref={shortcuts} className="shortcut-sheet" role="dialog" aria-modal="true" aria-labelledby="shortcut-title">
-        <header><h2 id="shortcut-title">Keyboard shortcuts</h2><button type="button" onClick={() => setShortcutsOpen(false)}>Close</button></header>
-        <dl><div><dt><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd></dt><dd>Open the command palette</dd></div><div><dt><kbd>?</kbd></dt><dd>Open this shortcut sheet</dd></div><div><dt><kbd>Alt</kbd> + <kbd>A</kbd></dt><dd>Focus the question composer</dd></div><div><dt><kbd>Esc</kbd></dt><dd>Close the active drawer or dialog</dd></div></dl>
-      </section>
-    </div> : null}
+    {paletteOpen && typeof document !== 'undefined' ? createPortal(
+      <div className="command-backdrop" onMouseDown={event => event.target === event.currentTarget && setPaletteOpen(false)}>
+        <section ref={palette} className="command-palette" role="dialog" aria-modal="true" aria-labelledby="command-title" onKeyDown={paletteKeys}>
+          <header><div><span className="eyebrow">Workspace navigation</span><h2 id="command-title">Quick find</h2></div><button type="button" aria-label="Close quick find" onClick={() => setPaletteOpen(false)}><X aria-hidden="true" /></button></header>
+          <label className="command-search"><span>Search configured cases, active-case evidence, routes and browser-local questions</span><span className="command-search__field"><Search aria-hidden="true" /><input ref={input} value={query} placeholder="Search the workspace" onChange={event => { setQuery(event.target.value); setActive(0) }} role="combobox" aria-expanded="true" aria-controls="command-results" aria-autocomplete="list" /><kbd>Esc</kbd></span></label>
+          <div id="command-results" className="command-results" role="listbox" aria-label="Quick find results">
+            {groups.map(group => {
+              let offset = 0
+              for (const candidate of groups) { if (candidate.id === group.id) break; offset += candidate.items.length }
+              return <section key={group.id} className="command-group" role="group" aria-labelledby={`command-group-${group.id}`}>
+                <header><h3 id={`command-group-${group.id}`}>{group.label}</h3><small>{group.scope}</small></header>
+                {group.items.map((command, index) => {
+                  const commandIndex = offset + index
+                  return <div key={`${command.path}-${command.label}`} role="option" aria-selected={active === commandIndex}><button type="button" onMouseEnter={() => setActive(commandIndex)} onClick={() => run(command)}><span className="command-result__copy"><strong>{command.label}</strong><small>{command.detail}</small></span><ArrowRight aria-hidden="true" /></button></div>
+                })}
+                {group.id === 'evidence' && group.status === 'loading' ? <p className="command-group__state" role="status">Loading active-case evidence…</p> : null}
+                {group.id === 'evidence' && group.status === 'unavailable' ? <p className="command-group__state">Evidence search is unavailable. Routes, configured cases and local questions remain available.</p> : null}
+              </section>
+            })}
+            {!commands.length && query ? <p className="command-empty">No result matches this search. The scope was not widened.</p> : null}
+          </div>
+        </section>
+      </div>,
+      document.body
+    ) : null}
+    {shortcutsOpen && typeof document !== 'undefined' ? createPortal(
+      <div className="command-backdrop" onMouseDown={event => event.target === event.currentTarget && setShortcutsOpen(false)}>
+        <section ref={shortcuts} className="shortcut-sheet" role="dialog" aria-modal="true" aria-labelledby="shortcut-title">
+          <header><h2 id="shortcut-title">Keyboard shortcuts</h2><button type="button" onClick={() => setShortcutsOpen(false)}>Close</button></header>
+          <dl><div><dt><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd></dt><dd>Open the command palette</dd></div><div><dt><kbd>?</kbd></dt><dd>Open this shortcut sheet</dd></div><div><dt><kbd>Alt</kbd> + <kbd>A</kbd></dt><dd>Focus the question composer</dd></div><div><dt><kbd>Esc</kbd></dt><dd>Close the active drawer or dialog</dd></div></dl>
+        </section>
+      </div>,
+      document.body
+    ) : null}
   </>
 }

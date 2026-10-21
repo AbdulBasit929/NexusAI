@@ -54,7 +54,7 @@ export function flowOption(graph, theme) {
   const captionTops = groups.length === 2 ? [0, '57%'] : [0]
   return {
     aria: { enabled: false },
-    title: captions.map((text, index) => ({ text, left: 8, top: captionTops[index], textStyle: { color: theme.muted, fontSize: 11, fontWeight: 700 } })),
+    title: captions.map((text, index) => ({ text, left: 8, top: captionTops[index], textStyle: { color: theme.muted, fontSize: 11, fontWeight: 700, letterSpacing: 0.5 } })),
     animationDuration: 600,
     animationEasing: 'cubicOut',
     tooltip: {
@@ -62,26 +62,43 @@ export function flowOption(graph, theme) {
       confine: true,
       backgroundColor: theme.card,
       borderColor: theme.line,
-      textStyle: { color: theme.text },
+      borderWidth: 1,
+      extraCssText: 'box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 14px;',
+      textStyle: { color: theme.text, fontFamily: 'var(--analyst-font-sans, sans-serif)', fontSize: 13 },
       formatter: params => (params.dataType === 'edge'
-        ? `${params.data.source} → ${params.data.target}: <strong>${formatNumber(params.data.value)}</strong>`
-        : `<strong>${params.name}</strong>: ${formatNumber(params.value)}<br/><em>Select to see where.</em>`),
+        ? `<div style="display:flex;flex-direction:column;gap:3px;"><span style="color:${theme.muted};font-size:12px;">${params.data.source} → <strong style="color:${theme.text}">${params.data.target}</strong></span><span style="font-family:var(--analyst-font-mono, monospace);font-weight:700;font-size:15px;color:${theme.text};">${formatNumber(params.data.value)}</span></div>`
+        : `<div style="display:flex;flex-direction:column;gap:3px;"><strong style="font-size:13px;color:${theme.text};">${params.name}</strong><span style="font-family:var(--analyst-font-mono, monospace);font-weight:700;font-size:15px;color:${theme.text};">${formatNumber(params.value)}</span><span style="color:${theme.muted};font-size:11px;">Select to jump to details</span></div>`),
     },
     series: groups.map((links, index) => {
       const names = new Set(links.flatMap(entry => [entry.source, entry.target]))
       return {
         type: 'sankey',
         left: 8,
-        right: 110,
+        right: 120,
         ...bands[index],
         nodeAlign: 'left',
-        nodeWidth: 14,
-        nodeGap: 20,
+        nodeWidth: 12,
+        nodeGap: 22,
         draggable: false,
-        emphasis: { focus: 'adjacency' },
-        lineStyle: { color: 'gradient', opacity: 0.38, curveness: 0.5 },
-        label: { color: theme.text, fontSize: 12, fontWeight: 600, formatter: params => `${params.name}  ${formatNumber(params.value)}` },
-        data: graph.nodes.filter(node => names.has(node.name)).map(node => ({ name: node.name, value: node.value, itemStyle: { color: colour[node.tone], borderColor: theme.card } })),
+        emphasis: { focus: 'adjacency', lineStyle: { opacity: 0.72 } },
+        lineStyle: { color: 'gradient', opacity: 0.42, curveness: 0.5 },
+        label: {
+          color: theme.text,
+          fontSize: 12,
+          fontWeight: 600,
+          fontFamily: 'var(--analyst-font-sans, sans-serif)',
+          formatter: params => `${params.name}  ${formatNumber(params.value)}`,
+        },
+        data: graph.nodes.filter(node => names.has(node.name)).map(node => ({
+          name: node.name,
+          value: node.value,
+          itemStyle: {
+            color: colour[node.tone],
+            borderColor: theme.card,
+            borderWidth: 1,
+            borderRadius: 3,
+          },
+        })),
         links,
       }
     }),

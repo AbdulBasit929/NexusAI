@@ -79,6 +79,50 @@ describe('case context bar', () => {
     openCase('/cases/case-a/overview', failing)
     expect(screen.getByRole('button', { name: /Switch case/ })).toBeTruthy()
   })
+
+  it('offers quick actions for asking this case and adding evidence', () => {
+    openCase('/cases/case-a/overview', failing)
+    const contextBand = screen.getByRole('region', { name: 'Case context' })
+    expect(within(contextBand).getByRole('link', { name: 'Ask this case' }).getAttribute('href')).toBe('/cases/case-a/investigate')
+    expect(within(contextBand).getByRole('link', { name: 'Add evidence' }).getAttribute('href')).toBe('/cases/case-a/evidence')
+  })
+
+  it('displays the ingested records metric pill when accepted rows exist', async () => {
+    openCase('/cases/case-a/overview', { summary: { evidence_total: 12, evidence_completed: 12, accepted_rows: 12912 } })
+    const pill = await screen.findByTitle('Total ingested forensic records')
+    expect(pill.textContent).toContain('12,912')
+  })
+
+  it('cycles tab focus with horizontal arrow keys across the case tab strip', async () => {
+    openCase('/cases/case-a/overview', failing)
+    const user = userEvent.setup()
+    const bar = screen.getByRole('navigation', { name: 'Case sections' })
+    const links = bar.querySelectorAll('a')
+
+    links[0].focus()
+    expect(document.activeElement).toBe(links[0])
+
+    await user.keyboard('{ArrowRight}')
+    expect(document.activeElement).toBe(links[1])
+
+    await user.keyboard('{ArrowLeft}')
+    expect(document.activeElement).toBe(links[0])
+
+    await user.keyboard('{End}')
+    expect(document.activeElement).toBe(links[links.length - 1])
+
+    await user.keyboard('{Home}')
+    expect(document.activeElement).toBe(links[0])
+  })
+
+  it('opens case switcher when Alt+S keyboard shortcut is pressed', async () => {
+    openCase('/cases/case-a/overview', failing)
+    const user = userEvent.setup()
+    expect(screen.queryByRole('dialog', { name: 'Switch case' })).toBeNull()
+
+    await user.keyboard('{Alt>}s{/Alt}')
+    expect(await screen.findByRole('dialog', { name: 'Switch case' })).toBeTruthy()
+  })
 })
 
 describe('sidebar sections', () => {
