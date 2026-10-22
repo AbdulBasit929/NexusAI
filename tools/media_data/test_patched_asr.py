@@ -97,4 +97,14 @@ read(processor, language="ur")
 assert calls[0]["model"] == "faster-whisper-turbo", calls
 segs = segments(read(processor, language="ur"))
 assert segs[0].payload["model"] == "faster-whisper-turbo"
-print("patched speech client: 5 behaviours OK")
+# 6. Punjabi / Pashto readings are marked LOW_RESOURCE_LANGUAGE with the measured figure and a warning; Urdu and English are not; the list can be changed
+module.urllib.request.urlopen = lambda request, timeout=None: FakeResponse(json.dumps({"language": "pa", "segments": [{"start": 0, "end": 3, "text": "sat sri"}]}).encode())
+seg = segments(read(processor, language="pa"))[0]
+assert seg.payload["reliability_state"] == "LOW_RESOURCE_LANGUAGE" and "90%" in seg.payload["reliability_note"] and any("Low-resource" in w for w in seg.warnings), (seg.payload, seg.warnings)
+module.urllib.request.urlopen = fake_urlopen
+seg = segments(read(processor, language="ur"))[0]
+assert "reliability_state" not in seg.payload and not any("Low-resource" in w for w in seg.warnings)
+os.environ["FORENSIC_ASR_LOW_RESOURCE_LANGUAGES"] = "ur"
+seg = segments(read(processor, language="ur"))[0]
+assert seg.payload["reliability_state"] == "LOW_RESOURCE_LANGUAGE"
+print("patched speech client: 6 behaviours OK")

@@ -31,14 +31,31 @@ HINDI_WRAPPER = '''    def transcribe(
         observations = self._transcribe_once(path, language=language, **kwargs)
         enabled = os.getenv("FORENSIC_ASR_HINDI_AS_URDU", "false").strip().lower() in {"1", "true", "yes", "on"}
         heard = {str(o.payload.get("language") or "").strip().lower() for o in observations if o.observation_type == "audio_transcript_segment"}
-        if language is not None or not enabled or "hi" not in heard:
-            return observations
-        reread = self._transcribe_once(path, language="ur", **kwargs)
-        for observation in reread:
-            if observation.observation_type == "audio_transcript_segment":
-                observation.payload["first_detected_language"] = "hi"
-                observation.payload["language_resolution"] = "detected hi with no language requested; read again as ur (FORENSIC_ASR_HINDI_AS_URDU)"
-        return reread
+        if language is None and enabled and "hi" in heard:
+            observations = self._transcribe_once(path, language="ur", **kwargs)
+            for observation in observations:
+                if observation.observation_type == "audio_transcript_segment":
+                    observation.payload["first_detected_language"] = "hi"
+                    observation.payload["language_resolution"] = "detected hi with no language requested; read again as ur (FORENSIC_ASR_HINDI_AS_URDU)"
+        return self._mark_low_resource(observations)
+
+    @staticmethod
+    def _mark_low_resource(observations):
+        """Punjabi and Pashto were measured at word error 91% and 96% on read speech (FLEURS dev, 16 clips each, 2026-10-22): such a reading is a pointer to listen, never a transcript.
+
+        Segments in a language of FORENSIC_ASR_LOW_RESOURCE_LANGUAGES (default pa,ps) get reliability_state LOW_RESOURCE_LANGUAGE, the measured figure and a warning that the interface shows.
+        """
+        import dataclasses
+        low = {item.strip().lower() for item in os.getenv("FORENSIC_ASR_LOW_RESOURCE_LANGUAGES", "pa,ps").split(",") if item.strip()}
+        marked = []
+        for observation in observations:
+            language = str(observation.payload.get("language") or "").strip().lower()
+            if observation.observation_type == "audio_transcript_segment" and language in low:
+                observation.payload["reliability_state"] = "LOW_RESOURCE_LANGUAGE"
+                observation.payload["reliability_note"] = "measured word error about 90% on read speech; listen to the recording, do not rely on this text"
+                observation = dataclasses.replace(observation, warnings=observation.warnings + ("Low-resource language: measured word error about 90% on read speech; the text is a pointer to listen, not a transcript",))
+            marked.append(observation)
+        return tuple(marked)
 
 '''
 

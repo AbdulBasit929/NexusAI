@@ -101,7 +101,7 @@ Status words: **ACTIVE** (binding or current), **PLAN** (sequencing, superseded 
 | Part | State |
 |---|---|
 | API | `nexusai-forensic-records-api` image `293f55838d74` (2026-10-21: case record routes and the repair dry-run fix); rollbacks `before-case-record-20261021` (`6935d14271c7`), `before-s6-20261021` = `77ec230274a2`, `before-020-20261021` = `ee276c1f9bcd`, then back to `before-ask-v2-20261015`; built as a host-built binary layered on the previous image (the in-container module download fails on this network); recreate **only** with the Run-Arms helpers or `recreate_api_askv2.ps1` |
-| Worker | overlay image `db43bb68c042` (now `before-media-ocr-20261021`) **plus the media overlay of 2026-10-21 (OCR role ON, backend `auto`: see `docs/data/media-activation-results-20261021.md`)**; Ingest v2 in shadow; **other media roles off** (`FORENSIC_OCR_ENABLED`, `_ASR_ENABLED`, `_FACE_ENABLED`, `_IMAGE_EMBEDDING_ENABLED`, `_VIDEO_ANPR_V2_ENABLED`, `_V3_ENABLED` all `false`) |
+| Worker | overlay image `db43bb68c042` (now `before-media-ocr-20261021`) **plus the media overlay (OCR role ON, backend `auto`, 2026-10-21; ASR role ON with `faster-whisper-turbo`, 2026-10-22, image `037b7b720365`: see `docs/data/media-activation-results-20261021.md`)**; Ingest v2 in shadow; **other media roles off** (`_FACE_ENABLED`, `_IMAGE_EMBEDDING_ENABLED`, `_VIDEO_ANPR_V2_ENABLED`, `_V3_ENABLED` all `false`) |
 | Model | one container, Qwen3-4B-Instruct Q4_K_M, CPU, 4,096 context, one request at a time; about 22 tokens a second reading, 5.5 writing |
 | Database | PostgreSQL 16 + TimescaleDB; migrations 012 to 021 applied (021 = the case record; typed tables, analyst schema with **10 views**, read-only role `forensic_analyst_ro`, thick connection views); typed rows in 14 collections; backups in `C:/tmp/nexusai-backups` |
 | Engine switches (asserted from the container) | `FORENSIC_ASK_V2=true`, `_FIRST=true`, `_AGREE=false`; `FORENSIC_GOVERNED_SQL=true` and first; `FORENSIC_TYPED_FAMILIES=communications_cdr,network_ipdr`; cost ceiling 5,000,000, row cap 1,000, timeout 15 s. **Still off:** `FORENSIC_CONVERSATION_FRONT_DOOR`, `FORENSIC_PII_MASKED_PROJECTION`, `FORENSIC_IR_CROSSCHECK`, `FORENSIC_BREAKDOWN_GOAL`, `FORENSIC_GOAL_TAXONOMY_SLICES`, `FORENSIC_IDENTIFIER_BINDING`, `FORENSIC_FRAME_FAMILY_PRECEDENCE`. **Still on (the ladder):** `FORENSIC_LADDER_ROUTING=true` |
@@ -287,7 +287,7 @@ Decisions still open (D-list): **D3** GPU (unavailable), **D5** faces (stay at L
 | L-M11 | General image forensics (R9) | partly | P3 track I |
 | L-M12 | Captures, databases, archives (R14) | inventory only | P3 track X, D27 |
 | L-M13 | New families: message exports, location history | open | P4, D29 |
-| L-M14 | Worker media roles switched off; activation family by family with the resource policy | open | **D25**, P3 |
+| L-M14 | Worker media roles switched off; activation family by family with the resource policy | **in progress: OCR (2026-10-21) and speech (2026-10-22) ON, measured and gated; faces, image similarity, plates, video next** | **D25**, P3 |
 | L-M15 | The engine reads no derived media: add views over `derived_artifacts` to the analyst schema (curated, non-text fields; text only through retrieval) | open | P3 (M4 media) |
 | L-M16 | Media viewers with overlays, review desk with custody, candidate cards with the authority banner | open | P2 and P3 |
 | L-M17 | Media bank (at least 20 questions across modalities against the data) and the sealed sets | open | P3 |

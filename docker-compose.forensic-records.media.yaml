@@ -33,7 +33,7 @@ services:
       FORENSIC_OCR_ROUTER_ARABIC_SHARE: ${FORENSIC_OCR_ROUTER_ARABIC_SHARE:-0.5}
       # A: speech to text through LocalAI (the container that answers the alias `api`; its model YAML /models/faster-whisper-turbo.yaml sets beam 1 and 8 threads, see tools/media_data/Install-AsrModel.ps1
       # and patch_faster_whisper_backend.py). Recordings longer than FORENSIC_ASR_LONG_AUDIO_SECONDS go to the small model so a long file cannot hold the service for hours (turbo runs at about 1.4 times real time).
-      FORENSIC_ASR_ENABLED: ${FORENSIC_ASR_ENABLED:-false}
+      FORENSIC_ASR_ENABLED: ${FORENSIC_ASR_ENABLED:-true}
       FORENSIC_ASR_ENDPOINT: ${FORENSIC_ASR_ENDPOINT:-http://api:8088/v1/audio/transcriptions}
       FORENSIC_ASR_MODEL: ${FORENSIC_ASR_MODEL:-faster-whisper-turbo}
       FORENSIC_ASR_LONG_AUDIO_MODEL: ${FORENSIC_ASR_LONG_AUDIO_MODEL:-faster-whisper-small-ur}

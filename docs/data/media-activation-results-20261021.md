@@ -94,16 +94,38 @@ During the whole run the worker held about 770 MB and stayed healthy; the API st
 
 **Gate for F (recall at least 80% for faces 40 px or wider at no more than 0.1 false boxes per image): recall MET at score 0.5 (81%); the false-box criterion is NOT met** (about 0.3 per photo even after discounting unlabelled faces) **and cannot be measured cleanly without a face-free negative set. The role stays OFF.** What would change it: a negative set (photographs verified to contain no person) or a decision by the owner to accept a face count labelled "candidate, review required" at score 0.8 (recall 72%); either needs no new model.
 
-## A: audio and speech (first results; the English and Punjabi/Pashto runs, the speed variants and the live switch follow)
+## A: audio and speech (decided and live 2026-10-22)
 
-**Set:** FLEURS test split, Urdu (`ur_pk`), read speech with transcripts (CC BY 4.0; ledger DAT-004), dev partition, first 24 clips (3.9 minutes). faster-whisper (CTranslate2) in int8 on the laptop CPU, 8 threads, beam 5, language told. Word error after the written normalisation (NFKC, lower case, punctuation and symbols removed, Arabic-Indic digits mapped, whitespace collapsed). **Run alone**: an earlier run of the same small model that shared the machine with other measurements took four hours for six minutes of audio (real-time factor 38), so that timing was discarded; its word error (35.8%, 40 clips) is in line with the clean run.
+**Set:** FLEURS test split (CC BY 4.0; ledger DAT-004), dev partition only: Urdu `ur_pk` first 24 clips (3.9 minutes), English `en_us` 16 clips (2.4 minutes), Punjabi `pa_in` 16 clips (3.5 minutes, Gurmukhi) and Pashto `ps_af` 16 clips (3.3 minutes). Word error after the written normalisation (NFKC, lower case, punctuation and symbols removed, Arabic-Indic digits mapped, whitespace collapsed). faster-whisper (CTranslate2) in int8 on the laptop CPU. **Every number was measured with nothing else running**: an earlier run of the small model that shared the machine with other measurements took four hours for six minutes of audio (real-time factor 38) and was discarded.
 
-| Model | Word error mean (median) | Character error | Real-time factor | Script correct | Loops | Licence |
+**Bake-off (the library directly, `tools/media_data/asr_eval.py`, Urdu, language told):**
+
+| Model, decoding | Word error mean (median) | Character error | Real-time factor | Script correct | Loops | Licence |
 |---|---|---|---|---|---|---|
-| faster-whisper **small** (the one configured today) | 32.7% (31.0%) | 13.1% | 1.04 | 100% | 0 of 24 | MIT |
-| faster-whisper **medium** | 26.2% (26.5%) | 9.8% | 3.43 | 100% | 0 of 24 | MIT |
-| faster-whisper **large-v3-turbo** | **20.8% (21.4%)** | **8.5%** | 1.74 | 100% | 0 of 24 | MIT |
+| small, 8 threads, beam 5 (configured before) | 32.7% (31.0%) | 13.1% | 1.04 | 100% | 0 of 24 | MIT |
+| medium, 8 threads, beam 5 | 26.2% (26.5%) | 9.8% | 3.43 | 100% | 0 of 24 | MIT |
+| large-v3-turbo, 8 threads, beam 5 | 20.8% (21.4%) | 8.5% | 1.74 | 100% | 0 of 24 | MIT |
+| **large-v3-turbo, 8 threads, beam 1** | **21.2% (21.1%)** | **8.4%** | **1.49** | 100% | 0 of 24 | MIT |
+| large-v3-turbo, 12 threads, beam 5 | 20.8% (21.4%) | 8.5% | 2.19 | 100% | 0 of 24 | MIT |
+| large-v3-turbo, 12 threads, beam 1 | 21.2% (21.1%) | 8.4% | 1.59 | 100% | 0 of 24 | MIT |
 
-Reading: turbo is the most accurate model on Urdu and faster than medium; it cuts the small model's word error by 36% (relative). Its real-time factor of 1.74 at 8 threads is above the pre-registered ceiling of 1.5. Per the rule the selection is the lowest word error **among models at or below 1.5**, which would leave the small model; the speed variants (14 threads, greedy decoding) decide whether turbo can meet the ceiling.
+Reading: beam 5 costs 0.4 points of word error and 17% of time, so greedy decoding is the right trade; more than 8 threads make it slower, not faster. Turbo with beam 1 and 8 threads is the lowest word error at a real-time factor under the pre-registered ceiling of 1.5 (it clears it by 0.01 in the library run, which is why the service run below matters). English with the library, beam 5: turbo 4.2% against small 5.2%.
 
-Caveats: 24 clips is a small sample (the interval is wide); FLEURS is read speech, not telephone-band or conversational; fine-tuned Urdu Whisper models were not run because their training data may include FLEURS and Common Voice is no longer on the hub without an account.
+**Through the live LocalAI service (`tools/media_data/asr_service_check.py`, the path the worker uses; the turbo model installed with `options: beam_size:1, cpu_threads:8`):**
+
+| Language and model | Word error mean (median) | Real-time factor, all requests (without the first, which loads the model) | Script correct | Loops | Every clip has a timed segment |
+|---|---|---|---|---|---|
+| Urdu, small (before) | 33.8% (29.9%) | 0.55 (0.53) | 100% | not scored | yes |
+| **Urdu, turbo** | **20.9% (19.6%)** | **1.45 (1.35)** | 100% | 0 of 24 by the library run | yes |
+| English, small | 5.5% (4.1%) | 0.44 (0.34) | 100% | 0 of 16 | yes |
+| **English, turbo** | **4.7% (4.0%)** | 1.26 (1.26) | 100% | 0 of 16 | yes |
+
+Gate (fixed before the runs): Urdu word error at least 20% relatively below the current small model on the same clips: **38% below (20.9% against 33.8%), met**; English no worse: **4.7% against 5.5%, met**; correct script at least 99%: **100%, met**; loops at most 1%: **0, met**; every segment with start and end: **met**; real-time factor at most 1.5: **1.45, met**. Memory: with the language model and both speech models resident, the Docker VM's lowest free memory was 1.03 GiB; with turbo alone next to the language model 1.67 GiB.
+
+**A finding the plan did not have: no language given.** The worker sends no language unless the upload carries `asr_language`. Told nothing, turbo detected the right language on **16 of 16 English clips** but only **17 of 24 Urdu clips**: the other 7 were called Hindi and written in Devanagari (script correct 70.8%, word error 43.0% against Urdu references). Spoken Hindi and Urdu are one language and Whisper picks between them by script habit. Decision: when no language was requested and the service hears Hindi, the worker reads the recording again as Urdu and stores that reading with `first_detected_language: hi` and `language_resolution` saying so (`FORENSIC_ASR_HINDI_AS_URDU`, on in this deployment, off in the code unless set). The cost is a second reading for those recordings. Reading without a language also costs about twice the time per short clip (real-time factor 2.7 to 2.9 on these short clips: the language is found by a first pass over the first 30 seconds), a fixed cost that does not grow with a long recording.
+
+**Punjabi (Gurmukhi) and Pashto, language told:** Punjabi turbo 91.2% word error (small 104.5%, script correct 0% and one loop), Pashto turbo 96.3% (small 96.9%). Neither is a transcript. Per the pre-registered rule they are not switched off but never shown plainly: every segment in a language of `FORENSIC_ASR_LOW_RESOURCE_LANGUAGES` (default `pa,ps`) is stored with `reliability_state: LOW_RESOURCE_LANGUAGE`, a note with the measured figure and a warning that the interface shows ("a pointer to listen, not a transcript"). The interface has to show that state before these readings are treated as more than a lead (Stage 3 of the interface programme).
+
+**What went live (2026-10-22):** (1) `backend/python/faster-whisper/backend.py` reads `beam_size` and `cpu_threads` from the model YAML `options` (defaults unchanged: beam 5, CTranslate2 threads; the patch is in the shared `nexusai_backends` volume with the original beside it as `backend.py.before-asr-options-20261022`); (2) the model `faster-whisper-turbo` (hub revision 4df90f75, `model.bin` sha256 e76620f8…, ledger MOD-043) installed in the shared `nexusai_models` volume with its YAML; (3) the worker overlay `037b7b720365` (rollback `before-media-asr-20261022` = the OCR image `e7f47e81d59c`) with `FORENSIC_ASR_ENABLED=true`, `FORENSIC_ASR_MODEL=faster-whisper-turbo`, recordings longer than 600 seconds read by the small model so one long file cannot hold the service for hours, a 30-minute request timeout, the Hindi re-read and the low-resource marking; offline behaviour test `tools/media_data/test_patched_asr.py` (6 behaviours) passes inside the worker image. End to end through the upload path, three FLEURS clips into `nexusai-media-wave1-20261021`: an Urdu clip the service had called Hindi came out in Urdu script with a Roman Urdu derivative; an English clip came out English; a Punjabi clip with `asr_language=pa` was stored `LOW_RESOURCE_LANGUAGE`.
+
+**Not done / limits:** 24 and 16 clips are small samples (wide intervals); FLEURS is read speech, not telephone-band, noisy or conversational audio, so real recordings will score worse and a sample of the owner's own kind of audio is needed before numbers are quoted to a court; fine-tuned Urdu Whisper models were not run because their training data may include FLEURS and Common Voice is no longer on the hub without an account; speaker identity, diarisation and any claim about who is speaking are not offered; the long-recording fallback was proven by the offline test, not by a 10-minute file.
