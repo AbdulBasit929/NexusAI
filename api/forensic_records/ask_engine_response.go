@@ -203,7 +203,7 @@ func askRowMaps(r *govSQLResult) []map[string]any { return govSQLRowMaps(r) }
 func askReadsRecords(v *askValidated) bool {
 	for _, view := range v.Views {
 		switch view {
-		case "v_comm_events", "v_contact_pairs", "v_contact_links", "v_connection_edges", "v_cell_visits", "v_device_pairings", "v_data_sessions":
+		case "v_comm_events", "v_contact_pairs", "v_contact_links", "v_connection_edges", "v_cell_visits", "v_colocation_windows", "v_meeting_candidates", "v_device_pairings", "v_data_sessions":
 			return true
 		}
 	}
@@ -239,6 +239,8 @@ func askAnswerResponse(req hybridQueryRequest, cat *askCatalogue, v *askValidate
 	if shape == "map" {
 		limitations = append(limitations, "A cell site is a coverage area, not the position of a person.")
 	}
+	limitations = append(limitations, askViewCaveats(v)...)
+	limitations = append(limitations, askParamNotes(f.ParamUses)...)
 	rows := askRowMaps(r)
 	answer := map[string]any{
 		"result_state": "COMPLETED", "answer": headline, "grounding": askAnswerGround,

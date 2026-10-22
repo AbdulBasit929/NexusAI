@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -46,6 +47,9 @@ type askLimits struct {
 	RowCap       int
 	MaxPlanCost  float64
 	HubThreshold string // the case's threshold for "a number everyone contacts"; empty leaves the view's default of 20
+	// Settings are the runtime parameters of the question (ask_engine_params.go: the co-location window, the contact gap ...), set as transaction settings the views read.
+	// Only names declared in askParams are ever set, and the values were read from the question by code, checked against their bounds.
+	Settings map[string]string
 }
 
 func askEnvInt(name string, fallback int) int {
@@ -127,6 +131,21 @@ func askRun(ctx context.Context, db *pgxpool.Pool, tenantID, collectionID, final
 			args []any
 			what string
 		}{"SELECT set_config('app.hub_threshold', $1, true)", []any{limits.HubThreshold}, "could not set the hub threshold"})
+	}
+	settingNames := make([]string, 0, len(limits.Settings))
+	for name := range limits.Settings {
+		settingNames = append(settingNames, name)
+	}
+	sort.Strings(settingNames)
+	for _, name := range settingNames {
+		if !askKnownSetting(name) {
+			continue
+		}
+		statements = append(statements, struct {
+			sql  string
+			args []any
+			what string
+		}{"SELECT set_config($1, $2, true)", []any{name, limits.Settings[name]}, "could not set a query parameter"})
 	}
 	for _, s := range statements {
 		if _, err := tx.Exec(callCtx, s.sql, s.args...); err != nil {

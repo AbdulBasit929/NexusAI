@@ -1,0 +1,47 @@
+package main
+
+import (
+	"strings"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+)
+
+// The caveats of the stage-3 analyses (docs/data/link-analysis-stage3-preregistration-20261022.md section 6): the engine adds them, keyed by view, and the fixed phrases the gate
+// looks for must be in them.
+var _ = Describe("Ask engine caveats of the link-analysis views", func() {
+	collapse := func(lines []string) string {
+		return strings.Join(strings.Fields(strings.ToLower(strings.Join(lines, " "))), " ")
+	}
+
+	It("adds the co-location caveat, with the missing chance baseline said, for v_colocation_windows", func() {
+		text := collapse(askViewCaveats(&askValidated{Views: []string{"v_colocation_windows"}}))
+		Expect(text).To(ContainSubstring("proximity is not association"))
+		Expect(text).To(ContainSubstring("no chance baseline is computed"))
+	})
+
+	It("adds the meeting caveat for v_meeting_candidates", func() {
+		text := collapse(askViewCaveats(&askValidated{Views: []string{"v_meeting_candidates"}}))
+		Expect(text).To(ContainSubstring("a candidate, not a finding"))
+		Expect(text).To(ContainSubstring("proximity and contact are not proof of a meeting"))
+	})
+
+	It("adds both when a query reads both, and nothing for the other views", func() {
+		Expect(askViewCaveats(&askValidated{Views: []string{"v_colocation_windows", "v_meeting_candidates"}})).To(HaveLen(2))
+		Expect(askViewCaveats(&askValidated{Views: []string{"v_cell_visits", "v_contact_pairs", "v_comm_events"}})).To(BeEmpty())
+		Expect(askViewCaveats(nil)).To(BeEmpty())
+	})
+
+	It("keeps a meeting question off the hourly view and a minutes question on the windows view", func() {
+		cat, err := askGoldenCatalogue()
+		Expect(err).NotTo(HaveOccurred())
+		meeting := cat.Shortlist("Did 923001110001 and 923001110002 meet?", 3)
+		Expect(meeting.Views).To(ConsistOf("v_meeting_candidates"))
+		minutes := cat.Shortlist("When were 923001110001 and 923001110002 at the same place within 15 minutes of each other?", 3)
+		Expect(minutes.Views).To(ConsistOf("v_colocation_windows"))
+		hourly := cat.Shortlist("Which cell sites did 923001110001 and 923001110002 both use in the same hour?", 3)
+		Expect(hourly.Views).To(ContainElement("v_cell_visits"))
+		Expect(hourly.Views).NotTo(ContainElement("v_colocation_windows"))
+		Expect(hourly.Views).NotTo(ContainElement("v_meeting_candidates"))
+	})
+})

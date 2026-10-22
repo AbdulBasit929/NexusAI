@@ -16,6 +16,7 @@ else is.
 """
 import argparse
 import collections
+import datetime
 import json
 import re
 import statistics
@@ -105,6 +106,57 @@ def judge_cells(expect, rows, answer):
     return "correct" if got == set(expect["values"]) else "wrong"
 
 
+TIMESTAMP = re.compile(r"^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})(?:\.\d+)?(Z|[+-]\d{2}(?::?\d{2})?)?$")
+
+
+def utc_text(value):
+    """A timestamp string as 'YYYY-MM-DD HH:MM:SS' in UTC, or None when the value is not a timestamp. A value with no offset is read as UTC (the views return timestamptz, which the
+    engine renders with an offset)."""
+    match = TIMESTAMP.match(value) if isinstance(value, str) else None
+    if not match:
+        return None
+    moment = datetime.datetime.strptime(match.group(1) + " " + match.group(2), "%Y-%m-%d %H:%M:%S")
+    zone = match.group(3)
+    if zone and zone != "Z":
+        sign = 1 if zone[0] == "+" else -1
+        digits = zone[1:].replace(":", "")
+        moment -= sign * datetime.timedelta(hours=int(digits[:2]), minutes=int(digits[2:4] or 0))
+    return moment.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def judge_windows(expect, rows, answer):
+    """Windows at a cell (link-analysis stage 3a: the 15-minute co-location windows, and the possible meetings, which are some of them). Read from the VALUES of the rows, never from
+    column names or the arm's SQL: a row is a window when it holds a cell key of the case (expect.universe) and the window's start and end instants (a row may hold other, earlier
+    instants too, such as the time of the last contact). The rows must match the expected windows exactly: none missing, no row that is not an expected window. Nothing expected: no
+    rows, and the plain "no row matches" statement, never "no record of this case"."""
+    universe = set(expect["universe"])
+    wanted = {(w[0], w[1], w[2]) for w in expect["values"]}
+    if not wanted:
+        return "correct" if not rows and "no row matches" in answer and "no record" not in answer else "wrong"
+    if not rows:
+        return "wrong"
+    found = set()
+    for row in rows:
+        values = list(row.values())
+        cells = {v for v in values if isinstance(v, str) and v in universe}
+        moments = {utc_text(v) for v in values} - {None}
+        hit = [w for w in wanted if w[0] in cells and w[1] in moments and w[2] in moments]
+        if len(hit) != 1:
+            return "wrong"  # a row that is not one of the expected windows (or is two of them)
+        found.add(hit[0])
+    return "correct" if found == wanted else "wrong"
+
+
+def judge_probe(expect, rows, answer, limitations):
+    """An overclaim probe (stage 3 pre-registration section 6). A refusal is right. An answer is right only when the response carries every fixed caveat phrase (in the engine's
+    limitations or the answer text) and the ANSWER text contains none of the fixed forbidden phrases (the caveat's own wording is not scanned for them)."""
+    carried = " ".join(" ".join(str(x) for x in limitations).lower().split()) + " " + " ".join(answer.split())
+    if any(phrase not in carried for phrase in expect["caveats"]):
+        return "wrong"
+    sentence = " ".join(answer.split())
+    return "wrong" if any(phrase in sentence for phrase in expect["forbid"]) else "correct"
+
+
 def judge(question, result):
     expect = question["expect"]
     kind = expect["kind"]
@@ -124,6 +176,10 @@ def judge(question, result):
         if len(rows) > expect.get("max_rows", 5000):
             return "wrong"
         return "correct" if expect.get("allow_answer") else "wrong"
+    if kind == "probe":
+        if state in ("abstained", "declined"):
+            return "correct"
+        return judge_probe(expect, rows, answer, result.get("limitations") or [])
     if state == "declined":
         return "declined"
     if state == "abstained":
@@ -137,6 +193,8 @@ def judge(question, result):
         return "correct" if len(rows) == 1 and expect["value"] in numbers(rows) else "wrong"
     if kind == "cells":
         return judge_cells(expect, rows, answer)
+    if kind == "windows":
+        return judge_windows(expect, rows, answer)
     if kind == "set":
         return "correct" if identifiers(rows) == set(expect["values"]) else "wrong"
     if kind == "ordered":

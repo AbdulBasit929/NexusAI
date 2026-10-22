@@ -116,6 +116,8 @@ var askLexicon = map[string][]string{
 	"v_evidence_inventory": {"file", "evidence", "image", "photo", "picture", "audio", "recording", "video", "document", "pdf", "inventory", "upload", "attachment", "item", "failed"},
 	"v_cell_visits": {"cell", "tower", "site", "location", "where", "place", "visit", "area", "movement", "move", "travel", "near", "located", "colocation",
 		"meet", "same", "sleep", "anchor", "map", "simultaneously"},
+	"v_colocation_windows": {"colocation", "together", "same", "minute", "window", "simultaneously", "near"},
+	"v_meeting_candidates": {"meet", "meeting", "met", "candidate"},
 	"v_cells":           {"cell", "tower", "site", "coverage", "radius", "position", "latitude", "longitude", "operator", "operated", "cover", "km", "within"},
 	"v_device_pairings": {"handset", "imei", "imsi", "sim", "device", "swap", "swapped", "change", "new", "model", "phone", "card"},
 	"v_data_sessions": {"ip", "address", "port", "internet", "session", "browse", "website", "domain", "host", "server", "download", "upload", "byte", "traffic",
@@ -227,9 +229,22 @@ func (c *askCatalogue) Shortlist(question string, max int) askShortlist {
 			ranked = append(ranked, v.Name)
 		}
 	}
+	// Equal scores: a view whose own name holds a word of the question comes first (a question about "pairing" prefers v_device_pairings to a view that merely describes pairs),
+	// then the alphabet.
+	nameHit := func(view string) bool {
+		for _, part := range strings.Split(view, "_") {
+			if part != "v" && tokenSet[askStem(part)] {
+				return true
+			}
+		}
+		return false
+	}
 	sort.SliceStable(ranked, func(i, j int) bool {
 		if scores[ranked[i]] != scores[ranked[j]] {
 			return scores[ranked[i]] > scores[ranked[j]]
+		}
+		if hi, hj := nameHit(ranked[i]), nameHit(ranked[j]); hi != hj {
+			return hi
 		}
 		return ranked[i] < ranked[j]
 	})
@@ -265,6 +280,13 @@ func (c *askCatalogue) Shortlist(question string, max int) askShortlist {
 			}
 		}
 		out.Views = kept
+	}
+	// A question about a possible meeting is answered from v_meeting_candidates, which carries the windows; a question about the same place within minutes from v_colocation_windows.
+	// The hourly view and the cell list would only tempt the model to join them again (stage 3a of the link-analysis bank).
+	if features.Phones >= 2 && askMeetingWords(tokenSet) && askContains(out.Views, "v_meeting_candidates") {
+		out.Views = askWithoutViews(out.Views, "v_cell_visits", "v_colocation_windows", "v_cells", "v_comm_events")
+	} else if features.Phones >= 2 && askMinuteColocation(tokenSet) && askContains(out.Views, "v_colocation_windows") {
+		out.Views = askWithoutViews(out.Views, "v_cell_visits", "v_cells", "v_comm_events")
 	}
 	// A weak signal still gets an answer attempt, with the best three views, and says it is not confident.
 	if !out.Confident && len(out.Views) < askShortlistMax {
@@ -310,6 +332,12 @@ func askApplyFeatures(c *askCatalogue, f askFeatures, tokens map[string]bool, ad
 	if f.Phones >= 2 && askConnectionWords(tokens) && !spatial && has("v_connection_edges") {
 		add("v_connection_edges", 6, "two numbers and a connection word")
 	}
+	if f.Phones >= 2 && askMeetingWords(tokens) && has("v_meeting_candidates") {
+		add("v_meeting_candidates", 6, "two numbers and a meeting word")
+	}
+	if f.Phones >= 2 && askMinuteColocation(tokens) && has("v_colocation_windows") {
+		add("v_colocation_windows", 6, "two numbers, minutes and a same-place word")
+	}
 	if f.Phones >= 1 {
 		for _, name := range []string{"v_contact_pairs", "v_comm_events"} {
 			if has(name) {
@@ -327,6 +355,41 @@ func askConnectionWords(tokens map[string]bool) bool {
 		}
 	}
 	return false
+}
+
+// askMeetingWords is whether the question speaks of a possible meeting between two numbers (v_meeting_candidates, analysis A7).
+func askMeetingWords(tokens map[string]bool) bool {
+	for _, w := range []string{"meet", "meeting", "met"} {
+		if tokens[askStem(w)] {
+			return true
+		}
+	}
+	return false
+}
+
+// askMinuteColocation is whether the question asks for two numbers at the same place within minutes (the 15-minute co-location of v_colocation_windows, analysis A5), not within
+// the hour (v_cell_visits): it names minutes and a same-place word.
+func askMinuteColocation(tokens map[string]bool) bool {
+	if !tokens[askStem("minute")] {
+		return false
+	}
+	for _, w := range []string{"same", "together", "place", "cell", "tower", "site", "colocation", "near", "simultaneously", "window"} {
+		if tokens[askStem(w)] {
+			return true
+		}
+	}
+	return false
+}
+
+// askWithoutViews returns the list without the named views.
+func askWithoutViews(views []string, drop ...string) []string {
+	out := make([]string, 0, len(views))
+	for _, v := range views {
+		if !askContains(drop, v) {
+			out = append(out, v)
+		}
+	}
+	return out
 }
 
 // askCommonWords is whether the question asks for what two numbers share (common contacts) rather than how they are connected.

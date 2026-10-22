@@ -344,6 +344,14 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 	}
 	sort.Strings(chosen)
 	audit.Views = chosen
+	// Runtime parameters (a window of 20 minutes, a gap of 30): read from the question by code, never by the model, within their bounds. A question that names one twice with
+	// different values, names minutes without a number, or asks for a value outside the bounds gets a question back, not a guess (ask_engine_params.go).
+	paramUses, paramIssue := askResolveParams(frame, chosen)
+	if paramIssue != nil {
+		audit.Reason = "parameter: " + paramIssue.Kind
+		return finish(askClarification(req, paramIssue.Message, "No result is shown, because the question names a number the analysis cannot use as it stands. Nothing was inferred.", audit, nil))
+	}
+	frame.ParamUses = paramUses
 	// The views read the typed tables only: a case that is not (fully) in them gets no answer from the engine (ask_engine_coverage.go).
 	coverage, err := askCoverageFor(ctx, db, req.TenantID, req.CollectionID)
 	if err != nil {
@@ -369,6 +377,7 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 	audit.PromptBytes = len(turns[0].Content) + len(turns[1].Content)
 	audit.PromptID = govSQLDigest(turns[:1])
 	limits := askDefaultLimits()
+	limits.Settings = askParamSettings(paramUses)
 
 	retry := func(raw string, problems ...string) {
 		turns = append(turns, govSQLTurn{Role: "assistant", Content: raw}, govSQLTurn{Role: "user", Content: govSQLRetryPrompt(problems)})

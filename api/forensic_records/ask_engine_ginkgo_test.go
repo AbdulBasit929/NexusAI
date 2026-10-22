@@ -178,14 +178,14 @@ var _ = Describe("Ask engine validator", func() {
 })
 
 var _ = Describe("Ask engine catalogue, examples and prompt", func() {
-	It("has a complete pinned catalogue of the seven analyst views", func() {
+	It("has a complete pinned catalogue of the twelve analyst views", func() {
 		cat, err := askGoldenCatalogue()
 		Expect(err).NotTo(HaveOccurred())
 		names := []string{}
 		for _, v := range cat.Views {
 			names = append(names, v.Name)
 		}
-		Expect(names).To(Equal([]string{"v_app_usage", "v_cell_visits", "v_cells", "v_comm_events", "v_connection_edges", "v_contact_links", "v_contact_pairs", "v_data_sessions", "v_device_pairings", "v_evidence_inventory"}))
+		Expect(names).To(Equal([]string{"v_app_usage", "v_cell_visits", "v_cells", "v_colocation_windows", "v_comm_events", "v_connection_edges", "v_contact_links", "v_contact_pairs", "v_data_sessions", "v_device_pairings", "v_evidence_inventory", "v_meeting_candidates"}))
 		Expect(cat.View("v_contact_pairs").Columns).NotTo(BeEmpty())
 		Expect(cat.View("v_nothing")).To(BeNil())
 	})

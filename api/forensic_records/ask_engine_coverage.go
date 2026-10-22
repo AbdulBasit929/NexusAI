@@ -196,7 +196,7 @@ func askVolumeGap(c askCoverage, f askFrame, views []string) string {
 func askCoverageGap(c askCoverage, views []string) string {
 	for _, v := range views {
 		switch v {
-		case "v_comm_events", "v_contact_pairs", "v_contact_links", "v_connection_edges", "v_cell_visits", "v_device_pairings":
+		case "v_comm_events", "v_contact_pairs", "v_contact_links", "v_connection_edges", "v_cell_visits", "v_colocation_windows", "v_meeting_candidates", "v_device_pairings":
 			if !c.AnyComm {
 				return "the case has no typed call records"
 			}

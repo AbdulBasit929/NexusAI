@@ -20,7 +20,7 @@
   {"q": "Which apps does 923001110001 use most?", "views": ["v_app_usage"], "example": "top-apps"},
   {"q": "How much WhatsApp usage did 923001110001 have in Lahore?", "views": ["v_app_usage"], "example": "top-apps"},
   {"q": "Were 923001110001 and 923001110002 ever at the same cell at the same time?", "views": ["v_cell_visits"], "example": "co-location"},
-  {"q": "Did they meet? Show common places of 923001110001 and 923001110002", "views": ["v_cell_visits"], "example": "co-location"},
+  {"q": "Did they meet? Show common places of 923001110001 and 923001110002", "views": ["v_meeting_candidates"], "example": "meeting-candidates"},
   {"q": "What are the first and last contacts between 923001110001 and 923001110002?", "views": ["v_contact_pairs"]},
   {"q": "Show a map of where 923001110001 moved in the last week", "views": ["v_cell_visits"], "example": "cells-used"},
   {"q": "Which numbers does everyone contact (hubs)?", "views": ["v_contact_pairs"]},
@@ -62,5 +62,9 @@
   {"q": "How many sessions used port 443?", "views": ["v_data_sessions"], "heldout": true},
   {"q": "How many images are in this case?", "views": ["v_evidence_inventory"], "example": "evidence-count"},
   {"q": "How many files did the case fail to process?", "views": ["v_evidence_inventory"], "example": "evidence-count"},
-  {"q": "How are 923001110005 and 923001110006 connected within four hops?", "views": ["v_contact_pairs"], "example": "connection-path-long"}
+  {"q": "How are 923001110005 and 923001110006 connected within four hops?", "views": ["v_contact_pairs"], "example": "connection-path-long"},
+  {"q": "When were 923001110001 and 923001110002 at the same place within 15 minutes of each other?", "views": ["v_colocation_windows"], "example": "co-location-15"},
+  {"q": "How many times were 923001110001 and 923001110002 at the same cell within 15 minutes?", "views": ["v_colocation_windows"], "example": "co-location-15"},
+  {"q": "Which of the times 923001110001 and 923001110002 were at the same place could have been a meeting?", "views": ["v_meeting_candidates"], "example": "meeting-candidates"},
+  {"q": "Did 923001110001 and 923001110002 meet?", "views": ["v_meeting_candidates"], "example": "meeting-candidates"}
 ]

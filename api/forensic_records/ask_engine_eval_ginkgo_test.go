@@ -117,6 +117,9 @@ var _ = Describe("Ask engine evaluation", Ordered, func() {
 					if resp.Answer["result_state"] != "COMPLETED" && line["state"] == "answered" {
 						line["state"] = "abstained"
 					}
+					if limits, ok := resp.Enterprise["limitations"].([]string); ok {
+						line["limitations"] = limits // the engine's own caveat lines (link-analysis stage 3: gate 4 checks them by string)
+					}
 				}
 				line["answer"], line["rows"] = answer, rows
 				encoded, err := json.Marshal(line)

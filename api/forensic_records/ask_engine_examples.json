@@ -90,6 +90,24 @@
     "sql": "SELECT a.cell_key, a.site_name, a.lat, a.lon, a.radius_m, a.hour_utc, a.events AS events_first, b.events AS events_second FROM v_cell_visits a JOIN v_cell_visits b ON b.cell_key = a.cell_key AND b.hour_utc = a.hour_utc WHERE a.src = '923000000101' AND b.src = '923000000102' ORDER BY a.hour_utc LIMIT 200"
   },
   {
+    "id": "co-location-15",
+    "question": "When were 923000000101 and 923000000102 at the same cell within 15 minutes of each other? Show where and when.",
+    "views": [
+      "v_colocation_windows"
+    ],
+    "shape": "map",
+    "sql": "SELECT cell_key, site_name, lat, lon, radius_m, start_utc, end_utc, pairs FROM v_colocation_windows WHERE a = '923000000101' AND b = '923000000102' ORDER BY start_utc LIMIT 200"
+  },
+  {
+    "id": "meeting-candidates",
+    "question": "Which of the times 923000000101 and 923000000102 were at the same cell within 15 minutes could have been a meeting, because they had been in touch just before?",
+    "views": [
+      "v_meeting_candidates"
+    ],
+    "shape": "map",
+    "sql": "SELECT cell_key, site_name, lat, lon, radius_m, start_utc, end_utc, pairs, contacts, gap_minutes, score FROM v_meeting_candidates WHERE a = '923000000101' AND b = '923000000102' ORDER BY start_utc LIMIT 200"
+  },
+  {
     "id": "top-apps",
     "question": "Which applications did 923000000101 use most in March 2026?",
     "views": [

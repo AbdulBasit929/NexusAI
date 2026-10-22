@@ -144,6 +144,67 @@
       ]
     },
     {
+      "name": "v_colocation_windows",
+      "description": "Windows in which two numbers of the same operator were at the same cell site within a number of minutes of each other (window_minutes; a difference of exactly that many minutes counts); event pairs on one cell are merged into a window while each pair starts within that many minutes of the window's latest time. The number of minutes is set by the application from the question (15 when the question names none): never filter or compute on minutes yourself. Always write a = ... AND b = ... for the two numbers. Proximity is not association; no chance baseline is computed.",
+      "columns": [
+        {
+          "name": "a",
+          "type": "text",
+          "description": "The first number of the pair asked about: always write a = '...' in the query."
+        },
+        {
+          "name": "b",
+          "type": "text",
+          "description": "The second number of the pair asked about: always write b = '...' in the query."
+        },
+        {
+          "name": "cell_key",
+          "type": "text",
+          "description": "The cell site where both were seen (operator code, area code and cell identity)."
+        },
+        {
+          "name": "start_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the earliest event of the window, UTC (shown on the case clock)."
+        },
+        {
+          "name": "end_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the latest event of the window, UTC (shown on the case clock)."
+        },
+        {
+          "name": "pairs",
+          "type": "bigint",
+          "description": "Number of co-located event pairs (one event of each number, same cell, at most window_minutes apart) in the window."
+        },
+        {
+          "name": "window_minutes",
+          "type": "integer",
+          "description": "The window length in minutes this row was computed with, set by the application from the question (15 when it names none)."
+        },
+        {
+          "name": "site_name",
+          "type": "text",
+          "description": "Name of the cell site when the case has a reference row for it."
+        },
+        {
+          "name": "lat",
+          "type": "double precision",
+          "description": "Latitude of the cell site when known (the site, not the person)."
+        },
+        {
+          "name": "lon",
+          "type": "double precision",
+          "description": "Longitude of the cell site when known (the site, not the person)."
+        },
+        {
+          "name": "radius_m",
+          "type": "integer",
+          "description": "Stated coverage radius of the cell site in metres when known."
+        }
+      ]
+    },
+    {
       "name": "v_comm_events",
       "description": "Calls and SMS of the target call records, one row per event, repeats excluded, times in UTC. src is the subscriber whose records these are; dst is the other party.",
       "columns": [
@@ -562,6 +623,92 @@
           "name": "created_at",
           "type": "timestamp with time zone",
           "description": "When the item was added to the case, UTC."
+        }
+      ]
+    },
+    {
+      "name": "v_meeting_candidates",
+      "description": "The co-location windows that could be a meeting: the two numbers had a direct call or SMS with each other no more than allowed_gap_minutes before the window started (60 when the question names none; the window length is window_minutes, 15 when none is named), both set by the application from the question: never compute on minutes yourself. A candidate, not a finding: proximity and contact are not proof of a meeting. Always write a = ... AND b = ... for the two numbers.",
+      "columns": [
+        {
+          "name": "a",
+          "type": "text",
+          "description": "The first number of the pair asked about: always write a = '...' in the query."
+        },
+        {
+          "name": "b",
+          "type": "text",
+          "description": "The second number of the pair asked about: always write b = '...' in the query."
+        },
+        {
+          "name": "cell_key",
+          "type": "text",
+          "description": "The cell site of the co-location window."
+        },
+        {
+          "name": "start_utc",
+          "type": "timestamp with time zone",
+          "description": "Start of the co-location window, UTC (shown on the case clock)."
+        },
+        {
+          "name": "end_utc",
+          "type": "timestamp with time zone",
+          "description": "End of the co-location window, UTC (shown on the case clock)."
+        },
+        {
+          "name": "pairs",
+          "type": "bigint",
+          "description": "Number of co-located event pairs in the window."
+        },
+        {
+          "name": "contacts",
+          "type": "bigint",
+          "description": "Number of distinct direct calls or SMS between the two numbers in the allowed gap up to the start of the window."
+        },
+        {
+          "name": "last_contact_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the latest of those contacts, UTC."
+        },
+        {
+          "name": "gap_minutes",
+          "type": "double precision",
+          "description": "Minutes from the latest contact to the start of the window (0 up to allowed_gap_minutes)."
+        },
+        {
+          "name": "score",
+          "type": "double precision",
+          "description": "Documented score from 0 to 1: half from the number of pairs (3 or more is the most), half from how short the gap is against the allowed gap. Not a probability."
+        },
+        {
+          "name": "window_minutes",
+          "type": "integer",
+          "description": "The co-location window length in minutes this row was computed with, set by the application from the question (15 when it names none)."
+        },
+        {
+          "name": "allowed_gap_minutes",
+          "type": "integer",
+          "description": "The longest gap between a contact and the window start in minutes, set by the application from the question (60 when it names none)."
+        },
+        {
+          "name": "site_name",
+          "type": "text",
+          "description": "Name of the cell site when the case has a reference row for it."
+        },
+        {
+          "name": "lat",
+          "type": "double precision",
+          "description": "Latitude of the cell site when known (the site, not the person)."
+        },
+        {
+          "name": "lon",
+          "type": "double precision",
+          "description": "Longitude of the cell site when known (the site, not the person)."
+        },
+        {
+          "name": "radius_m",
+          "type": "integer",
+          "description": "Stated coverage radius of the cell site in metres when known."
         }
       ]
     }

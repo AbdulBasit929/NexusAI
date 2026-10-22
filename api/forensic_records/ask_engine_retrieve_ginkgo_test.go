@@ -153,8 +153,11 @@ var _ = Describe("Ask engine shortlist and example retrieval", func() {
 	})
 
 	It("does not read a spatial question about two numbers as a contact question", func() {
+		// "meet" points at the possible-meeting view (stage 3a, A7), which is spatial too; the contact pairs must not lead
 		sl := cat.Shortlist("Did they meet? Show common places of 923001110001 and 923001110002", 0)
-		Expect(sl.Views[0]).To(Equal("v_cell_visits"))
+		Expect(sl.Views[0]).To(Equal("v_meeting_candidates"))
+		Expect(sl.Views).NotTo(ContainElement("v_contact_pairs"))
+		Expect(cat.Shortlist("Were 923001110001 and 923001110002 ever at the same cell at the same time?", 0).Views[0]).To(Equal("v_cell_visits"))
 		Expect(cat.Shortlist("Who do 923001110001 and 923001110002 both contact?", 0).Views[0]).To(Equal("v_contact_pairs"))
 	})
 

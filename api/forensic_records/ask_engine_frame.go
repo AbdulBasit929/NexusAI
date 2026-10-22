@@ -43,6 +43,9 @@ type askFrame struct {
 	Hops     int
 	Cues     map[string]bool
 	Relative string // the relative time words found ("last week"), which a query cannot resolve without a reference day
+	// Params is what the question says about each runtime parameter (ask_engine_params.go); ParamUses is what will be used for the query, set by the run.
+	Params    map[string]askParamRead
+	ParamUses []askParamUse
 }
 
 // Identifiers are every identifier of the frame in the order they were written.
@@ -164,6 +167,8 @@ func askExtractFrame(question string) askFrame {
 		f.Hops = askNumberOf(m[1])
 		f.Cues["path"] = true
 	}
+	f.Params = askReadParams(lower)
+	f.Cues["minutes_without_number"] = len(askMinuteSpans(lower)) == 0 && askMinuteWord.MatchString(lower)
 	if m := askFrameRelative.FindString(lower); m != "" {
 		f.Relative = m
 	}
