@@ -635,7 +635,8 @@ func askReadEmpty(ctx context.Context, db *pgxpool.Pool, req hybridQueryRequest,
 	}
 	// A path search over the subscribers' contacts (a recursive query, or a query on v_connection_edges, whose columns a and b hold the two numbers) is empty when no path exists: that is
 	// an answer, not a query that looked in the wrong place.
-	wrongPlaceMatters := !v.Recursive && !askUsesView(v, "v_connection_edges")
+	// The same holds for the co-location windows and the possible meetings (columns a and b hold the two numbers): a pair that never met has no row, and that is the answer.
+	wrongPlaceMatters := !v.Recursive && !askUsesView(v, "v_connection_edges") && !askUsesView(v, "v_colocation_windows") && !askUsesView(v, "v_meeting_candidates")
 	var absent []string
 	for _, id := range ids {
 		hits, err := askProbeFn(ctx, db, req.TenantID, req.CollectionID, cat, id, limits)

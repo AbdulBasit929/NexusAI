@@ -106,7 +106,7 @@ def judge_cells(expect, rows, answer):
     return "correct" if got == set(expect["values"]) else "wrong"
 
 
-TIMESTAMP = re.compile(r"^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})(?:\.\d+)?(Z|[+-]\d{2}(?::?\d{2})?)?$")
+TIMESTAMP = re.compile(r"^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})(?:\.\d+)?(Z|[+-]\d{2}(?::?\d{2})?|\s?PKT|\s?UTC)?$")
 
 
 def utc_text(value):
@@ -116,8 +116,10 @@ def utc_text(value):
     if not match:
         return None
     moment = datetime.datetime.strptime(match.group(1) + " " + match.group(2), "%Y-%m-%d %H:%M:%S")
-    zone = match.group(3)
-    if zone and zone != "Z":
+    zone = (match.group(3) or "").strip()
+    if zone == "PKT":
+        zone = "+0500"   # the case clock (Asia/Karachi), which the engine writes on times it shows
+    if zone and zone not in ("Z", "UTC"):
         sign = 1 if zone[0] == "+" else -1
         digits = zone[1:].replace(":", "")
         moment -= sign * datetime.timedelta(hours=int(digits[:2]), minutes=int(digits[2:4] or 0))

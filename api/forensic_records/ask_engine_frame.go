@@ -48,6 +48,11 @@ type askFrame struct {
 	ParamUses []askParamUse
 }
 
+// askUnitFollows is whether the text right after position end starts with a unit of time or length.
+func askUnitFollows(lower string, end int) bool {
+	return end <= len(lower) && askUnitAfter.MatchString(lower[end:])
+}
+
 // Identifiers are every identifier of the frame in the order they were written.
 func (f askFrame) Identifiers() []string {
 	out := append([]string{}, f.Numbers...)
@@ -65,6 +70,7 @@ var (
 	askFrameMonths   = regexp.MustCompile(`\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec)\b(?:\s+(?:of\s+)?(20\d{2}))?`)
 	askFrameHops     = regexp.MustCompile(`\b(\d+|one|two|three|four|five)\s+(?:hops?|steps?|links?|degrees?)\b`)
 	askFrameRelative = regexp.MustCompile(`\b(?:yesterday|today|tonight|this (?:week|month|year)|last (?:week|month|year|night|weekend)|past (?:\d+|few|several|one|two|three|four|five|six|seven|ten|twelve) (?:days?|weeks?|months?|years?|hours?)|(?:last|previous) (?:\d+|few|several|one|two|three|four|five|six|seven|ten|twelve) (?:days?|weeks?|months?|years?|hours?)|recent(?:ly)?|these days|so far this)\b`)
+	askUnitAfter     = regexp.MustCompile(`^\s*(?:-\s*)?(?:minutes?|mins?|seconds?|secs?|hours?|hrs?|days?|weeks?|months?|years?|km|kilomet\w*|met(?:re|er)s?)\b`)
 	askFrameTopN     = regexp.MustCompile(`\b(?:top|first|last|bottom|latest|earliest|most|busiest|highest|largest|biggest|longest|shortest|lowest|oldest|newest)\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten|twelve|fifteen|twenty)\b`)
 	askFrameNTop     = regexp.MustCompile(`\b(\d+|one|two|three|four|five|six|seven|eight|nine|ten|twelve|fifteen|twenty)\s+(?:most|top|busiest|highest|largest|biggest|longest|frequent|common|active|recent|earliest|latest|people|persons|numbers|contacts|callers|cells|towers|sites|devices|handsets|apps|applications|hosts|domains|websites|addresses)\b`)
 	askFrameWord     = regexp.MustCompile(`[a-z]+`)
@@ -172,10 +178,12 @@ func askExtractFrame(question string) askFrame {
 	if m := askFrameRelative.FindString(lower); m != "" {
 		f.Relative = m
 	}
-	if m := askFrameTopN.FindStringSubmatch(lower); m != nil {
-		f.Limit = askNumberOf(m[1])
-	} else if m := askFrameNTop.FindStringSubmatch(lower); m != nil {
-		f.Limit = askNumberOf(m[1])
+	// "at most 22 minutes apart", "longest 30 seconds": a number followed by a unit of time or length is a length, not the N of a top list (found by the stage-3a development check,
+	// where "at most 22 minutes" made the model write LIMIT 22).
+	if m := askFrameTopN.FindStringSubmatchIndex(lower); m != nil && !askUnitFollows(lower, m[1]) {
+		f.Limit = askNumberOf(lower[m[2]:m[3]])
+	} else if m := askFrameNTop.FindStringSubmatchIndex(lower); m != nil && !askUnitFollows(lower, m[3]) {
+		f.Limit = askNumberOf(lower[m[2]:m[3]])
 	}
 	if f.Limit > 100 {
 		f.Limit = 0
@@ -460,7 +468,8 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 		add("DIRECTION", "The question does not ask about incoming or outgoing events: remove the filter on direction.", "the query filters on direction and the question does not ask about it")
 	}
 	for _, kind := range []string{"sms", "mms", "ussd"} {
-		if f.Cues[kind] && !askSQLMentions(sql, "'"+kind+"'") {
+		// v_meeting_candidates is defined on calls and SMS between the two numbers, so "a call or SMS between them" is carried by the view itself
+		if f.Cues[kind] && !askSQLMentions(sql, "'"+kind+"'") && !askUsesView(v, "v_meeting_candidates") {
 			add("EVENT_TYPE", fmt.Sprintf("The question is about %s: filter event_type = '%s'.", strings.ToUpper(kind), kind), "the question is about one kind of event and the query does not say so")
 		}
 	}

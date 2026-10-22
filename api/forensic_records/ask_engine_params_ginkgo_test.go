@@ -107,6 +107,13 @@ var _ = Describe("Ask engine runtime parameters", func() {
 		Expect(askParamSettings(uses)).To(BeEmpty())
 	})
 
+	It("does not take a length of time for the N of a top list", func() {
+		Expect(frameOf("List the periods in which 923001110001 and 923001110002 were at the same cell site, at most 22 minutes apart.").Limit).To(Equal(0))
+		Expect(frameOf("Which calls of 923001110001 were longest 30 minutes?").Limit).To(Equal(0))
+		Expect(frameOf("Which are the top 5 numbers 923001110001 called?").Limit).To(Equal(5))
+		Expect(frameOf("Show the 10 most frequent contacts of 923001110001").Limit).To(Equal(10))
+	})
+
 	It("owns only the settings it declares", func() {
 		Expect(askKnownSetting("app.colocation_minutes")).To(BeTrue())
 		Expect(askKnownSetting("app.contact_gap_minutes")).To(BeTrue())
