@@ -48,6 +48,27 @@ def resolve_local_model_reference(value):
     local_model = os.path.join(os.environ.get("MODELS_PATH", "/models"), model)
     return local_model if os.path.isdir(local_model) else model
 
+
+def parse_model_options(options):
+    """The `options:` of a LocalAI model YAML arrive as 'key:value' strings."""
+
+    parsed = {}
+    for item in options or []:
+        key, _, value = str(item).partition(":")
+        if key.strip():
+            parsed[key.strip().lower()] = value.strip()
+    return parsed
+
+
+def bounded_int(value, default, low, high):
+    """An integer inside [low, high], or the default when the value is missing, unreadable or out of range."""
+
+    try:
+        number = int(str(value).strip())
+    except (TypeError, ValueError):
+        return default
+    return number if low <= number <= high else default
+
 # Implement the BackendServicer class with the service methods
 class BackendServicer(backend_pb2_grpc.BackendServicer):
     """
@@ -69,11 +90,15 @@ class BackendServicer(backend_pb2_grpc.BackendServicer):
             "int8" if device == "cpu" else "default",
         )
         try:
-            print("Preparing models, please wait", file=sys.stderr)
+            options = parse_model_options(getattr(request, "Options", None))
+            self.beam_size = bounded_int(options.get("beam_size", os.environ.get("FASTER_WHISPER_BEAM_SIZE")), 5, 1, 10)
+            cpu_threads = bounded_int(options.get("cpu_threads", os.environ.get("FASTER_WHISPER_CPU_THREADS")), 0, 0, 32)
+            print(f"Preparing models, please wait (beam_size={self.beam_size}, cpu_threads={cpu_threads})", file=sys.stderr)
             self.model = WhisperModel(
                 resolve_local_model_reference(request.Model),
                 device=device,
                 compute_type=compute_type,
+                cpu_threads=cpu_threads,
             )
         except Exception as err:
             return backend_pb2.Result(success=False, message=f"Unexpected {err=}, {type(err)=}")
@@ -92,7 +117,7 @@ class BackendServicer(backend_pb2_grpc.BackendServicer):
             word_timestamps = "word" in request.timestamp_granularities
             segments, info = self.model.transcribe(
                 request.dst,
-                beam_size=5,
+                beam_size=getattr(self, "beam_size", 5),
                 condition_on_previous_text=False,
                 language=language,
                 word_timestamps=word_timestamps,

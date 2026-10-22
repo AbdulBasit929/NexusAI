@@ -8,9 +8,39 @@ Why: the worker image in production is the older build plus the Ingest v2 overla
 bring in unrelated, unreviewed changes (video plate readers, contextual routing) next to an older worker.py. This script makes a few edits to the image's own file, each of which must match once:
 (1) the Tesseract processor can take its languages and page mode as arguments (the OCR router builds an English and an Urdu reader from the same pinned data); (2) the OCR branch of the factory
 selects the `auto` router or the `onnx` backend from FORENSIC_OCR_BACKEND and otherwise keeps the existing Tesseract behaviour byte for byte; (3) the speech client can name a fast model for long
-recordings (FORENSIC_ASR_LONG_AUDIO_MODEL above FORENSIC_ASR_LONG_AUDIO_SECONDS) and records which model read each recording. Line endings of the input are preserved.
+recordings (FORENSIC_ASR_LONG_AUDIO_MODEL above FORENSIC_ASR_LONG_AUDIO_SECONDS) and records which model read each recording; (4) when no language was requested and the service hears Hindi, the recording is read again as Urdu (FORENSIC_ASR_HINDI_AS_URDU, off unless set).
+Line endings of the input are preserved. Behaviour test: tools/media_data/test_patched_asr.py (runs offline inside the worker image).
 """
 import sys
+
+HINDI_WRAPPER = '''    def transcribe(
+        self,
+        path: Path,
+        *,
+        evidence_id: str,
+        version_id: str,
+        source_file: str,
+        language: str | None = None,
+    ) -> tuple[MediaObservation, ...]:
+        """One reading; when no language was requested and the service hears Hindi, the recording is read again as Urdu (FORENSIC_ASR_HINDI_AS_URDU).
+
+        Spoken Hindi and Urdu are one language and Whisper picks between them by script habit: on 24 Urdu test clips with no language given, 7 were detected as Hindi and written in Devanagari
+        (script correct 70.8%); told the language, all 24 came out in Urdu script. The first reading is discarded; the second one records what happened.
+        """
+        kwargs = {"evidence_id": evidence_id, "version_id": version_id, "source_file": source_file}
+        observations = self._transcribe_once(path, language=language, **kwargs)
+        enabled = os.getenv("FORENSIC_ASR_HINDI_AS_URDU", "false").strip().lower() in {"1", "true", "yes", "on"}
+        heard = {str(o.payload.get("language") or "").strip().lower() for o in observations if o.observation_type == "audio_transcript_segment"}
+        if language is not None or not enabled or "hi" not in heard:
+            return observations
+        reread = self._transcribe_once(path, language="ur", **kwargs)
+        for observation in reread:
+            if observation.observation_type == "audio_transcript_segment":
+                observation.payload["first_detected_language"] = "hi"
+                observation.payload["language_resolution"] = "detected hi with no language requested; read again as ur (FORENSIC_ASR_HINDI_AS_URDU)"
+        return reread
+
+'''
 
 EDITS = [
     (
@@ -70,6 +100,12 @@ EDITS = [
         '                        "parent_version_id": version_id,\n                        "manual_review_required": True,\n',
         '                        "processor_revision": self.processor_revision,\n                        "model": model_used,\n                        "parent_evidence_id": evidence_id,\n'
         '                        "parent_version_id": version_id,\n                        "manual_review_required": True,\n',
+    ),
+    (
+        # (4) the wrapper: the image's transcribe() becomes _transcribe_once(), and a new transcribe() reads a recording again as Urdu when no language was requested and the service heard Hindi
+        '        return self.long_model if duration > self.long_seconds else self.model\n\n    def transcribe(\n        self,\n        path: Path,\n        *,\n        evidence_id: str,\n        version_id: str,\n        source_file: str,\n        language: str | None = None,\n    ) -> tuple[MediaObservation, ...]:\n        maximum =',
+        '        return self.long_model if duration > self.long_seconds else self.model\n\n' + HINDI_WRAPPER
+        + '    def _transcribe_once(\n        self,\n        path: Path,\n        *,\n        evidence_id: str,\n        version_id: str,\n        source_file: str,\n        language: str | None = None,\n    ) -> tuple[MediaObservation, ...]:\n        maximum =',
     ),
 ]
 
