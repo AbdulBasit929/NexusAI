@@ -115,6 +115,9 @@ func askCanonicalNumber(raw string) string {
 
 // askExtractFrame reads a question. The identifiers are replaced in the returned Question by their canonical forms, so the model is shown, and the checks
 // compare, one form of each.
+// askCountAsConsider is "count" in the sense of "take into account", on the question's words joined by single spaces.
+var askCountAsConsider = regexp.MustCompile(`\b(?:only|not|never|don t|dont|do not)\s+count\b|\bcount(?:s|ed|ing)?\s+(?:\S+\s+){0,2}as\b|\bcount(?:s|ed|ing)?\s+(?:if|only|when|a\s+score|scores?)\b`)
+
 func askExtractFrame(question string) askFrame {
 	f := askFrame{Cues: map[string]bool{}}
 	text := strings.TrimSpace(question)
@@ -216,7 +219,9 @@ func askExtractFrame(question string) askFrame {
 	f.Cues["mms"] = anyWord("mms")
 	f.Cues["ussd"] = anyWord("ussd")
 	f.Cues["night"] = anyWord("night", "overnight", "midnight")
-	f.Cues["count"] = phrase("how many") || phrase("number of") || anyWord("count", "total") && !anyWord("duration", "minutes", "seconds", "hours")
+	// "count" asks for a number of rows; "only count a score of at least 0.9" and "count it as silent after 10 days" use the verb for "take into account" (found by the stage-3b development
+	// check, where the former made the model answer "Count: 1" to "from which silent number may X have taken over").
+	f.Cues["count"] = phrase("how many") || phrase("number of") || anyWord("count", "total") && !anyWord("duration", "minutes", "seconds", "hours") && !askCountAsConsider.MatchString(words2)
 	f.Cues["distinct"] = anyWord("different", "distinct", "unique")
 	f.Cues["rank"] = anyWord("top", "busiest", "highest", "largest", "biggest", "frequently", "often") || anyWord("most") && !phrase("most recent")
 	// "first" and "last" ask for one earliest or latest value only when they qualify an event ("the first call", "when was the last message"); "the first week of March"

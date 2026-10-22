@@ -41,7 +41,7 @@ def batch(db, settings, queries):
         lines.append("SELECT set_config('%s', %s, true);" % (name, load_case.sql_text(value)))
     names = list(queries)
     for index, key in enumerate(names):
-        lines.append("SELECT 'R|%d|' || coalesce(jsonb_agg(t)::text, '[]') FROM (%s) t;" % (index, queries[key].strip().rstrip(";")))
+        lines.append("SELECT 'R|%d|' || coalesce(jsonb_agg(q_row)::text, '[]') FROM (%s) q_row;" % (index, queries[key].strip().rstrip(";")))   # q_row: a view may have a column named t
     lines.append("COMMIT;")
     out = db.psql("-At", "-f", "-", input="\n".join(lines).encode())
     rows = {}

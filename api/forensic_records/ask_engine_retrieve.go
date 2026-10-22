@@ -112,14 +112,21 @@ var askLexicon = map[string][]string{
 		"everyone", "never", "back", "lead", "relationship", "between"},
 	"v_comm_events": {"call", "sms", "text", "message", "event", "duration", "long", "longest", "minute", "hour", "day", "daily", "night", "midnight", "week", "weekday",
 		"month", "date", "when", "incoming", "outgoing", "receive", "abroad", "international", "history", "conversation", "exchange", "activity", "texting"},
-	"v_connection_edges": {"connect", "connection", "path", "link", "chain", "route", "related", "relationship", "acquainted", "lead", "separation", "linked"},
+	"v_connection_edges":   {"connect", "connection", "path", "link", "chain", "route", "related", "relationship", "acquainted", "lead", "separation", "linked"},
 	"v_evidence_inventory": {"file", "evidence", "image", "photo", "picture", "audio", "recording", "video", "document", "pdf", "inventory", "upload", "attachment", "item", "failed"},
 	"v_cell_visits": {"cell", "tower", "site", "location", "where", "place", "visit", "area", "movement", "move", "travel", "near", "located", "colocation",
 		"meet", "same", "sleep", "anchor", "map", "simultaneously"},
-	"v_colocation_windows": {"colocation", "together", "same", "minute", "window", "simultaneously", "near"},
-	"v_meeting_candidates": {"meet", "meeting", "met", "candidate"},
-	"v_cells":           {"cell", "tower", "site", "coverage", "radius", "position", "latitude", "longitude", "operator", "operated", "cover", "km", "within"},
-	"v_device_pairings": {"handset", "imei", "imsi", "sim", "device", "swap", "swapped", "change", "new", "model", "phone", "card"},
+	"v_colocation_windows":   {"colocation", "together", "same", "minute", "window", "simultaneously", "near"},
+	"v_meeting_candidates":   {"meet", "meeting", "met", "candidate"},
+	"v_silent_numbers":       {"silent", "silence", "dormant", "inactive"},
+	"v_successor_candidates": {"successor", "replace", "replacement", "takeover"},
+	"v_movement_anchors":     {"anchor", "anchors"},
+	"v_anchor_changes":       {"moved", "relocated", "relocation"},
+	"v_anchor_deviations":    {"trip", "deviation"},
+	"v_speed_alerts":         {"speed", "impossible", "implausible"},
+	"v_rhythm_changes":       {"rhythm"},
+	"v_cells":                {"cell", "tower", "site", "coverage", "radius", "position", "latitude", "longitude", "operator", "operated", "cover", "km", "within"},
+	"v_device_pairings":      {"handset", "imei", "imsi", "sim", "device", "swap", "swapped", "change", "new", "model", "phone", "card"},
 	"v_data_sessions": {"ip", "address", "port", "internet", "session", "browse", "website", "domain", "host", "server", "download", "upload", "byte", "traffic",
 		"nat", "held", "public", "data", "web", "subscriber"},
 	"v_app_usage": {"app", "application", "whatsapp", "facebook", "tiktok", "youtube", "social", "usage", "feature", "province", "city", "networking",
@@ -221,7 +228,7 @@ func (c *askCatalogue) Shortlist(question string, max int) askShortlist {
 			add(v.Name, described, "described: "+strings.Join(why, " "))
 		}
 	}
-	askApplyFeatures(c, features, tokenSet, add)
+	askApplyFeatures(c, features, tokenSet, normalised, add)
 
 	ranked := make([]string, 0, len(c.Views))
 	for _, v := range c.Views {
@@ -288,6 +295,10 @@ func (c *askCatalogue) Shortlist(question string, max int) askShortlist {
 	} else if features.Phones >= 2 && askMinuteColocation(tokenSet) && askContains(out.Views, "v_colocation_windows") {
 		out.Views = askWithoutViews(out.Views, "v_cell_visits", "v_cells", "v_comm_events")
 	}
+	// A question that names one of the analyses of stages 3b and 3c is answered from that view alone.
+	if view := askCuesOf(normalised).view(); view != "" && askContains(out.Views, view) {
+		out.Views = []string{view}
+	}
 	// A weak signal still gets an answer attempt, with the best three views, and says it is not confident.
 	if !out.Confident && len(out.Views) < askShortlistMax {
 		for _, name := range ranked {
@@ -303,8 +314,12 @@ func (c *askCatalogue) Shortlist(question string, max int) askShortlist {
 }
 
 // askApplyFeatures adds the points the kinds of identifier in a question give.
-func askApplyFeatures(c *askCatalogue, f askFeatures, tokens map[string]bool, add func(string, float64, string)) {
+func askApplyFeatures(c *askCatalogue, f askFeatures, tokens map[string]bool, normalised string, add func(string, float64, string)) {
 	has := func(name string) bool { return c.View(name) != nil }
+	// The phrases that name an analysis of stages 3b and 3c (ask_engine_cues.go): successor numbers, silence, a move, a trip, anchors, impossible speed, a change of rhythm.
+	if view := askCuesOf(normalised).view(); view != "" && has(view) {
+		add(view, 6, "the question names the analysis of "+view)
+	}
 	if f.IPs > 0 && has("v_data_sessions") {
 		add("v_data_sessions", 3, "an IP address is named")
 	}
@@ -432,13 +447,28 @@ func askRetrieveExamples(question string, shortlist []string, examples []askExam
 		qTokens[t] = true
 	}
 	exTokens := make([]map[string]bool, len(examples))
+	// A word is rare or common among the examples the question could be matched with (those on views of the shortlist), not among every example: examples on views the question was
+	// never offered cannot make a word less telling for it, so adding examples for other views does not change which example is nearest.
 	frequency := map[string]int{}
+	candidates := make([]bool, len(examples))
+	nCandidates := 0
 	for i, e := range examples {
 		en, _ := askNormalise(e.Question)
 		exTokens[i] = map[string]bool{}
 		for _, t := range askQuestionTokens(en) {
 			exTokens[i][t] = true
-			frequency[t]++
+		}
+		candidates[i] = true
+		for _, v := range e.Views {
+			if !askContains(shortlist, v) {
+				candidates[i] = false
+			}
+		}
+		if candidates[i] {
+			nCandidates++
+			for t := range exTokens[i] {
+				frequency[t]++
+			}
 		}
 	}
 	type scored struct {
@@ -447,19 +477,13 @@ func askRetrieveExamples(question string, shortlist []string, examples []askExam
 	}
 	var all []scored
 	for i, e := range examples {
-		inside := true
-		for _, v := range e.Views {
-			if !askContains(shortlist, v) {
-				inside = false
-			}
-		}
-		if !inside {
+		if !candidates[i] {
 			continue
 		}
 		score := 0.0
 		for t := range qTokens {
 			if exTokens[i][t] {
-				score += math.Log(1 + float64(len(examples))/float64(frequency[t]))
+				score += math.Log(1 + float64(nCandidates)/float64(frequency[t]))
 			}
 		}
 		for _, cue := range askShapeCues[e.Shape] {

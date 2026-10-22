@@ -142,5 +142,86 @@
     ],
     "shape": "scalar",
     "sql": "SELECT count(*) AS n FROM v_evidence_inventory WHERE modality = 'image'"
+  },
+  {
+    "id": "silent-numbers",
+    "question": "Which numbers went silent before the end of the case, and when did each stop?",
+    "views": [
+      "v_silent_numbers"
+    ],
+    "shape": "table",
+    "sql": "SELECT number, last_event_utc, days_silent, events FROM v_silent_numbers ORDER BY last_event_utc LIMIT 200"
+  },
+  {
+    "id": "successor-candidates",
+    "question": "Which numbers may have taken over from 923000000101? Show their similarity score.",
+    "views": [
+      "v_successor_candidates"
+    ],
+    "shape": "table",
+    "sql": "SELECT new_number, new_first_event_utc, score, contact_cosine, shared_contacts, cell_jaccard, shared_device FROM v_successor_candidates WHERE old_number = '923000000101' ORDER BY score DESC LIMIT 200"
+  },
+  {
+    "id": "successor-of",
+    "question": "Which silent number may 923000000102 have replaced?",
+    "views": [
+      "v_successor_candidates"
+    ],
+    "shape": "table",
+    "sql": "SELECT old_number, old_last_event_utc, score, contact_cosine, shared_contacts, cell_jaccard, shared_device FROM v_successor_candidates WHERE new_number = '923000000102' ORDER BY score DESC LIMIT 200"
+  },
+  {
+    "id": "night-anchors",
+    "question": "Where does 923000000101 sleep, and for which weeks?",
+    "views": [
+      "v_movement_anchors"
+    ],
+    "shape": "map",
+    "sql": "SELECT cell_key, site_name, lat, lon, first_week, last_week, weeks, first_week_start FROM v_movement_anchors WHERE number = '923000000101' AND slot = 'night' ORDER BY first_week LIMIT 200"
+  },
+  {
+    "id": "moved-house",
+    "question": "Did 923000000101 move house? When, and how far?",
+    "views": [
+      "v_anchor_changes"
+    ],
+    "shape": "table",
+    "sql": "SELECT from_cell_key, to_cell_key, first_week, first_week_start, distance_km FROM v_anchor_changes WHERE number = '923000000101' AND slot = 'night' ORDER BY first_week LIMIT 200"
+  },
+  {
+    "id": "anchor-trips",
+    "question": "Did 923000000101 make a short trip away from its usual night place?",
+    "views": [
+      "v_anchor_deviations"
+    ],
+    "shape": "table",
+    "sql": "SELECT cell_key, first_week, last_week, weeks FROM v_anchor_deviations WHERE number = '923000000101' AND slot = 'night' ORDER BY first_week LIMIT 200"
+  },
+  {
+    "id": "speed-alerts",
+    "question": "Which consecutive events of 923000000101 are too far apart for the time between them?",
+    "views": [
+      "v_speed_alerts"
+    ],
+    "shape": "table",
+    "sql": "SELECT from_time_utc, to_time_utc, from_cell_key, to_cell_key, distance_km, gap_s, speed_kmh FROM v_speed_alerts WHERE number = '923000000101' ORDER BY from_time_utc LIMIT 200"
+  },
+  {
+    "id": "rhythm-change",
+    "question": "Did the daily activity of 923000000101 change for good, and from which day?",
+    "views": [
+      "v_rhythm_changes"
+    ],
+    "shape": "table",
+    "sql": "SELECT first_day, mean_before, mean_after, ratio, direction, days FROM v_rhythm_changes WHERE number = '923000000101' LIMIT 200"
+  },
+  {
+    "id": "anchor-week",
+    "question": "Where did 923000000101 sleep in the week starting 2026-03-09?",
+    "views": [
+      "v_weekly_anchors"
+    ],
+    "shape": "map",
+    "sql": "SELECT week, week_start, cell_key, site_name, lat, lon, events_at_anchor, events_in_slot FROM v_weekly_anchors WHERE number = '923000000101' AND slot = 'night' AND week_start = '2026-03-09' LIMIT 200"
   }
 ]

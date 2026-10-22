@@ -1,6 +1,139 @@
 {
   "views": [
     {
+      "name": "v_anchor_changes",
+      "description": "A move: a number's anchor changes from one cell site to a different one that then holds for at least hold_weeks weeks (set by the application from the question; 2 when it names none), reported at the first week of the new anchor, with the distance in kilometres between the two cell sites. One row per move per slot (night: where it sleeps, day: where it spends weekdays). CELL SITES, NOT POSITIONS OF A PERSON.",
+      "columns": [
+        {
+          "name": "number",
+          "type": "text",
+          "description": "The number that moved."
+        },
+        {
+          "name": "slot",
+          "type": "text",
+          "description": "night (where it sleeps) or day (where it spends weekdays)."
+        },
+        {
+          "name": "from_cell_key",
+          "type": "text",
+          "description": "The cell site of the anchor before the move."
+        },
+        {
+          "name": "to_cell_key",
+          "type": "text",
+          "description": "The cell site of the anchor after the move."
+        },
+        {
+          "name": "first_week",
+          "type": "integer",
+          "description": "The first week of the new anchor (counted from the start of the case): when the move shows."
+        },
+        {
+          "name": "first_week_start",
+          "type": "date",
+          "description": "The date on which that week starts."
+        },
+        {
+          "name": "distance_km",
+          "type": "double precision",
+          "description": "Distance in kilometres between the two cell sites, empty when a site has no position."
+        },
+        {
+          "name": "hold_weeks",
+          "type": "integer",
+          "description": "The weeks the new anchor must hold to count as a move, set by the application from the question (2 when it names none)."
+        }
+      ]
+    },
+    {
+      "name": "v_anchor_deviations",
+      "description": "A trip: a stretch of fewer than hold_weeks weeks in which a number's anchor is a different cell site, which is not reported as a move. hold_weeks is set by the application from the question (2 when it names none). CELL SITES, NOT POSITIONS OF A PERSON.",
+      "columns": [
+        {
+          "name": "number",
+          "type": "text",
+          "description": "The number."
+        },
+        {
+          "name": "slot",
+          "type": "text",
+          "description": "night or day."
+        },
+        {
+          "name": "cell_key",
+          "type": "text",
+          "description": "The cell site that was the anchor during the trip."
+        },
+        {
+          "name": "first_week",
+          "type": "integer",
+          "description": "First week of the trip."
+        },
+        {
+          "name": "last_week",
+          "type": "integer",
+          "description": "Last week of the trip."
+        },
+        {
+          "name": "weeks",
+          "type": "bigint",
+          "description": "Weeks of the trip (fewer than hold_weeks)."
+        },
+        {
+          "name": "hold_weeks",
+          "type": "integer",
+          "description": "The weeks a stretch needs to count as a move, set by the application from the question (2 when it names none)."
+        }
+      ]
+    },
+    {
+      "name": "v_anchor_runs",
+      "description": "The stretches of consecutive weeks (those that have an anchor) in which a number has the same anchor in a slot, with whether the stretch holds for at least hold_weeks weeks (set by the application from the question; 2 when it names none): never compute on it yourself. A helper for the anchors, the moves and the trips.",
+      "columns": [
+        {
+          "name": "number",
+          "type": "text",
+          "description": "The number."
+        },
+        {
+          "name": "slot",
+          "type": "text",
+          "description": "night or day."
+        },
+        {
+          "name": "cell_key",
+          "type": "text",
+          "description": "The anchor cell site of the stretch."
+        },
+        {
+          "name": "first_week",
+          "type": "integer",
+          "description": "First week of the stretch (counted from the start of the case)."
+        },
+        {
+          "name": "last_week",
+          "type": "integer",
+          "description": "Last week of the stretch."
+        },
+        {
+          "name": "weeks",
+          "type": "bigint",
+          "description": "Number of weeks with this anchor in the stretch (weeks without an anchor do not break it and do not count)."
+        },
+        {
+          "name": "holds",
+          "type": "boolean",
+          "description": "True when the stretch has at least hold_weeks weeks."
+        },
+        {
+          "name": "hold_weeks",
+          "type": "integer",
+          "description": "The weeks a stretch needs to count as an anchor, set by the application from the question (2 when it names none)."
+        }
+      ]
+    },
+    {
       "name": "v_app_usage",
       "description": "Application usage records per subscriber: application, category, feature, time, province and city.",
       "columns": [
@@ -709,6 +842,337 @@
           "name": "radius_m",
           "type": "integer",
           "description": "Stated coverage radius of the cell site in metres when known."
+        }
+      ]
+    },
+    {
+      "name": "v_movement_anchors",
+      "description": "The anchors of a number: where it sleeps (slot night) and where it spends weekdays (slot day), each stretch that holds for at least hold_weeks weeks, with its first and last week and the date the first week starts. Consecutive stretches of the same cell site are one anchor. hold_weeks is set by the application from the question (2 when it names none). CELL SITES, NOT POSITIONS OF A PERSON.",
+      "columns": [
+        {
+          "name": "number",
+          "type": "text",
+          "description": "The number."
+        },
+        {
+          "name": "slot",
+          "type": "text",
+          "description": "night (where it sleeps) or day (where it spends weekdays)."
+        },
+        {
+          "name": "cell_key",
+          "type": "text",
+          "description": "The anchor cell site."
+        },
+        {
+          "name": "first_week",
+          "type": "integer",
+          "description": "First week of the anchor (counted from the start of the case)."
+        },
+        {
+          "name": "last_week",
+          "type": "integer",
+          "description": "Last week of the anchor."
+        },
+        {
+          "name": "weeks",
+          "type": "bigint",
+          "description": "Weeks with this anchor."
+        },
+        {
+          "name": "first_week_start",
+          "type": "date",
+          "description": "The date on which the first week of the anchor starts."
+        },
+        {
+          "name": "hold_weeks",
+          "type": "integer",
+          "description": "The weeks a stretch needs to count as an anchor, set by the application from the question (2 when it names none)."
+        },
+        {
+          "name": "site_name",
+          "type": "text",
+          "description": "Name of the cell site when the case has a reference row for it."
+        },
+        {
+          "name": "lat",
+          "type": "double precision",
+          "description": "Latitude of the cell site when known (the site, not the person)."
+        },
+        {
+          "name": "lon",
+          "type": "double precision",
+          "description": "Longitude of the cell site when known (the site, not the person)."
+        }
+      ]
+    },
+    {
+      "name": "v_rhythm_changes",
+      "description": "For a number, the day on which its daily count of events changed for good: the daily counts (days with no event counted as zero, from its first to its last day) are split at every day that leaves at least min_side_days on each side, the split with the largest absolute Welch t is the change point, and it is listed when |t| is at least 5 and the larger daily mean is at least ratio_percent / 100 times the smaller. min_side_days and ratio_percent are set by the application from the question (10 and 150 when it names none). A CHANGE IN THE PATTERN OF USE, NOT AN EXPLANATION; a short series can show a change by chance.",
+      "columns": [
+        {
+          "name": "number",
+          "type": "text",
+          "description": "The number whose rhythm changed."
+        },
+        {
+          "name": "days",
+          "type": "integer",
+          "description": "Days from its first to its last day with an event."
+        },
+        {
+          "name": "first_day",
+          "type": "date",
+          "description": "The first day of the new rhythm."
+        },
+        {
+          "name": "mean_before",
+          "type": "double precision",
+          "description": "Mean events a day before that day."
+        },
+        {
+          "name": "mean_after",
+          "type": "double precision",
+          "description": "Mean events a day from that day on."
+        },
+        {
+          "name": "t",
+          "type": "double precision",
+          "description": "Welch t of the two sides (empty when the sides have no spread at all)."
+        },
+        {
+          "name": "ratio",
+          "type": "double precision",
+          "description": "The larger mean divided by the smaller (empty when the smaller is zero)."
+        },
+        {
+          "name": "direction",
+          "type": "text",
+          "description": "up when the daily count rose, down when it fell."
+        },
+        {
+          "name": "min_side_days",
+          "type": "integer",
+          "description": "The fewest days on each side of a change point, set by the application from the question (10 when it names none)."
+        },
+        {
+          "name": "ratio_percent",
+          "type": "integer",
+          "description": "The least ratio of the two means, in percent, set by the application from the question (150 when it names none)."
+        }
+      ]
+    },
+    {
+      "name": "v_silent_numbers",
+      "description": "Numbers that went silent: the last event of the number is at least silence_days before the end of the case (the whole local days from the first to the last event of the case). The number of days is set by the application from the question (7 when it names none): never compute on it yourself. One row per silent number.",
+      "columns": [
+        {
+          "name": "number",
+          "type": "text",
+          "description": "The number that went silent (the subscriber whose records these are)."
+        },
+        {
+          "name": "first_event_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the first event of the number, UTC (shown on the case clock)."
+        },
+        {
+          "name": "last_event_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the last event of the number, UTC (shown on the case clock)."
+        },
+        {
+          "name": "events",
+          "type": "bigint",
+          "description": "Number of events of the number in the case."
+        },
+        {
+          "name": "days_silent",
+          "type": "double precision",
+          "description": "Days from the last event of the number to the end of the case."
+        },
+        {
+          "name": "silence_days",
+          "type": "integer",
+          "description": "The days of silence this row was computed with, set by the application from the question (7 when it names none)."
+        }
+      ]
+    },
+    {
+      "name": "v_speed_alerts",
+      "description": "Two consecutive events of one number at different cell sites whose distance (haversine between the sites) divided by the time between them is at least limit_kmh (set by the application from the question; 200 when it names none: never compute on it yourself); two events at different cell sites in the same second are listed with no speed. A cell site is a coverage area, so an alert may be a handover between towers, a fault or a record error: CELL SITES, NOT POSITIONS OF A PERSON.",
+      "columns": [
+        {
+          "name": "number",
+          "type": "text",
+          "description": "The number."
+        },
+        {
+          "name": "from_time_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the earlier event, UTC (shown on the case clock)."
+        },
+        {
+          "name": "to_time_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the later event, UTC (shown on the case clock)."
+        },
+        {
+          "name": "from_cell_key",
+          "type": "text",
+          "description": "The cell site of the earlier event."
+        },
+        {
+          "name": "to_cell_key",
+          "type": "text",
+          "description": "The cell site of the later event."
+        },
+        {
+          "name": "distance_km",
+          "type": "double precision",
+          "description": "Distance in kilometres between the two cell sites."
+        },
+        {
+          "name": "gap_s",
+          "type": "bigint",
+          "description": "Seconds between the two events."
+        },
+        {
+          "name": "speed_kmh",
+          "type": "double precision",
+          "description": "Distance divided by the time, in kilometres per hour; empty when the two events are in the same second."
+        },
+        {
+          "name": "limit_kmh",
+          "type": "integer",
+          "description": "The lowest speed listed, set by the application from the question (200 when it names none)."
+        }
+      ]
+    },
+    {
+      "name": "v_successor_candidates",
+      "description": "For a number that went silent (old_number) the numbers that may have taken over from it (new_number): a number whose first event is from a few days before to window_days after the old number's last event and that was not in use at the start of the case, with a documented score from three features: contact similarity, shared places and a shared handset. BEHAVIOURAL SIMILARITY, NOT IDENTITY. The silence, the window and the lowest score are set by the application from the question (7 days, 14 days and 35 percent when it names none): never compute on them yourself. Ask with old_number = ... or new_number = ....",
+      "columns": [
+        {
+          "name": "old_number",
+          "type": "text",
+          "description": "The number that went silent. Ask with old_number = ... to see who may have taken over from it."
+        },
+        {
+          "name": "new_number",
+          "type": "text",
+          "description": "A number that started about when the old number stopped and may have taken over from it. Ask with new_number = ... to see which silent number it may have replaced."
+        },
+        {
+          "name": "old_last_event_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the last event of the old number, UTC (shown on the case clock)."
+        },
+        {
+          "name": "new_first_event_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the first event of the new number, UTC (shown on the case clock)."
+        },
+        {
+          "name": "score",
+          "type": "double precision",
+          "description": "Documented similarity score from 0 to 1: 0.6 times the contact similarity, 0.2 times the shared places, 0.2 when they share a handset. Not a probability and not identity."
+        },
+        {
+          "name": "contact_cosine",
+          "type": "double precision",
+          "description": "Similarity from 0 to 1 of the people the old number contacted in its last days and the new number contacted in its first days (the two numbers themselves left out)."
+        },
+        {
+          "name": "shared_contacts",
+          "type": "bigint",
+          "description": "Number of people contacted by both."
+        },
+        {
+          "name": "cell_jaccard",
+          "type": "double precision",
+          "description": "Share from 0 to 1 of the cell sites that both used at least twice in those periods."
+        },
+        {
+          "name": "shared_device",
+          "type": "boolean",
+          "description": "True when the two numbers were used with the same handset (the first 14 digits of the IMEI) at any time."
+        },
+        {
+          "name": "silence_days",
+          "type": "integer",
+          "description": "The days of silence this row was computed with, set by the application from the question (7 when it names none)."
+        },
+        {
+          "name": "window_days",
+          "type": "integer",
+          "description": "The days after the old number's last event within which the new number must have started, set by the application from the question (14 when it names none)."
+        },
+        {
+          "name": "score_percent",
+          "type": "integer",
+          "description": "The lowest score listed, in percent, set by the application from the question (35 when it names none)."
+        }
+      ]
+    },
+    {
+      "name": "v_weekly_anchors",
+      "description": "Per number, slot (night: the cell site with most events between 22:00 and 07:00; day: between 09:00 and 17:00 on weekdays, on the case clock) and week (a block of 7 days counted from the start of the case, which is the first day with an event), the cell site with most events of the slot, kept when it has at least min_events events that week (ties: the lowest cell key). The minimum is set by the application from the question (3 when it names none): never compute on it yourself. CELL SITES, NOT POSITIONS OF A PERSON.",
+      "columns": [
+        {
+          "name": "number",
+          "type": "text",
+          "description": "The number (the subscriber whose records these are)."
+        },
+        {
+          "name": "slot",
+          "type": "text",
+          "description": "night (22:00 to 07:00) or day (09:00 to 17:00 on weekdays), on the case clock."
+        },
+        {
+          "name": "week",
+          "type": "integer",
+          "description": "Week number counted from the start of the case in blocks of 7 days: 0 is the first week."
+        },
+        {
+          "name": "week_start",
+          "type": "date",
+          "description": "The date on which the week starts."
+        },
+        {
+          "name": "cell_key",
+          "type": "text",
+          "description": "The cell site with most events of the slot that week (the anchor)."
+        },
+        {
+          "name": "events_at_anchor",
+          "type": "bigint",
+          "description": "Events of the slot at that cell site that week."
+        },
+        {
+          "name": "events_in_slot",
+          "type": "numeric",
+          "description": "Events of the slot that week at all cell sites."
+        },
+        {
+          "name": "min_events",
+          "type": "integer",
+          "description": "The fewest events of the slot a week needs to have an anchor, set by the application from the question (3 when it names none)."
+        },
+        {
+          "name": "site_name",
+          "type": "text",
+          "description": "Name of the cell site when the case has a reference row for it."
+        },
+        {
+          "name": "lat",
+          "type": "double precision",
+          "description": "Latitude of the cell site when known (the site, not the person)."
+        },
+        {
+          "name": "lon",
+          "type": "double precision",
+          "description": "Longitude of the cell site when known (the site, not the person)."
         }
       ]
     }

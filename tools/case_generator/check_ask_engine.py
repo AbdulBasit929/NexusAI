@@ -46,7 +46,7 @@ def build_case_database(db, root, registry, port):
     db.start()
     load_case.prepare(db, registry)
     key, _stats, _summaries = ingest_case(db, root, registry, PsqlSink(db))
-    for name in ("016_effective_records.sql", "018_effective_ipdr.sql", "017_analyst_views.sql", "019_observed_cell_positions.sql", "020_contact_links_and_inventory.sql", "021_case_record.sql", "024_colocation_and_meetings.sql"):
+    for name in ("016_effective_records.sql", "018_effective_ipdr.sql", "017_analyst_views.sql", "019_observed_cell_positions.sql", "020_contact_links_and_inventory.sql", "021_case_record.sql", "024_colocation_and_meetings.sql", "025_successor_candidates.sql", "026_movement_and_rhythm.sql"):
         db.psql("-f", "/tmp/mig/" + name)
     runtime_password = uuid.uuid4().hex
     db.psql("-c", "ALTER ROLE forensic_runtime PASSWORD '%s'" % runtime_password)

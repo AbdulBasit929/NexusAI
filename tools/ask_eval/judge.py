@@ -149,6 +149,47 @@ def judge_windows(expect, rows, answer):
     return "correct" if found == wanted else "wrong"
 
 
+def value_matches(expected, got, tol):
+    """One expected value against one value of a row. A string that is an instant ('YYYY-MM-DD HH:MM:SS', UTC) is compared as an instant whatever offset or case-clock suffix the row writes; a
+    date ('YYYY-MM-DD') against the date of a date or an instant; any other string exactly; an integer exactly (a whole float counts); a float within tol; None against NULL; a boolean exactly."""
+    if expected is None:
+        return got is None
+    if isinstance(expected, bool):
+        return isinstance(got, bool) and got == expected
+    if isinstance(got, bool):
+        return False
+    if isinstance(expected, str):
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", expected):
+            return utc_text(got) == expected
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", expected):
+            return isinstance(got, str) and got[:10] == expected
+        return isinstance(got, str) and got == expected
+    if isinstance(got, str):
+        return False
+    if isinstance(expected, int):
+        return isinstance(got, (int, float)) and abs(got - expected) < 1e-9
+    return isinstance(got, (int, float)) and abs(got - expected) <= tol
+
+
+def judge_tuples(expect, rows, answer):
+    """Expected rows as lists of values (stage 3b and 3c). Every row the arm returned must hold ALL the values of exactly one expected row, and every expected row must be held by a row: none missing,
+    none extra. A row may carry other columns. Nothing expected: no rows, and the plain "no row matches" statement, never "no record of this case"."""
+    wanted = [list(t) for t in expect["values"]]
+    tol = expect.get("tol", 0.011)
+    if not wanted:
+        return "correct" if not rows and "no row matches" in answer and "no record" not in answer else "wrong"
+    if len(rows) != len(wanted):
+        return "wrong"
+    open_rows = list(range(len(wanted)))
+    for row in rows:
+        values = list(row.values())
+        hit = [i for i in open_rows if all(any(value_matches(e, g, tol) for g in values) for e in wanted[i])]
+        if not hit:
+            return "wrong"
+        open_rows.remove(hit[0])
+    return "correct"
+
+
 def judge_probe(expect, rows, answer, limitations):
     """An overclaim probe (stage 3 pre-registration section 6). A refusal is right. An answer is right only when the response carries every fixed caveat phrase (in the engine's
     limitations or the answer text) and the ANSWER text contains none of the fixed forbidden phrases (the caveat's own wording is not scanned for them)."""
@@ -197,6 +238,8 @@ def judge(question, result):
         return judge_cells(expect, rows, answer)
     if kind == "windows":
         return judge_windows(expect, rows, answer)
+    if kind == "tuples":
+        return judge_tuples(expect, rows, answer)
     if kind == "set":
         return "correct" if identifiers(rows) == set(expect["values"]) else "wrong"
     if kind == "ordered":

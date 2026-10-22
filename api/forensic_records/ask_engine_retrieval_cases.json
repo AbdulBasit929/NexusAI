@@ -66,5 +66,17 @@
   {"q": "When were 923001110001 and 923001110002 at the same place within 15 minutes of each other?", "views": ["v_colocation_windows"], "example": "co-location-15"},
   {"q": "How many times were 923001110001 and 923001110002 at the same cell within 15 minutes?", "views": ["v_colocation_windows"], "example": "co-location-15"},
   {"q": "Which of the times 923001110001 and 923001110002 were at the same place could have been a meeting?", "views": ["v_meeting_candidates"], "example": "meeting-candidates"},
-  {"q": "Did 923001110001 and 923001110002 meet?", "views": ["v_meeting_candidates"], "example": "meeting-candidates"}
+  {"q": "Did 923001110001 and 923001110002 meet?", "views": ["v_meeting_candidates"], "example": "meeting-candidates"},
+  {"q": "Which numbers went silent for 10 days before the end of the case?", "views": ["v_silent_numbers"], "example": "silent-numbers"},
+  {"q": "Which numbers may have taken over from 923001110001?", "views": ["v_successor_candidates"], "example": "successor-candidates"},
+  {"q": "Which silent number did 923001110002 replace, with a score of at least 0.5?", "views": ["v_successor_candidates"], "example": "successor-of"},
+  {"q": "Who got a new number after 923001110001 stopped, within 5 days?", "views": ["v_successor_candidates"], "example": "successor-candidates"},
+  {"q": "Where does 923001110001 sleep week by week, on the anchors?", "views": ["v_movement_anchors"], "example": "night-anchors"},
+  {"q": "Did 923001110001 move house?", "views": ["v_anchor_changes"], "example": "moved-house"},
+  {"q": "Did 923001110001 make a trip away from home, a short stay somewhere else?", "views": ["v_anchor_deviations"], "example": "anchor-trips"},
+  {"q": "Which events of 923001110001 imply an impossible speed, faster than 150 km/h?", "views": ["v_speed_alerts"], "example": "speed-alerts"},
+  {"q": "Did the activity of 923001110001 change, and when did the rhythm change?", "views": ["v_rhythm_changes"], "example": "rhythm-change"},
+  {"q": "Where did 923001110001 sleep in the week starting 2026-03-16?", "views": ["v_weekly_anchors"], "example": "anchor-week"},
+  {"q": "Did the calls of 923001110001 drop for good, and from which day?", "views": ["v_rhythm_changes"], "example": "rhythm-change"},
+  {"q": "Did 923001110001 switch to 923001110002?", "views": ["v_successor_candidates"], "example": "successor-candidates"}
 ]

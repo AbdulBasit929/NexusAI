@@ -28,7 +28,10 @@ var _ = Describe("Ask engine caveats of the link-analysis views", func() {
 
 	It("adds both when a query reads both, and nothing for the other views", func() {
 		Expect(askViewCaveats(&askValidated{Views: []string{"v_colocation_windows", "v_meeting_candidates"}})).To(HaveLen(2))
-		Expect(askViewCaveats(&askValidated{Views: []string{"v_cell_visits", "v_contact_pairs", "v_comm_events"}})).To(BeEmpty())
+		Expect(askViewCaveats(&askValidated{Views: []string{"v_app_usage", "v_contact_pairs", "v_comm_events"}})).To(BeEmpty())
+		cellVisits := askViewCaveats(&askValidated{Views: []string{"v_cell_visits"}})
+		Expect(cellVisits).To(HaveLen(1))
+		Expect(strings.ToLower(cellVisits[0])).To(ContainSubstring("cell sites, not positions of a person"))
 		Expect(askViewCaveats(nil)).To(BeEmpty())
 	})
 
