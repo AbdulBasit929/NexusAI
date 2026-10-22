@@ -32,8 +32,8 @@ The truth is the generator's **oracle**, in plain Python, from the files as the 
 |---|---|---|
 | Building and tuning | **development 1 to 8** (seeds 1 to 8) | Free to look at; every view is tuned and every example checked here |
 | **The gate** | **judgement 102, 104 and 106** (75 days, 3.5 events a day, 14 subjects; the cases of the stage-1 and stage-2 runs) | They have been used for other classes; **no answer of any stage-3 class has been looked at on them**, and during building the oracles are run on them only to print counts (as in stage 2). Verified against the register (`case_set.py verify`) before the run |
-| Kept for the measurement of a fix | **judgement 105 and 108**, and **109 to 112**, to be added to the register before the first stage-3 measurement (a register addition: the 20 existing entries and their hashes do not change; `verify` is run before and after) | One fresh case per sub-stage that needs a fix; a second fix in the same sub-stage takes the next |
-| Spent | judgement 101, 103, 107 | Not used |
+| Kept for the measurement of a fix | **judgement 105** (the only unopened register case), and **109 to 112**, to be added to the register before the first stage-3 measurement (a register addition: the 20 existing entries and their hashes do not change; `verify` is run before and after) | One fresh case per fix; a second fix takes the next; if all five are used, stage 3 stops and the owner decides |
+| Spent | judgement 101, 103, 107 (the D22 runs) and **108** (the measurement of the stage-1 IMEI fix: 81 of 81, 2026-10-20) | Not used |
 | Sealed | 901 to 904 | Not opened in stage 3; they belong to the P1 gate |
 
 ## 4. The questions
@@ -84,7 +84,7 @@ The engine, not the model, adds the caveat of an analysis to the `limitations` l
 5. **Derivation in plain words** on every answered question (the sentence that says which view and which parameters were used).
 6. **Latency** reported (median, 90th percentile, longest) with every repair and decline and its reason; the laptop budget of the plan (median about 30 s, 90th percentile about 50 s) is the target; the gate fails only if the 90th percentile is above 120 s or any answer takes more than 300 s.
 7. **No regression:** after the deploy of a sub-stage, `live_smoke.py --quick` passes 5 of 5 and 12 stage-1 and 12 stage-2 questions on case 104 stay 100% correct.
-8. If a gate fails: it is written up, **only the cause the run shows is fixed**, the fix is measured once on the next fresh case (105, then 108, then 109 to 112), and nothing is tuned on 102, 104 or 106 and rerun. **If a gate fails twice for the same analysis, that analysis stays dark** (its views stay, it is not in the engine's list, the older path answers) and the owner is told.
+8. If a gate fails: it is written up, **only the cause the run shows is fixed**, the fix is measured once on the next fresh case (105, then 109 to 112), and nothing is tuned on 102, 104 or 106 and rerun. **If a gate fails twice for the same analysis, that analysis stays dark** (its views stay, it is not in the engine's list, the older path answers) and the owner is told.
 
 ## 8. Entry criteria (all met, and recorded, before any judgement question is asked)
 
