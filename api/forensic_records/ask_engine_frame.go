@@ -478,7 +478,9 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 			add("EVENT_TYPE", fmt.Sprintf("The question is about %s: filter event_type = '%s'.", strings.ToUpper(kind), kind), "the question is about one kind of event and the query does not say so")
 		}
 	}
-	if f.Cues["night"] && !askSQLMentions(sql, "hour", "::time", "time '") {
+	// the anchor views carry the night as a column (slot = 'night'), so a night question asked of them is carried by that filter, not by an hour of day (found by the stage-3c judgement run:
+	// "which cell site was the night anchor of X in the week starting ..." was refused three times for a missing hour)
+	if f.Cues["night"] && !askSQLMentions(sql, "hour", "::time", "time '") && !(askUsesAnchorView(v) && askSQLMentions(sql, "'night'")) {
 		add("TIME_OF_DAY", "The question is about the night: restrict the hour of day (EXTRACT(HOUR FROM start_utc) BETWEEN 0 AND 5 on the case clock).", "the question is about the night and the query does not restrict the hour")
 	}
 	if f.Cues["count"] && !askSQLMentions(sql, "count(", "sum(") && !askUsesColumn(v, "events", "incoming", "outgoing") {

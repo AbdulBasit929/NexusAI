@@ -42,6 +42,9 @@ var _ = Describe("Ask engine reading of a question bank", func() {
 				checked++
 				frame := askExtractFrame(q.Question)
 				short := cat.Shortlist(q.Question, 0)
+				if frame.Relative != "" {
+					misses = append(misses, fmt.Sprintf("%s %q: the engine declines a relative time with no reference day (%q)", q.ID, q.Question, frame.Relative))
+				}
 				if q.Expect.View != nil && (len(short.Views) != 1 || short.Views[0] != *q.Expect.View) {
 					misses = append(misses, fmt.Sprintf("%s %q: wanted the view %s alone, got %v", q.ID, q.Question, *q.Expect.View, short.Views))
 				}

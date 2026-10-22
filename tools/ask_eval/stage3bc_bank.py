@@ -62,13 +62,13 @@ CANDIDATES_CUSTOM = [
 SCORE_SUFFIX = " Use a score of at least %s."
 SUCCESSOR_OF = [
     "Which silent number may %(new)s have replaced, with a score of at least %(score)s?",
-    "%(new)s started recently. Which silent number did it take over from? Use a score of at least %(score)s.",
+    "%(new)s is a new number. Which silent number did it take over from? Use a score of at least %(score)s.",
     "From which silent number may %(new)s have taken over? Only count a score of at least %(score)s.",
     "Find the silent number that %(new)s may have replaced (score at least %(score)s).",
 ]
 SUCCESSOR_OF_PLAIN = [
     "Which silent number may %(new)s have replaced?",
-    "%(new)s started recently. Which silent number did it take over from?",
+    "%(new)s is a new number. Which silent number did it take over from?",
     "From which silent number may %(new)s have taken over?",
     "Find the silent number that %(new)s may have replaced.",
 ]

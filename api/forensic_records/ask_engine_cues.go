@@ -68,6 +68,19 @@ func (c askAnalysisCues) view() string {
 	return ""
 }
 
+// askAnchorViews are the views whose rows carry the part of the day as a column (slot: night or day).
+var askAnchorViews = []string{"v_weekly_anchors", "v_anchor_runs", "v_movement_anchors", "v_anchor_changes", "v_anchor_deviations"}
+
+// askUsesAnchorView is whether the query reads one of them.
+func askUsesAnchorView(v *askValidated) bool {
+	for _, view := range askAnchorViews {
+		if askUsesView(v, view) {
+			return true
+		}
+	}
+	return false
+}
+
 // askAnalysisViews are the views of the link-analysis stages whose empty result is an answer ("no pair met", "nobody went silent", "no move"), not a query that looked in the wrong place.
 var askAnalysisViews = []string{
 	"v_connection_edges", "v_colocation_windows", "v_meeting_candidates", "v_silent_numbers", "v_successor_candidates", "v_weekly_anchors", "v_anchor_runs", "v_movement_anchors",

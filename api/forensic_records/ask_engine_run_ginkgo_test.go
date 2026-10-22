@@ -168,6 +168,14 @@ var _ = Describe("Ask engine obligations", func() {
 		})
 	}
 
+	It("carries a night question of the anchor views by the slot, not by an hour of day", func() {
+		q := "Which cell site was the night anchor of 923000000101 in the week starting 2026-03-09?"
+		night := "SELECT week, week_start, cell_key FROM v_weekly_anchors WHERE number = '923000000101' AND slot = 'night' AND week_start = '2026-03-09' LIMIT 200"
+		Expect(check(q, night)).NotTo(ContainElement("TIME_OF_DAY"))
+		Expect(check(q, strings.Replace(night, "'night'", "'day'", 1))).To(ContainElement("TIME_OF_DAY"))
+		Expect(check(q, strings.Replace(night, "AND slot = 'night' ", "", 1))).To(ContainElement("TIME_OF_DAY"))
+	})
+
 	It("lets a sender id be compared with dst, and leaves a name in a text column alone", func() {
 		Expect(check("How many messages came from JAZZ to 923000000101?", "SELECT count(*) AS n FROM v_comm_events WHERE src = '923000000101' AND dst = 'JAZZ'")).NotTo(ContainElement("NAME"))
 		Expect(check("Which numbers visited Lahore Cantt?", "SELECT DISTINCT src FROM v_cell_visits WHERE site_name = 'Lahore Cantt' LIMIT 20")).NotTo(ContainElement("NAME"))
