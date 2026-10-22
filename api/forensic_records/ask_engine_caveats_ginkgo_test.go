@@ -32,6 +32,14 @@ var _ = Describe("Ask engine caveats of the link-analysis views", func() {
 		Expect(askViewCaveats(nil)).To(BeEmpty())
 	})
 
+	It("treats one row of NULLs (an aggregate over nothing) as no row, and a count of 0 as a row", func() {
+		Expect(askRowAllNil([]any{nil})).To(BeTrue())
+		Expect(askRowAllNil([]any{nil, nil})).To(BeTrue())
+		Expect(askRowAllNil([]any{nil, 0})).To(BeFalse())
+		Expect(askRowAllNil([]any{0})).To(BeFalse())
+		Expect(askRowAllNil(nil)).To(BeFalse())
+	})
+
 	It("keeps a meeting question off the hourly view and a minutes question on the windows view", func() {
 		cat, err := askGoldenCatalogue()
 		Expect(err).NotTo(HaveOccurred())

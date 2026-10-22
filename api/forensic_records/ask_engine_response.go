@@ -210,7 +210,24 @@ func askReadsRecords(v *askValidated) bool {
 	return false
 }
 
+// askRowAllNil is whether a row holds nothing but NULLs.
+func askRowAllNil(row []any) bool {
+	for _, cell := range row {
+		if cell != nil {
+			return false
+		}
+	}
+	return len(row) > 0
+}
+
 func askAnswerResponse(req hybridQueryRequest, cat *askCatalogue, v *askValidated, r *govSQLResult, f askFrame, absence string, audit AskAuditV2) *hybridQueryResponse {
+	// An aggregate over nothing (sum, avg, min or max of no row) is one row of NULLs: that is "no row matches", and the table twin shows no row, as for a query that returned none
+	// (found by the stage-3a judgement run: a pair with no window was answered "no value (nothing to compute over)"). A count of nothing is 0, not NULL, and stays a row.
+	if len(r.Rows) == 1 && askRowAllNil(r.Rows[0]) {
+		trimmed := *r
+		trimmed.Rows = nil
+		r = &trimmed
+	}
 	shape := askShape(r.Columns, len(r.Rows))
 	headline := askHeadline(r, shape, absence)
 	if absence == "" && shape == "graph" {
