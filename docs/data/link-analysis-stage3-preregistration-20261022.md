@@ -38,22 +38,24 @@ The truth is the generator's **oracle**, in plain Python, from the files as the 
 
 ## 4. The questions
 
-Generated from the oracle by `tools/ask_eval/build_questions.py` (new kinds below), seeded, two phrasings per question chosen by the seed from a written list of four per kind (so wording is not tuned), **24 questions per case per sub-stage, 72 per sub-stage**, plus **6 overclaim probes** per sub-stage (2 per case, section 6). Controls are questions whose right answer is "none".
+Generated from the oracle by `tools/ask_eval/build_questions.py` (new kinds below), seeded, two phrasings per question chosen by the seed from a written list of four per kind (so wording is not tuned), **8 questions per case per sub-stage, 24 per sub-stage** (about 12 minutes of model time; Amendment 1), plus **6 overclaim probes** per sub-stage (2 per case, section 6). Controls are questions whose right answer is "none".
 
 | Sub-stage | Kind (per case) | Asks | Controls |
 |---|---|---|---|
-| 3a | `coloc15_windows` (6) | the windows (cell, start, end) in which X and Y were at the same cell within 15 minutes | 2: a pair that never meets; a pair on different operators |
-| 3a | `coloc15_count` (6) | how many such windows | 2 (same) |
-| 3a | `meeting_candidates` (6) | the windows that are possible meetings, with the gap to the contact | 2: a pair co-located with **no contact** in the gap (the decoy); a pair that never meets |
-| 3a | `meeting_count` (6) | how many possible meetings | 2 (same) |
-| 3b | `silent_numbers` (4) | which numbers had gone silent by the end of the case | 1: a question on a case where a number was merely quiet, not silent |
-| 3b | `successor_candidates` (8) | the candidate successors of a silent number, with their scores | 3: a silent number with no candidate at 0.35 or more; a number still active |
-| 3b | `successor_of` (6) | which silent number a new number may have taken over from | 2: a new number with no predecessor |
-| 3b | `successor_shared_device` (6) | whether the two share a 14-digit handset at any time | 2: pairs with no shared device |
-| 3c | `anchor_change` (6) | which number changed its night anchor, when (first week of the new anchor) and the distance | 2: a number whose anchor never changes; the short-deviation decoy (a trip is not a move) |
-| 3c | `speed_alerts` (6) | the pairs of consecutive events with at least 200 km/h | 2: the decoy (the same two sites three hours apart); a number with none |
-| 3c | `anchor_week` (4) | the night or day anchor of a number in week N | 1: a week without enough events (no anchor) |
-| 3c | `rhythm_change` (8) | the first day of the new rhythm, both daily means and the direction | 3: steady numbers (no change point) |
+| 3a | `coloc15_windows` (2) | the windows (cell, start, end) in which X and Y were at the same cell within 15 minutes | 1 of the 2: a pair that never meets, or a pair on different operators |
+| 3a | `coloc15_count` (2) | how many such windows | 1 of the 2 (same) |
+| 3a | `meeting_candidates` (2) | the windows that are possible meetings, with the gap to the contact | 1 of the 2: a pair co-located with **no contact** in the gap (the decoy) |
+| 3a | `meeting_count` (2) | how many possible meetings | 1 of the 2 (same) |
+| 3b | `silent_numbers` (1) | which numbers had gone silent by the end of the case | none (the answer on every case is a set to be matched exactly) |
+| 3b | `successor_candidates` (3) | the candidate successors of a silent number, with their scores | 1 of the 3: a silent number with no candidate at 0.35 or more, or a number still active |
+| 3b | `successor_of` (2) | which silent number a new number may have taken over from | 1 of the 2: a new number with no predecessor |
+| 3b | `successor_shared_device` (2) | whether the two share a 14-digit handset at any time | 1 of the 2: a pair with no shared device |
+| 3c | `anchor_change` (2) | which number changed its night anchor, when (first week of the new anchor) and the distance | 1 of the 2: a number whose anchor never changes, or the short-deviation decoy (a trip is not a move) |
+| 3c | `speed_alerts` (2) | the pairs of consecutive events with at least 200 km/h | 1 of the 2: the decoy (the same two sites three hours apart) |
+| 3c | `anchor_week` (1) | the night or day anchor of a number in week N | none |
+| 3c | `rhythm_change` (3) | the first day of the new rhythm, both daily means and the direction | 1 of the 3: a steady number (no change point) |
+
+Per case that is 8 questions in each sub-stage (4 controls in 3a, 3 in 3b, 3 in 3c). **Stated plainly:** with 6 questions per kind over the three cases (3 for `anchor_week`, 3 for `silent_numbers`) the "at least 90% in each kind" gate means all of them correct; it is not a statistical claim. What the run shows is that the engine chooses the right view and fills it correctly on 24 unseen questions. The proof that the **view itself is right** is the exhaustive parity test of entry criterion E1 (every pair or number of eight cases, no model, seconds), which is where the accuracy is established.
 
 Questions use the numbers as an analyst writes them (with or without the country code), never the generator's keys.
 
@@ -83,14 +85,14 @@ The engine, not the model, adds the caveat of an analysis to the `limitations` l
 4. **Caveat on 100%** of the answers that return a result of the analysis (windows, meetings, successors, anchors, speed alerts, change points), checked by string in the response's `limitations` or answer text, and on every probe.
 5. **Derivation in plain words** on every answered question (the sentence that says which view and which parameters were used).
 6. **Latency** reported (median, 90th percentile, longest) with every repair and decline and its reason; the laptop budget of the plan (median about 30 s, 90th percentile about 50 s) is the target; the gate fails only if the 90th percentile is above 120 s or any answer takes more than 300 s.
-7. **No regression:** after the deploy of a sub-stage, `live_smoke.py --quick` passes 5 of 5 and 12 stage-1 and 12 stage-2 questions on case 104 stay 100% correct.
+7. **No regression:** after the deploy of a sub-stage, `live_smoke.py --quick` passes 5 of 5 and 3 stage-1 and 3 stage-2 questions on case 104 stay correct (the questions are chosen by the seed before the deploy).
 8. If a gate fails: it is written up, **only the cause the run shows is fixed**, the fix is measured once on the next fresh case (105, then 109 to 112), and nothing is tuned on 102, 104 or 106 and rerun. **If a gate fails twice for the same analysis, that analysis stays dark** (its views stay, it is not in the engine's list, the older path answers) and the owner is told.
 
 ## 8. Entry criteria (all met, and recorded, before any judgement question is asked)
 
 * **E1 Parity.** The SQL view equals the oracle on **all 8 development cases**, for every pair or number the oracle can state, with **zero differences** (`tools/case_generator/test_analyst_views.py` style; the run prints the counts compared). **Deliberate breakage:** with the window set to 14 minutes (3a), the score threshold to 0.40 (3b) or the speed limit to 150 km/h (3c), the same test **must fail**; a parity test that cannot fail is not a test.
 * **E2 Verified example.** One verified example per kind in `ask_engine_examples.json` with its caveat (the `limitations` line keyed by view, with its Go spec, is part of the first build step and a precondition of every other gate); `check_ask_catalogue.py` passes; the Go specs of the catalogue and the examples pass (the expected count of the checker is raised by name).
-* **E3 Development check.** 20 questions on development 2 (60 days, the smallest case) or on a case chosen before the check and written here; fixes are free on development cases only.
+* **E3 Development check.** 8 questions on development 2 (60 days, the smallest case), about 4 minutes; fixes are free on development cases only.
 * **E4 Judges.** The new kinds and their unit tests pass; the question builder reproduces the same bank from the same seed (a second run is byte-equal).
 * **E5 Register.** `case_set.py verify` over 102, 104 and 106 says the register still describes the generator, and the new entries 109 to 112 are in the register.
 * **E6 Rehearsal.** The migration is rehearsed on a throwaway database (preflight, apply, verify, rollback, apply again) and on a copy of a loaded case; **the live database is backed up before it is touched**, and applying it needs **your go**.
@@ -117,4 +119,4 @@ One heavy job at a time (a bank run uses the language model on all cores; a medi
 
 ## Amendments
 
-(none yet)
+**Amendment 1 (2026-10-22, before any view, example, judge or question of this stage exists).** The owner asked, again, that testing be short, relevant and not repeated (see `docs/roadmap/reconciliation-20261020.md` section 6: the tiers T0 to T4). The first draft of this document set 72 questions per sub-stage, about 45 minutes of model time each, which is the cycle length the owner objected to. Changed: (1) the bank is **8 questions per case, 24 per sub-stage** (section 4), about 12 minutes of model time; (2) the development check is 8 questions, the regression check after a deploy 3 + 3 questions (section 7 gate 7, E3); (3) **a test budget is added**: a development check is at most 5 minutes, a judgement run at most 20 minutes of model time and is run once in the background and read once, the full set of three sub-stages is read together at the end of the stage (T4, once), and the exhaustive checks (parity against the oracle on all eight development cases, the judges' unit tests, the catalogue and Go specs, the migration rehearsal) are the ones that run without the model, in seconds to a few minutes, after every change. No gate threshold is changed: zero wrong, controls and caveats 100%, latency limits, no regression. Fewer questions make a small sample, not a laxer gate, and the exhaustive parity test carries the accuracy proof.
