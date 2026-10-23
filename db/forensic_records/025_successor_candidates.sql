@@ -48,7 +48,21 @@ JOIN (
   FROM analyst.v_comm_events e WHERE e.src IS NOT NULL GROUP BY e.src
 ) n ON b.case_end - n.last_lt >= p.silence_days * interval '1 day';
 
+-- One pass over the case's events. The features below look at the events of each (silent number, candidate) pair; read through analyst.v_comm_events itself, every look is a new pass over
+-- the typed tables, which is invisible on a small case and took minutes on the retained database (found by the first live question after the deploy). The events are read ONCE, with the
+-- case-clock time and the 14-digit handset prefix worked out once, and every feature reads that (the handset test reads the few distinct handsets of each number: a join of every pair of
+-- their events took 15 seconds on 4,000 events).
 CREATE OR REPLACE VIEW analyst.v_successor_candidates AS
+WITH ev AS MATERIALIZED (
+  SELECT e.src, e.dst, e.dst_is_person_like, e.cell_key, NULLIF(left(e.imei, 14), '') AS imei14, e.start_utc,
+         (e.start_utc AT TIME ZONE current_setting('TimeZone')) AS lt
+  FROM analyst.v_comm_events e
+  WHERE e.src IS NOT NULL
+),
+-- the handsets each number used: a few rows, so that "do these two share a handset" is a join of a few rows and not of every pair of their events
+dev AS MATERIALIZED (
+  SELECT DISTINCT ev.src, ev.imei14 FROM ev WHERE ev.imei14 IS NOT NULL
+)
 SELECT
   r.old_number,
   r.new_number,
@@ -86,19 +100,16 @@ FROM (
       LEAST(100, GREATEST(0, COALESCE(NULLIF(current_setting('app.successor_score_percent', true), '')::integer, 35))) AS score_percent
   ) p
   CROSS JOIN (
-    SELECT date_trunc('day', min(e.start_utc AT TIME ZONE current_setting('TimeZone'))) AS case_start,
-           date_trunc('day', max(e.start_utc AT TIME ZONE current_setting('TimeZone'))) + interval '1 day' AS case_end
-    FROM analyst.v_comm_events e WHERE e.src IS NOT NULL
+    SELECT date_trunc('day', min(ev.lt)) AS case_start, date_trunc('day', max(ev.lt)) + interval '1 day' AS case_end
+    FROM ev
   ) b
   JOIN (
-    SELECT e.src AS number, min(e.start_utc) AS first_event_utc, max(e.start_utc) AS last_event_utc,
-           min(e.start_utc AT TIME ZONE current_setting('TimeZone')) AS first_lt, max(e.start_utc AT TIME ZONE current_setting('TimeZone')) AS last_lt
-    FROM analyst.v_comm_events e WHERE e.src IS NOT NULL GROUP BY e.src
+    SELECT ev.src AS number, min(ev.start_utc) AS first_event_utc, max(ev.start_utc) AS last_event_utc, min(ev.lt) AS first_lt, max(ev.lt) AS last_lt
+    FROM ev GROUP BY ev.src
   ) s ON b.case_end - s.last_lt >= p.silence_days * interval '1 day'
   JOIN (
-    SELECT e.src AS number, min(e.start_utc) AS first_event_utc,
-           min(e.start_utc AT TIME ZONE current_setting('TimeZone')) AS first_lt
-    FROM analyst.v_comm_events e WHERE e.src IS NOT NULL GROUP BY e.src
+    SELECT ev.src AS number, min(ev.start_utc) AS first_event_utc, min(ev.lt) AS first_lt
+    FROM ev GROUP BY ev.src
   ) c ON c.number <> s.number
      AND c.first_lt - b.case_start >= p.new_after_days * interval '1 day'
      AND c.first_lt BETWEEN s.last_lt - p.overlap_days * interval '1 day' AND s.last_lt + p.window_days * interval '1 day'
@@ -109,9 +120,9 @@ FROM (
       COALESCE(cj.jaccard, 0)::float8 AS jaccard,
       EXISTS (
         SELECT 1
-        FROM analyst.v_comm_events ex
-        JOIN analyst.v_comm_events ey ON NULLIF(left(ey.imei, 14), '') = NULLIF(left(ex.imei, 14), '')
-        WHERE ex.src = s.number AND ey.src = c.number AND NULLIF(ex.imei, '') IS NOT NULL
+        FROM dev ex
+        JOIN dev ey ON ey.imei14 = ex.imei14
+        WHERE ex.src = s.number AND ey.src = c.number
       ) AS shared_device
     FROM (SELECT 1) one
     LEFT JOIN LATERAL (
@@ -126,18 +137,18 @@ FROM (
           count(*) FILTER (WHERE x.cnt IS NOT NULL AND y.cnt IS NOT NULL) AS shared
         FROM (
           SELECT e.dst, count(*) AS cnt
-          FROM analyst.v_comm_events e
+          FROM ev e
           WHERE e.src = s.number AND e.dst_is_person_like AND e.dst IS NOT NULL AND e.dst <> s.number AND e.dst <> c.number
-            AND (e.start_utc AT TIME ZONE current_setting('TimeZone')) > s.last_lt - p.history_days * interval '1 day'
-            AND (e.start_utc AT TIME ZONE current_setting('TimeZone')) <= s.last_lt
+            AND e.lt > s.last_lt - p.history_days * interval '1 day'
+            AND e.lt <= s.last_lt
           GROUP BY e.dst
         ) x
         FULL JOIN (
           SELECT e.dst, count(*) AS cnt
-          FROM analyst.v_comm_events e
+          FROM ev e
           WHERE e.src = c.number AND e.dst_is_person_like AND e.dst IS NOT NULL AND e.dst <> s.number AND e.dst <> c.number
-            AND (e.start_utc AT TIME ZONE current_setting('TimeZone')) >= c.first_lt
-            AND (e.start_utc AT TIME ZONE current_setting('TimeZone')) < c.first_lt + p.history_days * interval '1 day'
+            AND e.lt >= c.first_lt
+            AND e.lt < c.first_lt + p.history_days * interval '1 day'
           GROUP BY e.dst
         ) y ON x.dst = y.dst
       ) t
@@ -148,18 +159,18 @@ FROM (
         SELECT count(*) FILTER (WHERE x.cell_key IS NOT NULL AND y.cell_key IS NOT NULL) AS i, count(*) AS u
         FROM (
           SELECT e.cell_key
-          FROM analyst.v_comm_events e
+          FROM ev e
           WHERE e.src = s.number AND e.cell_key IS NOT NULL
-            AND (e.start_utc AT TIME ZONE current_setting('TimeZone')) > s.last_lt - p.history_days * interval '1 day'
-            AND (e.start_utc AT TIME ZONE current_setting('TimeZone')) <= s.last_lt
+            AND e.lt > s.last_lt - p.history_days * interval '1 day'
+            AND e.lt <= s.last_lt
           GROUP BY e.cell_key HAVING count(*) >= 2
         ) x
         FULL JOIN (
           SELECT e.cell_key
-          FROM analyst.v_comm_events e
+          FROM ev e
           WHERE e.src = c.number AND e.cell_key IS NOT NULL
-            AND (e.start_utc AT TIME ZONE current_setting('TimeZone')) >= c.first_lt
-            AND (e.start_utc AT TIME ZONE current_setting('TimeZone')) < c.first_lt + p.history_days * interval '1 day'
+            AND e.lt >= c.first_lt
+            AND e.lt < c.first_lt + p.history_days * interval '1 day'
           GROUP BY e.cell_key HAVING count(*) >= 2
         ) y ON x.cell_key = y.cell_key
       ) t

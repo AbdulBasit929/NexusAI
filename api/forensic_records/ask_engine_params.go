@@ -89,7 +89,7 @@ type askParamIssue struct {
 // ---- how the numbers of the other rules are found in a question (lower case). Each finder returns the values it finds, in the unit of its parameter.
 
 var (
-	askDaysOrWeeks = `(\d{1,3})\s*(?:-\s*)?(days?|weeks?)`
+	askDaysOrWeeks = `(\d{1,5})\s*(?:-\s*)?(days?|weeks?)`
 	askSilenceA    = regexp.MustCompile(`(?:silent|inactive|idle|dormant|dark|quiet|stopped|went quiet|no (?:activity|events|calls|records|use))\s+(?:for\s+|during\s+)?(?:at least\s+|more than\s+|over\s+|longer than\s+|a minimum of\s+)?` + askDaysOrWeeks)
 	askSilenceB    = regexp.MustCompile(askDaysOrWeeks + `\s+(?:of\s+)?(?:silence|inactivity|no activity|without (?:any )?(?:activity|events|calls))`)
 	askWindowA     = regexp.MustCompile(`(?:started|start|began|begin|appeared|appears|first (?:event|activity|call|seen)|new number|successor|replacement)\s+(?:[a-z,]+\s+){0,6}?within\s+` + askDaysOrWeeks)
@@ -100,10 +100,10 @@ var (
 	askScoreA      = regexp.MustCompile(`score\D{0,20}?(?:of\s+)?(?:at least|above|over|more than|greater than|minimum of|min|>=?)\s*(\d*\.\d+|\d{1,3})\s*(%)?`)
 	askScoreB      = regexp.MustCompile(`(\d{1,3})\s*%\s*(?:or more\s+)?(?:similar|similarity|match)`)
 	askMinEventsA  = regexp.MustCompile(`(?:at least|minimum of|min(?:imum)?|no fewer than|not fewer than)\s*(\d{1,3})\s+(?:events|calls|records)\b`)
-	askHoldWeeksA  = regexp.MustCompile(`(?:for|held|holds?|holding|stayed|stays|lasting|lasts|at least|least|minimum of|min(?:imum)?)\s+(\d{1,2})\s*(?:-\s*)?(?:consecutive\s+|straight\s+|full\s+|whole\s+)?weeks?`)
-	askHoldWeeksB  = regexp.MustCompile(`(\d{1,2})\s*-\s*week\b`)
-	askSpeedA      = regexp.MustCompile(`(\d{2,4})\s*(?:km\s*/\s*h(?:r|our)?|kmh|kph|km per hour|kilomet(?:re|er)s? (?:an|per) hour)`)
-	askSideDaysA   = regexp.MustCompile(`(\d{1,3})\s+days?\s+(?:on each side|on either side|either side|each side|on both sides|before and after)`)
+	askHoldWeeksA  = regexp.MustCompile(`(?:for|held|holds?|holding|stayed|stays|lasting|lasts|at least|least|minimum of|min(?:imum)?)\s+(\d{1,4})\s*(?:-\s*)?(?:consecutive\s+|straight\s+|full\s+|whole\s+)?weeks?`)
+	askHoldWeeksB  = regexp.MustCompile(`(\d{1,4})\s*-\s*week\b`)
+	askSpeedA      = regexp.MustCompile(`(\d{2,6})\s*(?:km\s*/\s*h(?:r|our)?|kmh|kph|km per hour|kilomet(?:re|er)s? (?:an|per) hour)`)
+	askSideDaysA   = regexp.MustCompile(`(\d{1,5})\s+days?\s+(?:on each side|on either side|either side|each side|on both sides|before and after)`)
 	askRatioTimes  = regexp.MustCompile(`(\d+(?:\.\d+)?)\s*(?:x|times)\b`)
 	askRatioTwice  = regexp.MustCompile(`\b(?:double|doubled|doubling|twice|two-fold|twofold)\b`)
 	askRatioTriple = regexp.MustCompile(`\b(?:triple|tripled|tripling|thrice|three-fold|threefold)\b`)
@@ -121,12 +121,26 @@ func askDaysFrom(match []string, numberAt int) int {
 	return n
 }
 
+// askOrDays is a second length that follows a first one after "or" ("10 days or for 20 days").
+var askOrDays = regexp.MustCompile(`^\s*,?\s*or\s+(?:for\s+|at least\s+|over\s+|more than\s+)*` + askDaysOrWeeks)
+
 func askFindAllDays(lower string, patterns ...*regexp.Regexp) []int {
 	var out []int
 	for _, re := range patterns {
-		for _, m := range re.FindAllStringSubmatch(lower, -1) {
+		for _, at := range re.FindAllStringSubmatchIndex(lower, -1) {
+			m := make([]string, len(at)/2)
+			for i := range m {
+				if at[2*i] >= 0 {
+					m[i] = lower[at[2*i]:at[2*i+1]]
+				}
+			}
 			if v := askDaysFrom(m, 1); v >= 0 {
 				out = append(out, v)
+			}
+			if alt := askOrDays.FindStringSubmatch(lower[at[1]:]); alt != nil {
+				if v := askDaysFrom(alt, 1); v >= 0 {
+					out = append(out, v)
+				}
 			}
 		}
 	}

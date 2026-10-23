@@ -31,6 +31,37 @@ var _ = Describe("Ask engine runtime parameters of successor numbers, movement a
 		Entry("noun form", "Which numbers show 5 days of silence?", 5),
 	)
 
+	It("reads a number of more than three digits, so that a value far outside the bounds is refused with them", func() {
+		for _, c := range []struct {
+			question, name string
+			want           int
+		}{
+			{"Which numbers went silent for at least 4000 days?", "silence_days", 4000},
+			{"Which numbers moved, staying at the new place for at least 600 weeks?", "anchor_hold_weeks", 600},
+			{"Which events of 923001110001 imply travel faster than 90000 km/h?", "speed_kmh", 90000},
+			{"Did the daily activity of 923001110001 change, with at least 4000 days on each side?", "rhythm_min_side_days", 4000},
+		} {
+			got, found := value(c.question, c.name)
+			Expect(found).To(BeTrue(), c.question)
+			Expect(got).To(Equal(c.want), c.question)
+		}
+		_, issue := askResolveParams(askExtractFrame("Which numbers went silent for at least 4000 days?"), []string{"v_silent_numbers"})
+		Expect(issue).NotTo(BeNil())
+		Expect(issue.Kind).To(Equal("range"))
+		Expect(issue.Message).To(ContainSubstring("1 to 365"))
+	})
+
+	It("asks back when a question gives two lengths for one rule", func() {
+		read := askReadParams("which numbers went silent for at least 10 days or for 20 days?")["silence_days"]
+		Expect(read.Ambiguous).To(BeTrue())
+		Expect(read.Values).To(Equal([]int{10, 20}))
+		_, issue := askResolveParams(askExtractFrame("Which numbers went silent for at least 10 days or for 20 days?"), []string{"v_silent_numbers"})
+		Expect(issue).NotTo(BeNil())
+		Expect(issue.Kind).To(Equal("clarify"))
+		// one length is still one length, and "or" before something that is not a length changes nothing
+		Expect(askReadParams("which numbers went silent for at least 10 days or never came back?")["silence_days"].Values).To(Equal([]int{10}))
+	})
+
 	It("keeps the silence and the start window apart in one question", func() {
 		q := "Which new number may have replaced 923001110001 if it went silent for 10 days and the new number started within 5 days after it stopped?"
 		silence, ok1 := value(q, "silence_days")
