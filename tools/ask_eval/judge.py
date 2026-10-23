@@ -34,8 +34,10 @@ def imei14(value):
     return value[:14] if len(value) == 15 else value
 
 
-def identifiers(rows):
-    return {imei14(v) for v in text_values(rows) if DIGITS.match(v)}
+def identifiers(rows, skip=()):
+    """The identifiers (digit strings) the rows hold, a 15-digit IMEI read as its 14 digits. Columns named in `skip` are not read: a row of handsets also carries the IMSI of the SIM, which is
+    a digit string of its own and not a handset (found by the stage-3 milestone run: a correct list of both IMEIs, with the IMSI column, was counted as one identifier too many)."""
+    return {imei14(v) for row in rows for k, v in row.items() if k not in skip and isinstance(v, str) and DIGITS.match(v)}
 
 
 def numbers(rows):
@@ -241,7 +243,7 @@ def judge(question, result):
     if kind == "tuples":
         return judge_tuples(expect, rows, answer)
     if kind == "set":
-        return "correct" if identifiers(rows) == set(expect["values"]) else "wrong"
+        return "correct" if identifiers(rows, skip=("imsi",)) == set(expect["values"]) else "wrong"
     if kind == "ordered":
         got = first_text_column(rows)
         scores = expect.get("scores")

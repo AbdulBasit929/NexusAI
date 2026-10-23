@@ -168,6 +168,16 @@ var _ = Describe("Ask engine obligations", func() {
 		})
 	}
 
+	It("asks for the sum of the events when events are counted on the contact pairs", func() {
+		q := "How many events are there between 923000000101 and 923000000102?"
+		counted := "SELECT count(*) AS value FROM v_contact_pairs WHERE (src = '923000000101' AND dst = '923000000102') OR (src = '923000000102' AND dst = '923000000101')"
+		summed := "SELECT sum(events) AS value FROM v_contact_pairs WHERE (src = '923000000101' AND dst = '923000000102') OR (src = '923000000102' AND dst = '923000000101')"
+		Expect(check(q, counted)).To(ContainElement("AGGREGATE"))
+		Expect(check(q, summed)).NotTo(ContainElement("AGGREGATE"))
+		// how many contacts, people or numbers is still a count of rows
+		Expect(check("How many different numbers did 923000000101 contact?", "SELECT count(*) AS value FROM v_contact_pairs WHERE src = '923000000101'")).NotTo(ContainElement("AGGREGATE"))
+	})
+
 	It("refuses a window of its own worked out on the successor view, and accepts the plain query", func() {
 		q := "Which numbers started within 21 days after 923000000101 went silent for at least 10 days and may have taken over from it? Show the score of each."
 		own := "SELECT new_number, score FROM v_successor_candidates WHERE old_number = '923000000101' AND new_first_event_utc >= (old_last_event_utc + '10 days'::interval) AND new_first_event_utc <= (old_last_event_utc + '31 days'::interval) ORDER BY score DESC"

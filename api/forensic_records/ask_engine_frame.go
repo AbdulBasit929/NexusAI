@@ -116,6 +116,9 @@ func askCanonicalNumber(raw string) string {
 // askExtractFrame reads a question. The identifiers are replaced in the returned Question by their canonical forms, so the model is shown, and the checks
 // compare, one form of each.
 // askCountAsConsider is "count" in the sense of "take into account", on the question's words joined by single spaces.
+// askCountsEvents is "how many events / calls / messages ..." (the thing counted is an event, not a contact).
+var askCountsEvents = regexp.MustCompile(`\bhow many (?:\w+ )?(?:events?|calls?|messages?|sms|texts?|records?)\b|\bnumber of (?:events?|calls?|messages?|sms|texts?|records?)\b|\btotal (?:events?|calls?|messages?)\b`)
+
 var askCountAsConsider = regexp.MustCompile(`\b(?:only|not|never|don t|dont|do not)\s+count\b|\bcount(?:s|ed|ing)?\s+(?:\S+\s+){0,2}as\b|\bcount(?:s|ed|ing)?\s+(?:if|only|when|a\s+score|scores?)\b`)
 
 func askExtractFrame(question string) askFrame {
@@ -488,6 +491,11 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	// days, and the answer was "No row matches" for a pair the view lists) answers a different question than the one asked.
 	if askUsesView(v, "v_successor_candidates") && askSQLMentions(sql, "interval") {
 		add("PARAMETER", "The days of silence, the start window and the lowest score are set by the application from the question: do not compute a window from new_first_event_utc and old_last_event_utc or use an interval; select from v_successor_candidates and filter only on old_number, new_number or the score.", "the query works out a window of its own on the successor view")
+	}
+	// A row of v_contact_pairs is one contact (a number, in one direction), not one event: "how many events are there between A and B" is the sum of its events column. A count of its rows said 1
+	// where the events were 76 (found by the stage-3 milestone run on case 110).
+	if askUsesView(v, "v_contact_pairs") && !askUsesView(v, "v_comm_events") && askCountsEvents.MatchString(strings.ToLower(f.Question)) && askSQLMentions(sql, "count(") && !askSQLMentions(sql, "sum(") {
+		add("AGGREGATE", "A row of v_contact_pairs is one contact, not one event: for how many events, calls or messages there are, SUM the events column of the rows (both directions), do not COUNT the rows.", "the question counts events and the query counts the contacts")
 	}
 	if f.Cues["count"] && !askSQLMentions(sql, "count(", "sum(") && !askUsesColumn(v, "events", "incoming", "outgoing") {
 		add("AGGREGATE", "The question asks how many: count the rows (COUNT) or sum the counts of the view.", "the question asks for a count that the query does not compute")

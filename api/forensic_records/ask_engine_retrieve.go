@@ -294,6 +294,10 @@ func (c *askCatalogue) Shortlist(question string, max int) askShortlist {
 		out.Views = askWithoutViews(out.Views, "v_cell_visits", "v_colocation_windows", "v_cells", "v_comm_events")
 	} else if features.Phones >= 2 && askMinuteColocation(tokenSet) && askContains(out.Views, "v_colocation_windows") {
 		out.Views = askWithoutViews(out.Views, "v_cell_visits", "v_cells", "v_comm_events")
+	} else if askHourColocation(tokenSet) {
+		// "How many different hours did A and B spend at the same cell site together?" counts hours of v_cell_visits; the windows of v_colocation_windows are 15-minute stretches, and
+		// counting their start times answered 3 and 4 where the hours were 5 and 5 (found by the stage-3 milestone run on case 110).
+		out.Views = askWithoutViews(out.Views, "v_colocation_windows")
 	}
 	// A question that names one of the analyses of stages 3b and 3c is answered from that view alone.
 	if view := askCuesOf(normalised).view(); view != "" && askContains(out.Views, view) {
@@ -389,6 +393,19 @@ func askMinuteColocation(tokens map[string]bool) bool {
 		return false
 	}
 	for _, w := range []string{"same", "together", "place", "cell", "tower", "site", "colocation", "near", "simultaneously", "window"} {
+		if tokens[askStem(w)] {
+			return true
+		}
+	}
+	return false
+}
+
+// askHourColocation is whether the question asks about hours at the same place and names no minutes: the hourly view answers it.
+func askHourColocation(tokens map[string]bool) bool {
+	if !tokens[askStem("hour")] || tokens[askStem("minute")] {
+		return false
+	}
+	for _, w := range []string{"same", "together", "place", "cell", "tower", "site", "colocation", "simultaneously"} {
 		if tokens[askStem(w)] {
 			return true
 		}

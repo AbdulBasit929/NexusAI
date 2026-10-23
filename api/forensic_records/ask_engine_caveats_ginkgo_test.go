@@ -43,6 +43,19 @@ var _ = Describe("Ask engine caveats of the link-analysis views", func() {
 		Expect(askRowAllNil(nil)).To(BeFalse())
 	})
 
+	It("keeps a question about hours at the same place on the hourly view, and one about minutes on the windows view", func() {
+		cat, err := askGoldenCatalogue()
+		Expect(err).NotTo(HaveOccurred())
+		for _, q := range []string{
+			"How many different hours did 923001110005 and 923001110009 spend at the same cell site together?",
+			"In how many hours were 923001110005 and 923001110009 at the same cell?",
+		} {
+			Expect(cat.Shortlist(q, 0).Views).NotTo(ContainElement("v_colocation_windows"), q)
+			Expect(cat.Shortlist(q, 0).Views).To(ContainElement("v_cell_visits"), q)
+		}
+		Expect(cat.Shortlist("When were 923001110005 and 923001110009 at the same cell site together within 20 minutes of each other?", 0).Views).To(ConsistOf("v_colocation_windows"))
+	})
+
 	It("keeps a meeting question off the hourly view and a minutes question on the windows view", func() {
 		cat, err := askGoldenCatalogue()
 		Expect(err).NotTo(HaveOccurred())
