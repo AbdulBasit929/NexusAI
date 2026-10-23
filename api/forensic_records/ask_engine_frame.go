@@ -483,6 +483,12 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	if f.Cues["night"] && !askSQLMentions(sql, "hour", "::time", "time '") && !(askUsesAnchorView(v) && askSQLMentions(sql, "'night'")) {
 		add("TIME_OF_DAY", "The question is about the night: restrict the hour of day (EXTRACT(HOUR FROM start_utc) BETWEEN 0 AND 5 on the case clock).", "the question is about the night and the query does not restrict the hour")
 	}
+	// The days of silence, the start window and the lowest score of the successor view are set by the application from the question. A query that works out a window of its own from the two
+	// times (found by the first live question that named a silence and a window: the model compared the new number's first event with the old one's last event plus an interval of 10 + 21
+	// days, and the answer was "No row matches" for a pair the view lists) answers a different question than the one asked.
+	if askUsesView(v, "v_successor_candidates") && askSQLMentions(sql, "interval") {
+		add("PARAMETER", "The days of silence, the start window and the lowest score are set by the application from the question: do not compute a window from new_first_event_utc and old_last_event_utc or use an interval; select from v_successor_candidates and filter only on old_number, new_number or the score.", "the query works out a window of its own on the successor view")
+	}
 	if f.Cues["count"] && !askSQLMentions(sql, "count(", "sum(") && !askUsesColumn(v, "events", "incoming", "outgoing") {
 		add("AGGREGATE", "The question asks how many: count the rows (COUNT) or sum the counts of the view.", "the question asks for a count that the query does not compute")
 	}

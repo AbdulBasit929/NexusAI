@@ -168,6 +168,14 @@ var _ = Describe("Ask engine obligations", func() {
 		})
 	}
 
+	It("refuses a window of its own worked out on the successor view, and accepts the plain query", func() {
+		q := "Which numbers started within 21 days after 923000000101 went silent for at least 10 days and may have taken over from it? Show the score of each."
+		own := "SELECT new_number, score FROM v_successor_candidates WHERE old_number = '923000000101' AND new_first_event_utc >= (old_last_event_utc + '10 days'::interval) AND new_first_event_utc <= (old_last_event_utc + '31 days'::interval) ORDER BY score DESC"
+		plain := "SELECT new_number, score FROM v_successor_candidates WHERE old_number = '923000000101' ORDER BY score DESC LIMIT 200"
+		Expect(check(q, own)).To(ContainElement("PARAMETER"))
+		Expect(check(q, plain)).NotTo(ContainElement("PARAMETER"))
+	})
+
 	It("carries a night question of the anchor views by the slot, not by an hour of day", func() {
 		q := "Which cell site was the night anchor of 923000000101 in the week starting 2026-03-09?"
 		night := "SELECT week, week_start, cell_key FROM v_weekly_anchors WHERE number = '923000000101' AND slot = 'night' AND week_start = '2026-03-09' LIMIT 200"
