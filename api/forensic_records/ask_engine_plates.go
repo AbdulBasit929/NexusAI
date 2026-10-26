@@ -172,6 +172,12 @@ func askPlateObligations(f askFrame, texts []string, sql string, add func(kind, 
 	}
 }
 
+// askCountsSightings finds a question that asks how many times a plate was seen (the number of sightings), not how many cameras or plates.
+var askCountsSightings = regexp.MustCompile(`\b(?:how many times|how many sightings|how often|number of (?:times|sightings)|times (?:at|by) each|times each|sightings (?:at|by) each|sightings each)\b`)
+
+// askBareSightings finds the sightings column selected as itself; an alias of that name (count(*) AS sightings) is not the column, and the model's alias is what hid the defect.
+var askBareSightings = regexp.MustCompile(`(?:select|,)\s*(?:distinct\s+)?(?:\w+\.)?sightings\s*(?:,|\bfrom\b)`)
+
 // askPlateConstants find the constants a query compares with the plate column, in the parser's lower-case canonical text.
 var askPlateConstants = []*regexp.Regexp{
 	regexp.MustCompile(`plate_norm\s*(?:=|<>|!=)\s*('[^']*')`),
@@ -243,6 +249,10 @@ func askPlateAbsence(v *askValidated, f askFrame) string {
 		where = " at camera " + cameras[0]
 	} else if len(cameras) > 1 {
 		where = " at cameras " + strings.Join(cameras, ", ")
+	}
+	// "which plates were seen at both camera A and camera B" is a search for plates at several cameras: the sentence says that, not that a camera saw nothing
+	if cameras := askQueryConstants(v.SQL, "camera_id"); who == "" && len(cameras) > 1 && strings.Contains(strings.ToLower(v.SQL), "count(distinct camera_id)") {
+		return "no plate was seen at all of the cameras " + strings.Join(cameras, ", ") + askPeriodPhrase(f)
 	}
 	switch {
 	case who != "":

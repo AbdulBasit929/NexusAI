@@ -121,6 +121,77 @@ var _ = Describe("Ask engine plates", func() {
 		Expect(askProbeColumn("plate_raw")).To(BeFalse())
 	})
 
+	Describe("what the ANPR development check on case 2 found", func() {
+		var cat *askCatalogue
+		BeforeEach(func() {
+			var err error
+			cat, err = askGoldenCatalogue()
+			Expect(err).NotTo(HaveOccurred())
+		})
+		check := func(question, sql string, views ...string) []askObligation {
+			v, rej := askValidate(sql, cat, views)
+			Expect(rej).To(BeNil(), sql)
+			return askCheckFrame(askExtractFrame(question), v)
+		}
+		kinds := func(list []askObligation) []string {
+			out := []string{}
+			for _, o := range list {
+				out = append(out, o.Kind)
+			}
+			return out
+		}
+
+		It("does not let the sightings of a plate at a camera be counted as the rows of v_plate_visits", func() {
+			q := "List the cameras that saw the plate SYNT-1438 with the number of sightings at each."
+			bad := check(q, "SELECT camera_id, camera_label, count(*) AS sightings FROM v_plate_visits WHERE plate_norm = 'SYNT1438' GROUP BY camera_id, camera_label ORDER BY sightings DESC", "v_plate_visits")
+			Expect(kinds(bad)).To(ContainElement("AGGREGATE"))
+			Expect(bad[len(bad)-1].Message).To(ContainSubstring("sightings column"))
+			Expect(check(q, "SELECT camera_id, camera_label, sightings FROM v_plate_visits WHERE plate_norm = 'SYNT1438' ORDER BY sightings DESC LIMIT 200", "v_plate_visits")).To(BeEmpty())
+			Expect(check(q, "SELECT camera_id, sum(sightings) AS n FROM v_plate_visits WHERE plate_norm = 'SYNT1438' GROUP BY camera_id", "v_plate_visits")).To(BeEmpty())
+			// how many cameras saw it is a count of the rows, and stays one
+			Expect(kinds(check("How many cameras saw the plate SYNT-1438?", "SELECT count(*) AS n FROM v_plate_visits WHERE plate_norm = 'SYNT1438'", "v_plate_visits"))).NotTo(ContainElement("AGGREGATE"))
+			Expect(kinds(check("How many plates were seen at camera CAM-01?", "SELECT count(*) AS n FROM v_plate_visits WHERE camera_id = 'CAM-01'", "v_plate_visits"))).NotTo(ContainElement("AGGREGATE"))
+		})
+
+		It("asks for the start of the next day when the question includes its last day, and leaves a bare between alone", func() {
+			q := "Count the sightings of the plate SYNT 5854 from 2026-02-10 through 2026-03-13 (local time)."
+			stops := "SELECT count(*) AS n FROM v_plate_sightings WHERE plate_norm = 'SYNT5854' AND observed_utc >= '2026-02-10 00:00:00+05' AND observed_utc < '2026-03-13 00:00:00+05'"
+			bad := check(q, stops, "v_plate_sightings")
+			Expect(kinds(bad)).To(ConsistOf("DATE_END"))
+			Expect(bad[0].Message).To(ContainSubstring("< '2026-03-14 00:00:00+05'"))
+			covers := "SELECT count(*) AS n FROM v_plate_sightings WHERE plate_norm = 'SYNT5854' AND observed_utc >= '2026-02-10 00:00:00+05' AND observed_utc < '2026-03-14 00:00:00+05'"
+			Expect(check(q, covers, "v_plate_sightings")).To(BeEmpty())
+			// the last day alone, written as the next day, satisfies the date check too
+			only := "SELECT count(*) AS n FROM v_plate_sightings WHERE plate_norm = 'SYNT5854' AND observed_utc >= '2026-02-10 00:00:00+05' AND observed_utc < '2026-03-14 00:00:00+05'"
+			Expect(check("How many times was SYNT 5854 seen between 2026-02-10 and 2026-03-13, both days included?", only, "v_plate_sightings")).To(BeEmpty())
+			Expect(kinds(check("How many times was SYNT 5854 seen between 2026-02-10 and 2026-03-13, both days included?", stops, "v_plate_sightings"))).To(ConsistOf("DATE_END"))
+			// "between D1 and D2" with no word that includes the last day is ambiguous and stays as it was
+			Expect(check("How many times was SYNT 5854 seen between 2026-02-10 and 2026-03-13?", stops, "v_plate_sightings")).To(BeEmpty())
+			Expect(askInclusiveEnd("connected through 923001110001", nil)).To(Equal(""))
+			Expect(askInclusiveEnd("from 2026-02-10 through 2026-03-13", []string{"2026-02-10", "2026-03-13"})).To(Equal("2026-03-13"))
+			Expect(askInclusiveEnd("both days included", []string{"2026-02-10", "2026-03-13"})).To(Equal("2026-03-13"))
+			Expect(askNextDay("2026-02-28")).To(Equal("2026-03-01"))
+		})
+
+		It("reads how often as a count, not a ranking", func() {
+			f := askExtractFrame("How often was SYNT-8572 seen?")
+			Expect(f.Cues["count"]).To(BeTrue())
+			Expect(f.Cues["rank"]).To(BeFalse())
+			Expect(askExtractFrame("Who does 923001110001 contact most often?").Cues["rank"]).To(BeTrue())
+		})
+
+		It("says a search for plates at several cameras as that, not as a camera that saw nothing", func() {
+			f := askExtractFrame("Which plates appear at camera CAM-05 and at camera CAM-10?")
+			both, rej := askValidate("SELECT plate_norm AS label, sum(sightings) AS value FROM v_plate_visits WHERE camera_id IN ('CAM-05', 'CAM-10') GROUP BY plate_norm HAVING count(DISTINCT camera_id) = 2 ORDER BY value DESC", cat, []string{"v_plate_visits"})
+			Expect(rej).To(BeNil())
+			none := &govSQLResult{Columns: []string{"label", "value"}, Texts: []bool{true, false}, Rows: [][]any{}}
+			Expect(askWording(askNoRowSentence, none, both, f, "ranked", "")).To(Equal("No row matches what you asked: no plate was seen at all of the cameras CAM-05, CAM-10."))
+			any, rej := askValidate("SELECT plate_norm FROM v_plate_visits WHERE camera_id IN ('CAM-05', 'CAM-10')", cat, []string{"v_plate_visits"})
+			Expect(rej).To(BeNil())
+			Expect(askWording(askNoRowSentence, none, any, f, "table", "")).To(Equal("No row matches what you asked: no sighting at cameras CAM-05, CAM-10 was found."))
+		})
+	})
+
 	It("says a plate that occurs nowhere as a plate, and leaves the sentence for numbers alone", func() {
 		f := askExtractFrame("Was the plate SYNT-0420 seen?")
 		Expect(askAbsenceOf([]string{"SYNT0420"}, f)).To(Equal("No record of this case holds the plate SYNT-0420 in any camera sighting."))

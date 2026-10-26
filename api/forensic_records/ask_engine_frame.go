@@ -229,9 +229,9 @@ func askExtractFrame(question string) askFrame {
 	f.Cues["night"] = anyWord("night", "overnight", "midnight")
 	// "count" asks for a number of rows; "only count a score of at least 0.9" and "count it as silent after 10 days" use the verb for "take into account" (found by the stage-3b development
 	// check, where the former made the model answer "Count: 1" to "from which silent number may X have taken over").
-	f.Cues["count"] = phrase("how many") || phrase("number of") || anyWord("count", "total") && !anyWord("duration", "minutes", "seconds", "hours") && !askCountAsConsider.MatchString(words2)
+	f.Cues["count"] = phrase("how many") || phrase("how often") || phrase("number of") || anyWord("count", "total") && !anyWord("duration", "minutes", "seconds", "hours") && !askCountAsConsider.MatchString(words2)
 	f.Cues["distinct"] = anyWord("different", "distinct", "unique")
-	f.Cues["rank"] = anyWord("top", "busiest", "highest", "largest", "biggest", "frequently", "often") || anyWord("most") && !phrase("most recent")
+	f.Cues["rank"] = anyWord("top", "busiest", "highest", "largest", "biggest", "frequently") || anyWord("often") && !phrase("how often") || anyWord("most") && !phrase("most recent")
 	// "first" and "last" ask for one earliest or latest value only when they qualify an event ("the first call", "when was the last message"); "the first week of March"
 	// is a period. "earliest", "oldest", "latest", "newest" and "most recent" always do.
 	followed := func(word string) bool {
@@ -436,14 +436,23 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 		}
 	}
 
-	// 2. Every date, month and year of the question is in the query.
+	// 2. Every date, month and year of the question is in the query. A last day that the question says is included may be bounded by the start of the next day.
+	inclusiveEnd := askInclusiveEnd(strings.ToLower(f.Question), f.Dates)
 	for _, d := range f.Dates {
-		found := false
-		for _, t := range texts {
-			found = found || strings.HasPrefix(strings.TrimSpace(t), d)
-		}
-		if !found {
+		if !askDateConstant(texts, d, d == inclusiveEnd) {
 			add("DATE", fmt.Sprintf("The question names the date %s but the query does not compare against it.", d), "the question names a date that the query does not apply")
+		}
+	}
+	if inclusiveEnd != "" {
+		// found by the ANPR development check on case 2: "from 2026-02-10 through 2026-03-13" was bounded by observed_utc < '2026-03-13 00:00:00+05', which leaves the 13th out
+		next := askNextDay(inclusiveEnd)
+		bounded := false
+		for _, t := range texts {
+			t = strings.TrimSpace(t)
+			bounded = bounded || (next != "" && strings.HasPrefix(t, next)) || strings.HasPrefix(t, inclusiveEnd+" 23:59") || strings.HasPrefix(t, inclusiveEnd+"T23:59")
+		}
+		if !bounded && next != "" {
+			add("DATE_END", fmt.Sprintf("The question includes the whole of %[1]s (the range runs through the end of that day, local time): the upper bound is the start of the next day, < '%[2]s 00:00:00+05', not %[1]s itself.", inclusiveEnd, next), "the question includes its last day and the query stops before it")
 		}
 	}
 	for _, m := range f.Months {
@@ -548,7 +557,12 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 			add("PAIR_DIRECTION", fmt.Sprintf("The events of %[1]s with %[2]s and of %[2]s with %[1]s are the same events: a call between two subscribers is in both of their records at the same time. Count them once: SELECT COUNT(DISTINCT start_utc) ... WHERE src IN ('%[1]s', '%[2]s') AND dst IN ('%[1]s', '%[2]s') AND (the dates or any other condition), not COUNT(*). Write the pair as two IN lists joined by AND, so that every other condition applies to both directions.", a, b), "the query counts the events of the two numbers in both directions, which counts every call between two subscribers twice")
 		}
 	}
-	if f.Cues["count"] && !askSQLMentions(sql, "count(", "sum(") && !askUsesColumn(v, "events", "incoming", "outgoing") {
+	// A row of v_plate_visits is one plate at one camera, not one sighting: "how many times was it seen at each camera" is its sightings column. A count of its rows said 1 for a plate seen
+	// five times at a camera (found by the ANPR development check on case 2).
+	if askUsesView(v, "v_plate_visits") && !askUsesView(v, "v_plate_sightings") && askCountsSightings.MatchString(strings.ToLower(f.Question)) && askSQLMentions(sql, "count(") && !askSQLMentions(sql, "sum(") && !askBareSightings.MatchString(sql) {
+		add("AGGREGATE", "A row of v_plate_visits is one plate at one camera, not one sighting: the number of sightings is its sightings column. SELECT sightings (or SUM(sightings) when you group); do not COUNT its rows.", "the question counts sightings and the query counts the plate-camera pairs")
+	}
+	if f.Cues["count"] && !askSQLMentions(sql, "count(", "sum(") && !askUsesColumn(v, "events", "incoming", "outgoing", "sightings") {
 		add("AGGREGATE", "The question asks how many: count the rows (COUNT) or sum the counts of the view.", "the question asks for a count that the query does not compute")
 	}
 	if f.Cues["distinct"] && !askSQLMentions(sql, "distinct") && !askSQLMentions(sql, "group by") {
