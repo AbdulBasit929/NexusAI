@@ -32,6 +32,7 @@ from ingestion.forensic_records.layout_registry.matching import find_header_row
 from ingestion.forensic_records.layout_registry.parties import classify_party, device_identifier, make_cell_key, normalize_plate, plate_script
 from ingestion.forensic_records.layout_registry.registry import LAYOUT_DIR, LayoutRegistryError
 from ingestion.forensic_records.layout_registry.timeparse import excel_serial_to_datetime, parse_time, to_utc
+from ingestion.forensic_records.tests.plate_tokens import PLATE_TOKENS
 
 REPO = Path(__file__).resolve().parents[3]
 TOOLS = REPO / "tools" / "real_data"
@@ -272,17 +273,6 @@ class PartyTests(unittest.TestCase):
                 self.assertEqual(make_cell_key(*args), expected)
 
 
-# The tokens both normalisers are run on: this list is also run through forensic.normalize_plate (migration 012) on a throwaway database by tools/case_generator/test_plate_normalisation.py.
-PLATE_TOKENS = [
-    "LEA-1234", "lea-1234", "LEA 1234", " lea  1234 ", "LEA.1234", "LEA_1234", "LEA/1234", "LEA1234", "ABC-123", "abc 123", "AB 12 3456", "A-B-C 1 2 3",
-    "SYNT-0001", "synt 0001", "SYNT–0001", "SYNT—1", "SYNT−1", "SYNT·0001", "SYNT•0001", "SYNT‐0001", "SYNT‑0001", "SYNT‒0001", "SYNT―0001",
-    "SYNT-٠٠٠١", "SYNT-۰۰۰۲", "ابج-١٢٣", "ابج ۱۲۳", "ا ب ج 1 2 3",
-    "ＡＢＣ-１２３", "ＡＢＣ　１２３", "ABC 123", "ABC\t123", "ABC\n123", "ABC--123", "ABC - 123", "A.B.C-1.2.3",
-    "AB0-O1", "ab0-o1", "AB0-01", "AB1-I1", "O0O0", "0O0O", "L1", "l1", "12345", "ABCDE", "abcde", "٠١", "-", ".", " ", "", "ABC­123", "①②", "ﬁx-12", "ÉCOLE-12",
-    "اب-AB-12", "LEA-1234 ", "  SYNT-9999", "SYNT-0000", "xyz-9", "XYZ-90", "QQ-77",
-]
-
-
 class PlateTests(unittest.TestCase):
     def test_a_plate_is_normalised_to_its_search_key_and_the_raw_token_is_not_the_key(self):
         cases = {
@@ -298,6 +288,12 @@ class PlateTests(unittest.TestCase):
         for a, b in (("AB0-01", "AB0-O1"), ("AB1-I1", "AB1-11"), ("L1", "LI"), ("SYNT-0001", "SYNT-0010"), ("LEA-1234", "LEB-1234")):
             self.assertNotEqual(normalize_plate(a), normalize_plate(b), (a, b))
         self.assertGreater(len({normalize_plate(t) for t in PLATE_TOKENS}), 20)
+
+    def test_the_shared_fixture_holds_the_tokens_and_their_keys(self):
+        # api/forensic_records/ask_engine_plates_ginkgo_test.go reads this file: the Go normaliser must give these keys too
+        data = json.loads(Path(__file__).with_name("plate_tokens.json").read_text(encoding="utf-8"))
+        self.assertEqual([d["token"] for d in data], PLATE_TOKENS)
+        self.assertEqual([d["key"] for d in data], [normalize_plate(t) for t in PLATE_TOKENS])
 
     def test_the_script_of_a_plate(self):
         self.assertEqual([plate_script(x) for x in ("LEA-1234", "ＡＢＣ-１", "ابج-123", "اب-AB-12", "12-34", "", None, "ЖЖ-12")],

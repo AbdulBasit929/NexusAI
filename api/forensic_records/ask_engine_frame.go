@@ -36,13 +36,16 @@ type askFrame struct {
 	IMEIs    []string
 	IPs      []string
 	Cells    []string
-	Dates    []string // ISO yyyy-mm-dd
-	Months   []askMonth
-	Years    []int
-	Limit    int // the N of "top five", "first 10"; 0 when none
-	Hops     int
-	Cues     map[string]bool
-	Relative string // the relative time words found ("last week"), which a query cannot resolve without a reference day
+	// Plates are the search keys of the plates the question names (askNormalizePlate), PlateWritten how the question wrote each (ask_engine_plates.go).
+	Plates       []string
+	PlateWritten map[string]string
+	Dates        []string // ISO yyyy-mm-dd
+	Months       []askMonth
+	Years        []int
+	Limit        int // the N of "top five", "first 10"; 0 when none
+	Hops         int
+	Cues         map[string]bool
+	Relative     string // the relative time words found ("last week"), which a query cannot resolve without a reference day
 	// Params is what the question says about each runtime parameter (ask_engine_params.go); ParamUses is what will be used for the query, set by the run.
 	Params    map[string]askParamRead
 	ParamUses []askParamUse
@@ -58,7 +61,8 @@ func (f askFrame) Identifiers() []string {
 	out := append([]string{}, f.Numbers...)
 	out = append(out, f.IMEIs...)
 	out = append(out, f.IPs...)
-	return append(out, f.Cells...)
+	out = append(out, f.Cells...)
+	return append(out, f.Plates...)
 }
 
 var (
@@ -147,6 +151,7 @@ func askExtractFrame(question string) askFrame {
 	})
 	text = askFrameIntl.ReplaceAllStringFunc(text, func(s string) string { c := askCanonicalNumber(s); f.Numbers = append(f.Numbers, c); return hold(c) })
 	text = askFrameBare.ReplaceAllStringFunc(text, func(s string) string { c := askCanonicalNumber(s); f.Numbers = append(f.Numbers, c); return hold(c) })
+	text, f.Plates, f.PlateWritten = askFindPlates(text, hold)
 	f.Numbers, f.IMEIs, f.IPs, f.Cells, f.Dates = askUnique(f.Numbers), askUnique(f.IMEIs), askUnique(f.IPs), askUnique(f.Cells), askUnique(f.Dates)
 
 	// The words, read from the text with the identifiers held back.
@@ -406,10 +411,14 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 
 	// 1. Every identifier the question names is in the query, and the query names none the question did not.
 	for _, id := range f.Identifiers() {
+		if _, plate := f.PlateWritten[id]; plate {
+			continue // a plate is compared as its search key, which askPlateObligations says
+		}
 		if !has(id) {
 			add("IDENTIFIER", fmt.Sprintf("The question names %s but the query does not use it as a text constant. Compare against it exactly as written.", id), "the question names an identifier that the query does not use")
 		}
 	}
+	askPlateObligations(f, texts, sql, add)
 	asked := map[string]bool{}
 	for _, id := range f.Identifiers() {
 		asked[strings.TrimPrefix(id, "+")] = true

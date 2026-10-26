@@ -41,7 +41,7 @@ MIGRATIONS = ["001_phase1_records.sql", "002_job_row_counters.sql", "003_phase2_
               "011_r5_custody_chain_tail.sql", "runtime_role.grants.sql", "012_typed_families.sql", "013_reference_tables.sql",
               "014_entity_relationship_layer.sql", "015_vectors_and_earth.sql", "016_effective_records.sql"]
 TENANT = "case"
-TABLE_OF = {"call": "comm_event", "session": "data_session", "usage": "app_usage"}
+TABLE_OF = {"call": "comm_event", "session": "data_session", "usage": "app_usage", "plate": "plate_sighting"}
 NOT_DUPLICATE = "NOT ('duplicate_row' = ANY(quality_flags))"
 LOCAL = "'YYYY-MM-DD HH24:MI:SS'"
 
@@ -152,7 +152,7 @@ def export_list(key):
     """Every export of a case as (key entry, family, name): the target call records, the tower dumps, the data sessions, the address queries and the app usage."""
     return ([(item, "call", item["person"]) for item in key["subjects"]] + [(item, "call", item["name"]) for item in key["dumps"]] +
             [(item, "session", item["name"]) for item in key["sessions"]] + [(item, "session", item["name"]) for item in key["ip_queries"]] +
-            [(item, "usage", item["name"]) for item in key["app_usage"]])
+            [(item, "usage", item["name"]) for item in key["app_usage"]] + ([(key["anpr"], "plate", "anpr")] if key.get("anpr") else []))
 
 
 def lineage_ids(case_id, rel):

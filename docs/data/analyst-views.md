@@ -20,6 +20,8 @@ The Ask engine lets the language model write SQL for every data family and for l
 | `analyst.v_device_pairings` | a number with a SIM and a handset, first and last seen | the grouping for device and SIM changes |
 | `analyst.v_data_sessions` | an internet session; `holds_from` and `holds_to` are the interval in which the public address and port block belonged to the subscriber | the address-translation interval rule |
 | `analyst.v_app_usage` | an application usage record | the table choice |
+| `analyst.v_plate_sightings` (migration 027, draft) | a sighting of a plate by a camera of a camera export (`source_kind` csv; repeats and rejected rows left out); compare `plate_norm`, the search key, never `plate_raw` | the choice of the table, the plate normalisation, the exclusions |
+| `analyst.v_plate_visits` (migration 027, draft) | a plate and a camera: how many times, first and last, the camera's name and position | the grouping for "which cameras saw it" and "which plates were seen at both of two cameras" |
 
 Every view and every column has a description (`COMMENT`); the schema catalogue of roadmap 6.8.3 is generated from them, and `verify.sql` fails if one is missing. Withheld on purpose: raw payloads, URLs, user agents, record hashes. Hub numbers (in contact with more than `app.hub_threshold` distinct subscribers, 20 when unset) are flagged `is_hub`; short codes, sender names and any non-person-like party are `is_service`; a sentinel such as `-1` is not a counterparty (`dst` is null).
 

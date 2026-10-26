@@ -225,6 +225,9 @@ func askUserPrompt(f askFrame) string {
 	if ids := f.Identifiers(); len(ids) > 0 {
 		hints = append(hints, "Use these exactly, as text constants, and no other numbers: "+strings.Join(ids, ", ")+".")
 	}
+	if len(f.Plates) > 0 {
+		hints = append(hints, "Plates: compare plate_norm with "+strings.Join(f.Plates, ", ")+" exactly (the plate in capitals, no separators), never plate_raw; a plate that looks alike (O for 0) is another plate.")
+	}
 	if len(f.Dates) > 0 {
 		hints = append(hints, "Dates: "+strings.Join(f.Dates, ", ")+".")
 	}
@@ -671,7 +674,7 @@ func askReadEmpty(ctx context.Context, db *pgxpool.Pool, req hybridQueryRequest,
 		}
 	}
 	if len(absent) == len(ids) {
-		return askEmptyVerdict{absence: "No record of this case holds " + strings.Join(absent, ", ") + " in any number, device, SIM, address or cell column."}, nil
+		return askEmptyVerdict{absence: askAbsenceOf(absent, f)}, nil
 	}
 	return askEmptyVerdict{}, nil
 }

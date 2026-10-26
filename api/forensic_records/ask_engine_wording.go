@@ -169,6 +169,8 @@ func askAbsenceSentence(v *askValidated, f askFrame) string {
 	case askReadsView(v, "v_rhythm_changes"):
 		times := strconv.FormatFloat(float64(askParamValue(f, "rhythm_ratio_percent"))/100, 'f', -1, 64)
 		body = fmt.Sprintf("no split of the daily count of events%s has |t| of 5 or more with a larger daily mean at least %s times the smaller and at least %d days on each side", askOf(f), times, askParamValue(f, "rhythm_min_side_days"))
+	case askReadsView(v, "v_plate_sightings"), askReadsView(v, "v_plate_visits"):
+		body = askPlateAbsence(v, f)
 	case askReadsView(v, "v_cell_visits"):
 		who := "any number"
 		if len(f.Numbers) > 0 {
@@ -320,6 +322,25 @@ func askVisitSentence(r *govSQLResult, v *askValidated, shape string) string {
 	return head + askTruncatedNote(r) + "."
 }
 
+// askPlateSentence is the headline of rows that are sightings of plates: how many, of which plate when the question names one, at how many cameras.
+func askPlateSentence(r *govSQLResult, v *askValidated, f askFrame) string {
+	if !askReadsView(v, "v_plate_sightings") || len(r.Rows) == 0 || askColumnIndex(r, "observed_utc") < 0 {
+		return ""
+	}
+	head := askCount(len(r.Rows), "sighting", "sightings")
+	if len(f.Plates) == 1 {
+		head += " of the plate " + f.PlateWritten[f.Plates[0]]
+	}
+	if c := askColumnIndex(r, "camera_id"); c >= 0 {
+		cameras := map[string]bool{}
+		for _, row := range r.Rows {
+			cameras[fmt.Sprint(row[c])] = true
+		}
+		head += " at " + askCount(len(cameras), "camera", "cameras")
+	}
+	return head + askTruncatedNote(r) + "."
+}
+
 // askPremiseCue finds a question that states a conclusion; askMeetingCue the questions about a meeting or an association.
 var (
 	askPremiseCue = regexp.MustCompile(`\b(?:prove[sd]?|proof|proving|same person|knows? each other|know one another|definitely|certainly|obviously|surely|confirm(?:s|ed)? (?:that|they|he|she|it|this))\b`)
@@ -351,6 +372,10 @@ func askPremiseLead(v *askValidated, f askFrame) string {
 		if stated {
 			return "A change in the daily count does not say why it changed."
 		}
+	case askReadsView(v, "v_plate_sightings"), askReadsView(v, "v_plate_visits"):
+		if stated {
+			return "A camera sighting does not show who was driving, only that a camera read the plate."
+		}
 	}
 	return ""
 }
@@ -373,6 +398,8 @@ func askWording(headline string, r *govSQLResult, v *askValidated, f askFrame, s
 		} else if s := askMoveSentence(r, v, f, askTruncatedNote(r)); s != "" {
 			headline = s
 		} else if s := askVisitSentence(r, v, shape); s != "" {
+			headline = s
+		} else if s := askPlateSentence(r, v, f); s != "" {
 			headline = s
 		} else if askReadsView(v, "v_successor_candidates") {
 			headline = "Candidates, not proof. " + headline

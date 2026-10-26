@@ -129,6 +129,8 @@ var askLexicon = map[string][]string{
 	"v_device_pairings":      {"handset", "imei", "imsi", "sim", "device", "swap", "swapped", "change", "new", "model", "phone", "card"},
 	"v_data_sessions": {"ip", "address", "port", "internet", "session", "browse", "website", "domain", "host", "server", "download", "upload", "byte", "traffic",
 		"nat", "held", "public", "data", "web", "subscriber"},
+	"v_plate_sightings": {"plate", "vehicle", "car", "registration", "anpr", "camera", "sight", "sighting", "seen", "licence", "license", "lane"},
+	"v_plate_visits":    {"plate", "vehicle", "car", "camera", "both", "visited", "anpr", "registration"},
 	"v_app_usage": {"app", "application", "whatsapp", "facebook", "tiktok", "youtube", "social", "usage", "feature", "province", "city", "networking",
 		"lahore", "karachi", "peshawar", "quetta", "islamabad"},
 }

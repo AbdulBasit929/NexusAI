@@ -79,6 +79,7 @@ Header cells are normalised exactly as the worker does (`normalize_header`, kept
 | I3 | `ipdr-i3-ufone-xls` | ipdr | spreadsheetml | 18 | ufone | source-time-zone, protocol-codes, cell-columns, src-dst |
 | I4 | `ipdr-i4-zong-txt` | ipdr | tsv, xlsx | 27 | zong | source-time-zone, metadata-lines, rat-codes |
 | A1 | `appusage-a1` | app_usage | xlsx | 12 | - | source-time-zone, operator, province-city |
+| P1 | `anpr-a1` | plate_sighting | csv, xlsx | 9 | - | real-sample (designed, not read from a real file), source-time-zone, confidence-scale, direction |
 
 Every entry shares one open item: **the source time zone.** No file states one, so the job decides (and records how). The header list is no longer open (section 7a); the day-or-month order of slash dates is settled for the four layouts that use them (C2 and C8 month first, C7 and I4 day first).
 

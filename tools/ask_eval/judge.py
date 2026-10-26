@@ -18,11 +18,13 @@ import argparse
 import collections
 import datetime
 import json
+import os
 import re
 import statistics
 import sys
 
 DIGITS = re.compile(r"^\d{3,}$")
+PLATE_KEY = re.compile(r"^SYNT[0-9OI]{4}$")   # a plate of the synthetic series (tools/real_data/reserved.py) in its search key; the O and the I are the look-alikes the generator plants
 
 
 def text_values(rows):
@@ -51,6 +53,18 @@ def numbers(rows):
             elif isinstance(v, str) and re.fullmatch(r"-?\d+(?:\.\d+)?", v) and len(v) < 10:
                 out.append(float(v))
     return out
+
+
+def plate_keys(rows):
+    """The plates the rows hold, each as its search key (a plate as the camera wrote it is read as its key; a text that is not a plate of the synthetic series is not one)."""
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+    from ingestion.forensic_records.layout_registry.parties import normalize_plate
+    keys = set()
+    for row in rows:
+        for value in row.values():
+            if isinstance(value, str) and PLATE_KEY.match(normalize_plate(value)):
+                keys.add(normalize_plate(value))
+    return keys
 
 
 def first_text_column(rows):
@@ -242,6 +256,11 @@ def judge(question, result):
         return judge_windows(expect, rows, answer)
     if kind == "tuples":
         return judge_tuples(expect, rows, answer)
+    if kind == "plates":
+        # the plates seen (a set: a plate seen twice is one plate). Nothing expected: no rows and the plain "no row matches" statement, never "no record of this case".
+        if not expect["values"]:
+            return "correct" if not rows and "no row matches" in answer and "no record" not in answer else "wrong"
+        return "correct" if plate_keys(rows) == set(expect["values"]) else "wrong"
     if kind == "set":
         return "correct" if identifiers(rows, skip=("imsi",)) == set(expect["values"]) else "wrong"
     if kind == "ordered":

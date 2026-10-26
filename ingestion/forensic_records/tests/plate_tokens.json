@@ -1,0 +1,254 @@
+[
+ {
+  "token": "LEA-1234",
+  "key": "LEA1234"
+ },
+ {
+  "token": "lea-1234",
+  "key": "LEA1234"
+ },
+ {
+  "token": "LEA 1234",
+  "key": "LEA1234"
+ },
+ {
+  "token": " lea  1234 ",
+  "key": "LEA1234"
+ },
+ {
+  "token": "LEA.1234",
+  "key": "LEA1234"
+ },
+ {
+  "token": "LEA_1234",
+  "key": "LEA1234"
+ },
+ {
+  "token": "LEA/1234",
+  "key": "LEA1234"
+ },
+ {
+  "token": "LEA1234",
+  "key": "LEA1234"
+ },
+ {
+  "token": "ABC-123",
+  "key": "ABC123"
+ },
+ {
+  "token": "abc 123",
+  "key": "ABC123"
+ },
+ {
+  "token": "AB 12 3456",
+  "key": "AB123456"
+ },
+ {
+  "token": "A-B-C 1 2 3",
+  "key": "ABC123"
+ },
+ {
+  "token": "SYNT-0001",
+  "key": "SYNT0001"
+ },
+ {
+  "token": "synt 0001",
+  "key": "SYNT0001"
+ },
+ {
+  "token": "SYNT\u20130001",
+  "key": "SYNT0001"
+ },
+ {
+  "token": "SYNT\u20141",
+  "key": "SYNT1"
+ },
+ {
+  "token": "SYNT\u22121",
+  "key": "SYNT1"
+ },
+ {
+  "token": "SYNT\u00b70001",
+  "key": "SYNT0001"
+ },
+ {
+  "token": "SYNT\u20220001",
+  "key": "SYNT0001"
+ },
+ {
+  "token": "SYNT\u20100001",
+  "key": "SYNT0001"
+ },
+ {
+  "token": "SYNT\u20110001",
+  "key": "SYNT0001"
+ },
+ {
+  "token": "SYNT\u20120001",
+  "key": "SYNT0001"
+ },
+ {
+  "token": "SYNT\u20150001",
+  "key": "SYNT0001"
+ },
+ {
+  "token": "SYNT-\u0660\u0660\u0660\u0661",
+  "key": "SYNT0001"
+ },
+ {
+  "token": "SYNT-\u06f0\u06f0\u06f0\u06f2",
+  "key": "SYNT0002"
+ },
+ {
+  "token": "\u0627\u0628\u062c-\u0661\u0662\u0663",
+  "key": "\u0627\u0628\u062c123"
+ },
+ {
+  "token": "\u0627\u0628\u062c \u06f1\u06f2\u06f3",
+  "key": "\u0627\u0628\u062c123"
+ },
+ {
+  "token": "\u0627 \u0628 \u062c 1 2 3",
+  "key": "\u0627\u0628\u062c123"
+ },
+ {
+  "token": "\uff21\uff22\uff23-\uff11\uff12\uff13",
+  "key": "ABC123"
+ },
+ {
+  "token": "\uff21\uff22\uff23\u3000\uff11\uff12\uff13",
+  "key": "ABC123"
+ },
+ {
+  "token": "ABC\u00a0123",
+  "key": "ABC123"
+ },
+ {
+  "token": "ABC\t123",
+  "key": "ABC123"
+ },
+ {
+  "token": "ABC\n123",
+  "key": "ABC123"
+ },
+ {
+  "token": "ABC--123",
+  "key": "ABC123"
+ },
+ {
+  "token": "ABC - 123",
+  "key": "ABC123"
+ },
+ {
+  "token": "A.B.C-1.2.3",
+  "key": "ABC123"
+ },
+ {
+  "token": "AB0-O1",
+  "key": "AB0O1"
+ },
+ {
+  "token": "ab0-o1",
+  "key": "AB0O1"
+ },
+ {
+  "token": "AB0-01",
+  "key": "AB001"
+ },
+ {
+  "token": "AB1-I1",
+  "key": "AB1I1"
+ },
+ {
+  "token": "O0O0",
+  "key": "O0O0"
+ },
+ {
+  "token": "0O0O",
+  "key": "0O0O"
+ },
+ {
+  "token": "L1",
+  "key": "L1"
+ },
+ {
+  "token": "l1",
+  "key": "L1"
+ },
+ {
+  "token": "12345",
+  "key": "12345"
+ },
+ {
+  "token": "ABCDE",
+  "key": "ABCDE"
+ },
+ {
+  "token": "abcde",
+  "key": "ABCDE"
+ },
+ {
+  "token": "\u0660\u0661",
+  "key": "01"
+ },
+ {
+  "token": "-",
+  "key": ""
+ },
+ {
+  "token": ".",
+  "key": ""
+ },
+ {
+  "token": " ",
+  "key": ""
+ },
+ {
+  "token": "",
+  "key": ""
+ },
+ {
+  "token": "ABC\u00ad123",
+  "key": "ABC\u00ad123"
+ },
+ {
+  "token": "\u2460\u2461",
+  "key": "12"
+ },
+ {
+  "token": "\ufb01x-12",
+  "key": "FIX12"
+ },
+ {
+  "token": "\u00c9COLE-12",
+  "key": "\u00c9COLE12"
+ },
+ {
+  "token": "\u0627\u0628-AB-12",
+  "key": "\u0627\u0628AB12"
+ },
+ {
+  "token": "LEA-1234 ",
+  "key": "LEA1234"
+ },
+ {
+  "token": "  SYNT-9999",
+  "key": "SYNT9999"
+ },
+ {
+  "token": "SYNT-0000",
+  "key": "SYNT0000"
+ },
+ {
+  "token": "xyz-9",
+  "key": "XYZ9"
+ },
+ {
+  "token": "XYZ-90",
+  "key": "XYZ90"
+ },
+ {
+  "token": "QQ-77",
+  "key": "QQ77"
+ }
+]

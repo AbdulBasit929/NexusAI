@@ -46,6 +46,7 @@ def main(argv):
         db.psql("-f", "/tmp/mig/024_colocation_and_meetings.sql")
         db.psql("-f", "/tmp/mig/025_successor_candidates.sql")
         db.psql("-f", "/tmp/mig/026_movement_and_rhythm.sql")
+        db.psql("-f", "/tmp/mig/027_plate_sightings.sql")
         runtime_password = uuid.uuid4().hex
         db.psql("-c", "ALTER ROLE forensic_runtime PASSWORD '%s'" % runtime_password)
         db.psql("-c", "CREATE TABLE public.nx_throwaway_marker (id int)")

@@ -78,5 +78,13 @@
   {"q": "Did the activity of 923001110001 change, and when did the rhythm change?", "views": ["v_rhythm_changes"], "example": "rhythm-change"},
   {"q": "Where did 923001110001 sleep in the week starting 2026-03-16?", "views": ["v_weekly_anchors"], "example": "anchor-week"},
   {"q": "Did the calls of 923001110001 drop for good, and from which day?", "views": ["v_rhythm_changes"], "example": "rhythm-change"},
-  {"q": "Did 923001110001 switch to 923001110002?", "views": ["v_successor_candidates"], "example": "successor-candidates"}
+  {"q": "Did 923001110001 switch to 923001110002?", "views": ["v_successor_candidates"], "example": "successor-candidates"},
+  {"q": "How many times was the plate SYNT-0420 seen?", "views": ["v_plate_sightings"], "example": "plate-count"},
+  {"q": "Where and when was the plate SYNT-0420 seen? Show the cameras and the times.", "views": ["v_plate_sightings"], "example": "plate-where-when"},
+  {"q": "Which cameras saw the plate SYNT-0420, and how many times each?", "views": ["v_plate_visits"], "example": "plate-cameras"},
+  {"q": "Which plates were seen at both camera CAM-01 and camera CAM-02?", "views": ["v_plate_visits"], "example": "plates-at-both-cameras"},
+  {"q": "Which plates were seen at camera CAM-01 on 2026-03-05?", "views": ["v_plate_sightings"], "example": "camera-day"},
+  {"q": "Was the vehicle LEA-1234 ever seen by a camera?", "views": ["v_plate_sightings"]},
+  {"q": "How often was SYNT 0420 seen between 2026-03-01 and 2026-03-09?", "views": ["v_plate_sightings"]},
+  {"q": "List the sightings of the car with registration ABC-123", "views": ["v_plate_sightings"]}
 ]

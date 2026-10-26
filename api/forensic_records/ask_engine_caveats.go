@@ -8,6 +8,9 @@ package main
 const askAnchorCaveat = "Cell sites, not positions of a person: an anchor is the cell site with most events of a slot in a week, a coverage area, and a move or a trip is a change of that site. " +
 	"Weeks are blocks of 7 days from the start of the case; the night is 22:00 to 07:00 and the day 09:00 to 17:00 on weekdays, on the case clock."
 
+// askPlateCaveat is the caveat of the camera views: a sighting is a camera's reading, not a finding about a driver, and a look-alike plate is another plate.
+const askPlateCaveat = "A camera sighting says that a camera read this plate at this time, not who drove; a camera can misread a plate. A plate is matched exactly as its search key (capitals, no separators): a plate that looks alike, an O for a 0, is another plate and is not counted. The position is the camera's, not the vehicle's."
+
 var askViewCaveatText = map[string]string{
 	// A5: co-location within the stated window
 	"v_colocation_windows": "Proximity is not association: two numbers at the same cell site within the stated window of each other were in the same coverage area, which is not evidence that they met or know each other. " +
@@ -27,6 +30,9 @@ var askViewCaveatText = map[string]string{
 	"v_rhythm_changes": "A change in the pattern of use, not an explanation: the daily count of events changed, and the records do not say why. A short series can show a change by chance; a change is listed only when |t| of Welch's test is at least 5.",
 	// where a number was: a cell visit is a coverage area (the probe "Where was X on that Tuesday at nine?" of stage 3c is answered from it)
 	"v_cell_visits": "Cell sites, not positions of a person: a cell visit says which coverage area a phone used at that time, not where its holder was.",
+	// camera sightings of plates (ANPR)
+	"v_plate_sightings": askPlateCaveat,
+	"v_plate_visits":    askPlateCaveat,
 	// A7: possible meetings
 	"v_meeting_candidates": "A candidate, not a finding: proximity and contact are not proof of a meeting. " +
 		"The score is a documented formula (half from the number of co-located pairs, half from how short the gap to the last contact is), not a probability.",

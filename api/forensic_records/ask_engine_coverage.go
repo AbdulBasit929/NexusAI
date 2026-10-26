@@ -26,6 +26,8 @@ type askCoverage struct {
 	Files, Typed        int
 	AnyComm, AnySession bool
 	AnyUsage            bool
+	// AnyPlate is whether the case holds typed plate sightings of camera exports (forensic.plate_sighting, source_kind csv).
+	AnyPlate bool
 	// AnyVolume is whether any typed internet record states a byte count in a direction. An export that gives one undirected volume keeps it in the raw row (the entry does not
 	// guess a direction), so the view has nothing to add up for it (found 2026-10-20 on the multimodal case: a sum of the volume answered "no value").
 	AnyVolume bool
@@ -117,11 +119,13 @@ SELECT
   count(*) FILTER (WHERE e.modality = 'structured_records' AND e.detected_type IN ('cdr', 'ipdr') AND (
     EXISTS (SELECT 1 FROM forensic.comm_event c WHERE c.tenant_id = e.tenant_id AND c.evidence_id = e.evidence_id)
     OR EXISTS (SELECT 1 FROM forensic.data_session s WHERE s.tenant_id = e.tenant_id AND s.evidence_id = e.evidence_id)
-    OR EXISTS (SELECT 1 FROM forensic.app_usage u WHERE u.tenant_id = e.tenant_id AND u.evidence_id = e.evidence_id))),
+    OR EXISTS (SELECT 1 FROM forensic.app_usage u WHERE u.tenant_id = e.tenant_id AND u.evidence_id = e.evidence_id)
+    OR EXISTS (SELECT 1 FROM forensic.plate_sighting p WHERE p.tenant_id = e.tenant_id AND p.evidence_id = e.evidence_id))),
   EXISTS (SELECT 1 FROM forensic.comm_event c WHERE c.tenant_id = $1 AND c.collection_id = $2 AND c.dataset_kind = 'target_cdr' AND NOT ('duplicate_row' = ANY (c.quality_flags))),
   EXISTS (SELECT 1 FROM forensic.data_session s WHERE s.tenant_id = $1 AND s.collection_id = $2),
   EXISTS (SELECT 1 FROM forensic.app_usage u WHERE u.tenant_id = $1 AND u.collection_id = $2),
-  EXISTS (SELECT 1 FROM forensic.data_session s WHERE s.tenant_id = $1 AND s.collection_id = $2 AND (s.bytes_up IS NOT NULL OR s.bytes_down IS NOT NULL))
+  EXISTS (SELECT 1 FROM forensic.data_session s WHERE s.tenant_id = $1 AND s.collection_id = $2 AND (s.bytes_up IS NOT NULL OR s.bytes_down IS NOT NULL)),
+  EXISTS (SELECT 1 FROM forensic.plate_sighting p WHERE p.tenant_id = $1 AND p.collection_id = $2 AND p.source_kind = 'csv' AND NOT ('duplicate_row' = ANY (p.quality_flags)))
 FROM forensic.evidence_items e
 WHERE e.tenant_id = $1 AND e.collection_id = $2 AND coalesce(e.processing_status, '') <> 'failed'`
 
@@ -136,7 +140,7 @@ var askCoverageRead = func(ctx context.Context, db *pgxpool.Pool, tenantID, coll
 	if _, err := tx.Exec(ctx, "SELECT set_config('app.tenant_id', $1, true)", tenantID); err != nil {
 		return c, err
 	}
-	if err = tx.QueryRow(ctx, askCoverageQuery, tenantID, collectionID).Scan(&c.Files, &c.Typed, &c.AnyComm, &c.AnySession, &c.AnyUsage, &c.AnyVolume); err != nil {
+	if err = tx.QueryRow(ctx, askCoverageQuery, tenantID, collectionID).Scan(&c.Files, &c.Typed, &c.AnyComm, &c.AnySession, &c.AnyUsage, &c.AnyVolume, &c.AnyPlate); err != nil {
 		return c, err
 	}
 	err = askReadPopulation(ctx, tx, tenantID, collectionID, &c)
@@ -213,6 +217,10 @@ func askCoverageGap(c askCoverage, views []string) string {
 		case "v_app_usage":
 			if !c.AnyUsage {
 				return "the case has no typed application-usage records"
+			}
+		case "v_plate_sightings", "v_plate_visits":
+			if !c.AnyPlate {
+				return "the case has no typed camera sightings of plates"
 			}
 		}
 	}

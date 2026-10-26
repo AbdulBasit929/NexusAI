@@ -292,7 +292,8 @@ def build_case(params, registry=None):
     return world, renders, key
 
 
-def write_case(params, out_dir, registry=None):
+def write_case(params, out_dir, registry=None, with_anpr=False):
+    """Write a case. with_anpr adds one camera export of plate sightings (anpr_case.py, its own random stream; the default build and every hash of the register are unchanged)."""
     world, renders, key = build_case(params, registry)
     root = os.path.join(out_dir, "case-%d" % params.seed)
     if os.path.isdir(root):
@@ -307,6 +308,13 @@ def write_case(params, out_dir, registry=None):
         rendered = renders[entry["name"]]
         path = rendered.write(os.path.join(root, "files"), "%s-%s" % (entry["name"], rendered.layout_id))
         entry["file"] = "files/" + os.path.basename(path)
+    if with_anpr:
+        import anpr_case
+        built = anpr_case.build(params)
+        rel = "files/anpr-sightings-%s.csv" % anpr_case.LAYOUT_ID
+        anpr_case.write(built["rows"], os.path.join(root, *rel.split("/")))
+        built["truth"].update({"file": rel, "name": "anpr"})
+        key["anpr"] = built["truth"]
     with open(os.path.join(root, "key", "world.json"), "w", encoding="utf-8", newline="\n") as handle:
         handle.write(w.world_to_json(world) + "\n")
     key_text_for_id = json.dumps({k: v for k, v in key.items() if k != "case_id"}, sort_keys=True)

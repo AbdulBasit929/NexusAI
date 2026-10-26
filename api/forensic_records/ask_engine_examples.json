@@ -223,5 +223,50 @@
     ],
     "shape": "map",
     "sql": "SELECT week, week_start, cell_key, site_name, lat, lon, events_at_anchor, events_in_slot FROM v_weekly_anchors WHERE number = '923000000101' AND slot = 'night' AND week_start = '2026-03-09' LIMIT 200"
+  },
+  {
+    "id": "plate-count",
+    "question": "How many times was the plate SYNT0001 seen?",
+    "views": [
+      "v_plate_sightings"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT count(*) AS n FROM v_plate_sightings WHERE plate_norm = 'SYNT0001'"
+  },
+  {
+    "id": "plate-where-when",
+    "question": "Where and when was the plate SYNT0001 seen? Show the cameras and the times.",
+    "views": [
+      "v_plate_sightings"
+    ],
+    "shape": "map",
+    "sql": "SELECT observed_utc, camera_id, camera_label, lat, lon FROM v_plate_sightings WHERE plate_norm = 'SYNT0001' ORDER BY observed_utc LIMIT 200"
+  },
+  {
+    "id": "plate-cameras",
+    "question": "Which cameras saw the plate SYNT0001, and how many times each?",
+    "views": [
+      "v_plate_visits"
+    ],
+    "shape": "table",
+    "sql": "SELECT camera_id, camera_label, sightings, first_utc, last_utc FROM v_plate_visits WHERE plate_norm = 'SYNT0001' ORDER BY sightings DESC, camera_id LIMIT 200"
+  },
+  {
+    "id": "plates-at-both-cameras",
+    "question": "Which plates were seen at both camera CAM-01 and camera CAM-02?",
+    "views": [
+      "v_plate_visits"
+    ],
+    "shape": "ranked",
+    "sql": "SELECT plate_norm AS label, sum(sightings) AS value FROM v_plate_visits WHERE camera_id IN ('CAM-01', 'CAM-02') GROUP BY plate_norm HAVING count(DISTINCT camera_id) = 2 ORDER BY value DESC, plate_norm LIMIT 200"
+  },
+  {
+    "id": "camera-day",
+    "question": "Which plates were seen at camera CAM-01 on 2026-03-05 (local time)?",
+    "views": [
+      "v_plate_sightings"
+    ],
+    "shape": "table",
+    "sql": "SELECT plate_norm, observed_utc FROM v_plate_sightings WHERE camera_id = 'CAM-01' AND observed_utc >= '2026-03-05 00:00:00+05' AND observed_utc < '2026-03-06 00:00:00+05' ORDER BY observed_utc LIMIT 200"
   }
 ]

@@ -907,6 +907,133 @@
       ]
     },
     {
+      "name": "v_plate_sightings",
+      "description": "Plate sightings of camera exports, one row per sighting, repeats within a file left out, times in UTC (shown on the case clock). A sighting says a camera read this plate at this time, not who drove; a camera can misread. Compare plate_norm, never plate_raw. Plates read from images or video are not here.",
+      "columns": [
+        {
+          "name": "sighting_id",
+          "type": "bigint",
+          "description": "Identifier of the sighting row."
+        },
+        {
+          "name": "evidence_id",
+          "type": "uuid",
+          "description": "The evidence file the sighting came from."
+        },
+        {
+          "name": "source_row",
+          "type": "bigint",
+          "description": "The row of that file."
+        },
+        {
+          "name": "plate_norm",
+          "type": "text",
+          "description": "The search key of the plate: upper case, digits in ASCII, no separators (LEA-1234 is LEA1234). Always compare this column, with the plate written the same way. O is not 0 and I is not 1."
+        },
+        {
+          "name": "plate_raw",
+          "type": "text",
+          "description": "The plate exactly as the camera export wrote it (the evidence). Do not compare it."
+        },
+        {
+          "name": "observed_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the sighting, UTC (shown on the case clock)."
+        },
+        {
+          "name": "camera_id",
+          "type": "text",
+          "description": "The camera as the export names it."
+        },
+        {
+          "name": "camera_label",
+          "type": "text",
+          "description": "The camera's name when the export has one."
+        },
+        {
+          "name": "lane",
+          "type": "text",
+          "description": "The lane when the export has one."
+        },
+        {
+          "name": "lat",
+          "type": "double precision",
+          "description": "Latitude of the camera when the export has one (the camera, not the vehicle)."
+        },
+        {
+          "name": "lon",
+          "type": "double precision",
+          "description": "Longitude of the camera when the export has one (the camera, not the vehicle)."
+        },
+        {
+          "name": "loc_method",
+          "type": "text",
+          "description": "Where the position came from: source_supplied (the export), or none."
+        },
+        {
+          "name": "confidence",
+          "type": "real",
+          "description": "The camera's own confidence in its reading, from 0 to 1, when the export has one (a percent in the file is converted)."
+        },
+        {
+          "name": "time_basis",
+          "type": "text",
+          "description": "How the zone of the time is known: declared, assumed_by_profile, confirmed_by_analyst or explicit_offset."
+        },
+        {
+          "name": "source_tz",
+          "type": "text",
+          "description": "The time zone the export's times were read in."
+        }
+      ]
+    },
+    {
+      "name": "v_plate_visits",
+      "description": "Per plate and camera: how many times the plate was seen there, the first and the last time, with the camera's name and position (the camera's, not the vehicle's). For which cameras saw a plate, and which plates were seen at both of two cameras.",
+      "columns": [
+        {
+          "name": "plate_norm",
+          "type": "text",
+          "description": "The search key of the plate (see v_plate_sightings.plate_norm). Always compare this column."
+        },
+        {
+          "name": "camera_id",
+          "type": "text",
+          "description": "The camera as the export names it."
+        },
+        {
+          "name": "camera_label",
+          "type": "text",
+          "description": "The camera's name when the export has one."
+        },
+        {
+          "name": "lat",
+          "type": "double precision",
+          "description": "Latitude of the camera (the camera, not the vehicle), empty when unknown."
+        },
+        {
+          "name": "lon",
+          "type": "double precision",
+          "description": "Longitude of the camera (the camera, not the vehicle), empty when unknown."
+        },
+        {
+          "name": "sightings",
+          "type": "bigint",
+          "description": "How many times the plate was seen at the camera."
+        },
+        {
+          "name": "first_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the first sighting at the camera, UTC."
+        },
+        {
+          "name": "last_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the last sighting at the camera, UTC."
+        }
+      ]
+    },
+    {
       "name": "v_rhythm_changes",
       "description": "For a number, the day on which its daily count of events changed for good: the daily counts (days with no event counted as zero, from its first to its last day) are split at every day that leaves at least min_side_days on each side, the split with the largest absolute Welch t is the change point, and it is listed when |t| is at least 5 and the larger daily mean is at least ratio_percent / 100 times the smaller. min_side_days and ratio_percent are set by the application from the question (10 and 150 when it names none). A CHANGE IN THE PATTERN OF USE, NOT AN EXPLANATION; a short series can show a change by chance.",
       "columns": [
