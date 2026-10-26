@@ -65,6 +65,19 @@ def build(seed):
     return select(stage3a_bank.bank_questions(params) + stage3bc_bank.bank_3b(world, seed) + stage3bc_bank.bank_3c(world, seed))
 
 
+def where_of(sql):
+    """The WHERE clause of a query, lower case, up to the next clause (a condition is applied only if it is here: a column of the select list is not one)."""
+    lower = (sql or "").lower()
+    at = lower.find(" where ")
+    if at < 0:
+        return ""
+    rest = lower[at + len(" where "):]
+    for nxt in (" group by ", " order by ", " having ", " limit ", " union "):
+        if nxt in rest:
+            rest = rest[:rest.index(nxt)]
+    return rest
+
+
 def numbers_of(text):
     return {float(x) for x in NUMBER.findall(text)}
 
@@ -114,6 +127,14 @@ def check_record(q, rec):
                 fails.append(("W6", "numbers %s of %r are neither the question's nor a parameter's" % (stray, answer)))
             if "no record" in lower:
                 fails.append(("W2", "says 'no record' where the records were searched: %r" % answer))
+            # W8: a no-row sentence names a condition only if the query applied it
+            where = where_of(rec.get("sql"))
+            if "shares its handset" in answer and "shared_device" not in where:
+                fails.append(("W8", "says the search required a shared handset, which the query's WHERE clause does not: %r" % answer))
+            for slot in ("night", "day"):
+                if (slot + " place") in answer or (slot + " anchor") in answer:
+                    if ("'%s'" % slot) not in where:
+                        fails.append(("W8", "says the search was of the %s slot, which the query's WHERE clause does not name: %r" % (slot, answer)))
     # W3 and W4: a score for one pair, and the correction in front of a question that states a conclusion
     if probe and analysis:
         lead = LEAD["meeting"] if views & {"v_colocation_windows", "v_meeting_candidates"} else LEAD["successor"] if "v_successor_candidates" in views else ""
@@ -125,6 +146,20 @@ def check_record(q, rec):
             body = answer[len(lead) + 1:] if lead and answer.startswith(lead) else answer
             if not body.startswith(CANDIDATE):
                 fails.append(("W3", "a score for one pair is not given as a candidate: %r" % answer))
+    # W9: one move is a sentence that states where from, where to, the week and the distance of the row; W10: a cell visit is not a position; W11: successor candidates are candidates
+    if q["type"] == "anchor_change" and len(rows) == 1 and "v_anchor_changes" in views:
+        row = rows[0]
+        week = str(row.get("first_week_start") or "")[:10]
+        if "1 change of" not in answer or (week and week not in answer):
+            fails.append(("W9", "one move is not stated with its week: %r" % answer))
+        if row.get("distance_km") not in (None, "") and not any(abs(f - float(row["distance_km"])) <= 0.011 for f in numbers_of(answer)):
+            fails.append(("W9", "distance_km %s is not in %r" % (row["distance_km"], answer)))
+    if "v_cell_visits" in views and rows and ("position" in lower.split(".")[0]):
+        fails.append(("W10", "a cell visit is called a position: %r" % answer))
+    if "v_successor_candidates" in views and rows:
+        body = answer[len(LEAD["successor"]) + 1:] if answer.startswith(LEAD["successor"]) else answer
+        if not body.lower().startswith(("candidates, not proof", "a candidate, not proof")):
+            fails.append(("W11", "successor candidates are not given as candidates: %r" % answer))
     # W7: one speed alert is a sentence that states its own distance and speed
     if q["type"] == "speed_alerts" and len(rows) == 1 and "v_speed_alerts" in views:
         figures = numbers_of(answer)

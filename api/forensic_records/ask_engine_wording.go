@@ -51,12 +51,30 @@ func askReadsView(v *askValidated, view string) bool {
 	return false
 }
 
-// askSlotOf is the slot of an anchor query: "night" or "day" when the query names exactly one, "" when it names both or neither.
-func askSlotOf(v *askValidated) string {
+// askWhereOf is the WHERE clause of the query, lower case, up to the next clause; "" when it has none. A sentence may say that a condition was applied only if it is in this text: a column
+// of the select list is not a condition (found by reading the run on case 113: "and shares its handset" was said of a query that only listed shared_device).
+func askWhereOf(v *askValidated) string {
 	if v == nil {
 		return ""
 	}
-	night, day := strings.Contains(v.SQL, "'night'"), strings.Contains(v.SQL, "'day'")
+	lower := strings.ToLower(v.SQL)
+	at := strings.Index(lower, " where ")
+	if at < 0 {
+		return ""
+	}
+	rest := lower[at+len(" where "):]
+	for _, next := range []string{" group by ", " order by ", " having ", " limit ", " union "} {
+		if i := strings.Index(rest, next); i >= 0 {
+			rest = rest[:i]
+		}
+	}
+	return rest
+}
+
+// askSlotOf is the slot of an anchor query: "night" or "day" when its WHERE clause names exactly one, "" when it names both or neither.
+func askSlotOf(v *askValidated) string {
+	where := askWhereOf(v)
+	night, day := strings.Contains(where, "'night'"), strings.Contains(where, "'day'")
 	switch {
 	case night && !day:
 		return "night"
@@ -186,7 +204,7 @@ func askSuccessorAbsence(v *askValidated, f askFrame) string {
 		}
 	}
 	shares := ""
-	if strings.Contains(v.SQL, "shared_device") {
+	if strings.Contains(askWhereOf(v), "shared_device") {
 		shares = " and shares its handset"
 	}
 	switch {
@@ -254,6 +272,54 @@ func askAlertSentence(r *govSQLResult, v *askValidated, f askFrame, more string)
 	return fmt.Sprintf("1 speed alert%s: %s km in %s s (%s km/h) between the events at %s and %s, at different cell sites.", askOf(f), km, seconds, speed, from, to)
 }
 
+// askMoveSentence is the sentence for the rows of the move view: one move says where from, where to, from which week and how far; several are counted.
+func askMoveSentence(r *govSQLResult, v *askValidated, f askFrame, more string) string {
+	if !askReadsView(v, "v_anchor_changes") || len(r.Rows) == 0 || askColumnIndex(r, "first_week_start") < 0 {
+		return ""
+	}
+	place := "place"
+	if slot := askSlotOf(v); slot != "" {
+		place = slot + " place"
+	}
+	if len(r.Rows) > 1 {
+		return fmt.Sprintf("%s of %s%s%s.", askCount(len(r.Rows), "change", "changes"), place, askOf(f), more)
+	}
+	at := func(name string) string {
+		if i := askColumnIndex(r, name); i >= 0 && r.Rows[0][i] != nil {
+			return askCell(r, i, r.Rows[0][i])
+		}
+		return ""
+	}
+	from, to, week, km := at("from_cell_key"), at("to_cell_key"), at("first_week_start"), at("distance_km")
+	if from == "" || to == "" || week == "" {
+		return ""
+	}
+	out := fmt.Sprintf("1 change of %s%s: from cell site %s to cell site %s, from the week starting %s", place, askOf(f), from, to, week)
+	if km != "" {
+		out += ", " + km + " km apart"
+	}
+	return out + "."
+}
+
+// askVisitSentence is the headline of rows of the cell-visit view: a visit to a cell site (a coverage area), not a position of a person.
+func askVisitSentence(r *govSQLResult, v *askValidated, shape string) string {
+	if !askReadsView(v, "v_cell_visits") || shape != "map" || len(r.Rows) == 0 {
+		return ""
+	}
+	head := askCount(len(r.Rows), "cell site", "cell sites")
+	if askColumnIndex(r, "hour_utc") >= 0 {
+		head = askCount(len(r.Rows), "cell visit", "cell visits")
+		if c := askColumnIndex(r, "cell_key"); c >= 0 {
+			sites := map[string]bool{}
+			for _, row := range r.Rows {
+				sites[fmt.Sprint(row[c])] = true
+			}
+			head += " at " + askCount(len(sites), "cell site", "cell sites")
+		}
+	}
+	return head + askTruncatedNote(r) + "."
+}
+
 // askPremiseCue finds a question that states a conclusion; askMeetingCue the questions about a meeting or an association.
 var (
 	askPremiseCue = regexp.MustCompile(`\b(?:prove[sd]?|proof|proving|same person|knows? each other|know one another|definitely|certainly|obviously|surely|confirm(?:s|ed)? (?:that|they|he|she|it|this))\b`)
@@ -290,7 +356,7 @@ func askPremiseLead(v *askValidated, f askFrame) string {
 }
 
 // askWording turns the generic headline into the first sentence of the answer.
-func askWording(headline string, r *govSQLResult, v *askValidated, f askFrame, absence string) string {
+func askWording(headline string, r *govSQLResult, v *askValidated, f askFrame, shape, absence string) string {
 	if absence != "" || v == nil {
 		return headline
 	}
@@ -304,6 +370,12 @@ func askWording(headline string, r *govSQLResult, v *askValidated, f askFrame, a
 			headline = s
 		} else if s := askAlertSentence(r, v, f, askTruncatedNote(r)); s != "" {
 			headline = s
+		} else if s := askMoveSentence(r, v, f, askTruncatedNote(r)); s != "" {
+			headline = s
+		} else if s := askVisitSentence(r, v, shape); s != "" {
+			headline = s
+		} else if askReadsView(v, "v_successor_candidates") {
+			headline = "Candidates, not proof. " + headline
 		}
 	}
 	if lead := askPremiseLead(v, f); lead != "" {

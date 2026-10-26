@@ -243,7 +243,7 @@ func askAnswerResponse(req hybridQueryRequest, cat *askCatalogue, v *askValidate
 			headline = text
 		}
 	}
-	headline = askWording(headline, r, v, f, absence)
+	headline = askWording(headline, r, v, f, shape, absence)
 	derivation := askDescribe(v, cat)
 	sentences := derivation.Sentences()
 	limitations := []string{

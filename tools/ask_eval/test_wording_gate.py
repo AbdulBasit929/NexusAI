@@ -21,8 +21,8 @@ def q(kind, text, params=None, control=False, probe=False, extra=None):
     return {"id": "T-1", "type": kind, "question": text, "expect": expect}
 
 
-def rec(answer, views, rows=None, state="answered"):
-    return {"id": "T-1", "arm": "engine", "state": state, "answer": answer, "views": views, "rows": rows or []}
+def rec(answer, views, rows=None, state="answered", sql="SELECT x FROM v WHERE slot = 'night' AND shared_device"):
+    return {"id": "T-1", "arm": "engine", "state": state, "answer": answer, "views": views, "rows": rows or [], "sql": sql}
 
 
 def gates(question, record):
@@ -52,7 +52,7 @@ def test_a_score_for_one_pair_is_a_candidate_and_a_conclusion_is_corrected_first
     switch = q("probe", "Did %s switch to %s?" % (A, B), probe=True, extra={"caveats": [], "forbid": g.FORBID})
     good = "A candidate, not proof: %s may have taken over from %s; similarity score 0.9905 (a documented formula from 0 to 1, not a probability)." % (B, A)
     assert gates(switch, rec(good, ["v_successor_candidates"], row)) == []
-    assert gates(switch, rec("Score: 0.9905.", ["v_successor_candidates"], row)) == ["W3"]
+    assert gates(switch, rec("Score: 0.9905.", ["v_successor_candidates"], row)) == ["W11", "W3"]
     same = q("probe", "Is %s the same person as %s?" % (B, A), probe=True, extra={"caveats": [], "forbid": g.FORBID})
     assert gates(same, rec(g.LEAD["successor"] + " " + good, ["v_successor_candidates"], row)) == []
     assert gates(same, rec(good, ["v_successor_candidates"], row)) == ["W4"]
@@ -68,6 +68,36 @@ def test_one_speed_alert_states_its_own_figures():
     ok = "1 speed alert of %s: 6.29 km in 125 s (181.2 km/h) between the events at 2026-03-04 10:12:05 PKT and 2026-03-04 10:14:10 PKT, at different cell sites." % A
     assert gates(question, rec(ok, ["v_speed_alerts"], row)) == []
     assert gates(question, rec("1 row.", ["v_speed_alerts"], row)) == ["W7"]
+
+
+def test_a_sentence_may_name_only_conditions_the_query_applied():
+    question = q("successor_of", "Find the silent number that %s may have replaced." % B, control=True)
+    listed = "SELECT old_number, score, shared_device FROM v_successor_candidates WHERE new_number = '%s' ORDER BY score DESC" % B
+    applied = "SELECT old_number FROM v_successor_candidates WHERE new_number = '%s' AND shared_device ORDER BY score DESC" % B
+    said = "No row matches what you asked: no number that went silent (for at least 7 days) within 14 days before %s started reaches a similarity score of 35 percent and shares its handset." % B
+    wrong = dict(rec(said, ["v_successor_candidates"]), sql=listed)
+    right = dict(rec(said, ["v_successor_candidates"]), sql=applied)
+    assert gates(question, wrong) == ["W8"]
+    assert gates(question, right) == []
+    night = q("anchor_change", "Did %s move house?" % A, control=True)
+    said = "No row matches what you asked: no change of night place that holds for 2 weeks was found for %s." % A
+    assert gates(night, dict(rec(said, ["v_anchor_changes"]), sql="SELECT 'night' AS slot FROM v_anchor_changes WHERE number = '%s'" % A)) == ["W8"]
+    assert gates(night, dict(rec(said, ["v_anchor_changes"]), sql="SELECT * FROM v_anchor_changes WHERE number = '%s' AND slot = 'night'" % A)) == []
+
+
+def test_a_move_a_cell_visit_and_a_successor_list_have_their_wording():
+    move = q("anchor_change", "Did %s move house?" % A)
+    row = [{"first_week_start": "2026-03-16", "distance_km": 8.018}]
+    ok = "1 change of night place of %s: from cell site c:2 to cell site c:1, from the week starting 2026-03-16, 8.018 km apart." % A
+    assert gates(move, rec(ok, ["v_anchor_changes"], row)) == []
+    assert gates(move, rec("To cell key c:1; First week start 2026-03-16; Distance km 8.018.", ["v_anchor_changes"], row)) == ["W9"]
+    visit = q("probe", "Where was %s on Tuesday at nine?" % A, probe=True, extra={"caveats": [], "forbid": g.FORBID})
+    assert gates(visit, rec("1 cell site.", ["v_cell_visits"], [{"lat": 1}])) == []
+    assert gates(visit, rec("1 position.", ["v_cell_visits"], [{"lat": 1}])) == ["W10"]
+    cands = q("successor_candidates", "Which numbers may have taken over from %s?" % A)
+    assert gates(cands, rec("Candidates, not proof. New number %s; Score 0.69." % B, ["v_successor_candidates"], [{"score": 0.69}])) == []
+    assert gates(cands, rec(g.LEAD["successor"] + " Candidates, not proof. x", ["v_successor_candidates"], [{"score": 0.69}])) == []
+    assert gates(cands, rec("New number %s; Score 0.69." % B, ["v_successor_candidates"], [{"score": 0.69}])) == ["W11"]
 
 
 def test_selection_keeps_every_control_and_probe_and_the_first_positive_of_four_kinds():
