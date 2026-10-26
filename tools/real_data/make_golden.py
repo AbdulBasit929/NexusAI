@@ -296,7 +296,7 @@ def generate(entry, rows=None, seed=1, date_order=None, defects=True):
     formats = (entry.get("time") or {}).get("formats", [])
     time_columns = (entry.get("time") or {}).get("columns", {})
     fmt = formats[0] if formats else None
-    builder = {"target_cdr": _comm_row, "tower_dump": _comm_row, "ipdr": _session_row, "app_usage": _usage_row}[kind]
+    builder = {"target_cdr": _comm_row, "tower_dump": _comm_row, "ipdr": _session_row, "app_usage": _usage_row, "plate_sighting": _plate_row}[kind]
     data, truth = [], []
     ctx = {"entry": entry, "hints": hints, "recipes": recipes, "rng": rng, "index": index, "width": width, "fmt": fmt,
            "time_columns": time_columns, "kind": kind}
@@ -722,6 +722,52 @@ def _usage_row(i, ctx, defect):
         text[name] = value or None
     record = {"msisdn": msisdn, "imsi": imsi, "imei": imei, "tac": imei[:8], "start_local": start.isoformat(sep=" "),
               "end_local": end.isoformat(sep=" "), **text}
+    expect = {"status": "accepted", "tag": defect or "normal", "flags": [], "record": record}
+    if defect == "time_unparsed":
+        expect = {"status": "quarantined", "reason": "time_unparsed", "tag": defect}
+    elif defect == "time_missing":
+        expect = {"status": "quarantined", "reason": "time_missing", "tag": defect}
+    return cells, expect
+
+
+PLATE_FORMS = ("SYNT-%04d", "synt %04d", "SYNT%04d", "SYNT\u2013%04d", "SYNT-%s")
+ARABIC_INDIC = "\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+
+
+def _plate_row(i, ctx, defect):
+    """One sighting. The plate is written in one of five presentations (case, separators, a typographic dash, Arabic-Indic digits) and the truth keeps what the file wrote and the search key."""
+    entry, hints, rng, index = ctx["entry"], ctx["hints"], ctx["rng"], ctx["index"]
+    fields = entry.get("fields") or {}
+    cells = [""] * ctx["width"]
+    if defect == "blank":
+        return cells, {"status": "skipped", "reason": "blank_row", "tag": "blank"}
+    n = i % 12 + 1
+    form = PLATE_FORMS[i % len(PLATE_FORMS)]
+    raw = form % ("".join(ARABIC_INDIC[int(d)] for d in "%04d" % n)) if form.endswith("%s") else form % n
+    start = _times(i, ctx)
+    time_cols, fmt = ctx["time_columns"], ctx["fmt"]
+    if defect == "time_unparsed":
+        _put(cells, index, time_cols["start"], "not-a-time")
+    elif defect == "time_missing":
+        pass
+    else:
+        _put(cells, index, time_cols["start"], render_time(start, fmt, hints))
+    camera = i % 5 + 1
+    lat, lon = round(31.50 + 0.012 * camera, 5), round(74.30 + 0.017 * camera, 5)
+    confidence = round(0.80 + 0.01 * (i % 20), 2)
+    lane = "Lane %d" % (i % 3 + 1)
+    _put(cells, index, fields["plate"], raw)
+    _put(cells, index, fields["camera_id"], "CAM-%02d" % camera)
+    _put(cells, index, fields["camera_label"], "Camera %d" % camera)
+    _put(cells, index, fields["lane"], lane)
+    _put(cells, index, fields["lat"], lat)
+    _put(cells, index, fields["lon"], lon)
+    _put(cells, index, fields["confidence"], confidence)
+    mapped_positions = {pos for pos, cell in enumerate(cells) if cell != ""}
+    _fill_other_columns(cells, ctx, i, mapped_positions, {"start": start})
+    plate_norm = "SYNT%04d" % n
+    record = {"plate_raw": raw, "plate_norm": plate_norm, "plate_script": "latin", "camera_id": "CAM-%02d" % camera, "camera_label": "Camera %d" % camera, "lane": lane,
+              "lat": lat, "lon": lon, "confidence": confidence, "source_kind": "csv", "loc_method": "source_supplied", "observed_local": start.isoformat(sep=" ")}
     expect = {"status": "accepted", "tag": defect or "normal", "flags": [], "record": record}
     if defect == "time_unparsed":
         expect = {"status": "quarantined", "reason": "time_unparsed", "tag": defect}

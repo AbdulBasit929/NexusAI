@@ -52,17 +52,21 @@ SESSION_FIELDS = (
     "packets_down", "duration_ms", "session_ref",
 )
 USAGE_FIELDS = ("msisdn", "imsi", "imei", "terminal", "apn", "app_category", "app", "app_feature", "province", "city")
+# A plate sighting (camera export): the plate, the camera, where it is, how sure the camera was. The direction a vehicle travelled has no column in forensic.plate_sighting; it stays in raw_payload.
+PLATE_FIELDS = ("plate", "camera_id", "camera_label", "lane", "lat", "lon", "confidence", "province", "series")
 FIELDS_BY_FAMILY = {
     "target_cdr": COMM_FIELDS,
     "tower_dump": COMM_FIELDS,
     "ipdr": SESSION_FIELDS,
     "app_usage": USAGE_FIELDS,
+    "plate_sighting": PLATE_FIELDS,
 }
 TIME_FIELDS_BY_KIND = {
     "target_cdr": ("start", "end"),
     "tower_dump": ("start", "end"),
     "ipdr": ("start", "end", "nat_start", "nat_end"),
     "app_usage": ("start", "end"),
+    "plate_sighting": ("start",),
 }
 ENUM_TARGETS = {"direction": DIRECTIONS, "event_type": EVENT_TYPES}
 

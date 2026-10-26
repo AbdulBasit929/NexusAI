@@ -42,10 +42,20 @@ DEFAULT_MAX_ROWS = 2_000_000
 NO_VALUE = "\\N"
 
 # the typed table each family of layouts is written to
-TABLE_FOR_FAMILY = {"communications": "comm_event", "internet": "data_session", "app_usage": "app_usage"}
-# the idempotency key of the typed tables (migration 012)
+TABLE_FOR_FAMILY = {"communications": "comm_event", "internet": "data_session", "app_usage": "app_usage", "plate": "plate_sighting"}
+# the time column each typed table is partitioned and keyed on: a sighting has no start, it has an observed time (migration 012)
+TIME_COLUMN = {"comm_event": "start_utc", "data_session": "start_utc", "app_usage": "start_utc", "plate_sighting": "observed_utc"}
+# the idempotency key of the typed tables (migration 012); conflict_key(table) is the one of a table
 CONFLICT_KEY = "tenant_id, collection_id, file_id, row_hash, start_utc"
 REQUIRED_COLUMNS = ("tenant_id", "collection_id", "evidence_id", "file_id", "batch_id", "row_hash", "content_hash", "start_utc")
+
+
+def conflict_key(table: str) -> str:
+    return CONFLICT_KEY.replace("start_utc", TIME_COLUMN.get(table, "start_utc"))
+
+
+def required_columns(table: str) -> tuple[str, ...]:
+    return tuple(TIME_COLUMN.get(table, "start_utc") if c == "start_utc" else c for c in REQUIRED_COLUMNS)
 IGNORED_FOR_CONTENT = frozenset({"source_row", "raw_payload", "quality_flags"})
 TZ_BASIS = {"source_declared": "declared", "analyst_confirmed": "confirmed_by_analyst", "profile_defaulted": "assumed_by_profile"}
 
@@ -106,7 +116,7 @@ def copy_sql(columns: Sequence[str]) -> str:
 def insert_sql(table: str, columns: Sequence[str]) -> str:
     cols = ", ".join(columns)
     return (f"WITH inserted AS (INSERT INTO forensic.{table} ({cols}) SELECT {cols} FROM _v2_stage "
-            f"ON CONFLICT ({CONFLICT_KEY}) DO NOTHING RETURNING 1) SELECT count(*) FROM inserted")
+            f"ON CONFLICT ({conflict_key(table)}) DO NOTHING RETURNING 1) SELECT count(*) FROM inserted")
 
 
 def drop_stage_sql() -> str:
@@ -266,7 +276,7 @@ def ingest_sheet(name: str, rows: Iterator[Sequence[Any]], lineage: Lineage, pol
         return summary
     summary.table = table
     available = [c for c, _ in sink.table_columns(table)]
-    missing = [c for c in REQUIRED_COLUMNS if c not in available]
+    missing = [c for c in required_columns(table) if c not in available]
     if missing:
         summary.status, summary.reason = "skipped", "typed_table_lacks_" + "_".join(missing)
         return summary

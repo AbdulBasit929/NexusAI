@@ -139,3 +139,22 @@ def synthetic_ipv6(n):
 def synthetic_cnic(n):
     """A CNIC-shaped value with an invalid province and district prefix (00000-xxxxxxx-x)."""
     return "%s-%07d-%d" % (SYNTHETIC_CNIC_PREFIX, n % 10 ** 7, n % 10)
+
+
+# A plate series of four letters: the registration series in use have two or three, so a plate written SYNT-0001 is not a registration (a project convention, like the mobile-number block; verify against the
+# registration authority's rules before relying on it). Every synthetic plate of a golden or a generated case is of this series.
+SYNTHETIC_PLATE_SERIES = "SYNT"
+
+
+def synthetic_plate(n):
+    if not 0 <= n < 10000:
+        raise ValueError("n must be below 10000")
+    return SYNTHETIC_PLATE_SERIES + "-%04d" % n
+
+
+def is_reserved_plate(text):
+    """True for a plate of the synthetic series in any presentation (case, separators, Arabic-Indic digits)."""
+    import unicodedata
+    folded = unicodedata.normalize("NFKC", str(text)).upper()
+    digits = "".join(str(ord(c) - 0x0660) if "\u0660" <= c <= "\u0669" else str(ord(c) - 0x06F0) if "\u06f0" <= c <= "\u06f9" else c for c in folded)
+    return re.fullmatch(SYNTHETIC_PLATE_SERIES + r"\d{4}", re.sub(r"[\s\-_./\u2010-\u2015\u2212\u00b7\u2022]+", "", digits)) is not None

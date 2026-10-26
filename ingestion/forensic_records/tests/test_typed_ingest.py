@@ -427,6 +427,94 @@ class SqlTests(unittest.TestCase):
         self.assertEqual(families - set(ti.TABLE_FOR_FAMILY), set(), "every family a registered layout has is written somewhere")
 
 
+PLATE_HEADER = ["Date Time", "Plate Number", "Camera ID", "Camera Name", "Lane", "Latitude", "Longitude", "Direction", "Confidence"]
+PLATE_COLUMNS = ("tenant_id", "collection_id", "evidence_id", "file_id", "batch_id", "source_row", "row_hash", "content_hash", "layout_id", "layout_version", "source_kind",
+                 "plate_raw", "plate_norm", "plate_script", "province", "series", "observed_utc", "time_basis", "source_tz", "camera_id", "camera_label", "lane", "lat", "lon",
+                 "loc_method", "confidence", "raw_payload", "quality_flags")
+
+
+def sighting(when, plate, camera="CAM-01", lat="31.512", lon="74.317", confidence="0.93", lane="Lane 1", direction="Towards"):
+    return [when, plate, camera, "Camera " + camera[-1], lane, lat, lon, direction, confidence]
+
+
+class PlateSink(FakeSink):
+    """The sighting table keeps its rows under its own key, which ends in the observed time (migration 012)."""
+
+    def __init__(self):
+        super().__init__(PLATE_COLUMNS)
+
+    def insert_batch(self, table, columns, rows):
+        self.calls.append((table, list(columns), len(rows)))
+        new = 0
+        for row in rows:
+            key = tuple(row[c] for c in ("tenant_id", "collection_id", "file_id", "row_hash", "observed_utc"))
+            if key not in self.keys:
+                self.keys.add(key)
+                self.rows.append(row)
+                new += 1
+        return new
+
+
+@unittest.skipUnless(GOLDEN_AVAILABLE, "tools/real_data not available")
+class PlateSightingTests(Workdir):
+    GOOD = [sighting("2026-03-01 10:00:00", "SYNT-0001"), sighting("2026-03-01 10:05:00", "synt 0001", "CAM-02"), sighting("2026-03-01 11:00:00", "SYNT\u20130002", "CAM-03")]
+
+    def ingest_plates(self, rows, sink=None, policy=KARACHI):
+        sink = sink if sink is not None else PlateSink()
+        return ti.ingest_file(self.write_csv(rows, PLATE_HEADER, "cameras.csv"), LINEAGE, policy, sink, registry=REGISTRY), sink
+
+    def test_a_camera_export_is_written_to_the_sighting_table_with_the_plate_as_written_and_its_search_key(self):
+        out, sink = self.ingest_plates(self.GOOD)
+        sheet = out["sheets"][0]
+        self.assertEqual((sheet["layout_id"], sheet["table"], sheet["loaded"], sheet["inserted"]), ("anpr-a1", "plate_sighting", 3, 3))
+        self.assertEqual([(r["plate_raw"], r["plate_norm"]) for r in sink.rows], [("SYNT-0001", "SYNT0001"), ("synt 0001", "SYNT0001"), ("SYNT\u20130002", "SYNT0002")])
+        first = sink.rows[0]
+        self.assertEqual((first["source_kind"], first["plate_script"], first["loc_method"], first["confidence"]), ("csv", "latin", "source_supplied", 0.93))
+        self.assertEqual((first["observed_utc"], first["source_tz"], first["time_basis"]), ("2026-03-01T05:00:00+00:00", "Asia/Karachi", "declared"))
+        self.assertEqual((first["camera_id"], first["camera_label"], first["lane"], first["lat"], first["lon"]), ("CAM-01", "Camera 1", "Lane 1", 31.512, 74.317))
+        self.assertEqual(first["raw_payload"]["Direction"], "Towards", "the direction has no column: it is kept")
+        self.assertEqual((sink.calls[0][0], "start_utc" in sink.calls[0][1]), ("plate_sighting", False))
+
+    def test_a_second_run_of_the_same_camera_file_inserts_nothing(self):
+        sink = PlateSink()
+        first, _ = self.ingest_plates(self.GOOD, sink=sink)
+        again, _ = self.ingest_plates(self.GOOD, sink=sink)
+        self.assertEqual((first["rows_inserted"], again["rows_inserted"], len(sink.rows)), (3, 0, 3))
+
+    def test_a_missing_plate_is_quarantined_and_a_sentinel_is_not_a_plate(self):
+        rows = self.GOOD + [sighting("2026-03-01 12:00:00", ""), sighting("2026-03-01 12:01:00", "-")]
+        out, sink = self.ingest_plates(rows)
+        sheet = out["sheets"][0]
+        self.assertEqual((sheet["loaded"], sheet["quarantined"]), (3, {"quarantined:plate_missing": 2}))
+
+    def test_a_confidence_in_percent_is_a_fraction_and_flagged_and_an_impossible_one_is_dropped_and_flagged(self):
+        rows = [sighting("2026-03-01 10:00:00", "SYNT-0001", confidence="93"), sighting("2026-03-01 10:01:00", "SYNT-0002", confidence="250"),
+                sighting("2026-03-01 10:02:00", "SYNT-0003", confidence="x"), sighting("2026-03-01 10:03:00", "SYNT-0004", confidence="")]
+        _, sink = self.ingest_plates(rows)
+        got = [(r["confidence"], r["quality_flags"]) for r in sink.rows]
+        self.assertEqual(got[0], (0.93, ["confidence_percent"]))
+        self.assertEqual(got[1], (None, ["confidence_out_of_range"]))
+        self.assertEqual(got[2], (None, ["confidence_not_numeric"]))
+        self.assertEqual(got[3], (None, []))
+
+    def test_a_row_without_a_position_has_none_and_a_row_with_half_of_one_is_flagged(self):
+        rows = [sighting("2026-03-01 10:00:00", "SYNT-0001", lat="", lon=""), sighting("2026-03-01 10:01:00", "SYNT-0002", lon="")]
+        _, sink = self.ingest_plates(rows)
+        self.assertEqual([(r["lat"], r["lon"], r["loc_method"]) for r in sink.rows], [(None, None, "none"), (None, None, "none")])
+        self.assertIn("coordinate_incomplete", sink.rows[1]["quality_flags"])
+
+    def test_without_a_declared_zone_no_sighting_is_given_a_time(self):
+        out, sink = self.ingest_plates(self.GOOD, policy=Policy())
+        self.assertEqual((out["sheets"][0]["loaded"], len(sink.rows)), (0, 0))
+
+    def test_the_table_has_its_own_time_column_and_key(self):
+        self.assertEqual(ti.required_columns("plate_sighting")[-1], "observed_utc")
+        self.assertEqual(ti.required_columns("comm_event")[-1], "start_utc")
+        self.assertIn("ON CONFLICT (tenant_id, collection_id, file_id, row_hash, observed_utc) DO NOTHING", ti.insert_sql("plate_sighting", ["tenant_id"]))
+        sql = (Path(__file__).resolve().parents[3] / "db" / "forensic_records" / "012_typed_families.sql").read_text(encoding="utf-8")
+        self.assertIn("UNIQUE (" + ti.conflict_key("plate_sighting") + ")", sql)
+
+
 class WorkerHookTests(Workdir):
     def job(self):
         fields = {"job_id": BATCH, "tenant_id": "tenant-1", "user_id": "u", "collection_id": "case-1", "file_id": "calls.csv", "source_file": "calls.csv",

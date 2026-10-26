@@ -13,7 +13,7 @@ from typing import Any, Iterable, Iterator, Mapping, Sequence
 
 from .matching import DUPLICATE_SUFFIX, normalize_header
 from .parties import (
-    classify_party, clean, device_identifier, make_cell_key, parse_coordinate, split_combined_coordinates,
+    classify_party, clean, device_identifier, make_cell_key, normalize_plate, parse_coordinate, plate_script, split_combined_coordinates,
 )
 from .spec import column_ref
 from .timeparse import parse_time, to_utc
@@ -305,6 +305,10 @@ def interpret_record(entry: Mapping[str, Any], record: Mapping[str, Any], *, row
         built = _comm_event(entry, view, times, flags)
     elif kind == "ipdr":
         built = _data_session(entry, view, times, flags)
+    elif kind == "plate_sighting":
+        built = _plate_sighting(entry, view, times, flags)
+        if not built["plate_norm"]:
+            return RowResult("quarantined", "plate_missing", None, [], row_number)
     else:
         built = _app_usage(entry, view, times, flags)
     if not times.zone and not any(r.offset for r in times.results.values()):
@@ -453,6 +457,33 @@ def _app_usage(entry: Mapping[str, Any], view: RecordView, times: _Times, flags:
         "msisdn": msisdn_norm or text("msisdn"), "msisdn_kind": msisdn_kind, "imsi": imsi, "imei": imei, "tac": tac,
         "terminal": text("terminal"), "apn": text("apn"), "app_category": text("app_category"), "app": text("app"),
         "app_feature": text("app_feature"), "province": text("province"), "city": text("city"),
+    }
+
+
+def _plate_sighting(entry: Mapping[str, Any], view: RecordView, times: _Times, flags: list[str]) -> dict[str, Any]:
+    """One sighting of a plate by a camera. The plate is kept exactly as the file wrote it (plate_raw, the evidence); plate_norm is only the search key and never makes two different plates equal."""
+    fields = entry.get("fields") or {}
+
+    def text(name: str) -> str | None:
+        return _text(entry, view, name, fields.get(name))
+
+    raw = text("plate")
+    lat, lon = _coordinates(entry, view, flags)
+    confidence = _number(text("confidence") or "", flags, "confidence")
+    if confidence is not None:
+        if 1 < confidence <= 100:
+            confidence = confidence / 100.0
+            flags.append("confidence_percent")
+        elif not 0 <= confidence <= 1:
+            confidence = None
+            flags.append("confidence_out_of_range")
+    return {
+        # observed_* is the sighting's own time; start_* are the generic names the typed writer reads for the zone check and the file's first and last time (a sighting has no end)
+        "observed_utc": times.utc("start"), "observed_local": times.local("start"), "start_local": times.local("start"), "start_utc": times.utc("start"),
+        "source_kind": "csv", "plate_raw": raw, "plate_norm": normalize_plate(raw) if raw else "", "plate_script": plate_script(raw) if raw else None,
+        "province": text("province"), "series": text("series"),
+        "camera_id": text("camera_id"), "camera_label": text("camera_label"), "lane": text("lane"),
+        "lat": lat, "lon": lon, "loc_method": "source_supplied" if lat is not None else "none", "confidence": confidence,
     }
 
 

@@ -8,6 +8,7 @@ infers an operator from a number prefix (the country profile forbids it).
 from __future__ import annotations
 
 import re
+import unicodedata
 
 SERVICE_LABELS = frozenset({
     "INTERNET", "UNKNOWN", "GPRS", "DATA", "PACKET", "SHORTCODE", "SHORT_CODE", "INTERNATIONAL", "NEW_NETWORK", "NULL", "N/A", "NA",
@@ -125,3 +126,36 @@ def split_combined_coordinates(raw: object, order: str) -> tuple[float | None, f
     if abs(lat) > 90 or abs(lon) > 180:
         return None, None, ["coordinate_out_of_range"]
     return lat, lon, []
+
+
+# ---- plates (migration 012: forensic.normalize_plate; the two must agree on every token, a test runs both on one fixture)
+_PLATE_DIGIT_SOURCES = "".join(chr(c) for c in range(0x0660, 0x066A)) + "".join(chr(c) for c in range(0x06F0, 0x06FA))
+# U+00B7 middle dot, U+2022 bullet, U+2010 to U+2015 hyphens and dashes, U+2212 minus: deleted, as `translate` deletes the characters that have no target
+_PLATE_DELETED = "\u00b7\u2022\u2010\u2011\u2012\u2013\u2014\u2015\u2212"
+_PLATE_TABLE = {ord(c): str(i % 10) for i, c in enumerate(_PLATE_DIGIT_SOURCES)}
+_PLATE_TABLE.update({ord(c): None for c in _PLATE_DELETED})
+_PLATE_SEPARATORS = re.compile(r"[\s\-_./]+", re.ASCII)
+
+
+def normalize_plate(raw: object) -> str:
+    """The search key of a plate: Unicode NFKC, Arabic-Indic and Persian digits to ASCII, presentation separators removed, upper case.
+    The raw token stays in plate_raw and is the evidence; this is only for matching, and it never makes two different plates equal
+    (O is not 0, I is not 1)."""
+    text = unicodedata.normalize("NFKC", clean(raw))
+    return _PLATE_SEPARATORS.sub("", text.translate(_PLATE_TABLE)).upper()
+
+
+def plate_script(raw: object) -> str | None:
+    """latin, arabic, mixed (both), other (letters of another script), None (no letters)."""
+    scripts = set()
+    for ch in unicodedata.normalize("NFKC", clean(raw)):
+        if ch.isalpha():
+            name = unicodedata.name(ch, "")
+            scripts.add("latin" if name.startswith("LATIN") else "arabic" if name.startswith("ARABIC") else "other")
+    if not scripts:
+        return None
+    if scripts == {"latin"} or scripts == {"arabic"}:
+        return next(iter(scripts))
+    if scripts == {"latin", "arabic"}:
+        return "mixed"
+    return "other"
