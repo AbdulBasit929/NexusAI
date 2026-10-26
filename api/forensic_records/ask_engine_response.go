@@ -66,7 +66,7 @@ func askHeadline(r *govSQLResult, shape, absence string) string {
 		if absence != "" {
 			return absence
 		}
-		return "No row matches what you asked."
+		return askNoRowSentence
 	}
 	switch shape {
 	case "scalar":
@@ -243,6 +243,7 @@ func askAnswerResponse(req hybridQueryRequest, cat *askCatalogue, v *askValidate
 			headline = text
 		}
 	}
+	headline = askWording(headline, r, v, f, absence)
 	derivation := askDescribe(v, cat)
 	sentences := derivation.Sentences()
 	limitations := []string{
