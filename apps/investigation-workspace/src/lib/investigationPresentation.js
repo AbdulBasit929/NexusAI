@@ -234,7 +234,8 @@ function limitationsFor(response, state) {
     if (!candidate || /raw full tables|guardrail|requested operation|approved query/i.test(candidate)) continue
     if (!result.includes(candidate)) result.push(candidate)
   }
-  return result.slice(0, 4)
+  // The engine's limitations are fixed sentences that state what an answer does not show (and the values it took from the question); none is cut off: the cap of four hid the last, which is the value used.
+  return result.slice(0, 8)
 }
 
 function derivationFor(response, catalog) {

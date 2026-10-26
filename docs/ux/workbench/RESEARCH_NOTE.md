@@ -4,6 +4,17 @@ Written 2026-10-26 for the owner's decision. It is the first step of the interfa
 
 **Where to look:** `http://localhost:4181/design/workbench` (layout A, side by side) and `?layout=b` (layout B, one pane at a time). Questions to try are in the Examples menu on the page; `?q=together|meeting|successor|move|speed|rhythm|connected` opens one, `?state=empty|broad|abstained|partial` shows the four designed states. Both themes follow the device setting or the appearance menu.
 
+## Decided 2026-10-26: layout B, and where the workbench lives
+
+The owner chose **layout B (one pane at a time: links, places or table, the timeline always underneath, the evidence of the selected mark on the right)** and asked for it to be built over the live reads. Then they decided **where it belongs**:
+
+* **Ask is where questions are asked.** An answer of the Ask engine that can be drawn (a window of two numbers at one cell, a possible meeting, a candidate successor, a move, a speed alert, a change of rhythm, a connection, a list of contacts, cell sites) carries the workbench inside it, drawn from the rows the engine returned (`ResultViews` -> `WorkbenchResult`). Each mark opens its row; the strength of what the answer shows (Observed, Inferred, Candidate) and the values the engine took from the question are shown above it. The evidence sits below the picture in the conversation and beside it once the picture is widened.
+* **Connections is the whole case.** Every subscriber and the contacts they share, the cell sites they used, the days they were active, and the evidence of whatever is selected. It has **no question field**: "Ask about this case" and the evidence panel's questions take the numbers on screen to the Ask page, which runs them (`?question=...&run=1`).
+* **One implementation** (`pages/workbench/WorkbenchCore.jsx`), two homes; the state is in the address on Connections and in the answer inside a conversation.
+* The design proof (`/design/workbench`) stays as the reference for the states, on its synthetic fixture.
+
+What is real now: the connections and places reads, the Ask engine's answers, the mapping of an answer's rows to marks (tested against the real answers recorded on the synthetic development case 2), the lanes (events at a cell site a day, from the hourly visits), the period brush, the evidence panel, the table twin with CSV, the picture as PNG. What is not yet: events a day by number for events without a cell, the density of a place and the rows behind a mark as their own reads (BR-2), device and handset links, saved views, annotation.
+
 ## 1. Why the first draft was wrong
 
 You said the first draft looked odd, messy and childish. Reading it against the guidance below, it broke the same rules the sources agree on: a rounded, shadowed box around every pane ("card soup"), pill buttons and a bright yellow alert for a caveat, large type and large radii, three fonts of emphasis, a coloured legend that repeated the toggles, and a diamond for every mark. The second draft keeps **one frame with hairline dividers**, one accent used only for what is selected or primary, small-capital labels, one weight for emphasis, 6 px radii, no shadow except on a menu, and tabular figures everywhere.

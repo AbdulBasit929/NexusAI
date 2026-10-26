@@ -98,6 +98,14 @@ export default function InvestigatePage() {
   }), [turns])
 
   useEffect(() => { if (reopenedQuestion) setDraft(reopenedQuestion) }, [reopenedQuestion, setDraft])
+  // A link that carries a question and `run=1` (the Connections page, "Ask about this case") asks it once, here, where questions are asked; without `run` it only fills the field.
+  const autoRan = useRef(false)
+  useEffect(() => {
+    if (autoRan.current || !reopenedQuestion || searchParams.get('run') !== '1') return
+    autoRan.current = true
+    setDraft('')
+    ask(reopenedQuestion)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (requestedScope) setScope(requestedScope) }, [requestedScope, setScope])
   useEffect(() => {
     const request = new AbortController()
@@ -127,7 +135,8 @@ export default function InvestigatePage() {
     pendingFocus.current = `${id}-anchor`
     try {
       const response = await askCase({ caseId, query, recordType: submittedScope?.recordType, signal: controller.current.signal })
-      const presentation = presentInvestigationResponse(response, { caseId })
+      // the question travels with its answer: the picture of an answer (the workbench) reads the numbers of the question the engine's own checks have tied the query to
+      const presentation = { ...presentInvestigationResponse(response, { caseId }), question: query }
       updateTurn(id, { presentation, busy: false })
       recordSessionActivity({ caseId, query, presentation })
       recordQuestionHistory(caseId, query, presentation)

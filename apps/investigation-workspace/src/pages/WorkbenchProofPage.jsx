@@ -3,13 +3,13 @@ import { useSearchParams } from 'react-router-dom'
 import { Check, ChevronDown, Keyboard, Link2, Maximize2, Minus, Plus } from 'lucide-react'
 import { AppShell } from '../components/CaseShell.jsx'
 import { GeoMap } from '../components/GeoMap.jsx'
-import { CAVEATS, DATA, PERIODS, PRESETS, alertsOf, drawerFor, excludedFor, graphOf, mapOf, marksOf, meetingsOf, moveOf, nf, short, tableFor, windowsOf, workingSet } from '../lib/workbenchProof.js'
+import { CAVEATS, DATA, PERIODS, PRESETS, alertsOf, dayLabel, drawerFor, excludedFor, graphOf, laneOf, mapOf, marksOf, meetingsOf, moveOf, nf, rhythmOf, short, tableFor, windowsOf, workingSet } from '../lib/workbenchProof.js'
 import { WbGraph } from './workbench/WbGraph.jsx'
 import { WbTimeline } from './workbench/WbTimeline.jsx'
 import { WbDrawer, Badge } from './workbench/WbDrawer.jsx'
 import { WbTable } from './workbench/WbTable.jsx'
 import { WbState } from './workbench/WbStates.jsx'
-import '../styles/workbench-proof.css'
+import '../styles/workbench.css'
 
 // THE LINK-ANALYSIS WORKBENCH, DIRECTION PROOF (docs/ux/workbench/RESEARCH_NOTE.md; master plan 7.3 and 7.6). Two ways to arrange the same thing, on the application's own tokens and both of its themes,
 // over a SYNTHETIC case (development case 2 of the generator): nothing here is read from a live case and nothing is sent anywhere.
@@ -107,7 +107,10 @@ export default function WorkbenchProofPage() {
   const graph = useMemo(() => graphOf(preset, members, layers, range), [preset, members, layers, range])
   const map = useMemo(() => mapOf(preset, layers, range), [preset, layers, range])
   const marks = useMemo(() => marksOf(preset, layers, null), [preset, layers])
-  const drawer = useMemo(() => drawerFor(selection, preset, range), [selection, preset, range])
+  const drawer = useMemo(() => {
+    const d = drawerFor(selection, preset, range)
+    return d ? { ...d, caveats: [CAVEATS[d.caveat]], ask: [{ id: 'ask', label: 'Ask about this', question: d.title }] } : null
+  }, [selection, preset, range])
   const table = useMemo(() => tableFor(selection ? { ...preset, select: selection } : preset, layers, range), [selection, preset, layers, range])
   const excluded = useMemo(() => excludedFor(members), [members])
   const events = useMemo(() => nf.format(preset.focus.reduce((s, n) => s + (DATA.subjects.find(x => x.number === n)?.events || 0), 0)), [preset])
@@ -187,12 +190,19 @@ export default function WorkbenchProofPage() {
       {PERIODS.map(p => <button key={p.id} type="button" aria-pressed={periodOn(p)} onClick={() => setPeriod(p)}>{p.label}</button>)}
     </div>
   )
-  const timelinePane = compact => (
-    <Pane title="Timeline" meta={`events a day${range ? `, ${range[1] - range[0] + 1} days chosen` : ''}`} tools={timelineTools}>
-      <WbTimeline numbers={preset.focus} marks={marks} range={range} onRange={setRange} onSelectMark={onSelectMark} selectedMarkId={markIdOf(selection, preset)} compact={compact} zoomKey={`${preset.id}:${compact}:${rangeVersion}`} />
-      <p className="wbp-hint wbp-hint--tl">Drag the handles under the chart to choose a period; every pane follows it. Click a dot to open its evidence.</p>
-    </Pane>
-  )
+  const dayLabels = useMemo(() => Array.from({ length: DATA.days }, (_, i) => dayLabel(i)), [])
+  const markLines = useMemo(() => { const r = marks.find(m => m.kind === 'rhythm') ? rhythmOf(preset.focus[0]) : null; return r ? [{ day: dayLabels.indexOf(r.first_day), label: 'rhythm changes' }] : [] }, [marks, preset, dayLabels])
+  const timelinePane = compact => {
+    const lanes = compact
+      ? [{ id: 'all', title: preset.focus.length > 1 ? 'All' : short(preset.focus[0]), values: dayLabels.map((_, i) => preset.focus.reduce((s, n) => s + (laneOf(n)[i] || 0), 0)) }]
+      : preset.focus.slice(0, 3).map(n => ({ id: n, title: short(n), values: laneOf(n) }))
+    return (
+      <Pane title="Timeline" meta={`events a day${range ? `, ${range[1] - range[0] + 1} days chosen` : ''}`} tools={timelineTools}>
+        <WbTimeline lanes={lanes} labels={dayLabels} marks={marks} markLines={markLines} range={range} onRange={setRange} onSelectMark={onSelectMark} selectedMarkId={markIdOf(selection, preset)} zoomKey={`${preset.id}:${compact}:${rangeVersion}`} />
+        <p className="wbp-hint wbp-hint--tl">Drag the handles under the chart to choose a period; every pane follows it. Click a dot to open its evidence.</p>
+      </Pane>
+    )
+  }
 
   const canvas = demoState && demoState !== 'on' ? <WbState id={demoState} /> : layout === 'a' ? (
     <>
@@ -277,7 +287,7 @@ export default function WorkbenchProofPage() {
             <div className="wbp-side">
               <div className="wbp-resizer" role="separator" aria-orientation="vertical" aria-label="Resize the evidence panel" tabIndex={0} onPointerDown={startResize} onDoubleClick={() => setInWidth(340)}
                 onKeyDown={e => { if (e.key === 'ArrowLeft') setInWidth(w => Math.min(MAX_IN, w + 20)); if (e.key === 'ArrowRight') setInWidth(w => Math.max(MIN_IN, w - 20)) }} />
-              <WbDrawer drawer={drawer} onClose={() => setSelection(null)} onCopied={setNote} onAsk={d => setNote(`Ask about this (prototype): "${d.title}" would open a question with this mark as its subject.`)} />
+              <WbDrawer drawer={drawer} onClose={() => setSelection(null)} onCopied={setNote} onAsk={() => setNote('Ask about this (prototype): the live workbench asks the engine a question with this mark as its subject.')} />
             </div>
           </div>
         </section>

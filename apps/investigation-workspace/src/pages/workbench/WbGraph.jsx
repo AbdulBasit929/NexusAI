@@ -3,10 +3,11 @@ import cytoscape from 'cytoscape'
 import { chartTheme } from '../../components/charts/chartTheme.js'
 import { useThemeVersion } from '../../lib/useThemeVersion.js'
 
-// The links pane of the workbench direction proof: Cytoscape, drawn with the application's own tokens. A working set, not "everything": the numbers of the question and their strongest neighbours.
-// Rules applied (docs/ux/workbench/RESEARCH_NOTE.md): style differs only where it carries meaning (a subscriber is a rounded square, another number a small circle, the numbers of the question are larger
-// and filled); labels of the minor numbers appear on hover or selection, so that a small working set reads at a glance and a larger one does not become a wall of text; colour is never the only
-// encoding (an inferred link is dashed, a candidate dotted, with an arrow where it has a direction); every mark has its row in the table and its page in the inspector.
+// The links pane of the workbench: Cytoscape, drawn with the application's own tokens. A working set, not "everything": the numbers of the question and their strongest neighbours.
+// Rules applied (docs/ux/workbench/RESEARCH_NOTE.md): style differs only where it carries meaning (a subscriber is a rounded square, another number a small circle, the numbers of the question are
+// larger and filled); labels of the minor numbers appear on hover or selection, so that a small working set reads at a glance and a larger one does not become a wall of text; colour is never the
+// only encoding (an inferred link is dashed, a candidate dotted, with an arrow where it has a direction; a link the answer names is thicker and in the accent); every mark has its row in the table
+// and its page in the evidence panel.
 const cssVar = (name, fallback) => (globalThis.document ? globalThis.getComputedStyle(globalThis.document.documentElement).getPropertyValue(name).trim() || fallback : fallback)
 
 function styleFor(theme) {
@@ -18,6 +19,7 @@ function styleFor(theme) {
     { selector: 'node.lbl-off', style: { label: '' } },
     { selector: 'node.hover', style: { 'border-width': 2.5, color: theme.text } },
     { selector: 'edge', style: { width: 'data(width)', 'curve-style': 'bezier', 'line-color': theme.muted, opacity: 0.4 } },
+    { selector: 'edge[?emph]', style: { 'line-color': accent, opacity: 0.95, width: 2.5 } },
     { selector: 'edge[kind="colocated"]', style: { 'line-style': 'dashed', 'line-dash-pattern': [6, 4], 'line-color': theme.data[2], opacity: 0.95, width: 2 } },
     { selector: 'edge[kind="meeting"]', style: { 'line-style': 'dotted', 'line-color': theme.data[3], opacity: 0.95, width: 2.5 } },
     { selector: 'edge[kind="successor"]', style: { 'line-style': 'dotted', 'line-color': theme.data[1], 'target-arrow-shape': 'triangle', 'target-arrow-color': theme.data[1], 'arrow-scale': 0.9, opacity: 0.95, width: 2.5 } },
@@ -28,14 +30,17 @@ function styleFor(theme) {
   ]
 }
 
+// What a click on a link selects. A link that carries the marks behind it (the live workbench) selects the first of them; a link of the design proof names its own kind.
 export const selectionOfLink = link => {
   const [a, b] = [link.source, link.target]
+  if (link.markIds?.length) return { type: 'mark', id: link.markIds[0] }
   if (link.kind === 'colocated') return { type: 'window', index: 0, a, b }
   if (link.kind === 'meeting') return { type: 'meeting', index: 0, a, b }
   if (link.kind === 'successor') return { type: 'successor', old: a, new: b }
   return { type: 'edge', a, b }
 }
 
+// the proof's selections, as the nodes and links they light
 function selectedIds(selection) {
   if (!selection) return { nodes: [], edges: [] }
   switch (selection.type) {
@@ -51,11 +56,13 @@ function selectedIds(selection) {
 
 const LAYOUTS = {
   focus: () => ({ name: 'concentric', animate: false, fit: true, padding: 34, minNodeSpacing: 26, concentric: node => (node.data('focus') ? 3 : node.data('subject') ? 2 : 1), levelWidth: () => 1 }),
+  // with no question: the best connected subscribers at the centre
+  overview: () => ({ name: 'concentric', animate: false, fit: true, padding: 34, minNodeSpacing: 22, concentric: node => node.degree(false), levelWidth: () => 2 }),
   circle: () => ({ name: 'circle', animate: false, fit: true, padding: 34 }),
-  tree: focus => ({ name: 'breadthfirst', animate: false, fit: true, padding: 30, directed: false, roots: focus.map(id => `#${id}`), spacingFactor: 1.15 }),
+  tree: focus => ({ name: 'breadthfirst', animate: false, fit: true, padding: 30, directed: false, roots: focus.length ? focus.map(id => `[id = "${id}"]`).join(', ') : undefined, spacingFactor: 1.15 }),
 }
 
-export const WbGraph = forwardRef(function WbGraph({ graph, selection, onSelect, height = 420, layout = 'focus', labels = 'smart', label = 'Link chart' }, ref) {
+export const WbGraph = forwardRef(function WbGraph({ graph, selection, highlight, onSelect, height = 420, layout = 'focus', labels = 'smart', label = 'Link chart' }, ref) {
   const host = useRef(null)
   const cy = useRef(null)
   const handlers = useRef({})
@@ -76,6 +83,7 @@ export const WbGraph = forwardRef(function WbGraph({ graph, selection, onSelect,
   useImperativeHandle(ref, () => ({
     fit: () => cy.current?.fit(undefined, 30),
     zoom: factor => { const c = cy.current; if (c) c.zoom({ level: c.zoom() * factor, renderedPosition: { x: c.width() / 2, y: c.height() / 2 } }) },
+    png: () => { const c = cy.current; return c ? c.png({ output: 'base64uri', full: true, scale: 2, bg: chartTheme().card }) : null },
   }), [])
 
   useEffect(() => {
@@ -97,17 +105,18 @@ export const WbGraph = forwardRef(function WbGraph({ graph, selection, onSelect,
     const instance = cy.current
     if (!instance) return
     const nodes = graph.nodes.map(n => ({ group: 'nodes', data: { id: n.id, label: n.label, subject: n.subject, focus: n.focus, size: n.focus ? 24 : n.subject ? 16 : 10 } }))
-    const edges = graph.links.map(l => ({ group: 'edges', data: { id: l.id, source: l.source, target: l.target, kind: l.kind, events: l.events, width: l.kind === 'observed' ? 0.75 + Math.min(2.5, Math.log2(1 + l.events) / 2.4) : 2 } }))
+    const edges = graph.links.map(l => ({ group: 'edges', data: { id: l.id, source: l.source, target: l.target, kind: l.kind, events: l.events, emph: !!l.emph, markIds: l.markIds, width: l.kind === 'observed' ? 0.75 + Math.min(2.5, Math.log2(1 + l.events) / 2.4) : 2 } }))
     instance.batch(() => { instance.elements().remove(); instance.add([...nodes, ...edges]) })
     const focusIds = graph.nodes.filter(n => n.focus).map(n => n.id)
-    instance.layout((LAYOUTS[layout] || LAYOUTS.focus)(focusIds)).run()
+    const plan = LAYOUTS[layout] || LAYOUTS.focus
+    instance.layout(plan(focusIds)).run()
     applyLabels()
   }, [graph, layout, themeVersion])
 
   useEffect(() => {
     const instance = cy.current
     if (!instance) return
-    const chosen = selectedIds(selection)
+    const chosen = highlight || selectedIds(selection)
     instance.elements().removeClass('sel dim')
     if (chosen.nodes.length || chosen.edges.length) {
       const keep = instance.collection()
@@ -117,7 +126,7 @@ export const WbGraph = forwardRef(function WbGraph({ graph, selection, onSelect,
       instance.elements().difference(keep.union(keep.connectedEdges()).union(keep.connectedNodes())).addClass('dim')
     }
     applyLabels()
-  }, [selection, graph, labels, themeVersion])
+  }, [selection, highlight, graph, labels, themeVersion])
 
   return <div ref={host} className="wbp-graph" style={{ blockSize: height }} role="application" tabIndex={0} aria-label={`${label}. ${graph.nodes.length} numbers and ${graph.links.length} links. The same marks are in the table.`} />
 })

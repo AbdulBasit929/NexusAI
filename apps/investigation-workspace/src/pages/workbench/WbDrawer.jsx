@@ -1,16 +1,32 @@
-import { X } from 'lucide-react'
-import { CAVEATS, STRENGTH } from '../../lib/workbenchProof.js'
+import { useRef } from 'react'
+import { ChevronDown, X } from 'lucide-react'
+import { STRENGTH } from '../../lib/workbench/answerMarks.js'
+import { CarrierBadge } from '../../components/CarrierBadge.jsx'
 import { WbTable } from './WbTable.jsx'
 
-// The inspector of the workbench direction proof: every mark opens its evidence. What the mark is and how strong it is (observed, inferred or a candidate: never colour alone), the values behind it with
-// where each came from, the caveat of its analysis in the engine's own words, and the rows. A panel beside the work, never a modal over it (NN/g). Nothing here is drawn that the fixture does not hold.
+// The evidence panel of the workbench: every mark opens its evidence. What the mark is and how strong it is (observed, inferred or a candidate: never colour alone), the values behind it with where each
+// came from, the caveats of its analysis in the engine's own words, and the rows. A panel beside the work, never a modal over it (NN/g). Nothing here is drawn that the case does not hold.
 export function Badge({ strength }) {
   const s = STRENGTH[strength]
   if (!s) return null
   return <span className={`wbp-badge wbp-badge--${strength}`} title={`${s.label}: ${s.note}`}><i aria-hidden="true" />{s.label}</span>
 }
 
-export function WbDrawer({ drawer, onClose, onAsk, onCopied }) {
+// Questions the engine is known to answer, for the numbers on screen. Choosing one asks it (on the Ask page, which is where questions are asked).
+export function AskMenu({ items, onAsk, label = 'Ask about this', up = false }) {
+  const ref = useRef(null)
+  if (!items?.length || !onAsk) return null
+  return (
+    <details className={`wbp-menu${up ? ' wbp-menu--up' : ''}`} ref={ref}>
+      <summary className="wbp-btn wbp-btn--primary">{label} <ChevronDown size={14} aria-hidden="true" /></summary>
+      <ul className="wbp-menu__list" aria-label="Questions about this">
+        {items.map(item => <li key={item.id}><button type="button" onClick={() => { onAsk?.(item); if (ref.current) ref.current.open = false }}><b>{item.label}</b><span>{item.question.length > 90 ? `${item.question.slice(0, 88)}…` : item.question}</span></button></li>)}
+      </ul>
+    </details>
+  )
+}
+
+export function WbDrawer({ drawer, onClose, onAsk, onCopied, onRow }) {
   if (!drawer) {
     return (
       <aside className="wbp-inspector wbp-inspector--empty" aria-label="Evidence">
@@ -26,25 +42,31 @@ export function WbDrawer({ drawer, onClose, onAsk, onCopied }) {
         <div>
           <h2>{drawer.title}</h2>
           <p>{drawer.subtitle}</p>
-          <Badge strength={drawer.strength} />
+          <div className="wbp-in__badges">
+            <Badge strength={drawer.strength} />
+            {drawer.carrier ? <CarrierBadge carrier={drawer.carrier.id} size={16} showName how={drawer.carrier.how} /> : null}
+          </div>
         </div>
         <button type="button" className="wbp-icon" onClick={onClose} aria-label="Close the evidence"><X size={16} aria-hidden="true" /></button>
       </header>
       <section className="wbp-in__sec" aria-label="Values">
         <h3>Values</h3>
         <dl className="wbp-facts">{drawer.facts.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
+        {drawer.values?.length ? <ul className="wbp-used">{drawer.values.map(v => <li key={v.label}><b>{v.label}</b> {v.value} <span>({v.source})</span></li>)}</ul> : null}
       </section>
       <section className="wbp-in__sec" aria-label="Read with care">
         <h3>Read with care</h3>
-        <p className="wbp-caveat">{CAVEATS[drawer.caveat]}</p>
+        {drawer.caveats.map(text => <p key={text} className="wbp-caveat">{text}</p>)}
       </section>
-      <section className="wbp-in__sec" aria-label={drawer.rowsTitle}>
-        <h3>{drawer.rowsTitle}</h3>
-        <WbTable columns={drawer.columns} rows={drawer.rows} pick={drawer.pick} label={drawer.rowsTitle} onCopied={onCopied} />
-      </section>
+      {drawer.rows?.length ? (
+        <section className="wbp-in__sec" aria-label={drawer.rowsTitle}>
+          <h3>{drawer.rowsTitle}</h3>
+          <WbTable columns={drawer.columns} rows={drawer.rows} pick={drawer.pick} label={drawer.rowsTitle} onCopied={onCopied} onRow={drawer.rowTargets ? i => onRow?.(drawer.rowTargets[i]) : undefined} />
+        </section>
+      ) : null}
       <footer className="wbp-in__foot">
-        <button type="button" className="wbp-btn wbp-btn--primary" onClick={() => onAsk?.(drawer)}>Ask about this</button>
-        <span className="wbp-hint">Times on the case clock, Asia/Karachi.</span>
+        <AskMenu items={drawer.ask} onAsk={onAsk} up />
+        <span className="wbp-hint">Times on the case clock.</span>
       </footer>
     </aside>
   )

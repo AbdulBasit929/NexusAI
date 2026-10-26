@@ -99,7 +99,7 @@ export function InvestigationResult({ presentation, onAsk, onClarificationChoice
             <section className="result-section result-section--result" aria-labelledby={headingId("result-heading")}>
               <SectionHeading><span id={headingId("result-heading")}>The result</span></SectionHeading>
               {presentation.state === 'zero-result' && <ScopeChips scope={presentation.scope} />}
-              {hasResult ? <ResultViews presentation={presentation} /> : <EmptyState kind="complete-zero" />}
+              {hasResult ? <ResultViews presentation={presentation} onAsk={onAsk ? question => onAsk(question) : undefined} /> : <EmptyState kind="complete-zero" />}
             </section>
           ) : null}
           {!compact && (
