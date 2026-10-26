@@ -29,6 +29,25 @@ LEAD = {
     "meeting": "Being at the same cell site does not show that two people met or know each other.",
     "successor": "A similar pattern of use does not show that two numbers have one user.",
 }
+# every correction the engine can put in front of an answer (ask_engine_wording.go askPremiseLead); a sentence is read after it
+ALL_LEADS = tuple(LEAD.values()) + (
+    "Two distant cell sites close in time do not show that anyone travelled that fast.",
+    "A cell site is a coverage area, not the position of a person.",
+    "A change in the daily count does not say why it changed.",
+    "A camera sighting does not show who was driving, only that a camera read the plate.",
+)
+
+
+def after_correction(answer):
+    """The answer without the correction the engine puts in front of a question that states a conclusion (several, in the unlikely case)."""
+    rest = answer
+    while True:
+        for lead in ALL_LEADS:
+            if rest.startswith(lead + " "):
+                rest = rest[len(lead) + 1:]
+                break
+        else:
+            return rest
 CANDIDATE = "A candidate, not proof"
 CUE = re.compile(r"\b(?:prove[sd]?|proof|proving|same person|knows? each other|know one another|definitely|certainly|obviously|surely|meet|met|associates?)\b")
 DEFAULTS = {7, 14, 35, 2, 3, 200, 10, 5, 15, 60, 1.5}
@@ -112,7 +131,8 @@ def check_record(q, rec):
     analysis = bool(views & ANALYSIS)
     # W2: no row on an analysis view says what was searched
     if analysis and not rows and not probe and NO_ROW in answer:
-        if not answer.startswith(NO_ROW + ": "):
+        sentence = after_correction(answer)
+        if not sentence.startswith(NO_ROW + ": "):
             fails.append(("W2", "no row, and the sentence does not say what was searched: %r" % answer))
         else:
             for number in MSISDN.findall(question):

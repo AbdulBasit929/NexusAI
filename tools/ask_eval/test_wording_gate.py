@@ -41,6 +41,14 @@ def test_a_control_must_say_what_was_searched():
     assert gates(question, rec("No row matches what you asked.", ["v_anchor_changes"], state="abstained")) == []
 
 
+def test_a_correction_in_front_of_a_no_row_sentence_is_read_past():
+    question = q("meeting_candidates", "When might %s and %s have met?" % (A, B), control=True)
+    said = "No row matches what you asked: no time at which %s and %s were at the same cell site within 15 minutes of each other follows a call or message between them within 60 minutes before it." % (A, B)
+    assert gates(question, rec(g.LEAD["meeting"] + " " + said, ["v_meeting_candidates"])) == []
+    assert gates(question, rec(g.LEAD["meeting"] + " No row matches what you asked.", ["v_meeting_candidates"])) == ["W2"]
+    assert g.after_correction("plain") == "plain"
+
+
 def test_the_ratio_of_the_rhythm_view_is_read_as_times():
     question = q("rhythm_change", "Did the daily activity of %s at least double for good?" % A, {"rhythm_ratio_percent": 200}, control=True)
     ok = "No row matches what you asked: no split of the daily count of events of %s has |t| of 5 or more with a larger daily mean at least 2 times the smaller and at least 10 days on each side." % A
