@@ -655,6 +655,268 @@
   },
   {
    "audit_problems": 0,
+   "bytes": 11939196,
+   "files": 48,
+   "generator_version": "0.6",
+   "id": "judgement-113",
+   "key_sha256": "b64bac116d5dcd7ff07379ebafbdd56fd7829f000fc97c412407fda587577b8d",
+   "kind": "judgement",
+   "manifest_sha256": "794fac87a65781aab2ff31d244f8cd54db31e97e1097deb4725ce2f8dab51df7",
+   "overrides": {
+    "associates": 30,
+    "subjects": 18
+   },
+   "plants": {
+    "address_translation": 3,
+    "colocation": 2,
+    "common_contacts": 5,
+    "device_change": 3,
+    "dual_sim": 1,
+    "impossible_speed": 2,
+    "late_without_predecessor": 1,
+    "outlier_day": 1,
+    "possible_meeting": 2,
+    "rate_change": 1,
+    "relocation": 1,
+    "short_trip": 1,
+    "silent_without_successor": 1,
+    "slow_decoy": 1,
+    "successor": 2
+   },
+   "seed": 113,
+   "spec_version": "0.6"
+  },
+  {
+   "audit_problems": 0,
+   "bytes": 10329641,
+   "files": 36,
+   "generator_version": "0.6",
+   "id": "judgement-114",
+   "key_sha256": "7846cf68c8ffc90ffe48ba55780a75158f879702b7af01d66321207d63c8820d",
+   "kind": "judgement",
+   "manifest_sha256": "50f6dc05789527aa8ef867f30b9423834ed3b9beb03835255fba0931545b2b41",
+   "overrides": {
+    "events_per_person_per_day": 3.0,
+    "period_days": 120
+   },
+   "plants": {
+    "address_translation": 3,
+    "colocation": 2,
+    "common_contacts": 5,
+    "device_change": 3,
+    "dual_sim": 1,
+    "impossible_speed": 2,
+    "late_without_predecessor": 1,
+    "outlier_day": 1,
+    "possible_meeting": 2,
+    "rate_change": 1,
+    "relocation": 1,
+    "short_trip": 1,
+    "silent_without_successor": 1,
+    "slow_decoy": 1,
+    "successor": 2
+   },
+   "seed": 114,
+   "spec_version": "0.6"
+  },
+  {
+   "audit_problems": 0,
+   "bytes": 9457184,
+   "files": 32,
+   "generator_version": "0.6",
+   "id": "judgement-115",
+   "key_sha256": "64aeff7cd9d1e89c3fdab5433bec4c448a89452f5b30c5ee44b0f0003227c467",
+   "kind": "judgement",
+   "manifest_sha256": "6db35b33b7b854d33c0c190e7fab6be087ecdd412a97747c26ab8121a5fcce33",
+   "overrides": {
+    "events_per_person_per_day": 5.5,
+    "subjects": 10
+   },
+   "plants": {
+    "address_translation": 3,
+    "colocation": 2,
+    "common_contacts": 5,
+    "device_change": 2,
+    "dual_sim": 1,
+    "late_without_predecessor": 1,
+    "possible_meeting": 2,
+    "silent_without_successor": 1,
+    "successor": 2
+   },
+   "seed": 115,
+   "spec_version": "0.6"
+  },
+  {
+   "audit_problems": 0,
+   "bytes": 10547126,
+   "files": 36,
+   "generator_version": "0.6",
+   "id": "judgement-116",
+   "key_sha256": "7659bef6c466b0e7efcbe5615ab82f60c04abc2f112c2e92eb1e78d175a1f8f0",
+   "kind": "judgement",
+   "manifest_sha256": "6abcf0e6d5b4b7d8b5b0dd972c13abbf2a7bf9f2f1a5458812fdc803d186c72d",
+   "overrides": {
+    "associates": 32,
+    "communities": 6,
+    "people": 160
+   },
+   "plants": {
+    "address_translation": 3,
+    "colocation": 2,
+    "common_contacts": 5,
+    "device_change": 3,
+    "dual_sim": 1,
+    "impossible_speed": 2,
+    "late_without_predecessor": 1,
+    "outlier_day": 1,
+    "possible_meeting": 2,
+    "rate_change": 1,
+    "relocation": 1,
+    "short_trip": 1,
+    "silent_without_successor": 1,
+    "slow_decoy": 1,
+    "successor": 2
+   },
+   "seed": 116,
+   "spec_version": "0.6"
+  },
+  {
+   "audit_problems": 0,
+   "bytes": 10043488,
+   "files": 40,
+   "generator_version": "0.6",
+   "id": "judgement-117",
+   "key_sha256": "fb66e4badffad8a13d28eeaa15be5e5b25624ea99d12d93da0145e8e02b79042",
+   "kind": "judgement",
+   "manifest_sha256": "a19e28caba7374089a0b08cc6b6110046726b7a2c567356a53280469a98e7bcb",
+   "overrides": {
+    "period_days": 90,
+    "subjects": 14
+   },
+   "plants": {
+    "address_translation": 3,
+    "colocation": 2,
+    "common_contacts": 5,
+    "device_change": 3,
+    "dual_sim": 1,
+    "impossible_speed": 2,
+    "late_without_predecessor": 1,
+    "outlier_day": 1,
+    "possible_meeting": 2,
+    "rate_change": 1,
+    "relocation": 1,
+    "short_trip": 1,
+    "silent_without_successor": 1,
+    "slow_decoy": 1,
+    "successor": 2
+   },
+   "seed": 117,
+   "spec_version": "0.6"
+  },
+  {
+   "audit_problems": 0,
+   "bytes": 8992115,
+   "files": 36,
+   "generator_version": "0.6",
+   "id": "judgement-118",
+   "key_sha256": "991cbaece89878f940d9fd90f12dd4827b65a2125a99986dbc26fd199e7599f9",
+   "kind": "judgement",
+   "manifest_sha256": "294c90ee0aa24118b2d181bbbb0840d467cb01644c2f0c0821298fabcb04ac17",
+   "overrides": {
+    "associates": 20,
+    "communities": 4
+   },
+   "plants": {
+    "address_translation": 3,
+    "colocation": 2,
+    "common_contacts": 5,
+    "device_change": 3,
+    "dual_sim": 1,
+    "impossible_speed": 2,
+    "late_without_predecessor": 1,
+    "outlier_day": 1,
+    "possible_meeting": 2,
+    "rate_change": 1,
+    "relocation": 1,
+    "short_trip": 1,
+    "silent_without_successor": 1,
+    "slow_decoy": 1,
+    "successor": 2
+   },
+   "seed": 118,
+   "spec_version": "0.6"
+  },
+  {
+   "audit_problems": 0,
+   "bytes": 11455610,
+   "files": 52,
+   "generator_version": "0.6",
+   "id": "judgement-119",
+   "key_sha256": "0887f9044acb9f6bf6c1f8362de83f9c8a91cdad59f4f6e4df32ccfde48cc1be",
+   "kind": "judgement",
+   "manifest_sha256": "0822ea27e4fd88f1c6327ac84d4fd9769bd25c07d3c3a37cb4998a3dbb6a9704",
+   "overrides": {
+    "associates": 34,
+    "people": 170,
+    "period_days": 70,
+    "subjects": 20
+   },
+   "plants": {
+    "address_translation": 3,
+    "colocation": 2,
+    "common_contacts": 5,
+    "device_change": 3,
+    "dual_sim": 1,
+    "impossible_speed": 2,
+    "late_without_predecessor": 1,
+    "outlier_day": 1,
+    "possible_meeting": 2,
+    "rate_change": 1,
+    "relocation": 1,
+    "short_trip": 1,
+    "silent_without_successor": 1,
+    "slow_decoy": 1,
+    "successor": 2
+   },
+   "seed": 119,
+   "spec_version": "0.6"
+  },
+  {
+   "audit_problems": 0,
+   "bytes": 10191891,
+   "files": 36,
+   "generator_version": "0.6",
+   "id": "judgement-120",
+   "key_sha256": "34ad34a103eba48eaeb97947b13aa45a3a62046dcc755bfdf3a92b7b4c21579f",
+   "kind": "judgement",
+   "manifest_sha256": "58d28e1f55e542977522ab538707cf11fc9059f321d7e4e8da19c94867880742",
+   "overrides": {
+    "events_per_person_per_day": 3.5,
+    "period_days": 110,
+    "subjects": 12
+   },
+   "plants": {
+    "address_translation": 3,
+    "colocation": 2,
+    "common_contacts": 5,
+    "device_change": 3,
+    "dual_sim": 1,
+    "impossible_speed": 2,
+    "late_without_predecessor": 1,
+    "outlier_day": 1,
+    "possible_meeting": 2,
+    "rate_change": 1,
+    "relocation": 1,
+    "short_trip": 1,
+    "silent_without_successor": 1,
+    "slow_decoy": 1,
+    "successor": 2
+   },
+   "seed": 120,
+   "spec_version": "0.6"
+  },
+  {
+   "audit_problems": 0,
    "bytes": 8913794,
    "files": 36,
    "generator_version": "0.6",
@@ -787,9 +1049,10 @@
  ],
  "generator_version": "0.6",
  "history": [
-  "set_version 1 (2026-10-13): 20 cases; set_version 2 (2026-10-22): judgement 109 to 112 added before the first stage-3 measurement, the 20 earlier entries unchanged"
+  "set_version 1 (2026-10-13): 20 cases; set_version 2 (2026-10-22): judgement 109 to 112 added before the first stage-3 measurement, the 20 earlier entries unchanged",
+  "set_version 3 (2026-10-26): judgement 113 to 120 added before any measurement of the wording of absences and scores and of the ANPR family (the reserve of 105 to 112 is spent), the 24 earlier entries unchanged"
  ],
  "policy": "development 1-99 free; judgement 100-199 registered before the code they judge is measured; sealed 900+ registered once, not opened or scored until a gate",
- "set_version": 2,
+ "set_version": 3,
  "spec_version": "0.6"
 }

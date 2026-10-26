@@ -4,6 +4,7 @@
     python -X utf8 tools/case_generator/case_set.py plan
     python -X utf8 tools/case_generator/case_set.py build  --out CASES_DIR [--kind development|judgement|sealed|all] [--open-sealed]
     python -X utf8 tools/case_generator/case_set.py register --out tools/case_generator/case-set.json
+    python -X utf8 tools/case_generator/case_set.py extend   --register tools/case_generator/case-set.json --why "..."   # add new cases, touching none of the entries
     python -X utf8 tools/case_generator/case_set.py verify   --register tools/case_generator/case-set.json [--kind ...]
 
 Seed policy (G7). Development seeds 1 to 99 are for building and may be looked at freely. Judgement seeds 100 to 199 are generated and
@@ -22,6 +23,7 @@ The register is tied to the generator: any change to the generator changes the h
 from __future__ import annotations
 
 import argparse
+import datetime
 import hashlib
 import json
 import os
@@ -60,6 +62,16 @@ CASES = [
     ("judgement", 110, {"communities": 6, "associates": 24}),
     ("judgement", 111, {"people": 130, "subjects": 15}),
     ("judgement", 112, {"events_per_person_per_day": 4.0, "period_days": 100}),
+    # added 2026-10-26 (set_version 3), before any measurement of the work they will judge (the wording of absences and scores, and the ANPR family): the reserve of 105 to 112 is spent.
+    # More subscribers and more events in several of them, because the pair questions need pairs of subscribers that contact each other.
+    ("judgement", 113, {"subjects": 18, "associates": 30}),
+    ("judgement", 114, {"period_days": 120, "events_per_person_per_day": 3.0}),
+    ("judgement", 115, {"events_per_person_per_day": 5.5, "subjects": 10}),
+    ("judgement", 116, {"people": 160, "associates": 32, "communities": 6}),
+    ("judgement", 117, {"subjects": 14, "period_days": 90}),
+    ("judgement", 118, {"communities": 4, "associates": 20}),
+    ("judgement", 119, {"subjects": 20, "people": 170, "associates": 34, "period_days": 70}),
+    ("judgement", 120, {"events_per_person_per_day": 3.5, "period_days": 110, "subjects": 12}),
     ("sealed", 901, {}),
     ("sealed", 902, {"period_days": 70}),
     ("sealed", 903, {"subjects": 14, "associates": 28, "events_per_person_per_day": 4.5}),
@@ -158,6 +170,9 @@ def main(argv=None):
     b.add_argument("--no-audit", action="store_true")
     r = sub.add_parser("register")
     r.add_argument("--out", required=True)
+    x = sub.add_parser("extend", help="add the cases of CASES that the register does not hold yet; the entries already in it are not touched")
+    x.add_argument("--register", required=True)
+    x.add_argument("--why", required=True, help="one sentence for the history of the register")
     v = sub.add_parser("verify")
     v.add_argument("--register", required=True)
     v.add_argument("--kind", default="development,judgement", help="comma separated kinds (sealed only at a gate)")
@@ -196,6 +211,38 @@ def main(argv=None):
             print("AUDIT FAILED", name, found[:5])
         print("wrote", args.out)
         return 1 if failures else 0
+    if args.command == "extend":
+        with open(args.register, encoding="utf-8") as handle:
+            register = json.load(handle)
+        have = {entry["id"] for entry in register["cases"]}
+        missing = [c for c in CASES if case_id(c[0], c[1]) not in have]
+        if not missing:
+            print("the register already holds every case of the set")
+            return 0
+        if register.get("generator_version") != w.GENERATOR_VERSION or register.get("spec_version") != w.SPEC_VERSION:
+            print("the generator is not the one that made the register: make the register again instead")
+            return 2
+        entries, failures = [], []
+        for kind, seed, overrides in missing:
+            with tempfile.TemporaryDirectory() as scratch:
+                entry, problems = generate_and_describe(kind, seed, overrides, scratch)
+            entries.append(entry)
+            print("%-18s %2d files %6.1f MB  audit %s" % (entry["id"], entry["files"], entry["bytes"] / 1e6, entry["audit_problems"]), flush=True)
+            if problems:
+                failures.append((entry["id"], problems))
+        if failures:
+            for name, found in failures:
+                print("AUDIT FAILED", name, found[:5])
+            return 1
+        order = {c[:2]: i for i, c in enumerate(CASES)}
+        register["cases"] = sorted(register["cases"] + entries, key=lambda e: order[(e["kind"], e["seed"])])
+        register["set_version"] += 1
+        register.setdefault("history", []).append("set_version %d (%s): %s" % (register["set_version"], datetime.date.today().isoformat(), args.why))
+        with open(args.register, "w", encoding="utf-8", newline="\n") as handle:
+            json.dump(register, handle, indent=1, sort_keys=True)
+            handle.write("\n")
+        print("added %d cases; set_version %d" % (len(entries), register["set_version"]))
+        return 0
     if args.command == "verify":
         with open(args.register, encoding="utf-8") as handle:
             register = json.load(handle)
