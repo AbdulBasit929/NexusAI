@@ -27,3 +27,20 @@ Stages 3a, 3b and 3c each passed their own gates on their own cases. Since then 
 ## If a gate fails
 
 Written up with its cause, **only the cause the run shows is fixed**, the fix measured once on the next fresh case (111), nothing tuned on 110 and rerun. A gate that fails twice for the same analysis leaves that analysis dark (its views stay, it is not in the engine's list, the older path answers) and the owner is told. Nothing is deployed because of this run without the owner's go.
+
+## Result of the run (2026-10-23; code 49c4029; case 110; the engine arm; once, read once)
+
+| Bank | Questions | Correct | Wrong | Declined or abstained | Latency (median, 90th percentile, longest) | Gates |
+|---|---|---|---|---|---|---|
+| Stage 3a (A5, A7) | 10 | 10 | 0 | 0 | 24.4 s, 50.5 s, 53.7 s | T4-1 to T4-5 **met** |
+| Stage 3b (A9) | 10 | 10 | 0 | 0 | 26.1 s, 38.4 s, 61.5 s | **met**; controls 3 of 3; caveat on 5 of 5 results and 2 of 2 probes |
+| Stage 3c (A10, A11) | 10 | 10 | 0 | 0 | 28.2 s, 40.1 s, 41.3 s | **met**; controls 3 of 3; caveat on 6 of 6 results and 2 of 2 probes |
+| Stage 2 (co-location at the hour) | 24 | **22** | **2** | 0 | **73.8 s**, 97.5 s, 101.1 s (10 repairs) | **T4-1, T4-3 and T4-6 not met** |
+| Stage 1 (connections, handsets, the rest) | 81 | **79** (80 after the judge fix) | **2** (1) | 0 | 27.7 s, 54.7 s, 91.3 s (9 repairs) | **T4-1 and T4-6 not met** |
+
+**The four wrong answers, each with its cause.**
+1. **Stage 2, `C020` and `C024`, a regression caused by stage 3a.** "How many different hours did A and B spend at the same cell site together?" was answered from `v_colocation_windows` (the 15-minute windows of stage 3a), counting their start times: 3 and 4 where the hours are 5 and 5. The shortlist offered that view because "same" and "together" are in its lexicon; a question about hours that names no minutes belongs to the hourly view. **Fix:** such a question loses `v_colocation_windows` from the shortlist (`askHourColocation`; a spec on two phrasings, and one that keeps a minutes question on the windows view).
+2. **Stage 1, `Q003`.** "How many events are there between A and B?" was answered by counting the rows of `v_contact_pairs` (1) where the events are 76: a row of that view is one contact, not one event. The example retrieval was checked and is **not** the cause (the old and the new weighting give the same examples for this question). **Fix:** a count of rows on that view for a question that counts events, calls or messages fails an obligation that asks for the sum of the `events` column (a spec on the failing query, the summed query and a "how many numbers" question that stays a count).
+3. **Stage 1, `Q038`, a defect of the judge, not of the engine.** "List every IMEI seen with A" was answered with both IMEIs and the IMSI of the SIM in the same rows; the `set` judge read the IMSI as a third handset. The answer was complete and right. **Fix:** the `set` judge no longer reads a column named `imsi` (4 unit tests); stage 1 re-judged is 80 of 81, and the table above gives both figures.
+
+**Fix measurement (2026-10-23; code 4acbf23; unopened judgement case 111; once).** The classes the fixes touch, plus the stage whose routing changed: **stage 1 `pair_count`, `incoming_count`, `devices` and `distinct_contacts` 21 of 21; stage 2 24 of 24** (`coloc_hours` 12 of 12); **stage 3a 10 of 10** (windows asked for 10, 15, 20, 22 and 30 minutes); **0 wrong in 55**. Stage 2 is slower than the budget (median 61.1 s, 90th percentile 81.3 s, 12 repairs): the hourly questions need a repair in about half of the cases; the gate (90th percentile at most 120 s) is met and the cost is listed as the next speed item for the hourly view. Cases spent by this milestone: 110 and 111 (112 stays in reserve; sealed 901 to 904 untouched). **Nothing is deployed for this**: the fixes are in the repository (commit 4acbf23) and reach the live system with the owner's next go for an image.
