@@ -91,7 +91,15 @@ func askHeadline(r *govSQLResult, shape, absence string) string {
 		return fmt.Sprintf("%s between %s%s.", askCount(n, "link", "links"), askCount(len(nodes), "number", "numbers"), more)
 	case "map":
 		// Rows of (cell, hour) visits are positions on the map, but the question was about cell sites: say how many sites the positions are at.
+		// Rows that carry a start and an end are not positions of anyone: they are the times two numbers were at one cell site (a window), or windows that follow a contact (a possible meeting). Review of
+		// the stage-3 answers (2026-10-26): "13 positions at 3 cell sites" for 13 windows read as where people were.
 		head := askCount(n, "position", "positions")
+		switch {
+		case askColumnIndex(r, "start_utc") >= 0 && (askColumnIndex(r, "gap_minutes") >= 0 || askColumnIndex(r, "contacts") >= 0 || askColumnIndex(r, "last_contact_utc") >= 0):
+			head = askCount(n, "possible meeting", "possible meetings")
+		case askColumnIndex(r, "start_utc") >= 0 && askColumnIndex(r, "end_utc") >= 0:
+			head = askCount(n, "time together", "times together")
+		}
 		if c := askColumnIndex(r, "cell_key"); c >= 0 {
 			sites := map[string]bool{}
 			for _, row := range r.Rows {

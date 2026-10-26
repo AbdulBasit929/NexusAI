@@ -997,4 +997,17 @@ var _ = Describe("Ask engine headline", func() {
 		visits.Truncated = true
 		Expect(askHeadline(visits, "map", "")).To(Equal("1 position at 1 cell site (the first 1; there are more)."))
 	})
+
+	It("does not call a window of two numbers at one cell site a position: it counts the times together, and the possible meetings", func() {
+		windows := &govSQLResult{Columns: []string{"cell_key", "start_utc", "end_utc", "pairs"}, Texts: []bool{true, true, true, false}, Rows: [][]any{
+			{"cell-a", "2026-02-09 08:36:08 PKT", "2026-02-09 08:52:11 PKT", int64(1)}, {"cell-a", "2026-02-11 16:56:07 PKT", "2026-02-11 17:24:22 PKT", int64(2)}, {"cell-b", "2026-03-03 20:59:47 PKT", "2026-03-03 21:07:36 PKT", int64(1)}}}
+		Expect(askHeadline(windows, "map", "")).To(Equal("3 times together at 2 cell sites."))
+		windows.Rows = windows.Rows[:1]
+		Expect(askHeadline(windows, "map", "")).To(Equal("1 time together at 1 cell site."))
+		meetings := &govSQLResult{Columns: []string{"cell_key", "start_utc", "end_utc", "pairs", "contacts", "gap_minutes", "score"}, Texts: []bool{true, true, true, false, false, false, false}, Rows: [][]any{
+			{"cell-a", "2026-02-11 18:35:00 PKT", "2026-02-11 18:38:00 PKT", int64(1), int64(1), int64(21), 0.55}, {"cell-a", "2026-03-05 16:25:00 PKT", "2026-03-05 16:34:00 PKT", int64(4), int64(1), int64(18), 0.9}}}
+		Expect(askHeadline(meetings, "map", "")).To(Equal("2 possible meetings at 1 cell site."))
+		meetings.Rows = meetings.Rows[:1]
+		Expect(askHeadline(meetings, "map", "")).To(Equal("1 possible meeting at 1 cell site."))
+	})
 })
