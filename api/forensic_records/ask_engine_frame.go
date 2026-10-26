@@ -341,6 +341,36 @@ func askHopsBounded(sql string, n int) bool {
 	return false
 }
 
+var askInList = regexp.MustCompile(`\b(src|dst)\s+in\s*\(([^)]*)\)`)
+
+// askBothDirections finds the first pair of numbers of the question that the query reads in both directions: src = A and dst = B as well as src = B and dst = A (or src IN (A, B) and
+// dst IN (A, B)). The numbers are returned in the order the question names them.
+func askBothDirections(sql string, numbers []string) (string, string, bool) {
+	mentioned := func(column, id string) bool {
+		return regexp.MustCompile(`\b` + column + `\s*=\s*'\+?` + regexp.QuoteMeta(strings.ToLower(id)) + `'`).MatchString(sql)
+	}
+	listed := map[string]map[string]bool{"src": {}, "dst": {}}
+	for _, m := range askInList.FindAllStringSubmatch(sql, -1) {
+		for _, id := range numbers {
+			if strings.Contains(m[2], strings.ToLower(id)) {
+				listed[m[1]][id] = true
+			}
+		}
+	}
+	for i := 0; i < len(numbers); i++ {
+		for j := i + 1; j < len(numbers); j++ {
+			a, b := numbers[i], numbers[j]
+			if mentioned("src", a) && mentioned("dst", b) && mentioned("src", b) && mentioned("dst", a) {
+				return a, b, true
+			}
+			if listed["src"][a] && listed["src"][b] && listed["dst"][a] && listed["dst"][b] {
+				return a, b, true
+			}
+		}
+	}
+	return "", "", false
+}
+
 func askUsesColumn(v *askValidated, names ...string) bool {
 	for _, c := range v.Columns {
 		for _, n := range names {
@@ -492,10 +522,22 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	if askUsesView(v, "v_successor_candidates") && askSQLMentions(sql, "interval") {
 		add("PARAMETER", "The days of silence, the start window and the lowest score are set by the application from the question: do not compute a window from new_first_event_utc and old_last_event_utc or use an interval; select from v_successor_candidates and filter only on old_number, new_number or the score.", "the query works out a window of its own on the successor view")
 	}
-	// A row of v_contact_pairs is one contact (a number, in one direction), not one event: "how many events are there between A and B" is the sum of its events column. A count of its rows said 1
+	// A row of v_contact_pairs is one contact (a number, in one direction), not one event: "how many events are there between A and B" is the events column of the pair's row, not a count of rows. A count of its rows said 1
 	// where the events were 76 (found by the stage-3 milestone run on case 110).
 	if askUsesView(v, "v_contact_pairs") && !askUsesView(v, "v_comm_events") && askCountsEvents.MatchString(strings.ToLower(f.Question)) && askSQLMentions(sql, "count(") && !askSQLMentions(sql, "sum(") {
-		add("AGGREGATE", "A row of v_contact_pairs is one contact, not one event: for how many events, calls or messages there are, SUM the events column of the rows (both directions), do not COUNT the rows.", "the question counts events and the query counts the contacts")
+		add("AGGREGATE", "A row of v_contact_pairs is one contact, not one event: for how many events, calls or messages there are between TWO numbers, take MAX(events) over the rows of the pair (WHERE src IN (A, B) AND dst IN (A, B); the incoming, outgoing and unknown events are already in that column). For the events of ONE number with others, SUM its events column. Do not COUNT the rows.", "the question counts events and the query counts the contacts")
+	}
+	// A call between two subscribers is in the records of both: once as outgoing in one export and once as incoming in the other, at the same time. The events of A with B and of B with A are the
+	// same events, so a query that adds both directions counts every call twice (found 2026-10-26 on the live service: "How many events are there between A and B?" answered 8 where the records hold 4;
+	// the repair message of the stage-3 milestone run had said "both directions"). Reading both directions is right when only one of the two is a subscriber (there is one row), so the answer is the
+	// pair's rows taken ONCE: MAX of the events column, or the distinct start times of the events.
+	if a, b, both := askBothDirections(sql, f.Numbers); both {
+		switch {
+		case askUsesView(v, "v_contact_pairs") && askSQLMentions(sql, "sum(", "count("):
+			add("PAIR_DIRECTION", fmt.Sprintf("The events of %[1]s with %[2]s and of %[2]s with %[1]s are the same events: a call between two subscribers is in both of their records. Take the pair once: SELECT MAX(events) ... WHERE src IN ('%[1]s', '%[2]s') AND dst IN ('%[1]s', '%[2]s') (when both are subscribers the two rows hold the same calls, when only one is there is one row). Write the pair as two IN lists joined by AND, so that any other condition is one more AND. Do not SUM or COUNT both directions, which counts every call twice.", a, b), "the query adds the events of the two numbers in both directions, which counts every call between two subscribers twice")
+		case askUsesView(v, "v_comm_events") && askSQLMentions(sql, "count(") && !askSQLMentions(sql, "count(distinct", "count( distinct"):
+			add("PAIR_DIRECTION", fmt.Sprintf("The events of %[1]s with %[2]s and of %[2]s with %[1]s are the same events: a call between two subscribers is in both of their records at the same time. Count them once: SELECT COUNT(DISTINCT start_utc) ... WHERE src IN ('%[1]s', '%[2]s') AND dst IN ('%[1]s', '%[2]s') AND (the dates or any other condition), not COUNT(*). Write the pair as two IN lists joined by AND, so that every other condition applies to both directions.", a, b), "the query counts the events of the two numbers in both directions, which counts every call between two subscribers twice")
+		}
 	}
 	if f.Cues["count"] && !askSQLMentions(sql, "count(", "sum(") && !askUsesColumn(v, "events", "incoming", "outgoing") {
 		add("AGGREGATE", "The question asks how many: count the rows (COUNT) or sum the counts of the view.", "the question asks for a count that the query does not compute")

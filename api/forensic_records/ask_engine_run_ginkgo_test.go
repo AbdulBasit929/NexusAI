@@ -168,14 +168,73 @@ var _ = Describe("Ask engine obligations", func() {
 		})
 	}
 
-	It("asks for the sum of the events when events are counted on the contact pairs", func() {
+	It("asks for the events of the pair taken once when events are counted on the contact pairs", func() {
 		q := "How many events are there between 923000000101 and 923000000102?"
-		counted := "SELECT count(*) AS value FROM v_contact_pairs WHERE (src = '923000000101' AND dst = '923000000102') OR (src = '923000000102' AND dst = '923000000101')"
-		summed := "SELECT sum(events) AS value FROM v_contact_pairs WHERE (src = '923000000101' AND dst = '923000000102') OR (src = '923000000102' AND dst = '923000000101')"
+		both := "(src = '923000000101' AND dst = '923000000102') OR (src = '923000000102' AND dst = '923000000101')"
+		counted := "SELECT count(*) AS value FROM v_contact_pairs WHERE " + both
+		summed := "SELECT sum(events) AS value FROM v_contact_pairs WHERE " + both
+		taken := "SELECT max(events) AS value FROM v_contact_pairs WHERE " + both
+		oneWay := "SELECT sum(events) AS value FROM v_contact_pairs WHERE src = '923000000101' AND dst = '923000000102'"
 		Expect(check(q, counted)).To(ContainElement("AGGREGATE"))
 		Expect(check(q, summed)).NotTo(ContainElement("AGGREGATE"))
+		// a call between two subscribers is in both of their records: adding the two directions counts it twice (found on the live service, 8 where the records hold 4)
+		Expect(check(q, summed)).To(ContainElement("PAIR_DIRECTION"))
+		Expect(check(q, counted)).To(ContainElement("PAIR_DIRECTION"))
+		Expect(check(q, taken)).To(BeEmpty())
+		Expect(check(q, oneWay)).To(BeEmpty())
 		// how many contacts, people or numbers is still a count of rows
 		Expect(check("How many different numbers did 923000000101 contact?", "SELECT count(*) AS value FROM v_contact_pairs WHERE src = '923000000101'")).NotTo(ContainElement("AGGREGATE"))
+	})
+
+	It("reads the two directions of a pair in the forms a query writes them, and in no other query", func() {
+		numbers := []string{"923000000101", "923000000102"}
+		a, b, both := askBothDirections("where (src = '923000000101' and dst = '923000000102') or (src = '923000000102' and dst = '923000000101')", numbers)
+		Expect([]any{a, b, both}).To(Equal([]any{"923000000101", "923000000102", true}))
+		_, _, both = askBothDirections("where cp.src in ('923000000101', '923000000102') and cp.dst in ('923000000102','923000000101')", numbers)
+		Expect(both).To(BeTrue())
+		for _, one := range []string{
+			"where src = '923000000101' and dst = '923000000102'",
+			"where src = '923000000102' and dst = '923000000101'",
+			"where src = '923000000101' or src = '923000000102'",
+			"where src in ('923000000101', '923000000102') and dst = '923000000103'",
+			"where src = '923000000101' and dst = '923000000102' and direction = 'incoming'",
+		} {
+			_, _, both = askBothDirections(one, numbers)
+			Expect(both).To(BeFalse(), one)
+		}
+		_, _, both = askBothDirections("where src = '923000000101' and dst = '923000000102'", numbers[:1])
+		Expect(both).To(BeFalse())
+	})
+
+	It("tells the model the shape that cannot be mis-grouped: the pair as two lists joined by AND, so that a date applies to both directions", func() {
+		q := "How many events are there between 923000000101 and 923000000102 in March 2026?"
+		valid, rej := askValidate("SELECT count(*) AS n FROM v_comm_events WHERE (src = '923000000101' AND dst = '923000000102') OR (src = '923000000102' AND dst = '923000000101') AND start_utc >= '2026-03-01' AND start_utc < '2026-04-01'", cat, nil)
+		Expect(rej).To(BeNil())
+		var message string
+		for _, o := range askCheckFrame(askExtractFrame(q), valid) {
+			if o.Kind == "PAIR_DIRECTION" {
+				message = o.Message
+			}
+		}
+		Expect(message).To(ContainSubstring("src IN ('923000000101', '923000000102') AND dst IN ('923000000101', '923000000102')"))
+		Expect(message).To(ContainSubstring("COUNT(DISTINCT start_utc)"))
+		Expect(message).NotTo(ContainSubstring("%!"))
+	})
+
+	It("counts the events of a pair of subscribers once when the query reads the events themselves", func() {
+		q := "How many calls and messages did 923000000101 and 923000000102 have in March 2026?"
+		months := " AND start_utc >= '2026-03-01' AND start_utc < '2026-04-01'"
+		both := "((src = '923000000101' AND dst = '923000000102') OR (src = '923000000102' AND dst = '923000000101'))"
+		Expect(check(q, "SELECT count(*) AS n FROM v_comm_events WHERE "+both+months)).To(ContainElement("PAIR_DIRECTION"))
+		Expect(check(q, "SELECT count(DISTINCT start_utc) AS n FROM v_comm_events WHERE "+both+months)).To(BeEmpty())
+		// the pair written as two lists joined by AND is the form the repair asks for: another condition (the month) is one more AND and applies to both directions
+		lists := "src IN ('923000000101', '923000000102') AND dst IN ('923000000101', '923000000102')"
+		Expect(check(q, "SELECT count(DISTINCT start_utc) AS n FROM v_comm_events WHERE "+lists+months)).To(BeEmpty())
+		Expect(check(q, "SELECT count(*) AS n FROM v_comm_events WHERE "+lists+months)).To(ContainElement("PAIR_DIRECTION"))
+		Expect(check("How many events are there between 923000000101 and 923000000102?", "SELECT max(events) AS n FROM v_contact_pairs WHERE "+lists)).To(BeEmpty())
+		Expect(check(q, "SELECT count(*) AS n FROM v_comm_events WHERE src = '923000000101' AND dst = '923000000102'"+months)).To(BeEmpty())
+		// one number's own events are not a pair
+		Expect(check("How many calls did 923000000101 have in March 2026?", "SELECT count(*) AS n FROM v_comm_events WHERE src = '923000000101'"+months)).To(BeEmpty())
 	})
 
 	It("refuses a window of its own worked out on the successor view, and accepts the plain query", func() {
