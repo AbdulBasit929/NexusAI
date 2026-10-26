@@ -1,3 +1,5 @@
+> **SUPERSEDED as a working instruction on 2026-10-26 by [`../ux/MASTER_UI_UX_DIRECTIVE.md`](../ux/MASTER_UI_UX_DIRECTIVE.md).** Kept for history; section 17 of the directive says what was kept and what was rejected from this document.
+
 # ==============================================================================
 # NEXUSAI WORLD-CLASS FORENSIC INTELLIGENCE WORKSPACE REDESIGN DIRECTIVE
 # Benchmarks: Linear App • Palantir Gotham & Foundry • Vercel • Stripe • Datadog

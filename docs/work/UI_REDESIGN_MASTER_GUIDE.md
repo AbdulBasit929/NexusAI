@@ -1,3 +1,5 @@
+> **SUPERSEDED as a working instruction on 2026-10-26 by [`../ux/MASTER_UI_UX_DIRECTIVE.md`](../ux/MASTER_UI_UX_DIRECTIVE.md).** Kept for history; section 17 of the directive says what was kept and what was rejected from this document.
+
 # NexusAI workspace: UI/UX redesign master guide
 
 Owner directive, 2026-09-29. This file is the working instruction for the redesign. It sits under `UI_REDESIGN_BRIEF_20260929.md` (binding rules, chart table, definition of done) and above the per-stage specs in `docs/work/UI_PAGE_SPECS/`. Where they conflict, the brief's truth, privacy and accessibility rules win.

@@ -1,3 +1,5 @@
+> **SUPERSEDED as a working instruction on 2026-10-26 by [`../ux/MASTER_UI_UX_DIRECTIVE.md`](../ux/MASTER_UI_UX_DIRECTIVE.md).** Kept for history; section 17 of the directive says what was kept and what was rejected from this document.
+
 # NexusAI workspace: full UI/UX redesign brief (v2)
 
 2026-09-29. Written for a Claude Code session that takes over the UI track while Codex is paused.

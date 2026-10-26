@@ -1,3 +1,5 @@
+> **SUPERSEDED as a working instruction on 2026-10-26 by [`../MASTER_UI_UX_DIRECTIVE.md`](../MASTER_UI_UX_DIRECTIVE.md).** Kept for history; section 17 of the directive says what was kept and what was rejected from this document.
+
 # NexusAI UI redesign (October 2026) — plan
 
 **Goal:** a clean, modern, elegant, enterprise-grade interface that feels natural and human — not "AI" and not "techy" — covering colour, type, theme, shell, every page, every section, charts and motion, built one thing at a time.

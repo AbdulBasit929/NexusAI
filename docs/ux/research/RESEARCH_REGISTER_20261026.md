@@ -1,0 +1,68 @@
+# NexusAI interface research register
+
+**Date:** 2026-10-26 · **Used by:** [`../MASTER_UI_UX_DIRECTIVE.md`](../MASTER_UI_UX_DIRECTIVE.md) · **Rule:** stage research **adds rows and never deletes one**; a rule that depends on an **S** or **K** row must be re-checked against a primary source when its stage builds it.
+
+**Confidence marks**
+- **V**: the page was fetched and read in full on 2026-10-26; the finding below is what that page says.
+- **S**: seen as a search-result snippet or in a secondary source (a blog, a comparison site, a summary); **not** read in the primary source. Treat as a lead.
+- **K**: established practice that was not re-read this session; recorded so the stage can verify it.
+
+Two cautions. (1) Several search results for the design-agent topics were generated "skill" or plugin pages and vendor listings; none is cited as a basis for a rule. (2) The Urdu-typography search returned only non-authoritative pages (R37): that rule rests on practice and **must be confirmed by a native reader** (decision O-6).
+
+| ID | Topic | What the directive took from it | Source(s) | Mark |
+|---|---|---|---|---|
+| R1 | Perceptual colour, OKLCH, generated scales | Generate ramps in a perceptually uniform space and check, never eyeball; accessible colour systems built from lightness targets | Stripe, "Designing accessible color systems" https://stripe.com/blog/accessible-color-systems ; LogRocket, "OKLCH in CSS" https://blog.logrocket.com/oklch-css-consistent-accessible-color-palettes | V (Stripe) · S (LogRocket) |
+| R2 | Modern CSS colour: `light-dark()`, `color-mix()`, relative colour, `@property` | Theme by `color-scheme` + `light-dark()`; derived states by relative colour in the generator; register animated tokens | web.dev, "Baseline in action: color theme" https://web.dev/articles/baseline-in-action-color-theme ; MDN `light-dark()` https://developer.mozilla.org/en-us/docs/web/css/color_value/light-dark ; W3C CSS Color 5 draft https://www.w3.org/TR/2026/WD-css-color-5-20260913/ | V (web.dev) · S (MDN, W3C draft) |
+| R3 | Radix Colors: the 12-step scale | Each step has one job (backgrounds 1 to 5, borders 6 to 8, solids 9 to 10, text 11 to 12) | https://www.radix-ui.com/colors/docs/palette-composition/understanding-the-scale | V |
+| R4 | IBM Carbon themes, tokens, layering | Role-based tokens that keep their role between themes; layered surfaces | https://carbondesignsystem.com/elements/themes/overview/ | V |
+| R5 | Material 3 colour roles; dark theme and tonal surfaces | Depth by tone not shadow; dark surfaces never pure black; lighter tonal accents on dark | https://m3.material.io/styles/color/roles (V) ; https://material.io/blog/tone-based-surface-color-m3 ; https://m2.material.io/design/color/dark-theme | V (roles) · S (others; the 15.8:1 figure is from the dark-theme page snippet) |
+| R6 | Linear's UI redesign | Few theme inputs, generated scales, neutral chrome, alignment on one grid, higher hierarchy in the sidebar; process (flag-gated, dogfooded) | https://linear.app/now/how-we-redesigned-the-linear-ui | V |
+| R7 | Atlassian's new navigation | Global items in a top bar, project items in a side navigation; one system | https://www.atlassian.com/blog/design/designing-atlassians-new-navigation | S |
+| R8 | Design Tokens Community Group format | First stable version **2025.10** (a Community Group report, not a W3C standard) | https://www.w3.org/community/design-tokens/2025/10/28/design-tokens-specification-reaches-first-stable-version/ ; https://www.designtokens.org/ | S |
+| R9 | CSS cascade layers and token architecture | `@layer` order; tiered tokens | https://una.im/modern-css-theming | S |
+| R10 | NN/g error-message guidelines | Visible, plain, polite, constructive, specific; preserve input | https://www.nngroup.com/articles/error-message-guidelines/ | V |
+| R11 | Carbon data table | Row heights 24 / 32 / 40 / 48 / 64; header, toolbar and pagination scale with density; table behaviours | https://carbondesignsystem.com/components/data-table/usage/ | V |
+| R12 | TanStack Table and Virtual; accessible virtualized tables | Virtualization is not paging; `aria-rowcount`/`aria-rowindex` are the developer's job (the second part from practice) | https://tanstack.com/table/latest/docs/framework/react/guide/virtualization | S (docs) · K (ARIA attributes) |
+| R13 | Carbon motion | Productive vs expressive; duration tokens 70 / 110 / 150 / 240 / 400 / 700 ms; the six easing curves | https://carbondesignsystem.com/elements/motion/overview/ | V |
+| R14 | Command palette as an accessible combobox | Input keeps focus, `aria-activedescendant`, results as a listbox, `Esc` returns focus | WAI-ARIA Authoring Practices, combobox and dialog patterns https://www.w3.org/WAI/ARIA/apg/patterns/combobox/ | K (APG not re-read) · S (pattern write-ups) |
+| R15 | Popover, dialog, anchor positioning | Now usable natively; use `dialog` and `popover` first | web.dev Baseline digest May 2026 https://web.dev/blog/baseline-digest-may-2026 ; MDN `anchor` https://developer.mozilla.org/docs/Web/CSS/anchor | S |
+| R16 | View Transitions | Same-document transitions reached Baseline "newly available" (October 2025); progressive enhancement | https://web.dev/blog/same-document-view-transitions-are-now-baseline-newly-available ; https://developer.chrome.com/blog/view-transitions-in-2025 | S |
+| R17 | NN/g response times, skeleton screens, dashboards | 0.1 / 1 / 10 s limits; skeletons for 2 to 10 s, progress bar beyond; dashboards must serve decisions, encode with position and length, no pies/gauges/3-D, colour secondary | https://www.nngroup.com/articles/response-times-3-important-limits/ ; https://www.nngroup.com/articles/skeleton-screens/ ; https://www.nngroup.com/articles/dashboards-preattentive/ | V |
+| R18 | NN/g animation duration | About 100 to 500 ms; under 100 reads as instant | https://www.nngroup.com/articles/animation-duration/ | V |
+| R19 | Carbon and Primer data visualisation | Chart anatomy; colour palettes and accessibility; chart-type guidance; data-viz patterns | https://carbondesignsystem.com/data-visualization/chart-anatomy/ ; https://carbondesignsystem.com/data-visualization/color-palettes/ ; https://www.ibm.com/design/language/data-visualization/design/basics/ ; https://primer.style/product/ui-patterns/data-visualization/ | V |
+| R20 | Graphical perception and information design | Cleveland–McGill ranking of encodings; Munzner's effectiveness/expressiveness; Tufte (data-ink, small multiples, sparklines); Shneiderman's mantra | https://flowingdata.com/2010/03/20/graphical-perception-learn-the-fundamentals-first ; https://info3312.infosci.cornell.edu/slides/04-graphical-perception.html ; https://webspace.science.uu.nl/~telea001/uploads/VACourse/Shneiderman96.pdf ; https://faculty.cc.gatech.edu/~stasko/4460/Notes/tufte.pdf | S (summaries) · K (originals) |
+| R21 | Animated transitions in statistical graphics | Object congruence (constancy) and staging; help when preserved, hurt when everything moves | https://idl.uw.edu/papers/animated-transitions | S |
+| R22 | Datawrapper colour guidance | One highlighted series on grey; colour rules for style guides; contrast and colour-blind checks | https://www.datawrapper.de/blog/colors-for-data-vis-style-guides | V |
+| R23 | Cambridge Intelligence: graph, time and large networks | Declutter, working set, level of detail, combos, time bar; investigation workflows | https://cambridge-intelligence.com/blog/designing-intuitive-data-experiences-with-graph-visualizations/ ; https://cambridge-intelligence.com/blog/visualize-large-networks/ ; https://developers.cambridge-intelligence.com/showcases/data-fusion-investigations (V) ; https://cambridge-intelligence.com/regraph/features (S) | V · S |
+| R24 | Maps: base-map hierarchy, clustering, accessibility | Muted base map under data; clustering and density; keyboard route and text alternative | https://www.ordnancesurvey.co.uk/blog/effective-basemaps ; https://courses.ems.psu.edu/geog486/book/export/html/3 ; https://www.boia.org/blog/interactive-maps-and-accessibility-4-tips ; https://sitepen.com/blog/navigating-accessibility-in-two-dimensions ; MapLibre style spec (raster paint properties) | S · K |
+| R25 | Apache ECharts: large data, sampling, accessibility | `large` mode, `sampling`, `progressive`; `aria`; `decal` patterns. **Mirror docs only: verify on the official site** | https://www.mintlify.com/apache/echarts/guides/performance | S |
+| R26 | WAI-ARIA Authoring Practices | Patterns for tabs, combobox, dialog, menu button, listbox, disclosure, splitter, alert; landmarks | https://www.w3.org/WAI/ARIA/apg/patterns/ | K |
+| R27 | Chartability | Testable heuristics for accessible data visualisation as the acceptance workbook | https://chartability.fizz.studio/ | V |
+| R28 | Empty-state patterns | What / why / next; first-use vs no-results vs error | https://carbondesignsystem.com/patterns/empty-states-pattern/ ; https://www.sap.com/design-system/fiori-design-web/v1-96/foundations/best-practices/global-patterns/designing-for-empty-states ; https://spring-20.lightningdesignsystem.com/guidelines/empty-state | S |
+| R29 | Toasts and status messages | `role="status"`; errors and actionable content do not belong in toasts; WCAG 4.1.3 | https://adrianroselli.com/2020/01/defining-toast-messages.html ; https://www.disabilityworld.org/toolkit/standards/wcag/4-1-3-status-messages/ | S |
+| R30 | WCAG 2.2 | New criteria: 2.4.11, 2.4.13, 2.5.7, 2.5.8, 3.2.6, 3.3.7, 3.3.8; target-size minimum | https://www.w3.org/WAI/standards-guidelines/wcag/new-in-22/ ; https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html | V |
+| R31 | File-upload pattern | A card per file; per-file progress, errors and retry; keyboard operable; announced completion | https://design.visa.com/patterns/file-upload/ ; https://design.visa.com/patterns/file-upload/accessibility/ ; https://uploadcare.com/blog/file-uploader-ux-best-practices/ | S |
+| R32 | Media accessibility | Captions or transcripts for audio/video; no auto-play (WCAG 1.2.x, 1.4.2) | WCAG 2.2 | K |
+| R33 | Interaction to Next Paint | "Good" is 200 ms or less at the 75th percentile | https://web.dev/articles/inp | V |
+| R34 | React Aria vs Radix | React Aria is stronger on internationalisation and accessibility behaviours; Radix is simpler to style | https://www.pkgpulse.com/guides/react-aria-vs-radix-primitives-2026 ; https://www.wmtips.com/technologies/compare/radix-ui-vs-react-aria/ ; https://argos-ci.com/blog/react-aria-migration | S (comparison sites; verify on the stage) |
+| R35 | WCAG 3.0 status | A Working Draft (Bronze/Silver/Gold levels); APCA values informative only | https://www.w3.org/TR/wcag3 ; https://www.adacompliancepros.com/blog/wcag-3-draft-status-procurement | S |
+| R36 | Enterprise design systems: Blueprint and EUI | Dense, keyboard-consistent, composable desktop-first systems; Blueprint as a scaling story | https://blog.palantir.com/scaling-product-design-with-blueprint-25492827bb4a (V) ; https://eui.elastic.co/ (V) | V |
+| R37 | Urdu and Nastaliq typography | Line-height about 1.8 to 1.9 for Nastaliq; `dir="auto"` / `<bdi>` for mixed text. **Only non-authoritative pages were found: confirm with a native reader** | (no authoritative URL) | K · S (weak) |
+| R38 | `DESIGN.md` and agent-readable design systems | A plain statement of the system plus a linter's contrast check | https://cdn.jsdelivr.net/gh/google-labs-code/design.md@main/README.md | S |
+| R39 | Forced colours and contrast preferences | `forced-colors`, `prefers-contrast`, system colours | MDN https://developer.mozilla.org/docs/Web/CSS/@media/forced-colors | K |
+| R40 | Reduced motion and animation criteria | `prefers-reduced-motion`; WCAG 2.3.3 (animation from interactions), 2.2.2 (pause, stop, hide) | https://www.w3.org/WAI/WCAG21/Understanding/animation-from-interactions | S |
+| R41 | Automated accessibility testing | `axe` finds only part of the issues; manual keyboard and screen-reader passes are required | https://playwright.dev/docs/accessibility-testing | K |
+| R42 | Guidelines for human–AI interaction | State what the system can and cannot do; show uncertainty; support correction | https://www.microsoft.com/en-us/haxtoolkit/ai-guidelines/ | V |
+| R43 | NN/g data tables | Table design for scanning, sorting and comparison | https://www.nngroup.com/articles/data-tables/ | V |
+| R44 | Internal research already in the repository | UIUX_RESEARCH_20260927, UI_REDESIGN_RESEARCH_20260929, `docs/ux/workbench/RESEARCH_NOTE.md`, master plan 7.3 | repository | V (read) |
+
+## Gaps the stage research must close first
+
+1. **Urdu/Nastaliq typography** (R37): no authoritative source; needs a native reader and Noto's own specimen pages.
+2. **Official ECharts documentation** for `large`, `sampling`, `aria`, `decal` (R25 is a mirror).
+3. **WAI-ARIA Authoring Practices**: re-read the combobox, dialog, tabs and window-splitter patterns before U2 (R14, R26).
+4. **DTCG specification text** before the token generator is written (R8).
+5. **React Aria vs Radix**: read both projects' own i18n and RTL documentation before O-7 (R34).
+6. **View Transitions** and **React Router's** `viewTransition` option in the installed version (R16).
+7. **MapLibre** raster paint properties and native clustering in the installed version (R24).
+8. **Map tile source licence** (O-8).

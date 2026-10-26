@@ -17,8 +17,11 @@
         0 wrong; p50 ~30 s, p90 ~50 s on the CPU laptop; a connection question on the real collection 39 s.
     MEDIA (weak, and OFF in the worker)   every media role is switched off; the engine reads no derived media;
         plates 59% exact on images, 7% on video, Urdu OCR 0/1, Urdu speech 45.5% WER on 2 clips, no Punjabi/Pashto.
-    INTERFACE (not settled)   16 routes, 70 vitest files, 26 Playwright specs; THREE redesign directions in the
-        repo; the owner dislikes the Connections/Places views; 4 of 30 backend requests delivered.
+    INTERFACE (one directive since 2026-10-26)   17 routes, 75 vitest files (549 tests), 26 Playwright specs; the link-
+        analysis workbench (layout B) is live on Connections and inside Ask answers; ONE directive of record now:
+        docs/ux/MASTER_UI_UX_DIRECTIVE.md (stages U1 to U10, merge ledger, sources register, Codex start prompt);
+        UI owner for stage U1: nobody yet (awaits owner decisions O-1 contract amendments, O-2 how Codex works);
+        4 of 30 backend requests delivered.
     ENTERPRISE (open)   no case record, one shared actor, no authority record; read-only role and RLS are live.
 
 **Typed live (14 collections):** the real-data collection `nexusai-real-private-demo` (24 files in the vault,
@@ -155,6 +158,8 @@ anything touching retained evidence.
 
 ## CODEX_UI_TRACK
 
+- **2026-10-26: ONE interface directive.** [`docs/ux/MASTER_UI_UX_DIRECTIVE.md`](docs/ux/MASTER_UI_UX_DIRECTIVE.md) merges every earlier UI brief (ledger in its section 17; the older briefs carry a SUPERSEDED banner), with the research register `docs/ux/research/RESEARCH_REGISTER_20261026.md` and the paste-ready Codex prompt `docs/ux/CODEX_UI_START_PROMPT.md`. **UI_OWNER: none open.** U1 (foundations, two colour directions to choose by looking) starts when the owner answers O-1 (accept the contract amendments) and O-2 (Codex in its own worktree on :4182, recommended, or in the lane tree); Claude edits no interface path while a stage is open. The workbench (U3 v1, f7d61fc) is built and live; its restyle is stage U3.
+- (older entries below are history; the directive wins where they differ)
 - **Shell, Dashboard & Workspace Context complete:** Mineral Signal tokens, Type Proof, command search, collapsible rail, zoned Dashboard (D1-D8), Case Context Header with quick actions, and keyboard-roving tab strip live on port 4181.
 - **Stage 3 Case Overview Dossier (`/cases/:id/overview`) COMPLETED 2026-10-19:**
   - Dossier Hero & Bento Panels: Header with OpenType tabular monospace ID, tactile Copy button, status badge, hero bento metrics (Sources, Rows, Yield, Ingest), and quick-action buttons. Panels for Record Families (share bars), Event Horizon calendar (intensity cells & deep link), Data Quality (3-card accounting), Next Steps, Attention Triage, Question composer, and Analyst Notes & Leads tracker.
