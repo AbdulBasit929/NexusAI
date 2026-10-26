@@ -21,6 +21,7 @@ const routeLoaders = {
   settings: () => import('./pages/SettingsPage.jsx'),
   typeProof: () => import('./pages/TypeProofPage.jsx'),
   routeStates: () => import('./pages/RouteStatesPage.jsx'),
+  workbenchProof: () => import('./pages/WorkbenchProofPage.jsx'),
 }
 const DashboardPage = lazy(routeLoaders.dashboard)
 const GlobalInvestigatePage = lazy(routeLoaders.globalInvestigate)
@@ -38,6 +39,7 @@ const GlobalActivityPage = lazy(routeLoaders.globalActivity)
 const SettingsPage = lazy(routeLoaders.settings)
 const TypeProofPage = lazy(routeLoaders.typeProof)
 const RouteStatesPage = lazy(routeLoaders.routeStates)
+const WorkbenchProofPage = lazy(routeLoaders.workbenchProof)
 
 export function preloadRoute(name) {
   return routeLoaders[name]?.()
@@ -78,6 +80,7 @@ export function WorkspaceRouter() {
           <Route path="/cases/:id/data" element={<DataPage />} />
           <Route path="/design/type-proof" element={<TypeProofPage />} />
           <Route path="/design/route-states" element={<RouteStatesPage />} />
+          <Route path="/design/workbench" element={<WorkbenchProofPage />} />
           <Route path="*" element={<Navigate replace to="/" />} />
         </Routes>
       </Suspense>
