@@ -3,7 +3,7 @@ import * as echarts from 'echarts/core'
 import { BarChart, LineChart, SankeyChart, ScatterChart } from 'echarts/charts'
 import { AriaComponent, DataZoomComponent, GridComponent, LegendComponent, MarkLineComponent, TitleComponent, TooltipComponent } from 'echarts/components'
 import { SVGRenderer } from 'echarts/renderers'
-import { chartTheme } from './chartTheme.js'
+import { chartTheme, echartsTheme } from './chartTheme.js'
 
 echarts.use([BarChart, LineChart, SankeyChart, ScatterChart, GridComponent, TooltipComponent, AriaComponent, LegendComponent, DataZoomComponent, MarkLineComponent, TitleComponent, SVGRenderer])
 
@@ -44,7 +44,8 @@ export default function EChart({ buildOption, height = 240, label, onSelect, onZ
 
   useEffect(() => {
     const node = host.current
-    const instance = echarts.init(node, null, { renderer: 'svg' })
+    echarts.registerTheme('nx', echartsTheme())
+    const instance = echarts.init(node, 'nx', { renderer: 'svg' })
     chart.current = instance
     instance.on('click', params => select.current?.(params))
     // The visible window of a zoomable time axis, so a summary beside the chart can follow it.

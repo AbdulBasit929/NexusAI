@@ -1,0 +1,30 @@
+@layer layout {
+  .nx-page {
+    inline-size: min(100%, var(--nx-layout-content-max));
+    margin-inline: auto;
+    padding-block: var(--nx-space-24) var(--nx-space-64);
+    padding-inline: var(--nx-layout-page-gutter);
+  }
+
+  .nx-region-grid {
+    display: grid;
+    gap: var(--nx-space-16);
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .nx-reading-region {
+    max-inline-size: var(--nx-layout-reading-max);
+  }
+}
+@media (max-width: 47.99rem) {
+  @layer layout {
+    .nx-page {
+      padding-inline: var(--nx-layout-page-gutter-phone);
+    }
+
+    .nx-region-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}
+

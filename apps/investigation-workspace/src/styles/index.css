@@ -1,0 +1,11 @@
+@layer reset, tokens, base, layout, components, patterns, pages, utilities;
+
+@import './tokens.generated.css';
+@import './legacy-aliases.css';
+@import './base.css';
+@import './layout.css';
+@import './workspace.css' layer(pages.legacy);
+@import './identity-a.css' layer(pages.legacy);
+@import './shell.css' layer(pages.legacy);
+@import './canvas.css' layer(pages.legacy);
+@import './connections.css' layer(pages.legacy);

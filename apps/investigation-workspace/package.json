@@ -5,12 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "tokens:build": "node design/build-tokens.mjs",
+    "build": "npm run tokens:build && vite build",
     "preview": "vite preview",
-    "test": "npm run test:ported && npm run test:unit",
+    "test": "npm run tokens:build && npm run test:ported && npm run test:unit",
     "test:ported": "node --test src/ported/**/*.test.js",
     "test:unit": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "lint:styles": "node design/lint-styles.mjs",
+    "measure:foundations": "node design/measure-foundations.mjs"
   },
   "dependencies": {
     "@fontsource-variable/noto-sans": "^5.3.0",
