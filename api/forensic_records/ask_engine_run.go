@@ -656,6 +656,13 @@ func askReadEmpty(ctx context.Context, db *pgxpool.Pool, req hybridQueryRequest,
 			absent = append(absent, id)
 			continue
 		}
+		// A registration or a handset is a statement of its own family: a number that occurs in the call records and has no registration is an answer, not a wrong place (see askFamilyViews).
+		if family := askFamilyViews(v); family != nil {
+			hits = askHitsIn(hits, family)
+			if len(hits) == 0 {
+				continue
+			}
+		}
 		// The query looked where it compared the identifier. A hit in any other column means it looked in the wrong place.
 		compared := askComparedColumns(v.SQL, id)
 		var elsewhere []string

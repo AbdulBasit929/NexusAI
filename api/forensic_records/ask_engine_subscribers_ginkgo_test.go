@@ -75,6 +75,46 @@ var _ = Describe("Ask engine registrations and handsets", func() {
 			unmet := check("Was 923001110001 registered and active on 2026-03-05?", "SELECT status FROM v_subscriber_registrations WHERE msisdn = '923001110001' LIMIT 200", "v_subscriber_registrations")
 			Expect(kinds(unmet)).To(ContainElement("DATE"))
 		})
+		It("asks for both bounds of a whole day when a registration is said to be in force on a date (found by the development check on case 2)", func() {
+			day := "Which registrations of the number 923001110001 were valid on 2026-02-28 (local time)? Show the status."
+			instant := "SELECT msisdn, status, valid_from, valid_to FROM v_subscriber_registrations WHERE msisdn = '923001110001' AND (valid_from IS NULL OR valid_from <= '2026-02-28 00:00:00+05') AND (valid_to IS NULL OR valid_to > '2026-02-28 00:00:00+05') LIMIT 200"
+			unmet := check(day, instant, "v_subscriber_registrations")
+			Expect(kinds(unmet)).To(ConsistOf("DAY_COVERAGE"))
+			Expect(unmet[0].Message).To(ContainSubstring("< '2026-03-01 00:00:00+05'"))
+			whole := "SELECT msisdn, status, valid_from, valid_to FROM v_subscriber_registrations WHERE msisdn = '923001110001' AND (valid_from IS NULL OR valid_from < '2026-03-01 00:00:00+05') AND (valid_to IS NULL OR valid_to > '2026-02-28 00:00:00+05') LIMIT 200"
+			Expect(check(day, whole, "v_subscriber_registrations")).To(BeEmpty())
+			// a question that is not about being in force on a day is left alone, and so is a query that does not read the validity
+			Expect(kinds(check("Which SIM was 923001110001 registered on 2026-02-28?", "SELECT imsi FROM v_subscriber_registrations WHERE msisdn = '923001110001' AND valid_from >= '2026-02-28 00:00:00+05' LIMIT 200", "v_subscriber_registrations"))).NotTo(ContainElement("DAY_COVERAGE"))
+		})
+	})
+
+	It("keeps a registration or handset question to the views of its own family when the probe reads an empty result", func() {
+		cat, err := askGoldenCatalogue()
+		Expect(err).NotTo(HaveOccurred())
+		reg, rej := askValidate("SELECT * FROM v_subscriber_registrations WHERE msisdn = '923000001006' ORDER BY valid_from DESC", cat, []string{"v_subscriber_registrations"})
+		Expect(rej).To(BeNil())
+		Expect(askFamilyViews(reg)).To(Equal([]string{"v_subscriber_registrations", "v_number_registration_activity"}))
+		// the number occurs in the call records and nowhere among the registrations: no hit of the family, so the empty result is the answer (unregistered), not a wrong place
+		Expect(askHitsIn([]string{"v_comm_events.src", "v_device_pairings.src"}, askFamilyViews(reg))).To(BeEmpty())
+		Expect(askHitsIn([]string{"v_subscriber_registrations.imsi", "v_comm_events.src"}, askFamilyViews(reg))).To(Equal([]string{"v_subscriber_registrations.imsi"}))
+		hand, rej := askValidate("SELECT make, model FROM v_handsets WHERE src = '923000001006' LIMIT 200", cat, []string{"v_handsets"})
+		Expect(rej).To(BeNil())
+		Expect(askFamilyViews(hand)).To(Equal([]string{"v_handsets", "v_device_pairings"}))
+		calls, rej := askValidate("SELECT count(*) AS n FROM v_comm_events WHERE src = '923000001006'", cat, []string{"v_comm_events"})
+		Expect(rej).To(BeNil())
+		Expect(askFamilyViews(calls)).To(BeNil())
+		Expect(askHitsIn([]string{"nodot"}, []string{"v_handsets"})).To(BeEmpty())
+	})
+
+	It("answers who owns a number from the registrations, with the correction in front", func() {
+		cat, err := askGoldenCatalogue()
+		Expect(err).NotTo(HaveOccurred())
+		f := askExtractFrame("Who owns the number 923001110001?")
+		Expect(cat.Shortlist(f.Question, 0).Views).To(ContainElement("v_subscriber_registrations"))
+		reg, rej := askValidate("SELECT imsi, iccid, status, valid_from, valid_to FROM v_subscriber_registrations WHERE msisdn = '923001110001' LIMIT 200", cat, []string{"v_subscriber_registrations"})
+		Expect(rej).To(BeNil())
+		Expect(askPremiseLead(reg, f)).To(Equal("A registration records what one source file states, not who holds or uses the number."))
+		Expect(askPremiseLead(reg, askExtractFrame("Which SIM was 923001110001 registered on?"))).To(Equal(""))
 	})
 
 	It("adds the caveats of the registration and handset views, which the model can neither omit nor reword", func() {

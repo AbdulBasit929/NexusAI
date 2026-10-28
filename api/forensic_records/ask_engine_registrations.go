@@ -68,3 +68,30 @@ func askRegistrationLead(v *askValidated, f askFrame, stated bool) string {
 	}
 	return ""
 }
+
+// askFamilyViews are the views a registration or handset question belongs to. A number that has no registration but occurs in the call records is an answer ("registered nowhere", the number
+// is unregistered), not a query that looked in the wrong place: the empty-result probe counts only the hits in the family's own views. nil for any other query.
+func askFamilyViews(v *askValidated) []string {
+	switch {
+	case askReadsView(v, "v_subscriber_registrations"), askReadsView(v, "v_number_registration_activity"):
+		return []string{"v_subscriber_registrations", "v_number_registration_activity"}
+	case askReadsView(v, "v_handsets"):
+		return []string{"v_handsets", "v_device_pairings"}
+	}
+	return nil
+}
+
+// askHitsIn keeps the probe hits ("view.column") that belong to the given views.
+func askHitsIn(hits, views []string) []string {
+	var out []string
+	for _, hit := range hits {
+		view, _, _ := strings.Cut(hit, ".")
+		for _, v := range views {
+			if view == v {
+				out = append(out, hit)
+				break
+			}
+		}
+	}
+	return out
+}

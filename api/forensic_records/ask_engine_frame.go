@@ -76,6 +76,7 @@ var (
 	askFrameTAC      = regexp.MustCompile(`(?i)\btac\b(?:\s+(?:code|number))?[^0-9a-z]{0,12}(\d{8})\b`)
 	askFrameBare     = regexp.MustCompile(`\b\d{10,14}\b`)
 	askFrameYear     = regexp.MustCompile(`\b(20\d{2})\b`)
+	askInForceCue    = regexp.MustCompile(`\b(?:in force|valid|active|covered?|covering)\b`)
 	askFrameMonths   = regexp.MustCompile(`\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec)\b(?:\s+(?:of\s+)?(20\d{2}))?`)
 	askFrameHops     = regexp.MustCompile(`\b(\d+|one|two|three|four|five)\s+(?:hops?|steps?|links?|degrees?)\b`)
 	askFrameRelative = regexp.MustCompile(`\b(?:yesterday|today|tonight|this (?:week|month|year)|last (?:week|month|year|night|weekend)|past (?:\d+|few|several|one|two|three|four|five|six|seven|ten|twelve) (?:days?|weeks?|months?|years?|hours?)|(?:last|previous) (?:\d+|few|several|one|two|three|four|five|six|seven|ten|twelve) (?:days?|weeks?|months?|years?|hours?)|recent(?:ly)?|these days|so far this)\b`)
@@ -471,6 +472,17 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 		}
 		if !bounded && next != "" {
 			add("DATE_END", fmt.Sprintf("The question includes the whole of %[1]s (the range runs through the end of that day, local time): the upper bound is the start of the next day, < '%[2]s 00:00:00+05', not %[1]s itself.", inclusiveEnd, next), "the question includes its last day and the query stops before it")
+		}
+	}
+	// A registration is in force on a day when it began before the end of the day and had not ended before the day began. Found by the subscriber development check on case 2: "in force on
+	// 2026-02-28" was answered with valid_from <= '2026-02-28 00:00:00+05', one instant, which leaves out a SIM that began that afternoon.
+	if askUsesView(v, "v_subscriber_registrations") && len(f.Dates) == 1 && askInForceCue.MatchString(strings.ToLower(f.Question)) && askSQLMentions(v.SQL, "valid_from") {
+		next, found := askNextDay(f.Dates[0]), false
+		for _, t := range texts {
+			found = found || (next != "" && strings.HasPrefix(strings.TrimSpace(t), next))
+		}
+		if !found && next != "" {
+			add("DAY_COVERAGE", fmt.Sprintf("A registration is in force on %[1]s (a whole local day) if it began before the end of that day and had not ended before the day began: compare valid_from with < '%[2]s 00:00:00+05' (or empty) and valid_to with > '%[1]s 00:00:00+05' (or empty). One instant of the day misses a registration that began or ended during it.", f.Dates[0], next), "the question asks about a whole day and the query looks at one instant of it")
 		}
 	}
 	for _, m := range f.Months {
