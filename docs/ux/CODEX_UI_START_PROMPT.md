@@ -1,5 +1,7 @@
 # Codex start prompt: the NexusAI interface programme
 
+> **Superseded by Part A of [`HANDOFF_CODEX_DECISIONS_NEXT_STEPS_20261028.md`](HANDOFF_CODEX_DECISIONS_NEXT_STEPS_20261028.md)** (2026-10-28): the complete prompt with the worktree steps, the first stage's exact deliverables and the decisions waiting. Use that one.
+
 **Date:** 2026-10-26 · **For:** a fresh Codex session · **Authority:** [`MASTER_UI_UX_DIRECTIVE.md`](MASTER_UI_UX_DIRECTIVE.md) (the one interface directive), the UX contract [`NEXUSAI_PRODUCT_UX.md`](NEXUSAI_PRODUCT_UX.md), `AGENTS.md`, `.agents/CODEX.md`.
 
 Paste everything between the two lines below into a new Codex session opened at the repository root `C:\Users\sheik\Workspace\Office\Projects\NexusAI-localwork`.
