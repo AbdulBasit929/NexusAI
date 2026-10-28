@@ -154,6 +154,16 @@ This enables a truthful activity volume view with an accessible event table and 
 - **Constraint:** no owner, assignment, priority or classification is requested; those wait for an authoritative source. `display_name` is user-entered text and is shown escaped with `dir="auto"`. Needs owner sign-off before it is built.
 - **Audit:** changes are custody events (row 10).
 
+## 27. Global processing job history
+
+- **Endpoint:** `GET /workspace/jobs?tenant_id=&status=processing|completed|failed&collection_id=&cursor=`. Authorization is resolved before filters and pagination.
+- **Response:** `{ items: [{ job_id, collection_id, evidence_id|null, source_label|null, status: "processing"|"completed"|"failed", started_at: RFC3339, finished_at: RFC3339|null, progress: { completed: integer, total: integer|null }|null, outcome_label: string|null, openable_locator: object|null }], next_cursor: string|null, complete: boolean }`.
+- **Semantics:** `outcome_label` is an analyst-safe service label, never a worker error or stack trace. Unknown totals and finish times remain `null`. `complete=false` includes a curated reason so the UI cannot imply a complete history.
+- **Empty/error:** `200` with `items: []` is the only empty state. `403`, unavailable and partial responses remain distinct; the client must not reconstruct completed or failed jobs from bounded evidence samples.
+- **Privacy:** return no evidence content, raw identifiers, model names, templates, SQL, prompts, token counts or internal worker names. Source labels use the same masking policy as the evidence list.
+
+This lets the global header activity surface show real processing, completed and failed work. Until it exists, U2 shows only current case processing reported by collection summaries and explicitly says job history is unavailable.
+
 ## 23 to 26. Ownership, membership and real identity
 
 Why: "my own cases" and any per-person view depend on facts the system does not yet hold. Findings are in

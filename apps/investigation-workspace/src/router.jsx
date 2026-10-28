@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { CapabilityGate } from './shell/CapabilityGate.jsx'
 import { RouteErrorBoundary } from './components/ErrorBoundary.jsx'
 import { ShellSkeleton } from './components/Skeleton.jsx'
@@ -25,6 +25,7 @@ const routeLoaders = {
   workbenchProof: () => import('./pages/WorkbenchProofPage.jsx'),
   foundations: () => import('./pages/FoundationsPage.jsx'),
   components: () => import('./pages/ComponentsPage.jsx'),
+  notFound: () => import('./pages/NotFoundPage.jsx'),
 }
 const DashboardPage = lazy(routeLoaders.dashboard)
 const GlobalInvestigatePage = lazy(routeLoaders.globalInvestigate)
@@ -46,6 +47,41 @@ const RouteStatesPage = lazy(routeLoaders.routeStates)
 const WorkbenchProofPage = lazy(routeLoaders.workbenchProof)
 const FoundationsPage = lazy(routeLoaders.foundations)
 const ComponentsPage = lazy(routeLoaders.components)
+const NotFoundPage = lazy(routeLoaders.notFound)
+
+const routeNames = [
+  [/^\/$/, 'Dashboard'],
+  [/^\/investigate$/, 'Ask across cases'],
+  [/^\/cases$/, 'Cases'],
+  [/^\/cases\/new$/, 'New case'],
+  [/\/evidence\//, 'Evidence detail'],
+  [/\/evidence$/, 'Evidence'],
+  [/\/investigate$/, 'Ask'],
+  [/\/connections/, 'Connections'],
+  [/\/timeline$/, 'Timeline'],
+  [/\/activity$/, 'Activity'],
+  [/\/data$/, 'Data'],
+  [/\/overview$/, 'Case overview'],
+  [/^\/activity$/, 'Activity'],
+  [/^\/settings$/, 'Settings'],
+  [/^\/design\//, 'Design reference'],
+]
+
+export function RouteEffects() {
+  const { pathname } = useLocation()
+  const first = useRef(true)
+  const page = routeNames.find(([pattern]) => pattern.test(pathname))?.[1] || 'Page not found'
+  const [announcement, setAnnouncement] = useState('')
+  useEffect(() => {
+    const productName = globalThis.window?.__INVESTIGATION_WORKSPACE_CONFIG__?.instance_name || 'NexusAI'
+    globalThis.document.title = `${page} · ${productName}`
+    setAnnouncement(`Loaded ${page}`)
+    if (first.current) { first.current = false; return undefined }
+    const timer = globalThis.setTimeout(() => globalThis.document?.getElementById('workspace-main')?.focus({ preventScroll: true }), 0)
+    return () => globalThis.clearTimeout(timer)
+  }, [page, pathname])
+  return <p className="visually-hidden" role="status" aria-live="polite">{announcement}</p>
+}
 
 export function preloadRoute(name) {
   return routeLoaders[name]?.()
@@ -61,6 +97,7 @@ export function WorkspaceRouter() {
   return (
     <BrowserRouter>
       <a className="skip-link" href="#workspace-main" onClick={focusMain}>Skip to investigation</a>
+      <RouteEffects />
       {/* Outside Suspense, so a page chunk that fails to load is caught too. */}
       <RouteErrorBoundary>
       <Suspense fallback={<ShellSkeleton />}>
@@ -91,7 +128,7 @@ export function WorkspaceRouter() {
           <Route path="/design/workbench" element={<WorkbenchProofPage />} />
           <Route path="/design/foundations" element={<FoundationsPage />} />
           <Route path="/design/components" element={<ComponentsPage />} />
-          <Route path="*" element={<Navigate replace to="/" />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
       </RouteErrorBoundary>

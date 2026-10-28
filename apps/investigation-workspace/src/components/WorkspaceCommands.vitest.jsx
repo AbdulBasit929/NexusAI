@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, useLocation } from 'react-router-dom'
 import { WorkspaceCommands } from './WorkspaceCommands.jsx'
 import { clearWorkspaceStateForTests } from '../lib/workspaceState.js'
 
@@ -12,7 +12,8 @@ function open(caseId = '') {
   localStorage.setItem('nexusai.viewer.questions.case-a', JSON.stringify([question('q1', 'Who called most often?', { pinned: true })]))
   localStorage.setItem('nexusai.viewer.questions.case-b', JSON.stringify([question('q2', 'List all vehicles')]))
   globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => ({ items: [] }), text: async () => '{"items":[]}' })
-  return render(<MemoryRouter><WorkspaceCommands caseId={caseId} showTrigger /></MemoryRouter>)
+  function LocationProbe() { return <output aria-label="Current path">{useLocation().pathname}</output> }
+  return render(<MemoryRouter><WorkspaceCommands caseId={caseId} showTrigger /><LocationProbe /></MemoryRouter>)
 }
 
 afterEach(() => {
@@ -23,29 +24,30 @@ afterEach(() => {
 })
 
 describe('command palette', () => {
-  it('opens on an empty query as "pick up where you left off": pinned and recent questions from every case', async () => {
+  it('opens with Go to, Do and Ask groups and saved questions from every case', async () => {
     open()
     const user = userEvent.setup()
     await user.click(screen.getByRole('button', { name: 'Quick find' }))
     const results = screen.getByRole('listbox', { name: 'Quick find results' })
-    const pinned = within(results).getByRole('group', { name: 'Pinned questions' })
-    expect(pinned.textContent).toContain('Who called most often?')
-    expect(pinned.textContent).toContain('case-a')
-    const recent = within(results).getByRole('group', { name: 'Recent questions' })
-    expect(recent.textContent).toContain('List all vehicles')
-    expect(recent.textContent).toContain('case-b')
-    expect(within(results).getByRole('group', { name: 'Routes' }).textContent).toContain('Investigate')
+    const ask = within(results).getByRole('group', { name: 'Ask' })
+    expect(ask.textContent).toContain('Who called most often?')
+    expect(ask.textContent).toContain('case-a')
+    expect(ask.textContent).toContain('List all vehicles')
+    expect(ask.textContent).toContain('case-b')
+    expect(within(results).getByRole('group', { name: 'Go to' }).textContent).toContain('Ask across cases')
+    expect(within(results).getByRole('group', { name: 'Do' }).textContent).toContain('Create a case')
+    expect(screen.getByRole('combobox')).toHaveAttribute('aria-activedescendant', 'command-option-0')
   })
 
-  it('draws no empty groups and states the scope of saved questions', async () => {
+  it('keeps the three bounded command groups when there is no saved history', async () => {
     window.__INVESTIGATION_WORKSPACE_CONFIG__ = { caseIds: ['case-a'] }
     globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => ({ items: [] }), text: async () => '{"items":[]}' })
     render(<MemoryRouter><WorkspaceCommands showTrigger /></MemoryRouter>)
     const user = userEvent.setup()
     await user.click(screen.getByRole('button', { name: 'Quick find' }))
-    expect(screen.queryByRole('group', { name: 'Pinned questions' })).toBeNull()
-    expect(screen.queryByRole('group', { name: 'Recent questions' })).toBeNull()
-    expect(screen.getByRole('group', { name: 'Cases' })).toBeTruthy()
+    expect(screen.getByRole('group', { name: 'Go to' })).toBeTruthy()
+    expect(screen.getByRole('group', { name: 'Do' })).toBeTruthy()
+    expect(screen.getByRole('group', { name: 'Ask' })).toBeTruthy()
   })
 
   it('finds a saved question by typing part of it and never widens beyond the saved scope', async () => {
@@ -59,5 +61,30 @@ describe('command palette', () => {
     await user.clear(screen.getByRole('combobox'))
     await user.type(screen.getByRole('combobox'), 'qqqq')
     expect(screen.getByText(/The scope was not widened/)).toBeTruthy()
+  })
+
+  it('opens from slash and moves the active option without moving DOM focus', async () => {
+    open()
+    const user = userEvent.setup()
+    await user.keyboard('/')
+    const input = await screen.findByRole('combobox')
+    expect(document.activeElement).toBe(input)
+    await user.keyboard('{ArrowDown}')
+    expect(document.activeElement).toBe(input)
+    expect(input).toHaveAttribute('aria-activedescendant', 'command-option-1')
+  })
+
+  it('opens the single-source shortcut sheet with question mark', async () => {
+    open()
+    const user = userEvent.setup()
+    await user.keyboard('?')
+    expect(await screen.findByRole('dialog', { name: 'Keyboard shortcuts' })).toHaveTextContent('Go to Dashboard')
+  })
+
+  it('uses the documented G then letter route sequence', async () => {
+    open()
+    const user = userEvent.setup()
+    await user.keyboard('gc')
+    expect(screen.getByLabelText('Current path')).toHaveTextContent('/cases')
   })
 })

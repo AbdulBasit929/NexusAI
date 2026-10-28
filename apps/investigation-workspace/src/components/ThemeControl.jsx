@@ -3,13 +3,14 @@ import { useEffect, useId, useSyncExternalStore } from 'react'
 const storageKey = 'nexusai.viewer.theme'
 const changeEvent = 'nexusai:theme-change'
 const mediaQuery = '(prefers-color-scheme: dark)'
-const preferences = new Set(['system', 'light', 'dark'])
+const preferences = new Set(['system', 'light', 'dark', 'high-contrast'])
 let memoryPreference = 'system'
 
 const choices = [
   { value: 'system', label: 'Use device setting', detail: 'Follows this device as its appearance changes.' },
   { value: 'light', label: 'Light', detail: 'A cool, high-contrast working surface.' },
   { value: 'dark', label: 'Dark', detail: 'A low-glare slate working surface.' },
+  { value: 'high-contrast', label: 'High contrast', detail: 'Maximum separation between text, controls and working surfaces.' },
 ]
 
 function readPreference() {
@@ -96,4 +97,59 @@ export function ThemeControl() {
       </div>
     </fieldset>
   )
+}
+
+const displayChangeEvent = 'nexusai:display-change'
+const displayOptions = {
+  density: { key: 'nexusai.viewer.density', values: new Set(['compact', 'default', 'comfortable']), fallback: 'default', attribute: 'data-density' },
+  motion: { key: 'nexusai.viewer.reduce-motion', values: new Set(['system', 'reduce']), fallback: 'system', attribute: 'data-reduce-motion' },
+  detail: { key: 'nexusai.viewer.answer-detail', values: new Set(['concise', 'standard', 'detailed']), fallback: 'standard', attribute: 'data-answer-detail' },
+}
+
+function readDisplayOption(name) {
+  const option = displayOptions[name]
+  try {
+    const stored = globalThis.localStorage?.getItem(option.key)
+    return option.values.has(stored) ? stored : option.fallback
+  } catch { return option.fallback }
+}
+
+function applyDisplayOption(name, value) {
+  const option = displayOptions[name]
+  const root = globalThis.document?.documentElement
+  if (!root) return
+  if (value === option.fallback) root.removeAttribute(option.attribute)
+  else root.setAttribute(option.attribute, value)
+}
+
+export function chooseDisplayPreference(name, value) {
+  const option = displayOptions[name]
+  if (!option?.values.has(value)) return
+  try {
+    if (value === option.fallback) globalThis.localStorage?.removeItem(option.key)
+    else globalThis.localStorage?.setItem(option.key, value)
+  } catch { /* preferences still apply for this document */ }
+  applyDisplayOption(name, value)
+  globalThis.window?.dispatchEvent(new Event(displayChangeEvent))
+}
+
+function displaySnapshot() {
+  return Object.keys(displayOptions).map(name => `${name}:${readDisplayOption(name)}`).join('|')
+}
+
+function subscribeDisplay(listener) {
+  const changed = () => listener()
+  globalThis.window?.addEventListener('storage', changed)
+  globalThis.window?.addEventListener(displayChangeEvent, changed)
+  return () => {
+    globalThis.window?.removeEventListener('storage', changed)
+    globalThis.window?.removeEventListener(displayChangeEvent, changed)
+  }
+}
+
+export function useDisplayPreferences() {
+  const current = useSyncExternalStore(subscribeDisplay, displaySnapshot, displaySnapshot)
+  const values = Object.fromEntries(current.split('|').map(item => item.split(':')))
+  useEffect(() => { for (const [name, value] of Object.entries(values)) applyDisplayOption(name, value) }, [current])
+  return { ...values, choose: chooseDisplayPreference }
 }

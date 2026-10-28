@@ -190,7 +190,7 @@ function DecisionCard({ id, selected, onSelect }) {
 }
 
 export default function ComponentsPage() {
-  const [direction, setDirection] = useState('a')
+  const [direction, setDirection] = useState('b')
   const [theme, setTheme] = useState('light')
   const [viewport, setViewport] = useState('1440')
   const [scope, setScope] = useState('case')
@@ -199,7 +199,7 @@ export default function ComponentsPage() {
     <main id="workspace-main" tabIndex="-1" className="nx-components-page">
       <header className="nx-components-page__masthead">
         <div><span>U2 · Shell and navigation · synthetic content only</span><h1>Choose how the instrument holds its work</h1><p>The information architecture, keyboard model and responsive rules are fixed. Compare which desktop emphasis should become NexusAI’s default.</p></div>
-        <span><ShieldCheck /> Research gate complete</span>
+        <span><ShieldCheck /> Direction B selected</span>
       </header>
 
       <section className="nx-component-options" aria-label="Shell directions">

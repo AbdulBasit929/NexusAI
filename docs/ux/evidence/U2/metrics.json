@@ -1,0 +1,55 @@
+{
+  "stage": "U2 shell and navigation",
+  "date": "2026-10-28",
+  "direction": "B - Case atlas",
+  "environment": {
+    "url": "http://localhost:4182",
+    "browser": "Chromium",
+    "data": "existing application state; synthetic values limited to the design gallery"
+  },
+  "geometry": {
+    "desktop": { "viewport": [1440, 900], "headerPx": 56, "caseBandPx": 48, "expandedRailPx": 264, "collapsedRailPx": 56 },
+    "tablet": { "viewport": [1023, 768], "headerPx": 56, "caseBandPx": 48, "railPx": 56 },
+    "phone": { "viewport": [390, 844], "headerPx": 56, "caseBandPx": 48, "rail": "modal drawer" },
+    "primaryTouchTargetPx": 44
+  },
+  "routes": [
+    "/",
+    "/investigate",
+    "/cases",
+    "/activity",
+    "/settings",
+    "/cases/:id/overview",
+    "/cases/:id/evidence",
+    "/cases/:id/investigate",
+    "/cases/:id/connections",
+    "/cases/:id/timeline",
+    "/cases/:id/activity",
+    "/cases/:id/data"
+  ],
+  "interactionChecks": {
+    "railExpandedAndCollapsed": "pass",
+    "mobileDrawerAndFocusReturn": "pass",
+    "mobileCaseSectionSelect": "pass",
+    "caseSwitcher": "pass",
+    "activityTruthfulness": "pass",
+    "appearanceThemes": ["system", "light", "dark", "high-contrast"],
+    "density": ["default", "comfortable", "compact"],
+    "answerDetail": ["standard", "detailed", "concise"],
+    "motion": ["system", "reduce"],
+    "commandGroups": ["Go to", "Do", "Ask"],
+    "commandKeyboard": ["typing", "ArrowDown", "ArrowUp", "Enter", "Escape"],
+    "globalShortcuts": ["/", "?", "g then destination", "Alt+S", "Ctrl/Cmd+K"],
+    "offline": "pass",
+    "notFound": "pass",
+    "capabilityDenied": "unit-covered"
+  },
+  "automated": {
+    "focusedU2": { "passed": 44, "total": 44 },
+    "foundationAndContentionReruns": { "passed": 15, "total": 15 },
+    "portedPresentation": { "passed": 46, "total": 46 },
+    "repositoryAccounted": { "passed": 547, "total": 562, "knownMissingFixtureFailures": 15 },
+    "styleContract": "pass",
+    "productionBuild": "pass"
+  }
+}

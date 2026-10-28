@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   ArrowLeftRight,
+  Bell,
   ChevronLeft,
   ChevronRight,
   CircleCheckBig,
@@ -23,7 +24,7 @@ import {
   SunMoon,
   TriangleAlert,
   X,
-  Calendar,
+  CircleUserRound,
 } from 'lucide-react'
 import { configuredCaseIds } from '../lib/apiClient.js'
 import { BrandLockup } from './BrandLockup.jsx'
@@ -33,21 +34,19 @@ import { AppearanceMenu } from './AppearanceMenu.jsx'
 import { WorkspaceCommands } from './WorkspaceCommands.jsx'
 import { clearCaseSessionScope } from '../lib/workspaceState.js'
 import { useCaseOverview } from '../lib/useCaseOverview.js'
-import { useCaseActivity } from '../lib/useCaseActivity.js'
 import { sidebarCases, useWorkspaceAttention, withPending } from '../lib/workspaceAttention.js'
 import { formatNumber } from '../lib/format.js'
 
 const globalLinks = [
   { label: 'Dashboard', path: '/', icon: 'dashboard' },
-  { label: 'Investigate', path: '/investigate', icon: 'investigate' },
+  { label: 'Ask across cases', path: '/investigate', icon: 'investigate' },
   { label: 'Cases', path: '/cases', icon: 'cases' },
   { label: 'Activity', path: '/activity', icon: 'activity' },
-  { label: 'Settings', path: '/settings', icon: 'settings' },
 ]
 const caseLinks = [
   { label: 'Overview', path: 'overview', icon: 'overview' },
   { label: 'Evidence', path: 'evidence', icon: 'evidence' },
-  { label: 'Ask this case', path: 'investigate', icon: 'ask' },
+  { label: 'Ask', path: 'investigate', icon: 'ask' },
   { label: 'Connections', path: 'connections', icon: 'connections' },
   { label: 'Timeline', path: 'timeline', icon: 'timeline' },
   { label: 'Activity', path: 'activity', icon: 'activity' },
@@ -60,10 +59,10 @@ const railPreferenceKey = 'nexusai.viewer.navigation-collapsed'
 function ShellIcon({ name }) {
   const icons = {
     activity: Clock3,
+    bell: Bell,
     ask: MessageSquareText,
     alert: TriangleAlert,
     appearance: SunMoon,
-    calendar: Calendar,
     cases: Folders,
     check: CircleCheckBig,
     connections: Network,
@@ -82,6 +81,7 @@ function ShellIcon({ name }) {
     switch: ArrowLeftRight,
     collapse: PanelLeftClose,
     expand: PanelLeftOpen,
+    user: CircleUserRound,
   }
   const Icon = icons[name] || PanelsTopLeft
   return <Icon className="shell-icon" aria-hidden="true" />
@@ -164,12 +164,31 @@ function Navigation({ close, collapsed = false, badges = {}, entries = [], activ
     )
   }
   return (
-    <nav className="shell-navigation" aria-label="Primary">
-      <div className="shell-navigation__group" role="group" aria-label="Workspace">
+    <div className="shell-navigation">
+      <nav className="shell-navigation__group" aria-label="Workspace">
+        <span className="shell-navigation__label">Workspace</span>
         {globalLinks.map(item => (item.path === '/cases' && !collapsed ? <CasesCategory key={item.path} entries={entries} activeCaseId={activeCaseId} onNavigate={close} badges={badges} /> : link(item)))}
-      </div>
-    </nav>
+      </nav>
+      {activeCaseId ? (
+        <nav className="shell-navigation__group shell-navigation__case" aria-label="Case">
+          <span className="shell-navigation__label">Current case</span>
+          <NavLink className="shell-navigation__case-title" to={`/cases/${encodeURIComponent(activeCaseId)}/overview`} onClick={close} title={collapsed ? activeCaseId : undefined}>
+            <Folders aria-hidden="true" /><CaseTitle caseId={activeCaseId} />
+          </NavLink>
+          {caseLinksWithData(activeCaseId).map(item => link({ ...item, path: `/cases/${encodeURIComponent(activeCaseId)}/${item.path}` }))}
+        </nav>
+      ) : null}
+      <nav className="shell-navigation__footer" aria-label="Preferences">
+        {link({ label: 'Settings', path: '/settings', icon: 'settings' })}
+      </nav>
+    </div>
   )
+}
+
+function caseLinksWithData(caseId) {
+  const items = [...caseLinks]
+  if (dataCaseIds().includes(caseId)) items.splice(items.length - 1, 0, { label: 'Data', path: 'data', icon: 'evidence' })
+  return items
 }
 
 // Case sections are links (not ARIA tabs): each is a different page, so aria-current marks the location.
@@ -177,6 +196,9 @@ function Navigation({ close, collapsed = false, badges = {}, entries = [], activ
 // Enhanced with keyboard arrow navigation (Linear/Vercel standard) and fluid horizontal scrolling.
 function CaseTabs({ caseId, badges }) {
   const navRef = useRef(null)
+  const navigate = useNavigate()
+  const location = useLocation()
+  const items = caseLinksWithData(caseId)
 
   function handleKeyDown(event) {
     if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) return
@@ -201,9 +223,15 @@ function CaseTabs({ caseId, badges }) {
 
   return (
     <nav ref={navRef} className="case-tabs" aria-label="Case sections" onKeyDown={handleKeyDown}>
+      <label className="case-tabs__select-label">
+        <span className="visually-hidden">Case section</span>
+        <select value={location.pathname} onChange={event => navigate(event.target.value)}>
+          {items.map(item => <option key={item.path} value={`/cases/${encodeURIComponent(caseId)}/${item.path}`}>{item.label}</option>)}
+        </select>
+      </label>
       <div className="case-tabs__scroll">
         <ul>
-          {caseLinks.concat(dataCaseIds().includes(caseId) ? [{ label: 'Data', path: 'data', icon: 'evidence' }] : []).map(item => {
+          {items.map(item => {
             const path = `/cases/${encodeURIComponent(caseId)}/${item.path}`
             const badge = badges[path]
             return (
@@ -259,6 +287,53 @@ function CaseReadiness({ state }) {
   return <div className="case-context-band__summary case-context-band__summary--ready" role="status"><ShellIcon name="check" /><span><strong>Evidence ready</strong><small>{formatNumber(ready)} of {formatNumber(total)} sources ready</small></span></div>
 }
 
+function ActivityPopover({ attention }) {
+  const [open, setOpen] = useState(false)
+  const root = useRef(null)
+  const active = attention.cases.filter(item => item.summary?.processingState === 'processing')
+  useEffect(() => {
+    if (!open) return undefined
+    function dismiss(event) {
+      if (event.key === 'Escape' || !root.current?.contains(event.target)) setOpen(false)
+    }
+    globalThis.document?.addEventListener('keydown', dismiss)
+    globalThis.document?.addEventListener('pointerdown', dismiss)
+    return () => {
+      globalThis.document?.removeEventListener('keydown', dismiss)
+      globalThis.document?.removeEventListener('pointerdown', dismiss)
+    }
+  }, [open])
+  return (
+    <div className="activity-popover" ref={root}>
+      <button type="button" className="header-icon-button" aria-label={active.length ? `Activity, ${active.length} processing` : 'Activity'} aria-expanded={open} aria-controls="activity-popover-panel" onClick={() => setOpen(value => !value)}>
+        <ShellIcon name="bell" />
+        {active.length ? <span className="header-icon-button__badge" aria-hidden="true">{formatNumber(active.length)}</span> : null}
+      </button>
+      {open ? (
+        <section id="activity-popover-panel" className="activity-popover__panel" aria-label="Current activity">
+          <header><div><span className="eyebrow">Live status</span><h2>Activity</h2></div><NavLink to="/activity" onClick={() => setOpen(false)}>View all</NavLink></header>
+          {active.length ? <ul>{active.slice(0, 4).map(item => <li key={item.caseId}><ShellIcon name="activity" /><span><CaseTitle caseId={item.caseId} /><small>Evidence processing</small></span></li>)}</ul> : <p>No active processing reported.</p>}
+          <small className="activity-popover__note">Completed and failed job history is not exposed by the current service.</small>
+        </section>
+      ) : null}
+    </div>
+  )
+}
+
+function ConnectivityBanner() {
+  const [online, setOnline] = useState(() => globalThis.navigator?.onLine !== false)
+  useEffect(() => {
+    const update = () => setOnline(globalThis.navigator?.onLine !== false)
+    globalThis.addEventListener?.('online', update)
+    globalThis.addEventListener?.('offline', update)
+    return () => {
+      globalThis.removeEventListener?.('online', update)
+      globalThis.removeEventListener?.('offline', update)
+    }
+  }, [])
+  return online ? null : <div className="connectivity-banner" role="status"><ShellIcon name="alert" /><span><strong>You are offline.</strong> Cached content may remain visible, but new requests cannot complete.</span></div>
+}
+
 function CaseSwitcherDialog({ caseId, cases, onClose, onSwitch, restoreFocusRef, trigger }) {
   const dialog = useRef(null)
   useEffect(() => {
@@ -302,17 +377,9 @@ export function CaseShell({ caseId = '', children, identityLed = false }) {
   const [collapsed, setCollapsed] = useState(readRailPreference)
   const cases = configuredCaseIds()
   const caseOverview = useCaseOverview(caseId)
-  const caseActivity = useCaseActivity(caseId ? [caseId] : [])
   const attention = useWorkspaceAttention()
   const badges = railBadges(attention, caseId, caseOverview)
   const railEntries = withPending(cases, attention.cases, attention.settled)
-
-  const activityHorizon = caseActivity.activity?.first && caseActivity.activity?.last
-    ? `${caseActivity.activity.first} → ${caseActivity.activity.last}`
-    : null
-  const acceptedRows = caseOverview.data?.summary?.accepted_rows
-    ? Number(caseOverview.data.summary.accepted_rows)
-    : null
 
   useEffect(() => { setDrawerOpen(false) }, [location.pathname])
   useEffect(() => {
@@ -368,14 +435,21 @@ export function CaseShell({ caseId = '', children, identityLed = false }) {
     <div className={`workspace-shell${caseId ? ' workspace-shell--case' : ''}${collapsed ? ' workspace-shell--collapsed' : ''}`}>
       <header className="workspace-header">
         <div className="workspace-header__identity">
-          <button ref={trigger} type="button" className="drawer-trigger" aria-expanded={drawerOpen} aria-controls="navigation-drawer" onClick={() => setDrawerOpen(true)}><ShellIcon name="menu" /><span>Menu</span></button>
+          <button ref={trigger} type="button" className="drawer-trigger" aria-label="Open navigation" aria-expanded={drawerOpen} aria-controls="navigation-drawer" onClick={() => setDrawerOpen(true)}><ShellIcon name="menu" /><span>Menu</span></button>
           <NavLink className="identity-link" to="/" aria-label="NexusAI dashboard"><BrandLockup identityLed={identityLed} /></NavLink>
+        </div>
+        <div className="workspace-header__scope">
+          {caseId ? (
+            <button type="button" className="case-switcher-trigger" onClick={openCaseSwitcher} aria-label="Switch case" title="Switch active case scope (Alt+S)">
+              <Folders aria-hidden="true" /><CaseTitle caseId={caseId} /><ShellIcon name="chevron-down" />
+            </button>
+          ) : <NavLink className="case-switcher-trigger" to="/cases"><Folders aria-hidden="true" /><span>All cases</span></NavLink>}
         </div>
         <div className="workspace-header__search" role="search" aria-label="Workspace search"><WorkspaceCommands caseId={caseId} showTrigger /></div>
         <div className="workspace-header__utilities">
-          {attention.processing > 0 ? <NavLink className="header-status" to="/cases" aria-label={`${attention.processing} ${attention.processing === 1 ? 'case is' : 'cases are'} processing evidence`}><ShellIcon name="activity" /><span>{formatNumber(attention.processing)} processing</span></NavLink> : null}
-          <NavLink className="header-ask" to="/investigate"><ShellIcon name="ask" /><span>Ask a question</span></NavLink>
+          <ActivityPopover attention={attention} />
           <AppearanceMenu />
+          <button type="button" className="analyst-control" aria-label="Analyst account"><ShellIcon name="user" /><span>Analyst</span></button>
         </div>
       </header>
       <div className="workspace-frame">
@@ -384,66 +458,16 @@ export function CaseShell({ caseId = '', children, identityLed = false }) {
                     <div className="desktop-rail__footer"><button type="button" className="rail-collapse" aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'} aria-expanded={!collapsed} title={collapsed ? 'Expand navigation' : undefined} onClick={() => setCollapsed(value => !value)}><ShellIcon name={collapsed ? 'expand' : 'collapse'} />{collapsed ? null : <span>Collapse</span>}</button></div>
         </aside>
         <div className="workspace-content">
+          <ConnectivityBanner />
           {caseId ? (
             <section className="case-context-band" aria-label="Case context">
               <div className="case-context-band__identity">
-                <span className="case-context-band__mark"><Folders aria-hidden="true" /></span>
-                <span className="case-context-band__copy"><CaseBreadcrumb caseId={caseId} pathname={location.pathname} /></span>
-                <div className="case-context-band__badges">
-                  {acceptedRows ? (
-                    <span className="case-context-pill case-context-pill--metrics" title="Total ingested forensic records">
-                      <ShellIcon name="evidence" />
-                      <span className="tabular-numbers">{formatNumber(acceptedRows)}</span>
-                      <span className="case-context-pill__label">records</span>
-                    </span>
-                  ) : null}
-                  {activityHorizon ? (
-                    <span className="case-context-pill case-context-pill--horizon" title="Forensic event time horizon">
-                      <ShellIcon name="calendar" />
-                      <span className="tabular-numbers">{activityHorizon}</span>
-                    </span>
-                  ) : null}
-                </div>
+                <CaseBreadcrumb caseId={caseId} pathname={location.pathname} />
               </div>
-              <div className="case-context-band__controls">
-                <CaseReadiness state={caseOverview} />
-                <div className="case-context-band__actions">
-                  <NavLink
-                    className="case-context-action"
-                    to={`/cases/${encodeURIComponent(caseId)}/investigate`}
-                    title="Ask a question about this case"
-                    aria-label="Ask this case"
-                  >
-                    <ShellIcon name="ask" />
-                    <span>Ask case</span>
-                  </NavLink>
-                  <NavLink
-                    className="case-context-action"
-                    to={`/cases/${encodeURIComponent(caseId)}/evidence`}
-                    title="Inspect or upload evidence for this case"
-                    aria-label="Add evidence"
-                  >
-                    <ShellIcon name="plus" />
-                    <span>Add evidence</span>
-                  </NavLink>
-                  {cases.length > 1 ? (
-                    <button
-                      type="button"
-                      className="case-switcher-trigger"
-                      onClick={openCaseSwitcher}
-                      aria-label="Switch case"
-                      title="Switch active case scope (Alt+S)"
-                    >
-                      <ShellIcon name="switch" />
-                      <span>Switch case</span>
-                      <kbd className="case-switcher-shortcut" aria-hidden="true">Alt+S</kbd>
-                    </button>
-                  ) : null}
-                </div>
-              </div>
+              <CaseTabs caseId={caseId} badges={badges} />
+              <CaseReadiness state={caseOverview} />
             </section>
           ) : null}
-          {caseId ? <CaseTabs caseId={caseId} badges={badges} /> : null}
           {children}
         </div>
       </div>

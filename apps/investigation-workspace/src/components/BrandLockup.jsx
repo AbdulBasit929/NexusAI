@@ -14,7 +14,6 @@ export function BrandLockup({ identityLed = false }) {
   const tagline = runtime.instance_tagline || 'Private AI infrastructure for your applications.'
   const horizontal = runtime.logo_horizontal_url
   useEffect(() => {
-    globalThis.document.title = name
     const favicon = runtime.favicon_url || '/favicon.svg'
     let link = globalThis.document.querySelector("link[rel~='icon']")
     if (!link) {
@@ -23,7 +22,7 @@ export function BrandLockup({ identityLed = false }) {
       globalThis.document.head.append(link)
     }
     link.href = favicon
-  }, [name, runtime.favicon_url])
+  }, [runtime.favicon_url])
   if (horizontal) return <img className="brand-lockup__custom" src={horizontal} alt={name} />
   return <span className="brand-lockup"><BrandMark /><span className="brand-lockup__text"><strong>{name}</strong>{identityLed ? <small>{tagline}</small> : null}</span></span>
 }

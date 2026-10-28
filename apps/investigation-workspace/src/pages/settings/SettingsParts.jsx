@@ -1,13 +1,15 @@
 import { useEffect, useId, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Check, Download, Monitor, Moon, Sun } from 'lucide-react'
-import { useThemePreference } from '../../components/ThemeControl.jsx'
+import { Check, Contrast, Download, Monitor, Moon, Rows3, Sun } from 'lucide-react'
+import { useDisplayPreferences, useThemePreference } from '../../components/ThemeControl.jsx'
 import { formatNumber } from '../../lib/format.js'
+import { shortcutSections } from '../../lib/workspaceShortcuts.js'
 
 const THEMES = [
   { value: 'system', label: 'Use device setting', detail: 'Follows this device as its appearance changes.', icon: Monitor },
   { value: 'light', label: 'Light', detail: 'A cool, high-contrast working surface.', icon: Sun },
   { value: 'dark', label: 'Dark', detail: 'A low-glare slate working surface.', icon: Moon },
+  { value: 'high-contrast', label: 'High contrast', detail: 'Maximum separation for text, controls and working surfaces.', icon: Contrast },
 ]
 
 // A small picture of the workspace in each theme, drawn with fixed colours so each option previews itself whatever theme
@@ -15,6 +17,7 @@ const THEMES = [
 function Preview({ mode }) {
   const light = { bg: '#eef3f4', panel: '#fbfdfd', line: '#c3d3d7', ink: '#111827', rail: '#0f2f3a', accent: '#0f7f95' }
   const dark = { bg: '#0b161b', panel: '#12212a', line: '#27414c', ink: '#e6eef0', rail: '#0a1f27', accent: '#4dd3e8' }
+  const contrast = { bg: '#000000', panel: '#000000', line: '#ffffff', ink: '#ffffff', rail: '#000000', accent: '#ffff00' }
   const half = (c, key) => (
     <g key={key}>
       <rect width="120" height="76" fill={c.bg} />
@@ -34,7 +37,7 @@ function Preview({ mode }) {
           <defs><clipPath id="st-left"><rect width="60" height="76" /></clipPath><clipPath id="st-right"><rect x="60" width="60" height="76" /></clipPath></defs>
           <g clipPath="url(#st-left)">{half(light, 'l')}</g><g clipPath="url(#st-right)">{half(dark, 'd')}</g>
         </>
-      ) : half(mode === 'dark' ? dark : light, mode)}
+      ) : half(mode === 'dark' ? dark : mode === 'high-contrast' ? contrast : light, mode)}
     </svg>
   )
 }
@@ -43,10 +46,12 @@ function Preview({ mode }) {
 export function AppearancePicker() {
   const group = useId()
   const { preference, resolved, choose } = useThemePreference()
+  const display = useDisplayPreferences()
   return (
-    <fieldset className="st-themes">
-      <legend>Color theme</legend>
-      <div>
+    <div className="st-appearance">
+      <fieldset className="st-themes">
+        <legend>Color theme</legend>
+        <div>
         {THEMES.map(option => {
           const Icon = option.icon
           return (
@@ -58,8 +63,15 @@ export function AppearancePicker() {
             </label>
           )
         })}
-      </div>
-    </fieldset>
+        </div>
+      </fieldset>
+      <fieldset className="st-display-options">
+        <legend>Display preferences</legend>
+        <label><span><Rows3 aria-hidden="true" /><strong>Density</strong><small>Changes row and control spacing.</small></span><select value={display.density} onChange={event => display.choose('density', event.target.value)}><option value="compact">Compact</option><option value="default">Default</option><option value="comfortable">Comfortable</option></select></label>
+        <label><span><strong>Answer detail</strong><small>Sets the preferred answer presentation depth.</small></span><select value={display.detail} onChange={event => display.choose('detail', event.target.value)}><option value="concise">Concise</option><option value="standard">Standard</option><option value="detailed">Detailed</option></select></label>
+        <label><span><strong>Reduce motion</strong><small>Minimizes shell animation and transitions.</small></span><input type="checkbox" checked={display.motion === 'reduce'} onChange={event => display.choose('motion', event.target.checked ? 'reduce' : 'system')} /></label>
+      </fieldset>
+    </div>
   )
 }
 
@@ -101,24 +113,16 @@ export function ExportButton({ onExport }) {
   return <button type="button" className="st-btn" onClick={onExport}><Download aria-hidden="true" />Download a copy (JSON)</button>
 }
 
-// Each row: the keys, what they do, and whether the keys are pressed together (joined with +) or are alternatives.
-const SHORTCUTS = [
-  { group: 'Everywhere', rows: [[['Ctrl', 'K'], 'Open the command palette (⌘ K on a Mac)', true], [['?'], 'Open the shortcut sheet'], [['Alt', 'A'], 'Focus the question composer', true], [['Esc'], 'Close the active drawer or dialog']] },
-  { group: 'Timeline', rows: [[['←', '→'], 'Previous or next day'], [['P'], 'Pin or unpin the day']] },
-  { group: 'Activity', rows: [[['J', 'K'], 'Next or previous entry'], [['E'], 'Mark reviewed and move on'], [['↑', '↓'], 'Move in the journal']] },
-  { group: 'Evidence viewers', rows: [[['Space'], 'Play or pause media'], [['←', '→'], 'Skip 5 seconds'], [['M', 'F'], 'Mute, full screen'], [['+', '−'], 'Zoom an image'], [['0', 'R'], 'Fit, rotate an image']] },
-]
-
 export function ShortcutsCard() {
   return (
     <section className="st-card" aria-labelledby="st-shortcuts-title">
       <header><h2 id="st-shortcuts-title">Keyboard shortcuts</h2><small>Where each one works</small></header>
       <div className="st-keys">
-        {SHORTCUTS.map(block => (
+        {shortcutSections.map(block => (
           <div key={block.group}>
             <h3>{block.group}</h3>
-            <dl>{block.rows.map(([keys, what, together]) => (
-              <div key={keys.join('')}><dt>{keys.map((key, index) => <span key={key}>{index && together ? <i aria-hidden="true">+</i> : null}<kbd>{key}</kbd></span>)}</dt><dd>{what}</dd></div>
+            <dl>{block.rows.map(({ keys, what, together, sequence }) => (
+              <div key={keys.join('')}><dt>{keys.map((key, index) => <span key={key}>{index ? <i aria-hidden="true">{sequence ? 'then' : together ? '+' : '/'}</i> : null}<kbd>{key}</kbd></span>)}</dt><dd>{what}</dd></div>
             ))}</dl>
           </div>
         ))}

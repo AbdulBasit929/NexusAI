@@ -22,12 +22,14 @@ describe('U1 foundation contract', () => {
     expect([...aliases].every(name => new RegExp(`${name.replaceAll('-', '\\-')}:\\s*var\\(--nx-`).test(read('src/styles/legacy-aliases.css')))).toBe(true)
   })
 
-  it('declares the cascade once and places legacy styles in a bounded layer', () => {
+  it('declares the cascade once, bounds legacy styles and promotes the U2 shell', () => {
     const index = read('src/styles/index.css')
     expect(index).toContain('@layer reset, tokens, base, layout, components, patterns, pages, utilities;')
-    for (const file of ['workspace.css', 'identity-a.css', 'shell.css', 'canvas.css', 'connections.css']) {
+    for (const file of ['workspace.css', 'identity-a.css', 'canvas.css', 'connections.css']) {
       expect(index).toContain(`@import './${file}' layer(pages.legacy);`)
     }
+    expect(index).toContain("@import './shell-u2.css' layer(pages);")
+    expect(index).not.toContain("@import './shell.css'")
   })
 
   it('keeps migrated page CSS free of raw colours, important rules, IDs and duration literals', () => {

@@ -1,6 +1,6 @@
 # U2 shell and navigation research note
 
-**Stage:** U2 Shell and navigation · **Date:** 2026-10-28 · **Status:** research complete; owner decision pending · **Scope:** global header, primary rail, case band, command surface, overlays, landmarks, focus, responsive navigation, preferences and global route states
+**Stage:** U2 Shell and navigation · **Date:** 2026-10-28 · **Status:** implemented; owner selected B · Case atlas · **Scope:** global header, primary rail, case band, command surface, overlays, landmarks, focus, responsive navigation, preferences and global route states
 
 ## Question and starting point
 
@@ -8,7 +8,7 @@ U2 has to make NexusAI feel like one case-centric forensic instrument without hi
 
 The current application already has valuable behavior that must be preserved: a persisted collapsible rail, a case switcher, real evidence-readiness summaries, case-section links, visible failure counts, a command surface, an appearance menu, an application skip link and focus traps for the existing overlays. The gap is structural rather than cosmetic. Workspace and case navigation are not exposed as distinct labelled landmarks; case navigation is split between a crowded context bar and page-local assumptions; the header does not yet contain the complete U2 utility set; route changes do not own title, main focus and a polite load announcement; and the responsive shell is not expressed as one documented system.
 
-The stage therefore begins with a bounded gallery, not a live-shell rewrite. All gallery values and states are synthetic.
+The stage began with a bounded synthetic gallery. After the owner selected B · Case atlas, that direction was applied to the live shell without introducing synthetic production values.
 
 ## Primary-source findings and U2 application
 
@@ -41,7 +41,7 @@ An expanded 264 px rail is the default, but the current case is treated as a dis
 
 A 56 px icon rail is the desktop default, with the case band and command surface doing more orientation work. This gives the largest canvas to evidence tables, maps and connection work. Its cost is recall: infrequent analysts depend more on tooltips, the command palette or expanding the rail.
 
-The gallery at `/design/components` compares A, B and C in light, dark and high contrast, at 1440 and 390 px, and in case and global scope. It does not choose for the owner and does not alter the live shell.
+The gallery at `/design/components` retains A, B and C in light, dark and high contrast, at 1440 and 390 px, and in case and global scope. **Owner decision, 2026-10-28: B · Case atlas.** B is selected in the gallery and now defines the live shell; A and C remain as the comparison record.
 
 ## Fixed implementation contract after the owner decision
 

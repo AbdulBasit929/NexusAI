@@ -4,13 +4,13 @@ import { describe, expect, it } from 'vitest'
 import ComponentsPage from './ComponentsPage.jsx'
 
 describe('ComponentsPage', () => {
-  it('presents three researched shell directions without making a selection for the owner', () => {
+  it('records the owner-selected Case atlas direction while keeping comparisons available', () => {
     render(<ComponentsPage />)
     expect(screen.getByRole('heading', { name: 'Choose how the instrument holds its work' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Preview A' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: 'Preview B' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: 'Preview A' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: 'Preview B' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: 'Preview C' })).toHaveAttribute('aria-pressed', 'false')
-    expect(screen.getByText('Research gate complete')).toBeInTheDocument()
+    expect(screen.getByText('Direction B selected')).toBeInTheDocument()
   })
 
   it('compares direction, theme, viewport and scope using one stable preview', async () => {

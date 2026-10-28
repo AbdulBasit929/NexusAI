@@ -24,24 +24,36 @@ describe('shell landmarks and header', () => {
     expect(screen.getAllByRole('banner')).toHaveLength(1)
     expect(screen.getAllByRole('main')).toHaveLength(1)
     expect(screen.getByRole('search', { name: 'Workspace search' })).toBeTruthy()
-    expect(screen.getByRole('navigation', { name: 'Primary' })).toBeTruthy()
+    expect(screen.getByRole('navigation', { name: 'Workspace' })).toBeTruthy()
   })
 
-  it('offers a real global Investigate action in the header and the sidebar', () => {
+  it('offers the global question route in the workspace navigation', () => {
     open(['case-a'], { summary: { evidence_total: 1, evidence_completed: 1 } })
-    expect(screen.getByRole('link', { name: 'Ask a question' }).getAttribute('href')).toBe('/investigate')
-    expect(screen.getByRole('link', { name: 'Investigate' }).getAttribute('href')).toBe('/investigate')
+    expect(screen.getByRole('link', { name: 'Ask across cases' }).getAttribute('href')).toBe('/investigate')
   })
 
-  it('shows the live processing chip only when a case is actually processing', async () => {
+  it('shows live processing only inside the truthful activity disclosure', async () => {
     open(['case-a'], { summary: { evidence_total: 4, evidence_completed: 2, evidence_in_flight: 2, evidence_failed: 0 } })
-    expect(await screen.findByRole('link', { name: '1 case is processing evidence' })).toBeTruthy()
+    const trigger = await screen.findByRole('button', { name: 'Activity, 1 processing' })
+    await userEvent.click(trigger)
+    expect(screen.getByRole('region', { name: 'Current activity' })).toHaveTextContent('Evidence processing')
   })
 
-  it('shows no chip when nothing is processing', async () => {
+  it('states that no active processing was reported when nothing is processing', async () => {
     open(['case-b'], { summary: { evidence_total: 4, evidence_completed: 4, evidence_in_flight: 0, evidence_failed: 0 } })
     await waitFor(() => expect(globalThis.fetch).toHaveBeenCalled())
-    expect(screen.queryByRole('link', { name: /processing evidence/ })).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Activity' }))
+    expect(screen.getByText('No active processing reported.')).toBeTruthy()
+  })
+
+  it('shows and clears a truthful offline banner from browser connectivity state', async () => {
+    open([], { summary: {} })
+    Object.defineProperty(navigator, 'onLine', { configurable: true, value: false })
+    window.dispatchEvent(new Event('offline'))
+    expect(await screen.findByRole('status')).toHaveTextContent('You are offline')
+    Object.defineProperty(navigator, 'onLine', { configurable: true, value: true })
+    window.dispatchEvent(new Event('online'))
+    await waitFor(() => expect(screen.queryByText(/You are offline/)).toBeNull())
   })
 })
 
@@ -61,18 +73,19 @@ describe('case context bar', () => {
     expect(bar.querySelector('[aria-current="page"]').getAttribute('href')).toBe('/cases/case-a/evidence')
   })
 
-  it('shows one case-level breadcrumb and keeps case sections out of the sidebar', () => {
+  it('shows one case breadcrumb and a distinct case navigation landmark', () => {
     openCase('/cases/case-a/timeline', failing)
     const crumbs = screen.getByRole('navigation', { name: 'Breadcrumb' })
     expect([...crumbs.querySelectorAll('li')].map(item => item.textContent)).toEqual(['Cases', 'case-a'])
-    const primary = screen.getByRole('navigation', { name: 'Primary' })
-    for (const section of ['evidence', 'investigate', 'timeline', 'activity']) expect(primary.querySelector('a[href="/cases/case-a/' + section + '"]')).toBeNull()
+    const caseNavigation = screen.getByRole('navigation', { name: 'Case' })
+    for (const section of ['evidence', 'investigate', 'timeline', 'activity']) expect(caseNavigation.querySelector('a[href="/cases/case-a/' + section + '"]')).toBeTruthy()
   })
 
   it('adds the failed-source count to Evidence only after the status has loaded', async () => {
     openCase('/cases/case-a/overview', failing)
-    expect(screen.getByRole('link', { name: 'Evidence' })).toBeTruthy()
-    expect(await screen.findByRole('link', { name: 'Evidence, 1 failed source' })).toBeTruthy()
+    const sections = screen.getByRole('navigation', { name: 'Case sections' })
+    expect(within(sections).getByRole('link', { name: 'Evidence' })).toBeTruthy()
+    expect(await within(sections).findByRole('link', { name: 'Evidence, 1 failed source' })).toBeTruthy()
   })
 
   it('offers case switching only when more than one case exists', () => {
@@ -80,17 +93,17 @@ describe('case context bar', () => {
     expect(screen.getByRole('button', { name: /Switch case/ })).toBeTruthy()
   })
 
-  it('offers quick actions for asking this case and adding evidence', () => {
+  it('keeps page destinations in the case section navigation instead of duplicating quick actions', () => {
     openCase('/cases/case-a/overview', failing)
     const contextBand = screen.getByRole('region', { name: 'Case context' })
-    expect(within(contextBand).getByRole('link', { name: 'Ask this case' }).getAttribute('href')).toBe('/cases/case-a/investigate')
-    expect(within(contextBand).getByRole('link', { name: 'Add evidence' }).getAttribute('href')).toBe('/cases/case-a/evidence')
+    expect(within(contextBand).getByRole('link', { name: 'Ask' }).getAttribute('href')).toBe('/cases/case-a/investigate')
+    expect(within(contextBand).getByRole('link', { name: /^Evidence/ }).getAttribute('href')).toBe('/cases/case-a/evidence')
   })
 
-  it('displays the ingested records metric pill when accepted rows exist', async () => {
+  it('keeps the compact case band focused on readiness instead of duplicating page metrics', async () => {
     openCase('/cases/case-a/overview', { summary: { evidence_total: 12, evidence_completed: 12, accepted_rows: 12912 } })
-    const pill = await screen.findByTitle('Total ingested forensic records')
-    expect(pill.textContent).toContain('12,912')
+    expect(await screen.findByText('Evidence ready')).toBeTruthy()
+    expect(screen.queryByTitle('Total ingested forensic records')).toBeNull()
   })
 
   it('cycles tab focus with horizontal arrow keys across the case tab strip', async () => {
@@ -150,11 +163,11 @@ describe('sidebar sections', () => {
 
   it('folds every case under one Cases category with its count, a new-case action and text status', async () => {
     openRail('/cases/case-a/overview', ['case-a', 'case-b'], id => (id === 'case-a' ? ok : bad))
-    const primary = screen.getByRole('navigation', { name: 'Primary' })
-    expect(within(primary).getAllByRole('link', { name: /^Cases/ })).toHaveLength(1)
-    expect(within(primary).getByLabelText('2 cases')).toBeTruthy()
-    expect(within(primary).getByRole('link', { name: 'New case' }).getAttribute('href')).toBe('/cases/new')
-    const list = within(primary).getByRole('list', { name: 'Cases' })
+    const workspace = screen.getByRole('navigation', { name: 'Workspace' })
+    expect(within(workspace).getAllByRole('link', { name: /^Cases/ })).toHaveLength(1)
+    expect(within(workspace).getByLabelText('2 cases')).toBeTruthy()
+    expect(within(workspace).getByRole('link', { name: 'New case' }).getAttribute('href')).toBe('/cases/new')
+    const list = within(workspace).getByRole('list', { name: 'Cases' })
     await waitFor(() => expect(list.textContent).toContain('Needs review'))
     expect(list.textContent).toContain('1 failed source')
     expect(list.querySelector('[aria-current="true"]').getAttribute('href')).toBe('/cases/case-a/overview')

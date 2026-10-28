@@ -4,13 +4,10 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Search, X } from 'lucide-react'
 import { configuredCaseIds, listEvidence } from '../lib/apiClient.js'
 import { clearCaseSessionScope, useQuestionHistoryAcross } from '../lib/workspaceState.js'
-
-function isTyping(target) {
-  return target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target?.isContentEditable
-}
+import { isEditableTarget, routeShortcuts, shortcutSections } from '../lib/workspaceShortcuts.js'
 
 const globalRoutes = [
-  ['Dashboard', '/'], ['Investigate', '/investigate'], ['Cases', '/cases'], ['Activity', '/activity'], ['Settings', '/settings'],
+  ['Dashboard', '/'], ['Ask across cases', '/investigate'], ['Cases', '/cases'], ['Activity', '/activity'], ['Settings', '/settings'],
 ]
 
 export function WorkspaceCommands({ caseId = '', showTrigger = false }) {
@@ -19,6 +16,7 @@ export function WorkspaceCommands({ caseId = '', showTrigger = false }) {
   const palette = useRef(null)
   const shortcuts = useRef(null)
   const restoreFocus = useRef(true)
+  const routeSequence = useRef({ armed: false, timer: null })
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -31,13 +29,29 @@ export function WorkspaceCommands({ caseId = '', showTrigger = false }) {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault(); restoreFocus.current = true; setPaletteOpen(true); return
       }
-      if (event.key === '?' && !isTyping(event.target) && !event.metaKey && !event.ctrlKey && !event.altKey) {
+      if (event.key === '?' && !isEditableTarget(event.target) && !event.metaKey && !event.ctrlKey && !event.altKey) {
         event.preventDefault(); restoreFocus.current = true; setShortcutsOpen(true)
+        return
+      }
+      if (event.key === '/' && !isEditableTarget(event.target) && !event.metaKey && !event.ctrlKey && !event.altKey) {
+        event.preventDefault(); restoreFocus.current = true; setPaletteOpen(true); return
+      }
+      if (!isEditableTarget(event.target) && !event.metaKey && !event.ctrlKey && !event.altKey && event.key.toLowerCase() === 'g') {
+        routeSequence.current.armed = true
+        globalThis.clearTimeout(routeSequence.current.timer)
+        routeSequence.current.timer = globalThis.setTimeout(() => { routeSequence.current.armed = false }, 1200)
+        return
+      }
+      if (routeSequence.current.armed && !isEditableTarget(event.target)) {
+        routeSequence.current.armed = false
+        globalThis.clearTimeout(routeSequence.current.timer)
+        const path = routeShortcuts[event.key.toLowerCase()]
+        if (path) { event.preventDefault(); navigate(path) }
       }
     }
     globalThis.document.addEventListener('keydown', keydown)
-    return () => globalThis.document.removeEventListener('keydown', keydown)
-  }, [])
+    return () => { globalThis.document.removeEventListener('keydown', keydown); globalThis.clearTimeout(routeSequence.current.timer) }
+  }, [navigate])
 
   useEffect(() => {
     if (!paletteOpen) return undefined
@@ -77,14 +91,15 @@ export function WorkspaceCommands({ caseId = '', showTrigger = false }) {
   }, [paletteOpen, shortcutsOpen])
 
   const groups = useMemo(() => {
-    const routes = globalRoutes.map(([label, path]) => ({ label, detail: 'Workspace', path }))
+    const routes = globalRoutes.map(([label, path]) => ({ label, detail: 'Workspace destination', path }))
     const cases = configuredCaseIds().map(id => ({ label: id, detail: 'Configured case', path: `/cases/${encodeURIComponent(id)}/overview`, caseId: id }))
     const evidence = []
-    const questions = []
-    const actions = []
+    const questions = [{ label: 'Ask across cases…', detail: 'Start with all authorized cases', path: '/investigate' }]
+    const actions = [{ label: 'Create a case', detail: 'Start a new investigation workspace', path: '/cases/new' }]
     if (caseId) {
-      actions.push({ label: `Ask in ${caseId}…`, detail: 'Start an investigation', path: `/cases/${encodeURIComponent(caseId)}/investigate`, caseId })
-      for (const [label, route] of [['Overview', 'overview'], ['Evidence', 'evidence'], ['Ask this case', 'investigate'], ['Timeline', 'timeline'], ['Case activity', 'activity']]) {
+      questions.unshift({ label: `Ask in ${caseId}…`, detail: 'Start in the active case', path: `/cases/${encodeURIComponent(caseId)}/investigate`, caseId })
+      actions.unshift({ label: 'Add evidence', detail: `Open evidence for ${caseId}`, path: `/cases/${encodeURIComponent(caseId)}/evidence`, caseId })
+      for (const [label, route] of [['Overview', 'overview'], ['Evidence', 'evidence'], ['Ask this case', 'investigate'], ['Connections', 'connections'], ['Timeline', 'timeline'], ['Data', 'data'], ['Case activity', 'activity']]) {
         routes.push({ label, detail: 'Active case', path: `/cases/${encodeURIComponent(caseId)}/${route}`, caseId })
       }
       for (const item of evidenceState.items) evidence.push({
@@ -102,21 +117,16 @@ export function WorkspaceCommands({ caseId = '', showTrigger = false }) {
       path: `/cases/${encodeURIComponent(item.caseId)}/investigate?question=${encodeURIComponent(item.query)}`,
       caseId: item.caseId,
     })
-    const pinnedQuestions = history.filter(item => item.pinned).map(asQuestion)
-    questions.push(...history.filter(item => !item.pinned).map(asQuestion))
+    questions.push(...history.filter(item => item.pinned).map(asQuestion), ...history.filter(item => !item.pinned).map(asQuestion))
     const needle = query.trim().toLocaleLowerCase()
     const filter = (items, limit) => items.filter(item => !needle || `${item.label} ${item.detail}`.toLocaleLowerCase().includes(needle)).slice(0, limit)
+    const goTo = filter([...routes, ...cases, ...evidence], 8)
     const available = [
-      { id: 'actions', label: 'Start here', scope: 'Active case', items: filter(actions, 2) },
-      { id: 'pinned', label: 'Pinned questions', scope: 'This browser only', items: filter(pinnedQuestions, 5) },
-      { id: 'questions', label: 'Recent questions', scope: 'This browser only', items: filter(questions, 6) },
-      { id: 'cases', label: 'Cases', scope: 'Configured collections only', items: filter(cases, 8) },
-      { id: 'evidence', label: 'Evidence', scope: caseId ? 'Up to 100 items returned for the active case' : 'Open a case to search its evidence', items: filter(evidence, 8), status: evidenceState.status },
-      { id: 'routes', label: 'Routes', scope: 'Workspace and active case', items: filter(routes, 10) },
+      { id: 'go-to', label: 'Go to', scope: caseId ? 'Workspace and active case' : 'Workspace', items: goTo, status: caseId ? evidenceState.status : undefined },
+      { id: 'do', label: 'Do', scope: caseId ? 'Active case actions' : 'Workspace actions', items: filter(actions, 8) },
+      { id: 'ask', label: 'Ask', scope: 'Starts a question only after selection', items: filter(questions, 8) },
     ]
-    // Empty groups are not drawn. Evidence stays while it loads or is unavailable, so the analyst is told why.
-    const inScope = caseId ? available : available.filter(group => ['pinned', 'questions', 'cases', 'routes'].includes(group.id))
-    return inScope.filter(group => group.items.length > 0 || group.status === 'loading' || group.status === 'unavailable')
+    return available.filter(group => group.items.length > 0 || group.status === 'loading' || group.status === 'unavailable')
   }, [caseId, evidenceState, history, query])
   const commands = groups.flatMap(group => group.items)
 
@@ -148,8 +158,8 @@ export function WorkspaceCommands({ caseId = '', showTrigger = false }) {
     {paletteOpen && typeof document !== 'undefined' ? createPortal(
       <div className="command-backdrop" onMouseDown={event => event.target === event.currentTarget && setPaletteOpen(false)}>
         <section ref={palette} className="command-palette" role="dialog" aria-modal="true" aria-labelledby="command-title" onKeyDown={paletteKeys}>
-          <header><div><span className="eyebrow">Workspace navigation</span><h2 id="command-title">Quick find</h2></div><button type="button" aria-label="Close quick find" onClick={() => setPaletteOpen(false)}><X aria-hidden="true" /></button></header>
-          <label className="command-search"><span>Search configured cases, active-case evidence, routes and browser-local questions</span><span className="command-search__field"><Search aria-hidden="true" /><input ref={input} value={query} placeholder="Search the workspace" onChange={event => { setQuery(event.target.value); setActive(0) }} role="combobox" aria-expanded="true" aria-controls="command-results" aria-autocomplete="list" /><kbd>Esc</kbd></span></label>
+          <header><div><span className="eyebrow">Workspace commands</span><h2 id="command-title">Find or run a command</h2></div><button type="button" aria-label="Close command palette" onClick={() => setPaletteOpen(false)}><X aria-hidden="true" /></button></header>
+          <label className="command-search"><span>Search destinations, actions and saved questions</span><span className="command-search__field"><Search aria-hidden="true" /><input ref={input} value={query} placeholder="Type a destination or action" onChange={event => { setQuery(event.target.value); setActive(0) }} role="combobox" aria-expanded="true" aria-controls="command-results" aria-autocomplete="list" aria-activedescendant={commands[active] ? `command-option-${active}` : undefined} /><kbd>Esc</kbd></span></label>
           <div id="command-results" className="command-results" role="listbox" aria-label="Quick find results">
             {groups.map(group => {
               let offset = 0
@@ -158,10 +168,10 @@ export function WorkspaceCommands({ caseId = '', showTrigger = false }) {
                 <header><h3 id={`command-group-${group.id}`}>{group.label}</h3><small>{group.scope}</small></header>
                 {group.items.map((command, index) => {
                   const commandIndex = offset + index
-                  return <div key={`${command.path}-${command.label}`} role="option" aria-selected={active === commandIndex}><button type="button" onMouseEnter={() => setActive(commandIndex)} onClick={() => run(command)}><span className="command-result__copy"><strong>{command.label}</strong><small>{command.detail}</small></span><ArrowRight aria-hidden="true" /></button></div>
+                  return <div id={`command-option-${commandIndex}`} key={`${command.path}-${command.label}`} role="option" aria-selected={active === commandIndex}><button type="button" tabIndex={-1} onMouseEnter={() => setActive(commandIndex)} onClick={() => run(command)}><span className="command-result__copy"><strong>{command.label}</strong><small>{command.detail}</small></span><ArrowRight aria-hidden="true" /></button></div>
                 })}
-                {group.id === 'evidence' && group.status === 'loading' ? <p className="command-group__state" role="status">Loading active-case evidence…</p> : null}
-                {group.id === 'evidence' && group.status === 'unavailable' ? <p className="command-group__state">Evidence search is unavailable. Routes, configured cases and local questions remain available.</p> : null}
+                {group.id === 'go-to' && group.status === 'loading' ? <p className="command-group__state" role="status">Loading active-case evidence…</p> : null}
+                {group.id === 'go-to' && group.status === 'unavailable' ? <p className="command-group__state">Evidence destinations are unavailable. Workspace and case routes remain available.</p> : null}
               </section>
             })}
             {!commands.length && query ? <p className="command-empty">No result matches this search. The scope was not widened.</p> : null}
@@ -174,7 +184,7 @@ export function WorkspaceCommands({ caseId = '', showTrigger = false }) {
       <div className="command-backdrop" onMouseDown={event => event.target === event.currentTarget && setShortcutsOpen(false)}>
         <section ref={shortcuts} className="shortcut-sheet" role="dialog" aria-modal="true" aria-labelledby="shortcut-title">
           <header><h2 id="shortcut-title">Keyboard shortcuts</h2><button type="button" onClick={() => setShortcutsOpen(false)}>Close</button></header>
-          <dl><div><dt><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd></dt><dd>Open the command palette</dd></div><div><dt><kbd>?</kbd></dt><dd>Open this shortcut sheet</dd></div><div><dt><kbd>Alt</kbd> + <kbd>A</kbd></dt><dd>Focus the question composer</dd></div><div><dt><kbd>Esc</kbd></dt><dd>Close the active drawer or dialog</dd></div></dl>
+          <div className="shortcut-sheet__groups">{shortcutSections.map(section => <section key={section.group}><h3>{section.group}</h3><dl>{section.rows.map(row => <div key={`${section.group}-${row.keys.join('-')}`}><dt>{row.keys.map((key, index) => <span key={`${key}-${index}`}>{index ? <i aria-hidden="true">{row.sequence ? 'then' : row.together ? '+' : '/'}</i> : null}<kbd>{key}</kbd></span>)}</dt><dd>{row.what}</dd></div>)}</dl></section>)}</div>
         </section>
       </div>,
       document.body

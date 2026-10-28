@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
     <script src="/runtime-config.js"></script>
+    <script>
+      try {
+        const root = document.documentElement
+        const theme = localStorage.getItem('nexusai.viewer.theme')
+        if (['light', 'dark', 'high-contrast'].includes(theme)) root.dataset.theme = theme
+        const density = localStorage.getItem('nexusai.viewer.density')
+        if (['compact', 'comfortable'].includes(density)) root.dataset.density = density
+        if (localStorage.getItem('nexusai.viewer.reduce-motion') === 'reduce') root.dataset.reduceMotion = 'reduce'
+        const detail = localStorage.getItem('nexusai.viewer.answer-detail')
+        if (['concise', 'detailed'].includes(detail)) root.dataset.answerDetail = detail
+      } catch { /* Browser storage is optional; System and default density remain usable. */ }
+    </script>
     <link rel="icon" href="/favicon.svg" />
     <title>NexusAI</title>
   </head>
