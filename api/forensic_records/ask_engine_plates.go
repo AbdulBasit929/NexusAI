@@ -128,7 +128,10 @@ func askFindPlatesBy(text string, hold func(string) string) (string, []string, m
 			continue
 		}
 		only := strings.NewReplacer(" ", "", "\t", "", "-", "").Replace(digits)
-		if len(only) == 4 && askYearLike.MatchString(only) && !cue {
+		// a number that could be a year (found by the G4 run on case 115: SYNT-2020 was not read as a plate and the question was refused) is a plate when it is joined to its capitals by a
+		// dash or follows four or more capital letters; "ABC 2024" and "MARCH 2026" still need the word that introduces a plate, or are a month
+		joined := strings.Contains(text[m[3]:m[4]], "-") || len(letters) >= 4
+		if len(only) == 4 && askYearLike.MatchString(only) && !cue && !joined {
 			continue
 		}
 		key := askNormalizePlate(text[start:end])
