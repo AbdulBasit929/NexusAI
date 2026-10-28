@@ -70,7 +70,7 @@ def ingest_all(db, root, registry, sink, register=True):
         rel = item["file"]
         evidence_id, batch_id = load_case.lineage_ids(key["case_id"], rel)
         lineage = ti.Lineage(load_case.TENANT, key["case_id"], evidence_id, rel, batch_id)
-        summaries[name] = ti.ingest_file(os.path.join(root, *rel.split("/")), lineage, POLICY_SUBSCRIBERS if family == "subscriber" else POLICY, sink, registry=registry)
+        summaries[name] = ti.ingest_file(os.path.join(root, *rel.split("/")), lineage, POLICY_SUBSCRIBERS if family in ("subscriber", "transaction") else POLICY, sink, registry=registry)
     return key, summaries
 
 

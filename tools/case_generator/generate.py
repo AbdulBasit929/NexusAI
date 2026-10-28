@@ -292,7 +292,7 @@ def build_case(params, registry=None):
     return world, renders, key
 
 
-def write_case(params, out_dir, registry=None, with_anpr=False, with_subscribers=False):
+def write_case(params, out_dir, registry=None, with_anpr=False, with_subscribers=False, with_transactions=False):
     """Write a case. with_anpr adds one camera export of plate sightings (anpr_case.py, its own random stream; the default build and every hash of the register are unchanged)."""
     world, renders, key = build_case(params, registry)
     root = os.path.join(out_dir, "case-%d" % params.seed)
@@ -328,6 +328,19 @@ def write_case(params, out_dir, registry=None, with_anpr=False, with_subscribers
         subscriber_case.write(built["reference"], os.path.join(root, *reference.split("/")), subscriber_case.REFERENCE_HEADER)
         built["truth"].update({"reference_file": reference})
         key["subscriber_truth"] = built["truth"]
+    if with_transactions:
+        # two bank statements (one with dates only) and a wallet list (txn_case.py, its own random stream; the default build is unchanged)
+        import txn_case
+        built = txn_case.build(params, world)
+        key["transactions"] = []
+        for name, source, layout, header in (("bank-statement-A", "A", txn_case.BANK_LAYOUT, txn_case.BANK_HEADER), ("bank-statement-B", "B", txn_case.BANK_LAYOUT, txn_case.BANK_HEADER),
+                                             ("wallet-W", "W", txn_case.WALLET_LAYOUT, txn_case.WALLET_HEADER)):
+            if not built["files"][source]:
+                continue
+            rel = "files/%s-%s.csv" % (name, layout)
+            txn_case.write(built["files"][source], os.path.join(root, *rel.split("/")), header)
+            key["transactions"].append({"name": name, "file": rel, "layout_id": layout, "source": source})
+        key["transaction_truth"] = built["truth"]
     with open(os.path.join(root, "key", "world.json"), "w", encoding="utf-8", newline="\n") as handle:
         handle.write(w.world_to_json(world) + "\n")
     key_text_for_id = json.dumps({k: v for k, v in key.items() if k != "case_id"}, sort_keys=True)

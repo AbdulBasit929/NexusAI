@@ -153,7 +153,7 @@ def export_list(key):
     return ([(item, "call", item["person"]) for item in key["subjects"]] + [(item, "call", item["name"]) for item in key["dumps"]] +
             [(item, "session", item["name"]) for item in key["sessions"]] + [(item, "session", item["name"]) for item in key["ip_queries"]] +
             [(item, "usage", item["name"]) for item in key["app_usage"]] + ([(key["anpr"], "plate", "anpr")] if key.get("anpr") else []) +
-            [(item, "subscriber", item["name"]) for item in key.get("subscribers", [])])
+            [(item, "subscriber", item["name"]) for item in key.get("subscribers", [])] + [(item, "transaction", item["name"]) for item in key.get("transactions", [])])
 
 
 def lineage_ids(case_id, rel):

@@ -950,3 +950,9 @@ Apply a migration; recreate a container; switch a worker role on; download a mod
 ## Appendix B: ID index
 
 `L-Q`: question-answering line (4.1) · `L-R`: master directive phases (4.2) · `G`: maturity roadmap gaps (4.3) · request rows 1 to 26 and G-1 to G-4: interface requests (4.4) · `L-U`: interface items (4.4) · `L-M`: media (4.5) · `L-P`: process (4.6) · `P0` to `P5`, `PL`, `P-H`: programmes (6) · `U0` to `U10`: interface stages (7.4) · `M0.1` to `M0.8`: media foundation (8.3) · `BR-1` to `BR-4`: backend batches (4.4) · `D23` to `D32`: new decisions (11).
+
+---
+
+## Addendum 2026-10-28: the reference cases programme
+
+The owner asked (2026-10-28) for complete cases in which every working function, data type and link is exercised: files in the shapes of the team lead's folder (`COMPANY FORMAT.rar` = call-record and tower-dump formats C1 to C8, `IPDR.rar` = internet-record formats I1 to I4, both already in the vault), bank and wallet statements as CSV, PDF, image and Word, text documents, a profile layer that ties a person's numbers, accounts, plates and handsets together, cross-case links, and a catalogue of every question the application can answer, each with an oracle answer. **Plan of record: [`reference-cases-programme-20261028.md`](reference-cases-programme-20261028.md)** (architecture of the profile layer and its identifier strengths, the statement formats and their reading routes, Orion, Meridian and Control, the question catalogue, stages S0 to S8 with gates and the owner's goes). It extends P1-B (typed families: subscriber and device, transactions, built and tested on throwaway databases), P3 (media on the same rails) and P4 (entity layer, mention index, cross-case) and does not replace them. Files live in `C:\NexusAI-Showcase\` (outside the repository), built by `tools/showcase/build_showcase.py`.
