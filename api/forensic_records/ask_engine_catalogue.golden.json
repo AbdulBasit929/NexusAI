@@ -760,6 +760,67 @@
       ]
     },
     {
+      "name": "v_handsets",
+      "description": "Per number and handset (IMEI, IMSI) seen in the call records, with the TAC (first eight digits of the IMEI) and the make and model the device reference lists for it. A TAC is listed as a make and model per source: it is not a fact about the individual handset. For what phone a number used and which numbers use a model.",
+      "columns": [
+        {
+          "name": "src",
+          "type": "text",
+          "description": "The subscriber number the handset was seen with."
+        },
+        {
+          "name": "imei",
+          "type": "text",
+          "description": "The handset identity (IMEI) as the call records have it."
+        },
+        {
+          "name": "imsi",
+          "type": "text",
+          "description": "The SIM identity (IMSI) seen with that handset and number."
+        },
+        {
+          "name": "events",
+          "type": "bigint",
+          "description": "How many events the number made with this handset and SIM."
+        },
+        {
+          "name": "first_seen",
+          "type": "timestamp with time zone",
+          "description": "Time of the first event with this handset, UTC."
+        },
+        {
+          "name": "last_seen",
+          "type": "timestamp with time zone",
+          "description": "Time of the last event with this handset, UTC."
+        },
+        {
+          "name": "tac",
+          "type": "text",
+          "description": "The Type Allocation Code: the first eight digits of the IMEI; empty when the IMEI is not 14 to 16 digits."
+        },
+        {
+          "name": "make",
+          "type": "text",
+          "description": "The make the device reference lists for the TAC; empty when the TAC is not listed."
+        },
+        {
+          "name": "model",
+          "type": "text",
+          "description": "The model (with its variant and year when the list has them) the device reference lists for the TAC; empty when the TAC is not listed. Listed as, not a fact about this handset."
+        },
+        {
+          "name": "listed_by",
+          "type": "text",
+          "description": "The source of the reference list that names the model."
+        },
+        {
+          "name": "tac_listed",
+          "type": "boolean",
+          "description": "True when the device reference lists the TAC; false means the model is unknown, not that the handset is unusual."
+        }
+      ]
+    },
+    {
       "name": "v_meeting_candidates",
       "description": "The co-location windows that could be a meeting: the two numbers had a direct call or SMS with each other no more than allowed_gap_minutes before the window started (60 when the question names none; the window length is window_minutes, 15 when none is named), both set by the application from the question: never compute on minutes yourself. A candidate, not a finding: proximity and contact are not proof of a meeting. Always write a = ... AND b = ... for the two numbers.",
       "columns": [
@@ -903,6 +964,67 @@
           "name": "lon",
           "type": "double precision",
           "description": "Longitude of the cell site when known (the site, not the person)."
+        }
+      ]
+    },
+    {
+      "name": "v_number_registration_activity",
+      "description": "Per number: its registrations and sources, the span they cover, and how many of its events in the case's call records fall outside every registration period and after the last registration ended. For whether a number was active when it was not registered. Outside a registration period is a pattern in the rows, not a finding.",
+      "columns": [
+        {
+          "name": "msisdn",
+          "type": "text",
+          "description": "The number, normalised (92 and ten digits)."
+        },
+        {
+          "name": "registrations",
+          "type": "bigint",
+          "description": "How many registration rows the number has (all sources)."
+        },
+        {
+          "name": "sources",
+          "type": "bigint",
+          "description": "How many different source files registered the number."
+        },
+        {
+          "name": "first_valid_from",
+          "type": "timestamp with time zone",
+          "description": "The earliest registration start of the number, UTC; empty when no registration has a start date."
+        },
+        {
+          "name": "last_valid_to",
+          "type": "timestamp with time zone",
+          "description": "The latest registration end of the number, UTC; empty when any registration of the number is open-ended (the number was never ended)."
+        },
+        {
+          "name": "conflicts",
+          "type": "boolean",
+          "description": "True when any registration of the number conflicts with another source."
+        },
+        {
+          "name": "events",
+          "type": "bigint",
+          "description": "How many events (calls and messages) of the number are in the case's call records."
+        },
+        {
+          "name": "events_outside_registration",
+          "type": "bigint",
+          "description": "How many of those events fall outside every registration period of the number (a registration with no start or end is open on that side)."
+        },
+        {
+          "name": "events_after_last_end",
+          "type": "bigint",
+          "description": "How many of those events are at or after the end of the last registration; zero when a registration of the number is open-ended."
+        },
+        {
+          "name": "first_event_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the number's first event in the call records, UTC."
+        },
+        {
+          "name": "last_event_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the number's last event in the call records, UTC."
         }
       ]
     },
@@ -1173,6 +1295,92 @@
           "name": "limit_kmh",
           "type": "integer",
           "description": "The lowest speed listed, set by the application from the question (200 when it names none)."
+        }
+      ]
+    },
+    {
+      "name": "v_subscriber_registrations",
+      "description": "Registrations of numbers per source file: this number was registered, per this source, as this SIM (IMSI, ICCID) with this status from activation to deactivation. A statement is \"registered per source\", never who holds or uses the number; two sources can disagree (both rows are kept, conflicts marks them). No names, national ID numbers or addresses are held.",
+      "columns": [
+        {
+          "name": "registration_id",
+          "type": "bigint",
+          "description": "Identifier of the registration row."
+        },
+        {
+          "name": "evidence_id",
+          "type": "uuid",
+          "description": "The evidence file the registration came from."
+        },
+        {
+          "name": "source_file",
+          "type": "text",
+          "description": "The file the registration came from (the source it is registered per)."
+        },
+        {
+          "name": "source_row",
+          "type": "bigint",
+          "description": "The row of that file."
+        },
+        {
+          "name": "msisdn",
+          "type": "text",
+          "description": "The registered number, normalised: 92 and ten digits for a Pakistani mobile number. Always compare this column, with the number written the same way."
+        },
+        {
+          "name": "imsi",
+          "type": "text",
+          "description": "The IMSI of the SIM the number was registered on, when the source has one."
+        },
+        {
+          "name": "iccid",
+          "type": "text",
+          "description": "The SIM serial (ICCID) when the source has one."
+        },
+        {
+          "name": "subscriber_ref",
+          "type": "text",
+          "description": "The source's own reference for the subscriber or account, when it has one (not a name)."
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "description": "The registration status in plain words: active, suspended, deactivated, or unknown when the source's word is not one of those."
+        },
+        {
+          "name": "operator_label",
+          "type": "text",
+          "description": "The operator the source names, when it names one."
+        },
+        {
+          "name": "service_type",
+          "type": "text",
+          "description": "The service type the source names (prepaid or postpaid, in lower case), when it names one."
+        },
+        {
+          "name": "valid_from",
+          "type": "timestamp with time zone",
+          "description": "When the registration began (the activation), UTC; empty when the source has no activation date (an open start)."
+        },
+        {
+          "name": "valid_to",
+          "type": "timestamp with time zone",
+          "description": "When the registration ended (the deactivation), UTC; empty when it has not ended or the source has no date (an open end)."
+        },
+        {
+          "name": "time_basis",
+          "type": "text",
+          "description": "How the zone of the dates is known: declared, assumed_by_profile, confirmed_by_analyst or explicit_offset; empty when the row has no date."
+        },
+        {
+          "name": "source_tz",
+          "type": "text",
+          "description": "The time zone the source's dates were read in."
+        },
+        {
+          "name": "conflicts",
+          "type": "boolean",
+          "description": "True when another source file states a different SIM or status for the same number in an overlapping period. Both rows are kept; say that the sources differ."
         }
       ]
     },

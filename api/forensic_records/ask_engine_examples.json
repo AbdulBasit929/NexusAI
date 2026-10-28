@@ -268,5 +268,78 @@
     ],
     "shape": "table",
     "sql": "SELECT plate_norm, observed_utc FROM v_plate_sightings WHERE camera_id = 'CAM-01' AND observed_utc >= '2026-03-05 00:00:00+05' AND observed_utc < '2026-03-06 00:00:00+05' ORDER BY observed_utc LIMIT 200"
+  },
+  {
+    "id": "registration-of-number",
+    "question": "Which SIM was 923000000101 registered on, and from when to when? Show the status.",
+    "views": [
+      "v_subscriber_registrations"
+    ],
+    "shape": "table",
+    "sql": "SELECT imsi, iccid, status, valid_from, valid_to, source_file, conflicts FROM v_subscriber_registrations WHERE msisdn = '923000000101' ORDER BY valid_from NULLS FIRST LIMIT 200"
+  },
+  {
+    "id": "numbers-on-sim",
+    "question": "Which numbers were registered on the SIM with IMSI 001010000001000?",
+    "views": [
+      "v_subscriber_registrations"
+    ],
+    "shape": "table",
+    "sql": "SELECT DISTINCT msisdn, status, valid_from, valid_to FROM v_subscriber_registrations WHERE imsi = '001010000001000' ORDER BY msisdn LIMIT 200"
+  },
+  {
+    "id": "registered-on-day",
+    "question": "Was 923000000101 registered and active on 2026-03-05?",
+    "views": [
+      "v_subscriber_registrations"
+    ],
+    "shape": "table",
+    "sql": "SELECT msisdn, status, valid_from, valid_to, source_file FROM v_subscriber_registrations WHERE msisdn = '923000000101' AND (valid_from IS NULL OR valid_from < '2026-03-06 00:00:00+05') AND (valid_to IS NULL OR valid_to > '2026-03-05 00:00:00+05') ORDER BY valid_from NULLS FIRST LIMIT 200"
+  },
+  {
+    "id": "active-after-end",
+    "question": "Which numbers made or received calls after their registration ended?",
+    "views": [
+      "v_number_registration_activity"
+    ],
+    "shape": "table",
+    "sql": "SELECT msisdn, last_valid_to, events_after_last_end FROM v_number_registration_activity WHERE events_after_last_end > 0 ORDER BY events_after_last_end DESC LIMIT 200"
+  },
+  {
+    "id": "no-registration",
+    "question": "Which numbers of the call records have no registration?",
+    "views": [
+      "v_comm_events",
+      "v_subscriber_registrations"
+    ],
+    "shape": "table",
+    "sql": "SELECT DISTINCT e.src AS msisdn FROM v_comm_events e LEFT JOIN v_subscriber_registrations r ON r.msisdn = e.src WHERE r.msisdn IS NULL ORDER BY msisdn LIMIT 200"
+  },
+  {
+    "id": "handset-of-number",
+    "question": "What phone model did 923000000101 use, and when?",
+    "views": [
+      "v_handsets"
+    ],
+    "shape": "table",
+    "sql": "SELECT imei, make, model, tac_listed, events, first_seen, last_seen FROM v_handsets WHERE src = '923000000101' ORDER BY first_seen LIMIT 200"
+  },
+  {
+    "id": "numbers-using-make",
+    "question": "How many numbers used a Samsung handset?",
+    "views": [
+      "v_handsets"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT count(DISTINCT src) AS n FROM v_handsets WHERE make ILIKE 'samsung%'"
+  },
+  {
+    "id": "conflicting-registrations",
+    "question": "Which numbers have registrations that the sources disagree about?",
+    "views": [
+      "v_subscriber_registrations"
+    ],
+    "shape": "table",
+    "sql": "SELECT DISTINCT msisdn FROM v_subscriber_registrations WHERE conflicts ORDER BY msisdn LIMIT 200"
   }
 ]

@@ -34,8 +34,10 @@ type askFrame struct {
 	Question string // the question with every number written in its canonical form (923001234567)
 	Numbers  []string
 	IMEIs    []string
-	IPs      []string
-	Cells    []string
+	// Serials are the SIM serials (ICCID, 18 to 20 digits) and the TACs (eight digits after the word TAC) the question names: identifiers of the registration and handset views.
+	Serials []string
+	IPs     []string
+	Cells   []string
 	// Plates are the search keys of the plates the question names (askNormalizePlate), PlateWritten how the question wrote each (ask_engine_plates.go).
 	Plates       []string
 	PlateWritten map[string]string
@@ -60,6 +62,7 @@ func askUnitFollows(lower string, end int) bool {
 func (f askFrame) Identifiers() []string {
 	out := append([]string{}, f.Numbers...)
 	out = append(out, f.IMEIs...)
+	out = append(out, f.Serials...)
 	out = append(out, f.IPs...)
 	out = append(out, f.Cells...)
 	return append(out, f.Plates...)
@@ -69,6 +72,8 @@ var (
 	askFramePKPhone  = regexp.MustCompile(`(?:\+?\s?92[\s-]?|\b0)?3\d{2}[\s-]?\d{7}\b`)
 	askFrameIntl     = regexp.MustCompile(`\+\d{1,3}[\s-]?\d{6,12}\b`)
 	askFrameIMEI     = regexp.MustCompile(`\b\d{15}\b`)
+	askFrameICCID    = regexp.MustCompile(`\b\d{18,20}\b`)
+	askFrameTAC      = regexp.MustCompile(`(?i)\btac\b(?:\s+(?:code|number))?[^0-9a-z]{0,12}(\d{8})\b`)
 	askFrameBare     = regexp.MustCompile(`\b\d{10,14}\b`)
 	askFrameYear     = regexp.MustCompile(`\b(20\d{2})\b`)
 	askFrameMonths   = regexp.MustCompile(`\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec)\b(?:\s+(?:of\s+)?(20\d{2}))?`)
@@ -145,6 +150,12 @@ func askExtractFrameWith(question string, plates bool) askFrame {
 		return hold(s)
 	})
 	text = askFrameIMEI.ReplaceAllStringFunc(text, func(s string) string { f.IMEIs = append(f.IMEIs, s); return hold(s) })
+	text = askFrameICCID.ReplaceAllStringFunc(text, func(s string) string { f.Serials = append(f.Serials, s); return hold(s) })
+	text = askFrameTAC.ReplaceAllStringFunc(text, func(s string) string {
+		m := askFrameTAC.FindStringSubmatch(s)
+		f.Serials = append(f.Serials, m[1])
+		return "TAC " + hold(m[1])
+	})
 	text = askFramePKPhone.ReplaceAllStringFunc(text, func(s string) string {
 		c := askCanonicalNumber(s)
 		if len(c) != 12 {
@@ -159,6 +170,7 @@ func askExtractFrameWith(question string, plates bool) askFrame {
 		text, f.Plates, f.PlateWritten = askFindPlates(text, hold)
 	}
 	f.Numbers, f.IMEIs, f.IPs, f.Cells, f.Dates = askUnique(f.Numbers), askUnique(f.IMEIs), askUnique(f.IPs), askUnique(f.Cells), askUnique(f.Dates)
+	f.Serials = askUnique(f.Serials)
 
 	// The words, read from the text with the identifiers held back.
 	lower := strings.ToLower(text)
@@ -285,7 +297,7 @@ type askObligation struct {
 }
 
 var (
-	askSQLIdentRE = regexp.MustCompile(`^\+?\d{9,15}$`)
+	askSQLIdentRE = regexp.MustCompile(`^\+?\d{9,20}$`)
 	askSQLIPRE    = regexp.MustCompile(`^\d{1,3}(?:\.\d{1,3}){3}(?:/\d+)?$`)
 )
 

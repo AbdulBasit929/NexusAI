@@ -1,0 +1,109 @@
+package main
+
+import (
+	"strings"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+)
+
+// Registrations and handsets (docs/data/subscriber-device-family-20261028.md, piece g): SIM serials and TACs are identifiers of the question, a registration is never stated as who holds a number,
+// a handset's model is "listed as", and the coverage guard declines the views for a case that has no registrations.
+var _ = Describe("Ask engine registrations and handsets", func() {
+	DescribeTable("finds a SIM serial or a TAC in a question only where one is written",
+		func(question string, want ...string) {
+			f := askExtractFrame(question)
+			if len(want) == 0 {
+				Expect(f.Serials).To(BeEmpty(), question)
+				return
+			}
+			Expect(f.Serials).To(Equal(want), question)
+		},
+		Entry("an ICCID of 19 digits", "Which numbers were registered on the SIM with ICCID 8900000000000010002?", "8900000000000010002"),
+		Entry("an ICCID of 20 digits", "Is the SIM 89000000000000100021 registered to more than one number?", "89000000000000100021"),
+		Entry("a TAC after the word", "Which handsets have TAC 00290611?", "00290611"),
+		Entry("a TAC after the word and a colon", "Show the handsets with tac: 00290611", "00290611"),
+		Entry("a TAC after 'code'", "Which numbers use a phone with TAC code 00290611?", "00290611"),
+		Entry("eight digits without the word are not a TAC", "Show the events for 00290611"),
+		Entry("a phone number is not a serial", "Which SIM was 923001110001 registered on?"),
+		Entry("an IMSI (15 digits) is an identifier like an IMEI, not a serial", "Which numbers are registered on IMSI 001010000001000?"),
+		Entry("the same serial twice is one", "Was 8900000000000010002 swapped? Is 8900000000000010002 active?", "8900000000000010002"))
+
+	It("names the serial among the identifiers, so that the probe and the audit see it, and the IMSI is one of the IMEIs list", func() {
+		f := askExtractFrame("Which numbers were registered on the SIM with ICCID 8900000000000010002?")
+		Expect(f.Identifiers()).To(ContainElement("8900000000000010002"))
+		Expect(f.Question).To(ContainSubstring("8900000000000010002"))
+		g := askExtractFrame("Which numbers are registered on IMSI 001010000001000?")
+		Expect(g.Identifiers()).To(ContainElement("001010000001000"))
+		Expect(g.Serials).To(BeEmpty())
+	})
+
+	Describe("the query's duty to the serial of the question", func() {
+		var cat *askCatalogue
+		BeforeEach(func() {
+			var err error
+			cat, err = askGoldenCatalogue()
+			Expect(err).NotTo(HaveOccurred())
+		})
+		check := func(question, sql string, views ...string) []askObligation {
+			v, rej := askValidate(sql, cat, views)
+			Expect(rej).To(BeNil(), sql)
+			return askCheckFrame(askExtractFrame(question), v)
+		}
+		kinds := func(list []askObligation) []string {
+			out := []string{}
+			for _, o := range list {
+				out = append(out, o.Kind)
+			}
+			return out
+		}
+		q := "Which numbers were registered on the SIM with ICCID 8900000000000010002?"
+
+		It("accepts a query that compares the serial exactly", func() {
+			Expect(check(q, "SELECT DISTINCT msisdn FROM v_subscriber_registrations WHERE iccid = '8900000000000010002' ORDER BY msisdn LIMIT 200", "v_subscriber_registrations")).To(BeEmpty())
+		})
+		It("asks for the serial when the query leaves it out, and refuses a serial the question did not name", func() {
+			Expect(kinds(check(q, "SELECT DISTINCT msisdn FROM v_subscriber_registrations ORDER BY msisdn LIMIT 200", "v_subscriber_registrations"))).To(ContainElement("IDENTIFIER"))
+			unmet := check(q, "SELECT DISTINCT msisdn FROM v_subscriber_registrations WHERE iccid IN ('8900000000000010002', '8900000000000010010') LIMIT 200", "v_subscriber_registrations")
+			Expect(kinds(unmet)).To(ContainElement("FOREIGN_IDENTIFIER"))
+		})
+		It("lets a question about a number be answered from its registrations without a serial duty", func() {
+			Expect(check("Which SIM was 923001110001 registered on?",
+				"SELECT imsi, iccid, status, valid_from, valid_to FROM v_subscriber_registrations WHERE msisdn = '923001110001' ORDER BY valid_from NULLS FIRST LIMIT 200", "v_subscriber_registrations")).To(BeEmpty())
+		})
+		It("asks for the date of the question to be applied to the registration period", func() {
+			unmet := check("Was 923001110001 registered and active on 2026-03-05?", "SELECT status FROM v_subscriber_registrations WHERE msisdn = '923001110001' LIMIT 200", "v_subscriber_registrations")
+			Expect(kinds(unmet)).To(ContainElement("DATE"))
+		})
+	})
+
+	It("adds the caveats of the registration and handset views, which the model can neither omit nor reword", func() {
+		Expect(askViewCaveatText).To(HaveKey("v_subscriber_registrations"))
+		Expect(askViewCaveatText["v_subscriber_registrations"]).To(ContainSubstring("does not say who holds or uses the number"))
+		Expect(askViewCaveatText["v_number_registration_activity"]).To(ContainSubstring("a pattern in the records, not a finding"))
+		Expect(askViewCaveatText["v_handsets"]).To(ContainSubstring("a listing, not a fact about the individual handset"))
+		for _, name := range []string{"v_subscriber_registrations", "v_number_registration_activity", "v_handsets"} {
+			Expect(strings.ToLower(askViewCaveatText[name])).NotTo(ContainSubstring("owner"), name)
+		}
+		lines := askViewCaveats(&askValidated{Views: []string{"v_handsets", "v_subscriber_registrations"}})
+		Expect(lines).To(HaveLen(2))
+	})
+
+	It("declines the registration views for a case with no typed registrations, and the handset view for a case with no call records", func() {
+		Expect(askCoverageGap(askCoverage{AnyRegistration: false}, []string{"v_subscriber_registrations"})).To(ContainSubstring("no typed subscriber registrations"))
+		Expect(askCoverageGap(askCoverage{AnyRegistration: false}, []string{"v_number_registration_activity"})).To(ContainSubstring("no typed subscriber registrations"))
+		Expect(askCoverageGap(askCoverage{AnyRegistration: true}, []string{"v_subscriber_registrations", "v_number_registration_activity"})).To(Equal(""))
+		Expect(askCoverageGap(askCoverage{AnyRegistration: true, Files: 3, Typed: 1}, []string{"v_subscriber_registrations"})).To(Equal(""))
+		Expect(askCoverageGap(askCoverage{AnyComm: false}, []string{"v_handsets"})).To(ContainSubstring("no typed call records"))
+		Expect(askCoverageGap(askCoverage{AnyComm: true, Files: 1, Typed: 1}, []string{"v_handsets"})).To(Equal(""))
+	})
+
+	It("probes the columns that can hold a registered number, a SIM serial or a TAC, and no description", func() {
+		for _, name := range []string{"msisdn", "iccid", "tac"} {
+			Expect(askProbeColumn(name)).To(BeTrue(), name)
+		}
+		for _, name := range []string{"status", "make", "model", "operator_label"} {
+			Expect(askProbeColumn(name)).To(BeFalse(), name)
+		}
+	})
+})

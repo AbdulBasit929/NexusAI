@@ -237,7 +237,7 @@ func askProbe(ctx context.Context, db *pgxpool.Pool, tenantID, collectionID stri
 // identifier, so probing them would only cost time.
 func askProbeColumn(name string) bool {
 	switch name {
-	case "src", "dst", "imsi", "imei", "cell_key", "public_ip", "ue_ip", "server_ip", "plate_norm":
+	case "src", "dst", "imsi", "imei", "cell_key", "public_ip", "ue_ip", "server_ip", "plate_norm", "msisdn", "iccid", "tac":
 		return true
 	}
 	return false

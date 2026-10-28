@@ -11,6 +11,14 @@ const askAnchorCaveat = "Cell sites, not positions of a person: an anchor is the
 // askPlateCaveat is the caveat of the camera views: a sighting is a camera's reading, not a finding about a driver, and a look-alike plate is another plate.
 const askPlateCaveat = "A camera sighting says that a camera read this plate at this time, not who drove; a camera can misread a plate. A plate is matched exactly as its search key (capitals, no separators): a plate that looks alike, an O for a 0, is another plate and is not counted. The position is the camera's, not the vehicle's."
 
+// askRegistrationCaveat is the caveat of the registration views: a registration is what one source states, not who holds or uses the number.
+const askRegistrationCaveat = "A registration is what one source file states: this number was registered, per that file, as this SIM with this status in this period. It does not say who holds or uses the number, " +
+	"and two sources can differ (both are shown; a row marked as conflicting says so). Dates are the source's, on the case clock; a registration without a date is open on that side."
+
+// askHandsetCaveat is the caveat of the handset view: a TAC is listed as a make and model per source, not a fact about the individual handset.
+const askHandsetCaveat = "A make and model are what the device reference lists for the first eight digits of the handset's IMEI (its TAC), per source: a listing, not a fact about the individual handset. " +
+	"A TAC the list does not hold is unknown, not unusual."
+
 var askViewCaveatText = map[string]string{
 	// A5: co-location within the stated window
 	"v_colocation_windows": "Proximity is not association: two numbers at the same cell site within the stated window of each other were in the same coverage area, which is not evidence that they met or know each other. " +
@@ -33,6 +41,10 @@ var askViewCaveatText = map[string]string{
 	// camera sightings of plates (ANPR)
 	"v_plate_sightings": askPlateCaveat,
 	"v_plate_visits":    askPlateCaveat,
+	// registrations and handsets (subscriber and device families)
+	"v_subscriber_registrations":     askRegistrationCaveat,
+	"v_number_registration_activity": askRegistrationCaveat + " An event outside a registration period is a pattern in the records, not a finding: a registration can be missing, late or wrong.",
+	"v_handsets":                     askHandsetCaveat,
 	// A7: possible meetings
 	"v_meeting_candidates": "A candidate, not a finding: proximity and contact are not proof of a meeting. " +
 		"The score is a documented formula (half from the number of co-located pairs, half from how short the gap to the last contact is), not a probability.",

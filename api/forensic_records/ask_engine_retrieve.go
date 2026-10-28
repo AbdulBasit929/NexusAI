@@ -131,6 +131,13 @@ var askLexicon = map[string][]string{
 		"nat", "held", "public", "data", "web", "subscriber"},
 	"v_plate_sightings": {"plate", "vehicle", "car", "registration", "anpr", "camera", "sight", "sighting", "seen", "licence", "license", "lane"},
 	"v_plate_visits":    {"plate", "vehicle", "car", "camera", "both", "visited", "anpr", "registration"},
+	// only words that mean a registration: subscriber, sim, imsi, after, before, active, operator and status are everywhere in call-record questions, and a shortlisted view that the case cannot
+	// speak for makes the coverage guard decline the whole question
+	"v_subscriber_registrations": {"registered", "registration", "registrations", "unregistered", "iccid", "activated", "activation", "deactivated", "deactivation", "suspended", "prepaid", "postpaid",
+		"conflicting", "disagree", "disagrees"},
+	"v_number_registration_activity": {"registered", "registration", "registrations", "unregistered", "deactivated", "deactivation", "expired"},
+	// only what separates a handset's make and model from the pairing of a number with an IMEI: the words imei, handset, device and used belong to v_device_pairings
+	"v_handsets": {"model", "models", "make", "brand", "manufacturer", "tac", "samsung", "apple", "iphone", "xiaomi", "huawei", "oppo", "nokia", "vivo", "infinix", "tecno"},
 	"v_app_usage": {"app", "application", "whatsapp", "facebook", "tiktok", "youtube", "social", "usage", "feature", "province", "city", "networking",
 		"lahore", "karachi", "peshawar", "quetta", "islamabad"},
 }

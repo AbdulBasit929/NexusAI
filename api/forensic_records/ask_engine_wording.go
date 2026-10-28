@@ -171,6 +171,10 @@ func askAbsenceSentence(v *askValidated, f askFrame) string {
 		body = fmt.Sprintf("no split of the daily count of events%s has |t| of 5 or more with a larger daily mean at least %s times the smaller and at least %d days on each side", askOf(f), times, askParamValue(f, "rhythm_min_side_days"))
 	case askReadsView(v, "v_plate_sightings"), askReadsView(v, "v_plate_visits"):
 		body = askPlateAbsence(v, f)
+	case askReadsView(v, "v_subscriber_registrations"), askReadsView(v, "v_number_registration_activity"):
+		body = askRegistrationAbsence(v, f)
+	case askReadsView(v, "v_handsets"):
+		body = askHandsetAbsence(v, f)
 	case askReadsView(v, "v_cell_visits"):
 		who := "any number"
 		if len(f.Numbers) > 0 {
@@ -376,6 +380,8 @@ func askPremiseLead(v *askValidated, f askFrame) string {
 		if stated {
 			return "A camera sighting does not show who was driving, only that a camera read the plate."
 		}
+	case askReadsView(v, "v_subscriber_registrations"), askReadsView(v, "v_number_registration_activity"), askReadsView(v, "v_handsets"):
+		return askRegistrationLead(v, f, stated)
 	}
 	return ""
 }

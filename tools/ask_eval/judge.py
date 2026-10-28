@@ -262,7 +262,18 @@ def judge(question, result):
             return "correct" if not rows and "no row matches" in answer and "no record" not in answer else "wrong"
         return "correct" if plate_keys(rows) == set(expect["values"]) else "wrong"
     if kind == "set":
-        return "correct" if identifiers(rows, skip=("imsi",)) == set(expect["values"]) else "wrong"
+        return "correct" if identifiers(rows, skip=("imsi", "iccid")) == set(expect["values"]) else "wrong"
+    if kind == "sims":
+        # the SIM identities (IMSI) a number was registered on: the imsi column of the rows, as a set (a registration seen in two sources is one SIM)
+        return "correct" if {r["imsi"] for r in rows if isinstance(r.get("imsi"), str)} == set(expect["values"]) else "wrong"
+    if kind == "statuses":
+        # the registrations in force, as the status each source records. Nothing expected: no rows and the plain "no row matches" statement, never "no record of this case".
+        if not expect["values"]:
+            return "correct" if not rows and "no row matches" in answer and "no record" not in answer else "wrong"
+        return "correct" if {r["status"] for r in rows if isinstance(r.get("status"), str)} == set(expect["values"]) else "wrong"
+    if kind == "models":
+        # the models the device reference lists for the handsets of a number (a set); a handset with no listed model is not a model
+        return "correct" if {r["model"] for r in rows if isinstance(r.get("model"), str)} == set(expect["values"]) else "wrong"
     if kind == "ordered":
         got = first_text_column(rows)
         scores = expect.get("scores")

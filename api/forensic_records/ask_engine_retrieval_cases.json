@@ -86,5 +86,15 @@
   {"q": "Which plates were seen at camera CAM-01 on 2026-03-05?", "views": ["v_plate_sightings"], "example": "camera-day"},
   {"q": "Was the vehicle LEA-1234 ever seen by a camera?", "views": ["v_plate_sightings"]},
   {"q": "How often was SYNT 0420 seen between 2026-03-01 and 2026-03-09?", "views": ["v_plate_sightings"]},
-  {"q": "List the sightings of the car with registration ABC-123", "views": ["v_plate_sightings"]}
+  {"q": "List the sightings of the car with registration ABC-123", "views": ["v_plate_sightings"]},
+  {"q": "Which SIM was 923001110001 registered on?", "views": ["v_subscriber_registrations"], "example": "registration-of-number"},
+  {"q": "When was 923001110001 activated and when was it deactivated?", "views": ["v_subscriber_registrations"]},
+  {"q": "Which numbers are registered on IMSI 001010000001000?", "views": ["v_subscriber_registrations"], "example": "numbers-on-sim"},
+  {"q": "Which numbers were active after their registration ended?", "views": ["v_number_registration_activity"], "example": "active-after-end"},
+  {"q": "Which numbers in the call records have no registration at all?", "views": ["v_subscriber_registrations"]},
+  {"q": "What make and model of phone did 923001110001 use?", "views": ["v_handsets"], "example": "handset-of-number"},
+  {"q": "How many numbers use a Samsung phone?", "views": ["v_handsets"], "example": "numbers-using-make"},
+  {"q": "Which numbers have conflicting registrations between sources?", "views": ["v_subscriber_registrations"], "example": "conflicting-registrations"},
+  {"q": "Is the SIM with ICCID 8900000000000010002 registered to more than one number?", "views": ["v_subscriber_registrations"]},
+  {"q": "Which handsets have TAC 00290611?", "views": ["v_handsets"]}
 ]
