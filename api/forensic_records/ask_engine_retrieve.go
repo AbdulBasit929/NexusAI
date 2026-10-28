@@ -144,6 +144,11 @@ var askLexicon = map[string][]string{
 	"v_account_activity":       {"balance", "daily", "closing", "credits", "debits", "bank", "statement"},
 	"v_account_flows":          {"pass-through", "passthrough", "passed", "forwarded", "again"},
 	"v_account_limit_bands":    {"limit", "structuring", "threshold"},
+	// documents: only words that mean what a document names. "document" itself belongs to v_evidence_inventory ("how many documents are in the case"), and a shortlisted view that the case
+	// cannot speak for makes the coverage guard decline the whole question, so the generic words of ordinary questions stay out
+	"v_document_mentions": {"mention", "mentions", "mentioned", "mentioning", "written", "named"},
+	"v_document_values":   {"mention", "mentions", "mentioned", "mentioning", "written", "named"},
+	"v_document_links":    {"mention", "mentions", "mentioned", "mentioning", "written", "named"},
 	"v_app_usage": {"app", "application", "whatsapp", "facebook", "tiktok", "youtube", "social", "usage", "feature", "province", "city", "networking",
 		"lahore", "karachi", "peshawar", "quetta", "islamabad"},
 }

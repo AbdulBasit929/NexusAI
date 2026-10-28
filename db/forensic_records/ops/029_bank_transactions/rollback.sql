@@ -3,12 +3,17 @@
 -- layout of kind bank_transaction stops the constraint from being restored.
 BEGIN;
 DO $$
+DECLARE
+  has_rows boolean := false;
 BEGIN
   IF to_regclass('analyst.v_bank_transactions') IS NOT NULL THEN
     RAISE EXCEPTION 'migration 030 (the transaction views) is still applied: nothing was changed; roll it back first';
   END IF;
-  IF to_regclass('forensic.bank_transaction') IS NOT NULL AND EXISTS (SELECT 1 FROM forensic.bank_transaction LIMIT 1) THEN
-    RAISE EXCEPTION 'forensic.bank_transaction holds rows: nothing was changed; export and review them before a rollback';
+  IF to_regclass('forensic.bank_transaction') IS NOT NULL THEN
+    EXECUTE 'SELECT EXISTS (SELECT 1 FROM forensic.bank_transaction)' INTO has_rows;
+    IF has_rows THEN
+      RAISE EXCEPTION 'forensic.bank_transaction holds rows: nothing was changed; export and review them before a rollback';
+    END IF;
   END IF;
   IF EXISTS (SELECT 1 FROM forensic.layout_versions WHERE dataset_kind = 'bank_transaction') THEN
     RAISE EXCEPTION 'a layout of kind bank_transaction is registered: nothing was changed; retire it before a rollback';

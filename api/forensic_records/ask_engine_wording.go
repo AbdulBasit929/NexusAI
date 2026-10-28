@@ -177,6 +177,8 @@ func askAbsenceSentence(v *askValidated, f askFrame) string {
 		body = askHandsetAbsence(v, f)
 	case askReadsTransactionView(v):
 		body = askTransactionAbsence(v, f)
+	case askReadsDocumentView(v):
+		body = askDocumentAbsence(v, f)
 	case askReadsView(v, "v_cell_visits"):
 		who := "any number"
 		if len(f.Numbers) > 0 {
@@ -386,6 +388,8 @@ func askPremiseLead(v *askValidated, f askFrame) string {
 		return askRegistrationLead(v, f, stated)
 	case askReadsTransactionView(v):
 		return askTransactionLead(f, stated)
+	case askReadsDocumentView(v):
+		return askDocumentLead(f, stated)
 	}
 	return ""
 }

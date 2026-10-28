@@ -332,6 +332,11 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 		return decline("the verified examples are not valid")
 	}
 	frame = askExtractFrameWith(req.Query, cat.View("v_plate_sightings") != nil)
+	if len(frame.NationalIDs) > 0 {
+		// identity data is withheld until the masking design is approved (R9): the question is not run and no other path is asked, so the number is neither searched nor shown
+		audit.Reason = "identity: national ID number"
+		return finish(askClarification(req, askNationalIDAnswer, "No result is shown, because national ID numbers are withheld. Nothing was inferred.", audit, nil))
+	}
 	if frame.Relative != "" {
 		// "last week" has no meaning without a reference day, and a model that is not given one invents it (measured 2026-10-14). The question is not run.
 		return decline("the question uses a relative time (" + frame.Relative + ") and no reference day is stated")

@@ -32,6 +32,10 @@ type askCoverage struct {
 	AnyRegistration bool
 	// AnyTransaction is whether the case holds typed bank or wallet transactions (forensic.bank_transaction).
 	AnyTransaction bool
+	// AnyDocument is whether the case holds indexed document mentions (forensic.document_mention), Documents how many of its evidence files are documents: a case that holds documents and
+	// no mention has not been indexed, which is not the same as documents that name nothing.
+	AnyDocument bool
+	Documents   int
 	// AnyVolume is whether any typed internet record states a byte count in a direction. An export that gives one undirected volume keeps it in the raw row (the entry does not
 	// guess a direction), so the view has nothing to add up for it (found 2026-10-20 on the multimodal case: a sum of the volume answered "no value").
 	AnyVolume bool
@@ -133,7 +137,9 @@ SELECT
   EXISTS (SELECT 1 FROM forensic.data_session s WHERE s.tenant_id = $1 AND s.collection_id = $2 AND (s.bytes_up IS NOT NULL OR s.bytes_down IS NOT NULL)),
   EXISTS (SELECT 1 FROM forensic.plate_sighting p WHERE p.tenant_id = $1 AND p.collection_id = $2 AND p.source_kind = 'csv' AND NOT ('duplicate_row' = ANY (p.quality_flags))),
   EXISTS (SELECT 1 FROM forensic.subscriber_registration r WHERE r.tenant_id = $1 AND r.collection_id = $2 AND NOT ('duplicate_row' = ANY (r.quality_flags))),
-  EXISTS (SELECT 1 FROM forensic.bank_transaction b WHERE b.tenant_id = $1 AND b.collection_id = $2 AND NOT ('duplicate_row' = ANY (b.quality_flags)))
+  EXISTS (SELECT 1 FROM forensic.bank_transaction b WHERE b.tenant_id = $1 AND b.collection_id = $2 AND NOT ('duplicate_row' = ANY (b.quality_flags))),
+  EXISTS (SELECT 1 FROM forensic.document_mention d WHERE d.tenant_id = $1 AND d.collection_id = $2),
+  count(*) FILTER (WHERE e.modality = 'document')
 FROM forensic.evidence_items e
 WHERE e.tenant_id = $1 AND e.collection_id = $2 AND coalesce(e.processing_status, '') <> 'failed'`
 
@@ -148,7 +154,7 @@ var askCoverageRead = func(ctx context.Context, db *pgxpool.Pool, tenantID, coll
 	if _, err := tx.Exec(ctx, "SELECT set_config('app.tenant_id', $1, true)", tenantID); err != nil {
 		return c, err
 	}
-	if err = tx.QueryRow(ctx, askCoverageQuery, tenantID, collectionID).Scan(&c.Files, &c.Typed, &c.AnyComm, &c.AnySession, &c.AnyUsage, &c.AnyVolume, &c.AnyPlate, &c.AnyRegistration, &c.AnyTransaction); err != nil {
+	if err = tx.QueryRow(ctx, askCoverageQuery, tenantID, collectionID).Scan(&c.Files, &c.Typed, &c.AnyComm, &c.AnySession, &c.AnyUsage, &c.AnyVolume, &c.AnyPlate, &c.AnyRegistration, &c.AnyTransaction, &c.AnyDocument, &c.Documents); err != nil {
 		return c, err
 	}
 	err = askReadPopulation(ctx, tx, tenantID, collectionID, &c)
@@ -237,6 +243,13 @@ func askCoverageGap(c askCoverage, views []string) string {
 		case "v_bank_transactions", "v_account_counterparties", "v_account_activity", "v_account_flows", "v_account_limit_bands":
 			if !c.AnyTransaction {
 				return "the case has no typed bank or wallet transactions"
+			}
+		case "v_document_mentions", "v_document_values", "v_document_links":
+			if !c.AnyDocument {
+				if c.Documents > 0 {
+					return "the case holds documents whose mentions have not been indexed"
+				}
+				return "the case holds no documents"
 			}
 		}
 	}

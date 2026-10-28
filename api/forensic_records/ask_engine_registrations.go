@@ -77,6 +77,8 @@ func askFamilyViews(v *askValidated) []string {
 		return []string{"v_subscriber_registrations", "v_number_registration_activity"}
 	case askReadsView(v, "v_handsets"):
 		return []string{"v_handsets", "v_device_pairings"}
+	case askReadsDocumentView(v):
+		return askDocumentViews
 	}
 	return nil
 }

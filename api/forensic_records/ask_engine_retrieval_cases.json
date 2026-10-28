@@ -108,5 +108,15 @@
   {"q": "What was the balance of the account PK00SYNT0000000000001001 on 2026-03-05?", "views": ["v_account_activity"], "example": "txn-balance-on-date"},
   {"q": "How many wallet transfers were there between 923001110001 and 923001110002?", "views": ["v_bank_transactions"], "example": "txn-wallet-between"},
   {"q": "List the bank transactions of the account PK00SYNT0000000000001001", "views": ["v_bank_transactions"]},
-  {"q": "Is this structuring? Which accounts have many debits just under 500000?", "views": ["v_account_limit_bands"]}
+  {"q": "Is this structuring? Which accounts have many debits just under 500000?", "views": ["v_account_limit_bands"]},
+  {"q": "Which documents mention the number 923000000101?", "views": ["v_document_values"], "example": "doc-mentions-number"},
+  {"q": "Which documents mention the plate SYNT-4024?", "views": ["v_document_values"], "example": "doc-mentions-plate"},
+  {"q": "List the documents that mention the account PK00SYNT0000000000001001", "views": ["v_document_values"]},
+  {"q": "In how many documents does 923000000101 appear? It is mentioned in the statements.", "views": ["v_document_values"]},
+  {"q": "Which documents mention both 923000000101 and the account PK00SYNT0000000000001001?", "views": ["v_document_values"], "example": "doc-both"},
+  {"q": "Which mobile numbers are written in the document D06-cdr-request.txt?", "views": ["v_document_values"], "example": "doc-lists"},
+  {"q": "How many documents mention Model Town?", "views": ["v_document_values"], "example": "doc-place-count"},
+  {"q": "Which documents mention a national ID number?", "views": ["v_document_mentions"], "example": "doc-national-id"},
+  {"q": "Which numbers written in the documents also appear in the call records?", "views": ["v_document_links"], "example": "doc-links-calls"},
+  {"q": "Which accounts named in the documents appear in no statement?", "views": ["v_document_links"], "example": "doc-unlinked-accounts"}
 ]

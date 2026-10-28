@@ -431,5 +431,105 @@
     ],
     "shape": "scalar",
     "sql": "SELECT count(*) AS n FROM v_bank_transactions WHERE account = 'PK00SYNT0000000000001001' AND channel = 'ibft'"
+  },
+  {
+    "id": "doc-mentions-number",
+    "question": "Which documents mention the number 923000000101?",
+    "views": [
+      "v_document_values"
+    ],
+    "shape": "table",
+    "sql": "SELECT DISTINCT document FROM v_document_values WHERE kind = 'msisdn' AND value = '923000000101' ORDER BY document"
+  },
+  {
+    "id": "doc-count-number",
+    "question": "In how many documents does the number 923000000101 appear?",
+    "views": [
+      "v_document_values"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT count(DISTINCT document) AS n FROM v_document_values WHERE kind = 'msisdn' AND value = '923000000101'"
+  },
+  {
+    "id": "doc-mentions-account",
+    "question": "Which documents mention the account PK00SYNT0000000000001001?",
+    "views": [
+      "v_document_values"
+    ],
+    "shape": "table",
+    "sql": "SELECT DISTINCT document FROM v_document_values WHERE kind = 'account' AND value = 'PK00SYNT0000000000001001' ORDER BY document"
+  },
+  {
+    "id": "doc-mentions-plate",
+    "question": "Which documents mention the plate SYNT-4024?",
+    "views": [
+      "v_document_values"
+    ],
+    "shape": "table",
+    "sql": "SELECT DISTINCT document FROM v_document_values WHERE kind = 'plate' AND value = 'SYNT4024' ORDER BY document"
+  },
+  {
+    "id": "doc-both",
+    "question": "Which documents mention both 923000000101 and the account PK00SYNT0000000000001001?",
+    "views": [
+      "v_document_values"
+    ],
+    "shape": "table",
+    "sql": "SELECT DISTINCT a.document FROM v_document_values a JOIN v_document_values b ON b.evidence_id = a.evidence_id WHERE a.kind = 'msisdn' AND a.value = '923000000101' AND b.kind = 'account' AND b.value = 'PK00SYNT0000000000001001' ORDER BY a.document"
+  },
+  {
+    "id": "doc-but-not",
+    "question": "Which documents mention 923000000101 but not the account PK00SYNT0000000000001001?",
+    "views": [
+      "v_document_values"
+    ],
+    "shape": "table",
+    "sql": "SELECT DISTINCT a.document FROM v_document_values a LEFT JOIN v_document_values b ON b.evidence_id = a.evidence_id AND b.kind = 'account' AND b.value = 'PK00SYNT0000000000001001' WHERE a.kind = 'msisdn' AND a.value = '923000000101' AND b.evidence_id IS NULL ORDER BY a.document"
+  },
+  {
+    "id": "doc-lists",
+    "question": "Which mobile numbers are written in the document D06-cdr-request.txt?",
+    "views": [
+      "v_document_values"
+    ],
+    "shape": "table",
+    "sql": "SELECT DISTINCT value FROM v_document_values WHERE document = 'D06-cdr-request.txt' AND kind = 'msisdn' ORDER BY value"
+  },
+  {
+    "id": "doc-place-count",
+    "question": "How many documents mention Model Town?",
+    "views": [
+      "v_document_values"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT count(DISTINCT document) AS n FROM v_document_values WHERE kind = 'place' AND value = 'model town'"
+  },
+  {
+    "id": "doc-national-id",
+    "question": "Which documents mention a national ID number?",
+    "views": [
+      "v_document_mentions"
+    ],
+    "shape": "table",
+    "sql": "SELECT DISTINCT document FROM v_document_mentions WHERE kind = 'national_id' ORDER BY document"
+  },
+  {
+    "id": "doc-links-calls",
+    "question": "Which numbers written in the documents also appear in the call records?",
+    "views": [
+      "v_document_links"
+    ],
+    "shape": "table",
+    "sql": "SELECT DISTINCT value FROM v_document_links WHERE kind = 'msisdn' AND family = 'calls' ORDER BY value"
+  },
+  {
+    "id": "doc-unlinked-accounts",
+    "question": "Which accounts named in the documents appear in no statement?",
+    "views": [
+      "v_document_links",
+      "v_document_values"
+    ],
+    "shape": "table",
+    "sql": "SELECT DISTINCT v.value FROM v_document_values v LEFT JOIN v_document_links l ON l.kind = 'account' AND l.value = v.value WHERE v.kind = 'account' AND l.value IS NULL ORDER BY v.value"
   }
 ]

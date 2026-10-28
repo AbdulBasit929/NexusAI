@@ -23,7 +23,15 @@ const askHandsetCaveat = "A make and model are what the device reference lists f
 const askTransactionCaveat = "Amounts are as the source states them (no conversion). A transaction is a line of a statement or a wallet list: it does not say why money moved. A transaction stated with only a day has no time of day."
 const askPatternCaveat = askTransactionCaveat + " A pattern in the rows (money in and out within minutes, amounts just under a limit, a counterparty in common) is a pattern, not a finding of laundering, structuring or any offence."
 
+// askDocumentCaveat is the caveat of the document views: a mention says that a document names a key, found by a rule, with the text as written.
+const askDocumentCaveat = "A mention says that a document names the key (a number, an account, a plate, a SIM serial, a handset or a place), as a rule read it from the text: it does not say who holds the key, " +
+	"that its holder took part in anything, or that the document is true. National ID numbers are counted and withheld until the masking design is approved."
+
 var askViewCaveatText = map[string]string{
+	// text documents (mention index)
+	"v_document_mentions": askDocumentCaveat,
+	"v_document_values":   askDocumentCaveat,
+	"v_document_links":    askDocumentCaveat + " The same key in a document and in a record is a lead, not a finding.",
 	// A5: co-location within the stated window
 	"v_colocation_windows": "Proximity is not association: two numbers at the same cell site within the stated window of each other were in the same coverage area, which is not evidence that they met or know each other. " +
 		"No chance baseline is computed here: how often two unrelated numbers would be at one site by chance is not shown.",

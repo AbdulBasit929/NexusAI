@@ -994,6 +994,129 @@
       ]
     },
     {
+      "name": "v_document_links",
+      "description": "Per kind and key named in the documents, how many records of another family carry the same key: calls (a number as caller or called, or a handset), registrations (a number, SIM serial or IMSI), wallet and statements (a counterparty number or an account), sightings (a plate). A key with no row here is named in a document and in no record of the case. The same key in a document and a record is a lead, not a finding.",
+      "columns": [
+        {
+          "name": "kind",
+          "type": "text",
+          "description": "msisdn, account, plate, iccid, imei or imsi (a place is not a key of any record)."
+        },
+        {
+          "name": "value",
+          "type": "text",
+          "description": "The normalised key named in at least one document."
+        },
+        {
+          "name": "family",
+          "type": "text",
+          "description": "Where the same key was found: calls, registrations, wallet, statements or sightings."
+        },
+        {
+          "name": "records",
+          "type": "bigint",
+          "description": "How many records of that family carry the key."
+        }
+      ]
+    },
+    {
+      "name": "v_document_mentions",
+      "description": "One row per mention found in a text document by the rule-based extractor: the document, the kind (msisdn, account, plate, iccid, imei, imsi, place or national_id), the normalised key, the text as written, the confidence tier and the rule, and where in the document (paragraph, page or section). A mention says that the document names the key. It does not say the holder took part in anything or that the document is true. National ID numbers appear with no key and no text (withheld until the masking design is approved): they can be counted, not looked up.",
+      "columns": [
+        {
+          "name": "mention_id",
+          "type": "bigint",
+          "description": "Identifier of the mention row."
+        },
+        {
+          "name": "evidence_id",
+          "type": "uuid",
+          "description": "The evidence file (the document)."
+        },
+        {
+          "name": "document",
+          "type": "text",
+          "description": "The document's file name."
+        },
+        {
+          "name": "kind",
+          "type": "text",
+          "description": "What was found: msisdn (a mobile number), account (an IBAN), plate, iccid (a SIM serial), imei, imsi, place (an area of the case's city) or national_id (counted, withheld)."
+        },
+        {
+          "name": "value",
+          "type": "text",
+          "description": "The normalised key: a mobile number as 92 and ten digits, an account in capitals without spaces, a plate as its search key, a place in lower case. Empty for national_id. Always compare this column."
+        },
+        {
+          "name": "surface",
+          "type": "text",
+          "description": "The text as the document wrote it (the evidence). Empty for national_id. Do not compare it."
+        },
+        {
+          "name": "tier",
+          "type": "text",
+          "description": "high (the rule and its cue were met) or low (a weaker reading, for example an IMEI with no cue word)."
+        },
+        {
+          "name": "rule",
+          "type": "text",
+          "description": "The rule that found it."
+        },
+        {
+          "name": "position_in_document",
+          "type": "text",
+          "description": "The paragraph, page or section of the document the mention is in."
+        },
+        {
+          "name": "char_start",
+          "type": "integer",
+          "description": "Position of the first character in the passage text."
+        },
+        {
+          "name": "char_end",
+          "type": "integer",
+          "description": "Position after the last character in the passage text."
+        }
+      ]
+    },
+    {
+      "name": "v_document_values",
+      "description": "Per document, kind and key: how many times the document names it (the thick view for \"which documents mention X\", \"which mention both X and Y\", \"how many documents mention X\"). Compare value, which is the normalised key. National ID numbers are not here (withheld).",
+      "columns": [
+        {
+          "name": "evidence_id",
+          "type": "uuid",
+          "description": "The evidence file (the document)."
+        },
+        {
+          "name": "document",
+          "type": "text",
+          "description": "The document's file name."
+        },
+        {
+          "name": "kind",
+          "type": "text",
+          "description": "msisdn, account, plate, iccid, imei, imsi or place."
+        },
+        {
+          "name": "value",
+          "type": "text",
+          "description": "The normalised key (see v_document_mentions.value). Always compare this column."
+        },
+        {
+          "name": "mentions",
+          "type": "bigint",
+          "description": "How many times the document names the key."
+        },
+        {
+          "name": "first_surface",
+          "type": "text",
+          "description": "One of the ways the document wrote it."
+        }
+      ]
+    },
+    {
       "name": "v_evidence_inventory",
       "description": "The evidence files of the case, one row each: name, modality (image, audio, video, document, structured_records), detected type, extension, size, processing status and time added. For how many files, images, documents or recordings the case holds, and which failed.",
       "columns": [

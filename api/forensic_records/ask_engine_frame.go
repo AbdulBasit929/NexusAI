@@ -38,8 +38,11 @@ type askFrame struct {
 	Serials []string
 	// Accounts are the account numbers (Pakistani IBANs) the question names, as search keys: capitals, no spaces (the account columns of the transaction views are compared in that form).
 	Accounts []string
-	IPs      []string
-	Cells    []string
+	// NationalIDs are the national ID numbers (13 digits, 5-7-1) the question names, in the dashed form. They are identity data: counted and withheld until the masking design is
+	// approved, so a question that names one is answered with that, not run (ask_engine_documents.go). They are never in Identifiers().
+	NationalIDs []string
+	IPs         []string
+	Cells       []string
 	// Plates are the search keys of the plates the question names (askNormalizePlate), PlateWritten how the question wrote each (ask_engine_plates.go).
 	Plates       []string
 	PlateWritten map[string]string
@@ -80,6 +83,8 @@ var (
 	askClockCue      = regexp.MustCompile(`\b(?:within|in|after|before|at|between|every)\s+(?:the\s+)?(?:last\s+|next\s+)?\d+\s*(?:minutes?|mins?|hours?|hrs?)\b|\b\d{1,2}:\d{2}\b|\bo'?clock\b`)
 	askFrameTAC      = regexp.MustCompile(`(?i)\btac\b(?:\s+(?:code|number))?[^0-9a-z]{0,12}(\d{8})\b`)
 	askFrameBare     = regexp.MustCompile(`\b\d{10,14}\b`)
+	askFrameNID      = regexp.MustCompile(`\b\d{5}-\d{7}-\d\b`)
+	askFrameNIDRun   = regexp.MustCompile(`(?i)\b(?:cnic|nic|national\s+id|identity\s+card|id\s+card)\b[^0-9]{0,30}(\d{13})\b`)
 	askFrameYear     = regexp.MustCompile(`\b(20\d{2})\b`)
 	askInForceCue    = regexp.MustCompile(`\b(?:in force|valid|active|covered?|covering)\b`)
 	askFrameMonths   = regexp.MustCompile(`\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec)\b(?:\s+(?:of\s+)?(20\d{2}))?`)
@@ -149,6 +154,13 @@ func askExtractFrameWith(question string, plates bool) askFrame {
 		held = append(held, canonical)
 		return fmt.Sprintf(" \x00%d\x00 ", len(held)-1)
 	}
+	text = askFrameNID.ReplaceAllStringFunc(text, func(s string) string { f.NationalIDs = append(f.NationalIDs, s); return hold(s) })
+	text = askFrameNIDRun.ReplaceAllStringFunc(text, func(s string) string {
+		digits := askFrameNIDRun.FindStringSubmatch(s)[1]
+		dashed := digits[:5] + "-" + digits[5:12] + "-" + digits[12:]
+		f.NationalIDs = append(f.NationalIDs, dashed)
+		return strings.Replace(s, digits, hold(dashed), 1)
+	})
 	text = askIPv4RE.ReplaceAllStringFunc(text, func(s string) string { f.IPs = append(f.IPs, s); return hold(s) })
 	text = askCellRE.ReplaceAllStringFunc(text, func(s string) string { f.Cells = append(f.Cells, strings.ToLower(s)); return hold(strings.ToLower(s)) })
 	text = askDateRE.ReplaceAllStringFunc(text, func(s string) string {
@@ -183,6 +195,7 @@ func askExtractFrameWith(question string, plates bool) askFrame {
 	f.Numbers, f.IMEIs, f.IPs, f.Cells, f.Dates = askUnique(f.Numbers), askUnique(f.IMEIs), askUnique(f.IPs), askUnique(f.Cells), askUnique(f.Dates)
 	f.Serials = askUnique(f.Serials)
 	f.Accounts = askUnique(f.Accounts)
+	f.NationalIDs = askUnique(f.NationalIDs)
 
 	// The words, read from the text with the identifiers held back.
 	lower := strings.ToLower(text)
