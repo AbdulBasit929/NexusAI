@@ -50,7 +50,7 @@ var _ = Describe("Ask engine on a real database", Ordered, func() {
 		for _, v := range cat.Views {
 			names = append(names, v.Name)
 		}
-		Expect(names).To(Equal([]string{"v_anchor_changes", "v_anchor_deviations", "v_anchor_runs", "v_app_usage", "v_cell_visits", "v_cells", "v_colocation_windows", "v_comm_events", "v_connection_edges", "v_contact_links", "v_contact_pairs", "v_data_sessions", "v_device_pairings", "v_evidence_inventory", "v_handsets", "v_meeting_candidates", "v_movement_anchors", "v_number_registration_activity", "v_plate_sightings", "v_plate_visits", "v_rhythm_changes", "v_silent_numbers", "v_speed_alerts", "v_subscriber_registrations", "v_successor_candidates", "v_weekly_anchors"}))
+		Expect(names).To(Equal([]string{"v_account_activity", "v_account_counterparties", "v_account_flows", "v_account_limit_bands", "v_anchor_changes", "v_anchor_deviations", "v_anchor_runs", "v_app_usage", "v_bank_transactions", "v_cell_visits", "v_cells", "v_colocation_windows", "v_comm_events", "v_connection_edges", "v_contact_links", "v_contact_pairs", "v_data_sessions", "v_device_pairings", "v_evidence_inventory", "v_handsets", "v_meeting_candidates", "v_movement_anchors", "v_number_registration_activity", "v_plate_sightings", "v_plate_visits", "v_rhythm_changes", "v_silent_numbers", "v_speed_alerts", "v_subscriber_registrations", "v_successor_candidates", "v_weekly_anchors"}))
 		text := cat.Render(nil)
 		Expect(text).To(ContainSubstring("is_hub"))
 		Expect(text).To(ContainSubstring("holds_from"))

@@ -30,6 +30,8 @@ type askCoverage struct {
 	AnyPlate bool
 	// AnyRegistration is whether the case holds typed subscriber registrations (forensic.subscriber_registration).
 	AnyRegistration bool
+	// AnyTransaction is whether the case holds typed bank or wallet transactions (forensic.bank_transaction).
+	AnyTransaction bool
 	// AnyVolume is whether any typed internet record states a byte count in a direction. An export that gives one undirected volume keeps it in the raw row (the entry does not
 	// guess a direction), so the view has nothing to add up for it (found 2026-10-20 on the multimodal case: a sum of the volume answered "no value").
 	AnyVolume bool
@@ -123,13 +125,15 @@ SELECT
     OR EXISTS (SELECT 1 FROM forensic.data_session s WHERE s.tenant_id = e.tenant_id AND s.evidence_id = e.evidence_id)
     OR EXISTS (SELECT 1 FROM forensic.app_usage u WHERE u.tenant_id = e.tenant_id AND u.evidence_id = e.evidence_id)
     OR EXISTS (SELECT 1 FROM forensic.plate_sighting p WHERE p.tenant_id = e.tenant_id AND p.evidence_id = e.evidence_id)
-    OR EXISTS (SELECT 1 FROM forensic.subscriber_registration r WHERE r.tenant_id = e.tenant_id AND r.evidence_id = e.evidence_id))),
+    OR EXISTS (SELECT 1 FROM forensic.subscriber_registration r WHERE r.tenant_id = e.tenant_id AND r.evidence_id = e.evidence_id)
+    OR EXISTS (SELECT 1 FROM forensic.bank_transaction b WHERE b.tenant_id = e.tenant_id AND b.evidence_id = e.evidence_id))),
   EXISTS (SELECT 1 FROM forensic.comm_event c WHERE c.tenant_id = $1 AND c.collection_id = $2 AND c.dataset_kind = 'target_cdr' AND NOT ('duplicate_row' = ANY (c.quality_flags))),
   EXISTS (SELECT 1 FROM forensic.data_session s WHERE s.tenant_id = $1 AND s.collection_id = $2),
   EXISTS (SELECT 1 FROM forensic.app_usage u WHERE u.tenant_id = $1 AND u.collection_id = $2),
   EXISTS (SELECT 1 FROM forensic.data_session s WHERE s.tenant_id = $1 AND s.collection_id = $2 AND (s.bytes_up IS NOT NULL OR s.bytes_down IS NOT NULL)),
   EXISTS (SELECT 1 FROM forensic.plate_sighting p WHERE p.tenant_id = $1 AND p.collection_id = $2 AND p.source_kind = 'csv' AND NOT ('duplicate_row' = ANY (p.quality_flags))),
-  EXISTS (SELECT 1 FROM forensic.subscriber_registration r WHERE r.tenant_id = $1 AND r.collection_id = $2 AND NOT ('duplicate_row' = ANY (r.quality_flags)))
+  EXISTS (SELECT 1 FROM forensic.subscriber_registration r WHERE r.tenant_id = $1 AND r.collection_id = $2 AND NOT ('duplicate_row' = ANY (r.quality_flags))),
+  EXISTS (SELECT 1 FROM forensic.bank_transaction b WHERE b.tenant_id = $1 AND b.collection_id = $2 AND NOT ('duplicate_row' = ANY (b.quality_flags)))
 FROM forensic.evidence_items e
 WHERE e.tenant_id = $1 AND e.collection_id = $2 AND coalesce(e.processing_status, '') <> 'failed'`
 
@@ -144,7 +148,7 @@ var askCoverageRead = func(ctx context.Context, db *pgxpool.Pool, tenantID, coll
 	if _, err := tx.Exec(ctx, "SELECT set_config('app.tenant_id', $1, true)", tenantID); err != nil {
 		return c, err
 	}
-	if err = tx.QueryRow(ctx, askCoverageQuery, tenantID, collectionID).Scan(&c.Files, &c.Typed, &c.AnyComm, &c.AnySession, &c.AnyUsage, &c.AnyVolume, &c.AnyPlate, &c.AnyRegistration); err != nil {
+	if err = tx.QueryRow(ctx, askCoverageQuery, tenantID, collectionID).Scan(&c.Files, &c.Typed, &c.AnyComm, &c.AnySession, &c.AnyUsage, &c.AnyVolume, &c.AnyPlate, &c.AnyRegistration, &c.AnyTransaction); err != nil {
 		return c, err
 	}
 	err = askReadPopulation(ctx, tx, tenantID, collectionID, &c)
@@ -229,6 +233,10 @@ func askCoverageGap(c askCoverage, views []string) string {
 		case "v_subscriber_registrations", "v_number_registration_activity":
 			if !c.AnyRegistration {
 				return "the case has no typed subscriber registrations"
+			}
+		case "v_bank_transactions", "v_account_counterparties", "v_account_activity", "v_account_flows", "v_account_limit_bands":
+			if !c.AnyTransaction {
+				return "the case has no typed bank or wallet transactions"
 			}
 		}
 	}

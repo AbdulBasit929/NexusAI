@@ -98,5 +98,15 @@
   {"q": "Is the SIM with ICCID 8900000000000010002 registered to more than one number?", "views": ["v_subscriber_registrations"]},
   {"q": "Which handsets have TAC 00290611?", "views": ["v_handsets"]},
   {"q": "Who owns the number 923001110001?", "views": ["v_subscriber_registrations"]},
-  {"q": "Which registrations of 923001110001 were in force on 2026-03-05?", "views": ["v_subscriber_registrations"], "example": "registered-on-day"}
+  {"q": "Which registrations of 923001110001 were in force on 2026-03-05?", "views": ["v_subscriber_registrations"], "example": "registered-on-day"},
+  {"q": "How much came into the account PK00SYNT0000000000001001 in February 2026?", "views": ["v_account_activity"]},
+  {"q": "What is the largest debit of the account PK00SYNT0000000000001001?", "views": ["v_bank_transactions"], "example": "txn-largest-debit"},
+  {"q": "Who paid the account PK00SYNT0000000000001001?", "views": ["v_account_counterparties"], "example": "txn-paid-the-account"},
+  {"q": "Which counterparties do the accounts PK00SYNT0000000000001001 and PK00SYNT0000000000001002 share?", "views": ["v_account_counterparties"], "example": "txn-shared-counterparty"},
+  {"q": "Which accounts received money that was passed on within 15 minutes?", "views": ["v_account_flows"], "example": "txn-pass-through"},
+  {"q": "Which accounts made debits just under a limit of 500,000?", "views": ["v_account_limit_bands"], "example": "txn-near-limit"},
+  {"q": "What was the balance of the account PK00SYNT0000000000001001 on 2026-03-05?", "views": ["v_account_activity"], "example": "txn-balance-on-date"},
+  {"q": "How many wallet transfers were there between 923001110001 and 923001110002?", "views": ["v_bank_transactions"], "example": "txn-wallet-between"},
+  {"q": "List the bank transactions of the account PK00SYNT0000000000001001", "views": ["v_bank_transactions"]},
+  {"q": "Is this structuring? Which accounts have many debits just under 500000?", "views": ["v_account_limit_bands"]}
 ]

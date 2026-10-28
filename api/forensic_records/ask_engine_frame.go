@@ -36,8 +36,10 @@ type askFrame struct {
 	IMEIs    []string
 	// Serials are the SIM serials (ICCID, 18 to 20 digits) and the TACs (eight digits after the word TAC) the question names: identifiers of the registration and handset views.
 	Serials []string
-	IPs     []string
-	Cells   []string
+	// Accounts are the account numbers (Pakistani IBANs) the question names, as search keys: capitals, no spaces (the account columns of the transaction views are compared in that form).
+	Accounts []string
+	IPs      []string
+	Cells    []string
 	// Plates are the search keys of the plates the question names (askNormalizePlate), PlateWritten how the question wrote each (ask_engine_plates.go).
 	Plates       []string
 	PlateWritten map[string]string
@@ -63,6 +65,7 @@ func (f askFrame) Identifiers() []string {
 	out := append([]string{}, f.Numbers...)
 	out = append(out, f.IMEIs...)
 	out = append(out, f.Serials...)
+	out = append(out, f.Accounts...)
 	out = append(out, f.IPs...)
 	out = append(out, f.Cells...)
 	return append(out, f.Plates...)
@@ -73,6 +76,8 @@ var (
 	askFrameIntl     = regexp.MustCompile(`\+\d{1,3}[\s-]?\d{6,12}\b`)
 	askFrameIMEI     = regexp.MustCompile(`\b\d{15}\b`)
 	askFrameICCID    = regexp.MustCompile(`\b\d{18,20}\b`)
+	askFrameIBAN     = regexp.MustCompile(`(?i)\bpk\s?\d{2}\s?[a-z]{4}(?:\s?\d{4}){4}\b`)
+	askClockCue      = regexp.MustCompile(`\b(?:within|in|after|before|at|between|every)\s+(?:the\s+)?(?:last\s+|next\s+)?\d+\s*(?:minutes?|mins?|hours?|hrs?)\b|\b\d{1,2}:\d{2}\b|\bo'?clock\b`)
 	askFrameTAC      = regexp.MustCompile(`(?i)\btac\b(?:\s+(?:code|number))?[^0-9a-z]{0,12}(\d{8})\b`)
 	askFrameBare     = regexp.MustCompile(`\b\d{10,14}\b`)
 	askFrameYear     = regexp.MustCompile(`\b(20\d{2})\b`)
@@ -152,6 +157,11 @@ func askExtractFrameWith(question string, plates bool) askFrame {
 	})
 	text = askFrameIMEI.ReplaceAllStringFunc(text, func(s string) string { f.IMEIs = append(f.IMEIs, s); return hold(s) })
 	text = askFrameICCID.ReplaceAllStringFunc(text, func(s string) string { f.Serials = append(f.Serials, s); return hold(s) })
+	text = askFrameIBAN.ReplaceAllStringFunc(text, func(s string) string {
+		key := strings.ToUpper(strings.Join(strings.Fields(s), ""))
+		f.Accounts = append(f.Accounts, key)
+		return hold(key)
+	})
 	text = askFrameTAC.ReplaceAllStringFunc(text, func(s string) string {
 		m := askFrameTAC.FindStringSubmatch(s)
 		f.Serials = append(f.Serials, m[1])
@@ -172,6 +182,7 @@ func askExtractFrameWith(question string, plates bool) askFrame {
 	}
 	f.Numbers, f.IMEIs, f.IPs, f.Cells, f.Dates = askUnique(f.Numbers), askUnique(f.IMEIs), askUnique(f.IPs), askUnique(f.Cells), askUnique(f.Dates)
 	f.Serials = askUnique(f.Serials)
+	f.Accounts = askUnique(f.Accounts)
 
 	// The words, read from the text with the identifiers held back.
 	lower := strings.ToLower(text)
@@ -240,7 +251,8 @@ func askExtractFrameWith(question string, plates bool) askFrame {
 	f.Cues["outgoing"] = f.Cues["outgoing"] && !phrase("made by")
 	// any word that gives a question a direction, wider than the incoming and outgoing cues (which need the right phrasing): the obligation below refuses a direction filter only when none is there
 	f.Cues["direction"] = anyWord("direction", "directions", "incoming", "outgoing", "inbound", "outbound", "received", "receive", "receives", "receiving", "get", "gets", "got", "getting", "make", "makes", "made", "making",
-		"send", "sends", "sent", "sending", "dial", "dials", "dialled", "dialed", "dialling", "dialing", "called", "calling", "from", "to")
+		"send", "sends", "sent", "sending", "dial", "dials", "dialled", "dialed", "dialling", "dialing", "called", "calling", "from", "to",
+		"debit", "debits", "debited", "credit", "credits", "credited", "deposit", "deposits", "deposited", "withdrawal", "withdrawals", "withdrawn", "paid", "pay", "pays", "payment", "payments")
 	f.Cues["volume"] = anyWord("bytes", "volume", "volumes", "transferred", "megabytes", "gigabytes", "kilobytes", "upload", "uploaded", "download", "downloaded") || phrase("data used") || phrase("data usage")
 	f.Cues["sms"] = anyWord("sms", "texts") || phrase("text message") || phrase("text messages")
 	f.Cues["mms"] = anyWord("mms")
@@ -485,6 +497,10 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 			add("DAY_COVERAGE", fmt.Sprintf("A registration is in force on %[1]s (a whole local day) if it began before the end of that day and had not ended before the day began. Use exactly this condition on its period: (valid_from IS NULL OR valid_from < '%[2]s 00:00:00+05') AND (valid_to IS NULL OR valid_to > '%[1]s 00:00:00+05'). A comparison with one instant of the day misses a registration that began or ended during it.", f.Dates[0], next), "the question asks about a whole day and the query looks at one instant of it")
 		}
 	}
+	// A transaction may state only its day (time_precision date, stored at local midnight). A question about minutes, hours or a time of day must read only the rows that state a time.
+	if askUsesView(v, "v_bank_transactions") && askClockCue.MatchString(strings.ToLower(f.Question)) && !askSQLMentions(v.SQL, "time_precision") {
+		add("TIME_PRECISION", "A transaction may state only its day (time_precision date, stored at local midnight): a question about minutes, hours or a time of day must read only rows that state a time. Add time_precision <> 'date' to the query.", "the question needs a time of day and the query would read rows that state only a day")
+	}
 	for _, m := range f.Months {
 		found := false
 		for _, t := range texts {
@@ -537,10 +553,11 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	}
 
 	// 4. Marks that the question's words leave in the query.
-	if f.Cues["incoming"] && !askSQLMentions(sql, "'incoming'") && !askUsesColumn(v, "incoming") {
+	// money received is a credit and money sent is a debit in the transaction views, where the direction column holds those words
+	if f.Cues["incoming"] && !askSQLMentions(sql, "'incoming'", "'credit'") && !askUsesColumn(v, "incoming", "credits") {
 		add("DIRECTION", "The question is about incoming events: filter direction = 'incoming' (or use the incoming column).", "the question is about incoming events and the query does not say so")
 	}
-	if f.Cues["outgoing"] && !askSQLMentions(sql, "'outgoing'") && !askUsesColumn(v, "outgoing") {
+	if f.Cues["outgoing"] && !askSQLMentions(sql, "'outgoing'", "'debit'") && !askUsesColumn(v, "outgoing", "debits") {
 		add("DIRECTION", "The question is about outgoing events: filter direction = 'outgoing' (or use the outgoing column).", "the question is about outgoing events and the query does not say so")
 	}
 	// A person's name compared with a number column. src and dst hold phone numbers and no view maps a name to one, so the query counts nothing and the answer would be a confident 0

@@ -185,8 +185,11 @@ var _ = Describe("Ask engine runtime parameters of successor numbers, movement a
 	It("owns the settings of every declared parameter and no others", func() {
 		for _, p := range askParams {
 			Expect(askKnownSetting(p.Setting)).To(BeTrue(), p.Name)
-			Expect(p.Min).To(BeNumerically("<=", p.Default), p.Name)
-			Expect(p.Default).To(BeNumerically("<=", p.Max), p.Name)
+			if !p.Required {
+				// a required parameter has no default: the question must give the value
+				Expect(p.Min).To(BeNumerically("<=", p.Default), p.Name)
+				Expect(p.Default).To(BeNumerically("<=", p.Max), p.Name)
+			}
 			Expect(p.Views).NotTo(BeEmpty(), p.Name)
 		}
 		Expect(askKnownSetting("app.hub_threshold")).To(BeFalse())

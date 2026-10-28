@@ -341,5 +341,95 @@
     ],
     "shape": "table",
     "sql": "SELECT DISTINCT msisdn FROM v_subscriber_registrations WHERE conflicts ORDER BY msisdn LIMIT 200"
+  },
+  {
+    "id": "txn-totals-period",
+    "question": "How much came into and went out of the account PK00SYNT0000000000001001 between 2026-02-01 and 2026-02-28?",
+    "views": [
+      "v_account_activity"
+    ],
+    "shape": "table",
+    "sql": "SELECT sum(credits) AS credits, sum(debits) AS debits FROM v_account_activity WHERE account = 'PK00SYNT0000000000001001' AND day >= '2026-02-01' AND day <= '2026-02-28'"
+  },
+  {
+    "id": "txn-largest-debit",
+    "question": "What is the largest single debit of the account PK00SYNT0000000000001001?",
+    "views": [
+      "v_bank_transactions"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT max(amount) AS largest FROM v_bank_transactions WHERE account = 'PK00SYNT0000000000001001' AND direction = 'debit'"
+  },
+  {
+    "id": "txn-paid-by-account",
+    "question": "Who did the account PK00SYNT0000000000001001 pay, and how much in total to each?",
+    "views": [
+      "v_account_counterparties"
+    ],
+    "shape": "table",
+    "sql": "SELECT counterparty, transactions, total_amount FROM v_account_counterparties WHERE account = 'PK00SYNT0000000000001001' AND direction = 'debit' ORDER BY total_amount DESC LIMIT 200"
+  },
+  {
+    "id": "txn-paid-the-account",
+    "question": "Who paid the account PK00SYNT0000000000001001, and how often?",
+    "views": [
+      "v_account_counterparties"
+    ],
+    "shape": "table",
+    "sql": "SELECT counterparty, transactions, total_amount FROM v_account_counterparties WHERE account = 'PK00SYNT0000000000001001' AND direction = 'credit' ORDER BY transactions DESC LIMIT 200"
+  },
+  {
+    "id": "txn-shared-counterparty",
+    "question": "Which counterparties do the accounts PK00SYNT0000000000001001 and PK00SYNT0000000000001002 have in common?",
+    "views": [
+      "v_account_counterparties"
+    ],
+    "shape": "table",
+    "sql": "SELECT x.counterparty FROM v_account_counterparties x JOIN v_account_counterparties y ON y.counterparty = x.counterparty WHERE x.account = 'PK00SYNT0000000000001001' AND y.account = 'PK00SYNT0000000000001002' GROUP BY x.counterparty ORDER BY x.counterparty LIMIT 200"
+  },
+  {
+    "id": "txn-pass-through",
+    "question": "Which accounts received money that went out again within 10 minutes?",
+    "views": [
+      "v_account_flows"
+    ],
+    "shape": "table",
+    "sql": "SELECT account, credit_utc, credit_amount, debit_utc, debit_amount, sent_to, minutes_between, share_percent FROM v_account_flows ORDER BY credit_utc LIMIT 200"
+  },
+  {
+    "id": "txn-near-limit",
+    "question": "Which accounts made debits just under a limit of 500000?",
+    "views": [
+      "v_account_limit_bands"
+    ],
+    "shape": "table",
+    "sql": "SELECT account, transactions, total_amount, limit_amount, share_percent FROM v_account_limit_bands ORDER BY transactions DESC LIMIT 200"
+  },
+  {
+    "id": "txn-balance-on-date",
+    "question": "What was the balance of the account PK00SYNT0000000000001001 at the end of 2026-03-05?",
+    "views": [
+      "v_account_activity"
+    ],
+    "shape": "table",
+    "sql": "SELECT day, closing_balance FROM v_account_activity WHERE account = 'PK00SYNT0000000000001001' AND day <= '2026-03-05' AND closing_balance IS NOT NULL ORDER BY day DESC LIMIT 1"
+  },
+  {
+    "id": "txn-wallet-between",
+    "question": "How many wallet transfers were there between 923000000101 and 923000000102?",
+    "views": [
+      "v_bank_transactions"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT count(*) AS n FROM v_bank_transactions WHERE channel = 'wallet' AND ((account = '923000000101' AND counterparty_msisdn = '923000000102') OR (account = '923000000102' AND counterparty_msisdn = '923000000101'))"
+  },
+  {
+    "id": "txn-channel-count",
+    "question": "How many transactions of the account PK00SYNT0000000000001001 were made by IBFT?",
+    "views": [
+      "v_bank_transactions"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT count(*) AS n FROM v_bank_transactions WHERE account = 'PK00SYNT0000000000001001' AND channel = 'ibft'"
   }
 ]

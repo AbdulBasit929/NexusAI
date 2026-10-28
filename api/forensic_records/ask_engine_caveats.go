@@ -19,6 +19,10 @@ const askRegistrationCaveat = "A registration is what one source file states: th
 const askHandsetCaveat = "A make and model are what the device reference lists for the first eight digits of the handset's IMEI (its TAC), per source: a listing, not a fact about the individual handset. " +
 	"A TAC the list does not hold is unknown, not unusual."
 
+// askTransactionCaveat and askPatternCaveat are the caveats of the transaction views: a transaction is a line of a statement or a wallet list, and a pattern in such lines is not a finding.
+const askTransactionCaveat = "Amounts are as the source states them (no conversion). A transaction is a line of a statement or a wallet list: it does not say why money moved. A transaction stated with only a day has no time of day."
+const askPatternCaveat = askTransactionCaveat + " A pattern in the rows (money in and out within minutes, amounts just under a limit, a counterparty in common) is a pattern, not a finding of laundering, structuring or any offence."
+
 var askViewCaveatText = map[string]string{
 	// A5: co-location within the stated window
 	"v_colocation_windows": "Proximity is not association: two numbers at the same cell site within the stated window of each other were in the same coverage area, which is not evidence that they met or know each other. " +
@@ -45,6 +49,12 @@ var askViewCaveatText = map[string]string{
 	"v_subscriber_registrations":     askRegistrationCaveat,
 	"v_number_registration_activity": askRegistrationCaveat + " An event outside a registration period is a pattern in the records, not a finding: a registration can be missing, late or wrong.",
 	"v_handsets":                     askHandsetCaveat,
+	// transactions
+	"v_bank_transactions":      askTransactionCaveat,
+	"v_account_activity":       askTransactionCaveat,
+	"v_account_counterparties": askPatternCaveat,
+	"v_account_flows":          askPatternCaveat,
+	"v_account_limit_bands":    askPatternCaveat,
 	// A7: possible meetings
 	"v_meeting_candidates": "A candidate, not a finding: proximity and contact are not proof of a meeting. " +
 		"The score is a documented formula (half from the number of co-located pairs, half from how short the gap to the last contact is), not a probability.",

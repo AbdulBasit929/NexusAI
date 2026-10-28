@@ -1,6 +1,185 @@
 {
   "views": [
     {
+      "name": "v_account_activity",
+      "description": "Per account and local day (the case clock): the number of transactions, the credits, the debits and the balance after the last row of the day. For totals over a period and for the balance on a date.",
+      "columns": [
+        {
+          "name": "account",
+          "type": "text",
+          "description": "The account (a search key)."
+        },
+        {
+          "name": "day",
+          "type": "date",
+          "description": "The local day on the case clock."
+        },
+        {
+          "name": "transactions",
+          "type": "bigint",
+          "description": "How many transactions the account had that day."
+        },
+        {
+          "name": "credits",
+          "type": "numeric",
+          "description": "The total that came in that day."
+        },
+        {
+          "name": "debits",
+          "type": "numeric",
+          "description": "The total that went out that day."
+        },
+        {
+          "name": "closing_balance",
+          "type": "numeric",
+          "description": "The balance after the last row of the day that states one; empty when no row of the day does."
+        }
+      ]
+    },
+    {
+      "name": "v_account_counterparties",
+      "description": "Per account, counterparty (an account or a mobile number) and direction: how many transactions, how much, the first and the last. For who an account paid, who paid it and which accounts share a counterparty. A shared counterparty is a pattern in the rows, not a finding.",
+      "columns": [
+        {
+          "name": "account",
+          "type": "text",
+          "description": "The account (a search key)."
+        },
+        {
+          "name": "counterparty",
+          "type": "text",
+          "description": "The other side: an account or a mobile number, as a search key."
+        },
+        {
+          "name": "direction",
+          "type": "text",
+          "description": "debit: the account paid the counterparty; credit: the counterparty paid the account."
+        },
+        {
+          "name": "transactions",
+          "type": "bigint",
+          "description": "How many transactions of that direction between the two."
+        },
+        {
+          "name": "total_amount",
+          "type": "numeric",
+          "description": "The total of those amounts, as stated (no conversion)."
+        },
+        {
+          "name": "first_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the first of them, UTC."
+        },
+        {
+          "name": "last_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the last of them, UTC."
+        }
+      ]
+    },
+    {
+      "name": "v_account_flows",
+      "description": "Pass-through candidates: a credit and a later debit of the same account within the window (runtime parameter, default 10 minutes) of at least the share (runtime parameter, default 90 percent) of it, only from rows that state a time of day. A pattern in the rows, not a finding: the records do not say why money moved on.",
+      "columns": [
+        {
+          "name": "account",
+          "type": "text",
+          "description": "The account (a search key)."
+        },
+        {
+          "name": "credit_id",
+          "type": "bigint",
+          "description": "Identifier of the credit row (v_bank_transactions.txn_id)."
+        },
+        {
+          "name": "credit_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the credit, UTC."
+        },
+        {
+          "name": "credit_amount",
+          "type": "numeric(18,2)",
+          "description": "The amount that came in."
+        },
+        {
+          "name": "received_from",
+          "type": "text",
+          "description": "Who it came from: an account or a mobile number, when the source states one."
+        },
+        {
+          "name": "debit_id",
+          "type": "bigint",
+          "description": "Identifier of the later debit row."
+        },
+        {
+          "name": "debit_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the debit, UTC."
+        },
+        {
+          "name": "debit_amount",
+          "type": "numeric(18,2)",
+          "description": "The amount that went out."
+        },
+        {
+          "name": "sent_to",
+          "type": "text",
+          "description": "Who it went to: an account or a mobile number, when the source states one."
+        },
+        {
+          "name": "minutes_between",
+          "type": "numeric",
+          "description": "Minutes from the credit to the debit."
+        },
+        {
+          "name": "share_percent",
+          "type": "numeric",
+          "description": "The debit as a percent of the credit."
+        }
+      ]
+    },
+    {
+      "name": "v_account_limit_bands",
+      "description": "Per account: debits at or above a share (default 95 percent) of a stated limit and below it; needs the limit of the question (runtime parameter app.limit_amount), none set gives no rows. A pattern in the rows, not a finding.",
+      "columns": [
+        {
+          "name": "account",
+          "type": "text",
+          "description": "The account (a search key)."
+        },
+        {
+          "name": "transactions",
+          "type": "bigint",
+          "description": "How many debits fall at or above the share of the limit and below it."
+        },
+        {
+          "name": "total_amount",
+          "type": "numeric",
+          "description": "The total of those debits."
+        },
+        {
+          "name": "first_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the first of them, UTC."
+        },
+        {
+          "name": "last_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the last of them, UTC."
+        },
+        {
+          "name": "limit_amount",
+          "type": "numeric",
+          "description": "The limit of the question (runtime parameter)."
+        },
+        {
+          "name": "share_percent",
+          "type": "numeric",
+          "description": "The share of the limit that starts the band (runtime parameter, default 95)."
+        }
+      ]
+    },
+    {
       "name": "v_anchor_changes",
       "description": "A move: a number's anchor changes from one cell site to a different one that then holds for at least hold_weeks weeks (set by the application from the question; 2 when it names none), reported at the first week of the new anchor, with the distance in kilometres between the two cell sites. One row per move per slot (night: where it sleeps, day: where it spends weekdays). CELL SITES, NOT POSITIONS OF A PERSON.",
       "columns": [
@@ -191,6 +370,107 @@
           "name": "city",
           "type": "text",
           "description": "City, when recorded."
+        }
+      ]
+    },
+    {
+      "name": "v_bank_transactions",
+      "description": "Transactions of bank statements and wallet lists, one row each (exact repeats within a file left out): the account, the other side, the direction, the amount (positive) and its signed form, the balance after, the channel, the reference and the time with its precision. Amounts are as the source states them. The narration and names are not held here.",
+      "columns": [
+        {
+          "name": "txn_id",
+          "type": "bigint",
+          "description": "Identifier of the transaction row."
+        },
+        {
+          "name": "evidence_id",
+          "type": "uuid",
+          "description": "The evidence file the transaction came from."
+        },
+        {
+          "name": "source_row",
+          "type": "bigint",
+          "description": "The row of that file."
+        },
+        {
+          "name": "account",
+          "type": "text",
+          "description": "The account (or wallet number) the transaction is of, as a search key: capitals, no spaces or dashes. Always compare this column, written the same way."
+        },
+        {
+          "name": "counterparty_account",
+          "type": "text",
+          "description": "The other account of the transaction, as a search key, when the source states one."
+        },
+        {
+          "name": "counterparty_msisdn",
+          "type": "text",
+          "description": "The other side's mobile number (92 and ten digits) when the source states one, as for a wallet transfer: the link to the call records."
+        },
+        {
+          "name": "txn_utc",
+          "type": "timestamp with time zone",
+          "description": "Time of the transaction, UTC (shown on the case clock). For a row with time_precision date it is local midnight of the day."
+        },
+        {
+          "name": "time_precision",
+          "type": "text",
+          "description": "second or minute: the source states a time of day; date: only the day. A question about minutes or hours must not use a date row."
+        },
+        {
+          "name": "direction",
+          "type": "text",
+          "description": "debit: money left the account; credit: money came into it."
+        },
+        {
+          "name": "amount",
+          "type": "numeric(18,2)",
+          "description": "The amount, always positive, as the source states it (no conversion). The direction says which way it went."
+        },
+        {
+          "name": "signed_amount",
+          "type": "numeric",
+          "description": "The amount with its sign: credits positive, debits negative. Add it up for the net movement."
+        },
+        {
+          "name": "currency",
+          "type": "text",
+          "description": "The currency the source states, when it states one; empty otherwise (the amount is not converted)."
+        },
+        {
+          "name": "balance_after",
+          "type": "numeric(18,2)",
+          "description": "The account balance after this transaction as the source states it, when it has one."
+        },
+        {
+          "name": "channel",
+          "type": "text",
+          "description": "How the transaction was made: ibft, raast, atm, pos, cheque, cash, wallet, branch, online or other."
+        },
+        {
+          "name": "reference",
+          "type": "text",
+          "description": "The source's own reference or transaction id, when it has one."
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "description": "The transaction status the source states (completed, failed), when it has one."
+        },
+        {
+          "name": "time_basis",
+          "type": "text",
+          "description": "How the zone of the time is known: declared, assumed_by_profile, confirmed_by_analyst or explicit_offset."
+        },
+        {
+          "name": "source_tz",
+          "type": "text",
+          "description": "The time zone the source's times were read in."
+        },
+        {
+          "name": "balance_break",
+          "type": "boolean",
+          "description": "True when the balance after this row does not follow from the previous row of the same account: a row may be missing or the statement altered. The row is kept."
         }
       ]
     },

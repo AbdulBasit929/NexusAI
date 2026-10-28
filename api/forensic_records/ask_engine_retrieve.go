@@ -138,6 +138,12 @@ var askLexicon = map[string][]string{
 	"v_number_registration_activity": {"registered", "registration", "registrations", "unregistered", "deactivated", "deactivation", "expired"},
 	// only what separates a handset's make and model from the pairing of a number with an IMEI: the words imei, handset, device and used belong to v_device_pairings
 	"v_handsets": {"model", "models", "make", "brand", "manufacturer", "tac", "samsung", "apple", "iphone", "xiaomi", "huawei", "oppo", "nokia", "vivo", "infinix", "tecno"},
+	// transactions: words of a statement and a wallet; the generic words of call-record questions stay out (a shortlisted view that the case cannot speak for makes the coverage guard decline the question)
+	"v_bank_transactions":      {"transaction", "transactions", "bank", "statement", "balance", "debit", "debits", "credit", "credits", "deposit", "deposits", "withdrawal", "withdrawals", "iban", "ibft", "raast", "salary", "wallet", "payment", "payments"},
+	"v_account_counterparties": {"counterparty", "counterparties", "paid", "pay", "payer", "payee", "iban", "transfers"},
+	"v_account_activity":       {"balance", "daily", "closing", "credits", "debits", "bank", "statement"},
+	"v_account_flows":          {"pass-through", "passthrough", "passed", "forwarded", "again"},
+	"v_account_limit_bands":    {"limit", "structuring", "threshold"},
 	"v_app_usage": {"app", "application", "whatsapp", "facebook", "tiktok", "youtube", "social", "usage", "feature", "province", "city", "networking",
 		"lahore", "karachi", "peshawar", "quetta", "islamabad"},
 }

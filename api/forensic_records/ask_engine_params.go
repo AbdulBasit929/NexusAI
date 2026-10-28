@@ -31,6 +31,8 @@ type askParam struct {
 	Find func(lower string) []int
 	// Quiet parameters are rules of the definition that a question rarely changes: the answer names them only when the question gave them.
 	Quiet bool
+	// Required parameters have no default worth using: a question that does not give one gets a question back (the limit of a limit band).
+	Required bool
 }
 
 var askParams = []askParam{
@@ -63,6 +65,15 @@ var askParams = []askParam{
 		Views: []string{"v_rhythm_changes"}, Find: askFindRhythmSideDays, Quiet: true},
 	{Name: "rhythm_ratio_percent", Setting: "app.rhythm_ratio_percent", Label: "Least ratio of the larger daily mean to the smaller", Unit: "percent", Default: 150, Min: 101, Max: 10000,
 		Views: []string{"v_rhythm_changes"}, Find: askFindRhythmRatio},
+	// transactions: pass-through and amounts under a limit
+	{Name: "flow_window_minutes", Setting: "app.flow_window_minutes", Label: "Pass-through window", Unit: "minutes", Default: 10, Min: 1, Max: 1440,
+		Views: []string{"v_account_flows"}, Role: "window"},
+	{Name: "flow_share_percent", Setting: "app.flow_share_percent", Label: "Least share of the credit that goes out again", Unit: "percent", Default: 90, Min: 1, Max: 100,
+		Views: []string{"v_account_flows"}, Find: askFindFlowShare},
+	{Name: "limit_amount", Setting: "app.limit_amount", Label: "Limit", Unit: "rupees", Default: 0, Min: 1, Max: 10000000000,
+		Views: []string{"v_account_limit_bands"}, Find: askFindLimitAmount, Required: true},
+	{Name: "limit_share_percent", Setting: "app.limit_share_percent", Label: "Share of the limit where the band starts", Unit: "percent", Default: 95, Min: 1, Max: 99,
+		Views: []string{"v_account_limit_bands"}, Find: askFindLimitShare},
 }
 
 // askParamRead is what the question says about one parameter.
@@ -349,6 +360,8 @@ func askResolveParams(f askFrame, views []string) ([]askParamUse, *askParamIssue
 			uses = append(uses, askParamUse{Param: p, Value: read.Value, FromQuestion: true})
 		case p.Role == "window" && p.Find == nil && f.Cues["minutes_without_number"]:
 			return nil, &askParamIssue{Kind: "clarify", Message: fmt.Sprintf("The question speaks of minutes without saying how many. How many %s should the %s be (%d to %d)?", p.Unit, strings.ToLower(p.Label), p.Min, p.Max)}
+		case p.Required:
+			return nil, &askParamIssue{Kind: "clarify", Message: fmt.Sprintf("The question does not say the %s. What %s should I use (%d to %d %s)?", strings.ToLower(p.Label), strings.ToLower(p.Label), p.Min, p.Max, p.Unit)}
 		default:
 			uses = append(uses, askParamUse{Param: p, Value: p.Default})
 		}
@@ -389,6 +402,43 @@ func askParamNotes(uses []askParamUse) []string {
 			source = "read from your question"
 		}
 		out = append(out, fmt.Sprintf("%s used: %d %s (%s).", u.Param.Label, u.Value, u.Param.Unit, source))
+	}
+	return out
+}
+
+// transactions: the share of a credit that goes out again, the limit of a band and the share of it where the band starts (all found in a question in lower case).
+var (
+	askFlowShareA   = regexp.MustCompile(`(\d{1,3})\s*(?:%|percent)\s+(?:or more\s+)?(?:of\s+)?(?:it|the credit|that amount|the amount|what (?:came|was paid) in|the deposit)`)
+	askFlowShareB   = regexp.MustCompile(`at least\s+(\d{1,3})\s*(?:%|percent)`)
+	askLimitAmountA = regexp.MustCompile(`(?:limit|threshold|ceiling|cap)\s+(?:of\s+)?(?:rs\.?\s*|pkr\s*)?(\d[\d,]{3,})`)
+	askLimitAmountB = regexp.MustCompile(`(?:under|below|beneath|just under|just below)\s+(?:the\s+)?(?:rs\.?\s*|pkr\s*)?(\d[\d,]{3,})`)
+	askLimitShareA  = regexp.MustCompile(`(\d{1,2})\s*(?:%|percent)\s+(?:or more\s+)?of\s+(?:the\s+)?(?:limit|threshold)`)
+	askLimitShareB  = regexp.MustCompile(`within\s+(\d{1,2})\s*(?:%|percent)\s+of\s+(?:the\s+)?(?:limit|threshold)`)
+)
+
+func askFindFlowShare(lower string) []int { return askFindInts(lower, askFlowShareA, askFlowShareB) }
+
+// askFindLimitAmount reads the amount of a limit: digits with thousands commas after "limit of" or "under".
+func askFindLimitAmount(lower string) []int {
+	var out []int
+	for _, re := range []*regexp.Regexp{askLimitAmountA, askLimitAmountB} {
+		for _, m := range re.FindAllStringSubmatch(lower, -1) {
+			if n, err := strconv.Atoi(strings.ReplaceAll(m[1], ",", "")); err == nil && !askContainsInt(out, n) {
+				out = append(out, n)
+			}
+		}
+	}
+	return out
+}
+
+// askFindLimitShare reads "95% of the limit" as 95 and "within 5% of the limit" as 95.
+func askFindLimitShare(lower string) []int {
+	// "within 5% of the limit" is read once, as 95: the same words must not be read again as "5% of the limit"
+	out := askFindInts(strings.TrimSpace(askLimitShareB.ReplaceAllString(lower, " ")), askLimitShareA)
+	for _, m := range askLimitShareB.FindAllStringSubmatch(lower, -1) {
+		if n, err := strconv.Atoi(m[1]); err == nil && n >= 1 && n <= 99 {
+			out = append(out, 100-n)
+		}
 	}
 	return out
 }
