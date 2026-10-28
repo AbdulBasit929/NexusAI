@@ -889,6 +889,8 @@ The full list, with the finding taken from each and its V/S/K mark, is [`researc
 | **O-11** | Urdu interface (strings in a catalogue) | not now | defer |
 | **O-12** | Named analysts for the unaided usability test (D26) | U10 | owner to name |
 
+**Answered 2026-10-28** (the owner: "go with your recommendations", on the hand-off pack `HANDOFF_CODEX_DECISIONS_NEXT_STEPS_20261028.md`): **O-1 yes** (the 4.9 amendments to contract §8 and §11 are in force); **O-2 (b)** (Codex works in its own linked worktree `..\NexusAI-ui`, branch `ui/u1-foundations`, dev server on :4182; merged into `lane-arms` only when the owner accepts a stage); **O-4** evolve the mark lightly to the chosen palette; **O-5** compact tables and the default pages as recommended; **O-7** P-1, P-3, P-4, P-5 yes and P-2, P-6, P-7, P-8 no for now (a dependency is still installed only at the stage that needs it, with the install named in that stage's note and the size budget measured); **O-9** delete `/connections/classic` and `ConnectionsPage` at the acceptance of U3; **O-10** PKT default now, a per-case setting later. **Still open:** O-3 (colour direction, by looking at the U1 gallery), O-6 (Urdu face, needs a native reader), O-8 (tile source licence), O-11 (deferred), O-12 (named analysts, before U10). **UI owner: Codex, stage U1 (foundations).** Claude edits no interface path while a stage is open.
+
 ### 18.3 How this directive is kept alive
 
 `NEXUSAI_CONTINUATION.md` carries the current stage, its owner and its port. A change to this document is a commit with a reason; a rule is changed by the owner's decision, recorded in the decision log (`D-U<n>`), and the directive is edited the same day. **When this directive and a stage note differ, the later, owner-approved text wins.**

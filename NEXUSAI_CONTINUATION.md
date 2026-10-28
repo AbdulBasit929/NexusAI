@@ -20,7 +20,7 @@
     INTERFACE (one directive since 2026-10-26)   17 routes, 75 vitest files (549 tests), 26 Playwright specs; the link-
         analysis workbench (layout B) is live on Connections and inside Ask answers; ONE directive of record now:
         docs/ux/MASTER_UI_UX_DIRECTIVE.md (stages U1 to U10, merge ledger, sources register, Codex start prompt);
-        UI owner for stage U1: nobody yet (awaits owner decisions O-1 contract amendments, O-2 how Codex works);
+        UI owner for stage U1: Codex in its own worktree NexusAI-ui (:4182), decisions O-1/O-2 answered 2026-10-28;
         4 of 30 backend requests delivered.
     ENTERPRISE (open)   no case record, one shared actor, no authority record; read-only role and RLS are live.
 
@@ -162,6 +162,7 @@ anything touching retained evidence.
 
 - **2026-10-26: ONE interface directive.** [`docs/ux/MASTER_UI_UX_DIRECTIVE.md`](docs/ux/MASTER_UI_UX_DIRECTIVE.md) merges every earlier UI brief (ledger in its section 17; the older briefs carry a SUPERSEDED banner), with the research register `docs/ux/research/RESEARCH_REGISTER_20261026.md` and the paste-ready Codex prompt `docs/ux/CODEX_UI_START_PROMPT.md`. **UI_OWNER: none open.** U1 (foundations, two colour directions to choose by looking) starts when the owner answers O-1 (accept the contract amendments) and O-2 (Codex in its own worktree on :4182, recommended, or in the lane tree); Claude edits no interface path while a stage is open. The workbench (U3 v1, f7d61fc) is built and live; its restyle is stage U3.
 - **2026-10-28 hand-off pack:** `docs/ux/HANDOFF_CODEX_DECISIONS_NEXT_STEPS_20261028.md` = the complete Codex prompt (Part A), every decision waiting with a recommendation (Part B: O-1..O-12, W-1 deploy wording, P-1..P-5, E-1..E-3) and the next steps (Part C). Nothing live is applied; deploying the wording + plate code (W-1) is safe before migration 027 (plates are read only where the catalogue has the plate views).
+- **2026-10-28 UI_OWNER: Codex, stage U1 (foundations), OPEN as soon as the owner opens Codex.** Decisions O-1 yes, O-2 (b), O-4, O-5, O-7, O-9, O-10 recorded in directive section 18.2. Worktree `C:\Users\sheik\Workspace\Office\Projects\NexusAI-ui`, branch `ui/u1-foundations` (cut from `lane-arms`), dev server `npm --prefix apps/investigation-workspace run dev -- --port 4182 --strictPort`; the owner places `.env.forensic-runtime.local` in that worktree (nobody else reads it). Start prompt = Part A of the hand-off pack. Claude edits no path under `apps/investigation-workspace/**` or `docs/ux/**` while U1 is open. Still open: O-3 (look at the gallery), O-6, O-8, O-11, O-12.
 - (older entries below are history; the directive wins where they differ)
 - **Shell, Dashboard & Workspace Context complete:** Mineral Signal tokens, Type Proof, command search, collapsible rail, zoned Dashboard (D1-D8), Case Context Header with quick actions, and keyboard-roving tab strip live on port 4181.
 - **Stage 3 Case Overview Dossier (`/cases/:id/overview`) COMPLETED 2026-10-19:**
