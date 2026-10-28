@@ -177,7 +177,7 @@ Section 5's plant list is extended so that **every media file is tied into the c
 | D13 | Extraction index (which file came from which handset) | TXT | English | handset IMEIs, numbers |
 | D14 | Control document: a clean report that names nothing in the case | TXT | English | none (precision) |
 
-Forms written for a mobile number (each used, none privileged): `0300-1110001`, `0300 1110001`, `03001110001`, `+92 300 1110001`, `+92-300-1110001`, `0092 300 1110001`, `92 300 1110001`, `(0300) 1110001`, Urdu digits `۰۳۰۰۱۱۱۰۰۰۱`; for a national ID number: `00000-1234567-1`, `0000012345671`, `00000 1234567 1`, Urdu digits; for an account: with and without spaces every four characters, lower case.
+Forms written for a mobile number (each used, none privileged): `0300-0001000`, `0300 0001000`, `03000001000`, `+92 300 0001000`, `+92-300-0001000`, `0092 300 0001000`, `92 300 0001000`, `(0300) 0001000`, Urdu digits `۰۳۰۰۰۰۰۱۰۰۰`; for a national ID number: `00000-1234567-1`, `0000012345671`, `00000 1234567 1`, Urdu digits; for an account: with and without spaces every four characters, lower case.
 Decoys (text that must NOT be extracted as the kind it resembles): a landline `042-35761234`, a reference `REF00000394`, an amount `1,234,567.00`, a date `20260305`, a 12-digit run, a number inside a longer digit string, `Section 161`, `PPC 420`, `FIR 45/26`, a plate-shaped legal token, `SYNT4O24` (letter O for zero), a 15-digit number that fails the Luhn check next to the word IMEI.
 
 ### 10.3 Gates (pre-registered; applied once; nothing is tuned on a case that is then judged)

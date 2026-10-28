@@ -12,27 +12,27 @@ def pairs(text, **kw):
 
 class MobileNumbers(unittest.TestCase):
     def test_every_written_form_gives_one_key(self):
-        for text in ("0300-1110001", "0300 1110001", "03001110001", "+92 300 1110001", "+92-300-1110001", "0092 300 1110001", "92 300 1110001", "(0300) 1110001", "+92 (0) 300 1110001"):
-            self.assertEqual(pairs("mobile " + text), [("msisdn", "923001110001")], text)
+        for text in ("0300-0001000", "0300 0001000", "03000001000", "+92 300 0001000", "+92-300-0001000", "0092 300 0001000", "92 300 0001000", "(0300) 0001000", "+92 (0) 300 0001000"):
+            self.assertEqual(pairs("mobile " + text), [("msisdn", "923000001000")], text)
 
     def test_urdu_and_arabic_digits_are_folded_and_positions_stay_in_the_text_as_written(self):
-        text = "نمبر ۰۳۰۰۱۱۱۰۰۰۱ ہے"
+        text = "نمبر ۰۳۰۰۰۰۰۱۰۰۰ ہے"
         (mention,) = extract_mentions(text)
-        self.assertEqual((mention.value, mention.surface), ("923001110001", "۰۳۰۰۱۱۱۰۰۰۱"))
+        self.assertEqual((mention.value, mention.surface), ("923000001000", "۰۳۰۰۰۰۰۱۰۰۰"))
         self.assertEqual(text[mention.start:mention.end], mention.surface)
         self.assertEqual(fold_digits("٠١٢"), "012")
 
     def test_what_is_not_a_mobile_number_is_left_alone(self):
-        for text in ("landline 042-35761234", "REF00000394", "amount 1,234,567.00", "date 20260305", "run 112233445566", "inside 9903001110001555", "prefix 0399-1110001", "ends 03001110001234"):
+        for text in ("landline 042-35761234", "REF00000394", "amount 1,234,567.00", "date 20260305", "run 112233445566", "inside 9903000001000555", "prefix 0200-0001000", "ends 03000001000234"):
             self.assertEqual([k for k, _ in pairs(text) if k == "msisdn"], [], text)
 
     def test_a_bare_ten_digit_number_needs_a_cue(self):
-        self.assertEqual(pairs("mobile no 3001110001"), [("msisdn", "923001110001")])
-        self.assertEqual(pairs("ref 3001110001"), [])
+        self.assertEqual(pairs("mobile no 3000001000"), [("msisdn", "923000001000")])
+        self.assertEqual(pairs("ref 3000001000"), [])
 
     def test_a_list_of_numbers_gives_each_number(self):
-        found = pairs("0300-1110001 0301-2223334, +92 302 3334445")
-        self.assertEqual(found, [("msisdn", "923001110001"), ("msisdn", "923012223334"), ("msisdn", "923023334445")])
+        found = pairs("0300-0001000 0300-0001001, +92 300 0001002")
+        self.assertEqual(found, [("msisdn", "923000001000"), ("msisdn", "923000001001"), ("msisdn", "923000001002")])
 
 
 class OtherIdentifiers(unittest.TestCase):
@@ -84,11 +84,11 @@ class PlatesAndPlaces(unittest.TestCase):
 
 class Claims(unittest.TestCase):
     def test_a_span_is_claimed_once_by_the_most_specific_kind(self):
-        found = extract_mentions("CNIC 00000-1234567-1 and mobile 0300-1110001")
+        found = extract_mentions("CNIC 00000-1234567-1 and mobile 0300-0001000")
         self.assertEqual([m.kind for m in found], ["national_id", "msisdn"])
 
     def test_positions_point_at_the_surface(self):
-        text = "Call +92 300 1110001 now"
+        text = "Call +92 300 0001000 now"
         (m,) = extract_mentions(text)
         self.assertEqual(text[m.start:m.end], m.surface)
 

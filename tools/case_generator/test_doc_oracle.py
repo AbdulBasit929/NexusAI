@@ -181,9 +181,9 @@ class GeneratorFacts(unittest.TestCase):
     def test_surfaces_fold_back_to_the_value(self):
         for form in range(8):
             for urdu in (False, True):
-                text = doc_case.msisdn_surface("923001110001", form, urdu)
+                text = doc_case.msisdn_surface("923000001000", form, urdu)
                 found = mention_extractor.extract_mentions("mobile %s" % text)
-                self.assertEqual([m.value for m in found if m.kind == "msisdn"], ["923001110001"], text)
+                self.assertEqual([m.value for m in found if m.kind == "msisdn"], ["923000001000"], text)
         for form in range(3):
             text = doc_case.nid_surface("00000-1234567-1", form)
             found = mention_extractor.extract_mentions("CNIC %s" % text)

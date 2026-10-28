@@ -178,7 +178,7 @@ def documents(ctx):
                ["Vehicle", ["Honda City, registration ", ctx.plate(plate_a, a.pid)]]]),
         p("The complainant states that on %s the accused called from " % ctx.date(), ctx.msisdn(a), " and asked him to deposit PKR ", D("350,000", "msisdn"),
           " into the account above. The accused was last seen in ", ctx.place(site_of(a, 1)), "."),
-        p("Police station landline ", D("042-35761234", "msisdn"), ", reference ", D("REF00000394", "account"), ", a longer reference ", D("9903001110001555", "msisdn"), "."),
+        p("Police station landline ", D("042-35761234", "msisdn"), ", reference ", D("REF00000394", "account"), ", a longer reference ", D("9903000001000555", "msisdn"), "."),
     ]))
     # D02 First Information Report, Urdu, right to left, Urdu digits
     k2, a2, b2 = complainant, b, c
