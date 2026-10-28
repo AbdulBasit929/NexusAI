@@ -132,7 +132,7 @@ def check_bank(db, label, key, scope, problems, totals):
             continue
         rows = got[q["id"]]
         expect = q["expect"]
-        if expect["kind"] == "set":
+        if expect["kind"] in ("set", "documents"):
             have, want = sorted(str(r["x"]) for r in rows), sorted(expect["values"])
         elif expect["kind"] == "scalar":
             have, want = int(rows[0]["x"]), expect["value"]

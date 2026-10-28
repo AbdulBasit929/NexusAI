@@ -35,6 +35,7 @@ from test_subscriber_oracle import ingest_all  # noqa: E402
 
 SPEC_FOCUS = "Ask engine executor on a case database"
 EXPECTED_SPECS = 28
+ORION = dict(seed=5001, people=100, subjects=12, associates=24, period_days=75, communities=5, p2_pairs=5, p3_pairs=2, p7_plants=3)   # the shape of the showcase case Orion
 PARAMS = dict(seed=61, people=60, subjects=6, associates=12, period_days=20, p2_pairs=3, p3_pairs=2, p7_plants=3)
 
 
@@ -49,8 +50,12 @@ def build_case_database(db, root, registry, port):
     load_case.prepare(db, registry)
     sink = PsqlSink(db)
     key, _summaries = ingest_all(db, root, registry, sink)   # the registration exports are read with the job's day-first date order; every other export as before
-    for name in ("016_effective_records.sql", "018_effective_ipdr.sql", "017_analyst_views.sql", "019_observed_cell_positions.sql", "020_contact_links_and_inventory.sql", "021_case_record.sql", "024_colocation_and_meetings.sql", "025_successor_candidates.sql", "026_movement_and_rhythm.sql", "027_plate_sightings.sql", "028_subscriber_device_views.sql"):
+    for name in ("016_effective_records.sql", "018_effective_ipdr.sql", "017_analyst_views.sql", "019_observed_cell_positions.sql", "020_contact_links_and_inventory.sql", "021_case_record.sql", "024_colocation_and_meetings.sql", "025_successor_candidates.sql", "026_movement_and_rhythm.sql", "027_plate_sightings.sql", "028_subscriber_device_views.sql", "030_transaction_views.sql", "031_document_mentions.sql"):
         db.psql("-f", "/tmp/mig/" + name)
+    if key.get("document_truth"):
+        # the documents of the case, kept as the worker keeps them and indexed by the production extractor (the views of migration 031 read them)
+        from load_documents import load_documents
+        load_documents(db, root, key, key["document_truth"]["gazetteer"])
     if key.get("subscriber_truth"):
         # the device reference of the case (tenant-wide), loaded as the reference loader loads a list
         reference = os.path.join(root, *key["subscriber_truth"]["reference_file"].split("/"))
@@ -73,6 +78,10 @@ def main(argv):
     parser.add_argument("--ids", help="evaluation mode: only these question ids, comma separated")
     parser.add_argument("--anpr", action="store_true", help="add the case's camera export of plate sightings (anpr_case.py; another case id, the default build is unchanged)")
     parser.add_argument("--subscribers", action="store_true", help="add the case's registration exports (two sources) and device reference (subscriber_case.py; another case id, the default build is unchanged)")
+    parser.add_argument("--transactions", action="store_true", help="add the case's two bank statements and wallet list (txn_case.py)")
+    parser.add_argument("--documents", action="store_true", help="add the case's fourteen text documents with the mention index (doc_case.py; needs --locale)")
+    parser.add_argument("--locale", help="a key of pk_locale.CITIES: the sites are drawn on that city and the people carry Pakistani identities (showcase cases)")
+    parser.add_argument("--shape", choices=("small", "orion"), default="small", help="the size of the generated case: the small harness case, or the shape of the showcase case Orion")
     parser.add_argument("--register-case", action="store_true", help="read --seed as a case of the register of 20 (development 1 to 8, judgement 101 to 108; sealed are refused)")
     args = parser.parse_args(argv)
     evaluation = bool(args.questions)
@@ -91,7 +100,13 @@ def main(argv):
     port = free_port()
     db = load_case.Throwaway(publish_port=port)
     try:
-        root = generate.write_case(register_params or w.Params(**params), tmp.name, with_anpr=args.anpr, with_subscribers=args.subscribers)
+        case_params = register_params or w.Params(**params)
+        if args.shape == "orion" and register_params is None:
+            case_params = w.Params(**dict(ORION, seed=args.seed))
+        if args.locale:
+            import dataclasses
+            case_params = dataclasses.replace(case_params, locale=args.locale)
+        root = generate.write_case(case_params, tmp.name, with_anpr=args.anpr, with_subscribers=args.subscribers, with_transactions=args.transactions, with_documents=args.documents)
         key, dsn = build_case_database(db, root, registry, port)
         truth_path = args.keep_truth or os.path.join(tmp.name, "truth.json")  # the evaluation judge reads the keys the questions file carries, not this file
         with open(truth_path, "w", encoding="utf-8") as handle:

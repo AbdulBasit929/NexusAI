@@ -27,6 +27,14 @@ DIGITS = re.compile(r"^\d{3,}$")
 PLATE_KEY = re.compile(r"^SYNT[0-9OI]{4}$")   # a plate of the synthetic series (tools/real_data/reserved.py) in its search key; the O and the I are the look-alikes the generator plants
 
 
+DOCUMENT_FILE = re.compile(r"^[\w.\-]+\.(?:txt|docx|pdf|eml)$", re.I)   # a document as the document views name it: its file name
+
+
+def document_names(rows):
+    """The documents a result names: every value of every row that is a document file name (the column may be called anything)."""
+    return {v for row in rows for v in row.values() if isinstance(v, str) and DOCUMENT_FILE.match(v)}
+
+
 def text_values(rows):
     return [v for row in rows for v in row.values() if isinstance(v, str)]
 
@@ -287,6 +295,14 @@ def judge(question, result):
         return "correct" if got[: len(expect["values"])] == expect["values"] and len(got) == len(expect["values"]) else "wrong"
     if kind == "absent":
         return "correct" if "no record" in answer or "not hold" in answer else "wrong"
+    if kind == "documents":
+        # the documents that name a key (documents family, stage S3b): the file names the rows hold, as a set; none expected: no rows and the plain statement that no document names it
+        if not expect["values"]:
+            return "correct" if not rows and ("no document" in answer or "no row matches" in answer) else "wrong"
+        return "correct" if document_names(rows) == set(expect["values"]) else "wrong"
+    if kind == "doc_absent":
+        # a key no document names, or a document that names nothing: no rows, and the engine says so in its own words (never an invented record)
+        return "correct" if not rows and ("no document" in answer or "no record" in answer or "not hold" in answer or "no row matches" in answer) else "wrong"
     if kind == "reach":
         # contact chaining (A4): the numbers within the hops, from the anchor, without the anchor itself; an edge list is accepted (its intermediate numbers are within the hops)
         return "correct" if identifiers(rows) - {expect["anchor"]} == set(expect["values"]) else "wrong"
