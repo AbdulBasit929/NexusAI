@@ -42,20 +42,23 @@ DEFAULT_MAX_ROWS = 2_000_000
 NO_VALUE = "\\N"
 
 # the typed table each family of layouts is written to
-TABLE_FOR_FAMILY = {"communications": "comm_event", "internet": "data_session", "app_usage": "app_usage", "plate": "plate_sighting"}
+TABLE_FOR_FAMILY = {"communications": "comm_event", "internet": "data_session", "app_usage": "app_usage", "plate": "plate_sighting", "subscriber": "subscriber_registration"}
 # the time column each typed table is partitioned and keyed on: a sighting has no start, it has an observed time (migration 012)
-TIME_COLUMN = {"comm_event": "start_utc", "data_session": "start_utc", "app_usage": "start_utc", "plate_sighting": "observed_utc"}
+# a registration has no time of its own (None): it is valid from its activation to its deactivation, and its key has no time (migration 012: UNIQUE tenant, collection, file, row hash)
+TIME_COLUMN = {"comm_event": "start_utc", "data_session": "start_utc", "app_usage": "start_utc", "plate_sighting": "observed_utc", "subscriber_registration": None}
 # the idempotency key of the typed tables (migration 012); conflict_key(table) is the one of a table
 CONFLICT_KEY = "tenant_id, collection_id, file_id, row_hash, start_utc"
 REQUIRED_COLUMNS = ("tenant_id", "collection_id", "evidence_id", "file_id", "batch_id", "row_hash", "content_hash", "start_utc")
 
 
 def conflict_key(table: str) -> str:
-    return CONFLICT_KEY.replace("start_utc", TIME_COLUMN.get(table, "start_utc"))
+    column = TIME_COLUMN.get(table, "start_utc")
+    return CONFLICT_KEY.replace(", start_utc", ", " + column if column else "")
 
 
 def required_columns(table: str) -> tuple[str, ...]:
-    return tuple(TIME_COLUMN.get(table, "start_utc") if c == "start_utc" else c for c in REQUIRED_COLUMNS)
+    column = TIME_COLUMN.get(table, "start_utc")
+    return tuple(column if c == "start_utc" else c for c in REQUIRED_COLUMNS if c != "start_utc" or column)
 IGNORED_FOR_CONTENT = frozenset({"source_row", "raw_payload", "quality_flags"})
 TZ_BASIS = {"source_declared": "declared", "analyst_confirmed": "confirmed_by_analyst", "profile_defaulted": "assumed_by_profile"}
 
@@ -305,7 +308,7 @@ def ingest_sheet(name: str, rows: Iterator[Sequence[Any]], lineage: Lineage, pol
             _note(summary.skipped, summary.first_rows, "skipped:" + str(result.reason), result.row_number)
             continue
         record = dict(result.record)
-        if not (record.get("start_utc") and record.get("source_tz") and record.get("time_basis")):
+        if TIME_COLUMN.get(table, "start_utc") and not (record.get("start_utc") and record.get("source_tz") and record.get("time_basis")):
             # the typed tables hold UTC time with its basis; without a declared or confirmed zone there is none, and none is guessed
             _note(summary.quarantined, summary.first_rows, "quarantined:source_timezone_unknown", result.row_number)
             continue

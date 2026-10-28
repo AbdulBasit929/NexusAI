@@ -296,7 +296,7 @@ def generate(entry, rows=None, seed=1, date_order=None, defects=True):
     formats = (entry.get("time") or {}).get("formats", [])
     time_columns = (entry.get("time") or {}).get("columns", {})
     fmt = formats[0] if formats else None
-    builder = {"target_cdr": _comm_row, "tower_dump": _comm_row, "ipdr": _session_row, "app_usage": _usage_row, "plate_sighting": _plate_row}[kind]
+    builder = {"target_cdr": _comm_row, "tower_dump": _comm_row, "ipdr": _session_row, "app_usage": _usage_row, "plate_sighting": _plate_row, "subscriber": _subscriber_row}[kind]
     data, truth = [], []
     ctx = {"entry": entry, "hints": hints, "recipes": recipes, "rng": rng, "index": index, "width": width, "fmt": fmt,
            "time_columns": time_columns, "kind": kind}
@@ -774,6 +774,57 @@ def _plate_row(i, ctx, defect):
     elif defect == "time_missing":
         expect = {"status": "quarantined", "reason": "time_missing", "tag": defect}
     return cells, expect
+
+
+SUBSCRIBER_STATUS_WORDS = ("Active", "Suspended", "Deactivated", "Blocked")
+SUBSCRIBER_STATUS_MEANING = {"Active": "active", "Suspended": "suspended", "Deactivated": "deactivated", "Blocked": "suspended", "Dormant": "unknown"}
+SUBSCRIBER_IDENTITY_FLAGS = ["identity_dropped:person_name", "identity_dropped:national_id", "identity_dropped:address"]
+
+
+def _subscriber_row(i, ctx, defect):
+    """One registration. The row carries a synthetic name, national ID number and address so that the test can prove they are recognised, counted and dropped. A registration has no required
+    time: a missing or unreadable activation date does not quarantine the row, it leaves the validity open (and is flagged when unreadable)."""
+    entry, hints, rng, index = ctx["entry"], ctx["hints"], ctx["rng"], ctx["index"]
+    fields = entry.get("fields") or {}
+    cells = [""] * ctx["width"]
+    if defect == "blank":
+        return cells, {"status": "skipped", "reason": "blank_row", "tag": "blank"}
+    n = i % 12 + 1
+    forms = party_forms(n)
+    raw_number = forms[("e164_12", "local_11", "plus_e164", "local_10")[i % 4]]
+    word = "Dormant" if defect == "unknown_label" else SUBSCRIBER_STATUS_WORDS[i % 4]
+    activated = _times(i, ctx)
+    deactivated = activated + datetime.timedelta(days=rng.randint(30, 400)) if word == "Deactivated" else None
+    time_cols, fmt = ctx["time_columns"], ctx["fmt"]
+    if defect == "time_unparsed":
+        _put(cells, index, time_cols["activated"], "not-a-time")
+    elif defect == "time_missing":
+        pass
+    else:
+        _put(cells, index, time_cols["activated"], render_time(activated, fmt, hints))
+        if deactivated is not None:
+            _put(cells, index, time_cols["deactivated"], render_time(deactivated, fmt, hints))
+    _put(cells, index, fields["msisdn"], "-1" if defect == "party_sentinel" else raw_number)
+    ref, imsi, iccid = "SUB-%05d" % n, reserved.synthetic_imsi(n), reserved.synthetic_iccid(n)
+    operator, service = "Operator %d" % (n % 4 + 1), ("Prepaid", "Postpaid")[n % 2]
+    for name, value in (("subscriber_ref", ref), ("imsi", imsi), ("iccid", iccid), ("status", word), ("operator", operator), ("service_type", service),
+                        ("person_name", reserved.synthetic_name(n)), ("national_id", reserved.synthetic_cnic(n)), ("address", reserved.synthetic_address(n))):
+        _put(cells, index, fields[name], value)
+    mapped_positions = {pos for pos, cell in enumerate(cells) if cell != ""}
+    _fill_other_columns(cells, ctx, i, mapped_positions, {"start": activated})
+    if defect == "party_sentinel":
+        return cells, {"status": "quarantined", "reason": "msisdn_unrecognised", "tag": defect}
+    flags = list(SUBSCRIBER_IDENTITY_FLAGS)
+    if defect == "time_unparsed":
+        flags.append("activated_unparsed")
+    if defect == "unknown_label":
+        flags.append("unmapped_label:status")
+    if word == "Blocked":
+        flags.append("enum_unconfirmed:status")
+    record = {"msisdn": forms["e164_12"], "msisdn_raw": raw_number, "msisdn_kind": "person_like", "subscriber_ref": ref, "imsi": imsi, "iccid": iccid,
+              "status": SUBSCRIBER_STATUS_MEANING[word], "operator_label": operator, "service_type": service.lower(),
+              "start_local": None if defect in ("time_unparsed", "time_missing") else activated.isoformat(sep=" ")}
+    return cells, {"status": "accepted", "tag": defect or "normal", "flags": flags, "record": record}
 
 
 def main(argv=None):

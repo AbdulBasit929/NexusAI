@@ -236,7 +236,7 @@ class RefusalTests(Workdir):
         self.assertEqual((out["status"], out["sheets"][0]["status"], out["sheets"][0]["layout_id"]), ("unrecognised", "ambiguous", "call-c4-telenor-style"))
 
     def test_a_layout_family_without_a_typed_table_is_skipped(self):
-        entry = dict(REGISTRY.get("call-c4-telenor-style"), family="subscriber")
+        entry = dict(REGISTRY.get("call-c4-telenor-style"), family="cell_reference")
 
         class Registry:
             def find_header(self, rows, include_draft=True):

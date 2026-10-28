@@ -39,7 +39,7 @@ TOOLS = REPO / "tools" / "real_data"
 EXPECTED_IDS = {
     "appusage-a1", "call-c1-company", "call-c2-strt-tm", "call-c3-ufone-style", "call-c4-telenor-style", "geofence-c5-mobilink",
     "geofence-c6-telenor", "geofence-c7-ufone", "geofence-c8-zong", "ipdr-i1-jazz-ufdr", "ipdr-i2-telenor-export", "ipdr-i3-ufone-xls",
-    "ipdr-i4-zong-txt", "ipdr-seed-s8", "call-demo-8", "call-ab-9-demo", "call-iso-10-demo", "ipdr-sessions-11-demo", "ipdr-url-10-demo", "anpr-a1",
+    "ipdr-i4-zong-txt", "ipdr-seed-s8", "call-demo-8", "call-ab-9-demo", "call-iso-10-demo", "ipdr-sessions-11-demo", "ipdr-url-10-demo", "anpr-a1", "subscriber-s1",
 }
 KARACHI = Policy(source_tz="Asia/Karachi", tz_basis="assumed_by_profile")
 
@@ -106,10 +106,10 @@ class EntryTests(unittest.TestCase):
 
     def test_command_line_validates_lists_and_writes_sql(self):
         code, text = self.run_cli("validate")
-        self.assertEqual((code, text.strip()), (0, "LAYOUTS=PASS entries=21"))
+        self.assertEqual((code, text.strip()), (0, "LAYOUTS=PASS entries=22"))
         code, text = self.run_cli("list")
         self.assertEqual(code, 0)
-        self.assertEqual(len(text.strip().splitlines()), 22, "a header line and one line per layout version")
+        self.assertEqual(len(text.strip().splitlines()), 23, "a header line and one line per layout version")
         for layout_id in EXPECTED_IDS:
             self.assertIn(layout_id, text)
         code, text = self.run_cli("sql")
@@ -479,7 +479,14 @@ class InterpretTests(unittest.TestCase):
                 accepted = sum(1 for t in golden.truth if t["status"] == "accepted")
                 self.assertEqual(summary["status"].get("accepted"), accepted)
                 self.assertEqual(summary["status"].get("skipped"), 1)
-                self.assertEqual(summary["quarantine_reasons"], {"blank_row": 1, "time_missing": 1, "time_unparsed": 1})
+                # what the truth says was refused or skipped, by reason (an event layout: a blank row and two time defects; a registration has no required time: a blank row and an unusable number)
+                wanted = {}
+                for t in golden.truth:
+                    if t["status"] != "accepted":
+                        wanted[t["reason"]] = wanted.get(t["reason"], 0) + 1
+                self.assertEqual(summary["quarantine_reasons"], wanted)
+                if entry["dataset_kind"] != "subscriber":
+                    self.assertEqual(wanted, {"blank_row": 1, "time_missing": 1, "time_unparsed": 1})
 
     def test_other_seeds_and_sizes_agree_too(self):
         for entry in REGISTRY.entries:
@@ -867,7 +874,7 @@ class GoldenFileTests(unittest.TestCase):
             with redirect_stdout(buf):
                 self.assertEqual(make_golden.main(["--list"]), 0)
                 self.assertEqual(make_golden.main(["--all", "--out", d, "--rows", "12"]), 0)
-            self.assertEqual(len(list(Path(d).iterdir())), 20)
+            self.assertEqual(len(list(Path(d).iterdir())), 21)
             self.assertEqual(set(buf.getvalue().split()) & EXPECTED_IDS, EXPECTED_IDS)
 
 

@@ -13,9 +13,9 @@ from typing import Any, Iterable, Iterator, Mapping, Sequence
 
 from .matching import DUPLICATE_SUFFIX, normalize_header
 from .parties import (
-    classify_party, clean, device_identifier, make_cell_key, normalize_plate, parse_coordinate, plate_script, split_combined_coordinates,
+    classify_party, clean, device_identifier, make_cell_key, normalize_iccid, normalize_plate, parse_coordinate, plate_script, split_combined_coordinates,
 )
-from .spec import column_ref
+from .spec import SUBSCRIBER_FIELDS, SUBSCRIBER_IDENTITY_FIELDS, column_ref
 from .timeparse import parse_time, to_utc
 
 DEFAULT_NULL_TOKENS = frozenset({"?", "-", "--", "N/A", "NA", "NULL", "NONE"})
@@ -165,7 +165,7 @@ class _Times:
         return to_utc(result.value, self.zone or "UTC", result.offset).isoformat()
 
     def basis_for_row(self) -> str | None:
-        start = self.results.get("start")
+        start = self.results.get("start") or next(iter(self.results.values()), None)
         if start is not None and start.offset:
             return "explicit_offset"
         return self.basis
@@ -309,9 +309,13 @@ def interpret_record(entry: Mapping[str, Any], record: Mapping[str, Any], *, row
         built = _plate_sighting(entry, view, times, flags)
         if not built["plate_norm"]:
             return RowResult("quarantined", "plate_missing", None, [], row_number)
+    elif kind == "subscriber":
+        built = _subscriber(entry, view, times, flags)
+        if not built["msisdn"]:
+            return RowResult("quarantined", "msisdn_unrecognised" if built["msisdn_raw"] else "msisdn_missing", None, [], row_number)
     else:
         built = _app_usage(entry, view, times, flags)
-    if not times.zone and not any(r.offset for r in times.results.values()):
+    if times.results and not times.zone and not any(r.offset for r in times.results.values()):
         flags.append("source_timezone_unknown")
     start, end = times.results.get("start"), times.results.get("end")
     if start and end and start.value and end.value and end.value < start.value:
@@ -322,7 +326,8 @@ def interpret_record(entry: Mapping[str, Any], record: Mapping[str, Any], *, row
     }
     record_out.update(built)
     record_out["quality_flags"] = sorted(set(flags))
-    record_out["raw_payload"] = _raw_payload(record)
+    if "raw_payload" not in built:      # a builder that has redacted the row (a registration: identity columns dropped) keeps its own copy; the full source row is never put back
+        record_out["raw_payload"] = _raw_payload(record)
     return RowResult("accepted", None, record_out, record_out["quality_flags"], row_number)
 
 
@@ -484,6 +489,56 @@ def _plate_sighting(entry: Mapping[str, Any], view: RecordView, times: _Times, f
         "province": text("province"), "series": text("series"),
         "camera_id": text("camera_id"), "camera_label": text("camera_label"), "lane": text("lane"),
         "lat": lat, "lon": lon, "loc_method": "source_supplied" if lat is not None else "none", "confidence": confidence,
+    }
+
+
+def _subscriber(entry: Mapping[str, Any], view: RecordView, times: _Times, flags: list[str]) -> dict[str, Any]:
+    """One registration: this number was registered, per this file, as this SIM from an activation to a deactivation. Nothing here says who the holder is: the identity columns of the source
+    (a name, a national ID number, an address) are recognised, counted (a flag per column) and DROPPED, and the stored copy of the row (raw_payload_redacted) holds only the columns the layout
+    declares as registration facts, so a column the layout does not know cannot carry an identity into the database."""
+    fields = entry.get("fields") or {}
+
+    def text(name: str) -> str | None:
+        return _text(entry, view, name, fields.get(name))
+
+    raw_number = text("msisdn")
+    kind, number, party_flags = classify_party(raw_number) if raw_number else (None, None, [])
+    msisdn = number if kind in ("person_like", "international") else None
+    flags.extend(f for f in party_flags if f != "party_missing")
+    imsi, _, imsi_flags = device_identifier(text("imsi"), "imsi")
+    iccid, iccid_flags = normalize_iccid(text("iccid"))
+    flags.extend(imsi_flags + iccid_flags)
+    mapped = _apply_enums(entry, view, flags).get("status")
+    raw_status = text("status")
+    status = mapped or ("unknown" if raw_status else None)
+    if raw_status and mapped is None and not any(f.startswith("unmapped_label:status") for f in flags):
+        flags.append("unmapped_label:status")
+    for name in SUBSCRIBER_IDENTITY_FIELDS:
+        if fields.get(name) is not None and view.get(fields[name]):
+            flags.append("identity_dropped:" + name)
+    activated, deactivated = times.utc("activated"), times.utc("deactivated")
+    for name in ("activated", "deactivated"):
+        result = times.results.get(name)
+        if result is not None and result.value is None:
+            flags.append(name + "_unparsed")
+    valid_to = deactivated
+    if activated and deactivated and deactivated < activated:
+        flags.append("deactivated_before_activated")
+        valid_to = None
+    service = text("service_type")
+    declared = {name: fields[name] for name in SUBSCRIBER_FIELDS if fields.get(name) is not None}
+    declared.update({name: column for name, column in ((entry.get("time") or {}).get("columns") or {}).items()})
+    payload = {}
+    for name, spec in sorted(declared.items()):
+        ref = column_ref(spec["column"] if isinstance(spec, Mapping) and "column" in spec else spec)
+        if ref is not None:
+            payload[ref[0] if ref[1] == 1 else "%s__duplicate_%d" % ref] = view.get(spec)
+    return {
+        "msisdn": msisdn, "msisdn_raw": raw_number, "msisdn_kind": kind, "subscriber_ref": text("subscriber_ref"), "imsi": imsi, "iccid": iccid, "status": status,
+        "operator_label": text("operator"), "service_type": service.lower() if service else None,
+        "activated_at": activated, "deactivated_at": deactivated, "valid_from": activated, "valid_to": valid_to,
+        "start_local": times.local("activated"),
+        "raw_payload_redacted": payload, "raw_payload": payload,
     }
 
 

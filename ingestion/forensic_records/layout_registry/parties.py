@@ -159,3 +159,48 @@ def plate_script(raw: object) -> str | None:
     if scripts == {"latin", "arabic"}:
         return "mixed"
     return "other"
+
+
+def _luhn_ok(digits: str) -> bool:
+    total = 0
+    for i, ch in enumerate(reversed(digits)):
+        d = int(ch)
+        if i % 2 == 1:
+            d = d * 2 - 9 if d * 2 > 9 else d * 2
+        total += d
+    return total % 10 == 0
+
+
+def normalize_iccid(raw: object) -> tuple[str | None, list[str]]:
+    """The SIM serial (ICCID): digits only, 18 to 20 of them (a trailing filler F and spaces or dashes are dropped). Returns (digits, flags). A check-digit failure or an odd length is
+    flagged and kept (the raw value is the evidence); text that is not a number (a spreadsheet's 8.99E+18) is not an ICCID: (None, flag)."""
+    text = clean(raw)
+    if text.endswith(".0") and text[:-2].isdigit():
+        text = text[:-2]
+    if not text:
+        return None, []
+    text = re.sub(r"[\s\-]", "", text)
+    if text[-1:] in ("F", "f"):
+        text = text[:-1]
+    if not text.isdigit():
+        return None, ["iccid_not_numeric"]
+    if not 18 <= len(text) <= 20:
+        return text, ["iccid_length_%d" % len(text)]
+    return text, ([] if _luhn_ok(text) else ["iccid_luhn_fail"])
+
+
+def normalize_tac(raw: object) -> tuple[str | None, list[str]]:
+    """A Type Allocation Code from a reference list: eight digits. A seven-digit code lost its leading zero in a spreadsheet: it is left-padded and flagged tac_padded. Anything else (fewer
+    digits, not numeric, empty) is not a TAC: (None, flag). Returns (tac, flags)."""
+    text = clean(raw)
+    if text.endswith(".0") and text[:-2].isdigit():
+        text = text[:-2]
+    if not text:
+        return None, ["tac_missing"]
+    if not text.isdigit():
+        return None, ["tac_not_numeric"]
+    if len(text) == 8:
+        return text, []
+    if len(text) == 7:
+        return "0" + text, ["tac_padded"]
+    return None, ["tac_length_%d" % len(text)]

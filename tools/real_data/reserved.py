@@ -158,3 +158,28 @@ def is_reserved_plate(text):
     folded = unicodedata.normalize("NFKC", str(text)).upper()
     digits = "".join(str(ord(c) - 0x0660) if "\u0660" <= c <= "\u0669" else str(ord(c) - 0x06F0) if "\u06f0" <= c <= "\u06f9" else c for c in folded)
     return re.fullmatch(SYNTHETIC_PLATE_SERIES + r"\d{4}", re.sub(r"[\s\-_./\u2010-\u2015\u2212\u00b7\u2022]+", "", digits)) is not None
+
+
+# A SIM serial (ICCID) is 89 + the issuer's country code + issuer and account digits + a check digit (ITU-T E.118). No country code begins with 0, so a serial that begins 8900 is not any
+# issuer's: the reserved form is 8900 + 14 digits + the Luhn check digit (19 digits).
+SYNTHETIC_ICCID_PREFIX = "8900"
+
+
+def synthetic_iccid(n):
+    if not 0 <= n < 10 ** 14:
+        raise ValueError("n must be below 10**14")
+    body = SYNTHETIC_ICCID_PREFIX + "%014d" % n
+    return body + luhn_check_digit(body)
+
+
+def is_reserved_iccid(text):
+    return len(text) == 19 and text.isdigit() and text.startswith(SYNTHETIC_ICCID_PREFIX) and luhn_ok(text)
+
+
+# Names and addresses that no person has: they exist so that the dropping of identity columns can be proved on files that carry them.
+def synthetic_name(n):
+    return "Synthetic Person %04d" % n
+
+
+def synthetic_address(n):
+    return "%d Synthetic Street, Test City" % (n + 1)

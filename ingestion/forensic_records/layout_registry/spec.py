@@ -54,12 +54,18 @@ SESSION_FIELDS = (
 USAGE_FIELDS = ("msisdn", "imsi", "imei", "terminal", "apn", "app_category", "app", "app_feature", "province", "city")
 # A plate sighting (camera export): the plate, the camera, where it is, how sure the camera was. The direction a vehicle travelled has no column in forensic.plate_sighting; it stays in raw_payload.
 PLATE_FIELDS = ("plate", "camera_id", "camera_label", "lane", "lat", "lon", "confidence", "province", "series")
+# A subscriber or SIM information export. The identity fields (a name, a national ID number, an address) are NOT typed: the interpreter notes that they are present and drops them (migration 012:
+# forensic.subscriber_identity has no privilege for the runtime role until the masking design is approved). A layout names them only so that they are recognised, counted and left out.
+SUBSCRIBER_STATUSES = ("active", "suspended", "deactivated", "unknown")
+SUBSCRIBER_FIELDS = ("msisdn", "subscriber_ref", "imsi", "iccid", "status", "operator", "service_type")
+SUBSCRIBER_IDENTITY_FIELDS = ("person_name", "national_id", "address")
 FIELDS_BY_FAMILY = {
     "target_cdr": COMM_FIELDS,
     "tower_dump": COMM_FIELDS,
     "ipdr": SESSION_FIELDS,
     "app_usage": USAGE_FIELDS,
     "plate_sighting": PLATE_FIELDS,
+    "subscriber": SUBSCRIBER_FIELDS + SUBSCRIBER_IDENTITY_FIELDS,
 }
 TIME_FIELDS_BY_KIND = {
     "target_cdr": ("start", "end"),
@@ -67,8 +73,9 @@ TIME_FIELDS_BY_KIND = {
     "ipdr": ("start", "end", "nat_start", "nat_end"),
     "app_usage": ("start", "end"),
     "plate_sighting": ("start",),
+    "subscriber": ("activated", "deactivated"),   # a registration has no event time: it is valid from its activation to its deactivation
 }
-ENUM_TARGETS = {"direction": DIRECTIONS, "event_type": EVENT_TYPES}
+ENUM_TARGETS = {"direction": DIRECTIONS, "event_type": EVENT_TYPES, "status": SUBSCRIBER_STATUSES}
 
 LAYOUT_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 TZ_NAME = re.compile(r"^[A-Za-z]+(?:/[A-Za-z0-9_+\-]+)+$|^UTC$")
