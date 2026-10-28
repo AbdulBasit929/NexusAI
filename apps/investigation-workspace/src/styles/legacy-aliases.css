@@ -1,7 +1,7 @@
 /* Compatibility only. Delete in U10 after every legacy stylesheet is retired. */
 @layer tokens {
 :root {
-  --nx-theme-name: 'Teal instrument';
+  --nx-theme-name: 'Ink and signal';
   --analyst-accent: var(--nx-accent);
   --analyst-accent-hover: var(--nx-accent-hover);
   --analyst-accent-rule-size: var(--nx-border-focus);
@@ -153,8 +153,8 @@
   --analyst-type-title-tracking: var(--nx-type-tracking-caps);
   --analyst-warning: var(--nx-status-processing);
 }
-:root[data-direction="b"] {
-  --nx-theme-name: 'Ink and signal';
+:root[data-direction="a"] {
+  --nx-theme-name: 'Teal instrument';
 }
 
 :root[data-theme="high-contrast"] {

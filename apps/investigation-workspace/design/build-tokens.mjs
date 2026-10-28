@@ -10,10 +10,10 @@ const reportPath = path.join(here, 'tokens.generated.json')
 const source = JSON.parse(fs.readFileSync(sourcePath, 'utf8'))
 
 const themeSelectors = {
-  'a-light': ':root, :root[data-theme="light"], [data-foundation-direction="a"][data-theme-preview="light"]',
-  'a-dark': ':root[data-theme="dark"], [data-foundation-direction="a"][data-theme-preview="dark"]',
-  'b-light': ':root[data-direction="b"], :root[data-direction="b"][data-theme="light"], [data-foundation-direction="b"][data-theme-preview="light"]',
-  'b-dark': ':root[data-direction="b"][data-theme="dark"], [data-foundation-direction="b"][data-theme-preview="dark"]',
+  'a-light': ':root[data-direction="a"], :root[data-direction="a"][data-theme="light"], [data-foundation-direction="a"][data-theme-preview="light"]',
+  'a-dark': ':root[data-direction="a"][data-theme="dark"], [data-foundation-direction="a"][data-theme-preview="dark"]',
+  'b-light': ':root, :root[data-theme="light"], :root[data-direction="b"], :root[data-direction="b"][data-theme="light"], [data-foundation-direction="b"][data-theme-preview="light"]',
+  'b-dark': ':root[data-theme="dark"], :root[data-direction="b"][data-theme="dark"], [data-foundation-direction="b"][data-theme-preview="dark"]',
   'high-contrast': ':root[data-theme="high-contrast"], [data-theme-preview="high-contrast"]',
 }
 
@@ -167,12 +167,12 @@ for (const [theme, selector] of Object.entries(themeSelectors)) {
 
 css.push(
   '@media (prefers-color-scheme: dark) {',
-  '  :root:not([data-theme="light"]):not([data-theme="high-contrast"]):not([data-direction="b"]) {',
-  ...Object.entries(report.themes['a-dark']).map(([name, value]) => `    --nx-${name}: ${value};`),
+  '  :root:not([data-theme="light"]):not([data-theme="high-contrast"]):not([data-direction="a"]) {',
+  ...Object.entries(report.themes['b-dark']).map(([name, value]) => `    --nx-${name}: ${value};`),
   '    color-scheme: dark;',
   '  }',
-  '  :root[data-direction="b"]:not([data-theme="light"]):not([data-theme="high-contrast"]) {',
-  ...Object.entries(report.themes['b-dark']).map(([name, value]) => `    --nx-${name}: ${value};`),
+  '  :root[data-direction="a"]:not([data-theme="light"]):not([data-theme="high-contrast"]) {',
+  ...Object.entries(report.themes['a-dark']).map(([name, value]) => `    --nx-${name}: ${value};`),
   '    color-scheme: dark;',
   '  }',
   '}',

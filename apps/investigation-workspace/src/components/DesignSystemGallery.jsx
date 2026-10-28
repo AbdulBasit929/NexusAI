@@ -22,7 +22,6 @@ import {
   X,
 } from 'lucide-react'
 import { BrandLockup } from './BrandLockup.jsx'
-import { PaletteOptions } from './PaletteOptions.jsx'
 import { PageTemplatesDemo } from './PageTemplatesDemo.jsx'
 import { CarrierBadge } from './CarrierBadge.jsx'
 import { CARRIER_ORDER } from '../lib/carriers.js'
@@ -177,8 +176,6 @@ export function DesignSystemGallery() {
           <rect x="50" y="64" width="128" height="76" rx="16" /><rect x="248" y="120" width="148" height="82" rx="16" />
         </svg>
       </section>
-
-      <PaletteOptions />
 
       <section className="gallery-section" aria-labelledby="gallery-foundations-title">
         <div className="gallery-section__heading"><div><span className="eyebrow">Foundations</span><h2 id="gallery-foundations-title">Colour, surface and depth</h2></div><p>Solid work surfaces sit over a tinted canvas; identity fields carry the richer gradient.</p></div>

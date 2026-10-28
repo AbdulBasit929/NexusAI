@@ -263,7 +263,7 @@ function SimulationSection({ simulation, setSimulation }) {
 }
 
 export default function FoundationsPage() {
-  const [direction, setDirection] = useState('a')
+  const [direction, setDirection] = useState('b')
   const [theme, setTheme] = useState('light')
   const [viewport, setViewport] = useState('1440')
   const [density, setDensity] = useState('default')

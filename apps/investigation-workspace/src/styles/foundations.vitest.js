@@ -14,7 +14,7 @@ describe('U1 foundation contract', () => {
   })
 
   it('maps every legacy analyst token through the alias layer', () => {
-    const legacyFiles = ['tokens.css', 'workspace.css', 'identity-a.css', 'shell.css', 'canvas.css', 'connections.css', 'workbench.css', 'palette-options.css']
+    const legacyFiles = ['tokens.css', 'workspace.css', 'identity-a.css', 'shell.css', 'canvas.css', 'connections.css', 'workbench.css']
     const used = new Set(legacyFiles.flatMap(file => [...read(`src/styles/${file}`).matchAll(/--analyst-[\w-]+/g)].map(match => match[0])))
     const aliases = new Set([...read('src/styles/legacy-aliases.css').matchAll(/(--analyst-[\w-]+)\s*:/g)].map(match => match[1]))
     expect([...used].filter(name => !aliases.has(name))).toEqual([])

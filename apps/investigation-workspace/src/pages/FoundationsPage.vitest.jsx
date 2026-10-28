@@ -8,6 +8,7 @@ describe('FoundationsPage', () => {
     render(<FoundationsPage />)
     expect(screen.getByRole('heading', { name: 'A calm instrument for evidence' })).toBeInTheDocument()
     expect(screen.getByText('160 token pairs pass')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'B · Ink and signal' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getAllByText('Generated demonstration')).toHaveLength(3)
     expect(screen.getByRole('heading', { name: 'Generated contrast table' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Simulation and redundant encoding' })).toBeInTheDocument()
@@ -16,6 +17,7 @@ describe('FoundationsPage', () => {
   it('switches direction, theme, density and preview width without replacing the screen set', async () => {
     const user = userEvent.setup()
     const { container } = render(<FoundationsPage />)
+    await user.click(screen.getByRole('button', { name: 'A · Teal instrument' }))
     await user.click(screen.getByRole('button', { name: 'B · Ink and signal' }))
     await user.click(screen.getByRole('button', { name: 'Dark' }))
     await user.click(screen.getByRole('button', { name: '390 px' }))

@@ -20,10 +20,11 @@ do not provide.
 
 ## Theme and role contract
 
-The gallery exposes two candidate directions. `a` is **Teal instrument** and
-keeps a quiet teal bias; `b` is **Ink and signal** and uses near-neutral
-record-like surfaces. Both share the same semantics, status meanings, evidence
-strengths, data palette, density, motion and component geometry. Light, dark and
+The selected product direction is `b`, **Ink and signal**: near-neutral
+record-like surfaces with one blue-teal action signal. `a`, **Teal instrument**,
+remains only in `/design/foundations` as the comparison record that led to the
+decision. Both share the same semantics, status meanings, evidence strengths,
+data palette, density, motion and component geometry. Light, dark and
 high-contrast themes change values, never roles.
 
 Core roles are:

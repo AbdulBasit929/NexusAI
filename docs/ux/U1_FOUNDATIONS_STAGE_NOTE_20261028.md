@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-28
 **Branch / port:** `ui/u1-foundations` / `http://localhost:4182`
-**Status:** gate ready; owner decision O-3 is still open
+**Status:** accepted; O-3 answered B · Ink and signal
 **Owner:** Codex for the interface paths; no backend or live state changed
 
 ## Outcome
@@ -39,10 +39,10 @@ as U1 requires.
 | A · Teal instrument | cool paper and deep teal-slate, restrained teal action | continuity without the prior glow/gradient chrome | may retain too much of the old technical character |
 | B · Ink and signal | near-neutral paper/ink and slate, blue-teal action signal | strongest record/instrument character; data stands forward | quiet separation must not become generic |
 
-Recommendation after implementation: **B · Ink and signal**. Its neutral chrome
-makes evidence, warnings and charts easier to distinguish, while A remains a
-credible continuity choice. The owner decides O-3 by looking at the complete
-screen set, not swatches alone.
+**Owner decision, 2026-10-28: B · Ink and signal.** Its neutral chrome makes
+evidence, warnings and charts easier to distinguish. B is now the product
+default in light and dark; A remains only in the foundations gallery as the
+comparison record.
 
 ## Proof
 
@@ -54,11 +54,11 @@ screen set, not swatches alone.
 | Style contract | plain-Node scan passes: no raw colour, `!important`, ID selectors or page duration literals in migrated U1 CSS |
 | Production build | **passes**, 2,733 modules transformed; existing ECharts/Cytoscape/MapLibre chunk warnings remain |
 | Foundation CSS | **24,881 B raw / 3,846 B gzip** route chunk; under the 30 KB gzip route limit |
-| Initial JavaScript | **203,787 B raw / 67,117 B gzip** |
-| Foundation JavaScript | **23,262 B raw / 6,464 B gzip** |
-| Existing global CSS after production minification | **531,086 B raw / 71,181 B gzip**; the 150 KB raw target is not met because U1 is forbidden to delete legacy CSS |
-| Local Event Timing p75 | direction **32 ms**, theme **32 ms**, density **40 ms**; all below the 200 ms INP threshold |
-| Next-paint proxy p75 | direction **25.10 ms**, theme **23.00 ms**, density **25.40 ms** |
+| Initial JavaScript | **203,748 B raw / 67,101 B gzip** |
+| Foundation JavaScript | **23,640 B raw / 6,549 B gzip** |
+| Existing global CSS after production minification | **531,193 B raw / 71,189 B gzip**; the 150 KB raw target is not met because U1 is forbidden to delete page-era legacy CSS |
+| Local Event Timing p75 | direction **48 ms**, theme **32 ms**, density **32 ms**; all below the 200 ms INP threshold |
+| Next-paint proxy p75 | direction **35.40 ms**, theme **27.50 ms**, density **27.20 ms** |
 | Responsive visual check | A light/dark, B dark and the 390 px preview inspected; narrow Case Overview reflows without page clipping |
 
 The interaction numbers are a local Chromium lab baseline, not field INP. The
@@ -88,12 +88,10 @@ machine-readable record, environment and method are in
   No fixture was copied, fabricated or committed to conceal that environment
   gap.
 
-## Owner review script
+## Close
 
-1. Open `http://localhost:4182/design/foundations`.
-2. Compare A and B in light, then dark, without changing any other control.
-3. Switch 1440 to 390 and inspect all three synthetic screens.
-4. Check high contrast, compact/default/comfortable density and reduced motion.
-5. Review the generated contrast and CVD sections.
-6. Record O-3 as A or B. That choice closes the colour gate and makes U2 the
-   next implementation stage.
+O-3 is recorded in the directive and current UI track. The obsolete
+`PaletteOptions` component and stylesheet are retired as the U1 card requires;
+the comparison remains available at `/design/foundations`. U1 is accepted and
+U2 (shell and navigation) is next. Merging this branch into `lane-arms` remains
+an explicit repository action; this decision does not perform that merge.
