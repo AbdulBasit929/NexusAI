@@ -74,6 +74,7 @@ def collect_questions(params, key):
     """Every bank that exists for the families the case holds, each with its oracle. Returns [(bank, [question])]."""
     import anpr_bank
     import build_questions
+    import doc_bank
     import pair_events_bank
     import stage3a_bank
     import stage3bc_bank
@@ -88,23 +89,25 @@ def collect_questions(params, key):
     if key.get("subscriber_truth"):
         truth, events = subscriber_bank.build_truth(params)
         banks.append(("registrations", subscriber_bank.bank_questions(truth, events, params.seed)))
+    if key.get("document_truth"):
+        banks.append(("documents", doc_bank.bank_questions(key["document_truth"], key, params.seed)))
     return banks
 
 
-def build(name, out_root, force=False):
+def build(name, out_root, force=False, folder=None):
     import generate
     import world as w
 
     spec = dict(CASES[name])
     prefix = spec.pop("id_prefix", "ORI")
     params = w.Params(**spec)
-    target = os.path.join(out_root, name)
+    target = os.path.join(out_root, folder or name)
     if os.path.exists(target) and not force:
         raise SystemExit("%s exists; nothing is overwritten (use --check to compare, or remove it by hand)" % target)
     os.makedirs(out_root, exist_ok=True)
     work = tempfile.mkdtemp(prefix=".build-%s-" % name, dir=out_root)
     try:
-        root = generate.write_case(params, work, with_anpr=True, with_subscribers=True, with_transactions=True)
+        root = generate.write_case(params, work, with_anpr=True, with_subscribers=True, with_transactions=True, with_documents=bool(params.locale))
         with open(os.path.join(root, "key", "key.json"), encoding="utf-8") as handle:
             key = json.load(handle)
         catalogue, per_bank = [], collections.OrderedDict()
@@ -149,6 +152,7 @@ def main(argv):
     parser.add_argument("case", nargs="?")
     parser.add_argument("--check", action="store_true", help="rebuild into a temporary folder and compare every hash with the built case")
     parser.add_argument("--list", action="store_true")
+    parser.add_argument("--as", dest="folder", help="the folder name under the showcase root when it is not the case name (a build never overwrites)")
     args = parser.parse_args(argv)
     if args.list or not args.case:
         for name, spec in CASES.items():
@@ -157,19 +161,19 @@ def main(argv):
     if args.case not in CASES:
         raise SystemExit("unknown case %r" % args.case)
     if args.check:
-        built = os.path.join(ROOT, args.case, "showcase-manifest.json")
+        built = os.path.join(ROOT, args.folder or args.case, "showcase-manifest.json")
         with open(built, encoding="utf-8") as handle:
             wanted = {k: v["sha256"] for k, v in json.load(handle)["files"].items() if k != "showcase-manifest.json"}
         scratch = tempfile.mkdtemp(prefix="showcase-check-")
         try:
-            target, _, _, files = build(args.case, scratch)
+            target, _, _, files = build(args.case, scratch, folder=args.folder)
             got = {k: v["sha256"] for k, v in files.items() if k != "showcase-manifest.json"}
         finally:
             shutil.rmtree(scratch, ignore_errors=True)
         different = sorted(k for k in set(wanted) | set(got) if wanted.get(k) != got.get(k))
         print("REPRODUCIBLE" if not different else "DIFFERENT: %s" % different[:10])
         return 0 if not different else 1
-    target, catalogue, per_bank, files = build(args.case, ROOT)
+    target, catalogue, per_bank, files = build(args.case, ROOT, folder=args.folder)
     summarise(target, catalogue, per_bank, files)
     return 0
 

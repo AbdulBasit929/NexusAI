@@ -102,6 +102,15 @@ class Context:
         who = self.ident(person)
         return N(person.pid, who["name_urdu"] if urdu else who["name"])
 
+    def female(self, person):
+        return self.ident(person)["gender"] == "F"
+
+    def accused_ur(self, person):
+        return "ملزمہ" if self.female(person) else "ملزم"
+
+    def son_ur(self, person):
+        return " دختر " if self.female(person) else " ولد "
+
     def father(self, person, urdu=False):
         who = self.ident(person)
         return who["father_urdu"] if urdu else who["father"]
@@ -176,7 +185,7 @@ def documents(ctx):
                ["Accused mobile", [ctx.msisdn(a)]],
                ["Account named by the complainant", [ctx.iban(a)]],
                ["Vehicle", ["Honda City, registration ", ctx.plate(plate_a, a.pid)]]]),
-        p("The complainant states that on %s the accused called from " % ctx.date(), ctx.msisdn(a), " and asked him to deposit PKR ", D("350,000", "msisdn"),
+        p("The complainant states that on %s the accused called from " % ctx.date(), ctx.msisdn(a), " and asked the complainant to deposit PKR ", D("350,000", "msisdn"),
           " into the account above. The accused was last seen in ", ctx.place(site_of(a, 1)), "."),
         p("Police station landline ", D("042-35761234", "msisdn"), ", reference ", D("REF00000394", "account"), ", a longer reference ", D("9903000001000555", "msisdn"), "."),
     ]))
@@ -186,17 +195,17 @@ def documents(ctx):
         p("ابتدائی اطلاعی رپورٹ (مصنوعی آزمائشی دستاویز)", rtl=True, bold=True),
         p("یہ دستاویز مصنوعی ہے؛ اس میں درج تمام نمبر فرضی ہیں اور یہ کسی حقیقی شخص کا ریکارڈ نہیں۔", rtl=True),
         p("تھانہ: ", ctx.place(site_of(a2), urdu=True), "، ضلع لاہور۔ مقدمہ نمبر ", D("۷۸/۲۶", "plate"), " زیر دفعہ ", D("۴۲۰", "msisdn"), " ت پ۔ تاریخ: %s۔" % ctx.date(urdu=True), rtl=True),
-        p("مدعی ", ctx.name(k2, urdu=True), " ولد ", ctx.father(k2, urdu=True), " نے بیان کیا کہ ملزم ", ctx.name(a2, urdu=True), " نے موبائل نمبر ", ctx.msisdn(a2, urdu=True),
+        p("مدعیہ " if ctx.female(k2) else "مدعی ", ctx.name(k2, urdu=True), ctx.son_ur(k2), ctx.father(k2, urdu=True), " نے بیان کیا کہ " + ctx.accused_ur(a2) + " ", ctx.name(a2, urdu=True), " نے موبائل نمبر ", ctx.msisdn(a2, urdu=True),
           " اور ", ctx.number(b2.msisdn, b2.pid, urdu=True), " سے رابطہ کیا۔", rtl=True),
-        p("ملزم نے رقم اکاؤنٹ ", ctx.iban(a2), " میں جمع کرانے کو کہا۔", rtl=True),
-        p("ملزم کو آخری بار ", ctx.place(site_of(a2, 2), urdu=True), " میں دیکھا گیا۔ ملزم کا شناختی کارڈ نمبر ", ctx.nid(a2, urdu=True), " ہے۔", rtl=True),
+        p(ctx.accused_ur(a2) + " نے رقم اکاؤنٹ ", ctx.iban(a2), " میں جمع کرانے کو کہا۔", rtl=True),
+        p(ctx.accused_ur(a2) + " کو آخری بار ", ctx.place(site_of(a2, 2), urdu=True), " میں دیکھا گیا۔ " + ctx.accused_ur(a2) + " کا شناختی کارڈ نمبر ", ctx.nid(a2, urdu=True), " ہے۔", rtl=True),
     ]))
     # D03 Witness statement, Urdu, UTF-8
     out.append(("D03-witness-urdu", ".txt", "ur", [
         p("بیان گواہ (زیر دفعہ ۱۶۱ ضابطہ فوجداری) — مصنوعی آزمائشی دستاویز", rtl=True),
-        p("میں ", ctx.name(witness, urdu=True), " ولد ", ctx.father(witness, urdu=True), " ساکن ", ctx.place(site_of(witness), urdu=True), " لاہور، بیان کرتا ہوں کہ مجھے ملزم کا موبائل نمبر ",
+        p("میں ", ctx.name(witness, urdu=True), " ولد ", ctx.father(witness, urdu=True), " ساکن ", ctx.place(site_of(witness), urdu=True), " لاہور، بیان کرتا ہوں کہ مجھے " + ctx.accused_ur(c) + " کا موبائل نمبر ",
           ctx.msisdn(c, urdu=True), " معلوم ہے۔", rtl=True),
-        p("میں نے ملزم کو ", ctx.place(site_of(c, 3), urdu=True), " میں اپنی آنکھوں سے دیکھا۔ اس کی گاڑی کا نمبر ", ctx.plate(plate_c, c.pid, urdu=True), " تھا۔", rtl=True),
+        p("میں نے " + ctx.accused_ur(c) + " کو ", ctx.place(site_of(c, 3), urdu=True), " میں اپنی آنکھوں سے دیکھا۔ اس کی گاڑی کا نمبر ", ctx.plate(plate_c, c.pid, urdu=True), " تھا۔", rtl=True),
     ], "utf-8"))
     # D04 Witness statement, Roman Urdu, UTF-16 with Windows line ends; the successor number
     old_n, new_n = (successor["old"], successor["new"]) if successor else (b.msisdn, c.msisdn)
@@ -205,7 +214,7 @@ def documents(ctx):
         p("Mera naam ", ctx.name(witness), " hai. Main ", ctx.place(site_of(witness)), " ka rehne wala hun."),
         p("Maine mulzim ko ", ctx.place(site_of(b, 1)), " mein dekha tha. Us ke paas gari number ", ctx.plate(plate_b, b.pid), " thi."),
         p("Pehle uska number ", ctx.number(old_n, holder[old_n].pid if old_n in holder else None), " tha, ab wo naye number ", ctx.number(new_n, holder[new_n].pid if new_n in holder else None),
-          " se baat karta hai. Purana number band ho gaya hai."),
+          " se baat " + ("karti" if (successor and old_n in holder and ctx.female(holder[old_n])) else "karta") + " hai. Purana number band ho gaya hai."),
     ], "utf-16"))
     # D05 Seizure memo, table
     shared = holder[dual["numbers"][0]] if dual and dual["numbers"][0] in holder else a
@@ -279,7 +288,7 @@ def documents(ctx):
     out.append(("D12-complaint-urdu", ".docx", "ur", [
         p("درخواست برائے اندراج مقدمہ (مصنوعی آزمائشی دستاویز)", rtl=True, bold=True),
         p("بخدمت جناب ایس ایچ او تھانہ ", ctx.place(site_of(complainant), urdu=True), "۔", rtl=True),
-        p("گزارش ہے کہ مجھے نامعلوم نمبر ", ctx.msisdn(b, urdu=True), " سے دھمکی آمیز کال موصول ہوئی۔ کال کرنے والا گاڑی نمبر پلیٹ ", ctx.plate(plate_b, b.pid, urdu=True), " میں سوار تھا۔", rtl=True),
+        p("گزارش ہے کہ مجھے نامعلوم نمبر ", ctx.msisdn(b, urdu=True), " سے دھمکی آمیز کال موصول ہوئی۔ کال کے وقت گاڑی نمبر پلیٹ ", ctx.plate(plate_b, b.pid, urdu=True), " موقع پر موجود تھی۔", rtl=True),
         p("میرا رابطہ نمبر ", ctx.msisdn(complainant, urdu=True), " ہے۔", rtl=True),
     ]))
     # D13 Extraction index

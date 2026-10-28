@@ -202,13 +202,52 @@ class GeneratorFacts(unittest.TestCase):
             doc_case.build(w.Params(seed=1), None, {})
 
 
+# forms the generator never writes (not a gate): what a real file may hold that nobody listed. (text, kind, value)
+UNLISTED = [
+    ("Tel: 0300.0001000", "msisdn", "923000001000"), ("mobile 0300 000 1000", "msisdn", "923000001000"), ("mobile 03 00 0001000", "msisdn", "923000001000"),
+    ("mobile +92(300)0001000", "msisdn", "923000001000"), ("mobile +923000001000", "msisdn", "923000001000"), ("mobile +92 3000001000", "msisdn", "923000001000"),
+    ("mobile 0092-300-0001000", "msisdn", "923000001000"), ("mobile 0300‑0001000", "msisdn", "923000001000"), ("mobile 0300 0001000", "msisdn", "923000001000"),
+    ("mobile 300-0001000", "msisdn", "923000001000"), ("mobile: 0300-0001000/0300-0001001", "msisdn", "923000001000"), ("WhatsApp:0300-0001000", "msisdn", "923000001000"),
+    ("CNIC 00000–1234567–1", "national_id", "00000-1234567-1"), ("CNIC 00000 1234567 1", "national_id", "00000-1234567-1"), ("CNIC: 00000-1234567-1.", "national_id", "00000-1234567-1"),
+    ("CNIC No. 0000012345671", "national_id", "00000-1234567-1"), ("N.I.C. 00000-1234567-1", "national_id", "00000-1234567-1"),
+    ("IBAN PK00-SYNT-0000-0000-0000-2004", "account", "PK00SYNT0000000000002004"), ("IBAN: PK00 SYNT0000000000002004", "account", "PK00SYNT0000000000002004"),
+    ("A/C PK00SYNT0000000000002004.", "account", "PK00SYNT0000000000002004"),
+    ("Veh. reg LEA-21-1234", "plate", "LEA211234"), ("Reg # SYNT 4024", "plate", "SYNT4024"), ("motorbike SYNT-4024", "plate", "SYNT4024"), ("car no. SYNT-4024", "plate", "SYNT4024"),
+    ("IMEI: 000000000010009", "imei", "000000000010009"), ("IMEI 00-000000-001000-9", "imei", "000000000010009"), ("IMEI1 000000000010009", "imei", "000000000010009"),
+    ("SIM 8900 0000 0000 0100 02", "iccid", "8900000000000010002"),
+]
+
+
+def probe():
+    import re
+    kinds = collections.defaultdict(lambda: [0, 0])
+    for text, kind, value in UNLISTED:
+        got = [(m.kind, m.value) for m in mention_extractor.extract_mentions(text, pk_locale.gazetteer("lahore"))]
+        hit = (kind, value) in got
+        kinds[kind][0 if hit else 1] += 1
+        print("   %-6s %-9s %s" % ("found" if hit else "MISSED", kind, text.encode("unicode_escape").decode("ascii") if re.search(r"[^\x00-\x7f]", text) else text))
+    print("   unlisted-form probe (informational, not a gate): " + ", ".join("%s %d of %d" % (k, v[0], v[0] + v[1]) for k, v in sorted(kinds.items())))
+
+
 def main(argv):
+    if "--probe" in argv:
+        probe()
+        return 0
     if "--dev" in argv:
         only = None
         if "--only" in argv:
             only = {int(x) for x in argv[argv.index("--only") + 1].split(",")}
         cases = [("dev-%d" % seed, params_of(dict(overrides, seed=seed))) for kind, seed, overrides in case_set.CASES if kind == "development" and (only is None or seed in only)]
         return 0 if run(cases, "development") else 1
+    if "--folder" in argv:
+        rows = measure(argv[argv.index("--folder") + 1])
+        verdict = tally(rows)
+        summary = {kind: (rate(s["tp"], s["fn"]), rate(s["tp"], s["fp"]), s) for kind, s in verdict.items()}
+        report("folder", rows)
+        results = gates(summary, rows)
+        for name, passed, detail in results:
+            print("   %-34s %s  %s" % (name, "PASS" if passed else "FAIL", detail))
+        return 0 if all(passed for _, passed, _ in results) else 1
     if "--judge" in argv:
         return 0 if run([("orion-lahore", params_of(ORION)), ("fresh-5003", params_of(FRESH))], "judgement") else 1
     unittest.main(argv=[argv[0]] + [a for a in argv[1:] if a.startswith("-v")])
