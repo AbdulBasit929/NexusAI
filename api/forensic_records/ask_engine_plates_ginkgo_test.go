@@ -57,6 +57,15 @@ var _ = Describe("Ask engine plates", func() {
 		Entry("a plate beside a phone number", "Did 923001110001 drive the vehicle LEA-1234?", "LEA1234"),
 		Entry("the same plate twice is one", "Was LEA-1234 seen, and was LEA 1234 seen at night?", "LEA1234"))
 
+	It("reads no plate from a question when the catalogue has no plate views (a database without migration 027)", func() {
+		f := askExtractFrameWith("How many times was the plate SYNT-0420 seen?", false)
+		Expect(f.Plates).To(BeEmpty())
+		Expect(f.Identifiers()).To(BeEmpty())
+		Expect(f.Question).To(ContainSubstring("SYNT-0420"))
+		Expect(askExtractFrameWith("Did 923001110001 call 923001110002?", false).Numbers).To(HaveLen(2))
+		Expect(askExtractFrame("How many times was the plate SYNT-0420 seen?").Plates).To(Equal([]string{"SYNT0420"}))
+	})
+
 	It("names the plate in the canonical question and in the identifiers, so that the probe and the audit see it", func() {
 		f := askExtractFrame("How many times was the plate SYNT-0420 seen at camera CAM-02?")
 		Expect(f.Question).To(ContainSubstring("SYNT0420"))

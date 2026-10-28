@@ -331,7 +331,7 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 	if err != nil {
 		return decline("the verified examples are not valid")
 	}
-	frame = askExtractFrame(req.Query)
+	frame = askExtractFrameWith(req.Query, cat.View("v_plate_sightings") != nil)
 	if frame.Relative != "" {
 		// "last week" has no meaning without a reference day, and a model that is not given one invents it (measured 2026-10-14). The question is not run.
 		return decline("the question uses a relative time (" + frame.Relative + ") and no reference day is stated")

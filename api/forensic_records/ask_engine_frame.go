@@ -125,7 +125,11 @@ var askCountsEvents = regexp.MustCompile(`\bhow many (?:\w+ )?(?:events?|calls?|
 
 var askCountAsConsider = regexp.MustCompile(`\b(?:only|not|never|don t|dont|do not)\s+count\b|\bcount(?:s|ed|ing)?\s+(?:\S+\s+){0,2}as\b|\bcount(?:s|ed|ing)?\s+(?:if|only|when|a\s+score|scores?)\b`)
 
-func askExtractFrame(question string) askFrame {
+func askExtractFrame(question string) askFrame { return askExtractFrameWith(question, true) }
+
+// askExtractFrameWith reads the frame of a question; plates are looked for only when the catalogue the engine runs against has the plate views (a database without migration 027
+// has none, and a capitalised word and a number must not become a plate it cannot answer about).
+func askExtractFrameWith(question string, plates bool) askFrame {
 	f := askFrame{Cues: map[string]bool{}}
 	text := strings.TrimSpace(question)
 	// Identifiers first, longest first, so that a date or an address is not taken for a number. Each found item is replaced by a placeholder and restored.
@@ -151,7 +155,9 @@ func askExtractFrame(question string) askFrame {
 	})
 	text = askFrameIntl.ReplaceAllStringFunc(text, func(s string) string { c := askCanonicalNumber(s); f.Numbers = append(f.Numbers, c); return hold(c) })
 	text = askFrameBare.ReplaceAllStringFunc(text, func(s string) string { c := askCanonicalNumber(s); f.Numbers = append(f.Numbers, c); return hold(c) })
-	text, f.Plates, f.PlateWritten = askFindPlates(text, hold)
+	if plates {
+		text, f.Plates, f.PlateWritten = askFindPlates(text, hold)
+	}
 	f.Numbers, f.IMEIs, f.IPs, f.Cells, f.Dates = askUnique(f.Numbers), askUnique(f.IMEIs), askUnique(f.IPs), askUnique(f.Cells), askUnique(f.Dates)
 
 	// The words, read from the text with the identifiers held back.
