@@ -123,7 +123,7 @@ def main():
                 day_rows = batch(db, scope, day_queries)
                 for k, rows in day_rows.items():
                     c, d = k.split("|")
-                    if [(r["plate_norm"], r["local"]) for r in rows] != oracle.at_camera(c, d):
+                    if sorted((r["plate_norm"], r["local"]) for r in rows) != oracle.at_camera(c, d):   # the view is ordered by time, the oracle by plate: the sightings are compared as sets of rows
                         problems.append("%s: the sightings at %s on %s differ from the oracle" % (label, c, d))
                     totals["days"] += 1
                 for pair in truth["look_alikes"]:
