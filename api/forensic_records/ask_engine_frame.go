@@ -482,7 +482,7 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 			found = found || (next != "" && strings.HasPrefix(strings.TrimSpace(t), next))
 		}
 		if !found && next != "" {
-			add("DAY_COVERAGE", fmt.Sprintf("A registration is in force on %[1]s (a whole local day) if it began before the end of that day and had not ended before the day began: compare valid_from with < '%[2]s 00:00:00+05' (or empty) and valid_to with > '%[1]s 00:00:00+05' (or empty). One instant of the day misses a registration that began or ended during it.", f.Dates[0], next), "the question asks about a whole day and the query looks at one instant of it")
+			add("DAY_COVERAGE", fmt.Sprintf("A registration is in force on %[1]s (a whole local day) if it began before the end of that day and had not ended before the day began. Use exactly this condition on its period: (valid_from IS NULL OR valid_from < '%[2]s 00:00:00+05') AND (valid_to IS NULL OR valid_to > '%[1]s 00:00:00+05'). A comparison with one instant of the day misses a registration that began or ended during it.", f.Dates[0], next), "the question asks about a whole day and the query looks at one instant of it")
 		}
 	}
 	for _, m := range f.Months {
