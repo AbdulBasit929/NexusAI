@@ -36,7 +36,11 @@ def sniff_kind(path):
             raise Unsupported("a zip container that cannot be opened")
         if "xl/workbook.xml" in names:
             return "xlsx"
+        if "word/document.xml" in names:
+            return "docx"   # a Word file: read as a statement table by statement_readers (stage S4)
         raise Unsupported("an archive: extract it inside the vault, then profile each member")
+    if head[:5] == b"%PDF-":
+        return "pdf"   # a PDF with a text layer: read as a statement table by statement_readers (stage S4); a scan has no text and is the OCR route
     if head[:7] == b"Rar!\x1a\x07\x00" or head[:6] == b"7z\xbc\xaf\x27\x1c":
         raise Unsupported("an archive: extract it inside the vault, then profile each member")
     if head.lstrip(b"\xef\xbb\xbf").lstrip()[:5] == b"<?xml":

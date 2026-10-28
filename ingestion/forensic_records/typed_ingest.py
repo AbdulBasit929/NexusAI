@@ -30,10 +30,10 @@ from typing import Any, Iterable, Iterator, Mapping, Protocol, Sequence
 
 try:
     from ingestion.forensic_records.layout_registry import Policy, interpret_rows, load_registry
-    from ingestion.forensic_records.layout_registry import readers
+    from ingestion.forensic_records.layout_registry import readers, statement_readers
 except ModuleNotFoundError:  # pragma: no cover - supports direct worker.py execution
     from layout_registry import Policy, interpret_rows, load_registry
-    from layout_registry import readers
+    from layout_registry import readers, statement_readers
 
 LOG = logging.getLogger("forensic.typed_ingest")
 CONTRACT = "typed-ingest/1"
@@ -382,6 +382,10 @@ def ingest_file(path: str, lineage: Lineage, policy: Policy, sink: Sink, *, regi
             meta, sheets = readers.iter_xlsx_sheets(path)
         elif kind == "spreadsheetml":
             meta, sheets = readers.iter_spreadsheetml_sheets(path)
+        elif kind == "pdf":
+            meta, sheets = statement_readers.iter_pdf_sheets(path)
+        elif kind == "docx":
+            meta, sheets = statement_readers.iter_docx_sheets(path)
         else:
             meta, sheets = readers.iter_text_rows(path)
     except readers.Unsupported as exc:

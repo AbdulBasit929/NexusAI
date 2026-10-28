@@ -292,7 +292,7 @@ def build_case(params, registry=None):
     return world, renders, key
 
 
-def write_case(params, out_dir, registry=None, with_anpr=False, with_subscribers=False, with_transactions=False, with_documents=False):
+def write_case(params, out_dir, registry=None, with_anpr=False, with_subscribers=False, with_transactions=False, with_documents=False, with_statements=False):
     """Write a case. with_anpr adds one camera export of plate sightings (anpr_case.py, its own random stream; the default build and every hash of the register are unchanged)."""
     world, renders, key = build_case(params, registry)
     root = os.path.join(out_dir, "case-%d" % params.seed)
@@ -341,6 +341,13 @@ def write_case(params, out_dir, registry=None, with_anpr=False, with_subscribers
             txn_case.write(built["files"][source], os.path.join(root, *rel.split("/")), header)
             key["transactions"].append({"name": name, "file": rel, "layout_id": layout, "source": source})
         key["transaction_truth"] = built["truth"]
+    if with_statements:
+        # three of the case's statements as PDF and Word files (statement_docs.py, its own random stream; the default build is unchanged); needs the transactions
+        import statement_docs
+        built = statement_docs.build(params, key)
+        statement_docs.write(built, root)
+        key["statements"] = built["statements"]
+        key["statement_truth"] = built["truth"]
     if with_documents:
         # fourteen text documents (English, Urdu, Roman Urdu) with the mention truth (doc_case.py, its own random stream; the default build is unchanged); needs a locale
         import doc_case
