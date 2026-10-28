@@ -218,20 +218,44 @@ UNLISTED = [
 ]
 
 
-def probe():
+# The HOLD-OUT probe of S3a v2 (programme section 10.5): written and committed BEFORE the extractor was changed for v2, never used to tune it, measured once after the freeze of v2.
+HOLDOUT = [
+    ("Ph: 0300 0001000", "msisdn", "923000001000"), ("Mob. 03000001000.", "msisdn", "923000001000"), ("cell# 0300-0001000", "msisdn", "923000001000"),
+    ("+92-300-000-1000", "msisdn", "923000001000"), ("0092(300)0001000", "msisdn", "923000001000"), ("contact: (0300)-0001000", "msisdn", "923000001000"),
+    ("92-300-0001000", "msisdn", "923000001000"), ("٠٣٠٠-٠٠٠١٠٠٠", "msisdn", "923000001000"),
+    ("WhatsApp +92 300 0001000", "msisdn", "923000001000"), ("Mobile No: 0300-000-1000", "msisdn", "923000001000"),
+    ("CNIC#: 00000-1234567-1", "national_id", "00000-1234567-1"), ("NIC No 00000 1234567 1", "national_id", "00000-1234567-1"), ("ID card 0000012345671", "national_id", "00000-1234567-1"),
+    ("C.N.I.C 00000-1234567-1", "national_id", "00000-1234567-1"), ("CNIC (00000-1234567-1)", "national_id", "00000-1234567-1"),
+    ("A/C No: PK00 SYNT 0000 0000 0000 2004", "account", "PK00SYNT0000000000002004"), ("IBAN:PK00SYNT0000000000002004", "account", "PK00SYNT0000000000002004"),
+    ("Acct pk00-synt-0000-0000-0000-2004", "account", "PK00SYNT0000000000002004"), ("account PK00SYNT 0000 0000 0000 2004", "account", "PK00SYNT0000000000002004"),
+    ("Vehicle No. SYNT-4024", "plate", "SYNT4024"), ("Veh No SYNT 4024", "plate", "SYNT4024"), ("car (SYNT-4024)", "plate", "SYNT4024"), ("Reg. No: SYNT-4024", "plate", "SYNT4024"),
+    ("bike SYNT4024", "plate", "SYNT4024"), ("gaari number SYNT 4024", "plate", "SYNT4024"),
+    ("IMEI No. 000000000010009", "imei", "000000000010009"), ("Handset IMEI1: 000000000010009", "imei", "000000000010009"), ("IMEI 2: 000000000010009", "imei", "000000000010009"),
+    ("device imei 00 000000 001000 9", "imei", "000000000010009"),
+    ("ICCID: 8900000000000010002", "iccid", "8900000000000010002"), ("SIM No 8900-0000-0000-0100-02", "iccid", "8900000000000010002"),
+    ("area: Model Town Lahore", "place", "model town"),
+]
+
+
+def probe(forms=None, label="unlisted-form probe"):
     import re
     kinds = collections.defaultdict(lambda: [0, 0])
-    for text, kind, value in UNLISTED:
+    for text, kind, value in (forms or UNLISTED):
         got = [(m.kind, m.value) for m in mention_extractor.extract_mentions(text, pk_locale.gazetteer("lahore"))]
         hit = (kind, value) in got
         kinds[kind][0 if hit else 1] += 1
         print("   %-6s %-9s %s" % ("found" if hit else "MISSED", kind, text.encode("unicode_escape").decode("ascii") if re.search(r"[^\x00-\x7f]", text) else text))
-    print("   unlisted-form probe (informational, not a gate): " + ", ".join("%s %d of %d" % (k, v[0], v[0] + v[1]) for k, v in sorted(kinds.items())))
+    found = sum(v[0] for v in kinds.values())
+    total = sum(v[0] + v[1] for v in kinds.values())
+    print("   %s (informational, not a gate): %d of %d (%.0f%%): " % (label, found, total, 100.0 * found / total) + ", ".join("%s %d of %d" % (k, v[0], v[0] + v[1]) for k, v in sorted(kinds.items())))
 
 
 def main(argv):
     if "--probe" in argv:
         probe()
+        return 0
+    if "--holdout" in argv:
+        probe(HOLDOUT, "hold-out probe")
         return 0
     if "--dev" in argv:
         only = None
