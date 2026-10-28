@@ -22,6 +22,7 @@ import os
 import re
 import statistics
 import sys
+from decimal import Decimal, InvalidOperation
 
 DIGITS = re.compile(r"^\d{3,}$")
 PLATE_KEY = re.compile(r"^SYNT[0-9OI]{4}$")   # a plate of the synthetic series (tools/real_data/reserved.py) in its search key; the O and the I are the look-alikes the generator plants
@@ -33,6 +34,57 @@ DOCUMENT_FILE = re.compile(r"^[\w.\-]+\.(?:txt|docx|pdf|eml)$", re.I)   # a docu
 def document_names(rows):
     """The documents a result names: every value of every row that is a document file name (the column may be called anything)."""
     return {v for row in rows for v in row.values() if isinstance(v, str) and DOCUMENT_FILE.match(v)}
+
+
+def decimal_of(value):
+    """An amount as a Decimal when the value is a number or a string that is one; None otherwise (a boolean is not an amount)."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return Decimal(str(value))
+    if isinstance(value, str) and re.fullmatch(r"-?\d+(?:\.\d+)?", value.strip()):
+        try:
+            return Decimal(value.strip())
+        except InvalidOperation:
+            return None
+    return None
+
+
+PAISA = Decimal("0.005")
+
+
+def judge_money(expect, rows):
+    """One amount (transactions family): the rows are one row, and one of its values is the expected amount to the paisa."""
+    want = Decimal(expect["value"])
+    return "correct" if len(rows) == 1 and any(d is not None and abs(d - want) <= PAISA for d in (decimal_of(v) for v in rows[0].values())) else "wrong"
+
+
+def judge_money_tuples(expect, rows):
+    """Expected rows of text, counts and amounts ({"m": "123.45"} is an amount, compared to the paisa; a string is compared exactly; an integer exactly). Every row the arm returned must hold ALL
+    the values of exactly one expected row, and every expected row must be held by a row: none missing, none extra. A row may carry other columns. Nothing expected: no rows."""
+    wanted = expect["values"]
+    if not wanted:
+        return "correct" if not rows else "wrong"
+    if len(rows) != len(wanted):
+        return "wrong"
+
+    def holds(element, values):
+        if isinstance(element, dict):
+            return any(d is not None and abs(d - Decimal(element["m"])) <= PAISA for d in (decimal_of(v) for v in values))
+        if isinstance(element, str):
+            return any(isinstance(g, str) and g == element for g in values)
+        return any(isinstance(g, (int, float)) and not isinstance(g, bool) and g == element for g in values)
+    open_rows = list(range(len(wanted)))
+    for row in rows:
+        values = list(row.values())
+        hit = [i for i in open_rows if all(holds(e, values) for e in wanted[i])]
+        if not hit:
+            return "wrong"
+        open_rows.remove(hit[0])
+    return "correct"
+
+
+NONE_FOUND = ("no document", "no transaction", "no wallet", "no record", "not hold", "no row matches", "was found in the files of this case")
 
 
 def text_values(rows):
@@ -300,9 +352,13 @@ def judge(question, result):
         if not expect["values"]:
             return "correct" if not rows and ("no document" in answer or "no row matches" in answer) else "wrong"
         return "correct" if document_names(rows) == set(expect["values"]) else "wrong"
-    if kind == "doc_absent":
-        # a key no document names, or a document that names nothing: no rows, and the engine says so in its own words (never an invented record)
-        return "correct" if not rows and ("no document" in answer or "no record" in answer or "not hold" in answer or "no row matches" in answer) else "wrong"
+    if kind in ("doc_absent", "txn_absent"):
+        # a key no document names, a document that names nothing, an account or wallet the statements do not hold: no rows, and the engine says so in its own words (never an invented record)
+        return "correct" if not rows and any(phrase in answer for phrase in NONE_FOUND) else "wrong"
+    if kind == "money":
+        return judge_money(expect, rows)
+    if kind == "money_tuples":
+        return judge_money_tuples(expect, rows)
     if kind == "reach":
         # contact chaining (A4): the numbers within the hops, from the anchor, without the anchor itself; an edge list is accepted (its intermediate numbers are within the hops)
         return "correct" if identifiers(rows) - {expect["anchor"]} == set(expect["values"]) else "wrong"
