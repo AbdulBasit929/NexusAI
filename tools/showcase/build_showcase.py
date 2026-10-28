@@ -107,7 +107,7 @@ def build(name, out_root, force=False, folder=None):
     os.makedirs(out_root, exist_ok=True)
     work = tempfile.mkdtemp(prefix=".build-%s-" % name, dir=out_root)
     try:
-        root = generate.write_case(params, work, with_anpr=True, with_subscribers=True, with_transactions=True, with_documents=bool(params.locale))
+        root = generate.write_case(params, work, with_anpr=True, with_subscribers=True, with_transactions=True, with_documents=bool(params.locale), with_statements=bool(params.locale))
         with open(os.path.join(root, "key", "key.json"), encoding="utf-8") as handle:
             key = json.load(handle)
         catalogue, per_bank = [], collections.OrderedDict()

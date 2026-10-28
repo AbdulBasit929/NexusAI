@@ -20,7 +20,7 @@ import docx_writer  # noqa: E402
 import pdf_writer  # noqa: E402
 import pk_locale  # noqa: E402
 
-LAYOUT = "bank-stmt-p1"
+LAYOUT = "bank-stmt-t1"   # the statement reader writes the rows in the 11-column shape of the generic statement layout
 HEADER = ["Date", "Particulars", "Ref No", "Withdrawals", "Deposits", "Balance"]
 CHANNEL_WORD = {"ibft": "IBFT", "raast": "Raast", "atm": "ATM", "pos": "POS", "cheque": "Cheque", "cash": "Cash", "branch": "Branch", "online": "Online", "other": "Mystery", "wallet": "Online"}
 
@@ -85,10 +85,10 @@ def pdf_pages(account, lines, opening, closing, period, bank="SPECIMEN BANK LIMI
         items.append(("rule", X0, at + 3, X0 + 124 * ADVANCE, at + 3, 0.5))
     items += [("text", X0, 52, "sans-bold", 14, bank), ("text", X0, 68, "sans", 8, "SYNTHETIC TEST STATEMENT - NOT A RECORD OF ANY REAL ACCOUNT"),
               ("text", X0, 96, "sans-bold", 11, "Statement of Account"),
-              ("text", X0, 118, "sans-bold", 8, "Account No:"), ("text", X0 + 62, 118, "mono", 8, account),
-              ("text", X0, 130, "sans-bold", 8, "Statement period:"), ("text", X0 + 62, 130, "sans", 8, "%s to %s" % period),
-              ("text", X0, 142, "sans-bold", 8, "Currency:"), ("text", X0 + 62, 142, "sans", 8, "PKR"),
-              ("text", X0, 154, "sans-bold", 8, "Opening Balance:"), ("text", X0 + 62, 154, "mono", 8, money(opening))]
+              ("text", X0, 118, "sans-bold", 8, "Account No:"), ("text", X0 + 92, 118, "mono", 8, account),
+              ("text", X0, 130, "sans-bold", 8, "Statement period:"), ("text", X0 + 92, 130, "sans", 8, "%s to %s" % period),
+              ("text", X0, 142, "sans-bold", 8, "Currency:"), ("text", X0 + 92, 142, "sans", 8, "PKR"),
+              ("text", X0, 154, "sans-bold", 8, "Opening Balance:"), ("text", X0 + 92, 154, "mono", 8, money(opening))]
     table_header(FIRST_TOP - 10)
     top = FIRST_TOP + 6
 
