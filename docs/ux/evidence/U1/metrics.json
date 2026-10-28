@@ -1,0 +1,54 @@
+{
+  "measuredAt": "2026-10-28T06:43:42.947Z",
+  "route": "http://localhost:4182/design/foundations",
+  "environment": "Chromium headless, 1440 × 1000, local Vite server",
+  "method": "Eight trusted clicks per interaction. Event Timing is reported when the browser emits entries; the double-requestAnimationFrame value is a local interaction-to-next-paint proxy, not field INP.",
+  "interactions": [
+    {
+      "interaction": "switch colour direction",
+      "samples": 8,
+      "nextPaintProxyP75Ms": 25.1,
+      "nextPaintProxyMaxMs": 35.1,
+      "eventTimingP75Ms": 32,
+      "eventTimingSamples": 8
+    },
+    {
+      "interaction": "switch theme",
+      "samples": 8,
+      "nextPaintProxyP75Ms": 23,
+      "nextPaintProxyMaxMs": 32.1,
+      "eventTimingP75Ms": 32,
+      "eventTimingSamples": 8
+    },
+    {
+      "interaction": "switch density",
+      "samples": 8,
+      "nextPaintProxyP75Ms": 25.4,
+      "nextPaintProxyMaxMs": 36.6,
+      "eventTimingP75Ms": 40,
+      "eventTimingSamples": 8
+    }
+  ],
+  "bundle": {
+    "initialJavaScript": {
+      "file": "index-DnYPPHbp.js",
+      "rawBytes": 203787,
+      "gzipBytes": 67117
+    },
+    "foundationsJavaScript": {
+      "file": "FoundationsPage-H2h8XP5v.js",
+      "rawBytes": 23262,
+      "gzipBytes": 6464
+    },
+    "globalCss": {
+      "file": "index-BMsNbP96.css",
+      "rawBytes": 531086,
+      "gzipBytes": 71181
+    },
+    "foundationsCss": {
+      "file": "FoundationsPage-DOZBgzmE.css",
+      "rawBytes": 24881,
+      "gzipBytes": 3846
+    }
+  }
+}
