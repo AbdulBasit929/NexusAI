@@ -82,6 +82,37 @@ class PlatesAndPlaces(unittest.TestCase):
         self.assertEqual(pairs("Gulbergs"), [])
 
 
+class VersionTwoForms(unittest.TestCase):
+    """The forms the first probe showed to be missing (revision v2)."""
+
+    def test_a_mobile_number_grouped_4_3_4_or_2_2_7_or_with_the_operator_code_in_brackets(self):
+        for text in ("mobile 0300 000 1000", "mobile 03 00 0001000", "mobile +92(300)0001000", "mobile +92 300 000 1000", "mobile (0300) 000 1000"):
+            self.assertEqual(pairs(text), [("msisdn", "923000001000")], text)
+
+    def test_a_national_id_with_a_non_breaking_space_and_an_iban_with_hyphens(self):
+        self.assertEqual(pairs("CNIC 00000 1234567 1"), [("national_id", "00000-1234567-1")])
+        self.assertEqual(pairs("IBAN PK00-SYNT-0000-0000-0000-2004"), [("account", "PK00SYNT0000000000002004")])
+
+    def test_an_imei_in_groups_or_labelled_imei1_and_a_serial_in_groups_of_four(self):
+        self.assertEqual(pairs("IMEI1 000000000010009"), [("imei", "000000000010009")])
+        self.assertEqual(pairs("IMEI 00 000000 001000 9"), [("imei", "000000000010009")])
+        self.assertEqual(pairs("IMEI 00-000000-001000-9"), [("imei", "000000000010009")])
+        self.assertEqual(pairs("SIM 8900 0000 0000 0010 002"), [("iccid", "8900000000000010002")])
+        self.assertEqual(pairs("SIM 8900-0000-0000-0010-002"), [("iccid", "8900000000000010002")])
+
+    def test_plate_cue_words_veh_reg_and_motorbike(self):
+        for text in ("Veh. reg LEA-21-1234", "Reg # LEA-21-1234", "motorbike LEA-21-1234"):
+            self.assertEqual(pairs(text), [("plate", "LEA211234")], text)
+
+    def test_grouping_never_makes_a_number_out_of_unrelated_digits(self):
+        for text in ("amount 0300 000 1000000", "total 1,030,000,001,000", "serial 8900 0000 0000 0010 0021"):
+            self.assertEqual([k for k, _ in pairs(text) if k in ("msisdn", "iccid")], [], text)
+
+    def test_the_revision_is_v2(self):
+        from ingestion.forensic_records.mention_extractor import EXTRACTOR_REVISION
+        self.assertEqual(EXTRACTOR_REVISION, "v2")
+
+
 class Claims(unittest.TestCase):
     def test_a_span_is_claimed_once_by_the_most_specific_kind(self):
         found = extract_mentions("CNIC 00000-1234567-1 and mobile 0300-0001000")

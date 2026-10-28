@@ -56,21 +56,32 @@ def table(rows, rtl=False):
 # ------------------------------------------------------------------------------------------------ surfaces
 def msisdn_surface(msisdn, form, urdu=False):
     prefix, body = msisdn[2:5], msisdn[5:]
-    forms = ["0%s-%s", "0%s %s", "0%s%s", "+92 %s %s", "+92-%s-%s", "0092 %s %s", "92 %s %s", "(0%s) %s"]
-    text = forms[form % len(forms)] % (prefix, body)
+    forms = ["0%s-%s", "0%s %s", "0%s%s", "+92 %s %s", "+92-%s-%s", "0092 %s %s", "92 %s %s", "(0%s) %s",
+             "0%s %s", "03 %s %s", "+92(%s)%s"]
+    first, second = (prefix, body[:3] + " " + body[3:]) if form % len(forms) == 8 else ((prefix[1:], body) if form % len(forms) == 9 else (prefix, body))
+    text = forms[form % len(forms)] % (first, second)
     return text.translate(URDU_DIGITS) if urdu else text
 
 
 def nid_surface(national_id, form, urdu=False):
     digits = national_id.replace("-", "")
-    forms = [national_id, "%s %s %s" % (digits[:5], digits[5:12], digits[12]), digits]
+    forms = [national_id, "%s %s %s" % (digits[:5], digits[5:12], digits[12]), digits, "%s\u00a0%s\u00a0%s" % (digits[:5], digits[5:12], digits[12])]
     text = forms[form % len(forms)]
     return text.translate(URDU_DIGITS) if urdu else text
 
 
 def iban_surface(iban, form):
     spaced = " ".join([iban[:4], iban[4:8]] + [iban[i:i + 4] for i in range(8, len(iban), 4)])
-    return [spaced, iban, iban.lower(), spaced][form % 4]
+    return [spaced, iban, iban.lower(), spaced, spaced.replace(" ", "-")][form % 5]
+
+
+def imei_surface(imei, form):
+    return [imei, "%s %s %s %s" % (imei[:2], imei[2:8], imei[8:14], imei[14]), imei, "%s-%s-%s-%s" % (imei[:2], imei[2:8], imei[8:14], imei[14])][form % 4]
+
+
+def iccid_surface(iccid, form):
+    groups = [iccid[i:i + 4] for i in range(0, len(iccid), 4)]
+    return [iccid, " ".join(groups), iccid, "-".join(groups)][form % 4]
 
 
 def plate_surface(key, form, urdu=False):
@@ -135,10 +146,10 @@ class Context:
 
     def iccid(self, person):
         value = reserved.synthetic_iccid(person.n)
-        return M("iccid", value, value, person.pid)
+        return M("iccid", value, iccid_surface(value, self.form()), person.pid)
 
     def imei(self, person):
-        return M("imei", person.imei, person.imei, person.pid)
+        return M("imei", person.imei, imei_surface(person.imei, self.form()), person.pid)
 
     def imsi(self, person):
         return M("imsi", person.imsi, person.imsi, person.pid)
@@ -268,7 +279,7 @@ def documents(ctx):
     # D10 Vehicle registration extract
     out.append(("D10-vehicle-register", ".txt", "en", [
         p("MOTOR VEHICLE REGISTRATION EXTRACT (SYNTHETIC TEST DOCUMENT)"),
-        p("Registration number: ", ctx.plate(plate_a, a.pid), ". Make: Honda City. Owner national ID number: ", ctx.nid(a), "."),
+        p(rng.choice(["Registration number: ", "Veh. reg: ", "Reg # ", "Motorbike "]), ctx.plate(plate_a, a.pid), ". Make: Honda City. Owner national ID number: ", ctx.nid(a), "."),
         p("Second vehicle, registration ", ctx.plate(plate_b, b.pid), ", owner national ID number ", ctx.nid(b), "."),
         p("Reference only: ", D("SYNT4O24", "plate"), " (a misread, letter O), ", D("PPC 420", "plate"), "."),
     ]))
@@ -294,7 +305,7 @@ def documents(ctx):
     # D13 Extraction index
     out.append(("D13-extraction-index", ".txt", "en", [
         p("DEVICE EXTRACTION INDEX (SYNTHETIC TEST DOCUMENT)"),
-        p("Handset 1, IMEI ", ctx.imei(a), ": numbers ", ctx.msisdn(a), " and ", ctx.number(a.msisdn, a.pid)),
+        p("Handset 1, IMEI1 ", ctx.imei(a), ": numbers ", ctx.msisdn(a), " and ", ctx.number(a.msisdn, a.pid)),
         p("Handset 2, IMEI ", ctx.imei(b), ": number ", ctx.msisdn(b)),
         p("Handset 3, IMEI ", ctx.imei(c), ": number ", ctx.msisdn(c)),
         p("Extracted on %s at Lahore by the digital forensic unit (specimen)." % ctx.date()),

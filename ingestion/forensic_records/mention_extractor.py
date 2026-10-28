@@ -21,7 +21,7 @@ from typing import Mapping, Sequence
 from .layout_registry.parties import _luhn_ok, normalize_iccid, normalize_plate
 
 EXTRACTOR_ID = "rule-mention-extractor"
-EXTRACTOR_REVISION = "v1"
+EXTRACTOR_REVISION = "v2"
 
 _ARABIC_INDIC = "٠١٢٣٤٥٦٧٨٩"
 _EXTENDED = "۰۱۲۳۴۵۶۷۸۹"
@@ -35,13 +35,22 @@ _NOT_BEFORE = r"(?<![0-9A-Za-z\-+])"
 _NOT_AFTER = r"(?![0-9A-Za-z])(?!-?\d)"
 
 _ICCID = re.compile(r"(?<!\d)89\d{17,18}(?!\d)")
-_IBAN = re.compile(r"(?<![A-Za-z0-9])PK\s?\d{2}\s?[A-Za-z]{4}(?:\s?\d{4}){4}(?![A-Za-z0-9])", re.I)
-_NID_DASHED = re.compile(r"(?<!\d)\d{5}[\-‐-― ]\d{7}[\-‐-― ]\d(?!\d)")
+# v2: a serial printed in groups of four (8900 0000 0000 0100 02), with spaces or hyphens
+_ICCID_GROUPED = re.compile(r"(?<!\d)89\d{2}(?:[ \-]\d{4}){3}[ \-]\d{2,4}(?!\d)")
+# v2: a hyphen or a space between the groups of an IBAN
+_IBAN = re.compile(r"(?<![A-Za-z0-9])PK[\s\-]?\d{2}[\s\-]?[A-Za-z]{4}(?:[\s\-]?\d{4}){4}(?![A-Za-z0-9])", re.I)
+# v2: a non-breaking space between the groups of a national ID number
+_GROUP_SEP = r"[ \t \-‐-―]"
+_NID_DASHED = re.compile(r"(?<!\d)\d{5}" + _GROUP_SEP + r"\d{7}" + _GROUP_SEP + r"\d(?!\d)")
 _NID_RUN = re.compile(r"(?<!\d)\d{13}(?!\d)")
 _FIFTEEN = re.compile(r"(?<!\d)\d{15}(?!\d)")
-_MOBILE_NATIONAL = re.compile(_NOT_BEFORE + r"(?:0(3[0-4]\d)" + _SEP + r"(\d{7})|\(0(3[0-4]\d)\)\s?(\d{7}))" + _NOT_AFTER)
-_MOBILE_INTERNATIONAL = re.compile(r"(?<![0-9A-Za-z\-])(?:(?:\+|00)\s?92|(?<!\d)92)" + r"[\s\-.]?\(?0?\)?[\s\-.]?(3[0-4]\d)" + _SEP + r"(\d{7})" + _NOT_AFTER)
-_MOBILE_BARE = re.compile(_NOT_BEFORE + r"(3[0-4]\d)" + _SEP + r"(\d{7})" + _NOT_AFTER)
+# v2: an IMEI printed 2-6-6-1
+_IMEI_GROUPED = re.compile(r"(?<!\d)\d{2}" + _GROUP_SEP + r"\d{6}" + _GROUP_SEP + r"\d{6}" + _GROUP_SEP + r"\d(?!\d)")
+# v2: a mobile number in groups 4-7, 4-3-4 or 2-2-7 (national), with the operator code in brackets, or after +92 with or without brackets; every written form is read as its digits
+_BODY = r"(?:\d{7}|\d{3}" + _SEP + r"\d{4})"
+_MOBILE_NATIONAL = re.compile(_NOT_BEFORE + r"(?:\(0(3[0-4]\d)\)" + _SEP + _BODY + r"|0(3[0-4]\d)" + _SEP + _BODY + r"|03" + _SEP + r"[0-4]\d" + _SEP + r"\d{7})" + _NOT_AFTER)
+_MOBILE_INTERNATIONAL = re.compile(r"(?<![0-9A-Za-z\-])(?:(?:\+|00)\s?92|(?<!\d)92)" + r"[\s\-.]?\(?0?\)?[\s\-.]?\(?(3[0-4]\d)\)?" + _SEP + _BODY + _NOT_AFTER)
+_MOBILE_BARE = re.compile(_NOT_BEFORE + r"(3[0-4]\d)" + _SEP + _BODY + _NOT_AFTER)
 _PLATE = re.compile(r"(?<![A-Za-z0-9])([A-Za-z]{2,4})[\s\-‐-―]?(?:(\d{2})[\s\-‐-―])?(\d{3,4})(?![A-Za-z0-9])")
 
 _NOT_A_PLATE = frozenset({
@@ -50,13 +59,13 @@ _NOT_A_PLATE = frozenset({
 })
 
 _CUE_BEFORE = {
-    "imei": re.compile(r"(?i)(\bimei\b|\bhandset\b|\bdevice\b|آئی\s*ایم\s*ایم|آئی\s*ایم\s*ایم\s*آئی|ہینڈ\s*سیٹ)[^\d]{0,24}$"),
+    "imei": re.compile(r"(?i)(\bimei\s?[12]?(?![A-Za-z0-9])|\bhandset\b|\bdevice\b|آئی\s*ایم\s*ایم|آئی\s*ایم\s*ایم\s*آئی|ہینڈ\s*سیٹ)[^\d]{0,24}$"),
     "imsi": re.compile(r"(?i)\bimsi\b[^\d]{0,24}$"),
     "national_id": re.compile(r"(?i)(\bcnic\b|\bnic\b|\bidentity\s*card\b|\bid\s*card\b|\bnational\s*id\b|شناختی|کارڈ)[^\d]{0,30}$"),
     "mobile": re.compile(r"(?i)(\bmobile\b|\bphone\b|\bcell\b|\bcontact\b|\bnumber\b|\bno\.?|\bsim\b|\bwhatsapp\b|\bcalled?\b|\btel\b|\bnamb[ae]r\b|نمبر|موبائل|فون|کال|رابطہ)[^\d]{0,24}$"),
 }
 _PLATE_CUE = re.compile(
-    r"(?i)(\bnumber\s*plate\b|\bplate\b|\bregistration\b|\bregistered\b|\breg\.?\s*no\b|\bvehicle\b|\bcar\b|\bmotor\s*cycle\b|\bmotorcycle\b|\bbike\b|\bjeep\b|\bvan\b|\btruck\b|\brickshaw\b|\bgaa?r[iy]\b|\bgaa?d[iy]\b|\bgaddi\b|"
+    r"(?i)(\bnumber\s*plate\b|\bplate\b|\bregistration\b|\bregistered\b|\breg\.?\s*no\b|\breg\b|\bveh\b|\bvehicle\b|\bcar\b|\bmotor\s*cycle\b|\bmotorcycle\b|\bmotor\s?bike\b|\bbike\b|\bjeep\b|\bvan\b|\btruck\b|\brickshaw\b|\bgaa?r[iy]\b|\bgaa?d[iy]\b|\bgaddi\b|"
     r"گاڑی|نمبر\s*پلیٹ|رجسٹریشن|موٹر\s*سائیکل|موٹرسائیکل|کار)")
 
 
@@ -77,6 +86,22 @@ def fold_digits(text: str) -> str:
 
 def _luhn(digits: str) -> bool:
     return _luhn_ok(digits)
+
+
+def _msisdn_digits(written: str) -> str | None:
+    """The key of a mobile number as written in any of its forms: 92 and ten digits, the operator code between 300 and 349; None when the digits are not such a number."""
+    digits = re.sub(r"\D", "", written)
+    if digits.startswith("0092"):
+        digits = digits[2:]
+    if digits.startswith("92") and len(digits) == 13 and digits[2] == "0":
+        digits = digits[:2] + digits[3:]
+    elif digits.startswith("0") and len(digits) == 11:
+        digits = "92" + digits[1:]
+    elif len(digits) == 10 and digits.startswith("3"):
+        digits = "92" + digits
+    if len(digits) == 12 and digits.startswith("923") and "300" <= digits[2:5] <= "349":
+        return digits
+    return None
 
 
 def _free(claimed: list[tuple[int, int]], start: int, end: int) -> bool:
@@ -120,13 +145,14 @@ def extract_mentions(text: str, places: Mapping[str, Sequence[str]] | None = Non
         claimed.append((start, end))
         found.append(Mention(kind, value, text[start:end], start, end, tier, rule))
 
-    for m in _ICCID.finditer(folded):
-        value, flags = normalize_iccid(m.group(0))
-        if value:
-            # a serial that fails its check digit is kept as evidence of what the document says, in the low tier
-            take("iccid", value, m.start(), m.end(), "low" if flags else "high", "iccid-check-failed" if flags else "iccid-luhn")
+    for pattern in (_ICCID, _ICCID_GROUPED):
+        for m in pattern.finditer(folded):
+            value, flags = normalize_iccid(m.group(0))
+            if value:
+                # a serial that fails its check digit is kept as evidence of what the document says, in the low tier
+                take("iccid", value, m.start(), m.end(), "low" if flags else "high", "iccid-check-failed" if flags else "iccid-luhn")
     for m in _IBAN.finditer(folded):
-        take("account", re.sub(r"\s+", "", m.group(0)).upper(), m.start(), m.end(), "high", "iban-form")
+        take("account", re.sub(r"[\s\-]+", "", m.group(0)).upper(), m.start(), m.end(), "high", "iban-form")
     for m in _NID_DASHED.finditer(folded):
         digits = re.sub(r"\D", "", m.group(0))
         take("national_id", "%s-%s-%s" % (digits[:5], digits[5:12], digits[12]), m.start(), m.end(), "high", "national-id-5-7-1")
@@ -134,21 +160,24 @@ def extract_mentions(text: str, places: Mapping[str, Sequence[str]] | None = Non
         digits = m.group(0)
         if _cue("national_id", cue_text, m.start() + shift):
             take("national_id", "%s-%s-%s" % (digits[:5], digits[5:12], digits[12]), m.start(), m.end(), "high", "national-id-run-with-cue")
-    for m in _FIFTEEN.finditer(folded):
-        digits = m.group(0)
-        if _cue("imsi", cue_text, m.start() + shift):
-            take("imsi", digits, m.start(), m.end(), "high", "imsi-cue")
-        elif _luhn(digits):
-            cued = _cue("imei", cue_text, m.start() + shift)
-            take("imei", digits, m.start(), m.end(), "high" if cued else "low", "imei-luhn-cue" if cued else "imei-luhn")
-    for m in _MOBILE_NATIONAL.finditer(folded):
-        prefix, body = (m.group(1), m.group(2)) if m.group(1) else (m.group(3), m.group(4))
-        take("msisdn", "92%s%s" % (prefix, body), m.start(), m.end(), "high", "mobile-national")
-    for m in _MOBILE_INTERNATIONAL.finditer(folded):
-        take("msisdn", "92%s%s" % (m.group(1), m.group(2)), m.start(), m.end(), "high", "mobile-international")
+    for pattern in (_FIFTEEN, _IMEI_GROUPED):
+        for m in pattern.finditer(folded):
+            digits = re.sub(r"\D", "", m.group(0))
+            if _cue("imsi", cue_text, m.start() + shift):
+                take("imsi", digits, m.start(), m.end(), "high", "imsi-cue")
+            elif _luhn(digits):
+                cued = _cue("imei", cue_text, m.start() + shift)
+                take("imei", digits, m.start(), m.end(), "high" if cued else "low", "imei-luhn-cue" if cued else "imei-luhn")
+    for pattern, rule in ((_MOBILE_NATIONAL, "mobile-national"), (_MOBILE_INTERNATIONAL, "mobile-international")):
+        for m in pattern.finditer(folded):
+            value = _msisdn_digits(m.group(0))
+            if value:
+                take("msisdn", value, m.start(), m.end(), "high", rule)
     for m in _MOBILE_BARE.finditer(folded):
         if _cue("mobile", cue_text, m.start() + shift):
-            take("msisdn", "92%s%s" % (m.group(1), m.group(2)), m.start(), m.end(), "high", "mobile-bare-with-cue")
+            value = _msisdn_digits(m.group(0))
+            if value:
+                take("msisdn", value, m.start(), m.end(), "high", "mobile-bare-with-cue")
     for m in _PLATE.finditer(folded):
         letters = m.group(1).upper()
         if letters in _NOT_A_PLATE:

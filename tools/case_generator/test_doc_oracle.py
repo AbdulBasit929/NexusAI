@@ -179,16 +179,16 @@ class GeneratorFacts(unittest.TestCase):
         self.assertEqual(result.passages[0].text, "ابتدائی اطلاعی رپورٹ")
 
     def test_surfaces_fold_back_to_the_value(self):
-        for form in range(8):
+        for form in range(11):
             for urdu in (False, True):
                 text = doc_case.msisdn_surface("923000001000", form, urdu)
                 found = mention_extractor.extract_mentions("mobile %s" % text)
                 self.assertEqual([m.value for m in found if m.kind == "msisdn"], ["923000001000"], text)
-        for form in range(3):
+        for form in range(4):
             text = doc_case.nid_surface("00000-1234567-1", form)
             found = mention_extractor.extract_mentions("CNIC %s" % text)
             self.assertEqual([m.value for m in found if m.kind == "national_id"], ["00000-1234567-1"], text)
-        for form in range(4):
+        for form in range(5):
             text = doc_case.iban_surface("PK00SYNT0000000000002004", form)
             found = mention_extractor.extract_mentions("account %s" % text)
             self.assertEqual([m.value for m in found if m.kind == "account"], ["PK00SYNT0000000000002004"], text)
@@ -214,7 +214,7 @@ UNLISTED = [
     ("A/C PK00SYNT0000000000002004.", "account", "PK00SYNT0000000000002004"),
     ("Veh. reg LEA-21-1234", "plate", "LEA211234"), ("Reg # SYNT 4024", "plate", "SYNT4024"), ("motorbike SYNT-4024", "plate", "SYNT4024"), ("car no. SYNT-4024", "plate", "SYNT4024"),
     ("IMEI: 000000000010009", "imei", "000000000010009"), ("IMEI 00-000000-001000-9", "imei", "000000000010009"), ("IMEI1 000000000010009", "imei", "000000000010009"),
-    ("SIM 8900 0000 0000 0100 02", "iccid", "8900000000000010002"),
+    ("SIM 8900 0000 0000 0010 002", "iccid", "8900000000000010002"),
 ]
 
 
@@ -232,7 +232,7 @@ HOLDOUT = [
     ("bike SYNT4024", "plate", "SYNT4024"), ("gaari number SYNT 4024", "plate", "SYNT4024"),
     ("IMEI No. 000000000010009", "imei", "000000000010009"), ("Handset IMEI1: 000000000010009", "imei", "000000000010009"), ("IMEI 2: 000000000010009", "imei", "000000000010009"),
     ("device imei 00 000000 001000 9", "imei", "000000000010009"),
-    ("ICCID: 8900000000000010002", "iccid", "8900000000000010002"), ("SIM No 8900-0000-0000-0100-02", "iccid", "8900000000000010002"),
+    ("ICCID: 8900000000000010002", "iccid", "8900000000000010002"), ("SIM No 8900-0000-0000-0010-002", "iccid", "8900000000000010002"),
     ("area: Model Town Lahore", "place", "model town"),
 ]
 
@@ -272,6 +272,10 @@ def main(argv):
         for name, passed, detail in results:
             print("   %-34s %s  %s" % (name, "PASS" if passed else "FAIL", detail))
         return 0 if all(passed for _, passed, _ in results) else 1
+    if "--fresh" in argv:
+        # a fresh seed of the orion shape, judged once (S3a v2: seed 5004; 5005 only if 5004 fails once and the cause is fixed)
+        seeds = [int(x) for x in argv[argv.index("--fresh") + 1].split(",")]
+        return 0 if run([("fresh-%d" % seed, params_of(dict(ORION, seed=seed))) for seed in seeds], "judgement v2") else 1
     if "--judge" in argv:
         return 0 if run([("orion-lahore", params_of(ORION)), ("fresh-5003", params_of(FRESH))], "judgement") else 1
     unittest.main(argv=[argv[0]] + [a for a in argv[1:] if a.startswith("-v")])
