@@ -204,3 +204,63 @@ var _ = Describe("Ask engine transactions", func() {
 		Expect(askRoleHint(account, map[string]bool{"account": true}, []string{"v_bank_transactions.account"})).To(Equal(""))
 	})
 })
+
+// Found by the transactions judgement run on case 119 (2026-10-28).
+var _ = Describe("Ask engine transactions after the first measurement", func() {
+	const account = "PK00SYNT0000000000001001"
+	var cat *askCatalogue
+	BeforeEach(func() {
+		var err error
+		cat, err = askGoldenCatalogue()
+		Expect(err).NotTo(HaveOccurred())
+	})
+	check := func(question, sql string, views ...string) []string {
+		v, rej := askValidate(sql, cat, views)
+		Expect(rej).To(BeNil(), sql)
+		out := []string{}
+		for _, o := range askCheckFrame(askExtractFrame(question), v) {
+			out = append(out, o.Kind)
+		}
+		return out
+	}
+
+	It("reads the limit that a share is of: debits between 95 percent of 400,000 and the limit", func() {
+		Expect(askReadParams("which accounts have debits between 95 percent of 400,000 and the limit, and how many debits?")["limit_amount"].Values).To(Equal([]int{400000}))
+		Expect(askReadParams("which accounts made many debits just under the limit?")["limit_amount"].Found).To(BeFalse())
+		Expect(askReadParams("what is 95 percent of 400,000?")["limit_amount"].Found).To(BeFalse())
+	})
+
+	It("asks for a count of the rows when the question asks how many transactions, and for the direction of money", func() {
+		q := "How many credits did the account " + account + " receive from the account PK00SYNT0000000000009002?"
+		sum := "SELECT sum(t.signed_amount) AS credits FROM v_bank_transactions t WHERE t.account = '" + account + "' AND t.counterparty_account = 'PK00SYNT0000000000009002' AND t.direction = 'credit'"
+		Expect(check(q, sum, "v_bank_transactions")).To(ContainElement("AGGREGATE"))
+		count := "SELECT count(*) AS n FROM v_bank_transactions t WHERE t.account = '" + account + "' AND t.counterparty_account = 'PK00SYNT0000000000009002' AND t.direction = 'credit'"
+		Expect(check(q, count, "v_bank_transactions")).NotTo(ContainElement("AGGREGATE"))
+		out := "How much did the account " + account + " pay out in March 2026?"
+		credit := "SELECT sum(total_amount) AS total FROM v_account_counterparties WHERE account = '" + account + "' AND direction = 'credit'"
+		debit := "SELECT sum(amount) AS total FROM v_bank_transactions WHERE account = '" + account + "' AND direction = 'debit' AND txn_utc >= '2026-03-01' AND txn_utc < '2026-04-01'"
+		Expect(check("How much was debited from the account "+account+" in March 2026?", debit, "v_bank_transactions")).To(BeEmpty())
+		_ = out
+		Expect(check("How much was credited to the account "+account+" in March 2026?", debit, "v_bank_transactions")).To(ContainElement("DIRECTION"))
+		_ = credit
+	})
+
+	It("does not ask for a direction filter on the views of pass-through pairs and of debits under a limit", func() {
+		flows := "SELECT account, credit_amount, debit_amount FROM v_account_flows ORDER BY account"
+		Expect(check("Which accounts received money that went out again within 80 minutes, at least 90 percent of it?", flows, "v_account_flows")).NotTo(ContainElement("DIRECTION"))
+		bands := "SELECT account, transactions, total_amount FROM v_account_limit_bands ORDER BY account"
+		Expect(check("Which accounts made debits just under a limit of 500,000, and how many?", bands, "v_account_limit_bands")).NotTo(ContainElement("DIRECTION"))
+	})
+
+	DescribeTable("shortlists the right bank view",
+		func(question, want string) {
+			Expect(cat.Shortlist(question, 0).Views).To(ContainElement(want), "%s", question)
+		},
+		Entry("a credit followed by a debit is a pass-through pair", "Find the credits that were followed by a debit of at least 90% of the credit within 10 minutes.", "v_account_flows"),
+		Entry("accounts two accounts both transact with", "Which accounts did both PK00SYNT0000000000002011 and PK00SYNT0000000000002005 transact with?", "v_account_counterparties"),
+		Entry("how much an account paid out in a month", "How much did the account PK00SYNT0000000000002016 pay out in March 2026?", "v_bank_transactions"))
+
+	It("keeps the camera views out of questions about accounts", func() {
+		Expect(cat.Shortlist("Which accounts did both PK00SYNT0000000000002011 and PK00SYNT0000000000002005 transact with?", 0).Views).NotTo(ContainElement("v_plate_visits"))
+	})
+})

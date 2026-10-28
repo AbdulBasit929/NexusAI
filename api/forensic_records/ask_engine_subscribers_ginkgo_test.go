@@ -147,3 +147,37 @@ var _ = Describe("Ask engine registrations and handsets", func() {
 		}
 	})
 })
+
+// Found by the subscriber judgement run on case 117 (2026-10-28): "made or received" asks for both ways, and the query cannot filter on both.
+var _ = Describe("Ask engine direction cues that name both ways", func() {
+	It("asks for neither filter when the question says made or received, and still asks for the one it names alone", func() {
+		cat, err := askGoldenCatalogue()
+		Expect(err).NotTo(HaveOccurred())
+		check := func(question, sql string) []string {
+			v, rej := askValidate(sql, cat, []string{"v_comm_events"})
+			Expect(rej).To(BeNil(), sql)
+			out := []string{}
+			for _, o := range askCheckFrame(askExtractFrame(question), v) {
+				out = append(out, o.Kind)
+			}
+			return out
+		}
+		both := "SELECT DISTINCT src FROM v_comm_events ORDER BY src"
+		Expect(check("Which numbers made or received calls after their registration ended?", both)).NotTo(ContainElement("DIRECTION"))
+		Expect(check("Which numbers made or received messages in March?", both)).NotTo(ContainElement("DIRECTION"))
+		Expect(check("Which numbers received calls?", both)).To(ContainElement("DIRECTION"))
+		Expect(check("Which numbers made calls?", both)).To(ContainElement("DIRECTION"))
+	})
+})
+
+// Found by the subscriber judgement run on case 118 (2026-10-28): the words imsi and sim outweighed "registered", and "seen" brought the camera view into a question about phones.
+var _ = Describe("Ask engine retrieval of registrations and phones", func() {
+	It("shortlists the registrations for a question that says registered, and keeps the camera view out of a question about who was seen with a phone", func() {
+		cat, err := askGoldenCatalogue()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(cat.Shortlist("Which numbers were registered on the SIM with IMSI 001010000001018?", 0).Views).To(ContainElement("v_subscriber_registrations"))
+		Expect(cat.Shortlist("List the numbers seen with a SYNTH phone.", 0).Views).NotTo(ContainElement("v_plate_sightings"))
+		Expect(cat.Shortlist("At which cameras was the plate SYNT-4024 seen?", 0).Views).To(ContainElement("v_plate_sightings"))
+		Expect(cat.Shortlist("Which calls did 923000001043 make in March?", 0).Views).NotTo(ContainElement("v_subscriber_registrations"))
+	})
+})

@@ -99,6 +99,32 @@ var _ = Describe("Ask engine documents", func() {
 		Entry("a registration question", "Which SIM was "+number+" registered on?"),
 		Entry("a plate question about cameras", "At which cameras was the plate SYNT-4024 seen?"))
 
+	DescribeTable("shortlists the document views for a question about documents that names a key, in the phrasings the first run was answered wrongly for",
+		func(question string) {
+			shortlist := cat.Shortlist(question, 0).Views
+			Expect(shortlist).To(ContainElement("v_document_values"), "%s", question)
+			Expect(shortlist).NotTo(ContainElement("v_evidence_inventory"), "%s", question)
+		},
+		Entry("in which documents does an account appear", "In which documents does PK00SYNT0000000000002000 appear?"),
+		Entry("list the documents that name an account written in groups", "List the documents that name PK00 SYNT 0000 0000 0000 2001."),
+		Entry("list the documents that name a plate in lower case", "List the documents that name synt 8041."),
+		Entry("in how many documents does a number appear", "In how many documents does +92 300 0001006 appear?"),
+		Entry("in which documents does a number written 03... appear", "In which documents does 03000001056 appear?"),
+		Entry("documents that name a number and also a plate", "List the documents that name +92 300 0001000 and also SYNT-8041."),
+		Entry("an account and a plate together", "In which documents do PK00SYNT0000000000002001 and synt 3083 appear together?"),
+		Entry("the numbers in the documents whose own call records are in the case", "List the numbers in the documents whose own call records are in the case."),
+		Entry("an IMEI named in documents", "List the documents that name 000000000010090."))
+
+	It("keeps the inventory for a question about the files themselves, and refuses to look for an identifier among file names", func() {
+		Expect(cat.Shortlist("How many documents are in this case?", 0).Views).To(ContainElement("v_evidence_inventory"))
+		Expect(cat.Shortlist("How many documents are in this case?", 0).Views).NotTo(ContainElement("v_document_values"))
+		Expect(cat.Shortlist("How many PDF files were uploaded?", 0).Views).NotTo(ContainElement("v_document_values"))
+		q := "In which documents does " + account + " appear?"
+		bad := "SELECT original_filename FROM v_evidence_inventory WHERE original_filename LIKE '%" + account + "%'"
+		Expect(kinds(check(q, bad, "v_evidence_inventory"))).To(ContainElement("INVENTORY_IDENTIFIER"))
+		Expect(kinds(check("When was the last document uploaded?", "SELECT max(created_at) AS latest FROM v_evidence_inventory WHERE modality = 'document'", "v_evidence_inventory"))).NotTo(ContainElement("INVENTORY_IDENTIFIER"))
+	})
+
 	It("tells a case with no documents from a case whose documents were not indexed, and lets an indexed case through", func() {
 		for _, view := range askDocumentViews {
 			Expect(askCoverageGap(askCoverage{AnyComm: true}, []string{view})).To(ContainSubstring("holds no documents"), view)

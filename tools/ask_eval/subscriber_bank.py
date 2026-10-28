@@ -180,7 +180,9 @@ def bank_questions(truth, events, seed):
     if unregistered:
         bank.add("absent", say(ABSENT, n=write_number(rng, rng.choice(unregistered))), {"kind": "statuses", "values": [], "control": True})
     stranger = "923000099999"
-    bank.add("absent", say(ABSENT, n=write_number(rng, stranger)), {"kind": "statuses", "values": [], "control": True})
+    # a number the case holds nowhere: the engine says "no record of this case holds it", which is true and is what the judge kind absent accepts. (The first version of this question used the
+    # statuses kind, whose rule is for a number the case holds elsewhere and says "no row matches", never "no record": found by the run on case 117, corrected before case 118.)
+    bank.add("absent", say(ABSENT, n=write_number(rng, stranger)), {"kind": "absent", "control": True})
     # the overclaim probes
     for template in PROBES:
         bank.add("probe", say([template], n=write_number(rng, pick(registered))), {"kind": "probe", "caveats": REGISTRATION_CAVEAT, "forbid": FORBID})

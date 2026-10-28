@@ -118,5 +118,7 @@
   {"q": "How many documents mention Model Town?", "views": ["v_document_values"], "example": "doc-place-count"},
   {"q": "Which documents mention a national ID number?", "views": ["v_document_mentions"], "example": "doc-national-id"},
   {"q": "Which numbers written in the documents also appear in the call records?", "views": ["v_document_links"], "example": "doc-links-calls"},
-  {"q": "Which accounts named in the documents appear in no statement?", "views": ["v_document_links"], "example": "doc-unlinked-accounts"}
+  {"q": "Which accounts named in the documents appear in no statement?", "views": ["v_document_links"], "example": "doc-unlinked-accounts"},
+  {"q": "Which numbers were registered on the SIM with IMSI 001010000001018?", "views": ["v_subscriber_registrations"]},
+  {"q": "Which SIM was 923000001043 registered on?", "views": ["v_subscriber_registrations"]}
 ]

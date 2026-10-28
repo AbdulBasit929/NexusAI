@@ -412,6 +412,8 @@ var (
 	askFlowShareB   = regexp.MustCompile(`at least\s+(\d{1,3})\s*(?:%|percent)`)
 	askLimitAmountA = regexp.MustCompile(`(?:limit|threshold|ceiling|cap)\s+(?:of\s+)?(?:rs\.?\s*|pkr\s*)?(\d[\d,]{3,})`)
 	askLimitAmountB = regexp.MustCompile(`(?:under|below|beneath|just under|just below)\s+(?:the\s+)?(?:rs\.?\s*|pkr\s*)?(\d[\d,]{3,})`)
+	// "95 percent of 400,000 and the limit": the amount that a share is of is the limit when the question talks of a limit (found by the transactions judgement run on case 119)
+	askLimitAmountC = regexp.MustCompile(`\d{1,2}\s*(?:%|percent)\s+of\s+(?:rs\.?\s*|pkr\s*)?(\d[\d,]{3,})`)
 	askLimitShareA  = regexp.MustCompile(`(\d{1,2})\s*(?:%|percent)\s+(?:or more\s+)?of\s+(?:the\s+)?(?:limit|threshold)`)
 	askLimitShareB  = regexp.MustCompile(`within\s+(\d{1,2})\s*(?:%|percent)\s+of\s+(?:the\s+)?(?:limit|threshold)`)
 )
@@ -421,7 +423,11 @@ func askFindFlowShare(lower string) []int { return askFindInts(lower, askFlowSha
 // askFindLimitAmount reads the amount of a limit: digits with thousands commas after "limit of" or "under".
 func askFindLimitAmount(lower string) []int {
 	var out []int
-	for _, re := range []*regexp.Regexp{askLimitAmountA, askLimitAmountB} {
+	patterns := []*regexp.Regexp{askLimitAmountA, askLimitAmountB}
+	if strings.Contains(lower, "limit") || strings.Contains(lower, "threshold") {
+		patterns = append(patterns, askLimitAmountC)
+	}
+	for _, re := range patterns {
 		for _, m := range re.FindAllStringSubmatch(lower, -1) {
 			if n, err := strconv.Atoi(strings.ReplaceAll(m[1], ",", "")); err == nil && !askContainsInt(out, n) {
 				out = append(out, n)

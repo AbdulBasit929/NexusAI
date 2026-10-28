@@ -258,9 +258,9 @@ func askExtractFrameWith(question string, plates bool) askFrame {
 		return strings.Contains(" "+strings.Join(askFrameWord.FindAllString(lower, -1), " ")+" ", " "+p+" ")
 	}
 	words2 := strings.Join(askFrameWord.FindAllString(lower, -1), " ")
-	f.Cues["incoming"] = anyWord("incoming", "inbound", "received") || regexp.MustCompile(`\b(?:get|gets|got|getting|receive|receives|receiving)\b.*\bfrom\b`).MatchString(words2) ||
+	f.Cues["incoming"] = anyWord("incoming", "inbound", "received", "credited", "deposited") || regexp.MustCompile(`\b(?:get|gets|got|getting|receive|receives|receiving)\b.*\bfrom\b`).MatchString(words2) ||
 		regexp.MustCompile(`\b(?:calls?|messages?|sms|texts?)\s+from\b`).MatchString(words2)
-	f.Cues["outgoing"] = anyWord("outgoing", "outbound", "dial", "dials", "dialled", "dialed", "dialling", "dialing", "made") || regexp.MustCompile(`\b(?:send|sends|sent|sending|call|calls|called|calling|message|messages|messaged|text|texted)\b.*\bto\b`).MatchString(words2) && !f.Cues["incoming"]
+	f.Cues["outgoing"] = anyWord("outgoing", "outbound", "debited", "withdrawn", "dial", "dials", "dialled", "dialed", "dialling", "dialing", "made") || regexp.MustCompile(`\b(?:send|sends|sent|sending|call|calls|called|calling|message|messages|messaged|text|texted)\b.*\bto\b`).MatchString(words2) && !f.Cues["incoming"]
 	f.Cues["outgoing"] = f.Cues["outgoing"] && !phrase("made by")
 	// any word that gives a question a direction, wider than the incoming and outgoing cues (which need the right phrasing): the obligation below refuses a direction filter only when none is there
 	f.Cues["direction"] = anyWord("direction", "directions", "incoming", "outgoing", "inbound", "outbound", "received", "receive", "receives", "receiving", "get", "gets", "got", "getting", "make", "makes", "made", "making",
@@ -567,16 +567,25 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 
 	// 4. Marks that the question's words leave in the query.
 	// money received is a credit and money sent is a debit in the transaction views, where the direction column holds those words
-	if f.Cues["incoming"] && !askSQLMentions(sql, "'incoming'", "'credit'") && !askUsesColumn(v, "incoming", "credits") {
+	// "made or received", "sent or received": both ways are asked for, so a filter on either would leave half of them out and the query filters on neither (found by the subscriber
+	// judgement run on case 117: a question about numbers that made or received calls after their registration ended was abstained, because the query could not say both)
+	// the views of pass-through pairs and of debits just under a limit are one direction or both by definition: their columns say so (credit_amount, debit_amount) or the view does
+	bothWays := (f.Cues["incoming"] && f.Cues["outgoing"]) || askUsesView(v, "v_account_flows") || askUsesView(v, "v_account_limit_bands")
+	if f.Cues["incoming"] && !bothWays && !askSQLMentions(sql, "'incoming'", "'credit'") && !askUsesColumn(v, "incoming", "credits") {
 		add("DIRECTION", "The question is about incoming events: filter direction = 'incoming' (or use the incoming column).", "the question is about incoming events and the query does not say so")
 	}
-	if f.Cues["outgoing"] && !askSQLMentions(sql, "'outgoing'", "'debit'") && !askUsesColumn(v, "outgoing", "debits") {
+	if f.Cues["outgoing"] && !bothWays && !askSQLMentions(sql, "'outgoing'", "'debit'") && !askUsesColumn(v, "outgoing", "debits") {
 		add("DIRECTION", "The question is about outgoing events: filter direction = 'outgoing' (or use the outgoing column).", "the question is about outgoing events and the query does not say so")
 	}
 	// A person's name compared with a number column. src and dst hold phone numbers and no view maps a name to one, so the query counts nothing and the answer would be a confident 0
 	// about a person the case may well hold (found 2026-10-20 on forensic-demo: "How many call records did Hamza Ghauri have?" answered 0).
 	if askNameAsNumber.MatchString(v.SQL) {
 		add("NAME", "src and dst hold phone numbers; a person's name is not one, and no view maps names to numbers. If the question names a person and no number, set answerable to false instead of comparing a number column with a name.", "the query compares a number column with a person's name")
+	}
+	// The inventory lists the case's files by name, type and time; it does not say what a file contains. A query that looks for an identifier of the question among file names answers
+	// "no record" about documents that name it (found by the documents judgement run on seed 5006: six such answers, all wrong).
+	if askUsesView(v, "v_evidence_inventory") && len(f.Identifiers()) > 0 && askSQLMentions(sql, " like ", "ilike") {
+		add("INVENTORY_IDENTIFIER", "The inventory lists the case's files by name, type and time. It does not say what a file contains, so an identifier of the question cannot be looked up in file names. To find the documents that name a number, an account or a plate, read the views of the documents' mentions.", "the query looks for an identifier among file names")
 	}
 	// A filter on direction that the question never asked for narrows the answer without saying so (found 2026-10-20: "the latest call start time in the calls" was answered from
 	// outgoing voice calls only, and the answer was a day early).
@@ -621,6 +630,11 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	// five times at a camera (found by the ANPR development check on case 2).
 	if askUsesView(v, "v_plate_visits") && !askUsesView(v, "v_plate_sightings") && askCountsSightings.MatchString(strings.ToLower(f.Question)) && askSQLMentions(sql, "count(") && !askSQLMentions(sql, "sum(") && !askBareSightings.MatchString(sql) {
 		add("AGGREGATE", "A row of v_plate_visits is one plate at one camera, not one sighting: the number of sightings is its sightings column. SELECT sightings (or SUM(sightings) when you group); do not COUNT its rows.", "the question counts sightings and the query counts the plate-camera pairs")
+	}
+	// A row of v_bank_transactions is one transaction: how many of them is COUNT of the rows; SUM adds the money up (found by the transactions judgement run on case 119: "how many credits"
+	// was answered with the sum of the amounts)
+	if f.Cues["count"] && askUsesView(v, "v_bank_transactions") && !askSQLMentions(sql, "count(") {
+		add("AGGREGATE", "A row of v_bank_transactions is one transaction: how many of them is COUNT(*) of the rows. SUM(amount) adds the money up and says nothing of how many.", "the question asks how many transactions and the query does not count them")
 	}
 	if f.Cues["count"] && !askSQLMentions(sql, "count(", "sum(") && !askUsesColumn(v, "events", "incoming", "outgoing", "sightings") {
 		add("AGGREGATE", "The question asks how many: count the rows (COUNT) or sum the counts of the view.", "the question asks for a count that the query does not compute")

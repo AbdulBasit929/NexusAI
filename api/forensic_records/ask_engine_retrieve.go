@@ -129,20 +129,21 @@ var askLexicon = map[string][]string{
 	"v_device_pairings":      {"handset", "imei", "imsi", "sim", "device", "swap", "swapped", "change", "new", "model", "phone", "card"},
 	"v_data_sessions": {"ip", "address", "port", "internet", "session", "browse", "website", "domain", "host", "server", "download", "upload", "byte", "traffic",
 		"nat", "held", "public", "data", "web", "subscriber"},
-	"v_plate_sightings": {"plate", "vehicle", "car", "registration", "anpr", "camera", "sight", "sighting", "seen", "licence", "license", "lane"},
-	"v_plate_visits":    {"plate", "vehicle", "car", "camera", "both", "visited", "anpr", "registration"},
+	// "seen" is not here: it is in every question about who was seen with a phone, and a shortlisted view that the case cannot speak for declines the whole question (case 118, SUB-015)
+	"v_plate_sightings": {"plate", "vehicle", "car", "registration", "anpr", "camera", "sight", "sighting", "licence", "license", "lane"},
+	"v_plate_visits":    {"plate", "vehicle", "car", "camera", "visited", "anpr", "registration"}, // not "both": it brought this view into "which accounts did both transact with" (case 119) and declined the question
 	// only words that mean a registration: subscriber, sim, imsi, after, before, active, operator and status are everywhere in call-record questions, and a shortlisted view that the case cannot
 	// speak for makes the coverage guard decline the whole question
-	"v_subscriber_registrations": {"registered", "registration", "registrations", "unregistered", "iccid", "activated", "activation", "deactivated", "deactivation", "suspended", "prepaid", "postpaid",
+	"v_subscriber_registrations": {"registered!", "registration!", "registrations!", "unregistered!", "iccid", "activated", "activation", "deactivated", "deactivation", "suspended", "prepaid", "postpaid",
 		"conflicting", "disagree", "disagrees", "owns", "owner", "owned", "ownership", "holder", "whose"},
 	"v_number_registration_activity": {"registered", "registration", "registrations", "unregistered", "deactivated", "deactivation", "expired"},
 	// only what separates a handset's make and model from the pairing of a number with an IMEI: the words imei, handset, device and used belong to v_device_pairings
 	"v_handsets": {"model", "models", "make", "brand", "manufacturer", "tac", "samsung", "apple", "iphone", "xiaomi", "huawei", "oppo", "nokia", "vivo", "infinix", "tecno"},
 	// transactions: words of a statement and a wallet; the generic words of call-record questions stay out (a shortlisted view that the case cannot speak for makes the coverage guard decline the question)
 	"v_bank_transactions":      {"transaction", "transactions", "bank", "statement", "balance", "debit", "debits", "credit", "credits", "deposit", "deposits", "withdrawal", "withdrawals", "iban", "ibft", "raast", "salary", "wallet", "payment", "payments"},
-	"v_account_counterparties": {"counterparty", "counterparties", "paid", "pay", "payer", "payee", "iban", "transfers"},
+	"v_account_counterparties": {"counterparty", "counterparties", "paid", "pay", "payer", "payee", "iban", "transfers", "transact", "transacted"},
 	"v_account_activity":       {"balance", "daily", "closing", "credits", "debits", "bank", "statement"},
-	"v_account_flows":          {"pass-through", "passthrough", "passed", "forwarded", "again"},
+	"v_account_flows":          {"pass-through!", "passthrough!", "passed", "forwarded", "again", "followed"},
 	"v_account_limit_bands":    {"limit", "structuring", "threshold"},
 	// documents: only words that mean what a document names. "document" itself belongs to v_evidence_inventory ("how many documents are in the case"), and a shortlisted view that the case
 	// cannot speak for makes the coverage guard decline the whole question, so the generic words of ordinary questions stay out
@@ -223,8 +224,14 @@ func (c *askCatalogue) Shortlist(question string, max int) askShortlist {
 	}
 	for _, v := range c.Views {
 		for _, word := range askLexicon[v.Name] {
+			// a word marked with ! names the family so plainly that one hit settles it (5 points, not 2): "registered" in a question about the SIM an IMSI was registered on, which
+			// the words imsi and sim (v_device_pairings) had outweighed (found by the subscriber judgement run on case 118: answered "no row matches" from the call records)
+			points := 2.0
+			if strings.HasSuffix(word, "!") {
+				word, points = strings.TrimSuffix(word, "!"), 5
+			}
 			if tokenSet[askStem(word)] {
-				add(v.Name, 2, "word: "+word)
+				add(v.Name, points, "word: "+word)
 			}
 		}
 		// The words of a view's own description are a weak signal (generic words such as number and used are in most of them), so the sum is capped
@@ -338,6 +345,22 @@ func (c *askCatalogue) Shortlist(question string, max int) askShortlist {
 }
 
 // askApplyFeatures adds the points the kinds of identifier in a question give.
+// askDocumentKeyRE is a key as a question writes it, in lower case: an account (pk00synt...), a plate (three or four letters and four digits), or a long run of digits (a number, a serial, a handset).
+var askDocumentKeyRE = regexp.MustCompile(`\bpk\d{2}\s?[a-z]{4}|\b[a-z]{3,4}[\s-]?\d{4}\b|\d{7,}|\+\d{2}[\s-]?\d{3}`)
+
+// askAccountKeyRE is an account as a question writes it, in lower case.
+var askAccountKeyRE = regexp.MustCompile(`\bpk\d{2}\s?[a-z]{4}`)
+
+// askAnyToken is whether the question has one of the words (stemmed).
+func askAnyToken(tokens map[string]bool, words ...string) bool {
+	for _, w := range words {
+		if tokens[askStem(w)] {
+			return true
+		}
+	}
+	return false
+}
+
 func askApplyFeatures(c *askCatalogue, f askFeatures, tokens map[string]bool, normalised string, add func(string, float64, string)) {
 	has := func(name string) bool { return c.View(name) != nil }
 	// The phrases that name an analysis of stages 3b and 3c (ask_engine_cues.go): successor numbers, silence, a move, a trip, anchors, impossible speed, a change of rhythm.
@@ -346,6 +369,32 @@ func askApplyFeatures(c *askCatalogue, f askFeatures, tokens map[string]bool, no
 	}
 	if f.IPs > 0 && has("v_data_sessions") {
 		add("v_data_sessions", 3, "an IP address is named")
+	}
+	// An account (pk00synt...) in a question is a key of the bank views; a credit and a debit in one question are a pair (found by the transactions judgement run on case 119: the pairs
+	// were looked for with a self-join on the statement lines, and "which accounts did both transact with" was shortlisted the call records)
+	if askAccountKeyRE.MatchString(normalised) {
+		if has("v_bank_transactions") {
+			add("v_bank_transactions", 4, "an account is named")
+		}
+		if has("v_account_counterparties") {
+			add("v_account_counterparties", 3, "an account is named")
+		}
+	}
+	if tokens[askStem("credit")] && tokens[askStem("debit")] && has("v_account_flows") {
+		add("v_account_flows", 6, "a credit and a debit in one question")
+	}
+	// A question about documents that names a key (a number, an account, a plate, a handset) or says one of those kinds is about what the documents NAME: the document views, not the
+	// inventory of files (found by the documents judgement run on seed 5006: nine questions of the form "in which documents does X appear" were shortlisted the inventory and answered
+	// from file names, six of them with a confident "no record")
+	if tokens[askStem("document")] && (f.Phones > 0 || f.IMEIs > 0 || askDocumentKeyRE.MatchString(normalised) || askAnyToken(tokens, "number", "account", "plate", "mobile", "iban", "imei", "sim")) {
+		for _, name := range []string{"v_document_values", "v_document_mentions", "v_document_links"} {
+			if has(name) {
+				add(name, 6, "a question about documents names a key")
+			}
+		}
+		if has("v_evidence_inventory") {
+			add("v_evidence_inventory", -3, "the inventory lists files, not what they name")
+		}
 	}
 	if f.IMEIs > 0 && has("v_device_pairings") {
 		add("v_device_pairings", 3, "a 15-digit identifier is named")
