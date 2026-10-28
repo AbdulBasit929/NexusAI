@@ -24,6 +24,10 @@ CITIES = {
     },
 }
 
+# the Urdu spelling of each area name (the part before any bracket of an area label)
+AREAS_URDU = {"Johar Town": "جوہر ٹاؤن", "Newtown": "نیو ٹاؤن", "Kot Lakhpat": "کوٹ لکھپت", "Faisal Town": "فیصل ٹاؤن", "Model Town": "ماڈل ٹاؤن", "Al Noor Town": "النور ٹاؤن",
+              "Mustafa Town": "مصطفیٰ ٹاؤن", "Muslim Town": "مسلم ٹاؤن", "Garden Town": "گارڈن ٹاؤن", "Gulberg": "گلبرگ"}
+
 # (given names, surnames) by community index; both lists hold (Latin, Urdu) pairs
 MALE = [("Muhammad", "محمد"), ("Ahmed", "احمد"), ("Ali", "علی"), ("Hassan", "حسن"), ("Hussain", "حسین"), ("Usman", "عثمان"), ("Bilal", "بلال"), ("Imran", "عمران"), ("Kamran", "کامران"),
         ("Faisal", "فیصل"), ("Tariq", "طارق"), ("Shahid", "شاہد"), ("Naveed", "نوید"), ("Asif", "آصف"), ("Zubair", "زبیر"), ("Adnan", "عدنان"), ("Salman", "سلمان"), ("Hamza", "حمزہ"),
@@ -64,6 +68,20 @@ def lon_step(city):
 
 def area(city, idx):
     return known(city)["areas"][idx % 12]
+
+
+def area_name(city, idx):
+    """The area of a site without the bracket that tells the sites of one area apart: 'Johar Town (west)' is 'Johar Town'."""
+    return area(city, idx).split(" (")[0]
+
+
+def gazetteer(city):
+    """Place key (lower case area name) -> the spellings it is written in, Latin and Urdu: what the mention extractor is given for a case in this city."""
+    out = {}
+    for label in known(city)["areas"]:
+        base = label.split(" (")[0]
+        out[base.lower()] = [base] + ([AREAS_URDU[base]] if base in AREAS_URDU else [])
+    return out
 
 
 def site_label(city, idx):

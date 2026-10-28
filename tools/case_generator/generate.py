@@ -292,7 +292,7 @@ def build_case(params, registry=None):
     return world, renders, key
 
 
-def write_case(params, out_dir, registry=None, with_anpr=False, with_subscribers=False, with_transactions=False):
+def write_case(params, out_dir, registry=None, with_anpr=False, with_subscribers=False, with_transactions=False, with_documents=False):
     """Write a case. with_anpr adds one camera export of plate sightings (anpr_case.py, its own random stream; the default build and every hash of the register are unchanged)."""
     world, renders, key = build_case(params, registry)
     root = os.path.join(out_dir, "case-%d" % params.seed)
@@ -341,6 +341,13 @@ def write_case(params, out_dir, registry=None, with_anpr=False, with_subscribers
             txn_case.write(built["files"][source], os.path.join(root, *rel.split("/")), header)
             key["transactions"].append({"name": name, "file": rel, "layout_id": layout, "source": source})
         key["transaction_truth"] = built["truth"]
+    if with_documents:
+        # fourteen text documents (English, Urdu, Roman Urdu) with the mention truth (doc_case.py, its own random stream; the default build is unchanged); needs a locale
+        import doc_case
+        built = doc_case.build(params, world, key)
+        doc_case.write(built, root)
+        key["documents"] = built["documents"]
+        key["document_truth"] = built["truth"]
     with open(os.path.join(root, "key", "world.json"), "w", encoding="utf-8", newline="\n") as handle:
         handle.write(w.world_to_json(world) + "\n")
     key_text_for_id = json.dumps({k: v for k, v in key.items() if k != "case_id"}, sort_keys=True)

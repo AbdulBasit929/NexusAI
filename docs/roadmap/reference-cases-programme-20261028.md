@@ -146,7 +146,48 @@ Section 5's plant list is extended so that **every media file is tied into the c
 | **S6, S7** | full measurement of the catalogue (at least 400 questions, now with documents and media) and the case map in the interface | as before | acceptance |
 
 ### 9.6 Decisions and limits, stated plainly
-* **Policy proposal (needs a yes):** common Pakistani names in the local showcase files, always with an invalid national ID number, a fictional bank and the SPECIMEN or SYNTHETIC line; they never enter the repository, the live service, or a screenshot sent outside. The reserved forms stay for everything committed.
+* **Policy (accepted by the owner, 2026-10-28):** common Pakistani names in the local showcase files, always with an invalid national ID number, a fictional bank and the SPECIMEN or SYNTHETIC line; they never enter the repository, the live service, or a screenshot sent outside. The reserved forms stay for everything committed.
 * **D-faces (open, unchanged):** no identity matching of faces until a lawful identity-labelled set exists and the policy is decided.
 * **D9 (open):** real bank, wallet, subscriber and operator samples under authority turn drafts into layouts; the Pakistani look is built from research, and where research is not enough the file says draft.
 * **Not claimed:** that any generated file is a real Pakistani record; that Urdu read speech equals Pakistani conversation; that a plate or face role works while it is off.
+
+## 10. Stage S3, text documents and the mention index: design, truth and gates (written 2026-10-28 BEFORE any build or measurement)
+
+**Owner's decisions (2026-10-28):** the names policy of section 9.6 is accepted (common Pakistani names in the local showcase files, always with an invalid national ID number, the SPECIMEN or SYNTHETIC line, never in the repository, the live service or a screenshot sent outside); the documents stage starts now.
+
+### 10.1 What is built in this sub-stage, and what is not
+**Built here (S3a):** (1) a **mention extractor** in the ingestion package (`ingestion/forensic_records/mention_extractor.py`, rules only, no model): it reads the passages that the existing document pipeline already produces (TXT, DOCX; PDF in S4) and returns, for each passage, the strong identifiers and places it contains, each with its normalised value, the text as written, its position, a confidence tier and the rule that found it. (2) A **document generator** (`tools/case_generator/doc_case.py`, its own random stream, outside the default build so the register is unchanged) that writes about 14 documents for a case from the planted truth, in English, Urdu and Roman Urdu, with a **mention truth** (what was put where, as written) and **decoys** (text that looks like an identifier and is not). (3) A **pure-Python DOCX writer** (paragraphs, a table, right-to-left Urdu paragraphs). (4) The measurement of the extractor against the truth.
+**Not built here (S3b, next):** the database side (an `entity` row per identifier, `entity_mention` rows, an analyst view of documents and their mentions, migration, ops scripts), the engine's document family (catalogue, retrieval, examples), name recognition (names stay dark until R9, and need a model), `.eml` and chat-export readers in the document pipeline, PDF documents (S4), scans (S5). Until S3b exists the document questions of the catalogue carry an oracle answer and are marked `engine: pending`; they are not put to the engine.
+
+### 10.2 The documents (every one marked SYNTHETIC in a visible line; identifiers of reserved form; each mention of a case identifier is planted from the world, never invented)
+| # | Document | Format | Language | Planted mentions |
+|---|---|---|---|---|
+| D01 | First Information Report (fraud), complainant and accused | DOCX | English | accused's mobile number, national ID number, account (IBAN with spaces), vehicle plate, home area; section numbers and a landline as decoys |
+| D02 | First Information Report, second incident | DOCX | Urdu (right to left, Urdu digits) | two mobile numbers, a place, an account |
+| D03 | Witness statement (Section 161 form) | TXT (UTF-8) | Urdu | a mobile number in Urdu digits, a place |
+| D04 | Witness statement | TXT (UTF-16, as a Windows "Unicode" text file) | Roman Urdu | the **new number** of a successor pair, a place, the plate of a vehicle |
+| D05 | Seizure (recovery) memo, items in a table | DOCX | English | handset IMEI (of a shared handset), SIM ICCID, two mobile numbers, a national ID number |
+| D06 | Request for call records | TXT | English | up to six numbers in mixed forms (0300-..., +92 300 ..., 0092 ...), a period |
+| D07 | Request for a bank statement | TXT | English | two accounts, a national ID number |
+| D08 | Subscriber verification report | TXT | English | number, ICCID, national ID number, address area |
+| D09 | Utility bill (address evidence) | TXT | English | consumer address area, a reference number (decoy), a landline (decoy) |
+| D10 | Vehicle registration extract | TXT | English | plate, owner's national ID number, make |
+| D11 | Chat export between two subjects (WhatsApp form: `dd/mm/yyyy, hh:mm - name: text`) | TXT | Roman Urdu, Urdu, English mixed | numbers shared in the chat, an account number, a meeting place |
+| D12 | Complaint application (darkhast) | DOCX | Urdu | a number, a plate |
+| D13 | Extraction index (which file came from which handset) | TXT | English | handset IMEIs, numbers |
+| D14 | Control document: a clean report that names nothing in the case | TXT | English | none (precision) |
+
+Forms written for a mobile number (each used, none privileged): `0300-1110001`, `0300 1110001`, `03001110001`, `+92 300 1110001`, `+92-300-1110001`, `0092 300 1110001`, `92 300 1110001`, `(0300) 1110001`, Urdu digits `۰۳۰۰۱۱۱۰۰۰۱`; for a national ID number: `00000-1234567-1`, `0000012345671`, `00000 1234567 1`, Urdu digits; for an account: with and without spaces every four characters, lower case.
+Decoys (text that must NOT be extracted as the kind it resembles): a landline `042-35761234`, a reference `REF00000394`, an amount `1,234,567.00`, a date `20260305`, a 12-digit run, a number inside a longer digit string, `Section 161`, `PPC 420`, `FIR 45/26`, a plate-shaped legal token, `SYNT4O24` (letter O for zero), a 15-digit number that fails the Luhn check next to the word IMEI.
+
+### 10.3 Gates (pre-registered; applied once; nothing is tuned on a case that is then judged)
+* **Development:** cases 1 to 8 of the register (documents generated for each by the same generator) may be used to tune the extractor.
+* **Judgement:** `orion-lahore` (seed 5001) and one fresh case (seed 5003, generated once for this) are judged **once**, after the extractor is frozen. If a gate fails, the cause is fixed and a second fresh case (seed 5004) is judged; the first result is reported.
+* **G-M1 strong keys** (mobile number, national ID number, account, ICCID, IMEI): **recall at least 98 percent and precision at least 98 percent**, counted per kind on (document, normalised value) pairs, and **zero extractions of a planted decoy**.
+* **G-M2 plates:** recall at least 90 percent, precision at least 95 percent (a plate is found with a cue word near it; a plate-shaped legal token is a decoy).
+* **G-M3 places** (the gazetteer of the case city's areas, Latin and Urdu spelling): recall at least 90 percent, precision at least 95 percent.
+* **G-M4 forms and scripts:** the same gates hold separately for documents in Urdu digits and for the UTF-16 file; a gate met only in English does not count.
+* **G-M5 control document:** zero mentions in D14.
+* **G-M6 linking:** every extracted mobile number, account, national ID number and plate that the truth ties to a person or a record of another family is linked by its normalised key to that same record (calls, registrations, statements, camera table) with no false link; reported as a count, gate = zero false links.
+* **G-M7 safety:** the repository scanner passes on the generator and extractor; no document in the showcase contains a national ID number outside the 00000 prefix; the privacy audit finds no real-form identifier.
+Latency is reported, not a gate.
