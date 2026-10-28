@@ -24,6 +24,7 @@ const routeLoaders = {
   routeStates: () => import('./pages/RouteStatesPage.jsx'),
   workbenchProof: () => import('./pages/WorkbenchProofPage.jsx'),
   foundations: () => import('./pages/FoundationsPage.jsx'),
+  components: () => import('./pages/ComponentsPage.jsx'),
 }
 const DashboardPage = lazy(routeLoaders.dashboard)
 const GlobalInvestigatePage = lazy(routeLoaders.globalInvestigate)
@@ -44,6 +45,7 @@ const TypeProofPage = lazy(routeLoaders.typeProof)
 const RouteStatesPage = lazy(routeLoaders.routeStates)
 const WorkbenchProofPage = lazy(routeLoaders.workbenchProof)
 const FoundationsPage = lazy(routeLoaders.foundations)
+const ComponentsPage = lazy(routeLoaders.components)
 
 export function preloadRoute(name) {
   return routeLoaders[name]?.()
@@ -88,6 +90,7 @@ export function WorkspaceRouter() {
           <Route path="/design/route-states" element={<RouteStatesPage />} />
           <Route path="/design/workbench" element={<WorkbenchProofPage />} />
           <Route path="/design/foundations" element={<FoundationsPage />} />
+          <Route path="/design/components" element={<ComponentsPage />} />
           <Route path="*" element={<Navigate replace to="/" />} />
         </Routes>
       </Suspense>
