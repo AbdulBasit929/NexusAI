@@ -35,10 +35,16 @@ ROOT = os.environ.get("NEXUSAI_SHOWCASE", "C:/NexusAI-Showcase")
 CASES = {
     # Orion: the full case. 12 subjects of interest in 5 communities over 75 days, 100 people in the world, every plant of the generator.
     "orion": dict(seed=5001, people=100, subjects=12, associates=24, period_days=75, communities=5, p2_pairs=5, p3_pairs=2, p7_plants=3),
+    # Orion in Lahore (reference cases programme, section 9): the same world and the same plants, drawn on a real city with Pakistani names, addresses and narrations
+    "orion-lahore": dict(seed=5001, people=100, subjects=12, associates=24, period_days=75, communities=5, p2_pairs=5, p3_pairs=2, p7_plants=3, locale="lahore", id_prefix="ORL"),
+}
+IDENTITY_NOTES = {
+    "reserved": "Every number, address, plate, account, name and national ID number in this folder is invented and of a reserved form (it cannot be a real person's).",
+    "locale": "Every number, address, plate, account and national ID number in this folder is invented and of a reserved form (the national ID numbers begin 00000, a code no province or district has; the accounts are PK00SYNT plus digits, an invalid IBAN). Names are common Pakistani combinations of a given name and a surname and CAN coincide with a real person's; they are not taken from any record. Cell sites are synthetic positions drawn on a real city, not real towers. Nothing here is a real person's record.",
 }
 README = """NexusAI reference case: %(name)s
 
-SYNTHETIC. Every number, address, plate, account, name and national ID number in this folder is invented and of a reserved form (it cannot be a real person's). Built by
+SYNTHETIC. %(identity_note)s Built by
 tools/showcase/build_showcase.py (seed %(seed)d, generator %(generator)s) of the repository; rebuilding from the seed gives the same bytes.
 
   files\\       the evidence, in the shapes of the files of the team lead's folder (call records C1 to C4, tower dumps C5 to C8, internet records I1 to I4) and the families built since
@@ -89,7 +95,8 @@ def build(name, out_root, force=False):
     import generate
     import world as w
 
-    spec = CASES[name]
+    spec = dict(CASES[name])
+    prefix = spec.pop("id_prefix", "ORI")
     params = w.Params(**spec)
     target = os.path.join(out_root, name)
     if os.path.exists(target) and not force:
@@ -104,14 +111,14 @@ def build(name, out_root, force=False):
         for bank, questions in collect_questions(params, key):
             per_bank[bank] = collections.Counter(q["type"] for q in questions)
             for q in questions:
-                catalogue.append(dict(q, id="ORI-%s-%s" % (bank[:3].upper(), q["id"]), bank=bank, source_id=q["id"]))
+                catalogue.append(dict(q, id="%s-%s-%s" % (prefix, bank[:3].upper(), q["id"]), bank=bank, source_id=q["id"]))
         os.makedirs(os.path.join(root, "questions"), exist_ok=True)
         with open(os.path.join(root, "questions", "catalogue.json"), "w", encoding="utf-8", newline="\n") as handle:
             json.dump(catalogue, handle, indent=1, ensure_ascii=False)
             handle.write("\n")
         with open(os.path.join(root, "README.txt"), "w", encoding="utf-8", newline="\n") as handle:
             import world as world_module
-            handle.write(README % {"name": name, "seed": params.seed, "generator": world_module.GENERATOR_VERSION, "count": len(catalogue)})
+            handle.write(README % {"name": name, "seed": params.seed, "generator": world_module.GENERATOR_VERSION, "count": len(catalogue), "identity_note": IDENTITY_NOTES["locale" if params.locale else "reserved"]})
         files = {}
         for base, _, names in os.walk(root):
             for item in sorted(names):

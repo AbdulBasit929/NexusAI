@@ -271,7 +271,7 @@ def build_case(params, registry=None):
     key = {
         "case_id": None, "seed": params.seed, "generator_version": w.GENERATOR_VERSION, "spec_version": w.SPEC_VERSION,
         "clock": {"local_zone": w.LOCAL_ZONE, "utc_offset_hours": w.LOCAL_UTC_OFFSET_HOURS, "key_time": "local wall clock as the files show it"},
-        "params": json.loads(json.dumps(params.__dict__)),
+        "params": json.loads(json.dumps(w.params_dict(params))),
         "subjects": [{"person": s.pid, "msisdn": s.msisdn, "operator": w.OPERATOR_LABELS[s.operator], "layout_id": renders[s.pid].layout_id,
                       "file": None, "rows": len(renders[s.pid].rows), "events_not_representable": len(renders[s.pid].skipped)} for s in subjects],
         "dumps": dumps, "sessions": session_files, "app_usage": usage_files, "ip_queries": ip_queries,

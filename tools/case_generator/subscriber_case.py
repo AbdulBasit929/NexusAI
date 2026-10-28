@@ -23,6 +23,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "real_data"))
+import pk_locale  # noqa: E402
 import reserved  # noqa: E402
 
 LAYOUT_ID = "subscriber-s1"
@@ -80,7 +81,12 @@ def build(params, world, renders):
 
     def add(source, person, imsi, iccid, word, from_dt, to_dt, tags, form_index=0, date_style="iso", blank_iccid=False, ref=None):
         n = number()
-        identity = (reserved.synthetic_name(n % 9999), reserved.synthetic_cnic(n % 10 ** 7), reserved.synthetic_address(n))
+        if params.locale is None:
+            identity = (reserved.synthetic_name(n % 9999), reserved.synthetic_cnic(n % 10 ** 7), reserved.synthetic_address(n))
+        else:
+            # the same person has the same name, national ID number and address in every source that names the person
+            who = pk_locale.identity(params.locale, person.n, person.community, person.home_cell)
+            identity = (who["name"], who["national_id"], who["address"])
         shown_from = "" if from_dt is None else (from_dt.strftime("%d/%m/%Y") if date_style == "slash" else _local(from_dt))
         shown_to = "" if to_dt is None else _local(to_dt)
         row = [_form(person.msisdn, form_index), ref or "SUB-%05d" % (person.n + 1), identity[0], identity[1], identity[2], imsi, "" if blank_iccid else iccid, word, shown_from, shown_to,

@@ -26,6 +26,7 @@ from decimal import Decimal
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "real_data"))
+import pk_locale  # noqa: E402
 import reserved  # noqa: E402
 
 BANK_LAYOUT, WALLET_LAYOUT = "bank-stmt-t1", "wallet-t1"
@@ -201,7 +202,8 @@ def build(params, world):
                 rupees = True
                 rupee["done"] += 1
         when = row["local"] if row["file"] == "A" else "%02d/%02d/%d" % (row["at"].day, row["at"].month, row["at"].year)
-        cells = [shown_account, when, "", "Synthetic narration", reference_text, money_text(row["amount"], rupees) if row["dir"] == "debit" else "", money_text(row["amount"]) if row["dir"] == "credit" else "",
+        text = "Synthetic narration" if params.locale is None else pk_locale.narration(random.Random("narration:%s:%s" % (params.seed, row["ref"])), row["channel"], row["dir"], row["cp"])
+        cells = [shown_account, when, "", text, reference_text, money_text(row["amount"], rupees) if row["dir"] == "debit" else "", money_text(row["amount"]) if row["dir"] == "credit" else "",
                  money_text(row["balance"]), channel_word, row["cp"], ""]
         (a_rows if row["file"] == "A" else b_rows).append(cells)
         row["written_ref"] = reference_text

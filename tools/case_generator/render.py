@@ -248,7 +248,7 @@ def render_views(world, entry, views, label, preamble_person=None) -> RenderedFi
             put(cell_spec["ci"], ci)
             if cell_spec.get("raw"):
                 put(cell_spec["raw"], raw_id)
-        lat, lon = w.cell_geometry(subject.operator, site)
+        lat, lon = w.cell_geometry(subject.operator, site, world.params.locale)
         places = int(hints.get("coordinate_decimals", 5))
         lat_spec = fields.get("lat")
         if isinstance(lat_spec, dict) and "combined" in lat_spec:
@@ -258,7 +258,7 @@ def render_views(world, entry, views, label, preamble_person=None) -> RenderedFi
             put(fields["lat"], "%.*f" % (places, lat))
             put(fields["lon"], "%.*f" % (places, lon))
         if fields.get("location_text"):
-            put(fields["location_text"], "Site %02d" % site)
+            put(fields["location_text"], "Site %02d" % site if world.params.locale is None else __import__("pk_locale").site_label(world.params.locale, site))
         peer_spec = fields.get("peer_operator")
         if peer_spec:
             put(peer_spec["column"], peer)

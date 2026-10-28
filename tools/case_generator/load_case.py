@@ -32,7 +32,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
 sys.path.insert(0, HERE)
 import audit  # noqa: E402  (also puts the repository and the vault tools on the path)
-from ingestion.forensic_records.layout_registry import interpret_rows, load_registry  # noqa: E402
+from ingestion.forensic_records.layout_registry import Policy, interpret_rows, load_registry  # noqa: E402
 
 IMAGE = "timescale/timescaledb:latest-pg16"
 MIGRATIONS = ["001_phase1_records.sql", "002_job_row_counters.sql", "003_phase2_kb_assets_and_entities.sql", "004_dynamic_records.sql",
@@ -138,7 +138,7 @@ def copy_script(table, columns, rows):
             value = row.get(column)
             if value is None:
                 out.append("\\N")
-            elif isinstance(value, (dict, list)) and column == "raw_payload":
+            elif isinstance(value, (dict, list)) and column in ("raw_payload", "raw_payload_redacted"):
                 out.append(json.dumps(value, sort_keys=True, ensure_ascii=True, default=str))
             elif isinstance(value, list):
                 out.append("{" + ",".join('"%s"' % str(v).replace('"', '\\"') for v in value) + "}")
@@ -189,7 +189,9 @@ def load_case(db, case_dir, registry):
         rows = audit.read_export(os.path.join(case_dir, *rel.split("/")))
         report = registry.find_header(rows)
         entry = registry.get(item["layout_id"])
-        results = list(interpret_rows(entry, rows[report.header_row], rows[report.header_row + 1:], policy=audit.POLICY))
+        # the registration and statement exports carry dd/mm/yyyy dates in some rows: the job says so for those families (as test_subscriber_oracle and test_txn_oracle do)
+        policy = Policy(source_tz=audit.POLICY.source_tz, tz_basis=audit.POLICY.tz_basis, date_order="DMY") if family in ("subscriber", "transaction") else audit.POLICY
+        results = list(interpret_rows(entry, rows[report.header_row], rows[report.header_row + 1:], policy=policy))
         evidence_id, batch_id = lineage_ids(case_id, rel)
         sha = manifest["files"][rel]["sha256"]
         evidence.append((evidence_id, os.path.basename(rel), os.path.splitext(rel)[1].lstrip("."), manifest["files"][rel]["bytes"], sha))
@@ -352,10 +354,23 @@ def check_reconciliation(db, key, stats, report):
         wanted_q[item["export"]] = wanted_q.get(item["export"], 0) + 1
     for item in key["expected_merge"]:
         wanted_m[item["export"]] = wanted_m.get(item["export"], 0) + 1
-    got_q = {n: s["quarantined"] for n, s in stats.items() if s["quarantined"]}
-    got_m = {n: s["duplicates"] for n, s in stats.items() if s["duplicates"]}
+    # the key's expected_quarantine and expected_merge describe the call, session and usage exports; the families added since state their planted counts in their own truths (compared below)
+    older = {n: s for n, s in stats.items() if s["family"] in ("call", "session", "usage")}
+    got_q = {n: s["quarantined"] for n, s in older.items() if s["quarantined"]}
+    got_m = {n: s["duplicates"] for n, s in older.items() if s["duplicates"]}
     report.add("quarantined rows equal the key's", wanted_q == got_q, "%s vs %s" % (wanted_q, got_q) if wanted_q != got_q else "%d rows" % sum(got_q.values()))
     report.add("repeated rows equal the key's", wanted_m == got_m, "%s vs %s" % (wanted_m, got_m) if wanted_m != got_m else "%d rows" % sum(got_m.values()))
+    planted = {}
+    for name, truth in (("anpr", (key.get("anpr") or {})), ("subscribers-A", key.get("subscriber_truth") or {}), ("bank-statement-A", key.get("transaction_truth") or {})):
+        if truth and "planted" in truth and name in stats:
+            planted[name] = (sum(truth["planted"].get("quarantined", {}).values()), truth["planted"].get("duplicate_rows", 0))
+    newer = {n: s for n, s in stats.items() if s["family"] in ("plate", "subscriber", "transaction")}
+    wanted_typed = {n: planted.get(n, (0, 0)) for n in newer}
+    got_typed = {n: (s["quarantined"], s["duplicates"]) for n, s in newer.items()}
+    if newer:
+        report.add("quarantined and repeated rows of the newer families equal their planted counts", wanted_typed == got_typed,
+                   "differs: %s" % {n: "planted %s, loaded %s" % (wanted_typed[n], got_typed[n]) for n in got_typed if wanted_typed[n] != got_typed[n]} if wanted_typed != got_typed
+                   else "%d quarantined, %d repeated" % (sum(q for q, _ in got_typed.values()), sum(m for _, m in got_typed.values())))
 
 
 def check_a1(db, key, report):

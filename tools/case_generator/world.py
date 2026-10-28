@@ -72,6 +72,7 @@ class Params:
     shared_min: int = 3
     shared_max: int = 5
     hub_threshold: int | None = None  # distinct subjects (files) in contact with a number above which it is a hub; default subjects - 2
+    locale: str | None = None    # a key of pk_locale.CITIES: the sites are drawn on that city and the people carry Pakistani identities (showcase cases only); None leaves every file as it was
 
     def resolved_hub_threshold(self) -> int:
         return self.hub_threshold if self.hub_threshold is not None else max(2, self.subjects - 2)
@@ -164,8 +165,20 @@ def _hour(rng):
     return rng.choices(range(24), weights=HOUR_WEIGHTS)[0]
 
 
-def cell_geometry(operator, idx):
-    """A fictional grid in the open ocean (specification section 8): about 2 km apart, a slightly different origin per operator."""
+def params_dict(params):
+    """The parameters as written into the key and the summaries; a locale that is not set is left out so that the files of every earlier case are byte for byte what they were."""
+    doc = asdict(params)
+    if doc.get("locale") is None:
+        doc.pop("locale", None)
+    return doc
+
+
+def cell_geometry(operator, idx, locale=None):
+    """A fictional grid in the open ocean (specification section 8): about 2 km apart, a slightly different origin per operator. With a locale the same grid is drawn on that city."""
+    if locale is not None:
+        import pk_locale
+        lat0, lon0 = pk_locale.grid_origin(locale)
+        return round(lat0 + 0.02 * (idx // 4) + 0.0007 * operator, 6), round(lon0 + pk_locale.lon_step(locale) * (idx % 4) + 0.0011 * operator, 6)
     lat = 0.40 + 0.02 * (idx // 4) + 0.0007 * operator
     lon = -30.60 + 0.02 * (idx % 4) + 0.0011 * operator
     return round(lat, 6), round(lon, 6)
@@ -695,13 +708,13 @@ def to_utc(local: datetime.datetime) -> datetime.datetime:
 
 
 def world_summary(world: World) -> dict:
-    return {"params": asdict(world.params), "persons": len(world.persons), "events": len(world.events),
+    return {"params": params_dict(world.params), "persons": len(world.persons), "events": len(world.events),
             "planted_events": sum(1 for e in world.events if e.plant)}
 
 
 def world_to_json(world: World) -> str:
     doc = {
-        "generator_version": GENERATOR_VERSION, "spec_version": SPEC_VERSION, "params": asdict(world.params), "clock": {"local_zone": LOCAL_ZONE, "utc_offset_hours": LOCAL_UTC_OFFSET_HOURS},
+        "generator_version": GENERATOR_VERSION, "spec_version": SPEC_VERSION, "params": params_dict(world.params), "clock": {"local_zone": LOCAL_ZONE, "utc_offset_hours": LOCAL_UTC_OFFSET_HOURS},
         "persons": [asdict(p) for p in world.persons],
         "services": [{"kind": k, "label": v} for k, v in SERVICES],
         "structure": world.structure, "p2": world.p2, "p3": world.p3, "p7": world.p7, "p5": world.p5, "p6": world.p6, "p8": world.p8, "moves": world.moves, "rates": world.rates, "active": world.active, "roles": world.roles,
