@@ -183,3 +183,25 @@ def synthetic_name(n):
 
 def synthetic_address(n):
     return "%d Synthetic Street, Test City" % (n + 1)
+
+
+# An IBAN is a country code, two check digits (02 to 98 for a valid one) and a bank code and account number. The check digits 00 are never valid, and SYNT is not a bank code: the reserved form is
+# PK00SYNT + 16 digits, which no real account can be. A plain account number of the synthetic series is SYNT- and six digits.
+SYNTHETIC_IBAN_PREFIX = "PK00SYNT"
+
+
+def synthetic_iban(n):
+    if not 0 <= n < 10 ** 16:
+        raise ValueError("n must be below 10**16")
+    return SYNTHETIC_IBAN_PREFIX + "%016d" % n
+
+
+def synthetic_account(n):
+    if not 0 <= n < 10 ** 6:
+        raise ValueError("n must be below 10**6")
+    return "SYNT-%06d" % n
+
+
+def is_reserved_account(text):
+    compact = "".join(ch for ch in text.upper() if ch.isalnum())
+    return (compact.startswith(SYNTHETIC_IBAN_PREFIX) and len(compact) == 24) or (compact.startswith("SYNT") and len(compact) == 10 and compact[4:].isdigit())

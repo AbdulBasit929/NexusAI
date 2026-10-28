@@ -420,7 +420,8 @@ class SqlTests(unittest.TestCase):
         self.assertIn("UNIQUE (" + ti.CONFLICT_KEY + ")", sql)
 
     def test_every_family_maps_to_a_table_the_migration_creates(self):
-        sql = (Path(__file__).resolve().parents[3] / "db" / "forensic_records" / "012_typed_families.sql").read_text(encoding="utf-8")
+        migrations = Path(__file__).resolve().parents[3] / "db" / "forensic_records"
+        sql = " ".join((migrations / name).read_text(encoding="utf-8") for name in ("012_typed_families.sql", "029_bank_transactions.sql"))   # the typed tables: 012, and the transactions of 029
         for table in ti.TABLE_FOR_FAMILY.values():
             self.assertIn("CREATE TABLE IF NOT EXISTS forensic.%s (" % table, sql)
         families = {e["family"] for e in REGISTRY.entries}

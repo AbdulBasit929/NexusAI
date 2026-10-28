@@ -296,7 +296,7 @@ def generate(entry, rows=None, seed=1, date_order=None, defects=True):
     formats = (entry.get("time") or {}).get("formats", [])
     time_columns = (entry.get("time") or {}).get("columns", {})
     fmt = formats[0] if formats else None
-    builder = {"target_cdr": _comm_row, "tower_dump": _comm_row, "ipdr": _session_row, "app_usage": _usage_row, "plate_sighting": _plate_row, "subscriber": _subscriber_row}[kind]
+    builder = {"target_cdr": _comm_row, "tower_dump": _comm_row, "ipdr": _session_row, "app_usage": _usage_row, "plate_sighting": _plate_row, "subscriber": _subscriber_row, "bank_transaction": _bank_row}[kind]
     data, truth = [], []
     ctx = {"entry": entry, "hints": hints, "recipes": recipes, "rng": rng, "index": index, "width": width, "fmt": fmt,
            "time_columns": time_columns, "kind": kind}
@@ -774,6 +774,88 @@ def _plate_row(i, ctx, defect):
     elif defect == "time_missing":
         expect = {"status": "quarantined", "reason": "time_missing", "tag": defect}
     return cells, expect
+
+
+TXN_CHANNEL_WORDS = ("IBFT", "Raast", "ATM", "POS", "Cheque", "Cash", "Branch", "Online")
+TXN_CHANNEL_MEANING = {"IBFT": "ibft", "Raast": "raast", "ATM": "atm", "POS": "pos", "Cheque": "cheque", "Cash": "cash", "Branch": "branch", "Online": "online", "Mystery": "other"}
+WALLET_TYPES = (("Sent", "debit", "wallet"), ("Received", "credit", "wallet"), ("Cash In", "credit", "cash"), ("Cash Out", "debit", "cash"), ("Bill Payment", "debit", "online"))
+
+
+def _bank_row(i, ctx, defect):
+    """One posted transaction, of a bank statement (a debit and a credit column, a channel word, a counterparty account) or of a wallet list (one amount and a type word, a counterparty mobile). The
+    balance of each account runs on from the row before it, so that the running-balance check of the typed ingest finds nothing in a golden file."""
+    from decimal import Decimal
+    entry, hints, rng, index = ctx["entry"], ctx["hints"], ctx["rng"], ctx["index"]
+    fields = entry.get("fields") or {}
+    cells = [""] * ctx["width"]
+    if defect == "blank":
+        return cells, {"status": "skipped", "reason": "blank_row", "tag": "blank"}
+    wallet = "amount" in fields
+    n = i % 3 + 1
+    account = reserved.synthetic_msisdn(n) if wallet else reserved.synthetic_iban(n)
+    balances = ctx.setdefault("balances", {})
+    balance = balances.get(account, Decimal("100000.00") + 1000 * n)
+    amount = (Decimal(rng.randint(1000, 500000)) / 100).quantize(Decimal("0.01"))
+    other = (i + 1) % 3 + 4
+    start = _times(i, ctx)
+    time_cols, fmt = ctx["time_columns"], ctx["fmt"]
+    if defect == "time_unparsed":
+        _put(cells, index, time_cols["start"], "not-a-time")
+    elif defect == "time_missing":
+        pass
+    else:
+        _put(cells, index, time_cols["start"], render_time(start, fmt, hints))
+        if time_cols.get("value"):
+            _put(cells, index, time_cols["value"], render_time(start, fmt, hints))
+    flags, record = [], {}
+    if wallet:
+        word, direction, channel = WALLET_TYPES[i % len(WALLET_TYPES)]
+        if defect == "unknown_label":
+            word, direction, channel = "Mystery", None, None
+        if direction == "debit" and amount > balance:
+            word, direction, channel = "Received", "credit", "wallet"
+        shown_other = "-1" if defect == "party_sentinel" else reserved.synthetic_msisdn(other)
+        _put(cells, index, fields["account"], account)
+        _put(cells, index, fields["reference"], "TXN%08d" % (i + 1))
+        _put(cells, index, fields["amount"], "%.2f" % amount)
+        _put(cells, index, fields["counterparty_msisdn"], shown_other)
+        _put(cells, index, fields["status"], "Completed")
+        _put(cells, index, "Type", word)
+        if direction is not None:
+            new_balance = balance - amount if direction == "debit" else balance + amount
+            _put(cells, index, fields["balance"], "%.2f" % new_balance)
+        if defect == "party_sentinel":
+            flags.append("party_sentinel")
+        record = {"counterparty_msisdn": None if defect == "party_sentinel" else reserved.synthetic_msisdn(other), "channel": channel, "reference": "TXN%08d" % (i + 1), "status": "Completed"}
+    else:
+        direction = ("debit", "credit")[rng.randint(0, 1)]
+        if direction == "debit" and amount > balance:
+            direction = "credit"
+        word = "Mystery" if defect == "unknown_label" else TXN_CHANNEL_WORDS[i % len(TXN_CHANNEL_WORDS)]
+        _put(cells, index, fields["account"], account)
+        _put(cells, index, fields["debit" if direction == "debit" else "credit"], "{:,.2f}".format(amount))
+        _put(cells, index, fields["channel"], word)
+        _put(cells, index, fields["reference"], "REF%08d" % (i + 1))
+        _put(cells, index, fields["counterparty_account"], reserved.synthetic_iban(other))
+        _put(cells, index, fields["narration"], "Synthetic narration %d" % (i + 1))
+        new_balance = balance - amount if direction == "debit" else balance + amount
+        _put(cells, index, fields["balance"], "{:,.2f}".format(new_balance))
+        if defect == "unknown_label":
+            flags.append("unmapped_label:channel")
+        record = {"counterparty_account_raw": reserved.synthetic_iban(other), "counterparty_account_norm": reserved.synthetic_iban(other), "channel": TXN_CHANNEL_MEANING[word],
+                  "reference": "REF%08d" % (i + 1), "narration": "Synthetic narration %d" % (i + 1)}
+    mapped_positions = {pos for pos, cell in enumerate(cells) if cell != ""}
+    _fill_other_columns(cells, ctx, i, mapped_positions, {"start": start})
+    if defect == "time_unparsed":
+        return cells, {"status": "quarantined", "reason": "time_unparsed", "tag": defect}
+    if defect == "time_missing":
+        return cells, {"status": "quarantined", "reason": "time_missing", "tag": defect}
+    if direction is None:
+        return cells, {"status": "quarantined", "reason": "amount_direction_unknown", "tag": defect}
+    balances[account] = new_balance
+    record.update({"account_raw": account, "account_norm": account, "direction": direction, "amount": amount, "balance_after": new_balance, "time_precision": "second",
+                   "start_local": start.isoformat(sep=" ")})
+    return cells, {"status": "accepted", "tag": defect or "normal", "flags": flags, "record": record}
 
 
 SUBSCRIBER_STATUS_WORDS = ("Active", "Suspended", "Deactivated", "Blocked")

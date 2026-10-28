@@ -39,9 +39,9 @@ MIGRATIONS = ["001_phase1_records.sql", "002_job_row_counters.sql", "003_phase2_
               "005_backfill_canonical_records.sql", "006_canonical_normalized_fields.sql", "007_evidence_items.sql",
               "008_phase3_evidence_control_plane.sql", "009_phase3_queue_lifecycle.sql", "010_runtime_rls_policies.sql",
               "011_r5_custody_chain_tail.sql", "runtime_role.grants.sql", "012_typed_families.sql", "013_reference_tables.sql",
-              "014_entity_relationship_layer.sql", "015_vectors_and_earth.sql", "016_effective_records.sql"]
+              "014_entity_relationship_layer.sql", "015_vectors_and_earth.sql", "016_effective_records.sql", "029_bank_transactions.sql"]   # 029: the table and the layout kind, which layouts need before they are registered
 TENANT = "case"
-TABLE_OF = {"call": "comm_event", "session": "data_session", "usage": "app_usage", "plate": "plate_sighting", "subscriber": "subscriber_registration"}
+TABLE_OF = {"call": "comm_event", "session": "data_session", "usage": "app_usage", "plate": "plate_sighting", "subscriber": "subscriber_registration", "transaction": "bank_transaction"}
 NOT_DUPLICATE = "NOT ('duplicate_row' = ANY(quality_flags))"
 LOCAL = "'YYYY-MM-DD HH24:MI:SS'"
 

@@ -8,12 +8,13 @@ an unmapped label, an unconfirmed code, an ambiguous date, an unknown zone or a 
 from __future__ import annotations
 
 import ipaddress
+import re
 from dataclasses import dataclass, field
 from typing import Any, Iterable, Iterator, Mapping, Sequence
 
 from .matching import DUPLICATE_SUFFIX, normalize_header
 from .parties import (
-    classify_party, clean, device_identifier, make_cell_key, normalize_iccid, normalize_plate, parse_coordinate, plate_script, split_combined_coordinates,
+    classify_party, clean, device_identifier, make_cell_key, normalize_account, normalize_iccid, normalize_plate, parse_amount, parse_coordinate, plate_script, split_combined_coordinates,
 )
 from .spec import SUBSCRIBER_FIELDS, SUBSCRIBER_IDENTITY_FIELDS, column_ref
 from .timeparse import parse_time, to_utc
@@ -309,6 +310,12 @@ def interpret_record(entry: Mapping[str, Any], record: Mapping[str, Any], *, row
         built = _plate_sighting(entry, view, times, flags)
         if not built["plate_norm"]:
             return RowResult("quarantined", "plate_missing", None, [], row_number)
+    elif kind == "bank_transaction":
+        built = _bank_transaction(entry, view, times, flags)
+        if not built["account_norm"]:
+            return RowResult("quarantined", "account_missing", None, [], row_number)
+        if built["amount"] is None:
+            return RowResult("quarantined", built["amount_issue"], None, [], row_number)
     elif kind == "subscriber":
         built = _subscriber(entry, view, times, flags)
         if not built["msisdn"]:
@@ -539,6 +546,71 @@ def _subscriber(entry: Mapping[str, Any], view: RecordView, times: _Times, flags
         "activated_at": activated, "deactivated_at": deactivated, "valid_from": activated, "valid_to": valid_to,
         "start_local": times.local("activated"),
         "raw_payload_redacted": payload, "raw_payload": payload,
+    }
+
+
+def _bank_transaction(entry: Mapping[str, Any], view: RecordView, times: _Times, flags: list[str]) -> dict[str, Any]:
+    """One posted transaction of an account. The amount is a positive number and the direction says which way it went: a debit and a credit column (exactly one is used), or one amount column whose
+    sign (a bracket, a minus, Dr or Cr) or whose label in an enumerated column (txn_direction) says it. A row whose direction cannot be told is refused (amount_direction_unknown), never guessed.
+    The time is the posting time: a date without a time of day is kept at local midnight and marked time_precision date, so that a question about minutes never reads it."""
+    fields = entry.get("fields") or {}
+
+    def text(name: str) -> str | None:
+        return _text(entry, view, name, fields.get(name))
+
+    account_raw = text("account")
+    counterparty_raw = text("counterparty_account")
+    msisdn_kind, msisdn, party_flags = classify_party(text("counterparty_msisdn")) if text("counterparty_msisdn") else (None, None, [])
+    flags.extend(f for f in party_flags if f not in ("party_missing",))
+    enums = _apply_enums(entry, view, flags)
+    direction, amount, issue = enums.get("txn_direction"), None, "amount_unreadable"
+    debit, credit, single = text("debit"), text("credit"), text("amount")
+    if single is not None and (debit is None and credit is None):
+        value, sign, aflags = parse_amount(single)
+        flags.extend(aflags)
+        if value is not None:
+            amount, direction = value, direction or sign
+            if direction is None:
+                amount, issue = None, "amount_direction_unknown"
+        else:
+            issue = "amount_unreadable"
+    else:
+        d, c = (parse_amount(debit) if debit else (None, None, [])), (parse_amount(credit) if credit else (None, None, []))
+        flags.extend(d[2] + c[2])
+        positive_d, positive_c = d[0] is not None and d[0] > 0, c[0] is not None and c[0] > 0
+        if positive_d and positive_c:
+            issue = "amount_ambiguous"
+        elif positive_d:
+            amount, direction = d[0], "debit"
+        elif positive_c:
+            amount, direction = c[0], "credit"
+        elif d[0] is not None or c[0] is not None:
+            amount, direction = (d[0] if d[0] is not None else c[0]), ("debit" if d[0] is not None else "credit")
+            flags.append("amount_zero")
+    balance = None
+    if text("balance"):
+        balance, bsign, bflags = parse_amount(text("balance"))
+        flags.extend(bflags)
+        if balance is not None and bsign == "debit":
+            balance = -balance
+    channel = enums.get("channel")
+    raw_channel = text("channel")
+    if raw_channel and channel is None:
+        channel = "other"
+        if not any(f.startswith("unmapped_label:channel") for f in flags):
+            flags.append("unmapped_label:channel")
+    time_columns = (entry.get("time") or {}).get("columns") or {}
+    shown = view.get(time_columns["start"]) if time_columns.get("start") else ""
+    precision = "second" if re.search(r"\d{1,2}:\d{2}:\d{2}", shown) else ("minute" if re.search(r"\d{1,2}:\d{2}", shown) else "date")
+    if precision == "date":
+        flags.append("date_only")
+    return {
+        "account_raw": account_raw, "account_norm": normalize_account(account_raw) if account_raw else "",
+        "counterparty_account_raw": counterparty_raw, "counterparty_account_norm": normalize_account(counterparty_raw) if counterparty_raw else None,
+        "counterparty_msisdn": msisdn if msisdn_kind in ("person_like", "international") else None, "counterparty_label": text("counterparty_label"),
+        "direction": direction, "amount": amount, "amount_issue": issue, "currency": text("currency"), "balance_after": balance, "channel": channel, "reference": text("reference"),
+        "narration": text("narration"), "status": text("status"), "time_precision": precision,
+        "txn_utc": times.utc("start"), "start_utc": times.utc("start"), "start_local": times.local("start"), "value_utc": times.utc("value"),
     }
 
 

@@ -42,10 +42,10 @@ DEFAULT_MAX_ROWS = 2_000_000
 NO_VALUE = "\\N"
 
 # the typed table each family of layouts is written to
-TABLE_FOR_FAMILY = {"communications": "comm_event", "internet": "data_session", "app_usage": "app_usage", "plate": "plate_sighting", "subscriber": "subscriber_registration"}
+TABLE_FOR_FAMILY = {"communications": "comm_event", "internet": "data_session", "app_usage": "app_usage", "plate": "plate_sighting", "subscriber": "subscriber_registration", "transaction": "bank_transaction"}
 # the time column each typed table is partitioned and keyed on: a sighting has no start, it has an observed time (migration 012)
 # a registration has no time of its own (None): it is valid from its activation to its deactivation, and its key has no time (migration 012: UNIQUE tenant, collection, file, row hash)
-TIME_COLUMN = {"comm_event": "start_utc", "data_session": "start_utc", "app_usage": "start_utc", "plate_sighting": "observed_utc", "subscriber_registration": None}
+TIME_COLUMN = {"comm_event": "start_utc", "data_session": "start_utc", "app_usage": "start_utc", "plate_sighting": "observed_utc", "subscriber_registration": None, "bank_transaction": "txn_utc"}
 # the idempotency key of the typed tables (migration 012); conflict_key(table) is the one of a table
 CONFLICT_KEY = "tenant_id, collection_id, file_id, row_hash, start_utc"
 REQUIRED_COLUMNS = ("tenant_id", "collection_id", "evidence_id", "file_id", "batch_id", "row_hash", "content_hash", "start_utc")
@@ -210,6 +210,19 @@ def content_of(record: Mapping[str, Any]) -> str:
     return json.dumps({k: v for k, v in record.items() if k not in IGNORED_FOR_CONTENT}, sort_keys=True, default=str)
 
 
+def balance_flags(record: Mapping[str, Any], last: dict[str, Decimal]) -> list[str]:
+    """balance_break when the balance after a transaction is not the balance of the account's previous row plus a credit or minus a debit (file order; the first row of an account is the start). The row is kept."""
+    balance = record.get("balance_after")
+    if balance is None or not record.get("account_norm"):
+        return []
+    signed = record["amount"] if record["direction"] == "credit" else -record["amount"]
+    previous = last.get(record["account_norm"])
+    last[record["account_norm"]] = balance
+    if previous is None:
+        return []
+    return [] if abs(previous + signed - balance) <= Decimal("0.005") else ["balance_break"]
+
+
 def lineage_row(record: Mapping[str, Any], flags: list[str], lineage: Lineage, columns: Iterable[str]) -> dict[str, Any]:
     """The record as a row of the typed table: the columns the record has, and the lineage, the two hashes and the flags."""
     content = content_of(record)
@@ -296,6 +309,7 @@ def ingest_sheet(name: str, rows: Iterator[Sequence[Any]], lineage: Lineage, pol
     header = head[report.header_row]
     data = itertools.chain(head[report.header_row + 1:], rows)
     seen: set[bytes] = set()
+    last_balance: dict[str, Decimal] = {}
     batch: list[dict[str, Any]] = []
 
     def flush() -> None:
@@ -324,10 +338,13 @@ def ingest_sheet(name: str, rows: Iterator[Sequence[Any]], lineage: Lineage, pol
             continue
         flags = list(record.get("quality_flags") or [])
         digest = hashlib.sha256(content_of(record).encode("utf-8")).digest()[:16]
-        if digest in seen:
+        repeated = digest in seen
+        if repeated:
             flags.append("duplicate_row")
             summary.duplicates_in_file += 1
         seen.add(digest)
+        if table == "bank_transaction" and not repeated:
+            flags.extend(balance_flags(record, last_balance))     # the running balance of the account: this row must follow from the one before it
         for flag in flags:
             summary.flags[flag] = summary.flags.get(flag, 0) + 1
         start = record.get("start_local")

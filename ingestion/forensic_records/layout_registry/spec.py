@@ -16,7 +16,7 @@ SCHEMA = "nexusai.layout/v1"
 
 # forensic.layout_versions CHECK constraints (migration 012)
 FAMILIES = ("communications", "internet", "app_usage", "subscriber", "cell_reference", "plate", "transaction", "access_log", "generic", "other")
-DATASET_KINDS = ("target_cdr", "tower_dump", "ipdr", "app_usage", "subscriber", "cell_reference", "plate_sighting", "generic")
+DATASET_KINDS = ("target_cdr", "tower_dump", "ipdr", "app_usage", "subscriber", "cell_reference", "plate_sighting", "bank_transaction", "generic")
 STATUSES = ("draft", "active", "retired")
 
 # forensic.comm_event CHECK constraints
@@ -57,6 +57,11 @@ PLATE_FIELDS = ("plate", "camera_id", "camera_label", "lane", "lat", "lon", "con
 # A subscriber or SIM information export. The identity fields (a name, a national ID number, an address) are NOT typed: the interpreter notes that they are present and drops them (migration 012:
 # forensic.subscriber_identity has no privilege for the runtime role until the masking design is approved). A layout names them only so that they are recognised, counted and left out.
 SUBSCRIBER_STATUSES = ("active", "suspended", "deactivated", "unknown")
+# A bank statement line or a wallet transaction (docs/data/transactions-family-20261028.md): the account, the other side, the amount (a debit and a credit column, or one amount and a way to tell the
+# direction), the balance after it, the channel and the reference. The narration is the source text of the line (it may name a person): it is stored with the row and kept out of the analyst views.
+TXN_DIRECTIONS = ("debit", "credit")
+TXN_CHANNELS = ("ibft", "raast", "atm", "pos", "cheque", "cash", "wallet", "branch", "online", "other")
+TRANSACTION_FIELDS = ("account", "counterparty_account", "counterparty_msisdn", "counterparty_label", "narration", "reference", "debit", "credit", "amount", "balance", "channel", "currency", "status")
 SUBSCRIBER_FIELDS = ("msisdn", "subscriber_ref", "imsi", "iccid", "status", "operator", "service_type")
 SUBSCRIBER_IDENTITY_FIELDS = ("person_name", "national_id", "address")
 FIELDS_BY_FAMILY = {
@@ -66,6 +71,7 @@ FIELDS_BY_FAMILY = {
     "app_usage": USAGE_FIELDS,
     "plate_sighting": PLATE_FIELDS,
     "subscriber": SUBSCRIBER_FIELDS + SUBSCRIBER_IDENTITY_FIELDS,
+    "bank_transaction": TRANSACTION_FIELDS,
 }
 TIME_FIELDS_BY_KIND = {
     "target_cdr": ("start", "end"),
@@ -74,8 +80,9 @@ TIME_FIELDS_BY_KIND = {
     "app_usage": ("start", "end"),
     "plate_sighting": ("start",),
     "subscriber": ("activated", "deactivated"),   # a registration has no event time: it is valid from its activation to its deactivation
+    "bank_transaction": ("start", "value"),       # the posting time, and the value date when the statement has one
 }
-ENUM_TARGETS = {"direction": DIRECTIONS, "event_type": EVENT_TYPES, "status": SUBSCRIBER_STATUSES}
+ENUM_TARGETS = {"direction": DIRECTIONS, "event_type": EVENT_TYPES, "status": SUBSCRIBER_STATUSES, "txn_direction": TXN_DIRECTIONS, "channel": TXN_CHANNELS}
 
 LAYOUT_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 TZ_NAME = re.compile(r"^[A-Za-z]+(?:/[A-Za-z0-9_+\-]+)+$|^UTC$")

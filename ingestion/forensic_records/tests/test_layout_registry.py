@@ -39,7 +39,7 @@ TOOLS = REPO / "tools" / "real_data"
 EXPECTED_IDS = {
     "appusage-a1", "call-c1-company", "call-c2-strt-tm", "call-c3-ufone-style", "call-c4-telenor-style", "geofence-c5-mobilink",
     "geofence-c6-telenor", "geofence-c7-ufone", "geofence-c8-zong", "ipdr-i1-jazz-ufdr", "ipdr-i2-telenor-export", "ipdr-i3-ufone-xls",
-    "ipdr-i4-zong-txt", "ipdr-seed-s8", "call-demo-8", "call-ab-9-demo", "call-iso-10-demo", "ipdr-sessions-11-demo", "ipdr-url-10-demo", "anpr-a1", "subscriber-s1",
+    "ipdr-i4-zong-txt", "ipdr-seed-s8", "call-demo-8", "call-ab-9-demo", "call-iso-10-demo", "ipdr-sessions-11-demo", "ipdr-url-10-demo", "anpr-a1", "subscriber-s1", "bank-stmt-t1", "wallet-t1",
 }
 KARACHI = Policy(source_tz="Asia/Karachi", tz_basis="assumed_by_profile")
 
@@ -106,10 +106,10 @@ class EntryTests(unittest.TestCase):
 
     def test_command_line_validates_lists_and_writes_sql(self):
         code, text = self.run_cli("validate")
-        self.assertEqual((code, text.strip()), (0, "LAYOUTS=PASS entries=22"))
+        self.assertEqual((code, text.strip()), (0, "LAYOUTS=PASS entries=24"))
         code, text = self.run_cli("list")
         self.assertEqual(code, 0)
-        self.assertEqual(len(text.strip().splitlines()), 23, "a header line and one line per layout version")
+        self.assertEqual(len(text.strip().splitlines()), 25, "a header line and one line per layout version")
         for layout_id in EXPECTED_IDS:
             self.assertIn(layout_id, text)
         code, text = self.run_cli("sql")
@@ -131,12 +131,13 @@ class EntryTests(unittest.TestCase):
         self.assertIn("c.v1.json: header.columns is empty", text)
 
     def test_vocabularies_match_migration_012(self):
-        sql = (REPO / "db" / "forensic_records" / "012_typed_families.sql").read_text(encoding="utf-8")
+        # the constraints of migration 012, and the later migrations that replace one of them (the last definition is the one in force)
+        sql = "\n".join(path.read_text(encoding="utf-8") for path in sorted((REPO / "db" / "forensic_records").glob("0[1-9][0-9]_*.sql")) if path.name >= "012")
 
         def values(constraint):
-            m = re.search(r"CONSTRAINT\s+%s\s+CHECK\s*\((?:[^()]*?)\bIN\s*\(([^)]*)\)" % constraint, sql, re.S)
-            self.assertIsNotNone(m, constraint)
-            return tuple(re.findall(r"'([^']*)'", m.group(1)))
+            found = re.findall(r"CONSTRAINT\s+%s\s+CHECK\s*\((?:[^()]*?)\bIN\s*\(([^)]*)\)" % constraint, sql, re.S)
+            self.assertTrue(found, constraint)
+            return tuple(re.findall(r"'([^']*)'", found[-1]))
 
         self.assertEqual(values("layout_versions_family_chk"), spec_module.FAMILIES)
         self.assertEqual(values("layout_versions_kind_chk"), spec_module.DATASET_KINDS)
@@ -485,7 +486,7 @@ class InterpretTests(unittest.TestCase):
                     if t["status"] != "accepted":
                         wanted[t["reason"]] = wanted.get(t["reason"], 0) + 1
                 self.assertEqual(summary["quarantine_reasons"], wanted)
-                if entry["dataset_kind"] != "subscriber":
+                if entry["dataset_kind"] not in ("subscriber", "bank_transaction"):
                     self.assertEqual(wanted, {"blank_row": 1, "time_missing": 1, "time_unparsed": 1})
 
     def test_other_seeds_and_sizes_agree_too(self):
@@ -874,7 +875,7 @@ class GoldenFileTests(unittest.TestCase):
             with redirect_stdout(buf):
                 self.assertEqual(make_golden.main(["--list"]), 0)
                 self.assertEqual(make_golden.main(["--all", "--out", d, "--rows", "12"]), 0)
-            self.assertEqual(len(list(Path(d).iterdir())), 21)
+            self.assertEqual(len(list(Path(d).iterdir())), 23)
             self.assertEqual(set(buf.getvalue().split()) & EXPECTED_IDS, EXPECTED_IDS)
 
 

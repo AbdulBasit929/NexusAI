@@ -1,0 +1,196 @@
+{
+  "schema": "nexusai.layout/v1",
+  "layout_id": "bank-stmt-t1",
+  "layout_version": 1,
+  "status": "draft",
+  "family": "transaction",
+  "dataset_kind": "bank_transaction",
+  "label": "Bank account statement lines, 11 columns (a generic export: account, transaction and value date, narration, reference, debit, credit, balance, channel, counterparty account and name)",
+  "operator_label": null,
+  "container": {
+    "kinds": [
+      "csv",
+      "xlsx"
+    ],
+    "encoding": "utf-8",
+    "delimiter": ",",
+    "sheet": "first",
+    "header_row": {
+      "mode": "fixed",
+      "index": 0
+    }
+  },
+  "header": {
+    "columns": [
+      {
+        "name": "Account No"
+      },
+      {
+        "name": "Txn Date"
+      },
+      {
+        "name": "Value Date"
+      },
+      {
+        "name": "Narration"
+      },
+      {
+        "name": "Reference"
+      },
+      {
+        "name": "Debit"
+      },
+      {
+        "name": "Credit"
+      },
+      {
+        "name": "Balance"
+      },
+      {
+        "name": "Channel"
+      },
+      {
+        "name": "Counterparty Account"
+      },
+      {
+        "name": "Counterparty Name"
+      }
+    ],
+    "required": [
+      "Account No",
+      "Txn Date"
+    ],
+    "aliases": {
+      "Account No": [
+        "Account Number",
+        "A/C No"
+      ],
+      "Txn Date": [
+        "Transaction Date",
+        "Date"
+      ],
+      "Debit": [
+        "Withdrawal",
+        "Dr"
+      ],
+      "Credit": [
+        "Deposit",
+        "Cr"
+      ],
+      "Balance": [
+        "Running Balance"
+      ]
+    },
+    "min_score": 0.9
+  },
+  "fields": {
+    "account": "Account No",
+    "narration": "Narration",
+    "reference": "Reference",
+    "debit": "Debit",
+    "credit": "Credit",
+    "balance": "Balance",
+    "channel": "Channel",
+    "counterparty_account": "Counterparty Account",
+    "counterparty_label": "Counterparty Name"
+  },
+  "time": {
+    "columns": {
+      "start": "Txn Date",
+      "value": "Value Date"
+    },
+    "formats": [
+      "iso_naive",
+      "slash_24h_seconds",
+      "slash_24h_minutes",
+      "slash_date"
+    ],
+    "date_order": null,
+    "source_tz": null,
+    "tz_basis": "unknown"
+  },
+  "duration": {
+    "mode": "none"
+  },
+  "enums": [
+    {
+      "column": "Channel",
+      "confirmed": true,
+      "map": {
+        "IBFT": {
+          "channel": "ibft"
+        },
+        "Raast": {
+          "channel": "raast"
+        },
+        "ATM": {
+          "channel": "atm"
+        },
+        "POS": {
+          "channel": "pos"
+        },
+        "Cheque": {
+          "channel": "cheque"
+        },
+        "Cash": {
+          "channel": "cash"
+        },
+        "Branch": {
+          "channel": "branch"
+        },
+        "Online": {
+          "channel": "online"
+        }
+      }
+    }
+  ],
+  "quarantine": [
+    {
+      "reason": "account_missing",
+      "empty_all": [
+        "Account No"
+      ]
+    }
+  ],
+  "quirks": [
+    "A statement line has a debit or a credit, never both; the amount is positive and the direction says which way it went",
+    "A date without a time of day (dd/mm/yyyy) is kept at local midnight and marked time_precision date: a question about minutes never reads it",
+    "The narration and the counterparty name are the source's own text: stored with the row, kept out of the analyst views",
+    "The balance column is checked row by row (file order): a row that does not follow from the one before it is flagged balance_break and kept"
+  ],
+  "confirmation": {
+    "headers": "designed_2026-10-28_generic_bank_statement_export_not_read_from_a_real_file",
+    "semantics_confirmed": false,
+    "unconfirmed": [
+      {
+        "id": "real-sample",
+        "what": "No real bank statement export has been read against this layout. It is a generic draft: the header names, the date formats and the channel words are designed, not observed. Promotion needs a real sample read in the vault (counts and booleans only) and the owner's confirmation.",
+        "affects": [
+          "header",
+          "time",
+          "enums"
+        ]
+      },
+      {
+        "id": "source-time-zone",
+        "what": "No file states a time zone. The zone is a job decision (time_basis assumed_by_profile or confirmed_by_analyst), never a property of the layout.",
+        "affects": [
+          "time"
+        ]
+      },
+      {
+        "id": "date-order",
+        "what": "A date written dd/mm/yyyy is read day first only when the job says so (date_order DMY); an ISO date-only text is not read by the time parser, a statement with date-only ISO dates needs its own layout.",
+        "affects": [
+          "time"
+        ]
+      }
+    ],
+    "settled": []
+  },
+  "golden": {
+    "rows": 48,
+    "hints": {},
+    "columns": {}
+  }
+}

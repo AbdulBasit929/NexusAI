@@ -204,3 +204,46 @@ def normalize_tac(raw: object) -> tuple[str | None, list[str]]:
     if len(text) == 7:
         return "0" + text, ["tac_padded"]
     return None, ["tac_length_%d" % len(text)]
+
+
+_CURRENCY_WORDS = re.compile(r"(?i)(?<![a-z])(?:pkr|rs\.?|rupees?)(?![a-z])|[\u20a8$\u00a3\u20ac]")
+
+
+def normalize_account(raw: object) -> str:
+    """An account number or IBAN as a search key: spaces, dashes and dots removed, upper case. The raw text is the evidence; this is only for matching, and it never makes two different accounts equal."""
+    return re.sub(r"[\s\-_./]+", "", clean(raw)).upper()
+
+
+def parse_amount(raw: object) -> tuple["Decimal | None", str | None, list[str]]:
+    """An amount as a statement writes it: 1,234.50 (thousands commas, also the lakh style 1,00,000.00), (1,234.50) or -1,234.50 or 1,234.50- for a negative, 1234.50 Dr or Cr, a currency word or
+    symbol in front (Rs. PKR). Returns (value, sign, flags): the value is always positive; sign is 'debit' for a bracketed, minus or Dr amount, 'credit' for Cr, else None (the column decides).
+    Not a number: (None, None, [flag]). A comma used as the decimal mark (1,50) is read so and flagged amount_decimal_comma; nothing is ever guessed beyond that."""
+    from decimal import Decimal, InvalidOperation
+    text = clean(raw)
+    if not text:
+        return None, None, []
+    flags: list[str] = []
+    text = _CURRENCY_WORDS.sub("", text).strip()
+    sign = None
+    if text.startswith("(") and text.endswith(")"):
+        sign, text = "debit", text[1:-1].strip()
+    match = re.search(r"(?i)\s*(dr|cr)\.?$", text)
+    if match:
+        sign = "debit" if match.group(1).lower() == "dr" else "credit"
+        text = text[:match.start()].strip()
+    if text.startswith("-") or text.endswith("-"):
+        sign = "debit"
+        text = text.strip("-").strip()
+    elif text.startswith("+"):
+        text = text[1:].strip()
+    if re.fullmatch(r"\d+,\d{1,2}", text):
+        flags.append("amount_decimal_comma")
+        text = text.replace(",", ".")
+    else:
+        text = text.replace(",", "")
+    if not re.fullmatch(r"\d+(?:\.\d+)?|\.\d+", text):
+        return None, None, ["amount_not_numeric"]
+    try:
+        return Decimal(text), sign, flags
+    except InvalidOperation:
+        return None, None, ["amount_not_numeric"]

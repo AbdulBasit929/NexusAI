@@ -379,6 +379,14 @@ def test_scan_msisdn_rules():
     assert not rules_of("a.csv", "id 1" + LOOKS_REAL_MSISDN + " is longer")  # inside a longer digit run
 
 
+def test_scan_iban():
+    real = "PK" + "36" + "SCBL" + "0000001123456702"   # the shape of a real Pakistani IBAN
+    assert ("block", "id.iban_pk") in rules_of("a.csv", "account,%s" % real)
+    assert not rules_of("a.csv", "account,%s" % reserved.synthetic_iban(7))
+    assert not rules_of("a.csv", "account,%s" % reserved.synthetic_account(7))
+    assert reserved.is_reserved_account(reserved.synthetic_iban(1)) and reserved.is_reserved_account("PK00 SYNT 0000 0000 0000 0007") and not reserved.is_reserved_account(real)
+
+
 def test_scan_identifiers():
     assert ("block", "id.imsi_pk") in rules_of("a.json", '{"imsi": "%s"}' % LOOKS_REAL_IMSI)
     assert not rules_of("a.json", '{"imsi": "%s"}' % reserved.synthetic_imsi(1))

@@ -18,6 +18,7 @@ Rules (see docs/data/real-data-handling-policy.md, section 7):
   block   secret.*          private key blocks, GitHub/AWS/Anthropic/Slack tokens
   block   id.cnic           national ID number written with dashes (a valid province digit 1 to 7)
   block   id.imsi_pk        15-digit IMSI under mobile country code 410 (Pakistan)
+  block   id.iban_pk        Pakistani IBAN (PK, two check digits, a four-letter bank code and sixteen digits) outside the reserved form PK00SYNT
   block   num.msisdn        Pakistani mobile number outside the reserved synthetic block
   block   net.public_ip     public IP address in a data-like file (csv, tsv, txt, json, jsonl, xml, log)
   block   file.real_name    file name that carries a long subscriber, IMSI, IMEI or CNIC number
@@ -60,6 +61,7 @@ RE_CNIC = re.compile(r"(?<!\d)[1-7]\d{4}-\d{7}-\d(?!\d)")
 RE_CNIC_PLAIN = re.compile(r"(?<!\d)[1-7]\d{12}(?!\d)")
 RE_CNIC_WORD = re.compile(r"(?i)\b(cnic|nic|identity card|national id)\b")
 RE_IMSI_PK = re.compile(r"(?<!\d)410\d{12}(?!\d)")
+RE_IBAN_PK = re.compile(r"(?<![A-Za-z0-9])PK\d{2}[A-Z]{4}\d{16}(?![A-Za-z0-9])")
 RE_DIGITS15 = re.compile(r"(?<![\d.])\d{15}(?!\d)")  # not the fraction of a decimal number (a 15-place coordinate is not an IMEI)
 RE_IPV4 = re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d]|\.\d)")
 # Word boundaries on both sides keep SQL casts and identifiers (id::text, d::int) from reading as addresses.
@@ -133,6 +135,10 @@ def scan_line(path, line_no, text, allow):
 
     for m in RE_IMSI_PK.finditer(text):
         out.append(Finding("block", "id.imsi_pk", path, line_no, mask_token(m.group(0), 3), m.group(0)))
+
+    for m in RE_IBAN_PK.finditer(text):
+        if not reserved.is_reserved_account(m.group(0)):
+            out.append(Finding("block", "id.iban_pk", path, line_no, mask_token(m.group(0), 4), m.group(0)))
 
     for m in RE_MSISDN.finditer(text):
         canon = reserved.canonical_msisdn(m.group(0))

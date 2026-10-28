@@ -1,0 +1,172 @@
+{
+  "schema": "nexusai.layout/v1",
+  "layout_id": "wallet-t1",
+  "layout_version": 1,
+  "status": "draft",
+  "family": "transaction",
+  "dataset_kind": "bank_transaction",
+  "label": "Mobile wallet transaction list, 8 columns (a generic export: wallet number, transaction id, date and time, type, amount, balance, counterparty mobile number, status)",
+  "operator_label": null,
+  "container": {
+    "kinds": [
+      "csv",
+      "xlsx"
+    ],
+    "encoding": "utf-8",
+    "delimiter": ",",
+    "sheet": "first",
+    "header_row": {
+      "mode": "fixed",
+      "index": 0
+    }
+  },
+  "header": {
+    "columns": [
+      {
+        "name": "Wallet No"
+      },
+      {
+        "name": "Transaction ID"
+      },
+      {
+        "name": "Date Time"
+      },
+      {
+        "name": "Type"
+      },
+      {
+        "name": "Amount"
+      },
+      {
+        "name": "Balance"
+      },
+      {
+        "name": "Counterparty Mobile"
+      },
+      {
+        "name": "Status"
+      }
+    ],
+    "required": [
+      "Wallet No",
+      "Date Time",
+      "Amount"
+    ],
+    "aliases": {
+      "Wallet No": [
+        "Wallet Number",
+        "Account"
+      ],
+      "Transaction ID": [
+        "Txn ID",
+        "TID"
+      ],
+      "Date Time": [
+        "Timestamp"
+      ],
+      "Counterparty Mobile": [
+        "Receiver",
+        "Other Party"
+      ]
+    },
+    "min_score": 0.9
+  },
+  "fields": {
+    "account": "Wallet No",
+    "reference": "Transaction ID",
+    "amount": "Amount",
+    "balance": "Balance",
+    "counterparty_msisdn": "Counterparty Mobile",
+    "status": "Status"
+  },
+  "time": {
+    "columns": {
+      "start": "Date Time"
+    },
+    "formats": [
+      "iso_naive"
+    ],
+    "date_order": "YMD",
+    "source_tz": null,
+    "tz_basis": "unknown"
+  },
+  "duration": {
+    "mode": "none"
+  },
+  "enums": [
+    {
+      "column": "Type",
+      "confirmed": true,
+      "map": {
+        "Sent": {
+          "txn_direction": "debit",
+          "channel": "wallet"
+        },
+        "Received": {
+          "txn_direction": "credit",
+          "channel": "wallet"
+        },
+        "Cash In": {
+          "txn_direction": "credit",
+          "channel": "cash"
+        },
+        "Cash Out": {
+          "txn_direction": "debit",
+          "channel": "cash"
+        },
+        "Bill Payment": {
+          "txn_direction": "debit",
+          "channel": "online"
+        }
+      }
+    }
+  ],
+  "quarantine": [
+    {
+      "reason": "account_missing",
+      "empty_all": [
+        "Wallet No"
+      ]
+    }
+  ],
+  "quirks": [
+    "The amount is one positive column; the Type word says which way it went (a Type the layout does not know is refused, the direction is never guessed)",
+    "The counterparty is a mobile number: the link to the call records of the same number",
+    "The balance column is checked row by row (file order): a row that does not follow from the one before it is flagged balance_break and kept"
+  ],
+  "confirmation": {
+    "headers": "designed_2026-10-28_generic_wallet_export_not_read_from_a_real_file",
+    "semantics_confirmed": false,
+    "unconfirmed": [
+      {
+        "id": "real-sample",
+        "what": "No real wallet export has been read against this layout. It is a generic draft: the header names, the Type words and the time format are designed, not observed. Promotion needs a real sample read in the vault (counts and booleans only) and the owner's confirmation.",
+        "affects": [
+          "header",
+          "time",
+          "enums"
+        ]
+      },
+      {
+        "id": "source-time-zone",
+        "what": "No file states a time zone. The zone is a job decision (time_basis assumed_by_profile or confirmed_by_analyst), never a property of the layout.",
+        "affects": [
+          "time"
+        ]
+      },
+      {
+        "id": "date-order",
+        "what": "A date written dd/mm/yyyy is read day first only when the job says so (date_order DMY); an ISO date-only text is not read by the time parser, a statement with date-only ISO dates needs its own layout.",
+        "affects": [
+          "time"
+        ]
+      }
+    ],
+    "settled": []
+  },
+  "golden": {
+    "rows": 48,
+    "hints": {},
+    "columns": {}
+  }
+}
