@@ -28,7 +28,7 @@ KARACHI = Policy(source_tz="Asia/Karachi", tz_basis="declared", date_order="DMY"
 EVIDENCE = "5a000000-0000-4000-8000-0000000000a1"
 BATCH = "6a000000-0000-4000-8000-0000000000b1"
 LINEAGE = ti.Lineage("tenant-1", "case-1", EVIDENCE, "subscribers.csv", BATCH)
-COLUMNS = ("tenant_id", "collection_id", "evidence_id", "file_id", "batch_id", "source_row", "row_hash", "content_hash", "layout_id", "layout_version", "msisdn", "msisdn_raw",
+COLUMNS = ("tenant_id", "collection_id", "evidence_id", "file_id", "batch_id", "source_row", "row_hash", "layout_id", "layout_version", "msisdn", "msisdn_raw",
            "subscriber_ref", "imsi", "iccid", "status", "operator_label", "service_type", "activated_at", "deactivated_at", "valid_from", "valid_to", "source_tz", "time_basis",
            "raw_payload_redacted", "quality_flags")
 

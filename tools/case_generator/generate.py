@@ -292,7 +292,7 @@ def build_case(params, registry=None):
     return world, renders, key
 
 
-def write_case(params, out_dir, registry=None, with_anpr=False):
+def write_case(params, out_dir, registry=None, with_anpr=False, with_subscribers=False):
     """Write a case. with_anpr adds one camera export of plate sightings (anpr_case.py, its own random stream; the default build and every hash of the register are unchanged)."""
     world, renders, key = build_case(params, registry)
     root = os.path.join(out_dir, "case-%d" % params.seed)
@@ -315,6 +315,19 @@ def write_case(params, out_dir, registry=None, with_anpr=False):
         anpr_case.write(built["rows"], os.path.join(root, *rel.split("/")))
         built["truth"].update({"file": rel, "name": "anpr"})
         key["anpr"] = built["truth"]
+    if with_subscribers:
+        # two registration exports (two sources) and a device reference list (subscriber_case.py, its own random stream; the default build is unchanged)
+        import subscriber_case
+        built = subscriber_case.build(params, world, renders)
+        key["subscribers"] = []
+        for source in subscriber_case.SOURCES:
+            rel = "files/subscribers-%s-%s.csv" % (source, subscriber_case.LAYOUT_ID)
+            subscriber_case.write(built["files"][source], os.path.join(root, *rel.split("/")))
+            key["subscribers"].append({"name": "subscribers-" + source, "file": rel, "layout_id": subscriber_case.LAYOUT_ID, "source": source})
+        reference = "files/device-reference.csv"
+        subscriber_case.write(built["reference"], os.path.join(root, *reference.split("/")), subscriber_case.REFERENCE_HEADER)
+        built["truth"].update({"reference_file": reference})
+        key["subscriber_truth"] = built["truth"]
     with open(os.path.join(root, "key", "world.json"), "w", encoding="utf-8", newline="\n") as handle:
         handle.write(w.world_to_json(world) + "\n")
     key_text_for_id = json.dumps({k: v for k, v in key.items() if k != "case_id"}, sort_keys=True)

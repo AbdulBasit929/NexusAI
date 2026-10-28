@@ -51,14 +51,24 @@ CONFLICT_KEY = "tenant_id, collection_id, file_id, row_hash, start_utc"
 REQUIRED_COLUMNS = ("tenant_id", "collection_id", "evidence_id", "file_id", "batch_id", "row_hash", "content_hash", "start_utc")
 
 
+# the reference tables loaded by reference_loader.py have their own keys (migration 013): one row per TAC and source
+REFERENCE_KEY = {"device_tac": "tenant_id, tac, source"}
+
+
 def conflict_key(table: str) -> str:
+    if table in REFERENCE_KEY:
+        return REFERENCE_KEY[table]
     column = TIME_COLUMN.get(table, "start_utc")
     return CONFLICT_KEY.replace(", start_utc", ", " + column if column else "")
 
 
+# columns the lineage names that a table of its own design does not have (migration 012: a registration has no content hash; its row hash is its key)
+NOT_IN_TABLE = {"subscriber_registration": ("content_hash",)}
+
+
 def required_columns(table: str) -> tuple[str, ...]:
     column = TIME_COLUMN.get(table, "start_utc")
-    return tuple(column if c == "start_utc" else c for c in REQUIRED_COLUMNS if c != "start_utc" or column)
+    return tuple(column if c == "start_utc" else c for c in REQUIRED_COLUMNS if (c != "start_utc" or column) and c not in NOT_IN_TABLE.get(table, ()))
 IGNORED_FOR_CONTENT = frozenset({"source_row", "raw_payload", "quality_flags"})
 TZ_BASIS = {"source_declared": "declared", "analyst_confirmed": "confirmed_by_analyst", "profile_defaulted": "assumed_by_profile"}
 
