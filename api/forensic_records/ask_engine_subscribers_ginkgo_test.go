@@ -194,6 +194,28 @@ var _ = Describe("Ask engine retrieval of registrations and phones", func() {
 		Expect(cat.Shortlist("Which numbers used a phone manufactured by Nokia?", 0).Views).To(ContainElement("v_handsets"))
 	})
 
+	// Found by the subscriber run on case 122 (2026-10-29): imei = 'SYNTH' for "numbers seen with a SYNTH phone", and "no row matches".
+	It("finds the handsets for a make written before the word phone, and refuses a name compared with an IMEI", func() {
+		cat, err := askGoldenCatalogue()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(cat.Shortlist("List the numbers seen with a SYNTH phone.", 0).Views).To(ContainElement("v_handsets"))
+		Expect(cat.Shortlist("Which numbers used an Apple handset?", 0).Views).To(ContainElement("v_handsets"))
+		Expect(cat.Shortlist("Which numbers used a different phone after March?", 0).Views).NotTo(ContainElement("v_handsets"))
+		kinds := func(question, sql string, views ...string) []string {
+			v, rej := askValidate(sql, cat, views)
+			Expect(rej).To(BeNil(), sql)
+			out := []string{}
+			for _, o := range askCheckFrame(askExtractFrame(question), v) {
+				out = append(out, o.Kind)
+			}
+			return out
+		}
+		q := "List the numbers seen with a SYNTH phone."
+		Expect(kinds(q, "SELECT DISTINCT src FROM v_device_pairings WHERE imei = 'SYNTH' ORDER BY src", "v_device_pairings")).To(ContainElement("IMEI_FORM"))
+		Expect(kinds(q, "SELECT DISTINCT src FROM v_handsets WHERE make = 'SYNTH' ORDER BY src", "v_handsets")).NotTo(ContainElement("IMEI_FORM"))
+		Expect(kinds("Which numbers used the handset 000000000010090?", "SELECT DISTINCT src FROM v_handsets WHERE imei = '000000000010090'", "v_handsets")).NotTo(ContainElement("IMEI_FORM"))
+	})
+
 	// Found by the subscriber run on development case 2 (2026-10-29): a comparison of valid_to with the last event, worked out by the query, lists numbers whose later registration is running.
 	It("asks for events_after_last_end when a question is about events after a registration ended", func() {
 		cat, err := askGoldenCatalogue()

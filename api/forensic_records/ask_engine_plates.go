@@ -24,7 +24,7 @@ var (
 	askPlateRE  = regexp.MustCompile(`\b([A-Za-z]{2,5})[ \t-]?((?:\d{1,2}[ \t-]?)?\d{3,4})\b`)
 	askPlateCue = regexp.MustCompile(`(?i)\b(?:plates?|vehicles?|cars?|registrations?|reg|anpr|licen[cs]es?)(?:\s+number)?\s*(?:of|is|was|for|:)?\s*$`)
 	// a plate named after a verb of naming is a plate even in lower case: "list the documents that name synt 5008" (found by the documents run on dev seed 5100)
-	askPlateNameCue = regexp.MustCompile(`(?i)\b(?:names?|named|naming|mentions?|mentioned|contains?|containing|lists?|shows?|writes?|written|bears?|bearing|carr(?:y|ies)|reads?)\s+(?:the\s+|a\s+)?(?:plate\s+|vehicle\s+)?(?:number\s+)?$`)
+	askPlateNameCue = regexp.MustCompile(`(?i)\b(?:names?|named|naming|mentions?|mentioned|contains?|containing|lists?|shows?|writes?|written|bears?|bearing|carr(?:y|ies)|reads?|without|except|excluding|also|not|than)\s+(?:the\s+|a\s+)?(?:plate\s+|vehicle\s+)?(?:number\s+)?$`)
 	askYearLike     = regexp.MustCompile(`^(?:19|20)\d{2}$`)
 	// a plate that looks like another (an O for a 0, an I for a 1): capitals only, and at least two real digits and one look-alike letter among the number's characters
 	askPlateLookalikeRE = regexp.MustCompile(`\b([A-Z]{3,5})[ \t-]?([0-9OI]{3,4})\b`)

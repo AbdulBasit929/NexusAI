@@ -266,6 +266,40 @@ var _ = Describe("Ask engine transactions after the first measurement", func() {
 	})
 })
 
+// Found by the transactions judgement run on case 123 (2026-10-29): share_percent = 5.0 for "within 5% of the limit".
+var _ = Describe("Ask engine transactions after the third measurement", func() {
+	var cat *askCatalogue
+	BeforeEach(func() {
+		var err error
+		cat, err = askGoldenCatalogue()
+		Expect(err).NotTo(HaveOccurred())
+	})
+	check := func(question, sql string, views ...string) []string {
+		v, rej := askValidate(sql, cat, views)
+		Expect(rej).To(BeNil(), sql)
+		out := []string{}
+		for _, o := range askCheckFrame(askExtractFrame(question), v) {
+			out = append(out, o.Kind)
+		}
+		return out
+	}
+
+	It("does not let a query filter on the limit or the share that the application sets from the question", func() {
+		q := "List the accounts with debits within 5% of the limit of 500,000, with how many each."
+		own := "SELECT account, transactions, total_amount FROM v_account_limit_bands WHERE limit_amount = 500000 AND share_percent = 5.0 ORDER BY transactions DESC"
+		view := "SELECT account, transactions, total_amount FROM v_account_limit_bands ORDER BY transactions DESC"
+		Expect(check(q, own, "v_account_limit_bands")).To(ContainElement("PARAMETER"))
+		Expect(check(q, view, "v_account_limit_bands")).NotTo(ContainElement("PARAMETER"))
+		// the share of the pass-through view is data (the debit as a percent of the credit), not a parameter
+		flows := "SELECT account, share_percent FROM v_account_flows WHERE share_percent >= 90 ORDER BY account"
+		Expect(check("Which accounts passed on at least 90 percent of a credit within 10 minutes?", flows, "v_account_flows")).NotTo(ContainElement("PARAMETER"))
+	})
+
+	It("reads within N percent of the limit as the share that starts the band", func() {
+		Expect(askReadParams("debits within 5% of the limit of 500,000")["limit_share_percent"].Values).To(Equal([]int{95}))
+	})
+})
+
 // Found by the transactions judgement run on case 120 (2026-10-29).
 var _ = Describe("Ask engine transactions after the second measurement", func() {
 	const account = "PK00SYNT0000000000001001"

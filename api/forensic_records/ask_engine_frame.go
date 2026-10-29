@@ -87,6 +87,13 @@ func askKindOfValue(value string) string {
 	return ""
 }
 
+var (
+	askParamColumnRE  = regexp.MustCompile(`\b(?:limit_amount|share_percent)\s*(?:=|<>|!=|<=|>=|<|>)\s*-?\d`)
+	askImeiLetterRE   = regexp.MustCompile(`\bimei\s*(?:=|<>|!=)\s*'[^']*[a-z][^']*'`)
+	askWithoutCueRE   = regexp.MustCompile(`\b(?:without|but not|except|excluding|other than)\b|\b(?:do|does|did) not (?:name|mention|appear)\b`)
+	askSetExclusionRE = regexp.MustCompile(`\bnot exists\b|\bnot in\b|\bis null\b|\bexcept\b`)
+)
+
 // Identifiers are every identifier of the frame in the order they were written.
 func (f askFrame) Identifiers() []string {
 	out := append([]string{}, f.Numbers...)
@@ -649,6 +656,20 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	// is still running (found by the subscribers run on development case 2: 5 numbers where 3 were right, once the database error that had hidden the query was made repairable).
 	if askUsesView(v, "v_number_registration_activity") && askAfterRegistrationEndRE.MatchString(strings.ToLower(f.Question)) && !askUsesColumn(v, "events_after_last_end", "events_outside_registration") {
 		add("REGISTRATION_END", "How many events a number had at or after the end of its last registration is the column events_after_last_end of v_number_registration_activity: select the numbers WHERE events_after_last_end > 0. Do not compare valid_to with a time yourself.", "the question asks about events after a registration ended and the query works the comparison out itself")
+	}
+	// The limit and the share of the limit-band view are set by the application from the question (runtime parameters) and the view repeats them in its columns; a filter on them compares the
+	// parameter with a number of the model's own (found by the transactions run on case 123: share_percent = 5.0 for "within 5% of the limit", which the application had set to 95; the answer was
+	// "no row matches"). The share_percent of v_account_flows is data (the debit as a percent of the credit) and is not concerned.
+	if askUsesView(v, "v_account_limit_bands") && !askUsesView(v, "v_account_flows") && askParamColumnRE.MatchString(sql) {
+		add("PARAMETER", "limit_amount and share_percent of v_account_limit_bands are set by the application from the question: do not filter on them. Select from the view as it is (account, transactions, total_amount) and leave the limit and the share to the application.", "the query filters on a runtime parameter of the view")
+	}
+	// An IMEI is 14 to 16 digits. A make or a model is a name: it is the column make or model of v_handsets (found by the subscribers run on case 122: imei = 'SYNTH' and "no row matches").
+	if askImeiLetterRE.MatchString(sql) {
+		add("IMEI_FORM", "An IMEI holds 14 to 16 digits. A make or a model of a phone is a name: find it in the columns make and model of v_handsets (src is the number, tac_listed says whether the device reference lists it), not in imei.", "the query compares a handset identity with a name")
+	}
+	// Documents that name X but NOT Y are an anti-join on Y; a join with an inequality keeps every document that names anything else (found by the documents run on seed 5008: b.value <> 'synt 6124').
+	if (askUsesView(v, "v_document_values") || askUsesView(v, "v_document_mentions")) && askWithoutCueRE.MatchString(strings.ToLower(f.Question)) && !askSetExclusionRE.MatchString(strings.ToLower(sql)) {
+		add("EXCLUSION", "The question asks for the documents that name one key and NOT another: exclude with WHERE NOT EXISTS (SELECT 1 FROM v_document_values b WHERE b.evidence_id = a.evidence_id AND b.kind = ... AND b.value = ...), or a LEFT JOIN on the second key with WHERE b.evidence_id IS NULL. A join with <> keeps every document that names anything else.", "the question asks for documents without a key and the query does not exclude it")
 	}
 	// A filter on time_precision = 'date' keeps ONLY the rows that state a day: a balance or a total on a date is not about them alone (case 120: a balance on a date was looked for there and not found).
 	if askSQLMentions(sql, "time_precision = 'date'", "time_precision='date'") && !askDateOnlyCue.MatchString(strings.ToLower(f.Question)) {

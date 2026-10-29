@@ -142,6 +142,21 @@ var _ = Describe("Ask engine documents", func() {
 		Expect(cat.Shortlist("When was D06-cdr-request.txt uploaded?", 0).Views).NotTo(ContainElement("v_document_values"))
 	})
 
+	// Found by the documents run on seed 5008 (2026-10-29): "without synt 6124" answered with b.value <> 'synt 6124'.
+	It("reads a plate in lower case after without, except or other than, and asks for an anti-join when documents are asked for without a key", func() {
+		Expect(askExtractFrame("In which documents does 0300-0001008 appear without synt 6124?").Plates).To(Equal([]string{"SYNT6124"}))
+		Expect(askExtractFrame("Which documents name the account but not synt 6124?").Plates).To(Equal([]string{"SYNT6124"}))
+		q := "In which documents does 0300-0001008 appear without synt 6124?"
+		joined := "SELECT DISTINCT a.document FROM v_document_values a JOIN v_document_values b ON a.evidence_id = b.evidence_id WHERE a.kind = 'msisdn' AND a.value = '923000001008' AND b.kind = 'plate' AND b.value <> 'SYNT6124'"
+		anti := "SELECT DISTINCT a.document FROM v_document_values a WHERE a.kind = 'msisdn' AND a.value = '923000001008' AND NOT EXISTS (SELECT 1 FROM v_document_values b WHERE b.evidence_id = a.evidence_id AND b.kind = 'plate' AND b.value = 'SYNT6124') ORDER BY a.document"
+		left := "SELECT DISTINCT a.document FROM v_document_values a LEFT JOIN v_document_values b ON b.evidence_id = a.evidence_id AND b.kind = 'plate' AND b.value = 'SYNT6124' WHERE a.kind = 'msisdn' AND a.value = '923000001008' AND b.evidence_id IS NULL ORDER BY a.document"
+		Expect(kinds(check(q, joined, "v_document_values"))).To(ContainElement("EXCLUSION"))
+		Expect(kinds(check(q, anti, "v_document_values"))).NotTo(ContainElement("EXCLUSION"))
+		Expect(kinds(check(q, left, "v_document_values"))).NotTo(ContainElement("EXCLUSION"))
+		both := "Which documents mention the number " + number + "?"
+		Expect(kinds(check(both, "SELECT DISTINCT document FROM v_document_values WHERE kind = 'msisdn' AND value = '"+number+"' ORDER BY document", "v_document_values"))).NotTo(ContainElement("EXCLUSION"))
+	})
+
 	It("keeps the inventory for a question about the files themselves, and refuses to look for an identifier among file names", func() {
 		Expect(cat.Shortlist("How many documents are in this case?", 0).Views).To(ContainElement("v_evidence_inventory"))
 		Expect(cat.Shortlist("How many documents are in this case?", 0).Views).NotTo(ContainElement("v_document_values"))

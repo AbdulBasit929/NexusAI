@@ -350,6 +350,11 @@ var askDocumentKeyRE = regexp.MustCompile(`\bpk\d{2}\s?[a-z]{4}|\b[a-z]{3,4}[\s-
 // askMadeByRE is "made by", "manufactured by" or "produced by": the maker of a handset is in the handsets view.
 var askMadeByRE = regexp.MustCompile(`\b(?:made|manufactured|produced|built)\s+by\b`)
 
+// askMakerPhoneRE is "a SYNTH phone", "an Apple handset": a make written before the word phone, handset or device. The words that cannot be a make are left out.
+var askMakerPhoneRE = regexp.MustCompile(`\ban?\s+([a-z][a-z0-9-]*)\s+(?:phone|handset|device|mobile)s?\b`)
+var askNotAMake = map[string]bool{"different": true, "new": true, "old": true, "same": true, "second": true, "another": true, "single": true, "particular": true, "shared": true, "certain": true, "specific": true, "given": true,
+	"other": true, "unknown": true, "unlisted": true, "stolen": true, "lost": true, "mobile": true, "cell": true, "smart": true, "burner": true, "registered": true, "unregistered": true, "target": true, "suspect": true}
+
 // askDocFileRE is the name of a document file as a question writes it, and askUnregisteredRE the phrases for a number that has no registration.
 var askDocFileRE = regexp.MustCompile(`\b[\w-]+\.(?:txt|docx|pdf|eml)\b`)
 var askUnregisteredRE = regexp.MustCompile(`\b(?:no registrations?|not registered|unregistered|never registered|without (?:a )?registrations?|(?:have|has|had) no registrations?)\b`)
@@ -388,6 +393,9 @@ func askApplyFeatures(c *askCatalogue, f askFeatures, tokens map[string]bool, no
 	}
 	if askMadeByRE.MatchString(normalised) && askAnyToken(tokens, "handset", "phone", "device", "mobile") && has("v_handsets") {
 		add("v_handsets", 6, "a handset made by a maker")
+	}
+	if m := askMakerPhoneRE.FindStringSubmatch(normalised); m != nil && !askNotAMake[m[1]] && has("v_handsets") {
+		add("v_handsets", 6, "a make of phone is named")
 	}
 	if tokens[askStem("credit")] && tokens[askStem("debit")] && has("v_account_flows") {
 		add("v_account_flows", 6, "a credit and a debit in one question")
