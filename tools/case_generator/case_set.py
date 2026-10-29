@@ -72,6 +72,8 @@ CASES = [
     ("judgement", 118, {"communities": 4, "associates": 20}),
     ("judgement", 119, {"subjects": 20, "people": 170, "associates": 34, "period_days": 70}),
     ("judgement", 120, {"events_per_person_per_day": 3.5, "period_days": 110, "subjects": 12}),
+    # added 2026-10-29 (set_version 4), before the third measurement of the subscriber family (cases 117 and 118 both fell short of the gate, causes fixed in the engine): one fresh case.
+    ("judgement", 121, {"subjects": 13, "people": 120, "period_days": 85, "associates": 26}),
     ("sealed", 901, {}),
     ("sealed", 902, {"period_days": 70}),
     ("sealed", 903, {"subjects": 14, "associates": 28, "events_per_person_per_day": 4.5}),

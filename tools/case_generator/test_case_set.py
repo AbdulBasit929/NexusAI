@@ -1,6 +1,6 @@
 """Tests for the case set and its register (plain unittest):  python -X utf8 tools/case_generator/test_case_set.py
 
-Proves: the set is 32 cases (judgement 109 to 112 were added on 2026-10-22 and 113 to 120 on 2026-10-26, each batch before the measurement it serves) with seeds in the range of their kind and no seed twice; a malformed set is refused; the register is the same
+Proves: the set is 33 cases (judgement 109 to 112 were added on 2026-10-22, 113 to 120 on 2026-10-26 and 121 on 2026-10-29, each batch before the measurement it serves) with seeds in the range of their kind and no seed twice; a malformed set is refused; the register is the same
 every time it is made and every case in it passes the audit; `verify` notices a changed case, a changed generator and, for sealed cases,
 only when asked; and `build` does not write a sealed case without the gate flag.
 """
@@ -24,9 +24,9 @@ TINY_SET = [("development", 1, dict(TINY)), ("judgement", 101, dict(TINY, period
 class SetTests(unittest.TestCase):
     def test_twenty_cases_in_three_kinds_with_seeds_in_range(self):
         self.assertEqual(case_set.validate(), [])
-        self.assertEqual(len(case_set.CASES), 32)
+        self.assertEqual(len(case_set.CASES), 33)
         counts = {kind: sum(1 for k, _, _ in case_set.CASES if k == kind) for kind in case_set.KINDS}
-        self.assertEqual(counts, {"development": 8, "judgement": 20, "sealed": 4})
+        self.assertEqual(counts, {"development": 8, "judgement": 21, "sealed": 4})
         for kind, seed, overrides in case_set.CASES:
             self.assertIn(seed, case_set.KINDS[kind])
             case_set.params_for(seed, overrides)      # every override is a parameter
@@ -89,7 +89,7 @@ class CommandLineTests(unittest.TestCase):
         out = io.StringIO()
         with redirect_stdout(out):
             self.assertEqual(case_set.main(["plan"]), 0)
-        self.assertIn("32 cases: 8 development, 20 judgement, 4 sealed", out.getvalue())
+        self.assertIn("33 cases: 8 development, 21 judgement, 4 sealed", out.getvalue())
 
 
 if __name__ == "__main__":

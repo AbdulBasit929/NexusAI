@@ -917,6 +917,41 @@
   },
   {
    "audit_problems": 0,
+   "bytes": 8900277,
+   "files": 38,
+   "generator_version": "0.6",
+   "id": "judgement-121",
+   "key_sha256": "903825a5a801b05d73809cec5af26f8306f8c3cb4b562d161bd8b3629440692d",
+   "kind": "judgement",
+   "manifest_sha256": "89a7469a146894b54ad4c58a788da8048aa6bc9f3ccc2a2118c2d3c8b2e64f9e",
+   "overrides": {
+    "associates": 26,
+    "people": 120,
+    "period_days": 85,
+    "subjects": 13
+   },
+   "plants": {
+    "address_translation": 3,
+    "colocation": 2,
+    "common_contacts": 5,
+    "device_change": 3,
+    "dual_sim": 1,
+    "impossible_speed": 2,
+    "late_without_predecessor": 1,
+    "outlier_day": 1,
+    "possible_meeting": 2,
+    "rate_change": 1,
+    "relocation": 1,
+    "short_trip": 1,
+    "silent_without_successor": 1,
+    "slow_decoy": 1,
+    "successor": 2
+   },
+   "seed": 121,
+   "spec_version": "0.6"
+  },
+  {
+   "audit_problems": 0,
    "bytes": 8913794,
    "files": 36,
    "generator_version": "0.6",
@@ -1050,9 +1085,10 @@
  "generator_version": "0.6",
  "history": [
   "set_version 1 (2026-10-13): 20 cases; set_version 2 (2026-10-22): judgement 109 to 112 added before the first stage-3 measurement, the 20 earlier entries unchanged",
-  "set_version 3 (2026-10-26): judgement 113 to 120 added before any measurement of the wording of absences and scores and of the ANPR family (the reserve of 105 to 112 is spent), the 24 earlier entries unchanged"
+  "set_version 3 (2026-10-26): judgement 113 to 120 added before any measurement of the wording of absences and scores and of the ANPR family (the reserve of 105 to 112 is spent), the 24 earlier entries unchanged",
+  "set_version 4 (2026-10-29): judgement 121, a fresh case for the third measurement of the subscriber family, added before the run"
  ],
  "policy": "development 1-99 free; judgement 100-199 registered before the code they judge is measured; sealed 900+ registered once, not opened or scored until a gate",
- "set_version": 3,
+ "set_version": 4,
  "spec_version": "0.6"
 }
