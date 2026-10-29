@@ -80,6 +80,7 @@ def direct(db, case_id, kind, value):
         return int(db.sql(sql))
     if kind == "msisdn":
         out["calls"] = count("SELECT count(*) FROM forensic.comm_event WHERE %s AND dataset_kind = 'target_cdr' AND (a_norm = %s OR b_norm = %s) AND %s" % (scope, q, q, NOT_DUP))
+        out["own_calls"] = count("SELECT count(*) FROM forensic.comm_event WHERE %s AND dataset_kind = 'target_cdr' AND a_norm = %s AND %s" % (scope, q, NOT_DUP))
         out["registrations"] = count("SELECT count(*) FROM forensic.subscriber_registration WHERE %s AND msisdn = %s AND %s" % (scope, q, NOT_DUP))
         out["wallet"] = count("SELECT count(*) FROM forensic.bank_transaction WHERE %s AND counterparty_msisdn = %s AND %s" % (scope, q, NOT_DUP))
     elif kind == "account":
@@ -220,7 +221,7 @@ def check_case(db, label, root, key, stats, problems, totals):
             expected[(kind, value, family)] = n
     false_links = [k for k in have_links if k not in expected]
     missed = [k for k in expected if k not in have_links]
-    wrong_count = [(k, have_links[k], expected[k]) for k in expected if k in have_links and k[2] != "calls" and have_links[k] != expected[k]]
+    wrong_count = [(k, have_links[k], expected[k]) for k in expected if k in have_links and k[2] not in ("calls", "own_calls") and have_links[k] != expected[k]]
     if false_links or missed or wrong_count:
         problems.append("%s: links differ from direct counts: false %s, missed %s, wrong counts %s" % (label, false_links[:3], missed[:3], wrong_count[:3]))
     totals["named_keys"] += len(named)
@@ -233,6 +234,8 @@ def check_case(db, label, root, key, stats, problems, totals):
     for (file_name, kind, value) in want:
         if kind == "msisdn" and value in subjects and (kind, value, "calls") not in have_links:
             problems.append("%s: a subscriber's number named in %s is not linked to the call records" % (label, file_name))
+        if kind == "msisdn" and value in subjects and (kind, value, "own_calls") not in have_links:
+            problems.append("%s: a subscriber's number named in %s is not linked to the subscriber's own call records" % (label, file_name))
         if kind == "msisdn" and value in registered and (kind, value, "registrations") not in have_links:
             problems.append("%s: a registered number named in %s is not linked to the registrations" % (label, file_name))
         if kind == "account" and value in accounts and (kind, value, "statements") not in have_links:

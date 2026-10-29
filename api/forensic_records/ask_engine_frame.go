@@ -63,6 +63,28 @@ func askUnitFollows(lower string, end int) bool {
 	return end <= len(lower) && askUnitAfter.MatchString(lower[end:])
 }
 
+var (
+	askKindValueRE = regexp.MustCompile(`(?:[a-z_]+\.)?kind\s*=\s*'([a-z_]+)'\s+and\s+(?:[a-z_]+\.)?value\s*=\s*'([^']+)'`)
+	askValueKindRE = regexp.MustCompile(`(?:[a-z_]+\.)?value\s*=\s*'([^']+)'\s+and\s+(?:[a-z_]+\.)?kind\s*=\s*'([a-z_]+)'`)
+	askDateOnlyCue = regexp.MustCompile(`only\s+(?:a\s+|the\s+)?(?:date|day)|date[\s-]only|state[sd]?\s+only`)
+	askKindPhrase  = map[string]string{"msisdn": "a mobile number", "account": "an account", "plate": "a plate", "iccid": "a SIM serial"}
+)
+
+// askKindOfValue is the kind a normalised key of the document views must be compared with, from its form; "" when the form says nothing (an area, a 15-digit handset or IMSI).
+func askKindOfValue(value string) string {
+	switch {
+	case regexp.MustCompile(`^92\d{10}$`).MatchString(value):
+		return "msisdn"
+	case regexp.MustCompile(`^pk\d{2}[a-z]{4}\d{16}$`).MatchString(value):
+		return "account"
+	case regexp.MustCompile(`^89\d{17,18}$`).MatchString(value):
+		return "iccid"
+	case regexp.MustCompile(`^[a-z]{3,4}\d{3,4}$`).MatchString(value):
+		return "plate"
+	}
+	return ""
+}
+
 // Identifiers are every identifier of the frame in the order they were written.
 func (f askFrame) Identifiers() []string {
 	out := append([]string{}, f.Numbers...)
@@ -75,25 +97,26 @@ func (f askFrame) Identifiers() []string {
 }
 
 var (
-	askFramePKPhone  = regexp.MustCompile(`(?:\+?\s?92[\s-]?|\b0)?3\d{2}[\s-]?\d{7}\b`)
-	askFrameIntl     = regexp.MustCompile(`\+\d{1,3}[\s-]?\d{6,12}\b`)
-	askFrameIMEI     = regexp.MustCompile(`\b\d{15}\b`)
-	askFrameICCID    = regexp.MustCompile(`\b\d{18,20}\b`)
-	askFrameIBAN     = regexp.MustCompile(`(?i)\bpk\s?\d{2}\s?[a-z]{4}(?:\s?\d{4}){4}\b`)
-	askClockCue      = regexp.MustCompile(`\b(?:within|in|after|before|at|between|every)\s+(?:the\s+)?(?:last\s+|next\s+)?\d+\s*(?:minutes?|mins?|hours?|hrs?)\b|\b\d{1,2}:\d{2}\b|\bo'?clock\b`)
-	askFrameTAC      = regexp.MustCompile(`(?i)\btac\b(?:\s+(?:code|number))?[^0-9a-z]{0,12}(\d{8})\b`)
-	askFrameBare     = regexp.MustCompile(`\b\d{10,14}\b`)
-	askFrameNID      = regexp.MustCompile(`\b\d{5}-\d{7}-\d\b`)
-	askFrameNIDRun   = regexp.MustCompile(`(?i)\b(?:cnic|nic|national\s+id|identity\s+card|id\s+card)\b[^0-9]{0,30}(\d{13})\b`)
-	askFrameYear     = regexp.MustCompile(`\b(20\d{2})\b`)
-	askInForceCue    = regexp.MustCompile(`\b(?:in force|valid|active|covered?|covering)\b`)
-	askFrameMonths   = regexp.MustCompile(`\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec)\b(?:\s+(?:of\s+)?(20\d{2}))?`)
-	askFrameHops     = regexp.MustCompile(`\b(\d+|one|two|three|four|five)\s+(?:hops?|steps?|links?|degrees?)\b`)
-	askFrameRelative = regexp.MustCompile(`\b(?:yesterday|today|tonight|this (?:week|month|year)|last (?:week|month|year|night|weekend)|past (?:\d+|few|several|one|two|three|four|five|six|seven|ten|twelve) (?:days?|weeks?|months?|years?|hours?)|(?:last|previous) (?:\d+|few|several|one|two|three|four|five|six|seven|ten|twelve) (?:days?|weeks?|months?|years?|hours?)|recent(?:ly)?|these days|so far this)\b`)
-	askUnitAfter     = regexp.MustCompile(`^\s*(?:-\s*)?(?:minutes?|mins?|seconds?|secs?|hours?|hrs?|days?|weeks?|months?|years?|km|kilomet\w*|met(?:re|er)s?)\b`)
-	askFrameTopN     = regexp.MustCompile(`\b(?:top|first|last|bottom|latest|earliest|most|busiest|highest|largest|biggest|longest|shortest|lowest|oldest|newest)\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten|twelve|fifteen|twenty)\b`)
-	askFrameNTop     = regexp.MustCompile(`\b(\d+|one|two|three|four|five|six|seven|eight|nine|ten|twelve|fifteen|twenty)\s+(?:most|top|busiest|highest|largest|biggest|longest|frequent|common|active|recent|earliest|latest|people|persons|numbers|contacts|callers|cells|towers|sites|devices|handsets|apps|applications|hosts|domains|websites|addresses)\b`)
-	askFrameWord     = regexp.MustCompile(`[a-z]+`)
+	askFramePKPhone   = regexp.MustCompile(`(?:\+?\s?92[\s-]?|\b0)?3\d{2}[\s-]?\d{7}\b`)
+	askFrameIntl      = regexp.MustCompile(`\+\d{1,3}[\s-]?\d{6,12}\b`)
+	askFrameIMEI      = regexp.MustCompile(`\b\d{15}\b`)
+	askFrameICCID     = regexp.MustCompile(`\b\d{18,20}\b`)
+	askFrameIBAN      = regexp.MustCompile(`(?i)\bpk\s?\d{2}\s?[a-z]{4}(?:\s?\d{4}){4}\b`)
+	askFrameIBANLoose = regexp.MustCompile(`(?i)\bpk\d{2}[a-z]{4}\d{6,}\b`)
+	askClockCue       = regexp.MustCompile(`\b(?:within|in|after|before|at|between|every)\s+(?:the\s+)?(?:last\s+|next\s+)?\d+\s*(?:minutes?|mins?|hours?|hrs?)\b|\b\d{1,2}:\d{2}\b|\bo'?clock\b`)
+	askFrameTAC       = regexp.MustCompile(`(?i)\btac\b(?:\s+(?:code|number))?[^0-9a-z]{0,12}(\d{8})\b`)
+	askFrameBare      = regexp.MustCompile(`\b\d{10,14}\b`)
+	askFrameNID       = regexp.MustCompile(`\b\d{5}-\d{7}-\d\b`)
+	askFrameNIDRun    = regexp.MustCompile(`(?i)\b(?:cnic|nic|national\s+id|identity\s+card|id\s+card)\b[^0-9]{0,30}(\d{13})\b`)
+	askFrameYear      = regexp.MustCompile(`\b(20\d{2})\b`)
+	askInForceCue     = regexp.MustCompile(`\b(?:in force|valid|active|covered?|covering)\b`)
+	askFrameMonths    = regexp.MustCompile(`\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec)\b(?:\s+(?:of\s+)?(20\d{2}))?`)
+	askFrameHops      = regexp.MustCompile(`\b(\d+|one|two|three|four|five)\s+(?:hops?|steps?|links?|degrees?)\b`)
+	askFrameRelative  = regexp.MustCompile(`\b(?:yesterday|today|tonight|this (?:week|month|year)|last (?:week|month|year|night|weekend)|past (?:\d+|few|several|one|two|three|four|five|six|seven|ten|twelve) (?:days?|weeks?|months?|years?|hours?)|(?:last|previous) (?:\d+|few|several|one|two|three|four|five|six|seven|ten|twelve) (?:days?|weeks?|months?|years?|hours?)|recent(?:ly)?|these days|so far this)\b`)
+	askUnitAfter      = regexp.MustCompile(`^\s*(?:-\s*)?(?:minutes?|mins?|seconds?|secs?|hours?|hrs?|days?|weeks?|months?|years?|km|kilomet\w*|met(?:re|er)s?)\b`)
+	askFrameTopN      = regexp.MustCompile(`\b(?:top|first|last|bottom|latest|earliest|most|busiest|highest|largest|biggest|longest|shortest|lowest|oldest|newest)\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten|twelve|fifteen|twenty)\b`)
+	askFrameNTop      = regexp.MustCompile(`\b(\d+|one|two|three|four|five|six|seven|eight|nine|ten|twelve|fifteen|twenty)\s+(?:most|top|busiest|highest|largest|biggest|longest|frequent|common|active|recent|earliest|latest|people|persons|numbers|contacts|callers|cells|towers|sites|devices|handsets|apps|applications|hosts|domains|websites|addresses)\b`)
+	askFrameWord      = regexp.MustCompile(`[a-z]+`)
 )
 
 var askNumberWords = map[string]int{"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10, "twelve": 12, "fifteen": 15, "twenty": 20}
@@ -170,6 +193,13 @@ func askExtractFrameWith(question string, plates bool) askFrame {
 	text = askFrameIMEI.ReplaceAllStringFunc(text, func(s string) string { f.IMEIs = append(f.IMEIs, s); return hold(s) })
 	text = askFrameICCID.ReplaceAllStringFunc(text, func(s string) string { f.Serials = append(f.Serials, s); return hold(s) })
 	text = askFrameIBAN.ReplaceAllStringFunc(text, func(s string) string {
+		key := strings.ToUpper(strings.Join(strings.Fields(s), ""))
+		f.Accounts = append(f.Accounts, key)
+		return hold(key)
+	})
+	// An account written with too few or too many digits is still an identifier of the question: the case is searched for it as written, so a mistyped account is answered "no record of it"
+	// and not with a confident zero (found by the transactions run on case 120: a 13-digit tail was not read as an account and a count of nothing was shown as "N: 0").
+	text = askFrameIBANLoose.ReplaceAllStringFunc(text, func(s string) string {
 		key := strings.ToUpper(strings.Join(strings.Fields(s), ""))
 		f.Accounts = append(f.Accounts, key)
 		return hold(key)
@@ -582,6 +612,29 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	if askNameAsNumber.MatchString(v.SQL) {
 		add("NAME", "src and dst hold phone numbers; a person's name is not one, and no view maps names to numbers. If the question names a person and no number, set answerable to false instead of comparing a number column with a name.", "the query compares a number column with a person's name")
 	}
+	// A kind and a value of the document views go together: the value of a mobile number is compared with kind = 'msisdn', an account with 'account', a plate with 'plate', a SIM serial
+	// with 'iccid' (found by the documents run on seed 5007: a mobile number was compared with kind = 'plate' and the answer was a confident "no document names it").
+	if askUsesView(v, "v_document_values") || askUsesView(v, "v_document_mentions") {
+		for _, re := range []*regexp.Regexp{askKindValueRE, askValueKindRE} {
+			for _, m := range re.FindAllStringSubmatch(sql, -1) {
+				kind, value := m[1], m[2]
+				if re == askValueKindRE {
+					kind, value = m[2], m[1]
+				}
+				if want := askKindOfValue(value); want != "" && want != kind {
+					add("KIND_VALUE", fmt.Sprintf("The value '%s' is %s: compare it with kind = '%s', not kind = '%s'.", value, askKindPhrase[want], want, kind), "the query compares a value with the kind of another")
+				}
+			}
+		}
+	}
+	// A row of v_account_limit_bands is one account: how many debits are in the band is its transactions column, not a count of rows (found by the transactions run on case 120).
+	if f.Cues["count"] && askUsesView(v, "v_account_limit_bands") && !askUsesColumn(v, "transactions") {
+		add("AGGREGATE", "A row of v_account_limit_bands is one account: its transactions column holds how many debits are in the band and total_amount their sum. Do not count the rows.", "the question asks how many debits and the query counts accounts")
+	}
+	// A filter on time_precision = 'date' keeps ONLY the rows that state a day: a balance or a total on a date is not about them alone (case 120: a balance on a date was looked for there and not found).
+	if askSQLMentions(sql, "time_precision = 'date'", "time_precision='date'") && !askDateOnlyCue.MatchString(strings.ToLower(f.Question)) {
+		add("DATE_ONLY_FILTER", "time_precision = 'date' keeps only the transactions whose statement states a day and no time. The question does not ask about those: remove the filter (a balance at the end of a day is the closing_balance of v_account_activity).", "the query reads only date-only rows and the question does not ask for them")
+	}
 	// The inventory lists the case's files by name, type and time; it does not say what a file contains. A query that looks for an identifier of the question among file names answers
 	// "no record" about documents that name it (found by the documents judgement run on seed 5006: six such answers, all wrong).
 	if askUsesView(v, "v_evidence_inventory") && len(f.Identifiers()) > 0 && askSQLMentions(sql, " like ", "ilike") {
@@ -636,7 +689,7 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	if f.Cues["count"] && askUsesView(v, "v_bank_transactions") && !askSQLMentions(sql, "count(") {
 		add("AGGREGATE", "A row of v_bank_transactions is one transaction: how many of them is COUNT(*) of the rows. SUM(amount) adds the money up and says nothing of how many.", "the question asks how many transactions and the query does not count them")
 	}
-	if f.Cues["count"] && !askSQLMentions(sql, "count(", "sum(") && !askUsesColumn(v, "events", "incoming", "outgoing", "sightings") {
+	if f.Cues["count"] && !askSQLMentions(sql, "count(", "sum(") && !askUsesColumn(v, "events", "incoming", "outgoing", "sightings", "transactions") {
 		add("AGGREGATE", "The question asks how many: count the rows (COUNT) or sum the counts of the view.", "the question asks for a count that the query does not compute")
 	}
 	if f.Cues["distinct"] && !askSQLMentions(sql, "distinct") && !askSQLMentions(sql, "group by") {

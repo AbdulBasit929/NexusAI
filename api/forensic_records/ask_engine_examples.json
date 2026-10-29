@@ -523,6 +523,15 @@
     "sql": "SELECT DISTINCT value FROM v_document_links WHERE kind = 'msisdn' AND family = 'calls' ORDER BY value"
   },
   {
+    "id": "doc-links-own-calls",
+    "question": "Which numbers named in the documents are subscribers whose own call records the case holds?",
+    "views": [
+      "v_document_links"
+    ],
+    "shape": "table",
+    "sql": "SELECT DISTINCT value FROM v_document_links WHERE kind = 'msisdn' AND family = 'own_calls' ORDER BY value"
+  },
+  {
     "id": "doc-unlinked-accounts",
     "question": "Which accounts named in the documents appear in no statement?",
     "views": [

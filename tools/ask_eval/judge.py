@@ -353,8 +353,10 @@ def judge(question, result):
             return "correct" if not rows and ("no document" in answer or "no row matches" in answer) else "wrong"
         return "correct" if document_names(rows) == set(expect["values"]) else "wrong"
     if kind in ("doc_absent", "txn_absent"):
-        # a key no document names, a document that names nothing, an account or wallet the statements do not hold: no rows, and the engine says so in its own words (never an invented record)
-        return "correct" if not rows and any(phrase in answer for phrase in NONE_FOUND) else "wrong"
+        # a key no document names, a document that names nothing, an account or wallet the statements do not hold: no rows (or the one row of a count that is zero), and the engine says so in
+        # its own words (never an invented record)
+        zero_row = len(rows) == 1 and all(v in (0, 0.0, None, "0") for v in rows[0].values())
+        return "correct" if (not rows or zero_row) and any(phrase in answer for phrase in NONE_FOUND) else "wrong"
     if kind == "money":
         return judge_money(expect, rows)
     if kind == "money_tuples":

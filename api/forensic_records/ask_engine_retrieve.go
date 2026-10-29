@@ -147,9 +147,8 @@ var askLexicon = map[string][]string{
 	"v_account_limit_bands":    {"limit", "structuring", "threshold"},
 	// documents: only words that mean what a document names. "document" itself belongs to v_evidence_inventory ("how many documents are in the case"), and a shortlisted view that the case
 	// cannot speak for makes the coverage guard decline the whole question, so the generic words of ordinary questions stay out
-	"v_document_mentions": {"mention", "mentions", "mentioned", "mentioning", "written", "named"},
-	"v_document_values":   {"mention", "mentions", "mentioned", "mentioning", "written", "named"},
-	"v_document_links":    {"mention", "mentions", "mentioned", "mentioning", "written", "named"},
+	// (no lexicon words for the document views: "which numbers no registration file mentions" is not about documents and the case 121 run declined it for views the case could not speak for;
+	// a question about documents is recognised by the word document with a key, a kind of key, an area or a verb of naming, in askApplyFeatures)
 	"v_app_usage": {"app", "application", "whatsapp", "facebook", "tiktok", "youtube", "social", "usage", "feature", "province", "city", "networking",
 		"lahore", "karachi", "peshawar", "quetta", "islamabad"},
 }
@@ -224,11 +223,11 @@ func (c *askCatalogue) Shortlist(question string, max int) askShortlist {
 	}
 	for _, v := range c.Views {
 		for _, word := range askLexicon[v.Name] {
-			// a word marked with ! names the family so plainly that one hit settles it (5 points, not 2): "registered" in a question about the SIM an IMSI was registered on, which
+			// a word marked with ! names the family so plainly that one hit puts it on the shortlist (3.5 points, not 2: at 5 it crowded the call records out of "call events after the end of a registration", case 121): "registered" in a question about the SIM an IMSI was registered on, which
 			// the words imsi and sim (v_device_pairings) had outweighed (found by the subscriber judgement run on case 118: answered "no row matches" from the call records)
 			points := 2.0
 			if strings.HasSuffix(word, "!") {
-				word, points = strings.TrimSuffix(word, "!"), 5
+				word, points = strings.TrimSuffix(word, "!"), 3.5
 			}
 			if tokenSet[askStem(word)] {
 				add(v.Name, points, "word: "+word)
@@ -348,6 +347,9 @@ func (c *askCatalogue) Shortlist(question string, max int) askShortlist {
 // askDocumentKeyRE is a key as a question writes it, in lower case: an account (pk00synt...), a plate (three or four letters and four digits), or a long run of digits (a number, a serial, a handset).
 var askDocumentKeyRE = regexp.MustCompile(`\bpk\d{2}\s?[a-z]{4}|\b[a-z]{3,4}[\s-]?\d{4}\b|\d{7,}|\+\d{2}[\s-]?\d{3}`)
 
+// askMadeByRE is "made by", "manufactured by" or "produced by": the maker of a handset is in the handsets view.
+var askMadeByRE = regexp.MustCompile(`\b(?:made|manufactured|produced|built)\s+by\b`)
+
 // askAccountKeyRE is an account as a question writes it, in lower case.
 var askAccountKeyRE = regexp.MustCompile(`\bpk\d{2}\s?[a-z]{4}`)
 
@@ -380,13 +382,16 @@ func askApplyFeatures(c *askCatalogue, f askFeatures, tokens map[string]bool, no
 			add("v_account_counterparties", 3, "an account is named")
 		}
 	}
+	if askMadeByRE.MatchString(normalised) && askAnyToken(tokens, "handset", "phone", "device", "mobile") && has("v_handsets") {
+		add("v_handsets", 6, "a handset made by a maker")
+	}
 	if tokens[askStem("credit")] && tokens[askStem("debit")] && has("v_account_flows") {
 		add("v_account_flows", 6, "a credit and a debit in one question")
 	}
 	// A question about documents that names a key (a number, an account, a plate, a handset) or says one of those kinds is about what the documents NAME: the document views, not the
 	// inventory of files (found by the documents judgement run on seed 5006: nine questions of the form "in which documents does X appear" were shortlisted the inventory and answered
 	// from file names, six of them with a confident "no record")
-	if tokens[askStem("document")] && (f.Phones > 0 || f.IMEIs > 0 || askDocumentKeyRE.MatchString(normalised) || askAnyToken(tokens, "number", "account", "plate", "mobile", "iban", "imei", "sim")) {
+	if tokens[askStem("document")] && (f.Phones > 0 || f.IMEIs > 0 || askDocumentKeyRE.MatchString(normalised) || askAnyToken(tokens, "number", "account", "plate", "mobile", "iban", "imei", "sim", "area", "town", "place", "locality", "mention", "name", "appear", "written", "contain")) {
 		for _, name := range []string{"v_document_values", "v_document_mentions", "v_document_links"} {
 			if has(name) {
 				add(name, 6, "a question about documents names a key")

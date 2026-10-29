@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -36,6 +37,8 @@ type askCoverage struct {
 	// no mention has not been indexed, which is not the same as documents that name nothing.
 	AnyDocument bool
 	Documents   int
+	// DateOnlyAccounts are the accounts (as the views compare them) whose every transaction states only a day and no time of day: a question about minutes or a time of day cannot be answered for them.
+	DateOnlyAccounts map[string]bool
 	// AnyVolume is whether any typed internet record states a byte count in a direction. An export that gives one undirected volume keeps it in the raw row (the entry does not
 	// guess a direction), so the view has nothing to add up for it (found 2026-10-20 on the multimodal case: a sum of the volume answered "no value").
 	AnyVolume bool
@@ -65,6 +68,31 @@ const askPopulationUsage = `SELECT count(*), count(imei), count(app_category), c
 FROM forensic.app_usage WHERE tenant_id = $1 AND collection_id = $2`
 const askRepeatsQuery = `SELECT (SELECT count(*) FROM forensic.comm_event WHERE tenant_id = $1 AND collection_id = $2 AND dataset_kind = 'target_cdr' AND 'duplicate_row' = ANY (quality_flags))
  + (SELECT count(*) FROM forensic.data_session WHERE tenant_id = $1 AND collection_id = $2 AND 'duplicate_row' = ANY (quality_flags))`
+
+// askDateOnlyAccountsQuery lists the accounts of the case whose every transaction states only its day (time_precision date, stored at local midnight).
+const askDateOnlyAccountsQuery = `SELECT account_norm FROM forensic.bank_transaction WHERE tenant_id = $1 AND collection_id = $2 AND NOT ('duplicate_row' = ANY (quality_flags))
+GROUP BY account_norm HAVING bool_and(time_precision = 'date')`
+
+// askReadDateOnlyAccounts fills DateOnlyAccounts of c in the transaction of the coverage read.
+func askReadDateOnlyAccounts(ctx context.Context, tx pgx.Tx, tenantID, collectionID string, c *askCoverage) error {
+	c.DateOnlyAccounts = map[string]bool{}
+	if !c.AnyTransaction {
+		return nil
+	}
+	rows, err := tx.Query(ctx, askDateOnlyAccountsQuery, tenantID, collectionID)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var account string
+		if err := rows.Scan(&account); err != nil {
+			return err
+		}
+		c.DateOnlyAccounts[account] = true
+	}
+	return rows.Err()
+}
 
 // askReadPopulation fills Unpopulated and Repeats of c in the transaction of the coverage read.
 func askReadPopulation(ctx context.Context, tx pgx.Tx, tenantID, collectionID string, c *askCoverage) error {
@@ -157,6 +185,9 @@ var askCoverageRead = func(ctx context.Context, db *pgxpool.Pool, tenantID, coll
 	if err = tx.QueryRow(ctx, askCoverageQuery, tenantID, collectionID).Scan(&c.Files, &c.Typed, &c.AnyComm, &c.AnySession, &c.AnyUsage, &c.AnyVolume, &c.AnyPlate, &c.AnyRegistration, &c.AnyTransaction, &c.AnyDocument, &c.Documents); err != nil {
 		return c, err
 	}
+	if err = askReadDateOnlyAccounts(ctx, tx, tenantID, collectionID, &c); err != nil {
+		return c, err
+	}
 	err = askReadPopulation(ctx, tx, tenantID, collectionID, &c)
 	return c, err
 }
@@ -205,6 +236,27 @@ func askVolumeGap(c askCoverage, f askFrame, views []string) string {
 	for _, v := range views {
 		if v == "v_data_sessions" {
 			return "the case's internet records state no byte count per direction (an export with one undirected volume keeps it in the raw row)"
+		}
+	}
+	return ""
+}
+
+// askTimeOfDayGap says why a question about minutes or a time of day cannot be answered for an account whose statement states only days (a pass-through or a gap in minutes would be
+// answered with a confident zero, found by the transactions run on case 120); "" when the question is not about a time of day, names no such account, or reads no transaction view.
+func askTimeOfDayGap(c askCoverage, f askFrame, views []string) string {
+	if len(c.DateOnlyAccounts) == 0 || !askClockCue.MatchString(strings.ToLower(f.Question)) {
+		return ""
+	}
+	reads := false
+	for _, v := range views {
+		reads = reads || v == "v_bank_transactions" || v == "v_account_flows"
+	}
+	if !reads {
+		return ""
+	}
+	for _, account := range f.Accounts {
+		if c.DateOnlyAccounts[account] {
+			return fmt.Sprintf("the statements of %s state only the day of each transaction, no time of day, so a question about minutes or a time of day cannot be answered for it", account)
 		}
 	}
 	return ""

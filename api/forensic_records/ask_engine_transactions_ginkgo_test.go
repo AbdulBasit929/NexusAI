@@ -264,3 +264,68 @@ var _ = Describe("Ask engine transactions after the first measurement", func() {
 		Expect(cat.Shortlist("Which accounts did both PK00SYNT0000000000002011 and PK00SYNT0000000000002005 transact with?", 0).Views).NotTo(ContainElement("v_plate_visits"))
 	})
 })
+
+// Found by the transactions judgement run on case 120 (2026-10-29).
+var _ = Describe("Ask engine transactions after the second measurement", func() {
+	const account = "PK00SYNT0000000000001001"
+	var cat *askCatalogue
+	BeforeEach(func() {
+		var err error
+		cat, err = askGoldenCatalogue()
+		Expect(err).NotTo(HaveOccurred())
+	})
+	check := func(question, sql string, views ...string) []string {
+		v, rej := askValidate(sql, cat, views)
+		Expect(rej).To(BeNil(), sql)
+		out := []string{}
+		for _, o := range askCheckFrame(askExtractFrame(question), v) {
+			out = append(out, o.Kind)
+		}
+		return out
+	}
+
+	It("reads an account written with the wrong number of digits as an identifier, so the case is searched for it as written", func() {
+		f := askExtractFrame("How many transactions did the account PK00SYNT0000000999999 have?")
+		Expect(f.Accounts).To(Equal([]string{"PK00SYNT0000000999999"}))
+		Expect(f.Identifiers()).To(ContainElement("PK00SYNT0000000999999"))
+		// a well-formed account is read once, and a phone number is not taken for one
+		Expect(askExtractFrame("How many transactions did the account "+account+" have?").Accounts).To(Equal([]string{account}))
+		Expect(askExtractFrame("How many calls did 923000000101 make?").Accounts).To(BeEmpty())
+	})
+
+	It("counts the debits of a band from the transactions column, not by counting accounts", func() {
+		q := "How many debits did each account make just under a limit of 500,000?"
+		counted := "SELECT count(*) AS n FROM v_account_limit_bands"
+		Expect(check(q, counted, "v_account_limit_bands")).To(ContainElement("AGGREGATE"))
+		read := "SELECT account, transactions, total_amount FROM v_account_limit_bands ORDER BY account"
+		Expect(check(q, read, "v_account_limit_bands")).NotTo(ContainElement("AGGREGATE"))
+	})
+
+	It("refuses a filter on date-only rows for a question that does not ask about them", func() {
+		balance := "SELECT balance_after FROM v_bank_transactions WHERE account = '" + account + "' AND time_precision = 'date' ORDER BY txn_utc DESC LIMIT 1"
+		Expect(check("What was the balance of the account "+account+" on 2026-03-05?", balance, "v_bank_transactions")).To(ContainElement("DATE_ONLY_FILTER"))
+		Expect(check("Which transactions of the account "+account+" state only a day, with no time?", balance, "v_bank_transactions")).NotTo(ContainElement("DATE_ONLY_FILTER"))
+	})
+
+	It("declines a question about minutes for an account whose statement states only days, and leaves every other question alone", func() {
+		const dateOnly = "PK00SYNT0000000000001009"
+		cover := askCoverage{AnyTransaction: true, DateOnlyAccounts: map[string]bool{dateOnly: true}}
+		minutes := askExtractFrame("Did the account " + dateOnly + " pass on 90 percent of a credit within 10 minutes?")
+		Expect(askTimeOfDayGap(cover, minutes, []string{"v_account_flows"})).To(ContainSubstring("state only the day of each transaction"))
+		Expect(askTimeOfDayGap(cover, minutes, []string{"v_bank_transactions"})).To(ContainSubstring(dateOnly))
+		// another account, a question with no time of day, a view that is not about time, and a case with no such account are left alone
+		other := askExtractFrame("Did the account " + account + " pass on 90 percent of a credit within 10 minutes?")
+		Expect(askTimeOfDayGap(cover, other, []string{"v_account_flows"})).To(Equal(""))
+		total := askExtractFrame("How many transactions did the account " + dateOnly + " have?")
+		Expect(askTimeOfDayGap(cover, total, []string{"v_bank_transactions"})).To(Equal(""))
+		Expect(askTimeOfDayGap(cover, minutes, []string{"v_account_activity"})).To(Equal(""))
+		Expect(askTimeOfDayGap(askCoverage{AnyTransaction: true}, minutes, []string{"v_account_flows"})).To(Equal(""))
+	})
+
+	It("gives every transaction view the caveat that a pattern is not a finding, and the transaction views the amounts-as-stated line", func() {
+		for _, name := range []string{"v_bank_transactions", "v_account_activity", "v_account_counterparties", "v_account_flows", "v_account_limit_bands"} {
+			Expect(askViewCaveatText[name]).To(ContainSubstring("Amounts are as the source states them"), name)
+			Expect(askViewCaveatText[name]).To(ContainSubstring("a pattern, not a finding of laundering, structuring or any offence"), name)
+		}
+	})
+})

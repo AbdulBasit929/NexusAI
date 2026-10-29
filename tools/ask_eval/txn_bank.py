@@ -38,8 +38,8 @@ COUNT = ["How many transactions does the account %(a)s have in the statements?",
 PAID_TOTAL = ["What is the total the account %(a)s paid to %(b)s?", "How much did %(a)s pay to the account %(b)s in all?", "What total did %(a)s send to %(b)s?"]
 PAID = ["Which accounts did %(a)s pay, and how much did it pay to each?", "List the accounts that %(a)s paid with the total paid to each.", "Who did the account %(a)s pay, and how much in total to each?"]
 SHARED = ["Which accounts did both %(a)s and %(b)s transact with?", "List the counterparties that %(a)s and %(b)s have in common.", "With which accounts did %(a)s and %(b)s both have transactions?"]
-FLOWS = ["Which accounts received money that went out again within %(w)d minutes, at least %(s)d percent of it?", "Find the credits that were followed by a debit of at least %(s)d%% of the credit within %(w)d minutes.",
-         "Which accounts passed on at least %(s)d percent of a credit within %(w)d minutes?"]
+FLOWS = ["Which accounts received money that went out again within %(w)d minutes, at least %(s)d percent of it?",
+         "Which accounts had a credit followed by a debit of at least %(s)d%% of the credit within %(w)d minutes?", "Which accounts passed on at least %(s)d percent of a credit within %(w)d minutes?"]
 NEAR = ["Which accounts made debits just under a limit of %(l)s, and how many?", "List the accounts with debits within 5%% of the limit of %(l)s, with how many each.",
         "Which accounts have debits between 95 percent of %(l)s and the limit, and how many debits?"]
 BALANCE = ["What was the balance of the account %(a)s at the end of %(d)s?", "What was the closing balance of %(a)s on %(d)s?", "How much was in the account %(a)s at the end of the day on %(d)s?"]
@@ -137,7 +137,7 @@ def build(truth, seed):
         if n:
             bank.add("salary_count", phrase(SALARY) % {"a": account, "b": employer}, {"kind": "scalar", "value": n, "params": {"account": account, "counterparty": employer}})
             break
-    bank.add("absent", phrase(ABSENT_ACCOUNT) % {"a": "PK00SYNT0000000999999"}, {"kind": "txn_absent", "control": True, "params": {}})
+    bank.add("absent", phrase(ABSENT_ACCOUNT) % {"a": "PK00SYNT0000000000999999"}, {"kind": "txn_absent", "control": True, "params": {}})
     bank.add("absent", phrase(ABSENT_WALLET) % {"a": "923000099999"}, {"kind": "txn_absent", "control": True, "params": {}})
     bank.add("minutes_over_dates", phrase(MINUTES_DATED) % {"a": sorted(dated)[0]}, {"kind": "none", "control": True, "params": {}})
     bank.add("no_limit", phrase(NO_LIMIT), {"kind": "none", "control": True, "params": {}})

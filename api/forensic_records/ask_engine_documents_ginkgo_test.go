@@ -115,6 +115,15 @@ var _ = Describe("Ask engine documents", func() {
 		Entry("the numbers in the documents whose own call records are in the case", "List the numbers in the documents whose own call records are in the case."),
 		Entry("an IMEI named in documents", "List the documents that name 000000000010090."))
 
+	It("compares a value with the kind its form says: a mobile number with msisdn, an account with account, a plate with plate, a SIM serial with iccid", func() {
+		q := "Which documents mention the number " + number + "?"
+		Expect(kinds(check(q, "SELECT DISTINCT document FROM v_document_values WHERE kind = 'plate' AND value = '"+number+"'", "v_document_values"))).To(ContainElement("KIND_VALUE"))
+		Expect(kinds(check(q, "SELECT DISTINCT document FROM v_document_values WHERE value = '"+number+"' AND kind = 'account'", "v_document_values"))).To(ContainElement("KIND_VALUE"))
+		Expect(kinds(check(q, "SELECT DISTINCT document FROM v_document_values WHERE kind = 'msisdn' AND value = '"+number+"'", "v_document_values"))).NotTo(ContainElement("KIND_VALUE"))
+		pq := "Which documents mention the plate SYNT-4024?"
+		Expect(kinds(check(pq, "SELECT DISTINCT document FROM v_document_values WHERE kind = 'plate' AND value = 'SYNT4024'", "v_document_values"))).NotTo(ContainElement("KIND_VALUE"))
+	})
+
 	It("keeps the inventory for a question about the files themselves, and refuses to look for an identifier among file names", func() {
 		Expect(cat.Shortlist("How many documents are in this case?", 0).Views).To(ContainElement("v_evidence_inventory"))
 		Expect(cat.Shortlist("How many documents are in this case?", 0).Views).NotTo(ContainElement("v_document_values"))

@@ -20,8 +20,9 @@ const askHandsetCaveat = "A make and model are what the device reference lists f
 	"A TAC the list does not hold is unknown, not unusual."
 
 // askTransactionCaveat and askPatternCaveat are the caveats of the transaction views: a transaction is a line of a statement or a wallet list, and a pattern in such lines is not a finding.
-const askTransactionCaveat = "Amounts are as the source states them (no conversion). A transaction is a line of a statement or a wallet list: it does not say why money moved. A transaction stated with only a day has no time of day."
-const askPatternCaveat = askTransactionCaveat + " A pattern in the rows (money in and out within minutes, amounts just under a limit, a counterparty in common) is a pattern, not a finding of laundering, structuring or any offence."
+const askTransactionCaveat = "Amounts are as the source states them (no conversion). A transaction is a line of a statement or a wallet list: it does not say why money moved. A transaction stated with only a day has no time of day. " +
+	"A pattern in the rows (money in and out within minutes, amounts just under a limit, a counterparty in common) is a pattern, not a finding of laundering, structuring or any offence."
+const askPatternCaveat = askTransactionCaveat
 
 // askDocumentCaveat is the caveat of the document views: a mention says that a document names a key, found by a rule, with the text as written.
 const askDocumentCaveat = "A mention says that a document names the key (a number, an account, a plate, a SIM serial, a handset or a place), as a rule read it from the text: it does not say who holds the key, " +

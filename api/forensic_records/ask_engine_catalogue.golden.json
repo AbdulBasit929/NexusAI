@@ -995,7 +995,7 @@
     },
     {
       "name": "v_document_links",
-      "description": "Per kind and key named in the documents, how many records of another family carry the same key: calls (a number as caller or called, or a handset), registrations (a number, SIM serial or IMSI), wallet and statements (a counterparty number or an account), sightings (a plate). A key with no row here is named in a document and in no record of the case. The same key in a document and a record is a lead, not a finding.",
+      "description": "Per kind and key named in the documents, how many records of another family carry the same key: calls (a number as caller or called, or a handset), own_calls (a number as the subscriber whose call records the case holds), registrations (a number, SIM serial or IMSI), wallet and statements (a counterparty number or an account), sightings (a plate). A key with no row here is named in a document and in no record of the case. The same key in a document and a record is a lead, not a finding.",
       "columns": [
         {
           "name": "kind",
@@ -1010,7 +1010,7 @@
         {
           "name": "family",
           "type": "text",
-          "description": "Where the same key was found: calls, registrations, wallet, statements or sightings."
+          "description": "Where the same key was found: calls (a number as caller or called by anyone, or a handset), own_calls (a number as the subscriber whose own call records the case holds), registrations, wallet, statements or sightings."
         },
         {
           "name": "records",

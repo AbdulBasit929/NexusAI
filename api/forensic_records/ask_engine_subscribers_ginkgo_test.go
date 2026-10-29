@@ -180,4 +180,17 @@ var _ = Describe("Ask engine retrieval of registrations and phones", func() {
 		Expect(cat.Shortlist("At which cameras was the plate SYNT-4024 seen?", 0).Views).To(ContainElement("v_plate_sightings"))
 		Expect(cat.Shortlist("Which calls did 923000001043 make in March?", 0).Views).NotTo(ContainElement("v_subscriber_registrations"))
 	})
+
+	// Found by the subscriber judgement run on case 121 (2026-10-29): the strong word registered at 5 points crowded the call records out of a question about events after a registration ended, and
+	// the words "no registration file mentions" were taken for a question about documents.
+	It("keeps the call records in a question about events after a registration, the documents out of a question about registrations, and finds the handsets by their maker", func() {
+		cat, err := askGoldenCatalogue()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(cat.Shortlist("Which call events of 923000001043 came after the end of a registration of the number?", 0).Views).To(ContainElement("v_comm_events"))
+		for _, view := range askDocumentViews {
+			Expect(cat.Shortlist("Which numbers does no registration file mention?", 0).Views).NotTo(ContainElement(view))
+		}
+		Expect(cat.Shortlist("Which handsets were made by Samsung?", 0).Views).To(ContainElement("v_handsets"))
+		Expect(cat.Shortlist("Which numbers used a phone manufactured by Nokia?", 0).Views).To(ContainElement("v_handsets"))
+	})
 })

@@ -114,6 +114,8 @@ FROM (
   UNION ALL
   SELECT n.kind, n.value, 'calls'::text, count(*) FROM named n JOIN analyst.v_comm_events e ON e.dst = n.value WHERE n.kind = 'msisdn' GROUP BY n.kind, n.value
   UNION ALL
+  SELECT n.kind, n.value, 'own_calls'::text, count(*) FROM named n JOIN analyst.v_comm_events e ON e.src = n.value WHERE n.kind = 'msisdn' GROUP BY n.kind, n.value
+  UNION ALL
   SELECT n.kind, n.value, 'registrations'::text, count(*) FROM named n JOIN analyst.v_subscriber_registrations r ON r.msisdn = n.value WHERE n.kind = 'msisdn' GROUP BY n.kind, n.value
   UNION ALL
   SELECT n.kind, n.value, 'wallet'::text, count(*) FROM named n JOIN analyst.v_bank_transactions t ON t.counterparty_msisdn = n.value WHERE n.kind = 'msisdn' GROUP BY n.kind, n.value
@@ -137,7 +139,7 @@ COMMENT ON VIEW analyst.v_document_mentions IS
 COMMENT ON VIEW analyst.v_document_values IS
   'Per document, kind and key: how many times the document names it (the thick view for "which documents mention X", "which mention both X and Y", "how many documents mention X"). Compare value, which is the normalised key. National ID numbers are not here (withheld).';
 COMMENT ON VIEW analyst.v_document_links IS
-  'Per kind and key named in the documents, how many records of another family carry the same key: calls (a number as caller or called, or a handset), registrations (a number, SIM serial or IMSI), wallet and statements (a counterparty number or an account), sightings (a plate). A key with no row here is named in a document and in no record of the case. The same key in a document and a record is a lead, not a finding.';
+  'Per kind and key named in the documents, how many records of another family carry the same key: calls (a number as caller or called, or a handset), own_calls (a number as the subscriber whose call records the case holds), registrations (a number, SIM serial or IMSI), wallet and statements (a counterparty number or an account), sightings (a plate). A key with no row here is named in a document and in no record of the case. The same key in a document and a record is a lead, not a finding.';
 
 DO $$
 DECLARE
@@ -164,7 +166,7 @@ BEGIN
       ('v_document_values', 'first_surface', 'One of the ways the document wrote it.'),
       ('v_document_links', 'kind', 'msisdn, account, plate, iccid, imei or imsi (a place is not a key of any record).'),
       ('v_document_links', 'value', 'The normalised key named in at least one document.'),
-      ('v_document_links', 'family', 'Where the same key was found: calls, registrations, wallet, statements or sightings.'),
+      ('v_document_links', 'family', 'Where the same key was found: calls (a number as caller or called by anyone, or a handset), own_calls (a number as the subscriber whose own call records the case holds), registrations, wallet, statements or sightings.'),
       ('v_document_links', 'records', 'How many records of that family carry the key.')
     ) AS t(view_name, column_name, description)
   LOOP

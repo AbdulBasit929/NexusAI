@@ -58,8 +58,12 @@ class TxnAbsent(unittest.TestCase):
         self.assertEqual(run({"kind": "txn_absent"}, [], "Nothing matched: no transaction of PK00SYNT0000000999999 was found in the files of this case."), "correct")
         self.assertEqual(run({"kind": "txn_absent"}, [], "no transaction of the wallet or number 923000099999 was found in the files of this case"), "correct")
 
-    def test_a_row_or_an_invented_figure_is_wrong(self):
-        self.assertEqual(run({"kind": "txn_absent"}, [{"n": 0}], "no transaction found"), "wrong")
+    def test_the_one_row_of_a_zero_count_is_right_only_with_the_engines_statement(self):
+        self.assertEqual(run({"kind": "txn_absent"}, [{"n": 0}], "no transaction found"), "correct")
+        self.assertEqual(run({"kind": "txn_absent"}, [{"n": 0}], "N: 0"), "wrong")
+
+    def test_a_row_with_a_figure_or_an_invented_figure_is_wrong(self):
+        self.assertEqual(run({"kind": "txn_absent"}, [{"n": 3}], "no transaction found"), "wrong")
         self.assertEqual(run({"kind": "txn_absent"}, [], "The account has 12 transactions."), "wrong")
 
 
