@@ -124,6 +124,24 @@ var _ = Describe("Ask engine documents", func() {
 		Expect(kinds(check(pq, "SELECT DISTINCT document FROM v_document_values WHERE kind = 'plate' AND value = 'SYNT4024'", "v_document_values"))).NotTo(ContainElement("KIND_VALUE"))
 	})
 
+	// Found by the documents run on development seed 5100 (2026-10-29).
+	It("compares the kind and the value of one row of a join, not the kind of one alias with the value of another", func() {
+		q := "List the documents that name 0300-0001000 and also SYNT-6940."
+		join := "SELECT DISTINCT a.document FROM v_document_values a JOIN v_document_values b ON a.evidence_id = b.evidence_id WHERE a.kind = 'plate' AND a.value = 'SYNT6940' AND b.kind = 'msisdn' AND b.value = '923000001000' ORDER BY a.document"
+		Expect(kinds(check(q, join, "v_document_values"))).NotTo(ContainElement("KIND_VALUE"))
+		crossed := "SELECT DISTINCT a.document FROM v_document_values a JOIN v_document_values b ON a.evidence_id = b.evidence_id WHERE a.kind = 'msisdn' AND a.value = 'SYNT6940' AND b.kind = 'plate' AND b.value = '923000001000' ORDER BY a.document"
+		Expect(kinds(check(q, crossed, "v_document_values"))).To(ContainElement("KIND_VALUE"))
+	})
+
+	It("reads a plate in lower case after a verb of naming, and a document named by its file as a question about what it names", func() {
+		Expect(askExtractFrame("List the documents that name synt 5008.").Plates).To(Equal([]string{"SYNT5008"}))
+		Expect(askExtractFrame("Which documents mention synt-4024?").Plates).To(Equal([]string{"SYNT4024"}))
+		Expect(askExtractFrame("List the first 1000 rows.").Plates).To(BeEmpty())
+		Expect(askExtractFrame("Which documents mention page 1234?").Plates).To(BeEmpty())
+		Expect(cat.Shortlist("What mobile numbers appear in D06-cdr-request.txt?", 0).Views).To(ContainElement("v_document_values"))
+		Expect(cat.Shortlist("When was D06-cdr-request.txt uploaded?", 0).Views).NotTo(ContainElement("v_document_values"))
+	})
+
 	It("keeps the inventory for a question about the files themselves, and refuses to look for an identifier among file names", func() {
 		Expect(cat.Shortlist("How many documents are in this case?", 0).Views).To(ContainElement("v_evidence_inventory"))
 		Expect(cat.Shortlist("How many documents are in this case?", 0).Views).NotTo(ContainElement("v_document_values"))

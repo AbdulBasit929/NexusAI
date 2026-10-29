@@ -64,10 +64,12 @@ func askUnitFollows(lower string, end int) bool {
 }
 
 var (
-	askKindValueRE = regexp.MustCompile(`(?:[a-z_]+\.)?kind\s*=\s*'([a-z_]+)'\s+and\s+(?:[a-z_]+\.)?value\s*=\s*'([^']+)'`)
-	askValueKindRE = regexp.MustCompile(`(?:[a-z_]+\.)?value\s*=\s*'([^']+)'\s+and\s+(?:[a-z_]+\.)?kind\s*=\s*'([a-z_]+)'`)
-	askDateOnlyCue = regexp.MustCompile(`only\s+(?:a\s+|the\s+)?(?:date|day)|date[\s-]only|state[sd]?\s+only`)
-	askKindPhrase  = map[string]string{"msisdn": "a mobile number", "account": "an account", "plate": "a plate", "iccid": "a SIM serial"}
+	askKindValueRE            = regexp.MustCompile(`\b((?:[a-z_]+\.)?)kind\s*=\s*'([a-z_]+)'\s+and\s+((?:[a-z_]+\.)?)value\s*=\s*'([^']+)'`)
+	askValueKindRE            = regexp.MustCompile(`\b((?:[a-z_]+\.)?)value\s*=\s*'([^']+)'\s+and\s+((?:[a-z_]+\.)?)kind\s*=\s*'([a-z_]+)'`)
+	askAfterRegistrationEndRE = regexp.MustCompile(`\bafter (?:the )?(?:their |its |a |the )?registrations? (?:has |had |have )?(?:ended|ends|expired|expires|ceased)\b|\bafter the (?:end|expiry) of (?:a |the |their |its )?registrations?\b`)
+	askMoneyCue               = regexp.MustCompile(`\b(?:total|amount|amounts|money|rupees|rs|how much|sum)\b`)
+	askDateOnlyCue            = regexp.MustCompile(`only\s+(?:a\s+|the\s+)?(?:date|day)|date[\s-]only|state[sd]?\s+only`)
+	askKindPhrase             = map[string]string{"msisdn": "a mobile number", "account": "an account", "plate": "a plate", "iccid": "a SIM serial"}
 )
 
 // askKindOfValue is the kind a normalised key of the document views must be compared with, from its form; "" when the form says nothing (an area, a 15-digit handset or IMSI).
@@ -304,6 +306,8 @@ func askExtractFrameWith(question string, plates bool) askFrame {
 	// "count" asks for a number of rows; "only count a score of at least 0.9" and "count it as silent after 10 days" use the verb for "take into account" (found by the stage-3b development
 	// check, where the former made the model answer "Count: 1" to "from which silent number may X have taken over").
 	f.Cues["count"] = phrase("how many") || phrase("how often") || phrase("number of") || anyWord("count", "total") && !anyWord("duration", "minutes", "seconds", "hours") && !askCountAsConsider.MatchString(words2)
+	// "how many" in the narrow sense: a number of rows. "total" also asks for a count in the generic rule above, but a total credited or a total sent is an amount (found by the transactions run on dev case 2)
+	f.Cues["howmany"] = phrase("how many") || phrase("how often") || phrase("number of") || anyWord("count") && !askCountAsConsider.MatchString(words2)
 	f.Cues["distinct"] = anyWord("different", "distinct", "unique")
 	f.Cues["rank"] = anyWord("top", "busiest", "highest", "largest", "biggest", "frequently") || anyWord("often") && !phrase("how often") || anyWord("most") && !phrase("most recent")
 	// "first" and "last" ask for one earliest or latest value only when they qualify an event ("the first call", "when was the last message"); "the first week of March"
@@ -617,9 +621,12 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	if askUsesView(v, "v_document_values") || askUsesView(v, "v_document_mentions") {
 		for _, re := range []*regexp.Regexp{askKindValueRE, askValueKindRE} {
 			for _, m := range re.FindAllStringSubmatch(sql, -1) {
-				kind, value := m[1], m[2]
+				if m[1] != m[3] {
+					continue // a kind of one alias and a value of another belong to two different rows of a join
+				}
+				kind, value := m[2], m[4]
 				if re == askValueKindRE {
-					kind, value = m[2], m[1]
+					kind, value = m[4], m[2]
 				}
 				if want := askKindOfValue(value); want != "" && want != kind {
 					add("KIND_VALUE", fmt.Sprintf("The value '%s' is %s: compare it with kind = '%s', not kind = '%s'.", value, askKindPhrase[want], want, kind), "the query compares a value with the kind of another")
@@ -628,8 +635,20 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 		}
 	}
 	// A row of v_account_limit_bands is one account: how many debits are in the band is its transactions column, not a count of rows (found by the transactions run on case 120).
-	if f.Cues["count"] && askUsesView(v, "v_account_limit_bands") && !askUsesColumn(v, "transactions") {
+	if f.Cues["howmany"] && askUsesView(v, "v_account_limit_bands") && !askUsesColumn(v, "transactions") {
 		add("AGGREGATE", "A row of v_account_limit_bands is one account: its transactions column holds how many debits are in the band and total_amount their sum. Do not count the rows.", "the question asks how many debits and the query counts accounts")
+	}
+	// A row of the aggregated transaction views carries a count (transactions) and a sum (total_amount, or credits and debits): "what total did A send to B" is the sum, and summing the count
+	// said 5 where the money was 303,921.49 (found by the transactions run on dev case 2).
+	if !f.Cues["howmany"] && !f.Cues["rank"] && askMoneyCue.MatchString(strings.ToLower(f.Question)) && askUsesColumn(v, "transactions") && !askUsesColumn(v, "total_amount", "credits", "debits", "amount", "signed_amount") &&
+		(askUsesView(v, "v_account_counterparties") || askUsesView(v, "v_account_limit_bands") || askUsesView(v, "v_account_activity")) {
+		add("MEASURE", "The question asks for an amount of money: transactions is how many transactions there were. The money is total_amount (credits and debits in v_account_activity). Select or sum that column.", "the question asks for an amount and the query reads the number of transactions")
+	}
+	// "After their registration ended" is a property of the number as a whole: the view of registration activity counts, per number, the events at or after the end of its LAST registration
+	// (zero when a registration is open-ended). A join of the registrations with the last event compares one registration of the number at a time and lists numbers whose later registration
+	// is still running (found by the subscribers run on development case 2: 5 numbers where 3 were right, once the database error that had hidden the query was made repairable).
+	if askUsesView(v, "v_number_registration_activity") && askAfterRegistrationEndRE.MatchString(strings.ToLower(f.Question)) && !askUsesColumn(v, "events_after_last_end", "events_outside_registration") {
+		add("REGISTRATION_END", "How many events a number had at or after the end of its last registration is the column events_after_last_end of v_number_registration_activity: select the numbers WHERE events_after_last_end > 0. Do not compare valid_to with a time yourself.", "the question asks about events after a registration ended and the query works the comparison out itself")
 	}
 	// A filter on time_precision = 'date' keeps ONLY the rows that state a day: a balance or a total on a date is not about them alone (case 120: a balance on a date was looked for there and not found).
 	if askSQLMentions(sql, "time_precision = 'date'", "time_precision='date'") && !askDateOnlyCue.MatchString(strings.ToLower(f.Question)) {
@@ -686,7 +705,7 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	}
 	// A row of v_bank_transactions is one transaction: how many of them is COUNT of the rows; SUM adds the money up (found by the transactions judgement run on case 119: "how many credits"
 	// was answered with the sum of the amounts)
-	if f.Cues["count"] && askUsesView(v, "v_bank_transactions") && !askSQLMentions(sql, "count(") {
+	if f.Cues["howmany"] && askUsesView(v, "v_bank_transactions") && !askSQLMentions(sql, "count(") {
 		add("AGGREGATE", "A row of v_bank_transactions is one transaction: how many of them is COUNT(*) of the rows. SUM(amount) adds the money up and says nothing of how many.", "the question asks how many transactions and the query does not count them")
 	}
 	if f.Cues["count"] && !askSQLMentions(sql, "count(", "sum(") && !askUsesColumn(v, "events", "incoming", "outgoing", "sightings", "transactions") {
@@ -746,7 +765,7 @@ func askCheckResult(f askFrame, v *askValidated, columns []string, rows int) *as
 	grouped := askSQLMentions(strings.ToLower(v.SQL), "group by", "partition by") || askSQLMentions(strings.ToLower(v.SQL), " per ")
 	asksPer := strings.Contains(" "+strings.ToLower(f.Question)+" ", " per ") || strings.Contains(strings.ToLower(f.Question), "each ") || strings.Contains(strings.ToLower(f.Question), " by ") ||
 		strings.Contains(strings.ToLower(f.Question), "which ") || strings.Contains(strings.ToLower(f.Question), "who ") || strings.Contains(strings.ToLower(f.Question), "list")
-	if f.Cues["count"] && !f.Cues["rank"] && !asksPer && !grouped && (rows != 1 || len(columns) != 1) {
+	if f.Cues["count"] && !f.Cues["rank"] && !asksPer && !grouped && rows > 0 && (rows != 1 || len(columns) != 1) {
 		return &askObligation{Kind: "SHAPE", Message: "The question asks for one number, but the query returns several rows or columns. Return one row with one value.", Reason: "the question asks for one value and the result is a list"}
 	}
 	if rows > 1 && f.Cues["earliest"] && f.Limit == 0 && !asksPer && !grouped && len(columns) == 1 {

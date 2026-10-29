@@ -350,6 +350,10 @@ var askDocumentKeyRE = regexp.MustCompile(`\bpk\d{2}\s?[a-z]{4}|\b[a-z]{3,4}[\s-
 // askMadeByRE is "made by", "manufactured by" or "produced by": the maker of a handset is in the handsets view.
 var askMadeByRE = regexp.MustCompile(`\b(?:made|manufactured|produced|built)\s+by\b`)
 
+// askDocFileRE is the name of a document file as a question writes it, and askUnregisteredRE the phrases for a number that has no registration.
+var askDocFileRE = regexp.MustCompile(`\b[\w-]+\.(?:txt|docx|pdf|eml)\b`)
+var askUnregisteredRE = regexp.MustCompile(`\b(?:no registrations?|not registered|unregistered|never registered|without (?:a )?registrations?|(?:have|has|had) no registrations?)\b`)
+
 // askAccountKeyRE is an account as a question writes it, in lower case.
 var askAccountKeyRE = regexp.MustCompile(`\bpk\d{2}\s?[a-z]{4}`)
 
@@ -399,6 +403,27 @@ func askApplyFeatures(c *askCatalogue, f askFeatures, tokens map[string]bool, no
 		}
 		if has("v_evidence_inventory") {
 			add("v_evidence_inventory", -3, "the inventory lists files, not what they name")
+		}
+	}
+	// A document named by its file, with a word for what a document holds ("what mobile numbers appear in D06-cdr-request.txt"), is a question about what the document names (found by the
+	// documents run on dev seed 5100: declined, no view fitted closely enough).
+	if askDocFileRE.MatchString(normalised) && askAnyToken(tokens, "number", "account", "plate", "mobile", "iban", "imei", "sim", "area", "town", "place", "mention", "name", "appear", "written", "contain", "list", "identifier") {
+		for _, name := range []string{"v_document_values", "v_document_mentions"} {
+			if has(name) {
+				add(name, 6, "a document file is named")
+			}
+		}
+		if has("v_evidence_inventory") {
+			add("v_evidence_inventory", -3, "the inventory lists files, not what they name")
+		}
+	}
+	// Numbers of the call records that have no registration are the call records less the registrations, which only those two views hold (the view of registration activity lists numbers that
+	// HAVE a registration; found by the subscribers run on dev case 2).
+	if askUnregisteredRE.MatchString(normalised) && askAnyToken(tokens, "call", "event", "record") && has("v_comm_events") && has("v_subscriber_registrations") {
+		add("v_comm_events", 6, "numbers of the call records with no registration")
+		add("v_subscriber_registrations", 6, "numbers of the call records with no registration")
+		if has("v_number_registration_activity") {
+			add("v_number_registration_activity", -4, "the activity view lists numbers that have a registration")
 		}
 	}
 	if f.IMEIs > 0 && has("v_device_pairings") {

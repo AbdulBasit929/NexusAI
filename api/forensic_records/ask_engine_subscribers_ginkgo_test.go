@@ -193,4 +193,35 @@ var _ = Describe("Ask engine retrieval of registrations and phones", func() {
 		Expect(cat.Shortlist("Which handsets were made by Samsung?", 0).Views).To(ContainElement("v_handsets"))
 		Expect(cat.Shortlist("Which numbers used a phone manufactured by Nokia?", 0).Views).To(ContainElement("v_handsets"))
 	})
+
+	// Found by the subscriber run on development case 2 (2026-10-29): a comparison of valid_to with the last event, worked out by the query, lists numbers whose later registration is running.
+	It("asks for events_after_last_end when a question is about events after a registration ended", func() {
+		cat, err := askGoldenCatalogue()
+		Expect(err).NotTo(HaveOccurred())
+		check := func(question, sql string, views ...string) []string {
+			v, rej := askValidate(sql, cat, views)
+			Expect(rej).To(BeNil(), sql)
+			out := []string{}
+			for _, o := range askCheckFrame(askExtractFrame(question), v) {
+				out = append(out, o.Kind)
+			}
+			return out
+		}
+		q := "Which numbers were still in use after their registration ended?"
+		own := "SELECT DISTINCT a.msisdn FROM v_subscriber_registrations a JOIN v_number_registration_activity b ON a.msisdn = b.msisdn WHERE a.valid_to IS NOT NULL AND a.valid_to < b.last_event_utc LIMIT 200"
+		counted := "SELECT msisdn, events_after_last_end FROM v_number_registration_activity WHERE events_after_last_end > 0 ORDER BY events_after_last_end DESC LIMIT 200"
+		Expect(check(q, own, "v_subscriber_registrations", "v_number_registration_activity")).To(ContainElement("REGISTRATION_END"))
+		Expect(check(q, counted, "v_number_registration_activity")).NotTo(ContainElement("REGISTRATION_END"))
+		Expect(check("Which numbers have a registration that conflicts with another source?", "SELECT msisdn FROM v_number_registration_activity WHERE conflicts LIMIT 200", "v_number_registration_activity")).NotTo(ContainElement("REGISTRATION_END"))
+	})
+
+	// Found by the subscriber run on development case 2 (2026-10-29): the activity view lists numbers that HAVE a registration, so "no registration" was answered from it.
+	It("shortlists the call records and the registrations for the numbers that have no registration, and leaves the activity view out of them", func() {
+		cat, err := askGoldenCatalogue()
+		Expect(err).NotTo(HaveOccurred())
+		views := cat.Shortlist("Which numbers of the call records have no registration?", 0).Views
+		Expect(views).To(ContainElements("v_comm_events", "v_subscriber_registrations"))
+		Expect(views).NotTo(ContainElement("v_number_registration_activity"))
+		Expect(cat.Shortlist("Which numbers were still in use after their registration ended?", 0).Views).To(ContainElement("v_number_registration_activity"))
+	})
 })

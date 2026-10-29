@@ -23,7 +23,9 @@ var (
 	// letters (2 to 5), an optional separator, an optional one or two digit group (a series year), then three or four digits
 	askPlateRE  = regexp.MustCompile(`\b([A-Za-z]{2,5})[ \t-]?((?:\d{1,2}[ \t-]?)?\d{3,4})\b`)
 	askPlateCue = regexp.MustCompile(`(?i)\b(?:plates?|vehicles?|cars?|registrations?|reg|anpr|licen[cs]es?)(?:\s+number)?\s*(?:of|is|was|for|:)?\s*$`)
-	askYearLike = regexp.MustCompile(`^(?:19|20)\d{2}$`)
+	// a plate named after a verb of naming is a plate even in lower case: "list the documents that name synt 5008" (found by the documents run on dev seed 5100)
+	askPlateNameCue = regexp.MustCompile(`(?i)\b(?:names?|named|naming|mentions?|mentioned|contains?|containing|lists?|shows?|writes?|written|bears?|bearing|carr(?:y|ies)|reads?)\s+(?:the\s+|a\s+)?(?:plate\s+|vehicle\s+)?(?:number\s+)?$`)
+	askYearLike     = regexp.MustCompile(`^(?:19|20)\d{2}$`)
 	// a plate that looks like another (an O for a 0, an I for a 1): capitals only, and at least two real digits and one look-alike letter among the number's characters
 	askPlateLookalikeRE = regexp.MustCompile(`\b([A-Z]{3,5})[ \t-]?([0-9OI]{3,4})\b`)
 )
@@ -38,6 +40,7 @@ func init() {
 		"since", "from", "until", "before", "after", "during", "between", "about", "more", "than", "case", "call", "calls", "sms", "event", "events", "day", "days", "week", "weeks", "hour",
 		"hours", "min", "mins", "minutes", "km", "kmh", "limit", "year", "years", "month", "months", "within", "around", "near", "visit", "visits", "time", "times", "rows", "row",
 		"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december", "jan", "feb", "mar", "apr", "jun", "jul", "aug", "sep",
+		"page", "pages", "section", "para", "paragraph", "ward", "sector", "block", "street", "road", "house", "flat", "room", "line", "item", "ref", "reference",
 		"sept", "oct", "nov", "dec", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "mon", "tue", "tues", "wed", "thu", "thur", "thurs", "fri", "sat", "sun",
 	} {
 		askPlateStop[w] = true
@@ -120,7 +123,8 @@ func askFindPlatesBy(text string, hold func(string) string) (string, []string, m
 	for _, m := range askPlateRE.FindAllStringSubmatchIndex(text, -1) {
 		start, end := m[0], m[1]
 		letters, digits := text[m[2]:m[3]], text[m[4]:m[5]]
-		cue := askPlateCue.MatchString(text[max(0, start-40):start])
+		before := text[max(0, start-40):start]
+		cue := askPlateCue.MatchString(before) || askPlateNameCue.MatchString(before)
 		if askPlateStop[strings.ToLower(letters)] {
 			continue
 		}

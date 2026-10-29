@@ -199,6 +199,7 @@ var _ = Describe("Ask engine transactions", func() {
 		hint := askRoleHint(account, map[string]bool{"account": true}, []string{"v_bank_transactions.counterparty_account"})
 		Expect(hint).To(ContainSubstring("never the account of a statement"))
 		Expect(hint).To(ContainSubstring("counterparty_account"))
+		Expect(hint).To(ContainSubstring("a credit of that account"))
 		hint = askRoleHint(account, map[string]bool{"counterparty_account": true}, []string{"v_bank_transactions.account"})
 		Expect(hint).To(ContainSubstring("never the other side of a transaction"))
 		Expect(askRoleHint(account, map[string]bool{"account": true}, []string{"v_bank_transactions.account"})).To(Equal(""))
@@ -320,6 +321,31 @@ var _ = Describe("Ask engine transactions after the second measurement", func() 
 		Expect(askTimeOfDayGap(cover, total, []string{"v_bank_transactions"})).To(Equal(""))
 		Expect(askTimeOfDayGap(cover, minutes, []string{"v_account_activity"})).To(Equal(""))
 		Expect(askTimeOfDayGap(askCoverage{AnyTransaction: true}, minutes, []string{"v_account_flows"})).To(Equal(""))
+	})
+
+	// Found by the transactions run on development case 2 (2026-10-29).
+	It("takes a total credited for an amount and not for a count, and asks for the money when the query reads the number of transactions", func() {
+		credited := "SELECT sum(t.signed_amount) AS total_credited FROM v_bank_transactions t WHERE t.account = '" + account + "' AND t.direction = 'credit' AND t.txn_utc >= '2026-03-01' AND t.txn_utc < '2026-04-01'"
+		Expect(check("What is the total credited to "+account+" in March 2026?", credited, "v_bank_transactions")).NotTo(ContainElement("AGGREGATE"))
+		Expect(check("How many credits did "+account+" receive in March 2026?", credited, "v_bank_transactions")).To(ContainElement("AGGREGATE"))
+		const other = "PK00SYNT0000000000005006"
+		sent := "What total did " + account + " send to " + other + "?"
+		counted := "SELECT sum(transactions) AS total FROM v_account_counterparties WHERE account = '" + account + "' AND counterparty = '" + other + "' AND direction = 'debit'"
+		money := "SELECT sum(total_amount) AS total FROM v_account_counterparties WHERE account = '" + account + "' AND counterparty = '" + other + "' AND direction = 'debit'"
+		Expect(check(sent, counted, "v_account_counterparties")).To(ContainElement("MEASURE"))
+		Expect(check(sent, money, "v_account_counterparties")).NotTo(ContainElement("MEASURE"))
+		times := "SELECT transactions FROM v_account_counterparties WHERE account = '" + account + "' AND counterparty = '" + other + "' AND direction = 'debit'"
+		Expect(check("How many times did "+account+" pay "+other+"?", times, "v_account_counterparties")).NotTo(ContainElement("MEASURE"))
+		Expect(check("Which counterparty did "+account+" pay most often?", "SELECT counterparty, transactions FROM v_account_counterparties WHERE account = '"+account+"' AND direction = 'debit' ORDER BY transactions DESC LIMIT 1", "v_account_counterparties")).NotTo(ContainElement("MEASURE"))
+	})
+
+	It("does not call an empty result a list: the probe and the role hint answer a question about a count that found no row", func() {
+		v, rej := askValidate("SELECT transactions FROM v_account_counterparties WHERE account = '"+account+"' AND counterparty = 'PK00SYNT0000000000005006' AND direction = 'debit'", cat, []string{"v_account_counterparties"})
+		Expect(rej).To(BeNil())
+		f := askExtractFrame("How many times did " + account + " pay PK00SYNT0000000000005006?")
+		Expect(askCheckResult(f, v, []string{"transactions"}, 0)).To(BeNil())
+		Expect(askCheckResult(f, v, []string{"transactions"}, 3)).NotTo(BeNil())
+		Expect(askCheckResult(f, v, []string{"transactions"}, 1)).To(BeNil())
 	})
 
 	It("gives every transaction view the caveat that a pattern is not a finding, and the transaction views the amounts-as-stated line", func() {

@@ -238,7 +238,10 @@ func govSQLMapError(err error) error {
 			return &govSQLRunError{Code: "TIMEOUT", Message: "the query took too long; filter or aggregate earlier"}
 		case "25006":
 			return &govSQLRunError{Code: "READ_ONLY", Message: "this query tried to change data, which is not allowed"}
-		case "42703", "42883", "42804", "42725", "22P02", "22007", "22008", "22012", "22003", "42601", "42803", "42P20", "42702", "22023", "2201X":
+		case "42P10":
+			// SELECT DISTINCT with an ORDER BY on a column it does not list: say how to mend it, the bare message was repeated by the model (development case 2, SUB-009)
+			return &govSQLRunError{Code: "QUERY_ERROR", Message: govSQLClip(pgErr.Message, 120) + ": select that column as well, or remove the ORDER BY"}
+		case "42703", "42883", "42804", "42725", "22P02", "22007", "22008", "22012", "22003", "42601", "42803", "42P20", "42702", "22023", "2201X", "42P18":
 			return &govSQLRunError{Code: "QUERY_ERROR", Message: govSQLClip(pgErr.Message, 200)}
 		}
 		return &govSQLRunError{Code: "DATABASE", Message: "the database could not run this query", Detail: detail}

@@ -632,7 +632,7 @@ func askRoleHint(id string, compared map[string]bool, hits []string) string {
 	}
 	switch {
 	case compared["account"] && !hitColumns["account"] && (hitColumns["counterparty_account"] || hitColumns["counterparty"] || hitColumns["received_from"] || hitColumns["sent_to"]):
-		return fmt.Sprintf("Nothing matched. %s is never the account of a statement in this case: it occurs only as the other side of a transaction. account is the account a statement belongs to and counterparty_account (counterparty in v_account_counterparties) is the other side, so look for %s there.", id, id)
+		return fmt.Sprintf("Nothing matched. %s is never the account of a statement in this case: it occurs only as the other side of a transaction. account is the account a statement belongs to and counterparty_account (counterparty in v_account_counterparties) is the other side, so look for %s there. When %s paid the account of a statement, that is a credit of that account (direction = 'credit'); when the account of a statement paid %s, that is a debit.", id, id, id, id)
 	case compared["counterparty_account"] && !hitColumns["counterparty_account"] && hitColumns["account"]:
 		return fmt.Sprintf("Nothing matched. %s is the account of a statement in this case and never the other side of a transaction. Put %s in account.", id, id)
 	case compared["src"] && !hitColumns["src"] && hitColumns["dst"]:
