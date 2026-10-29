@@ -194,6 +194,27 @@ var _ = Describe("Ask engine retrieval of registrations and phones", func() {
 		Expect(cat.Shortlist("Which numbers used a phone manufactured by Nokia?", 0).Views).To(ContainElement("v_handsets"))
 	})
 
+	// Found by the subscriber run on case 124 (2026-10-29): "which numbers used a SYNTH handset" answered with a count.
+	It("asks for the rows when a question asks which ones, and leaves a count to a question that asks how many", func() {
+		cat, err := askGoldenCatalogue()
+		Expect(err).NotTo(HaveOccurred())
+		kinds := func(question, sql string, views ...string) []string {
+			v, rej := askValidate(sql, cat, views)
+			Expect(rej).To(BeNil(), sql)
+			out := []string{}
+			for _, o := range askCheckFrame(askExtractFrame(question), v) {
+				out = append(out, o.Kind)
+			}
+			return out
+		}
+		counted := "SELECT count(DISTINCT src) AS n FROM v_handsets WHERE make = 'SYNTH'"
+		listed := "SELECT DISTINCT src FROM v_handsets WHERE make = 'SYNTH' ORDER BY src"
+		Expect(kinds("Which numbers used a SYNTH handset?", counted, "v_handsets")).To(ContainElement("LIST"))
+		Expect(kinds("Which numbers used a SYNTH handset?", listed, "v_handsets")).NotTo(ContainElement("LIST"))
+		Expect(kinds("How many numbers used a SYNTH handset?", counted, "v_handsets")).NotTo(ContainElement("LIST"))
+		Expect(kinds("Which numbers used more than two handsets?", "SELECT src FROM v_handsets GROUP BY src HAVING count(DISTINCT imei) > 2", "v_handsets")).NotTo(ContainElement("LIST"))
+	})
+
 	// Found by the subscriber run on case 122 (2026-10-29): imei = 'SYNTH' for "numbers seen with a SYNTH phone", and "no row matches".
 	It("finds the handsets for a make written before the word phone, and refuses a name compared with an IMEI", func() {
 		cat, err := askGoldenCatalogue()

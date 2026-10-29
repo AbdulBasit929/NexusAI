@@ -88,6 +88,7 @@ func askKindOfValue(value string) string {
 }
 
 var (
+	askWhichOnesRE    = regexp.MustCompile(`^\s*(?:which|list|name|show)\b`)
 	askParamColumnRE  = regexp.MustCompile(`\b(?:limit_amount|share_percent)\s*(?:=|<>|!=|<=|>=|<|>)\s*-?\d`)
 	askImeiLetterRE   = regexp.MustCompile(`\bimei\s*(?:=|<>|!=)\s*'[^']*[a-z][^']*'`)
 	askWithoutCueRE   = regexp.MustCompile(`\b(?:without|but not|except|excluding|other than)\b|\b(?:do|does|did) not (?:name|mention|appear)\b`)
@@ -656,6 +657,11 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	// is still running (found by the subscribers run on development case 2: 5 numbers where 3 were right, once the database error that had hidden the query was made repairable).
 	if askUsesView(v, "v_number_registration_activity") && askAfterRegistrationEndRE.MatchString(strings.ToLower(f.Question)) && !askUsesColumn(v, "events_after_last_end", "events_outside_registration") {
 		add("REGISTRATION_END", "How many events a number had at or after the end of its last registration is the column events_after_last_end of v_number_registration_activity: select the numbers WHERE events_after_last_end > 0. Do not compare valid_to with a time yourself.", "the question asks about events after a registration ended and the query works the comparison out itself")
+	}
+	// "Which numbers ..." and "list the ..." ask for the things themselves. A query that only counts them answers a different question (found by the subscribers run on case 124: "which numbers used
+	// a SYNTH handset" was answered "N: 12" and the twelve numbers were not named). A grouped count (which number has the most, which have more than five) is not concerned.
+	if askWhichOnesRE.MatchString(strings.ToLower(f.Question)) && !f.Cues["count"] && !f.Cues["rank"] && askSQLMentions(sql, "count(") && !askSQLMentions(sql, "group by", "having", " over (") {
+		add("LIST", "The question asks WHICH ones, not how many: return the rows themselves (SELECT DISTINCT the column that names them), not a count of them.", "the question asks which ones and the query only counts them")
 	}
 	// The limit and the share of the limit-band view are set by the application from the question (runtime parameters) and the view repeats them in its columns; a filter on them compares the
 	// parameter with a number of the model's own (found by the transactions run on case 123: share_percent = 5.0 for "within 5% of the limit", which the application had set to 95; the answer was
