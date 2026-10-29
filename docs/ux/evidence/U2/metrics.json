@@ -1,6 +1,6 @@
 {
   "stage": "U2 shell and navigation",
-  "date": "2026-10-28",
+  "date": "2026-10-29",
   "direction": "B - Case atlas",
   "environment": {
     "url": "http://localhost:4182",
@@ -8,8 +8,8 @@
     "data": "existing application state; synthetic values limited to the design gallery"
   },
   "geometry": {
-    "desktop": { "viewport": [1440, 900], "headerPx": 56, "caseBandPx": 48, "expandedRailPx": 264, "collapsedRailPx": 56 },
-    "tablet": { "viewport": [1023, 768], "headerPx": 56, "caseBandPx": 48, "railPx": 56 },
+    "desktop": { "viewports": [[1440, 900], [1280, 900]], "headerPx": 56, "caseBandPx": 48, "expandedRailPx": 256, "collapsedRailPx": 64 },
+    "tablet": { "viewport": [1023, 900], "headerPx": 56, "caseBandPx": 48, "railPx": 64 },
     "phone": { "viewport": [390, 844], "headerPx": 56, "caseBandPx": 48, "rail": "modal drawer" },
     "primaryTouchTargetPx": 44
   },
@@ -28,6 +28,8 @@
     "/cases/:id/data"
   ],
   "interactionChecks": {
+    "navbarHierarchy": { "globalLinks": 4, "inlineCaseLists": 0, "currentCaseRailGroups": 0, "caseBandReadiness": 0, "navigationBadges": 0, "singleCaseSwitchActions": 0 },
+    "responsiveThemeMatrix": { "passed": 12, "total": 12, "widths": [1440, 1280, 1023, 390], "themes": ["light", "dark", "high-contrast"], "pageOverflowFailures": 0, "caseNameFitFailures": 0 },
     "railExpandedAndCollapsed": "pass",
     "mobileDrawerAndFocusReturn": "pass",
     "mobileCaseSectionSelect": "pass",
@@ -36,16 +38,21 @@
     "appearanceThemes": ["system", "light", "dark", "high-contrast"],
     "density": ["default", "comfortable", "compact"],
     "answerDetail": ["standard", "detailed", "concise"],
-    "motion": ["system", "reduce"],
+    "motion": ["system", "reduce (0s shell navigation transitions)"],
     "commandGroups": ["Go to", "Do", "Ask"],
     "commandKeyboard": ["typing", "ArrowDown", "ArrowUp", "Enter", "Escape"],
     "globalShortcuts": ["/", "?", "g then destination", "Alt+S", "Ctrl/Cmd+K"],
     "offline": "pass",
     "notFound": "pass",
-    "capabilityDenied": "unit-covered"
+    "capabilityDenied": "unit-covered",
+    "collapsedTooltipKeyboard": "pass",
+    "caseSectionArrowNavigation": "pass",
+    "mobileDrawerEscapeFocusReturn": "pass",
+    "browserWarningsOrErrors": 0,
+    "screenshotsExported": 0
   },
   "automated": {
-    "focusedU2": { "passed": 44, "total": 44 },
+    "focusedU2": { "passed": 49, "total": 49, "runs": [42, 7] },
     "foundationAndContentionReruns": { "passed": 15, "total": 15 },
     "portedPresentation": { "passed": 46, "total": 46 },
     "repositoryAccounted": { "passed": 547, "total": 562, "knownMissingFixtureFailures": 15 },

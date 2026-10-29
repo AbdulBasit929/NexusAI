@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { configuredCaseIds, getCaseOverview } from './apiClient.js'
 import { summariseCase } from './useCaseOverview.js'
 
-// Live sidebar badges come from the same collection-status responses the
-// Dashboard reads. One shared, briefly cached fetch keeps every route from
-// re-requesting every case just to draw a badge.
+// The truthful Activity disclosure reads the same collection-status responses
+// as the Dashboard. One shared, briefly cached fetch keeps every route from
+// re-requesting every case only to report active processing.
 const TTL_MS = 30_000
 const cache = new Map()
 
@@ -27,23 +27,6 @@ export function countAttention(summaries) {
     needReview: known.filter(item => item.processingState === 'attention').length,
     processing: known.filter(item => item.processingState === 'processing').length,
   }
-}
-
-const WEIGHT = { attention: 0, processing: 1, 'not-processed': 2, complete: 3, loading: 4, unreported: 5 }
-
-// Every configured case is listed from the first paint. Until its status arrives it is "loading"; if the
-// status call failed it is "unreported". Neither is ever shown as healthy.
-export function withPending(caseIds, loaded, settled) {
-  return caseIds.map(caseId => loaded.find(entry => entry.caseId === caseId) || { caseId, summary: null, pending: !settled })
-}
-
-// The sidebar's case list: the active case first for context, then cases that need the analyst, then the
-// rest in configured order.
-export function sidebarCases(entries, activeCaseId, limit = 6) {
-  return entries
-    .map((entry, index) => ({ caseId: entry.caseId, state: entry.summary?.processingState || (entry.pending ? 'loading' : 'unreported'), index }))
-    .sort((left, right) => (right.caseId === activeCaseId) - (left.caseId === activeCaseId) || WEIGHT[left.state] - WEIGHT[right.state] || left.index - right.index)
-    .slice(0, limit)
 }
 
 export function useWorkspaceAttention() {

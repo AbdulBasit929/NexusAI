@@ -2,8 +2,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { AppShell, railBadges } from './CaseShell.jsx'
-import { resetAttentionCache, sidebarCases } from '../lib/workspaceAttention.js'
+import { AppShell } from './CaseShell.jsx'
+import { resetAttentionCache } from '../lib/workspaceAttention.js'
 import { clearWorkspaceStateForTests } from '../lib/workspaceState.js'
 
 function open(caseIds, status) {
@@ -73,24 +73,35 @@ describe('case context bar', () => {
     expect(bar.querySelector('[aria-current="page"]').getAttribute('href')).toBe('/cases/case-a/evidence')
   })
 
-  it('shows one case breadcrumb and a distinct case navigation landmark', () => {
+  it('keeps case destinations in the section band without duplicating the case identity', () => {
     openCase('/cases/case-a/timeline', failing)
-    const crumbs = screen.getByRole('navigation', { name: 'Breadcrumb' })
-    expect([...crumbs.querySelectorAll('li')].map(item => item.textContent)).toEqual(['Cases', 'case-a'])
-    const caseNavigation = screen.getByRole('navigation', { name: 'Case' })
-    for (const section of ['evidence', 'investigate', 'timeline', 'activity']) expect(caseNavigation.querySelector('a[href="/cases/case-a/' + section + '"]')).toBeTruthy()
+    const context = screen.getByRole('region', { name: 'Case context' })
+    expect(within(context).queryByText('case-a')).toBeNull()
+    expect(screen.queryByRole('navigation', { name: 'Case' })).toBeNull()
   })
 
-  it('adds the failed-source count to Evidence only after the status has loaded', async () => {
+  it('does not turn case status into navigation badges', async () => {
     openCase('/cases/case-a/overview', failing)
     const sections = screen.getByRole('navigation', { name: 'Case sections' })
     expect(within(sections).getByRole('link', { name: 'Evidence' })).toBeTruthy()
-    expect(await within(sections).findByRole('link', { name: 'Evidence, 1 failed source' })).toBeTruthy()
+    await waitFor(() => expect(globalThis.fetch).toHaveBeenCalled())
+    expect(within(sections).queryByText('1')).toBeNull()
   })
 
   it('offers case switching only when more than one case exists', () => {
     openCase('/cases/case-a/overview', failing)
-    expect(screen.getByRole('button', { name: /Switch case/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Current case case-a' })).toBeTruthy()
+  })
+
+  it('keeps a single long case identifier complete without a useless switch action', () => {
+    const longCaseId = 'operation-northbridge-cross-border-financial-network-2026'
+    window.__INVESTIGATION_WORKSPACE_CONFIG__ = { caseIds: [longCaseId] }
+    globalThis.fetch = vi.fn(async () => ({ ok: true, status: 200, json: async () => failing, text: async () => JSON.stringify(failing) }))
+    render(<MemoryRouter initialEntries={[`/cases/${longCaseId}/overview`]}><AppShell caseId={longCaseId}><main>Page</main></AppShell></MemoryRouter>)
+    const scope = screen.getByText(longCaseId).closest('.workspace-header__scope')
+    expect(scope.textContent).toContain(longCaseId)
+    expect(within(scope).queryByRole('button')).toBeNull()
+    expect(screen.getByRole('region', { name: 'Case context' }).textContent).not.toContain(longCaseId)
   })
 
   it('keeps page destinations in the case section navigation instead of duplicating quick actions', () => {
@@ -100,9 +111,11 @@ describe('case context bar', () => {
     expect(within(contextBand).getByRole('link', { name: /^Evidence/ }).getAttribute('href')).toBe('/cases/case-a/evidence')
   })
 
-  it('keeps the compact case band focused on readiness instead of duplicating page metrics', async () => {
+  it('keeps readiness and page metrics out of the compact case band', async () => {
     openCase('/cases/case-a/overview', { summary: { evidence_total: 12, evidence_completed: 12, accepted_rows: 12912 } })
-    expect(await screen.findByText('Evidence ready')).toBeTruthy()
+    await waitFor(() => expect(globalThis.fetch).toHaveBeenCalled())
+    const context = screen.getByRole('region', { name: 'Case context' })
+    expect(within(context).queryByText('Evidence ready')).toBeNull()
     expect(screen.queryByTitle('Total ingested forensic records')).toBeNull()
   })
 
@@ -154,34 +167,14 @@ describe('sidebar sections', () => {
 
   afterEach(() => { cleanup(); localStorage.clear(); clearWorkspaceStateForTests() })
 
-  it('orders the active case first, then cases that need review, and caps the list', () => {
-    const entries = ['a', 'b', 'c', 'd'].map((caseId, index) => ({ caseId, summary: { processingState: ['complete', 'attention', 'complete', null][index] } }))
-    entries[3].summary = null
-    expect(sidebarCases(entries, 'c', 3).map(item => `${item.caseId}:${item.state}`)).toEqual(['c:complete', 'b:attention', 'a:complete'])
-    expect(sidebarCases(entries, '', 4).at(-1)).toMatchObject({ caseId: 'd', state: 'unreported' })
-  })
-
-  it('folds every case under one Cases category with its count, a new-case action and text status', async () => {
+  it('keeps Cases as one quiet destination without an inline list, count or action', async () => {
     openRail('/cases/case-a/overview', ['case-a', 'case-b'], id => (id === 'case-a' ? ok : bad))
     const workspace = screen.getByRole('navigation', { name: 'Workspace' })
-    expect(within(workspace).getAllByRole('link', { name: /^Cases/ })).toHaveLength(1)
-    expect(within(workspace).getByLabelText('2 cases')).toBeTruthy()
-    expect(within(workspace).getByRole('link', { name: 'New case' }).getAttribute('href')).toBe('/cases/new')
-    const list = within(workspace).getByRole('list', { name: 'Cases' })
-    await waitFor(() => expect(list.textContent).toContain('Needs review'))
-    expect(list.textContent).toContain('1 failed source')
-    expect(list.querySelector('[aria-current="true"]').getAttribute('href')).toBe('/cases/case-a/overview')
-    expect(list.querySelector('a[href="/cases/case-b/overview"]')).toBeTruthy()
-  })
-
-  it('folds and unfolds the case list and remembers the choice', async () => {
-    openRail('/', ['case-a'], () => ok)
-    const user = userEvent.setup()
-    await user.click(screen.getByRole('button', { name: 'Hide cases' }))
-    expect(screen.queryByRole('list', { name: 'Cases' })).toBeNull()
-    expect(localStorage.getItem('nexusai.viewer.rail-cases-open')).toBe('false')
-    await user.click(screen.getByRole('button', { name: 'Show cases' }))
-    expect(screen.getByRole('list', { name: 'Cases' })).toBeTruthy()
+    expect(within(workspace).getAllByRole('link', { name: 'Cases' })).toHaveLength(1)
+    expect(within(workspace).getByRole('link', { name: 'Cases' }).getAttribute('href')).toBe('/cases')
+    expect(within(workspace).queryByRole('list', { name: 'Cases' })).toBeNull()
+    expect(within(workspace).queryByRole('link', { name: 'New case' })).toBeNull()
+    expect(within(workspace).queryByText('Current case')).toBeNull()
   })
 
   it('keeps question history out of the sidebar and the drawer', () => {
@@ -199,18 +192,6 @@ describe('sidebar sections', () => {
     expect(toggle.getAttribute('aria-expanded')).toBe('true')
     await user.click(toggle)
     expect(screen.getByRole('button', { name: 'Expand navigation' }).getAttribute('aria-expanded')).toBe('false')
-    expect(screen.queryByRole('list', { name: 'Cases' })).toBeNull()
     expect(screen.getByRole('link', { name: 'Cases' })).toBeTruthy()
-  })
-})
-
-describe('sidebar badges', () => {
-  it('names the count in the accessible label and stays absent at zero', () => {
-    expect(railBadges({ needReview: 2, processing: 0 }, '', null)).toEqual({ '/': { count: 2, tone: 'attention', label: '2 cases need review' } })
-    expect(railBadges({ needReview: 0, processing: 1 }, 'a', { data: { summary: { evidence_failed: 3 } } })).toEqual({
-      '/cases': { count: 1, tone: 'processing', label: '1 case is processing' },
-      '/cases/a/evidence': { count: 3, tone: 'attention', label: '3 failed sources' },
-    })
-    expect(railBadges({ needReview: 0, processing: 0 }, '', null)).toEqual({})
   })
 })

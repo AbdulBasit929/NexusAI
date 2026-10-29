@@ -519,6 +519,8 @@ Read from the documents, the code and the owner's two statements (2026-10-20: "i
 
 Replaces the three lists. Each stage follows the loop in 7.2. Estimates are for the stage's own work; the backend batches land in P1.
 
+**Owner sequencing amendment, 2026-10-29:** U2's Case atlas is accepted as the base subject to an owner-reviewed navbar polish gate. The new interface remains isolated on `:4182`; `:4181` and `lane-arms` are not changed or merged. After that review the active order is U5, U3, U4, U6. U5 is reviewed section by section in this order: header/hero, KPI tiles, attention, readiness, activity chart, structured rows, continue cards. Each section begins with a research/options/decision note, is checked at four widths in light/dark/high contrast, contains only honest state, and every tile opens its rows. `/design/foundations` and `/design/workbench` remain live on `:4182`. O-8 is a hard gate before any screenshot leaves the machine.
+
 | Stage | Scope | Depends on | Gate (acceptance by you on `:4181`) | Weeks |
 |---|---|---|---|---|
 | **U0** | **Direction proof**: research note; two directions A and B of three screens (the workbench, an Ask answer, the Case Overview); type, density, brand | D23 inputs | You choose a direction; the contract amendment list (if any) is written | 1 |

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { countAttention } from './workspaceAttention.js'
 
-describe('sidebar attention counts', () => {
+describe('workspace attention counts', () => {
   it('counts only cases whose status was actually reported', () => {
     expect(countAttention([
       { processingState: 'attention' },
