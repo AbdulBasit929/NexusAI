@@ -74,6 +74,12 @@ CASES = [
     ("judgement", 120, {"events_per_person_per_day": 3.5, "period_days": 110, "subjects": 12}),
     # added 2026-10-29 (set_version 4), before the third measurement of the subscriber family (cases 117 and 118 both fell short of the gate, causes fixed in the engine): one fresh case.
     ("judgement", 121, {"subjects": 13, "people": 120, "period_days": 85, "associates": 26}),
+    # added 2026-10-29 (set_version 5), before the third measurement of the subscriber and transaction families (the second fresh runs on 120 and 121 fell short of the gate, causes fixed in the engine
+    # and checked on development cases): one fresh case for each (122 subscribers, 123 transactions) and one more for each, to be used only if the first falls short and its cause is fixed (124, 125).
+    ("judgement", 122, {"subjects": 14, "people": 130, "period_days": 90, "associates": 28}),
+    ("judgement", 123, {"events_per_person_per_day": 3.0, "period_days": 95, "subjects": 11}),
+    ("judgement", 124, {"subjects": 12, "people": 110, "period_days": 80, "associates": 24}),
+    ("judgement", 125, {"period_days": 100, "subjects": 13, "associates": 26}),
     ("sealed", 901, {}),
     ("sealed", 902, {"period_days": 70}),
     ("sealed", 903, {"subjects": 14, "associates": 28, "events_per_person_per_day": 4.5}),

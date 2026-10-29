@@ -952,6 +952,141 @@
   },
   {
    "audit_problems": 0,
+   "bytes": 10636359,
+   "files": 40,
+   "generator_version": "0.6",
+   "id": "judgement-122",
+   "key_sha256": "f65fdf433913e99ea5273e1a703b8266ce5e1e0ee4d26e341572de1e4d31cd9e",
+   "kind": "judgement",
+   "manifest_sha256": "c74bc0931e50d8c44fdd9fbdef214f2791a14cd1ade57d49c7610e6d748e66bb",
+   "overrides": {
+    "associates": 28,
+    "people": 130,
+    "period_days": 90,
+    "subjects": 14
+   },
+   "plants": {
+    "address_translation": 3,
+    "colocation": 2,
+    "common_contacts": 5,
+    "device_change": 3,
+    "dual_sim": 1,
+    "impossible_speed": 2,
+    "late_without_predecessor": 1,
+    "outlier_day": 1,
+    "possible_meeting": 2,
+    "rate_change": 1,
+    "relocation": 1,
+    "short_trip": 1,
+    "silent_without_successor": 1,
+    "slow_decoy": 1,
+    "successor": 2
+   },
+   "seed": 122,
+   "spec_version": "0.6"
+  },
+  {
+   "audit_problems": 0,
+   "bytes": 7709636,
+   "files": 34,
+   "generator_version": "0.6",
+   "id": "judgement-123",
+   "key_sha256": "542337a0e0ba1242920a7631cbefa3976e4fc2cf356a26a9056b7fe3652bf647",
+   "kind": "judgement",
+   "manifest_sha256": "74c687e78b8f8e085752a8864a9e336b659599938f65174efc715c2faf58680d",
+   "overrides": {
+    "events_per_person_per_day": 3.0,
+    "period_days": 95,
+    "subjects": 11
+   },
+   "plants": {
+    "address_translation": 3,
+    "colocation": 2,
+    "common_contacts": 5,
+    "device_change": 2,
+    "dual_sim": 1,
+    "impossible_speed": 2,
+    "late_without_predecessor": 1,
+    "possible_meeting": 2,
+    "relocation": 1,
+    "silent_without_successor": 1,
+    "slow_decoy": 1,
+    "successor": 2
+   },
+   "seed": 123,
+   "spec_version": "0.6"
+  },
+  {
+   "audit_problems": 0,
+   "bytes": 7616593,
+   "files": 36,
+   "generator_version": "0.6",
+   "id": "judgement-124",
+   "key_sha256": "cfa83e0c7802c26ff450d82ebf3236c772b3fa30a2ea412c68344c521c00789f",
+   "kind": "judgement",
+   "manifest_sha256": "bfc47afd112d788a3e9cbf693a83b480711edd607b6ff820297b55378f6da4c1",
+   "overrides": {
+    "associates": 24,
+    "people": 110,
+    "period_days": 80,
+    "subjects": 12
+   },
+   "plants": {
+    "address_translation": 3,
+    "colocation": 2,
+    "common_contacts": 5,
+    "device_change": 3,
+    "dual_sim": 1,
+    "impossible_speed": 2,
+    "late_without_predecessor": 1,
+    "outlier_day": 1,
+    "possible_meeting": 2,
+    "rate_change": 1,
+    "relocation": 1,
+    "short_trip": 1,
+    "silent_without_successor": 1,
+    "slow_decoy": 1,
+    "successor": 2
+   },
+   "seed": 124,
+   "spec_version": "0.6"
+  },
+  {
+   "audit_problems": 0,
+   "bytes": 10836988,
+   "files": 38,
+   "generator_version": "0.6",
+   "id": "judgement-125",
+   "key_sha256": "ab6382815e3eac7ffe3d8aaf288533f230de4eda5327f6f06a332138d931af39",
+   "kind": "judgement",
+   "manifest_sha256": "d7b0681c9d8be3c472f5afecb20659f4b976a162e5032b92c27ea51d18340843",
+   "overrides": {
+    "associates": 26,
+    "period_days": 100,
+    "subjects": 13
+   },
+   "plants": {
+    "address_translation": 3,
+    "colocation": 2,
+    "common_contacts": 5,
+    "device_change": 3,
+    "dual_sim": 1,
+    "impossible_speed": 2,
+    "late_without_predecessor": 1,
+    "outlier_day": 1,
+    "possible_meeting": 2,
+    "rate_change": 1,
+    "relocation": 1,
+    "short_trip": 1,
+    "silent_without_successor": 1,
+    "slow_decoy": 1,
+    "successor": 2
+   },
+   "seed": 125,
+   "spec_version": "0.6"
+  },
+  {
+   "audit_problems": 0,
    "bytes": 8913794,
    "files": 36,
    "generator_version": "0.6",
@@ -1086,9 +1221,10 @@
  "history": [
   "set_version 1 (2026-10-13): 20 cases; set_version 2 (2026-10-22): judgement 109 to 112 added before the first stage-3 measurement, the 20 earlier entries unchanged",
   "set_version 3 (2026-10-26): judgement 113 to 120 added before any measurement of the wording of absences and scores and of the ANPR family (the reserve of 105 to 112 is spent), the 24 earlier entries unchanged",
-  "set_version 4 (2026-10-29): judgement 121, a fresh case for the third measurement of the subscriber family, added before the run"
+  "set_version 4 (2026-10-29): judgement 121, a fresh case for the third measurement of the subscriber family, added before the run",
+  "set_version 5 (2026-10-29): 2026-10-29: judgement 122 to 125 added (set_version 5) before the third measurement of the subscriber and transaction families; 122 and 123 are the fresh cases, 124 and 125 are used only after a failure and a fix"
  ],
  "policy": "development 1-99 free; judgement 100-199 registered before the code they judge is measured; sealed 900+ registered once, not opened or scored until a gate",
- "set_version": 4,
+ "set_version": 5,
  "spec_version": "0.6"
 }
