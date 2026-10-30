@@ -83,6 +83,35 @@ func askFamilyViews(v *askValidated) []string {
 	return nil
 }
 
+// askViewsOutside are the views the query reads that are not among the given ones.
+func askViewsOutside(v *askValidated, views []string) []string {
+	var out []string
+	for _, name := range v.Views {
+		inside := false
+		for _, view := range views {
+			inside = inside || name == view
+		}
+		if !inside {
+			out = append(out, name)
+		}
+	}
+	return out
+}
+
+// askHitViews are the views of the probe hits ("view.column"), once each, in order.
+func askHitViews(hits []string) []string {
+	var out []string
+	seen := map[string]bool{}
+	for _, hit := range hits {
+		view, _, _ := strings.Cut(hit, ".")
+		if !seen[view] {
+			seen[view] = true
+			out = append(out, view)
+		}
+	}
+	return out
+}
+
 // askHitsIn keeps the probe hits ("view.column") that belong to the given views.
 func askHitsIn(hits, views []string) []string {
 	var out []string

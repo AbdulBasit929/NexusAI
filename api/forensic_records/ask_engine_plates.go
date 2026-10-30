@@ -25,7 +25,10 @@ var (
 	askPlateCue = regexp.MustCompile(`(?i)\b(?:plates?|vehicles?|cars?|registrations?|reg|anpr|licen[cs]es?)(?:\s+number)?\s*(?:of|is|was|for|:)?\s*$`)
 	// a plate named after a verb of naming is a plate even in lower case: "list the documents that name synt 5008" (found by the documents run on dev seed 5100)
 	askPlateNameCue = regexp.MustCompile(`(?i)\b(?:names?|named|naming|mentions?|mentioned|contains?|containing|lists?|shows?|writes?|written|bears?|bearing|carr(?:y|ies)|reads?|without|except|excluding|also|not|than)\s+(?:the\s+|a\s+)?(?:plate\s+|vehicle\s+)?(?:number\s+)?$`)
-	askYearLike     = regexp.MustCompile(`^(?:19|20)\d{2}$`)
+	// a second plate of a question that names things is a plate in lower case too: "documents that mention both PK00 ... and synt 4024" (found by the live smoke of 2026-10-30, DOC-013)
+	askPlateAndCue = regexp.MustCompile(`(?i)\b(?:and|or|nor|both|either)\s+(?:the\s+|a\s+)?(?:plate\s+|vehicle\s+)?$`)
+	askPlateNaming = regexp.MustCompile(`(?i)\b(?:names?|named|naming|mentions?|mentioned|contains?|containing|writes?|written|bears?|bearing)\b`)
+	askYearLike    = regexp.MustCompile(`^(?:19|20)\d{2}$`)
 	// a plate that looks like another (an O for a 0, an I for a 1): capitals only, and at least two real digits and one look-alike letter among the number's characters
 	askPlateLookalikeRE = regexp.MustCompile(`\b([A-Z]{3,5})[ \t-]?([0-9OI]{3,4})\b`)
 )
@@ -124,7 +127,7 @@ func askFindPlatesBy(text string, hold func(string) string) (string, []string, m
 		start, end := m[0], m[1]
 		letters, digits := text[m[2]:m[3]], text[m[4]:m[5]]
 		before := text[max(0, start-40):start]
-		cue := askPlateCue.MatchString(before) || askPlateNameCue.MatchString(before)
+		cue := askPlateCue.MatchString(before) || askPlateNameCue.MatchString(before) || (askPlateAndCue.MatchString(before) && askPlateNaming.MatchString(text[:start]))
 		if askPlateStop[strings.ToLower(letters)] {
 			continue
 		}

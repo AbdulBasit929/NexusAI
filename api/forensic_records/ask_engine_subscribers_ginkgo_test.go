@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"strings"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -104,6 +106,62 @@ var _ = Describe("Ask engine registrations and handsets", func() {
 		Expect(rej).To(BeNil())
 		Expect(askFamilyViews(calls)).To(BeNil())
 		Expect(askHitsIn([]string{"nodot"}, []string{"v_handsets"})).To(BeEmpty())
+	})
+
+	// Found by the live smoke of 2026-10-30 (SUB-002): the registrations joined to the device pairings on a nonsense key found nothing, and the engine said that no registration of the SIM identity
+	// was found although the registrations hold it.
+	It("does not read an empty result as the absence of a registration when the query also reads a view the question does not ask about", func() {
+		cat, err := askGoldenCatalogue()
+		Expect(err).NotTo(HaveOccurred())
+		saved := askProbeFn
+		DeferCleanup(func() { askProbeFn = saved })
+		askProbeFn = func(context.Context, *pgxpool.Pool, string, string, *askCatalogue, string, askLimits) ([]string, error) {
+			return []string{"v_subscriber_registrations.imsi", "v_comm_events.src"}, nil
+		}
+		f := askExtractFrame("What numbers does IMSI 001010000001097 appear with in the registrations?")
+		Expect(f.Identifiers()).NotTo(BeEmpty())
+		joined, rej := askValidate("SELECT DISTINCT v_subscriber_registrations.msisdn FROM v_subscriber_registrations JOIN v_device_pairings ON v_subscriber_registrations.msisdn = v_device_pairings.src WHERE v_subscriber_registrations.imsi = '001010000001097' AND v_device_pairings.imei IN ('001010000001097') LIMIT 200", cat, []string{"v_device_pairings", "v_subscriber_registrations"})
+		Expect(rej).To(BeNil())
+		verdict, err := askReadEmpty(context.Background(), nil, hybridQueryRequest{}, cat, f, joined, askLimits{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(verdict.elsewhere).To(Equal("v_subscriber_registrations.imsi"))
+		Expect(verdict.hint).To(ContainSubstring("v_device_pairings"))
+		Expect(verdict.hint).To(ContainSubstring("v_subscriber_registrations alone"))
+		Expect(verdict.reason).To(ContainSubstring("joined views the question does not ask about"))
+		Expect(verdict.absence).To(BeEmpty())
+		// the registrations alone, narrowed by a condition the question did not state, are not concerned: that empty result is the query's own
+		alone, rej := askValidate("SELECT msisdn FROM v_subscriber_registrations WHERE imsi = '001010000001097' AND status = 'deactivated' LIMIT 200", cat, []string{"v_subscriber_registrations"})
+		Expect(rej).To(BeNil())
+		verdict, err = askReadEmpty(context.Background(), nil, hybridQueryRequest{}, cat, f, alone, askLimits{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(verdict.elsewhere).To(BeEmpty())
+		Expect(verdict.absence).To(BeEmpty())
+		Expect(askViewsOutside(joined, askFamilyViews(joined))).To(Equal([]string{"v_device_pairings"}))
+		Expect(askHitViews([]string{"v_subscriber_registrations.imsi", "v_subscriber_registrations.msisdn", "v_comm_events.src"})).To(Equal([]string{"v_subscriber_registrations", "v_comm_events"}))
+	})
+
+	// Found by the live smoke of 2026-10-30 (SUB-008): a count of the deactivated registrations answered "how many numbers were still in use after their registration ended" with 5 where 3 were right.
+	It("asks for the events of the numbers when a question about use after a registration ended is answered from the registrations alone", func() {
+		cat, err := askGoldenCatalogue()
+		Expect(err).NotTo(HaveOccurred())
+		q := "How many numbers were still in use after their registration ended?"
+		check := func(sql string, views ...string) []string {
+			v, rej := askValidate(sql, cat, views)
+			Expect(rej).To(BeNil(), sql)
+			out := []string{}
+			for _, o := range askCheckFrame(askExtractFrame(q), v) {
+				out = append(out, o.Kind)
+			}
+			return out
+		}
+		Expect(check("SELECT count(*) AS count FROM v_subscriber_registrations WHERE valid_to IS NOT NULL AND status = 'deactivated'", "v_subscriber_registrations")).To(ContainElement("REGISTRATION_END"))
+		Expect(check("SELECT count(*) AS count FROM v_number_registration_activity WHERE events_after_last_end > 0", "v_number_registration_activity")).NotTo(ContainElement("REGISTRATION_END"))
+		// a question that is not about the end of a registration is left alone
+		plain, rej := askValidate("SELECT count(*) AS count FROM v_subscriber_registrations WHERE status = 'deactivated'", cat, []string{"v_subscriber_registrations"})
+		Expect(rej).To(BeNil())
+		for _, o := range askCheckFrame(askExtractFrame("How many registrations are deactivated?"), plain) {
+			Expect(o.Kind).NotTo(Equal("REGISTRATION_END"))
+		}
 	})
 
 	It("answers who owns a number from the registrations, with the correction in front", func() {

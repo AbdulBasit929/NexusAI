@@ -74,6 +74,8 @@ var (
 
 // askKindOfValue is the kind a normalised key of the document views must be compared with, from its form; "" when the form says nothing (an area, a 15-digit handset or IMSI).
 func askKindOfValue(value string) string {
+	// a value as it was written in the question ('synt 4024', 'pk00 synt ...') is compared as its search key, without separators
+	value = strings.NewReplacer(" ", "", "-", "").Replace(value)
 	switch {
 	case regexp.MustCompile(`^92\d{10}$`).MatchString(value):
 		return "msisdn"
@@ -655,8 +657,10 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	// "After their registration ended" is a property of the number as a whole: the view of registration activity counts, per number, the events at or after the end of its LAST registration
 	// (zero when a registration is open-ended). A join of the registrations with the last event compares one registration of the number at a time and lists numbers whose later registration
 	// is still running (found by the subscribers run on development case 2: 5 numbers where 3 were right, once the database error that had hidden the query was made repairable).
-	if askUsesView(v, "v_number_registration_activity") && askAfterRegistrationEndRE.MatchString(strings.ToLower(f.Question)) && !askUsesColumn(v, "events_after_last_end", "events_outside_registration") {
-		add("REGISTRATION_END", "How many events a number had at or after the end of its last registration is the column events_after_last_end of v_number_registration_activity: select the numbers WHERE events_after_last_end > 0. Do not compare valid_to with a time yourself.", "the question asks about events after a registration ended and the query works the comparison out itself")
+	// A query that reads the registrations alone cannot know whether a number was used at all: it counts the deactivated registrations (found by the live smoke of 2026-10-30, SUB-008: 5 where 3 were right).
+	if (askUsesView(v, "v_number_registration_activity") || (askUsesView(v, "v_subscriber_registrations") && len(v.Views) == 1)) && askAfterRegistrationEndRE.MatchString(strings.ToLower(f.Question)) &&
+		!askUsesColumn(v, "events_after_last_end", "events_outside_registration") {
+		add("REGISTRATION_END", "How many events a number had at or after the end of its last registration is the column events_after_last_end of v_number_registration_activity: select the numbers WHERE events_after_last_end > 0. Do not compare valid_to with a time yourself, and do not count the registrations: the registrations alone do not say whether a number was used.", "the question asks about events after a registration ended and the query does not read the events of the numbers from events_after_last_end")
 	}
 	// "Which numbers ..." and "list the ..." ask for the things themselves. A query that only counts them answers a different question (found by the subscribers run on case 124: "which numbers used
 	// a SYNTH handset" was answered "N: 12" and the twelve numbers were not named). A grouped count (which number has the most, which have more than five) is not concerned.

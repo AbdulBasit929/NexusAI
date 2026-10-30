@@ -507,7 +507,11 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 				retry(raw, message)
 				continue
 			case verdict.elsewhere != "":
-				return finish(askAbstainResponse(req, cat, frame, validated, []askObligation{{Kind: "EMPTY", Reason: "the query found nothing although the identifier occurs elsewhere in the case"}}, audit))
+				reason := verdict.reason
+				if reason == "" {
+					reason = "the query found nothing although the identifier occurs elsewhere in the case"
+				}
+				return finish(askAbstainResponse(req, cat, frame, validated, []askObligation{{Kind: "EMPTY", Reason: reason}}, audit))
 			}
 			absence = verdict.absence
 		}
@@ -577,6 +581,7 @@ type askEmptyVerdict struct {
 	elsewhere  string // "view.column" where the identifier does occur, when the query looked elsewhere
 	identifier string
 	hint       string // what to tell the model, in words
+	reason     string // why the answer is withheld on the last attempt, when it is not "the identifier occurs elsewhere in the case"
 }
 
 // askPairCount is what v_contact_pairs holds for one subscriber (src) and one other party (dst).
@@ -687,6 +692,12 @@ func askReadEmpty(ctx context.Context, db *pgxpool.Pool, req hybridQueryRequest,
 			hits = askHitsIn(hits, family)
 			if len(hits) == 0 {
 				continue
+			}
+			// The question is about the family's own records. A query that also reads a view of another family (a join the question does not ask for) and finds nothing has not shown that the
+			// records are absent: the identifier is there (measured 2026-10-30, SUB-002: a registration view joined to the device pairings on a nonsense key).
+			if outside := askViewsOutside(v, family); len(outside) > 0 && wrongPlaceMatters {
+				return askEmptyVerdict{elsewhere: strings.Join(hits, ", "), identifier: id, reason: "the query joined views the question does not ask about and found nothing although the identifier is in the records the question is about",
+					hint: fmt.Sprintf("Nothing matched, but %s does occur in %s, and your query also reads %s, which the question does not ask about. Answer from %s alone, without a join to %s.", id, strings.Join(hits, ", "), strings.Join(outside, ", "), strings.Join(askHitViews(hits), ", "), strings.Join(outside, ", "))}, nil
 			}
 		}
 		// The query looked where it compared the identifier. A hit in any other column means it looked in the wrong place.

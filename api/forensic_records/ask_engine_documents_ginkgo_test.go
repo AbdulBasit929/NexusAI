@@ -142,6 +142,25 @@ var _ = Describe("Ask engine documents", func() {
 		Expect(cat.Shortlist("When was D06-cdr-request.txt uploaded?", 0).Views).NotTo(ContainElement("v_document_values"))
 	})
 
+	// Found by the live smoke of 2026-10-30 (DOC-013): "mention both PK00 ... and synt 4024" left the lower-case plate unread, the model compared 'synt 4024' with kind = 'msisdn' and the answer
+	// was a confident "no document names the account".
+	It("reads a lower-case plate after and or both when the question names things, and sees the kind of a value written with separators", func() {
+		q := "Which documents mention both PK00 SYNT 0000 0000 0000 2010 and synt 4024?"
+		Expect(askExtractFrame(q).Plates).To(Equal([]string{"SYNT4024"}))
+		Expect(askExtractFrame("List the documents that name 0300-0001000 or synt 5008.").Plates).To(Equal([]string{"SYNT5008"}))
+		// a question that names nothing, and the words that are never the letters of a plate, are left alone
+		Expect(askExtractFrame("How many calls were made on 2026-03-01 and day 1234?").Plates).To(BeEmpty())
+		Expect(askExtractFrame("Which documents mention page 12 and page 1234?").Plates).To(BeEmpty())
+		Expect(askExtractFrame("Which calls came before 10:00 and sent 3000 messages?").Plates).To(BeEmpty())
+		Expect(askKindOfValue("synt 4024")).To(Equal("plate"))
+		Expect(askKindOfValue("pk00 synt 0000 0000 0000 2010")).To(Equal("account"))
+		Expect(askKindOfValue("92300 0001005")).To(Equal("msisdn"))
+		wrong := "SELECT DISTINCT a.document FROM v_document_values a JOIN v_document_values b ON b.evidence_id = a.evidence_id WHERE a.kind = 'account' AND a.value = 'PK00SYNT0000000000002010' AND b.kind = 'msisdn' AND b.value = 'synt 4024' ORDER BY a.document"
+		Expect(kinds(check(q, wrong, "v_document_values"))).To(ContainElement("KIND_VALUE"))
+		right := strings.Replace(strings.Replace(wrong, "'msisdn'", "'plate'", 1), "'synt 4024'", "'SYNT4024'", 1)
+		Expect(kinds(check(q, right, "v_document_values"))).NotTo(ContainElement("KIND_VALUE"))
+	})
+
 	// Found by the documents run on seed 5008 (2026-10-29): "without synt 6124" answered with b.value <> 'synt 6124'.
 	It("reads a plate in lower case after without, except or other than, and asks for an anti-join when documents are asked for without a key", func() {
 		Expect(askExtractFrame("In which documents does 0300-0001008 appear without synt 6124?").Plates).To(Equal([]string{"SYNT6124"}))
