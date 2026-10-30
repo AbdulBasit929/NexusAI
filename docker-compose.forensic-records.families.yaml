@@ -1,0 +1,16 @@
+# Families overlay (docs/data/migrations-027-031-runbook.md sections 6 and 7): the worker also keeps the MENTION INDEX of documents (forensic.document_mention, migration 031).
+# Add this file AFTER the Ingest v2 and media overlays, keep the project directory of the main checkout, and point the model folder at this checkout's models/media:
+#
+#   $env:NEXUSAI_MEDIA_MODEL_DIR = '<this checkout>\models\media'
+#   docker compose --project-name nexusai --project-directory <main checkout> --env-file <main checkout>\.env.forensic-runtime.local `
+#     -f <main checkout>\docker-compose.forensic-records.yaml -f <this checkout>\docker-compose.forensic-records.ingest-v2.yaml `
+#     -f <this checkout>\docker-compose.forensic-records.media.yaml -f <this checkout>\docker-compose.forensic-records.families.yaml up -d --no-deps --no-build forensic-records-worker
+#
+# The typed readers of the new families (plates, registrations and devices, statements as CSV, PDF and Word, wallet lists) need no switch beyond FORENSIC_INGEST_V2=shadow, which the Ingest v2
+# overlay sets. The mention index is off unless named here; recreating the worker WITHOUT this file turns it off again (the safe direction). It leaves out a file the typed writer loaded
+# as records, writes in a savepoint, and never fails a job. The places file is the Lahore case's; another city needs its own file in ingestion/forensic_records/gazetteers.
+services:
+  forensic-records-worker:
+    environment:
+      FORENSIC_DOCUMENT_MENTIONS: ${FORENSIC_DOCUMENT_MENTIONS:-true}
+      FORENSIC_DOCUMENT_GAZETTEER: ${FORENSIC_DOCUMENT_GAZETTEER:-/app/gazetteers/lahore.json}
