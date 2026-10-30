@@ -695,6 +695,28 @@ var _ = Describe("Ask engine run", func() {
 		Expect(audit.Reason).To(ContainSubstring("cannot answer"))
 	})
 
+	It("never waits for the model longer than the budget of one question, and does not start a call it cannot finish", func() {
+		budget, minCall := askQuestionBudget, askMinModelCall
+		defer func() { askQuestionBudget, askMinModelCall = budget, minCall }()
+		askQuestionBudget, askMinModelCall = 400*time.Millisecond, 10*time.Millisecond
+		calls := 0
+		askModel = func(callCtx context.Context, _ config, _ string, _ []govSQLTurn) (string, string) {
+			calls++
+			<-callCtx.Done() // a stalled model service: the call ends only when its context does
+			return "", "TIMEOUT_OR_UNAVAILABLE"
+		}
+		started := time.Now()
+		_, audit := run(q)
+		Expect(time.Since(started)).To(BeNumerically("<", 5*time.Second))
+		Expect(audit.Reason).To(Equal("model: TIMEOUT_OR_UNAVAILABLE"))
+		Expect(calls).To(Equal(1))
+		askQuestionBudget, askMinModelCall = 30*time.Millisecond, 50*time.Millisecond
+		calls = 0
+		_, audit = run(q)
+		Expect(calls).To(Equal(0))
+		Expect(audit.Reason).To(Equal("the question budget is spent"))
+	})
+
 	It("says what a result is when it is a list, a graph or nothing", func() {
 		const ranked = "Who does 923000000101 talk to most? Give the top five."
 		script(reply("SELECT dst AS label, events AS value FROM v_contact_pairs WHERE src = '923000000101' AND NOT is_service ORDER BY events DESC LIMIT 5"))

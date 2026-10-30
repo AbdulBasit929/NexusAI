@@ -52,6 +52,14 @@ const (
 	askHeadlineItems = 5
 )
 
+// askQuestionBudget is the most time the engine spends waiting for the model on ONE question, over all its attempts: a call that would end after it is cut at it, and no call is started with
+// less than askMinModelCall left. Without it the worst case was the repair budget plus one more full call (about 410 s), and a stalled model service held the analyst for as long as the
+// call timeout (the evaluation harness allows ten minutes). Variables so that a specification can shorten them; the question then goes to the existing path, as for any decline.
+var (
+	askQuestionBudget = 300 * time.Second
+	askMinModelCall   = 20 * time.Second
+)
+
 func askEnvTrue(name string) bool {
 	return strings.EqualFold(strings.TrimSpace(os.Getenv(name)), "true") //nolint:forbidigo // forensic records product API reads its feature switches from the environment by design (docker compose)
 }
@@ -396,8 +404,14 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 	for attempt := 1; attempt <= askMaxAttempts; attempt++ {
 		audit.Attempts = attempt
 		last := attempt == askMaxAttempts || time.Since(engineStart) > askRepairBudget
+		remaining := askQuestionBudget - time.Since(engineStart)
+		if remaining < askMinModelCall {
+			return decline("the question budget is spent")
+		}
 		modelStart := time.Now()
-		raw, failure := askModel(ctx, cfg, model, turns)
+		callCtx, cancelCall := context.WithTimeout(ctx, remaining)
+		raw, failure := askModel(callCtx, cfg, model, turns)
+		cancelCall()
 		audit.ModelMS += time.Since(modelStart).Milliseconds()
 		if failure != "" {
 			return decline("model: " + failure)
