@@ -1,6 +1,6 @@
 # Migrations 027 to 031: rehearsal record and runbook for the live application
 
-Written 2026-10-30. **Nothing in this document has been applied to the live database.** Applying it needs the owner's explicit go. The rehearsal below ran on a restored copy of the live database in a throwaway container; the live database was only read (one `pg_dump`, two catalog queries).
+Written 2026-10-30. **APPLIED on 2026-10-30 (the owner's go): see `live-window-20261030.md` for what was applied, the live load, the live smoke and the findings.** The rehearsal record and the procedure below remain as written. The rehearsal below ran on a restored copy of the live database in a throwaway container; the live database was only read (one `pg_dump`, two catalog queries).
 
 ## 1. What the five migrations do
 
