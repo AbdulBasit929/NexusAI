@@ -57,7 +57,9 @@ try {
   if (-not $id) { throw "no image ${image}:${tag}" }
   Write-Host ("--- APPLY: {0}:latest <- {0}:{1} ({2})" -f $image, $tag, $id.Substring(7, 12))
   docker tag "${image}:${tag}" "${image}:latest"
+  $ErrorActionPreference = 'Continue'   # compose prints a harmless warning about the orphan container nexusai-api-1-prev-gbnf on stderr; the exit code is what counts
   $rc = Invoke-Compose $s @('up', '-d', '--no-deps', '--no-build', '--force-recreate', $s.Service)
+  $ErrorActionPreference = 'Stop'
   if ($rc -ne 0) { throw "compose up failed (exit $rc)" }
 } finally { Restore-ProcessEnv $saved }
 

@@ -27,8 +27,11 @@ $id = (@(docker image inspect "${image}:${tag}" | ConvertFrom-Json)[0]).Id
 Write-Host ("APPLY: {0}:latest <- {0}:{1} ({2})" -f $image, $tag, $id.Substring(7, 12))
 docker tag "${image}:${tag}" "${image}:latest"
 $files = if ($Rollback) { $today } else { $families }
-docker @base @files up -d --no-deps --no-build --force-recreate forensic-records-worker
-if ($LASTEXITCODE -ne 0) { throw "compose up failed (exit $LASTEXITCODE)" }
+$ErrorActionPreference = 'Continue'   # compose prints a harmless warning about the orphan container nexusai-api-1-prev-gbnf on stderr; the exit code is what counts
+docker @base @files up -d --no-deps --no-build --force-recreate forensic-records-worker 2>&1 | Out-Host
+$rc = $LASTEXITCODE
+$ErrorActionPreference = 'Stop'
+if ($rc -ne 0) { throw "compose up failed (exit $rc)" }
 for ($i = 0; $i -lt 40; $i++) {
   $state = (@(docker inspect $container | ConvertFrom-Json)[0]).State
   if ($state.Health.Status -eq 'healthy') { break }

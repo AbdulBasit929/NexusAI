@@ -9,8 +9,9 @@
 What it changes in the running image and nothing else (the media overlays of 2026-10-21 and 22 stay as they are):
   * worker.py of the running image: the typed block (`run_typed_ingest_shadow` up to `validate_sample_profile`) is replaced by the repository's block (it offers .pdf and .docx exports to the
     typed writer as well, reports whether it loaded records, and adds `run_document_mentions_shadow` with its switch and its gazetteer), and the one call of the typed helper in the
-    document branch of `process_job` becomes two lines: the typed helper, then the mention index, which skips a file the typed writer loaded as records. Every other line of the running
-    worker.py is untouched.
+    document branch of `process_job` becomes two lines: the typed helper, then the mention index, which skips a file the typed writer loaded as records; and the document route is decided
+    by the route alone (`should_process_native_document`, taken from the repository), because the API sends a plain .txt document with the modality structured_records. Every other line of the
+    running worker.py is untouched.
   * typed_ingest.py and the layout_registry package (the readers and layouts of plates, registrations, devices, statements and wallets, PDF and Word statements).
   * mention_extractor.py, document_mentions.py and gazetteers/ (new).
 The base is the image that is running now (the rollback tag), never an older one. Standard library only; needs git-free access to the repository's ingestion folder.
@@ -45,6 +46,19 @@ def make(live_app, out, base="nexusai-forensic-records-worker:latest"):
     if patched.count(call_old) != 1:
         raise SystemExit("the typed call of the document branch was not found exactly once; the image has moved, so review by hand")
     patched = patched.replace(call_old, call_new, 1)
+
+    # The route is authoritative (found by the first live load, 2026-10-30): the API sends a plain .txt DOCUMENT with the modality structured_records and the route native_document_worker, and the old rule
+    # of the running worker (route AND modality in {document, text}) sent it to the generic row adapter: no passages, no mention index. The repository's rule is the route alone.
+    route_old = b'            if route == "native_document_worker" and modality in {"document", "text"}:' + eol
+    route_new = b"            if should_process_native_document(route):" + eol
+    if patched.count(route_old) != 1 or b"def should_process_native_document(" in live:
+        raise SystemExit("the document-route condition was not found exactly once in the running worker.py; the image has moved, so review by hand")
+    patched = patched.replace(route_old, route_new, 1)
+    start = repo.index(b"def should_process_native_document(")
+    rule = repo[start:repo.index(b"def process_job(", start)].replace(b"\r\n", b"\n").rstrip(b"\n") + b"\n\n\n"
+    if patched.count(b"def process_job(") != 1:
+        raise SystemExit("process_job was not found exactly once; review by hand")
+    patched = patched.replace(b"def process_job(", rule.replace(b"\n", eol) + b"def process_job(", 1)
 
     os.makedirs(out, exist_ok=True)
     open(os.path.join(out, "worker.py"), "wb").write(patched)

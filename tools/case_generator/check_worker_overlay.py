@@ -50,6 +50,7 @@ def register_everything(db, root, key, manifest):
     """The evidence items the API would have registered for every file of the case (the trigger of migration 008 creates the version), and a processing run for each document."""
     statements = ["SELECT set_config('app.tenant_id', %s, false);" % load_case.sql_text(load_case.TENANT)]
     plan = []
+    document_names = {os.path.basename(e["file"]) for e in key.get("documents", [])}
     for rel, info in sorted(manifest["files"].items()):
         if rel.startswith("key/") or rel == "manifest.json":
             continue
@@ -68,10 +69,16 @@ def register_everything(db, root, key, manifest):
                 "INSERT INTO forensic.processing_runs (run_id, tenant_id, collection_id, evidence_id, version_id, run_kind, pipeline_id, idempotency_key, status, input_sha256) "
                 "SELECT %s::uuid, tenant_id, collection_id, evidence_id, current_version_id, 'extract', 'bounded-native-document-extractor', %s, 'running', sha256 "
                 "FROM forensic.evidence_items WHERE evidence_id = %s::uuid;" % (load_case.sql_text(job_id), load_case.sql_text("overlay/" + evidence_id), load_case.sql_text(evidence_id)))
-            metadata = {"evidence_modality": "text" if suffix == ".txt" else "document", "evidence_processing_route": "native_document_worker"}
+            # what the live API sends (read from the jobs of the first live load, 2026-10-30): a Word or PDF file is a document; a plain .txt DOCUMENT is called structured_records although its route is the
+            # document route (the old rule of the worker, modality in {document, text}, then sent it to the generic row adapter: no passages, no mention index); a provider's .txt export is text
+            if suffix == ".txt":
+                modality = "structured_records" if name in document_names else "text"
+            else:
+                modality = "document"
+            metadata = {"evidence_modality": modality, "evidence_processing_route": "native_document_worker"}
         else:
             statements.append(load_case.evidence_statement(evidence_id, key["case_id"], name, suffix.lstrip("."), info["bytes"], info["sha256"]))
-            metadata = {"evidence_modality": "structured_records", "evidence_processing_route": "forensic_records_worker"}
+            metadata = {"evidence_modality": "tabular" if suffix in (".xlsx", ".xls") else "structured_records", "evidence_processing_route": "forensic_records_worker"}
         metadata.update(TIME_POLICY, size_bytes=str(info["bytes"]))
         plan.append({"rel": rel, "name": name, "job_id": job_id, "evidence_id": evidence_id, "sha256": info["sha256"], "metadata": metadata, "document": document})
     db.script("\n".join(statements))
