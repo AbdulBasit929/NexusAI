@@ -34,6 +34,9 @@ COPY ingestion/forensic_records/xlsx_reader.py ./xlsx_reader.py
 COPY ingestion/forensic_records/forensic_contracts.py ./forensic_contracts.py
 COPY ingestion/forensic_records/structured_maturity.py ./structured_maturity.py
 COPY ingestion/forensic_records/typed_ingest.py ./typed_ingest.py
+COPY ingestion/forensic_records/mention_extractor.py ./mention_extractor.py
+COPY ingestion/forensic_records/document_mentions.py ./document_mentions.py
+COPY ingestion/forensic_records/gazetteers ./gazetteers
 COPY ingestion/forensic_records/layout_registry ./layout_registry
 COPY ingestion/forensic_records/adapters ./adapters
 COPY api/forensic_records/contracts/forensic-platform-v1.json ./forensic-platform-v1.json

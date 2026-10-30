@@ -3,7 +3,7 @@
     rows = mention_rows(result.passages, places)            # pure: the extractor's mentions as table rows
     CursorSink(cur).write(tenant_id, collection_id, evidence_id, rows)
 
-The worker calls this right after `persist_document_result` for a document, when FORENSIC_DOCUMENT_MENTIONS is on (off by default: the table exists only after migration 031 and the worker
+The worker calls this right after `persist_document_result` for a document (`run_document_mentions_shadow`), when FORENSIC_DOCUMENT_MENTIONS is on and FORENSIC_DOCUMENT_GAZETTEER names the places file (off by default: the table exists only after migration 031 and the worker
 overlay are applied, a separate owner decision). The passage text is the pipeline's own and is not touched; this stores what the rule-based extractor found in it.
 
 National ID numbers are counted and withheld: a row of kind national_id carries no key and no text (identity data stays dark until the masking design is approved, as in migration 012), and the
@@ -14,7 +14,10 @@ from __future__ import annotations
 import json
 from typing import Any, Iterable, Mapping, Sequence
 
-from .mention_extractor import EXTRACTOR_ID, EXTRACTOR_REVISION, extract_mentions
+try:
+    from .mention_extractor import EXTRACTOR_ID, EXTRACTOR_REVISION, extract_mentions
+except ImportError:  # the worker's flat layout (/app): the extractor is a sibling module
+    from mention_extractor import EXTRACTOR_ID, EXTRACTOR_REVISION, extract_mentions
 
 WITHHELD_KINDS = frozenset({"national_id"})
 

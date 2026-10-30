@@ -18,7 +18,10 @@ import re
 from dataclasses import dataclass
 from typing import Mapping, Sequence
 
-from .layout_registry.parties import _luhn_ok, normalize_iccid, normalize_plate
+try:
+    from .layout_registry.parties import _luhn_ok, normalize_iccid, normalize_plate
+except ImportError:  # the worker's flat layout (/app): the package is a sibling of this module
+    from layout_registry.parties import _luhn_ok, normalize_iccid, normalize_plate
 
 EXTRACTOR_ID = "rule-mention-extractor"
 EXTRACTOR_REVISION = "v2"

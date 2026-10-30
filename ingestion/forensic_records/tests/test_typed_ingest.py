@@ -568,7 +568,7 @@ class WorkerHookTests(Workdir):
         self.assertLess(offered, source.index('modality in {"image", "audio", "video"}'), "inside the document branch, not after it")
 
     def test_only_text_exports_are_offered_judged_by_the_original_file_name(self):
-        names = (("ipdr.txt", True), ("IPDR.TXT", True), ("calls.csv", True), ("calls.tsv", True), ("notes.pdf", False), ("memo.docx", False),
+        names = (("ipdr.txt", True), ("IPDR.TXT", True), ("calls.csv", True), ("calls.tsv", True), ("statement.pdf", True), ("STATEMENT.DOCX", True), ("notes.doc", False), ("sheet.xlsx", False),
                  ("readme.md", False), ("mail.eml", False), ("noextension", False), ("", False), ("archive.txt.zip", False))
         for name, offered in names:
             job = dataclasses.replace(self.job(), source_file=name)
@@ -588,7 +588,7 @@ class WorkerHookTests(Workdir):
         job = dataclasses.replace(self.job(), source_file="ipdr.txt")
         with mock.patch.object(worker, "run_typed_ingest_shadow", side_effect=RuntimeError("boom")):
             with self.assertLogs(worker.LOG, "ERROR"):
-                self.assertIsNone(worker.run_typed_ingest_shadow_for_text(FakeConn(), job, Path("x"), {}))
+                self.assertFalse(worker.run_typed_ingest_shadow_for_text(FakeConn(), job, Path("x"), {}))
 
     def test_a_none_summary_writes_no_audit_row(self):
         with mock.patch.dict(os.environ, {"FORENSIC_INGEST_V2": "shadow"}), mock.patch.object(ti, "run_shadow", return_value=None), \

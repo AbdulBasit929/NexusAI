@@ -813,7 +813,8 @@ def process_job(
             route = job.metadata.get("evidence_processing_route", "").strip().lower()
             if should_process_native_document(route):
                 document_profile, document_stats = process_document_job(conn, job, path)
-                run_typed_ingest_shadow_for_text(conn, job, path, document_profile)
+                records_loaded = run_typed_ingest_shadow_for_text(conn, job, path, document_profile)
+                run_document_mentions_shadow(conn, job, skip=records_loaded)
                 conn.commit()
                 emit_progress(progress_cb, job, "completed", document_stats, document_profile, started_at)
                 LOG.info(
@@ -4088,13 +4089,14 @@ def run_typed_ingest_shadow(
     job: IngestJob,
     path: Path,
     profile: dict[str, Any],
-) -> None:
+) -> dict[str, Any] | None:
     """Ingest v2 (roadmap Phase 1): also write the file's rows to the typed tables, behind FORENSIC_INGEST_V2 (off unless "shadow").
 
     Runs after version 1 has finished and been audited, inside its transaction but in a savepoint of its own, so that no failure in it can change
-    what version 1 stored or fail the job. The module is imported only when the mode asks for it. The quality summary goes to the audit log."""
+    what version 1 stored or fail the job. The module is imported only when the mode asks for it. The quality summary goes to the audit log and is returned (None when off, when
+    there is none, or when the write failed)."""
     if (os.environ.get("FORENSIC_INGEST_V2") or "").strip().lower() in ("", "off", "0", "false", "no"):
-        return
+        return None
     try:
         try:
             from ingestion.forensic_records import typed_ingest
@@ -4104,7 +4106,7 @@ def run_typed_ingest_shadow(
         time_policy = (profile.get("classification") or {}).get("time_policy") or time_policy_for_job(job)
         summary = typed_ingest.run_shadow(conn, str(path), lineage, time_policy)
         if summary is None:
-            return
+            return None
         with conn.transaction():
             audit(cur, job, "records.ingest.typed_shadow", {"batch_id": job.job_id, "request_id": job.request_id, "evidence_id": job.evidence_id, "typed_ingest": summary})
         LOG.info(
@@ -4112,11 +4114,21 @@ def run_typed_ingest_shadow(
             summary.get("status"),
             extra={"job_id": job.job_id, "rows_loaded": summary.get("rows_loaded"), "rows_inserted": summary.get("rows_inserted")},
         )
+        return summary
     except Exception:  # noqa: BLE001 - the shadow write must never fail the job
         LOG.exception("typed ingest shadow could not run; the job is not affected", extra={"job_id": job.job_id})
+        return None
 
 
-TYPED_INGEST_TEXT_SUFFIXES = frozenset({".txt", ".csv", ".tsv"})
+TYPED_INGEST_TEXT_SUFFIXES = frozenset({".txt", ".csv", ".tsv", ".pdf", ".docx"})
+
+
+def typed_summary_loaded(summary: Any) -> bool:
+    """Whether the typed writer loaded rows from the file: then it is a record export or a statement, and not a document that names things."""
+    try:
+        return any(sheet.get("status") == "loaded" and (sheet.get("loaded") or 0) > 0 for sheet in (summary or {}).get("sheets", []))
+    except (AttributeError, TypeError):
+        return False
 
 
 def run_typed_ingest_shadow_for_text(
@@ -4124,20 +4136,23 @@ def run_typed_ingest_shadow_for_text(
     job: IngestJob,
     path: Path,
     profile: dict[str, Any],
-) -> None:
-    """Ingest v2 for a plain-text export that the API sent to the document pipeline.
+) -> bool:
+    """Ingest v2 for a text, PDF or Word export that the API sent to the document pipeline.
 
     A provider's tab-separated .txt internet-record export is classified as text, so the structured path, and with it the typed writer, never sees it.
-    The document pipeline has already stored its passages, exactly as before. Only files named .txt, .csv or .tsv are offered (by the original file name:
-    the stored object has none), and the typed writer writes nothing unless the first rows match a registered layout, so ordinary notes are left alone.
-    Everything else is as in run_typed_ingest_shadow: off unless FORENSIC_INGEST_V2 asks for it, a savepoint, and no failure reaches the job."""
+    The document pipeline has already stored its passages, exactly as before. Only files named .txt, .csv, .tsv, .pdf or .docx are offered (by the original file name:
+    the stored object has none; a statement in a PDF or a Word table is read by the typed writer's container readers), and the typed writer writes nothing unless the first rows match a registered layout, so ordinary notes are left alone.
+    Everything else is as in run_typed_ingest_shadow: off unless FORENSIC_INGEST_V2 asks for it, a savepoint, and no failure reaches the job.
+    Returns whether the typed writer loaded rows from the file (the mention index of documents then leaves it alone)."""
     if Path(job.source_file or "").suffix.lower() not in TYPED_INGEST_TEXT_SUFFIXES:
-        return
+        return False
     try:
         with conn.cursor() as cur:
-            run_typed_ingest_shadow(conn, cur, job, path, profile)
+            summary = run_typed_ingest_shadow(conn, cur, job, path, profile)
+        return typed_summary_loaded(summary)
     except Exception:  # noqa: BLE001 - the shadow write must never fail the job
         LOG.exception("typed ingest shadow for a text export could not run; the job is not affected", extra={"job_id": job.job_id})
+        return False
 
 
 TYPED_WORKBOOK_SUFFIXES = frozenset({".xls", ".xml"})
@@ -4228,6 +4243,82 @@ def mark_typed_workbook_completed(
         """,
         (job.job_id, job.job_id, job.request_id, json.dumps(typed), job.evidence_id),
     )
+
+
+DOCUMENT_MENTIONS_ENV = "FORENSIC_DOCUMENT_MENTIONS"
+DOCUMENT_GAZETTEER_ENV = "FORENSIC_DOCUMENT_GAZETTEER"
+
+
+def document_mentions_enabled(value: str | None = None) -> bool:
+    """Whether the mention index of documents is on: FORENSIC_DOCUMENT_MENTIONS is true, yes, 1, on or shadow. Anything else, a typo included, is off."""
+    raw = os.environ.get(DOCUMENT_MENTIONS_ENV, "") if value is None else value
+    return raw.strip().lower() in {"1", "true", "yes", "on", "shadow"}
+
+
+@lru_cache(maxsize=4)
+def document_gazetteer(path: str) -> dict[str, list[str]]:
+    """The places a document may name: the JSON file FORENSIC_DOCUMENT_GAZETTEER names ({place key: [spellings, Latin and Urdu]}). Empty when none is configured or it cannot be read."""
+    if not path:
+        return {}
+    try:
+        with open(path, encoding="utf-8") as handle:
+            data = json.load(handle)
+        return {str(key): [str(item) for item in spellings] for key, spellings in data.items()}
+    except (OSError, ValueError, AttributeError, TypeError):
+        LOG.warning("the document gazetteer could not be read; places are not indexed", extra={"path": path})
+        return {}
+
+
+def _document_mentions_module() -> Any:
+    try:
+        from ingestion.forensic_records import document_mentions
+    except ModuleNotFoundError:  # pragma: no cover - supports direct worker.py execution
+        import document_mentions
+    return document_mentions
+
+
+@dataclass(frozen=True)
+class StoredPassage:
+    """A passage of a document as the document pipeline stored it: what the mention extractor reads."""
+
+    artifact_id: str
+    text: str
+    locator: dict[str, Any]
+
+
+def _stored_document_passages(cur: psycopg.Cursor[Any], job: IngestJob) -> list[StoredPassage]:
+    """The passages of the document's current version in document order (the pipeline numbers paragraphs or pages from 1, and the chunks of one of them from 1)."""
+    cur.execute(
+        """
+        SELECT artifact_id::text, metadata->>'text', citation_locator
+        FROM forensic.derived_artifacts
+        WHERE tenant_id=%s AND collection_id=%s AND evidence_id=%s::uuid AND artifact_type=%s
+          AND version_id = (SELECT current_version_id FROM forensic.evidence_items WHERE tenant_id=%s AND collection_id=%s AND evidence_id=%s::uuid)
+        ORDER BY coalesce((citation_locator->>'paragraph')::int, (citation_locator->>'page')::int, 0), coalesce((citation_locator->>'passage')::int, 0)
+        """,
+        (job.tenant_id, job.collection_id, job.evidence_id, DOCUMENT_PASSAGE_CONTRACT, job.tenant_id, job.collection_id, job.evidence_id),
+    )
+    return [StoredPassage(str(row[0]), row[1] or "", dict(row[2] or {})) for row in cur.fetchall()]
+
+
+def run_document_mentions_shadow(conn: psycopg.Connection[Any], job: IngestJob, skip: bool = False) -> None:
+    """The mention index of a document (migration 031): what the rule-based extractor finds in the passages the document pipeline stored.
+
+    Off unless FORENSIC_DOCUMENT_MENTIONS asks for it, and skipped for a file the typed writer loaded as records (a provider's export that took the document route is data, not a document
+    that names things). It runs in a savepoint inside the job's own transaction and must never fail the job: an error is logged by its class name only (a database message can carry a value)
+    and the savepoint is rolled back. The passage text is not touched; a second run over the same passages inserts nothing. National ID numbers are counted and withheld (no key, no
+    text). A mention says that a document names the key, nothing more."""
+    if skip or not document_mentions_enabled():
+        return
+    try:
+        module = _document_mentions_module()
+        with conn.transaction():
+            with conn.cursor() as cur:
+                rows = module.mention_rows(_stored_document_passages(cur, job), document_gazetteer(os.environ.get(DOCUMENT_GAZETTEER_ENV, "")))
+                module.CursorSink(cur).write(job.tenant_id, job.collection_id, job.evidence_id, rows)
+        LOG.info("document mentions indexed", extra={"job_id": job.job_id, "mentions": len(rows), "by_kind": module.summarise(rows)})
+    except Exception as exc:  # noqa: BLE001 - the index must never fail the job
+        LOG.error("the mention index of a document could not be written; the job is not affected (%s)", type(exc).__name__, extra={"job_id": job.job_id})
 
 
 def validate_sample_profile(path: Path) -> dict[str, Any]:
