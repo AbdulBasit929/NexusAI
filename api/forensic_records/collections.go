@@ -179,6 +179,8 @@ missing_assets AS (
    AND assets.sha256 = jobs.sha256
   WHERE jobs.status = 'completed'
     AND assets.id IS NULL
+    -- a retained original is a retained copy: the knowledge-base asset row is written by the generic row path only (the document, .txt and .xls routes do not write one)
+    AND NOT EXISTS (SELECT 1 FROM evidence e WHERE e.evidence_id = jobs.evidence_id AND e.raw_storage_ref IS NOT NULL)
 )
 SELECT
   (SELECT count(*) FROM jobs) AS jobs_total,
@@ -211,6 +213,7 @@ WHERE jobs.tenant_id = $1
   AND jobs.collection_id = $2
   AND jobs.status = 'completed'
   AND assets.id IS NULL
+  AND NOT EXISTS (SELECT 1 FROM forensic.evidence_items e WHERE e.tenant_id = jobs.tenant_id AND e.collection_id = jobs.collection_id AND e.evidence_id = jobs.evidence_id AND e.raw_storage_ref IS NOT NULL)
 ORDER BY jobs.completed_at DESC NULLS LAST, jobs.queued_at DESC
 LIMIT $3`, scope.TenantID, scope.CollectionID, limit)
 	if err != nil {
