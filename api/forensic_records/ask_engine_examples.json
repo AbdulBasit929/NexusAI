@@ -379,6 +379,15 @@
     "sql": "SELECT counterparty, transactions, total_amount FROM v_account_counterparties WHERE account = 'PK00SYNT0000000000001001' AND direction = 'credit' ORDER BY transactions DESC LIMIT 200"
   },
   {
+    "id": "txn-sent-money-to-account",
+    "question": "Which accounts sent money to the account PK00SYNT0000000000001001?",
+    "views": [
+      "v_account_counterparties"
+    ],
+    "shape": "table",
+    "sql": "SELECT counterparty, transactions, total_amount FROM v_account_counterparties WHERE account = 'PK00SYNT0000000000001001' AND direction = 'credit' ORDER BY total_amount DESC LIMIT 200"
+  },
+  {
     "id": "txn-shared-counterparty",
     "question": "Which counterparties do the accounts PK00SYNT0000000000001001 and PK00SYNT0000000000001002 have in common?",
     "views": [

@@ -111,6 +111,13 @@ Design, rehearsal and regression are in `case-setting-and-statement-repeats-2026
 
 Rollback: the engine `.\tools\dev\live-window\3-recreate-api.ps1 -Rollback -RollbackTo before-round7-20261031`; the migration `ops/032.../rollback.sql` (it refuses while a case holds a setting: `set_case_setting.py --clear-hub-threshold --apply` first).
 
+## Round 8 engine: three findings of the live query pack fixed (deployed 2026-10-31 16:07 UTC, on the owner's word "deploy round 8")
+
+The whole UI query pack had been put to the live engine of 12:26 UTC: 187 of 196 correct, 4 wrong, 2 honest declines, 3 not run (device list). Three of the wrong answers were engine misses (SET-002 hub cue, TXN-008 direction of "sent money to", TXN-009 an invented `IS NULL` filter), fixed in commit ed44c58 with a specification each; regression on throwaway databases: transactions 20 correct, 0 wrong, 1 abstained; call and internet records 46 of 46; red team 18 of 18 (`case-setting-and-statement-repeats-20261031.md`, section 8).
+
+* Dry run: compose's config hash equalled the running label (`74eb879ac9e9`), nothing to add or change. Apply: only the API container, image `3a07ed87bccf` -> `8ec2c1edd72a` (`round8-20261031`; rollback tag `before-round8-20261031` = `3a07ed87bccf`), environment 69 -> 69 variables with nothing changed, healthy at once, the plan cache restored (509 entries), 0 errors in the logs; the Orion case still has `hub_threshold` 10; the workspace on :4181 restarted and its proxy reaches the API.
+* Rollback: `.\tools\dev\live-window\3-recreate-api.ps1 -Rollback -RollbackTo before-round8-20261031`.
+
 ## Rollback, if ever needed
 
 Worker: `.\tools\dev\live-window\4-recreate-worker.ps1 -Rollback`. Engine: `.\tools\dev\live-window\3-recreate-api.ps1 -Rollback -RollbackTo before-round6-20261030` (to the engine of before round 6; without `-RollbackTo` the script goes back to `before-families-20261030`, the engine of before the families, which would list the new, empty views on the migrated database). Database: the migrations' rollback scripts in reverse order (runbook section 4; they refuse to drop a table that holds rows,
