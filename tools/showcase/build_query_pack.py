@@ -14,6 +14,7 @@ import argparse
 import csv
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -200,8 +201,9 @@ def verdict_of(item, result):
     if expect.get("kind") == "scalar":
         value = expect.get("value")
         if isinstance(value, (int, float)):
-            wanted = {str(int(value)) if float(value).is_integer() else "%.2f" % value, "%.2f" % value}
-            return "correct" if any(w in blob for w in wanted) else "wrong"
+            # numbers are compared as numbers: 5,912,781.7 is 5,912,781.70
+            found = [float(x) for x in re.findall(r"-?\d+(?:\.\d+)?", blob)]
+            return "correct" if any(abs(n - float(value)) < 0.006 for n in found) else "wrong"
         return "correct" if str(value) in blob else "wrong"
     if expect.get("kind") == "set":
         values = [str(v) for v in expect.get("values", [])]
@@ -257,7 +259,7 @@ def write_markdown(path, areas, items):
             row = "| %s | %s | %s |" % (it["id"].replace("ORL-", ""), cell(it["question"]), cell(it["expected_text"] + (" - " + it["note"] if it.get("note") else "")))
             if live_any:
                 live = it.get("live")
-                row += " %s |" % (cell("%s %s: %s" % (live.get("verdict") or "", live["state"], live["answer"][:110])) if live else "not run")
+                row += " %s |" % (cell("%s %s: %s%s" % (live.get("verdict") or "", live["state"], live["answer"][:110], (" REVIEW: " + it["review_note"]) if it.get("review_note") else "")) if live else "not run")
             lines.append(row)
     with open(path, "w", encoding="utf-8", newline="\n") as handle:
         handle.write("\n".join(lines) + "\n")
@@ -285,8 +287,12 @@ def main(argv):
     verdicts = {}
     if args.verdicts and os.path.exists(args.verdicts):
         verdicts = json.load(open(args.verdicts, encoding="utf-8"))
+    notes_path = os.path.join(os.path.dirname(os.path.abspath(args.out)), "review-notes.json")
+    review = json.load(open(notes_path, encoding="utf-8")) if os.path.exists(notes_path) else {}
     for it in items:
         it["expected_text"] = render(it["expect"])
+        if it["id"] in review:
+            it["review_note"] = review[it["id"]]
         control = bool(it["expect"].get("control")) or it["expect"].get("kind") in ("absent", "doc_absent", "none", "refuse", "probe", "clarify")
         it["kind_of_check"] = "honesty / limits" if control else "answer"
         r = results.get(it["id"])

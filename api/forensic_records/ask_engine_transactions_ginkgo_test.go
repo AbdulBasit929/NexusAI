@@ -324,7 +324,7 @@ var _ = Describe("Ask engine transactions after the second measurement", func() 
 		Expect(f.Accounts).To(Equal([]string{"PK00SYNT0000000999999"}))
 		Expect(f.Identifiers()).To(ContainElement("PK00SYNT0000000999999"))
 		// a well-formed account is read once, and a phone number is not taken for one
-		Expect(askExtractFrame("How many transactions did the account "+account+" have?").Accounts).To(Equal([]string{account}))
+		Expect(askExtractFrame("How many transactions did the account " + account + " have?").Accounts).To(Equal([]string{account}))
 		Expect(askExtractFrame("How many calls did 923000000101 make?").Accounts).To(BeEmpty())
 	})
 
@@ -387,5 +387,63 @@ var _ = Describe("Ask engine transactions after the second measurement", func() 
 			Expect(askViewCaveatText[name]).To(ContainSubstring("Amounts are as the source states them"), name)
 			Expect(askViewCaveatText[name]).To(ContainSubstring("a pattern, not a finding of laundering, structuring or any offence"), name)
 		}
+	})
+})
+
+// Found by the live run of the UI query pack (2026-10-31): "which accounts sent money to X" answered with who X paid; a pass-through question answered "nothing found" after an invented
+// `received_from IS NULL`; and a hub threshold named in the question that did not exclude the hubs.
+var _ = Describe("Ask engine after the live run of the query pack", func() {
+	const account = "PK00SYNT0000000000002003"
+	var cat *askCatalogue
+	BeforeEach(func() {
+		var err error
+		cat, err = askGoldenCatalogue()
+		Expect(err).NotTo(HaveOccurred())
+	})
+	check := func(question, sql string, views ...string) []string {
+		v, rej := askValidate(sql, cat, views)
+		Expect(rej).To(BeNil(), sql)
+		out := []string{}
+		for _, o := range askCheckFrame(askExtractFrame(question), v) {
+			out = append(out, o.Kind)
+		}
+		return out
+	}
+
+	It("reads the account of 'who sent money to X' as the receiver: its credits, not its debits", func() {
+		q := "Which accounts or numbers sent money to the account " + account + "?"
+		debits := "SELECT counterparty_account, sum(amount) AS total_amount FROM v_bank_transactions WHERE account = '" + account + "' AND direction = 'debit' GROUP BY counterparty_account ORDER BY total_amount DESC"
+		credits := "SELECT DISTINCT coalesce(counterparty_account, counterparty_msisdn) AS sender FROM v_bank_transactions WHERE account = '" + account + "' AND direction = 'credit' ORDER BY sender"
+		Expect(check(q, debits, "v_bank_transactions")).To(ContainElement("DIRECTION_ROLE"))
+		Expect(check(q, credits, "v_bank_transactions")).NotTo(ContainElement("DIRECTION_ROLE"))
+		// the account as the sender is another question and keeps its debits
+		for _, other := range []string{"Who did the account " + account + " pay the most money to?", "Which accounts did " + account + " send money to?", "Whom did " + account + " pay?"} {
+			Expect(check(other, debits, "v_bank_transactions")).NotTo(ContainElement("DIRECTION_ROLE"), other)
+		}
+		Expect(check("Who paid money to "+account+"?", debits, "v_bank_transactions")).To(ContainElement("DIRECTION_ROLE"))
+	})
+
+	It("refuses a filter on an empty counterparty that the question never asks for, and allows it when the question asks", func() {
+		q := "Which accounts received money and sent at least 90 percent of it out again within 10 minutes?"
+		invented := "SELECT account, credit_utc, debit_utc, share_percent FROM v_account_flows WHERE share_percent >= 90.0 AND received_from IS NULL ORDER BY credit_utc LIMIT 200"
+		plain := "SELECT DISTINCT account FROM v_account_flows WHERE share_percent >= 90.0 ORDER BY account LIMIT 200"
+		Expect(check(q, invented, "v_account_flows")).To(ContainElement("INVENTED_FILTER"))
+		Expect(check(q, plain, "v_account_flows")).NotTo(ContainElement("INVENTED_FILTER"))
+		asked := "Which credits came in with no counterparty recorded?"
+		Expect(check(asked, "SELECT account, amount FROM v_bank_transactions WHERE direction = 'credit' AND counterparty_account IS NULL AND counterparty_msisdn IS NULL LIMIT 200", "v_bank_transactions")).NotTo(ContainElement("INVENTED_FILTER"))
+		Expect(check("Which cash deposits does "+account+" have?", "SELECT amount FROM v_bank_transactions WHERE account = '"+account+"' AND counterparty_account IS NULL LIMIT 200", "v_bank_transactions")).NotTo(ContainElement("INVENTED_FILTER"))
+	})
+
+	It("takes a hub threshold named in the question as the definition of the hubs to leave out", func() {
+		q := "Which numbers do 923000001000 and 923000001005 both contact, leaving out services and numbers in contact with more than 10 subscribers?"
+		f := askExtractFrame(q)
+		Expect(f.Cues["hubs"]).To(BeTrue())
+		Expect(f.Cues["exclude"]).To(BeTrue())
+		without := "SELECT x.dst AS number FROM v_contact_pairs x JOIN v_contact_pairs y ON y.dst = x.dst WHERE x.src = '923000001000' AND y.src = '923000001005' AND NOT x.is_service AND NOT y.is_service LIMIT 50"
+		with := "SELECT x.dst AS number FROM v_contact_pairs x JOIN v_contact_pairs y ON y.dst = x.dst WHERE x.src = '923000001000' AND y.src = '923000001005' AND NOT x.is_service AND NOT x.is_hub AND NOT y.is_service AND NOT y.is_hub LIMIT 50"
+		Expect(check(q, without, "v_contact_pairs")).To(ContainElement("HUBS"))
+		Expect(check(q, with, "v_contact_pairs")).NotTo(ContainElement("HUBS"))
+		// a question that only lists the hubs does not leave them out
+		Expect(askExtractFrame("Which numbers are in contact with more than 10 subscribers?").Cues["exclude"]).To(BeFalse())
 	})
 })

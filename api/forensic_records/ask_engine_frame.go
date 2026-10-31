@@ -69,10 +69,15 @@ var (
 	askAfterRegistrationEndRE = regexp.MustCompile(`\bafter (?:the )?(?:their |its |a |the )?registrations? (?:has |had |have )?(?:ended|ends|expired|expires|ceased)\b|\bafter the (?:end|expiry) of (?:a |the |their |its )?registrations?\b`)
 	// a question that counts THINGS (how many numbers, accounts, plates ...), as against events or money: its answer is the number of rows that qualify (found by the sixth subscribers measurement,
 	// case 126, SUB-008: "how many numbers ... after their registration ended" was answered with the sum of their events, 734, where 3 numbers were right)
-	askCountsThingsRE = regexp.MustCompile(`\bhow many (?:(?:distinct|different|unique|separate|active|registered|unregistered) )?(?:numbers|accounts|plates|documents|subscribers|people|persons|sims|handsets|devices|registrations|cell sites|towers|contacts|cameras)\b`)
-	askMoneyCue       = regexp.MustCompile(`\b(?:total|amount|amounts|money|rupees|rs|how much|sum)\b`)
-	askDateOnlyCue    = regexp.MustCompile(`only\s+(?:a\s+|the\s+)?(?:date|day)|date[\s-]only|state[sd]?\s+only`)
-	askKindPhrase     = map[string]string{"msisdn": "a mobile number", "account": "an account", "plate": "a plate", "iccid": "a SIM serial"}
+	// "which accounts sent money to the account X": X is the receiver, so the accounts that sent are the other side of X's credits (found by the live run of the query pack, ORL-TXN-008)
+	askSentToAccountRE = regexp.MustCompile(`\b(?:which|what|who)\b[^?]*?\b(?:sent|paid|transferred|wired|remitted|deposited)\b[^?]*?\bto\s+(?:the\s+)?(?:(?:bank\s+)?account\s+|wallet\s+|iban\s+)?([a-z0-9]{10,})`)
+	// a filter on an empty counterparty that the question never asked for (ORL-TXN-009: `received_from IS NULL` on a pass-through question, a false "nothing found")
+	askNullCounterpartySQL = regexp.MustCompile(`\b(?:received_from|sent_to|counterparty|counterparty_account|counterparty_msisdn)\s+is\s+null\b`)
+	askNoCounterpartyAsked = regexp.MustCompile(`\b(?:no|without|unknown|missing|unnamed|blank|unspecified|unrecorded|anonymous)\s+(?:\w+\s+)?(?:counterpart\w*|sender|senders|recipient|recipients|payer|payers|payee|payees|party|parties)\b|\bcash\b`)
+	askCountsThingsRE      = regexp.MustCompile(`\bhow many (?:(?:distinct|different|unique|separate|active|registered|unregistered) )?(?:numbers|accounts|plates|documents|subscribers|people|persons|sims|handsets|devices|registrations|cell sites|towers|contacts|cameras)\b`)
+	askMoneyCue            = regexp.MustCompile(`\b(?:total|amount|amounts|money|rupees|rs|how much|sum)\b`)
+	askDateOnlyCue         = regexp.MustCompile(`only\s+(?:a\s+|the\s+)?(?:date|day)|date[\s-]only|state[sd]?\s+only`)
+	askKindPhrase          = map[string]string{"msisdn": "a mobile number", "account": "an account", "plate": "a plate", "iccid": "a SIM serial"}
 )
 
 // askKindOfValue is the kind a normalised key of the document views must be compared with, from its form; "" when the form says nothing (an area, a 15-digit handset or IMSI).
@@ -331,7 +336,8 @@ func askExtractFrameWith(question string, plates bool) askFrame {
 	f.Cues["earliest"] = anyWord("earliest", "oldest") || followed("first") || phrase("when was the first") || phrase("when did it first")
 	f.Cues["latest"] = (anyWord("latest", "newest") || phrase("most recent") || followed("last") || phrase("when was the last")) && !f.Cues["rank"]
 	f.Cues["services"] = anyWord("services", "shortcodes") || phrase("short codes") || phrase("service numbers") || phrase("sender names")
-	f.Cues["hubs"] = anyWord("hubs", "hub") || phrase("everyone contacts") || phrase("everybody contacts")
+	// a threshold named in the question ("in contact with more than 10 subscribers", "a hub threshold of 10") is the definition of a hub too (found by the live run of the query pack, ORL-SET-002)
+	f.Cues["hubs"] = anyWord("hubs", "hub") || phrase("everyone contacts") || phrase("everybody contacts") || len(askFindHubThreshold(lower)) > 0
 	f.Cues["exclude"] = anyWord("without", "excluding", "except", "ignoring") || phrase("leave out") || phrase("leaving out") || phrase("not through") || phrase("not counting") || phrase("other than")
 	f.Cues["path"] = f.Cues["path"] || (len(f.Numbers) >= 2 && (anyWord("connected", "connection", "connections", "path", "chain", "route", "linked") || phrase("how are")) && !phrase("in contact"))
 	f.Cues["duration"] = anyWord("duration", "minutes", "seconds", "longest", "shortest", "talk") && !anyWord("call") || phrase("how long") || phrase("longest call")
@@ -744,6 +750,15 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	}
 	if f.Cues["count"] && !askSQLMentions(sql, "count(", "sum(") && !askUsesColumn(v, "events", "incoming", "outgoing", "sightings", "transactions") {
 		add("AGGREGATE", "The question asks how many: count the rows (COUNT) or sum the counts of the view.", "the question asks for a count that the query does not compute")
+	}
+	// Who SENT money TO an account: the account is the receiver, its credits are the answer and the counterparty of each is who sent.
+	if m := askSentToAccountRE.FindStringSubmatch(strings.ToLower(f.Question)); m != nil && len(f.Accounts) == 1 && strings.EqualFold(m[1], f.Accounts[0]) &&
+		askSQLMentions(sql, "'debit'") && !askSQLMentions(sql, "'credit'") {
+		add("DIRECTION_ROLE", fmt.Sprintf("The question asks which accounts sent money TO %s: that account is the receiver, so read its credits (direction = 'credit') and the other side of each credit (counterparty_account) is who sent.", f.Accounts[0]), "the question asks who sent money to the account and the query reads the debits")
+	}
+	if askNullCounterpartySQL.MatchString(sql) && !askNoCounterpartyAsked.MatchString(strings.ToLower(f.Question)) &&
+		(askUsesView(v, "v_account_flows") || askUsesView(v, "v_account_counterparties") || askUsesView(v, "v_account_activity") || askUsesView(v, "v_account_limit_bands") || askUsesView(v, "v_bank_transactions")) {
+		add("INVENTED_FILTER", "The question does not ask for transactions that have no counterparty: remove the condition IS NULL on the counterparty (received_from, sent_to, counterparty). It matches nothing and the answer would say that nothing was found.", "the query filters on an empty counterparty that the question never asks for")
 	}
 	// How many numbers (accounts, plates ...) is the number of rows that qualify. Adding up a column of the view (the events of those numbers) gives a number of another kind.
 	if askCountsThingsRE.MatchString(strings.ToLower(f.Question)) && askSQLMentions(sql, "sum(") && !askSQLMentions(sql, "count(") {

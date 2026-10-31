@@ -76,6 +76,7 @@ details.area h2 { margin: 0; font-size: 1.15rem; font-weight: 600; }
 .marks button[aria-pressed=true].skip { background: var(--off-bg); border-color: var(--off); color: var(--off); }
 input.note { flex: 1 1 200px; font-size: 0.9rem; }
 details.sql summary { cursor: pointer; color: var(--muted); font-size: 0.85rem; } details.sql pre { margin: 6px 0 0; padding: 8px 10px; background: var(--code); border-radius: 8px; overflow-x: auto; font-size: 0.8rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.review { margin-top: 6px; padding: 6px 10px; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 0.86rem; }
 .empty { color: var(--muted); padding: 24px 0; }
 #toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 8px; font-size: 0.9rem; opacity: 0; pointer-events: none; transition: opacity .2s; }
 #toast.on { opacity: 1; }
@@ -139,7 +140,8 @@ function card(q) {
   const l = q.live, v = liveOf(q);
   const live = l
     ? '<span class="pill ' + esc(v.split(" ")[0]) + '">' + esc(v) + '</span>' + esc(l.answer || "(no answer text)") + ' <span class="id">' + esc(l.seconds) + ' s</span>' +
-      (l.sql ? '<details class="sql"><summary>The query it wrote</summary><pre>' + esc(l.sql) + '</pre></details>' : "")
+      (l.sql ? '<details class="sql"><summary>The query it wrote</summary><pre>' + esc(l.sql) + '</pre></details>' : "") +
+      (q.review_note ? '<div class="review"><b>Reviewed:</b> ' + esc(q.review_note) + '</div>' : "")
     : '<span class="pill none">not run live</span>';
   return '<article class="card" data-id="' + esc(q.id) + '" data-mark="' + m + '">' +
     '<div class="head"><span class="id">' + esc(q.id.replace("ORL-", "")) + '</span><span><span class="tag">' + esc(q.type.replace(/_/g, " ")) + '</span> ' +
@@ -207,7 +209,7 @@ def main(argv):
     if len(argv) != 2:
         raise SystemExit(__doc__)
     pack = json.load(open(argv[0], encoding="utf-8"))
-    slim = {"areas": pack["areas"], "questions": [{k: q.get(k) for k in ("id", "area", "type", "question", "expected_text", "note", "kind_of_check", "live")} for q in pack["questions"]]}
+    slim = {"areas": pack["areas"], "questions": [{k: q.get(k) for k in ("id", "area", "type", "question", "expected_text", "note", "kind_of_check", "live", "review_note")} for q in pack["questions"]]}
     html = TEMPLATE.replace("__DATA__", json.dumps(slim, ensure_ascii=False).replace("</", "<\\/"))
     with open(argv[1], "w", encoding="utf-8", newline="\n") as handle:
         handle.write(html)
