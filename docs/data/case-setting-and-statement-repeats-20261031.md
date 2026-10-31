@@ -52,10 +52,14 @@ The migration is backward compatible with the engine that runs now (the old engi
 
 ```
 bash tools/dev/live-window/2b-migration-032.sh                                  # preflight, apply, verify, comparison; stops at the first failed check (a fresh backup exists: live-20261031T103450Z)
-.\tools\dev\live-window\3-recreate-api.ps1 -Apply -To round7-20261031 -RollbackTo before-round7-20261031
+.\tools\dev\live-window\3-recreate-api.ps1 -Apply -To round7b-20261031 -RollbackTo before-round7-20261031
 python -X utf8 tools/showcase/set_case_setting.py --case orion-lahore-reference-20261030 --hub-threshold 10 --apply
 .\tools\dev\Restart-Workspace.ps1 -Port 4181 -Tree lane -Collection orion-lahore-reference-20261030
 ```
 
-Images: `nexusai-forensic-records-api:round7-20261031` (`17f4647d3a28`, built from the lane at 39100ab) and its rollback `before-round7-20261031` (`dd2b07a0d75b`, the engine that runs now). Rollback of the engine: `3-recreate-api.ps1 -Rollback -RollbackTo before-round7-20261031`; of the migration: `ops/032.../rollback.sql` (it refuses while a case holds a setting: clear it first with `--clear-hub-threshold --apply`).
+Images: `nexusai-forensic-records-api:round7b-20261031` (`3a07ed87bccf`, built from the lane at 77504ce: migration 032's engine, COUNT_NOT_SUM, and the retained-copy status fix, section 7) and its rollback `before-round7-20261031` (`dd2b07a0d75b`, the engine that runs now). Rollback of the engine: `3-recreate-api.ps1 -Rollback -RollbackTo before-round7-20261031`; of the migration: `ops/032.../rollback.sql` (it refuses while a case holds a setting: clear it first with `--clear-hub-threshold --apply`).
+
+## 7. A false alarm found on the way: "retained copy is missing" (commit 77504ce, not deployed)
+
+The workspace dashboard flagged 26 sources of the Orion case as needing review ("Retained copy is missing: processing finished but the retained copy of this file cannot be opened"). The originals are retained (`evidence_items.raw_storage_ref` is set for all 53, and the `.txt` original of the case came back HTTP 200 from `/evidence/{id}/content`). The flag came from a different store: a completed job with no row in `forensic.kb_collection_assets`, a row that only the generic row path writes (the document, `.txt` and `.xls` routes do not). 35 jobs were flagged in all, all in the three Orion collections; no other collection was. The status figure and list now count a job only when it has neither an asset row nor a retained original: 35 flagged before, 0 after, every other collection 0 before and after (checked read only on the live database). It takes effect with the API image above. Not changed: the asset-repair function, which exists to rebuild asset rows.
 
