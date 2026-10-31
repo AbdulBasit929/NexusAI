@@ -947,7 +947,7 @@
    "live": {
     "state": "answered",
     "answer": "3 results: 923000001098 (75), 923000001015 (72), 923000001070 (47).",
-    "seconds": 58.0,
+    "seconds": 43.4,
     "verdict": "correct",
     "sql": "SELECT dst AS label, events AS value FROM v_contact_pairs WHERE src = '923000001000' AND NOT is_service AND NOT is_hub ORDER BY events DESC LIMIT 3",
     "views": [
@@ -987,7 +987,7 @@
    "live": {
     "state": "answered",
     "answer": "3 results: 923000001078 (63), 923000001006 (49), 923000001042 (45).",
-    "seconds": 63.9,
+    "seconds": 65.2,
     "verdict": "correct",
     "sql": "SELECT dst AS label, events AS value FROM v_contact_pairs WHERE src = '923000001001' AND NOT is_service AND NOT is_hub ORDER BY events DESC LIMIT 3",
     "views": [
@@ -1036,7 +1036,7 @@
    "live": {
     "state": "answered",
     "answer": "3 results: 923000001027 (146), 923000001048 (131), 923000001012 (124).",
-    "seconds": 42.5,
+    "seconds": 42.6,
     "verdict": "correct",
     "sql": "SELECT dst AS label, events AS value FROM v_contact_pairs WHERE src = '923000001002' AND NOT is_service AND NOT is_hub ORDER BY events DESC LIMIT 3",
     "views": [
@@ -1073,7 +1073,7 @@
    "live": {
     "state": "answered",
     "answer": "3 results: 923000001069 (56), 923000001021 (55), 923000001006 (51).",
-    "seconds": 61.2,
+    "seconds": 62.9,
     "verdict": "correct",
     "sql": "SELECT dst AS label, events AS value FROM v_contact_pairs WHERE src = '923000001003' AND NOT is_service AND NOT is_hub ORDER BY events DESC LIMIT 3",
     "views": [
@@ -1110,7 +1110,7 @@
    "live": {
     "state": "answered",
     "answer": "3 results: 923000001066 (56), 923000001044 (37), 923000001061 (34).",
-    "seconds": 39.8,
+    "seconds": 46.8,
     "verdict": "correct",
     "sql": "SELECT dst AS label, events AS value FROM v_contact_pairs WHERE src = '923000001004' AND NOT is_service AND NOT is_hub ORDER BY events DESC LIMIT 3",
     "views": [
@@ -1150,7 +1150,7 @@
    "live": {
     "state": "answered",
     "answer": "3 results: 923000001093 (142), 923000001074 (102), 923000001099 (81).",
-    "seconds": 61.8,
+    "seconds": 64.9,
     "verdict": "correct",
     "sql": "SELECT dst AS label, events AS value FROM v_contact_pairs WHERE src = '923000001005' AND NOT is_service AND NOT is_hub ORDER BY events DESC LIMIT 3",
     "views": [
@@ -1176,7 +1176,7 @@
    "live": {
     "state": "answered",
     "answer": "Number 923000001050; Events first 16; Events second 79.",
-    "seconds": 69.9,
+    "seconds": 73.4,
     "verdict": "correct",
     "sql": "SELECT x.dst AS number, x.events AS events_first, y.events AS events_second FROM v_contact_pairs x JOIN v_contact_pairs y ON y.dst = x.dst WHERE x.src = '923000001000' AND y.src = '923000001005' AND NOT x.is_service AND NOT x.is_hub AND x.dst NOT IN ('923000001000', '923000001005') ORDER BY x.events + y.events DESC LIMIT 50",
     "views": [
@@ -1204,7 +1204,7 @@
    "live": {
     "state": "answered",
     "answer": "3 rows.",
-    "seconds": 36.6,
+    "seconds": 44.0,
     "verdict": "correct",
     "sql": "SELECT x.dst AS number, x.events AS events_first, y.events AS events_second FROM v_contact_pairs x JOIN v_contact_pairs y ON y.dst = x.dst WHERE x.src = '923000001000' AND y.src = '923000001010' AND NOT x.is_service AND NOT x.is_hub AND x.dst NOT IN ('923000001000', '923000001010') ORDER BY x.events + y.events DESC LIMIT 50",
     "views": [
@@ -1231,7 +1231,7 @@
    "live": {
     "state": "answered",
     "answer": "2 rows.",
-    "seconds": 36.7,
+    "seconds": 39.3,
     "verdict": "correct",
     "sql": "SELECT x.dst AS number, x.events AS events_first, y.events AS events_second FROM v_contact_pairs x JOIN v_contact_pairs y ON y.dst = x.dst WHERE x.src = '923000001001' AND y.src = '923000001003' AND NOT x.is_service AND NOT x.is_hub AND x.dst NOT IN ('923000001001', '923000001003') ORDER BY x.events + y.events DESC LIMIT 50",
     "views": [
@@ -1260,7 +1260,7 @@
    "live": {
     "state": "answered",
     "answer": "4 rows.",
-    "seconds": 36.1,
+    "seconds": 39.8,
     "verdict": "correct",
     "sql": "SELECT x.dst AS number, x.events AS events_first, y.events AS events_second FROM v_contact_pairs x JOIN v_contact_pairs y ON y.dst = x.dst WHERE x.src = '923000001001' AND y.src = '923000001006' AND NOT x.is_service AND NOT x.is_hub AND x.dst NOT IN ('923000001001', '923000001006') ORDER BY x.events + y.events DESC LIMIT 50",
     "views": [
@@ -1287,7 +1287,7 @@
    "live": {
     "state": "answered",
     "answer": "2 rows.",
-    "seconds": 38.5,
+    "seconds": 45.9,
     "verdict": "correct",
     "sql": "SELECT x.dst AS number, x.events AS events_first, y.events AS events_second FROM v_contact_pairs x JOIN v_contact_pairs y ON y.dst = x.dst WHERE x.src = '923000001001' AND y.src = '923000001011' AND NOT x.is_service AND NOT x.is_hub AND x.dst NOT IN ('923000001001', '923000001011') ORDER BY x.events + y.events DESC LIMIT 50",
     "views": [
@@ -1317,7 +1317,7 @@
    "live": {
     "state": "answered",
     "answer": "5 rows.",
-    "seconds": 36.5,
+    "seconds": 40.3,
     "verdict": "correct",
     "sql": "SELECT x.dst AS number, x.events AS events_first, y.events AS events_second FROM v_contact_pairs x JOIN v_contact_pairs y ON y.dst = x.dst WHERE x.src = '923000001002' AND y.src = '923000001006' AND NOT x.is_service AND NOT x.is_hub AND x.dst NOT IN ('923000001002', '923000001006') ORDER BY x.events + y.events DESC LIMIT 50",
     "views": [
@@ -1343,7 +1343,7 @@
    "live": {
     "state": "answered",
     "answer": "Number 923000001054; Events first 78; Events second 37.",
-    "seconds": 36.7,
+    "seconds": 39.2,
     "verdict": "correct",
     "sql": "SELECT x.dst AS number, x.events AS events_first, y.events AS events_second FROM v_contact_pairs x JOIN v_contact_pairs y ON y.dst = x.dst WHERE x.src = '923000001002' AND y.src = '923000001007' AND NOT x.is_service AND NOT x.is_hub AND x.dst NOT IN ('923000001002', '923000001007') ORDER BY x.events + y.events DESC LIMIT 50",
     "views": [
@@ -1371,7 +1371,7 @@
    "live": {
     "state": "answered",
     "answer": "3 rows.",
-    "seconds": 35.8,
+    "seconds": 40.3,
     "verdict": "correct",
     "sql": "SELECT x.dst AS number, x.events AS events_first, y.events AS events_second FROM v_contact_pairs x JOIN v_contact_pairs y ON y.dst = x.dst WHERE x.src = '923000001002' AND y.src = '923000001009' AND NOT x.is_service AND NOT x.is_hub AND x.dst NOT IN ('923000001002', '923000001009') ORDER BY x.events + y.events DESC LIMIT 50",
     "views": [
@@ -1399,7 +1399,7 @@
    "live": {
     "state": "answered",
     "answer": "3 rows.",
-    "seconds": 37.6,
+    "seconds": 38.2,
     "verdict": "correct",
     "sql": "SELECT x.dst AS number, x.events AS events_first, y.events AS events_second FROM v_contact_pairs x JOIN v_contact_pairs y ON y.dst = x.dst WHERE x.src = '923000001002' AND y.src = '923000001010' AND NOT x.is_service AND NOT x.is_hub AND x.dst NOT IN ('923000001002', '923000001010') ORDER BY x.events + y.events DESC LIMIT 50",
     "views": [
@@ -1427,7 +1427,7 @@
    "live": {
     "state": "answered",
     "answer": "3 rows.",
-    "seconds": 36.9,
+    "seconds": 38.7,
     "verdict": "correct",
     "sql": "SELECT x.dst AS number, x.events AS events_first, y.events AS events_second FROM v_contact_pairs x JOIN v_contact_pairs y ON y.dst = x.dst WHERE x.src = '923000001003' AND y.src = '923000001006' AND NOT x.is_service AND NOT x.is_hub AND x.dst NOT IN ('923000001003', '923000001006') ORDER BY x.events + y.events DESC LIMIT 50",
     "views": [
@@ -1453,7 +1453,7 @@
    "live": {
     "state": "answered",
     "answer": "Number 923000001001; Events first 30; Events second 4.",
-    "seconds": 38.2,
+    "seconds": 38.6,
     "verdict": "correct",
     "sql": "SELECT x.dst AS number, x.events AS events_first, y.events AS events_second FROM v_contact_pairs x JOIN v_contact_pairs y ON y.dst = x.dst WHERE x.src = '923000001003' AND y.src = '923000001009' AND NOT x.is_service AND NOT x.is_hub AND x.dst NOT IN ('923000001003', '923000001009') ORDER BY x.events + y.events DESC LIMIT 50",
     "views": [
@@ -1485,7 +1485,7 @@
    "live": {
     "state": "answered",
     "answer": "7 rows.",
-    "seconds": 35.8,
+    "seconds": 40.1,
     "verdict": "correct",
     "sql": "SELECT x.dst AS number, x.events AS events_first, y.events AS events_second FROM v_contact_pairs x JOIN v_contact_pairs y ON y.dst = x.dst WHERE x.src = '923000001003' AND y.src = '923000001011' AND NOT x.is_service AND NOT x.is_hub AND x.dst NOT IN ('923000001003', '923000001011') ORDER BY x.events + y.events DESC LIMIT 50",
     "views": [
@@ -1509,7 +1509,7 @@
    "live": {
     "state": "answered",
     "answer": "Count of numbers: 10.",
-    "seconds": 15.8,
+    "seconds": 17.2,
     "verdict": "correct",
     "sql": "SELECT count(DISTINCT dst) AS count_of_numbers FROM v_contact_pairs WHERE src = '923000001000' AND NOT is_service",
     "views": [
@@ -1533,7 +1533,7 @@
    "live": {
     "state": "answered",
     "answer": "Count distinct numbers: 10.",
-    "seconds": 31.8,
+    "seconds": 40.8,
     "verdict": "correct",
     "sql": "SELECT count(DISTINCT dst) AS count_distinct_numbers FROM v_contact_pairs WHERE src = '923000001001' AND NOT is_service",
     "views": [
@@ -1557,7 +1557,7 @@
    "live": {
     "state": "answered",
     "answer": "Count of numbers: 20.",
-    "seconds": 35.4,
+    "seconds": 47.7,
     "verdict": "correct",
     "sql": "SELECT count(DISTINCT dst) AS count_of_numbers FROM v_contact_pairs WHERE src = '923000001002' AND NOT is_service",
     "views": [
@@ -1581,7 +1581,7 @@
    "live": {
     "state": "answered",
     "answer": "Count distinct numbers: 8.",
-    "seconds": 32.0,
+    "seconds": 44.1,
     "verdict": "correct",
     "sql": "SELECT count(DISTINCT dst) AS count_distinct_numbers FROM v_contact_pairs WHERE src = '923000001003' AND NOT is_service",
     "views": [
@@ -1605,7 +1605,7 @@
    "live": {
     "state": "answered",
     "answer": "Count of numbers: 8.",
-    "seconds": 39.6,
+    "seconds": 41.2,
     "verdict": "correct",
     "sql": "SELECT count(DISTINCT dst) AS count_of_numbers FROM v_contact_pairs WHERE src = '923000001004' AND NOT is_service",
     "views": [
@@ -1629,7 +1629,7 @@
    "live": {
     "state": "answered",
     "answer": "Count distinct numbers: 11.",
-    "seconds": 32.8,
+    "seconds": 39.3,
     "verdict": "correct",
     "sql": "SELECT count(DISTINCT dst) AS count_distinct_numbers FROM v_contact_pairs WHERE src = '923000001005' AND NOT is_service",
     "views": [
@@ -2158,7 +2158,7 @@
    "live": {
     "state": "answered",
     "answer": "923000001000 and 923000001005 are connected through a shared contact, 923000001050.",
-    "seconds": 55.4,
+    "seconds": 58.7,
     "verdict": "correct",
     "sql": "SELECT src, dst FROM v_connection_edges WHERE a = '923000001000' AND b = '923000001005' AND ordinary AND rank_ordinary = 1 AND hops <= 3 LIMIT 200",
     "views": [
@@ -2689,7 +2689,7 @@
    "live": {
     "state": "answered",
     "answer": "923000001000 and 923000001010 are connected through 3 shared contacts: 923000001052, 923000001080, 923000001097.",
-    "seconds": 29.8,
+    "seconds": 30.0,
     "verdict": "correct",
     "sql": "SELECT src, dst FROM v_connection_edges WHERE a = '923000001000' AND b = '923000001010' AND ordinary AND rank_ordinary = 1 AND hops <= 3 LIMIT 200",
     "views": [
@@ -3222,7 +3222,7 @@
    "live": {
     "state": "answered",
     "answer": "923000001002 and 923000001006 are connected through 5 shared contacts: 923000001033, 923000001046, 923000001051, 923000001068, 923000001085.",
-    "seconds": 26.7,
+    "seconds": 28.9,
     "verdict": "correct",
     "sql": "SELECT src, dst FROM v_connection_edges WHERE a = '923000001002' AND b = '923000001006' AND ordinary AND rank_ordinary = 1 AND hops <= 3 LIMIT 200",
     "views": [
@@ -3751,7 +3751,7 @@
    "live": {
     "state": "answered",
     "answer": "923000001002 and 923000001007 are connected through a shared contact, 923000001054.",
-    "seconds": 28.1,
+    "seconds": 31.0,
     "verdict": "correct",
     "sql": "SELECT src, dst FROM v_connection_edges WHERE a = '923000001002' AND b = '923000001007' AND ordinary AND rank_ordinary = 1 AND hops <= 3 LIMIT 200",
     "views": [
@@ -4282,7 +4282,7 @@
    "live": {
     "state": "answered",
     "answer": "923000001002 and 923000001009 are connected through 3 shared contacts: 923000001037, 923000001049, 923000001084.",
-    "seconds": 26.8,
+    "seconds": 29.2,
     "verdict": "correct",
     "sql": "SELECT src, dst FROM v_connection_edges WHERE a = '923000001002' AND b = '923000001009' AND ordinary AND rank_ordinary = 1 AND hops <= 3 LIMIT 200",
     "views": [
@@ -4809,7 +4809,7 @@
    "live": {
     "state": "answered",
     "answer": "923000001001 and 923000001003 are in direct contact.",
-    "seconds": 27.4,
+    "seconds": 29.3,
     "verdict": "correct",
     "sql": "SELECT src, dst FROM v_connection_edges WHERE a = '923000001001' AND b = '923000001003' AND ordinary AND rank_ordinary = 1 AND hops <= 3 LIMIT 200",
     "views": [
@@ -5336,7 +5336,7 @@
    "live": {
     "state": "answered",
     "answer": "923000001001 and 923000001006 are in direct contact.",
-    "seconds": 26.0,
+    "seconds": 30.7,
     "verdict": "correct",
     "sql": "SELECT src, dst FROM v_connection_edges WHERE a = '923000001001' AND b = '923000001006' AND ordinary AND rank_ordinary = 1 AND hops <= 3 LIMIT 200",
     "views": [
@@ -5863,7 +5863,7 @@
    "live": {
     "state": "answered",
     "answer": "No connection between 923000001000 and 923000001001 was found within 2 hops through the calls and messages of this case.",
-    "seconds": 31.2,
+    "seconds": 33.3,
     "verdict": "correct",
     "sql": "SELECT src, dst FROM v_connection_edges WHERE a = '923000001000' AND b = '923000001001' AND ordinary AND rank_ordinary = 1 AND hops <= 2 LIMIT 200",
     "views": [
@@ -6390,7 +6390,7 @@
    "live": {
     "state": "answered",
     "answer": "No connection between 923000001000 and 923000001002 was found within 2 hops through the calls and messages of this case.",
-    "seconds": 29.6,
+    "seconds": 32.8,
     "verdict": "correct",
     "sql": "SELECT src, dst FROM v_connection_edges WHERE a = '923000001000' AND b = '923000001002' AND ordinary AND rank_ordinary = 1 AND hops <= 2 LIMIT 200",
     "views": [
@@ -6917,7 +6917,7 @@
    "live": {
     "state": "answered",
     "answer": "No connection between 923000001000 and 923000001003 was found within 2 hops through the calls and messages of this case.",
-    "seconds": 30.1,
+    "seconds": 33.7,
     "verdict": "correct",
     "sql": "SELECT src, dst FROM v_connection_edges WHERE a = '923000001000' AND b = '923000001003' AND ordinary AND rank_ordinary = 1 AND hops <= 2 LIMIT 200",
     "views": [
@@ -7447,7 +7447,7 @@
    "live": {
     "state": "answered",
     "answer": "923000001000 and 923000001020 are connected in 3 hops; the numbers between them on the shortest routes are 923000001005, 923000001050.",
-    "seconds": 25.8,
+    "seconds": 31.8,
     "verdict": "correct",
     "sql": "SELECT src, dst FROM v_connection_edges WHERE a = '923000001000' AND b = '923000001020' AND ordinary AND rank_ordinary = 1 AND hops <= 3 LIMIT 200",
     "views": [
@@ -7985,7 +7985,7 @@
    "live": {
     "state": "answered",
     "answer": "923000001002 and 923000001014 are connected in 3 hops; the numbers between them on the shortest routes are 923000001006, 923000001009, 923000001033, 923000001037, 923000001046 and 5 more.",
-    "seconds": 28.1,
+    "seconds": 31.5,
     "verdict": "correct",
     "sql": "SELECT src, dst FROM v_connection_edges WHERE a = '923000001002' AND b = '923000001014' AND ordinary AND rank_ordinary = 1 AND hops <= 3 LIMIT 200",
     "views": [
@@ -8023,7 +8023,7 @@
    "live": {
     "state": "answered",
     "answer": "13 links between 12 numbers.",
-    "seconds": 90.6,
+    "seconds": 93.2,
     "verdict": "correct",
     "sql": "WITH RECURSIVE contacts AS (SELECT src AS a, dst AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub UNION SELECT dst AS a, src AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub), walk AS (SELECT a AS src, b AS dst, 1 AS depth, ARRAY[a, b] AS path FROM contacts WHERE a = '923000001000' UNION ALL SELECT w.src, c.b, w.depth + 1, w.path || c.b FROM walk w JOIN contacts c ON c.a = w.dst WHERE w.depth < 2 AND NOT c.b = ANY(w.path)), found AS (SELECT path FROM walk WHERE dst IS NOT NULL) SELECT DISTINCT path[i] AS src, path[i + 1] AS dst FROM found, generate_series(1, cardinali",
     "views": [
@@ -8086,7 +8086,7 @@
    "live": {
     "state": "answered",
     "answer": "58 links between 37 numbers.",
-    "seconds": 75.1,
+    "seconds": 76.5,
     "verdict": "correct",
     "sql": "WITH RECURSIVE contacts AS (SELECT src AS a, dst AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub UNION SELECT dst AS a, src AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub), walk AS (SELECT a AS src, b AS dst, 1 AS depth, ARRAY[a, b] AS path FROM contacts WHERE a = '923000001001' UNION ALL SELECT w.src, c.b, w.depth + 1, w.path || c.b FROM walk w JOIN contacts c ON c.a = w.dst WHERE w.depth < 2 AND NOT c.b = ANY(w.path)), found AS (SELECT path FROM walk) SELECT DISTINCT path[i] AS src, path[i + 1] AS dst FROM found, generate_series(1, cardinality(path) - 1) i LIMIT ",
     "views": [
@@ -8145,7 +8145,7 @@
    "live": {
     "state": "answered",
     "answer": "44 links between 33 numbers.",
-    "seconds": 126.7,
+    "seconds": 133.3,
     "verdict": "correct",
     "sql": "WITH RECURSIVE contacts AS (SELECT src AS a, dst AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub UNION SELECT dst AS a, src AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub), walk AS (SELECT a AS src, b AS dst, 1 AS depth, ARRAY[a, b] AS path FROM contacts WHERE a = '923000001002' UNION ALL SELECT w.src, c.b, w.depth + 1, w.path || c.b FROM walk w JOIN contacts c ON c.a = w.dst WHERE w.depth < 2 AND NOT c.b = ANY(w.path)), found AS (SELECT path FROM walk WHERE dst IS NOT NULL) SELECT DISTINCT path[i] AS src, path[i + 1] AS dst FROM found, generate_series(1, cardinali",
     "views": [
@@ -8198,7 +8198,7 @@
    "live": {
     "state": "answered",
     "answer": "42 links between 27 numbers.",
-    "seconds": 73.4,
+    "seconds": 80.6,
     "verdict": "correct",
     "sql": "WITH RECURSIVE contacts AS (SELECT src AS a, dst AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub UNION SELECT dst AS a, src AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub), walk AS (SELECT a AS src, b AS dst, 1 AS depth, ARRAY[a, b] AS path FROM contacts WHERE a = '923000001003' UNION ALL SELECT w.src, c.b, w.depth + 1, w.path || c.b FROM walk w JOIN contacts c ON c.a = w.dst WHERE w.depth < 2 AND NOT c.b = ANY(w.path)), found AS (SELECT path FROM walk) SELECT DISTINCT path[i] AS src, path[i + 1] AS dst FROM found, generate_series(1, cardinality(path) - 1) i LIMIT ",
     "views": [
@@ -8234,7 +8234,7 @@
    "live": {
     "state": "answered",
     "answer": "18 links between 10 numbers.",
-    "seconds": 122.7,
+    "seconds": 137.7,
     "verdict": "correct",
     "sql": "WITH RECURSIVE contacts AS (SELECT src AS a, dst AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub UNION SELECT dst AS a, src AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub), walk AS (SELECT a AS src, b AS dst, 1 AS depth, ARRAY[a, b] AS path FROM contacts WHERE a = '923000001004' UNION ALL SELECT w.src, c.b, w.depth + 1, w.path || c.b FROM walk w JOIN contacts c ON c.a = w.dst WHERE w.depth < 2 AND NOT c.b = ANY(w.path)), found AS (SELECT path FROM walk WHERE dst IS NOT NULL) SELECT DISTINCT path[i] AS src, path[i + 1] AS dst FROM found, generate_series(1, cardinali",
     "views": [
@@ -8273,7 +8273,7 @@
    "live": {
     "state": "answered",
     "answer": "17 links between 13 numbers.",
-    "seconds": 71.6,
+    "seconds": 79.7,
     "verdict": "correct",
     "sql": "WITH RECURSIVE contacts AS (SELECT src AS a, dst AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub UNION SELECT dst AS a, src AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub), walk AS (SELECT a AS src, b AS dst, 1 AS depth, ARRAY[a, b] AS path FROM contacts WHERE a = '923000001005' UNION ALL SELECT w.src, c.b, w.depth + 1, w.path || c.b FROM walk w JOIN contacts c ON c.a = w.dst WHERE w.depth < 2 AND NOT c.b = ANY(w.path)), found AS (SELECT path FROM walk) SELECT DISTINCT path[i] AS src, path[i + 1] AS dst FROM found, generate_series(1, cardinality(path) - 1) i LIMIT ",
     "views": [
@@ -8327,7 +8327,7 @@
    "live": {
     "state": "answered",
     "answer": "55 links between 28 numbers.",
-    "seconds": 120.1,
+    "seconds": 129.6,
     "verdict": "correct",
     "sql": "WITH RECURSIVE contacts AS (SELECT src AS a, dst AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub UNION SELECT dst AS a, src AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub), walk AS (SELECT a AS src, b AS dst, 1 AS depth, ARRAY[a, b] AS path FROM contacts WHERE a = '923000001006' UNION ALL SELECT w.src, c.b, w.depth + 1, w.path || c.b FROM walk w JOIN contacts c ON c.a = w.dst WHERE w.depth < 2 AND NOT c.b = ANY(w.path)), found AS (SELECT path FROM walk WHERE dst IS NOT NULL) SELECT DISTINCT path[i] AS src, path[i + 1] AS dst FROM found, generate_series(1, cardinali",
     "views": [
@@ -8362,7 +8362,7 @@
    "live": {
     "state": "answered",
     "answer": "8 links between 9 numbers.",
-    "seconds": 72.1,
+    "seconds": 76.1,
     "verdict": "correct",
     "sql": "WITH RECURSIVE contacts AS (SELECT src AS a, dst AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub UNION SELECT dst AS a, src AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub), walk AS (SELECT a AS src, b AS dst, 1 AS depth, ARRAY[a, b] AS path FROM contacts WHERE a = '923000001007' UNION ALL SELECT w.src, c.b, w.depth + 1, w.path || c.b FROM walk w JOIN contacts c ON c.a = w.dst WHERE w.depth < 2 AND NOT c.b = ANY(w.path)), found AS (SELECT path FROM walk) SELECT DISTINCT path[i] AS src, path[i + 1] AS dst FROM found, generate_series(1, cardinality(path) - 1) i LIMIT ",
     "views": [
@@ -8398,7 +8398,7 @@
    "live": {
     "state": "answered",
     "answer": "18 links between 10 numbers.",
-    "seconds": 119.5,
+    "seconds": 145.9,
     "verdict": "correct",
     "sql": "WITH RECURSIVE contacts AS (SELECT src AS a, dst AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub UNION SELECT dst AS a, src AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub), walk AS (SELECT a AS src, b AS dst, 1 AS depth, ARRAY[a, b] AS path FROM contacts WHERE a = '923000001008' UNION ALL SELECT w.src, c.b, w.depth + 1, w.path || c.b FROM walk w JOIN contacts c ON c.a = w.dst WHERE w.depth < 2 AND NOT c.b = ANY(w.path)), found AS (SELECT path FROM walk WHERE dst IS NOT NULL) SELECT DISTINCT path[i] AS src, path[i + 1] AS dst FROM found, generate_series(1, cardinali",
     "views": [
@@ -8452,7 +8452,7 @@
    "live": {
     "state": "answered",
     "answer": "39 links between 28 numbers.",
-    "seconds": 73.9,
+    "seconds": 81.1,
     "verdict": "correct",
     "sql": "WITH RECURSIVE contacts AS (SELECT src AS a, dst AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub UNION SELECT dst AS a, src AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub), walk AS (SELECT a AS src, b AS dst, 1 AS depth, ARRAY[a, b] AS path FROM contacts WHERE a = '923000001009' UNION ALL SELECT w.src, c.b, w.depth + 1, w.path || c.b FROM walk w JOIN contacts c ON c.a = w.dst WHERE w.depth < 2 AND NOT c.b = ANY(w.path)), found AS (SELECT path FROM walk) SELECT DISTINCT path[i] AS src, path[i + 1] AS dst FROM found, generate_series(1, cardinality(path) - 1) i LIMIT ",
     "views": [
@@ -8510,7 +8510,7 @@
    "live": {
     "state": "answered",
     "answer": "44 links between 32 numbers.",
-    "seconds": 120.6,
+    "seconds": 139.5,
     "verdict": "correct",
     "sql": "WITH RECURSIVE contacts AS (SELECT src AS a, dst AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub UNION SELECT dst AS a, src AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub), walk AS (SELECT a AS src, b AS dst, 1 AS depth, ARRAY[a, b] AS path FROM contacts WHERE a = '923000001010' UNION ALL SELECT w.src, c.b, w.depth + 1, w.path || c.b FROM walk w JOIN contacts c ON c.a = w.dst WHERE w.depth < 2 AND NOT c.b = ANY(w.path)), found AS (SELECT path FROM walk WHERE dst IS NOT NULL) SELECT DISTINCT path[i] AS src, path[i + 1] AS dst FROM found, generate_series(1, cardinali",
     "views": [
@@ -8563,7 +8563,7 @@
    "live": {
     "state": "answered",
     "answer": "42 links between 27 numbers.",
-    "seconds": 71.3,
+    "seconds": 81.0,
     "verdict": "correct",
     "sql": "WITH RECURSIVE contacts AS (SELECT src AS a, dst AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub UNION SELECT dst AS a, src AS b FROM v_contact_pairs WHERE NOT is_service AND NOT is_hub), walk AS (SELECT a AS src, b AS dst, 1 AS depth, ARRAY[a, b] AS path FROM contacts WHERE a = '923000001011' UNION ALL SELECT w.src, c.b, w.depth + 1, w.path || c.b FROM walk w JOIN contacts c ON c.a = w.dst WHERE w.depth < 2 AND NOT c.b = ANY(w.path)), found AS (SELECT path FROM walk) SELECT DISTINCT path[i] AS src, path[i + 1] AS dst FROM found, generate_series(1, cardinality(path) - 1) i LIMIT ",
     "views": [
@@ -8591,7 +8591,7 @@
    "live": {
     "state": "answered",
     "answer": "2 rows.",
-    "seconds": 176.6,
+    "seconds": 46.9,
     "verdict": "correct",
     "sql": "SELECT x.dst AS number, x.events AS events_first, y.events AS events_second FROM v_contact_pairs x JOIN v_contact_pairs y ON y.dst = x.dst WHERE x.src = '923000001000' AND y.src = '923000001005' AND NOT x.is_service AND NOT x.is_hub AND x.dst NOT IN ('923000001000', '923000001005') ORDER BY x.events + y.events DESC LIMIT 50",
     "views": [
@@ -8617,14 +8617,14 @@
    "bank": "extra",
    "note": "the same question at 10: 923000001036 is a hub and drops out",
    "expected_text": "923000001050; the notes say: Hub threshold used: 10 subscribers (read from your question)",
-   "review_note": "Found by this pack: the engine read the number 10 from the question (the note says so) but did not leave out the hubs, so 923000001036 stayed in. Fixed in commit ed44c58 (a threshold named in the question is a hub cue); it takes effect with the next engine image.",
+   "review_note": "Found by this pack on the engine of 12:26 UTC (the number 10 was read from the question but the hubs were not left out: 923000001036 stayed in). Fixed in round 8 (commit ed44c58, live since 16:07 UTC) and checked live: the obligation HUBS fired, the second attempt answered 923000001050 only.",
    "kind_of_check": "answer",
    "live": {
     "state": "answered",
-    "answer": "2 rows.",
-    "seconds": 43.7,
-    "verdict": "wrong",
-    "sql": "SELECT x.dst AS number, x.events AS events_first, y.events AS events_second FROM v_contact_pairs x JOIN v_contact_pairs y ON y.dst = x.dst WHERE x.src = '923000001000' AND y.src = '923000001005' AND NOT x.is_service AND x.dst NOT IN ('923000001000', '923000001005') AND NOT y.is_service AND y.dst NOT IN ('923000001000', '923000001005') ORDER BY x.events + y.events DESC LIMIT 50",
+    "answer": "Number 923000001050; Events first 16; Events second 79.",
+    "seconds": 103.6,
+    "verdict": "correct",
+    "sql": "SELECT x.dst AS number, x.events AS events_first, y.events AS events_second FROM v_contact_pairs x JOIN v_contact_pairs y ON y.dst = x.dst WHERE x.src = '923000001000' AND y.src = '923000001005' AND NOT x.is_service AND NOT x.is_hub AND NOT y.is_service AND NOT y.is_hub AND x.dst NOT IN ('923000001000', '923000001005') ORDER BY x.events + y.events DESC LIMIT 50",
     "views": [
      "v_contact_pairs"
     ]
@@ -8672,7 +8672,7 @@
    "live": {
     "state": "answered",
     "answer": "1 result: app_a (210).",
-    "seconds": 32.0,
+    "seconds": 35.5,
     "verdict": "correct",
     "sql": "SELECT app AS label, count(*) AS value FROM v_app_usage WHERE src = '923000001001' GROUP BY app ORDER BY value DESC LIMIT 1",
     "views": [
@@ -8696,7 +8696,7 @@
    "live": {
     "state": "answered",
     "answer": "Value: 3.",
-    "seconds": 16.5,
+    "seconds": 15.6,
     "verdict": "correct",
     "sql": "SELECT count(DISTINCT app) AS value FROM v_app_usage WHERE src = '923000001001'",
     "views": [
@@ -8720,7 +8720,7 @@
    "live": {
     "state": "answered",
     "answer": "Value: 431.",
-    "seconds": 44.6,
+    "seconds": 43.0,
     "verdict": "correct",
     "sql": "SELECT count(*) AS value FROM v_data_sessions WHERE src = '923000001010'",
     "views": [
@@ -8745,7 +8745,7 @@
    "live": {
     "state": "answered",
     "answer": "Value: 214,448,386.",
-    "seconds": 13.5,
+    "seconds": 15.5,
     "verdict": "correct",
     "sql": "SELECT sum(bytes_down) AS value FROM v_data_sessions WHERE src = '923000001010'",
     "views": [
@@ -8771,7 +8771,7 @@
    "live": {
     "state": "answered",
     "answer": "1 result: 923000001010 (431).",
-    "seconds": 8.7,
+    "seconds": 10.0,
     "verdict": "correct",
     "sql": "SELECT src AS label, count(*) AS value FROM v_data_sessions GROUP BY src ORDER BY value DESC LIMIT 1",
     "views": [
@@ -9703,7 +9703,7 @@
    "live": {
     "state": "answered",
     "answer": "N: 53.",
-    "seconds": 51.7,
+    "seconds": 54.0,
     "verdict": "correct",
     "sql": "SELECT count(*) AS n FROM v_bank_transactions WHERE account = 'PK00SYNT0000000000002010'",
     "views": [
@@ -9728,7 +9728,7 @@
    "live": {
     "state": "answered",
     "answer": "Total credited: 1,156,096.41.",
-    "seconds": 18.6,
+    "seconds": 20.0,
     "verdict": "correct",
     "sql": "SELECT sum(amount) AS total_credited FROM v_bank_transactions WHERE account = 'PK00SYNT0000000000002010' AND direction = 'credit'",
     "views": [
@@ -9753,7 +9753,7 @@
    "live": {
     "state": "answered",
     "answer": "Total debited: 4,186,972.88.",
-    "seconds": 25.5,
+    "seconds": 29.5,
     "verdict": "correct",
     "sql": "SELECT sum(amount) AS total_debited FROM v_bank_transactions WHERE account = 'PK00SYNT0000000000002004' AND direction = 'debit'",
     "views": [
@@ -9780,7 +9780,7 @@
    "live": {
     "state": "answered",
     "answer": "Counterparty PK00SYNT0000000000005009; Total amount 1,312,676.9.",
-    "seconds": 77.6,
+    "seconds": 76.2,
     "verdict": "correct",
     "sql": "SELECT counterparty, total_amount FROM v_account_counterparties WHERE account = 'PK00SYNT0000000000002010' AND direction = 'debit' ORDER BY total_amount DESC LIMIT 1",
     "views": [
@@ -9804,7 +9804,7 @@
    "live": {
     "state": "answered",
     "answer": "Credits: 13.",
-    "seconds": 47.2,
+    "seconds": 52.7,
     "verdict": "correct",
     "sql": "SELECT count(*) AS credits FROM v_bank_transactions WHERE account = 'PK00SYNT0000000000002005' AND direction = 'credit'",
     "views": [
@@ -9829,7 +9829,7 @@
    "live": {
     "state": "answered",
     "answer": "Balance: 5,912,781.7.",
-    "seconds": 18.1,
+    "seconds": 18.8,
     "verdict": "correct",
     "sql": "SELECT balance_after AS balance FROM v_bank_transactions WHERE account = 'PK00SYNT0000000000002007' ORDER BY txn_utc DESC LIMIT 1",
     "views": [
@@ -9853,7 +9853,7 @@
    "live": {
     "state": "answered",
     "answer": "First transaction day: 2026-02-02.",
-    "seconds": 16.1,
+    "seconds": 17.9,
     "verdict": "correct",
     "sql": "SELECT min(txn_utc)::date AS first_transaction_day FROM v_bank_transactions WHERE account = 'PK00SYNT0000000000002000'",
     "views": [
@@ -9884,17 +9884,15 @@
    "bank": "extra",
    "note": "",
    "expected_text": "PK00SYNT0000000000005001, PK00SYNT0000000000005002, PK00SYNT0000000000005003, PK00SYNT0000000000005004, PK00SYNT0000000000005005, PK00SYNT0000000000005006, PK00SYNT0000000000005007, PK00SYNT0000000000005010, PK00SYNT0000000000005011, PK00SYNT0000000000009002 (10 in all)",
-   "review_note": "Found by this pack: the engine answered with the accounts the account PAID (its debits); \"sent money to X\" asks for the senders (X's credits). Fixed in commit ed44c58 (obligation DIRECTION_ROLE); it takes effect with the next engine image.",
+   "review_note": "Found by this pack: the engine answered with the accounts the account PAID (its debits); \"sent money to X\" asks for the senders (X's credits). Round 8 (live since 16:07 UTC) refuses that query, but the model then ran out of attempts and the engine declined. WARNING: the fallback path then says \"No record in this case contains 0000000000002003\", which is wrong for this account (it matched only the trailing digits). A verified example for this wording (commit f913cf9) is in the code and takes effect with the next engine image; until then a decline here is the engine being honest and the fallback sentence is not to be trusted.",
    "kind_of_check": "answer",
    "live": {
-    "state": "answered",
-    "answer": "11 rows.",
-    "seconds": 23.6,
-    "verdict": "wrong",
-    "sql": "SELECT counterparty_account, sum(amount) AS total_amount FROM v_bank_transactions WHERE account = 'PK00SYNT0000000000002003' AND direction = 'debit' GROUP BY counterparty_account ORDER BY total_amount DESC",
-    "views": [
-     "v_bank_transactions"
-    ]
+    "state": "declined",
+    "answer": "No record in this case contains 0000000000002003: I searched every identifier field of the structured evidence (records and media metadata). Text inside recordings, images and documents is searched by a different path and was not searched here.",
+    "seconds": 134.5,
+    "verdict": "declined",
+    "sql": "SELECT DISTINCT account FROM v_transaction WHERE counterparty = 'PK00SYNT0000000000002003'",
+    "views": []
    }
   },
   {
@@ -9914,14 +9912,14 @@
    "bank": "extra",
    "note": "the window (10 minutes) and the share (90 percent) are read from the question; change them and the answer changes",
    "expected_text": "PK00SYNT0000000000002003, PK00SYNT0000000000002004, PK00SYNT0000000000002010 (3 in all)",
-   "review_note": "Found by this pack: the model added an invented condition (received_from IS NULL), nothing matched, and the answer said that no credit was followed by a debit although three accounts qualify. Fixed in commit ed44c58 (obligation INVENTED_FILTER); it takes effect with the next engine image.",
+   "review_note": "Found by this pack: the model added an invented condition (received_from IS NULL), nothing matched, and the answer said that no credit was followed by a debit although three accounts qualify. Fixed in round 8 (commit ed44c58, live since 16:07 UTC) and checked live: the obligation INVENTED_FILTER fired and the second attempt answered with the pairs.",
    "kind_of_check": "answer",
    "live": {
     "state": "answered",
-    "answer": "No row matches what you asked: no credit was followed by a debit of at least 90 percent of it within 10 minutes.",
-    "seconds": 68.9,
-    "verdict": "wrong",
-    "sql": "SELECT account, credit_utc, credit_amount, debit_utc, debit_amount, sent_to, minutes_between, share_percent FROM v_account_flows WHERE share_percent >= 90.0 AND received_from IS NULL ORDER BY credit_utc LIMIT 200",
+    "answer": "9 rows.",
+    "seconds": 95.0,
+    "verdict": "correct",
+    "sql": "SELECT account, credit_utc, credit_amount, debit_utc, debit_amount, sent_to, minutes_between, share_percent FROM v_account_flows WHERE share_percent >= 90.0 ORDER BY credit_utc LIMIT 200",
     "views": [
      "v_account_flows"
     ]
@@ -9946,7 +9944,7 @@
    "live": {
     "state": "answered",
     "answer": "Account PK00SYNT0000000000002003; Transactions 1; Total amount 384,500.",
-    "seconds": 82.2,
+    "seconds": 86.0,
     "verdict": "correct",
     "sql": "SELECT account, transactions, total_amount FROM v_account_limit_bands",
     "views": [
