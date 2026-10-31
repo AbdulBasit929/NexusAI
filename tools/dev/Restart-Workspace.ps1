@@ -35,6 +35,8 @@ if ($old) { Stop-Process -Id $old -Force; Write-Host "stopped the listener on $P
 $out = Join-Path ([IO.Path]::GetTempPath()) "vite-$Port.out"
 $err = Join-Path ([IO.Path]::GetTempPath()) "vite-$Port.err"
 $env:FORENSIC_RECORDS_API_KEY = $key
+# the API by its IPv4 address: 'localhost' can resolve to ::1 first and Docker's IPv6 relay can stall (seen 2026-10-31)
+if (-not $env:NEXUSAI_API_URL) { $env:NEXUSAI_API_URL = 'http://127.0.0.1:8091' }
 try {
   $p = Start-Process -FilePath 'node' -ArgumentList 'node_modules\vite\bin\vite.js', '--port', $Port, '--strictPort' -WorkingDirectory $workspace -WindowStyle Hidden -PassThru -RedirectStandardOutput $out -RedirectStandardError $err
 } finally { Remove-Item Env:\FORENSIC_RECORDS_API_KEY -ErrorAction SilentlyContinue }

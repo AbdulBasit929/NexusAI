@@ -18,7 +18,9 @@
 window.__INVESTIGATION_WORKSPACE_CONFIG__ = window.__INVESTIGATION_WORKSPACE_CONFIG__ || {
   apiBaseUrl: '/api',
   capabilities: { hybrid_query: true },
-  caseIds: ['nexusai-multimodal-product-acceptance', 'nexusai-forensic-demo', 'nexusai-real-private-demo', 'ingest-v2-shadow-synthetic-20261013'],
+  caseIds: ['nexusai-multimodal-product-acceptance', 'nexusai-forensic-demo', 'nexusai-real-private-demo', 'ingest-v2-shadow-synthetic-20261013',
+    // the synthetic Orion Lahore reference case (2026-10-30): every family, the documents and the statements, with oracle-answered questions in docs/qa/ui-query-pack-20261031.md
+    'orion-lahore-reference-20261030', 'orion-lahore-statements-20261030'],
   dataInventoryCaseIds: ['nexusai-real-private-demo'],   // cases with a local data inventory: they get a Data tab
 }
 

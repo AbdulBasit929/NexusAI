@@ -7,6 +7,8 @@ setlocal
 set "LANE=%~dp0..\.."
 set "MAINENV=%LANE%\..\NexusAI\.env.forensic-runtime.local"
 set "PORT=4181"
+rem the API by its IPv4 address: "localhost" can resolve to ::1 first, and Docker's IPv6 relay for the published port can stall (seen 2026-10-31: every proxied request hung)
+set "NEXUSAI_API_URL=http://127.0.0.1:8091"
 for /f "usebackq tokens=1,* delims==" %%a in (`findstr /b /c:"FORENSIC_RECORDS_API_KEY=" "%MAINENV%"`) do set "FORENSIC_RECORDS_API_KEY=%%b"
 if not defined FORENSIC_RECORDS_API_KEY (
   echo FORENSIC_RECORDS_API_KEY is not in %MAINENV%
