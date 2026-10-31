@@ -50,7 +50,7 @@ def build_case_database(db, root, registry, port):
     load_case.prepare(db, registry)
     sink = PsqlSink(db)
     key, _summaries = ingest_all(db, root, registry, sink)   # the registration exports are read with the job's day-first date order; every other export as before
-    for name in ("016_effective_records.sql", "018_effective_ipdr.sql", "017_analyst_views.sql", "019_observed_cell_positions.sql", "020_contact_links_and_inventory.sql", "021_case_record.sql", "024_colocation_and_meetings.sql", "025_successor_candidates.sql", "026_movement_and_rhythm.sql", "027_plate_sightings.sql", "028_subscriber_device_views.sql", "030_transaction_views.sql", "031_document_mentions.sql"):
+    for name in ("016_effective_records.sql", "018_effective_ipdr.sql", "017_analyst_views.sql", "019_observed_cell_positions.sql", "020_contact_links_and_inventory.sql", "021_case_record.sql", "024_colocation_and_meetings.sql", "025_successor_candidates.sql", "026_movement_and_rhythm.sql", "027_plate_sightings.sql", "028_subscriber_device_views.sql", "030_transaction_views.sql", "031_document_mentions.sql", "032_case_hub_threshold_and_statement_repeats.sql"):
         db.psql("-f", "/tmp/mig/" + name)
     if key.get("document_truth"):
         # the documents of the case, kept as the worker keeps them and indexed by the production extractor (the views of migration 031 read them)

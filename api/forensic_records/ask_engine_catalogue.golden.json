@@ -375,7 +375,7 @@
     },
     {
       "name": "v_bank_transactions",
-      "description": "Transactions of bank statements and wallet lists, one row each (exact repeats within a file left out): the account, the other side, the direction, the amount (positive) and its signed form, the balance after, the channel, the reference and the time with its precision. Amounts are as the source states them. The narration and names are not held here.",
+      "description": "Transactions of bank statements and wallet lists, one row each (exact repeats within a file left out; a row that another file of the case already holds with the same account, time, direction, amount and balance is counted once, in the file with the smaller evidence id, and the repeat stays in the stored rows): the account, the other side, the direction, the amount (positive) and its signed form, the balance after, the channel, the reference and the time with its precision. Amounts are as the source states them. The narration and names are not held here.",
       "columns": [
         {
           "name": "txn_id",

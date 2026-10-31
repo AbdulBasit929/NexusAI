@@ -32,7 +32,7 @@ from ingestion.forensic_records.layout_registry import load_registry  # noqa: E4
 
 VIEW_MIGRATIONS = ("017_analyst_views.sql", "018_effective_ipdr.sql", "019_observed_cell_positions.sql", "020_contact_links_and_inventory.sql", "021_case_record.sql",
                    "024_colocation_and_meetings.sql", "025_successor_candidates.sql", "026_movement_and_rhythm.sql", "027_plate_sightings.sql", "028_subscriber_device_views.sql",
-                   "030_transaction_views.sql", "031_document_mentions.sql")
+                   "030_transaction_views.sql", "031_document_mentions.sql", "032_case_hub_threshold_and_statement_repeats.sql")
 TYPED = {"comm_event": "start_utc", "data_session": "start_utc", "app_usage": None, "plate_sighting": None, "subscriber_registration": None, "bank_transaction": "txn_utc"}
 TIME_POLICY = {"source_timezone": "Asia/Karachi", "source_timezone_state": "profile_defaulted", "allow_profile_timezone_default": "true",   # the policy of the direct path: assumed_by_profile
                "source_date_order": "DMY", "source_date_order_state": "analyst_confirmed"}   # the uploader declares day-first for the case, as the direct path does for the files that need it

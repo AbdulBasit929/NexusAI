@@ -50,6 +50,8 @@ def main(argv):
         db.psql("-f", "/tmp/mig/028_subscriber_device_views.sql")
         db.psql("-f", "/tmp/mig/030_transaction_views.sql")
         db.psql("-f", "/tmp/mig/031_document_mentions.sql")
+        db.psql("-f", "/tmp/mig/021_case_record.sql")   # migration 032 adds a column to the case record
+        db.psql("-f", "/tmp/mig/032_case_hub_threshold_and_statement_repeats.sql")
         runtime_password = uuid.uuid4().hex
         db.psql("-c", "ALTER ROLE forensic_runtime PASSWORD '%s'" % runtime_password)
         db.psql("-c", "CREATE TABLE public.nx_throwaway_marker (id int)")
