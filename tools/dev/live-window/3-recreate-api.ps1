@@ -3,9 +3,9 @@
 # container or the secrets file, never printed).
 #   (no switch)  DRY RUN: compose's config hash must equal the running container's label; the rendered environment is compared; nothing changes
 #   -Apply       retags nexusai-forensic-records-api:families-20261030 as :latest and recreates the API; compares the environment before and after
-#   -Rollback    retags :before-families-20261030 (the image that ran before) as :latest and recreates the API
+#   -Rollback    retags :$RollbackTo (default before-families-20261030, the image that ran before; for a later engine round pass -To <tag> -RollbackTo <tag>) as :latest and recreates the API
 # Run from PowerShell:  .\tools\dev\live-window\3-recreate-api.ps1 [-Apply|-Rollback]     Afterwards restart the interface workspace:  .\tools\dev\Restart-Workspace.ps1 -Port 4181 -Tree lane
-param([switch]$Apply, [switch]$Rollback, [string]$To = 'families-20261030')
+param([switch]$Apply, [switch]$Rollback, [string]$To = 'families-20261030', [string]$RollbackTo = 'before-families-20261030')
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '..\..\..\evaluation\question_factory\Run-Arms.ps1')
 $ErrorActionPreference = 'Stop'
@@ -52,7 +52,7 @@ try {
     Write-Host ("service image in compose: {0}; build section: {1}" -f $cfg.services.($s.Service).image, [bool]$cfg.services.($s.Service).build)
     return
   }
-  $tag = if ($Rollback) { 'before-families-20261030' } else { $To }
+  $tag = if ($Rollback) { $RollbackTo } else { $To }
   $id = (@(docker image inspect "${image}:${tag}" | ConvertFrom-Json)[0]).Id
   if (-not $id) { throw "no image ${image}:${tag}" }
   Write-Host ("--- APPLY: {0}:latest <- {0}:{1} ({2})" -f $image, $tag, $id.Substring(7, 12))

@@ -15,10 +15,12 @@ $base = @('compose', '--project-name', 'nexusai', '--project-directory', $main, 
 $container = 'nexusai-forensic-records-worker-1'
 $info = @(docker inspect $container | ConvertFrom-Json)[0]
 $label = $info.Config.Labels.'com.docker.compose.config-hash'
-$computed = (docker @base @today config --hash forensic-records-worker) -replace '^\S+\s+', ''
+$hash3 = (docker @base @today config --hash forensic-records-worker) -replace '^\S+\s+', ''
+$hash4 = (docker @base @families config --hash forensic-records-worker) -replace '^\S+\s+', ''
 Write-Host ("running image {0}; label {1}" -f $info.Image.Substring(7, 12), $label)
-Write-Host ("compose hash of today's three files: {0} -> {1}" -f $computed, $(if ($computed -eq $label) { 'IDENTICAL: a recreate reproduces the running configuration' } else { 'DIFFERENT: stop, do not apply' }))
-if ($computed -ne $label) { throw 'compose does not reproduce the running worker; stop' }
+$which = if ($label -eq $hash3) { 'the three files of before the families overlay' } elseif ($label -eq $hash4) { 'the four files including the families overlay' } else { '' }
+Write-Host ("compose hash: three files {0}, four files {1} -> {2}" -f $hash3.Substring(0, 12), $hash4.Substring(0, 12), $(if ($which) { "IDENTICAL to the running label: the worker runs $which, and a recreate reproduces it" } else { 'DIFFERENT from both: stop, do not apply' }))
+if (-not $which) { throw 'compose does not reproduce the running worker; stop' }
 if (-not $Apply -and -not $Rollback) { Write-Host 'dry run only; nothing changed.'; return }
 $inflight = docker exec nexusai-forensic-postgres-1 psql -U localrecall -d localrecall -At -c "select count(*) from forensic.records_ingest_jobs where status::text in ('queued','running')"
 if ([int]$inflight -ne 0) { throw "jobs are in flight ($inflight); wait for the worker to be idle" }
