@@ -92,6 +92,25 @@ The three families that held the findings, the same questions as the first smoke
 * The two declines are the two left as they are: DOC-015 ("where does X appear without Y", no document named) and ANPR-002 ("how often was SYNT2083 seen"). The refusals the plan wants (the national ID number withheld, the verdict questions) are counted correct, as before.
 * The call-record and analysis families (29 of the 83) were not re-asked live and the call-record bank was not re-run offline in this round. The code changed only for queries that read the registration, handset or document views (the empty-result check, the REGISTRATION_END obligation), for the plate reader and for the kind-of-value check; the full package suite and the three development banks (subscribers, transactions, documents: 62 of 63 correct, 0 wrong) passed. The three hub-threshold misses of the first smoke are a configuration difference, not an engine finding, and are unchanged.
 
+## Migration 032 and the round 7 engine, applied (2026-10-31, on the owner's word "apply migration 032 and the engine")
+
+Design, rehearsal and regression are in `case-setting-and-statement-repeats-20261031.md`. Backup of the live database before: `live-20261031T103450Z.dump` (513,438,743 bytes, SHA-256 `2b62f7f900e9278f8cbacb6fdb9ee62a34ba74eb0dfe6ccf893bd270b22ff08f`). The harness's auto-mode classifier had blocked the first attempt as a production deploy; the owner's word followed in chat.
+
+| Time (UTC) | Step | Result |
+|---|---|---|
+| 12:25 | no ingest job in flight; `2b-migration-032.sh`: preflight, apply, verify, the 010 runtime-RLS verify | all passed in 9 s; catalog **3 added, 0 removed, 2 changed**, exactly as rehearsed (the column `hub_threshold`, its check, its description; the view `v_bank_transactions` and its description); row counts equal except the audit log (63 rows more, the questions asked since the baseline); the bank view as the analyst role returns 626, 626 and 135 rows on the three Orion collections, as before |
+| 12:26 | the API recreated on image `3a07ed87bccf` (`round7b-20261031`; rollback tag `before-round7-20261031` = `dd2b07a0d75b`) | compose's config hash equalled the running label (`74eb879ac9e9`); environment 69 variables before and after, nothing added, removed or changed; healthy at once; the plan cache restored (509 entries); no error in the logs |
+| 12:26 | the Orion reference case given `hub_threshold` = 10 (`set_case_setting.py --apply`, PATCH /cases) | the case record shows 10; one audit row |
+| about 12:28 | the workspace on :4181 restarted (`Restart-Workspace.ps1`; its proxy now reaches the API by 127.0.0.1) | the proxy reaches the API: HTTP 200 |
+
+**Checks on the live system after the change**
+
+* The collection status of the three Orion collections reports **0 sources with a missing retained copy** (it was 21, 3 and 11); the dashboard now shows 2 sources needing review in all (the two genuine failures of other cases), and both Orion cases read "Ready" (53 of 53, 3 of 3).
+* The three call questions that fell to the hub threshold in the first smoke (common contacts, path, reach: ORL-CAL-Q019, Q054, Q066) are **3 of 3 correct** with the case's threshold of 10, and each answer says "Hub threshold used: 10 subscribers (the setting of this case, because the question names none)."
+* The whole UI query pack is being put to the live engine (results in `docs/qa/`).
+
+Rollback: the engine `.\tools\dev\live-window\3-recreate-api.ps1 -Rollback -RollbackTo before-round7-20261031`; the migration `ops/032.../rollback.sql` (it refuses while a case holds a setting: `set_case_setting.py --clear-hub-threshold --apply` first).
+
 ## Rollback, if ever needed
 
 Worker: `.\tools\dev\live-window\4-recreate-worker.ps1 -Rollback`. Engine: `.\tools\dev\live-window\3-recreate-api.ps1 -Rollback -RollbackTo before-round6-20261030` (to the engine of before round 6; without `-RollbackTo` the script goes back to `before-families-20261030`, the engine of before the families, which would list the new, empty views on the migrated database). Database: the migrations' rollback scripts in reverse order (runbook section 4; they refuse to drop a table that holds rows,

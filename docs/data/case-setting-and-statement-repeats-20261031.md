@@ -1,6 +1,6 @@
 # A hub threshold per case, and statement repeats across files (migration 032)
 
-Written 2026-10-31, on the owner's instruction to complete the case work. Status: built, specified, rehearsed on a restored copy of the live database and regression-checked on the lane (section 5). **Not applied to the live database or service**: the harness's auto-mode classifier blocked the live migration as a production deploy and it waits for the owner's word (section 6).
+Written 2026-10-31, on the owner's instruction to complete the case work. Status: built, specified, rehearsed on a restored copy of the live database and regression-checked on the lane (section 5). **Applied live on 2026-10-31 12:25 to about 12:28 UTC** on the owner's word, after the harness's auto-mode classifier had blocked the first attempt as a production deploy (record: `live-window-20261030.md`, section on migration 032).
 
 ## 1. Why
 
@@ -48,7 +48,7 @@ The migration is backward compatible with the engine that runs now (the old engi
 * **Rehearsal on a restored copy of the live database** (`tools/dev/live-window/rehearse-032.sh`; dump `live-20261031T103450Z`, 513,438,743 bytes, SHA-256 `2b62f7f900e9278f8cbacb6fdb9ee62a34ba74eb0dfe6ccf893bd270b22ff08f`, 6,522 entries; restore 0 errors, 0 row-count differences; the only catalog differences from the live baseline are two re-expressions by dump and restore: a CHECK printed with other brackets and an owner grant): preflight, apply and verify pass; the behaviour test passes (a repeat across files counted once: stored 628 to 633, the view stays 626; another amount is another transaction: 626 to 627; a repeat inside one file is left to the writer's rule: 626 to 628) and leaves nothing; applying again changes nothing; the 010 runtime-RLS verify passes; **the bank view returns the same number of rows before and after on all three Orion collections (626, 626, 135)**: none of the existing cases holds a repeat across files; the application role sets and clears the threshold and the table refuses 1; the rollback restores the catalog exactly (0 differences) and the migration applies again. The catalog gains 5 lines and loses 2 (the column, its comment, its check, the view and its description).
 * **Regression on the three development banks with the engine at this code and migration 032 in their databases** (wordings that failed on fresh cases and on the live smoke swapped in, same oracle values): subscribers case 2: 18 correct, 0 wrong, 1 declined (a model slip, SELECT DISTINCT ordered by a column not selected, after three attempts); transactions case 2: 20 correct, 0 wrong, 1 abstained (TXN-015, the known honest abstention); documents seed 5100: 23 of 23. **0 wrong in 63 questions.** The case-126 wording of SUB-008 ("how many numbers made or received calls after their registration ended") went through COUNT_NOT_SUM and answered 3.
 
-## 6. To apply (needs the owner's word)
+## 6. How it was applied (and how to apply it again elsewhere)
 
 ```
 bash tools/dev/live-window/2b-migration-032.sh                                  # preflight, apply, verify, comparison; stops at the first failed check (a fresh backup exists: live-20261031T103450Z)

@@ -9,6 +9,7 @@ export MSYS_NO_PATHCONV=1
 REPO="$(cd "$(dirname "$0")/../../.." && pwd)"
 MAIN="$(cd "$REPO/../NexusAI" && pwd)"
 B="$MAIN/.phase2-backups"
+BW="$(cygpath -m "$B" 2>/dev/null || echo "$B")"   # Windows Python and docker.exe read /c/... as C:\c\...
 C=nexusai-forensic-postgres-1
 MIG=032_case_hub_threshold_and_statement_repeats
 STAMP=$(cat "$B/.live-window-stamp") || { echo "run step 1 first"; exit 1; }
@@ -33,7 +34,7 @@ say "$(date -u +%H:%M:%S) 010 runtime-RLS verify passed"
 q -At -f - < db/forensic_records/ops/evidence/catalog_lines.sql > "$B/live-$STAMP.catalog-after-032.txt" || stop "catalog after"
 q -At -f - < db/forensic_records/ops/evidence/exact_counts.sql > "$B/live-$STAMP.exact-counts-after-032.txt" || stop "counts after"
 say "-- catalog comparison (expected: the column, its check, its comment, the view and its comment; nothing else):"
-python -X utf8 db/forensic_records/ops/evidence/catalog_compare.py "$B/live-$STAMP.catalog-before.txt" "$B/live-$STAMP.catalog-after-032.txt" | tee -a "$LOG" | cut -c1-250
+python -X utf8 db/forensic_records/ops/evidence/catalog_compare.py "$BW/live-$STAMP.catalog-before.txt" "$BW/live-$STAMP.catalog-after-032.txt" | tee -a "$LOG" | cut -c1-250
 say "-- row counts, before vs after (expected: no difference; the baseline is older than the first loads of this day, so audit rows may differ):"
 diff "$B/live-$STAMP.exact-counts-before.txt" "$B/live-$STAMP.exact-counts-after-032.txt" | tee -a "$LOG"
 say "-- the bank view as the analyst role, per collection (expected: 626, 626, 135 as before):"
