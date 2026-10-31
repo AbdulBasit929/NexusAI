@@ -63,3 +63,34 @@ Images: `nexusai-forensic-records-api:round7b-20261031` (`3a07ed87bccf`, built f
 
 The workspace dashboard flagged 26 sources of the Orion case as needing review ("Retained copy is missing: processing finished but the retained copy of this file cannot be opened"). The originals are retained (`evidence_items.raw_storage_ref` is set for all 53, and the `.txt` original of the case came back HTTP 200 from `/evidence/{id}/content`). The flag came from a different store: a completed job with no row in `forensic.kb_collection_assets`, a row that only the generic row path writes (the document, `.txt` and `.xls` routes do not). 35 jobs were flagged in all, all in the three Orion collections; no other collection was. The status figure and list now count a job only when it has neither an asset row nor a retained original: 35 flagged before, 0 after, every other collection 0 before and after (checked read only on the live database). It takes effect with the API image above. Not changed: the asset-repair function, which exists to rebuild asset rows.
 
+## 8. The whole query pack on the live engine (2026-10-31, after migration 032 and the engine of 12:26 UTC)
+
+All 196 questions of `docs/qa/ui-query-pack-20261031` were put to the live API (`tools/showcase/ask_case.py`, the case's hub threshold at 10), judged by the project's judge (the 19 extras whose answers are computed by SQL on the stored rows by a plain comparison):
+
+| Family | Correct | Not correct |
+|---|---|---|
+| Call records | 33 of 34 | Q081 (below) |
+| Link analysis: connections (with the three setting questions) | 50 of 51 | SET-002 |
+| Link analysis: co-location, pairs, successors, movement | 10 of 10, 7 of 7, 10 of 10, 10 of 10 | none |
+| Internet sessions and app usage | 5 of 5 | none |
+| Registrations and handsets | 16 of 16 run | 3 not run: they need the device reference list (shared by every case, not loaded) |
+| Plates | 14 of 15 | ANPR-002, an honest decline |
+| Documents | 23 of 24 | DOC-015, an honest decline |
+| Bank and wallet transactions | 9 of 11 | TXN-008, TXN-009 |
+| **All** | **187 of 196** | 4 wrong, 2 declined, 3 not run |
+
+* **ORL-CAL-Q081** "Who owns the number 923000001001?": the judge's verdict (wrong) is kept; its oracle predates the registrations family and expects a decline. Read by a person: the answer puts the correction first, says that no registration of the number is in the files (true: it is one of the two unregistered numbers) and names no owner.
+* **Three misses the pack found in the engine, fixed in commit ed44c58 (a specification each, both directions; nothing is live yet):** SET-002, a threshold named in the question ("in contact with more than 10 subscribers") was read as the threshold but did not make the engine leave the hubs out; TXN-008, "which accounts sent money to X" was answered with who X paid (X is the receiver: its credits); TXN-009, the model added `received_from IS NULL` to a pass-through question and the answer said that no credit was followed by a debit although three accounts qualify (a false absence): an IS NULL on the counterparty that the question does not ask for is refused with the reason.
+* A fourth, TXN-006, was the comparison of the pack's builder (5,912,781.7 is 5,912,781.70) and is fixed there.
+* **Regression of ed44c58** (throwaway databases with migration 032): transactions development case 2: 20 correct, 0 wrong, 1 abstained (TXN-015); call and internet records development seed 3: **46 of 46**; red team: **18 of 18**.
+* **Correction to the commit message of a2897ee:** it says transactions 9 of 12; the pack holds 11 transaction questions (the three hub-setting questions are counted under connections): 9 of 11.
+
+Pending, needs the owner's word: image `nexusai-forensic-records-api:round8-20261031` (`8ec2c1edd72a`, from the lane at ed44c58) and its rollback `before-round8-20261031` (`3a07ed87bccf`, the engine that runs now):
+
+```
+.\tools\dev\live-window\3-recreate-api.ps1 -Apply -To round8-20261031 -RollbackTo before-round8-20261031     (dry run first, without -Apply)
+.\tools\dev\Restart-Workspace.ps1 -Port 4181 -Tree lane -Collection orion-lahore-reference-20261030
+```
+
+then re-ask SET-001/002/003, TXN-001 to 011 and the connection questions, and republish the sheet.
+
