@@ -80,6 +80,8 @@ CASES = [
     ("judgement", 123, {"events_per_person_per_day": 3.0, "period_days": 95, "subjects": 11}),
     ("judgement", 124, {"subjects": 12, "people": 110, "period_days": 80, "associates": 24}),
     ("judgement", 125, {"period_days": 100, "subjects": 13, "associates": 26}),
+    # added 2026-10-31 (set_version 6), before the sixth measurement of the subscriber family (programme 10.15): one fresh case, used once
+    ("judgement", 126, {"subjects": 13, "people": 115, "period_days": 85, "associates": 25}),
     ("sealed", 901, {}),
     ("sealed", 902, {"period_days": 70}),
     ("sealed", 903, {"subjects": 14, "associates": 28, "events_per_person_per_day": 4.5}),
