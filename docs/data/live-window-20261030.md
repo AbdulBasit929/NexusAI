@@ -117,6 +117,8 @@ The whole UI query pack had been put to the live engine of 12:26 UTC: 187 of 196
 
 * Dry run: compose's config hash equalled the running label (`74eb879ac9e9`), nothing to add or change. Apply: only the API container, image `3a07ed87bccf` -> `8ec2c1edd72a` (`round8-20261031`; rollback tag `before-round8-20261031` = `3a07ed87bccf`), environment 69 -> 69 variables with nothing changed, healthy at once, the plan cache restored (509 entries), 0 errors in the logs; the Orion case still has `hub_threshold` 10; the workspace on :4181 restarted and its proxy reaches the API.
 * Rollback: `.\tools\dev\live-window\3-recreate-api.ps1 -Rollback -RollbackTo before-round8-20261031`.
+* **Checked live after the deploy** (the affected questions re-asked): the 48 connection questions of the catalogue **48 of 48 correct**; SET-002 now answers 923000001050 only (the obligation HUBS fired); TXN-009 answers with the pass-through pairs (INVENTED_FILTER fired); SET-001 and SET-003 as before (the question's 20 gives two common contacts; a threshold of 1 is refused with the bounds 2 to 1000). **TXN-008 ("which accounts sent money to X") is now an honest decline of the engine** (it was a wrong answer); the older fallback path then says "No record in this case contains 0000000000002003", which is wrong for that account. A verified example for that wording is committed (f913cf9) and waits for the next engine image.
+* **The whole pack, on the engines of this day: 189 of 196 correct, 1 wrong (Q081, reviewed by a person, the judge's verdict kept), 3 honest declines (ANPR-002, DOC-015, TXN-008), 3 not run (they need the device reference list).**
 
 ## Rollback, if ever needed
 
