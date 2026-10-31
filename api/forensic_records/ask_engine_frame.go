@@ -67,9 +67,12 @@ var (
 	askKindValueRE            = regexp.MustCompile(`\b((?:[a-z_]+\.)?)kind\s*=\s*'([a-z_]+)'\s+and\s+((?:[a-z_]+\.)?)value\s*=\s*'([^']+)'`)
 	askValueKindRE            = regexp.MustCompile(`\b((?:[a-z_]+\.)?)value\s*=\s*'([^']+)'\s+and\s+((?:[a-z_]+\.)?)kind\s*=\s*'([a-z_]+)'`)
 	askAfterRegistrationEndRE = regexp.MustCompile(`\bafter (?:the )?(?:their |its |a |the )?registrations? (?:has |had |have )?(?:ended|ends|expired|expires|ceased)\b|\bafter the (?:end|expiry) of (?:a |the |their |its )?registrations?\b`)
-	askMoneyCue               = regexp.MustCompile(`\b(?:total|amount|amounts|money|rupees|rs|how much|sum)\b`)
-	askDateOnlyCue            = regexp.MustCompile(`only\s+(?:a\s+|the\s+)?(?:date|day)|date[\s-]only|state[sd]?\s+only`)
-	askKindPhrase             = map[string]string{"msisdn": "a mobile number", "account": "an account", "plate": "a plate", "iccid": "a SIM serial"}
+	// a question that counts THINGS (how many numbers, accounts, plates ...), as against events or money: its answer is the number of rows that qualify (found by the sixth subscribers measurement,
+	// case 126, SUB-008: "how many numbers ... after their registration ended" was answered with the sum of their events, 734, where 3 numbers were right)
+	askCountsThingsRE = regexp.MustCompile(`\bhow many (?:(?:distinct|different|unique|separate|active|registered|unregistered) )?(?:numbers|accounts|plates|documents|subscribers|people|persons|sims|handsets|devices|registrations|cell sites|towers|contacts|cameras)\b`)
+	askMoneyCue       = regexp.MustCompile(`\b(?:total|amount|amounts|money|rupees|rs|how much|sum)\b`)
+	askDateOnlyCue    = regexp.MustCompile(`only\s+(?:a\s+|the\s+)?(?:date|day)|date[\s-]only|state[sd]?\s+only`)
+	askKindPhrase     = map[string]string{"msisdn": "a mobile number", "account": "an account", "plate": "a plate", "iccid": "a SIM serial"}
 )
 
 // askKindOfValue is the kind a normalised key of the document views must be compared with, from its form; "" when the form says nothing (an area, a 15-digit handset or IMSI).
@@ -741,6 +744,10 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	}
 	if f.Cues["count"] && !askSQLMentions(sql, "count(", "sum(") && !askUsesColumn(v, "events", "incoming", "outgoing", "sightings", "transactions") {
 		add("AGGREGATE", "The question asks how many: count the rows (COUNT) or sum the counts of the view.", "the question asks for a count that the query does not compute")
+	}
+	// How many numbers (accounts, plates ...) is the number of rows that qualify. Adding up a column of the view (the events of those numbers) gives a number of another kind.
+	if askCountsThingsRE.MatchString(strings.ToLower(f.Question)) && askSQLMentions(sql, "sum(") && !askSQLMentions(sql, "count(") {
+		add("COUNT_NOT_SUM", "The question asks how many things there are, not how much they add up to: count the rows that qualify (SELECT count(*) ... WHERE the condition), or COUNT(DISTINCT the thing). Do not SUM a column.", "the question counts things and the query adds up a column")
 	}
 	if f.Cues["distinct"] && !askSQLMentions(sql, "distinct") && !askSQLMentions(sql, "group by") {
 		add("DISTINCT", "The question asks for different values: count DISTINCT values or group by them.", "the question asks for different values and the query does not take them")

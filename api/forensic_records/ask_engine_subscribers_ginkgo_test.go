@@ -164,6 +164,37 @@ var _ = Describe("Ask engine registrations and handsets", func() {
 		}
 	})
 
+	// Found by the sixth subscribers measurement (case 126, SUB-008, 2026-10-31): "how many numbers ... after their registration ended" was answered with the sum of their events (734) instead of the
+	// count of the numbers (3).
+	It("asks for a count of the rows when a question counts things and the query adds up a column", func() {
+		cat, err := askGoldenCatalogue()
+		Expect(err).NotTo(HaveOccurred())
+		kinds := func(question, sql string, views ...string) []string {
+			v, rej := askValidate(sql, cat, views)
+			Expect(rej).To(BeNil(), sql)
+			out := []string{}
+			for _, o := range askCheckFrame(askExtractFrame(question), v) {
+				out = append(out, o.Kind)
+			}
+			return out
+		}
+		things := "How many numbers made or received calls after their registration ended?"
+		summed := "SELECT sum(events_after_last_end) AS total FROM v_number_registration_activity WHERE events_after_last_end > 0"
+		counted := "SELECT count(*) AS numbers FROM v_number_registration_activity WHERE events_after_last_end > 0"
+		Expect(kinds(things, summed, "v_number_registration_activity")).To(ContainElement("COUNT_NOT_SUM"))
+		Expect(kinds(things, counted, "v_number_registration_activity")).NotTo(ContainElement("COUNT_NOT_SUM"))
+		Expect(kinds(things, "SELECT count(DISTINCT msisdn) AS numbers FROM v_number_registration_activity WHERE events_after_last_end > 0", "v_number_registration_activity")).NotTo(ContainElement("COUNT_NOT_SUM"))
+		// a question that counts events, or asks how much, is not concerned: adding up the events of a number is its answer
+		Expect(kinds("How many events did the numbers have after their registration ended?", summed, "v_number_registration_activity")).NotTo(ContainElement("COUNT_NOT_SUM"))
+		Expect(kinds("How many calls after their registration ended in total?", summed, "v_number_registration_activity")).NotTo(ContainElement("COUNT_NOT_SUM"))
+		for _, ok := range []string{"How many numbers", "how many distinct accounts", "How many plates", "How many documents", "How many SIMs", "How many cameras"} {
+			Expect(askCountsThingsRE.MatchString(strings.ToLower(ok+" were there?"))).To(BeTrue(), ok)
+		}
+		for _, no := range []string{"How many calls were made?", "How many times was it seen?", "How many events", "How much money moved"} {
+			Expect(askCountsThingsRE.MatchString(strings.ToLower(no))).To(BeFalse(), no)
+		}
+	})
+
 	It("answers who owns a number from the registrations, with the correction in front", func() {
 		cat, err := askGoldenCatalogue()
 		Expect(err).NotTo(HaveOccurred())
