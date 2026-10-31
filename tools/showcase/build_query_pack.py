@@ -111,6 +111,15 @@ def extras():
         add("ORL-APP-001", "internet", "app_most_used", "Which app did %s use the most?" % m,
             {"kind": "set", "values": [r[0] for r in psql("select app from forensic.app_usage where collection_id = '%s' and msisdn = '%s' group by 1 order by count(*) desc limit 1" % (COLLECTION, m))]})
         add("ORL-APP-002", "internet", "apps_distinct", "How many different apps did %s use?" % m, {"kind": "scalar", "value": int(one("select count(distinct app) from forensic.app_usage where collection_id = '%s' and msisdn = '%s'" % (COLLECTION, m)))})
+
+    # ---- the hub threshold (migration 032): the question's own number beats the case's setting; a number outside the bounds is refused. The expected sets were computed on the engine's own contact view
+    # (analyst.v_contact_pairs, as the read-only analyst role) at each threshold: 923000001036 is contacted by 11 to 20 subscribers, so it is a hub at 10 and not at 20.
+    base = "Which numbers do 923000001000 and 923000001005 both contact, leaving out services and numbers in contact with more than %d subscribers?"
+    add("ORL-SET-001", "connections", "hub_question_20", base % 20, {"kind": "set", "values": ["923000001036", "923000001050"], "note_contains": "Hub threshold used: 20 subscribers (read from your question)"},
+        "the question's own 20 beats the case's 10: a second common contact appears")
+    add("ORL-SET-002", "connections", "hub_question_10", base % 10, {"kind": "set", "values": ["923000001050"], "forbid": ["923000001036"], "note_contains": "Hub threshold used: 10 subscribers (read from your question)"},
+        "the same question at 10: 923000001036 is a hub and drops out")
+    add("ORL-SET-003", "connections", "hub_out_of_bounds", base % 1, {"kind": "bounds", "contains": "from 2 to 1000"}, "a threshold below 2 is refused with the bounds; no answer is guessed")
     return out
 
 
@@ -130,7 +139,10 @@ def render(expect):
         if expect.get("empty_is_none") or not values:
             return "nothing: the case holds no such row, and the answer must say so"
         shown = ", ".join(str(v) for v in values[:12]) + (" ... (%d in all)" % len(values) if len(values) > 12 else "")
-        return shown + (" (%s in all)" % len(values) if len(values) <= 12 and len(values) > 1 else "")
+        shown += (" (%s in all)" % len(values) if len(values) <= 12 and len(values) > 1 else "")
+        if expect.get("note_contains"):
+            shown += "; the notes say: " + expect["note_contains"]
+        return shown
     if kind == "ordered":
         return "in this order: " + ", ".join(str(v) for v in values)
     if kind == "tuples":
@@ -142,6 +154,8 @@ def render(expect):
         return ("connected in %s hop(s) via %s" % (expect.get("distance"), ", ".join(expect.get("via", [])))) if expect.get("exists") else "no connection within %s hops" % expect.get("hops")
     if kind == "reach":
         return "reaches %d numbers within %s hops: %s" % (len(values), expect.get("hops"), ", ".join(values[:8]) + (" ..." if len(values) > 8 else ""))
+    if kind == "bounds":
+        return "the engine refuses and states the bounds (%s)" % expect.get("contains")
     if kind in ("absent", "doc_absent"):
         return "the engine says it found nothing in this case - not a bare 0"
     if kind == "none":
@@ -153,6 +167,48 @@ def render(expect):
     if kind == "clarify":
         return expect.get("note", "the engine asks a question back")
     return json.dumps(expect, ensure_ascii=False)[:200]
+
+
+def verdict_of(item, result):
+    """The verdict of one live answer: the project's judge for the catalogue questions; for the extra questions (statements, sessions, apps) a plain comparison of the expected values with the answer
+    and its rows. Anything the plain comparison cannot decide is left for the tester's eye ("check")."""
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ask_eval"))
+    if item["bank"] != "extra":
+        try:
+            import judge  # noqa: PLC0415
+            r = dict(result)
+            r.setdefault("arm", "engine")
+            return judge.judge({"id": item["id"], "type": item["type"], "question": item["question"], "expect": item["expect"], "bank": item["bank"]}, r)
+        except Exception as error:  # noqa: BLE001 - a judge that cannot read a kind says so, never crashes the pack
+            return "check (%s)" % type(error).__name__
+    expect = item["expect"]
+    state = result.get("state")
+    notes = " ".join(result.get("limitations") or [])
+    if expect.get("kind") == "bounds":
+        text = ((result.get("answer") or "") + " " + notes + " " + (result.get("older_path_answer") or "")).lower()
+        return "correct" if expect["contains"] in text else "wrong"
+    if expect.get("kind") == "clarify":
+        text = (result.get("answer") or "").lower()
+        return "correct" if state in ("abstained", "answered") and ("which limit" in text or "limit" in text and "?" in text) else "check"
+    if state != "answered":
+        return state or "check"
+    blob = ((result.get("answer") or "") + " " + json.dumps(result.get("rows") or [], ensure_ascii=False)).replace(",", "")
+    if expect.get("note_contains") and expect["note_contains"] not in notes:
+        return "wrong"
+    if any(str(v) in blob for v in expect.get("forbid", [])):
+        return "wrong"
+    if expect.get("kind") == "scalar":
+        value = expect.get("value")
+        if isinstance(value, (int, float)):
+            wanted = {str(int(value)) if float(value).is_integer() else "%.2f" % value, "%.2f" % value}
+            return "correct" if any(w in blob for w in wanted) else "wrong"
+        return "correct" if str(value) in blob else "wrong"
+    if expect.get("kind") == "set":
+        values = [str(v) for v in expect.get("values", [])]
+        if not values:
+            return "check"
+        return "correct" if all(v in blob for v in values) else "wrong"
+    return "check"
 
 
 def load_results(paths):
@@ -180,7 +236,7 @@ HOW_TO = """## How to use this pack
 
 Numbers are written without separators in questions (`923000001000`); the engine also reads `0300-0001000` and `+92 300 0001000` as the same number.
 
-**Settings that change an answer** (they are read from your question by code, and the answer states the value it used): the co-location window ("within 20 minutes"), the gap before a meeting, the days of silence, the days and the score of a successor, the weeks an anchor must hold, the speed in km/h, the pass-through window and share, the limit of a band, and the **hub threshold** ("in contact with more than 10 subscribers"; else the case's own setting; else 20). Change the number in a question and the answer must change with it.
+**Settings that change an answer** (they are read from your question by code, and the answer states the value it used): the co-location window ("within 20 minutes"), the gap before a meeting, the days of silence, the days and the score of a successor, the weeks an anchor must hold, the speed in km/h, the pass-through window and share, the limit of a band, and the **hub threshold** ("in contact with more than 10 subscribers"; else the case's own setting, which is 10 on this case; else the engine's, else 20). Change the number in a question and the answer must change with it.
 """
 
 
@@ -235,7 +291,8 @@ def main(argv):
         it["kind_of_check"] = "honesty / limits" if control else "answer"
         r = results.get(it["id"])
         if r:
-            it["live"] = {"state": r.get("state"), "answer": (r.get("answer") or r.get("older_path_answer") or "")[:300], "seconds": round((r.get("total_ms") or 0) / 1000, 1), "verdict": verdicts.get(it["id"], "")}
+            it["live"] = {"state": r.get("state"), "answer": (r.get("answer") or r.get("older_path_answer") or "")[:300], "seconds": round((r.get("total_ms") or 0) / 1000, 1),
+                          "verdict": verdicts.get(it["id"]) or verdict_of(it, r), "sql": (r.get("sql") or "")[:600], "views": r.get("views") or []}
     order = {a[0]: i for i, a in enumerate(AREAS)}
     items.sort(key=lambda x: (order.get(x["area"], 99), x["id"]))
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
