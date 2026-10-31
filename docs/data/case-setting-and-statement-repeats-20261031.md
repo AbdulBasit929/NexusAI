@@ -1,6 +1,6 @@
 # A hub threshold per case, and statement repeats across files (migration 032)
 
-Written 2026-10-31, on the owner's instruction to complete the case work. Status: built and specified on the lane; rehearsal and live application are recorded at the end when done.
+Written 2026-10-31, on the owner's instruction to complete the case work. Status: built, specified, rehearsed on a restored copy of the live database and regression-checked on the lane (section 5). **Not applied to the live database or service**: the harness's auto-mode classifier blocked the live migration as a production deploy and it waits for the owner's word (section 6).
 
 ## 1. Why
 
@@ -40,3 +40,22 @@ The first live smoke of the new families (`live-window-20261030.md`) found two w
 ## 4. Order of a live application
 
 The migration is backward compatible with the engine that runs now (the old engine neither reads the column nor depends on the view's text), so: back up, apply and verify the migration, run the behaviour test, then deploy the engine, then set the Orion case to 10 and re-ask the three questions that fell to the threshold. Rollback: `ops/032.../rollback.sql` (refuses while a case holds a setting) and the engine's `before-` tag.
+
+## 5. What was checked before any live change (2026-10-31)
+
+* **Specifications:** request parsing (bounds, null, both fields), the parameter resolution in every order and every refusal, the settings read on a case database (set, read back, another tenant, cleared, the table's check), the run-level specs with the read stubbed. The full package suite passes (101 s) and the commit hook (lint, vet on host and linux, the package tests) passed on each commit.
+* **Golden catalogue:** regenerated on a throwaway database; one line differs (the description of `v_bank_transactions`); all verified examples run as the read-only analyst role.
+* **Rehearsal on a restored copy of the live database** (`tools/dev/live-window/rehearse-032.sh`; dump `live-20261031T103450Z`, 513,438,743 bytes, SHA-256 `2b62f7f900e9278f8cbacb6fdb9ee62a34ba74eb0dfe6ccf893bd270b22ff08f`, 6,522 entries; restore 0 errors, 0 row-count differences; the only catalog differences from the live baseline are two re-expressions by dump and restore: a CHECK printed with other brackets and an owner grant): preflight, apply and verify pass; the behaviour test passes (a repeat across files counted once: stored 628 to 633, the view stays 626; another amount is another transaction: 626 to 627; a repeat inside one file is left to the writer's rule: 626 to 628) and leaves nothing; applying again changes nothing; the 010 runtime-RLS verify passes; **the bank view returns the same number of rows before and after on all three Orion collections (626, 626, 135)**: none of the existing cases holds a repeat across files; the application role sets and clears the threshold and the table refuses 1; the rollback restores the catalog exactly (0 differences) and the migration applies again. The catalog gains 5 lines and loses 2 (the column, its comment, its check, the view and its description).
+* **Regression on the three development banks with the engine at this code and migration 032 in their databases** (wordings that failed on fresh cases and on the live smoke swapped in, same oracle values): subscribers case 2: 18 correct, 0 wrong, 1 declined (a model slip, SELECT DISTINCT ordered by a column not selected, after three attempts); transactions case 2: 20 correct, 0 wrong, 1 abstained (TXN-015, the known honest abstention); documents seed 5100: 23 of 23. **0 wrong in 63 questions.** The case-126 wording of SUB-008 ("how many numbers made or received calls after their registration ended") went through COUNT_NOT_SUM and answered 3.
+
+## 6. To apply (needs the owner's word)
+
+```
+bash tools/dev/live-window/2b-migration-032.sh                                  # preflight, apply, verify, comparison; stops at the first failed check (a fresh backup exists: live-20261031T103450Z)
+.\tools\dev\live-window\3-recreate-api.ps1 -Apply -To round7-20261031 -RollbackTo before-round7-20261031
+python -X utf8 tools/showcase/set_case_setting.py --case orion-lahore-reference-20261030 --hub-threshold 10 --apply
+.\tools\dev\Restart-Workspace.ps1 -Port 4181 -Tree lane -Collection orion-lahore-reference-20261030
+```
+
+Images: `nexusai-forensic-records-api:round7-20261031` (`17f4647d3a28`, built from the lane at 39100ab) and its rollback `before-round7-20261031` (`dd2b07a0d75b`, the engine that runs now). Rollback of the engine: `3-recreate-api.ps1 -Rollback -RollbackTo before-round7-20261031`; of the migration: `ops/032.../rollback.sql` (it refuses while a case holds a setting: clear it first with `--clear-hub-threshold --apply`).
+

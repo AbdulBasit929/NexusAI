@@ -6,6 +6,7 @@ REPO="$(cd "$(dirname "$0")/../../.." && pwd)"
 MAIN="$(cd "$REPO/../NexusAI" && pwd)"
 B="$MAIN/.phase2-backups"
 mkdir -p "$B"
+BW="$(cygpath -m "$B" 2>/dev/null || echo "$B")"   # docker.exe reads /c/... as C:\c\...: a Windows path for docker cp
 C=nexusai-forensic-postgres-1
 STAMP=$(date -u +%Y%m%dT%H%M%SZ)
 echo "$STAMP" > "$B/.live-window-stamp"
@@ -16,7 +17,7 @@ q -At -f - < "$REPO/db/forensic_records/ops/evidence/exact_counts.sql" > "$B/liv
 echo "baseline: $(wc -l < "$B/live-$STAMP.catalog-before.txt") catalog lines, $(wc -l < "$B/live-$STAMP.exact-counts-before.txt") tables counted"
 docker exec $C pg_dump -U localrecall -d localrecall -Fc -f "/tmp/live-$STAMP.dump" || { echo "DUMP FAILED"; exit 1; }
 echo "toc entries: $(docker exec $C pg_restore --list "/tmp/live-$STAMP.dump" | grep -c '^[0-9]')"
-docker cp "$C:/tmp/live-$STAMP.dump" "$B/live-$STAMP.dump" || { echo "COPY FAILED"; exit 1; }
+docker cp "$C:/tmp/live-$STAMP.dump" "$BW/live-$STAMP.dump" || { echo "COPY FAILED"; exit 1; }
 docker exec $C find /tmp -maxdepth 1 -name "live-$STAMP.dump" -delete
 echo "bytes: $(stat -c %s "$B/live-$STAMP.dump")"
 echo "sha256: $(sha256sum "$B/live-$STAMP.dump" | cut -d' ' -f1)"
