@@ -192,6 +192,9 @@ var _ = Describe("Ask engine runtime parameters of successor numbers, movement a
 			}
 			Expect(p.Views).NotTo(BeEmpty(), p.Name)
 		}
-		Expect(askKnownSetting("app.hub_threshold")).To(BeFalse())
+		// the hub threshold is a declared parameter since migration 032 (the question's number, else the case's setting, else the engine's): the executor owns its setting like any other
+		Expect(askKnownSetting("app.hub_threshold")).To(BeTrue())
+		Expect(askKnownSetting("app.tenant_id")).To(BeFalse())
+		Expect(askKnownSetting("app.collection_id")).To(BeFalse())
 	})
 })

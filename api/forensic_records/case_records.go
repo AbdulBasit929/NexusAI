@@ -23,6 +23,9 @@ import (
 const (
 	caseNameMaxRunes = 120
 	caseAuditAction  = "case.record.updated"
+	// the bounds of the table's check (migration 032) and of the hub_threshold parameter of the Ask engine
+	caseHubThresholdMin = 2
+	caseHubThresholdMax = 1000
 )
 
 var (
@@ -34,6 +37,7 @@ type caseRecord struct {
 	CaseID        string     `json:"case_id"`
 	DisplayName   *string    `json:"display_name"`
 	Status        string     `json:"status"`
+	HubThreshold  *int       `json:"hub_threshold"`
 	CreatedBy     *string    `json:"created_by"`
 	CreatedAt     *time.Time `json:"created_at"`
 	UpdatedBy     *string    `json:"updated_by"`
@@ -48,6 +52,9 @@ type casePatch struct {
 	ClearName      bool
 	HasDisplayName bool
 	Status         *string
+	// HubThreshold is the case's threshold for "numbers and services that everyone contacts" (migration 032); nil with HasHubThreshold clears it.
+	HubThreshold    *int
+	HasHubThreshold bool
 }
 
 // parseCasePatch reads the JSON body of PATCH /cases/{id} and validates it with the same rules as the table's constraints, so a client gets a sentence and not a database error.
@@ -58,8 +65,8 @@ func parseCasePatch(body io.Reader) (casePatch, error) {
 	}
 	var patch casePatch
 	for key := range raw {
-		if key != "display_name" && key != "status" {
-			return casePatch{}, fmt.Errorf("unknown field %q: only display_name and status can be changed", key)
+		if key != "display_name" && key != "status" && key != "hub_threshold" {
+			return casePatch{}, fmt.Errorf("unknown field %q: only display_name, status and hub_threshold can be changed", key)
 		}
 	}
 	if v, ok := raw["display_name"]; ok {
@@ -91,8 +98,18 @@ func parseCasePatch(body io.Reader) (casePatch, error) {
 		}
 		patch.Status = &status
 	}
-	if !patch.HasDisplayName && patch.Status == nil {
-		return casePatch{}, errors.New("nothing to change: send display_name, status or both")
+	if v, ok := raw["hub_threshold"]; ok {
+		patch.HasHubThreshold = true
+		if string(v) != "null" {
+			var n int
+			if err := json.Unmarshal(v, &n); err != nil || n < caseHubThresholdMin || n > caseHubThresholdMax {
+				return casePatch{}, fmt.Errorf("hub_threshold must be a whole number from %d to %d, or null to use the default", caseHubThresholdMin, caseHubThresholdMax)
+			}
+			patch.HubThreshold = &n
+		}
+	}
+	if !patch.HasDisplayName && patch.Status == nil && !patch.HasHubThreshold {
+		return casePatch{}, errors.New("nothing to change: send display_name, status, hub_threshold or any of them")
 	}
 	return patch, nil
 }
@@ -101,7 +118,7 @@ const listCaseRecordsSQL = `
 WITH evidence AS (
   SELECT collection_id, count(*) AS evidence_count FROM forensic.evidence_items WHERE tenant_id = $1 GROUP BY collection_id
 )
-SELECT coalesce(e.collection_id, r.collection_id) AS case_id, r.display_name, coalesce(r.status, 'open') AS status, r.created_by, r.created_at,
+SELECT coalesce(e.collection_id, r.collection_id) AS case_id, r.display_name, coalesce(r.status, 'open') AS status, r.hub_threshold, r.created_by, r.created_at,
        r.updated_by, r.updated_at, (r.collection_id IS NOT NULL) AS recorded, coalesce(e.evidence_count, 0) AS evidence_count
 FROM evidence e
 FULL OUTER JOIN forensic.case_record r ON r.tenant_id = $1 AND r.collection_id = e.collection_id
@@ -127,7 +144,7 @@ func listCaseRecords(ctx context.Context, db *pgxpool.Pool, tenantID, onlyCase s
 	out := []caseRecord{}
 	for rows.Next() {
 		var c caseRecord
-		if err := rows.Scan(&c.CaseID, &c.DisplayName, &c.Status, &c.CreatedBy, &c.CreatedAt, &c.UpdatedBy, &c.UpdatedAt, &c.Recorded, &c.EvidenceCount); err != nil {
+		if err := rows.Scan(&c.CaseID, &c.DisplayName, &c.Status, &c.HubThreshold, &c.CreatedBy, &c.CreatedAt, &c.UpdatedBy, &c.UpdatedAt, &c.Recorded, &c.EvidenceCount); err != nil {
 			return nil, fmt.Errorf("read case row: %w", err)
 		}
 		out = append(out, c)
@@ -136,11 +153,12 @@ func listCaseRecords(ctx context.Context, db *pgxpool.Pool, tenantID, onlyCase s
 }
 
 const saveCaseRecordSQL = `
-INSERT INTO forensic.case_record (tenant_id, collection_id, display_name, status, created_by, updated_by, updated_at)
-VALUES ($1, $2, $3, coalesce($4, 'open'), nullif($5, ''), nullif($5, ''), now())
+INSERT INTO forensic.case_record (tenant_id, collection_id, display_name, status, hub_threshold, created_by, updated_by, updated_at)
+VALUES ($1, $2, $3, coalesce($4, 'open'), $8, nullif($5, ''), nullif($5, ''), now())
 ON CONFLICT (tenant_id, collection_id) DO UPDATE SET
   display_name = CASE WHEN $6 THEN EXCLUDED.display_name ELSE forensic.case_record.display_name END,
   status = CASE WHEN $7 THEN EXCLUDED.status ELSE forensic.case_record.status END,
+  hub_threshold = CASE WHEN $9 THEN EXCLUDED.hub_threshold ELSE forensic.case_record.hub_threshold END,
   updated_by = EXCLUDED.updated_by,
   updated_at = now()`
 
@@ -172,10 +190,14 @@ func saveCaseRecord(ctx context.Context, db *pgxpool.Pool, tenantID, caseID, sub
 	if patch.Status != nil {
 		status = *patch.Status
 	}
-	if _, err := tx.Exec(ctx, saveCaseRecordSQL, tenantID, caseID, name, status, subject, patch.HasDisplayName, patch.Status != nil); err != nil {
+	var hub any
+	if patch.HubThreshold != nil {
+		hub = *patch.HubThreshold
+	}
+	if _, err := tx.Exec(ctx, saveCaseRecordSQL, tenantID, caseID, name, status, subject, patch.HasDisplayName, patch.Status != nil, hub, patch.HasHubThreshold); err != nil {
 		return caseRecord{}, fmt.Errorf("save the case record: %w", err)
 	}
-	details, err := json.Marshal(map[string]any{"display_name_changed": patch.HasDisplayName, "display_name_cleared": patch.ClearName, "status": status})
+	details, err := json.Marshal(map[string]any{"display_name_changed": patch.HasDisplayName, "display_name_cleared": patch.ClearName, "status": status, "hub_threshold_changed": patch.HasHubThreshold, "hub_threshold": hub})
 	if err != nil {
 		return caseRecord{}, fmt.Errorf("encode the audit details: %w", err)
 	}

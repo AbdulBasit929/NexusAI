@@ -65,6 +65,9 @@ var askParams = []askParam{
 		Views: []string{"v_rhythm_changes"}, Find: askFindRhythmSideDays, Quiet: true},
 	{Name: "rhythm_ratio_percent", Setting: "app.rhythm_ratio_percent", Label: "Least ratio of the larger daily mean to the smaller", Unit: "percent", Default: 150, Min: 101, Max: 10000,
 		Views: []string{"v_rhythm_changes"}, Find: askFindRhythmRatio},
+	// link analysis: numbers and services that everyone contacts. Migration 017 reads app.hub_threshold (20 when unset); migration 032 gives a case its own, which the engine passes as the default.
+	{Name: "hub_threshold", Setting: "app.hub_threshold", Label: "Hub threshold", Unit: "subscribers", Default: 20, Min: 2, Max: 1000,
+		Views: []string{"v_contact_pairs", "v_connection_edges"}, Find: askFindHubThreshold, Quiet: true},
 	// transactions: pass-through and amounts under a limit
 	{Name: "flow_window_minutes", Setting: "app.flow_window_minutes", Label: "Pass-through window", Unit: "minutes", Default: 10, Min: 1, Max: 1440,
 		Views: []string{"v_account_flows"}, Role: "window"},
@@ -84,11 +87,19 @@ type askParamRead struct {
 	Values    []int // every value named, in order
 }
 
-// askParamUse is a parameter as it will be used for one query.
+// askParamUse is a parameter as it will be used for one query. Source is where the value came from: "question", "case" (the setting of this case), "engine" (the setting every case gets)
+// or "default".
 type askParamUse struct {
 	Param        askParam
 	Value        int
 	FromQuestion bool
+	Source       string
+}
+
+// askParamDefault is a value a parameter takes when the question names none, from something other than the declaration: the case's own setting or the engine's.
+type askParamDefault struct {
+	Value  int
+	Source string
 }
 
 // askParamIssue is a question that cannot be run as it stands: it says what to ask the analyst, or which bound was passed.
@@ -344,6 +355,11 @@ func askParamsFor(views []string) []askParam {
 // (an issue, which the engine turns into a question or a refusal, never a guess) when the question names the same parameter with different values, names minutes without a
 // number for the window, or names a value outside the bounds.
 func askResolveParams(f askFrame, views []string) ([]askParamUse, *askParamIssue) {
+	return askResolveParamsWith(f, views, nil)
+}
+
+// askResolveParamsWith is askResolveParams with the defaults the case and the engine give (a value outside the parameter's bounds is ignored, so a bad setting can never reach a view).
+func askResolveParamsWith(f askFrame, views []string, defaults map[string]askParamDefault) ([]askParamUse, *askParamIssue) {
 	var uses []askParamUse
 	for _, p := range askParamsFor(views) {
 		read := f.Params[p.Name]
@@ -357,13 +373,17 @@ func askResolveParams(f askFrame, views []string) ([]askParamUse, *askParamIssue
 		case read.Found && (read.Value < p.Min || read.Value > p.Max):
 			return nil, &askParamIssue{Kind: "range", Message: fmt.Sprintf("The %s can be from %d to %d %s; the question asks for %d.", strings.ToLower(p.Label), p.Min, p.Max, p.Unit, read.Value)}
 		case read.Found:
-			uses = append(uses, askParamUse{Param: p, Value: read.Value, FromQuestion: true})
+			uses = append(uses, askParamUse{Param: p, Value: read.Value, FromQuestion: true, Source: "question"})
 		case p.Role == "window" && p.Find == nil && f.Cues["minutes_without_number"]:
 			return nil, &askParamIssue{Kind: "clarify", Message: fmt.Sprintf("The question speaks of minutes without saying how many. How many %s should the %s be (%d to %d)?", p.Unit, strings.ToLower(p.Label), p.Min, p.Max)}
 		case p.Required:
 			return nil, &askParamIssue{Kind: "clarify", Message: fmt.Sprintf("The question does not say the %s. What %s should I use (%d to %d %s)?", strings.ToLower(p.Label), strings.ToLower(p.Label), p.Min, p.Max, p.Unit)}
 		default:
-			uses = append(uses, askParamUse{Param: p, Value: p.Default})
+			if d, ok := defaults[p.Name]; ok && d.Value >= p.Min && d.Value <= p.Max {
+				uses = append(uses, askParamUse{Param: p, Value: d.Value, Source: d.Source})
+			} else {
+				uses = append(uses, askParamUse{Param: p, Value: p.Default, Source: "default"})
+			}
 		}
 	}
 	return uses, nil
@@ -394,16 +414,40 @@ func askKnownSetting(name string) bool {
 func askParamNotes(uses []askParamUse) []string {
 	var out []string
 	for _, u := range uses {
-		if u.Param.Quiet && !u.FromQuestion {
+		if u.Param.Quiet && !u.FromQuestion && (u.Source == "" || u.Source == "default") {
 			continue
 		}
 		source := "the default, because the question names none"
-		if u.FromQuestion {
+		switch {
+		case u.FromQuestion:
 			source = "read from your question"
+		case u.Source == "case":
+			source = "the setting of this case, because the question names none"
+		case u.Source == "engine":
+			source = "the setting of this engine for every case, because the question names none"
 		}
 		out = append(out, fmt.Sprintf("%s used: %d %s (%s).", u.Param.Label, u.Value, u.Param.Unit, source))
 	}
 	return out
+}
+
+// link analysis: the number of distinct subscribers that makes a number a hub ("hub threshold of 15", "in contact with more than 15 subscribers").
+var (
+	askHubA = regexp.MustCompile(`hubs?\s+threshold\s*(?:of|at|is|=|to)?\s*(\d{1,4})\b`)
+	askHubB = regexp.MustCompile(`(?:in contact with|contacted by|called by|texted by|connected to)\s+(?:more than|over|above)\s+(\d{1,4})\s+(?:distinct |different |separate )?(?:subscribers|people|persons|numbers|users)\b`)
+	askHubC = regexp.MustCompile(`(?:more than|over|above)\s+(\d{1,4})\s+(?:distinct |different |separate )?(?:subscribers|people|persons|numbers|users)\s+(?:contact|call|text)\b`)
+)
+
+func askFindHubThreshold(lower string) []int { return askFindInts(lower, askHubA, askHubB, askHubC) }
+
+// askHasParam is whether a declared parameter is read by one of the views.
+func askHasParam(views []string, name string) bool {
+	for _, p := range askParamsFor(views) {
+		if p.Name == name {
+			return true
+		}
+	}
+	return false
 }
 
 // transactions: the share of a credit that goes out again, the limit of a band and the share of it where the band starts (all found in a question in lower case).

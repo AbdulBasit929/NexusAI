@@ -21,6 +21,7 @@ const askHandsetCaveat = "A make and model are what the device reference lists f
 
 // askTransactionCaveat and askPatternCaveat are the caveats of the transaction views: a transaction is a line of a statement or a wallet list, and a pattern in such lines is not a finding.
 const askTransactionCaveat = "Amounts are as the source states them (no conversion). A transaction is a line of a statement or a wallet list: it does not say why money moved. A transaction stated with only a day has no time of day. " +
+	"A transaction that two files of the case both hold (same account, time, direction, amount and balance, as when a statement is supplied as a CSV and as a PDF) is counted once. " +
 	"A pattern in the rows (money in and out within minutes, amounts just under a limit, a counterparty in common) is a pattern, not a finding of laundering, structuring or any offence."
 const askPatternCaveat = askTransactionCaveat
 

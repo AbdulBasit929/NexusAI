@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 
@@ -30,6 +31,24 @@ var _ = Describe("the case record request", func() {
 		}
 	})
 
+	It("accepts a hub threshold on its own, at both bounds, and null clears it", func() {
+		for _, n := range []int{2, 10, 1000} {
+			patch, err := parseCasePatch(strings.NewReader(fmt.Sprintf(`{"hub_threshold": %d}`, n)))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(patch.HasHubThreshold).To(BeTrue())
+			Expect(*patch.HubThreshold).To(Equal(n))
+			Expect(patch.HasDisplayName).To(BeFalse())
+		}
+		patch, err := parseCasePatch(strings.NewReader(`{"hub_threshold": null}`))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(patch.HasHubThreshold).To(BeTrue())
+		Expect(patch.HubThreshold).To(BeNil())
+		both, err := parseCasePatch(strings.NewReader(`{"status": "open", "hub_threshold": 10}`))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(*both.HubThreshold).To(Equal(10))
+		Expect(*both.Status).To(Equal("open"))
+	})
+
 	It("leaves the name alone when the body does not mention it", func() {
 		patch, err := parseCasePatch(strings.NewReader(`{"status": "closed"}`))
 		Expect(err).NotTo(HaveOccurred())
@@ -46,7 +65,11 @@ var _ = Describe("the case record request", func() {
 		Entry("a status that does not exist", `{"status": "archived"}`, "open, on_hold, closed"),
 		Entry("a name that is too long", `{"display_name": "`+strings.Repeat("x", 121)+`"}`, "longer than 120"),
 		Entry("a name with a line break", `{"display_name": "two\nlines"}`, "control characters"),
-		Entry("a field that cannot be changed", `{"created_by": "someone"}`, "only display_name and status"),
+		Entry("a field that cannot be changed", `{"created_by": "someone"}`, "only display_name, status and hub_threshold"),
+		Entry("a hub threshold below the bound", `{"hub_threshold": 1}`, "from 2 to 1000"),
+		Entry("a hub threshold above the bound", `{"hub_threshold": 1001}`, "from 2 to 1000"),
+		Entry("a hub threshold that is not a whole number", `{"hub_threshold": 12.5}`, "whole number"),
+		Entry("a hub threshold that is text", `{"hub_threshold": "ten"}`, "whole number"),
 		Entry("a name that is not text", `{"display_name": 5}`, "text or null"),
 		Entry("a body that is not an object", `[1]`, "JSON object"),
 	)
@@ -135,6 +158,32 @@ var _ = Describe("Ask engine executor on a case database, the case record", Orde
 		Expect(err).NotTo(HaveOccurred())
 		Expect(rec.DisplayName).To(BeNil())
 		Expect(rec.Status).To(Equal("closed"))
+	})
+
+	// Migration 032: the case's own hub threshold. The engine reads it per question (readAskCaseSettings) and the answer says where the number came from.
+	It("records a hub threshold, reads it back for the engine, leaves it alone when the patch does not mention it, and clears it", func() {
+		ten := 10
+		rec, err := saveCaseRecord(ctx, pool, tenant, caseID, "analyst-1", casePatch{HubThreshold: &ten, HasHubThreshold: true})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(*rec.HubThreshold).To(Equal(10))
+		setting, err := readAskCaseSettings(ctx, pool, tenant, caseID)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(setting.HubThreshold).To(Equal(10))
+		open := "open"
+		rec, err = saveCaseRecord(ctx, pool, tenant, caseID, "analyst-1", casePatch{Status: &open})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(*rec.HubThreshold).To(Equal(10), "a patch that does not mention it leaves it")
+		other, err := readAskCaseSettings(ctx, pool, "another-tenant", caseID)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(other.HubThreshold).To(Equal(0), "another tenant's setting is not seen")
+		rec, err = saveCaseRecord(ctx, pool, tenant, caseID, "analyst-1", casePatch{HasHubThreshold: true})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rec.HubThreshold).To(BeNil())
+		setting, err = readAskCaseSettings(ctx, pool, tenant, caseID)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(setting.HubThreshold).To(Equal(0))
+		_, err = pool.Exec(ctx, "UPDATE forensic.case_record SET hub_threshold = 1 WHERE tenant_id = $1 AND collection_id = $2", tenant, caseID)
+		Expect(err).To(MatchError(ContainSubstring("case_record_hub_threshold_chk")), "the table refuses a threshold outside 2 to 1000")
 	})
 
 	It("refuses a case that has no evidence and no record, and never shows another tenant's record", func() {

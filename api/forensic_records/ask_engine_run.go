@@ -362,7 +362,15 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 	audit.Views = chosen
 	// Runtime parameters (a window of 20 minutes, a gap of 30): read from the question by code, never by the model, within their bounds. A question that names one twice with
 	// different values, names minutes without a number, or asks for a value outside the bounds gets a question back, not a guess (ask_engine_params.go).
-	paramUses, paramIssue := askResolveParams(frame, chosen)
+	var paramDefaults map[string]askParamDefault
+	if askHasParam(chosen, "hub_threshold") {
+		setting, err := askCaseSettingsFn(ctx, db, req.TenantID, req.CollectionID)
+		if err != nil {
+			return decline("could not read the settings of the case")
+		}
+		paramDefaults = askCaseParamDefaults(setting, askEnvInt(askHubThresholdEnv, 0))
+	}
+	paramUses, paramIssue := askResolveParamsWith(frame, chosen, paramDefaults)
 	if paramIssue != nil {
 		audit.Reason = "parameter: " + paramIssue.Kind
 		return finish(askClarification(req, paramIssue.Message, "No result is shown, because the question names a number the analysis cannot use as it stands. Nothing was inferred.", audit, nil))

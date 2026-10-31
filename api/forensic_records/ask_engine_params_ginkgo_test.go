@@ -36,6 +36,62 @@ var _ = Describe("Ask engine runtime parameters", func() {
 		Entry("quarter of an hour", "Were 923001110001 and 923001110002 together at one cell within a quarter of an hour?", 15),
 	)
 
+	// Migration 032: the hub threshold comes from the question, else from the case's own setting, else from the engine's setting for every case, else from the declaration (20).
+	It("reads the hub threshold from the question, the case or the engine, in that order, and says where the number came from", func() {
+		views := []string{"v_contact_pairs"}
+		note := func(question string, defaults map[string]askParamDefault) (int, []string) {
+			uses, issue := askResolveParamsWith(frameOf(question), views, defaults)
+			Expect(issue).To(BeNil(), question)
+			Expect(uses).To(HaveLen(1), question)
+			return uses[0].Value, askParamNotes(uses)
+		}
+		plain := "Which numbers are in contact with both 923001110001 and 923001110002, leaving out numbers that everyone contacts?"
+		caseTen := map[string]askParamDefault{"hub_threshold": {Value: 10, Source: "case"}}
+		engineFive := map[string]askParamDefault{"hub_threshold": {Value: 5, Source: "engine"}}
+
+		value, notes := note(plain, nil)
+		Expect(value).To(Equal(20))
+		Expect(notes).To(BeEmpty(), "the default of the declaration is not worth a line")
+		value, notes = note(plain, caseTen)
+		Expect(value).To(Equal(10))
+		Expect(notes).To(Equal([]string{"Hub threshold used: 10 subscribers (the setting of this case, because the question names none)."}))
+		value, notes = note(plain, engineFive)
+		Expect(value).To(Equal(5))
+		Expect(notes).To(Equal([]string{"Hub threshold used: 5 subscribers (the setting of this engine for every case, because the question names none)."}))
+
+		for _, question := range []string{
+			"Which numbers are in contact with both 923001110001 and 923001110002, leaving out any number in contact with more than 12 subscribers?",
+			"Which numbers do 923001110001 and 923001110002 both call, with a hub threshold of 12?",
+		} {
+			value, notes = note(question, caseTen)
+			Expect(value).To(Equal(12), question)
+			Expect(notes).To(Equal([]string{"Hub threshold used: 12 subscribers (read from your question)."}), question)
+		}
+		// a setting outside the bounds can never reach a view
+		value, _ = note(plain, map[string]askParamDefault{"hub_threshold": {Value: 5000, Source: "case"}})
+		Expect(value).To(Equal(20))
+		// two numbers in one question is a question back, and a number outside the bounds is refused with them
+		_, issue := askResolveParamsWith(frameOf("Numbers in contact with more than 10 subscribers, or with a hub threshold of 15"), views, nil)
+		Expect(issue).NotTo(BeNil())
+		Expect(issue.Kind).To(Equal("clarify"))
+		_, issue = askResolveParamsWith(frameOf("Numbers with a hub threshold of 1"), views, nil)
+		Expect(issue).NotTo(BeNil())
+		Expect(issue.Kind).To(Equal("range"))
+		Expect(issue.Message).To(ContainSubstring("from 2 to 1000"))
+		// a query that reads no hub view has no hub parameter
+		Expect(askHasParam([]string{"v_colocation_windows"}, "hub_threshold")).To(BeFalse())
+		Expect(askHasParam([]string{"v_connection_edges"}, "hub_threshold")).To(BeTrue())
+		uses, _ := askResolveParamsWith(frameOf(plain), views, caseTen)
+		Expect(askParamSettings(uses)).To(Equal(map[string]string{"app.hub_threshold": "10"}))
+		Expect(askKnownSetting("app.hub_threshold")).To(BeTrue())
+	})
+
+	It("gives the case's setting before the engine's, and the engine's before nothing", func() {
+		Expect(askCaseParamDefaults(askCaseSetting{}, 0)).To(BeEmpty())
+		Expect(askCaseParamDefaults(askCaseSetting{}, 7)["hub_threshold"]).To(Equal(askParamDefault{Value: 7, Source: "engine"}))
+		Expect(askCaseParamDefaults(askCaseSetting{HubThreshold: 10}, 7)["hub_threshold"]).To(Equal(askParamDefault{Value: 10, Source: "case"}))
+	})
+
 	It("tells the window from the gap before it in a meeting question", func() {
 		q := "List the possible meetings of 923001110001 and 923001110002: windows at the same cell within 20 minutes, preceded by a call or SMS between them in the previous 30 minutes."
 		got := read(q)
