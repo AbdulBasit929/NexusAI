@@ -1052,7 +1052,7 @@
    "bank": "extra",
    "note": "on the case clock; counts calls the number made and calls it received",
    "expected_text": "2026-04-17 22:59:16",
-   "review_note": "Scored correct because the later of the two times is in the rows, but the first sentence only says '2 rows': the engine returned the last call made and the last call received and left the choice to the reader. The answer is 2026-04-17 22:59:16 (the received call). A verified example for 'made or received' (voice-last-of-number) is in the code and takes effect with the next engine image.",
+   "review_note": "The live engine (round 8) answers '2 rows': the last call made and the last call received, and leaves the choice to the reader; the answer is 2026-04-17 22:59:16 (the received call). Checked on 2026-11-02 on a restored copy of the live database with the real model and the engine image round9b-20261102 (not yet deployed): answered 'Last call: 2026-04-17 22:59:16', correct. Live after the next deploy.",
    "kind_of_check": "answer",
    "live": {
     "state": "answered",
@@ -1079,7 +1079,7 @@
    "bank": "extra",
    "note": "520 outgoing voice calls; the next number made 238",
    "expected_text": "923000001005",
-   "review_note": "Found by this pack, wrong: the engine counted the NUMBERS CALLED (group by dst) and answered 923000001036 with 130; the number that MADE the most outgoing voice calls is 923000001005 with 520. A verified example (voice-most-outgoing) is in the code and takes effect with the next engine image; until then do not trust this answer.",
+   "review_note": "The live engine (round 8) is WRONG: it counted the numbers called (group by dst) and answered 923000001036 with 130; the number that made the most outgoing voice calls is 923000001005 with 520. Checked on 2026-11-02 on a restored copy of the live database with the real model and the engine image round9b-20261102 (not yet deployed): the top row is 923000001005 with 520 calls, correct (with the rows behind it: 520 rows in 1 file). Live after the next deploy.",
    "kind_of_check": "answer",
    "live": {
     "state": "answered",
@@ -1143,7 +1143,7 @@
    "bank": "extra",
    "note": "the five rows: 923000001009 with 923000001044, 1800 s; 923000001005 with 923000001036, 1272 s; 923000001000 with 923000001089, 1102 s; 923000001000 with 923000001098, 1075 s; 923000001000 with 923000001098, 1024 s. A table of five calls, both directions, longest first",
    "expected_text": "1024, 1075, 1102, 1272, 1800, 923000001000, 923000001005, 923000001009, 923000001036, 923000001044, 923000001089, 923000001098 (12 in all)",
-   "review_note": "Found by this pack, incomplete: the engine returned only the event ids and durations of the five longest calls ('5 rows'), without who called whom. The five durations are 1800, 1272, 1102, 1075 and 1024 seconds; the judge needs the numbers in the answer. A verified example (voice-longest-calls) is in the code and takes effect with the next engine image.",
+   "review_note": "The live engine (round 8) is incomplete: it returns only event ids and durations of the five longest calls ('5 rows'), without who called whom. The five durations are 1800, 1272, 1102, 1075 and 1024 seconds. Checked on 2026-11-02 on a restored copy of the live database with the real model and the engine image round9b-20261102 (not yet deployed): the five rows carry the parties and the durations, correct. Live after the next deploy.",
    "kind_of_check": "answer",
    "live": {
     "state": "answered",
@@ -1217,7 +1217,7 @@
    "bank": "extra",
    "note": "on the case clock; the hour 05:00 to 05:59 is not included",
    "expected_text": "197",
-   "review_note": "Found by this pack, WRONG and serious: the engine invented a date filter ('2026-01-01 00:00 to 04:59') that the question never gave, matched nothing, and answered 0. The true count is 197. An invented filter is the same kind of fault as ORL-TXN-009 (round 8 added the obligation INVENTED_FILTER for one pattern, not for dates). A verified example (voice-night-hours) is in the code; an obligation for a date the question never names is still to be built.",
+   "review_note": "The live engine (round 8) is WRONG and serious: it invented a date filter ('2026-01-01 00:00 to 04:59') that the question never gave, matched nothing, and answered 0. The true count is 197. Checked on 2026-11-02 on a restored copy of the live database with the real model and the engine image round9b-20261102 (not yet deployed): answered 'N: 197', correct, with 197 rows in 12 files behind it. A general guard against an invented date is still to be built: the example fixes this wording, and five rewordings were tried (see the design note).",
    "kind_of_check": "answer",
    "live": {
     "state": "answered",
