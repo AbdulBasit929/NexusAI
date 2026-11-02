@@ -102,6 +102,44 @@ var _ = Describe("Ask engine evidence on the restored Orion case", Ordered, func
 		})
 	}
 
+	It("shows the cited row of the longest call under the headings of the file it came from, and refuses a wrong hash, a title row and another case", func() {
+		v, rej := askValidate("SELECT max(duration_s) AS duration FROM v_comm_events WHERE event_type = 'voice'", cat, nil)
+		Expect(rej).To(BeNil())
+		result, err := askExecute(ctx, pool, tenant, collection, v, limits)
+		Expect(err).NotTo(HaveOccurred())
+		ev := askCollectEvidence(ctx, pool, tenant, collection, cat, v, result, limits)
+		Expect(ev.Rows).NotTo(BeEmpty())
+		first := ev.Rows[0]
+		Expect(first.SheetRow).To(BeNumerically(">", 0))
+		Expect(ev.Columns).To(ContainElements("When", "Kind", "Direction", "Subscriber", "Other party", "Duration (seconds)"))
+		Expect(first.Cells).To(HaveLen(len(ev.Columns)), "every row carries a cell under every heading")
+
+		found, err := loadSourceRow(ctx, pool, tenant, collection, first.EvidenceID, first.SheetRow, first.RowHash)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(found.State).To(Equal("found"), found.Reason)
+		Expect(found.SourceFile).To(Equal(first.SourceFile))
+		Expect(len(found.Cells)).To(BeNumerically(">=", 5))
+		names := []string{}
+		for _, c := range found.Cells {
+			Expect(c.Name).NotTo(HavePrefix("_"))
+			Expect(c.Value).NotTo(BeEmpty())
+			names = append(names, c.Name)
+		}
+		fmt.Printf("SOURCE-ROW %s row %d: %s\n", found.SourceFile, found.Row, strings.Join(names, ", "))
+
+		wrong, err := loadSourceRow(ctx, pool, tenant, collection, first.EvidenceID, first.SheetRow, "0000")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(wrong.State).To(Equal("not_found"))
+		Expect(wrong.Reason).To(ContainSubstring("different version"))
+
+		title, err := loadSourceRow(ctx, pool, tenant, collection, first.EvidenceID, 2, "")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(title.State).To(Equal("not_found"), "row 2 of a statement is its title, not a record")
+
+		_, err = loadSourceRow(ctx, pool, tenant, "no-such-collection", first.EvidenceID, first.SheetRow, "")
+		Expect(err).To(HaveOccurred(), "another case's evidence is not found")
+	})
+
 	It("says that a summary view is not itemised, instead of guessing", func() {
 		v, rej := askValidate("SELECT dst AS number, events FROM v_contact_pairs WHERE src = '923000001005' ORDER BY events DESC LIMIT 5", cat, nil)
 		Expect(rej).To(BeNil())

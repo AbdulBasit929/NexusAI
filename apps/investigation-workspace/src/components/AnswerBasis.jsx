@@ -33,6 +33,7 @@ export function AnswerEvidence({ evidence, citations }) {
   const check = CHECK_LABEL[evidence.reconciled] || CHECK_LABEL.not_checked
   const files = evidence.files || []
   const rows = evidence.rows || []
+  const headings = evidence.columns || []
   return (
     <details className="answer-basis__evidence">
       <summary>
@@ -48,23 +49,32 @@ export function AnswerEvidence({ evidence, citations }) {
       ) : null}
       {rows.length > 0 ? (
         <>
-          <p className="answer-basis__sentence">{evidence.scope ? `Shown: ${evidence.scope}.` : 'Rows shown.'}{evidence.total_rows > rows.length ? ` ${number(rows.length)} of ${number(evidence.total_rows)}.` : ''}</p>
-          <table className="answer-basis__table" aria-label="Rows behind this answer">
-            <thead><tr><th scope="col">Source file</th><th scope="col" className="answer-basis__num">Row</th><th scope="col">What the row says</th><th scope="col"><span className="visually-hidden">Open</span></th></tr></thead>
-            <tbody>
-              {rows.map(row => {
-                const href = openLink(row, citations)
-                return (
-                  <tr key={row.key}>
-                    <td>{row.source_file || 'a file of this case'}</td>
-                    <td className="answer-basis__num">{row.row_number || <span title="The row's place in the file could not be found">—</span>}</td>
-                    <td className="answer-basis__preview">{row.preview || ''}</td>
-                    <td>{href ? <Link to={href}>Open</Link> : null}</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+          <p className="answer-basis__sentence">{evidence.scope ? `Listed: ${evidence.scope}.` : 'Records listed.'}{evidence.total_rows > rows.length ? ` ${number(rows.length)} of ${number(evidence.total_rows)}.` : ''}</p>
+          <div className="answer-basis__scroll">
+            <table className="answer-basis__table" aria-label="Records behind this answer">
+              <thead>
+                <tr>
+                  {headings.map(heading => <th scope="col" key={heading}>{heading}</th>)}
+                  {headings.length === 0 ? <th scope="col">What the record says</th> : null}
+                  <th scope="col">In your file</th>
+                  <th scope="col"><span className="visually-hidden">Open</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(row => {
+                  const href = openLink(row, citations)
+                  return (
+                    <tr key={row.key}>
+                      {headings.map((heading, index) => <td key={heading}>{(row.cells || [])[index] || ''}</td>)}
+                      {headings.length === 0 ? <td className="answer-basis__preview">{row.preview || ''}</td> : null}
+                      <td>{row.source_file || 'a file of this case'}{row.row_number ? ` · row ${row.row_number}` : <span title="The place of this record in the file could not be found"> · row not found</span>}</td>
+                      <td>{href ? <Link to={href}>Open in file</Link> : null}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
         </>
       ) : null}
     </details>

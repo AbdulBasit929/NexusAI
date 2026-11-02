@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Check, Copy, Download, File, FileSpreadsheet, FileText, Image as ImageIcon, MapPin, AudioLines, Video } from 'lucide-react'
 import { CaseShell } from '../components/CaseShell.jsx'
+import { SourceRowCard } from '../components/SourceRowCard.jsx'
 import { getEvidence, getEvidenceContent } from '../lib/apiClient.js'
 import { displayName, formatBytes } from '../lib/format.js'
 import { LanguageText, ProcessingBadge, RouteState } from '../components/AnalystComponents.jsx'
@@ -11,10 +12,10 @@ import { curatedFamilyLabel } from '../lib/semanticCatalog.js'
 import { relativeAge } from '../lib/dashboardCases.js'
 import { formatNumber } from '../lib/format.js'
 
+// What the analyst reads about where a citation points. The row hash is a technical detail and is shown apart, under "Technical details".
 function locatorItems(searchParams) {
   return [
     ['Row', searchParams.get('row')],
-    ['Row hash', searchParams.get('row_hash')],
     ['Page', searchParams.get('page')],
     ['Character span', searchParams.get('char_span')],
     ['Source time', searchParams.get('source_time') && `${searchParams.get('source_time')} seconds`],
@@ -162,9 +163,11 @@ export default function EvidenceDetailPage() {
             <div>
               <h2 id="locator-heading">Exact source location</h2>
               <dl>{locators.map(([label, value]) => <div key={label}><dt>{label}</dt><dd><LanguageText as="bdi" identifier>{value}</LanguageText></dd></div>)}</dl>
+              {searchParams.get('row_hash') ? <details className="evv-locator__technical"><summary>Technical details</summary><dl><div><dt>Row hash</dt><dd><LanguageText as="bdi" identifier>{searchParams.get('row_hash')}</LanguageText></dd></div></dl></details> : null}
             </div>
           </section>
         ) : null}
+        {modality === 'structured_records' && searchParams.get('row') ? <SourceRowCard caseId={caseId} evidenceId={evidenceId} row={searchParams.get('row')} rowHash={searchParams.get('row_hash') || ''} /> : null}
         <div className="evv-body">
           <div className="evv-canvas">
             {modality === 'structured_records' ? <StructuredViewer detail={detail} row={searchParams.get('row')} recordType={item.detected_type} onRowSelect={(row, columns) => setRecord({ row, columns })} /> : null}

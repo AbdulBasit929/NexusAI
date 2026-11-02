@@ -24,12 +24,17 @@ export function LineagePanel({ detail, version }) {
 
 export function DocumentViewer(props) { return <DocumentReader {...props} /> }
 
+// The system's own columns of a stored record: they identify the record for the system and say nothing about the evidence, so the grid keeps them behind a toggle.
+export const TECHNICAL_COLUMNS = ['batch_id', 'collection_id', 'file_id', 'record_id', 'record_type', 'ingested_at', 'raw_payload', 'source_file', '__source']
+
 export function StructuredViewer({ detail, row, recordType, onRowSelect }) {
+  const [showTechnical, setShowTechnical] = useState(false)
   const previewRows = detail.records_preview || []
   const keys = [...new Set(previewRows.flatMap(item => Object.keys(item || {})))].filter(key => !['metadata', 'row_hash', 'source_hash'].includes(key))
-  const columns = keys.map(key => { const display = semanticCatalog.displayForColumn(key, recordType); return { key, ...display, label: display.fallback && display.label === key ? humanizeKey(key) : display.label } })
+  const allColumns = keys.map(key => { const display = semanticCatalog.displayForColumn(key, recordType); return { key, ...display, label: display.fallback && display.label === key ? humanizeKey(key) : display.label } })
   const hasHashes = previewRows.some(item => item.row_hash || item.source_hash)
-  if (hasHashes) columns.push({ key: '__source', label: 'Source row', description: 'Exact source row and hash' })
+  if (hasHashes) allColumns.push({ key: '__source', label: 'Row and hash', description: 'Exact source row and hash' })
+  const columns = showTechnical ? allColumns : allColumns.filter(column => !TECHNICAL_COLUMNS.includes(column.key))
   // Keep the same locator that the analyst can inspect in the exported row.
   // A custom cell renderer alone would leave the CSV column empty.
   const rows = hasHashes ? previewRows.map(item => ({
@@ -41,7 +46,8 @@ export function StructuredViewer({ detail, row, recordType, onRowSelect }) {
     const hash = item.row_hash || item.source_hash
     return hash ? <details className="row-hash"><summary>Show row hash</summary><LanguageText as="bdi" identifier>{hash}</LanguageText></details> : <span>Not reported</span>
   }
-  return <section className="source-viewer structured-viewer" aria-labelledby="structured-viewer-heading"><h2 id="structured-viewer-heading">Structured source</h2>{rows.length ? <VirtualizedTable columns={columns} rows={rows} label="Structured evidence rows" initialRow={row} renderCell={cell} onRowSelect={onRowSelect ? item => onRowSelect(item, columns) : undefined} exportName="nexusai-structured-evidence.csv" /> : <p>The evidence-detail response did not include a record preview.</p>}</section>
+  const hiddenCount = allColumns.length - allColumns.filter(column => !TECHNICAL_COLUMNS.includes(column.key)).length
+  return <section className="source-viewer structured-viewer" aria-labelledby="structured-viewer-heading"><h2 id="structured-viewer-heading">Stored records of the file</h2>{hiddenCount > 0 ? <p className="structured-viewer__toggle"><button type="button" aria-pressed={showTechnical} onClick={() => setShowTechnical(value => !value)}>{showTechnical ? 'Hide the system columns' : `Show the system columns (${hiddenCount})`}</button></p> : null}{rows.length ? <VirtualizedTable columns={columns} rows={rows} label="Structured evidence rows" initialRow={row} renderCell={cell} onRowSelect={onRowSelect ? item => onRowSelect(item, columns) : undefined} exportName="nexusai-structured-evidence.csv" /> : <p>The evidence-detail response did not include a record preview.</p>}</section>
 }
 
 export function ImageViewer(props) { return <ImageInspector {...props} /> }

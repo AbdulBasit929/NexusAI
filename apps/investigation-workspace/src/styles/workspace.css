@@ -5749,3 +5749,19 @@ button.rail-case-switch:hover { border-color: var(--analyst-line-strong); backgr
 .answer-basis__reading p { margin: 0; }
 .answer-basis__reading--waiting { display: flex; align-items: center; gap: var(--analyst-space-8); color: var(--analyst-text-secondary); }
 .answer-basis__disclosure { margin-block-start: var(--analyst-space-8) !important; font-size: var(--analyst-type-caption-size); color: var(--analyst-text-muted); }
+.answer-basis__scroll { overflow-x: auto; max-inline-size: 100%; }
+.answer-basis__scroll .answer-basis__table th, .answer-basis__scroll .answer-basis__table td { white-space: nowrap; }
+
+/* The row an answer points at, under the file's own column names (components/SourceRowCard.jsx), and the quieter evidence page around it. */
+.source-row { margin: var(--analyst-space-12) 0; padding: var(--analyst-space-12) var(--analyst-space-16); border-inline-start: var(--analyst-accent-rule-size) solid var(--analyst-accent); background: var(--analyst-surface-1); }
+.source-row h2 { margin: 0; font-size: var(--analyst-type-body-size); }
+.source-row header p { margin: 2px 0 var(--analyst-space-8); color: var(--analyst-text-secondary); font-size: var(--analyst-type-body-sm-size); }
+.source-row__cells { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: var(--analyst-space-8) var(--analyst-space-16); margin: 0; }
+.source-row__cells > div { min-inline-size: 0; }
+.source-row__cells dt { color: var(--analyst-text-muted); font-size: var(--analyst-type-caption-size); font-weight: var(--analyst-font-weight-semibold); }
+.source-row__cells dd { margin: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.source-row__note { margin: var(--analyst-space-8) 0 0; color: var(--analyst-text-muted); font-size: var(--analyst-type-caption-size); }
+.source-row--waiting, .source-row--missing p { color: var(--analyst-text-secondary); }
+.structured-viewer__toggle { margin: 0 0 var(--analyst-space-8); }
+.structured-viewer__toggle button { padding: 4px 10px; border: 1px solid var(--analyst-line); border-radius: 8px; background: transparent; color: var(--analyst-text-secondary); font: inherit; font-size: var(--analyst-type-caption-size); cursor: pointer; }
+.evv-locator__technical { margin-block-start: var(--analyst-space-8); font-size: var(--analyst-type-caption-size); color: var(--analyst-text-muted); }

@@ -50,16 +50,17 @@ type askEvidenceSource struct {
 	HasRow    bool
 	Locatable bool
 	Preview   []string // the columns of the view that say what the row is, in the order they are shown; never a column that holds a withheld identifier
+	Labels    []string // the plain heading of each of those columns, as an analyst would say it
 }
 
 var askEvidenceViews = map[string]askEvidenceSource{
-	"v_comm_events":              {Base: "comm_event", Key: "event_id", HasRow: true, Locatable: true, Preview: []string{"start_utc", "event_type", "direction", "src", "dst", "duration_s"}},
-	"v_bank_transactions":        {Base: "bank_transaction", Key: "txn_id", HasRow: true, Locatable: true, Preview: []string{"txn_utc", "account", "direction", "amount", "currency", "counterparty_account", "counterparty_msisdn"}},
-	"v_data_sessions":            {Base: "data_session", Key: "session_id", HasRow: true, Locatable: true, Preview: []string{"start_utc", "src", "app", "host", "bytes_up", "bytes_down"}},
-	"v_app_usage":                {Base: "app_usage", Key: "usage_id", HasRow: true, Locatable: true, Preview: []string{"start_utc", "src", "app", "app_category"}},
-	"v_plate_sightings":          {Base: "plate_sighting", Key: "sighting_id", HasRow: true, Locatable: true, Preview: []string{"observed_utc", "plate_norm", "camera_id", "camera_label"}},
-	"v_subscriber_registrations": {Base: "subscriber_registration", Key: "registration_id", HasRow: true, Preview: []string{"msisdn", "imsi", "status", "valid_from", "valid_to"}},
-	"v_document_mentions":        {Base: "document_mention", Key: "mention_id", Preview: []string{"document", "kind", "char_start"}},
+	"v_comm_events":              {Base: "comm_event", Key: "event_id", HasRow: true, Locatable: true, Preview: []string{"start_utc", "event_type", "direction", "src", "dst", "duration_s"}, Labels: []string{"When", "Kind", "Direction", "Subscriber", "Other party", "Duration (seconds)"}},
+	"v_bank_transactions":        {Base: "bank_transaction", Key: "txn_id", HasRow: true, Locatable: true, Preview: []string{"txn_utc", "account", "direction", "amount", "currency", "counterparty_account", "counterparty_msisdn"}, Labels: []string{"When", "Account", "Direction", "Amount", "Currency", "Other account", "Other number"}},
+	"v_data_sessions":            {Base: "data_session", Key: "session_id", HasRow: true, Locatable: true, Preview: []string{"start_utc", "src", "app", "host", "bytes_up", "bytes_down"}, Labels: []string{"When", "Subscriber", "App", "Host", "Bytes sent", "Bytes received"}},
+	"v_app_usage":                {Base: "app_usage", Key: "usage_id", HasRow: true, Locatable: true, Preview: []string{"start_utc", "src", "app", "app_category"}, Labels: []string{"When", "Subscriber", "App", "Category"}},
+	"v_plate_sightings":          {Base: "plate_sighting", Key: "sighting_id", HasRow: true, Locatable: true, Preview: []string{"observed_utc", "plate_norm", "camera_id", "camera_label"}, Labels: []string{"When", "Plate", "Camera", "Camera name"}},
+	"v_subscriber_registrations": {Base: "subscriber_registration", Key: "registration_id", HasRow: true, Preview: []string{"msisdn", "imsi", "status", "valid_from", "valid_to"}, Labels: []string{"Number", "SIM identity (IMSI)", "Status", "Valid from", "Valid to"}},
+	"v_document_mentions":        {Base: "document_mention", Key: "mention_id", Preview: []string{"document", "kind", "char_start"}, Labels: []string{"Document", "Kind", "Position in the document"}},
 }
 
 type askEvidenceAgg struct {
@@ -292,6 +293,16 @@ func (p *askEvidencePlan) extremeOrder() string {
 	return ""
 }
 
+// askEvidenceHeading is the plain heading of a view's column (Duration (seconds) for duration_s), or the column's own name when the view has none for it.
+func askEvidenceHeading(source askEvidenceSource, column string) string {
+	for i, c := range source.Preview {
+		if c == column && i < len(source.Labels) {
+			return source.Labels[i]
+		}
+	}
+	return column
+}
+
 // askEvidenceLiteral writes a value of the answer as an SQL literal for the condition of a group; false when it cannot be written safely.
 func askEvidenceLiteral(value any) (string, bool) {
 	switch x := value.(type) {
@@ -335,14 +346,15 @@ func askEvidenceNumber(value any) (float64, bool) {
 // ---- the result ----------------------------------------------------------------------------------------------------------------------------------------
 
 type askEvidenceRow struct {
-	Key        string `json:"key"`
-	EvidenceID string `json:"evidence_id"`
-	SourceFile string `json:"source_file"`
-	VersionID  string `json:"version_id,omitempty"`
-	SourceRow  int    `json:"source_row,omitempty"` // the typed row's own position in the statement
-	SheetRow   int    `json:"row_number,omitempty"` // the row of the sheet as the evidence viewer shows it; 0 when it could not be found
-	RowHash    string `json:"row_hash,omitempty"`
-	Preview    string `json:"preview,omitempty"`
+	Key        string   `json:"key"`
+	EvidenceID string   `json:"evidence_id"`
+	SourceFile string   `json:"source_file"`
+	VersionID  string   `json:"version_id,omitempty"`
+	SourceRow  int      `json:"source_row,omitempty"` // the typed row's own position in the statement
+	SheetRow   int      `json:"row_number,omitempty"` // the row of the sheet as the evidence viewer shows it; 0 when it could not be found
+	RowHash    string   `json:"row_hash,omitempty"`
+	Preview    string   `json:"preview,omitempty"`
+	Cells      []string `json:"cells,omitempty"` // what the row says, under the headings of askEvidence.Columns, in the same order
 }
 
 type askEvidenceFile struct {
@@ -356,13 +368,16 @@ type askEvidence struct {
 	Reason     string            `json:"reason,omitempty"`
 	Kind       string            `json:"kind,omitempty"`
 	View       string            `json:"view,omitempty"`
-	Scope      string            `json:"scope,omitempty"` // which rows the list shows, in words
+	Scope      string            `json:"scope,omitempty"`   // which rows the list shows, in words
+	Columns    []string          `json:"columns,omitempty"` // the plain headings of the cells of each row
 	Total      int               `json:"total_rows"`
 	Files      []askEvidenceFile `json:"files,omitempty"`
 	Rows       []askEvidenceRow  `json:"rows,omitempty"`
 	Reconciled string            `json:"reconciled,omitempty"` // "yes", "no" or "not_checked"
 	Check      string            `json:"check,omitempty"`      // the sentence that says what was recomputed
 	Truncated  bool              `json:"truncated,omitempty"`
+
+	cells map[string][]string // the cells of each listed row by key, carried to askEvidenceLocate
 }
 
 func askEvidenceNone(reason string) *askEvidence {
@@ -413,14 +428,14 @@ func askCollectEvidence(ctx context.Context, db *pgxpool.Pool, tenantID, collect
 			parts = append(parts, column+" = "+literal)
 		}
 		extra = strings.Join(parts, " AND ")
-		ev.Scope = "the rows of the first result (" + strings.Join(parts, ", ") + ")"
+		ev.Scope = "the records of the first result in the answer"
 	case "aggregate":
-		ev.Scope = "the rows the figure is computed over"
+		ev.Scope = "the records the figure is computed from"
 		if order := plan.extremeOrder(); order != "" {
-			ev.Scope = "the row with the " + map[string]string{"max": "largest", "min": "smallest"}[plan.Aggs[0].Fn] + " " + plan.Aggs[0].Column + " first, then the rows that share the figure's conditions"
+			ev.Scope = "the record with the " + map[string]string{"max": "largest", "min": "smallest"}[plan.Aggs[0].Fn] + " " + strings.ToLower(askEvidenceHeading(plan.Source, plan.Aggs[0].Column)) + " first, then others it was computed from"
 		}
 	default:
-		ev.Scope = "the rows of the answer"
+		ev.Scope = "the records of the answer, in its order"
 	}
 
 	// 1. the rows themselves (a handful of them: the extreme row, the rows of the answer, the first rows of the group)
@@ -443,17 +458,34 @@ func askCollectEvidence(ctx context.Context, db *pgxpool.Pool, tenantID, collect
 	}
 	var keys []string
 	previews := map[string]string{}
+	cellsOf := map[string][]string{}
+	labels := plan.Source.Labels
+	if len(labels) == len(plan.Source.Preview) {
+		ev.Columns = labels
+	}
 	for _, r := range rows.Rows {
 		key := fmt.Sprint(r[0])
 		keys = append(keys, key)
 		var parts []string
+		cells := make([]string, 0, len(r)-1)
 		for i := 1; i < len(r) && i < len(rows.Columns); i++ {
-			if r[i] != nil && fmt.Sprint(r[i]) != "" {
-				parts = append(parts, rows.Columns[i]+" "+fmt.Sprint(r[i]))
+			text := ""
+			if r[i] != nil {
+				text = fmt.Sprint(r[i])
+			}
+			cells = append(cells, text)
+			if text != "" {
+				heading := rows.Columns[i]
+				if i-1 < len(labels) {
+					heading = labels[i-1]
+				}
+				parts = append(parts, heading+" "+text)
 			}
 		}
+		cellsOf[key] = cells
 		previews[key] = govSQLClip(strings.Join(parts, "; "), 240)
 	}
+	ev.cells = cellsOf
 
 	// 2. the matching rows in each source file, and the figure recomputed from those pieces
 	if plan.Kind != "rows" {
@@ -671,6 +703,7 @@ WHERE t.tenant_id = $1 AND t.collection_id = $2 AND t.%[1]s::text = ANY($3)`, so
 			}
 		}
 		r.Preview = previews[key]
+		r.Cells = ev.cells[key]
 		ev.Rows = append(ev.Rows, r)
 	}
 	// a file the answer counts but whose rows are not listed still needs its name

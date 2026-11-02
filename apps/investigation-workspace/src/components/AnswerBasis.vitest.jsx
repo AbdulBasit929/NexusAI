@@ -8,11 +8,12 @@ const evidence = {
   total_rows: 3871,
   reconciled: 'yes',
   check: 'Recomputed from the 3,871 matching rows in 2 files: max(duration_s) = 1,800.',
-  scope: 'the row with the largest duration_s first',
+  scope: 'the record with the largest duration (seconds) first, then others it was computed from',
+  columns: ['When', 'Kind', 'Direction', 'Subscriber', 'Other party', 'Duration (seconds)'],
   files: [{ evidence_id: 'e1', source_file: 'export-P-000.xlsx', rows: 2000 }, { evidence_id: 'e2', source_file: 'export-P-001.xlsx', rows: 1871 }],
   rows: [
-    { key: '1', evidence_id: 'e1', source_file: 'export-P-000.xlsx', row_number: 120, preview: 'BNUMBER 03000001044; SECS 1800' },
-    { key: '2', evidence_id: 'e2', source_file: 'export-P-001.xlsx', row_number: 0, preview: 'BNUMBER 03000001045; SECS 12' },
+    { key: '1', evidence_id: 'e1', source_file: 'export-P-000.xlsx', row_number: 120, cells: ['2026-03-31 14:46:23 PKT', 'voice', 'incoming', '923000001009', '923000001044', '1800'] },
+    { key: '2', evidence_id: 'e2', source_file: 'export-P-001.xlsx', row_number: 0, cells: ['2026-02-02 11:06:33 PKT', 'voice', 'outgoing', '923000001000', '923000001015', '78'] },
   ],
 }
 const citations = { items: [{ locator: { rowNumber: 120 }, href: '/cases/orion/evidence/e1?version=v1&row=120' }] }
@@ -27,15 +28,22 @@ describe('AnswerEvidence', () => {
     expect(screen.getByText(/max\(duration_s\) = 1,800/)).toBeInTheDocument()
   })
 
-  it('lists the files and the rows, opens a row it could place, and says plainly when it could not place one', () => {
+  it('lists the files and the records under plain headings, opens a row it could place, and says plainly when it could not place one', () => {
     renderInRouter(<AnswerEvidence evidence={evidence} citations={citations} />)
     const files = screen.getByRole('table', { name: 'Source files behind this answer' })
     expect(within(files).getByText('export-P-001.xlsx')).toBeInTheDocument()
     expect(within(files).getByText('1,871')).toBeInTheDocument()
-    const rows = screen.getByRole('table', { name: 'Rows behind this answer' })
-    expect(within(rows).getByRole('link', { name: 'Open' })).toHaveAttribute('href', '/cases/orion/evidence/e1?version=v1&row=120')
+    const rows = screen.getByRole('table', { name: 'Records behind this answer' })
+    for (const heading of ['When', 'Kind', 'Direction', 'Subscriber', 'Other party', 'Duration (seconds)', 'In your file']) expect(within(rows).getByRole('columnheader', { name: heading })).toBeInTheDocument()
+    expect(within(rows).getByText('923000001044')).toBeInTheDocument()
+    expect(within(rows).getByText('1800')).toBeInTheDocument()
+    expect(within(rows).getByText(/export-P-000\.xlsx · row 120/)).toBeInTheDocument()
+    expect(within(rows).getByRole('link', { name: 'Open in file' })).toHaveAttribute('href', '/cases/orion/evidence/e1?version=v1&row=120')
     expect(within(rows).getAllByRole('link')).toHaveLength(1)
     expect(within(rows).getByTitle(/could not be found/)).toBeInTheDocument()
+    expect(screen.getByText(/Listed: the record with the largest duration \(seconds\) first/)).toBeInTheDocument()
+    // nothing an engineer would read: no identifier, no hash, no column of the system
+    expect(rows).not.toHaveTextContent(/duration_s|event_type|evidence_id|hash/i)
   })
 
   it('warns when the rows do not give the figure, and says when the figure was not recomputed', () => {

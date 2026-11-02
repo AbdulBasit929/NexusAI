@@ -84,6 +84,13 @@ export function getQueryCapabilities({ caseId, signal, fetchImpl }) {
   return scopedGet('/query/capabilities', caseId, { signal, fetchImpl })
 }
 
+// One row of a statement or log file as the file itself has it: its own column names and values (not the stored record with its identifiers). The row hash of the link must be the stored row's own.
+export function getSourceRow({ caseId, evidenceId, row, rowHash, signal, fetchImpl }) {
+  const query = new URLSearchParams({ row: String(row) })
+  if (rowHash) query.set('row_hash', rowHash)
+  return scopedGet(`/evidence/${encodeURIComponent(evidenceId)}/source-row?${query}`, caseId, { signal, fetchImpl })
+}
+
 // The language model's reading of an answer that is on the screen (decision D33). The answer carries a random token; the reading is asked for after the figure, so the figure never waits for it.
 // The token is only ever the one the engine put in that answer.
 export function getAnswerReading({ caseId, token, signal, fetchImpl }) {

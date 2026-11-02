@@ -215,6 +215,7 @@ func main() {
 	mux.HandleFunc("GET /images/similar", imageSimilarityHandler(db))
 	mux.HandleFunc("GET /evidence/{evidence_id}", evidenceDetailHandler(db))
 	mux.HandleFunc("GET /evidence/{evidence_id}/content", evidenceContentHandler(db, evidenceStore))
+	mux.HandleFunc("GET /evidence/{evidence_id}/source-row", evidenceSourceRowHandler(db))
 	mux.HandleFunc("GET /evidence/{evidence_id}/reprocess-plan", evidenceReprocessPlanHandler(db))
 	mux.HandleFunc("POST /evidence/{evidence_id}/reprocess", evidenceReprocessHandler(db, publisher))
 	mux.HandleFunc("GET /analysis/connections", connectionsHandler(db))
