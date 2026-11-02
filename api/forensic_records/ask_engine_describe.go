@@ -89,6 +89,9 @@ func askDeparseFragment(kind string, nodes []*pg.Node) string {
 	case "target":
 		sel.TargetList = nodes
 		prefix = "SELECT "
+	case "from":
+		sel.FromClause = nodes
+		prefix = "SELECT 1 FROM "
 	default:
 		return ""
 	}

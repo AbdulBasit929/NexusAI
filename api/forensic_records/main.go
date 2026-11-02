@@ -226,6 +226,7 @@ func main() {
 	mux.HandleFunc("GET /query/capabilities", forensicCapabilitiesHandler(db))
 	mux.HandleFunc("POST /query/hybrid", hybridQueryHandler(cfg, db))
 	mux.HandleFunc("GET /query/reading", askReadingHandler(cfg))
+	mux.HandleFunc("GET /query/evidence-line", askLineHandler(db))
 	mux.HandleFunc("GET /api/v1/forensics/adapters", forensicPlatformDiscoveryHandler("adapters"))
 	mux.HandleFunc("GET /api/v1/forensics/operations", forensicPlatformDiscoveryHandler("operations"))
 	mux.HandleFunc("GET /api/v1/forensics/agents", forensicPlatformDiscoveryHandler("agents"))

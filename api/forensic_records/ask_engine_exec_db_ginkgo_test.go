@@ -378,7 +378,7 @@ modality, detected_type, classifier_confidence, processing_route, processing_sta
 	})
 
 	It("shows the rows behind a figure: the count is recomputed from the files, a list shows the rows of the answer, and a summary view says it is not itemised", func() {
-		subject, other, _, _ := pair()
+		subject, other, pairEvents, _ := pair()
 		savedModel := askModel
 		defer func() { askModel = savedModel }()
 		ask := func(sql, question string) *hybridQueryResponse {
@@ -426,8 +426,54 @@ modality, detected_type, classifier_confidence, processing_route, processing_sta
 
 		summary := ask(fmt.Sprintf("SELECT events AS n FROM v_contact_pairs WHERE src = '%s' AND dst = '%s'", subject, other), fmt.Sprintf("How many events are there between %s and %s?", subject, other))
 		sev := summary.Enterprise["evidence"].(*askEvidence)
-		Expect(sev.State).To(Equal("not_itemised"))
-		Expect(sev.Reason).To(ContainSubstring("summarises many records"))
+		Expect(sev.State).To(Equal("itemised"), sev.Reason)
+		Expect(sev.Kind).To(Equal("lines"), "a summary view is itemised as its lines, each with the records behind it")
+		Expect(sev.Lines).To(HaveLen(1))
+		Expect(sev.Lines[0].Records).To(Equal(pairEvents), "the line stands on the records between the two numbers, as many as the generator planted")
+
+		distinct := ask(fmt.Sprintf("SELECT DISTINCT dst AS number FROM v_contact_pairs WHERE src = '%s' LIMIT 50", subject), fmt.Sprintf("Which different numbers did %s contact?", subject))
+		dev := distinct.Enterprise["evidence"].(*askEvidence)
+		Expect(dev.State).To(Equal("not_itemised"))
+		Expect(dev.Reason).To(ContainSubstring("removes repeated values"))
+	})
+
+	It("traces the lines of a top-contacts answer to the records, and each line stands on exactly the events the generator planted", func() {
+		subject, _, _, _ := pair()
+		savedModel := askModel
+		defer func() { askModel = savedModel }()
+		sql := fmt.Sprintf("SELECT dst AS number, events FROM v_contact_pairs WHERE src = '%s' ORDER BY events DESC LIMIT 5", subject)
+		askModel = func(context.Context, config, string, []govSQLTurn) (string, string) {
+			raw, _ := json.Marshal(map[string]any{"answerable": true, "sql": sql})
+			return string(raw), ""
+		}
+		req := hybridQueryRequest{TenantID: truth.Tenant, CollectionID: truth.CaseID, RequestClass: forensicrequest.GovernedAnalysis, Query: fmt.Sprintf("Who does %s talk to most?", subject)}
+		resp, audit := runAskEngineV2(ctx, config{SynthesisModel: "scripted"}, pool, req, time.Now())
+		Expect(audit.State).To(Equal("answered"), audit.Reason)
+		ev, ok := resp.Enterprise["evidence"].(*askEvidence)
+		Expect(ok).To(BeTrue())
+		Expect(ev.State).To(Equal("itemised"), ev.Reason)
+		Expect(ev.Kind).To(Equal("lines"))
+		Expect(ev.Lines).NotTo(BeEmpty())
+		Expect(ev.LinesToken).To(HaveLen(32))
+		planted := map[string]int{}
+		for _, p := range truth.Oracle.A1[subject] {
+			planted[p.Number] = p.Outgoing + p.Incoming + p.Unknown
+		}
+		for _, line := range ev.Lines {
+			parts := strings.Split(line.Label, " → ")
+			Expect(parts).To(HaveLen(2), line.Label)
+			Expect(parts[0]).To(Equal(subject))
+			Expect(line.Records).To(Equal(planted[parts[1]]), "the records behind "+line.Label+" are the planted events")
+			Expect(line.Reconciled).To(Equal("yes"), line.Check)
+		}
+		Expect(ev.Rows).NotTo(BeEmpty(), "the records of the first line are listed")
+		Expect(ev.Total).To(Equal(ev.Lines[0].Records))
+		Expect(strings.Join(resp.Enterprise["limitations"].([]string), " ")).To(ContainSubstring("each standing for records"))
+
+		session := askLineSessionFind(ev.LinesToken)
+		Expect(session).NotTo(BeNil())
+		Expect(session.Tenant).To(Equal(truth.Tenant))
+		Expect(session.Collection).To(Equal(truth.CaseID))
 	})
 
 	It("says that a number the case does not hold has no record, and does not answer zero", func() {

@@ -72,17 +72,28 @@ type askEvidenceAgg struct {
 	Plain    bool // false when a FILTER, an ORDER or a DISTINCT keeps the pieces from adding up
 }
 
+// askEvidenceAlias is one summary view of the query's FROM clause, under the name the query gives it.
+type askEvidenceAlias struct {
+	Name  string
+	View  string
+	Trace askTrace
+}
+
 type askEvidencePlan struct {
-	View       string
-	Source     askEvidenceSource
-	Kind       string // "aggregate", "rows" or "group"
-	Alias      string
-	Where      string
-	Order      string
-	Limit      int
-	Aggs       []askEvidenceAgg
-	GroupCols  []string // the plain columns of GROUP BY
-	GroupIndex []int    // the position of each in the answer's columns
+	Aliases      []askEvidenceAlias // the summary views of the FROM clause when Kind is "lines"
+	FromSQL      string             // the FROM clause as SQL, joins included, when Kind is "lines"
+	CountStar    bool               // the answer is the number of lines (count(*) over the summary view)
+	RowsAreLines bool               // the answer lists the summary rows: they are the lines
+	View         string
+	Source       askEvidenceSource
+	Kind         string // "aggregate", "rows" or "group"
+	Alias        string
+	Where        string
+	Order        string
+	Limit        int
+	Aggs         []askEvidenceAgg
+	GroupCols    []string // the plain columns of GROUP BY
+	GroupIndex   []int    // the position of each in the answer's columns
 }
 
 var askPlainIdent = regexp.MustCompile(`^[a-z_][a-z0-9_]*$`)
@@ -120,12 +131,12 @@ func askEvidencePlanOf(v *askValidated, columns []string) (*askEvidencePlan, str
 	case root == nil:
 		return nil, "the query could not be read back"
 	case v.Recursive:
-		return nil, "the answer follows contacts from number to number, so no single set of records stands behind it"
+		return nil, "the answer follows contacts from number to number through several steps, so no single set of records stands behind it. To see the records, ask how two of the numbers are connected: that answer lists each link of the route, with the calls and messages behind it"
 	case root.Op != pg.SetOperation_SETOP_NONE:
 		return nil, "the answer combines two result sets, so no single set of records stands behind it"
 	case root.WithClause != nil:
 		return nil, "the answer is built from intermediate steps, so its rows are not itemised"
-	case len(root.FromClause) != 1 || root.FromClause[0].GetRangeVar() == nil:
+	case len(root.FromClause) != 1:
 		return nil, "the answer joins or nests several sources, so its rows are not itemised"
 	case len(root.DistinctClause) > 0:
 		return nil, "the answer removes repeated values, so one row does not stand for one result"
@@ -133,9 +144,12 @@ func askEvidencePlanOf(v *askValidated, columns []string) (*askEvidencePlan, str
 		return nil, "the answer skips rows or uses a window, so its rows are not itemised"
 	}
 	rv := root.FromClause[0].GetRangeVar()
+	if rv == nil || askEvidenceViewsHas(rv.Relname) == false {
+		return askEvidenceLinesPlan(root, v, columns)
+	}
 	source, ok := askEvidenceViews[rv.Relname]
 	if !ok {
-		return nil, "the answer reads " + rv.Relname + ", which summarises many records; the records behind a summary are not itemised yet"
+		return nil, "the answer reads " + rv.Relname + ", which has no records behind it that can be listed"
 	}
 	plan := &askEvidencePlan{View: rv.Relname, Source: source, Limit: v.Limit}
 	if rv.Alias != nil && rv.Alias.Aliasname != "" {
@@ -221,6 +235,11 @@ func askEvidencePlanOf(v *askValidated, columns []string) (*askEvidencePlan, str
 		return nil, "the columns of the answer do not match the query"
 	}
 	return plan, ""
+}
+
+func askEvidenceViewsHas(view string) bool {
+	_, ok := askEvidenceViews[view]
+	return ok
 }
 
 func (p *askEvidencePlan) from() string {
@@ -370,6 +389,10 @@ type askEvidence struct {
 	View       string            `json:"view,omitempty"`
 	Scope      string            `json:"scope,omitempty"`   // which rows the list shows, in words
 	Columns    []string          `json:"columns,omitempty"` // the plain headings of the cells of each row
+	Say        string            `json:"say,omitempty"`     // what the listed records are, in a sentence
+	Lines      []askEvidenceLine `json:"lines,omitempty"`   // the lines of a summary answer, each with the records behind it
+	LinesTotal int               `json:"lines_total,omitempty"`
+	LinesToken string            `json:"lines_token,omitempty"` // opens the records of another line (GET /query/evidence-line)
 	Total      int               `json:"total_rows"`
 	Files      []askEvidenceFile `json:"files,omitempty"`
 	Rows       []askEvidenceRow  `json:"rows,omitempty"`
@@ -413,6 +436,9 @@ func askCollectEvidence(ctx context.Context, db *pgxpool.Pool, tenantID, collect
 		return askRun(ctx, db, tenantID, collectionID, checked.SQL, nil, limits, maxRows, true)
 	}
 
+	if plan.Kind == "lines" {
+		return askCollectLines(ctx, db, tenantID, collectionID, cat, plan, result, limits, ev)
+	}
 	extra := ""
 	switch plan.Kind {
 	case "group":
@@ -798,6 +824,9 @@ func askAttachEvidence(resp *hybridQueryResponse, ev *askEvidence) {
 	}
 	resp.Enterprise["provenance"] = provenance
 	line := fmt.Sprintf("%s rows in %s are behind this answer", govSQLGroup(strconv.Itoa(ev.Total)), askEvidencePlural(len(ev.Files), "source file"))
+	if ev.Kind == "lines" {
+		line = fmt.Sprintf("This answer has %s lines, each standing for records; the first line's %s records in %s are listed, and every other line can be opened", govSQLGroup(strconv.Itoa(ev.LinesTotal)), govSQLGroup(strconv.Itoa(ev.Total)), askEvidencePlural(len(ev.Files), "source file"))
+	}
 	if ev.Kind == "rows" {
 		line = fmt.Sprintf("The %s rows shown come from %s", govSQLGroup(strconv.Itoa(ev.Total)), askEvidencePlural(len(ev.Files), "source file"))
 	}

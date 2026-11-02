@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -136,11 +137,59 @@ ORDER BY (SELECT count(*) FROM jsonb_each_text(t.raw_payload) p WHERE p.value <>
 		if err != nil || len(cells) == 0 {
 			continue
 		}
+		cells = sourceRowInFileOrder(ctx, tx, tenantID, evidenceID, row, payload, cells)
 		out.State, out.Kind, out.Cells = "found", source.kind, cells
 		return out, nil
 	}
 	out.Reason = "this row is not one of the file's records (a title or a heading row, or a row the system did not read)"
 	return out, nil
+}
+
+// sourceRowInFileOrder puts the cells in the order of the file's own columns. The header row of the sheet (the nearest row above whose cells hold every column name of this row) lists the names in the
+// order of the columns; its stored keys end in the column's position. Without such a row the cells stay as they are.
+func sourceRowInFileOrder(ctx context.Context, tx pgx.Tx, tenantID, evidenceID string, row int, typedPayload string, cells []sourceRowCell) []sourceRowCell {
+	var header string
+	err := tx.QueryRow(ctx, `SELECT (r.raw_payload - '_xlsx_cells')::text FROM forensic.records r
+WHERE r.tenant_id = $1 AND r.evidence_id::text = $2 AND r.row_number < $3
+  AND NOT EXISTS (SELECT 1 FROM jsonb_object_keys($4::jsonb) k WHERE k NOT IN (SELECT value FROM jsonb_each_text(r.raw_payload)))
+ORDER BY r.row_number DESC LIMIT 1`, tenantID, evidenceID, row, typedPayload).Scan(&header)
+	if err != nil {
+		return cells
+	}
+	var named map[string]any
+	if json.Unmarshal([]byte(header), &named) != nil {
+		return cells
+	}
+	position := map[string]int{}
+	for key, value := range named {
+		name, ok := value.(string)
+		if !ok || strings.HasPrefix(key, "_xlsx_") {
+			continue
+		}
+		place := 0 // the first column carries the heading's own text as its key; the others end in their position
+		if rest, found := strings.CutPrefix(key, "_extra_column_"); found {
+			if n, convErr := strconv.Atoi(rest); convErr == nil {
+				place = n
+			}
+		}
+		if _, seen := position[name]; !seen {
+			position[name] = place
+		}
+	}
+	ordered := make([]sourceRowCell, len(cells))
+	copy(ordered, cells)
+	sort.SliceStable(ordered, func(a, b int) bool {
+		pa, okA := position[ordered[a].Name]
+		pb, okB := position[ordered[b].Name]
+		switch {
+		case okA && okB:
+			return pa < pb
+		case okA:
+			return true
+		}
+		return false
+	})
+	return ordered
 }
 
 // sourceRowCells reads the filled cells of a typed row's own payload under their headings.

@@ -100,8 +100,9 @@ var _ = Describe("Ask engine evidence behind a figure", func() {
 			Expect(p).To(BeNil())
 			Expect(got).To(ContainSubstring(reason))
 		},
-		Entry("a summary view", "SELECT dst AS number, events FROM v_contact_pairs WHERE src = '923000000101' ORDER BY events DESC LIMIT 5", "summarises many records", "number", "events"),
-		Entry("a join", "SELECT x.dst AS number FROM v_contact_pairs x JOIN v_contact_pairs y ON y.dst = x.dst WHERE x.src = '923000000101' AND y.src = '923000000102' LIMIT 5", "joins or nests", "number"),
+		Entry("an outer join of summaries", "SELECT x.dst AS number FROM v_contact_pairs x LEFT JOIN v_contact_pairs y ON y.dst = x.dst WHERE x.src = '923000000101' LIMIT 5", "cannot be traced", "number"),
+		Entry("a join of a summary with a record view", "SELECT x.dst AS number FROM v_contact_pairs x JOIN v_comm_events e ON e.dst = x.dst WHERE x.src = '923000000101' LIMIT 5", "cannot be traced", "number"),
+		Entry("a step-by-step query", "WITH a AS (SELECT dst FROM v_contact_pairs WHERE src = '923000000101') SELECT dst AS number FROM a LIMIT 5", "intermediate steps", "number"),
 		Entry("a set operation", "SELECT dst AS number FROM v_comm_events WHERE src = '923000000101' INTERSECT SELECT dst FROM v_comm_events WHERE src = '923000000102' LIMIT 5", "combines two result sets", "number"),
 		Entry("distinct values", "SELECT DISTINCT dst AS number FROM v_comm_events WHERE src = '923000000101' LIMIT 50", "removes repeated values", "number"),
 		Entry("a group by a computed day", "SELECT date_trunc('day', start_utc) AS t, count(*) AS value FROM v_comm_events GROUP BY 1 ORDER BY value DESC LIMIT 5", "computed value", "t", "value"),

@@ -91,6 +91,11 @@ export function getSourceRow({ caseId, evidenceId, row, rowHash, signal, fetchIm
   return scopedGet(`/evidence/${encodeURIComponent(evidenceId)}/source-row?${query}`, caseId, { signal, fetchImpl })
 }
 
+// The records behind one line of an answer made of summaries (the contacts of a number, the links of a path, the counterparties of an account). The token is the one the answer carried.
+export function getEvidenceLine({ caseId, token, line, signal, fetchImpl }) {
+  return scopedGet(`/query/evidence-line?token=${encodeURIComponent(token)}&line=${encodeURIComponent(String(line))}`, caseId, { signal, fetchImpl })
+}
+
 // The language model's reading of an answer that is on the screen (decision D33). The answer carries a random token; the reading is asked for after the figure, so the figure never waits for it.
 // The token is only ever the one the engine put in that answer.
 export function getAnswerReading({ caseId, token, signal, fetchImpl }) {
