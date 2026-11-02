@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Sparkles } from 'lucide-react'
 import { getAnswerReading, getEvidenceLine } from '../lib/apiClient.js'
 
 // What an answer rests on (docs/data/answer-evidence-and-interpretation-20261102.md). Parts, all read from what the engine returned with the answer:
@@ -92,6 +93,7 @@ function LinesView({ evidence, caseId, fetchLine }) {
   }, [selected, firstHere, evidence.lines_token, caseId, fetched, fetchLine])
   // what the table shows for a line: what came with the answer, or what was counted when the line was opened
   const shown = line => (line.pending && fetched[line.index]?.summary ? { ...line, ...fetched[line.index].summary, pending: false } : line)
+  const biggest = Math.max(0, ...lines.map(line => Number(shown(line).records) || 0))
   return (
     <>
       <div className="answer-basis__scroll">
@@ -102,9 +104,9 @@ function LinesView({ evidence, caseId, fetchLine }) {
               const line = shown(raw)
               return (
               <tr key={line.index} className={line.index === selected ? 'is-selected' : undefined}>
-                <td className="answer-basis__num">{line.index}</td>
-                <td>{line.label}</td>
-                <td className="answer-basis__num">{line.pending || (!line.records && !line.files && line.reconciled === 'not_checked') ? '—' : number(line.records)}</td>
+                <td className="answer-basis__num"><span className="answer-basis__rank">{line.index}</span></td>
+                <td className="answer-basis__label">{line.label}</td>
+                <td className="answer-basis__num">{line.pending || (!line.records && !line.files && line.reconciled === 'not_checked') ? '—' : <span className="answer-basis__records"><span className="answer-basis__bar" aria-hidden="true"><i style={{ '--share': biggest ? line.records / biggest : 0 }} /></span>{number(line.records)}</span>}</td>
                 <td className="answer-basis__num">{line.files ? number(line.files) : '—'}</td>
                 <td className={`answer-basis__check answer-basis__check--${(CHECK_LABEL[line.reconciled] || CHECK_LABEL.not_checked).tone}`}>{line.reconciled === 'yes' ? 'matches' : line.reconciled === 'no' ? 'does not match' : ''}</td>
                 <td><button type="button" className="answer-basis__show" aria-pressed={line.index === selected} onClick={() => setSelected(line.index)}>{line.index === selected ? 'Showing records' : 'Show records'}</button></td>
@@ -125,7 +127,8 @@ function LinesView({ evidence, caseId, fetchLine }) {
   )
 }
 
-export function AnswerEvidence({ evidence, caseId, fetchLine = getEvidenceLine }) {
+export function AnswerEvidence({ evidence, caseId, defaultOpen = false, fetchLine = getEvidenceLine }) {
+  const [open, setOpen] = useState(Boolean(defaultOpen))
   if (!evidence) return null
   if (evidence.state !== 'itemised') {
     return (
@@ -138,7 +141,7 @@ export function AnswerEvidence({ evidence, caseId, fetchLine = getEvidenceLine }
   const isLines = evidence.kind === 'lines'
   const files = evidence.files || []
   return (
-    <details className="answer-basis__evidence">
+    <details className="answer-basis__evidence" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
       <summary>
         <span className="answer-basis__lead">
           {isLines
@@ -178,7 +181,7 @@ export function AnswerReading({ caseId, reading, fetchReading = getAnswerReading
   }
   return (
     <section className="answer-basis__reading" aria-label="Reading of this result by the language model">
-      <h4>Reading of this result</h4>
+      <h4><Sparkles aria-hidden="true" />Reading of this result</h4>
       <p>{result.text}</p>
       <p className="answer-basis__disclosure">{result.disclosure}</p>
     </section>

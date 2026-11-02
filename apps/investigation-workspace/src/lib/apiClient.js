@@ -91,6 +91,14 @@ export function getSourceRow({ caseId, evidenceId, row, rowHash, signal, fetchIm
   return scopedGet(`/evidence/${encodeURIComponent(evidenceId)}/source-row?${query}`, caseId, { signal, fetchImpl })
 }
 
+// The file as it was supplied, a page of rows at a time, under the file's own column names and in its own column order (api/forensic_records/evidence_file_rows.go).
+export function getFileRows({ caseId, evidenceId, from, limit, signal, fetchImpl }) {
+  const query = new URLSearchParams()
+  if (from) query.set('from', String(from))
+  if (limit) query.set('limit', String(limit))
+  return scopedGet(`/evidence/${encodeURIComponent(evidenceId)}/file-rows?${query}`, caseId, { signal, fetchImpl })
+}
+
 // The records behind one line of an answer made of summaries (the contacts of a number, the links of a path, the counterparties of an account). The token is the one the answer carried.
 export function getEvidenceLine({ caseId, token, line, signal, fetchImpl }) {
   return scopedGet(`/query/evidence-line?token=${encodeURIComponent(token)}&line=${encodeURIComponent(String(line))}`, caseId, { signal, fetchImpl })
@@ -175,8 +183,11 @@ export function listEvidence({ caseId, filters = {}, signal, fetchImpl }) {
   return scopedGet(`/evidence?${query}`, caseId, { signal, fetchImpl })
 }
 
-export function getEvidence({ caseId, evidenceId, signal, fetchImpl }) {
-  return scopedGet(`/evidence/${encodeURIComponent(evidenceId)}?include_records_preview=true`, caseId, { signal, fetchImpl })
+// `limit` is how many derived passages, runs and events the service returns (25 by default, 250 at most): a document read paragraph by paragraph needs all of its passages to be shown whole.
+export function getEvidence({ caseId, evidenceId, limit, signal, fetchImpl }) {
+  const query = new URLSearchParams({ include_records_preview: 'true' })
+  if (limit) query.set('limit', String(limit))
+  return scopedGet(`/evidence/${encodeURIComponent(evidenceId)}?${query}`, caseId, { signal, fetchImpl })
 }
 
 export function getEvidenceContent({ caseId, evidenceId, signal, fetchImpl, responseType = 'blob' }) {

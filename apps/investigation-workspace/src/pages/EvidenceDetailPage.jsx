@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Check, Copy, Download, File, FileSpreadsheet, FileText, Image as ImageIcon, MapPin, AudioLines, Video } from 'lucide-react'
+import { ArrowLeft, Check, Copy, Download, File, FileSpreadsheet, FileText, Image as ImageIcon, MapPin, AudioLines, PanelRight, Video } from 'lucide-react'
 import { CaseShell } from '../components/CaseShell.jsx'
+import { FileRowsViewer } from '../components/FileRowsViewer.jsx'
 import { SourceRowCard } from '../components/SourceRowCard.jsx'
 import { getEvidence, getEvidenceContent } from '../lib/apiClient.js'
 import { displayName, formatBytes } from '../lib/format.js'
@@ -75,7 +76,7 @@ function Inspector({ detail, version, record }) {
   }
   const facts = evidenceFacts(detail.item || {})
   return (
-    <aside className="evv-inspector" aria-label="Evidence inspector">
+    <aside className="evv-inspector" id="evv-inspector" aria-label="Evidence inspector">
       <div className="evv-tabs" role="tablist" aria-label="Inspector">
         {tabs.map(([id, label], index) => <button key={id} ref={node => { refs.current[index] = node }} type="button" role="tab" id={`evv-tab-${id}`} aria-selected={tab === id} aria-controls={`evv-panel-${id}`} tabIndex={tab === id ? 0 : -1} onKeyDown={event => onKey(event, index)} onClick={() => setTab(id)}>{label}</button>)}
       </div>
@@ -100,10 +101,17 @@ export default function EvidenceDetailPage() {
   const [state, setState] = useState({ loading: true })
   const [content, setContent] = useState({ loading: true })
   const [record, setRecord] = useState(null)
+  // null = the page's own choice: a spreadsheet's rows get the whole width, anything else keeps the panel beside it
+  const [panelChoice, setPanelChoice] = useState(null)
   useEffect(() => {
     const controller = new AbortController()
     getEvidence({ caseId, evidenceId, signal: controller.signal })
-      .then(data => setState({ data, loading: false }))
+      // a document read paragraph by paragraph has more passages than the first answer holds: ask again for all the service will give, so the text is shown whole
+      .then(async data => {
+        if (data?.item?.modality === 'structured_records' || (data?.derived_artifacts?.length || 0) < 25) return data
+        try { return await getEvidence({ caseId, evidenceId, limit: 250, signal: controller.signal }) } catch { return data }
+      })
+      .then(data => { if (!controller.signal.aborted) setState({ data, loading: false }) })
       .catch(error => error.name !== 'AbortError' && setState({ error, loading: false }))
     return () => controller.abort()
   }, [caseId, evidenceId])
@@ -132,6 +140,10 @@ export default function EvidenceDetailPage() {
   const Mark = MODALITY_ICON[String(modality || '').toLowerCase()] || File
   const added = when(item.created_at)
   const name = item.original_filename || item.source_file || evidenceId
+  const citedFileRow = modality === 'structured_records' && Boolean(searchParams.get('row'))
+  // the files whose rows are shown as a table: stored spreadsheets and text exports, and workbooks in the old XML format and text exports whose rows are typed
+  const rowsFile = ['structured_records', 'tabular', 'text'].includes(modality)
+  const panelOpen = panelChoice ?? !rowsFile
   return <CaseShell caseId={caseId}>
     <main id="workspace-main" className="detail-page evidence-viewer-page evv" tabIndex={-1}>
       <header className="evv-head">
@@ -149,6 +161,7 @@ export default function EvidenceDetailPage() {
               </p>
             </div>
             <div className="evv-actions">
+              <button type="button" className="evv-btn evv-btn--quiet" aria-pressed={panelOpen} aria-controls="evv-inspector" onClick={() => setPanelChoice(!panelOpen)}><PanelRight aria-hidden="true" />{panelOpen ? 'Hide details' : 'Show details'}</button>
               {content.objectUrl ? <a className="evv-btn" href={content.objectUrl} download={name}><Download aria-hidden="true" />Download original</a> : null}
             </div>
           </div>
@@ -167,17 +180,22 @@ export default function EvidenceDetailPage() {
             </div>
           </section>
         ) : null}
-        {modality === 'structured_records' && searchParams.get('row') ? <SourceRowCard caseId={caseId} evidenceId={evidenceId} row={searchParams.get('row')} rowHash={searchParams.get('row_hash') || ''} /> : null}
-        <div className="evv-body">
+        {citedFileRow ? <SourceRowCard caseId={caseId} evidenceId={evidenceId} row={searchParams.get('row')} rowHash={searchParams.get('row_hash') || ''} /> : null}
+        <div className={`evv-body${panelOpen ? '' : ' evv-body--wide'}`}>
           <div className="evv-canvas">
-            {modality === 'structured_records' ? <StructuredViewer detail={detail} row={searchParams.get('row')} recordType={item.detected_type} onRowSelect={(row, columns) => setRecord({ row, columns })} /> : null}
+            {rowsFile ? (
+              <FileRowsViewer caseId={caseId} evidenceId={evidenceId} citedRow={searchParams.get('row')} onRowSelect={(row, columns) => { setRecord({ row, columns }); setPanelChoice(true) }}
+                fallback={modality === 'structured_records'
+                  ? <StructuredViewer detail={detail} row={searchParams.get('row')} recordType={item.detected_type} onRowSelect={(row, columns) => setRecord({ row, columns })} />
+                  : <p className="viewer-gap">{content.loading ? 'Loading retained source…' : 'The rows of this file cannot be shown here. The original file can be downloaded.'}</p>} />
+            ) : null}
             {modality === 'document' ? <DocumentViewer detail={detail} objectUrl={content.objectUrl} page={searchParams.get('page')} charSpan={searchParams.get('char_span')} onPageChange={changePage} /> : null}
             {modality === 'image' && content.objectUrl ? <ImageViewer detail={detail} objectUrl={content.objectUrl} citedBBox={searchParams.get('bbox')} /> : null}
             {modality === 'audio' && content.objectUrl ? <AudioViewer detail={detail} objectUrl={content.objectUrl} sourceTime={searchParams.get('source_time')} charSpan={searchParams.get('char_span')} /> : null}
             {modality === 'video' && content.objectUrl ? <VideoViewer detail={detail} objectUrl={content.objectUrl} frame={searchParams.get('frame') || searchParams.get('source_time')} /> : null}
-            {modality !== 'structured_records' && !content.objectUrl ? <p className="viewer-gap">{content.loading ? 'Loading retained source…' : 'The retained source cannot be displayed inline.'}</p> : null}
+            {!rowsFile && !content.objectUrl ? <p className="viewer-gap">{content.loading ? 'Loading retained source…' : 'The retained source cannot be displayed inline.'}</p> : null}
           </div>
-          <Inspector detail={detail} version={searchParams.get('version')} record={record} />
+          {panelOpen ? <Inspector detail={detail} version={searchParams.get('version')} record={record} /> : null}
         </div>
       </> : null}
     </main>

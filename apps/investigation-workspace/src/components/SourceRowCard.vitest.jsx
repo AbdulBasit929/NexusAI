@@ -28,7 +28,16 @@ describe('SourceRowCard', () => {
     const fetchRow = vi.fn().mockResolvedValue({ state: 'not_found', reason: 'this row is not one of the file\'s records (a title or a heading row, or a row the system did not read)' })
     render(<SourceRowCard caseId="orion" evidenceId="e1" row="2" fetchRow={fetchRow} />)
     expect(await screen.findByText(/cannot be shown by column name: this row is not one of the file's records/)).toBeInTheDocument()
-    expect(screen.getByText(/stored records of the file are listed below/)).toBeInTheDocument()
+    expect(screen.getByText(/rows of the file are listed below/)).toBeInTheDocument()
+  })
+
+  it('names the column of the workbook beside each heading when the file is a spreadsheet, and keeps the cells in the order given', async () => {
+    const fetchRow = vi.fn().mockResolvedValue({ ...found, cells: [{ name: 'Sr #', value: '5', cell: 'A93' }, { name: 'IMEI', value: '000000000010009', cell: 'H93' }] })
+    render(<SourceRowCard caseId="orion" evidenceId="e1" row="93" fetchRow={fetchRow} />)
+    const card = await screen.findByRole('region', { name: 'This row in your file' })
+    expect(within(card).getByTitle('Cell H93 of the workbook')).toHaveTextContent('H')
+    expect(within(card).getByTitle('Cell A93 of the workbook')).toHaveTextContent('A')
+    expect(card.textContent.indexOf('Sr #')).toBeLessThan(card.textContent.indexOf('IMEI'))
   })
 
   it('treats a failed read as a row that cannot be shown, never as an error that hides the page', async () => {

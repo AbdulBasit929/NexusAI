@@ -318,7 +318,7 @@ export default function InvestigatePage() {
                                   showOriginalQuestion={false}
                                 />
                               )}
-                              {answered ? <AnswerEvidence evidence={presentation.original?.enterprise?.evidence} caseId={caseId} /> : null}
+                              {answered ? <AnswerEvidence evidence={presentation.original?.enterprise?.evidence} caseId={caseId} defaultOpen={index === turns.length - 1} /> : null}
                               {answered ? <AnswerReading caseId={caseId} reading={presentation.original?.enterprise?.reading} /> : null}
                               {presentation && presentation.state !== 'clarify' ? (
                                 <div className="ch-actions" role="group" aria-label="Actions for this answer">

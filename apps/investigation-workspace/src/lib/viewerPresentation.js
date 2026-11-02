@@ -53,6 +53,24 @@ function artifactProducer(artifact, runs) {
   }
 }
 
+// A document the system read paragraph by paragraph keeps each paragraph (or table cell) as one passage, located by its passage (the page) and its paragraph number. Put back in that order, the
+// passages are the text of the document: reading only the first of them showed a seizure memo as the single character "7".
+const PASSAGE = 'forensics.document-native-text-passage/v1'
+
+export function passagePages(detail) {
+  const passages = (detail?.derived_artifacts || [])
+    .filter(artifact => artifact?.artifact_type === PASSAGE && recordedText(artifactMetadata(artifact).text))
+    .map(artifact => {
+      const locator = object(artifact.citation_locator)
+      const metadata = artifactMetadata(artifact)
+      return { page: finite(locator.passage ?? metadata.passage) || 1, paragraph: finite(locator.paragraph ?? metadata.paragraph) || 0, text: String(metadata.text).trim() }
+    })
+    .sort((a, b) => a.page - b.page || a.paragraph - b.paragraph)
+  const pages = new Map()
+  for (const passage of passages) pages.set(passage.page, [...(pages.get(passage.page) || []), passage.text])
+  return [...pages].map(([number, lines]) => ({ number, text: lines.join('\n') }))
+}
+
 export function documentPages(detail) {
   const metadata = object(detail?.item?.metadata)
   const fromItem = metadata.pages || metadata.document_pages
@@ -62,6 +80,8 @@ export function documentPages(detail) {
     number: finite(page?.page ?? page?.page_number) || index + 1,
     text: String(page?.text || page?.content || page?.source_text || ''),
   }))
+  const fromPassages = passagePages(detail)
+  if (fromPassages.length) return fromPassages
   const text = metadata.source_text || metadata.extracted_text || metadata.text
     || (detail?.derived_artifacts || []).map(artifact => artifactMetadata(artifact).extracted_text || artifactMetadata(artifact).text).find(Boolean)
   return text ? String(text).split('\f').map((value, index) => ({ number: index + 1, text: value })) : []

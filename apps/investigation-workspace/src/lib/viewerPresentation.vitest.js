@@ -19,6 +19,15 @@ describe('viewer presentation', () => {
     expect(lineage(detail).artifacts[1]).toMatchObject({ producer: 'Producer not recorded', producerVersion: 'Version not recorded' })
   })
 
+  it('puts the passages of a document read paragraph by paragraph back in order, whatever order they arrive in', () => {
+    const passage = (paragraph, text, passageNumber = 1) => ({ artifact_id: `p${passageNumber}-${paragraph}`, artifact_type: 'forensics.document-native-text-passage/v1', citation_locator: { passage: passageNumber, paragraph }, metadata: { text } })
+    const memo = { item: { metadata: {} }, derived_artifacts: [passage(24, '7'), passage(7, 'Mobile handset'), passage(3, 'Recovered from the accused.'), passage(1, 'RECOVERY (SEIZURE) MEMO'), passage(2, 'Cash', 2), passage(1, 'Page two begins', 2), { artifact_id: 'x', artifact_type: 'ocr', metadata: { text: 'not a passage' } }] }
+    expect(documentPages(memo)).toEqual([
+      { number: 1, text: 'RECOVERY (SEIZURE) MEMO\nRecovered from the accused.\nMobile handset\n7' },
+      { number: 2, text: 'Page two begins\nCash' },
+    ])
+  })
+
   it('keeps low-confidence regions, timed speaker cues and video events distinct', () => {
     expect(imageRegions(detail)).toMatchObject([{ label: 'PK-123', confidence: 0.31 }])
     expect(transcriptCues(detail)).toEqual([{ id: 'transcript-1-0', start: 4.2, end: 7.5, speaker: 'Speaker 1', text: 'Hello' }])
