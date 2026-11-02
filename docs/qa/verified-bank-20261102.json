@@ -1,0 +1,6321 @@
+{
+ "collection": "orion-lahore-reference-20261030",
+ "built": "2026-11-02",
+ "questions": [
+  {
+   "id": "VB-CALL-001",
+   "area": "calls",
+   "type": "voice_count",
+   "question": "How many voice calls does 923000001005 have in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 694
+   },
+   "bank": "extra",
+   "note": "calls made and received, from the number's own records"
+  },
+  {
+   "id": "VB-CALL-002",
+   "area": "calls",
+   "type": "voice_out",
+   "question": "How many outgoing voice calls did 923000001005 make?",
+   "expect": {
+    "kind": "scalar",
+    "value": 520
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-003",
+   "area": "calls",
+   "type": "voice_in",
+   "question": "How many incoming voice calls did 923000001005 receive?",
+   "expect": {
+    "kind": "scalar",
+    "value": 174
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-004",
+   "area": "calls",
+   "type": "talk_time",
+   "question": "What is the total talk time of 923000001005 across all its voice calls, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 69639,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-005",
+   "area": "calls",
+   "type": "longest",
+   "question": "What is the duration of the longest voice call of 923000001005, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1272,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-006",
+   "area": "calls",
+   "type": "average",
+   "question": "What is the average duration of the voice calls of 923000001005, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 100.34,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": "103.40 and 103.4 are the same answer"
+  },
+  {
+   "id": "VB-CALL-007",
+   "area": "calls",
+   "type": "over10",
+   "question": "How many voice calls of 923000001005 lasted more than 10 minutes?",
+   "expect": {
+    "kind": "scalar",
+    "value": 4
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-008",
+   "area": "calls",
+   "type": "night",
+   "question": "How many voice calls of 923000001005 started between 00:00 and 04:59 Karachi time?",
+   "expect": {
+    "kind": "scalar",
+    "value": 55
+   },
+   "bank": "extra",
+   "note": "case clock; the hour 05:00 to 05:59 is not included"
+  },
+  {
+   "id": "VB-CALL-009",
+   "area": "calls",
+   "type": "first_event",
+   "question": "When was the first call or message of 923000001005?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-02 00:29:05"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-010",
+   "area": "calls",
+   "type": "last_event",
+   "question": "When was the last call or message of 923000001005?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17 22:59:16"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-011",
+   "area": "calls",
+   "type": "top_called",
+   "question": "Which number did 923000001005 call the most with outgoing voice calls?",
+   "expect": {
+    "kind": "top",
+    "value": "923000001036",
+    "rivals": [
+     "923000001093",
+     "923000001074",
+     "923000001050"
+    ],
+    "count": 105
+   },
+   "bank": "extra",
+   "note": "105 calls; the next number has 91"
+  },
+  {
+   "id": "VB-CALL-012",
+   "area": "calls",
+   "type": "busiest_day",
+   "question": "Which day had the most voice calls for 923000001005?",
+   "expect": {
+    "kind": "top",
+    "value": "2026-02-17",
+    "rivals": [
+     "2026-04-01",
+     "2026-04-02"
+    ],
+    "count": 25
+   },
+   "bank": "extra",
+   "note": "25 voice calls that day"
+  },
+  {
+   "id": "VB-CALL-013",
+   "area": "calls",
+   "type": "distinct_contacts",
+   "question": "How many different numbers did 923000001005 contact, leaving out services?",
+   "expect": {
+    "kind": "scalar",
+    "value": 11
+   },
+   "bank": "extra",
+   "note": "person-like and international numbers; short codes and sender names are services"
+  },
+  {
+   "id": "VB-CALL-014",
+   "area": "calls",
+   "type": "voice_count",
+   "question": "How many voice calls does 923000001002 have in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 473
+   },
+   "bank": "extra",
+   "note": "calls made and received, from the number's own records"
+  },
+  {
+   "id": "VB-CALL-015",
+   "area": "calls",
+   "type": "voice_out",
+   "question": "How many outgoing voice calls did 923000001002 make?",
+   "expect": {
+    "kind": "scalar",
+    "value": 219
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-016",
+   "area": "calls",
+   "type": "voice_in",
+   "question": "How many incoming voice calls did 923000001002 receive?",
+   "expect": {
+    "kind": "scalar",
+    "value": 253
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-017",
+   "area": "calls",
+   "type": "talk_time",
+   "question": "What is the total talk time of 923000001002 across all its voice calls, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 57050,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-018",
+   "area": "calls",
+   "type": "longest",
+   "question": "What is the duration of the longest voice call of 923000001002, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 784,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-019",
+   "area": "calls",
+   "type": "average",
+   "question": "What is the average duration of the voice calls of 923000001002, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 120.61,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": "103.40 and 103.4 are the same answer"
+  },
+  {
+   "id": "VB-CALL-020",
+   "area": "calls",
+   "type": "over10",
+   "question": "How many voice calls of 923000001002 lasted more than 10 minutes?",
+   "expect": {
+    "kind": "scalar",
+    "value": 3
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-021",
+   "area": "calls",
+   "type": "night",
+   "question": "How many voice calls of 923000001002 started between 00:00 and 04:59 Karachi time?",
+   "expect": {
+    "kind": "scalar",
+    "value": 17
+   },
+   "bank": "extra",
+   "note": "case clock; the hour 05:00 to 05:59 is not included"
+  },
+  {
+   "id": "VB-CALL-022",
+   "area": "calls",
+   "type": "first_event",
+   "question": "When was the first call or message of 923000001002?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-02 06:05:32"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-023",
+   "area": "calls",
+   "type": "last_event",
+   "question": "When was the last call or message of 923000001002?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17 21:45:15"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-024",
+   "area": "calls",
+   "type": "top_called",
+   "question": "Which number did 923000001002 call the most with outgoing voice calls?",
+   "expect": {
+    "kind": "top",
+    "value": "923000001012",
+    "rivals": [
+     "923000001054",
+     "923000001048",
+     "923000001032"
+    ],
+    "count": 47
+   },
+   "bank": "extra",
+   "note": "47 calls; the next number has 35"
+  },
+  {
+   "id": "VB-CALL-025",
+   "area": "calls",
+   "type": "distinct_contacts",
+   "question": "How many different numbers did 923000001002 contact, leaving out services?",
+   "expect": {
+    "kind": "scalar",
+    "value": 20
+   },
+   "bank": "extra",
+   "note": "person-like and international numbers; short codes and sender names are services"
+  },
+  {
+   "id": "VB-CALL-026",
+   "area": "calls",
+   "type": "voice_count",
+   "question": "How many voice calls does 923000001006 have in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 437
+   },
+   "bank": "extra",
+   "note": "calls made and received, from the number's own records"
+  },
+  {
+   "id": "VB-CALL-027",
+   "area": "calls",
+   "type": "voice_out",
+   "question": "How many outgoing voice calls did 923000001006 make?",
+   "expect": {
+    "kind": "scalar",
+    "value": 238
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-028",
+   "area": "calls",
+   "type": "voice_in",
+   "question": "How many incoming voice calls did 923000001006 receive?",
+   "expect": {
+    "kind": "scalar",
+    "value": 197
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-029",
+   "area": "calls",
+   "type": "talk_time",
+   "question": "What is the total talk time of 923000001006 across all its voice calls, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 47201,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-030",
+   "area": "calls",
+   "type": "longest",
+   "question": "What is the duration of the longest voice call of 923000001006, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 548,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-031",
+   "area": "calls",
+   "type": "average",
+   "question": "What is the average duration of the voice calls of 923000001006, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 108.01,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": "103.40 and 103.4 are the same answer"
+  },
+  {
+   "id": "VB-CALL-032",
+   "area": "calls",
+   "type": "over10",
+   "question": "How many voice calls of 923000001006 lasted more than 10 minutes?",
+   "expect": {
+    "kind": "scalar",
+    "value": 0
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-033",
+   "area": "calls",
+   "type": "night",
+   "question": "How many voice calls of 923000001006 started between 00:00 and 04:59 Karachi time?",
+   "expect": {
+    "kind": "scalar",
+    "value": 46
+   },
+   "bank": "extra",
+   "note": "case clock; the hour 05:00 to 05:59 is not included"
+  },
+  {
+   "id": "VB-CALL-034",
+   "area": "calls",
+   "type": "first_event",
+   "question": "When was the first call or message of 923000001006?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-02 07:28:45"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-035",
+   "area": "calls",
+   "type": "last_event",
+   "question": "When was the last call or message of 923000001006?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17 23:52:11"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-036",
+   "area": "calls",
+   "type": "top_called",
+   "question": "Which number did 923000001006 call the most with outgoing voice calls?",
+   "expect": {
+    "kind": "top",
+    "value": "923000001038",
+    "rivals": [
+     "923000001001",
+     "923000001021",
+     "923000001026"
+    ],
+    "count": 32
+   },
+   "bank": "extra",
+   "note": "32 calls; the next number has 29"
+  },
+  {
+   "id": "VB-CALL-037",
+   "area": "calls",
+   "type": "distinct_contacts",
+   "question": "How many different numbers did 923000001006 contact, leaving out services?",
+   "expect": {
+    "kind": "scalar",
+    "value": 20
+   },
+   "bank": "extra",
+   "note": "person-like and international numbers; short codes and sender names are services"
+  },
+  {
+   "id": "VB-CALL-038",
+   "area": "calls",
+   "type": "voice_count",
+   "question": "How many voice calls does 923000001010 have in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 372
+   },
+   "bank": "extra",
+   "note": "calls made and received, from the number's own records"
+  },
+  {
+   "id": "VB-CALL-039",
+   "area": "calls",
+   "type": "voice_out",
+   "question": "How many outgoing voice calls did 923000001010 make?",
+   "expect": {
+    "kind": "scalar",
+    "value": 215
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-040",
+   "area": "calls",
+   "type": "voice_in",
+   "question": "How many incoming voice calls did 923000001010 receive?",
+   "expect": {
+    "kind": "scalar",
+    "value": 155
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-041",
+   "area": "calls",
+   "type": "talk_time",
+   "question": "What is the total talk time of 923000001010 across all its voice calls, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 41672,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-042",
+   "area": "calls",
+   "type": "longest",
+   "question": "What is the duration of the longest voice call of 923000001010, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 987,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-043",
+   "area": "calls",
+   "type": "average",
+   "question": "What is the average duration of the voice calls of 923000001010, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 112.02,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": "103.40 and 103.4 are the same answer"
+  },
+  {
+   "id": "VB-CALL-044",
+   "area": "calls",
+   "type": "over10",
+   "question": "How many voice calls of 923000001010 lasted more than 10 minutes?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-045",
+   "area": "calls",
+   "type": "night",
+   "question": "How many voice calls of 923000001010 started between 00:00 and 04:59 Karachi time?",
+   "expect": {
+    "kind": "scalar",
+    "value": 10
+   },
+   "bank": "extra",
+   "note": "case clock; the hour 05:00 to 05:59 is not included"
+  },
+  {
+   "id": "VB-CALL-046",
+   "area": "calls",
+   "type": "first_event",
+   "question": "When was the first call or message of 923000001010?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-02 08:16:18"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-047",
+   "area": "calls",
+   "type": "last_event",
+   "question": "When was the last call or message of 923000001010?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17 17:30:21"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-048",
+   "area": "calls",
+   "type": "top_called",
+   "question": "Which number did 923000001010 call the most with outgoing voice calls?",
+   "expect": {
+    "kind": "top",
+    "value": "923000001080",
+    "rivals": [
+     "923000001052",
+     "923000001093",
+     "923000001097"
+    ],
+    "count": 56
+   },
+   "bank": "extra",
+   "note": "56 calls; the next number has 53"
+  },
+  {
+   "id": "VB-CALL-049",
+   "area": "calls",
+   "type": "distinct_contacts",
+   "question": "How many different numbers did 923000001010 contact, leaving out services?",
+   "expect": {
+    "kind": "scalar",
+    "value": 15
+   },
+   "bank": "extra",
+   "note": "person-like and international numbers; short codes and sender names are services"
+  },
+  {
+   "id": "VB-CALL-050",
+   "area": "calls",
+   "type": "voice_count",
+   "question": "How many voice calls does 923000001000 have in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 261
+   },
+   "bank": "extra",
+   "note": "calls made and received, from the number's own records"
+  },
+  {
+   "id": "VB-CALL-051",
+   "area": "calls",
+   "type": "voice_out",
+   "question": "How many outgoing voice calls did 923000001000 make?",
+   "expect": {
+    "kind": "scalar",
+    "value": 107
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-052",
+   "area": "calls",
+   "type": "voice_in",
+   "question": "How many incoming voice calls did 923000001000 receive?",
+   "expect": {
+    "kind": "scalar",
+    "value": 154
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-053",
+   "area": "calls",
+   "type": "talk_time",
+   "question": "What is the total talk time of 923000001000 across all its voice calls, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 27465,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-054",
+   "area": "calls",
+   "type": "longest",
+   "question": "What is the duration of the longest voice call of 923000001000, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1102,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-055",
+   "area": "calls",
+   "type": "average",
+   "question": "What is the average duration of the voice calls of 923000001000, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 105.23,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": "103.40 and 103.4 are the same answer"
+  },
+  {
+   "id": "VB-CALL-056",
+   "area": "calls",
+   "type": "over10",
+   "question": "How many voice calls of 923000001000 lasted more than 10 minutes?",
+   "expect": {
+    "kind": "scalar",
+    "value": 3
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-057",
+   "area": "calls",
+   "type": "night",
+   "question": "How many voice calls of 923000001000 started between 00:00 and 04:59 Karachi time?",
+   "expect": {
+    "kind": "scalar",
+    "value": 6
+   },
+   "bank": "extra",
+   "note": "case clock; the hour 05:00 to 05:59 is not included"
+  },
+  {
+   "id": "VB-CALL-058",
+   "area": "calls",
+   "type": "first_event",
+   "question": "When was the first call or message of 923000001000?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-02 07:38:45"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-059",
+   "area": "calls",
+   "type": "last_event",
+   "question": "When was the last call or message of 923000001000?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-03-19 21:34:00"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-060",
+   "area": "calls",
+   "type": "top_called",
+   "question": "Which number did 923000001000 call the most with outgoing voice calls?",
+   "expect": {
+    "kind": "top",
+    "value": "923000001070",
+    "rivals": [
+     "923000001015",
+     "923000001089",
+     "923000001098"
+    ],
+    "count": 19
+   },
+   "bank": "extra",
+   "note": "19 calls; the next number has 17"
+  },
+  {
+   "id": "VB-CALL-061",
+   "area": "calls",
+   "type": "busiest_day",
+   "question": "Which day had the most voice calls for 923000001000?",
+   "expect": {
+    "kind": "top",
+    "value": "2026-03-19",
+    "rivals": [
+     "2026-02-13",
+     "2026-03-04"
+    ],
+    "count": 14
+   },
+   "bank": "extra",
+   "note": "14 voice calls that day"
+  },
+  {
+   "id": "VB-CALL-062",
+   "area": "calls",
+   "type": "distinct_contacts",
+   "question": "How many different numbers did 923000001000 contact, leaving out services?",
+   "expect": {
+    "kind": "scalar",
+    "value": 10
+   },
+   "bank": "extra",
+   "note": "person-like and international numbers; short codes and sender names are services"
+  },
+  {
+   "id": "VB-CALL-063",
+   "area": "calls",
+   "type": "voice_count",
+   "question": "How many voice calls does 923000001007 have in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 253
+   },
+   "bank": "extra",
+   "note": "calls made and received, from the number's own records"
+  },
+  {
+   "id": "VB-CALL-064",
+   "area": "calls",
+   "type": "voice_out",
+   "question": "How many outgoing voice calls did 923000001007 make?",
+   "expect": {
+    "kind": "scalar",
+    "value": 119
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-065",
+   "area": "calls",
+   "type": "voice_in",
+   "question": "How many incoming voice calls did 923000001007 receive?",
+   "expect": {
+    "kind": "scalar",
+    "value": 131
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-066",
+   "area": "calls",
+   "type": "talk_time",
+   "question": "What is the total talk time of 923000001007 across all its voice calls, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 23487,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-067",
+   "area": "calls",
+   "type": "longest",
+   "question": "What is the duration of the longest voice call of 923000001007, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 722,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-068",
+   "area": "calls",
+   "type": "average",
+   "question": "What is the average duration of the voice calls of 923000001007, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 92.83,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": "103.40 and 103.4 are the same answer"
+  },
+  {
+   "id": "VB-CALL-069",
+   "area": "calls",
+   "type": "over10",
+   "question": "How many voice calls of 923000001007 lasted more than 10 minutes?",
+   "expect": {
+    "kind": "scalar",
+    "value": 2
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-070",
+   "area": "calls",
+   "type": "night",
+   "question": "How many voice calls of 923000001007 started between 00:00 and 04:59 Karachi time?",
+   "expect": {
+    "kind": "scalar",
+    "value": 3
+   },
+   "bank": "extra",
+   "note": "case clock; the hour 05:00 to 05:59 is not included"
+  },
+  {
+   "id": "VB-CALL-071",
+   "area": "calls",
+   "type": "first_event",
+   "question": "When was the first call or message of 923000001007?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-24 06:31:39"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-072",
+   "area": "calls",
+   "type": "last_event",
+   "question": "When was the last call or message of 923000001007?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17 22:20:58"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-073",
+   "area": "calls",
+   "type": "top_called",
+   "question": "Which number did 923000001007 call the most with outgoing voice calls?",
+   "expect": {
+    "kind": "top",
+    "value": "923000001057",
+    "rivals": [
+     "923000001073",
+     "923000001087",
+     "923000001072"
+    ],
+    "count": 29
+   },
+   "bank": "extra",
+   "note": "29 calls; the next number has 20"
+  },
+  {
+   "id": "VB-CALL-074",
+   "area": "calls",
+   "type": "busiest_day",
+   "question": "Which day had the most voice calls for 923000001007?",
+   "expect": {
+    "kind": "top",
+    "value": "2026-03-18",
+    "rivals": [
+     "2026-03-11",
+     "2026-02-24"
+    ],
+    "count": 11
+   },
+   "bank": "extra",
+   "note": "11 voice calls that day"
+  },
+  {
+   "id": "VB-CALL-075",
+   "area": "calls",
+   "type": "distinct_contacts",
+   "question": "How many different numbers did 923000001007 contact, leaving out services?",
+   "expect": {
+    "kind": "scalar",
+    "value": 8
+   },
+   "bank": "extra",
+   "note": "person-like and international numbers; short codes and sender names are services"
+  },
+  {
+   "id": "VB-CALL-076",
+   "area": "calls",
+   "type": "voice_count",
+   "question": "How many voice calls does 923000001009 have in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 342
+   },
+   "bank": "extra",
+   "note": "calls made and received, from the number's own records"
+  },
+  {
+   "id": "VB-CALL-077",
+   "area": "calls",
+   "type": "voice_out",
+   "question": "How many outgoing voice calls did 923000001009 make?",
+   "expect": {
+    "kind": "scalar",
+    "value": 198
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-078",
+   "area": "calls",
+   "type": "voice_in",
+   "question": "How many incoming voice calls did 923000001009 receive?",
+   "expect": {
+    "kind": "scalar",
+    "value": 144
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-079",
+   "area": "calls",
+   "type": "talk_time",
+   "question": "What is the total talk time of 923000001009 across all its voice calls, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 39991,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-080",
+   "area": "calls",
+   "type": "longest",
+   "question": "What is the duration of the longest voice call of 923000001009, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1800,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-081",
+   "area": "calls",
+   "type": "average",
+   "question": "What is the average duration of the voice calls of 923000001009, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 116.93,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": "103.40 and 103.4 are the same answer"
+  },
+  {
+   "id": "VB-CALL-082",
+   "area": "calls",
+   "type": "over10",
+   "question": "How many voice calls of 923000001009 lasted more than 10 minutes?",
+   "expect": {
+    "kind": "scalar",
+    "value": 3
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-083",
+   "area": "calls",
+   "type": "night",
+   "question": "How many voice calls of 923000001009 started between 00:00 and 04:59 Karachi time?",
+   "expect": {
+    "kind": "scalar",
+    "value": 19
+   },
+   "bank": "extra",
+   "note": "case clock; the hour 05:00 to 05:59 is not included"
+  },
+  {
+   "id": "VB-CALL-084",
+   "area": "calls",
+   "type": "first_event",
+   "question": "When was the first call or message of 923000001009?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-02 09:25:19"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-085",
+   "area": "calls",
+   "type": "last_event",
+   "question": "When was the last call or message of 923000001009?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17 21:04:48"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-086",
+   "area": "calls",
+   "type": "top_called",
+   "question": "Which number did 923000001009 call the most with outgoing voice calls?",
+   "expect": {
+    "kind": "top",
+    "value": "923000001053",
+    "rivals": [
+     "923000001044",
+     "923000001066",
+     "923000001024"
+    ],
+    "count": 38
+   },
+   "bank": "extra",
+   "note": "38 calls; the next number has 35"
+  },
+  {
+   "id": "VB-CALL-087",
+   "area": "calls",
+   "type": "distinct_contacts",
+   "question": "How many different numbers did 923000001009 contact, leaving out services?",
+   "expect": {
+    "kind": "scalar",
+    "value": 16
+   },
+   "bank": "extra",
+   "note": "person-like and international numbers; short codes and sender names are services"
+  },
+  {
+   "id": "VB-CALL-088",
+   "area": "calls",
+   "type": "voice_count",
+   "question": "How many voice calls does 923000001001 have in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 326
+   },
+   "bank": "extra",
+   "note": "calls made and received, from the number's own records"
+  },
+  {
+   "id": "VB-CALL-089",
+   "area": "calls",
+   "type": "voice_out",
+   "question": "How many outgoing voice calls did 923000001001 make?",
+   "expect": {
+    "kind": "scalar",
+    "value": 146
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-090",
+   "area": "calls",
+   "type": "voice_in",
+   "question": "How many incoming voice calls did 923000001001 receive?",
+   "expect": {
+    "kind": "scalar",
+    "value": 180
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-091",
+   "area": "calls",
+   "type": "talk_time",
+   "question": "What is the total talk time of 923000001001 across all its voice calls, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 31663,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-092",
+   "area": "calls",
+   "type": "longest",
+   "question": "What is the duration of the longest voice call of 923000001001, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 733,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-093",
+   "area": "calls",
+   "type": "average",
+   "question": "What is the average duration of the voice calls of 923000001001, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 97.13,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": "103.40 and 103.4 are the same answer"
+  },
+  {
+   "id": "VB-CALL-094",
+   "area": "calls",
+   "type": "over10",
+   "question": "How many voice calls of 923000001001 lasted more than 10 minutes?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-095",
+   "area": "calls",
+   "type": "night",
+   "question": "How many voice calls of 923000001001 started between 00:00 and 04:59 Karachi time?",
+   "expect": {
+    "kind": "scalar",
+    "value": 15
+   },
+   "bank": "extra",
+   "note": "case clock; the hour 05:00 to 05:59 is not included"
+  },
+  {
+   "id": "VB-CALL-096",
+   "area": "calls",
+   "type": "first_event",
+   "question": "When was the first call or message of 923000001001?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-02 05:23:53"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-097",
+   "area": "calls",
+   "type": "last_event",
+   "question": "When was the last call or message of 923000001001?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17 20:05:51"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-098",
+   "area": "calls",
+   "type": "top_called",
+   "question": "Which number did 923000001001 call the most with outgoing voice calls?",
+   "expect": {
+    "kind": "top",
+    "value": "923000001078",
+    "rivals": [
+     "923000001038",
+     "923000001006",
+     "923000001069"
+    ],
+    "count": 33
+   },
+   "bank": "extra",
+   "note": "33 calls; the next number has 26"
+  },
+  {
+   "id": "VB-CALL-099",
+   "area": "calls",
+   "type": "busiest_day",
+   "question": "Which day had the most voice calls for 923000001001?",
+   "expect": {
+    "kind": "top",
+    "value": "2026-02-05",
+    "rivals": [
+     "2026-02-25",
+     "2026-02-16"
+    ],
+    "count": 11
+   },
+   "bank": "extra",
+   "note": "11 voice calls that day"
+  },
+  {
+   "id": "VB-CALL-100",
+   "area": "calls",
+   "type": "distinct_contacts",
+   "question": "How many different numbers did 923000001001 contact, leaving out services?",
+   "expect": {
+    "kind": "scalar",
+    "value": 10
+   },
+   "bank": "extra",
+   "note": "person-like and international numbers; short codes and sender names are services"
+  },
+  {
+   "id": "VB-CALL-101",
+   "area": "calls",
+   "type": "voice_count",
+   "question": "How many voice calls does 923000001008 have in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 206
+   },
+   "bank": "extra",
+   "note": "calls made and received, from the number's own records"
+  },
+  {
+   "id": "VB-CALL-102",
+   "area": "calls",
+   "type": "voice_out",
+   "question": "How many outgoing voice calls did 923000001008 make?",
+   "expect": {
+    "kind": "scalar",
+    "value": 109
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-103",
+   "area": "calls",
+   "type": "voice_in",
+   "question": "How many incoming voice calls did 923000001008 receive?",
+   "expect": {
+    "kind": "scalar",
+    "value": 97
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-104",
+   "area": "calls",
+   "type": "talk_time",
+   "question": "What is the total talk time of 923000001008 across all its voice calls, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 18793,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-105",
+   "area": "calls",
+   "type": "longest",
+   "question": "What is the duration of the longest voice call of 923000001008, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 371,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-106",
+   "area": "calls",
+   "type": "average",
+   "question": "What is the average duration of the voice calls of 923000001008, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 91.23,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": "103.40 and 103.4 are the same answer"
+  },
+  {
+   "id": "VB-CALL-107",
+   "area": "calls",
+   "type": "over10",
+   "question": "How many voice calls of 923000001008 lasted more than 10 minutes?",
+   "expect": {
+    "kind": "scalar",
+    "value": 0
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-108",
+   "area": "calls",
+   "type": "night",
+   "question": "How many voice calls of 923000001008 started between 00:00 and 04:59 Karachi time?",
+   "expect": {
+    "kind": "scalar",
+    "value": 7
+   },
+   "bank": "extra",
+   "note": "case clock; the hour 05:00 to 05:59 is not included"
+  },
+  {
+   "id": "VB-CALL-109",
+   "area": "calls",
+   "type": "first_event",
+   "question": "When was the first call or message of 923000001008?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-03-05 10:18:48"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-110",
+   "area": "calls",
+   "type": "last_event",
+   "question": "When was the last call or message of 923000001008?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17 22:50:59"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-111",
+   "area": "calls",
+   "type": "distinct_contacts",
+   "question": "How many different numbers did 923000001008 contact, leaving out services?",
+   "expect": {
+    "kind": "scalar",
+    "value": 8
+   },
+   "bank": "extra",
+   "note": "person-like and international numbers; short codes and sender names are services"
+  },
+  {
+   "id": "VB-CALL-112",
+   "area": "calls",
+   "type": "voice_count",
+   "question": "How many voice calls does 923000001003 have in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 190
+   },
+   "bank": "extra",
+   "note": "calls made and received, from the number's own records"
+  },
+  {
+   "id": "VB-CALL-113",
+   "area": "calls",
+   "type": "voice_out",
+   "question": "How many outgoing voice calls did 923000001003 make?",
+   "expect": {
+    "kind": "scalar",
+    "value": 95
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-114",
+   "area": "calls",
+   "type": "voice_in",
+   "question": "How many incoming voice calls did 923000001003 receive?",
+   "expect": {
+    "kind": "scalar",
+    "value": 93
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-115",
+   "area": "calls",
+   "type": "talk_time",
+   "question": "What is the total talk time of 923000001003 across all its voice calls, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 19255,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-116",
+   "area": "calls",
+   "type": "longest",
+   "question": "What is the duration of the longest voice call of 923000001003, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 775,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-117",
+   "area": "calls",
+   "type": "average",
+   "question": "What is the average duration of the voice calls of 923000001003, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 101.34,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": "103.40 and 103.4 are the same answer"
+  },
+  {
+   "id": "VB-CALL-118",
+   "area": "calls",
+   "type": "over10",
+   "question": "How many voice calls of 923000001003 lasted more than 10 minutes?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-119",
+   "area": "calls",
+   "type": "night",
+   "question": "How many voice calls of 923000001003 started between 00:00 and 04:59 Karachi time?",
+   "expect": {
+    "kind": "scalar",
+    "value": 9
+   },
+   "bank": "extra",
+   "note": "case clock; the hour 05:00 to 05:59 is not included"
+  },
+  {
+   "id": "VB-CALL-120",
+   "area": "calls",
+   "type": "first_event",
+   "question": "When was the first call or message of 923000001003?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-03-13 04:44:09"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-121",
+   "area": "calls",
+   "type": "last_event",
+   "question": "When was the last call or message of 923000001003?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17 21:33:43"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-122",
+   "area": "calls",
+   "type": "top_called",
+   "question": "Which number did 923000001003 call the most with outgoing voice calls?",
+   "expect": {
+    "kind": "top",
+    "value": "923000001069",
+    "rivals": [
+     "923000001021",
+     "923000001095",
+     "923000001006"
+    ],
+    "count": 18
+   },
+   "bank": "extra",
+   "note": "18 calls; the next number has 16"
+  },
+  {
+   "id": "VB-CALL-123",
+   "area": "calls",
+   "type": "busiest_day",
+   "question": "Which day had the most voice calls for 923000001003?",
+   "expect": {
+    "kind": "top",
+    "value": "2026-04-10",
+    "rivals": [
+     "2026-03-19",
+     "2026-03-30"
+    ],
+    "count": 10
+   },
+   "bank": "extra",
+   "note": "10 voice calls that day"
+  },
+  {
+   "id": "VB-CALL-124",
+   "area": "calls",
+   "type": "distinct_contacts",
+   "question": "How many different numbers did 923000001003 contact, leaving out services?",
+   "expect": {
+    "kind": "scalar",
+    "value": 8
+   },
+   "bank": "extra",
+   "note": "person-like and international numbers; short codes and sender names are services"
+  },
+  {
+   "id": "VB-CALL-125",
+   "area": "calls",
+   "type": "voice_count",
+   "question": "How many voice calls does 923000001011 have in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 169
+   },
+   "bank": "extra",
+   "note": "calls made and received, from the number's own records"
+  },
+  {
+   "id": "VB-CALL-126",
+   "area": "calls",
+   "type": "voice_out",
+   "question": "How many outgoing voice calls did 923000001011 make?",
+   "expect": {
+    "kind": "scalar",
+    "value": 92
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-127",
+   "area": "calls",
+   "type": "voice_in",
+   "question": "How many incoming voice calls did 923000001011 receive?",
+   "expect": {
+    "kind": "scalar",
+    "value": 76
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-128",
+   "area": "calls",
+   "type": "talk_time",
+   "question": "What is the total talk time of 923000001011 across all its voice calls, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 17913,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-129",
+   "area": "calls",
+   "type": "longest",
+   "question": "What is the duration of the longest voice call of 923000001011, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 662,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-130",
+   "area": "calls",
+   "type": "average",
+   "question": "What is the average duration of the voice calls of 923000001011, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 105.99,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": "103.40 and 103.4 are the same answer"
+  },
+  {
+   "id": "VB-CALL-131",
+   "area": "calls",
+   "type": "over10",
+   "question": "How many voice calls of 923000001011 lasted more than 10 minutes?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-132",
+   "area": "calls",
+   "type": "night",
+   "question": "How many voice calls of 923000001011 started between 00:00 and 04:59 Karachi time?",
+   "expect": {
+    "kind": "scalar",
+    "value": 4
+   },
+   "bank": "extra",
+   "note": "case clock; the hour 05:00 to 05:59 is not included"
+  },
+  {
+   "id": "VB-CALL-133",
+   "area": "calls",
+   "type": "first_event",
+   "question": "When was the first call or message of 923000001011?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-02 02:20:13"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-134",
+   "area": "calls",
+   "type": "last_event",
+   "question": "When was the last call or message of 923000001011?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-03-09 19:53:38"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-135",
+   "area": "calls",
+   "type": "top_called",
+   "question": "Which number did 923000001011 call the most with outgoing voice calls?",
+   "expect": {
+    "kind": "top",
+    "value": "923000001021",
+    "rivals": [
+     "923000001069",
+     "923000001001",
+     "923000001006"
+    ],
+    "count": 17
+   },
+   "bank": "extra",
+   "note": "17 calls; the next number has 14"
+  },
+  {
+   "id": "VB-CALL-136",
+   "area": "calls",
+   "type": "distinct_contacts",
+   "question": "How many different numbers did 923000001011 contact, leaving out services?",
+   "expect": {
+    "kind": "scalar",
+    "value": 8
+   },
+   "bank": "extra",
+   "note": "person-like and international numbers; short codes and sender names are services"
+  },
+  {
+   "id": "VB-CALL-137",
+   "area": "calls",
+   "type": "voice_count",
+   "question": "How many voice calls does 923000001004 have in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 148
+   },
+   "bank": "extra",
+   "note": "calls made and received, from the number's own records"
+  },
+  {
+   "id": "VB-CALL-138",
+   "area": "calls",
+   "type": "voice_out",
+   "question": "How many outgoing voice calls did 923000001004 make?",
+   "expect": {
+    "kind": "scalar",
+    "value": 82
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-139",
+   "area": "calls",
+   "type": "voice_in",
+   "question": "How many incoming voice calls did 923000001004 receive?",
+   "expect": {
+    "kind": "scalar",
+    "value": 66
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-140",
+   "area": "calls",
+   "type": "talk_time",
+   "question": "What is the total talk time of 923000001004 across all its voice calls, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 13707,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-141",
+   "area": "calls",
+   "type": "longest",
+   "question": "What is the duration of the longest voice call of 923000001004, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 545,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-142",
+   "area": "calls",
+   "type": "average",
+   "question": "What is the average duration of the voice calls of 923000001004, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 92.61,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": "103.40 and 103.4 are the same answer"
+  },
+  {
+   "id": "VB-CALL-143",
+   "area": "calls",
+   "type": "over10",
+   "question": "How many voice calls of 923000001004 lasted more than 10 minutes?",
+   "expect": {
+    "kind": "scalar",
+    "value": 0
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CALL-144",
+   "area": "calls",
+   "type": "night",
+   "question": "How many voice calls of 923000001004 started between 00:00 and 04:59 Karachi time?",
+   "expect": {
+    "kind": "scalar",
+    "value": 6
+   },
+   "bank": "extra",
+   "note": "case clock; the hour 05:00 to 05:59 is not included"
+  },
+  {
+   "id": "VB-CALL-145",
+   "area": "calls",
+   "type": "first_event",
+   "question": "When was the first call or message of 923000001004?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-02 07:37:42"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-146",
+   "area": "calls",
+   "type": "last_event",
+   "question": "When was the last call or message of 923000001004?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-03-03 19:58:06"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-CALL-147",
+   "area": "calls",
+   "type": "top_called",
+   "question": "Which number did 923000001004 call the most with outgoing voice calls?",
+   "expect": {
+    "kind": "top",
+    "value": "923000001066",
+    "rivals": [
+     "923000001044",
+     "923000001061",
+     "923000001090"
+    ],
+    "count": 24
+   },
+   "bank": "extra",
+   "note": "24 calls; the next number has 16"
+  },
+  {
+   "id": "VB-CALL-148",
+   "area": "calls",
+   "type": "busiest_day",
+   "question": "Which day had the most voice calls for 923000001004?",
+   "expect": {
+    "kind": "top",
+    "value": "2026-02-12",
+    "rivals": [
+     "2026-02-16",
+     "2026-02-03"
+    ],
+    "count": 9
+   },
+   "bank": "extra",
+   "note": "9 voice calls that day"
+  },
+  {
+   "id": "VB-CALL-149",
+   "area": "calls",
+   "type": "distinct_contacts",
+   "question": "How many different numbers did 923000001004 contact, leaving out services?",
+   "expect": {
+    "kind": "scalar",
+    "value": 8
+   },
+   "bank": "extra",
+   "note": "person-like and international numbers; short codes and sender names are services"
+  },
+  {
+   "id": "VB-MESS-001",
+   "area": "messages",
+   "type": "sms_count",
+   "question": "How many text messages does 923000001002 have in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 213
+   },
+   "bank": "extra",
+   "note": "sent and received, from the number's own records"
+  },
+  {
+   "id": "VB-MESS-002",
+   "area": "messages",
+   "type": "sms_out",
+   "question": "How many text messages did 923000001002 send?",
+   "expect": {
+    "kind": "scalar",
+    "value": 93
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-MESS-003",
+   "area": "messages",
+   "type": "sms_in",
+   "question": "How many text messages did 923000001002 receive?",
+   "expect": {
+    "kind": "scalar",
+    "value": 118
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-MESS-004",
+   "area": "messages",
+   "type": "sms_top",
+   "question": "Which number did 923000001002 send the most text messages to?",
+   "expect": {
+    "kind": "top",
+    "value": "923000001048",
+    "rivals": [
+     "923000001012",
+     "923000001054",
+     "923000001027"
+    ],
+    "count": 21
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-MESS-005",
+   "area": "messages",
+   "type": "sms_first",
+   "question": "When was the first text message of 923000001002?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-02 06:12:39"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-MESS-006",
+   "area": "messages",
+   "type": "sms_count",
+   "question": "How many text messages does 923000001006 have in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 203
+   },
+   "bank": "extra",
+   "note": "sent and received, from the number's own records"
+  },
+  {
+   "id": "VB-MESS-007",
+   "area": "messages",
+   "type": "sms_out",
+   "question": "How many text messages did 923000001006 send?",
+   "expect": {
+    "kind": "scalar",
+    "value": 103
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-MESS-008",
+   "area": "messages",
+   "type": "sms_in",
+   "question": "How many text messages did 923000001006 receive?",
+   "expect": {
+    "kind": "scalar",
+    "value": 99
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-MESS-009",
+   "area": "messages",
+   "type": "sms_top",
+   "question": "Which number did 923000001006 send the most text messages to?",
+   "expect": {
+    "kind": "top",
+    "value": "923000001038",
+    "rivals": [
+     "923000001031",
+     "923000001003",
+     "923000001021"
+    ],
+    "count": 16
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-MESS-010",
+   "area": "messages",
+   "type": "sms_first",
+   "question": "When was the first text message of 923000001006?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-02 12:40:07"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-MESS-011",
+   "area": "messages",
+   "type": "sms_count",
+   "question": "How many text messages does 923000001010 have in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 172
+   },
+   "bank": "extra",
+   "note": "sent and received, from the number's own records"
+  },
+  {
+   "id": "VB-MESS-012",
+   "area": "messages",
+   "type": "sms_out",
+   "question": "How many text messages did 923000001010 send?",
+   "expect": {
+    "kind": "scalar",
+    "value": 97
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-MESS-013",
+   "area": "messages",
+   "type": "sms_in",
+   "question": "How many text messages did 923000001010 receive?",
+   "expect": {
+    "kind": "scalar",
+    "value": 74
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-MESS-014",
+   "area": "messages",
+   "type": "sms_top",
+   "question": "Which number did 923000001010 send the most text messages to?",
+   "expect": {
+    "kind": "top",
+    "value": "923000001052",
+    "rivals": [
+     "923000001093",
+     "923000001080",
+     "923000001074"
+    ],
+    "count": 22
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-MESS-015",
+   "area": "messages",
+   "type": "sms_first",
+   "question": "When was the first text message of 923000001010?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-02 12:34:45"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-MESS-016",
+   "area": "messages",
+   "type": "sms_count",
+   "question": "How many text messages does 923000001000 have in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 138
+   },
+   "bank": "extra",
+   "note": "sent and received, from the number's own records"
+  },
+  {
+   "id": "VB-MESS-017",
+   "area": "messages",
+   "type": "sms_out",
+   "question": "How many text messages did 923000001000 send?",
+   "expect": {
+    "kind": "scalar",
+    "value": 52
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-MESS-018",
+   "area": "messages",
+   "type": "sms_in",
+   "question": "How many text messages did 923000001000 receive?",
+   "expect": {
+    "kind": "scalar",
+    "value": 86
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-MESS-019",
+   "area": "messages",
+   "type": "sms_top",
+   "question": "Which number did 923000001000 send the most text messages to?",
+   "expect": {
+    "kind": "top",
+    "value": "923000001015",
+    "rivals": [
+     "923000001089",
+     "923000001080",
+     "923000001098"
+    ],
+    "count": 11
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-MESS-020",
+   "area": "messages",
+   "type": "sms_first",
+   "question": "When was the first text message of 923000001000?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-02 07:38:45"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-MESS-021",
+   "area": "messages",
+   "type": "sms_count",
+   "question": "How many text messages does 923000001003 have in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 110
+   },
+   "bank": "extra",
+   "note": "sent and received, from the number's own records"
+  },
+  {
+   "id": "VB-MESS-022",
+   "area": "messages",
+   "type": "sms_out",
+   "question": "How many text messages did 923000001003 send?",
+   "expect": {
+    "kind": "scalar",
+    "value": 56
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-MESS-023",
+   "area": "messages",
+   "type": "sms_in",
+   "question": "How many text messages did 923000001003 receive?",
+   "expect": {
+    "kind": "scalar",
+    "value": 53
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-MESS-024",
+   "area": "messages",
+   "type": "sms_top",
+   "question": "Which number did 923000001003 send the most text messages to?",
+   "expect": {
+    "kind": "top",
+    "value": "923000001069",
+    "rivals": [
+     "923000001006",
+     "923000001031",
+     "923000001001"
+    ],
+    "count": 14
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-MESS-025",
+   "area": "messages",
+   "type": "sms_first",
+   "question": "When was the first text message of 923000001003?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-03-13 07:52:14"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-MESS-026",
+   "area": "messages",
+   "type": "sms_count",
+   "question": "How many text messages does 923000001007 have in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 108
+   },
+   "bank": "extra",
+   "note": "sent and received, from the number's own records"
+  },
+  {
+   "id": "VB-MESS-027",
+   "area": "messages",
+   "type": "sms_out",
+   "question": "How many text messages did 923000001007 send?",
+   "expect": {
+    "kind": "scalar",
+    "value": 61
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-MESS-028",
+   "area": "messages",
+   "type": "sms_in",
+   "question": "How many text messages did 923000001007 receive?",
+   "expect": {
+    "kind": "scalar",
+    "value": 47
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-MESS-029",
+   "area": "messages",
+   "type": "sms_top",
+   "question": "Which number did 923000001007 send the most text messages to?",
+   "expect": {
+    "kind": "top",
+    "value": "923000001057",
+    "rivals": [
+     "923000001017",
+     "923000001087",
+     "923000001054"
+    ],
+    "count": 17
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-MESS-030",
+   "area": "messages",
+   "type": "sms_first",
+   "question": "When was the first text message of 923000001007?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-24 06:31:39"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PAIR-001",
+   "area": "pairs",
+   "type": "pair_events",
+   "question": "How many calls and messages did 923000001005 have with 923000001036?",
+   "expect": {
+    "kind": "scalar",
+    "value": 150
+   },
+   "bank": "extra",
+   "note": "in the records of the first number, both directions"
+  },
+  {
+   "id": "VB-PAIR-002",
+   "area": "pairs",
+   "type": "pair_voice_out",
+   "question": "How many outgoing voice calls did 923000001005 make to 923000001036?",
+   "expect": {
+    "kind": "scalar",
+    "value": 105
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PAIR-003",
+   "area": "pairs",
+   "type": "pair_talk",
+   "question": "What is the total duration of the voice calls between 923000001005 and 923000001036, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 14673,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PAIR-004",
+   "area": "pairs",
+   "type": "pair_last",
+   "question": "When was the last contact between 923000001005 and 923000001036?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17 19:37:12"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PAIR-005",
+   "area": "pairs",
+   "type": "pair_events",
+   "question": "How many calls and messages did 923000001002 have with 923000001027?",
+   "expect": {
+    "kind": "scalar",
+    "value": 146
+   },
+   "bank": "extra",
+   "note": "in the records of the first number, both directions"
+  },
+  {
+   "id": "VB-PAIR-006",
+   "area": "pairs",
+   "type": "pair_voice_out",
+   "question": "How many outgoing voice calls did 923000001002 make to 923000001027?",
+   "expect": {
+    "kind": "scalar",
+    "value": 25
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PAIR-007",
+   "area": "pairs",
+   "type": "pair_talk",
+   "question": "What is the total duration of the voice calls between 923000001002 and 923000001027, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 12290,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PAIR-008",
+   "area": "pairs",
+   "type": "pair_last",
+   "question": "When was the last contact between 923000001002 and 923000001027?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17 17:15:59"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PAIR-009",
+   "area": "pairs",
+   "type": "pair_events",
+   "question": "How many calls and messages did 923000001006 have with 923000001038?",
+   "expect": {
+    "kind": "scalar",
+    "value": 93
+   },
+   "bank": "extra",
+   "note": "in the records of the first number, both directions"
+  },
+  {
+   "id": "VB-PAIR-010",
+   "area": "pairs",
+   "type": "pair_voice_out",
+   "question": "How many outgoing voice calls did 923000001006 make to 923000001038?",
+   "expect": {
+    "kind": "scalar",
+    "value": 32
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PAIR-011",
+   "area": "pairs",
+   "type": "pair_talk",
+   "question": "What is the total duration of the voice calls between 923000001006 and 923000001038, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 6183,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PAIR-012",
+   "area": "pairs",
+   "type": "pair_last",
+   "question": "When was the last contact between 923000001006 and 923000001038?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17 16:58:18"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PAIR-013",
+   "area": "pairs",
+   "type": "pair_events",
+   "question": "How many calls and messages did 923000001010 have with 923000001080?",
+   "expect": {
+    "kind": "scalar",
+    "value": 124
+   },
+   "bank": "extra",
+   "note": "in the records of the first number, both directions"
+  },
+  {
+   "id": "VB-PAIR-014",
+   "area": "pairs",
+   "type": "pair_voice_out",
+   "question": "How many outgoing voice calls did 923000001010 make to 923000001080?",
+   "expect": {
+    "kind": "scalar",
+    "value": 56
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PAIR-015",
+   "area": "pairs",
+   "type": "pair_talk",
+   "question": "What is the total duration of the voice calls between 923000001010 and 923000001080, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 8512,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PAIR-016",
+   "area": "pairs",
+   "type": "pair_last",
+   "question": "When was the last contact between 923000001010 and 923000001080?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-16 20:42:35"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PAIR-017",
+   "area": "pairs",
+   "type": "pair_events",
+   "question": "How many calls and messages did 923000001000 have with 923000001098?",
+   "expect": {
+    "kind": "scalar",
+    "value": 75
+   },
+   "bank": "extra",
+   "note": "in the records of the first number, both directions"
+  },
+  {
+   "id": "VB-PAIR-018",
+   "area": "pairs",
+   "type": "pair_voice_out",
+   "question": "How many outgoing voice calls did 923000001000 make to 923000001098?",
+   "expect": {
+    "kind": "scalar",
+    "value": 14
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PAIR-019",
+   "area": "pairs",
+   "type": "pair_talk",
+   "question": "What is the total duration of the voice calls between 923000001000 and 923000001098, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 5613,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PAIR-020",
+   "area": "pairs",
+   "type": "pair_last",
+   "question": "When was the last contact between 923000001000 and 923000001098?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-03-19 21:34:00"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PAIR-021",
+   "area": "pairs",
+   "type": "pair_events",
+   "question": "How many calls and messages did 923000001007 have with 923000001057?",
+   "expect": {
+    "kind": "scalar",
+    "value": 84
+   },
+   "bank": "extra",
+   "note": "in the records of the first number, both directions"
+  },
+  {
+   "id": "VB-PAIR-022",
+   "area": "pairs",
+   "type": "pair_voice_out",
+   "question": "How many outgoing voice calls did 923000001007 make to 923000001057?",
+   "expect": {
+    "kind": "scalar",
+    "value": 29
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PAIR-023",
+   "area": "pairs",
+   "type": "pair_talk",
+   "question": "What is the total duration of the voice calls between 923000001007 and 923000001057, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 5298,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PAIR-024",
+   "area": "pairs",
+   "type": "pair_last",
+   "question": "When was the last contact between 923000001007 and 923000001057?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17 20:26:35"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PAIR-025",
+   "area": "pairs",
+   "type": "pair_events",
+   "question": "How many calls and messages did 923000001009 have with 923000001053?",
+   "expect": {
+    "kind": "scalar",
+    "value": 72
+   },
+   "bank": "extra",
+   "note": "in the records of the first number, both directions"
+  },
+  {
+   "id": "VB-PAIR-026",
+   "area": "pairs",
+   "type": "pair_voice_out",
+   "question": "How many outgoing voice calls did 923000001009 make to 923000001053?",
+   "expect": {
+    "kind": "scalar",
+    "value": 38
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PAIR-027",
+   "area": "pairs",
+   "type": "pair_talk",
+   "question": "What is the total duration of the voice calls between 923000001009 and 923000001053, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 6659,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PAIR-028",
+   "area": "pairs",
+   "type": "pair_last",
+   "question": "When was the last contact between 923000001009 and 923000001053?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17 21:04:48"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PAIR-029",
+   "area": "pairs",
+   "type": "pair_events",
+   "question": "How many calls and messages did 923000001001 have with 923000001078?",
+   "expect": {
+    "kind": "scalar",
+    "value": 63
+   },
+   "bank": "extra",
+   "note": "in the records of the first number, both directions"
+  },
+  {
+   "id": "VB-PAIR-030",
+   "area": "pairs",
+   "type": "pair_voice_out",
+   "question": "How many outgoing voice calls did 923000001001 make to 923000001078?",
+   "expect": {
+    "kind": "scalar",
+    "value": 33
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PAIR-031",
+   "area": "pairs",
+   "type": "pair_talk",
+   "question": "What is the total duration of the voice calls between 923000001001 and 923000001078, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 6546,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PAIR-032",
+   "area": "pairs",
+   "type": "pair_last",
+   "question": "When was the last contact between 923000001001 and 923000001078?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-15 16:19:31"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-INTE-001",
+   "area": "internet",
+   "type": "sessions",
+   "question": "How many internet sessions does 923000001010 have?",
+   "expect": {
+    "kind": "scalar",
+    "value": 431
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-002",
+   "area": "internet",
+   "type": "bytes_down",
+   "question": "How many bytes did 923000001010 download in total?",
+   "expect": {
+    "kind": "scalar",
+    "value": 214448386,
+    "unit": "bytes"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-003",
+   "area": "internet",
+   "type": "bytes_up",
+   "question": "How many bytes did 923000001010 upload in total?",
+   "expect": {
+    "kind": "scalar",
+    "value": 20985010,
+    "unit": "bytes"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-004",
+   "area": "internet",
+   "type": "apps_distinct",
+   "question": "How many different apps did 923000001010 use in its internet sessions?",
+   "expect": {
+    "kind": "scalar",
+    "value": 3
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-005",
+   "area": "internet",
+   "type": "top_app",
+   "question": "Which app did 923000001010 use the most in its internet sessions?",
+   "expect": {
+    "kind": "top",
+    "value": "app_a",
+    "rivals": [
+     "app_b",
+     "app_c"
+    ],
+    "count": 220
+   },
+   "bank": "extra",
+   "note": "by number of sessions"
+  },
+  {
+   "id": "VB-INTE-006",
+   "area": "internet",
+   "type": "sessions",
+   "question": "How many internet sessions does 923000001006 have?",
+   "expect": {
+    "kind": "scalar",
+    "value": 430
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-007",
+   "area": "internet",
+   "type": "bytes_down",
+   "question": "How many bytes did 923000001006 download in total?",
+   "expect": {
+    "kind": "scalar",
+    "value": 208354669,
+    "unit": "bytes"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-008",
+   "area": "internet",
+   "type": "bytes_up",
+   "question": "How many bytes did 923000001006 upload in total?",
+   "expect": {
+    "kind": "scalar",
+    "value": 21137121,
+    "unit": "bytes"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-009",
+   "area": "internet",
+   "type": "apps_distinct",
+   "question": "How many different apps did 923000001006 use in its internet sessions?",
+   "expect": {
+    "kind": "scalar",
+    "value": 3
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-010",
+   "area": "internet",
+   "type": "top_app",
+   "question": "Which app did 923000001006 use the most in its internet sessions?",
+   "expect": {
+    "kind": "top",
+    "value": "app_a",
+    "rivals": [
+     "app_b",
+     "app_c"
+    ],
+    "count": 228
+   },
+   "bank": "extra",
+   "note": "by number of sessions"
+  },
+  {
+   "id": "VB-INTE-011",
+   "area": "internet",
+   "type": "sessions",
+   "question": "How many internet sessions does 923000001009 have?",
+   "expect": {
+    "kind": "scalar",
+    "value": 421
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-012",
+   "area": "internet",
+   "type": "bytes_down",
+   "question": "How many bytes did 923000001009 download in total?",
+   "expect": {
+    "kind": "scalar",
+    "value": 200016221,
+    "unit": "bytes"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-013",
+   "area": "internet",
+   "type": "bytes_up",
+   "question": "How many bytes did 923000001009 upload in total?",
+   "expect": {
+    "kind": "scalar",
+    "value": 20771501,
+    "unit": "bytes"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-014",
+   "area": "internet",
+   "type": "apps_distinct",
+   "question": "How many different apps did 923000001009 use in its internet sessions?",
+   "expect": {
+    "kind": "scalar",
+    "value": 3
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-015",
+   "area": "internet",
+   "type": "top_app",
+   "question": "Which app did 923000001009 use the most in its internet sessions?",
+   "expect": {
+    "kind": "top",
+    "value": "app_a",
+    "rivals": [
+     "app_c",
+     "app_b"
+    ],
+    "count": 213
+   },
+   "bank": "extra",
+   "note": "by number of sessions"
+  },
+  {
+   "id": "VB-INTE-016",
+   "area": "internet",
+   "type": "sessions",
+   "question": "How many internet sessions does 923000001002 have?",
+   "expect": {
+    "kind": "scalar",
+    "value": 399
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-017",
+   "area": "internet",
+   "type": "bytes_down",
+   "question": "How many bytes did 923000001002 download in total?",
+   "expect": {
+    "kind": "scalar",
+    "value": 194375025,
+    "unit": "bytes"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-018",
+   "area": "internet",
+   "type": "bytes_up",
+   "question": "How many bytes did 923000001002 upload in total?",
+   "expect": {
+    "kind": "scalar",
+    "value": 20577123,
+    "unit": "bytes"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-019",
+   "area": "internet",
+   "type": "apps_distinct",
+   "question": "How many different apps did 923000001002 use in its internet sessions?",
+   "expect": {
+    "kind": "scalar",
+    "value": 3
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-020",
+   "area": "internet",
+   "type": "top_app",
+   "question": "Which app did 923000001002 use the most in its internet sessions?",
+   "expect": {
+    "kind": "top",
+    "value": "app_a",
+    "rivals": [
+     "app_c",
+     "app_b"
+    ],
+    "count": 191
+   },
+   "bank": "extra",
+   "note": "by number of sessions"
+  },
+  {
+   "id": "VB-INTE-021",
+   "area": "internet",
+   "type": "sessions",
+   "question": "How many internet sessions does 923000001005 have?",
+   "expect": {
+    "kind": "scalar",
+    "value": 389
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-022",
+   "area": "internet",
+   "type": "bytes_down",
+   "question": "How many bytes did 923000001005 download in total?",
+   "expect": {
+    "kind": "scalar",
+    "value": 195404638,
+    "unit": "bytes"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-023",
+   "area": "internet",
+   "type": "bytes_up",
+   "question": "How many bytes did 923000001005 upload in total?",
+   "expect": {
+    "kind": "scalar",
+    "value": 19464161,
+    "unit": "bytes"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-024",
+   "area": "internet",
+   "type": "apps_distinct",
+   "question": "How many different apps did 923000001005 use in its internet sessions?",
+   "expect": {
+    "kind": "scalar",
+    "value": 3
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-025",
+   "area": "internet",
+   "type": "top_app",
+   "question": "Which app did 923000001005 use the most in its internet sessions?",
+   "expect": {
+    "kind": "top",
+    "value": "app_a",
+    "rivals": [
+     "app_c",
+     "app_b"
+    ],
+    "count": 192
+   },
+   "bank": "extra",
+   "note": "by number of sessions"
+  },
+  {
+   "id": "VB-INTE-026",
+   "area": "internet",
+   "type": "sessions",
+   "question": "How many internet sessions does 923000001001 have?",
+   "expect": {
+    "kind": "scalar",
+    "value": 384
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-027",
+   "area": "internet",
+   "type": "bytes_down",
+   "question": "How many bytes did 923000001001 download in total?",
+   "expect": {
+    "kind": "scalar",
+    "value": 196829437,
+    "unit": "bytes"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-028",
+   "area": "internet",
+   "type": "bytes_up",
+   "question": "How many bytes did 923000001001 upload in total?",
+   "expect": {
+    "kind": "scalar",
+    "value": 20237131,
+    "unit": "bytes"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-029",
+   "area": "internet",
+   "type": "apps_distinct",
+   "question": "How many different apps did 923000001001 use in its internet sessions?",
+   "expect": {
+    "kind": "scalar",
+    "value": 3
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INTE-030",
+   "area": "internet",
+   "type": "top_app",
+   "question": "Which app did 923000001001 use the most in its internet sessions?",
+   "expect": {
+    "kind": "top",
+    "value": "app_a",
+    "rivals": [
+     "app_c",
+     "app_b"
+    ],
+    "count": 207
+   },
+   "bank": "extra",
+   "note": "by number of sessions"
+  },
+  {
+   "id": "VB-INTE-031",
+   "area": "internet",
+   "type": "most_sessions",
+   "question": "Which number has the most internet sessions?",
+   "expect": {
+    "kind": "top",
+    "value": "923000001010",
+    "rivals": [],
+    "count": 0
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-APPS-001",
+   "area": "apps",
+   "type": "usage_count",
+   "question": "How many app usage records does 923000001001 have?",
+   "expect": {
+    "kind": "scalar",
+    "value": 390
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-APPS-002",
+   "area": "apps",
+   "type": "usage_distinct",
+   "question": "How many different apps did 923000001001 use?",
+   "expect": {
+    "kind": "scalar",
+    "value": 3
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-APPS-003",
+   "area": "apps",
+   "type": "usage_top",
+   "question": "Which app did 923000001001 use the most?",
+   "expect": {
+    "kind": "top",
+    "value": "app_a",
+    "rivals": [
+     "app_c",
+     "app_b"
+    ],
+    "count": 210
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-APPS-004",
+   "area": "apps",
+   "type": "usage_count",
+   "question": "How many app usage records does 923000001000 have?",
+   "expect": {
+    "kind": "scalar",
+    "value": 267
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-APPS-005",
+   "area": "apps",
+   "type": "usage_distinct",
+   "question": "How many different apps did 923000001000 use?",
+   "expect": {
+    "kind": "scalar",
+    "value": 3
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-APPS-006",
+   "area": "apps",
+   "type": "usage_top",
+   "question": "Which app did 923000001000 use the most?",
+   "expect": {
+    "kind": "top",
+    "value": "app_a",
+    "rivals": [
+     "app_b",
+     "app_c"
+    ],
+    "count": 141
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-001",
+   "area": "bank",
+   "type": "txn_count",
+   "question": "How many transactions does the account PK00SYNT0000000000002010 have?",
+   "expect": {
+    "kind": "scalar",
+    "value": 53
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-002",
+   "area": "bank",
+   "type": "credits_total",
+   "question": "What is the total amount credited to the account PK00SYNT0000000000002010?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1156096.41,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-003",
+   "area": "bank",
+   "type": "debits_total",
+   "question": "What is the total amount debited from the account PK00SYNT0000000000002010?",
+   "expect": {
+    "kind": "scalar",
+    "value": 4161008.11,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-004",
+   "area": "bank",
+   "type": "largest_debit",
+   "question": "What is the largest single debit of the account PK00SYNT0000000000002010?",
+   "expect": {
+    "kind": "scalar",
+    "value": 490500.0,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-005",
+   "area": "bank",
+   "type": "last_balance",
+   "question": "What was the balance after the last transaction of the account PK00SYNT0000000000002010?",
+   "expect": {
+    "kind": "scalar",
+    "value": 3005088.3,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-006",
+   "area": "bank",
+   "type": "first_day",
+   "question": "On which day was the first transaction of the account PK00SYNT0000000000002010?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-05"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-007",
+   "area": "bank",
+   "type": "last_day",
+   "question": "On which day was the last transaction of the account PK00SYNT0000000000002010?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-16"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-008",
+   "area": "bank",
+   "type": "top_payee",
+   "question": "Who did the account PK00SYNT0000000000002010 pay the most money to?",
+   "expect": {
+    "kind": "top",
+    "value": "PK00SYNT0000000000005009",
+    "rivals": [
+     "PK00SYNT0000000000005002",
+     "PK00SYNT0000000000005011"
+    ],
+    "count": 1312676.9
+   },
+   "bank": "extra",
+   "note": "by total amount debited"
+  },
+  {
+   "id": "VB-BANK-009",
+   "area": "bank",
+   "type": "payees_distinct",
+   "question": "How many different accounts or numbers did the account PK00SYNT0000000000002010 pay?",
+   "expect": {
+    "kind": "scalar",
+    "value": 12
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-010",
+   "area": "bank",
+   "type": "debits_over",
+   "question": "How many debits of the account PK00SYNT0000000000002010 were above 245250 rupees?",
+   "expect": {
+    "kind": "scalar",
+    "value": 5
+   },
+   "bank": "extra",
+   "note": "strictly above"
+  },
+  {
+   "id": "VB-BANK-011",
+   "area": "bank",
+   "type": "txn_count",
+   "question": "How many transactions does the account PK00SYNT0000000000002004 have?",
+   "expect": {
+    "kind": "scalar",
+    "value": 52
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-012",
+   "area": "bank",
+   "type": "credits_total",
+   "question": "What is the total amount credited to the account PK00SYNT0000000000002004?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1771898.97,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-013",
+   "area": "bank",
+   "type": "debits_total",
+   "question": "What is the total amount debited from the account PK00SYNT0000000000002004?",
+   "expect": {
+    "kind": "scalar",
+    "value": 4186972.88,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-014",
+   "area": "bank",
+   "type": "largest_debit",
+   "question": "What is the largest single debit of the account PK00SYNT0000000000002004?",
+   "expect": {
+    "kind": "scalar",
+    "value": 494500.0,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-015",
+   "area": "bank",
+   "type": "last_balance",
+   "question": "What was the balance after the last transaction of the account PK00SYNT0000000000002004?",
+   "expect": {
+    "kind": "scalar",
+    "value": 3510987.64,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-016",
+   "area": "bank",
+   "type": "first_day",
+   "question": "On which day was the first transaction of the account PK00SYNT0000000000002004?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-03"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-017",
+   "area": "bank",
+   "type": "last_day",
+   "question": "On which day was the last transaction of the account PK00SYNT0000000000002004?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-018",
+   "area": "bank",
+   "type": "top_payee",
+   "question": "Who did the account PK00SYNT0000000000002004 pay the most money to?",
+   "expect": {
+    "kind": "top",
+    "value": "PK00SYNT0000000000005005",
+    "rivals": [
+     "PK00SYNT0000000000005010",
+     "PK00SYNT0000000000005011"
+    ],
+    "count": 614205.31
+   },
+   "bank": "extra",
+   "note": "by total amount debited"
+  },
+  {
+   "id": "VB-BANK-019",
+   "area": "bank",
+   "type": "payees_distinct",
+   "question": "How many different accounts or numbers did the account PK00SYNT0000000000002004 pay?",
+   "expect": {
+    "kind": "scalar",
+    "value": 12
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-020",
+   "area": "bank",
+   "type": "debits_over",
+   "question": "How many debits of the account PK00SYNT0000000000002004 were above 247250 rupees?",
+   "expect": {
+    "kind": "scalar",
+    "value": 6
+   },
+   "bank": "extra",
+   "note": "strictly above"
+  },
+  {
+   "id": "VB-BANK-021",
+   "area": "bank",
+   "type": "txn_count",
+   "question": "How many transactions does the account PK00SYNT0000000000002003 have?",
+   "expect": {
+    "kind": "scalar",
+    "value": 46
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-022",
+   "area": "bank",
+   "type": "credits_total",
+   "question": "What is the total amount credited to the account PK00SYNT0000000000002003?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1847854.55,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-023",
+   "area": "bank",
+   "type": "debits_total",
+   "question": "What is the total amount debited from the account PK00SYNT0000000000002003?",
+   "expect": {
+    "kind": "scalar",
+    "value": 2646194.03,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-024",
+   "area": "bank",
+   "type": "largest_debit",
+   "question": "What is the largest single debit of the account PK00SYNT0000000000002003?",
+   "expect": {
+    "kind": "scalar",
+    "value": 384500.0,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-025",
+   "area": "bank",
+   "type": "last_balance",
+   "question": "What was the balance after the last transaction of the account PK00SYNT0000000000002003?",
+   "expect": {
+    "kind": "scalar",
+    "value": 5221660.52,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-026",
+   "area": "bank",
+   "type": "first_day",
+   "question": "On which day was the first transaction of the account PK00SYNT0000000000002003?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-05"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-027",
+   "area": "bank",
+   "type": "last_day",
+   "question": "On which day was the last transaction of the account PK00SYNT0000000000002003?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-028",
+   "area": "bank",
+   "type": "top_payee",
+   "question": "Who did the account PK00SYNT0000000000002003 pay the most money to?",
+   "expect": {
+    "kind": "top",
+    "value": "PK00SYNT0000000000005003",
+    "rivals": [
+     "PK00SYNT0000000000005001",
+     "PK00SYNT0000000000005010"
+    ],
+    "count": 587069.43
+   },
+   "bank": "extra",
+   "note": "by total amount debited"
+  },
+  {
+   "id": "VB-BANK-029",
+   "area": "bank",
+   "type": "payees_distinct",
+   "question": "How many different accounts or numbers did the account PK00SYNT0000000000002003 pay?",
+   "expect": {
+    "kind": "scalar",
+    "value": 11
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-030",
+   "area": "bank",
+   "type": "debits_over",
+   "question": "How many debits of the account PK00SYNT0000000000002003 were above 192250 rupees?",
+   "expect": {
+    "kind": "scalar",
+    "value": 5
+   },
+   "bank": "extra",
+   "note": "strictly above"
+  },
+  {
+   "id": "VB-BANK-031",
+   "area": "bank",
+   "type": "txn_count",
+   "question": "How many transactions does the account PK00SYNT0000000000002007 have?",
+   "expect": {
+    "kind": "scalar",
+    "value": 36
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-032",
+   "area": "bank",
+   "type": "credits_total",
+   "question": "What is the total amount credited to the account PK00SYNT0000000000002007?",
+   "expect": {
+    "kind": "scalar",
+    "value": 677352.01,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-033",
+   "area": "bank",
+   "type": "debits_total",
+   "question": "What is the total amount debited from the account PK00SYNT0000000000002007?",
+   "expect": {
+    "kind": "scalar",
+    "value": 854570.31,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-034",
+   "area": "bank",
+   "type": "largest_debit",
+   "question": "What is the largest single debit of the account PK00SYNT0000000000002007?",
+   "expect": {
+    "kind": "scalar",
+    "value": 87170.53,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-035",
+   "area": "bank",
+   "type": "last_balance",
+   "question": "What was the balance after the last transaction of the account PK00SYNT0000000000002007?",
+   "expect": {
+    "kind": "scalar",
+    "value": 5912781.7,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-036",
+   "area": "bank",
+   "type": "first_day",
+   "question": "On which day was the first transaction of the account PK00SYNT0000000000002007?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-02"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-037",
+   "area": "bank",
+   "type": "last_day",
+   "question": "On which day was the last transaction of the account PK00SYNT0000000000002007?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-038",
+   "area": "bank",
+   "type": "top_payee",
+   "question": "Who did the account PK00SYNT0000000000002007 pay the most money to?",
+   "expect": {
+    "kind": "top",
+    "value": "PK00SYNT0000000000005007",
+    "rivals": [
+     "PK00SYNT0000000000005002",
+     "PK00SYNT0000000000005003"
+    ],
+    "count": 187574.41
+   },
+   "bank": "extra",
+   "note": "by total amount debited"
+  },
+  {
+   "id": "VB-BANK-039",
+   "area": "bank",
+   "type": "payees_distinct",
+   "question": "How many different accounts or numbers did the account PK00SYNT0000000000002007 pay?",
+   "expect": {
+    "kind": "scalar",
+    "value": 10
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-040",
+   "area": "bank",
+   "type": "debits_over",
+   "question": "How many debits of the account PK00SYNT0000000000002007 were above 43585 rupees?",
+   "expect": {
+    "kind": "scalar",
+    "value": 10
+   },
+   "bank": "extra",
+   "note": "strictly above"
+  },
+  {
+   "id": "VB-BANK-041",
+   "area": "bank",
+   "type": "txn_count",
+   "question": "How many transactions does the account PK00SYNT0000000000002005 have?",
+   "expect": {
+    "kind": "scalar",
+    "value": 36
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-042",
+   "area": "bank",
+   "type": "credits_total",
+   "question": "What is the total amount credited to the account PK00SYNT0000000000002005?",
+   "expect": {
+    "kind": "scalar",
+    "value": 660455.52,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-043",
+   "area": "bank",
+   "type": "debits_total",
+   "question": "What is the total amount debited from the account PK00SYNT0000000000002005?",
+   "expect": {
+    "kind": "scalar",
+    "value": 756235.72,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-044",
+   "area": "bank",
+   "type": "largest_debit",
+   "question": "What is the largest single debit of the account PK00SYNT0000000000002005?",
+   "expect": {
+    "kind": "scalar",
+    "value": 86869.78,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-045",
+   "area": "bank",
+   "type": "last_balance",
+   "question": "What was the balance after the last transaction of the account PK00SYNT0000000000002005?",
+   "expect": {
+    "kind": "scalar",
+    "value": 5934219.8,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-046",
+   "area": "bank",
+   "type": "first_day",
+   "question": "On which day was the first transaction of the account PK00SYNT0000000000002005?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-05"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-047",
+   "area": "bank",
+   "type": "last_day",
+   "question": "On which day was the last transaction of the account PK00SYNT0000000000002005?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-048",
+   "area": "bank",
+   "type": "top_payee",
+   "question": "Who did the account PK00SYNT0000000000002005 pay the most money to?",
+   "expect": {
+    "kind": "top",
+    "value": "PK00SYNT0000000000005002",
+    "rivals": [
+     "PK00SYNT0000000000007002",
+     "PK00SYNT0000000000005008"
+    ],
+    "count": 244370.39
+   },
+   "bank": "extra",
+   "note": "by total amount debited"
+  },
+  {
+   "id": "VB-BANK-049",
+   "area": "bank",
+   "type": "payees_distinct",
+   "question": "How many different accounts or numbers did the account PK00SYNT0000000000002005 pay?",
+   "expect": {
+    "kind": "scalar",
+    "value": 13
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-050",
+   "area": "bank",
+   "type": "senders",
+   "question": "Which accounts or numbers sent money to the account PK00SYNT0000000000002005?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "PK00SYNT0000000000005001",
+     "PK00SYNT0000000000005002",
+     "PK00SYNT0000000000005004",
+     "PK00SYNT0000000000005007",
+     "PK00SYNT0000000000005008",
+     "PK00SYNT0000000000005009",
+     "PK00SYNT0000000000009002"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-051",
+   "area": "bank",
+   "type": "debits_over",
+   "question": "How many debits of the account PK00SYNT0000000000002005 were above 43434 rupees?",
+   "expect": {
+    "kind": "scalar",
+    "value": 5
+   },
+   "bank": "extra",
+   "note": "strictly above"
+  },
+  {
+   "id": "VB-BANK-052",
+   "area": "bank",
+   "type": "txn_count",
+   "question": "How many transactions does the account PK00SYNT0000000000002001 have?",
+   "expect": {
+    "kind": "scalar",
+    "value": 35
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-053",
+   "area": "bank",
+   "type": "credits_total",
+   "question": "What is the total amount credited to the account PK00SYNT0000000000002001?",
+   "expect": {
+    "kind": "scalar",
+    "value": 856554.72,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-054",
+   "area": "bank",
+   "type": "debits_total",
+   "question": "What is the total amount debited from the account PK00SYNT0000000000002001?",
+   "expect": {
+    "kind": "scalar",
+    "value": 957419.07,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-055",
+   "area": "bank",
+   "type": "largest_debit",
+   "question": "What is the largest single debit of the account PK00SYNT0000000000002001?",
+   "expect": {
+    "kind": "scalar",
+    "value": 88112.71,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-056",
+   "area": "bank",
+   "type": "last_balance",
+   "question": "What was the balance after the last transaction of the account PK00SYNT0000000000002001?",
+   "expect": {
+    "kind": "scalar",
+    "value": 5979135.65,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-057",
+   "area": "bank",
+   "type": "first_day",
+   "question": "On which day was the first transaction of the account PK00SYNT0000000000002001?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-04"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-058",
+   "area": "bank",
+   "type": "last_day",
+   "question": "On which day was the last transaction of the account PK00SYNT0000000000002001?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-16"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-059",
+   "area": "bank",
+   "type": "top_payee",
+   "question": "Who did the account PK00SYNT0000000000002001 pay the most money to?",
+   "expect": {
+    "kind": "top",
+    "value": "PK00SYNT0000000000005003",
+    "rivals": [
+     "PK00SYNT0000000000005009",
+     "PK00SYNT0000000000005007"
+    ],
+    "count": 171945.64
+   },
+   "bank": "extra",
+   "note": "by total amount debited"
+  },
+  {
+   "id": "VB-BANK-060",
+   "area": "bank",
+   "type": "payees_distinct",
+   "question": "How many different accounts or numbers did the account PK00SYNT0000000000002001 pay?",
+   "expect": {
+    "kind": "scalar",
+    "value": 11
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-061",
+   "area": "bank",
+   "type": "debits_over",
+   "question": "How many debits of the account PK00SYNT0000000000002001 were above 44056 rupees?",
+   "expect": {
+    "kind": "scalar",
+    "value": 12
+   },
+   "bank": "extra",
+   "note": "strictly above"
+  },
+  {
+   "id": "VB-BANK-062",
+   "area": "bank",
+   "type": "txn_count",
+   "question": "How many transactions does the account PK00SYNT0000000000002009 have?",
+   "expect": {
+    "kind": "scalar",
+    "value": 35
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-063",
+   "area": "bank",
+   "type": "credits_total",
+   "question": "What is the total amount credited to the account PK00SYNT0000000000002009?",
+   "expect": {
+    "kind": "scalar",
+    "value": 516585.01,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-064",
+   "area": "bank",
+   "type": "debits_total",
+   "question": "What is the total amount debited from the account PK00SYNT0000000000002009?",
+   "expect": {
+    "kind": "scalar",
+    "value": 863186.33,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-065",
+   "area": "bank",
+   "type": "largest_debit",
+   "question": "What is the largest single debit of the account PK00SYNT0000000000002009?",
+   "expect": {
+    "kind": "scalar",
+    "value": 85988.25,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-066",
+   "area": "bank",
+   "type": "last_balance",
+   "question": "What was the balance after the last transaction of the account PK00SYNT0000000000002009?",
+   "expect": {
+    "kind": "scalar",
+    "value": 5693398.68,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-067",
+   "area": "bank",
+   "type": "first_day",
+   "question": "On which day was the first transaction of the account PK00SYNT0000000000002009?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-05"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-068",
+   "area": "bank",
+   "type": "last_day",
+   "question": "On which day was the last transaction of the account PK00SYNT0000000000002009?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-16"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-069",
+   "area": "bank",
+   "type": "top_payee",
+   "question": "Who did the account PK00SYNT0000000000002009 pay the most money to?",
+   "expect": {
+    "kind": "top",
+    "value": "PK00SYNT0000000000005008",
+    "rivals": [
+     "PK00SYNT0000000000005009",
+     "PK00SYNT0000000000005006"
+    ],
+    "count": 160317.61
+   },
+   "bank": "extra",
+   "note": "by total amount debited"
+  },
+  {
+   "id": "VB-BANK-070",
+   "area": "bank",
+   "type": "payees_distinct",
+   "question": "How many different accounts or numbers did the account PK00SYNT0000000000002009 pay?",
+   "expect": {
+    "kind": "scalar",
+    "value": 11
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-071",
+   "area": "bank",
+   "type": "debits_over",
+   "question": "How many debits of the account PK00SYNT0000000000002009 were above 42994 rupees?",
+   "expect": {
+    "kind": "scalar",
+    "value": 10
+   },
+   "bank": "extra",
+   "note": "strictly above"
+  },
+  {
+   "id": "VB-BANK-072",
+   "area": "bank",
+   "type": "txn_count",
+   "question": "How many transactions does the account PK00SYNT0000000000002011 have?",
+   "expect": {
+    "kind": "scalar",
+    "value": 34
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-073",
+   "area": "bank",
+   "type": "credits_total",
+   "question": "What is the total amount credited to the account PK00SYNT0000000000002011?",
+   "expect": {
+    "kind": "scalar",
+    "value": 630905.1,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-074",
+   "area": "bank",
+   "type": "debits_total",
+   "question": "What is the total amount debited from the account PK00SYNT0000000000002011?",
+   "expect": {
+    "kind": "scalar",
+    "value": 636579.84,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-075",
+   "area": "bank",
+   "type": "largest_debit",
+   "question": "What is the largest single debit of the account PK00SYNT0000000000002011?",
+   "expect": {
+    "kind": "scalar",
+    "value": 87403.32,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-076",
+   "area": "bank",
+   "type": "last_balance",
+   "question": "What was the balance after the last transaction of the account PK00SYNT0000000000002011?",
+   "expect": {
+    "kind": "scalar",
+    "value": 6104325.26,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-077",
+   "area": "bank",
+   "type": "first_day",
+   "question": "On which day was the first transaction of the account PK00SYNT0000000000002011?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-05"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-078",
+   "area": "bank",
+   "type": "last_day",
+   "question": "On which day was the last transaction of the account PK00SYNT0000000000002011?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-079",
+   "area": "bank",
+   "type": "top_payee",
+   "question": "Who did the account PK00SYNT0000000000002011 pay the most money to?",
+   "expect": {
+    "kind": "top",
+    "value": "PK00SYNT0000000000005003",
+    "rivals": [
+     "PK00SYNT0000000000005006",
+     "PK00SYNT0000000000005008"
+    ],
+    "count": 142680.7
+   },
+   "bank": "extra",
+   "note": "by total amount debited"
+  },
+  {
+   "id": "VB-BANK-080",
+   "area": "bank",
+   "type": "payees_distinct",
+   "question": "How many different accounts or numbers did the account PK00SYNT0000000000002011 pay?",
+   "expect": {
+    "kind": "scalar",
+    "value": 10
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-081",
+   "area": "bank",
+   "type": "debits_over",
+   "question": "How many debits of the account PK00SYNT0000000000002011 were above 43701 rupees?",
+   "expect": {
+    "kind": "scalar",
+    "value": 7
+   },
+   "bank": "extra",
+   "note": "strictly above"
+  },
+  {
+   "id": "VB-BANK-082",
+   "area": "bank",
+   "type": "txn_count",
+   "question": "How many transactions does the account PK00SYNT0000000000002008 have?",
+   "expect": {
+    "kind": "scalar",
+    "value": 32
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-083",
+   "area": "bank",
+   "type": "credits_total",
+   "question": "What is the total amount credited to the account PK00SYNT0000000000002008?",
+   "expect": {
+    "kind": "scalar",
+    "value": 699422.95,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-084",
+   "area": "bank",
+   "type": "debits_total",
+   "question": "What is the total amount debited from the account PK00SYNT0000000000002008?",
+   "expect": {
+    "kind": "scalar",
+    "value": 820306.92,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-085",
+   "area": "bank",
+   "type": "largest_debit",
+   "question": "What is the largest single debit of the account PK00SYNT0000000000002008?",
+   "expect": {
+    "kind": "scalar",
+    "value": 87250.09,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-086",
+   "area": "bank",
+   "type": "last_balance",
+   "question": "What was the balance after the last transaction of the account PK00SYNT0000000000002008?",
+   "expect": {
+    "kind": "scalar",
+    "value": 5939116.03,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-087",
+   "area": "bank",
+   "type": "first_day",
+   "question": "On which day was the first transaction of the account PK00SYNT0000000000002008?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-02"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-088",
+   "area": "bank",
+   "type": "last_day",
+   "question": "On which day was the last transaction of the account PK00SYNT0000000000002008?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-15"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-089",
+   "area": "bank",
+   "type": "top_payee",
+   "question": "Who did the account PK00SYNT0000000000002008 pay the most money to?",
+   "expect": {
+    "kind": "top",
+    "value": "PK00SYNT0000000000005002",
+    "rivals": [
+     "PK00SYNT0000000000005007",
+     "PK00SYNT0000000000005000"
+    ],
+    "count": 152336.17
+   },
+   "bank": "extra",
+   "note": "by total amount debited"
+  },
+  {
+   "id": "VB-BANK-090",
+   "area": "bank",
+   "type": "payees_distinct",
+   "question": "How many different accounts or numbers did the account PK00SYNT0000000000002008 pay?",
+   "expect": {
+    "kind": "scalar",
+    "value": 11
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-091",
+   "area": "bank",
+   "type": "senders",
+   "question": "Which accounts or numbers sent money to the account PK00SYNT0000000000002008?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "PK00SYNT0000000000005001",
+     "PK00SYNT0000000000005005",
+     "PK00SYNT0000000000005006",
+     "PK00SYNT0000000000005008",
+     "PK00SYNT0000000000005009",
+     "PK00SYNT0000000000005011",
+     "PK00SYNT0000000000009002"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-092",
+   "area": "bank",
+   "type": "debits_over",
+   "question": "How many debits of the account PK00SYNT0000000000002008 were above 43625 rupees?",
+   "expect": {
+    "kind": "scalar",
+    "value": 10
+   },
+   "bank": "extra",
+   "note": "strictly above"
+  },
+  {
+   "id": "VB-BANK-093",
+   "area": "bank",
+   "type": "txn_count",
+   "question": "How many transactions does the account PK00SYNT0000000000002006 have?",
+   "expect": {
+    "kind": "scalar",
+    "value": 30
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-094",
+   "area": "bank",
+   "type": "credits_total",
+   "question": "What is the total amount credited to the account PK00SYNT0000000000002006?",
+   "expect": {
+    "kind": "scalar",
+    "value": 797897.72,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-095",
+   "area": "bank",
+   "type": "debits_total",
+   "question": "What is the total amount debited from the account PK00SYNT0000000000002006?",
+   "expect": {
+    "kind": "scalar",
+    "value": 483705.65,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-096",
+   "area": "bank",
+   "type": "largest_debit",
+   "question": "What is the largest single debit of the account PK00SYNT0000000000002006?",
+   "expect": {
+    "kind": "scalar",
+    "value": 71619.85,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-097",
+   "area": "bank",
+   "type": "last_balance",
+   "question": "What was the balance after the last transaction of the account PK00SYNT0000000000002006?",
+   "expect": {
+    "kind": "scalar",
+    "value": 6414192.07,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-098",
+   "area": "bank",
+   "type": "first_day",
+   "question": "On which day was the first transaction of the account PK00SYNT0000000000002006?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-02"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-099",
+   "area": "bank",
+   "type": "last_day",
+   "question": "On which day was the last transaction of the account PK00SYNT0000000000002006?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-100",
+   "area": "bank",
+   "type": "top_payee",
+   "question": "Who did the account PK00SYNT0000000000002006 pay the most money to?",
+   "expect": {
+    "kind": "top",
+    "value": "PK00SYNT0000000000005004",
+    "rivals": [
+     "PK00SYNT0000000000005007",
+     "PK00SYNT0000000000005006"
+    ],
+    "count": 107949.34
+   },
+   "bank": "extra",
+   "note": "by total amount debited"
+  },
+  {
+   "id": "VB-BANK-101",
+   "area": "bank",
+   "type": "payees_distinct",
+   "question": "How many different accounts or numbers did the account PK00SYNT0000000000002006 pay?",
+   "expect": {
+    "kind": "scalar",
+    "value": 9
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-102",
+   "area": "bank",
+   "type": "debits_over",
+   "question": "How many debits of the account PK00SYNT0000000000002006 were above 35809 rupees?",
+   "expect": {
+    "kind": "scalar",
+    "value": 8
+   },
+   "bank": "extra",
+   "note": "strictly above"
+  },
+  {
+   "id": "VB-BANK-103",
+   "area": "bank",
+   "type": "txn_count",
+   "question": "How many transactions does the account PK00SYNT0000000000002002 have?",
+   "expect": {
+    "kind": "scalar",
+    "value": 28
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-104",
+   "area": "bank",
+   "type": "credits_total",
+   "question": "What is the total amount credited to the account PK00SYNT0000000000002002?",
+   "expect": {
+    "kind": "scalar",
+    "value": 483381.14,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-105",
+   "area": "bank",
+   "type": "debits_total",
+   "question": "What is the total amount debited from the account PK00SYNT0000000000002002?",
+   "expect": {
+    "kind": "scalar",
+    "value": 893711.55,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-106",
+   "area": "bank",
+   "type": "largest_debit",
+   "question": "What is the largest single debit of the account PK00SYNT0000000000002002?",
+   "expect": {
+    "kind": "scalar",
+    "value": 83926.58,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-107",
+   "area": "bank",
+   "type": "last_balance",
+   "question": "What was the balance after the last transaction of the account PK00SYNT0000000000002002?",
+   "expect": {
+    "kind": "scalar",
+    "value": 5659669.59,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-108",
+   "area": "bank",
+   "type": "first_day",
+   "question": "On which day was the first transaction of the account PK00SYNT0000000000002002?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-02"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-109",
+   "area": "bank",
+   "type": "last_day",
+   "question": "On which day was the last transaction of the account PK00SYNT0000000000002002?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-17"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-110",
+   "area": "bank",
+   "type": "top_payee",
+   "question": "Who did the account PK00SYNT0000000000002002 pay the most money to?",
+   "expect": {
+    "kind": "top",
+    "value": "PK00SYNT0000000000005001",
+    "rivals": [
+     "PK00SYNT0000000000005006",
+     "PK00SYNT0000000000005004"
+    ],
+    "count": 146549.29
+   },
+   "bank": "extra",
+   "note": "by total amount debited"
+  },
+  {
+   "id": "VB-BANK-111",
+   "area": "bank",
+   "type": "payees_distinct",
+   "question": "How many different accounts or numbers did the account PK00SYNT0000000000002002 pay?",
+   "expect": {
+    "kind": "scalar",
+    "value": 11
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-112",
+   "area": "bank",
+   "type": "senders",
+   "question": "Which accounts or numbers sent money to the account PK00SYNT0000000000002002?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "PK00SYNT0000000000005005",
+     "PK00SYNT0000000000005007",
+     "PK00SYNT0000000000005010",
+     "PK00SYNT0000000000005011",
+     "PK00SYNT0000000000009002"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-113",
+   "area": "bank",
+   "type": "debits_over",
+   "question": "How many debits of the account PK00SYNT0000000000002002 were above 41963 rupees?",
+   "expect": {
+    "kind": "scalar",
+    "value": 12
+   },
+   "bank": "extra",
+   "note": "strictly above"
+  },
+  {
+   "id": "VB-BANK-114",
+   "area": "bank",
+   "type": "txn_count",
+   "question": "How many transactions does the account PK00SYNT0000000000002000 have?",
+   "expect": {
+    "kind": "scalar",
+    "value": 28
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-115",
+   "area": "bank",
+   "type": "credits_total",
+   "question": "What is the total amount credited to the account PK00SYNT0000000000002000?",
+   "expect": {
+    "kind": "scalar",
+    "value": 683990.8,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-116",
+   "area": "bank",
+   "type": "debits_total",
+   "question": "What is the total amount debited from the account PK00SYNT0000000000002000?",
+   "expect": {
+    "kind": "scalar",
+    "value": 595024.02,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-117",
+   "area": "bank",
+   "type": "largest_debit",
+   "question": "What is the largest single debit of the account PK00SYNT0000000000002000?",
+   "expect": {
+    "kind": "scalar",
+    "value": 89254.51,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-118",
+   "area": "bank",
+   "type": "last_balance",
+   "question": "What was the balance after the last transaction of the account PK00SYNT0000000000002000?",
+   "expect": {
+    "kind": "scalar",
+    "value": 6138966.78,
+    "unit": "rupees"
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-119",
+   "area": "bank",
+   "type": "first_day",
+   "question": "On which day was the first transaction of the account PK00SYNT0000000000002000?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-02"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-120",
+   "area": "bank",
+   "type": "last_day",
+   "question": "On which day was the last transaction of the account PK00SYNT0000000000002000?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-09"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-BANK-121",
+   "area": "bank",
+   "type": "top_payee",
+   "question": "Who did the account PK00SYNT0000000000002000 pay the most money to?",
+   "expect": {
+    "kind": "top",
+    "value": "PK00SYNT0000000000005011",
+    "rivals": [
+     "PK00SYNT0000000000005008",
+     "PK00SYNT0000000000005004"
+    ],
+    "count": 142095.46
+   },
+   "bank": "extra",
+   "note": "by total amount debited"
+  },
+  {
+   "id": "VB-BANK-122",
+   "area": "bank",
+   "type": "payees_distinct",
+   "question": "How many different accounts or numbers did the account PK00SYNT0000000000002000 pay?",
+   "expect": {
+    "kind": "scalar",
+    "value": 9
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-123",
+   "area": "bank",
+   "type": "senders",
+   "question": "Which accounts or numbers sent money to the account PK00SYNT0000000000002000?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "PK00SYNT0000000000005000",
+     "PK00SYNT0000000000005001",
+     "PK00SYNT0000000000005003",
+     "PK00SYNT0000000000005006",
+     "PK00SYNT0000000000005009",
+     "PK00SYNT0000000000005011",
+     "PK00SYNT0000000000009002"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-BANK-124",
+   "area": "bank",
+   "type": "debits_over",
+   "question": "How many debits of the account PK00SYNT0000000000002000 were above 44627 rupees?",
+   "expect": {
+    "kind": "scalar",
+    "value": 6
+   },
+   "bank": "extra",
+   "note": "strictly above"
+  },
+  {
+   "id": "VB-PLAT-001",
+   "area": "plates",
+   "type": "plate_count",
+   "question": "How many times was the plate SYNT2905 seen?",
+   "expect": {
+    "kind": "scalar",
+    "value": 50
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-002",
+   "area": "plates",
+   "type": "plate_cameras",
+   "question": "At which cameras was the plate SYNT2905 seen?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "CAM-02",
+     "CAM-03",
+     "CAM-04",
+     "CAM-05",
+     "CAM-08"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-003",
+   "area": "plates",
+   "type": "plate_first",
+   "question": "When was the plate SYNT2905 first seen?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-11 17:24:19"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PLAT-004",
+   "area": "plates",
+   "type": "plate_last",
+   "question": "When was the plate SYNT2905 last seen?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-15 07:35:42"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PLAT-005",
+   "area": "plates",
+   "type": "plate_count",
+   "question": "How many times was the plate SYNT4024 seen?",
+   "expect": {
+    "kind": "scalar",
+    "value": 50
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-006",
+   "area": "plates",
+   "type": "plate_cameras",
+   "question": "At which cameras was the plate SYNT4024 seen?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "CAM-01",
+     "CAM-03",
+     "CAM-05",
+     "CAM-07",
+     "CAM-08"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-007",
+   "area": "plates",
+   "type": "plate_first",
+   "question": "When was the plate SYNT4024 first seen?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-16 23:44:49"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PLAT-008",
+   "area": "plates",
+   "type": "plate_last",
+   "question": "When was the plate SYNT4024 last seen?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-09 00:44:37"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PLAT-009",
+   "area": "plates",
+   "type": "plate_count",
+   "question": "How many times was the plate SYNT2019 seen?",
+   "expect": {
+    "kind": "scalar",
+    "value": 30
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-010",
+   "area": "plates",
+   "type": "plate_cameras",
+   "question": "At which cameras was the plate SYNT2019 seen?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "CAM-02",
+     "CAM-03",
+     "CAM-04",
+     "CAM-05",
+     "CAM-08"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-011",
+   "area": "plates",
+   "type": "plate_first",
+   "question": "When was the plate SYNT2019 first seen?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-26 14:55:15"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PLAT-012",
+   "area": "plates",
+   "type": "plate_last",
+   "question": "When was the plate SYNT2019 last seen?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-03-31 19:27:56"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PLAT-013",
+   "area": "plates",
+   "type": "plate_count",
+   "question": "How many times was the plate SYNT2233 seen?",
+   "expect": {
+    "kind": "scalar",
+    "value": 24
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-014",
+   "area": "plates",
+   "type": "plate_cameras",
+   "question": "At which cameras was the plate SYNT2233 seen?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "CAM-01",
+     "CAM-05",
+     "CAM-06",
+     "CAM-08"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-015",
+   "area": "plates",
+   "type": "plate_first",
+   "question": "When was the plate SYNT2233 first seen?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-03 17:21:55"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PLAT-016",
+   "area": "plates",
+   "type": "plate_last",
+   "question": "When was the plate SYNT2233 last seen?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-14 12:29:14"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PLAT-017",
+   "area": "plates",
+   "type": "plate_count",
+   "question": "How many times was the plate SYNT9150 seen?",
+   "expect": {
+    "kind": "scalar",
+    "value": 14
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-018",
+   "area": "plates",
+   "type": "plate_cameras",
+   "question": "At which cameras was the plate SYNT9150 seen?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "CAM-01",
+     "CAM-02"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-019",
+   "area": "plates",
+   "type": "plate_first",
+   "question": "When was the plate SYNT9150 first seen?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-05 21:14:18"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PLAT-020",
+   "area": "plates",
+   "type": "plate_last",
+   "question": "When was the plate SYNT9150 last seen?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-12 14:08:44"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PLAT-021",
+   "area": "plates",
+   "type": "plate_count",
+   "question": "How many times was the plate SYNT6147 seen?",
+   "expect": {
+    "kind": "scalar",
+    "value": 12
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-022",
+   "area": "plates",
+   "type": "plate_cameras",
+   "question": "At which cameras was the plate SYNT6147 seen?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "CAM-05",
+     "CAM-07"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-023",
+   "area": "plates",
+   "type": "plate_first",
+   "question": "When was the plate SYNT6147 first seen?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-03-14 20:47:27"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PLAT-024",
+   "area": "plates",
+   "type": "plate_last",
+   "question": "When was the plate SYNT6147 last seen?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-15 17:27:08"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PLAT-025",
+   "area": "plates",
+   "type": "plate_count",
+   "question": "How many times was the plate SYNT4O24 seen?",
+   "expect": {
+    "kind": "scalar",
+    "value": 4
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-026",
+   "area": "plates",
+   "type": "plate_cameras",
+   "question": "At which cameras was the plate SYNT4O24 seen?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "CAM-01",
+     "CAM-08",
+     "CAM-09"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-027",
+   "area": "plates",
+   "type": "plate_first",
+   "question": "When was the plate SYNT4O24 first seen?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-02-04 15:53:32"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PLAT-028",
+   "area": "plates",
+   "type": "plate_last",
+   "question": "When was the plate SYNT4O24 last seen?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-04-08 07:39:31"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PLAT-029",
+   "area": "plates",
+   "type": "plate_count",
+   "question": "How many times was the plate SYNT4016 seen?",
+   "expect": {
+    "kind": "scalar",
+    "value": 4
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-030",
+   "area": "plates",
+   "type": "plate_cameras",
+   "question": "At which cameras was the plate SYNT4016 seen?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "CAM-03",
+     "CAM-04",
+     "CAM-08"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-031",
+   "area": "plates",
+   "type": "plate_first",
+   "question": "When was the plate SYNT4016 first seen?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-03-02 00:58:25"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PLAT-032",
+   "area": "plates",
+   "type": "plate_last",
+   "question": "When was the plate SYNT4016 last seen?",
+   "expect": {
+    "kind": "text",
+    "value": "2026-03-17 23:44:36"
+   },
+   "bank": "extra",
+   "note": "on the case clock"
+  },
+  {
+   "id": "VB-PLAT-033",
+   "area": "plates",
+   "type": "camera_count",
+   "question": "How many plate sightings did the camera CAM-01 record?",
+   "expect": {
+    "kind": "scalar",
+    "value": 36
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-034",
+   "area": "plates",
+   "type": "camera_plates",
+   "question": "How many different plates did the camera CAM-01 see?",
+   "expect": {
+    "kind": "scalar",
+    "value": 16
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-035",
+   "area": "plates",
+   "type": "camera_count",
+   "question": "How many plate sightings did the camera CAM-02 record?",
+   "expect": {
+    "kind": "scalar",
+    "value": 31
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-036",
+   "area": "plates",
+   "type": "camera_plates",
+   "question": "How many different plates did the camera CAM-02 see?",
+   "expect": {
+    "kind": "scalar",
+    "value": 9
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-037",
+   "area": "plates",
+   "type": "camera_count",
+   "question": "How many plate sightings did the camera CAM-03 record?",
+   "expect": {
+    "kind": "scalar",
+    "value": 33
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-038",
+   "area": "plates",
+   "type": "camera_plates",
+   "question": "How many different plates did the camera CAM-03 see?",
+   "expect": {
+    "kind": "scalar",
+    "value": 9
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-039",
+   "area": "plates",
+   "type": "camera_count",
+   "question": "How many plate sightings did the camera CAM-04 record?",
+   "expect": {
+    "kind": "scalar",
+    "value": 33
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-040",
+   "area": "plates",
+   "type": "camera_plates",
+   "question": "How many different plates did the camera CAM-04 see?",
+   "expect": {
+    "kind": "scalar",
+    "value": 16
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-041",
+   "area": "plates",
+   "type": "camera_count",
+   "question": "How many plate sightings did the camera CAM-05 record?",
+   "expect": {
+    "kind": "scalar",
+    "value": 49
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-042",
+   "area": "plates",
+   "type": "camera_plates",
+   "question": "How many different plates did the camera CAM-05 see?",
+   "expect": {
+    "kind": "scalar",
+    "value": 16
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-043",
+   "area": "plates",
+   "type": "camera_count",
+   "question": "How many plate sightings did the camera CAM-06 record?",
+   "expect": {
+    "kind": "scalar",
+    "value": 16
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-044",
+   "area": "plates",
+   "type": "camera_plates",
+   "question": "How many different plates did the camera CAM-06 see?",
+   "expect": {
+    "kind": "scalar",
+    "value": 9
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-045",
+   "area": "plates",
+   "type": "camera_count",
+   "question": "How many plate sightings did the camera CAM-07 record?",
+   "expect": {
+    "kind": "scalar",
+    "value": 33
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-046",
+   "area": "plates",
+   "type": "camera_plates",
+   "question": "How many different plates did the camera CAM-07 see?",
+   "expect": {
+    "kind": "scalar",
+    "value": 16
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-047",
+   "area": "plates",
+   "type": "camera_count",
+   "question": "How many plate sightings did the camera CAM-08 record?",
+   "expect": {
+    "kind": "scalar",
+    "value": 45
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-048",
+   "area": "plates",
+   "type": "camera_plates",
+   "question": "How many different plates did the camera CAM-08 see?",
+   "expect": {
+    "kind": "scalar",
+    "value": 15
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-049",
+   "area": "plates",
+   "type": "camera_count",
+   "question": "How many plate sightings did the camera CAM-09 record?",
+   "expect": {
+    "kind": "scalar",
+    "value": 10
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-050",
+   "area": "plates",
+   "type": "camera_plates",
+   "question": "How many different plates did the camera CAM-09 see?",
+   "expect": {
+    "kind": "scalar",
+    "value": 10
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-PLAT-051",
+   "area": "plates",
+   "type": "most_seen",
+   "question": "Which plate was seen the most?",
+   "expect": {
+    "kind": "top",
+    "value": "SYNT2905",
+    "rivals": [
+     "SYNT4024"
+    ],
+    "count": 50
+   },
+   "bank": "extra",
+   "note": "tied plates are all correct"
+  },
+  {
+   "id": "VB-HAND-001",
+   "area": "handsets",
+   "type": "imei_of",
+   "question": "Which handset (IMEI) was 923000001005 seen with?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "000000000010017"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-002",
+   "area": "handsets",
+   "type": "imei_count",
+   "question": "How many different handsets was 923000001005 seen with?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-003",
+   "area": "handsets",
+   "type": "imei_of",
+   "question": "Which handset (IMEI) was 923000001002 seen with?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "000000000010025",
+     "000000000200014"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-004",
+   "area": "handsets",
+   "type": "imei_count",
+   "question": "How many different handsets was 923000001002 seen with?",
+   "expect": {
+    "kind": "scalar",
+    "value": 2
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-005",
+   "area": "handsets",
+   "type": "imei_of",
+   "question": "Which handset (IMEI) was 923000001006 seen with?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "000000000010066",
+     "000000000200048"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-006",
+   "area": "handsets",
+   "type": "imei_count",
+   "question": "How many different handsets was 923000001006 seen with?",
+   "expect": {
+    "kind": "scalar",
+    "value": 2
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-007",
+   "area": "handsets",
+   "type": "imei_of",
+   "question": "Which handset (IMEI) was 923000001010 seen with?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "000000000010108"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-008",
+   "area": "handsets",
+   "type": "imei_count",
+   "question": "How many different handsets was 923000001010 seen with?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-009",
+   "area": "handsets",
+   "type": "imei_of",
+   "question": "Which handset (IMEI) was 923000001000 seen with?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "000000000010009"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-010",
+   "area": "handsets",
+   "type": "imei_count",
+   "question": "How many different handsets was 923000001000 seen with?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-011",
+   "area": "handsets",
+   "type": "imei_of",
+   "question": "Which handset (IMEI) was 923000001007 seen with?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "00000000001007"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-012",
+   "area": "handsets",
+   "type": "imei_count",
+   "question": "How many different handsets was 923000001007 seen with?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-013",
+   "area": "handsets",
+   "type": "imei_of",
+   "question": "Which handset (IMEI) was 923000001009 seen with?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "000000000010090"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-014",
+   "area": "handsets",
+   "type": "imei_count",
+   "question": "How many different handsets was 923000001009 seen with?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-015",
+   "area": "handsets",
+   "type": "imei_of",
+   "question": "Which handset (IMEI) was 923000001001 seen with?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "000000000010017"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-016",
+   "area": "handsets",
+   "type": "imei_count",
+   "question": "How many different handsets was 923000001001 seen with?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-017",
+   "area": "handsets",
+   "type": "imei_of",
+   "question": "Which handset (IMEI) was 923000001008 seen with?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "000000000010041"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-018",
+   "area": "handsets",
+   "type": "imei_count",
+   "question": "How many different handsets was 923000001008 seen with?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-019",
+   "area": "handsets",
+   "type": "imei_of",
+   "question": "Which handset (IMEI) was 923000001003 seen with?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "00000000001003"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-020",
+   "area": "handsets",
+   "type": "imei_count",
+   "question": "How many different handsets was 923000001003 seen with?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-021",
+   "area": "handsets",
+   "type": "imei_of",
+   "question": "Which handset (IMEI) was 923000001011 seen with?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "00000000001011"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-022",
+   "area": "handsets",
+   "type": "imei_count",
+   "question": "How many different handsets was 923000001011 seen with?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-023",
+   "area": "handsets",
+   "type": "imei_of",
+   "question": "Which handset (IMEI) was 923000001004 seen with?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "000000000010041"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-HAND-024",
+   "area": "handsets",
+   "type": "imei_count",
+   "question": "How many different handsets was 923000001004 seen with?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CELL-001",
+   "area": "cells",
+   "type": "top_cell",
+   "question": "Which cell site did 923000001005 use the most?",
+   "expect": {
+    "kind": "top",
+    "value": "?:10221:10629",
+    "rivals": [
+     "?:10273:10777",
+     "?:10234:10666"
+    ],
+    "count": 338
+   },
+   "bank": "extra",
+   "note": "by number of events"
+  },
+  {
+   "id": "VB-CELL-002",
+   "area": "cells",
+   "type": "cells_distinct",
+   "question": "How many different cell sites did 923000001005 use?",
+   "expect": {
+    "kind": "scalar",
+    "value": 6
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CELL-003",
+   "area": "cells",
+   "type": "top_cell",
+   "question": "Which cell site did 923000001002 use the most?",
+   "expect": {
+    "kind": "top",
+    "value": "?:?:3003665515",
+    "rivals": [
+     "?:?:3003141870",
+     "?:?:3003246599"
+    ],
+    "count": 362
+   },
+   "bank": "extra",
+   "note": "by number of events"
+  },
+  {
+   "id": "VB-CELL-004",
+   "area": "cells",
+   "type": "cells_distinct",
+   "question": "How many different cell sites did 923000001002 use?",
+   "expect": {
+    "kind": "scalar",
+    "value": 5
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CELL-005",
+   "area": "cells",
+   "type": "top_cell",
+   "question": "Which cell site did 923000001006 use the most?",
+   "expect": {
+    "kind": "top",
+    "value": "?:?:3003456057",
+    "rivals": [
+     "?:?:3002513496",
+     "?:?:3003665515"
+    ],
+    "count": 307
+   },
+   "bank": "extra",
+   "note": "by number of events"
+  },
+  {
+   "id": "VB-CELL-006",
+   "area": "cells",
+   "type": "cells_distinct",
+   "question": "How many different cell sites did 923000001006 use?",
+   "expect": {
+    "kind": "scalar",
+    "value": 5
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CELL-007",
+   "area": "cells",
+   "type": "top_cell",
+   "question": "Which cell site did 923000001010 use the most?",
+   "expect": {
+    "kind": "top",
+    "value": "?:?:3003665515",
+    "rivals": [
+     "?:?:3002513496",
+     "?:?:3002618225"
+    ],
+    "count": 274
+   },
+   "bank": "extra",
+   "note": "by number of events"
+  },
+  {
+   "id": "VB-CELL-008",
+   "area": "cells",
+   "type": "cells_distinct",
+   "question": "How many different cell sites did 923000001010 use?",
+   "expect": {
+    "kind": "scalar",
+    "value": 5
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CELL-009",
+   "area": "cells",
+   "type": "top_cell",
+   "question": "Which cell site did 923000001000 use the most?",
+   "expect": {
+    "kind": "top",
+    "value": "?:?:103d13e",
+    "rivals": [
+     "?:?:108i18j",
+     "?:?:104e14f"
+    ],
+    "count": 203
+   },
+   "bank": "extra",
+   "note": "by number of events"
+  },
+  {
+   "id": "VB-CELL-010",
+   "area": "cells",
+   "type": "cells_distinct",
+   "question": "How many different cell sites did 923000001000 use?",
+   "expect": {
+    "kind": "scalar",
+    "value": 4
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CELL-011",
+   "area": "cells",
+   "type": "top_cell",
+   "question": "Which cell site did 923000001007 use the most?",
+   "expect": {
+    "kind": "top",
+    "value": "?:518:10300922",
+    "rivals": [
+     "?:606:10364274",
+     "?:617:10372193"
+    ],
+    "count": 195
+   },
+   "bank": "extra",
+   "note": "by number of events"
+  },
+  {
+   "id": "VB-CELL-012",
+   "area": "cells",
+   "type": "cells_distinct",
+   "question": "How many different cell sites did 923000001007 use?",
+   "expect": {
+    "kind": "scalar",
+    "value": 4
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CELL-013",
+   "area": "cells",
+   "type": "top_cell",
+   "question": "Which cell site did 923000001009 use the most?",
+   "expect": {
+    "kind": "top",
+    "value": "?:10156:10444",
+    "rivals": [
+     "?:10286:10814",
+     "?:10169:10481"
+    ],
+    "count": 164
+   },
+   "bank": "extra",
+   "note": "by number of events"
+  },
+  {
+   "id": "VB-CELL-014",
+   "area": "cells",
+   "type": "cells_distinct",
+   "question": "How many different cell sites did 923000001009 use?",
+   "expect": {
+    "kind": "scalar",
+    "value": 6
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-CELL-015",
+   "area": "cells",
+   "type": "top_cell",
+   "question": "Which cell site did 923000001001 use the most?",
+   "expect": {
+    "kind": "top",
+    "value": "?:10286:10814",
+    "rivals": [
+     "?:10221:10629",
+     "?:10299:10851"
+    ],
+    "count": 146
+   },
+   "bank": "extra",
+   "note": "by number of events"
+  },
+  {
+   "id": "VB-CELL-016",
+   "area": "cells",
+   "type": "cells_distinct",
+   "question": "How many different cell sites did 923000001001 use?",
+   "expect": {
+    "kind": "scalar",
+    "value": 5
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-REGI-001",
+   "area": "registrations",
+   "type": "reg_imsi",
+   "question": "Which SIM identity (IMSI) is registered for the number 923000001004?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "001010000001004"
+    ]
+   },
+   "bank": "extra",
+   "note": "a registration is what a source file states, not who holds the number"
+  },
+  {
+   "id": "VB-REGI-002",
+   "area": "registrations",
+   "type": "reg_status",
+   "question": "What is the status of the registration of the number 923000001004?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "active"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-REGI-003",
+   "area": "registrations",
+   "type": "reg_imsi",
+   "question": "Which SIM identity (IMSI) is registered for the number 923000001007?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "001010000001007"
+    ]
+   },
+   "bank": "extra",
+   "note": "a registration is what a source file states, not who holds the number"
+  },
+  {
+   "id": "VB-REGI-004",
+   "area": "registrations",
+   "type": "reg_status",
+   "question": "What is the status of the registration of the number 923000001007?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "deactivated"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-REGI-005",
+   "area": "registrations",
+   "type": "reg_imsi",
+   "question": "Which SIM identity (IMSI) is registered for the number 923000001009?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "001010000001009"
+    ]
+   },
+   "bank": "extra",
+   "note": "a registration is what a source file states, not who holds the number"
+  },
+  {
+   "id": "VB-REGI-006",
+   "area": "registrations",
+   "type": "reg_status",
+   "question": "What is the status of the registration of the number 923000001009?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "deactivated"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-REGI-007",
+   "area": "registrations",
+   "type": "reg_imsi",
+   "question": "Which SIM identity (IMSI) is registered for the number 923000001010?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "001010000001010"
+    ]
+   },
+   "bank": "extra",
+   "note": "a registration is what a source file states, not who holds the number"
+  },
+  {
+   "id": "VB-REGI-008",
+   "area": "registrations",
+   "type": "reg_status",
+   "question": "What is the status of the registration of the number 923000001010?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "deactivated"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-REGI-009",
+   "area": "registrations",
+   "type": "reg_imsi",
+   "question": "Which SIM identity (IMSI) is registered for the number 923000001012?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "001010000001012"
+    ]
+   },
+   "bank": "extra",
+   "note": "a registration is what a source file states, not who holds the number"
+  },
+  {
+   "id": "VB-REGI-010",
+   "area": "registrations",
+   "type": "reg_status",
+   "question": "What is the status of the registration of the number 923000001012?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "active"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-REGI-011",
+   "area": "registrations",
+   "type": "reg_imsi",
+   "question": "Which SIM identity (IMSI) is registered for the number 923000001013?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "001010000001013"
+    ]
+   },
+   "bank": "extra",
+   "note": "a registration is what a source file states, not who holds the number"
+  },
+  {
+   "id": "VB-REGI-012",
+   "area": "registrations",
+   "type": "reg_status",
+   "question": "What is the status of the registration of the number 923000001013?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "active"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-REGI-013",
+   "area": "registrations",
+   "type": "reg_imsi",
+   "question": "Which SIM identity (IMSI) is registered for the number 923000001014?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "001010000001014"
+    ]
+   },
+   "bank": "extra",
+   "note": "a registration is what a source file states, not who holds the number"
+  },
+  {
+   "id": "VB-REGI-014",
+   "area": "registrations",
+   "type": "reg_status",
+   "question": "What is the status of the registration of the number 923000001014?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "active"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-REGI-015",
+   "area": "registrations",
+   "type": "reg_imsi",
+   "question": "Which SIM identity (IMSI) is registered for the number 923000001015?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "001010000001015"
+    ]
+   },
+   "bank": "extra",
+   "note": "a registration is what a source file states, not who holds the number"
+  },
+  {
+   "id": "VB-REGI-016",
+   "area": "registrations",
+   "type": "reg_status",
+   "question": "What is the status of the registration of the number 923000001015?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "unknown"
+    ]
+   },
+   "bank": "extra",
+   "note": ""
+  },
+  {
+   "id": "VB-INVE-001",
+   "area": "inventory",
+   "type": "files_by_modality",
+   "question": "How many document files are in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 4
+   },
+   "bank": "extra",
+   "note": "the evidence files of the case, by their type"
+  },
+  {
+   "id": "VB-INVE-002",
+   "area": "inventory",
+   "type": "files_by_modality",
+   "question": "How many structured record files are in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 42
+   },
+   "bank": "extra",
+   "note": "the evidence files of the case, by their type"
+  },
+  {
+   "id": "VB-INVE-003",
+   "area": "inventory",
+   "type": "files_by_modality",
+   "question": "How many tabular files are in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 3
+   },
+   "bank": "extra",
+   "note": "the evidence files of the case, by their type"
+  },
+  {
+   "id": "VB-INVE-004",
+   "area": "inventory",
+   "type": "files_by_modality",
+   "question": "How many text files are in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 4
+   },
+   "bank": "extra",
+   "note": "the evidence files of the case, by their type"
+  },
+  {
+   "id": "VB-INVE-005",
+   "area": "inventory",
+   "type": "files_total",
+   "question": "How many evidence files are in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 53
+   },
+   "bank": "extra",
+   "note": ""
+  }
+ ]
+}
