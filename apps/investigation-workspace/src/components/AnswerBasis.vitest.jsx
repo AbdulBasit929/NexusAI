@@ -116,6 +116,30 @@ describe('AnswerEvidence for the lines of a summary', () => {
   })
 })
 
+describe('AnswerEvidence when the time ran out before the lines were counted', () => {
+  const slow = {
+    state: 'itemised', kind: 'lines', reconciled: 'not_checked', lines_total: 2, lines_token: 'tok', scope: 'open the first line to list its records',
+    lines: [
+      { index: 1, label: 'a → b', pending: true, reconciled: 'not_checked', check: 'Counted when you open it.' },
+      { index: 2, label: 'a → c', pending: true, reconciled: 'not_checked', check: 'Counted when you open it.' },
+    ],
+  }
+
+  it('opens the first line itself, and fills in what it counted: its records, its files and whether its numbers match', async () => {
+    const fetchLine = vi.fn().mockResolvedValue({ line: 1, summary: { index: 1, label: 'a → b', records: 150, files: 1, reconciled: 'yes', check: 'Recomputed from its records: events = 150.' },
+      evidence: { say: 'the calls and messages between the two numbers', columns, total_rows: 150, files: [{ evidence_id: 'e1', source_file: 'export-P-000.xlsx', rows: 150 }], rows: [located] } })
+    renderInRouter(<AnswerEvidence evidence={slow} caseId="orion" fetchLine={fetchLine} />)
+    const table = screen.getByRole('table', { name: 'Lines of this answer' })
+    expect(within(table).getAllByText('—').length).toBeGreaterThan(0)
+    expect(await screen.findByText(/Recomputed from its records: events = 150/)).toBeInTheDocument()
+    expect(within(table).getByText('150')).toBeInTheDocument()
+    expect(within(table).getByText('matches')).toBeInTheDocument()
+    expect(fetchLine).toHaveBeenCalledTimes(1)
+    expect(fetchLine.mock.calls[0][0]).toMatchObject({ token: 'tok', line: 1 })
+    expect(screen.queryByText('Counted when you open it.')).not.toBeInTheDocument()
+  })
+})
+
 describe('AnswerReading', () => {
   it('asks for the reading once the figure is shown, says it is being written, then shows it with its disclosure', async () => {
     const fetchReading = vi.fn().mockResolvedValue({ state: 'ready', text: 'The longest voice call lasted 1,800 seconds.', disclosure: 'Written by the local language model from the rows of this result only. Check it against the rows.' })

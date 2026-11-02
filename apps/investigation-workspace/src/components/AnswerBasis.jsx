@@ -78,38 +78,45 @@ function LinesView({ evidence, caseId, fetchLine }) {
   const lines = evidence.lines || []
   const [selected, setSelected] = useState(1)
   const [fetched, setFetched] = useState({})
+  const firstHere = (evidence.rows || []).length > 0
   const first = { rows: evidence.rows, files: evidence.files, columns: evidence.columns, say: evidence.say, total_rows: evidence.total_rows }
-  const detail = selected === 1 ? first : fetched[selected]
+  const detail = selected === 1 && firstHere ? first : fetched[selected]
+  // a line whose records came with the answer is shown at once; any other, and the first when the time ran out, is fetched when it is opened (and counted then)
   useEffect(() => {
-    if (selected === 1 || fetched[selected] || !evidence.lines_token) return undefined
+    if ((selected === 1 && firstHere) || fetched[selected] || !evidence.lines_token) return undefined
     const controller = new AbortController()
     fetchLine({ caseId, token: evidence.lines_token, line: selected, signal: controller.signal })
-      .then(data => setFetched(state => ({ ...state, [selected]: { ...data.evidence, total_rows: data.evidence?.total_rows } })))
+      .then(data => setFetched(state => ({ ...state, [selected]: { ...data.evidence, total_rows: data.evidence?.total_rows, summary: data.summary } })))
       .catch(error => { if (error?.name !== 'AbortError') setFetched(state => ({ ...state, [selected]: { failed: true } })) })
     return () => controller.abort()
-  }, [selected, evidence.lines_token, caseId, fetched, fetchLine])
+  }, [selected, firstHere, evidence.lines_token, caseId, fetched, fetchLine])
+  // what the table shows for a line: what came with the answer, or what was counted when the line was opened
+  const shown = line => (line.pending && fetched[line.index]?.summary ? { ...line, ...fetched[line.index].summary, pending: false } : line)
   return (
     <>
       <div className="answer-basis__scroll">
         <table className="answer-basis__table" aria-label="Lines of this answer">
           <thead><tr><th scope="col" className="answer-basis__num">#</th><th scope="col">Line</th><th scope="col" className="answer-basis__num">Records</th><th scope="col" className="answer-basis__num">Files</th><th scope="col">Check</th><th scope="col"><span className="visually-hidden">Open</span></th></tr></thead>
           <tbody>
-            {lines.map(line => (
+            {lines.map(raw => {
+              const line = shown(raw)
+              return (
               <tr key={line.index} className={line.index === selected ? 'is-selected' : undefined}>
                 <td className="answer-basis__num">{line.index}</td>
                 <td>{line.label}</td>
-                <td className="answer-basis__num">{!line.records && !line.files && line.reconciled === 'not_checked' ? '—' : number(line.records)}</td>
+                <td className="answer-basis__num">{line.pending || (!line.records && !line.files && line.reconciled === 'not_checked') ? '—' : number(line.records)}</td>
                 <td className="answer-basis__num">{line.files ? number(line.files) : '—'}</td>
                 <td className={`answer-basis__check answer-basis__check--${(CHECK_LABEL[line.reconciled] || CHECK_LABEL.not_checked).tone}`}>{line.reconciled === 'yes' ? 'matches' : line.reconciled === 'no' ? 'does not match' : ''}</td>
                 <td><button type="button" className="answer-basis__show" aria-pressed={line.index === selected} onClick={() => setSelected(line.index)}>{line.index === selected ? 'Showing records' : 'Show records'}</button></td>
               </tr>
-            ))}
+              )
+            })}
           </tbody>
         </table>
       </div>
       {evidence.lines_total > lines.length ? <p className="answer-basis__sentence">{number(lines.length)} of {number(evidence.lines_total)} lines are listed.</p> : null}
-      {selected !== 1 || detail ? <h4 className="answer-basis__subhead">Records behind line {selected}: {lines.find(line => line.index === selected)?.label}</h4> : null}
-      {lines.find(line => line.index === selected)?.check ? <p className="answer-basis__sentence">{lines.find(line => line.index === selected).check}</p> : null}
+      {selected !== 1 || detail || !firstHere ? <h4 className="answer-basis__subhead">Records behind line {selected}: {lines.find(line => line.index === selected)?.label}</h4> : null}
+      {(() => { const open = lines.find(line => line.index === selected); const text = open ? shown(open).check : ''; return text && text !== 'Counted when you open it.' ? <p className="answer-basis__sentence">{text}</p> : null })()}
       {!detail ? <p className="answer-basis__sentence" role="status">Reading the records of line {selected}…</p> : detail.failed ? <p className="answer-basis__note" role="note">The records of this line could not be listed.</p> : <>
         <FilesTable files={detail.files} />
         <RecordsTable evidence={detail} caseId={caseId} total={lines.find(line => line.index === selected)?.records || detail.total_rows} />

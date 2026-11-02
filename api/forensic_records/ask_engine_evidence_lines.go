@@ -30,6 +30,7 @@ const (
 	askLineSessionMax   = 300
 	askLineSessionRows  = 25
 	askLineQueryTimeout = 20 * time.Second
+	askLinesEagerWindow = 9 * time.Second // lines are counted at once only while this lasts, counted from the start of the collection
 )
 
 type askEvidenceLine struct {
@@ -39,6 +40,7 @@ type askEvidenceLine struct {
 	Files      int    `json:"files"`
 	Reconciled string `json:"reconciled,omitempty"` // "yes", "no" or "not_checked"
 	Check      string `json:"check,omitempty"`
+	Pending    bool   `json:"pending,omitempty"` // not counted yet: the time ran out before this line; it is counted when it is opened
 }
 
 // ---- the plan -------------------------------------------------------------------------------------------------------------------------------------
@@ -287,6 +289,7 @@ func askLineSessionFind(token string) *askLineSession {
 
 // askCollectLines finds the lines of an answer over summary views and the records behind the first ten.
 func askCollectLines(ctx context.Context, db *pgxpool.Pool, tenantID, collectionID string, cat *askCatalogue, plan *askEvidencePlan, result *govSQLResult, limits askLimits, ev *askEvidence) *askEvidence {
+	started := time.Now()
 	session := &askLineSession{Tenant: tenantID, Collection: collectionID, Plan: plan, Cat: cat, Limits: limits}
 	runner := func(sql string, maxRows int, views []string) (*govSQLResult, error) {
 		checked, rej := askValidate(sql, cat, views)
@@ -319,6 +322,9 @@ func askCollectLines(ctx context.Context, db *pgxpool.Pool, tenantID, collection
 		if n, ok := askEvidenceNumber(counted.Rows[0][0]); ok {
 			total = int(n)
 		}
+	}
+	if plan.RowsAreLines && !result.Truncated {
+		total = len(result.Rows) // the lines of an answer that lists rows are its own rows, not every row its conditions could select
 	}
 	// the values of each line, by alias
 	index := map[string]int{}
@@ -353,8 +359,12 @@ func askCollectLines(ctx context.Context, db *pgxpool.Pool, tenantID, collection
 			}
 		}
 	}
-	if plan.RowsAreLines && !session.Fallback && total == len(result.Rows) {
-		figure = fmt.Sprintf("The %d lines listed are the %d lines of the answer.", len(lines.Rows), len(result.Rows))
+	if plan.RowsAreLines && !session.Fallback && !result.Truncated {
+		if len(lines.Rows) == len(result.Rows) {
+			figure = fmt.Sprintf("The %d lines listed are the %d lines of the answer.", len(lines.Rows), len(result.Rows))
+		} else {
+			figure = fmt.Sprintf("The first %d of the answer's %d lines are listed.", len(lines.Rows), len(result.Rows))
+		}
 		ev.Reconciled = "yes"
 	}
 	if ev.Reconciled == "" {
@@ -364,6 +374,11 @@ func askCollectLines(ctx context.Context, db *pgxpool.Pool, tenantID, collection
 	agree, disagree, checkable := 0, 0, 0
 	for i := range session.Lines {
 		line := askEvidenceLine{Index: i + 1, Label: session.Labels[i]}
+		if time.Since(started) > askLinesEagerWindow {
+			line.Pending, line.Reconciled, line.Check = true, "not_checked", "Counted when you open it."
+			ev.Lines = append(ev.Lines, line)
+			continue
+		}
 		counts, checks, why := askLineCounts(ctx, plan, session, i, runner)
 		if why != "" {
 			line.Reconciled, line.Check = "not_checked", why
@@ -397,7 +412,11 @@ func askCollectLines(ctx context.Context, db *pgxpool.Pool, tenantID, collection
 	ev.Check = figure
 	token := askLineSessionStore(session)
 	ev.LinesToken = token
-	// the records of the first line, at once
+	// the records of the first line, at once when there is time; otherwise the workspace opens the first line itself
+	if time.Since(started) > askLinesEagerWindow+3*time.Second {
+		ev.Scope = "open the first line to list its records"
+		return ev
+	}
 	first, err := askLineEvidence(ctx, db, session, 1, runner)
 	if err != nil {
 		ev.Scope = "no records could be listed for the first line: " + govSQLClip(err.Error(), 120)
@@ -638,6 +657,12 @@ func askLineHandler(db *pgxpool.Pool) http.HandlerFunc {
 			writeError(w, http.StatusUnprocessableEntity, errors.New("the records of this line could not be listed: "+govSQLClip(err.Error(), 160)))
 			return
 		}
-		writeJSON(w, http.StatusOK, map[string]any{"line": line, "label": session.Labels[line-1], "evidence": ev})
+		summary := askEvidenceLine{Index: line, Label: session.Labels[line-1], Reconciled: "not_checked"}
+		if counts, checks, why := askLineCounts(ctx, session.Plan, session, line-1, runner); why == "" {
+			summary.Records, summary.Files, summary.Reconciled, summary.Check = counts.records, counts.files, checks.state, checks.sentence
+		} else {
+			summary.Check = why
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"line": line, "label": session.Labels[line-1], "summary": summary, "evidence": ev})
 	}
 }

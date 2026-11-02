@@ -170,15 +170,28 @@ var _ = Describe("Ask engine evidence for summary views on the restored Orion ca
 			if c.count {
 				Expect(ev.Reconciled).To(Equal("yes"), ev.Check)
 			}
-			if ev.Lines[0].Records > 0 && ev.Lines[0].Reconciled != "not_checked" || ev.Lines[0].Records > 0 {
-				Expect(ev.Rows).NotTo(BeEmpty(), c.view+": the first line has records, so they are listed")
+			if ev.Lines[0].Records > 0 || ev.Lines[0].Pending {
+				rows, say := ev.Rows, ev.Say
+				if len(rows) == 0 {
+					// the time ran out before the first line was opened (a heavy view on a busy machine): the workspace opens it itself, through the route
+					rec := httptest.NewRecorder()
+					askLineHandler(pool)(rec, httptest.NewRequest(http.MethodGet, "/query/evidence-line?token="+ev.LinesToken+"&line=1&tenant_id="+tenant+"&collection_id="+collection, nil))
+					Expect(rec.Code).To(Equal(http.StatusOK), rec.Body.String())
+					var body struct {
+						Evidence askEvidence `json:"evidence"`
+					}
+					Expect(json.Unmarshal(rec.Body.Bytes(), &body)).To(Succeed())
+					rows, say = body.Evidence.Rows, body.Evidence.Say
+					fmt.Printf("      (%s: line 1 opened through the route)\n", c.view)
+				}
+				Expect(rows).NotTo(BeEmpty(), c.view+": the first line has records, so they are listed")
 				located := 0
-				for _, r := range ev.Rows {
+				for _, r := range rows {
 					if r.SheetRow > 0 {
 						located++
 					}
 				}
-				fmt.Printf("      first line: %d of %d listed records found in their sheet; says: %s\n", located, len(ev.Rows), ev.Say)
+				fmt.Printf("      first line: %d of %d listed records found in their sheet; says: %s\n", located, len(rows), say)
 			}
 		})
 	}

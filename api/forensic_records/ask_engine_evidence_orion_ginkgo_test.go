@@ -140,14 +140,24 @@ var _ = Describe("Ask engine evidence on the restored Orion case", Ordered, func
 		Expect(err).To(HaveOccurred(), "another case's evidence is not found")
 	})
 
-	It("says that a summary view is not itemised, instead of guessing", func() {
+	It("itemises a summary view as its lines, and says plainly that a query built from intermediate steps is not itemised, instead of guessing", func() {
 		v, rej := askValidate("SELECT dst AS number, events FROM v_contact_pairs WHERE src = '923000001005' ORDER BY events DESC LIMIT 5", cat, nil)
 		Expect(rej).To(BeNil())
 		result, err := askExecute(ctx, pool, tenant, collection, v, limits)
 		Expect(err).NotTo(HaveOccurred())
 		ev := askCollectEvidence(ctx, pool, tenant, collection, cat, v, result, limits)
-		Expect(ev.State).To(Equal("not_itemised"))
-		Expect(ev.Reason).To(ContainSubstring("summarises many records"))
+		Expect(ev.State).To(Equal("itemised"), ev.Reason)
+		Expect(ev.Kind).To(Equal("lines"))
+		Expect(ev.Lines).To(HaveLen(5), "the lines of the answer are its own five rows")
+		Expect(ev.LinesTotal).To(Equal(5))
+
+		v, rej = askValidate("WITH a AS (SELECT dst, events FROM v_contact_pairs WHERE src = '923000001005') SELECT dst AS number, events FROM a ORDER BY events DESC LIMIT 5", cat, nil)
+		Expect(rej).To(BeNil())
+		result, err = askExecute(ctx, pool, tenant, collection, v, limits)
+		Expect(err).NotTo(HaveOccurred())
+		steps := askCollectEvidence(ctx, pool, tenant, collection, cat, v, result, limits)
+		Expect(steps.State).To(Equal("not_itemised"))
+		Expect(steps.Reason).To(ContainSubstring("intermediate steps"))
 	})
 
 	It("never shows the rows of another collection", func() {
