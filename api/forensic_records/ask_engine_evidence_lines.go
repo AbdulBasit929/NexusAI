@@ -486,16 +486,31 @@ func askLineCounts(ctx context.Context, plan *askEvidencePlan, s *askLineSession
 	for k, c := range checks {
 		want, have := got.Rows[0][col[fmt.Sprintf("w%d", k)]], got.Rows[0][col[fmt.Sprintf("g%d", k)]]
 		if askLineSame(want, have) {
-			said = append(said, fmt.Sprintf("%s = %s", c.Column, askLineShow(have)))
+			said = append(said, fmt.Sprintf("%s %s", askCheckSay(c.Column), askLineShow(have)))
 		} else {
 			bad++
-			said = append(said, fmt.Sprintf("%s is %s on the line but its records give %s", c.Column, askLineShow(want), askLineShow(have)))
+			said = append(said, fmt.Sprintf("%s is %s on the line but its records give %s", askCheckSay(c.Column), askLineShow(want), askLineShow(have)))
 		}
 	}
 	if bad > 0 {
 		return result, askLineChecks{state: "no", sentence: "The records do not give the line's numbers: " + strings.Join(said, "; ") + "."}, ""
 	}
 	return result, askLineChecks{state: "yes", sentence: "Recomputed from its records: " + strings.Join(said, "; ") + "."}, ""
+}
+
+// askCheckSay names a number of a line as an analyst says it.
+func askCheckSay(column string) string {
+	if say, ok := askCheckWords[column]; ok {
+		return say
+	}
+	return strings.ReplaceAll(column, "_", " ")
+}
+
+var askCheckWords = map[string]string{
+	"events": "events:", "outgoing": "outgoing:", "incoming": "incoming:", "unknown": "unknown direction:", "total_duration_s": "total duration (seconds):",
+	"first_seen": "first contact:", "last_seen": "last contact:", "first_event_utc": "first event:", "last_event_utc": "last event:", "events_at_anchor": "events at the anchor:",
+	"transactions": "transactions:", "total_amount": "total amount:", "first_utc": "first:", "last_utc": "last:", "credits": "credits:", "debits": "debits:",
+	"sightings": "sightings:", "registrations": "registrations:", "sources": "source files:", "mentions": "mentions:", "records": "records:",
 }
 
 func askLineSame(a, b any) bool {

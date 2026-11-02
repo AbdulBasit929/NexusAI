@@ -116,7 +116,9 @@ var _ = Describe("Ask engine evidence behind a figure", func() {
 		askEvidenceReconcile(agree, p, &govSQLResult{Columns: []string{"n", "longest"}, Rows: [][]any{{int64(42), int64(1800)}}}, files)
 		Expect(agree.Reconciled).To(Equal("yes"))
 		Expect(agree.Total).To(Equal(42))
-		Expect(agree.Check).To(ContainSubstring("42"))
+		Expect(agree.Check).To(ContainSubstring("the number of records is 42"))
+		Expect(agree.Check).To(ContainSubstring("the largest duration (seconds) is 1,800"), "what was recomputed is said in an analyst's words, not as max(duration_s)")
+		Expect(agree.Check).NotTo(ContainSubstring("duration_s"))
 		Expect(agree.Files).To(HaveLen(2))
 
 		disagree := &askEvidence{State: "itemised"}

@@ -628,11 +628,12 @@ func askEvidenceReconcile(ev *askEvidence, plan *askEvidencePlan, result *govSQL
 			continue
 		}
 		checked++
+		phrase := askAggPhrase(plan.Source, a)
 		if math.Abs(got-figure) > 1e-6*math.Max(1, math.Abs(figure)) {
 			bad++
-			said = append(said, fmt.Sprintf("%s gives %s, the answer says %s", a.Text, askEvidenceFormat(got), askEvidenceFormat(figure)))
+			said = append(said, fmt.Sprintf("%s comes to %s from the records, the answer says %s", phrase, askEvidenceFormat(got), askEvidenceFormat(figure)))
 		} else {
-			said = append(said, fmt.Sprintf("%s = %s", a.Text, askEvidenceFormat(figure)))
+			said = append(said, fmt.Sprintf("%s is %s", phrase, askEvidenceFormat(figure)))
 		}
 	}
 	switch {
@@ -645,6 +646,34 @@ func askEvidenceReconcile(ev *askEvidence, plan *askEvidencePlan, result *govSQL
 		ev.Reconciled = "no"
 		ev.Check = "The rows do not give the figure: " + strings.Join(said, "; ") + ". The rows are listed for inspection only."
 	}
+}
+
+// askAggPhrase says what an aggregate computes in an analyst's words: the largest duration, the total amount, the number of records.
+func askAggPhrase(source askEvidenceSource, a askEvidenceAgg) string {
+	column := ""
+	if a.Column != "" {
+		column = strings.ToLower(askEvidenceHeading(source, a.Column))
+		if column == strings.ToLower(a.Column) && strings.Contains(a.Column, "_") {
+			column = strings.ReplaceAll(column, "_", " ")
+		}
+	}
+	switch {
+	case a.Fn == "count":
+		return "the number of records"
+	case column == "":
+		return a.Text
+	}
+	switch a.Fn {
+	case "sum":
+		return "the total " + column
+	case "avg":
+		return "the average " + column
+	case "min":
+		return "the smallest " + column
+	case "max":
+		return "the largest " + column
+	}
+	return a.Text
 }
 
 func askEvidencePlural(n int, word string) string {
