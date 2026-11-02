@@ -113,6 +113,42 @@ def extras():
             {"kind": "set", "values": [r[0] for r in psql("select app from forensic.app_usage where collection_id = '%s' and msisdn = '%s' group by 1 order by count(*) desc limit 1" % (COLLECTION, m))]})
         add("ORL-APP-002", "internet", "apps_distinct", "How many different apps did %s use?" % m, {"kind": "scalar", "value": int(one("select count(distinct app) from forensic.app_usage where collection_id = '%s' and msisdn = '%s'" % (COLLECTION, m)))})
 
+    # ---- longest, shortest, first, last, busiest: voice calls only (the view also holds SMS, and a question that says "calls" must not be answered with texts). Answers from the stored call rows,
+    # not from the engine's views; the same repeat rule as the views (a repeated row is left out). The subscriber of a row is a_norm, the other party b_norm; a_norm is the number whose record it is.
+    voice = "forensic.comm_event c WHERE c.collection_id = '%s' AND c.dataset_kind = 'target_cdr' AND NOT ('duplicate_row' = ANY (c.quality_flags)) AND c.event_type = 'voice'" % COLLECTION
+    n5 = "923000001005"
+    longest = psql("select c.duration_s, count(*) over () from %s order by c.duration_s desc limit 2" % voice)
+    shortest = psql("select c.duration_s from %s and c.duration_s > 0 order by c.duration_s limit 1" % voice)
+    add("ORL-EXT-001", "calls", "voice_longest", "What is the duration of the longest voice call in this case?", {"kind": "scalar", "value": int(longest[0][0]), "unit": "seconds"},
+        "one call is that long (the next is %s seconds); the duration is read from the record, not computed from the times" % longest[1][0])
+    add("ORL-EXT-002", "calls", "voice_shortest", "What is the duration of the shortest voice call in this case?", {"kind": "scalar", "value": int(shortest[0][0]), "unit": "seconds"},
+        "%s calls share this duration; no voice call has a duration of 0 or none" % one("select count(*) from %s and c.duration_s = %s" % (voice, shortest[0][0])))
+    add("ORL-EXT-003", "calls", "voice_longest_by", "What is the longest outgoing voice call made by %s?" % n5,
+        {"kind": "scalar", "value": int(one("select max(c.duration_s) from %s and coalesce(c.a_norm, c.a_raw) = '%s' and c.direction = 'outgoing'" % (voice, n5))), "unit": "seconds"},
+        "outgoing calls of that number's own record; a good answer also names the other party")
+    add("ORL-EXT-004", "calls", "voice_average", "What is the average duration of voice calls in this case?", {"kind": "scalar", "value": round(float(one("select avg(c.duration_s) from %s" % voice)), 4), "unit": "seconds"},
+        "the mean over all voice calls; 105.36 is as correct as 105.3568")
+    add("ORL-EXT-005", "calls", "voice_first", "When did the first voice call of this case start?",
+        {"kind": "scalar", "value": one("select to_char(min(c.start_utc at time zone 'Asia/Karachi'), 'YYYY-MM-DD HH24:MI:SS') from %s" % voice)}, "on the case clock (Asia/Karachi, UTC+05:00), not UTC")
+    add("ORL-EXT-006", "calls", "voice_last_of", "When was the last voice call of %s, made or received?" % n5,
+        {"kind": "scalar", "value": one("select to_char(max(c.start_utc at time zone 'Asia/Karachi'), 'YYYY-MM-DD HH24:MI:SS') from %s and (coalesce(c.a_norm, c.a_raw) = '%s' or c.b_norm = '%s')" % (voice, n5, n5))},
+        "on the case clock; counts calls the number made and calls it received")
+    top = psql("select coalesce(c.a_norm, c.a_raw), count(*) from %s and c.direction = 'outgoing' group by 1 order by 2 desc limit 2" % voice)
+    if len(top) >= 2 and top[0][1] != top[1][1]:
+        add("ORL-EXT-007", "calls", "voice_most_outgoing", "Which number made the most outgoing voice calls?", {"kind": "set", "values": [top[0][0]]}, "%s outgoing voice calls; the next number made %s" % (top[0][1], top[1][1]))
+    day = psql("select to_char(c.start_utc at time zone 'Asia/Karachi', 'YYYY-MM-DD'), count(*) from %s group by 1 order by 2 desc limit 2" % voice)
+    if len(day) >= 2 and day[0][1] != day[1][1]:
+        add("ORL-EXT-008", "calls", "voice_busiest_day", "Which day had the most voice calls?", {"kind": "set", "values": [day[0][0]]}, "%s voice calls that day (the next day has %s); the day is on the case clock. Counting texts as well gives another day" % (day[0][1], day[1][1]))
+    five = psql("select coalesce(c.a_norm, c.a_raw), c.b_norm, c.duration_s from %s order by c.duration_s desc, c.start_utc limit 5" % voice)
+    add("ORL-EXT-009", "calls", "voice_top5", "List the 5 voice calls with the longest duration.",
+        {"kind": "set", "values": sorted({r[0] for r in five} | {r[1] for r in five if r[1]} | {r[2] for r in five})}, "the five rows: " + "; ".join("%s with %s, %s s" % (r[0], r[1], r[2]) for r in five) + ". A table of five calls, both directions, longest first")
+    add("ORL-EXT-010", "calls", "voice_over_10min", "How many voice calls lasted more than 10 minutes?", {"kind": "scalar", "value": int(one("select count(*) from %s and c.duration_s > 600" % voice))}, "more than 600 seconds")
+    add("ORL-EXT-011", "calls", "voice_talk_time", "What is the total talk time of %s across all its voice calls?" % n5,
+        {"kind": "scalar", "value": int(one("select sum(c.duration_s) from %s and (coalesce(c.a_norm, c.a_raw) = '%s' or c.b_norm = '%s')" % (voice, n5, n5))), "unit": "seconds"},
+        "calls made and received, services included")
+    add("ORL-EXT-012", "calls", "voice_night", "How many voice calls started between 00:00 and 04:59 Karachi time?",
+        {"kind": "scalar", "value": int(one("select count(*) from %s and extract(hour from c.start_utc at time zone 'Asia/Karachi') < 5" % voice))}, "on the case clock; the hour 05:00 to 05:59 is not included")
+
     # ---- the hub threshold (migration 032): the question's own number beats the case's setting; a number outside the bounds is refused. The expected sets were computed on the engine's own contact view
     # (analyst.v_contact_pairs, as the read-only analyst role) at each threshold: 923000001036 is contacted by 11 to 20 subscribers, so it is a hub at 10 and not at 20.
     base = "Which numbers do 923000001000 and 923000001005 both contact, leaving out services and numbers in contact with more than %d subscribers?"

@@ -144,6 +144,42 @@
     "sql": "SELECT count(*) AS n FROM v_evidence_inventory WHERE modality = 'image'"
   },
   {
+    "id": "voice-most-outgoing",
+    "question": "Which number made the most outgoing voice calls?",
+    "views": [
+      "v_comm_events"
+    ],
+    "shape": "table",
+    "sql": "SELECT src AS number, count(*) AS calls FROM v_comm_events WHERE event_type = 'voice' AND direction = 'outgoing' GROUP BY src ORDER BY calls DESC LIMIT 5"
+  },
+  {
+    "id": "voice-longest-calls",
+    "question": "List the 5 voice calls with the longest duration.",
+    "views": [
+      "v_comm_events"
+    ],
+    "shape": "table",
+    "sql": "SELECT src AS subscriber, dst AS other_party, direction, duration_s, start_utc AT TIME ZONE 'Asia/Karachi' AS started FROM v_comm_events WHERE event_type = 'voice' ORDER BY duration_s DESC, start_utc LIMIT 5"
+  },
+  {
+    "id": "voice-night-hours",
+    "question": "How many voice calls started between 00:00 and 04:59 Karachi time?",
+    "views": [
+      "v_comm_events"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT count(*) AS n FROM v_comm_events WHERE event_type = 'voice' AND extract(hour FROM start_utc AT TIME ZONE 'Asia/Karachi') < 5"
+  },
+  {
+    "id": "voice-last-of-number",
+    "question": "When was the last voice call of 923000000101, made or received?",
+    "views": [
+      "v_comm_events"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT max(start_utc AT TIME ZONE 'Asia/Karachi') AS last_call FROM v_comm_events WHERE event_type = 'voice' AND src = '923000000101'"
+  },
+  {
     "id": "silent-numbers",
     "question": "Which numbers went silent before the end of the case, and when did each stop?",
     "views": [

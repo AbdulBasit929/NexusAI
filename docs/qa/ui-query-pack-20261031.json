@@ -917,6 +917,320 @@
    }
   },
   {
+   "id": "ORL-EXT-001",
+   "area": "calls",
+   "type": "voice_longest",
+   "question": "What is the duration of the longest voice call in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1800,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": "one call is that long (the next is 1272 seconds); the duration is read from the record, not computed from the times",
+   "expected_text": "1800 seconds",
+   "kind_of_check": "answer",
+   "live": {
+    "state": "answered",
+    "answer": "Duration: 1,800.",
+    "seconds": 34.6,
+    "verdict": "correct",
+    "sql": "SELECT max(duration_s) AS duration FROM v_comm_events WHERE event_type = 'voice'",
+    "views": [
+     "v_comm_events"
+    ]
+   }
+  },
+  {
+   "id": "ORL-EXT-002",
+   "area": "calls",
+   "type": "voice_shortest",
+   "question": "What is the duration of the shortest voice call in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 3,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": "4 calls share this duration; no voice call has a duration of 0 or none",
+   "expected_text": "3 seconds",
+   "kind_of_check": "answer",
+   "live": {
+    "state": "answered",
+    "answer": "Duration: 3.",
+    "seconds": 14.6,
+    "verdict": "correct",
+    "sql": "SELECT min(duration_s) AS duration FROM v_comm_events WHERE event_type = 'voice'",
+    "views": [
+     "v_comm_events"
+    ]
+   }
+  },
+  {
+   "id": "ORL-EXT-003",
+   "area": "calls",
+   "type": "voice_longest_by",
+   "question": "What is the longest outgoing voice call made by 923000001005?",
+   "expect": {
+    "kind": "scalar",
+    "value": 968,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": "outgoing calls of that number's own record; a good answer also names the other party",
+   "expected_text": "968 seconds",
+   "kind_of_check": "answer",
+   "live": {
+    "state": "answered",
+    "answer": "Longest call duration: 968.",
+    "seconds": 24.1,
+    "verdict": "correct",
+    "sql": "SELECT max(duration_s) AS longest_call_duration FROM v_comm_events WHERE src = '923000001005' AND event_type = 'voice' AND direction = 'outgoing'",
+    "views": [
+     "v_comm_events"
+    ]
+   }
+  },
+  {
+   "id": "ORL-EXT-004",
+   "area": "calls",
+   "type": "voice_average",
+   "question": "What is the average duration of voice calls in this case?",
+   "expect": {
+    "kind": "scalar",
+    "value": 105.3568,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": "the mean over all voice calls; 105.36 is as correct as 105.3568",
+   "expected_text": "105.36 seconds",
+   "kind_of_check": "answer",
+   "live": {
+    "state": "answered",
+    "answer": "Average duration: 105.3568.",
+    "seconds": 13.2,
+    "verdict": "correct",
+    "sql": "SELECT avg(duration_s) AS average_duration FROM v_comm_events WHERE event_type = 'voice'",
+    "views": [
+     "v_comm_events"
+    ]
+   }
+  },
+  {
+   "id": "ORL-EXT-005",
+   "area": "calls",
+   "type": "voice_first",
+   "question": "When did the first voice call of this case start?",
+   "expect": {
+    "kind": "scalar",
+    "value": "2026-02-02 00:29:05"
+   },
+   "bank": "extra",
+   "note": "on the case clock (Asia/Karachi, UTC+05:00), not UTC",
+   "expected_text": "2026-02-02 00:29:05",
+   "kind_of_check": "answer",
+   "live": {
+    "state": "answered",
+    "answer": "T: 2026-02-02 00:29:05 PKT.",
+    "seconds": 14.7,
+    "verdict": "correct",
+    "sql": "SELECT min(start_utc) AS t FROM v_comm_events WHERE event_type = 'voice'",
+    "views": [
+     "v_comm_events"
+    ]
+   }
+  },
+  {
+   "id": "ORL-EXT-006",
+   "area": "calls",
+   "type": "voice_last_of",
+   "question": "When was the last voice call of 923000001005, made or received?",
+   "expect": {
+    "kind": "scalar",
+    "value": "2026-04-17 22:59:16"
+   },
+   "bank": "extra",
+   "note": "on the case clock; counts calls the number made and calls it received",
+   "expected_text": "2026-04-17 22:59:16",
+   "review_note": "Scored correct because the later of the two times is in the rows, but the first sentence only says '2 rows': the engine returned the last call made and the last call received and left the choice to the reader. The answer is 2026-04-17 22:59:16 (the received call). A verified example for 'made or received' (voice-last-of-number) is in the code and takes effect with the next engine image.",
+   "kind_of_check": "answer",
+   "live": {
+    "state": "answered",
+    "answer": "2 rows.",
+    "seconds": 44.4,
+    "verdict": "correct",
+    "sql": "SELECT max(start_utc) AS t FROM v_comm_events WHERE src = '923000001005' AND event_type = 'voice' AND direction = 'outgoing' UNION ALL SELECT max(start_utc) AS t FROM v_comm_events WHERE src = '923000001005' AND event_type = 'voice' AND direction = 'incoming'",
+    "views": [
+     "v_comm_events"
+    ]
+   }
+  },
+  {
+   "id": "ORL-EXT-007",
+   "area": "calls",
+   "type": "voice_most_outgoing",
+   "question": "Which number made the most outgoing voice calls?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "923000001005"
+    ]
+   },
+   "bank": "extra",
+   "note": "520 outgoing voice calls; the next number made 238",
+   "expected_text": "923000001005",
+   "review_note": "Found by this pack, wrong: the engine counted the NUMBERS CALLED (group by dst) and answered 923000001036 with 130; the number that MADE the most outgoing voice calls is 923000001005 with 520. A verified example (voice-most-outgoing) is in the code and takes effect with the next engine image; until then do not trust this answer.",
+   "kind_of_check": "answer",
+   "live": {
+    "state": "answered",
+    "answer": "Number 923000001036; N 130.",
+    "seconds": 18.9,
+    "verdict": "wrong",
+    "sql": "SELECT dst AS number, count(*) AS n FROM v_comm_events WHERE direction = 'outgoing' AND event_type = 'voice' GROUP BY dst ORDER BY n DESC LIMIT 1",
+    "views": [
+     "v_comm_events"
+    ]
+   }
+  },
+  {
+   "id": "ORL-EXT-008",
+   "area": "calls",
+   "type": "voice_busiest_day",
+   "question": "Which day had the most voice calls?",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "2026-04-15"
+    ]
+   },
+   "bank": "extra",
+   "note": "77 voice calls that day (the next day has 76); the day is on the case clock. Counting texts as well gives another day",
+   "expected_text": "2026-04-15",
+   "kind_of_check": "answer",
+   "live": {
+    "state": "answered",
+    "answer": "1 point.",
+    "seconds": 35.4,
+    "verdict": "correct",
+    "sql": "SELECT date_trunc('day', start_utc AT TIME ZONE 'Asia/Karachi') AS t, count(*) AS value FROM v_comm_events WHERE event_type = 'voice' GROUP BY 1 ORDER BY value DESC LIMIT 1",
+    "views": [
+     "v_comm_events"
+    ]
+   }
+  },
+  {
+   "id": "ORL-EXT-009",
+   "area": "calls",
+   "type": "voice_top5",
+   "question": "List the 5 voice calls with the longest duration.",
+   "expect": {
+    "kind": "set",
+    "values": [
+     "1024",
+     "1075",
+     "1102",
+     "1272",
+     "1800",
+     "923000001000",
+     "923000001005",
+     "923000001009",
+     "923000001036",
+     "923000001044",
+     "923000001089",
+     "923000001098"
+    ]
+   },
+   "bank": "extra",
+   "note": "the five rows: 923000001009 with 923000001044, 1800 s; 923000001005 with 923000001036, 1272 s; 923000001000 with 923000001089, 1102 s; 923000001000 with 923000001098, 1075 s; 923000001000 with 923000001098, 1024 s. A table of five calls, both directions, longest first",
+   "expected_text": "1024, 1075, 1102, 1272, 1800, 923000001000, 923000001005, 923000001009, 923000001036, 923000001044, 923000001089, 923000001098 (12 in all)",
+   "review_note": "Found by this pack, incomplete: the engine returned only the event ids and durations of the five longest calls ('5 rows'), without who called whom. The five durations are 1800, 1272, 1102, 1075 and 1024 seconds; the judge needs the numbers in the answer. A verified example (voice-longest-calls) is in the code and takes effect with the next engine image.",
+   "kind_of_check": "answer",
+   "live": {
+    "state": "answered",
+    "answer": "5 rows.",
+    "seconds": 29.4,
+    "verdict": "wrong",
+    "sql": "SELECT event_id, duration_s AS duration FROM v_comm_events WHERE event_type = 'voice' ORDER BY duration_s DESC LIMIT 5",
+    "views": [
+     "v_comm_events"
+    ]
+   }
+  },
+  {
+   "id": "ORL-EXT-010",
+   "area": "calls",
+   "type": "voice_over_10min",
+   "question": "How many voice calls lasted more than 10 minutes?",
+   "expect": {
+    "kind": "scalar",
+    "value": 19
+   },
+   "bank": "extra",
+   "note": "more than 600 seconds",
+   "expected_text": "19",
+   "kind_of_check": "answer",
+   "live": {
+    "state": "answered",
+    "answer": "N: 19.",
+    "seconds": 66.9,
+    "verdict": "correct",
+    "sql": "SELECT count(*) AS n FROM v_comm_events WHERE event_type = 'voice' AND duration_s > 600",
+    "views": [
+     "v_comm_events"
+    ]
+   }
+  },
+  {
+   "id": "ORL-EXT-011",
+   "area": "calls",
+   "type": "voice_talk_time",
+   "question": "What is the total talk time of 923000001005 across all its voice calls?",
+   "expect": {
+    "kind": "scalar",
+    "value": 69639,
+    "unit": "seconds"
+   },
+   "bank": "extra",
+   "note": "calls made and received, services included",
+   "expected_text": "69639 seconds",
+   "kind_of_check": "answer",
+   "live": {
+    "state": "answered",
+    "answer": "Total talk time: 69,639.",
+    "seconds": 45.3,
+    "verdict": "correct",
+    "sql": "SELECT sum(duration_s) AS total_talk_time FROM v_comm_events WHERE src = '923000001005' AND event_type = 'voice'",
+    "views": [
+     "v_comm_events"
+    ]
+   }
+  },
+  {
+   "id": "ORL-EXT-012",
+   "area": "calls",
+   "type": "voice_night",
+   "question": "How many voice calls started between 00:00 and 04:59 Karachi time?",
+   "expect": {
+    "kind": "scalar",
+    "value": 197
+   },
+   "bank": "extra",
+   "note": "on the case clock; the hour 05:00 to 05:59 is not included",
+   "expected_text": "197",
+   "review_note": "Found by this pack, WRONG and serious: the engine invented a date filter ('2026-01-01 00:00 to 04:59') that the question never gave, matched nothing, and answered 0. The true count is 197. An invented filter is the same kind of fault as ORL-TXN-009 (round 8 added the obligation INVENTED_FILTER for one pattern, not for dates). A verified example (voice-night-hours) is in the code; an obligation for a date the question never names is still to be built.",
+   "kind_of_check": "answer",
+   "live": {
+    "state": "answered",
+    "answer": "N: 0.",
+    "seconds": 101.2,
+    "verdict": "wrong",
+    "sql": "SELECT count(*) AS n FROM v_comm_events WHERE event_type = 'voice' AND start_utc AT TIME ZONE 'Asia/Karachi' >= '2026-01-01 00:00:00+05' AND start_utc AT TIME ZONE 'Asia/Karachi' < '2026-01-01 04:59:59+05'",
+    "views": [
+     "v_comm_events"
+    ]
+   }
+  },
+  {
    "id": "ORL-CAL-Q013",
    "area": "connections",
    "type": "top_contacts",
