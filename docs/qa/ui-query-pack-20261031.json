@@ -932,10 +932,10 @@
    "kind_of_check": "answer",
    "live": {
     "state": "answered",
-    "answer": "Duration: 1,800.",
-    "seconds": 34.6,
+    "answer": "Longest duration: 1,800.",
+    "seconds": 65.2,
     "verdict": "correct",
-    "sql": "SELECT max(duration_s) AS duration FROM v_comm_events WHERE event_type = 'voice'",
+    "sql": "SELECT max(duration_s) AS longest_duration FROM v_comm_events WHERE event_type = 'voice'",
     "views": [
      "v_comm_events"
     ]
@@ -957,10 +957,10 @@
    "kind_of_check": "answer",
    "live": {
     "state": "answered",
-    "answer": "Duration: 3.",
-    "seconds": 14.6,
+    "answer": "Shortest duration: 3.",
+    "seconds": 17.6,
     "verdict": "correct",
-    "sql": "SELECT min(duration_s) AS duration FROM v_comm_events WHERE event_type = 'voice'",
+    "sql": "SELECT min(duration_s) AS shortest_duration FROM v_comm_events WHERE event_type = 'voice'",
     "views": [
      "v_comm_events"
     ]
@@ -983,7 +983,7 @@
    "live": {
     "state": "answered",
     "answer": "Longest call duration: 968.",
-    "seconds": 24.1,
+    "seconds": 50.3,
     "verdict": "correct",
     "sql": "SELECT max(duration_s) AS longest_call_duration FROM v_comm_events WHERE src = '923000001005' AND event_type = 'voice' AND direction = 'outgoing'",
     "views": [
@@ -1008,7 +1008,7 @@
    "live": {
     "state": "answered",
     "answer": "Average duration: 105.3568.",
-    "seconds": 13.2,
+    "seconds": 24.5,
     "verdict": "correct",
     "sql": "SELECT avg(duration_s) AS average_duration FROM v_comm_events WHERE event_type = 'voice'",
     "views": [
@@ -1031,10 +1031,10 @@
    "kind_of_check": "answer",
    "live": {
     "state": "answered",
-    "answer": "T: 2026-02-02 00:29:05 PKT.",
-    "seconds": 14.7,
+    "answer": "First call: 2026-02-02 00:29:05.",
+    "seconds": 23.6,
     "verdict": "correct",
-    "sql": "SELECT min(start_utc) AS t FROM v_comm_events WHERE event_type = 'voice'",
+    "sql": "SELECT min(start_utc AT TIME ZONE 'Asia/Karachi') AS first_call FROM v_comm_events WHERE event_type = 'voice'",
     "views": [
      "v_comm_events"
     ]
@@ -1052,14 +1052,14 @@
    "bank": "extra",
    "note": "on the case clock; counts calls the number made and calls it received",
    "expected_text": "2026-04-17 22:59:16",
-   "review_note": "The live engine (round 8) answers '2 rows': the last call made and the last call received, and leaves the choice to the reader; the answer is 2026-04-17 22:59:16 (the received call). Checked on 2026-11-02 on a restored copy of the live database with the real model and the engine image round9b-20261102 (not yet deployed): answered 'Last call: 2026-04-17 22:59:16', correct. Live after the next deploy.",
+   "review_note": "The engine before the round 9b deploy answers '2 rows': the last call made and the last call received, and leaves the choice to the reader; the answer is 2026-04-17 22:59:16 (the received call). Fixed by the round 9b deploy (2026-11-02 12:29 PKT) and checked twice: on a restored copy of the live database, and live: answered 'Last call: 2026-04-17 22:59:16', correct. Re-asked live after the deploy: correct.",
    "kind_of_check": "answer",
    "live": {
     "state": "answered",
-    "answer": "2 rows.",
-    "seconds": 44.4,
+    "answer": "Last call: 2026-04-17 22:59:16.",
+    "seconds": 33.0,
     "verdict": "correct",
-    "sql": "SELECT max(start_utc) AS t FROM v_comm_events WHERE src = '923000001005' AND event_type = 'voice' AND direction = 'outgoing' UNION ALL SELECT max(start_utc) AS t FROM v_comm_events WHERE src = '923000001005' AND event_type = 'voice' AND direction = 'incoming'",
+    "sql": "SELECT max(start_utc AT TIME ZONE 'Asia/Karachi') AS last_call FROM v_comm_events WHERE event_type = 'voice' AND src = '923000001005'",
     "views": [
      "v_comm_events"
     ]
@@ -1079,14 +1079,14 @@
    "bank": "extra",
    "note": "520 outgoing voice calls; the next number made 238",
    "expected_text": "923000001005",
-   "review_note": "The live engine (round 8) is WRONG: it counted the numbers called (group by dst) and answered 923000001036 with 130; the number that made the most outgoing voice calls is 923000001005 with 520. Checked on 2026-11-02 on a restored copy of the live database with the real model and the engine image round9b-20261102 (not yet deployed): the top row is 923000001005 with 520 calls, correct (with the rows behind it: 520 rows in 1 file). Live after the next deploy.",
+   "review_note": "The engine before the round 9b deploy is WRONG: it counted the numbers called (group by dst) and answered 923000001036 with 130; the number that made the most outgoing voice calls is 923000001005 with 520. Fixed by the round 9b deploy (2026-11-02 12:29 PKT) and checked twice: on a restored copy of the live database, and live: the top row is 923000001005 with 520 calls, correct (with the rows behind it: 520 rows in 1 file). Re-asked live after the deploy: correct.",
    "kind_of_check": "answer",
    "live": {
     "state": "answered",
-    "answer": "Number 923000001036; N 130.",
-    "seconds": 18.9,
-    "verdict": "wrong",
-    "sql": "SELECT dst AS number, count(*) AS n FROM v_comm_events WHERE direction = 'outgoing' AND event_type = 'voice' GROUP BY dst ORDER BY n DESC LIMIT 1",
+    "answer": "5 rows.",
+    "seconds": 31.1,
+    "verdict": "correct",
+    "sql": "SELECT src AS number, count(*) AS calls FROM v_comm_events WHERE event_type = 'voice' AND direction = 'outgoing' GROUP BY src ORDER BY calls DESC LIMIT 5",
     "views": [
      "v_comm_events"
     ]
@@ -1110,9 +1110,9 @@
    "live": {
     "state": "answered",
     "answer": "1 point.",
-    "seconds": 35.4,
+    "seconds": 49.8,
     "verdict": "correct",
-    "sql": "SELECT date_trunc('day', start_utc AT TIME ZONE 'Asia/Karachi') AS t, count(*) AS value FROM v_comm_events WHERE event_type = 'voice' GROUP BY 1 ORDER BY value DESC LIMIT 1",
+    "sql": "SELECT date_trunc('day', start_utc AT TIME ZONE 'Asia/Karachi') AS t, count(*) AS value FROM v_comm_events WHERE event_type = 'voice' GROUP BY t ORDER BY value DESC LIMIT 1",
     "views": [
      "v_comm_events"
     ]
@@ -1143,14 +1143,14 @@
    "bank": "extra",
    "note": "the five rows: 923000001009 with 923000001044, 1800 s; 923000001005 with 923000001036, 1272 s; 923000001000 with 923000001089, 1102 s; 923000001000 with 923000001098, 1075 s; 923000001000 with 923000001098, 1024 s. A table of five calls, both directions, longest first",
    "expected_text": "1024, 1075, 1102, 1272, 1800, 923000001000, 923000001005, 923000001009, 923000001036, 923000001044, 923000001089, 923000001098 (12 in all)",
-   "review_note": "The live engine (round 8) is incomplete: it returns only event ids and durations of the five longest calls ('5 rows'), without who called whom. The five durations are 1800, 1272, 1102, 1075 and 1024 seconds. Checked on 2026-11-02 on a restored copy of the live database with the real model and the engine image round9b-20261102 (not yet deployed): the five rows carry the parties and the durations, correct. Live after the next deploy.",
+   "review_note": "The engine before the round 9b deploy is incomplete: it returns only event ids and durations of the five longest calls ('5 rows'), without who called whom. The five durations are 1800, 1272, 1102, 1075 and 1024 seconds. Fixed by the round 9b deploy (2026-11-02 12:29 PKT) and checked twice: on a restored copy of the live database, and live: the five rows carry the parties and the durations, correct. Re-asked live after the deploy: correct.",
    "kind_of_check": "answer",
    "live": {
     "state": "answered",
     "answer": "5 rows.",
-    "seconds": 29.4,
-    "verdict": "wrong",
-    "sql": "SELECT event_id, duration_s AS duration FROM v_comm_events WHERE event_type = 'voice' ORDER BY duration_s DESC LIMIT 5",
+    "seconds": 32.8,
+    "verdict": "correct",
+    "sql": "SELECT src AS subscriber, dst AS other_party, direction, duration_s, start_utc AT TIME ZONE 'Asia/Karachi' AS started FROM v_comm_events WHERE event_type = 'voice' ORDER BY duration_s DESC, start_utc LIMIT 5",
     "views": [
      "v_comm_events"
     ]
@@ -1171,10 +1171,10 @@
    "kind_of_check": "answer",
    "live": {
     "state": "answered",
-    "answer": "N: 19.",
-    "seconds": 66.9,
+    "answer": "Count: 19.",
+    "seconds": 78.4,
     "verdict": "correct",
-    "sql": "SELECT count(*) AS n FROM v_comm_events WHERE event_type = 'voice' AND duration_s > 600",
+    "sql": "SELECT count(*) AS count FROM v_comm_events WHERE event_type = 'voice' AND duration_s > 600",
     "views": [
      "v_comm_events"
     ]
@@ -1197,7 +1197,7 @@
    "live": {
     "state": "answered",
     "answer": "Total talk time: 69,639.",
-    "seconds": 45.3,
+    "seconds": 62.8,
     "verdict": "correct",
     "sql": "SELECT sum(duration_s) AS total_talk_time FROM v_comm_events WHERE src = '923000001005' AND event_type = 'voice'",
     "views": [
@@ -1217,14 +1217,14 @@
    "bank": "extra",
    "note": "on the case clock; the hour 05:00 to 05:59 is not included",
    "expected_text": "197",
-   "review_note": "The live engine (round 8) is WRONG and serious: it invented a date filter ('2026-01-01 00:00 to 04:59') that the question never gave, matched nothing, and answered 0. The true count is 197. Checked on 2026-11-02 on a restored copy of the live database with the real model and the engine image round9b-20261102 (not yet deployed): answered 'N: 197', correct, with 197 rows in 12 files behind it. A general guard against an invented date is still to be built: the example fixes this wording, and five rewordings were tried (see the design note).",
+   "review_note": "The engine before the round 9b deploy is WRONG and serious: it invented a date filter ('2026-01-01 00:00 to 04:59') that the question never gave, matched nothing, and answered 0. The true count is 197. Fixed by the round 9b deploy (2026-11-02 12:29 PKT) and checked twice: on a restored copy of the live database, and live: answered 'N: 197', correct, with 197 rows in 12 files behind it. A general guard against an invented date is still to be built: the example fixes this wording, and five rewordings were tried (see the design note).",
    "kind_of_check": "answer",
    "live": {
     "state": "answered",
-    "answer": "N: 0.",
-    "seconds": 101.2,
-    "verdict": "wrong",
-    "sql": "SELECT count(*) AS n FROM v_comm_events WHERE event_type = 'voice' AND start_utc AT TIME ZONE 'Asia/Karachi' >= '2026-01-01 00:00:00+05' AND start_utc AT TIME ZONE 'Asia/Karachi' < '2026-01-01 04:59:59+05'",
+    "answer": "N: 197.",
+    "seconds": 111.3,
+    "verdict": "correct",
+    "sql": "SELECT count(*) AS n FROM v_comm_events WHERE event_type = 'voice' AND extract ('hour' FROM start_utc AT TIME ZONE 'Asia/Karachi') < 5",
     "views": [
      "v_comm_events"
     ]

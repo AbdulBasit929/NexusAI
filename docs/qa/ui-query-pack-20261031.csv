@@ -33,18 +33,18 @@ ORL-CAL-Q079,calls,shared_handset,answer,Which subscribers shared the handset 00
 ORL-CAL-Q080,calls,none,honesty / limits,What is the home address of 923000001000?,"the case holds no such fact: the engine must say it cannot answer, not guess",declined,correct,I could not map that request to a deterministic forensic workflow. Please name the evidence family and the calculation or view you need.
 ORL-CAL-Q081,calls,none,honesty / limits,Who owns the number 923000001001?,"the case holds no such fact: the engine must say it cannot answer, not guess",answered,wrong,"A registration records what one source file states, not who holds or uses the number. No row matches what you asked: no registration of 923000001001 was found in the files of this case."
 ORL-CAL-Q082,calls,none,honesty / limits,Is 923000001002 a criminal?,"the case holds no such fact: the engine must say it cannot answer, not guess",declined,correct,I could not map that request to a deterministic forensic workflow. Please name the evidence family and the calculation or view you need.
-ORL-EXT-001,calls,voice_longest,answer,What is the duration of the longest voice call in this case?,1800 seconds,answered,correct,"Duration: 1,800."
-ORL-EXT-002,calls,voice_shortest,answer,What is the duration of the shortest voice call in this case?,3 seconds,answered,correct,Duration: 3.
+ORL-EXT-001,calls,voice_longest,answer,What is the duration of the longest voice call in this case?,1800 seconds,answered,correct,"Longest duration: 1,800."
+ORL-EXT-002,calls,voice_shortest,answer,What is the duration of the shortest voice call in this case?,3 seconds,answered,correct,Shortest duration: 3.
 ORL-EXT-003,calls,voice_longest_by,answer,What is the longest outgoing voice call made by 923000001005?,968 seconds,answered,correct,Longest call duration: 968.
 ORL-EXT-004,calls,voice_average,answer,What is the average duration of voice calls in this case?,105.36 seconds,answered,correct,Average duration: 105.3568.
-ORL-EXT-005,calls,voice_first,answer,When did the first voice call of this case start?,2026-02-02 00:29:05,answered,correct,T: 2026-02-02 00:29:05 PKT.
-ORL-EXT-006,calls,voice_last_of,answer,"When was the last voice call of 923000001005, made or received?",2026-04-17 22:59:16,answered,correct,2 rows.
-ORL-EXT-007,calls,voice_most_outgoing,answer,Which number made the most outgoing voice calls?,923000001005,answered,wrong,Number 923000001036; N 130.
+ORL-EXT-005,calls,voice_first,answer,When did the first voice call of this case start?,2026-02-02 00:29:05,answered,correct,First call: 2026-02-02 00:29:05.
+ORL-EXT-006,calls,voice_last_of,answer,"When was the last voice call of 923000001005, made or received?",2026-04-17 22:59:16,answered,correct,Last call: 2026-04-17 22:59:16.
+ORL-EXT-007,calls,voice_most_outgoing,answer,Which number made the most outgoing voice calls?,923000001005,answered,correct,5 rows.
 ORL-EXT-008,calls,voice_busiest_day,answer,Which day had the most voice calls?,2026-04-15,answered,correct,1 point.
-ORL-EXT-009,calls,voice_top5,answer,List the 5 voice calls with the longest duration.,"1024, 1075, 1102, 1272, 1800, 923000001000, 923000001005, 923000001009, 923000001036, 923000001044, 923000001089, 923000001098 (12 in all)",answered,wrong,5 rows.
-ORL-EXT-010,calls,voice_over_10min,answer,How many voice calls lasted more than 10 minutes?,19,answered,correct,N: 19.
+ORL-EXT-009,calls,voice_top5,answer,List the 5 voice calls with the longest duration.,"1024, 1075, 1102, 1272, 1800, 923000001000, 923000001005, 923000001009, 923000001036, 923000001044, 923000001089, 923000001098 (12 in all)",answered,correct,5 rows.
+ORL-EXT-010,calls,voice_over_10min,answer,How many voice calls lasted more than 10 minutes?,19,answered,correct,Count: 19.
 ORL-EXT-011,calls,voice_talk_time,answer,What is the total talk time of 923000001005 across all its voice calls?,69639 seconds,answered,correct,"Total talk time: 69,639."
-ORL-EXT-012,calls,voice_night,answer,How many voice calls started between 00:00 and 04:59 Karachi time?,197,answered,wrong,N: 0.
+ORL-EXT-012,calls,voice_night,answer,How many voice calls started between 00:00 and 04:59 Karachi time?,197,answered,correct,N: 197.
 ORL-CAL-Q013,connections,top_contacts,answer,"Who does 923000001000 talk to most? Give the top three, leaving out services and numbers that everyone contacts.","in this order: 923000001098, 923000001015, 923000001070",answered,correct,"3 results: 923000001098 (75), 923000001015 (72), 923000001070 (47)."
 ORL-CAL-Q014,connections,top_contacts,answer,"List the three numbers 923000001001 has the most events with, not counting short codes or numbers that everybody contacts.","in this order: 923000001078, 923000001006, 923000001042",answered,correct,"3 results: 923000001078 (63), 923000001006 (49), 923000001042 (45)."
 ORL-CAL-Q015,connections,top_contacts,answer,"Who does 923000001002 talk to most? Give the top three, leaving out services and numbers that everyone contacts.","in this order: 923000001027, 923000001048, 923000001012",answered,correct,"3 results: 923000001027 (146), 923000001048 (131), 923000001012 (124)."
