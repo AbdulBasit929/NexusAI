@@ -39,6 +39,7 @@ var sourceRowTables = []struct{ table, key, kind string }{
 type sourceRowCell struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
+	Cell  string `json:"cell,omitempty"` // the cell's address in the workbook (H93), when the file is a spreadsheet and the stored row says so
 }
 
 type sourceRowResponse struct {
@@ -107,9 +108,9 @@ func loadSourceRow(ctx context.Context, db *pgxpool.Pool, tenantID, collectionID
 	if err != nil {
 		return nil, err // pgx.ErrNoRows: no such evidence in this case
 	}
-	var storedHash, stored string
-	err = tx.QueryRow(ctx, `SELECT coalesce(row_hash, ''), (raw_payload - '_xlsx_cells')::text FROM forensic.records WHERE tenant_id = $1 AND evidence_id::text = $2 AND row_number = $3 LIMIT 1`,
-		tenantID, evidenceID, row).Scan(&storedHash, &stored)
+	var storedHash, stored, workbookCells string
+	err = tx.QueryRow(ctx, `SELECT coalesce(row_hash, ''), (raw_payload - '_xlsx_cells')::text, coalesce(raw_payload -> '_xlsx_cells', '{}'::jsonb)::text FROM forensic.records WHERE tenant_id = $1 AND evidence_id::text = $2 AND row_number = $3 LIMIT 1`,
+		tenantID, evidenceID, row).Scan(&storedHash, &stored, &workbookCells)
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
 		out.Reason = "this file holds no stored row " + strconv.Itoa(row)
@@ -122,10 +123,12 @@ func loadSourceRow(ctx context.Context, db *pgxpool.Pool, tenantID, collectionID
 	}
 	for _, source := range sourceRowTables {
 		var payload string
-		// every filled cell of the typed row must be found in the stored row; the typed row with the most filled cells wins, then the first by position
-		query := `SELECT t.raw_payload::text FROM forensic.` + source.table + ` t
+		// every filled cell of the typed row must be found in the stored row; the typed row with the most filled cells wins, then the first by position.
+		// The values of each row are compared as one array (<@): a NOT IN against a subquery was re-read for every cell and took 13 s on a 3,800-row file.
+		query := `WITH stored AS (SELECT array_agg(v.value) AS vals FROM jsonb_each_text($3::jsonb) v WHERE v.value <> '')
+SELECT t.raw_payload::text FROM forensic.` + source.table + ` t, stored
 WHERE t.tenant_id = $1 AND t.evidence_id::text = $2 AND t.raw_payload IS NOT NULL AND t.raw_payload <> '{}'::jsonb
-  AND NOT EXISTS (SELECT 1 FROM jsonb_each_text(t.raw_payload) p WHERE p.value <> '' AND p.value NOT IN (SELECT value FROM jsonb_each_text($3::jsonb)))
+  AND (SELECT array_agg(p.value) FROM jsonb_each_text(t.raw_payload) p WHERE p.value <> '') <@ stored.vals
 ORDER BY (SELECT count(*) FROM jsonb_each_text(t.raw_payload) p WHERE p.value <> '') DESC, t.source_row LIMIT 1`
 		if err := tx.QueryRow(ctx, query, tenantID, evidenceID, stored).Scan(&payload); err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
@@ -137,7 +140,7 @@ ORDER BY (SELECT count(*) FROM jsonb_each_text(t.raw_payload) p WHERE p.value <>
 		if err != nil || len(cells) == 0 {
 			continue
 		}
-		cells = sourceRowInFileOrder(ctx, tx, tenantID, evidenceID, row, payload, cells)
+		cells = sourceRowInFileOrder(ctx, tx, tenantID, evidenceID, row, payload, cells, sourceRowAddresses(workbookCells))
 		out.State, out.Kind, out.Cells = "found", source.kind, cells
 		return out, nil
 	}
@@ -145,13 +148,63 @@ ORDER BY (SELECT count(*) FROM jsonb_each_text(t.raw_payload) p WHERE p.value <>
 	return out, nil
 }
 
-// sourceRowInFileOrder puts the cells in the order of the file's own columns. The header row of the sheet (the nearest row above whose cells hold every column name of this row) lists the names in the
-// order of the columns; its stored keys end in the column's position. Without such a row the cells stay as they are.
-func sourceRowInFileOrder(ctx context.Context, tx pgx.Tx, tenantID, evidenceID string, row int, typedPayload string, cells []sourceRowCell) []sourceRowCell {
+// sourceRowAddresses reads, from the stored row's workbook markers, the address each column's cell has in the workbook (H93), by the column's name.
+func sourceRowAddresses(workbookCells string) map[string]string {
+	var named map[string]json.RawMessage
+	if json.Unmarshal([]byte(workbookCells), &named) != nil {
+		return nil
+	}
+	out := map[string]string{}
+	for name, raw := range named {
+		var cell struct {
+			Reference string `json:"reference"`
+		}
+		if json.Unmarshal(raw, &cell) == nil && sourceRowColumn(cell.Reference) > 0 {
+			out[name] = cell.Reference
+		}
+	}
+	return out
+}
+
+// sourceRowColumn is the number of the column in a cell address (A is 1, H is 8, AA is 27); 0 when the text is not an address.
+func sourceRowColumn(address string) int {
+	column, digits := 0, 0
+	for _, c := range address {
+		switch {
+		case c >= 'A' && c <= 'Z' && digits == 0:
+			column = column*26 + int(c-'A') + 1
+		case c >= '0' && c <= '9':
+			digits++
+		default:
+			return 0
+		}
+	}
+	if digits == 0 {
+		return 0
+	}
+	return column
+}
+
+// sourceRowInFileOrder puts the cells in the order of the file's own columns. A workbook states where each cell is (H93): when every cell has its address, the columns decide. Otherwise the header row of
+// the sheet (the nearest row above whose cells hold every column name of this row) lists the names in the order of the columns; its stored keys end in the column's position. Without either the cells stay as they are.
+func sourceRowInFileOrder(ctx context.Context, tx pgx.Tx, tenantID, evidenceID string, row int, typedPayload string, cells []sourceRowCell, addresses map[string]string) []sourceRowCell {
+	placed := 0
+	for i := range cells {
+		if address, ok := addresses[cells[i].Name]; ok {
+			cells[i].Cell = address
+			placed++
+		}
+	}
+	if placed > 0 && placed == len(cells) {
+		sort.SliceStable(cells, func(a, b int) bool { return sourceRowColumn(cells[a].Cell) < sourceRowColumn(cells[b].Cell) })
+		return cells
+	}
 	var header string
-	err := tx.QueryRow(ctx, `SELECT (r.raw_payload - '_xlsx_cells')::text FROM forensic.records r
+	// only the cells that are shown need a place in the header: a typed row also carries empty columns the sheet never had
+	err := tx.QueryRow(ctx, `WITH want AS (SELECT array_agg(e.key) AS names FROM jsonb_each_text($4::jsonb) e WHERE e.value <> '' AND e.key NOT LIKE '\_%')
+SELECT (r.raw_payload - '_xlsx_cells')::text FROM forensic.records r, want
 WHERE r.tenant_id = $1 AND r.evidence_id::text = $2 AND r.row_number < $3
-  AND NOT EXISTS (SELECT 1 FROM jsonb_object_keys($4::jsonb) k WHERE k NOT IN (SELECT value FROM jsonb_each_text(r.raw_payload)))
+  AND want.names <@ (SELECT array_agg(v.value) FROM jsonb_each_text(r.raw_payload) v)
 ORDER BY r.row_number DESC LIMIT 1`, tenantID, evidenceID, row, typedPayload).Scan(&header)
 	if err != nil {
 		return cells

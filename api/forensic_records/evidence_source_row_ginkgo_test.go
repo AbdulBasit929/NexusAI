@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -22,6 +24,25 @@ var _ = Describe("Evidence source row under the file's own headings", func() {
 		_, err := sourceRowCells("not json")
 		Expect(err).To(HaveOccurred())
 		Expect(sourceRowOrder("[1,2]")).To(BeEmpty())
+	})
+
+	It("reads the workbook address of each cell, and the column number from it", func() {
+		addresses := sourceRowAddresses(`{"IMEI": {"value": "1", "reference": "H93"}, "Duration": {"reference": "AA93"}, "Odd": {"reference": "93"}, "Bad": "text"}`)
+		Expect(addresses).To(Equal(map[string]string{"IMEI": "H93", "Duration": "AA93"}))
+		Expect(sourceRowColumn("A1")).To(Equal(1))
+		Expect(sourceRowColumn("H93")).To(Equal(8))
+		Expect(sourceRowColumn("AA7")).To(Equal(27))
+		for _, notAnAddress := range []string{"", "93", "H", "h93", "H9X"} {
+			Expect(sourceRowColumn(notAnAddress)).To(BeZero(), notAnAddress)
+		}
+		Expect(sourceRowAddresses("not json")).To(BeNil())
+	})
+
+	It("orders the cells by the columns of the workbook when every cell has an address", func() {
+		cells := []sourceRowCell{{Name: "IMEI", Value: "1"}, {Name: "Sr #", Value: "5"}, {Name: "A-Party", Value: "923000001000"}}
+		addresses := map[string]string{"IMEI": "H93", "Sr #": "A93", "A-Party": "B93"}
+		ordered := sourceRowInFileOrder(context.Background(), nil, "t", "e", 93, "{}", cells, addresses)
+		Expect(ordered).To(Equal([]sourceRowCell{{Name: "Sr #", Value: "5", Cell: "A93"}, {Name: "A-Party", Value: "923000001000", Cell: "B93"}, {Name: "IMEI", Value: "1", Cell: "H93"}}))
 	})
 
 	It("reads a number without a trailing zero and a nested value as text", func() {
