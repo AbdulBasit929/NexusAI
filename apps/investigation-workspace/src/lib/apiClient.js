@@ -84,6 +84,12 @@ export function getQueryCapabilities({ caseId, signal, fetchImpl }) {
   return scopedGet('/query/capabilities', caseId, { signal, fetchImpl })
 }
 
+// The language model's reading of an answer that is on the screen (decision D33). The answer carries a random token; the reading is asked for after the figure, so the figure never waits for it.
+// The token is only ever the one the engine put in that answer.
+export function getAnswerReading({ caseId, token, signal, fetchImpl }) {
+  return scopedGet(`/query/reading?token=${encodeURIComponent(token)}`, caseId, { signal, fetchImpl })
+}
+
 // The connections and the places of a case, read from the analyst views by the API (api/forensic_records/analysis_views.go). `available: false` carries the reason the views
 // cannot speak for this case (its records are not all in the typed tables); a page says so and draws nothing.
 export function getConnections({ caseId, perSubject, signal, fetchImpl }) {

@@ -182,7 +182,13 @@ var _ = Describe("Ask engine executor on a case database, the case record", Orde
 		setting, err = readAskCaseSettings(ctx, pool, tenant, caseID)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(setting.HubThreshold).To(Equal(0))
-		_, err = pool.Exec(ctx, "UPDATE forensic.case_record SET hub_threshold = 1 WHERE tenant_id = $1 AND collection_id = $2", tenant, caseID)
+		// with the tenant set, as the application does: without it row-level security hides the row and the UPDATE changes nothing, which is no refusal
+		refused, err := pool.Begin(ctx)
+		Expect(err).NotTo(HaveOccurred())
+		defer refused.Rollback(ctx) //nolint:errcheck // the refused statement leaves nothing to keep
+		_, err = refused.Exec(ctx, "SELECT set_config('app.tenant_id', $1, true)", tenant)
+		Expect(err).NotTo(HaveOccurred())
+		_, err = refused.Exec(ctx, "UPDATE forensic.case_record SET hub_threshold = 1 WHERE tenant_id = $1 AND collection_id = $2", tenant, caseID)
 		Expect(err).To(MatchError(ContainSubstring("case_record_hub_threshold_chk")), "the table refuses a threshold outside 2 to 1000")
 	})
 

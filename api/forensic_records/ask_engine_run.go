@@ -537,7 +537,13 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 		digest = askResultDigest(result)
 		audit.Shape = askShape(result.Columns, len(result.Rows))
 		audit.Checks = askChecksPassed(frame, validated)
-		return finish(askAnswerResponse(req, cat, validated, result, frame, absence, audit))
+		answer := askAnswerResponse(req, cat, validated, result, frame, absence, audit)
+		// the rows behind the figure (ask_engine_evidence.go): by code, read-only, and never able to fail the answer
+		evidence := askCollectEvidenceFn(ctx, db, req.TenantID, req.CollectionID, cat, validated, result, limits)
+		askAttachEvidence(answer, evidence)
+		// the model's reading of the result is asked for later, by the workspace, once the figure is on the screen (ask_engine_reading.go)
+		askAttachReading(answer, req, result, askDescribe(validated, cat).Sentences(), evidence, absence)
+		return finish(answer)
 	}
 	return decline("no draft passed the checks")
 }

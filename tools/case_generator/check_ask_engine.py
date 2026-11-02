@@ -34,7 +34,7 @@ from test_ingest_v2 import PsqlSink  # noqa: E402
 from test_subscriber_oracle import ingest_all  # noqa: E402
 
 SPEC_FOCUS = "Ask engine executor on a case database"
-EXPECTED_SPECS = 28
+EXPECTED_SPECS = 30   # 28 and the evidence-behind-a-figure spec (2026-11-02); the 30th is the hub-threshold check that now sets its tenant
 ORION = dict(seed=5001, people=100, subjects=12, associates=24, period_days=75, communities=5, p2_pairs=5, p3_pairs=2, p7_plants=3)   # the shape of the showcase case Orion
 PARAMS = dict(seed=61, people=60, subjects=6, associates=12, period_days=20, p2_pairs=3, p3_pairs=2, p7_plants=3)
 

@@ -377,6 +377,59 @@ modality, detected_type, classifier_confidence, processing_route, processing_sta
 		Expect(fmt.Sprint(rows[0]["n"])).To(Equal(fmt.Sprint(events)))
 	})
 
+	It("shows the rows behind a figure: the count is recomputed from the files, a list shows the rows of the answer, and a summary view says it is not itemised", func() {
+		subject, other, _, _ := pair()
+		savedModel := askModel
+		defer func() { askModel = savedModel }()
+		ask := func(sql, question string) *hybridQueryResponse {
+			askModel = func(context.Context, config, string, []govSQLTurn) (string, string) {
+				raw, _ := json.Marshal(map[string]any{"answerable": true, "sql": sql})
+				return string(raw), ""
+			}
+			req := hybridQueryRequest{TenantID: truth.Tenant, CollectionID: truth.CaseID, RequestClass: forensicrequest.GovernedAnalysis, Query: question}
+			resp, audit := runAskEngineV2(ctx, config{SynthesisModel: "scripted"}, pool, req, time.Now())
+			Expect(audit.State).To(Equal("answered"), audit.Reason)
+			return resp
+		}
+
+		own, err := scoped(fmt.Sprintf("SELECT count(*) AS n FROM v_comm_events WHERE src = '%s'", subject))
+		Expect(err).NotTo(HaveOccurred())
+		events, err := strconv.Atoi(fmt.Sprint(own.Rows[0][0])) // what the case holds for the subscriber, read without the evidence path
+		Expect(err).NotTo(HaveOccurred())
+		counted := ask(fmt.Sprintf("SELECT count(*) AS n FROM v_comm_events WHERE src = '%s'", subject), fmt.Sprintf("How many events does %s have?", subject))
+		ev, ok := counted.Enterprise["evidence"].(*askEvidence)
+		Expect(ok).To(BeTrue(), "the answer carries its evidence")
+		Expect(ev.State).To(Equal("itemised"), ev.Reason)
+		Expect(ev.Reconciled).To(Equal("yes"), ev.Check)
+		Expect(ev.Total).To(Equal(events), "the rows in the files add up to the planted truth")
+		Expect(ev.Files).NotTo(BeEmpty())
+		sum := 0
+		for _, f := range ev.Files {
+			Expect(f.SourceFile).NotTo(BeEmpty(), "every file is named")
+			sum += f.Rows
+		}
+		Expect(sum).To(Equal(events))
+		Expect(ev.Rows).NotTo(BeEmpty())
+		Expect(len(ev.Rows)).To(BeNumerically("<=", askEvidenceRowCap))
+		for _, r := range ev.Rows {
+			Expect(r.SourceFile).NotTo(BeEmpty())
+			Expect(r.SourceRow).To(BeNumerically(">", 0), "the typed row's own position is read")
+		}
+		Expect(strings.Join(counted.Enterprise["limitations"].([]string), " ")).To(ContainSubstring("are behind this answer"))
+
+		listed := ask(fmt.Sprintf("SELECT dst AS other_party, start_utc FROM v_comm_events WHERE src = '%s' ORDER BY start_utc LIMIT 3", subject), fmt.Sprintf("List the first 3 events of %s.", subject))
+		lev := listed.Enterprise["evidence"].(*askEvidence)
+		Expect(lev.State).To(Equal("itemised"), lev.Reason)
+		Expect(lev.Kind).To(Equal("rows"))
+		Expect(lev.Rows).To(HaveLen(len(listed.Enterprise["data_grid"].(map[string]any)["rows"].([]map[string]any))))
+		Expect(lev.Reconciled).To(Equal("yes"), lev.Check)
+
+		summary := ask(fmt.Sprintf("SELECT events AS n FROM v_contact_pairs WHERE src = '%s' AND dst = '%s'", subject, other), fmt.Sprintf("How many events are there between %s and %s?", subject, other))
+		sev := summary.Enterprise["evidence"].(*askEvidence)
+		Expect(sev.State).To(Equal("not_itemised"))
+		Expect(sev.Reason).To(ContainSubstring("summarises many records"))
+	})
+
 	It("says that a number the case does not hold has no record, and does not answer zero", func() {
 		savedModel := askModel
 		defer func() { askModel = savedModel }()

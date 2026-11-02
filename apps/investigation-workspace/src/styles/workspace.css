@@ -5728,3 +5728,24 @@ button.rail-case-switch:hover { border-color: var(--analyst-line-strong); backgr
 .dp-downloads a { display: inline-flex; align-items: center; gap: var(--analyst-space-8); min-block-size: 44px; }
 .dp-downloads span { color: var(--analyst-text-muted); font-size: var(--analyst-type-caption-size); }
 @media (max-width: 720px) { .dp-downloads li { grid-template-columns: 1fr; } .dp-table__toolbar input { min-inline-size: 0; inline-size: 100%; } }
+
+/* What an answer rests on: the rows behind the figure and the model's reading of the result (components/AnswerBasis.jsx). Quiet by design: the figure stays the first thing read. */
+.answer-basis__evidence { margin: var(--analyst-space-8) 0 0; border-block: 1px solid var(--analyst-line); padding-block: var(--analyst-space-8); }
+.answer-basis__evidence > summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--analyst-space-8) var(--analyst-space-16); cursor: pointer; font-size: var(--analyst-type-body-sm-size); color: var(--analyst-text-secondary); }
+.answer-basis__lead { font-weight: var(--analyst-font-weight-semibold); color: var(--analyst-text); }
+.answer-basis__check { font-size: var(--analyst-type-caption-size); }
+.answer-basis__check--ok { color: var(--analyst-status-ready); }
+.answer-basis__check--warn { color: var(--analyst-status-failed); }
+.answer-basis__check--muted { color: var(--analyst-text-muted); }
+.answer-basis__sentence { margin: var(--analyst-space-8) 0 0; font-size: var(--analyst-type-body-sm-size); color: var(--analyst-text-secondary); }
+.answer-basis__table { inline-size: 100%; margin-block-start: var(--analyst-space-8); border-collapse: collapse; font-size: var(--analyst-type-caption-size); }
+.answer-basis__table th, .answer-basis__table td { padding: 4px var(--analyst-space-8); text-align: start; border-block-end: 1px solid var(--analyst-line); vertical-align: top; overflow-wrap: anywhere; }
+.answer-basis__table th { color: var(--analyst-text-muted); font-weight: var(--analyst-font-weight-semibold); }
+.answer-basis__num { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.answer-basis__preview { color: var(--analyst-text-secondary); }
+.answer-basis__note { margin: var(--analyst-space-8) 0 0; font-size: var(--analyst-type-body-sm-size); color: var(--analyst-text-muted); }
+.answer-basis__reading { margin: var(--analyst-space-12) 0 0; padding: var(--analyst-space-12) var(--analyst-space-16); border-inline-start: var(--analyst-accent-rule-size) solid var(--analyst-accent); background: var(--analyst-surface-1); }
+.answer-basis__reading h4 { margin: 0 0 var(--analyst-space-8); font-size: var(--analyst-type-label-size); color: var(--analyst-text-muted); font-weight: var(--analyst-font-weight-semibold); }
+.answer-basis__reading p { margin: 0; }
+.answer-basis__reading--waiting { display: flex; align-items: center; gap: var(--analyst-space-8); color: var(--analyst-text-secondary); }
+.answer-basis__disclosure { margin-block-start: var(--analyst-space-8) !important; font-size: var(--analyst-type-caption-size); color: var(--analyst-text-muted); }

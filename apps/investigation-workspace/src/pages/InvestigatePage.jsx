@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowDown, Check, ChevronDown, CircleAlert, CircleCheckBig, CircleHelp, CircleSlash, Clock3, Copy, FileSearch, Layers, ListTree, LoaderCircle, MessageSquarePlus, Pencil, SearchX, Square, Table2 } from 'lucide-react'
 import { AskInput } from '../components/AskInput.jsx'
 import { InvestigationResult } from '../components/InvestigationResult.jsx'
+import { AnswerEvidence, AnswerReading } from '../components/AnswerBasis.jsx'
 import { QuestionTrail } from '../components/QuestionTrail.jsx'
 import { askCase, getQueryCapabilities } from '../lib/apiClient.js'
 import { presentInvestigationResponse } from '../lib/investigationPresentation.js'
@@ -317,6 +318,8 @@ export default function InvestigatePage() {
                                   showOriginalQuestion={false}
                                 />
                               )}
+                              {answered ? <AnswerEvidence evidence={presentation.original?.enterprise?.evidence} citations={presentation.citations} /> : null}
+                              {answered ? <AnswerReading caseId={caseId} reading={presentation.original?.enterprise?.reading} /> : null}
                               {presentation && presentation.state !== 'clarify' ? (
                                 <div className="ch-actions" role="group" aria-label="Actions for this answer">
                                   {hasEvidence ? <button type="button" className={`ch-action${panelId === turn.id ? ' is-on' : ''}`} aria-pressed={panelId === turn.id} onClick={() => setPanelId(panelId === turn.id ? null : turn.id)}><FileSearch aria-hidden="true" />Evidence{sourceCount ? <span className="ch-btn__count">{sourceCount}</span> : null}</button> : null}

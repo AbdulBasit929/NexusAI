@@ -431,6 +431,7 @@ var _ = Describe("Ask engine run", func() {
 		savedExec    = askExec
 		savedProbeFn = askProbeFn
 		savedCaseSet = askCaseSettingsFn
+		savedEvidence = askCollectEvidenceFn
 		savedSink    = askAuditSink
 		savedCover   = askCoverageRead
 		audits       []map[string]any
@@ -456,6 +457,7 @@ var _ = Describe("Ask engine run", func() {
 		}
 		// the specs hand the engine a pool that holds no connection: the case's settings (migration 032) are not read from it
 		askCaseSettingsFn = func(context.Context, *pgxpool.Pool, string, string) (askCaseSetting, error) { return askCaseSetting{}, nil }
+		askCollectEvidenceFn = func(context.Context, *pgxpool.Pool, string, string, *askCatalogue, *askValidated, *govSQLResult, askLimits) *askEvidence { return nil }
 		askCoverageCache.entries = nil
 		askCoverageRead = func(context.Context, *pgxpool.Pool, string, string) (askCoverage, error) {
 			return askCoverage{Files: 3, Typed: 3, AnyComm: true, AnySession: true, AnyUsage: true, AnyVolume: true}, nil
@@ -468,6 +470,7 @@ var _ = Describe("Ask engine run", func() {
 	AfterEach(func() {
 		askModel, askCatalogueLoader, askExec, askProbeFn, askAuditSink, askCoverageRead = savedModel, savedLoader, savedExec, savedProbeFn, savedSink, savedCover
 		askCaseSettingsFn = savedCaseSet
+		askCollectEvidenceFn = savedEvidence
 	})
 
 	const q = "How many incoming SMS did 923000000101 receive?"
