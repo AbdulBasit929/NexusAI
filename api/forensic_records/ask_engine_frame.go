@@ -56,6 +56,9 @@ type askFrame struct {
 	// Params is what the question says about each runtime parameter (ask_engine_params.go); ParamUses is what will be used for the query, set by the run.
 	Params    map[string]askParamRead
 	ParamUses []askParamUse
+	// Domains are the values that the case's data holds in the columns of askDomainColumns ("view.column" to the values), for the views the question reads; set by the run from the coverage. nil when
+	// unknown, which makes the check of ask_engine_domains.go do nothing.
+	Domains map[string][]string
 }
 
 // askUnitFollows is whether the text right after position end starts with a unit of time or length.
@@ -730,10 +733,20 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	// same events, so a query that adds both directions counts every call twice (found 2026-10-26 on the live service: "How many events are there between A and B?" answered 8 where the records hold 4;
 	// the repair message of the stage-3 milestone run had said "both directions"). Reading both directions is right when only one of the two is a subscriber (there is one row), so the answer is the
 	// pair's rows taken ONCE: MAX of the events column, or the distinct start times of the events.
+	// A word of the question that is a value of a column the query filters on is not answered with another value of it (found by the verified bank run of 2026-11-02, VB-INVE-003: "tabular files"
+	// was answered with modality = 'document').
+	askDomainObligations(f, v, add)
+	// The pair itself is one predicate: both ends of every event are the two numbers, and every other condition applies to all of them (found by the verified bank run of 2026-11-02, VB-PAIR-007:
+	// `src = A OR dst = A OR src = B OR (dst = B AND event_type = 'voice')` summed every event of either number, 57,670 seconds where the pair's calls last 12,290).
+	if message, reason := askPairScope(f, v); message != "" {
+		add("PAIR_SCOPE", message, reason)
+	}
 	if a, b, both := askBothDirections(sql, f.Numbers); both {
 		switch {
 		case askUsesView(v, "v_contact_pairs") && askSQLMentions(sql, "sum(", "count("):
 			add("PAIR_DIRECTION", fmt.Sprintf("The events of %[1]s with %[2]s and of %[2]s with %[1]s are the same events: a call between two subscribers is in both of their records. Take the pair once: SELECT MAX(events) ... WHERE src IN ('%[1]s', '%[2]s') AND dst IN ('%[1]s', '%[2]s') (when both are subscribers the two rows hold the same calls, when only one is there is one row). Write the pair as two IN lists joined by AND, so that any other condition is one more AND. Do not SUM or COUNT both directions, which counts every call twice.", a, b), "the query adds the events of the two numbers in both directions, which counts every call between two subscribers twice")
+		case askUsesView(v, "v_comm_events") && askSQLMentions(sql, "sum(") && !askPairSumOnce(sql):
+			add("PAIR_DIRECTION", fmt.Sprintf("The events of %[1]s with %[2]s and of %[2]s with %[1]s are the same events: a call between two subscribers is in both of their records at the same time. Add each call once: SELECT SUM(duration_s) FROM (SELECT DISTINCT start_utc, duration_s FROM v_comm_events WHERE src IN ('%[1]s', '%[2]s') AND dst IN ('%[1]s', '%[2]s') AND event_type = 'voice') t (the dates or any other condition go inside the subquery, joined by AND). Do not SUM the rows of both directions directly, which adds every call between two subscribers twice, and do not SUM(DISTINCT duration_s), which drops calls of equal length.", a, b), "the query adds up the events of the two numbers in both directions, which adds every call between two subscribers twice")
 		case askUsesView(v, "v_comm_events") && askSQLMentions(sql, "count(") && !askSQLMentions(sql, "count(distinct", "count( distinct"):
 			add("PAIR_DIRECTION", fmt.Sprintf("The events of %[1]s with %[2]s and of %[2]s with %[1]s are the same events: a call between two subscribers is in both of their records at the same time. Count them once: SELECT COUNT(DISTINCT start_utc) ... WHERE src IN ('%[1]s', '%[2]s') AND dst IN ('%[1]s', '%[2]s') AND (the dates or any other condition), not COUNT(*). Write the pair as two IN lists joined by AND, so that every other condition applies to both directions.", a, b), "the query counts the events of the two numbers in both directions, which counts every call between two subscribers twice")
 		}

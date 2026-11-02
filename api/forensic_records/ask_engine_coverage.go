@@ -48,6 +48,9 @@ type askCoverage struct {
 	Unpopulated map[string]bool
 	// Repeats is how many rows of the case's typed call and internet records are flagged as exact repeats and left out of the views; the answer says so.
 	Repeats int64
+	// Domains are the values the case's evidence files hold in the columns of askDomainColumns ("view.column" to the sorted values), which the catalogue's descriptions may not all list
+	// (the description of modality names five values; a case also holds text and tabular files). nil when not read (a stub in a spec).
+	Domains map[string][]string
 }
 
 // askPopulationColumns are the view columns whose emptiness makes a filter or an aggregate meaningless, by the typed table that holds them.
@@ -188,7 +191,10 @@ var askCoverageRead = func(ctx context.Context, db *pgxpool.Pool, tenantID, coll
 	if err = askReadDateOnlyAccounts(ctx, tx, tenantID, collectionID, &c); err != nil {
 		return c, err
 	}
-	err = askReadPopulation(ctx, tx, tenantID, collectionID, &c)
+	if err = askReadPopulation(ctx, tx, tenantID, collectionID, &c); err != nil {
+		return c, err
+	}
+	err = askReadDomains(ctx, tx, tenantID, collectionID, &c)
 	return c, err
 }
 

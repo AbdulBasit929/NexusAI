@@ -275,6 +275,8 @@ func askUserPrompt(f askFrame) string {
 	if f.Cues["night"] {
 		hints = append(hints, "Night is the hours 0 to 5 of the case clock.")
 	}
+	// The values a column holds in THIS case (the description of modality lists five; a case also holds text and tabular files, ask_engine_domains.go).
+	hints = append(hints, askDomainHints(f)...)
 	if len(hints) > 0 {
 		b.WriteString("Hints: " + strings.Join(hints, " ") + "\n")
 	}
@@ -381,6 +383,7 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 	if err != nil {
 		return decline("could not read the case's coverage of the typed tables")
 	}
+	frame.Domains = askDomainsFor(coverage, chosen)
 	if gap := askCoverageGap(coverage, chosen); gap != "" {
 		return decline("the analyst views cannot speak for this case: " + gap)
 	}

@@ -135,6 +135,15 @@
     "sql": "SELECT count(*) AS n FROM v_comm_events WHERE src = '923000000101' AND dst = '923000000102' AND direction = 'incoming'"
   },
   {
+    "id": "pair-talk-time",
+    "question": "What is the total duration of the voice calls between 923000000101 and 923000000102, in seconds?",
+    "views": [
+      "v_comm_events"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT sum(duration_s) AS total_seconds FROM (SELECT DISTINCT start_utc, duration_s FROM v_comm_events WHERE src IN ('923000000101', '923000000102') AND dst IN ('923000000101', '923000000102') AND event_type = 'voice') t"
+  },
+  {
     "id": "evidence-count",
     "question": "How many images are in this case?",
     "views": [

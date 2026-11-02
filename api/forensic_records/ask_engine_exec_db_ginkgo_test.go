@@ -313,6 +313,7 @@ var _ = Describe("Ask engine executor on a case database", Ordered, func() {
 		Expect(cover.Unpopulated).NotTo(BeNil(), "the population probes ran")
 		Expect(cover.Unpopulated).NotTo(HaveKey("v_comm_events.imsi"), "the planted case's call records state their SIM")
 		Expect(cover.Repeats).To(BeNumerically(">=", 0))
+		Expect(cover.Domains).To(HaveKey("v_evidence_inventory.modality"), "the domain probe ran")
 
 		// an older case: a call-record file, no typed row
 		tx, err := pool.Begin(ctx)
@@ -328,10 +329,13 @@ modality, detected_type, classifier_confidence, processing_route, processing_sta
 		Expect(err).NotTo(HaveOccurred())
 		Expect(old.Files).To(Equal(1))
 		Expect(old.Typed).To(Equal(0))
+		// the values the case's files hold in the columns the catalogue describes only in part (modality, detected type), read with the coverage (ask_engine_domains.go)
+		Expect(old.Domains).To(Equal(map[string][]string{"v_evidence_inventory.modality": {"structured_records"}, "v_evidence_inventory.detected_type": {"cdr"}}))
 		Expect(askCoverageGap(old, []string{"v_comm_events"})).To(Equal("the case has no typed call records"))
 		empty, err := askCoverageRead(ctx, pool, "cov-tenant", "nothing-here")
 		Expect(err).NotTo(HaveOccurred())
 		Expect(askCoverageGap(empty, []string{"v_comm_events"})).NotTo(BeEmpty())
+		Expect(empty.Domains["v_evidence_inventory.modality"]).To(BeEmpty(), "a case with no files holds no value")
 		// the engine, asked about the older case, declines before the model is called
 		saved := askModel
 		defer func() { askModel = saved }()
