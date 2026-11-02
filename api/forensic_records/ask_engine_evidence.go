@@ -830,7 +830,7 @@ func askAttachEvidence(resp *hybridQueryResponse, ev *askEvidence) {
 	if ev.Kind == "rows" {
 		line = fmt.Sprintf("The %s rows shown come from %s", govSQLGroup(strconv.Itoa(ev.Total)), askEvidencePlural(len(ev.Files), "source file"))
 	}
-	if ev.Check != "" {
+	if ev.Check != "" && ev.Kind != "lines" { // the lines' own check sits beside the lines in the workspace; repeating it among the notes only lengthens them
 		line += ". " + ev.Check
 	} else {
 		line += "."
