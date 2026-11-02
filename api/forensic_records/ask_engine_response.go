@@ -266,7 +266,7 @@ func askAnswerResponse(req hybridQueryRequest, cat *askCatalogue, v *askValidate
 		limitations = append(limitations, "A cell site is a coverage area, not the position of a person.")
 	}
 	limitations = append(limitations, askViewCaveats(v)...)
-	limitations = append(limitations, askParamNotes(f.ParamUses)...)
+	limitations = append(limitations, askParamNotes(askParamUsesRead(f.ParamUses, v))...)
 	rows := askRowMaps(r)
 	answer := map[string]any{
 		"result_state": "COMPLETED", "answer": headline, "grounding": askAnswerGround,

@@ -410,6 +410,24 @@ func askKnownSetting(name string) bool {
 	return false
 }
 
+// askParamUsesRead keeps the parameters that govern a view the query actually reads. The shortlist of views offered to the model can be wider than the query it writes; a note that names a window or a
+// threshold the query never used would say something false ("Co-location window used: 10 minutes" under a question about the length of calls).
+func askParamUsesRead(uses []askParamUse, v *askValidated) []askParamUse {
+	if v == nil {
+		return uses
+	}
+	var kept []askParamUse
+	for _, u := range uses {
+		for _, name := range u.Param.Views {
+			if askReadsView(v, name) {
+				kept = append(kept, u)
+				break
+			}
+		}
+	}
+	return kept
+}
+
 // askParamNotes is the line of the answer that says which values were used and where each came from.
 func askParamNotes(uses []askParamUse) []string {
 	var out []string
