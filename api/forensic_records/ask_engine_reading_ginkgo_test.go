@@ -32,6 +32,11 @@ var _ = Describe("Ask engine reading of a result", func() {
 				Expect(askReadingCheck(text, shown)).To(ContainSubstring("not allowed"), text)
 			}
 		})
+		It("refuses a name of the engine's own (a view, a column, a condition) and asks for everyday words", func() {
+			Expect(askReadingCheck("This rests on 3,871 rows of the v_comm_events table.", shown)).To(ContainSubstring("internal"))
+			Expect(askReadingCheck("Calls where event_type = 'voice' lasted 105.3568 seconds.", shown)).To(ContainSubstring("internal"))
+			Expect(askReadingCheck("The average voice call lasts 105.3568 seconds.", shown)).To(BeEmpty())
+		})
 		It("refuses an empty or a long reading", func() {
 			Expect(askReadingCheck("  ", shown)).To(ContainSubstring("empty"))
 			Expect(askReadingCheck(strings.Repeat("The average is 105.3568 seconds. ", 30), shown)).To(ContainSubstring("longer than"))
@@ -97,6 +102,20 @@ var _ = Describe("Ask engine reading of a result", func() {
 			Expect(calls).To(Equal(2))
 			Expect(seen[1]).To(ContainSubstring("Your last reading was refused: the number 110 does not occur"))
 		})
+		It("asks again, shorter, when the model ran out of room before it ended its reading", func() {
+			var seen []string
+			askReadingModel = func(_ context.Context, _ config, _, _, user string) (string, string) {
+				seen = append(seen, user)
+				if len(seen) == 1 {
+					return "", "NOT_FINISHED"
+				}
+				return `{"reading":"The average is 105.3568 seconds."}`, ""
+			}
+			got := askReadingMake(context.Background(), config{SynthesisModel: "m"}, in())
+			Expect(got.State).To(Equal("ready"))
+			Expect(seen).To(HaveLen(2))
+			Expect(seen[1]).To(ContainSubstring("cut off. Write at most two short sentences"))
+		})
 		It("drops a reading that fails twice, and says so", func() {
 			scripted("This looks suspicious.", "It proves the point.")
 			got := askReadingMake(context.Background(), config{SynthesisModel: "m"}, in())
@@ -105,7 +124,9 @@ var _ = Describe("Ask engine reading of a result", func() {
 			Expect(got.Reason).To(ContainSubstring("did not pass the check against the rows"))
 		})
 		It("says when the model did not answer", func() {
-			askReadingModel = func(context.Context, config, string, string, string) (string, string) { return "", "TIMEOUT_OR_UNAVAILABLE" }
+			askReadingModel = func(context.Context, config, string, string, string) (string, string) {
+				return "", "TIMEOUT_OR_UNAVAILABLE"
+			}
 			got := askReadingMake(context.Background(), config{SynthesisModel: "m"}, in())
 			Expect(got.State).To(Equal("unavailable"))
 			Expect(got.Reason).To(ContainSubstring("did not answer in time"))

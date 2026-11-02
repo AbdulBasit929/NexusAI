@@ -37,9 +37,9 @@ const (
 	askReadingRows      = 20
 	askReadingTTL       = 30 * time.Minute
 	askReadingStoreMax  = 300
-	askReadingMaxTokens = 320
-	askReadingTimeout   = 60 * time.Second
-	askReadingMaxChars  = 700
+	askReadingMaxTokens = 200
+	askReadingTimeout   = 120 * time.Second // measured: a reading takes 55 to 60 s on the laptop, and the figure never waits for it
+	askReadingMaxChars  = 600
 )
 
 // askReadingEnabled: on unless the environment turns it off.
@@ -189,8 +189,9 @@ func askAttachReading(resp *hybridQueryResponse, req hybridQueryRequest, r *govS
 // ---- the checks ---------------------------------------------------------------------------------------------------------------------------------------
 
 var (
-	askReadingNumber = regexp.MustCompile(`\d{4}-\d{2}-\d{2}|\d[\d,]*(?:\.\d+)?`)
-	askReadingAccuse = regexp.MustCompile(`(?i)\b(guilty|suspect\w*|suspicious\w*|criminal\w*|crime\w*|illegal\w*|conspir\w*|accomplice\w*|culprit\w*|perpetrator\w*|murder\w*|terror\w*|innocent|proves?|proven|definitely|certainly|obviously)\b`)
+	askReadingNumber   = regexp.MustCompile(`\d{4}-\d{2}-\d{2}|\d[\d,]*(?:\.\d+)?`)
+	askReadingInternal = regexp.MustCompile(`(?i)\bv_[a-z_]+\b|\b[a-z]+_[a-z_]+\s*=\s*'`)
+	askReadingAccuse   = regexp.MustCompile(`(?i)\b(guilty|suspect\w*|suspicious\w*|criminal\w*|crime\w*|illegal\w*|conspir\w*|accomplice\w*|culprit\w*|perpetrator\w*|murder\w*|terror\w*|innocent|proves?|proven|definitely|certainly|obviously)\b`)
 )
 
 // askReadingAllowed is every number, date and identifier of the text the model was shown; a decimal also in the roundings an analyst would write.
@@ -215,9 +216,12 @@ func askReadingCheck(text, shown string) string {
 	case text == "":
 		return "the reading is empty"
 	case len(text) > askReadingMaxChars:
-		return fmt.Sprintf("the reading is longer than %d characters; write two to four short sentences", askReadingMaxChars)
+		return fmt.Sprintf("the reading is longer than %d characters; write two or three short sentences", askReadingMaxChars)
 	case !utf8.ValidString(text):
 		return "the reading is not valid text"
+	}
+	if m := askReadingInternal.FindString(text); m != "" {
+		return "the name \"" + m + "\" is internal; speak in everyday words (for example, voice calls)"
 	}
 	if m := askReadingAccuse.FindString(text); m != "" {
 		return "the word \"" + m + "\" is not allowed: a record shows that something was recorded, never what a person did or why"
@@ -234,9 +238,10 @@ func askReadingCheck(text, shown string) string {
 
 // ---- the model -----------------------------------------------------------------------------------------------------------------------------------------------
 
-const askReadingSystem = `You explain the result of a query over forensic records to an analyst, in plain English, in two to four short sentences.
+const askReadingSystem = `You explain the result of a query over forensic records to an analyst, in plain English, in two or three short sentences.
 Say, in this order: what the result is (use the figure and values exactly as given); what it rests on (the records and files named); one limit the analyst must keep in mind.
 Use ONLY the text you are given. Write every number, date and identifier exactly as it appears there; never add, round up, estimate or compute one.
+Speak in everyday words: never name a table, a view, a column or a query (say "voice calls", not "event_type = 'voice'"), and never say "the analysis" or "the dataset".
 A record shows that something was recorded, never who a person is, what they did or why. Do not say anything is suspicious, and do not draw conclusions about people.
 If the result shows no rows, say that nothing was found. Answer with JSON: {"reading": "..."}.`
 
@@ -299,6 +304,12 @@ func askReadingMake(ctx context.Context, cfg config, in *askReadingInput) *askRe
 	user := in.Shown
 	for attempt := 0; attempt < 2; attempt++ {
 		content, failure := askReadingModel(ctx, cfg, cfg.SynthesisModel, askReadingSystem, user)
+		if failure == "NOT_FINISHED" && attempt == 0 {
+			// the model ran out of room before it ended its sentence: ask again, shorter
+			user = in.Shown + "\nYour last reading was too long and was cut off. Write at most two short sentences."
+			out.State, out.Reason = "unavailable", "the model did not finish its reading in time ("+failure+")"
+			continue
+		}
 		if failure != "" {
 			out.State, out.Reason = "unavailable", "the model did not answer in time ("+failure+")"
 			break

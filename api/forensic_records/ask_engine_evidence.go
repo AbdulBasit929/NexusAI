@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -38,7 +39,7 @@ const (
 	askEvidenceContract = "forensics.answer-evidence/v1"
 	askEvidenceRowCap   = 25
 	askEvidenceFileCap  = 100
-	askEvidenceBudget   = 12 * time.Second
+	askEvidenceBudget   = 25 * time.Second
 	askEvidenceEnv      = "FORENSIC_ASK_V2_EVIDENCE"
 )
 
@@ -84,6 +85,29 @@ type askEvidencePlan struct {
 }
 
 var askPlainIdent = regexp.MustCompile(`^[a-z_][a-z0-9_]*$`)
+
+// askSheetOffsets remembers, for each file, how far its sheet rows lie from the typed rows' own count (a statement has title and header rows above its data). It only speeds the search up: every row
+// is still checked by its content at the remembered place before it is used, and searched for again when the check fails.
+var askSheetOffsets = struct {
+	sync.Mutex
+	m map[string]int
+}{m: map[string]int{}}
+
+func askSheetOffsetOf(evidenceID string) (int, bool) {
+	askSheetOffsets.Lock()
+	defer askSheetOffsets.Unlock()
+	offset, ok := askSheetOffsets.m[evidenceID]
+	return offset, ok
+}
+
+func askSheetOffsetSet(evidenceID string, offset int) {
+	askSheetOffsets.Lock()
+	defer askSheetOffsets.Unlock()
+	if len(askSheetOffsets.m) >= 4096 {
+		askSheetOffsets.m = map[string]int{}
+	}
+	askSheetOffsets.m[evidenceID] = offset
+}
 
 // askEvidencePlanOf reads the plan from a validated query; the second value is the reason when the rows cannot be itemised.
 func askEvidencePlanOf(v *askValidated, columns []string) (*askEvidencePlan, string) {
@@ -626,8 +650,6 @@ WHERE t.tenant_id = $1 AND t.collection_id = $2 AND t.%[1]s::text = ANY($3)`, so
 	if err := found.Err(); err != nil {
 		return err
 	}
-	offsets := map[string]int{}
-	known := map[string]bool{}
 	for _, key := range keys {
 		r, ok := byKey[key]
 		if !ok {
@@ -636,15 +658,15 @@ WHERE t.tenant_id = $1 AND t.collection_id = $2 AND t.%[1]s::text = ANY($3)`, so
 		payload := payloads[key]
 		if source.Locatable && payload != "" && payload != "{}" {
 			// the file's own offset first (a statement's title and header rows), checked by content; the whole file's rows otherwise
-			if known[r.EvidenceID] {
-				if row, hash, ok := askEvidenceSheetRow(ctx, tx, tenantID, r.EvidenceID, r.SourceRow+offsets[r.EvidenceID], payload); ok {
+			if offset, known := askSheetOffsetOf(r.EvidenceID); known {
+				if row, hash, ok := askEvidenceSheetRow(ctx, tx, tenantID, r.EvidenceID, r.SourceRow+offset, payload); ok {
 					r.SheetRow, r.RowHash = row, hash
 				}
 			}
 			if r.SheetRow == 0 {
 				if row, hash, ok := askEvidenceSheetRow(ctx, tx, tenantID, r.EvidenceID, 0, payload); ok {
 					r.SheetRow, r.RowHash = row, hash
-					offsets[r.EvidenceID], known[r.EvidenceID] = row-r.SourceRow, true
+					askSheetOffsetSet(r.EvidenceID, row-r.SourceRow)
 				}
 			}
 		}
