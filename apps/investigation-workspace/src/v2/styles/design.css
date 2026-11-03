@@ -1,0 +1,20 @@
+/* The design language page (/design/language). */
+@layer nx-pages {
+  .nx-dl-themes { display: grid; gap: var(--nx-s-4); grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .nx-dl-theme { display: grid; gap: var(--nx-s-3); padding: var(--nx-s-4); border: 1px solid var(--nx-border); border-radius: var(--nx-r-3); background: var(--nx-bg); color: var(--nx-text); }
+  .nx-dl-theme h3 { font-size: var(--nx-fs-md); }
+  .nx-dl-swatches { display: grid; gap: var(--nx-s-1); }
+  .nx-dl-swatches li { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: var(--nx-s-2); font-size: var(--nx-fs-sm); }
+  .nx-dl-chip { inline-size: 28px; block-size: 20px; border-radius: var(--nx-r-1); border: 1px solid var(--nx-border); }
+  .nx-dl-hex { color: var(--nx-text-3); font-size: var(--nx-fs-xs); }
+  .nx-dl-data { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--nx-s-1); }
+  .nx-dl-data li { block-size: 24px; border-radius: var(--nx-r-1); }
+  .nx-dl-ratio { color: var(--nx-text-2); font-size: var(--nx-fs-xs); }
+  .nx-dl-type { gap: var(--nx-s-3); }
+  .nx-dl-components { gap: var(--nx-s-4); }
+  .nx-dl-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--nx-s-2) var(--nx-s-3); }
+  .nx-dl-grid { display: grid; gap: var(--nx-s-3); grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); align-items: start; }
+  .nx-dl-space { display: inline-flex; align-items: flex-end; gap: var(--nx-s-1); font-size: var(--nx-fs-xs); color: var(--nx-text-3); }
+  .nx-dl-space i { display: block; background: var(--nx-accent); border-radius: 2px; }
+  .nx-dl-radius { display: inline-grid; place-items: center; inline-size: 56px; block-size: 40px; border: 1px solid var(--nx-border-strong); font-size: var(--nx-fs-xs); color: var(--nx-text-2); }
+}

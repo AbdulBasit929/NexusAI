@@ -41,6 +41,8 @@ export default function AskPage() {
   const panelTurn = turns.find(turn => turn.id === panelId) || null
 
   useEffect(() => { globalThis.document.title = `Ask · ${title || caseId} · NexusAI` }, [title, caseId])
+  // Opening the evidence on a screen that cannot hold three columns folds the history away, so the conversation keeps room to be read.
+  useEffect(() => { if (panelId && (globalThis.innerWidth || 1440) < 1700) setHistoryOpen(false) }, [panelId])
 
   const submittedScope = useCallback(() => ({ id: scope, label: scope === 'all' ? 'All evidence' : family.label, recordType: family.recordType || '' }), [scope, family])
   const askQuestion = useCallback((query, extra = {}) => {
@@ -111,7 +113,7 @@ export default function AskPage() {
 
   return (
     <AppShell caseId={caseId} rail="collapsed" railKind="ask">
-      <main id="workspace-main" className="nx-ask" tabIndex={-1} data-history={historyOpen ? 'open' : 'closed'} data-drawer={panelTurn ? 'open' : 'closed'}>
+      <main id="workspace-main" className="nx-ui nx-ask" tabIndex={-1} data-history={historyOpen ? 'open' : 'closed'} data-drawer={panelTurn ? 'open' : 'closed'}>
         {historyOpen ? (
           <HistoryRail caseId={caseId} entries={history} onPick={runHistory} onNew={newConversation} activeQuery={turns.at(-1)?.query} />
         ) : null}

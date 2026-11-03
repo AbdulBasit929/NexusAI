@@ -94,7 +94,7 @@ function AppearanceMenu() {
 
 export function Topbar({ pathname, attention, onOpenNav, onOpenPalette }) {
   return (
-    <header className="nx-topbar">
+    <header className="nx-ui nx-topbar">
       <button type="button" className="nx-btn nx-btn--ghost nx-btn--icon nx-nav-toggle" aria-label="Open the navigation" onClick={onOpenNav}><MenuIcon aria-hidden="true" /></button>
       <Breadcrumbs pathname={pathname} />
       <span className="nx-topbar__spacer" />

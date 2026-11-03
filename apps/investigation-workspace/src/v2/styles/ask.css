@@ -24,7 +24,7 @@
   .nx-ask__scroll { position: relative; flex: 1; min-block-size: 0; overflow-y: auto; overscroll-behavior: contain; }
   .nx-ask__dock { flex: none; padding: var(--nx-s-3) var(--nx-gutter) var(--nx-s-4); border-block-start: 1px solid var(--nx-border-subtle); background: var(--nx-surface); }
   .nx-ask__dock > .nx-composer { max-inline-size: 1280px; margin-inline: auto; }
-  .nx-jump { position: sticky; inset-block-end: var(--nx-s-4); margin-inline: auto var(--nx-s-4); inline-size: max-content; box-shadow: var(--nx-shadow-overlay); }
+  .nx-jump { position: sticky; inset-block-end: var(--nx-s-4); display: flex; margin-inline-start: auto; margin-inline-end: var(--nx-s-4); inline-size: max-content; box-shadow: var(--nx-shadow-overlay); }
 
   /* ---------- history ---------- */
   .nx-history { inline-size: 288px; display: flex; flex-direction: column; min-block-size: 0; background: var(--nx-bg); border-inline-end: 1px solid var(--nx-border-subtle); }
@@ -137,11 +137,14 @@
   .nx-figure__selected { display: inline-flex; align-items: center; gap: var(--nx-s-2); }
 
   /* ---------- the evidence drawer ---------- */
-  .nx-drawer { display: flex; flex-direction: column; inline-size: min(460px, 36vw); min-inline-size: 360px; min-block-size: 0; background: var(--nx-surface); border-inline-start: 1px solid var(--nx-border); }
+  .nx-drawer { display: flex; flex-direction: column; inline-size: min(560px, 44vw); min-inline-size: 380px; min-block-size: 0; overflow: hidden; background: var(--nx-surface); border-inline-start: 1px solid var(--nx-border); }
   .nx-drawer__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--nx-s-3); flex: none; padding: var(--nx-s-4) var(--nx-s-3) var(--nx-s-3) var(--nx-s-4); border-block-end: 1px solid var(--nx-border-subtle); }
   .nx-drawer__head h2 { font-size: var(--nx-fs-md); }
   .nx-drawer__q { margin-block-start: var(--nx-s-1); color: var(--nx-text-2); font-size: var(--nx-fs-sm); display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  .nx-drawer__body { flex: 1; min-block-size: 0; overflow-y: auto; display: grid; align-content: start; gap: var(--nx-s-6); padding: var(--nx-s-4); }
+  .nx-drawer__body { flex: 1; min-block-size: 0; min-inline-size: 0; overflow: auto; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: var(--nx-s-6); padding: var(--nx-s-4); }
+  .nx-drawer__body > * { min-inline-size: 0; }
+  .nx-drawer__body :where(table) { max-inline-size: none; }
+  .nx-drawer__body .answer-basis__scroll { overflow-x: auto; max-inline-size: 100%; }
   .nx-drawer h3 { margin-block-end: var(--nx-s-2); font-size: var(--nx-fs-sm); }
   .nx-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--nx-s-2); }
   .nx-facts > div { display: grid; gap: 2px; padding: var(--nx-s-3); border: 1px solid var(--nx-border); border-radius: var(--nx-r-3); }
@@ -150,6 +153,14 @@
   .nx-facts b { font-weight: var(--nx-fw-semibold); }
   .nx-facts small { color: var(--nx-text-3); }
   .nx-bullets { display: grid; gap: var(--nx-s-1); padding-inline-start: var(--nx-s-4); list-style: disc; color: var(--nx-text-2); font-size: var(--nx-fs-sm); }
+
+  /* the model's reading and the notes under an answer come from components that are not rebuilt yet: calm them to the same surface language */
+  .nx-ask .answer-basis__reading { display: grid; gap: var(--nx-s-2); max-inline-size: 84ch; padding: var(--nx-s-3) var(--nx-s-4); border: 1px solid var(--nx-border); border-radius: var(--nx-r-3); background: var(--nx-sunken); color: var(--nx-text); box-shadow: none; }
+  .nx-ask .answer-basis__reading h4 { display: flex; align-items: center; gap: var(--nx-s-2); margin: 0; font-size: var(--nx-fs-sm); font-weight: var(--nx-fw-semibold); }
+  .nx-ask .answer-basis__reading p { margin: 0; }
+  .nx-ask .answer-basis__reading--waiting { display: flex; align-items: center; gap: var(--nx-s-3); color: var(--nx-text-2); }
+  .nx-ask .answer-basis__disclosure { font-size: var(--nx-fs-xs); color: var(--nx-text-3); }
+  .nx-ask .answer-basis__note { max-inline-size: 84ch; padding: var(--nx-s-3) var(--nx-s-4); border: 1px solid var(--nx-border); border-radius: var(--nx-r-3); background: var(--nx-sunken); color: var(--nx-text-2); font-size: var(--nx-fs-sm); }
 
   /* ---------- narrower screens: the two side columns become sheets over the conversation ---------- */
   @media (max-width: 1180px) {

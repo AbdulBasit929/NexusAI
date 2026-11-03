@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useCaseOverview } from '../../lib/useCaseOverview.js'
 import { useWorkspaceAttention } from '../../lib/workspaceAttention.js'
@@ -20,24 +20,30 @@ export function AppShell({ caseId = '', children, rail = 'expanded', railKind = 
   const [railChoice, chooseRail] = useRail(railKind, rail)
   const [navOpen, setNavOpen] = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
+  const returnTo = useRef(null)
   const collapsed = railChoice === 'collapsed'
 
   useEffect(() => { setNavOpen(false) }, [location.pathname])
+  const openPalette = useCallback(() => { returnTo.current = globalThis.document?.activeElement || null; setPaletteOpen(true) }, [])
   useEffect(() => {
     function keydown(event) {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); setPaletteOpen(true) }
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); openPalette() }
     }
     globalThis.document.addEventListener('keydown', keydown)
     return () => globalThis.document.removeEventListener('keydown', keydown)
+  }, [openPalette])
+  // Dismissing the search returns focus to where it was; choosing a result does not (the destination page takes focus).
+  const closePalette = useCallback(({ restoreFocus = true } = {}) => {
+    setPaletteOpen(false)
+    if (restoreFocus) globalThis.setTimeout(() => returnTo.current?.focus?.(), 0)
   }, [])
-  const closePalette = useCallback(() => setPaletteOpen(false), [])
 
   return (
     <div className="nx-scope nx-app" data-rail={collapsed ? 'collapsed' : 'expanded'} data-nav-open={navOpen ? 'true' : 'false'}>
       <Sidebar caseId={caseId} overview={overview} attention={attention} collapsed={collapsed} onNavigate={() => setNavOpen(false)} onToggleRail={() => chooseRail(collapsed ? 'expanded' : 'collapsed')} />
       {navOpen ? <div className="nx-scrim" onClick={() => setNavOpen(false)} aria-hidden="true" /> : null}
-      <Topbar pathname={location.pathname} attention={attention} onOpenNav={() => setNavOpen(true)} onOpenPalette={() => setPaletteOpen(true)} />
-      <div className="nx-main" key={caseId ? undefined : 'global'}>{children}</div>
+      <Topbar pathname={location.pathname} attention={attention} onOpenNav={() => setNavOpen(true)} onOpenPalette={openPalette} />
+      <div className="nx-main">{children}</div>
       <CommandPalette open={paletteOpen} onClose={closePalette} caseId={caseId} />
     </div>
   )

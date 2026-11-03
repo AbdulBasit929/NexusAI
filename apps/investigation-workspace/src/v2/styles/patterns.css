@@ -17,4 +17,12 @@
   .nx-palette__option[aria-selected='true'] .nx-palette__detail { color: var(--nx-accent-text); }
   .nx-palette__enter { margin-inline-start: var(--nx-s-2); }
   .nx-palette__note { padding: var(--nx-s-4); color: var(--nx-text-2); font-size: var(--nx-fs-sm); }
+
+  /* a phone: the search is an icon button (this sits in a later layer than the components, whose `kbd` display would otherwise win) */
+  @media (max-width: 640px) {
+    .nx-search-trigger { flex: none; inline-size: var(--nx-ctl-md); padding: 0; justify-content: center; }
+    .nx-search-trigger span,
+    .nx-search-trigger kbd { display: none; }
+    .nx-crumbs li + li::before { display: none; }
+  }
 }

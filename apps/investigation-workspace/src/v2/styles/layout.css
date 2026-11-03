@@ -120,6 +120,7 @@
   .nx-app[data-rail='collapsed'] :is(.nx-brand-name, .nx-nav-label, .nx-nav-item__text, .nx-nav-item__count, .nx-case-card, .nx-recent) { display: none; }
   .nx-app[data-rail='collapsed'] .nx-nav-item { justify-content: center; padding-inline: 0; }
   .nx-app[data-rail='collapsed'] .nx-sidebar__foot { flex-direction: column; }
+  .nx-app[data-rail='collapsed'] nav[aria-label='This case'] { margin-block-start: var(--nx-s-2); padding-block-start: var(--nx-s-2); border-block-start: 1px solid var(--nx-border-subtle); }
 
   /* ---------- top bar ---------- */
   .nx-topbar {
@@ -215,7 +216,9 @@
     :root { --nx-gutter: var(--nx-s-4); }
   }
   @media (max-width: 640px) {
-    .nx-crumbs__case { max-inline-size: 18ch; }
-    .nx-search-trigger kbd { display: none; }
+    /* a phone shows only where you are; the rest of the trail is one tap away in the menu */
+    .nx-crumbs { flex: 1; }
+    .nx-crumbs li:not(:last-child) { display: none; }
+    .nx-crumbs__case { max-inline-size: 20ch; }
   }
 }

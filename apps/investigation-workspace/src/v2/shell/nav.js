@@ -4,7 +4,7 @@ import { Activity, Database, Folders, LayoutDashboard, MessageSquareText, Networ
 export const workspaceNav = [
   { id: 'dashboard', label: 'Dashboard', to: '/', end: true, icon: LayoutDashboard },
   { id: 'across', label: 'Ask across cases', to: '/investigate', icon: MessageSquareText },
-  { id: 'cases', label: 'Cases', to: '/cases', icon: Folders },
+  { id: 'cases', label: 'Cases', to: '/cases', end: true, icon: Folders },
   { id: 'activity', label: 'Activity', to: '/activity', icon: Activity },
 ]
 

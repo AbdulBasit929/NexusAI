@@ -81,7 +81,7 @@ export function CommandPalette({ open, onClose, caseId }) {
   }
   let offset = 0
   return createPortal(
-    <div className="nx-scope nx-overlay" onMouseDown={event => event.target === event.currentTarget && onClose({ restoreFocus: true })}>
+    <div className="nx-scope nx-ui nx-overlay" onMouseDown={event => event.target === event.currentTarget && onClose({ restoreFocus: true })}>
       <div className="nx-dialog nx-palette" role="dialog" aria-modal="true" aria-label="Search or jump to" onKeyDown={keys}>
         <div className="nx-palette__field">
           <Search aria-hidden="true" />

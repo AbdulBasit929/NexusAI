@@ -64,7 +64,7 @@ export function Sidebar({ caseId, overview, attention, collapsed, onToggleRail, 
   const status = caseId ? readiness(overview) : null
   const counts = { cases: entries.length }
   return (
-    <aside className="nx-sidebar" aria-label="Workspace">
+    <aside className="nx-ui nx-sidebar" aria-label="Workspace">
       <NavLink to="/" className="nx-sidebar__brand" aria-label="NexusAI, dashboard" onClick={onNavigate}>
         <BrandMark />
         <span className="nx-brand-name">NexusAI</span>
