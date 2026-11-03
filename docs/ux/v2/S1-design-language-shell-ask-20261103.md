@@ -21,11 +21,12 @@ Wide letter-spacing on small text, monospace display titles that lead with the r
 
 ## Proof (2026-11-03)
 * New tests: `src/v2` has 4 files, 32 tests, all pass (tokens and contrast, shell, table, case label).
+* `vite build` passes (32 s; the only warning is the existing chunk-size notice for ECharts and the map).
 * Whole suite on this branch: 542 passed, 29 failed. 14 of the 29 tested the old shell's markup (`CaseShell.vitest.jsx`, deleted and replaced by `AppShell.vitest.jsx`); the other 15 are in `investigationPresentation.vitest.js` and `InvestigationResult.vitest.jsx`, which read retained response captures that exist only in the lane tree (untracked there), so they fail in any separate worktree and were not touched by this stage.
 * Looked at on the live Orion case at 1440 and 390 wide, light and dark: the empty Ask start, a real answer (a table with its row count, the evidence bar "32 records in 1 file, recomputed from the records: matches", the evidence drawer with the cited rows), the design language page, an old page (Overview, Dashboard) inside the new frame. Screenshots: `docs/ux/evidence/v2-s1/`. No browser errors except the known 503 of the capabilities route.
 
 ## Not done (so do not read this as finished)
-* `vite build`, a Playwright test on a generated case, axe, a keyboard walk by hand, right-to-left and colour-blind checks.
+* A Playwright test on a generated case, axe, a keyboard walk by hand, right-to-left and colour-blind checks.
 * Every other page still shows its old content inside the new frame: Dashboard, Cases, New case, Overview, Evidence list and viewers, Connections, Timeline, Activity, Data, Settings, Ask across cases.
 * History is the browser's own (the conversation service, backend request BR-2, is being built on its own branch). "Pin to findings" and "compare" are not shown because nothing stores them yet.
 * The model's reading takes 43 to 57 seconds; the page says it is being read.
