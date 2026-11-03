@@ -1,0 +1,20 @@
+/* Patterns: compositions of the components (command palette, page headers, key figures). */
+@layer nx-patterns {
+  /* ---------- command palette ---------- */
+  .nx-palette { max-block-size: min(560px, 76vh); }
+  .nx-palette__field { display: flex; align-items: center; gap: var(--nx-s-3); padding: var(--nx-s-3) var(--nx-s-4); border-block-end: 1px solid var(--nx-border-subtle); }
+  .nx-palette__field > svg { flex: none; inline-size: 18px; block-size: 18px; color: var(--nx-text-3); }
+  .nx-palette__field input { flex: 1; min-inline-size: 0; border: 0; background: transparent; font-size: var(--nx-fs-lg); color: var(--nx-text); outline: none; }
+  .nx-palette__field input::placeholder { color: var(--nx-text-3); }
+  .nx-palette__results { overflow-y: auto; padding: var(--nx-s-2); }
+  .nx-palette__group { padding: var(--nx-s-3) var(--nx-s-3) var(--nx-s-1); font-size: var(--nx-fs-xs); font-weight: var(--nx-fw-medium); color: var(--nx-text-3); }
+  .nx-palette__option { display: flex; align-items: center; gap: var(--nx-s-3); min-block-size: var(--nx-ctl-lg); padding-inline: var(--nx-s-3); border-radius: var(--nx-r-2); cursor: pointer; color: var(--nx-text); font-size: var(--nx-fs-sm); }
+  .nx-palette__option svg { flex: none; inline-size: 16px; block-size: 16px; color: var(--nx-text-3); }
+  .nx-palette__option[aria-selected='true'] { background: var(--nx-accent-subtle); color: var(--nx-accent-text); }
+  .nx-palette__option[aria-selected='true'] svg { color: var(--nx-accent-text); }
+  .nx-palette__label { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: var(--nx-fw-medium); }
+  .nx-palette__detail { margin-inline-start: auto; flex: none; max-inline-size: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--nx-fs-xs); color: var(--nx-text-3); }
+  .nx-palette__option[aria-selected='true'] .nx-palette__detail { color: var(--nx-accent-text); }
+  .nx-palette__enter { margin-inline-start: var(--nx-s-2); }
+  .nx-palette__note { padding: var(--nx-s-4); color: var(--nx-text-2); font-size: var(--nx-fs-sm); }
+}

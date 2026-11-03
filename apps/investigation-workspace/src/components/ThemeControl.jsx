@@ -3,7 +3,7 @@ import { useEffect, useId, useSyncExternalStore } from 'react'
 const storageKey = 'nexusai.viewer.theme'
 const changeEvent = 'nexusai:theme-change'
 const mediaQuery = '(prefers-color-scheme: dark)'
-const preferences = new Set(['system', 'light', 'dark'])
+const preferences = new Set(['system', 'light', 'dark', 'contrast'])
 let memoryPreference = 'system'
 
 const choices = [

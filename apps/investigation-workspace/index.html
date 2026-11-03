@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
     <script src="/runtime-config.js"></script>
+    <script>
+      // Apply the stored appearance before first paint so a dark or dense choice never flashes the default.
+      (function () {
+        try {
+          var root = document.documentElement
+          var theme = localStorage.getItem('nexusai.viewer.theme')
+          if (theme === 'light' || theme === 'dark' || theme === 'contrast') root.setAttribute('data-theme', theme)
+          var density = localStorage.getItem('nexusai.viewer.density')
+          if (density === 'compact' || density === 'comfortable') root.setAttribute('data-density', density)
+          if (localStorage.getItem('nexusai.viewer.motion') === 'reduce') root.setAttribute('data-motion', 'reduce')
+        } catch (e) { /* storage can be blocked; the defaults apply */ }
+      })()
+    </script>
     <link rel="icon" href="/favicon.svg" />
     <title>NexusAI</title>
   </head>

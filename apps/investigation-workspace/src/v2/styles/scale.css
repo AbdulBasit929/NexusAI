@@ -1,0 +1,114 @@
+/* Non-colour tokens: type, space, radius, size, motion, layering. Colour roles are in tokens.generated.css.
+   Components use these names only; a raw pixel for spacing or a millisecond literal in a component is a defect. */
+@layer nx-tokens {
+  :root {
+    --nx-font-ui: 'Noto Sans Variable', 'Noto Sans', 'Noto Sans Arabic Variable', 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+    --nx-font-mono: 'Noto Sans Mono Variable', 'Noto Sans Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    --nx-font-ur: 'Noto Sans Arabic Variable', 'Noto Sans Arabic', 'Segoe UI', sans-serif;
+
+    /* type: dense UI is 13 px, body 14 px; text an analyst must read to act is never below 13 px */
+    --nx-fs-xs: 0.75rem;
+    --nx-fs-sm: 0.8125rem;
+    --nx-fs-md: 0.875rem;
+    --nx-fs-lg: 1rem;
+    --nx-fs-xl: 1.125rem;
+    --nx-fs-2xl: 1.375rem;
+    --nx-fs-3xl: 1.75rem;
+    --nx-fs-4xl: 2.25rem;
+    --nx-lh-tight: 1.25;
+    --nx-lh-snug: 1.4;
+    --nx-lh-body: 1.55;
+    --nx-fw-regular: 400;
+    --nx-fw-medium: 500;
+    --nx-fw-semibold: 600;
+
+    /* space: a 4 px grid */
+    --nx-s-0: 0;
+    --nx-s-half: 2px;
+    --nx-s-1: 4px;
+    --nx-s-2: 8px;
+    --nx-s-3: 12px;
+    --nx-s-4: 16px;
+    --nx-s-5: 20px;
+    --nx-s-6: 24px;
+    --nx-s-8: 32px;
+    --nx-s-10: 40px;
+    --nx-s-12: 48px;
+    --nx-s-16: 64px;
+
+    --nx-r-1: 4px;
+    --nx-r-2: 6px;
+    --nx-r-3: 8px;
+    --nx-r-4: 12px;
+    --nx-r-pill: 999px;
+
+    /* density: controls and table rows move together (compact / default / comfortable) */
+    --nx-ctl-sm: 28px;
+    --nx-ctl-md: 32px;
+    --nx-ctl-lg: 36px;
+    --nx-row-h: 40px;
+    --nx-pad-panel: var(--nx-s-4);
+
+    /* layout */
+    --nx-sidebar-w: 240px;
+    --nx-sidebar-w-collapsed: 56px;
+    --nx-topbar-h: 48px;
+    --nx-content-max: 1440px;
+    --nx-gutter: var(--nx-s-6);
+    --nx-reading: 72ch;
+
+    /* layering */
+    --nx-z-sticky: 10;
+    --nx-z-rail: 20;
+    --nx-z-overlay: 30;
+    --nx-z-modal: 40;
+    --nx-z-toast: 50;
+    --nx-z-tooltip: 60;
+
+    /* motion: Carbon's productive curves; exits are faster than entrances */
+    --nx-dur-1: 70ms;
+    --nx-dur-2: 110ms;
+    --nx-dur-3: 150ms;
+    --nx-dur-4: 240ms;
+    --nx-dur-5: 400ms;
+    --nx-dur-6: 700ms;
+    --nx-ease-standard: cubic-bezier(0.2, 0, 0.38, 0.9);
+    --nx-ease-enter: cubic-bezier(0, 0, 0.38, 0.9);
+    --nx-ease-exit: cubic-bezier(0.2, 0, 1, 0.9);
+  }
+
+  :root[data-density='compact'] {
+    --nx-ctl-sm: 24px;
+    --nx-ctl-md: 28px;
+    --nx-ctl-lg: 32px;
+    --nx-row-h: 32px;
+    --nx-pad-panel: var(--nx-s-3);
+  }
+
+  :root[data-density='comfortable'] {
+    --nx-ctl-sm: 32px;
+    --nx-ctl-md: 36px;
+    --nx-ctl-lg: 40px;
+    --nx-row-h: 48px;
+    --nx-pad-panel: var(--nx-s-5);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --nx-dur-1: 0ms;
+      --nx-dur-2: 0ms;
+      --nx-dur-3: 0ms;
+      --nx-dur-4: 0ms;
+      --nx-dur-5: 0ms;
+      --nx-dur-6: 0ms;
+    }
+  }
+  :root[data-motion='reduce'] {
+    --nx-dur-1: 0ms;
+    --nx-dur-2: 0ms;
+    --nx-dur-3: 0ms;
+    --nx-dur-4: 0ms;
+    --nx-dur-5: 0ms;
+    --nx-dur-6: 0ms;
+  }
+}

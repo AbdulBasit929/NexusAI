@@ -1,0 +1,11 @@
+/* The old design, kept alive for pages that have not been rebuilt yet, in the lowest cascade layer so the new layers always win.
+   Each file is deleted here when the last page that needs it has been rebuilt. */
+@layer legacy;
+
+@import './tokens.css' layer(legacy);
+@import './workspace.css' layer(legacy);
+@import './identity-a.css' layer(legacy);
+@import './shell.css' layer(legacy);
+@import './canvas.css' layer(legacy);
+@import './connections.css' layer(legacy);
+@import './evidence-review.css' layer(legacy);
