@@ -1,0 +1,48 @@
+# 07. Decisions only the owner can make, risks stated plainly, and what this pack supersedes
+
+## 1. Decisions waiting for the owner (answer as one list; recommendations first)
+
+| ID | Decision | Options | Recommendation | Blocks |
+|---|---|---|---|---|
+| **D34** | **Faces** (replaces D5). How far to build recognition | (a) detection only (L0); (b) **L1 clustering now, L2 search/compare after the evaluation and legal gates**; (c) L1 and L2 at once | **(b)**, with the controls of `02_media_programme.md` section 7: per-case authority, role permission, every search logged with a reason, candidate-only labelling, no embedding export, kill switch. Embedding route: **AuraFace-v1 (Apache-2.0 card, training data provenance unclear)** after reading its licence file and taking counsel, **or** buy an InsightFace commercial licence | WP-M7, M8 |
+| **D35** | **Voice** | (a) none; (b) **diarisation and within-case speaker clustering only**; (c) gallery search too | **(b)** | WP-M11 |
+| **D36** | **Hardware** | (a) CPU laptop only; (b) interim: the HP EliteDesk RTX 2080 (8 GB) if it can be made available; (c) buy a 16 GB card (about $430 to 550) or a used 24 GB card (about $700 to 1,050) [prices from 2026-09-29, unverified]; (d) cloud only for **public-data** training | **(d) now (no decision cost), (b) as soon as possible, (c) within Phase 2.** A GPU moves the language model to 8B to 14B, makes video captions and face search usable, and cuts every model run by about ten times | M6/M10/M8, engine speed, banks |
+| **D37** | **Interface**: the order and the executor | proposed order U2 close, U4 Ask + History, U6 Evidence + viewers, U5, U3, U7, U9, U8, U10; Claude executes in `NexusAI-ui` on `:4182`; `:4181` keeps the old design until a cut-over decision | **yes**; the cut-over (section 9 of file 04) is a separate later decision | all of lane U |
+| **D38** | **Data**: standing permission to fetch public licence-clean datasets | (a) yes, with a ledger row per dataset, sizes stated above 2 GB, NC data evaluation-only; (b) ask per dataset | **(a)** | lane D, WP-M1 |
+| **D39** | **Languages and people**: priority and reviewers | speech and question languages in the order Urdu and English, Pashto, Saraiki, Pakistani Punjabi; name **native reviewers** (D10) and a **capture campaign** (D26) for telephone-band audio, plates and consented faces | **yes**; the owner or the team lead names people; without them every non-Urdu number stays a public-data number | PL, WP-M1, M5, M7 |
+| **D40** | **Conversation role** (greetings, help, clarification) | switch on after it passes the conversation bank | **yes, after measurement** | R7 |
+| **D41** | **Cross-case visibility** | a user who cannot open the other case sees (a) that an overlap exists plus the owner's name and an access request; (b) existence only; (c) nothing until requested | **(a)** | WP cross-case |
+| **D42** | **Plate masking (D28)** | keep search-only text; or a case-scoped keyed alias with the key required | decide before WP-M5 ships; plates are more sensitive since registration follows the owner | WP-M5 |
+| **D43** | **Model swap** (AGENTS.md: only under WI-0's written decision rule) | authorise a bake-off of 8B to 14B models on the verified bank and a fresh case when a GPU exists | **yes**, rule written first | engine speed |
+
+**Still open from before (unchanged):** O-6 Urdu face for body text (needs a native reader), O-8 offline map tile source licence (hard block on screenshots leaving the machine), O-11/O-12 usability testers, D10 reviewers' names, D26 who captures and labels, D27 scope of captures/databases/archives.
+
+**Decided and recorded:** O-1 yes, O-2 (b) own worktree, O-3 = B Ink and signal, O-4, O-5, O-7, O-9, O-10 (2026-10-28); D23 to D33; the approvals of 2026-11-03: merge fdfab37, round 9d deploy (done), round 9e to follow.
+
+## 2. Risks
+
+| # | Risk | Likelihood / impact | What reduces it |
+|---|---|---|---|
+| 1 | **Face recognition legal and ethical exposure** (draft law, broad state exemptions, regional bias, misuse) | high / high | D34 controls; consented South Asian evaluation set with per-group error rates; negative control; every search logged; candidate-only language; counsel review before L2; kill switch |
+| 2 | **Licences**: AGPL YOLO stack, non-commercial weights, unclear training data (AuraFace, SFace), CC BY-NC datasets | high / high | ledger row per component; evaluation-only labelling; AGPL never ships; own-trained recognisers on licensed data; counsel |
+| 3 | **Language quality**: Pakistani Punjabi and Saraiki are low-resource; read-speech numbers do not transfer to telephone audio | high / high | publish per-language numbers on our gold sets including telephone simulation; `LOW_RESOURCE_LANGUAGE` honesty; second-opinion backends; consented real samples; never quote an unmeasured figure to a court |
+| 4 | **No GPU**: video, faces at scale, captions and bigger SQL models are slow or impossible | certain / high | D36; overnight batch; public-data cloud training; staged capabilities; throughput stated in every gate |
+| 5 | **Data**: no public Pakistani plates/operator layouts/telephone Punjabi; consent and labelling effort | high / high | synthetic generators, codec simulation, T2-V scenes, capture kit, named annotators and reviewers (D26, D39) |
+| 6 | **Scope**: the owner's list is a multi-year product; the plan must not promise it all at once | high / medium | phases with gates; the cut line (file 06); each capability finished (view + test + bank + demo) before the next starts |
+| 7 | **Interface divergence** again (three directions existed) | medium / high | one directive; one executor; per-stage loop; `:4181` untouched until cut-over |
+| 8 | **Model errors presented as fact** (hallucination, prompt injection through OCR text, transcripts) | medium / high | number lock, evidence rows, abstention, labelled observations, quoted-data prompts, read-only tools, red-team gate |
+| 9 | **Engine regressions** from many small fixes | medium / medium | impact index; verified bank at milestones; mutation checks on every new obligation; deploy by recipe with rollback tags |
+| 10 | **Long test cycles** return | medium / medium | change-impact matrix; result-key refusal of unchanged reruns; background milestone runs |
+| 11 | **Infrastructure fragility**: Docker VM memory (7.6 GB), one eval container at a time, app-started Docker dying, port relay wedging after recreate | high / medium | the recorded rules (start Docker detached; `--cpus 8 -m 5g`; restart the workspace immediately after an API recreate) |
+| 12 | **Real-data leakage** into screenshots, prompts, repository, cloud tools | low / critical | the vault policy; synthetic-only design tools; O-8 hard block; reviews of every export |
+| 13 | **Evaluation leakage** (fine-tune data overlapping test sets, e.g. FLEURS and Common Voice) | medium / medium | our own hash partitions; sealed sets touched once; dataset overlap checks recorded in the ledger |
+| 14 | **Document sprawl** (about 80 planning documents already) | medium / medium | this pack plus the master plan are the plan of record; the supersession list below; `NEXUSAI_CONTINUATION.md` rewritten, never appended |
+| 15 | **Single point of knowledge** (one owner, assistants with no memory between chats) | medium / high | the pack, the continuation file, the memory index, stage notes with commit ids and rollback tags |
+
+## 3. What is explicitly not promised
+Identification of a person from a face or a voice; any model output shown as a fact; accuracy for telephone-band Punjabi/Pashto/Saraiki before it is measured on consented samples; court-grade ANPR before the sealed-set gate; real-time CCTV alerting; any step that sends evidence to a third party; any dependency without a ledger row; any merge of the new interface into `lane-arms` without the owner's separate word.
+
+## 4. What this pack supersedes (and what it does not)
+* **Supersedes:** section 8 of the master plan on faces (D5 becomes D34) and on speech sequencing (the bake-off no longer waits for a GPU: the CPU baseline and public-data fine-tunes start now); the interface order of section 7.4 (D37); the "next 14 days" of section 13.1 (2026-10-21 to 2026-11-04, now past).
+* **Does not change:** the binding rules in AGENTS.md and `NEXUSAI_CONTINUATION.md` sections 2, 4, 5 and 6; the query-answering decision of 2026-10-05; the UX contract; the real-data policy; the licence ledger process; the test-tier policy.
+* **Plan of record from 2026-11-03:** this pack for sequencing, the master plan for the ledger of older items, the directive for the interface, the continuation file for current state.
