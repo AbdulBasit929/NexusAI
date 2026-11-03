@@ -14,13 +14,14 @@
 #>
 param(
   [Parameter(Mandatory = $true)][int]$Port,
-  [ValidateSet('lane', 'main')][string]$Tree = 'lane',
+  [ValidateSet('lane', 'main', 'ui')][string]$Tree = 'lane',
   [string]$Collection = 'ingest-v2-shadow-synthetic-20261013'
 )
 $ErrorActionPreference = 'Stop'
 $lane = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)          # .../NexusAI-localwork
 $main = Join-Path (Split-Path -Parent $lane) 'NexusAI'
-$root = if ($Tree -eq 'main') { $main } else { $lane }
+$ui = Join-Path (Split-Path -Parent $lane) 'NexusAI-ui'                   # the interface worktree, served on 4182
+$root = switch ($Tree) { 'main' { $main } 'ui' { $ui } default { $lane } }
 $workspace = Join-Path $root 'apps\investigation-workspace'
 if (-not (Test-Path (Join-Path $workspace 'node_modules\vite\bin\vite.js'))) { throw "no vite in $workspace (run npm install there)" }
 

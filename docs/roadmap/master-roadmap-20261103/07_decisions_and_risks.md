@@ -17,7 +17,12 @@
 
 **Still open from before (unchanged):** O-6 Urdu face for body text (needs a native reader), O-8 offline map tile source licence (hard block on screenshots leaving the machine), O-11/O-12 usability testers, D10 reviewers' names, D26 who captures and labels, D27 scope of captures/databases/archives.
 
-**Decided and recorded:** O-1 yes, O-2 (b) own worktree, O-3 = B Ink and signal, O-4, O-5, O-7, O-9, O-10 (2026-10-28); D23 to D33; the approvals of 2026-11-03: merge fdfab37, round 9d deploy (done), round 9e to follow.
+**Decided and recorded:** O-1 yes, O-2 (b) own worktree, O-3 = B Ink and signal (reopened 2026-11-03, see below), O-4, O-5, O-7, O-9, O-10 (2026-10-28); D23 to D33; the approvals of 2026-11-03: merge fdfab37, round 9d deploy (done), round 9e to follow.
+
+**Answered 2026-11-03 (owner: "go ahead with your recommendation, best of the best"): D34 to D43 are decided exactly as recommended in the table above.** In practice:
+* D34 faces: L1 clustering now; L2 only after the pre-registered evaluation and the legal gate; the embedding route (AuraFace-v1 after reading its licence file and counsel, or a bought InsightFace licence) is chosen inside WP-M7. D35: diarisation and within-case speaker clustering only. D36: cloud for public-data training only (owner approval per run), the EliteDesk RTX 2080 when the owner can make it available, a 16 GB card within Phase 2 after prices are re-verified. D38: standing yes to fetch public licence-clean datasets with a ledger row each and the size stated above 2 GB; a dataset behind an account or a terms click-through stays the owner's click (no session creates an account or accepts terms). D39: the language order stands; reviewer names (D10) and capture names (D26) are still owed. D40: switch the conversation role on only after it passes the conversation bank. D41 (a). D42: no pick was made, the default stays D28 (search-only text), decide before WP-M5 ships. D43: the model-swap bake-off is authorised when a GPU exists, rule written first.
+* **D37 is amended by the owner the same day:** everything Codex built (U1 foundations, the U2 shell and the pages) is redone as well; every page, section and area is redesigned and recreated one at a time by Claude on `:4182` (branch `ui/v2-redesign` in the `NexusAI-ui` worktree). The colour direction O-3 = B and the U2 shell "Case atlas" are reopened by the owner's own word; the directive's rules (token tiers, cascade layers, table twins, honest states, tests, forbidden looks) still bind. `:4181` keeps the old design.
+* Still the owner's per item: each deploy (chat word), each migration applied to the live database, each model download, each account or terms click-through, each new dependency, names for D10 and D26.
 
 ## 2. Risks
 
