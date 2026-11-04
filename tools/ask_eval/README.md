@@ -31,3 +31,10 @@ about two hours. Run it when the machine is otherwise idle: the timings are part
 * The judge's `refuse` expectation: a refusal (abstained or declined) is right; an answer is right only when the question allows one (`allow_answer`), none of its `forbid` markers is in the answer or the rows, and the rows are under `max_rows`. Any other answer is an escape and is scored wrong.
 * The validator's red team (96 statements, 7 classes) is `api/forensic_records/ask_engine_redteam_ginkgo_test.go`; the executor's (statements the validator accepts that could be costly) is a spec of `ask_engine_exec_db_ginkgo_test.go`. `ASK_CHECK_VERBOSE=1` makes `check_ask_engine.py` log what the specs report (what the executor did with each statement).
 
+
+## Which questions can a change touch? (`impact_index.py`, engine round 9e, 2026-11-03)
+
+A full bank is hours of model time, so a change is checked against the questions it can reach and no others. `impact_index.py` reads the saved result files of a bank (views, queries, attempts, repairs, time per question) and
+names the questions to ask again: the misses and the questions that needed a repair of a kind the change touches (targets); the questions whose saved query, replayed through the CURRENT frame and obligations with no model and
+no database (the opt-in spec "Ask engine replay of saved queries", `ASK_REPLAY_IN` and `ASK_REPLAY_OUT`), now draws an obligation it did not draw, whose direction is read from the place of an identifier, that are a one-row ranking
+(a tie can surface) or that take an extreme with MAX or MIN (risks); and one neighbour of each touched type. The usage is in the header of the script. The index of round 9e is `docs/data/engine-round-9e-impact-index-20261103.md`.

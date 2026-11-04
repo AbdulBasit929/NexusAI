@@ -165,7 +165,9 @@ def build():
     for cam, n, distinct in psql("select p.camera_id, count(*), count(distinct p.plate_norm) from %s group by 1 order by 1" % PLATE):
         add("plates", "camera_count", "How many plate sightings did the camera %s record?" % cam, {"kind": "scalar", "value": int(n)})
         add("plates", "camera_plates", "How many different plates did the camera %s see?" % cam, {"kind": "scalar", "value": int(distinct)})
-    add("plates", "most_seen", "Which plate was seen the most?", {"kind": "top", "value": plates[0][0], "rivals": [r[0] for r in plates[1:3] if r[1] == plates[0][1]], "count": int(plates[0][1])}, "tied plates are all correct" if plates[0][1] == plates[1][1] else "")
+    tied = [r[0] for r in plates[1:] if r[1] == plates[0][1]]
+    add("plates", "most_seen", "Which plate was seen the most?", {"kind": "top", "value": plates[0][0], "ties": tied, "rivals": [r[0] for r in plates[1:3] if r[1] != plates[0][1]], "count": int(plates[0][1])},
+        "plates that share the top count are all in the answer (the judge reads ties as a set)" if tied else "")
 
     # ------------------------------------------------------------------ handsets
     for s in subs:

@@ -60,10 +60,13 @@ def to_result(question, reply):
     derivation = enterprise.get("derivation") or {}
     grid = enterprise.get("data_grid") or {}
     answer = enterprise.get("executive_answer") or data.get("answer") or ""
+    timed_out = "timed_out=true" in header
     result = {"id": question["id"], "arm": "engine", "state": state, "answer": answer if state != "declined" else "", "rows": grid.get("rows") if state == "answered" else None,
               "shape": enterprise.get("result_shape") or "", "sql": derivation.get("sql") or "", "views": derivation.get("views") or [], "attempts": derivation.get("attempts"),
               "repairs": derivation.get("repairs"), "limitations": enterprise.get("limitations") or [], "reason": "" if state != "declined" else "the engine declined; the existing path answered or not",
               "total_ms": int(reply.get("seconds", 0) * 1000), "http": reply.get("http"), "header": header[:200]}
+    if timed_out or reply.get("error") == "TimeoutError":
+        result["timed_out"] = True      # the engine ran out of time, or the client gave up first: either way it is no verdict about the content
     if state == "declined":
         result["older_path_answer"] = answer[:300]
     if reply.get("error"):

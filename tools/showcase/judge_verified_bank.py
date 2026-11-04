@@ -55,6 +55,8 @@ def render(expect):
 
 def verdict(item, result):
     state = result.get("state")
+    if result.get("timed_out") or result.get("error") == "TimeoutError":
+        return "timed out"          # the engine said it could not finish in time: no verdict about the content (a timeout is never a verdict)
     if state != "answered":
         return state or "declined"
     expect = item["expect"]
@@ -77,6 +79,15 @@ def verdict(item, result):
         return "correct" if all(str(v) in blob for v in expect["values"]) else "wrong"
     if kind == "top":
         value = str(expect["value"])
+        ties = [str(t) for t in expect.get("ties", [])]
+        if ties:
+            # a tie for the top place: every value that shares it must be among the leading rows, in any order; an answer that shows one of them hides the tie
+            wanted = [value] + ties
+            lead = flat[:len(wanted)] if flat and isinstance(flat[0], dict) else None
+            if lead is not None:
+                shown = " ".join(" ".join(str(c) for c in row.values()) for row in lead)
+                return "correct" if all(w in shown for w in wanted) else "wrong"
+            return "correct" if all(w in blob for w in wanted) else "wrong"
         first = flat[0] if flat and isinstance(flat[0], dict) else None
         if first is not None:
             cells = [str(c) for c in first.values()]
@@ -174,7 +185,8 @@ def main(argv):
     subprocess.run([sys.executable, "-X", "utf8", os.path.join(HERE, "render_pack_html.py"), args.out + ".json", args.out + ".html"], check=True, capture_output=True)
     html = open(args.out + ".html", encoding="utf-8").read().replace("<title>Orion Query Pack</title>", "<title>Orion Verified Questions</title>")
     open(args.out + ".html", "w", encoding="utf-8", newline="\n").write(html)
-    print("%d questions: correct %d, wrong %d, declined or abstained %d, not run %d -> %s.{json,csv,md,html}" % (len(questions), total["correct"], total["wrong"], total["other"], total["none"], args.out))
+    timed_out = sum(1 for q in questions if (q.get("live") or {}).get("verdict") == "timed out")
+    print("%d questions: correct %d, wrong %d, declined or abstained %d (of which timed out %d), not run %d -> %s.{json,csv,md,html}" % (len(questions), total["correct"], total["wrong"], total["other"], timed_out, total["none"], args.out))
     return 0
 
 

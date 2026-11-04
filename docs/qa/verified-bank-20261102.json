@@ -5479,13 +5479,14 @@
    "expect": {
     "kind": "top",
     "value": "SYNT2905",
-    "rivals": [
+    "ties": [
      "SYNT4024"
     ],
+    "rivals": [],
     "count": 50
    },
    "bank": "extra",
-   "note": "tied plates are all correct"
+   "note": "plates that share the top count are all in the answer (the judge reads ties as a set)"
   },
   {
    "id": "VB-HAND-001",
