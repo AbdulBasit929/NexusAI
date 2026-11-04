@@ -1951,7 +1951,7 @@ def disambiguate_headers(source_headers: list[str]) -> list[str]:
     headers: list[str] = []
     counts: dict[str, int] = {}
     for index, source_header in enumerate(source_headers, start=1):
-        base = source_header.strip() or f"_column_{index}"
+        base = source_header.lstrip(chr(0xFEFF)).strip() or f"_column_{index}"
         counts[base] = counts.get(base, 0) + 1
         headers.append(base if counts[base] == 1 else f"{base}__duplicate_{counts[base]}")
     return headers
@@ -4109,6 +4109,13 @@ def run_typed_ingest_shadow(
             return None
         with conn.transaction():
             audit(cur, job, "records.ingest.typed_shadow", {"batch_id": job.job_id, "request_id": job.request_id, "evidence_id": job.evidence_id, "typed_ingest": summary})
+            # the file's own columns, in its own order: the file-rows page needs them for a text export, whose typed rows keep their cells in an unordered JSON object
+            headers = typed_ingest.file_headers(summary)
+            if headers and job.evidence_id:
+                cur.execute(
+                    "UPDATE forensic.evidence_items SET metadata = metadata || jsonb_build_object('typed_headers', %s::jsonb) WHERE evidence_id=%s::uuid",
+                    (json.dumps(headers), job.evidence_id),
+                )
         LOG.info(
             "typed ingest %s",
             summary.get("status"),
@@ -4238,10 +4245,10 @@ def mark_typed_workbook_completed(
         """
         UPDATE forensic.evidence_items
         SET processing_status='completed', records_batch_id=%s::uuid, processing_route='forensic_records_worker',
-            metadata = metadata || jsonb_build_object('completed_job_id', %s::text, 'request_id', %s::text, 'typed_workbook', %s::jsonb)
+            metadata = metadata || jsonb_build_object('completed_job_id', %s::text, 'request_id', %s::text, 'typed_workbook', %s::jsonb, 'typed_headers', %s::jsonb)
         WHERE evidence_id=%s::uuid
         """,
-        (job.job_id, job.job_id, job.request_id, json.dumps(typed), job.evidence_id),
+        (job.job_id, job.job_id, job.request_id, json.dumps(typed), json.dumps(_typed_ingest_module().file_headers(summary)), job.evidence_id),
     )
 
 

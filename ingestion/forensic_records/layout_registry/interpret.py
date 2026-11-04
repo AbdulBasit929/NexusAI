@@ -40,17 +40,27 @@ class RowResult:
     row_number: int | None = None
 
 
-def rows_to_records(header_cells: Sequence[Any], rows: Iterable[Sequence[Any]]) -> Iterator[dict[str, str]]:
-    """Positional rows to records keyed as the xlsx reader keys them: a repeated header becomes `name__duplicate_N`."""
+BOM = chr(0xFEFF)  # the byte-order mark a program puts before the first heading of a text file; it is not part of the name (the IPDR export's first column was kept as BOM + "UFDR start time")
+
+
+def header_keys(header_cells: Sequence[Any]) -> list[str | None]:
+    """The keys a header row gives its columns, in the file's order, as the xlsx reader keys them: no byte-order mark and no surrounding space, None for a blank heading, and a repeated
+    heading becomes `name__duplicate_N`."""
     keys: list[str | None] = []
     counts: dict[str, int] = {}
     for raw in header_cells:
-        text = ("" if raw is None else str(raw)).strip()
+        text = ("" if raw is None else str(raw)).lstrip(BOM).strip()
         if not text:
             keys.append(None)
             continue
         counts[text] = counts.get(text, 0) + 1
         keys.append(text if counts[text] == 1 else "%s__duplicate_%d" % (text, counts[text]))
+    return keys
+
+
+def rows_to_records(header_cells: Sequence[Any], rows: Iterable[Sequence[Any]]) -> Iterator[dict[str, str]]:
+    """Positional rows to records keyed as the xlsx reader keys them: a repeated header becomes `name__duplicate_N`."""
+    keys = header_keys(header_cells)
     for row in rows:
         yield {key: ("" if i >= len(row) or row[i] is None else str(row[i])) for i, key in enumerate(keys) if key}
 

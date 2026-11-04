@@ -31,9 +31,11 @@ from typing import Any, Iterable, Iterator, Mapping, Protocol, Sequence
 try:
     from ingestion.forensic_records.layout_registry import Policy, interpret_rows, load_registry
     from ingestion.forensic_records.layout_registry import readers, statement_readers
+    from ingestion.forensic_records.layout_registry.interpret import header_keys
 except ModuleNotFoundError:  # pragma: no cover - supports direct worker.py execution
     from layout_registry import Policy, interpret_rows, load_registry
     from layout_registry import readers, statement_readers
+    from layout_registry.interpret import header_keys
 
 LOG = logging.getLogger("forensic.typed_ingest")
 CONTRACT = "typed-ingest/1"
@@ -259,6 +261,9 @@ class SheetSummary:
     flags: dict[str, int] = field(default_factory=dict)
     first_start_local: str | None = None
     last_start_local: str | None = None
+    # the sheet's header row as the file has it, in the file's own order (names only, no cell value): the evidence keeps it so that the file-rows page lays a workbook or a text export out under
+    # its own columns in its own order (the typed rows keep each row's cells in a JSON object, which has no order)
+    headers: list[str] = field(default_factory=list)
 
     def reconciles(self) -> bool:
         return self.rows_read == self.loaded + sum(self.quarantined.values()) + sum(self.skipped.values()) and self.loaded == self.inserted + self.already_present
@@ -307,6 +312,7 @@ def ingest_sheet(name: str, rows: Iterator[Sequence[Any]], lineage: Lineage, pol
         summary.status, summary.reason = "skipped", "typed_table_lacks_" + "_".join(missing)
         return summary
     header = head[report.header_row]
+    summary.headers = [key for key in header_keys(header) if key]
     data = itertools.chain(head[report.header_row + 1:], rows)
     seen: set[bytes] = set()
     last_balance: dict[str, Decimal] = {}
@@ -476,6 +482,12 @@ def ingest_required(conn: Any, path: str, lineage: Lineage, time_policy: Mapping
         raise ValueError("the workbook was not written to the typed tables: %s" % why)
     summary["mode"] = mode
     return summary
+
+
+def file_headers(summary: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """The header lists of the sheets that were written to a typed table, as the evidence keeps them under `typed_headers`: the sheet, the table and the names in the file's order."""
+    return [{"sheet": s.get("sheet"), "table": s.get("table"), "headers": list(s.get("headers") or [])}
+            for s in summary.get("sheets", []) if s.get("status") == "loaded" and s.get("headers")]
 
 
 def job_counts(summary: Mapping[str, Any]) -> dict[str, int]:
