@@ -56,8 +56,9 @@ function setAsideOf(summary) {
 export function CasesPanel({ rows, limit = 8, headless = false, ordered: keepOrder = false, loading }) {
   const ordered = useMemo(() => (keepOrder ? rows : rows.slice().sort((left, right) => (WEIGHT[left.status] ?? 9) - (WEIGHT[right.status] ?? 9) || left.index - right.index)), [rows, keepOrder])
   const shown = ordered.slice(0, limit)
+  const mostRecords = Math.max(1, ...shown.map(row => row.summary?.acceptedRows || 0))
   return (
-    <section className={`nx-panel${headless ? ' nx-panel--flat' : ''}`} aria-labelledby={headless ? undefined : 'dash-cases'} aria-label={headless ? 'Cases' : undefined}>
+    <section className={`nx-panel nx-cases${headless ? ' nx-panel--flat' : ''}`} aria-labelledby={headless ? undefined : 'dash-cases'} aria-label={headless ? 'Cases' : undefined}>
       {headless ? null : (
         <header className="nx-panel__head">
           <h2 id="dash-cases" className="nx-panel__title">Cases</h2>
@@ -77,10 +78,10 @@ export function CasesPanel({ rows, limit = 8, headless = false, ordered: keepOrd
                   const aside = row.summary ? setAsideOf(row.summary) : null
                   return (
                     <tr key={row.caseId}>
-                      <td className="is-wrap"><Link className="nx-case-link" to={`/cases/${encodeURIComponent(row.caseId)}/overview`} title={row.caseId}><CaseLabel caseId={row.caseId} /></Link><CaseStateChip caseId={row.caseId} /></td>
+                      <td className="is-wrap nx-pin"><Link className="nx-case-link" to={`/cases/${encodeURIComponent(row.caseId)}/overview`} title={row.caseId}><CaseLabel caseId={row.caseId} /></Link><CaseStateChip caseId={row.caseId} /></td>
                       <td><span className={`nx-badge${status.tone ? ` nx-badge--${status.tone}` : ''}`}>{status.label}</span></td>
                       <td><SourcesCell summary={row.summary} /></td>
-                      <td className="is-num nx-tabular">{row.summary ? formatNumber(row.summary.acceptedRows) : '—'}</td>
+                      <td className="is-num nx-tabular nx-cell-bar" style={row.summary ? { '--w': row.summary.acceptedRows / mostRecords } : undefined}>{row.summary ? formatNumber(row.summary.acceptedRows) : '—'}</td>
                       <td className="is-num nx-tabular nx-col-aside">{aside === null ? '—' : formatRate(aside)}</td>
                       <td className="nx-col-last nx-secondary" title={row.activity ? formatMoment(row.activity.date) : undefined}>{row.activity ? relativeAge(row.activity.date) : '—'}</td>
                       <td className="is-num">{next ? <Link className="nx-btn nx-btn--sm" to={next.to}>{next.label}</Link> : null}</td>

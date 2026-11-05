@@ -130,6 +130,16 @@ export function useQuestionHistoryAcross(caseIds) {
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 }
 
+// Questions typed and not sent, in any of the given cases. Read from the browser when asked; it does not subscribe.
+export function listDrafts(caseIds) {
+  const found = []
+  for (const caseId of caseIds || []) {
+    const text = readText(draftKey(caseId)).trim()
+    if (text) found.push({ caseId, text })
+  }
+  return found
+}
+
 // Everything this workspace keeps in the browser, so Settings can report it
 // honestly and offer to remove it. Nothing here has ever left this device.
 export function localStorageFootprint() {

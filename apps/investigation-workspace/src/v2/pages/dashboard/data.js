@@ -63,3 +63,11 @@ export function useEngineHealthAcross(caseIds, { days = 7, enabled = true, refre
 export function useTypingReportsAcross(caseIds, { enabled = true, refreshToken = 0 } = {}) {
   return useReadsAcross({ kind: 'typing', caseIds, enabled, refreshToken, concurrency: 2, ttl: 10 * 60_000, read: ({ caseId, signal }) => getTypingReport({ caseId, signal }).then(value => tagged(caseId, value)) })
 }
+
+// For the cases that were asked something this week: the engine's counts for the last 1, 2 ... 7 days, so the days can be told apart (model.dailyQuestions).
+export function useEngineDailyAcross(caseIds, { enabled = true, refreshToken = 0 } = {}) {
+  return useReadsAcross({
+    kind: 'engine-daily', caseIds, enabled, refreshToken, concurrency: 2, ttl: 2 * 60_000,
+    read: async ({ caseId, signal }) => ({ collection_id: caseId, windows: await Promise.all([1, 2, 3, 4, 5, 6, 7].map(days => getEngineHealth({ caseId, days, signal }).then(value => value?.totals || {}))) }),
+  })
+}

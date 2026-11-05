@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, CircleAlert, CircleCheckBig, Clock3, History, Info, MessageSquareText, Plus, RefreshCw, ServerOff } from 'lucide-react'
+import { ArrowRight, CircleAlert, CircleCheckBig, Clock3, History, MessageSquareText, Plus, RefreshCw, ServerOff } from 'lucide-react'
 import { formatNumber } from '../../../lib/format.js'
 import { formatRate } from '../../../lib/dashboardCharts.js'
 import { relativeAge } from '../../../lib/dashboardCases.js'
 import { CaseLabel } from '../../shell/CaseLabel.jsx'
 import { Calm, Panel, PanelSkeleton } from '../../ui/Panel.jsx'
 import { SegBar } from '../../ui/micro.jsx'
+import { Sparkline } from '../../ui/Sparkline.jsx'
 import { formatDuration, formatMoment } from './model.js'
 
 // ---------- the header: the title, the count of cases in each state, two actions ----------
@@ -86,7 +87,7 @@ export function cleanRate(kpis) {
 
 const plural = (count, one, many = `${one}s`) => `${formatNumber(count)} ${count === 1 ? one : many}`
 
-export function MetricStrip({ kpis, rows, states, quality, loading }) {
+export function MetricStrip({ kpis, rows, states, quality, daily, loading }) {
   const wait = loading && !kpis.reported
   const v = number => (wait ? '—' : formatNumber(number))
   const mix = [
@@ -110,60 +111,62 @@ export function MetricStrip({ kpis, rows, states, quality, loading }) {
         <SegBar parts={[{ id: 'kept', value: kpis.acceptedRows, colour: 'var(--nx-accent)', title: 'Accepted' }, { id: 'repeat', value: kpis.duplicateRows, colour: 'var(--nx-border-strong)', title: 'Repeats' }, { id: 'rejected', value: kpis.rejectedRows, colour: 'var(--nx-border)', title: 'Rejected' }]} label="Rows accepted, repeated and rejected" />
       </Tile>
       <Tile label="Answered · 7 days" figure={asked ? formatRate(quality.rate) : '—'} to="/investigate" caption={asked ? `${plural(quality.questions, 'question')}${quality.latency ? ` · median ${formatDuration(quality.latency.p50)}` : ''}` : (quality.reported ? 'No questions this week' : '')}>
-        {asked ? <SegBar parts={[{ id: 'answered', value: quality.answered, colour: 'var(--nx-accent)', title: 'Answered' }, { id: 'declined', value: quality.declined, colour: 'var(--nx-border-strong)', title: 'Declined' }, { id: 'abstained', value: quality.abstained, colour: 'var(--nx-border)', title: 'Abstained' }]} label={`${formatNumber(quality.answered)} answered, ${formatNumber(quality.declined)} declined, ${formatNumber(quality.abstained)} abstained`} /> : null}
+        {asked ? (
+          <>
+            <span className="nx-tile__spark" dir="ltr" aria-hidden="true">{daily && daily.length === 7 ? <Sparkline values={daily.map(day => day.questions)} width={150} height={26} label="Questions per day" /> : <SegBar parts={[{ id: 'answered', value: quality.answered, colour: 'var(--nx-accent)', title: 'Answered' }, { id: 'declined', value: quality.declined, colour: 'var(--nx-border-strong)', title: 'Declined' }, { id: 'abstained', value: quality.abstained, colour: 'var(--nx-border)', title: 'Abstained' }]} label="" />}</span>
+            <span className="nx-visually-hidden">{formatNumber(quality.answered)} answered, {formatNumber(quality.declined)} declined, {formatNumber(quality.abstained)} abstained{daily && daily.length === 7 ? `; per day, oldest first: ${daily.map(day => formatNumber(day.questions)).join(', ')}` : ''}.</span>
+          </>
+        ) : null}
       </Tile>
       <Tile label="Needs review" figure={v(kpis.review)} alert={kpis.review > 0} to={reviewCase ? `/cases/${encodeURIComponent(reviewCase.caseId)}/evidence` : '/cases'} caption={kpis.review ? `in ${plural(kpis.reviewCases, 'case')}` : (wait ? '' : 'Nothing to review')} />
     </section>
   )
 }
 
-// ---------- what needs you: files that did not finish, and what the service says to read before trusting an answer ----------
-const KIND_TEXT = { Failed: 'Did not finish', 'Retained copy missing': 'Copy missing' }
+// ---------- what needs you: sorted by decision, not by time ----------
+// Three tiers: what needs you now (it blocks your work), what can wait (worth knowing), what you can clear right away (a question you started). Inside a tier the order is the rule printed under the list.
+// Every row has one primary action, and the whole row is that action.
+const TIERS = [
+  { id: 'now', label: 'Needs you now', test: group => group.attention },
+  { id: 'wait', label: 'Can wait', test: group => !group.attention && group.id !== 'draft' },
+  { id: 'clear', label: 'Clear right away', test: group => group.id === 'draft' },
+]
+const PER_GROUP = 2
 
-export function NeedsPanel({ items, byCase, notes, loading, notesLoading }) {
-  const exact = byCase.reduce((sum, entry) => sum + entry.total, 0)
-  const files = items.slice(0, 3)
-  const shownNotes = notes.slice(0, 3)
-  const empty = !files.length && !shownNotes.length
+function ActionRow({ item, group }) {
   return (
-    <Panel id="dash-attention" title="Needs you" className="nx-panel--needs" action={exact ? <span className="nx-badge nx-badge--danger">{formatNumber(exact)}</span> : null}>
-      {loading && !items.length ? <PanelSkeleton /> : null}
-      <div className="nx-needs">
-      {files.length ? (
-        <div className="nx-group">
-          <p className="nx-overline">Files to review</p>
-          <ul className="nx-queue">
-            {files.map(item => (
-              <li key={`${item.caseId}-${item.evidenceId || item.label}-${item.kind}`}>
-                <Link className="nx-queue__item" to={`/cases/${encodeURIComponent(item.caseId)}/evidence${item.evidenceId ? `/${encodeURIComponent(item.evidenceId)}` : ''}`}>
-                  <CircleAlert className="nx-queue__icon" aria-hidden="true" />
-                  <span className="nx-queue__text"><span className="nx-queue__title" dir="auto">{item.label}</span><span className="nx-queue__meta">{KIND_TEXT[item.kind] || item.kind} · <CaseLabel caseId={item.caseId} /></span></span>
-                  <ArrowRight className="nx-queue__go" aria-hidden="true" />
-                </Link>
-              </li>
-            ))}
-          </ul>
+    <li>
+      <Link className="nx-act__row" to={item.to} title={item.hint || undefined}>
+        <span className="nx-act__text">
+          <span className={`nx-act__title${group.id === 'draft' || group.id === 'choice' ? ' nx-act__title--clamp' : ''}`} dir="auto">{item.title}</span>
+          <span className="nx-act__meta">{item.caseId ? <CaseLabel caseId={item.caseId} /> : null}{item.caseId && item.detail ? ' · ' : ''}{item.detail}</span>
+        </span>
+        <span className="nx-act__go">{item.action}<ArrowRight aria-hidden="true" /></span>
+      </Link>
+    </li>
+  )
+}
+
+export function NeedsPanel({ needs, loading, notesLoading }) {
+  const tiers = TIERS.map(tier => ({ ...tier, groups: needs.groups.filter(tier.test) })).filter(tier => tier.groups.length)
+  return (
+    <Panel id="dash-attention" title="Needs you" className="nx-panel--needs" action={needs.attention ? <span className="nx-badge nx-badge--danger" title="Things that block your work">{formatNumber(needs.attention)}</span> : null}>
+      {loading && !tiers.length ? <PanelSkeleton /> : null}
+      {tiers.map(tier => (
+        <div key={tier.id} className="nx-tier" role="group" aria-label={tier.label}>
+          <p className="nx-overline">{tier.label}</p>
+          {tier.groups.map(group => (
+            <section key={group.id} className="nx-cause" aria-label={group.label}>
+              <h3 className="nx-cause__head"><span className={`nx-dot nx-dot--${group.tone === 'muted' ? '' : group.tone}`} aria-hidden="true" />{group.label}<span className="nx-cause__count nx-tabular">{formatNumber(group.count)}</span></h3>
+              <ul className="nx-act">{group.items.slice(0, PER_GROUP).map(item => <ActionRow key={item.id} item={item} group={group} />)}</ul>
+              {group.count > Math.min(group.items.length, PER_GROUP) ? <p className="nx-cause__more">{formatNumber(group.count - Math.min(group.items.length, PER_GROUP))} more{group.items.length < group.count ? ' (not all are named by the service)' : ''}</p> : null}
+            </section>
+          ))}
         </div>
-      ) : null}
-      {shownNotes.length ? (
-        <div className="nx-group">
-          <p className="nx-overline">Read before trusting answers</p>
-          <ul className="nx-queue">
-            {shownNotes.map(note => (
-              <li key={note.code}>
-                <Link className="nx-queue__item" to={`/cases/${encodeURIComponent(note.caseIds[0])}/overview`} title={note.text}>
-                  <Info className="nx-queue__icon nx-queue__icon--plain" aria-hidden="true" />
-                  <span className="nx-queue__text"><span className="nx-queue__title nx-queue__title--clamp">{note.title}</span><span className="nx-queue__meta">{note.caseIds.length === 1 ? <CaseLabel caseId={note.caseIds[0]} /> : `${formatNumber(note.caseIds.length)} cases`}</span></span>
-                  <ArrowRight className="nx-queue__go" aria-hidden="true" />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-      {notesLoading && !shownNotes.length ? <div className="nx-group"><p className="nx-overline">Read before trusting answers</p><PanelSkeleton rows={2} /></div> : null}
-      </div>
-      {empty && !loading && !notesLoading ? <Calm icon={CircleCheckBig} tone="ok"><strong>All clear</strong></Calm> : null}
+      ))}
+      {notesLoading && !needs.groups.some(group => group.id === 'notes') ? <div className="nx-tier"><p className="nx-overline">Can wait</p><PanelSkeleton rows={2} /></div> : null}
+      {!tiers.length && !loading && !notesLoading ? <Calm icon={CircleCheckBig} tone="ok"><strong>All clear</strong></Calm> : null}
+      <p className="nx-rule">Ordered by what blocks your work first. <Link to="/activity">All activity</Link></p>
     </Panel>
   )
 }

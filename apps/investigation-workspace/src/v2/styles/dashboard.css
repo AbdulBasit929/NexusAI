@@ -32,7 +32,7 @@
   .nx-tile__figure { font-size: 2rem; font-weight: var(--nx-fw-semibold); letter-spacing: -0.03em; line-height: 1.15; white-space: nowrap; }
   .nx-tile__of { font-size: var(--nx-fs-md); font-weight: var(--nx-fw-regular); color: var(--nx-text-3); letter-spacing: 0; }
   .nx-tile__visual { display: flex; align-items: center; min-block-size: 8px; margin-block: var(--nx-s-2) var(--nx-s-1); }
-  .nx-tile__caption { font-size: var(--nx-fs-xs); color: var(--nx-text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nx-tile__caption { display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: var(--nx-fs-xs); color: var(--nx-text-2); }
   .nx-tile--alert .nx-tile__figure { color: var(--nx-danger-text); }
   @media (max-width: 1279px) {
     .nx-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -209,4 +209,74 @@
   .nx-down > svg { flex: none; inline-size: 24px; block-size: 24px; color: var(--nx-danger-text); }
   .nx-down > div { flex: 1; min-inline-size: 0; }
   .nx-down p { margin: 2px 0 0; color: var(--nx-text-2); font-size: var(--nx-fs-sm); }
+
+  /* ---------- the page: a main column and a rail. The rail (what needs you, where to pick up, what just happened) comes first in the document, so it is read first ---------- */
+  .nx-dashgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 380px); grid-template-areas: 'main rail'; gap: var(--nx-s-4); align-items: start; }
+  .nx-dashgrid__rail { grid-area: rail; display: grid; gap: var(--nx-s-4); min-inline-size: 0; }
+  .nx-dashgrid__main { grid-area: main; display: grid; gap: var(--nx-s-4); min-inline-size: 0; container: dm / inline-size; }
+  @media (max-width: 1179px) { .nx-dashgrid { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'rail' 'main'; } }
+  /* the main column answers for its own width (container queries) */
+  @container dm (max-width: 860px) { .nx-col-last, .nx-col-aside, .nx-cases .nx-stack--thin { display: none; } .nx-tl__row { grid-template-columns: minmax(96px, 150px) minmax(0, 1fr) 118px 70px; } }
+  @container dm (max-width: 720px) {
+    .nx-grid .nx-span-6, .nx-grid .nx-span-4 { grid-column: 1 / -1; }
+    .nx-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .nx-tile:nth-child(5) { grid-column: span 2; }
+    .nx-tl__row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'who count' 'bars bars' 'range range'; row-gap: var(--nx-s-2); }
+  }
+  .nx-resume-list { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .nx-panel__head .nx-segmented { margin-inline-start: auto; }
+  .nx-panel__head .nx-segmented + .nx-panel__sub, .nx-panel__sub + .nx-segmented { margin-inline-start: var(--nx-s-2); }
+
+  /* ---------- needs you: an action queue, sorted by decision ---------- */
+  .nx-tier { display: grid; gap: var(--nx-s-2); }
+  .nx-tier + .nx-tier { margin-block-start: var(--nx-s-1); padding-block-start: var(--nx-s-3); border-block-start: 1px solid var(--nx-border-subtle); }
+  .nx-cause { display: grid; gap: 2px; }
+  .nx-cause__head { display: flex; align-items: center; gap: var(--nx-s-2); font-size: var(--nx-fs-sm); font-weight: var(--nx-fw-semibold); }
+  .nx-cause__count { margin-inline-start: auto; font-size: var(--nx-fs-xs); font-weight: var(--nx-fw-medium); color: var(--nx-text-3); }
+  .nx-cause__more { margin: 0; padding-inline-start: var(--nx-s-4); font-size: var(--nx-fs-xs); color: var(--nx-text-3); }
+  .nx-act { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+  .nx-act__row { display: flex; align-items: center; gap: var(--nx-s-3); min-block-size: 44px; padding: var(--nx-s-2) var(--nx-s-2) var(--nx-s-2) var(--nx-s-4); border-radius: var(--nx-r-2); color: inherit; text-decoration: none; }
+  .nx-act__row:hover { background: var(--nx-hover); }
+  .nx-act__text { flex: 1; min-inline-size: 0; display: grid; gap: 1px; }
+  .nx-act__title { font-size: var(--nx-fs-sm); font-weight: var(--nx-fw-medium); color: var(--nx-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nx-act__title--clamp { display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; white-space: normal; }
+  .nx-act__meta { font-size: var(--nx-fs-xs); color: var(--nx-text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nx-act__go { flex: none; display: inline-flex; align-items: center; gap: var(--nx-s-1); padding: 2px var(--nx-s-2); border: 1px solid var(--nx-border); border-radius: var(--nx-r-2); font-size: var(--nx-fs-xs); font-weight: var(--nx-fw-medium); color: var(--nx-accent-text); }
+  .nx-act__go svg { inline-size: 12px; block-size: 12px; }
+  .nx-act__row:hover .nx-act__go { border-color: var(--nx-accent-border); background: var(--nx-accent-subtle); }
+  .nx-rule { margin: var(--nx-s-1) 0 0; font-size: var(--nx-fs-xs); color: var(--nx-text-3); }
+  .nx-rule a { color: var(--nx-accent-text); }
+
+  /* ---------- small pictures: columns, dumbbell, heat matrix, reference ---------- */
+  .nx-tile__spark { display: flex; inline-size: 100%; }
+  .nx-cols { display: flex; align-items: flex-end; gap: 4px; inline-size: 100%; }
+  .nx-cols__col { flex: 1 1 0; display: flex; flex-direction: column-reverse; gap: 2px; block-size: var(--h, 3px); min-block-size: 3px; border-start-start-radius: 3px; border-start-end-radius: 3px; overflow: hidden; }
+  .nx-cols__col > i { display: block; min-block-size: 2px; }
+  .nx-cols__col.is-empty { background: var(--nx-border); }
+  .nx-cols__axis { display: flex; justify-content: space-between; margin: 2px 0 0; font-size: var(--nx-fs-xs); color: var(--nx-text-3); }
+
+  .nx-dumb { position: relative; display: block; inline-size: 100%; block-size: 16px; background: linear-gradient(var(--nx-border-subtle), var(--nx-border-subtle)) center / 100% 1px no-repeat; }
+  .nx-dumb__line { position: absolute; inset-block-start: 7px; inset-inline: var(--lo) var(--hi-end); block-size: 2px; border-radius: 1px; background: var(--nx-border-strong); }
+  .nx-dumb__dot { position: absolute; inset-block-start: 3px; box-sizing: border-box; inline-size: 10px; block-size: 10px; margin-inline-start: -5px; border-radius: 50%; }
+  .nx-dumb__dot--lo { inset-inline-start: var(--lo); background: var(--nx-accent); box-shadow: 0 0 0 2px var(--nx-surface); }
+  .nx-dumb__dot--hi { inset-inline-start: var(--hi); background: var(--nx-surface); border: 2px solid var(--nx-border-strong); }
+  .nx-keys__key--ring { box-sizing: border-box; border-radius: 50%; background: var(--nx-surface); border: 2px solid var(--nx-border-strong); }
+  .nx-keys__key--tick { inline-size: 2px; block-size: 12px; border-radius: 0; background: var(--nx-text-3); }
+  .nx-range__ref { position: absolute; inset-block: 0; inset-inline-start: var(--ref); inline-size: 1px; background: var(--nx-text-3); opacity: 0.55; }
+  .nx-split { display: flex; flex-wrap: wrap; gap: var(--nx-s-1) var(--nx-s-5); margin: 0; font-size: var(--nx-fs-sm); color: var(--nx-text-2); }
+  .nx-split b { color: var(--nx-text); font-weight: var(--nx-fw-semibold); }
+
+  .nx-heat { inline-size: 100%; border-collapse: separate; border-spacing: 2px; font-size: var(--nx-fs-xs); }
+  .nx-heat th[scope='col'] { padding-block: 2px; text-align: center; font-weight: var(--nx-fw-medium); color: var(--nx-text-3); }
+  .nx-heat th[scope='row'] { max-inline-size: 110px; padding-inline-end: var(--nx-s-2); text-align: start; font-weight: var(--nx-fw-medium); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nx-heat th[scope='row'] a { color: var(--nx-text); text-decoration: none; }
+  .nx-heat th[scope='row'] a:hover { color: var(--nx-accent-text); text-decoration: underline; }
+  .nx-heat__cell { padding: 7px 4px; border-radius: var(--nx-r-2); text-align: center; color: var(--nx-text); background: color-mix(in oklab, var(--nx-accent) var(--p, 0%), var(--nx-sunken)); }
+
+  /* ---------- the cases table: the key column stays, volume shows in the cell ---------- */
+  .nx-pin { position: sticky; inset-inline-start: 0; z-index: 1; background: var(--nx-surface); }
+  .nx-cell-bar { position: relative; isolation: isolate; }
+  .nx-cell-bar::before { content: ''; position: absolute; z-index: -1; inset-block: 7px; inset-inline-end: 0; inline-size: calc(var(--w, 0) * 100%); border-radius: 3px; background: color-mix(in oklab, var(--nx-accent) 13%, transparent); }
+  .nx-cases .nx-table td.nx-pin { min-inline-size: 170px; white-space: normal; }
+  .nx-cases .nx-table .nx-btn--sm { white-space: nowrap; }
 }

@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { MemoryRouter } from 'react-router-dom'
 import DashboardPage from './DashboardPage.jsx'
 import { resetDashboardReads } from './data.js'
-import { answerQuality, caseStates, caseTimelines, dataNotes, declineText, formatDuration, modalityMix, niceCeiling, recordKinds, setAside, timeToReady } from './model.js'
+import { answerQuality, caseStates, caseTimelines, dailyQuestions, dataNotes, declineText, formatDuration, heatShare, modalityMix, needsYou, niceCeiling, recordKinds, setAside, timeBasis, timeToReady } from './model.js'
 import { cleanRate, latestItems, resumeEntries, statusCounts } from './sections.jsx'
 import { BarStrip, RangeStrip, SegBar } from '../../ui/micro.jsx'
 import { Sparkline, dailySeries } from '../../ui/Sparkline.jsx'
@@ -166,9 +166,55 @@ describe('timeToReady', () => {
     expect(data.count).toBe(3)
     expect(data.median).toBe(30)
     expect(data.slowest).toBe(200)
+    expect(data.waitMedian).toBe(null)
   })
   it('rounds an axis up to a clean number', () => {
     expect([0, 0.3, 1, 37, 215, 999, 1001].map(niceCeiling)).toEqual([1, 0.5, 1, 50, 500, 1000, 2000])
+  })
+})
+
+describe('needsYou', () => {
+  const now = Date.parse('2026-11-05T12:00:00Z')
+  const row = (caseId, data) => ({ caseId, state: { data }, summary: { failed: 0, missingAssets: 0 } })
+  it('sorts by decision: what blocks first, then what can wait, then what can be cleared, one primary action on every item', () => {
+    const rows = [
+      { ...row('a', {
+        recent_evidence: [{ evidence_id: 'e1', source_file: 'bad.csv', processing_status: 'failed' }, { evidence_id: 'e2', source_file: 'slow.pdf', processing_status: 'processing', updated_at: '2026-11-05T10:00:00Z' }, { evidence_id: 'e3', source_file: 'ok.csv', processing_status: 'completed', warnings: ['record schema did not match a specialized forensic adapter'] }],
+        recent_jobs: [{ job_id: 'j1', evidence_id: 'e9', source_file: 'dead.csv', status: 'dead_letter', attempt_count: 5, max_attempts: 5 }],
+      }), summary: { failed: 3, missingAssets: 0 } },
+    ]
+    const result = needsYou({ rows, notes: [{ code: 'no_volume', title: 'Internet records state no byte volumes', caseIds: ['a', 'b'], text: 'x' }], history: [{ caseId: 'a', id: 'q1', query: 'Which one?', state: 'clarify', updatedAt: '2026-11-04T10:00:00Z' }, { caseId: 'a', id: 'q0', query: 'Old', state: 'clarify', updatedAt: '2026-09-01T10:00:00Z' }], drafts: [{ caseId: 'a', text: 'Who called' }], now })
+    expect(result.groups.map(group => group.id)).toEqual(['failed', 'dead', 'stalled', 'choice', 'plain', 'notes', 'draft'])
+    expect(result.attention).toBe(3 + 1 + 1 + 1)
+    expect(result.groups[0].count).toBe(3)
+    expect(result.groups[0].items[0]).toMatchObject({ title: 'bad.csv', action: 'Review', to: '/cases/a/evidence/e1' })
+    expect(result.groups.find(group => group.id === 'dead').items[0].detail).toBe('5 of 5 tries')
+    expect(result.groups.find(group => group.id === 'stalled').items[0].detail).toBe('2 h so far')
+    expect(result.groups.find(group => group.id === 'choice').items).toHaveLength(1)
+    expect(result.groups.find(group => group.id === 'notes').items[0].detail).toBe('2 cases')
+    expect(result.groups.every(group => group.items.every(item => item.action && item.to))).toBe(true)
+  })
+  it('says nothing needs you when nothing does', () => {
+    expect(needsYou({ rows: [row('a', { recent_evidence: [], recent_jobs: [] })] })).toEqual({ groups: [], attention: 0 })
+  })
+})
+
+describe('timeBasis, dailyQuestions and heatShare', () => {
+  it('adds the rows of the typed layouts by the basis of their time, the largest first', () => {
+    const basis = timeBasis([{ calls: { layouts: [{ time_basis: 'confirmed_by_analyst', rows: 900 }, { time_basis: 'explicit_offset', rows: 100 }] }, sessions: { layouts: [{ time_basis: 'confirmed_by_analyst', rows: 50 }] } }, { available: false }])
+    expect(basis.parts.map(part => [part.label, part.rows])).toEqual([['Confirmed by an analyst', 950], ['Stated in the file', 100]])
+    expect(basis.total).toBe(1050)
+  })
+  it('takes the period k days back as the window of k days minus the window of k-1 days, the newest last', () => {
+    const windows = [10, 10, 14, 14, 14, 20, 21].map(questions => ({ questions, answered: questions, declined: 0, abstained: 0 }))
+    const days = dailyQuestions([{ windows }, { windows: [] }])
+    expect(days.map(day => day.questions)).toEqual([1, 6, 0, 0, 4, 0, 10])
+    expect(days.map(day => day.ago)).toEqual([6, 5, 4, 3, 2, 1, 0])
+  })
+  it('spreads cell shades on a log scale: none is none, the largest is the darkest', () => {
+    expect(heatShare(0, 100)).toBe(0)
+    expect(heatShare(100, 100)).toBe(48)
+    expect(heatShare(1, 1000000)).toBeLessThan(heatShare(1000, 1000000))
   })
 })
 
@@ -275,7 +321,7 @@ describe('the dashboard page', () => {
     expect((await within(kinds).findAllByText('Calls')).length).toBeGreaterThan(0)
 
     // the pipeline, from the status of each case
-    const aside = screen.getByRole('region', { name: 'Rows set aside' })
+    const aside = screen.getByRole('region', { name: 'Data quality' })
     expect(aside.textContent).toMatch(/7\.7%/)
     const ready = screen.getByRole('region', { name: 'Time to ready' })
     expect(ready.textContent).toMatch(/Median 41 s from upload/)
@@ -315,13 +361,13 @@ describe('the dashboard page', () => {
     window.__INVESTIGATION_WORKSPACE_CONFIG__ = { caseIds: ['case-a', 'case-b'] }
     globalThis.fetch = serve()
     render(<MemoryRouter initialEntries={['/']}><DashboardPage /></MemoryRouter>)
-    for (const name of ['Evidence timeline', 'Evidence by type', 'Records by kind', 'Answers', 'Rows set aside', 'Time to ready']) {
+    for (const name of ['Evidence timeline', 'Evidence by type', 'Records by kind', 'Answers', 'Data quality', 'Time to ready']) {
       const region = await screen.findByRole('region', { name })
       await waitFor(() => expect(within(region).getByText('Show as table')).toBeTruthy())
     }
-    const aside = screen.getByRole('region', { name: 'Rows set aside' })
+    const aside = screen.getByRole('region', { name: 'Data quality' })
     fireEvent.click(within(aside).getByText('Show as table'))
-    expect(within(aside).getByRole('table', { name: /Rows set aside for each case/ })).toBeTruthy()
+    expect(within(aside).getByRole('table', { name: /Data quality for each case/ })).toBeTruthy()
   })
 
   it('offers the way back into the last question you asked', async () => {

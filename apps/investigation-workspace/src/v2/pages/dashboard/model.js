@@ -1,7 +1,11 @@
+import { attentionItems, reviewByCase } from '../../../lib/dashboardCharts.js'
+import { relativeAge } from '../../../lib/dashboardCases.js'
 import { curatedFamilyLabel } from '../../../lib/semanticCatalog.js'
 
 // What the dashboard draws, as pure functions of what the services reported. Nothing here fetches. A number is a count a service gave, a share of two such counts,
 // or a median of dated jobs; a case that could not be read is left out and counted as unread, never as zero.
+
+const formatNumber = value => new Intl.NumberFormat('en-US').format(Number(value) || 0)
 
 export const familyName = id => (id === 'generic' ? 'Other records' : curatedFamilyLabel(id))
 
@@ -145,11 +149,12 @@ export function modalityMix(reports) {
 
 // Calls, internet sessions and app usage are the typed records of the typing report, with exact repeats left out as the report does; what is left of the accepted rows is "Other records".
 export function recordKinds(reports, rows) {
-  const byCase = new Map((reports || []).filter(report => report && report.available !== false).map(report => [report.collection_id, report]))
+  const reportsByCase = new Map((reports || []).filter(report => report && report.available !== false).map(report => [report.collection_id, report]))
   const kinds = [{ id: 'calls', label: 'Calls', count: 0 }, { id: 'sessions', label: 'Internet sessions', count: 0 }, { id: 'usage', label: 'App usage', count: 0 }, { id: 'other', label: 'Other records', count: 0 }]
   const effective = part => Math.max(0, number(part?.effective ?? number(part?.typed) - number(part?.repeats)))
+  const byCase = []
   for (const row of rows || []) {
-    const report = byCase.get(row.caseId)
+    const report = reportsByCase.get(row.caseId)
     if (!report || !row.summary) continue
     const calls = effective(report.calls)
     const sessions = effective(report.sessions)
@@ -157,9 +162,12 @@ export function recordKinds(reports, rows) {
     kinds[0].count += calls
     kinds[1].count += sessions
     kinds[2].count += usage
-    kinds[3].count += Math.max(0, row.summary.acceptedRows - calls - sessions - usage)
+    const other = Math.max(0, row.summary.acceptedRows - calls - sessions - usage)
+    kinds[3].count += other
+    byCase.push({ caseId: row.caseId, values: { calls, sessions, usage, other } })
   }
-  return { reported: byCase.size, total: sum(kinds, kind => kind.count), kinds: kinds.filter(kind => kind.count > 0) }
+  const total = entry => entry.values.calls + entry.values.sessions + entry.values.usage + entry.values.other
+  return { reported: reportsByCase.size, total: sum(kinds, kind => kind.count), kinds: kinds.filter(kind => kind.count > 0), byCase: byCase.sort((left, right) => total(right) - total(left)) }
 }
 
 // ---------- notes the service says to read before trusting an answer ----------
@@ -200,9 +208,16 @@ export function timeToReady(rows) {
   const stamp = value => { const time = value ? Date.parse(value) : NaN; return Number.isFinite(time) ? time : null }
   const cases = []
   const all = []
+  const waits = []
+  const processing = []
   for (const row of rows || []) {
-    const seconds = (row.state?.data?.recent_jobs || [])
-      .filter(job => String(job.status || '').toLowerCase() === 'completed')
+    const finished = (row.state?.data?.recent_jobs || []).filter(job => String(job.status || '').toLowerCase() === 'completed')
+    for (const job of finished) {
+      const queued = stamp(job.queued_at); const started = stamp(job.started_at); const done = stamp(job.completed_at)
+      if (queued !== null && started !== null && started >= queued) waits.push((started - queued) / 1000)
+      if (started !== null && done !== null && done >= started) processing.push((done - started) / 1000)
+    }
+    const seconds = finished
       .map(job => { const from = stamp(job.queued_at); const to = stamp(job.completed_at); return from !== null && to !== null && to >= from ? (to - from) / 1000 : null })
       .filter(value => value !== null)
       .sort((left, right) => left - right)
@@ -211,7 +226,9 @@ export function timeToReady(rows) {
     cases.push({ caseId: row.caseId, count: seconds.length, min: seconds[0], p25: quantile(seconds, 0.25), median: quantile(seconds, 0.5), p75: quantile(seconds, 0.75), max: seconds.at(-1) })
   }
   all.sort((left, right) => left - right)
-  return { cases, count: all.length, median: quantile(all, 0.5), slowest: all.at(-1) ?? null }
+  waits.sort((left, right) => left - right)
+  processing.sort((left, right) => left - right)
+  return { cases, count: all.length, median: quantile(all, 0.5), slowest: all.at(-1) ?? null, waitMedian: quantile(waits, 0.5), processMedian: quantile(processing, 0.5) }
 }
 
 // A round upper end for a shared axis of seconds: 1, 2, 5 or 10 times a power of ten.
@@ -242,3 +259,95 @@ export function largestCases(rows, limit = 4) {
 // A moment as the case's own clock says it, with the zone: "5 Mar 2026, 14:32 PKT" (directive 10.4). Relative times carry this as their title.
 const PKT = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Karachi' })
 export const formatMoment = date => (date && !Number.isNaN(date.getTime()) ? `${PKT.format(date)} PKT` : '')
+
+// Questions in each of the last seven 24-hour periods (the newest last), from the engine's own audit counts. The service counts a window ending now, so the window of k days minus the window
+// of k-1 days is the k-th period back; the counts are exact, the periods are rolling (not calendar days). `windows[k-1]` holds the totals of the last k days.
+export function dailyQuestions(items) {
+  const days = Array.from({ length: 7 }, (_, index) => ({ ago: 6 - index, questions: 0, answered: 0, declined: 0, abstained: 0 }))
+  for (const item of items || []) {
+    const windows = item?.windows
+    if (!Array.isArray(windows) || windows.length < 7) continue
+    for (let k = 1; k <= 7; k += 1) {
+      const now = windows[k - 1] || {}
+      const before = k > 1 ? windows[k - 2] || {} : {}
+      for (const key of ['questions', 'answered', 'declined', 'abstained']) days[7 - k][key] += Math.max(0, number(now[key]) - number(before[key]))
+    }
+  }
+  return days
+}
+
+// The shade of a heat cell from its count: 0 is empty, the rest are spread on a log scale so one huge cell does not turn every other cell blank. Returns a percentage of the accent to mix in.
+export function heatShare(value, max) {
+  if (!(value > 0) || !(max > 0)) return 0
+  return Math.round(10 + 38 * (Math.log10(1 + value) / Math.log10(1 + max)))
+}
+
+// ---------- what needs the analyst ----------
+// Causes in the order they matter. The first five need an action; the rest are worth knowing. Every item is read from what the services already report (a case's latest evidence and
+// jobs, the typing report, the questions and drafts kept in this browser); the counts of the first two come from the complete per-case totals, not from the named items.
+const ACTIVE = new Set(['registered', 'queued', 'processing', 'running'])
+const STALLED_AFTER_MS = 30 * 60 * 1000
+const CAUSES = [
+  { id: 'failed', label: 'Did not finish', tone: 'danger', action: 'Review', attention: true },
+  { id: 'dead', label: 'Gave up after several tries', tone: 'danger', action: 'Review', attention: true },
+  { id: 'missing', label: 'Retained copy missing', tone: 'danger', action: 'Review', attention: true },
+  { id: 'stalled', label: 'Still processing', tone: 'warn', action: 'Open', attention: true },
+  { id: 'choice', label: 'A question needs your choice', tone: 'accent', action: 'Answer', attention: true },
+  { id: 'plain', label: 'Read as a plain table', tone: 'muted', action: 'Open' },
+  { id: 'notes', label: 'Read before trusting answers', tone: 'muted', action: 'Read' },
+  { id: 'draft', label: 'Unsent question', tone: 'muted', action: 'Continue' },
+]
+
+export function needsYou({ rows, notes = [], history = [], drafts = [], now = Date.now() }) {
+  const buckets = new Map(CAUSES.map(cause => [cause.id, { ...cause, count: 0, items: [] }]))
+  const add = (id, item, count = 1) => { const bucket = buckets.get(id); bucket.items.push({ action: bucket.action, ...item, id: id + '-' + item.id }); bucket.count += count }
+  const evidencePath = (caseId, evidenceId) => '/cases/' + encodeURIComponent(caseId) + '/evidence' + (evidenceId ? '/' + encodeURIComponent(evidenceId) : '')
+
+  for (const item of attentionItems(rows)) add(item.kind === 'Failed' ? 'failed' : 'missing', { id: item.caseId + '-' + (item.evidenceId || item.label), title: item.label, caseId: item.caseId, to: evidencePath(item.caseId, item.evidenceId) }, 0)
+  // the named items are only the latest each case lists; the counts are the complete totals
+  const totals = reviewByCase(rows)
+  buckets.get('failed').count = totals.reduce((sum, entry) => sum + entry.failed, 0)
+  buckets.get('missing').count = totals.reduce((sum, entry) => sum + entry.missing, 0)
+
+  for (const row of rows) {
+    const data = row.state?.data
+    if (!data) continue
+    for (const job of data.recent_jobs || []) {
+      if (String(job.status || '').toLowerCase() !== 'dead_letter') continue
+      add('dead', { id: row.caseId + '-' + (job.job_id || job.evidence_id), title: job.source_file || 'Evidence item', caseId: row.caseId, detail: job.attempt_count ? job.attempt_count + ' of ' + (job.max_attempts || '?') + ' tries' : '', to: evidencePath(row.caseId, job.evidence_id) })
+    }
+    let plain = 0
+    for (const item of data.recent_evidence || []) {
+      const status = String(item.processing_status || '').toLowerCase()
+      const updated = item.updated_at ? Date.parse(item.updated_at) : NaN
+      if (ACTIVE.has(status) && Number.isFinite(updated) && now - updated > STALLED_AFTER_MS) add('stalled', { id: row.caseId + '-' + item.evidence_id, title: item.source_file || 'Evidence item', caseId: row.caseId, detail: relativeAge(new Date(updated), now).replace(' ago', '') + ' so far', to: evidencePath(row.caseId, item.evidence_id) })
+      if (status === 'completed' && (item.warnings || []).some(warning => /did not match a specialized/i.test(String(warning)))) plain += 1
+    }
+    if (plain) add('plain', { id: row.caseId, title: formatNumber(plain) + ' recent ' + (plain === 1 ? 'file was' : 'files were') + ' read as plain tables', caseId: row.caseId, detail: 'questions about them use the older path', to: evidencePath(row.caseId) })
+  }
+  const cutoff = now - 14 * 24 * 60 * 60 * 1000
+  for (const entry of history) {
+    if (entry.state === 'clarify' && Date.parse(entry.updatedAt) > cutoff) add('choice', { id: entry.caseId + '-' + entry.id, title: entry.label || entry.query, caseId: entry.caseId, to: '/cases/' + encodeURIComponent(entry.caseId) + '/investigate?question=' + encodeURIComponent(entry.query) })
+  }
+  for (const note of notes) add('notes', { id: note.code, title: note.title, caseIds: note.caseIds, detail: note.caseIds.length === 1 ? '' : formatNumber(note.caseIds.length) + ' cases', hint: note.text, caseId: note.caseIds.length === 1 ? note.caseIds[0] : '', to: '/cases/' + encodeURIComponent(note.caseIds[0]) + '/overview' })
+  for (const draft of drafts) add('draft', { id: draft.caseId, title: draft.text, caseId: draft.caseId, to: '/cases/' + encodeURIComponent(draft.caseId) + '/investigate' })
+
+  const groups = [...buckets.values()].filter(group => group.count > 0 || group.items.length > 0).map(group => ({ ...group, count: Math.max(group.count, group.items.length) }))
+  return { groups, attention: groups.filter(group => group.attention).reduce((sum, group) => sum + group.count, 0) }
+}
+
+// ---------- how the times of the records are known ----------
+// Rows of the typed records by the basis of their time: stated in the file, declared by the source, or confirmed by an analyst. What an analyst checks before they trust an hour.
+const BASIS_LABEL = { confirmed_by_analyst: 'Confirmed by an analyst', explicit_offset: 'Stated in the file', declared: 'Declared by the source', assumed: 'Assumed' }
+export function timeBasis(reports) {
+  const rows = new Map()
+  for (const report of reports || []) {
+    if (!report || report.available === false) continue
+    for (const layout of [...(report.calls?.layouts || []), ...(report.sessions?.layouts || [])]) {
+      const id = layout.time_basis || 'unknown'
+      rows.set(id, (rows.get(id) || 0) + number(layout.rows))
+    }
+  }
+  const parts = [...rows.entries()].map(([id, count]) => ({ id, label: BASIS_LABEL[id] || String(id).replace(/_/g, ' ').replace(/^./, char => char.toUpperCase()), rows: count })).filter(part => part.rows > 0).sort((left, right) => right.rows - left.rows)
+  return { total: sum(parts, part => part.rows), parts }
+}

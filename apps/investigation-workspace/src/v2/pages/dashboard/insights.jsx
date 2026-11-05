@@ -1,36 +1,48 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CircleAlert, CircleCheckBig, MessageSquareText } from 'lucide-react'
 import { formatNumber } from '../../../lib/format.js'
 import { formatRate } from '../../../lib/dashboardCharts.js'
 import { CaseLabel, useCaseNameOf } from '../../shell/CaseLabel.jsx'
 import { Calm, Panel, PanelSkeleton } from '../../ui/Panel.jsx'
-import { BarStrip, RangeStrip, SegBar } from '../../ui/micro.jsx'
+import { BarStrip, ColumnChart, Dumbbell, RangeStrip, SegBar } from '../../ui/micro.jsx'
 import { TableTwin } from '../../ui/TableTwin.jsx'
-import { formatDuration, niceCeiling } from './model.js'
+import { formatDuration, heatShare, niceCeiling } from './model.js'
 
 const MONTH = new Intl.DateTimeFormat('en-GB', { month: 'short', year: 'numeric', timeZone: 'UTC' })
 const monthLabel = key => MONTH.format(new Date(`${key.slice(0, 7)}-01T00:00:00Z`))
 const plural = (count, one, many = `${one}s`) => `${formatNumber(count)} ${count === 1 ? one : many}`
 const colourOf = kind => (kind.slot ? `var(--nx-data-${kind.slot})` : 'var(--nx-data-muted)')
+const TIMELINE_ROWS = 8
 
 // ---------- the evidence timeline: when the events of each case happened, one row for each case ----------
-// Each row is drawn on its own scale (the busiest month fills the height), so the shape of a case can be read next to the others; the count at the end is the exact total.
-// A case the service could not read to its end says so, and a date in the future is named and left out. The table twin lists the same figures.
+// Small multiples. Own scale shows the shape of each case (the busiest month fills the row); shared scale shows the size (one case cannot hide another). The analyst chooses; the count at the end
+// is the exact total either way. A case the service could not read to its end says so, a date in the future is named and left out, and the table twin lists the same figures.
 export function TimelinePanel({ timelines, loading, failures }) {
   const nameOf = useCaseNameOf()
+  const [scale, setScale] = useState('own')
+  const shown = timelines.slice(0, TIMELINE_ROWS)
+  const sharedMax = Math.max(1, ...shown.flatMap(item => item.series.map(point => point.total)))
   const twin = timelines.map(item => ({ id: item.caseId, case: nameOf(item.caseId), from: item.first ? monthLabel(item.first) : '', to: item.last ? monthLabel(item.last) : '', events: item.total, note: [item.partial ? 'first 100 days only' : '', item.futureTotal ? `${formatNumber(item.futureTotal)} events dated after today are not drawn` : ''].filter(Boolean).join('; ') }))
+  const toggle = (
+    <div className="nx-segmented" role="group" aria-label="Scale of the rows">
+      <button type="button" aria-pressed={scale === 'own'} onClick={() => setScale('own')} title="Each row's busiest month fills the row: the shape of each case">Own scale</button>
+      <button type="button" aria-pressed={scale === 'shared'} onClick={() => setScale('shared')} title="One scale for every row: the size of each case against the others">Shared scale</button>
+    </div>
+  )
   return (
-    <Panel id="dash-timeline" title="Evidence timeline" sub="Events per month · each row on its own scale" className="nx-panel--timeline">
+    <Panel id="dash-timeline" title="Evidence timeline" sub="Events per month" action={timelines.length ? toggle : null} className="nx-panel--timeline">
       {loading && !timelines.length ? <PanelSkeleton rows={4} /> : timelines.length ? (
         <>
           <ol className="nx-tl">
-            {timelines.map(item => (
+            {shown.map(item => (
               <li key={item.caseId} className="nx-tl__row">
                 <span className="nx-tl__who">
                   <Link className="nx-tl__name" to={`/cases/${encodeURIComponent(item.caseId)}/timeline`}><CaseLabel caseId={item.caseId} /></Link>
                   {item.partial ? <span className="nx-tl__note" title="The service returns at most 100 days for a case; only those are drawn and counted.">first 100 days only</span> : null}
                 </span>
                 <BarStrip
+                  max={scale === 'shared' ? sharedMax : undefined}
                   values={item.series.map(point => ({ key: point.from, value: point.total, title: `${point.from === point.to ? monthLabel(point.from) : `${monthLabel(point.from)} – ${monthLabel(point.to)}`}: ${formatNumber(point.total)} events` }))}
                   label={`Events by month from ${item.first ? monthLabel(item.first) : '—'} to ${item.last ? monthLabel(item.last) : '—'}: ${formatNumber(item.total)}`}
                 />
@@ -42,6 +54,7 @@ export function TimelinePanel({ timelines, loading, failures }) {
               </li>
             ))}
           </ol>
+          {timelines.length > shown.length ? <p className="nx-panel__note">{formatNumber(timelines.length - shown.length)} more cases are in the table.</p> : null}
           <TableTwin label="Events per case by month range" exportName="nexusai-evidence-timeline.csv" summary={`Events per month for ${plural(timelines.length, 'case')}; ${plural(timelines.filter(item => item.partial).length, 'case')} read only as far as the service returns.`}
             columns={[{ key: 'case', label: 'Case' }, { key: 'from', label: 'From' }, { key: 'to', label: 'To' }, { key: 'events', label: 'Events' }, { key: 'note', label: 'Note' }]} rows={twin} />
         </>
@@ -51,7 +64,7 @@ export function TimelinePanel({ timelines, loading, failures }) {
 }
 
 // ---------- what the evidence holds ----------
-export function EvidenceTypesPanel({ mix, loading }) {
+export function EvidenceTypesPanel({ mix, indexed, loading }) {
   return (
     <Panel id="dash-types" title="Evidence by type" sub={mix.total ? `Files · ${formatNumber(mix.total)}` : null}>
       {loading && !mix.total ? <PanelSkeleton /> : mix.total ? (
@@ -67,6 +80,7 @@ export function EvidenceTypesPanel({ mix, loading }) {
               </li>
             ))}
           </ul>
+          {indexed ? <p className="nx-panel__note">{formatNumber(indexed)} items are indexed for search.</p> : null}
           <TableTwin label="Files by type" exportName="nexusai-evidence-by-type.csv" summary={`${plural(mix.total, 'file')} in all: ${mix.kinds.map(kind => `${formatNumber(kind.files)} ${kind.label.toLowerCase()}`).join(', ')}.`}
             columns={[{ key: 'type', label: 'Type' }, { key: 'files', label: 'Files' }, { key: 'failed', label: 'Did not finish' }, { key: 'share', label: 'Share' }]}
             rows={mix.kinds.map(kind => ({ id: kind.id, type: kind.label, files: kind.files, failed: kind.failed, share: formatRate(kind.files / mix.total) }))} />
@@ -76,9 +90,15 @@ export function EvidenceTypesPanel({ mix, loading }) {
   )
 }
 
-export function RecordKindsPanel({ kinds, largest, loading }) {
+const KIND_COLUMNS = [{ id: 'calls', label: 'Calls' }, { id: 'sessions', label: 'Internet' }, { id: 'usage', label: 'App use' }, { id: 'other', label: 'Other' }]
+
+// Records by kind, as a heat matrix: one row for each case, one column for each kind. The number is in every cell (the shade only helps the eye); shading is on a log scale so one huge cell does not
+// turn the others blank, and a blank cell means none. The first bars give the total of each kind.
+export function RecordKindsPanel({ kinds, loading }) {
   const max = Math.max(1, ...kinds.kinds.map(kind => kind.count))
-  const biggest = Math.max(1, ...largest.map(item => item.records))
+  const rows = kinds.byCase.slice(0, 6)
+  const cellMax = Math.max(1, ...rows.flatMap(row => Object.values(row.values)))
+  const nameOf = useCaseNameOf()
   return (
     <Panel id="dash-kinds" title="Records by kind" sub={kinds.total ? `Records · ${formatNumber(kinds.total)}` : null}>
       {loading && !kinds.total ? <PanelSkeleton /> : kinds.total ? (
@@ -92,23 +112,31 @@ export function RecordKindsPanel({ kinds, largest, loading }) {
               </li>
             ))}
           </ul>
-          {largest.length > 1 ? (
+          {rows.length > 1 ? (
             <div className="nx-group">
-              <p className="nx-overline">Where the records are</p>
-              <ul className="nx-mix">
-                {largest.map(item => (
-                  <li key={item.caseId} className="nx-mix__row nx-mix__row--static">
-                    <Link className="nx-mix__label nx-mix__link" to={`/cases/${encodeURIComponent(item.caseId)}/overview`}><CaseLabel caseId={item.caseId} /></Link>
-                    <span className="nx-mix__bar" aria-hidden="true"><i style={{ inlineSize: `${Math.max(2, (item.records / biggest) * 100)}%` }} /></span>
-                    <span className="nx-mix__value nx-tabular">{formatNumber(item.records)}</span>
-                  </li>
-                ))}
-              </ul>
+              <p className="nx-overline">By case</p>
+              <table className="nx-heat">
+                <caption className="nx-visually-hidden">Records of each kind in each case; shading is on a log scale and blank means none</caption>
+                <thead><tr><th scope="col"><span className="nx-visually-hidden">Case</span></th>{KIND_COLUMNS.map(column => <th key={column.id} scope="col">{column.label}</th>)}</tr></thead>
+                <tbody>
+                  {rows.map(row => (
+                    <tr key={row.caseId}>
+                      <th scope="row"><Link to={`/cases/${encodeURIComponent(row.caseId)}/overview`}><CaseLabel caseId={row.caseId} /></Link></th>
+                      {KIND_COLUMNS.map(column => {
+                        const value = row.values[column.id]
+                        const share = heatShare(value, cellMax)
+                        return <td key={column.id} className="nx-heat__cell nx-tabular" style={share ? { '--p': `${share}%` } : undefined}>{value ? formatNumber(value) : <span aria-label="none">·</span>}</td>
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="nx-panel__note">Shading is on a log scale; a dot means none.</p>
             </div>
           ) : null}
           <TableTwin label="Records of each kind" exportName="nexusai-records-by-kind.csv" summary={`${plural(kinds.total, 'record')} in all: ${kinds.kinds.map(kind => `${formatNumber(kind.count)} ${kind.label.toLowerCase()}`).join(', ')}.`}
-            columns={[{ key: 'kind', label: 'Kind' }, { key: 'records', label: 'Records' }, { key: 'share', label: 'Share' }]}
-            rows={kinds.kinds.map(kind => ({ id: kind.id, kind: kind.label, records: kind.count, share: formatRate(kind.count / kinds.total) }))} />
+            columns={[{ key: 'case', label: 'Case' }, ...KIND_COLUMNS.map(column => ({ key: column.id, label: column.label }))]}
+            rows={kinds.byCase.map(row => ({ id: row.caseId, case: nameOf(row.caseId), ...row.values }))} />
         </>
       ) : <Calm icon={CircleAlert}>No records typed yet</Calm>}
     </Panel>
@@ -116,14 +144,18 @@ export function RecordKindsPanel({ kinds, largest, loading }) {
 }
 
 // ---------- answers: what the engine did with the questions of the last days ----------
-export function AnswersPanel({ quality, loading }) {
+// Every share is shown with the count behind it, so a small week is not read as a trend. The per-day columns are 24-hour periods ending now, from the engine's own audit counts.
+export function AnswersPanel({ quality, daily, loading }) {
   const asked = quality.questions > 0
   const latency = quality.latency
+  const ago = day => (day.ago === 0 ? 'Last 24 hours' : `${day.ago} ${day.ago === 1 ? 'day' : 'days'} ago`)
+  const dailyRows = (daily || []).map(day => ({ id: `d${day.ago}`, measure: `Questions, ${ago(day).toLowerCase()}`, value: `${formatNumber(day.questions)} (${formatNumber(day.answered)} answered, ${formatNumber(day.declined)} declined, ${formatNumber(day.abstained)} abstained)` }))
   const rows = asked ? [
     { id: 'answered', measure: 'Answered', value: formatNumber(quality.answered) },
     { id: 'declined', measure: 'Declined', value: formatNumber(quality.declined) },
     { id: 'abstained', measure: 'Abstained', value: formatNumber(quality.abstained) },
     ...(latency ? [{ id: 'median', measure: 'Median time to answer', value: formatDuration(latency.p50) }, { id: 'p90', measure: 'Nine in ten within', value: formatDuration(latency.p90) }, { id: 'max', measure: 'Slowest', value: formatDuration(latency.max) }] : []),
+    ...dailyRows,
   ] : []
   return (
     <Panel id="dash-answers" title="Answers" sub="Questions · last 7 days">
@@ -143,6 +175,16 @@ export function AnswersPanel({ quality, loading }) {
             <li><i className="nx-keys__key" style={{ background: 'var(--nx-border-strong)' }} /><span className="nx-keys__name">Declined</span><span className="nx-keys__value nx-tabular">{formatNumber(quality.declined)}</span></li>
             <li><i className="nx-keys__key" style={{ background: 'var(--nx-border)' }} /><span className="nx-keys__name">Abstained</span><span className="nx-keys__value nx-tabular">{formatNumber(quality.abstained)}</span></li>
           </ul>
+          {daily && daily.some(day => day.questions) ? (
+            <div className="nx-group">
+              <p className="nx-overline">Questions per day</p>
+              <div dir="ltr">
+                <ColumnChart label={`Questions in each of the last seven 24-hour periods, oldest first: ${daily.map(day => formatNumber(day.questions)).join(', ')}`}
+                  columns={daily.map(day => ({ key: day.ago, title: `${ago(day)}: ${formatNumber(day.answered)} answered, ${formatNumber(day.declined)} declined, ${formatNumber(day.abstained)} abstained`, parts: [{ id: 'answered', value: day.answered, colour: 'var(--nx-accent)' }, { id: 'declined', value: day.declined, colour: 'var(--nx-border-strong)' }, { id: 'abstained', value: day.abstained, colour: 'var(--nx-border)' }] }))} />
+                <p className="nx-cols__axis" aria-hidden="true"><span>6 days ago</span><span>Last 24 hours</span></p>
+              </div>
+            </div>
+          ) : null}
           {latency ? (
             <div className="nx-ladder">
               <p className="nx-overline">Time to answer · <CaseLabel caseId={latency.caseId} /></p>
@@ -163,34 +205,58 @@ export function AnswersPanel({ quality, loading }) {
   )
 }
 
-// ---------- the pipeline ----------
-export function SetAsidePanel({ data, loading }) {
+// ---------- data quality: what was set aside, and how the times are known ----------
+// Rows set aside is a dumbbell (exactly two values for each case: the rejected share, and the rejected plus exact-repeat share) on one axis that starts at zero. The basis of the times is one stacked bar.
+export function DataQualityPanel({ aside, basis, loading, basisLoading }) {
   const nameOf = useCaseNameOf()
-  const shown = data.items.filter(item => item.share > 0).slice(0, 5)
-  const max = Math.max(0.0001, ...shown.map(item => item.share))
+  const shown = aside.items.filter(item => item.share > 0).slice(0, 6)
+  const axisMax = niceCeiling(Math.max(0.1, ...shown.map(item => item.share * 100)))
   return (
-    <Panel id="dash-setaside" title="Rows set aside" sub={data.read ? `${formatRate(data.share)} of ${formatNumber(data.read)} rows` : null}>
-      {loading && !data.read ? <PanelSkeleton /> : shown.length ? (
+    <Panel id="dash-quality" title="Data quality" sub={aside.read ? `${formatRate(aside.share)} of ${formatNumber(aside.read)} rows set aside` : null}>
+      {loading && !aside.read ? <PanelSkeleton /> : (
         <>
-          <ul className="nx-aside">
-            {shown.map(item => (
-              <li key={item.caseId} className="nx-aside__row" title={`${formatNumber(item.rejected)} rejected, ${formatNumber(item.duplicates)} exact repeats, of ${formatNumber(item.read)} rows read`}>
-                <Link className="nx-aside__name" to={`/cases/${encodeURIComponent(item.caseId)}/overview`}><CaseLabel caseId={item.caseId} /></Link>
-                <SegBar height={8} label={`${formatRate(item.share)} of the rows of this case were set aside`} parts={[{ id: 'rejected', value: item.rejected / item.read / max, colour: 'var(--nx-accent)' }, { id: 'repeats', value: item.duplicates / item.read / max, colour: 'var(--nx-border-strong)' }, { id: 'room', value: Math.max(0, 1 - item.share / max), colour: 'transparent' }]} />
-                <span className="nx-aside__value nx-tabular">{formatRate(item.share)}</span>
-              </li>
-            ))}
-          </ul>
-          <p className="nx-keyline"><span><i className="nx-keys__key" style={{ background: 'var(--nx-accent)' }} />Rejected</span><span><i className="nx-keys__key" style={{ background: 'var(--nx-border-strong)' }} />Exact repeats</span></p>
-          <TableTwin label="Rows set aside for each case" exportName="nexusai-rows-set-aside.csv" summary={`${formatRate(data.share)} of ${formatNumber(data.read)} rows read were set aside, the case with the largest share first.`}
+          <div className="nx-group">
+            <p className="nx-overline">Rows set aside, share of the rows read</p>
+            {shown.length ? (
+              <>
+                <ul className="nx-aside">
+                  {shown.map(item => (
+                    <li key={item.caseId} className="nx-aside__row" title={`${formatNumber(item.rejected)} rejected, ${formatNumber(item.duplicates)} exact repeats, of ${formatNumber(item.read)} rows read`}>
+                      <Link className="nx-aside__name" to={`/cases/${encodeURIComponent(item.caseId)}/overview`}><CaseLabel caseId={item.caseId} /></Link>
+                      <Dumbbell low={(item.rejected / item.read) * 100} high={item.share * 100} axisMax={axisMax} label={`${formatRate(item.rejected / item.read)} rejected, ${formatRate(item.share)} rejected or exact repeats`} />
+                      <span className="nx-aside__value nx-tabular">{formatRate(item.share)}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="nx-axis nx-tabular" aria-hidden="true"><i /><span className="nx-axis__scale"><span>0%</span><span>{formatRate(axisMax / 200)}</span><span>{formatRate(axisMax / 100)}</span></span><i /></p>
+                <p className="nx-keyline"><span><i className="nx-keys__key nx-keys__key--dot" style={{ background: 'var(--nx-accent)' }} />Rejected</span><span><i className="nx-keys__key nx-keys__key--ring" />Rejected and exact repeats</span></p>
+              </>
+            ) : aside.read ? <Calm icon={CircleCheckBig} tone="ok"><strong>Every row was kept</strong></Calm> : <Calm icon={CircleAlert}>No rows read yet</Calm>}
+          </div>
+          <div className="nx-group">
+            <p className="nx-overline">How the times of the records are known</p>
+            {basisLoading && !basis.total ? <PanelSkeleton rows={2} /> : basis.total ? (
+              <>
+                <SegBar height={10} label="Rows by the basis of their time" parts={basis.parts.map((part, index) => ({ id: part.id, value: part.rows, colour: `var(--nx-data-${index + 1})`, title: `${part.label}: ${formatNumber(part.rows)} rows` }))} />
+                <ul className="nx-keys">
+                  {basis.parts.map((part, index) => (
+                    <li key={part.id}><i className="nx-keys__key" style={{ background: `var(--nx-data-${index + 1})` }} /><span className="nx-keys__name">{part.label}</span><span className="nx-keys__value nx-tabular">{formatNumber(part.rows)}</span><span className="nx-keys__share nx-tabular">{formatRate(part.rows / basis.total)}</span></li>
+                  ))}
+                </ul>
+              </>
+            ) : <p className="nx-muted">No typed records yet</p>}
+          </div>
+          <TableTwin label="Data quality for each case" exportName="nexusai-data-quality.csv" summary={`${formatRate(aside.share)} of ${formatNumber(aside.read)} rows read were set aside; the times of ${formatNumber(basis.total)} typed rows are known as: ${basis.parts.map(part => `${formatNumber(part.rows)} ${part.label.toLowerCase()}`).join(', ') || 'not yet read'}.`}
             columns={[{ key: 'case', label: 'Case' }, { key: 'read', label: 'Rows read' }, { key: 'repeats', label: 'Exact repeats' }, { key: 'rejected', label: 'Rejected' }, { key: 'share', label: 'Share set aside' }]}
-            rows={data.items.map(item => ({ id: item.caseId, case: nameOf(item.caseId), read: item.read, repeats: item.duplicates, rejected: item.rejected, share: formatRate(item.share) }))} />
+            rows={aside.items.map(item => ({ id: item.caseId, case: nameOf(item.caseId), read: item.read, repeats: item.duplicates, rejected: item.rejected, share: formatRate(item.share) }))} />
         </>
-      ) : data.read ? <Calm icon={CircleCheckBig} tone="ok"><strong>Every row was kept</strong></Calm> : <Calm icon={CircleAlert}>No rows read yet</Calm>}
+      )}
     </Panel>
   )
 }
 
+// ---------- the pipeline: how long files take from upload to ready, and where the time goes ----------
+// Waiting (the file sat in the queue) and processing (the file was being read) are told apart: the first is usually all of it. Every strip shares one axis; a hairline marks the median of all files.
 export function TimeToReadyPanel({ data, loading }) {
   const nameOf = useCaseNameOf()
   const cases = data.cases.slice().sort((left, right) => right.median - left.median).slice(0, 6)
@@ -199,18 +265,19 @@ export function TimeToReadyPanel({ data, loading }) {
     <Panel id="dash-ready" title="Time to ready" sub={data.count ? `Median ${formatDuration(data.median)} from upload` : null}>
       {loading && !data.count ? <PanelSkeleton /> : cases.length ? (
         <>
+          <p className="nx-split"><span><b className="nx-tabular">{formatDuration(data.waitMedian)}</b> median waiting in the queue</span><span><b className="nx-tabular">{formatDuration(data.processMedian)}</b> median being read</span></p>
           <ul className="nx-aside">
             {cases.map(item => (
               <li key={item.caseId} className="nx-aside__row" title={`${plural(item.count, 'file')}: fastest ${formatDuration(item.min)}, slowest ${formatDuration(item.max)}`}>
                 <Link className="nx-aside__name" to={`/cases/${encodeURIComponent(item.caseId)}/evidence`}><CaseLabel caseId={item.caseId} /></Link>
-                <RangeStrip stats={item} axisMax={axisMax} label={`Median ${formatDuration(item.median)}, from ${formatDuration(item.min)} to ${formatDuration(item.max)}, over ${plural(item.count, 'file')}`} />
+                <RangeStrip stats={item} axisMax={axisMax} reference={data.median} label={`Median ${formatDuration(item.median)}, from ${formatDuration(item.min)} to ${formatDuration(item.max)}, over ${plural(item.count, 'file')}`} />
                 <span className="nx-aside__value nx-tabular">{formatDuration(item.median)}</span>
               </li>
             ))}
           </ul>
           <p className="nx-axis nx-tabular" aria-hidden="true"><i /><span className="nx-axis__scale"><span>0</span><span>{formatDuration(axisMax / 2)}</span><span>{formatDuration(axisMax)}</span></span><i /></p>
-          <p className="nx-keyline"><span><i className="nx-keys__key nx-keys__key--dot" style={{ background: 'var(--nx-accent)' }} />Median</span><span><i className="nx-keys__key nx-keys__key--bar" />Middle half of the files</span><span><i className="nx-keys__key nx-keys__key--line" />Fastest to slowest</span></p>
-          <TableTwin label="Time from upload to ready for each case" exportName="nexusai-time-to-ready.csv" summary={`Median ${formatDuration(data.median)} from upload to ready over ${plural(data.count, 'file')}; the slowest took ${formatDuration(data.slowest)}.`}
+          <p className="nx-keyline"><span><i className="nx-keys__key nx-keys__key--dot" style={{ background: 'var(--nx-accent)' }} />Median</span><span><i className="nx-keys__key nx-keys__key--bar" />Middle half of the files</span><span><i className="nx-keys__key nx-keys__key--line" />Fastest to slowest</span><span><i className="nx-keys__key nx-keys__key--tick" />Median of all files</span></p>
+          <TableTwin label="Time from upload to ready for each case" exportName="nexusai-time-to-ready.csv" summary={`Median ${formatDuration(data.median)} from upload to ready over ${plural(data.count, 'file')}: ${formatDuration(data.waitMedian)} waiting in the queue and ${formatDuration(data.processMedian)} being read; the slowest took ${formatDuration(data.slowest)}.`}
             columns={[{ key: 'case', label: 'Case' }, { key: 'files', label: 'Files' }, { key: 'fastest', label: 'Fastest' }, { key: 'median', label: 'Median' }, { key: 'slowest', label: 'Slowest' }]}
             rows={data.cases.map(item => ({ id: item.caseId, case: nameOf(item.caseId), files: item.count, fastest: formatDuration(item.min), median: formatDuration(item.median), slowest: formatDuration(item.max) }))} />
         </>
