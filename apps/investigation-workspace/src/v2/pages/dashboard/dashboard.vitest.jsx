@@ -2,8 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import DashboardPage from './DashboardPage.jsx'
+import { TimelinePanel } from './insights.jsx'
 import { resetDashboardReads } from './data.js'
-import { answerQuality, caseStates, durationHistogram, caseTimelines, dailyQuestions, dataNotes, declineText, formatDuration, heatShare, modalityMix, needsYou, niceCeiling, recordKinds, setAside, timeBasis, timeToReady } from './model.js'
+import { alignTimelines, answerQuality, caseStates, durationHistogram, caseTimelines, dailyQuestions, dataNotes, declineText, formatDuration, heatShare, modalityMix, needsYou, niceCeiling, recordKinds, setAside, timeBasis, timeToReady } from './model.js'
 import { cleanRate, latestItems, resumeEntries, statusCounts } from './sections.jsx'
 import { BarStrip, DotRow, Histogram, RangeStrip, SegBar } from '../../ui/micro.jsx'
 import { CountUp } from '../../ui/CountUp.jsx'
@@ -331,7 +332,7 @@ describe('the dashboard page', () => {
     // the timeline, one row for each case
     const timeline = await screen.findByRole('region', { name: 'Evidence timeline' })
     expect(await within(timeline).findAllByRole('listitem')).toHaveLength(2)
-    expect(timeline.textContent).toMatch(/Jan 2024 – Mar 2024/)
+    expect(within(timeline).getAllByRole('img').map(lane => lane.getAttribute('aria-label')).join(' | ')).toMatch(/from Jan 2024 to Mar 2024/)
 
     const cases = screen.getByRole('region', { name: 'Cases' })
     expect(within(cases).getAllByRole('row')).toHaveLength(3)
@@ -425,5 +426,95 @@ describe('the indicator pictures', () => {
     localStorage.clear()
     render(<CountUp value={1234} duration={30} format={value => value.toLocaleString('en-US')} />)
     await waitFor(() => expect(screen.getByText('1,234')).toBeTruthy())
+  })
+})
+
+describe('alignTimelines', () => {
+  const result = (caseId, days, truncated = false) => ({ caseId, days: days.map(([date, total]) => ({ date, total, byFamily: {} })), truncated })
+  const lines = (...results) => caseTimelines(results, '2025-04-15')
+
+  it('puts every case on one calendar that runs to the current month, so the columns line up', () => {
+    const axis = alignTimelines(lines(result('a', [['2024-01-10', 5], ['2024-03-02', 2]]), result('b', [['2025-02-01', 4]])), '2025-04-15')
+    expect(axis.groups).toHaveLength(16)
+    expect([axis.groups[0].from, axis.groups.at(-1).to]).toEqual(['2024-01', '2025-04'])
+    const [a, b] = axis.lanes
+    expect(a.cells.map(cell => cell.state).join(' ')).toBe(['in', 'in', 'in', ...Array(13).fill('after')].join(' '))
+    expect(a.cells.slice(0, 3).map(cell => cell.total)).toEqual([5, 0, 2])
+    expect(b.cells[0].state).toBe('before')
+    expect(b.cells[13]).toMatchObject({ from: '2025-02', total: 4, state: 'in' })
+    expect(axis.ticks.map(tick => [tick.index, tick.year])).toEqual([[0, '2024'], [12, '2025']])
+  })
+
+  it('says "not read", not "empty", after the last row the service returned for a capped case', () => {
+    const axis = alignTimelines(lines(result('a', [['2024-01-10', 5]], false), result('b', [['2024-01-10', 5], ['2024-02-02', 1]], true)), '2025-04-15')
+    const [complete, capped] = axis.lanes
+    expect(complete.cells.at(-1).state).toBe('after')
+    expect(complete.unreadFrom).toBeNull()
+    expect(capped.cells.at(-1).state).toBe('unread')
+    expect(capped.unreadFrom).toBe(2)
+  })
+
+  it('groups a long axis in equal runs shared by every lane, and keeps every total', () => {
+    const axis = alignTimelines(lines(result('a', [['2010-01-05', 3], ['2024-06-01', 4]]), result('b', [['2020-01-05', 9]])), '2026-11-04')
+    expect(axis.groupSize).toBeGreaterThan(1)
+    expect(axis.groups.length).toBeLessThanOrEqual(96)
+    expect(axis.lanes.map(lane => lane.cells.reduce((sum, cell) => sum + cell.total, 0))).toEqual([7, 9])
+    expect(axis.lanes.every(lane => lane.cells.length === axis.groups.length)).toBe(true)
+    expect(axis.ticks.length).toBeLessThanOrEqual(7)
+  })
+
+  it('draws nothing when no case has a dated month, and keeps a case that has only future dates as an empty lane', () => {
+    expect(alignTimelines([], '2025-04-15')).toBeNull()
+    const future = caseTimelines([result('a', [['2090-01-01', 3]]), result('b', [['2024-05-01', 2]])], '2025-04-15')
+    const axis = alignTimelines(future, '2025-04-15')
+    expect(axis.lanes.map(lane => lane.caseId)).toEqual(['a', 'b'])
+    expect(axis.lanes[0].cells.every(cell => cell.state === 'before' && cell.total === 0)).toBe(true)
+  })
+})
+
+describe('the timeline panel', () => {
+  afterEach(() => { cleanup(); localStorage.clear() })
+  const result = (caseId, days, truncated = false) => ({ caseId, days: days.map(([date, total]) => ({ date, total, byFamily: {} })), truncated })
+  const panel = () => {
+    const timelines = caseTimelines([result('case-a', [['2024-01-10', 5], ['2024-03-02', 2]]), result('case-b', [['2024-01-10', 4]], true)], '2025-04-15')
+    return render(<MemoryRouter><TimelinePanel timelines={timelines} loading={false} failures={[]} today="2025-04-15" /></MemoryRouter>)
+  }
+
+  it('reads one month with the arrow keys: the title names it and each lane gives that month’s figure', () => {
+    panel()
+    const plot = screen.getByRole('group', { name: /Events per month in each case/ })
+    expect(plot.tabIndex).toBe(0)
+    const status = document.querySelector('[data-readout]')
+    expect(status.textContent).toBe('')
+    plot.focus()
+    fireEvent.keyDown(plot, { key: 'Home' })
+    expect(status.textContent).toMatch(/^Jan 2024: /)
+    expect(status.textContent).toMatch(/5/)
+    fireEvent.keyDown(plot, { key: 'End' })
+    expect(status.textContent).toMatch(/^Apr 2025: /)
+    expect(status.textContent).toMatch(/not read/)
+    expect(screen.getByText('Apr 2025', { selector: '.nx-panel__sub' })).toBeTruthy()
+    fireEvent.keyDown(plot, { key: 'ArrowLeft' })
+    expect(status.textContent).toMatch(/^Mar 2025: /)
+    fireEvent.keyDown(plot, { key: 'Escape' })
+    expect(status.textContent).toBe('')
+    expect(screen.getByText('Events per month')).toBeTruthy()
+  })
+
+  it('shows each lane’s total at rest, with a plus where the read was only the earliest rows', () => {
+    panel()
+    const lanes = screen.getAllByRole('listitem')
+    expect(lanes[0].textContent).toMatch(/7$/)
+    expect(lanes[1].textContent).toMatch(/earliest rows only/)
+    expect(lanes[1].textContent).toMatch(/4\+$/)
+  })
+
+  it('offers the two scales and says which is on', () => {
+    panel()
+    const group = screen.getByRole('group', { name: 'Scale of the lanes' })
+    const [own, shared] = within(group).getAllByRole('button')
+    expect([own.getAttribute('aria-pressed'), shared.getAttribute('aria-pressed')]).toEqual(['true', 'false'])
+    fireEvent.click(shared)
+    expect(shared.getAttribute('aria-pressed')).toBe('true')
   })
 })

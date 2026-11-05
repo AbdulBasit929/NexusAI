@@ -1,13 +1,13 @@
-import { useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CircleAlert, CircleCheckBig, MessageSquareText } from 'lucide-react'
 import { formatNumber } from '../../../lib/format.js'
 import { formatRate } from '../../../lib/dashboardCharts.js'
 import { CaseLabel, useCaseNameOf } from '../../shell/CaseLabel.jsx'
 import { Calm, Panel, PanelSkeleton } from '../../ui/Panel.jsx'
-import { BarStrip, ColumnChart, Dumbbell, RangeStrip, SegBar } from '../../ui/micro.jsx'
+import { ColumnChart, Dumbbell, RangeStrip, SegBar } from '../../ui/micro.jsx'
 import { TableTwin } from '../../ui/TableTwin.jsx'
-import { formatDuration, heatShare, niceCeiling } from './model.js'
+import { alignTimelines, formatDuration, heatShare, niceCeiling } from './model.js'
 
 const MONTH = new Intl.DateTimeFormat('en-GB', { month: 'short', year: 'numeric', timeZone: 'UTC' })
 const monthLabel = key => MONTH.format(new Date(`${key.slice(0, 7)}-01T00:00:00Z`))
@@ -15,46 +15,105 @@ const plural = (count, one, many = `${one}s`) => `${formatNumber(count)} ${count
 const colourOf = kind => (kind.slot ? `var(--nx-data-${kind.slot})` : 'var(--nx-data-muted)')
 const TIMELINE_ROWS = 8
 
-// ---------- the evidence timeline: when the events of each case happened, one row for each case ----------
-// Small multiples. Own scale shows the shape of each case (the busiest month fills the row); shared scale shows the size (one case cannot hide another). The analyst chooses; the count at the end
-// is the exact total either way. A case the service could not read to its end says so, a date in the future is named and left out, and the table twin lists the same figures.
-export function TimelinePanel({ timelines, loading, failures }) {
+// ---------- the evidence timeline: when the events of each case happened, every case on one calendar ----------
+// The lanes share one calendar (it runs from the earliest month any case has to this month), so where the cases overlap in time can be read at a glance. "Own scale" lets each lane's busiest month fill
+// its height (the shape of the case); "Shared scale" gives every lane one scale (the size). Pointing at the plot, or using the arrow keys on it, reads one month: the figure at the end of each lane
+// becomes that month's figure and the title names the month, so nothing floats over the data. A case the service returned only in part ends in a dotted run, which means "not read", never "empty".
+// A date in the future is named and left out, and the table twin lists the same figures.
+const cellLabel = cell => (cell.from === cell.to ? monthLabel(cell.from) : `${monthLabel(cell.from)} – ${monthLabel(cell.to)}`)
+const PARTIAL_NOTE = 'The service returns at most 100 rows for a case (one for each day and kind of record), oldest first. Only those are drawn and counted; the dotted run is the part that was not read.'
+
+function Lane({ lane, max, active, label }) {
+  return (
+    <span className="nx-lane" role="img" aria-label={label} data-at={active === null ? undefined : ''} style={active === null ? undefined : { '--at': active }}>
+      {lane.cells.map((cell, index) => {
+        const drawn = cell.state === 'in' && cell.total > 0
+        const tone = cell.state !== 'in' ? `is-${cell.state}` : drawn ? '' : 'is-empty'
+        const className = [tone, index === active ? 'is-on' : ''].filter(Boolean).join(' ')
+        return <i key={cell.from} className={className || undefined} style={drawn ? { '--h': `${Math.max(6, (cell.total / max) * 100)}%`, '--i': Math.min(index, 24) } : undefined} />
+      })}
+    </span>
+  )
+}
+
+export function TimelinePanel({ timelines, loading, failures, today }) {
   const nameOf = useCaseNameOf()
   const [scale, setScale] = useState('own')
-  const shown = timelines.slice(0, TIMELINE_ROWS)
-  const sharedMax = Math.max(1, ...shown.flatMap(item => item.series.map(point => point.total)))
-  const twin = timelines.map(item => ({ id: item.caseId, case: nameOf(item.caseId), from: item.first ? monthLabel(item.first) : '', to: item.last ? monthLabel(item.last) : '', events: item.total, note: [item.partial ? 'first 100 days only' : '', item.futureTotal ? `${formatNumber(item.futureTotal)} events dated after today are not drawn` : ''].filter(Boolean).join('; ') }))
+  const [active, setActive] = useState(null)
+  const plot = useRef(null)
+  const axis = useMemo(() => alignTimelines(timelines.slice(0, TIMELINE_ROWS), today), [timelines, today])
+  const lanes = axis ? axis.lanes : []
+  const count = axis ? axis.groups.length : 0
+  const sharedMax = Math.max(1, ...lanes.flatMap(lane => lane.cells.map(cell => cell.total)))
+  const twin = timelines.map(item => ({ id: item.caseId, case: nameOf(item.caseId), from: item.first ? monthLabel(item.first) : '', to: item.last ? monthLabel(item.last) : '', events: item.total, note: [item.partial ? 'earliest rows only' : '', item.futureTotal ? `${formatNumber(item.futureTotal)} events dated after today are not drawn` : ''].filter(Boolean).join('; ') }))
+  const valueOf = lane => {
+    if (active === null) return `${formatNumber(lane.total)}${lane.partial ? '+' : ''}`
+    const cell = lane.cells[active]
+    return cell.state === 'unread' ? 'not read' : formatNumber(cell.total)
+  }
+  const indexAt = event => {
+    const strip = plot.current?.querySelector('.nx-lane')
+    if (!strip || !count) return null
+    const box = strip.getBoundingClientRect()
+    if (box.width <= 0 || event.clientX < box.left || event.clientX > box.right) return null
+    return Math.min(count - 1, Math.floor(((event.clientX - box.left) / box.width) * count))
+  }
+  const onKeyDown = event => {
+    if (!count || event.target !== event.currentTarget) return
+    const step = { ArrowLeft: -1, ArrowRight: 1 }[event.key]
+    if (step) { event.preventDefault(); setActive(current => Math.min(count - 1, Math.max(0, (current ?? (step > 0 ? -1 : count)) + step))) }
+    else if (event.key === 'Home') { event.preventDefault(); setActive(0) }
+    else if (event.key === 'End') { event.preventDefault(); setActive(count - 1) }
+    else if (event.key === 'Escape') setActive(null)
+  }
+  const readout = active === null || !axis ? '' : `${cellLabel(axis.groups[active])}: ${lanes.map(lane => `${nameOf(lane.caseId)} ${valueOf(lane)}`).join(', ')}`
   const toggle = (
-    <div className="nx-segmented" role="group" aria-label="Scale of the rows">
-      <button type="button" aria-pressed={scale === 'own'} onClick={() => setScale('own')} title="Each row's busiest month fills the row: the shape of each case">Own scale</button>
-      <button type="button" aria-pressed={scale === 'shared'} onClick={() => setScale('shared')} title="One scale for every row: the size of each case against the others">Shared scale</button>
+    <div className="nx-segmented" role="group" aria-label="Scale of the lanes">
+      <button type="button" aria-pressed={scale === 'own'} onClick={() => setScale('own')} title="Each lane's busiest month fills the lane: the shape of each case">Own scale</button>
+      <button type="button" aria-pressed={scale === 'shared'} onClick={() => setScale('shared')} title="One scale for every lane: the size of each case against the others">Shared scale</button>
     </div>
   )
   return (
-    <Panel id="dash-timeline" title="Evidence timeline" sub="Events per month" action={timelines.length ? toggle : null} className="nx-panel--timeline">
+    <Panel id="dash-timeline" title="Evidence timeline" sub={active === null || !axis ? 'Events per month' : cellLabel(axis.groups[active])} action={timelines.length ? toggle : null} className="nx-panel--timeline">
       {loading && !timelines.length ? <PanelSkeleton rows={4} /> : timelines.length ? (
         <>
-          <ol className="nx-tl">
-            {shown.map(item => (
-              <li key={item.caseId} className="nx-tl__row">
-                <span className="nx-tl__who">
-                  <Link className="nx-tl__name" to={`/cases/${encodeURIComponent(item.caseId)}/timeline`}><CaseLabel caseId={item.caseId} /></Link>
-                  {item.partial ? <span className="nx-tl__note" title="The service returns at most 100 days for a case; only those are drawn and counted.">first 100 days only</span> : null}
-                </span>
-                <BarStrip
-                  max={scale === 'shared' ? sharedMax : undefined}
-                  values={item.series.map(point => ({ key: point.from, value: point.total, title: `${point.from === point.to ? monthLabel(point.from) : `${monthLabel(point.from)} – ${monthLabel(point.to)}`}: ${formatNumber(point.total)} events` }))}
-                  label={`Events by month from ${item.first ? monthLabel(item.first) : '—'} to ${item.last ? monthLabel(item.last) : '—'}: ${formatNumber(item.total)}`}
-                />
-                <span className="nx-tl__range">{item.first ? `${monthLabel(item.first)} – ${monthLabel(item.last)}` : '—'}</span>
-                <span className="nx-tl__count nx-tabular">
-                  {item.futureTotal ? <CircleAlert className="nx-tl__warn" aria-label={`${formatNumber(item.futureTotal)} events are dated after today (latest ${monthLabel(item.futureLast)}) and are not drawn`} /> : null}
-                  {formatNumber(item.total)}{item.partial ? '+' : ''}
-                </span>
-              </li>
-            ))}
-          </ol>
-          {timelines.length > shown.length ? <p className="nx-panel__note">{formatNumber(timelines.length - shown.length)} more cases are in the table.</p> : null}
+          <div
+            ref={plot}
+            className="nx-tl"
+            style={{ '--n': count }}
+            data-reading={active === null ? undefined : ''}
+            tabIndex={axis ? 0 : undefined}
+            role="group"
+            aria-label="Events per month in each case. Use the left and right arrow keys to read one month."
+            onPointerMove={event => setActive(indexAt(event))}
+            onPointerLeave={() => setActive(null)}
+            onKeyDown={onKeyDown}
+            onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setActive(null) }}
+          >
+            <ol className="nx-tl__lanes">
+              {lanes.map(lane => (
+                <li key={lane.caseId} className="nx-tl__row">
+                  <span className="nx-tl__who">
+                    <Link className="nx-tl__name" to={`/cases/${encodeURIComponent(lane.caseId)}/timeline`}><CaseLabel caseId={lane.caseId} /></Link>
+                    {lane.partial ? <span className="nx-tl__note" title={PARTIAL_NOTE}>earliest rows only</span> : null}
+                  </span>
+                  <Lane lane={lane} active={active} max={scale === 'shared' ? sharedMax : Math.max(1, ...lane.cells.map(cell => cell.total))}
+                    label={`Events by month from ${lane.first ? monthLabel(lane.first) : '—'} to ${lane.last ? monthLabel(lane.last) : '—'}: ${formatNumber(lane.total)}${lane.partial ? ', the earliest rows only' : ''}`} />
+                  <span className={`nx-tl__count nx-tabular${active !== null ? ' is-reading' : ''}`}>
+                    {lane.futureTotal && active === null ? <CircleAlert className="nx-tl__warn" aria-label={`${formatNumber(lane.futureTotal)} events are dated after today (latest ${monthLabel(lane.futureLast)}) and are not drawn`} /> : null}
+                    {valueOf(lane)}
+                  </span>
+                </li>
+              ))}
+            </ol>
+            {axis ? (
+              <div className="nx-tl__axis" aria-hidden="true">
+                <span className="nx-tl__ticks">{axis.ticks.map(tick => <b key={tick.index} style={{ '--k': tick.index }}>{tick.year}</b>)}</span>
+              </div>
+            ) : null}
+          </div>
+          <p className="nx-visually-hidden" role="status" data-readout="">{readout}</p>
+          {timelines.length > lanes.length ? <p className="nx-panel__note">{formatNumber(timelines.length - lanes.length)} more cases are in the table.</p> : null}
           <TableTwin label="Events per case by month range" exportName="nexusai-evidence-timeline.csv" summary={`Events per month for ${plural(timelines.length, 'case')}; ${plural(timelines.filter(item => item.partial).length, 'case')} read only as far as the service returns.`}
             columns={[{ key: 'case', label: 'Case' }, { key: 'from', label: 'From' }, { key: 'to', label: 'To' }, { key: 'events', label: 'Events' }, { key: 'note', label: 'Note' }]} rows={twin} />
         </>

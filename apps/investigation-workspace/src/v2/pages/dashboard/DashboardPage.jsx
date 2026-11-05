@@ -98,7 +98,7 @@ export default function DashboardPage() {
             ) : null}
             <Indicators kpis={kpis} rows={rows} states={caseStateCounts} quality={quality} daily={daily} needs={needs} loading={loading} />
             <div className="nx-grid">
-              <div className="nx-span-4"><NeedsPanel needs={needs} loading={loading} notesLoading={typingLoading} /></div>
+              <div className="nx-span-4 nx-stack-col"><NeedsPanel needs={needs} loading={loading} notesLoading={typingLoading} /><ResumeStrip entries={resumeEntries(recent)} /></div>
               <div className="nx-span-8"><TimelinePanel timelines={timelines} loading={timelineLoading} failures={activity.failures} /></div>
               <div className="nx-span-4"><AnswersPanel quality={quality} daily={daily} loading={answersLoading} /></div>
               <div className="nx-span-4"><DataQualityPanel aside={aside} basis={basis} loading={loading} basisLoading={typingLoading} /></div>
@@ -106,8 +106,7 @@ export default function DashboardPage() {
               <div className="nx-span-6"><RecordKindsPanel kinds={kinds} loading={typingLoading} /></div>
               <div className="nx-span-6"><TimeToReadyPanel data={ready} loading={loading} /></div>
               <div className="nx-span-12"><CasesPanel rows={rows} loading={loading} /></div>
-              <div className="nx-span-6"><ResumeStrip entries={resumeEntries(recent)} /></div>
-              <div className="nx-span-6"><LatestPanel items={latest} loading={loading} /></div>
+              <div className="nx-span-12"><LatestPanel items={latest} loading={loading} /></div>
             </div>
           </>
         )}

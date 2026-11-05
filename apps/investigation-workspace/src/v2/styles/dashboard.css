@@ -127,22 +127,44 @@
   .nx-queue__go { flex: none; inline-size: 14px; block-size: 14px; margin-block-start: 3px; color: var(--nx-text-3); opacity: 0; transition: opacity var(--nx-dur-2) var(--nx-ease-standard); }
   .nx-queue__item:hover .nx-queue__go, .nx-queue__item:focus-visible .nx-queue__go { opacity: 1; }
 
-  /* ---------- the evidence timeline ---------- */
-  .nx-tl { display: grid; margin: 0; padding: 0; list-style: none; }
-  .nx-tl__row { display: grid; grid-template-columns: minmax(110px, 176px) minmax(0, 1fr) 132px 78px; grid-template-areas: 'who bars range count'; align-items: center; gap: var(--nx-s-4); padding: var(--nx-s-3) 0; border-block-end: 1px solid var(--nx-border-subtle); }
-  .nx-tl__row:first-child { padding-block-start: var(--nx-s-1); }
-  .nx-tl__row:last-child { border-block-end: 0; padding-block-end: 0; }
+  /* ---------- the evidence timeline: lanes on one calendar, one crosshair ---------- */
+  .nx-panel--timeline .nx-panel__body { display: flex; flex-direction: column; gap: var(--nx-s-3); }
+  .nx-tl { --tl-who: minmax(110px, 176px); --tl-val: 72px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; gap: var(--nx-s-2); border-radius: var(--nx-r-2); touch-action: pan-y; }
+  .nx-tl:focus-visible { outline: 2px solid var(--nx-focus); outline-offset: 4px; }
+  .nx-tl__lanes { flex: 1; display: grid; grid-auto-rows: minmax(52px, 1fr); margin: 0; padding: 0; list-style: none; }
+  .nx-tl__row { display: grid; grid-template-columns: var(--tl-who) minmax(0, 1fr) var(--tl-val); grid-template-areas: 'who bars count'; align-items: center; column-gap: var(--nx-s-4); border-block-end: 1px solid var(--nx-border-subtle); }
+  .nx-tl__row:last-child { border-block-end: 0; }
   .nx-tl__who { grid-area: who; display: grid; gap: 1px; min-inline-size: 0; }
-  .nx-tl__row > .nx-bars { grid-area: bars; }
+  .nx-tl__row > .nx-lane { grid-area: bars; }
   .nx-tl__name { font-size: var(--nx-fs-sm); font-weight: var(--nx-fw-medium); color: var(--nx-text); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .nx-tl__name:hover { color: var(--nx-accent-text); text-decoration: underline; }
   .nx-tl__note { font-size: var(--nx-fs-xs); color: var(--nx-text-3); }
-  .nx-tl__range { grid-area: range; font-size: var(--nx-fs-xs); color: var(--nx-text-3); white-space: nowrap; }
-  .nx-tl__count { grid-area: count; display: inline-flex; align-items: center; justify-content: flex-end; gap: var(--nx-s-1); font-size: var(--nx-fs-sm); font-weight: var(--nx-fw-medium); }
+  .nx-tl__count { grid-area: count; display: inline-flex; align-items: center; justify-content: flex-end; gap: var(--nx-s-1); font-size: var(--nx-fs-sm); font-weight: var(--nx-fw-medium); white-space: nowrap; }
+  .nx-tl__count.is-reading { color: var(--nx-accent-text); }
   .nx-tl__warn { flex: none; inline-size: 14px; block-size: 14px; color: var(--nx-warn); }
+  .nx-lane { position: relative; display: grid; grid-template-columns: repeat(var(--n, 1), minmax(0, 1fr)); align-items: end; gap: 1px; block-size: 40px; border-block-end: 1px solid var(--nx-border); }
+  .nx-lane > i { display: block; block-size: var(--h, 0); background: var(--nx-accent); border-start-start-radius: 1.5px; border-start-end-radius: 1.5px; }
+  .nx-lane > i.is-empty { block-size: 2px; background: var(--nx-border); }
+  .nx-lane > i.is-unread { block-size: 2px; background: linear-gradient(90deg, var(--nx-text-3) 0 45%, transparent 45%); }
+  .nx-lane > i.is-before, .nx-lane > i.is-after { block-size: 0; }
+  .nx-lane[data-at]::after { content: ''; position: absolute; inset-block: -6px 0; inline-size: 1px; inset-inline-start: calc((var(--at) + 0.5) / var(--n) * 100%); background: var(--nx-text-2); pointer-events: none; }
+  .nx-tl[data-reading] .nx-lane > i:not(.is-on, .is-unread) { opacity: 0.45; }
+  .nx-lane > i.is-on.is-empty { background: var(--nx-text-3); }
+  .nx-tl__axis { display: grid; grid-template-columns: var(--tl-who) minmax(0, 1fr) var(--tl-val); column-gap: var(--nx-s-4); }
+  .nx-tl__ticks { grid-column: 2; position: relative; block-size: 18px; border-block-start: 1px solid var(--nx-border-subtle); }
+  .nx-tl__ticks > b { position: absolute; inset-block-start: 0; inset-inline-start: calc(var(--k) / var(--n) * 100%); padding-block-start: 4px; padding-inline-start: 3px; border-inline-start: 1px solid var(--nx-border); font-size: var(--nx-fs-xs); font-weight: var(--nx-fw-regular); color: var(--nx-text-3); line-height: 1; }
   @media (max-width: 720px) {
-    .nx-tl__row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'who count' 'bars bars' 'range range'; row-gap: var(--nx-s-2); }
+    .nx-tl__row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'who count' 'bars bars'; row-gap: var(--nx-s-2); padding-block: var(--nx-s-2); }
+    .nx-tl__axis { grid-template-columns: minmax(0, 1fr); }
+    .nx-tl__ticks { grid-column: 1; }
   }
+
+  .nx-span-12 .nx-feed { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); column-gap: var(--nx-s-6); }
+  /* ---------- the stack beside the timeline: what needs you, and where to pick up ---------- */
+  .nx-stack-col { display: grid; align-content: start; gap: var(--nx-s-4); min-inline-size: 0; }
+  .nx-stack-col .nx-resume-list { grid-template-columns: minmax(0, 1fr); gap: var(--nx-s-2); }
+  .nx-stack-col > .nx-panel { block-size: auto; }
+  .nx-stack-col > .nx-panel:only-child { block-size: 100%; }
 
   /* ---------- keys, bar lists and the rows of the pipeline panels ---------- */
   .nx-keys { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
@@ -216,12 +238,11 @@
   .nx-dashgrid__main { grid-area: main; display: grid; gap: var(--nx-s-4); min-inline-size: 0; container: dm / inline-size; }
   @media (max-width: 1179px) { .nx-dashgrid { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'rail' 'main'; } }
   /* the main column answers for its own width (container queries) */
-  @container dm (max-width: 860px) { .nx-col-last, .nx-col-aside, .nx-cases .nx-stack--thin { display: none; } .nx-tl__row { grid-template-columns: minmax(96px, 150px) minmax(0, 1fr) 118px 70px; } }
+  @container dm (max-width: 860px) { .nx-col-last, .nx-col-aside, .nx-cases .nx-stack--thin { display: none; } }
   @container dm (max-width: 720px) {
     .nx-grid .nx-span-6, .nx-grid .nx-span-4 { grid-column: 1 / -1; }
     .nx-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .nx-tile:nth-child(5) { grid-column: span 2; }
-    .nx-tl__row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'who count' 'bars bars' 'range range'; row-gap: var(--nx-s-2); }
   }
   .nx-resume-list { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
   .nx-panel__head .nx-segmented { margin-inline-start: auto; }
@@ -302,7 +323,7 @@
   .nx-cols__col > i { transition: none; }
   /* hovering one part dims the others of the same picture, so the part you point at is the one you read */
   .nx-seg:hover .nx-seg__part:not(:hover), .nx-cols:hover .nx-cols__col:not(:hover), .nx-hist:hover > i:not(:hover), .nx-dots:hover > i:not(:hover) { opacity: 0.5; }
-  .nx-seg__part, .nx-cols__col, .nx-hist > i, .nx-dots > i, .nx-bars__bar { transition: opacity var(--nx-dur-2) var(--nx-ease-standard); }
+  .nx-seg__part, .nx-cols__col, .nx-hist > i, .nx-dots > i, .nx-bars__bar, .nx-lane > i { transition: opacity var(--nx-dur-2) var(--nx-ease-standard); }
 
   /* ---------- needs you: a few short lines ---------- */
   .nx-causes { display: grid; gap: 2px; margin: 0 calc(var(--nx-s-2) * -1); padding: 0; list-style: none; }
@@ -319,8 +340,8 @@
   @keyframes nx-pop { from { transform: scale(0.2); opacity: 0; } }
   .nx-seg__part { transform-origin: left center; animation: nx-grow-x 460ms var(--nx-ease-standard) both; animation-delay: calc(var(--i, 0) * 40ms); }
   :dir(rtl) .nx-seg__part { transform-origin: right center; }
-  .nx-cols__col, .nx-hist > i, .nx-bars__bar { transform-origin: bottom; animation: nx-grow-y 460ms var(--nx-ease-standard) both; animation-delay: calc(var(--i, 0) * 30ms); }
+  .nx-cols__col, .nx-hist > i, .nx-bars__bar, .nx-lane > i:not(.is-empty, .is-unread) { transform-origin: bottom; animation: nx-grow-y 460ms var(--nx-ease-standard) both; animation-delay: calc(var(--i, 0) * 30ms); }
   .nx-dots > i { animation: nx-pop 280ms var(--nx-ease-standard) both; animation-delay: calc(var(--i, 0) * 22ms); }
-  @media (prefers-reduced-motion: reduce) { .nx-seg__part, .nx-cols__col, .nx-hist > i, .nx-bars__bar, .nx-dots > i { animation: none; } }
-  :root[data-motion='reduce'] .nx-seg__part, :root[data-motion='reduce'] .nx-cols__col, :root[data-motion='reduce'] .nx-hist > i, :root[data-motion='reduce'] .nx-bars__bar, :root[data-motion='reduce'] .nx-dots > i { animation: none; }
+  @media (prefers-reduced-motion: reduce) { .nx-seg__part, .nx-cols__col, .nx-hist > i, .nx-bars__bar, .nx-lane > i, .nx-dots > i { animation: none; } }
+  :root[data-motion='reduce'] .nx-seg__part, :root[data-motion='reduce'] .nx-cols__col, :root[data-motion='reduce'] .nx-hist > i, :root[data-motion='reduce'] .nx-bars__bar, :root[data-motion='reduce'] .nx-dots > i, :root[data-motion='reduce'] .nx-lane > i { animation: none; }
 }

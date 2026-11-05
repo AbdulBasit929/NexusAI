@@ -57,6 +57,7 @@ export function caseTimelines(results, today = isoToday()) {
         if (month > 12) { month = 1; year += 1 }
       }
     }
+    const monthly = series.map(point => ({ key: point.from, total: point.total }))
     // a very long span is drawn in equal groups of months so a bar never gets thinner than a pixel; the totals do not change
     if (series.length > MAX_BARS) {
       const size = Math.ceil(series.length / MAX_BARS)
@@ -70,6 +71,7 @@ export function caseTimelines(results, today = isoToday()) {
     return {
       caseId: result.caseId,
       series,
+      monthly,
       total: sum(past, day => day.total),
       first: past[0]?.date || null,
       last: past.at(-1)?.date || null,
@@ -78,6 +80,52 @@ export function caseTimelines(results, today = isoToday()) {
       futureLast: future.at(-1)?.date || null,
     }
   }).filter(item => item.series.length || item.futureTotal)
+}
+
+// The same cases on ONE calendar, so the rows can be read against each other: the axis runs from the earliest month any case has to the current month, in equal groups when it is long (the groups are
+// the same for every row, so the columns line up). A cell is `in` the case's own span, `before` it, or `after` it; after the last month a case that was read only in part (`partial`) is `unread`, which
+// is not the same as empty: the service stopped returning rows, it did not say there were none. `ticks` are the year starts (thinned to at most seven), `groupSize` is the months in a cell.
+export function alignTimelines(timelines, today = isoToday()) {
+  const lanes = timelines || []
+  const dated = lanes.filter(item => item.monthly?.length)
+  if (!dated.length) return null
+  const first = dated.map(item => item.monthly[0].key).sort()[0]
+  const todayKey = today.slice(0, 7)
+  const last = [todayKey, ...dated.map(item => item.monthly.at(-1).key)].sort().at(-1)
+  const keys = []
+  let [year, month] = first.split('-').map(Number)
+  const [lastYear, lastMonth] = last.split('-').map(Number)
+  while (year < lastYear || (year === lastYear && month <= lastMonth)) {
+    keys.push(`${year}-${String(month).padStart(2, '0')}`)
+    month += 1
+    if (month > 12) { month = 1; year += 1 }
+  }
+  const groupSize = Math.max(1, Math.ceil(keys.length / MAX_BARS))
+  const groups = []
+  for (let index = 0; index < keys.length; index += groupSize) {
+    const part = keys.slice(index, index + groupSize)
+    groups.push({ from: part[0], to: part.at(-1) })
+  }
+  const rows = lanes.map(item => {
+    if (!item.monthly?.length) return { ...item, cells: groups.map(group => ({ ...group, total: 0, state: 'before' })), unreadFrom: null } // only dates in the future: named by the row, nothing to draw
+    const byMonth = new Map(item.monthly.map(point => [point.key, point.total]))
+    const start = item.monthly[0].key
+    const end = item.monthly.at(-1).key
+    let unreadFrom = null
+    const cells = groups.map((group, index) => {
+      if (group.to < start) return { ...group, total: 0, state: 'before' }
+      if (group.from > end) {
+        if (item.partial && unreadFrom === null) unreadFrom = index
+        return { ...group, total: 0, state: item.partial ? 'unread' : 'after' }
+      }
+      return { ...group, total: keys.slice(keys.indexOf(group.from), keys.indexOf(group.to) + 1).reduce((total, key) => total + (byMonth.get(key) || 0), 0), state: 'in' }
+    })
+    return { ...item, cells, unreadFrom }
+  })
+  const yearOf = group => group.from.slice(0, 4)
+  const starts = groups.map((group, index) => ({ index, year: yearOf(group) })).filter((tick, index) => index === 0 || tick.year !== yearOf(groups[index - 1]))
+  const step = Math.max(1, Math.ceil(starts.length / 7))
+  return { lanes: rows, groups, groupSize, ticks: starts.filter((tick, position) => position % step === 0) }
 }
 
 // ---------- answers: what the engine did with the questions of the last days ----------
