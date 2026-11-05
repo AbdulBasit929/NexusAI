@@ -41,7 +41,7 @@ const (
 	askV2Env         = "FORENSIC_ASK_V2"
 	askV2FirstEnv    = "FORENSIC_ASK_V2_FIRST"
 	askV2AgreeEnv    = "FORENSIC_ASK_V2_AGREE"
-	askMaxTokens     = 480
+	askMaxTokens     = 320 // the longest query written so far is 662 characters (about 240 tokens with the JSON around it) over 1,185 answered questions; a longer completion is a runaway, and 480 tokens cost 87 s
 	askMaxAttempts   = 3 // the first draft and at most two repairs
 	askModelTimeout  = 240 * time.Second
 	askRepairBudget  = 170 * time.Second // no further repair is started after this much time: the laptop writes about five tokens a second
@@ -92,6 +92,10 @@ type AskAuditV2 struct {
 	TotalMS     int64    `json:"total_ms"`
 	// RepeatsLeftOut is how many exact repeated rows of the case's call and internet records the views leave out; an answer over them says so.
 	RepeatsLeftOut int64 `json:"repeats_left_out,omitempty"`
+	// TimedOut says the question was not finished in the time allowed for it (ask_engine_timeout.go): the outcome is "could not finish in time", never a finding about the case.
+	TimedOut bool `json:"timed_out,omitempty"`
+	// Tied is how many results share the top place of a ranking that kept one row (ask_engine_ties.go); 0 when there was no tie.
+	Tied int `json:"tied,omitempty"`
 }
 
 func (a *AskAuditV2) repaired(kinds ...string) {
@@ -261,11 +265,18 @@ func askUserPrompt(f askFrame) string {
 		// repairs (two answers took 190 s, two were declined) or answered with a bare yes or no. The answer to a connection question is the connection, as the example's.
 		hints = append(hints, "Connection: return the edges of the routes between the two numbers as src and dst, one row per edge, as in the verified example (never a yes or no), and end with LIMIT 200. With v_connection_edges: a = first number AND b = second number, then AND ordinary AND rank_ordinary = 1 when services and hubs are left out, else AND rank_any = 1, and hops <= N when fewer than three hops are asked.")
 	}
-	if f.Cues["incoming"] {
-		hints = append(hints, "Incoming events only.")
-	}
-	if f.Cues["outgoing"] {
-		hints = append(hints, "Outgoing events only.")
+	switch {
+	case f.DirectionRole == "incoming":
+		hints = append(hints, "Direction: "+strings.Join(f.RoleIDs, " and ")+" is the receiving end (what was sent TO it), so read its incoming events: direction = 'incoming' for calls and messages, 'credit' for money; the other side of each is who sent.")
+	case f.DirectionRole == "outgoing":
+		hints = append(hints, "Direction: "+strings.Join(f.RoleIDs, " and ")+" is the sending end (what came FROM it), so read its outgoing events: direction = 'outgoing' for calls and messages, 'debit' for money; the other side of each is who received.")
+	default:
+		if f.Cues["incoming"] {
+			hints = append(hints, "Incoming events only.")
+		}
+		if f.Cues["outgoing"] {
+			hints = append(hints, "Outgoing events only.")
+		}
 	}
 	for _, kind := range []string{"sms", "mms", "ussd"} {
 		if f.Cues[kind] {
@@ -417,14 +428,18 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 		last := attempt == askMaxAttempts || time.Since(engineStart) > askRepairBudget
 		remaining := askQuestionBudget - time.Since(engineStart)
 		if remaining < askMinModelCall {
-			return decline("the question budget is spent")
+			return finish(askTimedOut(req, &audit, "the time allowed for one question was used up"))
 		}
 		modelStart := time.Now()
 		callCtx, cancelCall := context.WithTimeout(ctx, remaining)
 		raw, failure := askModel(callCtx, cfg, model, turns)
+		expired := callCtx.Err() == context.DeadlineExceeded
 		cancelCall()
 		audit.ModelMS += time.Since(modelStart).Milliseconds()
 		if failure != "" {
+			if askModelTimedOut(failure, expired, time.Since(modelStart)) {
+				return finish(askTimedOut(req, &audit, "the model did not answer in the time allowed"))
+			}
 			return decline("model: " + failure)
 		}
 		answerable, sql, bad := govSQLParseOutput(raw)
@@ -490,6 +505,10 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 				continue
 			}
 			return decline("execution: " + code)
+		}
+		// A ranking that kept one row shows every result that shares the top place (ask_engine_ties.go; found by the verified bank run of 2026-11-02, VB-PLAT-051)
+		if widened, tied := askExtendTies(ctx, db, req.TenantID, req.CollectionID, cat, chosen, frame, validated, result, limits); tied > 1 {
+			result, audit.Tied = widened, tied
 		}
 		audit.Rows, audit.Truncated, audit.PlanCost = len(result.Rows), result.Truncated, result.PlanCost
 
@@ -865,6 +884,9 @@ func setAskV2Header(w http.ResponseWriter, a AskAuditV2) {
 	}
 	if len(a.Views) > 0 {
 		parts = append(parts, "views="+strings.Join(a.Views, ","))
+	}
+	if a.TimedOut {
+		parts = append(parts, "timed_out=true")
 	}
 	w.Header().Set(askHeaderName, strings.Join(parts, "; "))
 	askLogAudit(a)

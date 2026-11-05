@@ -713,15 +713,24 @@ var _ = Describe("Ask engine run", func() {
 			return "", "TIMEOUT_OR_UNAVAILABLE"
 		}
 		started := time.Now()
-		_, audit := run(q)
+		resp, audit := run(q)
 		Expect(time.Since(started)).To(BeNumerically("<", 5*time.Second))
-		Expect(audit.Reason).To(Equal("model: TIMEOUT_OR_UNAVAILABLE"))
+		// a model that did not answer in the time allowed is its own outcome, not a decline that sends the question on to the paths that need the same model (VB-BANK-004, 2026-11-02)
+		Expect(audit.TimedOut).To(BeTrue())
+		Expect(audit.State).To(Equal("abstained"))
+		Expect(audit.Reason).To(Equal("time: the model did not answer in the time allowed"))
+		Expect(resp).NotTo(BeNil())
+		Expect(resp.Answer["clarification"]).To(ContainSubstring("could not finish this question in time"))
+		Expect(resp.Answer["timed_out"]).To(Equal(true))
+		Expect(resp.Answer).NotTo(HaveKey("answer"), "no number, and no finding about the records")
 		Expect(calls).To(Equal(1))
 		askQuestionBudget, askMinModelCall = 30*time.Millisecond, 50*time.Millisecond
 		calls = 0
-		_, audit = run(q)
+		resp, audit = run(q)
 		Expect(calls).To(Equal(0))
-		Expect(audit.Reason).To(Equal("the question budget is spent"))
+		Expect(audit.TimedOut).To(BeTrue())
+		Expect(audit.Reason).To(Equal("time: the time allowed for one question was used up"))
+		Expect(resp).NotTo(BeNil())
 	})
 
 	It("says what a result is when it is a list, a graph or nothing", func() {

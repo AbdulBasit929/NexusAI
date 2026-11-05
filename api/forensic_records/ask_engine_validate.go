@@ -114,6 +114,10 @@ type askValidated struct {
 	MaxHops   int // the most hops a recursive query can take; 0 when it is not recursive
 	Limit     int // the outer LIMIT; 0 when none
 	Tree      *pg.ParseResult
+	// Cat and Allowed are the catalogue the query was validated against and the views offered for the question (nil when none was given): a repair can say where a column or a kind
+	// of event lives (ask_engine_kinds.go). They are read only.
+	Cat     *askCatalogue
+	Allowed []string
 }
 
 type askWalk struct {
@@ -185,7 +189,7 @@ func askValidate(sql string, cat *askCatalogue, allowed []string) (*askValidated
 		return nil, govSQLReject("DEPARSE", "the query could not be normalised")
 	}
 	return &askValidated{SQL: strings.TrimSpace(canonical), Views: used, Columns: referenced, Consts: w.consts, Recursive: len(w.recursive) > 0,
-		MaxHops: w.maxHops, Limit: limit, Tree: tree}, nil
+		MaxHops: w.maxHops, Limit: limit, Tree: tree, Cat: cat, Allowed: allowed}, nil
 }
 
 func askOffered(cat *askCatalogue, allowed []string) map[string]*askView {
@@ -270,8 +274,8 @@ func askResolveColumns(w *askWalk, offered map[string]*askView, used []string) (
 				cols = append(cols, c)
 			}
 			sort.Strings(cols)
-			return nil, govSQLReject("UNKNOWN_COLUMN", "%q is not a column of the views used (%s) nor a name the query defines; their columns are: %s",
-				govSQLClip(name, 60), strings.Join(used, ", "), govSQLClip(strings.Join(cols, ", "), 400))
+			return nil, govSQLReject("UNKNOWN_COLUMN", "%q is not a column of the views used (%s) nor a name the query defines; their columns are: %s%s",
+				govSQLClip(name, 60), strings.Join(used, ", "), govSQLClip(strings.Join(cols, ", "), 400), askColumnHomeHint(offered, used, name))
 		}
 		if byView[name] {
 			referenced[name] = true

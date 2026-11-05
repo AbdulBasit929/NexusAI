@@ -1240,6 +1240,11 @@ func readEvidenceHeaders(path, sourceName string) ([]string, error) {
 }
 
 func validateDetectedHeaders(headers []string) ([]string, error) {
+	// the first heading of a CSV or a text file may carry the byte-order mark a spreadsheet program writes before it; the mark is not part of the name (round 9e: the IPDR export's first
+	// column was stored as BOM + "UFDR start time", and the file-rows page showed its cells blank)
+	if len(headers) > 0 {
+		headers[0] = strings.TrimSpace(strings.TrimPrefix(headers[0], string(rune(0xFEFF))))
+	}
 	if len(headers) > 256 {
 		return nil, fmt.Errorf("header detection rejected %d columns; maximum is 256", len(headers))
 	}

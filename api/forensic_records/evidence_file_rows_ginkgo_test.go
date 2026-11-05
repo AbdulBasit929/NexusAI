@@ -61,4 +61,33 @@ var _ = Describe("Evidence file rows under the file's own columns", func() {
 		columns, _ := fileRowsTable(stored, []string{"A"})
 		Expect(columns).To(Equal([]fileRowsColumn{{Name: "A"}, {Name: "Extra"}}))
 	})
+
+	// Found by the live check of round 9d on the real Orion files (2026-11-03): the IPDR CSV's first column was stored with the byte-order mark in its name and its cells showed blank.
+	It("takes the byte-order mark off the first heading, so that the cells of that column are found", func() {
+		bom := string(rune(0xFEFF))
+		headers := fileRowsHeaders(`["` + bom + `UFDR start time", "Msisdn"]`)
+		Expect(headers).To(Equal([]string{"UFDR start time", "Msisdn"}))
+		stored := []fileRowStored{{RowNumber: 2, RecordType: "generic", Payload: map[string]any{"UFDR start time": "2026-03-01 10:00:00", "Msisdn": "923000001000"}, Order: []string{"Msisdn", "UFDR start time"}}}
+		columns, rows := fileRowsTable(stored, headers)
+		Expect(columns).To(Equal([]fileRowsColumn{{Name: "UFDR start time"}, {Name: "Msisdn"}}))
+		Expect(rows[0].Cells).To(Equal([]string{"2026-03-01 10:00:00", "923000001000"}))
+		Expect(fileRowsCleanNames([]string{bom + bom + " A "})).To(Equal([]string{"A"}))
+	})
+
+	// Found by the same check: a workbook in the old XML format and a text export are laid out from the typed tables, whose cells sit in a JSON object with no order, so the columns came in the
+	// order of the database's keys (app, sid, url, host, imei ...) and not the file's.
+	It("lays a typed workbook or text export out under the header list the typed ingest kept, in the file's order", func() {
+		typed := `[{"sheet":"Sheet1","table":"comm_event","headers":["Sr #","A-Party","B-Party","IMEI"]}]`
+		Expect(fileRowsTypedHeaders(typed)).To(Equal([]string{"Sr #", "A-Party", "B-Party", "IMEI"}))
+		Expect(fileRowsTypedHeaders(`[{"headers":["a","b"]},{"headers":["b","c"]}]`)).To(Equal([]string{"a", "b", "c"}))
+		Expect(fileRowsTypedHeaders("null")).To(BeEmpty())
+		Expect(fileRowsTypedHeaders("not json")).To(BeEmpty())
+		stored := []fileRowStored{{RowNumber: 1, Payload: map[string]any{"B-Party": "923000001002", "A-Party": "923000001001", "IMEI": "000000000010001", "Sr #": "1"}, Order: []string{"B-Party", "IMEI", "Sr #", "A-Party"}}}
+		columns, rows := fileRowsTable(stored, fileRowsTypedHeaders(typed))
+		Expect(columns).To(Equal([]fileRowsColumn{{Name: "Sr #"}, {Name: "A-Party"}, {Name: "B-Party"}, {Name: "IMEI"}}))
+		Expect(rows[0].Cells).To(Equal([]string{"1", "923000001001", "923000001002", "000000000010001"}))
+		// without the list (evidence ingested before it was kept) the order is the database's, as before
+		columns, _ = fileRowsTable(stored, nil)
+		Expect(columns[0].Name).To(Equal("B-Party"))
+	})
 })

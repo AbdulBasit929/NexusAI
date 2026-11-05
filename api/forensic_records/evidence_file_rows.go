@@ -122,11 +122,11 @@ func loadFileRows(ctx context.Context, db *pgxpool.Pool, tenantID, collectionID,
 		return nil, err
 	}
 	out := &fileRowsResponse{Contract: fileRowsContract, EvidenceID: evidenceID, Columns: []fileRowsColumn{}, Rows: []fileRowsRow{}, Limit: limit}
-	var headersJSON, duplicates, rejected string
-	err = tx.QueryRow(ctx, `SELECT coalesce(nullif(source_file, ''), original_filename, ''), coalesce(metadata -> 'headers', 'null'::jsonb)::text,
+	var headersJSON, typedHeadersJSON, duplicates, rejected string
+	err = tx.QueryRow(ctx, `SELECT coalesce(nullif(source_file, ''), original_filename, ''), coalesce(metadata -> 'headers', 'null'::jsonb)::text, coalesce(metadata -> 'typed_headers', 'null'::jsonb)::text,
        coalesce(nullif(metadata -> 'structured_summary' ->> 'duplicate_rows', ''), '0'), coalesce(nullif(metadata -> 'structured_summary' ->> 'rejected_rows', ''), '0')
 FROM forensic.evidence_items WHERE tenant_id = $1 AND collection_id = $2 AND evidence_id::text = $3`,
-		tenantID, collectionID, evidenceID).Scan(&out.SourceFile, &headersJSON, &duplicates, &rejected)
+		tenantID, collectionID, evidenceID).Scan(&out.SourceFile, &headersJSON, &typedHeadersJSON, &duplicates, &rejected)
 	if err != nil {
 		return nil, err // pgx.ErrNoRows: no such evidence in this case
 	}
@@ -187,7 +187,16 @@ WHERE tenant_id = $1 AND evidence_id::text = $2 AND raw_payload IS NOT NULL AND 
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-	out.Columns, out.Rows = fileRowsTable(stored, fileRowsHeaders(headersJSON))
+	headers := fileRowsHeaders(headersJSON)
+	if out.RowLabel == "Record" {
+		// The rows of a workbook in the old XML format or of a text export come from the typed tables, whose rows keep their cells in a JSON object that has no order. The ingest keeps the file's
+		// own header list for them (typed_headers); the upload reader's list is a guess made from the first line (the single column "line" of a text file), so the typed list comes first.
+		// Evidence ingested before the list was kept has none, and falls back to the order the database kept.
+		if typed := fileRowsTypedHeaders(typedHeadersJSON); len(typed) > 0 {
+			headers = typed
+		}
+	}
+	out.Columns, out.Rows = fileRowsTable(stored, headers)
 	return out, nil
 }
 
@@ -207,10 +216,33 @@ func fileRowsHeaders(text string) []string {
 	if json.Unmarshal([]byte(text), &headers) != nil {
 		return nil
 	}
+	return fileRowsCleanNames(headers)
+}
+
+// fileRowsTypedHeaders reads the header lists that the typed ingest kept for a workbook or a text export (typed_headers: the sheet, the table and the names in the file's order), one sheet
+// after the other.
+func fileRowsTypedHeaders(text string) []string {
+	var sheets []struct {
+		Headers []string `json:"headers"`
+	}
+	if json.Unmarshal([]byte(text), &sheets) != nil {
+		return nil
+	}
+	var all []string
+	for _, sheet := range sheets {
+		all = append(all, sheet.Headers...)
+	}
+	return fileRowsCleanNames(all)
+}
+
+// fileRowsCleanNames trims the names, drops blanks and repeats, and takes the byte-order mark off the first one. The upload reader keeps the mark that a spreadsheet program puts before the
+// first heading of a CSV (the IPDR export's "UFDR start time" was stored with it, and its cells showed blank because the stored rows are keyed without it): the mark is not part of the name.
+func fileRowsCleanNames(headers []string) []string {
 	seen := map[string]bool{}
 	out := make([]string, 0, len(headers))
 	for _, name := range headers {
-		if name = strings.TrimSpace(name); name != "" && !seen[name] {
+		name = strings.TrimSpace(strings.TrimLeft(strings.TrimSpace(name), string(rune(0xFEFF))))
+		if name != "" && !seen[name] {
 			seen[name] = true
 			out = append(out, name)
 		}

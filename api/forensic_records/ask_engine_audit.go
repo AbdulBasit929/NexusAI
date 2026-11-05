@@ -46,7 +46,7 @@ func askAuditDetails(req hybridQueryRequest, a AskAuditV2, f askFrame, digest st
 		"state": a.State, "reason": a.Reason, "attempts": a.Attempts, "views": a.Views, "examples": a.Examples, "repairs": a.Repairs, "checks": a.Checks,
 		"sql": a.SQL, "shape": a.Shape, "rows": a.Rows, "truncated": a.Truncated, "hops": a.Hops, "plan_cost": a.PlanCost, "agreement": a.Agreement,
 		"model": a.Model, "prompt_id": a.PromptID, "prompt_bytes": a.PromptBytes, "result_digest": digest,
-		"model_ms": a.ModelMS, "exec_ms": a.ExecMS, "total_ms": a.TotalMS, "recorded_at": time.Now().UTC().Format(time.RFC3339),
+		"model_ms": a.ModelMS, "exec_ms": a.ExecMS, "total_ms": a.TotalMS, "timed_out": a.TimedOut, "tied": a.Tied, "recorded_at": time.Now().UTC().Format(time.RFC3339),
 	}
 }
 

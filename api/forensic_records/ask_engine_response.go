@@ -244,6 +244,11 @@ func askAnswerResponse(req hybridQueryRequest, cat *askCatalogue, v *askValidate
 		}
 	}
 	headline = askWording(headline, r, v, f, shape, absence)
+	if audit.Tied > 1 && shape == "ranked" && absence == "" {
+		if tie := askTieHeadline(r, v); tie != "" {
+			headline = tie
+		}
+	}
 	derivation := askDescribe(v, cat)
 	sentences := derivation.Sentences()
 	limitations := []string{
@@ -256,6 +261,9 @@ func askAnswerResponse(req hybridQueryRequest, cat *askCatalogue, v *askValidate
 	if r.Truncated {
 		limitations = append(limitations, fmt.Sprintf("Only the first %s rows are shown; the query matched more.", govSQLGroup(fmt.Sprint(len(r.Rows)))))
 	}
+	if audit.Tied > 1 {
+		limitations = append(limitations, fmt.Sprintf("%d results share the top place with the same figure, so all of them are listed.", audit.Tied))
+	}
 	if audit.RepeatsLeftOut > 0 && askReadsRecords(v) {
 		limitations = append(limitations, fmt.Sprintf("%s rows of this case's call and internet records are exact repeats of another row and are left out of these counts.", govSQLGroup(fmt.Sprint(audit.RepeatsLeftOut))))
 	}
@@ -266,6 +274,7 @@ func askAnswerResponse(req hybridQueryRequest, cat *askCatalogue, v *askValidate
 		limitations = append(limitations, "A cell site is a coverage area, not the position of a person.")
 	}
 	limitations = append(limitations, askViewCaveats(v)...)
+	limitations = append(limitations, askDomainNotes(f, v)...)
 	limitations = append(limitations, askParamNotes(askParamUsesRead(f.ParamUses, v))...)
 	rows := askRowMaps(r)
 	answer := map[string]any{

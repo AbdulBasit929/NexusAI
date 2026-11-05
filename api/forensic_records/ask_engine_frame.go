@@ -59,6 +59,10 @@ type askFrame struct {
 	// Domains are the values that the case's data holds in the columns of askDomainColumns ("view.column" to the values), for the views the question reads; set by the run from the coverage. nil when
 	// unknown, which makes the check of ask_engine_domains.go do nothing.
 	Domains map[string][]string
+	// DirectionRole is "incoming" or "outgoing" when the direction of the question was read from where it puts its identifiers ("sent money to X": X is the receiving end, so incoming at X;
+	// ask_engine_roles.go), and "" when the verbs decided it. RoleIDs are the identifiers whose places decided it.
+	DirectionRole string
+	RoleIDs       []string
 }
 
 // askUnitFollows is whether the text right after position end starts with a unit of time or length.
@@ -72,8 +76,6 @@ var (
 	askAfterRegistrationEndRE = regexp.MustCompile(`\bafter (?:the )?(?:their |its |a |the )?registrations? (?:has |had |have )?(?:ended|ends|expired|expires|ceased)\b|\bafter the (?:end|expiry) of (?:a |the |their |its )?registrations?\b`)
 	// a question that counts THINGS (how many numbers, accounts, plates ...), as against events or money: its answer is the number of rows that qualify (found by the sixth subscribers measurement,
 	// case 126, SUB-008: "how many numbers ... after their registration ended" was answered with the sum of their events, 734, where 3 numbers were right)
-	// "which accounts sent money to the account X": X is the receiver, so the accounts that sent are the other side of X's credits (found by the live run of the query pack, ORL-TXN-008)
-	askSentToAccountRE = regexp.MustCompile(`\b(?:which|what|who)\b[^?]*?\b(?:sent|paid|transferred|wired|remitted|deposited)\b[^?]*?\bto\s+(?:the\s+)?(?:(?:bank\s+)?account\s+|wallet\s+|iban\s+)?([a-z0-9]{10,})`)
 	// a filter on an empty counterparty that the question never asked for (ORL-TXN-009: `received_from IS NULL` on a pass-through question, a false "nothing found")
 	askNullCounterpartySQL = regexp.MustCompile(`\b(?:received_from|sent_to|counterparty|counterparty_account|counterparty_msisdn)\s+is\s+null\b`)
 	askNoCounterpartyAsked = regexp.MustCompile(`\b(?:no|without|unknown|missing|unnamed|blank|unspecified|unrecorded|anonymous)\s+(?:\w+\s+)?(?:counterpart\w*|sender|senders|recipient|recipients|payer|payers|payee|payees|party|parties)\b|\bcash\b`)
@@ -315,6 +317,13 @@ func askExtractFrameWith(question string, plates bool) askFrame {
 		regexp.MustCompile(`\b(?:calls?|messages?|sms|texts?)\s+from\b`).MatchString(words2)
 	f.Cues["outgoing"] = anyWord("outgoing", "outbound", "debited", "withdrawn", "dial", "dials", "dialled", "dialed", "dialling", "dialing", "made") || regexp.MustCompile(`\b(?:send|sends|sent|sending|call|calls|called|calling|message|messages|messaged|text|texted)\b.*\bto\b`).MatchString(words2) && !f.Cues["incoming"]
 	f.Cues["outgoing"] = f.Cues["outgoing"] && !phrase("made by")
+	// "sent money TO X" is about X's incoming events: the direction is relative to the identifier the question names, and its place says which end of the event it is (ask_engine_roles.go;
+	// found by the verified bank run of 2026-11-02, where the verb "sent" made four such questions outgoing and the right query was refused three times)
+	roles, hasVerb := askIdentifierRoles(lower, held, f)
+	if direction, ids := askRoleDirection(roles, hasVerb); direction != "" {
+		f.Cues["incoming"], f.Cues["outgoing"] = direction == "incoming", direction == "outgoing"
+		f.DirectionRole, f.RoleIDs = direction, ids
+	}
 	// any word that gives a question a direction, wider than the incoming and outgoing cues (which need the right phrasing): the obligation below refuses a direction filter only when none is there
 	f.Cues["direction"] = anyWord("direction", "directions", "incoming", "outgoing", "inbound", "outbound", "received", "receive", "receives", "receiving", "get", "gets", "got", "getting", "make", "makes", "made", "making",
 		"send", "sends", "sent", "sending", "dial", "dials", "dialled", "dialed", "dialling", "dialing", "called", "calling", "from", "to",
@@ -627,11 +636,27 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	// judgement run on case 117: a question about numbers that made or received calls after their registration ended was abstained, because the query could not say both)
 	// the views of pass-through pairs and of debits just under a limit are one direction or both by definition: their columns say so (credit_amount, debit_amount) or the view does
 	bothWays := (f.Cues["incoming"] && f.Cues["outgoing"]) || askUsesView(v, "v_account_flows") || askUsesView(v, "v_account_limit_bands")
-	if f.Cues["incoming"] && !bothWays && !askSQLMentions(sql, "'incoming'", "'credit'") && !askUsesColumn(v, "incoming", "credits") {
-		add("DIRECTION", "The question is about incoming events: filter direction = 'incoming' (or use the incoming column).", "the question is about incoming events and the query does not say so")
+	wantIncoming, wantOutgoing := f.Cues["incoming"] && !bothWays, f.Cues["outgoing"] && !bothWays
+	// When the place of the identifier decided the direction, the direction is the identifier's own. A query that compares the identifier with the column of the OTHER end of an event reads the
+	// same events from the senders' side, where each row carries the opposite direction.
+	flipped := f.DirectionRole != "" && askComparesOtherParty(sql, f.RoleIDs)
+	if flipped {
+		wantIncoming, wantOutgoing = wantOutgoing, wantIncoming
 	}
-	if f.Cues["outgoing"] && !bothWays && !askSQLMentions(sql, "'outgoing'", "'debit'") && !askUsesColumn(v, "outgoing", "debits") {
-		add("DIRECTION", "The question is about outgoing events: filter direction = 'outgoing' (or use the outgoing column).", "the question is about outgoing events and the query does not say so")
+	// a column can carry the direction as well as a filter: the data a subscriber uploaded is outgoing and the data it downloaded is incoming (the verified example data-by-host, "which hosts did X
+	// send the most data to", sums bytes_up and was refused by its own question's check until the spec that holds every example to its question found it, 2026-11-03)
+	hasIncoming := askSQLMentions(sql, "'incoming'", "'credit'") || askUsesColumn(v, "incoming", "credits", "bytes_down")
+	hasOutgoing := askSQLMentions(sql, "'outgoing'", "'debit'") || askUsesColumn(v, "outgoing", "debits", "bytes_up")
+	if f.DirectionRole != "" && ((wantIncoming && !hasIncoming) || (wantOutgoing && !hasOutgoing)) {
+		message, reason := askRoleDirectionMessage(f.DirectionRole, f.RoleIDs, flipped)
+		add("DIRECTION_ROLE", message, reason)
+	} else {
+		if wantIncoming && !hasIncoming {
+			add("DIRECTION", "The question is about incoming events: filter direction = 'incoming' (or use the incoming column).", "the question is about incoming events and the query does not say so")
+		}
+		if wantOutgoing && !hasOutgoing {
+			add("DIRECTION", "The question is about outgoing events: filter direction = 'outgoing' (or use the outgoing column).", "the question is about outgoing events and the query does not say so")
+		}
 	}
 	// A person's name compared with a number column. src and dst hold phone numbers and no view maps a name to one, so the query counts nothing and the answer would be a confident 0
 	// about a person the case may well hold (found 2026-10-20 on forensic-demo: "How many call records did Hamza Ghauri have?" answered 0).
@@ -710,7 +735,7 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	for _, kind := range []string{"sms", "mms", "ussd"} {
 		// v_meeting_candidates is defined on calls and SMS between the two numbers, so "a call or SMS between them" is carried by the view itself
 		if f.Cues[kind] && !askSQLMentions(sql, "'"+kind+"'") && !askUsesView(v, "v_meeting_candidates") {
-			add("EVENT_TYPE", fmt.Sprintf("The question is about %s: filter event_type = '%s'.", strings.ToUpper(kind), kind), "the question is about one kind of event and the query does not say so")
+			add("EVENT_TYPE", askEventTypeMessage(kind, v), "the question is about one kind of event and the query does not say so")
 		}
 	}
 	// the anchor views carry the night as a column (slot = 'night'), so a night question asked of them is carried by that filter, not by an hour of day (found by the stage-3c judgement run:
@@ -764,11 +789,6 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	if f.Cues["count"] && !askSQLMentions(sql, "count(", "sum(") && !askUsesColumn(v, "events", "incoming", "outgoing", "sightings", "transactions") {
 		add("AGGREGATE", "The question asks how many: count the rows (COUNT) or sum the counts of the view.", "the question asks for a count that the query does not compute")
 	}
-	// Who SENT money TO an account: the account is the receiver, its credits are the answer and the counterparty of each is who sent.
-	if m := askSentToAccountRE.FindStringSubmatch(strings.ToLower(f.Question)); m != nil && len(f.Accounts) == 1 && strings.EqualFold(m[1], f.Accounts[0]) &&
-		askSQLMentions(sql, "'debit'") && !askSQLMentions(sql, "'credit'") {
-		add("DIRECTION_ROLE", fmt.Sprintf("The question asks which accounts sent money TO %s: that account is the receiver, so read its credits (direction = 'credit') and the other side of each credit (counterparty_account) is who sent.", f.Accounts[0]), "the question asks who sent money to the account and the query reads the debits")
-	}
 	if askNullCounterpartySQL.MatchString(sql) && !askNoCounterpartyAsked.MatchString(strings.ToLower(f.Question)) &&
 		(askUsesView(v, "v_account_flows") || askUsesView(v, "v_account_counterparties") || askUsesView(v, "v_account_activity") || askUsesView(v, "v_account_limit_bands") || askUsesView(v, "v_bank_transactions")) {
 		add("INVENTED_FILTER", "The question does not ask for transactions that have no counterparty: remove the condition IS NULL on the counterparty (received_from, sent_to, counterparty). It matches nothing and the answer would say that nothing was found.", "the query filters on an empty counterparty that the question never asks for")
@@ -780,7 +800,7 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	if f.Cues["distinct"] && !askSQLMentions(sql, "distinct") && !askSQLMentions(sql, "group by") {
 		add("DISTINCT", "The question asks for different values: count DISTINCT values or group by them.", "the question asks for different values and the query does not take them")
 	}
-	if f.Cues["rank"] && !f.Cues["count"] && !askSQLMentions(sql, "order by") {
+	if f.Cues["rank"] && !f.Cues["count"] && !askSQLMentions(sql, "order by") && !askExtremeValue(f, sql) {
 		add("ORDER", "The question asks for the most or the top: ORDER BY the measure descending and LIMIT.", "the question asks for a ranking and the query does not order")
 	}
 	if f.Cues["earliest"] && f.Limit == 0 && !askSQLMentions(sql, "min(", "order by", "first_seen") {

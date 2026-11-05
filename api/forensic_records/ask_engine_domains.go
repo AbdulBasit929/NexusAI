@@ -136,6 +136,28 @@ func askComparedWith(v *askValidated, column string) map[string]bool {
 	return used
 }
 
+// askDomainNotes say, for a column whose value the question names and the query filters on, which reading was used: the files counted are those the system recognised under that value. The
+// ending of a file's name is another reading ("text files" by .txt gave 14 where the files of the text kind are 4, VB-INVE-004, decided as 4 on 2026-11-03); the sentence says so, without a number.
+func askDomainNotes(f askFrame, v *askValidated) []string {
+	var notes []string
+	if v == nil {
+		return nil
+	}
+	for _, key := range askDomainKeys(f) {
+		view, column := askDomainKey(key)
+		if !askUsesView(v, view) {
+			continue
+		}
+		used := askComparedWith(v, column)
+		for _, named := range askDomainNamed(f.Question, f.Domains[key]) {
+			if used[named] {
+				notes = append(notes, fmt.Sprintf("The question names '%[1]s', a value of %[2]s in this case: the files counted are those the system recognised with %[2]s = '%[1]s'. Another reading, such as the ending of a file's name, can give another number.", named, column))
+			}
+		}
+	}
+	return notes
+}
+
 // askDomainObligations holds the query to the values the case holds: when the question names a value of a column the query filters on, the query must use a value the question names. A column the
 // query does not filter on is not concerned (the question may be answered through another column, as "text files" by their extension), and a word that is no value of the case is not either.
 func askDomainObligations(f askFrame, v *askValidated, add func(kind, message, reason string)) {
