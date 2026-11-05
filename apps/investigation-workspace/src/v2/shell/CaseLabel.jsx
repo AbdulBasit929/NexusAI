@@ -14,3 +14,9 @@ export function CaseLabel({ caseId, withDate = false }) {
   const { title, date } = useCaseLabel(caseId)
   return <bdi title={caseId} dir="auto">{title || caseId}{withDate && date ? <span className="nx-muted"> · {date}</span> : null}</bdi>
 }
+
+// The same name as text, for a table cell or a sentence: the one an analyst gave, otherwise the identifier read as a title.
+export function useCaseNameOf() {
+  const { records } = useCaseRecords()
+  return caseId => records[caseId]?.display_name || humanizeCaseId(caseId).title || caseId
+}

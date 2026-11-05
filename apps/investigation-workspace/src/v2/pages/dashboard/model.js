@@ -232,3 +232,13 @@ export function caseStates(records, caseIds) {
   }
   return counts
 }
+
+// The cases that hold the most accepted rows, largest first: where the volume is.
+export function largestCases(rows, limit = 4) {
+  return (rows || []).filter(row => row.summary && row.summary.acceptedRows > 0).map(row => ({ caseId: row.caseId, records: row.summary.acceptedRows }))
+    .sort((left, right) => right.records - left.records).slice(0, limit)
+}
+
+// A moment as the case's own clock says it, with the zone: "5 Mar 2026, 14:32 PKT" (directive 10.4). Relative times carry this as their title.
+const PKT = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Karachi' })
+export const formatMoment = date => (date && !Number.isNaN(date.getTime()) ? `${PKT.format(date)} PKT` : '')

@@ -1,13 +1,12 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, CircleAlert, CircleCheckBig, Clock3, History, Info, MessageSquareText, Plus, RefreshCw } from 'lucide-react'
+import { ArrowRight, CircleAlert, CircleCheckBig, Clock3, History, Info, MessageSquareText, Plus, RefreshCw, ServerOff } from 'lucide-react'
 import { formatNumber } from '../../../lib/format.js'
 import { formatRate } from '../../../lib/dashboardCharts.js'
 import { relativeAge } from '../../../lib/dashboardCases.js'
-import { OUTCOME_LABEL } from '../../../lib/acrossCases.js'
 import { CaseLabel } from '../../shell/CaseLabel.jsx'
 import { Calm, Panel, PanelSkeleton } from '../../ui/Panel.jsx'
 import { SegBar } from '../../ui/micro.jsx'
-import { formatDuration } from './model.js'
+import { formatDuration, formatMoment } from './model.js'
 
 // ---------- the header: the title, the count of cases in each state, two actions ----------
 export function statusCounts(rows) {
@@ -56,7 +55,7 @@ export function ResumeStrip({ entries }) {
               <span className="nx-resume__text">
                 <span className="nx-resume__label">{entries.length === 1 || entry === entries[0] ? 'Pick up where you left off' : 'Also recent'}</span>
                 <span className="nx-resume__question" dir="auto">{entry.label || entry.query}</span>
-                <span className="nx-resume__meta"><CaseLabel caseId={entry.caseId} />{entry.updatedAt ? ` · ${relativeAge(new Date(entry.updatedAt))}` : ''}</span>
+                <span className="nx-resume__meta"><CaseLabel caseId={entry.caseId} />{entry.updatedAt ? <> · <time dateTime={entry.updatedAt} title={formatMoment(new Date(entry.updatedAt))}>{relativeAge(new Date(entry.updatedAt))}</time></> : null}</span>
               </span>
               <ArrowRight className="nx-resume__go" aria-hidden="true" />
             </Link>
@@ -127,8 +126,9 @@ export function NeedsPanel({ items, byCase, notes, loading, notesLoading }) {
   const shownNotes = notes.slice(0, 3)
   const empty = !files.length && !shownNotes.length
   return (
-    <Panel id="dash-attention" title="Needs you" action={exact ? <span className="nx-badge nx-badge--danger">{formatNumber(exact)}</span> : null}>
+    <Panel id="dash-attention" title="Needs you" className="nx-panel--needs" action={exact ? <span className="nx-badge nx-badge--danger">{formatNumber(exact)}</span> : null}>
       {loading && !items.length ? <PanelSkeleton /> : null}
+      <div className="nx-needs">
       {files.length ? (
         <div className="nx-group">
           <p className="nx-overline">Files to review</p>
@@ -162,29 +162,8 @@ export function NeedsPanel({ items, byCase, notes, loading, notesLoading }) {
         </div>
       ) : null}
       {notesLoading && !shownNotes.length ? <div className="nx-group"><p className="nx-overline">Read before trusting answers</p><PanelSkeleton rows={2} /></div> : null}
+      </div>
       {empty && !loading && !notesLoading ? <Calm icon={CircleCheckBig} tone="ok"><strong>All clear</strong></Calm> : null}
-    </Panel>
-  )
-}
-
-// ---------- your questions ----------
-export function QuestionsPanel({ recent }) {
-  const questions = recent.slice(0, 5)
-  return (
-    <Panel id="dash-questions" title="Your questions" sub={recent.length ? `${formatNumber(recent.length)} saved in this browser` : null}>
-      {questions.length ? (
-        <ul className="nx-queue">
-          {questions.map(entry => (
-            <li key={`${entry.caseId}-${entry.id}`}>
-              <Link className="nx-queue__item" to={`/cases/${encodeURIComponent(entry.caseId)}/investigate?question=${encodeURIComponent(entry.query)}`}>
-                <MessageSquareText className="nx-queue__icon nx-queue__icon--plain" aria-hidden="true" />
-                <span className="nx-queue__text"><span className="nx-queue__title nx-queue__title--clamp" dir="auto">{entry.label || entry.query}</span><span className="nx-queue__meta"><CaseLabel caseId={entry.caseId} /> · {OUTCOME_LABEL[entry.state] || 'Answered'}{entry.updatedAt ? ` · ${relativeAge(new Date(entry.updatedAt))}` : ''}</span></span>
-                <ArrowRight className="nx-queue__go" aria-hidden="true" />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      ) : <Calm icon={MessageSquareText}>Nothing asked yet</Calm>}
     </Panel>
   )
 }
@@ -220,7 +199,7 @@ export function LatestPanel({ items, loading }) {
                 <Link className="nx-feed__item" to={`/cases/${encodeURIComponent(item.caseId)}/evidence${item.evidenceId ? `/${encodeURIComponent(item.evidenceId)}` : ''}`}>
                   <Icon className={`nx-feed__icon nx-feed__icon--${failed ? 'bad' : done ? 'ok' : 'busy'}`} aria-hidden="true" />
                   <span className="nx-feed__text"><span className="nx-feed__name" dir="auto">{item.label}</span><span className="nx-feed__meta"><CaseLabel caseId={item.caseId} /></span></span>
-                  <time className="nx-feed__time" dateTime={item.date.toISOString()}>{relativeAge(item.date)}</time>
+                  <time className="nx-feed__time" dateTime={item.date.toISOString()} title={formatMoment(item.date)}>{relativeAge(item.date)}</time>
                 </Link>
               </li>
             )
@@ -228,5 +207,30 @@ export function LatestPanel({ items, loading }) {
         </ul>
       ) : <Calm icon={Clock3}>Nothing yet</Calm>}
     </Panel>
+  )
+}
+
+// ---------- the two states a whole page can be in ----------
+// First run: nothing to show yet, so the page says what the three steps are and offers the first one.
+export function FirstRun() {
+  const steps = [['Create a case', 'Name the matter you are working on.'], ['Add evidence', 'Spreadsheets, documents, images, audio.'], ['Ask a question', 'Every answer shows the records behind it.']]
+  return (
+    <section className="nx-start3" aria-label="Start your first case">
+      <ol>
+        {steps.map(([title, text], index) => <li key={title}><span className="nx-start3__n" aria-hidden="true">{index + 1}</span><div><strong>{title}</strong><p>{text}</p></div></li>)}
+      </ol>
+      <Link className="nx-btn nx-btn--primary" to="/cases/new"><Plus aria-hidden="true" />New case</Link>
+    </section>
+  )
+}
+
+// The service could not be reached for any case: one message with one action, never a page of broken panels.
+export function ServiceDown({ onRetry }) {
+  return (
+    <section className="nx-down" role="alert">
+      <ServerOff aria-hidden="true" />
+      <div><strong>The workspace could not read your cases.</strong><p>The service did not answer. Check that it is running, then try again.</p></div>
+      <button type="button" className="nx-btn" onClick={onRetry}><RefreshCw aria-hidden="true" />Try again</button>
+    </section>
   )
 }

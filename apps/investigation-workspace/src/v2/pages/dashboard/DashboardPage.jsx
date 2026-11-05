@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { CircleAlert } from 'lucide-react'
 import { configuredCaseIds } from '../../../lib/apiClient.js'
 import { attentionItems, familyRows, reviewByCase } from '../../../lib/dashboardCharts.js'
@@ -12,9 +11,9 @@ import { useQuestionHistoryAcross } from '../../../lib/workspaceState.js'
 import { AppShell } from '../../shell/AppShell.jsx'
 import { useEngineHealthAcross, useTypingReportsAcross } from './data.js'
 import { AnswersPanel, EvidenceTypesPanel, RecordKindsPanel, SetAsidePanel, TimeToReadyPanel, TimelinePanel } from './insights.jsx'
-import { answerQuality, caseStates, caseTimelines, dataNotes, modalityMix, recordKinds, setAside, timeToReady } from './model.js'
+import { answerQuality, caseStates, caseTimelines, dataNotes, largestCases, modalityMix, recordKinds, setAside, timeToReady } from './model.js'
 import { CasesPanel } from './panels.jsx'
-import { Hero, LatestPanel, MetricStrip, NeedsPanel, QuestionsPanel, ResumeStrip, latestItems, resumeEntries } from './sections.jsx'
+import { FirstRun, Hero, LatestPanel, MetricStrip, NeedsPanel, ResumeStrip, ServiceDown, latestItems, resumeEntries } from './sections.jsx'
 
 // The most cases any one dashboard read covers: the heavy reads (the typing report, the timeline) are made for each case, and a workspace with a very long list should not start dozens of them.
 const READ_LIMIT = 12
@@ -58,6 +57,7 @@ export default function DashboardPage() {
   const notes = useMemo(() => dataNotes(reports), [reports])
   const aside = useMemo(() => setAside(rows), [rows])
   const ready = useMemo(() => timeToReady(rows), [rows])
+  const largest = useMemo(() => largestCases(rows), [rows])
   const timelines = useMemo(() => caseTimelines(activity.results), [activity.results])
   // "Still reading" is also "not started yet": a read that has produced neither a result nor a failure has not finished, so a panel shows its skeleton rather than "nothing" for a moment.
   const typingLoading = loading || typing.pending || (!reports.length && !typing.failed.length)
@@ -81,24 +81,25 @@ export default function DashboardPage() {
       <main id="workspace-main" className="nx-ui nx-page nx-dash" tabIndex={-1}>
         <Hero rows={rows} loading={loading} lastUpdated={lastUpdated} refreshing={isRefreshing} onRefresh={refreshAll} />
         {!cases.length ? (
-          <div className="nx-empty nx-card"><h3>No case yet</h3><div className="nx-empty__actions"><Link className="nx-btn nx-btn--primary" to="/cases/new">New case</Link></div></div>
+          <FirstRun />
+        ) : !loading && unreadable === cases.length ? (
+          <ServiceDown onRetry={refreshAll} />
         ) : (
           <>
             {unreadable > 0 ? (
               <p className="nx-callout nx-callout--warn" role="status"><CircleAlert aria-hidden="true" /><span>{formatNumber(unreadable)} of {formatNumber(cases.length)} not reporting. <button type="button" className="nx-link-button" onClick={reload}>Try again</button></span></p>
             ) : null}
             <ResumeStrip entries={resumeEntries(recent)} />
+            <NeedsPanel items={attention} byCase={reviewCases} notes={notes} loading={loading} notesLoading={typingLoading} />
             <MetricStrip kpis={kpis} rows={rows} states={caseStateCounts} quality={quality} loading={loading} />
+            <CasesPanel rows={rows} loading={loading} />
             <div className="nx-grid">
               <div className="nx-span-8"><TimelinePanel timelines={timelines} loading={timelineLoading} failures={activity.failures} /></div>
-              <div className="nx-span-4"><NeedsPanel items={attention} byCase={reviewCases} notes={notes} loading={loading} notesLoading={typingLoading} /></div>
-              <div className="nx-span-4"><EvidenceTypesPanel mix={mix} loading={typingLoading} /></div>
-              <div className="nx-span-4"><RecordKindsPanel kinds={kinds} loading={typingLoading} /></div>
               <div className="nx-span-4"><AnswersPanel quality={quality} loading={answersLoading} /></div>
-              <div className="nx-span-6"><SetAsidePanel data={aside} loading={loading} /></div>
+              <div className="nx-span-4"><EvidenceTypesPanel mix={mix} loading={typingLoading} /></div>
+              <div className="nx-span-4"><RecordKindsPanel kinds={kinds} largest={largest} loading={typingLoading} /></div>
+              <div className="nx-span-4"><SetAsidePanel data={aside} loading={loading} /></div>
               <div className="nx-span-6"><TimeToReadyPanel data={ready} loading={loading} /></div>
-              <div className="nx-span-12"><CasesPanel rows={rows} loading={loading} /></div>
-              <div className="nx-span-6"><QuestionsPanel recent={recent} /></div>
               <div className="nx-span-6"><LatestPanel items={latest} loading={loading} /></div>
             </div>
           </>

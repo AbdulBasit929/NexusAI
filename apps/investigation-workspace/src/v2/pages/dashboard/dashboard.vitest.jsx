@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import DashboardPage from './DashboardPage.jsx'
 import { resetDashboardReads } from './data.js'
@@ -269,16 +269,16 @@ describe('the dashboard page', () => {
 
     // what the evidence holds, from the typing report
     const types = await screen.findByRole('region', { name: 'Evidence by type' })
-    expect(await within(types).findByText('Images')).toBeTruthy()
+    expect((await within(types).findAllByText('Images')).length).toBeGreaterThan(0)
     expect(types.textContent).toMatch(/Records\s*6/)
     const kinds = screen.getByRole('region', { name: 'Records by kind' })
-    expect(await within(kinds).findByText('Calls')).toBeTruthy()
+    expect((await within(kinds).findAllByText('Calls')).length).toBeGreaterThan(0)
 
     // the pipeline, from the status of each case
     const aside = screen.getByRole('region', { name: 'Rows set aside' })
     expect(aside.textContent).toMatch(/7\.7%/)
     const ready = screen.getByRole('region', { name: 'Time to ready' })
-    expect(ready.textContent).toMatch(/median 41 s from upload/)
+    expect(ready.textContent).toMatch(/Median 41 s from upload/)
 
     // the timeline, one row for each case
     const timeline = await screen.findByRole('region', { name: 'Evidence timeline' })
@@ -294,9 +294,34 @@ describe('the dashboard page', () => {
     window.__INVESTIGATION_WORKSPACE_CONFIG__ = { caseIds: [] }
     globalThis.fetch = serve()
     render(<MemoryRouter initialEntries={['/']}><DashboardPage /></MemoryRouter>)
-    expect(await screen.findByText('No case yet', { selector: 'h3' })).toBeTruthy()
-    expect(screen.getAllByRole('link', { name: /New case/ }).length).toBeGreaterThan(0)
+    const start = await screen.findByRole('region', { name: 'Start your first case' })
+    expect(within(start).getAllByRole('listitem').map(item => item.querySelector('strong').textContent)).toEqual(['Create a case', 'Add evidence', 'Ask a question'])
+    expect(within(start).getByRole('link', { name: /New case/ }).getAttribute('href')).toBe('/cases/new')
     expect(screen.queryByRole('region', { name: 'Figures' })).toBeNull()
+  })
+
+  it('says once that the service did not answer, instead of drawing a page of broken panels', async () => {
+    window.__INVESTIGATION_WORKSPACE_CONFIG__ = { caseIds: ['case-a', 'case-b'] }
+    globalThis.fetch = vi.fn(async () => ({ ok: false, status: 503, headers: { get: () => null }, json: async () => ({}), text: async () => '' }))
+    render(<MemoryRouter initialEntries={['/']}><DashboardPage /></MemoryRouter>)
+    const down = await screen.findByRole('alert')
+    expect(down.textContent).toMatch(/The workspace could not read your cases./)
+    expect(within(down).getByRole('button', { name: /Try again/ })).toBeTruthy()
+    expect(screen.queryByRole('region', { name: 'Figures' })).toBeNull()
+    expect(screen.queryByRole('region', { name: 'Evidence timeline' })).toBeNull()
+  })
+
+  it('gives every chart its table twin', async () => {
+    window.__INVESTIGATION_WORKSPACE_CONFIG__ = { caseIds: ['case-a', 'case-b'] }
+    globalThis.fetch = serve()
+    render(<MemoryRouter initialEntries={['/']}><DashboardPage /></MemoryRouter>)
+    for (const name of ['Evidence timeline', 'Evidence by type', 'Records by kind', 'Answers', 'Rows set aside', 'Time to ready']) {
+      const region = await screen.findByRole('region', { name })
+      await waitFor(() => expect(within(region).getByText('Show as table')).toBeTruthy())
+    }
+    const aside = screen.getByRole('region', { name: 'Rows set aside' })
+    fireEvent.click(within(aside).getByText('Show as table'))
+    expect(within(aside).getByRole('table', { name: /Rows set aside for each case/ })).toBeTruthy()
   })
 
   it('offers the way back into the last question you asked', async () => {

@@ -7,6 +7,7 @@ import { dashboardNextAction, relativeAge } from '../../../lib/dashboardCases.js
 import { useCaseRecords } from '../../../lib/useCaseRecords.js'
 import { CaseLabel } from '../../shell/CaseLabel.jsx'
 import { PanelSkeleton } from '../../ui/Panel.jsx'
+import { formatMoment } from './model.js'
 
 export const WEIGHT = { attention: 0, processing: 1, 'not-processed': 2, unavailable: 3, forbidden: 3, loading: 4, complete: 5 }
 export const STATUS = {
@@ -81,7 +82,7 @@ export function CasesPanel({ rows, limit = 8, headless = false, ordered: keepOrd
                       <td><SourcesCell summary={row.summary} /></td>
                       <td className="is-num nx-tabular">{row.summary ? formatNumber(row.summary.acceptedRows) : '—'}</td>
                       <td className="is-num nx-tabular nx-col-aside">{aside === null ? '—' : formatRate(aside)}</td>
-                      <td className="nx-col-last nx-secondary">{row.activity ? relativeAge(row.activity.date) : '—'}</td>
+                      <td className="nx-col-last nx-secondary" title={row.activity ? formatMoment(row.activity.date) : undefined}>{row.activity ? relativeAge(row.activity.date) : '—'}</td>
                       <td className="is-num">{next ? <Link className="nx-btn nx-btn--sm" to={next.to}>{next.label}</Link> : null}</td>
                     </tr>
                   )
