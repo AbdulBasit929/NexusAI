@@ -37,6 +37,13 @@ Each request states: the **endpoint and method**, the **exact response fields an
 | 24 | Case membership and listing: members with roles (owner, editor, viewer); list cases with `mine=true` or `member=<subject>`; the server enforces access | Cases, Dashboard, "My cases" | open (proposed 2026-10-02) |
 | 25 | Real identity end to end: the signed-in person's subject forwarded by the gateway instead of the constants `investigation-workspace` and `nexusai-local-operator`; the API ignores a form-supplied `user_id` whenever auth is on; `GET /whoami` returns subject, display name and role | Everywhere | open (proposed 2026-10-02) |
 | 26 | Expose provenance that is already stored: `registered_by` and `registered_at` on evidence list and detail (from `evidence_items.user_id` and `evidence_versions.created_by`), and a read endpoint for custody events with `actor_type` and `actor_id`, for the evidence Lineage tab and Activity | Evidence, Activity | open (proposed 2026-10-02) |
+| 27 | Engine health by day in one call (`?by=day`): questions, answered, declined, abstained and latency percentiles per day. Today the Dashboard makes seven calls (windows of 1 to 7 days) and subtracts them | Dashboard (Answers) | open (proposed 2026-11-05) |
+| 28 | Workspace data-basis summary: rows by the basis of their time (confirmed by an analyst, stated in the file, declared, assumed), typed share, layouts waiting for an analyst's confirmation, per case and in total. Extends row 16. Today it takes one heavy typing-report read per case (1.5 to 14 s each) | Dashboard (Data quality), Overview | open (proposed 2026-11-05) |
+| 29 | Processing performance history: for every file, queued, started and completed times, rows, attempts, file type; waiting and processing time as separate percentiles. Extends row 3. Today only the latest 20 jobs per case are visible, so the Dashboard's "time to ready" is a sample and says so | Dashboard (Pipeline speed) | open (proposed 2026-11-05) |
+| 30 | Per-user usage and preferences on the server: questions asked over time (by day, outcome), pinned questions, drafts, last case opened, appearance. Extends row 5. Today these live in one browser's local storage and are lost with it | Dashboard (Pick up), Ask, Settings | open (proposed 2026-11-05) |
+| 31 | Attention feed extensions (extends row 13): kinds `dead_lettered` (gave up after N tries), `stalled` (with the threshold), `read_as_plain_table` (no specialised layout matched), `question_needs_choice`, and an acknowledgement ("reviewed", by whom, when) so an item can be cleared for everyone | Dashboard (Needs you), Activity | open (proposed 2026-11-05) |
+| 32 | Evidence sites summary for a map: `GET /collections/places/summary` returning rounded points (latitude, longitude to 3 decimals) with event counts and first/last time, per case and across cases; `complete` and the reason when not | Dashboard (map), Overview | open (proposed 2026-11-05) |
+| 33 | Cross-case overlaps, counts only: how many subscribers, devices, plates or accounts appear in two or more cases, per pair of cases; the values themselves only inside a case the caller can open. Gated by the owner's cross-case visibility decision (D38(a)) | Dashboard, Cases | open (proposed 2026-11-05, privacy review first) |
 
 Rows 1–6 were anticipated in `CODEX_UI_REDESIGN_PROMPT_20260929.md` §8, and row 7 came from the
 2026-09-28 demo check (`CODEX_UI_DEFECTS_20260928.md`). Codex: add detail under a heading per request,
@@ -174,3 +181,48 @@ Why: "my own cases" and any per-person view depend on facts the system does not 
 - **Empty and error behaviour.** A case with no known creator returns `created_by: null`; the UI says "not recorded".
   Forbidden stays `403`; an unavailable identity service must not be shown as an anonymous person.
 - **Privacy.** Subject ids are identifiers; show display names only to members of the same case.
+
+
+## 27. Engine health by day
+
+- **Endpoint:** `GET /analysis/engine-health?days=7&by=day` (existing endpoint, new optional parameter).
+- **Response:** the existing fields plus `by_day: [{ day: "YYYY-MM-DD" (the case's zone), questions, answered, declined, abstained, p50_ms|null, p90_ms|null }]`, oldest first, one entry for each of the `days` requested, zero-filled.
+- **Why:** the Dashboard's per-day column chart needs one read, not seven; the seven nested windows are the only way to tell days apart today (the UI subtracts them and calls them "24-hour periods ending now", which is not a calendar day).
+- **Privacy:** counts and times only, never a question.
+
+## 28. Workspace data-basis summary
+
+- **Endpoint:** `GET /workspace/data-basis` (and `GET /collections/data-basis?collection_id=`).
+- **Response:** `{ total_rows, by_time_basis: [{ basis: "confirmed_by_analyst"|"explicit_offset"|"declared"|"assumed", rows, layouts }], typed_rows, untyped_rows, layouts_needing_confirmation: [{ layout, rows, evidence_id }], items: [{ collection_id, ... same fields }], complete }`.
+- **Why:** an analyst checks how the hours of the records are known before trusting an answer about time; today the UI reads the whole typing report for each case to draw one bar.
+
+## 29. Processing performance history
+
+- **Endpoint:** `GET /collections/processing?from=&to=&group=day|file_type`.
+- **Response:** `{ buckets: [{ start, files, waiting_p50_s, waiting_p90_s, processing_p50_s, processing_p90_s, rows_per_s_p50 }], slowest: [{ evidence_id, source_file, waiting_s, processing_s }], complete }` over all files, not the latest 20.
+- **Why:** the Dashboard's "time to ready" strips are built from the latest 20 jobs of each case; this makes them complete, adds a trend, and lets an analyst see whether waiting (the queue) or processing (the read) is the bottleneck.
+
+## 30. Per-user usage and preferences
+
+- **Endpoints:** `GET /me/usage?days=` returning questions asked per day and outcome and the cases touched; `GET|PUT /me/preferences` for appearance, density, pinned questions, drafts, last case.
+- **Why:** the "pick up where you left off" strip and the usage figures should survive a new browser and be the same on every machine. Requires real identity (row 25).
+- **Privacy:** the subject's own data only; never another analyst's questions.
+
+## 31. Attention feed extensions
+
+- **Endpoint:** extends `GET /workspace/attention` (row 13).
+- **New kinds:** `dead_lettered` (with `attempts`, `max_attempts`), `stalled` (with the service's threshold and `since`), `read_as_plain_table` (with the warning), `question_needs_choice`; each item has `id`, `acknowledged_at`, `acknowledged_by`, and `POST /workspace/attention/{id}/acknowledge`.
+- **Why:** the Dashboard's "Needs you" currently derives these from the latest 20 files and jobs of each case and from this browser; the service can count them completely and let an analyst clear an item for the whole team.
+
+## 32. Evidence sites for a map
+
+- **Endpoint:** `GET /collections/places/summary?collection_id=&limit=` and a workspace form without `collection_id`.
+- **Response:** `{ complete, points: [{ lat, lon (3 decimals), events, first_at, last_at, kind: "cell_site"|"camera"|"other", label|null }] }`; a case with no coordinates returns `points: []`.
+- **Why:** the directive's Dashboard anatomy has "where the evidence is" when at least one site exists. The map uses the offline tile set the owner supplied.
+- **Privacy:** rounded coordinates, the same masking as the places route.
+
+## 33. Cross-case overlaps (counts only)
+
+- **Endpoint:** `GET /workspace/overlaps`.
+- **Response:** `{ pairs: [{ cases: [id, id], subscribers, devices, plates, accounts }], complete }`; values are never returned here.
+- **Why:** an investigator wants to know that two cases touch before they ask across cases. Subject to the owner's cross-case visibility decision and a privacy review; the Dashboard shows nothing until it exists.
