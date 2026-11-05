@@ -1,6 +1,6 @@
 /* The new design layer. Layer order is the architecture: everything the old design ships sits in `legacy` (lowest), then the new tokens, base,
    layout, components, patterns, pages and utilities, each beating the one before it without specificity fights. */
-@layer legacy, nx-reset, nx-tokens, nx-base, nx-layout, nx-components, nx-patterns, nx-pages, nx-utilities;
+@layer legacy, nx-reset, nx-tokens, nx-base, nx-components, nx-layout, nx-patterns, nx-pages, nx-utilities;
 
 @import './tokens.generated.css';
 @import './scale.css';
@@ -9,4 +9,7 @@
 @import './components.css';
 @import './patterns.css';
 @import './ask.css';
+@import './proof.css';
 @import './design.css';
+@import './dashboard.css';
+@import './cases.css';

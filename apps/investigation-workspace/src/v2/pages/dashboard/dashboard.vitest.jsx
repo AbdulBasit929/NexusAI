@@ -1,0 +1,312 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { cleanup, render, screen, within } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
+import DashboardPage from './DashboardPage.jsx'
+import { resetDashboardReads } from './data.js'
+import { answerQuality, caseStates, caseTimelines, dataNotes, declineText, formatDuration, modalityMix, niceCeiling, recordKinds, setAside, timeToReady } from './model.js'
+import { cleanRate, latestItems, resumeEntries, statusCounts } from './sections.jsx'
+import { BarStrip, RangeStrip, SegBar } from '../../ui/micro.jsx'
+import { Sparkline, dailySeries } from '../../ui/Sparkline.jsx'
+import { shift } from '../../../lib/caseActivity.js'
+import { resetAttentionCache } from '../../../lib/workspaceAttention.js'
+import { resetCaseRecordsForTest } from '../../../lib/useCaseRecords.js'
+import { clearWorkspaceStateForTests } from '../../../lib/workspaceState.js'
+
+const rowsOf = states => states.map((status, index) => ({ caseId: `c${index}`, status, index }))
+
+describe('statusCounts', () => {
+  it('counts the states in the order that matters and leaves out the ones nobody is in', () => {
+    const counts = statusCounts(rowsOf(['attention', 'attention', 'processing', 'complete', 'complete', 'complete', 'loading']))
+    expect(counts.map(item => [item.id, item.count])).toEqual([['attention', 2], ['processing', 1], ['complete', 3]])
+    expect(statusCounts(rowsOf(['unavailable'])).map(item => item.label)).toEqual(['not reporting'])
+    expect(statusCounts([])).toEqual([])
+  })
+})
+
+describe('cleanRate', () => {
+  it('is the share of rows that were accepted, and nothing before any row was read', () => {
+    expect(cleanRate({ acceptedRows: 90, duplicateRows: 5, rejectedRows: 5 })).toBe(0.9)
+    expect(cleanRate({ acceptedRows: 0, duplicateRows: 0, rejectedRows: 0 })).toBeNull()
+  })
+})
+
+describe('latestItems', () => {
+  const rows = [
+    { caseId: 'a', state: { data: { recent_evidence: [{ source_file: 'old.csv', evidence_id: 'e1', processing_status: 'completed', updated_at: '2026-10-01T10:00:00Z' }, { source_file: 'new.csv', evidence_id: 'e2', processing_status: 'failed', updated_at: '2026-11-02T10:00:00Z' }, { source_file: 'undated.csv', evidence_id: 'e3', processing_status: 'completed' }] } } },
+    { caseId: 'b', state: { data: { recent_evidence: [{ source_file: 'old.csv', evidence_id: 'e1', processing_status: 'completed', updated_at: '2026-10-15T10:00:00Z' }], recent_jobs: [{ source_file: 'old.csv', evidence_id: 'e1', status: 'completed', completed_at: '2026-10-20T10:00:00Z' }] } } },
+  ]
+  it('puts the newest first, keeps one entry per file and case, and leaves out what has no date', () => {
+    const items = latestItems(rows)
+    expect(items.map(item => `${item.caseId}:${item.label}`)).toEqual(['a:new.csv', 'b:old.csv', 'a:old.csv'])
+    expect(items.find(item => item.caseId === 'b').date.toISOString()).toBe('2026-10-20T10:00:00.000Z')
+    expect(items[0].status).toBe('failed')
+  })
+  it('stops at the limit', () => {
+    expect(latestItems(rows, 2)).toHaveLength(2)
+  })
+})
+
+describe('resumeEntries', () => {
+  it('takes the last question of each case, newest first, up to three', () => {
+    const entries = [{ caseId: 'a', id: '1' }, { caseId: 'a', id: '2' }, { caseId: 'b', id: '3' }, { caseId: 'c', id: '4' }, { caseId: 'd', id: '5' }]
+    expect(resumeEntries(entries).map(entry => entry.id)).toEqual(['1', '3', '4'])
+    expect(resumeEntries([])).toEqual([])
+  })
+})
+
+describe('formatDuration', () => {
+  it('says seconds, then minutes with their seconds, then hours', () => {
+    expect([0.4, 36, 215, 60, 3600, 3900, NaN].map(formatDuration)).toEqual(['<1 s', '36 s', '3 min 35 s', '1 min', '1 h', '1 h 5 min', '—'])
+  })
+})
+
+describe('caseTimelines', () => {
+  const result = (caseId, days, truncated = false) => ({ caseId, days: days.map(([date, total]) => ({ date, total, byFamily: {} })), truncated })
+  it('draws the events of each month, with a gap month as a zero, and never a day dated after today', () => {
+    const [line] = caseTimelines([result('a', [['2025-01-10', 5], ['2025-01-20', 1], ['2025-04-02', 3], ['2065-01-24', 7]])], '2026-11-04')
+    expect(line.series.map(point => [point.from, point.total])).toEqual([['2025-01', 6], ['2025-02', 0], ['2025-03', 0], ['2025-04', 3]])
+    expect(line.total).toBe(9)
+    expect([line.first, line.last]).toEqual(['2025-01-10', '2025-04-02'])
+    expect([line.futureTotal, line.futureLast]).toEqual([7, '2065-01-24'])
+    expect(line.partial).toBe(false)
+  })
+  it('carries the service’s cap through as "partial" and drops a case with nothing dated', () => {
+    const lines = caseTimelines([result('a', [['2025-01-10', 5]], true), result('b', [])], '2026-11-04')
+    expect(lines.map(line => [line.caseId, line.partial])).toEqual([['a', true]])
+  })
+  it('groups a very long span into equal runs of months without changing the total', () => {
+    const [line] = caseTimelines([result('a', [['1990-01-05', 3], ['2025-12-01', 4]])], '2026-11-04')
+    expect(line.series.length).toBeLessThanOrEqual(96)
+    expect(line.series.reduce((sum, point) => sum + point.total, 0)).toBe(7)
+    expect(line.series[0].from).toBe('1990-01')
+    expect(line.series.at(-1).to).toBe('2025-12')
+  })
+})
+
+describe('answerQuality', () => {
+  const health = (id, totals, latency, declines = []) => ({ collection_id: id, available: true, totals, latency_ms: latency, declines })
+  it('adds the counts exactly, names the case whose times are shown, and merges decline reasons', () => {
+    const quality = answerQuality([
+      health('a', { questions: 100, answered: 90, declined: 6, abstained: 4 }, { p50: 40000, p90: 80000, max: 120000 }, [{ reason: 'the model judged that the views cannot answer the question', count: 5 }]),
+      health('b', { questions: 10, answered: 10, declined: 0, abstained: 0 }, { p50: 1000, p90: 2000, max: 3000 }, [{ reason: 'the model judged that the views cannot answer the question', count: 1 }, { reason: 'something unusual happened here', count: 2 }]),
+      { collection_id: 'c', available: false },
+    ])
+    expect([quality.questions, quality.answered, quality.declined, quality.abstained, quality.reported]).toEqual([110, 100, 6, 4, 2])
+    expect(quality.rate).toBeCloseTo(100 / 110)
+    expect(quality.latency).toEqual({ caseId: 'a', p50: 40, p90: 80, max: 120 })
+    expect(quality.reasons.map(reason => [reason.text, reason.count])).toEqual([['The case’s records cannot answer that kind of question', 6], ['Something unusual happened here', 2]])
+  })
+  it('has no rate and no times when nothing was asked', () => {
+    const quality = answerQuality([health('a', { questions: 0, answered: 0, declined: 0, abstained: 0 }, { p50: null, p90: null, max: null })])
+    expect(quality.rate).toBeNull()
+    expect(quality.latency).toBeNull()
+    expect(declineText('')).toBe('No reason recorded')
+  })
+})
+
+describe('modalityMix and recordKinds', () => {
+  const report = (id, evidence, extra = {}) => ({ collection_id: id, available: true, evidence, ...extra })
+  it('adds the files of each kind, keeps a colour slot for each kind, and folds the unknown into "Other files"', () => {
+    const mix = modalityMix([
+      report('a', [{ modality: 'structured_records', files: 9, failed: 0 }, { modality: 'image', files: 23, failed: 1 }, { modality: 'tabular', files: 2, failed: 0 }]),
+      report('b', [{ modality: 'structured_records', files: 12, failed: 1 }, { modality: 'document', files: 4, failed: 0 }, { modality: 'tabular', files: 1, failed: 0 }]),
+    ])
+    expect(mix.total).toBe(51)
+    expect(mix.kinds.map(kind => [kind.id, kind.files, kind.slot])).toEqual([['image', 23, 3], ['structured_records', 21, 1], ['document', 4, 2], ['other', 3, 0]])
+    expect(mix.kinds.find(kind => kind.id === 'image').failed).toBe(1)
+    expect(mix.kinds.find(kind => kind.id === 'structured_records').caseCount).toBe(2)
+  })
+  it('types the records as calls, internet sessions and app usage with repeats left out, and keeps the rest as "Other records"', () => {
+    const rows = [{ caseId: 'a', summary: { acceptedRows: 1000 } }, { caseId: 'b', summary: { acceptedRows: 50 } }, { caseId: 'c', summary: { acceptedRows: 7 } }]
+    const kinds = recordKinds([
+      report('a', [], { calls: { typed: 600, repeats: 10, effective: 590 }, sessions: { typed: 200, repeats: 20 }, usage: { typed: 50 } }),
+      report('b', [], { calls: { typed: 10, repeats: 0 }, sessions: { typed: 0 }, usage: { typed: 0 } }),
+    ], rows)
+    expect(kinds.kinds.map(kind => [kind.id, kind.count])).toEqual([['calls', 600], ['sessions', 180], ['usage', 50], ['other', 220]])
+    expect(kinds.reported).toBe(2)
+  })
+})
+
+describe('dataNotes', () => {
+  it('groups what the service says to read by its code, across cases, the most common first', () => {
+    const notes = dataNotes([
+      { collection_id: 'a', findings: [{ code: 'no_volume', text: 'x' }, { code: 'repeats', text: 'y' }] },
+      { collection_id: 'b', findings: [{ code: 'no_volume', text: 'x' }, { code: 'no_volume', text: 'x' }] },
+      { collection_id: 'c', available: false, findings: [{ code: 'no_volume', text: 'x' }] },
+    ])
+    expect(notes.map(note => [note.code, note.caseIds])).toEqual([['no_volume', ['a', 'b']], ['repeats', ['a']]])
+    expect(notes[0].title).toBe('Internet records state no byte volumes')
+  })
+})
+
+describe('setAside', () => {
+  it('ranks the cases by the share of their rows that were not kept', () => {
+    const data = setAside([
+      { caseId: 'a', summary: { acceptedRows: 990, duplicateRows: 5, rejectedRows: 5 } },
+      { caseId: 'b', summary: { acceptedRows: 80, duplicateRows: 0, rejectedRows: 20 } },
+      { caseId: 'c', summary: { acceptedRows: 0, duplicateRows: 0, rejectedRows: 0 } },
+      { caseId: 'd' },
+    ])
+    expect(data.items.map(item => item.caseId)).toEqual(['b', 'a'])
+    expect(data.read).toBe(1100)
+    expect(data.setAside).toBe(30)
+    expect(data.items[0].share).toBeCloseTo(0.2)
+  })
+})
+
+describe('timeToReady', () => {
+  const job = (queued, completed, status = 'completed') => ({ status, queued_at: queued, completed_at: completed })
+  it('measures from upload to ready for the finished files, per case and overall', () => {
+    const data = timeToReady([
+      { caseId: 'a', state: { data: { recent_jobs: [job('2026-10-30T09:00:00Z', '2026-10-30T09:00:10Z'), job('2026-10-30T09:00:00Z', '2026-10-30T09:00:30Z'), job('2026-10-30T09:00:00Z', null, 'dead_letter'), job('2026-10-30T09:01:00Z', '2026-10-30T09:00:00Z')] } } },
+      { caseId: 'b', state: { data: { recent_jobs: [job('2026-10-30T09:00:00Z', '2026-10-30T09:03:20Z')] } } },
+      { caseId: 'c', state: { data: { recent_jobs: [] } } },
+    ])
+    expect(data.cases.map(item => [item.caseId, item.count, item.min, item.median, item.max])).toEqual([['a', 2, 10, 20, 30], ['b', 1, 200, 200, 200]])
+    expect(data.count).toBe(3)
+    expect(data.median).toBe(30)
+    expect(data.slowest).toBe(200)
+  })
+  it('rounds an axis up to a clean number', () => {
+    expect([0, 0.3, 1, 37, 215, 999, 1001].map(niceCeiling)).toEqual([1, 0.5, 1, 50, 500, 1000, 2000])
+  })
+})
+
+describe('caseStates', () => {
+  it('counts open, on hold and closed, and treats a case with no record as open', () => {
+    expect(caseStates({ a: { status: 'closed' }, b: { status: 'on_hold' }, c: { status: 'open' } }, ['a', 'b', 'c', 'd'])).toEqual({ open: 2, on_hold: 1, closed: 1, other: 0 })
+  })
+})
+
+describe('the small pictures', () => {
+  it('draws the parts of a whole in proportion and leaves out a part with nothing', () => {
+    const { container } = render(<SegBar label="Split" parts={[{ id: 'a', value: 3, colour: 'red' }, { id: 'b', value: 0, colour: 'blue' }, { id: 'c', value: 1, colour: 'green' }]} />)
+    const parts = [...container.querySelectorAll('.nx-seg__part')]
+    expect(parts.map(part => part.style.flexGrow)).toEqual(['3', '1'])
+    expect(screen.getByRole('img', { name: 'Split' })).toBeTruthy()
+  })
+  it('scales the bars to the largest, and shows a period with nothing as a gap', () => {
+    const { container } = render(<BarStrip label="Months" values={[{ key: 'a', value: 10, title: 'A' }, { key: 'b', value: 5, title: 'B' }, { key: 'c', value: 0, title: 'C' }]} />)
+    const bars = [...container.querySelectorAll('.nx-bars__bar')]
+    expect(bars.map(bar => bar.style.getPropertyValue('--h'))).toEqual(['100%', '50%', ''])
+    expect(bars[2].className).toMatch(/is-empty/)
+    expect(bars[0].getAttribute('title')).toBe('A')
+  })
+  it('places a range on a shared axis', () => {
+    const { container } = render(<RangeStrip label="Range" axisMax={100} stats={{ min: 10, p25: 20, median: 40, p75: 60, max: 80 }} />)
+    const strip = container.querySelector('.nx-range')
+    expect(['--min', '--max', '--p25', '--p75', '--median'].map(name => strip.style.getPropertyValue(name))).toEqual(['10%', '20%', '20%', '40%', '40%'])
+  })
+  it('draws the last N calendar days ending on the last one, a day with no events as a zero', () => {
+    const days = [{ date: '2026-11-01', total: 3 }, { date: '2026-11-03', total: 5 }]
+    expect(dailySeries(days, '2026-11-03', 4, shift)).toEqual([0, 3, 0, 5])
+    expect(dailySeries(days, null, 4, shift)).toEqual([])
+  })
+  it('draws a line with an end dot and a name, and draws nothing from a single point', () => {
+    const { container, rerender } = render(<Sparkline values={[1, 3, 2, 5]} label="Events per day" />)
+    expect(screen.getByRole('img', { name: 'Events per day' })).toBeTruthy()
+    expect(container.querySelectorAll('path')).toHaveLength(2)
+    expect(container.querySelectorAll('circle')).toHaveLength(1)
+    rerender(<Sparkline values={[4]} label="x" />)
+    expect(container.querySelector('svg')).toBeNull()
+  })
+  it('draws an all-zero series flat on the baseline, never as a trend', () => {
+    const { container } = render(<Sparkline values={[0, 0, 0, 0]} width={40} height={20} label="flat" />)
+    expect(container.querySelector('.nx-spark__line').getAttribute('d')).toMatch(/^M0\.0 17\.0 L11\.7 17\.0/)
+  })
+})
+
+// ---------- the page, against a service that answers each read ----------
+const JOBS = [
+  { status: 'completed', queued_at: '2026-10-30T09:00:00Z', started_at: '2026-10-30T09:00:30Z', completed_at: '2026-10-30T09:00:31Z', source_file: 'a.csv', evidence_id: 'j1' },
+  { status: 'completed', queued_at: '2026-10-30T09:00:00Z', started_at: '2026-10-30T09:00:50Z', completed_at: '2026-10-30T09:00:51Z', source_file: 'b.csv', evidence_id: 'j2' },
+]
+const STATUS = {
+  summary: { evidence_total: 4, evidence_completed: 2, evidence_in_flight: 1, evidence_failed: 1, accepted_rows: 120, duplicate_rows: 4, rejected_rows: 6 },
+  record_families: [{ record_type: 'generic', accepted_rows: 120 }],
+  recent_evidence: [{ processing_status: 'failed', source_file: 'broken.csv', evidence_id: 'e1' }],
+  recent_jobs: JOBS,
+}
+const HEALTH = { available: true, totals: { questions: 10, answered: 9, declined: 1, abstained: 0 }, latency_ms: { p50: 40000, p90: 80000, max: 90000 }, declines: [{ reason: 'the model judged that the views cannot answer the question', count: 1 }] }
+const TYPING = { available: true, calls: { typed: 50, repeats: 0 }, sessions: { typed: 20, repeats: 0 }, usage: { typed: 0 }, evidence: [{ modality: 'structured_records', files: 3, failed: 0 }, { modality: 'image', files: 1, failed: 1 }], findings: [{ code: 'no_volume', text: 'The internet records state no byte count.' }] }
+const ACTIVITY = { records: { activity_by_day: [{ activity_date: '2024-01-05T00:00:00Z', event_count: 4, record_type: 'cdr' }, { activity_date: '2024-03-10T00:00:00Z', event_count: 6, record_type: 'cdr' }] } }
+
+function serve() {
+  return vi.fn(async (input, init) => {
+    const path = new URL(String(input)).pathname.replace(/^\/api/, '')
+    const body = path === '/collections/status' ? STATUS : path === '/analysis/engine-health' ? HEALTH : path === '/analysis/typing-report' ? TYPING : path === '/cases' ? { cases: [] } : path === '/query/hybrid' && init?.method === 'POST' ? ACTIVITY : {}
+    return { ok: true, status: 200, json: async () => body, text: async () => JSON.stringify(body) }
+  })
+}
+
+describe('the dashboard page', () => {
+  beforeEach(() => { localStorage.clear(); clearWorkspaceStateForTests(); resetDashboardReads() })
+  afterEach(() => { cleanup(); resetAttentionCache(); resetCaseRecordsForTest(); resetDashboardReads(); vi.restoreAllMocks(); delete window.__INVESTIGATION_WORKSPACE_CONFIG__ })
+
+  it('fills the figures, the panels and the cases table from the reads, each as it arrives', async () => {
+    window.__INVESTIGATION_WORKSPACE_CONFIG__ = { caseIds: ['case-a', 'case-b'] }
+    globalThis.fetch = serve()
+    render(<MemoryRouter initialEntries={['/']}><DashboardPage /></MemoryRouter>)
+
+    const states = await screen.findByRole('list', { name: 'Cases by state' })
+    expect(states.textContent).toMatch(/2 need review/)
+    const figures = screen.getByRole('region', { name: 'Figures' })
+    expect(figures.textContent).toMatch(/Cases\s*2/)
+    expect(figures.textContent).toMatch(/Files ready\s*4\s*\/\s*8/)
+    expect(figures.textContent).toMatch(/Records\s*240/)
+    expect(figures.textContent).toMatch(/Needs review\s*2/)
+
+    // the files that did not finish come from the status; the notes to read come from the typing report, which arrives later
+    const needs = screen.getByRole('region', { name: 'Needs you' })
+    expect(within(needs).getAllByText('broken.csv')).toHaveLength(2)
+    expect(await within(needs).findByText('Internet records state no byte volumes')).toBeTruthy()
+
+    // the engine's answers for the week: 9 of 10 per case, twice
+    expect(await screen.findByText(/90%/, { selector: '.nx-tile__figure' })).toBeTruthy()
+    const answers = screen.getByRole('region', { name: 'Answers' })
+    expect(within(answers).getByText(/answered of 20 questions/)).toBeTruthy()
+    expect(within(answers).getByText(/The case’s records cannot answer that kind of question \(2\)/)).toBeTruthy()
+
+    // what the evidence holds, from the typing report
+    const types = await screen.findByRole('region', { name: 'Evidence by type' })
+    expect(await within(types).findByText('Images')).toBeTruthy()
+    expect(types.textContent).toMatch(/Records\s*6/)
+    const kinds = screen.getByRole('region', { name: 'Records by kind' })
+    expect(await within(kinds).findByText('Calls')).toBeTruthy()
+
+    // the pipeline, from the status of each case
+    const aside = screen.getByRole('region', { name: 'Rows set aside' })
+    expect(aside.textContent).toMatch(/7\.7%/)
+    const ready = screen.getByRole('region', { name: 'Time to ready' })
+    expect(ready.textContent).toMatch(/median 41 s from upload/)
+
+    // the timeline, one row for each case
+    const timeline = await screen.findByRole('region', { name: 'Evidence timeline' })
+    expect(await within(timeline).findAllByRole('listitem')).toHaveLength(2)
+    expect(timeline.textContent).toMatch(/Jan 2024 – Mar 2024/)
+
+    const cases = screen.getByRole('region', { name: 'Cases' })
+    expect(within(cases).getAllByRole('row')).toHaveLength(3)
+    expect(within(cases).getAllByText('Needs review').length).toBeGreaterThan(0)
+  })
+
+  it('says there is no case yet, and offers the one next step', async () => {
+    window.__INVESTIGATION_WORKSPACE_CONFIG__ = { caseIds: [] }
+    globalThis.fetch = serve()
+    render(<MemoryRouter initialEntries={['/']}><DashboardPage /></MemoryRouter>)
+    expect(await screen.findByText('No case yet', { selector: 'h3' })).toBeTruthy()
+    expect(screen.getAllByRole('link', { name: /New case/ }).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('region', { name: 'Figures' })).toBeNull()
+  })
+
+  it('offers the way back into the last question you asked', async () => {
+    window.__INVESTIGATION_WORKSPACE_CONFIG__ = { caseIds: ['case-a'] }
+    localStorage.setItem('nexusai.viewer.questions.case-a', JSON.stringify([{ id: 'q1', query: 'Who called the target at night?', label: '', answer: '', state: 'answered', pinned: false, updatedAt: '2026-11-03T08:00:00Z' }]))
+    globalThis.fetch = serve()
+    render(<MemoryRouter initialEntries={['/']}><DashboardPage /></MemoryRouter>)
+    const band = await screen.findByRole('region', { name: 'Pick up where you left off' })
+    const link = within(band).getByRole('link', { name: /Who called the target at night?/ })
+    expect(link.getAttribute('href')).toBe('/cases/case-a/investigate?question=Who%20called%20the%20target%20at%20night%3F')
+    expect(link.textContent).toMatch(/Who called the target at night\?/)
+  })
+})

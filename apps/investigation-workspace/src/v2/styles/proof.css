@@ -1,0 +1,81 @@
+/* The evidence panel on the right of an answer, and what it holds: the records behind the figure, its lines, the sources. Built to fit the panel it is in:
+   nothing here has a width of its own, a table scrolls inside one frame only when the panel is too narrow for its columns, and the panel can be made wider. */
+@layer nx-pages {
+  .nx-drawer { inline-size: var(--drawer-w, clamp(420px, 40vw, 580px)); }
+  .nx-drawer--wide { --drawer-w: clamp(520px, 54vw, 860px); }
+  .nx-drawer__head { align-items: flex-start; }
+  .nx-drawer__title { flex: 1; min-inline-size: 0; }
+  .nx-drawer__tools { display: flex; flex: none; align-items: center; gap: var(--nx-s-1); }
+  .nx-drawer__body { gap: var(--nx-s-5); padding: var(--nx-s-4) var(--nx-s-4) var(--nx-s-8); }
+  .nx-drawer h3 { margin-block-end: var(--nx-s-2); font-size: var(--nx-fs-md); font-weight: var(--nx-fw-semibold); }
+  .nx-drawer__method { padding-block-start: var(--nx-s-1); border-block-start: 1px solid var(--nx-border-subtle); }
+  .nx-facts { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+  .nx-facts > div { padding: var(--nx-s-2) var(--nx-s-3); }
+  @media (max-width: 1180px) { .nx-drawer { --drawer-w: min(480px, 92vw); min-inline-size: 0; } .nx-drawer--wide { --drawer-w: min(900px, 94vw); } }
+
+  /* ---------- the records behind the figure ---------- */
+  .nx-proof { display: grid; gap: var(--nx-s-3); min-inline-size: 0; }
+  .nx-proof__lead { display: flex; flex-wrap: wrap; align-items: center; gap: var(--nx-s-1) var(--nx-s-3); }
+  .nx-proof__lead strong { font-size: var(--nx-fs-sm); font-weight: var(--nx-fw-semibold); }
+  .nx-proof__say { margin: 0; max-inline-size: 72ch; font-size: var(--nx-fs-sm); line-height: 1.5; color: var(--nx-text-2); }
+  .nx-note { padding: var(--nx-s-3); border: 1px solid var(--nx-border); border-radius: var(--nx-r-3); background: var(--nx-sunken); font-size: var(--nx-fs-sm); color: var(--nx-text-2); }
+  .nx-check { display: inline-flex; align-items: center; gap: var(--nx-s-1); padding: 1px var(--nx-s-2) 1px var(--nx-s-1); border-radius: var(--nx-r-pill); font-size: var(--nx-fs-xs); font-weight: var(--nx-fw-medium); white-space: nowrap; }
+  .nx-check svg { inline-size: 14px; block-size: 14px; flex: none; }
+  .nx-check--ok { background: var(--nx-ok-bg); color: var(--nx-ok-text); }
+  .nx-check--warn { background: var(--nx-danger-bg); color: var(--nx-danger-text); }
+  .nx-check--muted { background: var(--nx-sunken); color: var(--nx-text-2); }
+
+  .nx-proof__files { display: grid; gap: 1px; margin: 0; padding: 0; list-style: none; border: 1px solid var(--nx-border); border-radius: var(--nx-r-3); background: var(--nx-border-subtle); overflow: hidden; }
+  .nx-proof__files li { display: flex; align-items: baseline; justify-content: space-between; gap: var(--nx-s-3); padding: var(--nx-s-2) var(--nx-s-3); background: var(--nx-surface); font-size: var(--nx-fs-sm); }
+  .nx-proof__files a, .nx-proof__files span:first-child { min-inline-size: 0; overflow-wrap: anywhere; font-weight: var(--nx-fw-medium); }
+  .nx-proof__files span:last-child { flex: none; color: var(--nx-text-2); font-size: var(--nx-fs-xs); }
+
+  .nx-proof__records { display: grid; gap: var(--nx-s-2); min-inline-size: 0; }
+  .nx-proof__records .nx-datatable > .nx-table-wrap { max-block-size: min(var(--nx-table-max, 380px), 50vh); }
+  .nx-proof__records .nx-table th, .nx-proof__records .nx-table td { padding-inline: var(--nx-s-3); }
+  .nx-proof__records .nx-table th { block-size: 32px; }
+  .nx-proof__records .nx-table td { block-size: 34px; }
+  .nx-proof__records .nx-table .nx-th { font-size: var(--nx-fs-xs); }
+  .nx-proof__records .nx-datatable__actions .nx-btn:not(:first-child) { display: none; }
+  .nx-where { display: inline-flex; align-items: center; gap: var(--nx-s-1); color: var(--nx-accent-text); text-decoration: none; font-size: var(--nx-fs-xs); font-weight: var(--nx-fw-medium); }
+  .nx-where:hover { text-decoration: underline; }
+  .nx-where svg { inline-size: 13px; block-size: 13px; flex: none; }
+
+  /* ---------- the lines of an answer made of summaries ---------- */
+  .nx-lines { display: grid; gap: var(--nx-s-1); margin: 0; padding: 0; list-style: none; }
+  .nx-line { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto 18px; align-items: center; gap: var(--nx-s-3); inline-size: 100%; padding: var(--nx-s-2) var(--nx-s-3); border: 1px solid var(--nx-border); border-radius: var(--nx-r-3); background: var(--nx-surface); color: var(--nx-text); text-align: start; transition: border-color var(--nx-dur-2) var(--nx-ease-standard), background-color var(--nx-dur-2) var(--nx-ease-standard); }
+  .nx-line:hover { border-color: var(--nx-border-strong); background: var(--nx-hover); }
+  .nx-line.is-active { border-color: var(--nx-accent-border); background: var(--nx-accent-subtle); box-shadow: inset 3px 0 0 var(--nx-accent); }
+  .nx-line__rank { display: inline-grid; place-items: center; inline-size: 24px; block-size: 24px; border-radius: var(--nx-r-2); background: var(--nx-sunken); font-size: var(--nx-fs-xs); font-weight: var(--nx-fw-semibold); color: var(--nx-text-2); }
+  .nx-line.is-active .nx-line__rank { background: var(--nx-accent); color: var(--nx-on-accent); }
+  .nx-line__label { min-inline-size: 0; font-size: var(--nx-fs-sm); font-weight: var(--nx-fw-medium); overflow-wrap: anywhere; }
+  .nx-line__records { display: inline-flex; align-items: center; justify-content: flex-end; gap: var(--nx-s-2); min-inline-size: 7ch; font-size: var(--nx-fs-sm); font-weight: var(--nx-fw-medium); }
+  .nx-line__bar { display: block; inline-size: 48px; block-size: 6px; border-radius: var(--nx-r-pill); background: var(--nx-sunken); overflow: hidden; }
+  .nx-line__bar > i { display: block; inline-size: calc(var(--share, 0) * 100%); block-size: 100%; border-radius: inherit; background: var(--nx-accent); }
+  .nx-line__check svg { inline-size: 16px; block-size: 16px; display: block; }
+  .nx-line__check--ok { color: var(--nx-ok); }
+  .nx-line__check--warn { color: var(--nx-danger); }
+  .nx-proof__line { display: grid; gap: var(--nx-s-2); min-inline-size: 0; padding-block-start: var(--nx-s-3); border-block-start: 1px solid var(--nx-border-subtle); }
+  .nx-proof__line h4 { margin: 0; font-size: var(--nx-fs-sm); font-weight: var(--nx-fw-semibold); overflow-wrap: anywhere; }
+
+  /* ---------- the sources ---------- */
+  .nx-sources-list { display: grid; gap: var(--nx-s-2); margin: 0; padding: 0; list-style: none; }
+  .nx-source { border: 1px solid var(--nx-border); border-radius: var(--nx-r-3); background: var(--nx-surface); }
+  .nx-source[open] { border-color: var(--nx-border-strong); }
+  .nx-source > summary { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; grid-template-areas: 'n t s' '. b b'; align-items: center; gap: var(--nx-s-1) var(--nx-s-3); padding: var(--nx-s-2) var(--nx-s-3); list-style: none; cursor: pointer; }
+  .nx-source > summary::-webkit-details-marker { display: none; }
+  .nx-source > summary:hover { background: var(--nx-hover); border-radius: var(--nx-r-3); }
+  .nx-source__number { grid-area: n; display: inline-grid; place-items: center; inline-size: 24px; block-size: 24px; border-radius: var(--nx-r-2); background: var(--nx-sunken); font-size: var(--nx-fs-xs); font-weight: var(--nx-fw-semibold); color: var(--nx-text-2); }
+  .nx-source__text { grid-area: t; display: grid; min-inline-size: 0; }
+  .nx-source__text strong { font-size: var(--nx-fs-sm); font-weight: var(--nx-fw-medium); overflow-wrap: anywhere; }
+  .nx-source__text small { font-size: var(--nx-fs-xs); color: var(--nx-text-3); }
+  .nx-source > summary > .nx-strength { grid-area: s; }
+  .nx-source__share { grid-area: b; display: block; block-size: 4px; border-radius: var(--nx-r-pill); background: var(--nx-sunken); overflow: hidden; }
+  .nx-source__share > i { display: block; block-size: 100%; border-radius: inherit; background: var(--nx-accent); }
+  .nx-source__samples { display: grid; gap: 1px; margin: 0; padding: 0 var(--nx-s-2) var(--nx-s-2); list-style: none; }
+  .nx-source__samples a { display: grid; grid-template-columns: auto minmax(0, 1fr) 14px; align-items: baseline; gap: var(--nx-s-2); padding: var(--nx-s-1) var(--nx-s-2); border-radius: var(--nx-r-2); color: var(--nx-text); text-decoration: none; font-size: var(--nx-fs-xs); }
+  .nx-source__samples a:hover { background: var(--nx-hover); }
+  .nx-source__samples a span { font-weight: var(--nx-fw-medium); }
+  .nx-source__samples a small { min-inline-size: 0; color: var(--nx-text-2); overflow-wrap: anywhere; }
+  .nx-source__samples a svg { inline-size: 13px; block-size: 13px; color: var(--nx-text-3); align-self: center; }
+}

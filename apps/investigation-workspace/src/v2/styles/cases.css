@@ -1,0 +1,30 @@
+/* The cases page: a bar of finding tools, then cards (or the table). */
+@layer nx-pages {
+  .nx-cases__bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--nx-s-3); }
+  .nx-cases__search { position: relative; flex: 1 1 260px; max-inline-size: 360px; }
+  .nx-cases__search svg { position: absolute; inset-inline-start: var(--nx-s-3); inset-block-start: 50%; transform: translateY(-50%); inline-size: 15px; block-size: 15px; color: var(--nx-text-3); pointer-events: none; }
+  .nx-cases__search input { padding-inline-start: var(--nx-s-8); }
+  .nx-cases__filters { display: flex; flex-wrap: wrap; gap: var(--nx-s-2); flex: 1 1 auto; }
+  .nx-chip__count { margin-inline-start: var(--nx-s-1); color: var(--nx-text-3); font-size: var(--nx-fs-xs); }
+  .nx-chip[aria-pressed='true'] .nx-chip__count { color: var(--nx-accent-text); }
+  .nx-cases__sort .nx-select { inline-size: auto; min-inline-size: 170px; }
+  .nx-segmented button svg { inline-size: 14px; block-size: 14px; margin-inline-end: var(--nx-s-1); vertical-align: -2px; }
+
+  .nx-cases__grid { display: grid; gap: var(--nx-s-4); grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+  .nx-case { display: grid; gap: var(--nx-s-3); align-content: start; padding: var(--nx-s-4); border: 1px solid var(--nx-border); border-radius: var(--nx-r-3); background: var(--nx-surface); min-inline-size: 0; }
+  .nx-case:hover { border-color: var(--nx-border-strong); }
+  .nx-case__top { display: flex; align-items: center; justify-content: space-between; gap: var(--nx-s-2); }
+  .nx-case__time { font-size: var(--nx-fs-xs); color: var(--nx-text-3); }
+  .nx-case__title { font-size: var(--nx-fs-lg); letter-spacing: -0.012em; line-height: 1.25; }
+  .nx-case__title a { color: var(--nx-text); text-decoration: none; }
+  .nx-case__title a:hover { color: var(--nx-accent-text); text-decoration: underline; }
+  .nx-case > .nx-case-id { margin-block-start: calc(var(--nx-s-2) * -1); }
+  .nx-case__ready { display: flex; align-items: center; flex-wrap: wrap; gap: var(--nx-s-2); font-size: var(--nx-fs-sm); }
+  .nx-case__figures { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--nx-s-2); padding-block: var(--nx-s-3); border-block: 1px solid var(--nx-border-subtle); }
+  .nx-case__figures dt { font-size: var(--nx-fs-xs); color: var(--nx-text-3); }
+  .nx-case__figures dd { font-size: var(--nx-fs-lg); font-weight: var(--nx-fw-semibold); letter-spacing: -0.01em; }
+  .nx-case__figures .is-alert dd { color: var(--nx-danger-text); }
+  .nx-case__actions { display: flex; flex-wrap: wrap; gap: var(--nx-s-2); margin-block-start: var(--nx-s-1); }
+  .nx-panel--flat { border-radius: var(--nx-r-3); }
+  .nx-panel--flat .nx-table-wrap--bare { border-block-start: 0; }
+}

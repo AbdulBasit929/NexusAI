@@ -5,9 +5,9 @@ import { RouteErrorBoundary } from './components/ErrorBoundary.jsx'
 import { ShellSkeleton } from './components/Skeleton.jsx'
 
 const routeLoaders = {
-  dashboard: () => import('./pages/DashboardPage.jsx'),
+  dashboard: () => import('./v2/pages/dashboard/DashboardPage.jsx'),
   globalInvestigate: () => import('./pages/GlobalInvestigatePage.jsx'),
-  cases: () => import('./pages/CasesPage.jsx'),
+  cases: () => import('./v2/pages/cases/CasesPage.jsx'),
   newCase: () => import('./pages/NewCasePage.jsx'),
   overview: () => import('./pages/CaseOverviewPage.jsx'),
   evidence: () => import('./pages/EvidenceListPage.jsx'),

@@ -46,6 +46,17 @@ const applyDensity = value => {
 export const DENSITY_KEY = 'nexusai.viewer.density'
 export function useDensity() { return useStoredChoice(DENSITY_KEY, densityChoices, 'default', applyDensity) }
 
+// The sidebar's tone: "ink" (a deep sidebar against the lighter working area) or "soft" (a tinted neutral one step off the canvas).
+const chromeChoices = ['ink', 'soft']
+const applyChrome = value => {
+  const root = globalThis.document?.documentElement
+  if (!root) return
+  if (value === 'soft') root.setAttribute('data-chrome', 'soft')
+  else root.removeAttribute('data-chrome')
+}
+export const CHROME_KEY = 'nexusai.viewer.chrome'
+export function useChrome() { return useStoredChoice(CHROME_KEY, chromeChoices, 'ink', applyChrome) }
+
 const motionChoices = ['system', 'reduce']
 const applyMotion = value => {
   const root = globalThis.document?.documentElement

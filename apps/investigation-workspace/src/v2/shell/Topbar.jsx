@@ -1,8 +1,8 @@
 import { Link, NavLink } from 'react-router-dom'
-import { Bell, Check, Contrast, Menu as MenuIcon, Monitor, Moon, Rows3, Search, Sun, SunMoon } from 'lucide-react'
+import { Bell, Check, Contrast, Menu as MenuIcon, Monitor, Moon, PanelLeft, Rows3, Search, Sun, SunMoon } from 'lucide-react'
 import { useThemePreference } from '../../components/ThemeControl.jsx'
 import { formatNumber } from '../../lib/format.js'
-import { useDensity, useMotion } from './appearance.js'
+import { useChrome, useDensity, useMotion } from './appearance.js'
 import { CaseLabel } from './CaseLabel.jsx'
 import { Menu } from './Menu.jsx'
 import { trailFor } from './nav.js'
@@ -32,7 +32,7 @@ function ActivityMenu({ attention }) {
     <Menu label={total ? `Activity: ${total} need attention or are running` : 'Activity: nothing needs you'} icon={
       <span style={{ position: 'relative', display: 'inline-grid' }}>
         <Bell aria-hidden="true" />
-        {total ? <span className="nx-dot nx-dot--accent" style={{ position: 'absolute', insetBlockStart: -2, insetInlineEnd: -2, outline: '2px solid var(--nx-bg)' }} aria-hidden="true" /> : null}
+        {total ? <span className="nx-dot nx-dot--accent" style={{ position: 'absolute', insetBlockStart: -2, insetInlineEnd: -2, outline: '2px solid var(--nx-side-bg)' }} aria-hidden="true" /> : null}
       </span>
     }>
       {close => (
@@ -65,6 +65,7 @@ function AppearanceMenu() {
   const { preference, choose } = useThemePreference()
   const [density, setDensity] = useDensity()
   const [motion, setMotion] = useMotion()
+  const [chrome, setChrome] = useChrome()
   return (
     <Menu label="Appearance" icon={<SunMoon aria-hidden="true" />}>
       {() => (
@@ -73,6 +74,13 @@ function AppearanceMenu() {
           {themeChoices.map(({ value, label, icon: Icon }) => (
             <button key={value} type="button" role="menuitemradio" aria-checked={preference === value} className="nx-menu__item" onClick={() => choose(value)}>
               <Icon aria-hidden="true" />{label}{preference === value ? <Check className="nx-menu__check" aria-hidden="true" /> : null}
+            </button>
+          ))}
+          <hr className="nx-menu__rule" />
+          <div className="nx-menu__label">Sidebar</div>
+          {[{ value: 'ink', label: 'Dark ink' }, { value: 'soft', label: 'Light' }].map(({ value, label }) => (
+            <button key={value} type="button" role="menuitemradio" aria-checked={chrome === value} className="nx-menu__item" onClick={() => setChrome(value)}>
+              <PanelLeft aria-hidden="true" />{label}{chrome === value ? <Check className="nx-menu__check" aria-hidden="true" /> : null}
             </button>
           ))}
           <hr className="nx-menu__rule" />

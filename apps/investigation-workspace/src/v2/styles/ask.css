@@ -16,9 +16,12 @@
   .nx-cell-link:hover { text-decoration-style: solid; }
 
   /* ---------- the page frame ---------- */
-  .nx-ask { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; block-size: 100%; min-block-size: 0; background: var(--nx-bg); }
+  /* three columns: the history, the conversation, the evidence. Each panel names its own column, so a panel that is closed leaves its column empty (0 wide) and the others stay put:
+     without this the conversation slid into the first column when the history folded away, and the evidence panel ran off the screen. */
+  .nx-ask { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; block-size: 100%; min-block-size: 0; overflow: hidden; background: var(--nx-bg); }
   .nx-ask:focus { outline: none; }
-  .nx-ask__col { display: flex; flex-direction: column; min-inline-size: 0; min-block-size: 0; background: var(--nx-surface); }
+  .nx-history { grid-column: 1; }
+  .nx-ask__col { grid-column: 2; display: flex; flex-direction: column; min-inline-size: 0; min-block-size: 0; background: var(--nx-surface); }
   .nx-ask__bar { display: flex; align-items: center; gap: var(--nx-s-3); flex: none; min-block-size: 44px; padding-inline: var(--nx-s-4) var(--nx-gutter); border-block-end: 1px solid var(--nx-border-subtle); }
   .nx-ask__coverage { flex: 1; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--nx-text-3); font-size: var(--nx-fs-sm); }
   .nx-ask__scroll { position: relative; flex: 1; min-block-size: 0; overflow-y: auto; overscroll-behavior: contain; }
@@ -137,7 +140,7 @@
   .nx-figure__selected { display: inline-flex; align-items: center; gap: var(--nx-s-2); }
 
   /* ---------- the evidence drawer ---------- */
-  .nx-drawer { display: flex; flex-direction: column; inline-size: min(560px, 44vw); min-inline-size: 380px; min-block-size: 0; overflow: hidden; background: var(--nx-surface); border-inline-start: 1px solid var(--nx-border); }
+  .nx-drawer { grid-column: 3; display: flex; flex-direction: column; inline-size: min(560px, 44vw); min-inline-size: 380px; min-block-size: 0; overflow: hidden; background: var(--nx-surface); border-inline-start: 1px solid var(--nx-border); }
   .nx-drawer__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--nx-s-3); flex: none; padding: var(--nx-s-4) var(--nx-s-3) var(--nx-s-3) var(--nx-s-4); border-block-end: 1px solid var(--nx-border-subtle); }
   .nx-drawer__head h2 { font-size: var(--nx-fs-md); }
   .nx-drawer__q { margin-block-start: var(--nx-s-1); color: var(--nx-text-2); font-size: var(--nx-fs-sm); display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
@@ -165,6 +168,9 @@
   /* ---------- narrower screens: the two side columns become sheets over the conversation ---------- */
   @media (max-width: 1180px) {
     .nx-ask { grid-template-columns: minmax(0, 1fr); }
+    .nx-history,
+    .nx-ask__col,
+    .nx-drawer { grid-column: 1; }
     .nx-history,
     .nx-drawer { position: absolute; inset-block: 0; z-index: var(--nx-z-overlay); box-shadow: var(--nx-shadow-overlay); }
     .nx-history { inset-inline-start: 0; max-inline-size: 86vw; }

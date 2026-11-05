@@ -1,0 +1,232 @@
+import { Link } from 'react-router-dom'
+import { ArrowRight, CircleAlert, CircleCheckBig, Clock3, History, Info, MessageSquareText, Plus, RefreshCw } from 'lucide-react'
+import { formatNumber } from '../../../lib/format.js'
+import { formatRate } from '../../../lib/dashboardCharts.js'
+import { relativeAge } from '../../../lib/dashboardCases.js'
+import { OUTCOME_LABEL } from '../../../lib/acrossCases.js'
+import { CaseLabel } from '../../shell/CaseLabel.jsx'
+import { Calm, Panel, PanelSkeleton } from '../../ui/Panel.jsx'
+import { SegBar } from '../../ui/micro.jsx'
+import { formatDuration } from './model.js'
+
+// ---------- the header: the title, the count of cases in each state, two actions ----------
+export function statusCounts(rows) {
+  return [
+    { id: 'attention', label: 'need review', count: rows.filter(row => row.status === 'attention').length, tone: 'danger' },
+    { id: 'processing', label: 'processing', count: rows.filter(row => row.status === 'processing').length, tone: 'warn' },
+    { id: 'complete', label: 'ready', count: rows.filter(row => row.status === 'complete').length, tone: 'ok' },
+    { id: 'unavailable', label: 'not reporting', count: rows.filter(row => row.status === 'unavailable').length, tone: 'warn' },
+  ].filter(item => item.count > 0)
+}
+
+export function Hero({ rows, loading, lastUpdated, refreshing, onRefresh }) {
+  const counts = statusCounts(rows)
+  return (
+    <header className="nx-hero">
+      <div className="nx-hero__text">
+        <h1>Dashboard</h1>
+        <ul className="nx-pills" aria-label="Cases by state" aria-live="polite">
+          {counts.length ? counts.map(item => <li key={item.id} className="nx-pill"><span className={`nx-dot nx-dot--${item.tone}`} aria-hidden="true" />{formatNumber(item.count)} {item.label}</li>) : <li className="nx-pill nx-muted">{loading ? 'Reading…' : 'No case yet'}</li>}
+        </ul>
+      </div>
+      <div className="nx-hero__actions">
+        <button type="button" className="nx-btn nx-btn--ghost nx-btn--sm" onClick={onRefresh} aria-label="Refresh the figures" title={lastUpdated ? `Updated ${relativeAge(lastUpdated)}` : 'Refresh'}><RefreshCw aria-hidden="true" className={refreshing ? 'is-spinning' : undefined} />{refreshing ? 'Refreshing' : lastUpdated ? relativeAge(lastUpdated) : 'Refresh'}</button>
+        <Link className="nx-btn" to="/investigate"><MessageSquareText aria-hidden="true" />Ask across cases</Link>
+        <Link className="nx-btn nx-btn--primary" to="/cases/new"><Plus aria-hidden="true" />New case</Link>
+      </div>
+    </header>
+  )
+}
+
+// ---------- the way back into the work: the last question in each of the cases you touched most recently (up to three) ----------
+export function resumeEntries(recent, limit = 3) {
+  const seen = new Set()
+  return recent.filter(entry => (seen.has(entry.caseId) ? false : seen.add(entry.caseId))).slice(0, limit)
+}
+
+export function ResumeStrip({ entries }) {
+  if (!entries?.length) return null
+  return (
+    <section className="nx-resume-band" aria-label="Pick up where you left off">
+      <ul className="nx-resume-list">
+        {entries.map(entry => (
+          <li key={`${entry.caseId}-${entry.id}`}>
+            <Link className="nx-resume" to={`/cases/${encodeURIComponent(entry.caseId)}/investigate?question=${encodeURIComponent(entry.query)}`}>
+              <History className="nx-resume__icon" aria-hidden="true" />
+              <span className="nx-resume__text">
+                <span className="nx-resume__label">{entries.length === 1 || entry === entries[0] ? 'Pick up where you left off' : 'Also recent'}</span>
+                <span className="nx-resume__question" dir="auto">{entry.label || entry.query}</span>
+                <span className="nx-resume__meta"><CaseLabel caseId={entry.caseId} />{entry.updatedAt ? ` · ${relativeAge(new Date(entry.updatedAt))}` : ''}</span>
+              </span>
+              <ArrowRight className="nx-resume__go" aria-hidden="true" />
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+// ---------- five figures, each with the one picture that explains it ----------
+// A tile: its name, the figure, one small picture, one short line. Proportional figures (not tabular) because the figure stands alone; tabular digits are for columns.
+function Tile({ label, figure, of, to, alert, caption, children }) {
+  return (
+    <Link className={`nx-tile${alert ? ' nx-tile--alert' : ''}`} to={to}>
+      <span className="nx-tile__label">{label}</span>
+      <span className="nx-tile__figure">{figure}{of ? <span className="nx-tile__of"> / {of}</span> : null}</span>
+      <span className="nx-tile__visual">{children}</span>
+      <span className="nx-tile__caption">{caption || ' '}</span>
+    </Link>
+  )
+}
+
+export function cleanRate(kpis) {
+  const total = kpis.acceptedRows + kpis.duplicateRows + kpis.rejectedRows
+  return total ? kpis.acceptedRows / total : null
+}
+
+const plural = (count, one, many = `${one}s`) => `${formatNumber(count)} ${count === 1 ? one : many}`
+
+export function MetricStrip({ kpis, rows, states, quality, loading }) {
+  const wait = loading && !kpis.reported
+  const v = number => (wait ? '—' : formatNumber(number))
+  const mix = [
+    { id: 'ok', value: rows.filter(row => row.status === 'complete').length, colour: 'var(--nx-ok)', title: 'Ready' },
+    { id: 'warn', value: rows.filter(row => row.status === 'processing').length, colour: 'var(--nx-warn)', title: 'Processing' },
+    { id: 'bad', value: rows.filter(row => row.status === 'attention').length, colour: 'var(--nx-danger)', title: 'Needs review' },
+    { id: 'other', value: rows.filter(row => !['complete', 'processing', 'attention'].includes(row.status)).length, colour: 'var(--nx-border-strong)', title: 'Not reported yet' },
+  ]
+  const caseCaption = [states?.open ? `${formatNumber(states.open)} open` : '', states?.on_hold ? `${formatNumber(states.on_hold)} on hold` : '', states?.closed ? `${formatNumber(states.closed)} closed` : ''].filter(Boolean).join(' · ')
+  const fileCaption = kpis.failed || kpis.processing ? [kpis.processing ? `${formatNumber(kpis.processing)} processing` : '', kpis.failed ? `${formatNumber(kpis.failed)} failed` : ''].filter(Boolean).join(' · ') : (kpis.sources ? 'All files read' : '')
+  const rate = cleanRate(kpis)
+  const reviewCase = rows.find(row => row.summary && (row.summary.failed || 0) + (row.summary.missingAssets || 0) > 0)
+  const asked = quality.questions > 0
+  return (
+    <section className="nx-tiles" aria-label="Figures">
+      <Tile label="Cases" figure={v(kpis.cases)} to="/cases" caption={caseCaption}><SegBar parts={mix} label="Cases by state" /></Tile>
+      <Tile label="Files ready" figure={v(kpis.ready)} of={wait ? null : formatNumber(kpis.sources)} to="/cases" caption={wait ? '' : fileCaption}>
+        <SegBar parts={[{ id: 'ready', value: kpis.ready, colour: 'var(--nx-ok)', title: 'Ready' }, { id: 'busy', value: kpis.processing, colour: 'var(--nx-warn)', title: 'Processing' }, { id: 'failed', value: kpis.failed, colour: 'var(--nx-danger)', title: 'Failed' }, { id: 'rest', value: Math.max(0, kpis.sources - kpis.ready - kpis.processing - kpis.failed), colour: 'var(--nx-border-strong)', title: 'Other' }]} label={`${formatNumber(kpis.ready)} of ${formatNumber(kpis.sources)} files are ready`} />
+      </Tile>
+      <Tile label="Records" figure={v(kpis.acceptedRows)} to="/cases" caption={rate === null ? '' : `${formatRate(rate)} of rows accepted`}>
+        <SegBar parts={[{ id: 'kept', value: kpis.acceptedRows, colour: 'var(--nx-accent)', title: 'Accepted' }, { id: 'repeat', value: kpis.duplicateRows, colour: 'var(--nx-border-strong)', title: 'Repeats' }, { id: 'rejected', value: kpis.rejectedRows, colour: 'var(--nx-border)', title: 'Rejected' }]} label="Rows accepted, repeated and rejected" />
+      </Tile>
+      <Tile label="Answered · 7 days" figure={asked ? formatRate(quality.rate) : '—'} to="/investigate" caption={asked ? `${plural(quality.questions, 'question')}${quality.latency ? ` · median ${formatDuration(quality.latency.p50)}` : ''}` : (quality.reported ? 'No questions this week' : '')}>
+        {asked ? <SegBar parts={[{ id: 'answered', value: quality.answered, colour: 'var(--nx-accent)', title: 'Answered' }, { id: 'declined', value: quality.declined, colour: 'var(--nx-border-strong)', title: 'Declined' }, { id: 'abstained', value: quality.abstained, colour: 'var(--nx-border)', title: 'Abstained' }]} label={`${formatNumber(quality.answered)} answered, ${formatNumber(quality.declined)} declined, ${formatNumber(quality.abstained)} abstained`} /> : null}
+      </Tile>
+      <Tile label="Needs review" figure={v(kpis.review)} alert={kpis.review > 0} to={reviewCase ? `/cases/${encodeURIComponent(reviewCase.caseId)}/evidence` : '/cases'} caption={kpis.review ? `in ${plural(kpis.reviewCases, 'case')}` : (wait ? '' : 'Nothing to review')} />
+    </section>
+  )
+}
+
+// ---------- what needs you: files that did not finish, and what the service says to read before trusting an answer ----------
+const KIND_TEXT = { Failed: 'Did not finish', 'Retained copy missing': 'Copy missing' }
+
+export function NeedsPanel({ items, byCase, notes, loading, notesLoading }) {
+  const exact = byCase.reduce((sum, entry) => sum + entry.total, 0)
+  const files = items.slice(0, 3)
+  const shownNotes = notes.slice(0, 3)
+  const empty = !files.length && !shownNotes.length
+  return (
+    <Panel id="dash-attention" title="Needs you" action={exact ? <span className="nx-badge nx-badge--danger">{formatNumber(exact)}</span> : null}>
+      {loading && !items.length ? <PanelSkeleton /> : null}
+      {files.length ? (
+        <div className="nx-group">
+          <p className="nx-overline">Files to review</p>
+          <ul className="nx-queue">
+            {files.map(item => (
+              <li key={`${item.caseId}-${item.evidenceId || item.label}-${item.kind}`}>
+                <Link className="nx-queue__item" to={`/cases/${encodeURIComponent(item.caseId)}/evidence${item.evidenceId ? `/${encodeURIComponent(item.evidenceId)}` : ''}`}>
+                  <CircleAlert className="nx-queue__icon" aria-hidden="true" />
+                  <span className="nx-queue__text"><span className="nx-queue__title" dir="auto">{item.label}</span><span className="nx-queue__meta">{KIND_TEXT[item.kind] || item.kind} · <CaseLabel caseId={item.caseId} /></span></span>
+                  <ArrowRight className="nx-queue__go" aria-hidden="true" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {shownNotes.length ? (
+        <div className="nx-group">
+          <p className="nx-overline">Read before trusting answers</p>
+          <ul className="nx-queue">
+            {shownNotes.map(note => (
+              <li key={note.code}>
+                <Link className="nx-queue__item" to={`/cases/${encodeURIComponent(note.caseIds[0])}/overview`} title={note.text}>
+                  <Info className="nx-queue__icon nx-queue__icon--plain" aria-hidden="true" />
+                  <span className="nx-queue__text"><span className="nx-queue__title nx-queue__title--clamp">{note.title}</span><span className="nx-queue__meta">{note.caseIds.length === 1 ? <CaseLabel caseId={note.caseIds[0]} /> : `${formatNumber(note.caseIds.length)} cases`}</span></span>
+                  <ArrowRight className="nx-queue__go" aria-hidden="true" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {notesLoading && !shownNotes.length ? <div className="nx-group"><p className="nx-overline">Read before trusting answers</p><PanelSkeleton rows={2} /></div> : null}
+      {empty && !loading && !notesLoading ? <Calm icon={CircleCheckBig} tone="ok"><strong>All clear</strong></Calm> : null}
+    </Panel>
+  )
+}
+
+// ---------- your questions ----------
+export function QuestionsPanel({ recent }) {
+  const questions = recent.slice(0, 5)
+  return (
+    <Panel id="dash-questions" title="Your questions" sub={recent.length ? `${formatNumber(recent.length)} saved in this browser` : null}>
+      {questions.length ? (
+        <ul className="nx-queue">
+          {questions.map(entry => (
+            <li key={`${entry.caseId}-${entry.id}`}>
+              <Link className="nx-queue__item" to={`/cases/${encodeURIComponent(entry.caseId)}/investigate?question=${encodeURIComponent(entry.query)}`}>
+                <MessageSquareText className="nx-queue__icon nx-queue__icon--plain" aria-hidden="true" />
+                <span className="nx-queue__text"><span className="nx-queue__title nx-queue__title--clamp" dir="auto">{entry.label || entry.query}</span><span className="nx-queue__meta"><CaseLabel caseId={entry.caseId} /> · {OUTCOME_LABEL[entry.state] || 'Answered'}{entry.updatedAt ? ` · ${relativeAge(new Date(entry.updatedAt))}` : ''}</span></span>
+                <ArrowRight className="nx-queue__go" aria-hidden="true" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : <Calm icon={MessageSquareText}>Nothing asked yet</Calm>}
+    </Panel>
+  )
+}
+
+// ---------- the latest things that happened to the evidence ----------
+export function latestItems(rows, limit = 6) {
+  const found = new Map()
+  const add = (caseId, item, status, date) => {
+    if (!date) return
+    const key = `${caseId}|${item.evidence_id || item.source_file}`
+    const existing = found.get(key)
+    if (!existing || existing.date < date) found.set(key, { caseId, label: item.source_file || 'Evidence', evidenceId: item.evidence_id, status, date })
+  }
+  const stamp = value => { const date = value ? new Date(value) : null; return date && !Number.isNaN(date.getTime()) ? date : null }
+  for (const row of rows) {
+    for (const item of row.state?.data?.recent_evidence || []) add(row.caseId, item, String(item.processing_status || '').toLowerCase(), stamp(item.updated_at || item.created_at))
+    for (const item of row.state?.data?.recent_jobs || []) add(row.caseId, item, String(item.status || '').toLowerCase(), stamp(item.completed_at || item.started_at || item.queued_at))
+  }
+  return [...found.values()].sort((a, b) => b.date - a.date).slice(0, limit)
+}
+
+export function LatestPanel({ items, loading }) {
+  return (
+    <Panel id="dash-latest" title="Latest evidence">
+      {loading && !items.length ? <PanelSkeleton /> : items.length ? (
+        <ul className="nx-feed">
+          {items.map(item => {
+            const failed = item.status === 'failed' || item.status === 'dead_letter'
+            const done = ['completed', 'ready', 'succeeded'].includes(item.status)
+            const Icon = failed ? CircleAlert : done ? CircleCheckBig : Clock3
+            return (
+              <li key={`${item.caseId}-${item.evidenceId || item.label}`}>
+                <Link className="nx-feed__item" to={`/cases/${encodeURIComponent(item.caseId)}/evidence${item.evidenceId ? `/${encodeURIComponent(item.evidenceId)}` : ''}`}>
+                  <Icon className={`nx-feed__icon nx-feed__icon--${failed ? 'bad' : done ? 'ok' : 'busy'}`} aria-hidden="true" />
+                  <span className="nx-feed__text"><span className="nx-feed__name" dir="auto">{item.label}</span><span className="nx-feed__meta"><CaseLabel caseId={item.caseId} /></span></span>
+                  <time className="nx-feed__time" dateTime={item.date.toISOString()}>{relativeAge(item.date)}</time>
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+      ) : <Calm icon={Clock3}>Nothing yet</Calm>}
+    </Panel>
+  )
+}

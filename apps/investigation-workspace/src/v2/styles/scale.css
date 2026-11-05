@@ -50,7 +50,7 @@
     --nx-pad-panel: var(--nx-s-4);
 
     /* layout */
-    --nx-sidebar-w: 240px;
+    --nx-sidebar-w: 216px;
     --nx-sidebar-w-collapsed: 56px;
     --nx-topbar-h: 48px;
     --nx-content-max: 1440px;

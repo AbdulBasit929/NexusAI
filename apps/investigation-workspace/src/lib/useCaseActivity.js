@@ -42,5 +42,5 @@ export function useCaseActivity(caseIds, { refreshToken = 0, fetchImpl } = {}) {
   }, [key, refreshToken, fetchImpl])
 
   const activity = useMemo(() => mergeActivity(state.results), [state.results])
-  return { status: state.status, activity, failures: state.failures, failed: state.failures.map(failure => failure.caseId), readCases: state.results.map(result => result.caseId) }
+  return { status: state.status, activity, failures: state.failures, failed: state.failures.map(failure => failure.caseId), readCases: state.results.map(result => result.caseId), results: state.results }
 }

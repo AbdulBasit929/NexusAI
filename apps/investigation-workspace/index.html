@@ -15,6 +15,7 @@
           var density = localStorage.getItem('nexusai.viewer.density')
           if (density === 'compact' || density === 'comfortable') root.setAttribute('data-density', density)
           if (localStorage.getItem('nexusai.viewer.motion') === 'reduce') root.setAttribute('data-motion', 'reduce')
+          if (localStorage.getItem('nexusai.viewer.chrome') === 'soft') root.setAttribute('data-chrome', 'soft')
         } catch (e) { /* storage can be blocked; the defaults apply */ }
       })()
     </script>
