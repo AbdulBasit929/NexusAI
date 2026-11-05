@@ -14,7 +14,7 @@ Each request states: the **endpoint and method**, the **exact response fields an
 | 2 | Connections for one identifier (typed relationships across families, verified links only) | Connections | open |
 | 3 | Processing history per case (jobs per day by status) | Dashboard | open |
 | 4 | Image overlay data for an evidence item (OCR regions and plate-read boxes with confidence, privacy-aware) | Evidence detail | open |
-| 5 | Server-side question history (sessions) | Investigate, Activity | open |
+| 5 | Server-side question history (sessions) | Investigate, Activity | **built on branch `claude/case-backend-76c2b9`, not deployed** (BR-2: conversations and turns; contract [`API_CONTRACT_CONVERSATIONS_20261103.md`](API_CONTRACT_CONVERSATIONS_20261103.md)) |
 | 6 | Result presentation hints: display labels for result columns (today "M1"), suggested chart type | Investigate | **labels delivered 2026-09-29** (`data_grid.columns[].header`, `reports/column-labels-20260929`); chart hint open |
 | 7 | `source_truth_state` on transcript and image-text citations (today absent, so the UI can only say "Source record") | Investigate | **delivered 2026-09-29**: `provenance[].source_truth_state` and `fact_packet.citations[].source_truth_state` (`derived_model_observation`, `derived_native_text`, `derived_text_representation`; absent on structured records), `reports/a1-1-a2-20260929` |
 | 8 | Complete case evidence census by modality, family and processing state | Dashboard, Overview, Evidence | open |
@@ -31,12 +31,24 @@ Each request states: the **endpoint and method**, the **exact response fields an
 | 17 | Report history: list, open and download generated case reports | Dashboard, Overview | open (proposed 2026-09-30) |
 | 18 | Case display name and open/on-hold/closed status, stored per collection | Dashboard, Cases, sidebar | open (proposed 2026-09-30, needs owner sign-off) |
 | 20 | Intraday timeline: `activity_by_hour` (or `bucket=hour\|day\|week`) per record family with time basis, so the timeline can zoom from days to hours and show a day-of-week by hour-of-day pattern. Extends row 1 | Timeline | open (proposed 2026-10-02) |
-| 21 | Case timeline annotations: pin a day or event, note, tag, star, with author and time; shared across analysts on the case; list, create, update, delete. Today pins and notes live in the browser only (Timesketch-style stars, tags and comments) | Timeline, Investigate | open (proposed 2026-10-02) |
+| 21 | Case timeline annotations: pin a day or event, note, tag, star, with author and time; shared across analysts on the case; list, create, update, delete. Today pins and notes live in the browser only (Timesketch-style stars, tags and comments) | Timeline, Investigate | **built on branch `claude/case-backend-76c2b9`, not deployed** (BR-3: `annotations`, target `timeline_day`; contract [`API_CONTRACT_CONVERSATIONS_20261103.md`](API_CONTRACT_CONVERSATIONS_20261103.md)) |
 | 22 | Event clusters and co-occurrence: events from different families within a stated window (for example a call and a plate read within five minutes), each cluster with its member events and locators. Extends row 1 | Timeline | open (proposed 2026-10-02) |
 | 23 | Case record: a stored case with display name, status, `created_by` (subject), `created_at` and owner, created when the first evidence is accepted. Today a case is only a `collection_id` string on evidence rows | Cases, Dashboard, sidebar, "My cases" | open (proposed 2026-10-02; extends 18) |
-| 24 | Case membership and listing: members with roles (owner, editor, viewer); list cases with `mine=true` or `member=<subject>`; the server enforces access | Cases, Dashboard, "My cases" | open (proposed 2026-10-02) |
+| 24 | Case membership and listing: members with roles (owner, editor, viewer); list cases with `mine=true` or `member=<subject>`; the server enforces access | Cases, Dashboard, "My cases" | **members built on branch `claude/case-backend-76c2b9`, not deployed** (BR-1 part: `GET/PUT/DELETE /cases/{id}/members`; roles are the roadmap pack's `owner, lead, analyst, reviewer, viewer, auditor`, `editor` is `analyst`; `GET /cases?mine=true` is not built) |
 | 25 | Real identity end to end: the signed-in person's subject forwarded by the gateway instead of the constants `investigation-workspace` and `nexusai-local-operator`; the API ignores a form-supplied `user_id` whenever auth is on; `GET /whoami` returns subject, display name and role | Everywhere | open (proposed 2026-10-02) |
 | 26 | Expose provenance that is already stored: `registered_by` and `registered_at` on evidence list and detail (from `evidence_items.user_id` and `evidence_versions.created_by`), and a read endpoint for custody events with `actor_type` and `actor_id`, for the evidence Lineage tab and Activity | Evidence, Activity | open (proposed 2026-10-02) |
+
+## Batches of the roadmap pack of 2026-11-03: BR-1 (part), BR-2, BR-3
+
+Phase 1, lane C of `docs/roadmap/master-roadmap-20261103/`. All three are **built on branch `claude/case-backend-76c2b9`, tested on a throwaway database, not deployed; migration 034 is not applied to the live database.** Contract for the interface: [`API_CONTRACT_CONVERSATIONS_20261103.md`](API_CONTRACT_CONVERSATIONS_20261103.md). Design: `docs/architecture/CONVERSATIONS_AND_CASE_LAYER_20261103.md`. Until migration 034 is applied every route answers `503 not_installed` and the page shows its designed "not available yet" state.
+
+| Batch | What it delivers | Rows of this file | Status |
+|---|---|---|---|
+| BR-1 (members and authority part) | `GET/PUT/DELETE /cases/{case_id}/members` (open and controlled cases, six roles, last owner protected), `GET/POST /cases/{case_id}/authority`, `GET/PATCH /authority/{id}`, `POST /authority/{id}/revoke`, `GET /cases/{case_id}/audit` and `/audit/verify` (hash-chained). Not built: case profile fields, census, directory, readiness, summary | 24 (members); part of 23 (the case record itself was delivered by migration 021) | built on branch, not deployed |
+| BR-2 conversations | `GET/POST /conversations`, `GET/PATCH/DELETE /conversations/{id}`, `POST /conversations/{id}/restore`, `POST /conversations/{id}/turns` (plain JSON, NDJSON or server-sent events with true phases and a heartbeat), `GET /turns/{id}`, `POST /turns/{id}/rerun`, `GET /turns/{id}/diff`, `POST /turns/{id}/fork`, `GET /turns/{id}/ancestry`, `POST|GET /turns/{id}/feedback`, `POST /turns/{id}/pin`; follow-up context (the resolver role is built and OFF), snapshots, data version, full-text search of questions and answers (Urdu, Roman Urdu) | 5 | built on branch, not deployed |
+| BR-3 knowledge capture | `notes`, `findings` (with `review`), `hypotheses`, `tasks`, `annotations`, `views` (create, list, read, patch, hide), tags on threads, turns, notes, findings, hypotheses, tasks, views and evidence | 21; G-4 of the master plan (notes and hypotheses store) | built on branch, not deployed |
+
+Not built in these batches: export of a conversation to the report builder (BR-4), cross-case conversations (columns reserved), the engine's own phases in the stream (the engine session adds calls to `emitPhase`), per-person identity (row 25) so that conversations have real owners.
 
 Rows 1–6 were anticipated in `CODEX_UI_REDESIGN_PROMPT_20260929.md` §8, and row 7 came from the
 2026-09-28 demo check (`CODEX_UI_DEFECTS_20260928.md`). Codex: add detail under a heading per request,
@@ -163,7 +175,7 @@ Why: "my own cases" and any per-person view depend on facts the system does not 
   `{ case_id, display_name|null, status: open|on_hold|closed, created_by: subject|null, created_at, owner: subject|null }`.
   `created_by` is set from the authenticated subject when the first evidence is accepted. Existing cases are backfilled with
   `created_by: null` unless the database shows exactly one real subject for the case; unknown stays unknown, never guessed.
-- **24 Membership.** `GET|PUT|DELETE /cases/{case_id}/members` with `{ subject_id, role: owner|editor|viewer }`;
+- **24 Membership.** `GET/PUT/DELETE /cases/{case_id}/members` with `{ subject_id, role: owner|editor|viewer }`;
   `GET /cases?mine=true` returns cases where the caller is a member. Access to a case, its evidence and its answers is decided by
   membership on the server, never by the client.
 - **25 Identity.** The gateway sets `X-Forensic-Subject-ID` from the sign-in (LocalAI users, `core/http/auth`), the API
