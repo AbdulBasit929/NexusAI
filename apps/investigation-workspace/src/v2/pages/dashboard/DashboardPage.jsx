@@ -12,7 +12,8 @@ import { useEngineDailyAcross, useEngineHealthAcross, useTypingReportsAcross } f
 import { AnswersPanel, DataQualityPanel, EvidenceTypesPanel, RecordKindsPanel, TimeToReadyPanel, TimelinePanel } from './insights.jsx'
 import { answerQuality, caseStates, caseTimelines, dailyQuestions, dataNotes, modalityMix, needsYou, recordKinds, setAside, timeBasis, timeToReady } from './model.js'
 import { CasesPanel } from './panels.jsx'
-import { FirstRun, Hero, LatestPanel, MetricStrip, NeedsPanel, ResumeStrip, ServiceDown, latestItems, resumeEntries } from './sections.jsx'
+import { Indicators } from './indicators.jsx'
+import { FirstRun, Hero, LatestPanel, NeedsPanel, ResumeStrip, ServiceDown, latestItems, resumeEntries } from './sections.jsx'
 
 // The most cases any one dashboard read covers: the heavy reads (the typing report, the timeline) are made for each case, and a workspace with a very long list should not start dozens of them.
 const READ_LIMIT = 12
@@ -95,24 +96,18 @@ export default function DashboardPage() {
             {unreadable > 0 ? (
               <p className="nx-callout nx-callout--warn" role="status"><CircleAlert aria-hidden="true" /><span>{formatNumber(unreadable)} of {formatNumber(cases.length)} not reporting. <button type="button" className="nx-link-button" onClick={reload}>Try again</button></span></p>
             ) : null}
-            <div className="nx-dashgrid">
-              <aside className="nx-dashgrid__rail" aria-label="What needs you, and where to pick up">
-                <NeedsPanel needs={needs} loading={loading} notesLoading={typingLoading} />
-                <ResumeStrip entries={resumeEntries(recent)} />
-                <LatestPanel items={latest} loading={loading} />
-              </aside>
-              <div className="nx-dashgrid__main">
-                <MetricStrip kpis={kpis} rows={rows} states={caseStateCounts} quality={quality} daily={daily} loading={loading} />
-                <CasesPanel rows={rows} loading={loading} />
-                <TimelinePanel timelines={timelines} loading={timelineLoading} failures={activity.failures} />
-                <div className="nx-grid">
-                  <div className="nx-span-6"><AnswersPanel quality={quality} daily={daily} loading={answersLoading} /></div>
-                  <div className="nx-span-6"><DataQualityPanel aside={aside} basis={basis} loading={loading} basisLoading={typingLoading} /></div>
-                  <div className="nx-span-6"><EvidenceTypesPanel mix={mix} indexed={indexed} loading={typingLoading} /></div>
-                  <div className="nx-span-6"><RecordKindsPanel kinds={kinds} loading={typingLoading} /></div>
-                  <div className="nx-span-12"><TimeToReadyPanel data={ready} loading={loading} /></div>
-                </div>
-              </div>
+            <Indicators kpis={kpis} rows={rows} states={caseStateCounts} quality={quality} daily={daily} needs={needs} loading={loading} />
+            <div className="nx-grid">
+              <div className="nx-span-4"><NeedsPanel needs={needs} loading={loading} notesLoading={typingLoading} /></div>
+              <div className="nx-span-8"><TimelinePanel timelines={timelines} loading={timelineLoading} failures={activity.failures} /></div>
+              <div className="nx-span-4"><AnswersPanel quality={quality} daily={daily} loading={answersLoading} /></div>
+              <div className="nx-span-4"><DataQualityPanel aside={aside} basis={basis} loading={loading} basisLoading={typingLoading} /></div>
+              <div className="nx-span-4"><EvidenceTypesPanel mix={mix} indexed={indexed} loading={typingLoading} /></div>
+              <div className="nx-span-6"><RecordKindsPanel kinds={kinds} loading={typingLoading} /></div>
+              <div className="nx-span-6"><TimeToReadyPanel data={ready} loading={loading} /></div>
+              <div className="nx-span-12"><CasesPanel rows={rows} loading={loading} /></div>
+              <div className="nx-span-6"><ResumeStrip entries={resumeEntries(recent)} /></div>
+              <div className="nx-span-6"><LatestPanel items={latest} loading={loading} /></div>
             </div>
           </>
         )}

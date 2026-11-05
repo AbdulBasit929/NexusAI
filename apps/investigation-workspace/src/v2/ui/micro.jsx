@@ -7,7 +7,7 @@ export function SegBar({ parts, label, height = 8 }) {
   const shown = parts.filter(part => part.value > 0)
   return (
     <span className="nx-seg" role="img" aria-label={label} style={{ blockSize: height }}>
-      {shown.map(part => <i key={part.id} className="nx-seg__part" style={{ flexGrow: part.value, background: part.colour }} title={part.title} />)}
+      {shown.map((part, index) => <i key={part.id} className="nx-seg__part" style={{ flexGrow: part.value, background: part.colour, '--i': index }} title={part.title} />)}
     </span>
   )
 }
@@ -17,7 +17,7 @@ export function BarStrip({ values, label, height = 28, max: sharedMax }) {
   const max = sharedMax || Math.max(1, ...values.map(item => item.value))
   return (
     <span className="nx-bars" role="img" aria-label={label} style={{ blockSize: height }}>
-      {values.map(item => <i key={item.key} className={`nx-bars__bar${item.value ? '' : ' is-empty'}`} style={item.value ? { '--h': `${Math.max(6, (item.value / max) * 100)}%` } : undefined} title={item.title} />)}
+      {values.map((item, index) => <i key={item.key} className={`nx-bars__bar${item.value ? '' : ' is-empty'}`} style={item.value ? { '--h': `${Math.max(6, (item.value / max) * 100)}%`, '--i': Math.min(index, 24) } : undefined} title={item.title} />)}
     </span>
   )
 }
@@ -42,10 +42,10 @@ export function ColumnChart({ columns, label, height = 64 }) {
   const max = Math.max(1, ...columns.map(column => column.parts.reduce((total, part) => total + part.value, 0)))
   return (
     <span className="nx-cols" role="img" aria-label={label} style={{ blockSize: height }}>
-      {columns.map(column => {
+      {columns.map((column, index) => {
         const total = column.parts.reduce((sum, part) => sum + part.value, 0)
         return (
-          <span key={column.key} className={`nx-cols__col${total ? '' : ' is-empty'}`} title={column.title} style={total ? { '--h': `${Math.max(6, (total / max) * 100)}%` } : undefined}>
+          <span key={column.key} className={`nx-cols__col${total ? '' : ' is-empty'}`} title={column.title} style={total ? { '--h': `${Math.max(6, (total / max) * 100)}%`, '--i': index } : undefined}>
             {column.parts.filter(part => part.value > 0).map(part => <i key={part.id} style={{ flexGrow: part.value, background: part.colour }} />)}
           </span>
         )
@@ -60,6 +60,27 @@ export function Dumbbell({ low, high, axisMax, label }) {
   return (
     <span className="nx-dumb" role="img" aria-label={label} style={{ '--lo': from(low), '--hi': from(high), '--hi-end': `${100 - Math.min(100, Math.max(0, (high / axisMax) * 100))}%` }}>
       <i className="nx-dumb__line" /><i className="nx-dumb__dot nx-dumb__dot--lo" /><i className="nx-dumb__dot nx-dumb__dot--hi" />
+    </span>
+  )
+}
+
+// One dot for each thing, in the colour of its cause (a unit chart: the count is the number of dots). More than `max` dots end in "+N".
+export function DotRow({ dots, max = 24, label }) {
+  const shown = dots.slice(0, max)
+  return (
+    <span className="nx-dots" role="img" aria-label={label}>
+      {shown.map((dot, index) => <i key={dot.id || index} style={{ background: dot.colour, '--i': Math.min(index, 24) }} title={dot.title} />)}
+      {dots.length > max ? <b>+{dots.length - max}</b> : null}
+    </span>
+  )
+}
+
+// A distribution in adjacent bins on one scale; the bin that holds the median is the accent, the others are quiet. `bins`: [{ key, count, title, mark }].
+export function Histogram({ bins, label, height = 36 }) {
+  const max = Math.max(1, ...bins.map(bin => bin.count))
+  return (
+    <span className="nx-hist" role="img" aria-label={label} style={{ blockSize: height }}>
+      {bins.map((bin, index) => <i key={bin.key} className={`${bin.mark ? 'is-mark' : ''}${bin.count ? '' : ' is-empty'}`.trim() || undefined} style={bin.count ? { '--h': `${Math.max(8, (bin.count / max) * 100)}%`, '--i': index } : undefined} title={bin.title} />)}
     </span>
   )
 }

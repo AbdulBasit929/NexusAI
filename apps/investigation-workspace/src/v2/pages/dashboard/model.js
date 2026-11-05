@@ -351,3 +351,22 @@ export function timeBasis(reports) {
   const parts = [...rows.entries()].map(([id, count]) => ({ id, label: BASIS_LABEL[id] || String(id).replace(/_/g, ' ').replace(/^./, char => char.toUpperCase()), rows: count })).filter(part => part.rows > 0).sort((left, right) => right.rows - left.rows)
   return { total: sum(parts, part => part.rows), parts }
 }
+
+// Time from upload to ready for every finished job each case lists, in seven bins (the edges are fixed so two reads of the workspace can be compared); the bin that holds the median is marked.
+const BIN_EDGES = [0, 5, 15, 30, 60, 120, 300, Infinity]
+const BIN_LABELS = ['under 5 s', '5 to 15 s', '15 to 30 s', '30 to 60 s', '1 to 2 min', '2 to 5 min', '5 min or more']
+export function durationHistogram(rows) {
+  const stamp = value => { const time = value ? Date.parse(value) : NaN; return Number.isFinite(time) ? time : null }
+  const seconds = []
+  for (const row of rows || []) {
+    for (const job of row.state?.data?.recent_jobs || []) {
+      if (String(job.status || '').toLowerCase() !== 'completed') continue
+      const from = stamp(job.queued_at); const to = stamp(job.completed_at)
+      if (from !== null && to !== null && to >= from) seconds.push((to - from) / 1000)
+    }
+  }
+  seconds.sort((left, right) => left - right)
+  const median = quantile(seconds, 0.5)
+  const bins = BIN_LABELS.map((label, index) => ({ key: label, label, count: seconds.filter(value => value >= BIN_EDGES[index] && value < BIN_EDGES[index + 1]).length, mark: median !== null && median >= BIN_EDGES[index] && median < BIN_EDGES[index + 1] }))
+  return { bins, count: seconds.length, median }
+}

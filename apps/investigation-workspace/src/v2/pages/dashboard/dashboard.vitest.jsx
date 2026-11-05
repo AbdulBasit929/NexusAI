@@ -3,9 +3,10 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { MemoryRouter } from 'react-router-dom'
 import DashboardPage from './DashboardPage.jsx'
 import { resetDashboardReads } from './data.js'
-import { answerQuality, caseStates, caseTimelines, dailyQuestions, dataNotes, declineText, formatDuration, heatShare, modalityMix, needsYou, niceCeiling, recordKinds, setAside, timeBasis, timeToReady } from './model.js'
+import { answerQuality, caseStates, durationHistogram, caseTimelines, dailyQuestions, dataNotes, declineText, formatDuration, heatShare, modalityMix, needsYou, niceCeiling, recordKinds, setAside, timeBasis, timeToReady } from './model.js'
 import { cleanRate, latestItems, resumeEntries, statusCounts } from './sections.jsx'
-import { BarStrip, RangeStrip, SegBar } from '../../ui/micro.jsx'
+import { BarStrip, DotRow, Histogram, RangeStrip, SegBar } from '../../ui/micro.jsx'
+import { CountUp } from '../../ui/CountUp.jsx'
 import { Sparkline, dailySeries } from '../../ui/Sparkline.jsx'
 import { shift } from '../../../lib/caseActivity.js'
 import { resetAttentionCache } from '../../../lib/workspaceAttention.js'
@@ -286,7 +287,7 @@ function serve() {
 }
 
 describe('the dashboard page', () => {
-  beforeEach(() => { localStorage.clear(); clearWorkspaceStateForTests(); resetDashboardReads() })
+  beforeEach(() => { localStorage.clear(); clearWorkspaceStateForTests(); resetDashboardReads(); localStorage.setItem('nexusai.viewer.motion', 'reduce') })
   afterEach(() => { cleanup(); resetAttentionCache(); resetCaseRecordsForTest(); resetDashboardReads(); vi.restoreAllMocks(); delete window.__INVESTIGATION_WORKSPACE_CONFIG__ })
 
   it('fills the figures, the panels and the cases table from the reads, each as it arrives', async () => {
@@ -300,15 +301,16 @@ describe('the dashboard page', () => {
     expect(figures.textContent).toMatch(/Cases\s*2/)
     expect(figures.textContent).toMatch(/Files ready\s*4\s*\/\s*8/)
     expect(figures.textContent).toMatch(/Records\s*240/)
-    expect(figures.textContent).toMatch(/Needs review\s*2/)
+    expect(figures.textContent).toMatch(/Needs you\s*2/)
 
     // the files that did not finish come from the status; the notes to read come from the typing report, which arrives later
     const needs = screen.getByRole('region', { name: 'Needs you' })
-    expect(within(needs).getAllByText('broken.csv')).toHaveLength(2)
-    expect(await within(needs).findByText('Internet records state no byte volumes')).toBeTruthy()
+    expect(within(needs).getByText('Did not finish')).toBeTruthy()
+    expect(within(needs).getByText('Did not finish').closest('a').getAttribute('title')).toMatch(/broken.csv/)
+    expect(await within(needs).findByText('Read before trusting answers')).toBeTruthy()
 
     // the engine's answers for the week: 9 of 10 per case, twice
-    expect(await screen.findByText(/90%/, { selector: '.nx-tile__figure' })).toBeTruthy()
+    expect(await within(figures).findByText('90%')).toBeTruthy()
     const answers = screen.getByRole('region', { name: 'Answers' })
     expect(within(answers).getByText(/answered of 20 questions/)).toBeTruthy()
     expect(within(answers).getByText(/The case’s records cannot answer that kind of question \(2\)/)).toBeTruthy()
@@ -379,5 +381,49 @@ describe('the dashboard page', () => {
     const link = within(band).getByRole('link', { name: /Who called the target at night?/ })
     expect(link.getAttribute('href')).toBe('/cases/case-a/investigate?question=Who%20called%20the%20target%20at%20night%3F')
     expect(link.textContent).toMatch(/Who called the target at night\?/)
+  })
+})
+
+describe('the indicator pictures', () => {
+  afterEach(() => { cleanup(); localStorage.clear() })
+  const job = (queued, done) => ({ status: 'completed', queued_at: queued, completed_at: done })
+
+  it('bins the time to ready on fixed edges and marks the bin of the median', () => {
+    const rows = [{ state: { data: { recent_jobs: [job('2026-11-01T10:00:00Z', '2026-11-01T10:00:03Z'), job('2026-11-01T10:00:00Z', '2026-11-01T10:00:40Z'), job('2026-11-01T10:00:00Z', '2026-11-01T10:00:50Z'), job('2026-11-01T10:00:00Z', '2026-11-01T10:10:00Z'), { status: 'failed', queued_at: '2026-11-01T10:00:00Z', completed_at: '2026-11-01T10:00:10Z' }] } } }]
+    const result = durationHistogram(rows)
+    expect(result.count).toBe(4)
+    expect(result.bins.map(bin => bin.count)).toEqual([1, 0, 0, 2, 0, 0, 1])
+    expect(result.bins.filter(bin => bin.mark).map(bin => bin.label)).toEqual(['30 to 60 s'])
+    expect(result.median).toBe(45)
+  })
+
+  it('has no bins to draw when no job finished', () => {
+    expect(durationHistogram([{ state: { data: { recent_jobs: [] } } }, { state: null }]).count).toBe(0)
+  })
+
+  it('draws one dot for each thing and says how many it left out', () => {
+    render(<DotRow max={3} label="5 things" dots={Array.from({ length: 5 }, (_, index) => ({ id: index, colour: 'red', title: 'x' }))} />)
+    const picture = screen.getByRole('img', { name: '5 things' })
+    expect(picture.querySelectorAll('i')).toHaveLength(3)
+    expect(picture.textContent).toBe('+2')
+  })
+
+  it('sizes histogram bins on one scale and keeps empty bins quiet', () => {
+    render(<Histogram label="Files" bins={[{ key: 'a', count: 4, mark: true, title: 'a' }, { key: 'b', count: 2, title: 'b' }, { key: 'c', count: 0, title: 'c' }]} />)
+    const bars = screen.getByRole('img', { name: 'Files' }).querySelectorAll('i')
+    expect(bars[0].style.getPropertyValue('--h')).toBe('100%')
+    expect(bars[1].style.getPropertyValue('--h')).toBe('50%')
+    expect(bars[0].className).toBe('is-mark')
+    expect(bars[2].className).toBe('is-empty')
+  })
+
+  it('shows the real figure at once when less motion is asked for, and ends on it when not', async () => {
+    localStorage.setItem('nexusai.viewer.motion', 'reduce')
+    const { unmount } = render(<CountUp value={1234} format={value => value.toLocaleString('en-US')} />)
+    expect(screen.getByText('1,234')).toBeTruthy()
+    unmount()
+    localStorage.clear()
+    render(<CountUp value={1234} duration={30} format={value => value.toLocaleString('en-US')} />)
+    await waitFor(() => expect(screen.getByText('1,234')).toBeTruthy())
   })
 })
