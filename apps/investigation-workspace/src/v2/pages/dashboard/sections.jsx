@@ -42,35 +42,42 @@ export function resumeEntries(recent, limit = 3) {
   return recent.filter(entry => (seen.has(entry.caseId) ? false : seen.add(entry.caseId))).slice(0, limit)
 }
 
-export function ResumeStrip({ entries }) {
-  if (!entries?.length) return null
+export function ResumePanel({ entries }) {
   return (
-    <section className="nx-resume-band" aria-label="Pick up where you left off">
-      <ul className="nx-resume-list">
-        {entries.map(entry => (
-          <li key={`${entry.caseId}-${entry.id}`}>
-            <Link className="nx-resume" to={`/cases/${encodeURIComponent(entry.caseId)}/investigate?question=${encodeURIComponent(entry.query)}`}>
-              <History className="nx-resume__icon" aria-hidden="true" />
-              <span className="nx-resume__text">
-                <span className="nx-resume__label">{entries.length === 1 || entry === entries[0] ? 'Pick up where you left off' : 'Also recent'}</span>
-                <span className="nx-resume__question" dir="auto">{entry.label || entry.query}</span>
-                <span className="nx-resume__meta"><CaseLabel caseId={entry.caseId} />{entry.updatedAt ? <> · <time dateTime={entry.updatedAt} title={formatMoment(new Date(entry.updatedAt))}>{relativeAge(new Date(entry.updatedAt))}</time></> : null}</span>
-              </span>
-              <ArrowRight className="nx-resume__go" aria-hidden="true" />
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <Panel id="dash-resume" title="Pick up" sub={entries.length ? 'Your last questions' : null}>
+      {entries.length ? (
+        <>
+        <ul className="nx-rows">
+          {entries.map(entry => (
+            <li key={`${entry.caseId}-${entry.id}`}>
+              <Link className="nx-rows__item" to={`/cases/${encodeURIComponent(entry.caseId)}/investigate?question=${encodeURIComponent(entry.query)}`}>
+                <History className="nx-rows__icon" aria-hidden="true" />
+                <span className="nx-rows__text">
+                  <span className="nx-rows__main" dir="auto">{entry.label || entry.query}</span>
+                  <span className="nx-rows__meta"><CaseLabel caseId={entry.caseId} />{entry.updatedAt ? <> · <time dateTime={entry.updatedAt} title={formatMoment(new Date(entry.updatedAt))}>{relativeAge(new Date(entry.updatedAt))}</time></> : null}</span>
+                </span>
+                <ArrowRight className="nx-rows__go" aria-hidden="true" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <Link className="nx-rows__foot" to="/investigate"><MessageSquareText aria-hidden="true" />Ask across cases<ArrowRight aria-hidden="true" /></Link>
+        </>
+      ) : (
+        <div className="nx-fill nx-empty-action">
+          <Calm icon={History}>No question asked yet</Calm>
+          <Link className="nx-btn" to="/investigate"><MessageSquareText aria-hidden="true" />Ask across cases</Link>
+        </div>
+      )}
+    </Panel>
   )
 }
 
+// The share of the rows read that were accepted (null before any row was read).
 export function cleanRate(kpis) {
   const total = kpis.acceptedRows + kpis.duplicateRows + kpis.rejectedRows
   return total ? kpis.acceptedRows / total : null
 }
-
-const plural = (count, one, many = `${one}s`) => `${formatNumber(count)} ${count === 1 ? one : many}`
 
 // ---------- what needs you: a few short lines, one for each cause ----------
 // The count and the cause, nothing else; the line opens the first thing of that cause, and the things themselves are in its title (on hover and on focus). The order is what blocks your work first.

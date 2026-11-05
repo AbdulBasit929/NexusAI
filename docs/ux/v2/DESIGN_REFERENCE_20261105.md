@@ -171,6 +171,15 @@ Loading: a skeleton of the final shape, shown only while reading, never longer t
 
 ---
 
+### 5.7 Layout rules (binding; stage S2c, 2026-11-05)
+
+1. **Fixed rows, not content-driven rows.** A page is bands on a 12-column grid. Every band has a fixed height; every panel of a band shares its top and bottom. A panel never grows with its content.
+2. **The first screen is designed as one object.** Header, indicators and the hero board fit the window (clamped 780 to 1000 px high) and show at least five different chart forms; the next band shows as an edge at the bottom so the page is seen to continue. The same rule applies to the first screen of every other page.
+3. **A panel draws into its cell**: header 48 px, one-line title, a note that is cut before the title, a picture that takes the height that is left. What does not fit is not drawn (the cell decides by container query) and is in the table.
+4. **The table is a dialog**, opened from a button in the panel header; it never changes the size of the panel.
+5. **Part-to-whole with more than five kinds is a sorted bar list**, not a donut or waffle.
+6. **Nothing is done by eye.** `scripts/ui-layout-check.mjs` must pass at the sizes listed in the stage note before a layout is called done.
+
 ## 6. Visual system: the parts this reference fixes
 
 ### 6.1 Charts (directive 7 applies; additions from research)

@@ -313,8 +313,11 @@ describe('the dashboard page', () => {
     // the engine's answers for the week: 9 of 10 per case, twice
     expect(await within(figures).findByText('90%')).toBeTruthy()
     const answers = screen.getByRole('region', { name: 'Answers' })
-    expect(within(answers).getByText(/answered of 20 questions/)).toBeTruthy()
-    expect(within(answers).getByText(/The case’s records cannot answer that kind of question \(2\)/)).toBeTruthy()
+    expect(within(answers).getByText('Answered').parentElement.textContent).toMatch(/Answered\s*18/)
+    fireEvent.click(within(answers).getByRole('button', { name: /as a table/i }))
+    expect(within(screen.getByRole('dialog')).getByText(/The case’s records cannot answer that kind of question \(2\)/)).toBeTruthy()
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
 
     // what the evidence holds, from the typing report
     const types = await screen.findByRole('region', { name: 'Evidence by type' })
@@ -327,7 +330,7 @@ describe('the dashboard page', () => {
     const aside = screen.getByRole('region', { name: 'Data quality' })
     expect(aside.textContent).toMatch(/7\.7%/)
     const ready = screen.getByRole('region', { name: 'Time to ready' })
-    expect(ready.textContent).toMatch(/Median 41 s from upload/)
+    expect(ready.textContent).toMatch(/Median 41 s/)
 
     // the timeline, one row for each case
     const timeline = await screen.findByRole('region', { name: 'Evidence timeline' })
@@ -366,11 +369,12 @@ describe('the dashboard page', () => {
     render(<MemoryRouter initialEntries={['/']}><DashboardPage /></MemoryRouter>)
     for (const name of ['Evidence timeline', 'Evidence by type', 'Records by kind', 'Answers', 'Data quality', 'Time to ready']) {
       const region = await screen.findByRole('region', { name })
-      await waitFor(() => expect(within(region).getByText('Show as table')).toBeTruthy())
+      await waitFor(() => expect(within(region).getByRole('button', { name: /as a table/i })).toBeTruthy())
     }
     const aside = screen.getByRole('region', { name: 'Data quality' })
-    fireEvent.click(within(aside).getByText('Show as table'))
-    expect(within(aside).getByRole('table', { name: /Data quality for each case/ })).toBeTruthy()
+    fireEvent.click(within(aside).getByRole('button', { name: /as a table/i }))
+    expect(within(screen.getByRole('dialog')).getByRole('table', { name: /Data quality for each case/ })).toBeTruthy()
+    expect(within(aside).queryByRole('table')).toBeNull()
   })
 
   it('offers the way back into the last question you asked', async () => {
@@ -378,7 +382,7 @@ describe('the dashboard page', () => {
     localStorage.setItem('nexusai.viewer.questions.case-a', JSON.stringify([{ id: 'q1', query: 'Who called the target at night?', label: '', answer: '', state: 'answered', pinned: false, updatedAt: '2026-11-03T08:00:00Z' }]))
     globalThis.fetch = serve()
     render(<MemoryRouter initialEntries={['/']}><DashboardPage /></MemoryRouter>)
-    const band = await screen.findByRole('region', { name: 'Pick up where you left off' })
+    const band = await screen.findByRole('region', { name: 'Pick up' })
     const link = within(band).getByRole('link', { name: /Who called the target at night?/ })
     expect(link.getAttribute('href')).toBe('/cases/case-a/investigate?question=Who%20called%20the%20target%20at%20night%3F')
     expect(link.textContent).toMatch(/Who called the target at night\?/)
@@ -505,7 +509,8 @@ describe('the timeline panel', () => {
     panel()
     const lanes = screen.getAllByRole('listitem')
     expect(lanes[0].textContent).toMatch(/7$/)
-    expect(lanes[1].textContent).toMatch(/earliest rows only/)
+    expect(lanes[1].querySelector('a').getAttribute('title')).toMatch(/at most 100 rows/)
+    expect(lanes[0].querySelector('a').getAttribute('title')).toBeNull()
     expect(lanes[1].textContent).toMatch(/4\+$/)
   })
 
@@ -516,5 +521,56 @@ describe('the timeline panel', () => {
     expect([own.getAttribute('aria-pressed'), shared.getAttribute('aria-pressed')]).toEqual(['true', 'false'])
     fireEvent.click(shared)
     expect(shared.getAttribute('aria-pressed')).toBe('true')
+  })
+})
+
+describe('the table dialog', () => {
+  afterEach(() => { cleanup(); localStorage.clear() })
+  const result = (caseId, days, truncated = false) => ({ caseId, days: days.map(([date, total]) => ({ date, total, byFamily: {} })), truncated })
+  const open = () => {
+    const timelines = caseTimelines([result('case-a', [['2024-01-10', 5], ['2024-03-02', 2]])], '2025-04-15')
+    render(<MemoryRouter><TimelinePanel timelines={timelines} loading={false} failures={[]} today="2025-04-15" /></MemoryRouter>)
+    const button = screen.getByRole('button', { name: /as a table/i })
+    button.focus()
+    fireEvent.click(button)
+    return button
+  }
+
+  it('opens over the page, so the panel keeps its size, and names the table', () => {
+    const button = open()
+    const dialog = screen.getByRole('dialog')
+    expect(dialog.getAttribute('aria-modal')).toBe('true')
+    expect(within(dialog).getByRole('heading', { name: 'Events per case by month range' })).toBeTruthy()
+    expect(within(dialog).getByRole('table')).toBeTruthy()
+    expect(button.getAttribute('aria-haspopup')).toBe('dialog')
+    expect(within(screen.getByRole('region', { name: 'Evidence timeline' })).queryByRole('table')).toBeNull()
+  })
+
+  it('moves focus in, keeps Tab inside, and returns focus to the button on Escape', () => {
+    const button = open()
+    const dialog = screen.getByRole('dialog')
+    expect(document.activeElement).toBe(dialog)
+    const close = within(dialog).getByRole('button', { name: 'Close the table' })
+    const focusable = [...dialog.querySelectorAll('button, a[href], input, select, textarea, summary, [tabindex]:not([tabindex="-1"])')].filter(item => !item.disabled)
+    focusable.at(-1).focus()
+    fireEvent.keyDown(dialog, { key: 'Tab' })
+    expect(document.activeElement).toBe(focusable[0])
+    focusable[0].focus()
+    fireEvent.keyDown(dialog, { key: 'Tab', shiftKey: true })
+    expect(document.activeElement).toBe(focusable.at(-1))
+    fireEvent.keyDown(dialog, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(document.activeElement).toBe(button)
+    expect(close).toBeTruthy()
+  })
+
+  it('closes from its button and from a click outside it', () => {
+    const button = open()
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Close the table' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(document.activeElement).toBe(button)
+    fireEvent.click(button)
+    fireEvent.mouseDown(screen.getByRole('dialog').parentElement)
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 })

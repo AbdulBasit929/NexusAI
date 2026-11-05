@@ -13,7 +13,7 @@ import { AnswersPanel, DataQualityPanel, EvidenceTypesPanel, RecordKindsPanel, T
 import { answerQuality, caseStates, caseTimelines, dailyQuestions, dataNotes, modalityMix, needsYou, recordKinds, setAside, timeBasis, timeToReady } from './model.js'
 import { CasesPanel } from './panels.jsx'
 import { Indicators } from './indicators.jsx'
-import { FirstRun, Hero, LatestPanel, NeedsPanel, ResumeStrip, ServiceDown, latestItems, resumeEntries } from './sections.jsx'
+import { FirstRun, Hero, LatestPanel, NeedsPanel, ResumePanel, ServiceDown, latestItems, resumeEntries } from './sections.jsx'
 
 // The most cases any one dashboard read covers: the heavy reads (the typing report, the timeline) are made for each case, and a workspace with a very long list should not start dozens of them.
 const READ_LIMIT = 12
@@ -37,7 +37,7 @@ export default function DashboardPage() {
   const kpis = useMemo(() => dashboardKpis(rows), [rows])
   const loading = rows.some(row => row.status === 'loading')
   const unreadable = rows.filter(row => row.status === 'unavailable').length
-  const latest = useMemo(() => latestItems(rows), [rows])
+  const latest = useMemo(() => latestItems(rows, 5), [rows])
   const hasProcessing = rows.some(row => row.status === 'processing')
   const isRefreshing = rows.some(row => row.state?.refreshing)
   // The age of the figures is the age of the oldest read among the cases shown; the newest would hide a case whose refresh failed.
@@ -86,28 +86,34 @@ export default function DashboardPage() {
   return (
     <AppShell>
       <main id="workspace-main" className="nx-ui nx-page nx-dash" tabIndex={-1}>
-        <Hero rows={rows} loading={loading} lastUpdated={lastUpdated} refreshing={isRefreshing} onRefresh={refreshAll} />
-        {!cases.length ? (
-          <FirstRun />
-        ) : !loading && unreadable === cases.length ? (
-          <ServiceDown onRetry={refreshAll} />
+        {!cases.length || (!loading && unreadable === cases.length) ? (
+          <>
+            <Hero rows={rows} loading={loading} lastUpdated={lastUpdated} refreshing={isRefreshing} onRefresh={refreshAll} />
+            {!cases.length ? <FirstRun /> : <ServiceDown onRetry={refreshAll} />}
+          </>
         ) : (
           <>
-            {unreadable > 0 ? (
-              <p className="nx-callout nx-callout--warn" role="status"><CircleAlert aria-hidden="true" /><span>{formatNumber(unreadable)} of {formatNumber(cases.length)} not reporting. <button type="button" className="nx-link-button" onClick={reload}>Try again</button></span></p>
-            ) : null}
-            <Indicators kpis={kpis} rows={rows} states={caseStateCounts} quality={quality} daily={daily} needs={needs} loading={loading} />
-            <div className="nx-grid">
-              <div className="nx-span-4 nx-stack-col"><NeedsPanel needs={needs} loading={loading} notesLoading={typingLoading} /><ResumeStrip entries={resumeEntries(recent)} /></div>
-              <div className="nx-span-8"><TimelinePanel timelines={timelines} loading={timelineLoading} failures={activity.failures} /></div>
-              <div className="nx-span-4"><AnswersPanel quality={quality} daily={daily} loading={answersLoading} /></div>
-              <div className="nx-span-4"><DataQualityPanel aside={aside} basis={basis} loading={loading} basisLoading={typingLoading} /></div>
-              <div className="nx-span-4"><EvidenceTypesPanel mix={mix} indexed={indexed} loading={typingLoading} /></div>
-              <div className="nx-span-6"><RecordKindsPanel kinds={kinds} loading={typingLoading} /></div>
-              <div className="nx-span-6"><TimeToReadyPanel data={ready} loading={loading} /></div>
-              <div className="nx-span-12"><CasesPanel rows={rows} loading={loading} /></div>
-              <div className="nx-span-12"><LatestPanel items={latest} loading={loading} /></div>
+            <div className="nx-first">
+              <Hero rows={rows} loading={loading} lastUpdated={lastUpdated} refreshing={isRefreshing} onRefresh={refreshAll} />
+              {unreadable > 0 ? (
+                <p className="nx-callout nx-callout--warn" role="status"><CircleAlert aria-hidden="true" /><span>{formatNumber(unreadable)} of {formatNumber(cases.length)} not reporting. <button type="button" className="nx-link-button" onClick={reload}>Try again</button></span></p>
+              ) : null}
+              <Indicators kpis={kpis} rows={rows} states={caseStateCounts} quality={quality} daily={daily} needs={needs} loading={loading} />
+              <div className="nx-board nx-board--hero" data-band="hero">
+                <div className="nx-cell nx-cell--timeline"><TimelinePanel timelines={timelines} loading={timelineLoading} failures={activity.failures} /></div>
+                <div className="nx-cell nx-cell--answers"><AnswersPanel quality={quality} daily={daily} loading={answersLoading} /></div>
+                <div className="nx-cell nx-cell--types"><EvidenceTypesPanel mix={mix} indexed={indexed} loading={typingLoading} /></div>
+                <div className="nx-cell nx-cell--kinds"><RecordKindsPanel kinds={kinds} loading={typingLoading} /></div>
+                <div className="nx-cell nx-cell--quality"><DataQualityPanel aside={aside} basis={basis} loading={loading} basisLoading={typingLoading} /></div>
+              </div>
             </div>
+            <div className="nx-board nx-board--work" data-band="work">
+              <div className="nx-cell"><NeedsPanel needs={needs} loading={loading} notesLoading={typingLoading} /></div>
+              <div className="nx-cell"><ResumePanel entries={resumeEntries(recent)} /></div>
+              <div className="nx-cell"><LatestPanel items={latest} loading={loading} /></div>
+              <div className="nx-cell"><TimeToReadyPanel data={ready} loading={loading} /></div>
+            </div>
+            <CasesPanel rows={rows} loading={loading} />
           </>
         )}
       </main>

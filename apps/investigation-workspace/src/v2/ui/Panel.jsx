@@ -1,11 +1,15 @@
-// The card every dashboard block sits in: one title, an optional short note on the right, one body. A panel is a region with a name, so a screen reader can jump between them.
-export function Panel({ id, title, sub, action, className = '', flush = false, children }) {
+import { TableTwin } from './TableTwin.jsx'
+
+// The card every dashboard block sits in: one title, an optional short note on the right, an optional table button, one body. A panel is a region with a name, so a screen reader can jump between
+// them. `twin` ({ label, columns, rows, exportName, summary }) puts a "show as table" button in the header; the table opens in a dialog, so the panel keeps its size.
+export function Panel({ id, title, sub, subTitle, action, twin, className = '', flush = false, children }) {
   return (
     <section className={`nx-panel${className ? ` ${className}` : ''}`} aria-labelledby={id}>
       <header className="nx-panel__head">
         <h2 id={id} className="nx-panel__title">{title}</h2>
-        {sub ? <span className="nx-panel__sub">{sub}</span> : null}
+        {sub ? <span className="nx-panel__sub" title={subTitle}>{sub}</span> : null}
         {action}
+        {twin ? <TableTwin {...twin} /> : null}
       </header>
       <div className={`nx-panel__body${flush ? ' nx-panel__body--flush' : ''}`}>{children}</div>
     </section>
