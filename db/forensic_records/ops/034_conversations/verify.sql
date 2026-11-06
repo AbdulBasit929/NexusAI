@@ -60,7 +60,8 @@ BEGIN
     RAISE EXCEPTION 'a policy of migration 034 does not test the tenant';
   END IF;
   -- functions
-  FOREACH p IN ARRAY ARRAY['forensic.search_normalize(text)', 'forensic.case_role(text,text,text)', 'forensic.prepare_case_audit_event()', 'forensic.case_audit_chain_status(text,text)', 'forensic.guard_conversation_turn()']
+  FOREACH p IN ARRAY ARRAY['forensic.search_normalize(text)', 'forensic.case_role(text,text,text)', 'forensic.prepare_case_audit_event()', 'forensic.case_audit_chain_status(text,text)', 'forensic.guard_conversation_turn()',
+                           'forensic.case_role_in_all(text,text[],text,text[])', 'forensic.sorted_distinct_text(text[])', 'forensic.check_conversation_turn_scope()']
   LOOP
     IF to_regprocedure(p) IS NULL THEN RAISE EXCEPTION 'the function % is missing', p; END IF;
   END LOOP;
@@ -74,8 +75,32 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_proc WHERE oid = 'forensic.case_role(text,text,text)'::regprocedure AND proconfig::text LIKE '%search_path=forensic, pg_catalog, pg_temp%') THEN
     RAISE EXCEPTION 'forensic.case_role must have a fixed search path';
   END IF;
+  IF NOT (SELECT provolatile = 'i' FROM pg_proc WHERE oid = 'forensic.sorted_distinct_text(text[])'::regprocedure) THEN
+    RAISE EXCEPTION 'forensic.sorted_distinct_text must be IMMUTABLE (a CHECK constraint calls it)';
+  END IF;
+  IF NOT (SELECT prosecdef FROM pg_proc WHERE oid = 'forensic.check_conversation_turn_scope()'::regprocedure)
+     OR NOT EXISTS (SELECT 1 FROM pg_proc WHERE oid = 'forensic.check_conversation_turn_scope()'::regprocedure AND proconfig::text LIKE '%search_path=forensic, pg_catalog, pg_temp%') THEN
+    RAISE EXCEPTION 'forensic.check_conversation_turn_scope must be SECURITY DEFINER with a fixed search path';
+  END IF;
+  -- a conversation across cases: the case column may be empty, its cases are listed, a turn carries a group, and the rule is the case rule in ALL the cases
+  IF (SELECT attnotnull FROM pg_attribute WHERE attrelid = 'forensic.conversation_thread'::regclass AND attname = 'collection_id') THEN
+    RAISE EXCEPTION 'conversation_thread.collection_id must allow NULL (a conversation across cases has none)';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_attribute WHERE attrelid = 'forensic.conversation_turn'::regclass AND attname = 'group_id' AND NOT attisdropped) THEN
+    RAISE EXCEPTION 'conversation_turn.group_id is missing';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid = 'forensic.conversation_thread'::regclass AND conname = 'conversation_thread_scope_chk' AND pg_get_constraintdef(oid) LIKE '%sorted_distinct_text%') THEN
+    RAISE EXCEPTION 'the scope constraint of conversation_thread is missing or altered';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid = 'forensic.conversation_turn'::regclass AND conname = 'conversation_turn_thread_fk' AND confrelid = 'forensic.conversation_thread'::regclass AND cardinality(conkey) = 2) THEN
+    RAISE EXCEPTION 'conversation_turn_thread_fk is missing or still names the case';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'forensic' AND policyname = 'conversation_thread_select' AND qual LIKE '%case_role_in_all%')
+     OR NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'forensic' AND policyname = 'conversation_thread_insert' AND with_check LIKE '%case_role_in_all%') THEN
+    RAISE EXCEPTION 'the thread policies do not apply the case rule to every case of a conversation across cases';
+  END IF;
   -- triggers
-  FOREACH p IN ARRAY ARRAY['case_audit_event_prepare', 'case_audit_event_append_only', 'conversation_turn_guard', 'conversation_turn_no_delete'] LOOP
+  FOREACH p IN ARRAY ARRAY['case_audit_event_prepare', 'case_audit_event_append_only', 'conversation_turn_guard', 'conversation_turn_no_delete', 'conversation_turn_scope'] LOOP
     IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = p AND NOT tgisinternal) THEN RAISE EXCEPTION 'the trigger % is missing', p; END IF;
   END LOOP;
   -- the search: generated columns and both indexes
@@ -84,7 +109,7 @@ BEGIN
       RAISE EXCEPTION 'conversation_turn.% is not a stored generated column', p;
     END IF;
   END LOOP;
-  FOREACH p IN ARRAY ARRAY['conversation_turn_search_tsv_idx', 'conversation_turn_search_trgm_idx', 'conversation_turn_client_request_idx', 'finding_source_turn_idx', 'conversation_thread_rail_idx'] LOOP
+  FOREACH p IN ARRAY ARRAY['conversation_turn_search_tsv_idx', 'conversation_turn_search_trgm_idx', 'conversation_turn_client_request_idx', 'finding_source_turn_idx', 'conversation_thread_rail_idx', 'conversation_thread_scope_idx', 'conversation_turn_group_idx'] LOOP
     IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'forensic' AND indexname = p) THEN RAISE EXCEPTION 'the index % is missing', p; END IF;
   END LOOP;
   -- the folding is what the search relies on (a few fixed cases; behaviour.sql has the rest)
@@ -110,7 +135,7 @@ BEGIN
       END IF;
     END LOOP;
     -- identity and content that must never change
-    FOREACH p IN ARRAY ARRAY['conversation_turn.question_text', 'conversation_turn.thread_id', 'conversation_turn.created_by', 'conversation_thread.owner_subject', 'conversation_thread.collection_id',
+    FOREACH p IN ARRAY ARRAY['conversation_turn.question_text', 'conversation_turn.thread_id', 'conversation_turn.group_id', 'conversation_turn.created_by', 'conversation_thread.scope_collection_ids', 'conversation_thread.owner_subject', 'conversation_thread.collection_id',
                              'case_audit_event.details', 'case_audit_event.event_sha256', 'finding.source_turn_id', 'finding.created_by', 'case_member.subject_id', 'case_note.created_by']
     LOOP
       IF has_column_privilege('forensic_runtime', 'forensic.' || split_part(p, '.', 1), split_part(p, '.', 2), 'UPDATE') THEN

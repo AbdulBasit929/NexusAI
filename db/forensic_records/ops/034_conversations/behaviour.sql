@@ -42,6 +42,12 @@ DECLARE
   good boolean;
   broken bigint;
   seen text;
+  th3 uuid;
+  th4 uuid;
+  th5 uuid;
+  ct1 uuid := gen_random_uuid();
+  ct2 uuid := gen_random_uuid();
+  grp uuid := gen_random_uuid();
 BEGIN
   -- 2. The case c1 has no members: it is open. Alice's private thread is hers alone.
   INSERT INTO forensic.conversation_thread (tenant_id, collection_id, owner_subject, title) VALUES ('t034', 'c1', 'alice', 'alice private') RETURNING thread_id INTO th;
@@ -104,7 +110,7 @@ BEGIN
     INSERT INTO forensic.conversation_turn (turn_id, tenant_id, collection_id, thread_id, idx, root_turn_id, question_text, created_by)
       VALUES (tn2, 't034', 'c2', th, 2, tn2, 'a turn of another case in this thread', 'alice');
     RAISE EXCEPTION 'step 4: a turn of case c2 was added to a thread of case c1';
-  EXCEPTION WHEN foreign_key_violation THEN NULL;
+  EXCEPTION WHEN check_violation THEN NULL;
   END;
   -- a turn that is still running can be completed once, then it is finished
   INSERT INTO forensic.conversation_turn (turn_id, tenant_id, collection_id, thread_id, idx, root_turn_id, parent_turn_id, question_text, created_by, client_request_id)
@@ -283,6 +289,122 @@ BEGIN
     RAISE EXCEPTION 'step 10: the read-only analyst role can read conversation_turn';
   END IF;
   RAISE NOTICE 'step 10 ok: analyst role';
+
+  -- 11. A conversation across cases is seen only by someone who may open EVERY one of its cases. c1 is controlled (alice owner, bob viewer, dave auditor, erin analyst), c2 is open,
+  -- c4 becomes controlled here (alice owner, erin viewer, dave auditor).
+  SET LOCAL ROLE forensic_runtime;
+  PERFORM set_config('app.tenant_id', 't034', true);
+  PERFORM set_config('app.actor_role', 'user', true);
+  PERFORM set_config('app.subject_id', 'alice', true);
+  INSERT INTO forensic.case_member (tenant_id, collection_id, subject_id, role, added_by) VALUES ('t034', 'c4', 'alice', 'owner', 'alice');
+  INSERT INTO forensic.case_member (tenant_id, collection_id, subject_id, role, added_by) VALUES ('t034', 'c4', 'erin', 'viewer', 'alice');
+  INSERT INTO forensic.case_member (tenant_id, collection_id, subject_id, role, added_by) VALUES ('t034', 'c4', 'dave', 'auditor', 'alice');
+  -- the shape of the list of cases: two to ten, each once, sorted, none empty, and never together with a single case
+  BEGIN
+    INSERT INTO forensic.conversation_thread (tenant_id, collection_id, scope_collection_ids, owner_subject) VALUES ('t034', NULL, ARRAY['c1'], 'alice');
+    RAISE EXCEPTION 'step 11: a conversation across cases with one case was accepted';
+  EXCEPTION WHEN check_violation THEN NULL;
+  END;
+  BEGIN
+    INSERT INTO forensic.conversation_thread (tenant_id, collection_id, scope_collection_ids, owner_subject) VALUES ('t034', NULL, ARRAY['c2', 'c1'], 'alice');
+    RAISE EXCEPTION 'step 11: a list of cases that is not sorted was accepted';
+  EXCEPTION WHEN check_violation THEN NULL;
+  END;
+  BEGIN
+    INSERT INTO forensic.conversation_thread (tenant_id, collection_id, scope_collection_ids, owner_subject) VALUES ('t034', NULL, ARRAY['c1', 'c1'], 'alice');
+    RAISE EXCEPTION 'step 11: a list that names a case twice was accepted';
+  EXCEPTION WHEN check_violation THEN NULL;
+  END;
+  BEGIN
+    INSERT INTO forensic.conversation_thread (tenant_id, collection_id, scope_collection_ids, owner_subject) VALUES ('t034', 'c1', ARRAY['c1', 'c2'], 'alice');
+    RAISE EXCEPTION 'step 11: a conversation with a case AND a list of cases was accepted';
+  EXCEPTION WHEN check_violation THEN NULL;
+  END;
+  BEGIN
+    INSERT INTO forensic.conversation_thread (tenant_id, collection_id, scope_collection_ids, owner_subject) VALUES ('t034', NULL, ARRAY['c1', ''], 'alice');
+    RAISE EXCEPTION 'step 11: a list with an empty case name was accepted';
+  EXCEPTION WHEN insufficient_privilege OR check_violation THEN NULL;
+  END;
+  BEGIN
+    INSERT INTO forensic.conversation_thread (tenant_id, collection_id, scope_collection_ids, owner_subject)
+      VALUES ('t034', NULL, (SELECT array_agg('x' || lpad(i::text, 2, '0') ORDER BY i) FROM generate_series(1, 11) AS i), 'alice');
+    RAISE EXCEPTION 'step 11: a list of eleven cases was accepted';
+  EXCEPTION WHEN check_violation THEN NULL;
+  END;
+  -- starting one: the writer's role must allow it in every case (erin may write in c1 and in the open c2, but only read in c4)
+  INSERT INTO forensic.conversation_thread (tenant_id, collection_id, scope_collection_ids, owner_subject, title) VALUES ('t034', NULL, ARRAY['c1', 'c2'], 'alice', 'across c1 and c2') RETURNING thread_id INTO th3;
+  PERFORM set_config('app.subject_id', 'erin', true);
+  BEGIN
+    INSERT INTO forensic.conversation_thread (tenant_id, collection_id, scope_collection_ids, owner_subject) VALUES ('t034', NULL, ARRAY['c1', 'c4'], 'erin');
+    RAISE EXCEPTION 'step 11: a viewer of c4 started a conversation across c1 and c4';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+  INSERT INTO forensic.conversation_thread (tenant_id, collection_id, scope_collection_ids, owner_subject) VALUES ('t034', NULL, ARRAY['c1', 'c2'], 'erin') RETURNING thread_id INTO th4;
+  -- turns: each in one case of the conversation, the questions asked together share a group; a case outside the list, or a group in a conversation about one case, is refused
+  PERFORM set_config('app.subject_id', 'alice', true);
+  INSERT INTO forensic.conversation_turn (turn_id, tenant_id, collection_id, thread_id, idx, group_id, root_turn_id, question_text, created_by)
+    VALUES (ct1, 't034', 'c1', th3, 1, grp, ct1, 'who called whom?', 'alice');
+  INSERT INTO forensic.conversation_turn (turn_id, tenant_id, collection_id, thread_id, idx, group_id, root_turn_id, question_text, created_by)
+    VALUES (ct2, 't034', 'c2', th3, 2, grp, ct2, 'who called whom?', 'alice');
+  BEGIN
+    INSERT INTO forensic.conversation_turn (tenant_id, collection_id, thread_id, idx, root_turn_id, question_text, created_by)
+      VALUES ('t034', 'c4', th3, 3, gen_random_uuid(), 'a turn of a case the conversation does not span', 'alice');
+    RAISE EXCEPTION 'step 11: a turn of c4 was added to a conversation across c1 and c2';
+  EXCEPTION WHEN check_violation THEN NULL;
+  END;
+  BEGIN
+    INSERT INTO forensic.conversation_turn (tenant_id, collection_id, thread_id, idx, group_id, root_turn_id, question_text, created_by)
+      VALUES ('t034', 'c1', th, 9, grp, gen_random_uuid(), 'a group in a conversation about one case', 'alice');
+    RAISE EXCEPTION 'step 11: a grouped turn was added to a conversation about one case';
+  EXCEPTION WHEN check_violation OR insufficient_privilege THEN NULL;
+  END;
+  BEGIN
+    UPDATE forensic.conversation_turn SET group_id = gen_random_uuid() WHERE turn_id = ct1;
+    RAISE EXCEPTION 'step 11: the group of a turn was changed';
+  EXCEPTION WHEN insufficient_privilege OR SQLSTATE '55000' THEN NULL;
+  END;
+  -- who sees it: private to its owner; with visibility case, to everyone who may open both c1 and c2, never to someone who may not open c1
+  PERFORM set_config('app.subject_id', 'bob', true);
+  SELECT count(*) INTO n FROM forensic.conversation_thread WHERE thread_id = th3;
+  SELECT count(*) INTO evs FROM forensic.conversation_turn WHERE thread_id = th3;
+  IF n <> 0 OR evs <> 0 THEN RAISE EXCEPTION 'step 11: bob reads a private conversation across cases or its turns (threads %, turns %)', n, evs; END IF;
+  PERFORM set_config('app.subject_id', 'alice', true);
+  UPDATE forensic.conversation_thread SET visibility = 'case' WHERE thread_id = th3;
+  PERFORM set_config('app.subject_id', 'bob', true);
+  SELECT count(*) INTO n FROM forensic.conversation_thread WHERE thread_id = th3;
+  SELECT count(*) INTO evs FROM forensic.conversation_turn WHERE thread_id = th3;
+  IF n <> 1 OR evs <> 2 THEN RAISE EXCEPTION 'step 11: bob (viewer of c1, open c2) cannot read a conversation shared with the cases (threads %, turns %)', n, evs; END IF;
+  PERFORM set_config('app.subject_id', 'zed', true);
+  SELECT count(*) INTO n FROM forensic.conversation_thread WHERE thread_id = th3;
+  SELECT count(*) INTO evs FROM forensic.conversation_turn WHERE thread_id = th3;
+  IF n <> 0 OR evs <> 0 THEN RAISE EXCEPTION 'step 11: someone who may not open c1 reads a conversation across c1 and c2 (threads %, turns %)', n, evs; END IF;
+  -- an auditor of c1 only (c2 is open, where dave is an analyst) does not read the private threads of a conversation across c1 and c2; an auditor of every case does
+  PERFORM set_config('app.subject_id', 'alice', true);
+  UPDATE forensic.conversation_thread SET visibility = 'private' WHERE thread_id = th3;
+  INSERT INTO forensic.conversation_thread (tenant_id, collection_id, scope_collection_ids, owner_subject, title) VALUES ('t034', NULL, ARRAY['c1', 'c4'], 'alice', 'across c1 and c4') RETURNING thread_id INTO th5;
+  PERFORM set_config('app.subject_id', 'dave', true);
+  SELECT count(*) INTO n FROM forensic.conversation_thread WHERE thread_id = th3;
+  IF n <> 0 THEN RAISE EXCEPTION 'step 11: an auditor of c1 only reads a private conversation across c1 and the open c2'; END IF;
+  SELECT count(*) INTO n FROM forensic.conversation_thread WHERE thread_id = th5;
+  IF n <> 1 THEN RAISE EXCEPTION 'step 11: an auditor of c1 and c4 cannot read a private conversation across c1 and c4'; END IF;
+  PERFORM set_config('app.subject_id', 'erin', true);
+  SELECT count(*) INTO n FROM forensic.conversation_thread WHERE thread_id = th5;
+  IF n <> 0 THEN RAISE EXCEPTION 'step 11: erin reads alice''s private conversation across c1 and c4'; END IF;
+  PERFORM set_config('app.subject_id', 'root', true);
+  PERFORM set_config('app.actor_role', 'admin', true);
+  SELECT count(*) INTO n FROM forensic.conversation_thread WHERE thread_id IN (th3, th5);
+  IF n <> 2 THEN RAISE EXCEPTION 'step 11: a global admin cannot read the private conversations across cases (found %)', n; END IF;
+  PERFORM set_config('app.actor_role', 'user', true);
+  -- the function the policies use
+  PERFORM set_config('app.subject_id', 'alice', true);
+  IF forensic.case_role_in_all('t034', ARRAY[]::text[], 'alice', ARRAY['owner', 'open']) THEN RAISE EXCEPTION 'step 11: no case at all counted as all cases'; END IF;
+  IF forensic.case_role_in_all('t034', ARRAY['c1', NULL], 'alice', ARRAY['owner', 'open']) THEN RAISE EXCEPTION 'step 11: a NULL case name counted'; END IF;
+  IF NOT forensic.case_role_in_all('t034', ARRAY['c1', 'c2'], 'alice', ARRAY['owner', 'open']) THEN RAISE EXCEPTION 'step 11: owner of c1 and open c2 was refused'; END IF;
+  IF forensic.case_role_in_all('t034', ARRAY['c1', 'c2'], 'alice', ARRAY['owner']) THEN RAISE EXCEPTION 'step 11: the open case counted as owner'; END IF;
+  IF forensic.case_role_in_all('other', ARRAY['c1', 'c2'], 'alice', ARRAY['owner', 'open']) THEN RAISE EXCEPTION 'step 11: another tenant counted'; END IF;
+  RESET ROLE;
+  IF forensic.sorted_distinct_text(ARRAY['b', 'a', 'b', 'C']) <> ARRAY['C', 'a', 'b'] THEN RAISE EXCEPTION 'step 11: sorted_distinct_text did not sort in byte order and drop the repeat'; END IF;
+  RAISE NOTICE 'step 11 ok: conversations across cases';
   RAISE NOTICE 'behaviour_ok';
 END
 $$;

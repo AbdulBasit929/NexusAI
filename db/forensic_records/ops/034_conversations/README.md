@@ -4,11 +4,11 @@ Design: [`docs/architecture/CONVERSATIONS_AND_CASE_LAYER_20261103.md`](../../../
 
 | File | What it does | Changes data |
 |---|---|---|
-| `../../034_conversations_and_case_layer.sql` | 15 tables, 5 functions, 4 triggers, row-level security, grants. Additive and idempotent | adds tables only; no existing row is touched |
+| `../../034_conversations_and_case_layer.sql` | 15 tables, 8 functions, 5 triggers, row-level security, grants. Additive and idempotent. Includes conversations across two to ten cases (nullable `collection_id`, `group_id` on a turn, a turn-scope trigger, policies that apply the case rule to every case of a thread) | adds tables only; no existing row is touched |
 | `preflight.sql` | read-only gate: schema, evidence registry, append-only function, `pg_trgm`, encoding, no table of the same name with another shape | no |
 | `verify.sql` | read-only check of tables, constraints, every policy, functions, triggers, search columns and indexes, grants of the application role, and that the engine's read-only role sees nothing | no |
-| `behaviour.sql` | 10 steps as the application role in one transaction that is rolled back: private/shared/selected threads, immutable turns, tenant isolation, fail-closed, members and roles, the audit chain (including a tampered row being found), search folding | no (ROLLBACK) |
-| `rollback.sql` | drops the 15 tables and 5 functions; refuses unless `app.caselayer_allow_destructive_rollback = 'true'`; prints the rows it drops | **drops the case layer** |
+| `behaviour.sql` | 11 steps as the application role in one transaction that is rolled back: private/shared/selected threads, immutable turns, tenant isolation, fail-closed, members and roles, the audit chain (including a tampered row being found), search folding, and conversations across cases (the shape of the list of cases, a turn only in a case of its conversation, a conversation seen only by someone who may open every one of its cases, an auditor of every case and not of some) | no (ROLLBACK) |
+| `rollback.sql` | drops the 15 tables and 8 functions; refuses unless `app.caselayer_allow_destructive_rollback = 'true'`; prints the rows it drops | **drops the case layer** |
 
 ## Rehearsal (throwaway database, never the live one)
 

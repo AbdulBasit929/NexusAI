@@ -11,11 +11,16 @@
 --   knowledge       case_note, finding, hypothesis, task, tag, tag_assignment, saved_view, annotation
 --   authority       case_member, authority_record
 --   audit           case_audit_event (append-only, one hash chain per case, written by a trigger) and forensic.case_audit_chain_status()
---   functions       forensic.search_normalize() (Urdu and Roman-Urdu aware text folding for search), forensic.case_role() (the caller's role in a case, read by the policies)
+--   functions       forensic.search_normalize() (Urdu and Roman-Urdu aware text folding for search), forensic.case_role() (the caller's role in a case, read by the policies),
+--                   forensic.case_role_in_all() (the same for several cases at once, for conversations across cases), forensic.sorted_distinct_text()
 --
 -- Access. A case with NO member rows is "open": every signed-in user acts as an analyst, which is how the workspace behaves today (one shared actor). The first member row turns the case into a
 -- controlled one and the member list decides. Policies read three settings that the API sets per transaction: app.tenant_id, app.subject_id and app.actor_role; a missing setting fails closed.
 -- A thread is visible to its owner, to the whole case when visibility = 'case', to the listed subjects when 'selected', and always to an auditor member or a global admin.
+-- A conversation can also span two to ten cases (Ask across cases): its collection_id is then NULL and the cases are listed, sorted, in scope_collection_ids. It is the rule of "the case is the
+-- unit of trust" applied to all of them at once: a person sees such a conversation only if they may open EVERY case it covers (so a case a person may not open is never named to them), and
+-- an auditor reads its private threads only if they are an auditor of every one of those cases. Each of its turns is an ordinary turn of ONE of the cases (the question is put to each case in
+-- turn; turns asked together share a group_id), so a turn, its figures, its snapshot, its data version, its feedback and the finding pinned from it all belong to exactly one case.
 --
 -- Nothing is deleted by the application: threads, notes, findings and the like are hidden (hidden_at / deleted_at with who and why) and the audit row keeps the fact. A finished turn cannot be changed.
 -- National ID numbers typed into a question are masked by the API before they are stored; this file stores no identity data.
@@ -98,6 +103,28 @@ BEGIN
 END;
 $f$;
 
+-- True when the caller's role in EVERY one of the cases is one of the roles named. False for no case at all, for an empty or NULL name in the list, and for any case where the role is not named
+-- (a case of another tenant or an unknown subject answers 'none', so it fails). The conversation policies use it for a conversation across cases: the rule for one case, applied to all.
+CREATE OR REPLACE FUNCTION forensic.case_role_in_all(p_tenant text, p_cases text[], p_subject text, p_roles text[])
+RETURNS boolean
+LANGUAGE sql
+STABLE
+AS $f$
+  SELECT cardinality(coalesce(p_cases, '{}'::text[])) > 0
+     AND NOT EXISTS (SELECT 1 FROM unnest(p_cases) AS c(case_id)
+                     WHERE c.case_id IS NULL OR c.case_id = '' OR NOT (forensic.case_role(p_tenant, c.case_id, p_subject) = ANY (p_roles)))
+$f$;
+
+-- The names of a list, each once, in byte order. A conversation across cases keeps its cases in this form, so that two lists of the same cases are equal and the check below can refuse the others.
+CREATE OR REPLACE FUNCTION forensic.sorted_distinct_text(input text[])
+RETURNS text[]
+LANGUAGE sql
+IMMUTABLE
+PARALLEL SAFE
+AS $f$
+  SELECT coalesce(array_agg(x ORDER BY x COLLATE "C"), '{}'::text[]) FROM (SELECT DISTINCT unnest(input) AS x) q
+$f$;
+
 -- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- C. Conversations
 -- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -105,8 +132,8 @@ $f$;
 CREATE TABLE IF NOT EXISTS forensic.conversation_thread (
   thread_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id text NOT NULL DEFAULT 'default',
-  collection_id text NOT NULL,
-  -- reserved for threads that span cases (Ask across cases); not used until the engine can answer across cases, which needs collection_id to become nullable
+  -- the case of the conversation; NULL for a conversation across cases, whose cases (two to ten, sorted, each once) are listed in scope_collection_ids instead
+  collection_id text,
   scope_collection_ids text[] NOT NULL DEFAULT '{}',
   owner_subject text NOT NULL,
   title text,
@@ -128,25 +155,33 @@ CREATE TABLE IF NOT EXISTS forensic.conversation_thread (
   hide_reason text,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT conversation_thread_collection_chk CHECK (collection_id <> '' AND length(collection_id) <= 128),
+  CONSTRAINT conversation_thread_collection_chk CHECK (collection_id IS NULL OR (collection_id <> '' AND length(collection_id) <= 128)),
   CONSTRAINT conversation_thread_title_chk CHECK (title IS NULL OR (char_length(btrim(title)) BETWEEN 1 AND 200 AND title !~ '[[:cntrl:]]')),
   CONSTRAINT conversation_thread_title_source_chk CHECK (title_source IN ('auto', 'user')),
   CONSTRAINT conversation_thread_visibility_chk CHECK (visibility IN ('private', 'selected', 'case')),
   CONSTRAINT conversation_thread_shared_chk CHECK (cardinality(shared_with) <= 100),
-  CONSTRAINT conversation_thread_scope_chk CHECK (cardinality(scope_collection_ids) = 0),
+  -- one case and no list, or no case and a list of two to ten cases, each once, sorted, none empty, the whole list at most 1,280 bytes (ten case names of 128)
+  CONSTRAINT conversation_thread_scope_chk CHECK (
+    (collection_id IS NOT NULL AND cardinality(scope_collection_ids) = 0)
+    OR (collection_id IS NULL AND cardinality(scope_collection_ids) BETWEEN 2 AND 10
+        AND array_position(scope_collection_ids, NULL) IS NULL AND array_position(scope_collection_ids, '') IS NULL
+        AND octet_length(array_to_string(scope_collection_ids, '')) <= 1280
+        AND scope_collection_ids = forensic.sorted_distinct_text(scope_collection_ids))),
   CONSTRAINT conversation_thread_turns_chk CHECK (turn_count >= 0),
   CONSTRAINT conversation_thread_hidden_chk CHECK ((hidden_at IS NULL) = (hidden_by IS NULL)),
   CONSTRAINT conversation_thread_owner_chk CHECK (length(btrim(owner_subject)) BETWEEN 1 AND 256),
-  UNIQUE (thread_id, tenant_id, collection_id)
+  UNIQUE (thread_id, tenant_id)
 );
 
 CREATE INDEX IF NOT EXISTS conversation_thread_rail_idx
   ON forensic.conversation_thread (tenant_id, collection_id, pinned DESC, last_turn_at DESC NULLS LAST, thread_id DESC) WHERE hidden_at IS NULL;
 CREATE INDEX IF NOT EXISTS conversation_thread_owner_idx
   ON forensic.conversation_thread (tenant_id, owner_subject, last_turn_at DESC NULLS LAST);
+CREATE INDEX IF NOT EXISTS conversation_thread_scope_idx
+  ON forensic.conversation_thread USING gin (scope_collection_ids) WHERE collection_id IS NULL;
 
 COMMENT ON TABLE forensic.conversation_thread IS
-  'A conversation about one case: owner, title, pinned, archived, who may read it (private, selected, case), where it was forked from. Hidden (not deleted) by hidden_at; the audit row keeps who and why.';
+  'A conversation about one case (collection_id) or across two to ten cases (collection_id NULL, the cases in scope_collection_ids): owner, title, pinned, archived, who may read it (private, selected, case), where it was forked from. Hidden (not deleted) by hidden_at; the audit row keeps who and why.';
 
 CREATE TABLE IF NOT EXISTS forensic.conversation_turn (
   turn_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -154,6 +189,8 @@ CREATE TABLE IF NOT EXISTS forensic.conversation_turn (
   collection_id text NOT NULL,
   thread_id uuid NOT NULL,
   idx integer NOT NULL,
+  -- the turns of one question put to several cases share a group_id; NULL for every turn of a conversation about one case
+  group_id uuid,
   parent_turn_id uuid REFERENCES forensic.conversation_turn (turn_id),
   kind text NOT NULL DEFAULT 'ask',
   edit_of_turn_id uuid REFERENCES forensic.conversation_turn (turn_id),
@@ -210,10 +247,47 @@ CREATE TABLE IF NOT EXISTS forensic.conversation_turn (
     AND (snapshot_sha256 IS NULL OR snapshot_sha256 ~ '^[0-9a-f]{64}$') AND (data_version_hash IS NULL OR data_version_hash ~ '^[0-9a-f]{64}$')),
   CONSTRAINT conversation_turn_done_chk CHECK (state = 'running' OR completed_at IS NOT NULL),
   UNIQUE (thread_id, idx),
-  -- a turn belongs to the case of its thread
-  CONSTRAINT conversation_turn_thread_fk FOREIGN KEY (thread_id, tenant_id, collection_id) REFERENCES forensic.conversation_thread (thread_id, tenant_id, collection_id)
+  -- a turn belongs to its thread, and to one of the cases of that thread (the trigger below checks which: the case of the thread, or one of the cases it spans)
+  CONSTRAINT conversation_turn_thread_fk FOREIGN KEY (thread_id, tenant_id) REFERENCES forensic.conversation_thread (thread_id, tenant_id)
 );
 
+-- A turn is asked in a case of its conversation: in THE case of a conversation about one case, in one of the cases of a conversation across cases. SECURITY DEFINER so that the check does not
+-- depend on what the writer may read; it reads two columns of the thread and tells the writer nothing it did not send.
+CREATE OR REPLACE FUNCTION forensic.check_conversation_turn_scope()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = forensic, pg_catalog, pg_temp
+AS $f$
+DECLARE
+  own text;
+  spans text[];
+  found boolean;
+BEGIN
+  SELECT true, t.collection_id, t.scope_collection_ids INTO found, own, spans
+    FROM forensic.conversation_thread t WHERE t.thread_id = NEW.thread_id AND t.tenant_id = NEW.tenant_id;
+  IF NOT coalesce(found, false) THEN
+    RAISE EXCEPTION 'conversation % does not exist for this tenant', NEW.thread_id USING ERRCODE = '23503';
+  END IF;
+  IF own IS NOT NULL AND NEW.collection_id IS DISTINCT FROM own THEN
+    RAISE EXCEPTION 'a turn of conversation % cannot be asked in case %: the conversation is about another case', NEW.thread_id, NEW.collection_id USING ERRCODE = '23514';
+  END IF;
+  IF own IS NULL AND NOT (NEW.collection_id = ANY (spans)) THEN
+    RAISE EXCEPTION 'a turn of conversation % cannot be asked in case %: it is not one of the cases the conversation spans', NEW.thread_id, NEW.collection_id USING ERRCODE = '23514';
+  END IF;
+  IF own IS NOT NULL AND NEW.group_id IS NOT NULL THEN
+    RAISE EXCEPTION 'conversation % is about one case, so its turns are not grouped', NEW.thread_id USING ERRCODE = '23514';
+  END IF;
+  RETURN NEW;
+END;
+$f$;
+
+DROP TRIGGER IF EXISTS conversation_turn_scope ON forensic.conversation_turn;
+CREATE TRIGGER conversation_turn_scope
+  BEFORE INSERT ON forensic.conversation_turn
+  FOR EACH ROW EXECUTE FUNCTION forensic.check_conversation_turn_scope();
+
+CREATE INDEX IF NOT EXISTS conversation_turn_group_idx ON forensic.conversation_turn (thread_id, group_id, idx) WHERE group_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS conversation_turn_case_idx ON forensic.conversation_turn (tenant_id, collection_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS conversation_turn_parent_idx ON forensic.conversation_turn (parent_turn_id) WHERE parent_turn_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS conversation_turn_root_idx ON forensic.conversation_turn (root_turn_id, idx);
@@ -627,7 +701,7 @@ BEGIN
   IF NEW.turn_id IS DISTINCT FROM OLD.turn_id OR NEW.tenant_id IS DISTINCT FROM OLD.tenant_id OR NEW.collection_id IS DISTINCT FROM OLD.collection_id
      OR NEW.thread_id IS DISTINCT FROM OLD.thread_id OR NEW.idx IS DISTINCT FROM OLD.idx OR NEW.parent_turn_id IS DISTINCT FROM OLD.parent_turn_id
      OR NEW.kind IS DISTINCT FROM OLD.kind OR NEW.edit_of_turn_id IS DISTINCT FROM OLD.edit_of_turn_id OR NEW.rerun_of_turn_id IS DISTINCT FROM OLD.rerun_of_turn_id
-     OR NEW.root_turn_id IS DISTINCT FROM OLD.root_turn_id OR NEW.question_text IS DISTINCT FROM OLD.question_text
+     OR NEW.root_turn_id IS DISTINCT FROM OLD.root_turn_id OR NEW.question_text IS DISTINCT FROM OLD.question_text OR NEW.group_id IS DISTINCT FROM OLD.group_id
      OR NEW.created_by IS DISTINCT FROM OLD.created_by OR NEW.created_at IS DISTINCT FROM OLD.created_at THEN
     RAISE EXCEPTION 'the identity and the question of conversation_turn % cannot be changed', OLD.turn_id USING ERRCODE = '55000';
   END IF;
@@ -688,21 +762,29 @@ CREATE POLICY case_member_delete ON forensic.case_member FOR DELETE USING (
   tenant_id = current_setting('app.tenant_id', true)
   AND forensic.case_role(tenant_id, collection_id, current_setting('app.subject_id', true)) IN ('owner', 'lead'));
 
--- threads
+-- threads. A conversation about one case follows the rule of that case; a conversation across cases (collection_id NULL) follows the same rule in ALL of its cases: it is seen by a person who may
+-- open every one of them, and its private threads by an auditor of every one of them (visibility 'case' then means "everyone who may open all of its cases").
 DROP POLICY IF EXISTS conversation_thread_select ON forensic.conversation_thread;
 CREATE POLICY conversation_thread_select ON forensic.conversation_thread FOR SELECT USING (
   tenant_id = current_setting('app.tenant_id', true)
-  AND forensic.case_role(tenant_id, collection_id, current_setting('app.subject_id', true)) <> 'none'
+  AND (CASE WHEN collection_id IS NOT NULL
+            THEN forensic.case_role(tenant_id, collection_id, current_setting('app.subject_id', true)) <> 'none'
+            ELSE forensic.case_role_in_all(tenant_id, scope_collection_ids, current_setting('app.subject_id', true),
+                                           ARRAY['owner', 'lead', 'analyst', 'reviewer', 'viewer', 'auditor', 'open']) END)
   AND (owner_subject = current_setting('app.subject_id', true)
        OR visibility = 'case'
        OR (visibility = 'selected' AND current_setting('app.subject_id', true) = ANY (shared_with))
-       OR forensic.case_role(tenant_id, collection_id, current_setting('app.subject_id', true)) = 'auditor'
+       OR (CASE WHEN collection_id IS NOT NULL
+                THEN forensic.case_role(tenant_id, collection_id, current_setting('app.subject_id', true)) = 'auditor'
+                ELSE forensic.case_role_in_all(tenant_id, scope_collection_ids, current_setting('app.subject_id', true), ARRAY['auditor']) END)
        OR current_setting('app.actor_role', true) = 'admin'));
 DROP POLICY IF EXISTS conversation_thread_insert ON forensic.conversation_thread;
 CREATE POLICY conversation_thread_insert ON forensic.conversation_thread FOR INSERT WITH CHECK (
   tenant_id = current_setting('app.tenant_id', true)
   AND owner_subject = current_setting('app.subject_id', true)
-  AND forensic.case_role(tenant_id, collection_id, current_setting('app.subject_id', true)) NOT IN ('none', 'viewer', 'auditor'));
+  AND (CASE WHEN collection_id IS NOT NULL
+            THEN forensic.case_role(tenant_id, collection_id, current_setting('app.subject_id', true)) NOT IN ('none', 'viewer', 'auditor')
+            ELSE forensic.case_role_in_all(tenant_id, scope_collection_ids, current_setting('app.subject_id', true), ARRAY['owner', 'lead', 'analyst', 'reviewer', 'open']) END));
 DROP POLICY IF EXISTS conversation_thread_update ON forensic.conversation_thread;
 CREATE POLICY conversation_thread_update ON forensic.conversation_thread FOR UPDATE
   USING (tenant_id = current_setting('app.tenant_id', true)

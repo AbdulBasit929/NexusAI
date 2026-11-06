@@ -235,6 +235,8 @@ func main() {
 	mux.HandleFunc("GET /api/v1/forensics/cases/{case_id}/manifest", forensicCaseManifestHandler(db))
 	mux.HandleFunc("POST /api/v1/forensics/cases/{case_id}/query", forensicCaseQueryV1Handler(cfg, db))
 	mux.HandleFunc("POST /reports/generate", reportGenerateHandler(cfg, db))
+	// conversations with history, notes, findings, tags, members and authority records (migration 034; internal/caselayer)
+	registerCaseLayer(mux, cfg, db)
 
 	handler := forensicAuthMiddleware(authConfig, mux)
 	slog.Info("forensic records webhook listening", "addr", cfg.ListenAddr, "auth_enabled", cfg.InboundAPIKey != "")
