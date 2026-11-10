@@ -1,0 +1,252 @@
+{
+  "registry_version": "pk-plates-2026-11-10-v1",
+  "status": "approximation_to_be_reviewed",
+  "note": "Built from the formats the earlier generator already used and from public descriptions. Pakistani plate designs differ by province, vehicle class and year and have changed more than once (province designs, one-line and two-line motorcycle plates, commercial and government colours, Islamabad ICT, Sindh's Ajrak-themed plates, owner-linked registration). Each entry is a constraint for decoding and a recipe for synthetic training data, not an official specification. A read that fits no entry is returned as read and flagged format_unknown; the registry never fills characters in. Format weights were set on 2026-11-10 from the shapes of the 32 human-verified plates of the Kaggle Pakistani plate photos (all one line: 3 letters + 4 digits 16, 3 + 3 10, 2 + 4 3, 2 + 3 2, 2 + 2 1; no year-style plate among them); n is small and a year-style entry is kept at low weight.",
+  "series": {
+    "Punjab": [
+      "LEA",
+      "LEB",
+      "LEC",
+      "LED",
+      "LEE",
+      "LEF",
+      "LEG",
+      "LEH",
+      "LEI",
+      "LEJ",
+      "LRV",
+      "LXA",
+      "RIA",
+      "RIB",
+      "RNA",
+      "FDA",
+      "FDB",
+      "MNA",
+      "MNB",
+      "GAA",
+      "GJA",
+      "SAB",
+      "SGA",
+      "BWA",
+      "MNS",
+      "MNC",
+      "LEK",
+      "LEL",
+      "LYA",
+      "LYB"
+    ],
+    "Sindh": [
+      "AGH",
+      "AKB",
+      "AHA",
+      "BDX",
+      "BNA",
+      "BKA",
+      "KHD",
+      "KHA",
+      "HYD",
+      "SKA",
+      "LRA"
+    ],
+    "ICT": [
+      "ICT",
+      "IDA",
+      "IDB",
+      "ICA"
+    ],
+    "KPK": [
+      "PSH",
+      "PRB",
+      "ABC",
+      "KPK",
+      "MDN",
+      "SWA",
+      "ATA"
+    ],
+    "Balochistan": [
+      "QTA",
+      "BLC",
+      "KZA",
+      "BQA",
+      "TBA"
+    ],
+    "GB_AJK": [
+      "GBA",
+      "AJK",
+      "MZA"
+    ]
+  },
+  "formats": [
+    {
+      "id": "L3_S4",
+      "pattern": "^[A-Z]{3}[0-9]{4}$",
+      "display": "{L3}-{S4}",
+      "layouts": [
+        "one_line",
+        "two_line"
+      ],
+      "weight": 50,
+      "note": "three-letter series and four-digit serial (16 of 32 real plates)"
+    },
+    {
+      "id": "L3_S3",
+      "pattern": "^[A-Z]{3}[0-9]{3}$",
+      "display": "{L3}-{S3}",
+      "layouts": [
+        "one_line",
+        "two_line"
+      ],
+      "weight": 31,
+      "note": "three-letter series and three-digit serial (10 of 32)"
+    },
+    {
+      "id": "L2_S4",
+      "pattern": "^[A-Z]{2}[0-9]{4}$",
+      "display": "{L2}-{S4}",
+      "layouts": [
+        "one_line",
+        "two_line"
+      ],
+      "weight": 9,
+      "note": "two-letter series and four-digit serial (3 of 32)"
+    },
+    {
+      "id": "L2_S3",
+      "pattern": "^[A-Z]{2}[0-9]{3}$",
+      "display": "{L2}-{S3}",
+      "layouts": [
+        "one_line"
+      ],
+      "weight": 6,
+      "note": "two-letter series and three-digit serial (2 of 32)"
+    },
+    {
+      "id": "L2_S2",
+      "pattern": "^[A-Z]{2}[0-9]{2}$",
+      "display": "{L2}-{S2}",
+      "layouts": [
+        "one_line"
+      ],
+      "weight": 3,
+      "note": "two-letter series and two-digit serial (1 of 32)"
+    },
+    {
+      "id": "L3_Y2_S4",
+      "pattern": "^[A-Z]{3}[0-9]{2}[0-9]{4}$",
+      "display": "{L3}-{Y2}-{S4}",
+      "layouts": [
+        "one_line"
+      ],
+      "weight": 2,
+      "note": "three-letter series, two-digit year, four-digit serial (none among the 32; kept at low weight)"
+    },
+    {
+      "id": "L3_Y2_S3",
+      "pattern": "^[A-Z]{3}[0-9]{2}[0-9]{3}$",
+      "display": "{L3}-{Y2}-{S3}",
+      "layouts": [
+        "one_line"
+      ],
+      "weight": 1,
+      "note": "low confidence entry"
+    }
+  ],
+  "visual_classes": [
+    {
+      "id": "white",
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "weight": 60
+    },
+    {
+      "id": "white_cool",
+      "background": [
+        238,
+        242,
+        246
+      ],
+      "weight": 12
+    },
+    {
+      "id": "yellow",
+      "background": [
+        250,
+        214,
+        60
+      ],
+      "weight": 14
+    },
+    {
+      "id": "green",
+      "background": [
+        226,
+        238,
+        226
+      ],
+      "weight": 8
+    },
+    {
+      "id": "dark",
+      "background": [
+        30,
+        30,
+        34
+      ],
+      "weight": 6,
+      "text": [
+        235,
+        235,
+        235
+      ]
+    }
+  ],
+  "confusable_pairs": [
+    [
+      "0",
+      "O"
+    ],
+    [
+      "0",
+      "D"
+    ],
+    [
+      "0",
+      "Q"
+    ],
+    [
+      "1",
+      "I"
+    ],
+    [
+      "8",
+      "B"
+    ],
+    [
+      "5",
+      "S"
+    ],
+    [
+      "2",
+      "Z"
+    ],
+    [
+      "6",
+      "G"
+    ],
+    [
+      "M",
+      "W"
+    ],
+    [
+      "U",
+      "V"
+    ]
+  ],
+  "digit_maps": {
+    "arabic_indic": "٠١٢٣٤٥٦٧٨٩",
+    "extended_arabic_indic": "۰۱۲۳۴۵۶۷۸۹"
+  }
+}

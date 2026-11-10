@@ -177,6 +177,7 @@ class FastALPRImageProcessor:
     processor_id = "fastalpr-onnx-cpu"
     processor_revision = "nexusai-bf1-v1"
     detector_id = "yolo-v9-t-384-license-plate-end2end"
+    detector_version = "fast-alpr-0.4.0/open-image-models-0.6.0"
     ocr_id = "cct-xs-v2-global-model"
 
     def __init__(
@@ -307,7 +308,7 @@ class FastALPRImageProcessor:
                 "parent_version_id": version_id,
                 "parent_sha256": source_sha256,
                 "detector_id": self.detector_id,
-                "detector_version": "fast-alpr-0.4.0/open-image-models-0.6.0",
+                "detector_version": self.detector_version,
                 "coordinate_space": "original_image_pixels",
                 "bounds": locator["bbox"],
                 "confidence": detection_confidence,
@@ -1724,7 +1725,14 @@ def configured_media_processor() -> DeterministicMediaProcessor:
     audio_transcriber: AudioTranscriber | None = None
     video_anpr_processor: Any | None = None
     if os.getenv("FORENSIC_ANPR_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}:
-        image_processors.append(FastALPRImageProcessor.from_environment())
+        if os.getenv("FORENSIC_ANPR_ENGINE", "fastalpr").strip().lower() == "nexus":
+            try:
+                from ingestion.forensic_records.plate_processor_nexus import NexusPlateImageProcessor
+            except ModuleNotFoundError:  # pragma: no cover - direct worker image execution
+                from plate_processor_nexus import NexusPlateImageProcessor
+            image_processors.append(NexusPlateImageProcessor.from_environment())
+        else:
+            image_processors.append(FastALPRImageProcessor.from_environment())
     if os.getenv("FORENSIC_FACE_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}:
         image_processors.append(LocalAIFaceProcessor.from_environment())
     if os.getenv("FORENSIC_IMAGE_EMBEDDING_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}:
