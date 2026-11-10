@@ -78,3 +78,32 @@ def test_non_plate_boxes_are_dropped_and_plates_and_close_ups_are_kept():
     big_wide = (0, 0, 800, 300, 0.9)  # wide enough (aspect 2.7) to be a plate even though it is large, and it holds a smaller detection: kept
     assert big_wide in pdo.drop_non_plates([big_wide, (100, 100, 200, 140, 0.8)], 1100, 906)
     assert pdo.drop_non_plates([], W, H) == []
+
+
+def test_a_model_file_that_differs_from_its_pin_is_refused(monkeypatch=None):
+    import os
+
+    import media_pipeline as mp
+
+    with tempfile.TemporaryDirectory() as directory:
+        files = {}
+        for name in ("det.onnx", "ocr.onnx", "ocr.yaml"):
+            files[name] = Path(directory) / name
+            files[name].write_bytes(b"not a model")
+        env = {"FORENSIC_ANPR_NEXUS_DETECTOR_MODEL_PATH": str(files["det.onnx"]), "FORENSIC_ANPR_NEXUS_OCR_MODEL_PATH": str(files["ocr.onnx"]),
+               "FORENSIC_ANPR_NEXUS_OCR_CONFIG_PATH": str(files["ocr.yaml"]), "FORENSIC_ANPR_NEXUS_DETECTOR_SHA256": "0" * 64}
+        previous = {key: os.environ.get(key) for key in env}
+        os.environ.update(env)
+        try:
+            try:
+                pn.NexusPlateImageProcessor.from_environment()
+            except mp.ModelUnavailableError as error:
+                assert "pinned SHA-256" in str(error)
+            else:
+                raise AssertionError("a file that differs from its pin must be refused")
+        finally:
+            for key, value in previous.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value

@@ -101,6 +101,10 @@ class NexusPlateImageProcessor(FastALPRImageProcessor):
             from fast_alpr.default_ocr import DefaultOCR  # type: ignore[import-not-found]
         except ModuleNotFoundError as exc:
             raise ModelUnavailableError(f"plate engine runtime dependency unavailable: {exc.name}") from exc
+        for path, pin in ((detector_path, "FORENSIC_ANPR_NEXUS_DETECTOR_SHA256"), (ocr_path, "FORENSIC_ANPR_NEXUS_OCR_SHA256"), (ocr_config, "FORENSIC_ANPR_NEXUS_OCR_CONFIG_SHA256")):
+            expected = os.getenv(pin, "").strip().lower()  # a pinned file that differs is refused (the other media roles do the same)
+            if expected and _sha256(path).lower() != expected:
+                raise ModelUnavailableError(f"{path.name} does not match its pinned SHA-256 ({pin})")
         providers = _onnx_providers()
         confidence = float(os.getenv("FORENSIC_ANPR_NEXUS_MIN_DETECTION_CONFIDENCE", "0.5")) if minimum_confidence is None else float(minimum_confidence)
         detector = OnnxPlateDetector(detector_path, cv2, providers=providers, normalise="unit", threshold=confidence, drop_non_plates=True)

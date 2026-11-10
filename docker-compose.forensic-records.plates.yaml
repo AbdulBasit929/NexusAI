@@ -1,0 +1,20 @@
+# Plates on images (docs/data/plates-m5-preregistration-20261110.md, Amendments 1 to 6; runbook tools/media_data/PLATES_GO_LIVE.md): switches the plate role ON with the new engine.
+# PROVISIONAL (owner's decision 2026-11-10: functional first with acceptable results, accuracy work after every data type is in): the detector's training data is not stated and the reader weights have no
+# separate licence statement; 16 of 22 exact on the owner-labelled real sealed set (the current models 13 of 22), the pre-registered gate of 17 missed by one image. Observations are "model observation,
+# review required", each carries plate_format / plate_format_flags / model_provenance.
+# Add this file AFTER the four files of the running worker (main compose, ingest-v2, media, families). Recreating the worker WITHOUT it turns the plate role off again (the safe direction):
+#   tools/dev/live-window/5-recreate-worker-plates.ps1 [-Apply|-Rollback]
+# The three model files are pinned by SHA-256 (from the fetch manifest); the worker refuses one that differs.
+services:
+  forensic-records-worker:
+    environment:
+      FORENSIC_ANPR_ENABLED: ${FORENSIC_ANPR_ENABLED:-true}
+      FORENSIC_ANPR_ENGINE: ${FORENSIC_ANPR_ENGINE:-nexus}
+      FORENSIC_ANPR_ONNX_PROVIDERS: ${FORENSIC_ANPR_ONNX_PROVIDERS:-CPUExecutionProvider}
+      FORENSIC_ANPR_NEXUS_DETECTOR_MODEL_PATH: /models/media/nexus-plates/rfdetr_alpr.onnx
+      FORENSIC_ANPR_NEXUS_DETECTOR_SHA256: a94c5c54dd46186105ad7979838158ff6b98bfcb4d4ba1ff12b055c65fe6fb9a
+      FORENSIC_ANPR_NEXUS_OCR_MODEL_PATH: /models/media/nexus-plates/cct_s_v2_global.onnx
+      FORENSIC_ANPR_NEXUS_OCR_SHA256: 384bbbd2cea3ef54761d3df70822ef3a349ee1a112aeafddbe0e3ba06bc6e47b
+      FORENSIC_ANPR_NEXUS_OCR_CONFIG_PATH: /models/media/nexus-plates/cct_s_v2_global_plate_config.yaml
+      FORENSIC_ANPR_NEXUS_OCR_CONFIG_SHA256: 0335c74a305173bb6f393efed0fde03cadeaa0b649ed8e19f431016d8232d0a6
+      FORENSIC_ANPR_NEXUS_MIN_DETECTION_CONFIDENCE: ${FORENSIC_ANPR_NEXUS_MIN_DETECTION_CONFIDENCE:-0.5}

@@ -1,4 +1,4 @@
-# Plates: going live (runbook, prepared 2026-11-10; NOT executed)
+# Plates: going live (runbook; EXECUTED 2026-11-10, see Amendment 7 of the plates pre-registration)
 
 State: the new plate engine is wired behind `FORENSIC_ANPR_ENGINE` (default `fastalpr`). The live worker has the plate role **off** (`FORENSIC_ANPR_ENABLED=false`) and runs image `nexusai-forensic-records-worker:latest` = `47e5e829a3d4`.
 Evidence for the engine: `docs/data/plates-m5-preregistration-20261110.md` (Amendments 1 to 6). It is a **flagged, provisional** option: the detector's training data is not stated, the reader weights have no separate licence statement, and the pre-registered exact-read gate (17 of 22) was missed by one image (16 of 22; the current models 13 of 22).
@@ -9,7 +9,7 @@ Evidence for the engine: `docs/data/plates-m5-preregistration-20261110.md` (Amen
 3. The three model files are in `models/media/nexus-plates/` (the worker mounts `models/media` at `/models/media`); `PROVENANCE.json` there holds their SHA-256 values.
 4. Staging proof passes with the overlay's own code (engine `nexus`, a few real photos: readiness READY, one observation per plate; engine unset: the current processor).
 
-## Switch on (the owner's word is needed)
+## Switch on (done 2026-11-10; the one-command form is tools/dev/live-window/5-recreate-worker-plates.ps1 [-Apply|-Rollback], dry run by default)
 ```powershell
 cd C:\Users\sheik\Workspace\Office\Projects\NexusAI-localwork
 docker tag nexusai-forensic-records-worker:latest nexusai-forensic-records-worker:before-plates-20261110     # the rollback
