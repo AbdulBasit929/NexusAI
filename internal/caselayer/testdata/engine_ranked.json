@@ -1,0 +1,216 @@
+{
+ "collection_id": "records-demo",
+ "request_class": "GOVERNED_EVIDENCE_ANALYSIS",
+ "intent": "records",
+ "template": "",
+ "query_understanding": {
+  "contract_version": "",
+  "original_question": "",
+  "normalized_question": "",
+  "language": {
+   "tag": "",
+   "source": "",
+   "confidence": 0
+  },
+  "intent": "",
+  "families": {
+   "kind": "",
+   "secondary": null
+  },
+  "entities": null,
+  "targets": null,
+  "time_scope": {
+   "timezone": "",
+   "origin": ""
+  },
+  "filters": null,
+  "requested_output": {
+   "result_kind": "",
+   "presentation_type": "",
+   "limit": 0
+  },
+  "candidate_capabilities": null,
+  "semantic_capability_ids": null,
+  "semantic_operation_refs": null,
+  "clarification": {
+   "required": false,
+   "missing_fields": null
+  },
+  "context": {
+   "used": false,
+   "fields": null,
+   "inherited_fields": null
+  },
+  "confidence": {
+   "overall": 0,
+   "routing": 0,
+   "entities": 0,
+   "time_scope": 0
+  }
+ },
+ "route": [
+  "ask_engine_v2"
+ ],
+ "policy": "ask_engine_v2",
+ "planner": {
+  "contract_version": "forensics.request-class/v1",
+  "governed_sql": {
+   "state": "answered",
+   "views": [
+    "v_cdr"
+   ],
+   "attempts": 1,
+   "sql": "SELECT count(*) AS number_of_records FROM v_cdr",
+   "model_ms": 0,
+   "exec_ms": 25,
+   "total_ms": 2149,
+   "rows": 1,
+   "prompt_bytes": 4745,
+   "prompt_id": "3bb60baef6dcbf66"
+  },
+  "request_class": "GOVERNED_EVIDENCE_ANALYSIS"
+ },
+ "query_plan": {
+  "interpreted_intent": "",
+  "selected_template": "",
+  "target_identifiers": null,
+  "date_bounds": {},
+  "applied_filters": null,
+  "confidence": 0,
+  "coverage_check": {
+   "total_indexed_records": 0,
+   "record_families_present": null,
+   "nearest_activity": {},
+   "valid_target_examples": null
+  },
+  "execution_strategy": ""
+ },
+ "capability": {
+  "status": "supported",
+  "requested_families": null,
+  "required_operations": null,
+  "missing_capabilities": null,
+  "explanation": "",
+  "suggested_queries": null
+ },
+ "coverage": {
+  "total_indexed_records": 0,
+  "record_families_present": null,
+  "nearest_activity": {},
+  "valid_target_examples": null
+ },
+ "answer": {
+  "answer": "3 results: 923000000201 (14), 923000000202 (9), 923000000203 (4).",
+  "governed_sql": {
+   "columns": [
+    "number_of_records"
+   ],
+   "family": "communications_cdr",
+   "row_count": 1,
+   "sql": "SELECT count(*) AS number_of_records FROM v_cdr",
+   "view": "v_cdr"
+  },
+  "grounding": "ASK_ENGINE_V2",
+  "result_state": "COMPLETED"
+ },
+ "enterprise": {
+  "coverage": {
+   "collection_id": "records-demo",
+   "queried_kb": false,
+   "queried_record_sql": true,
+   "route": [
+    "governed_sql"
+   ],
+   "tenant_id": "default"
+  },
+  "data_grid": {
+   "columns": [
+    {
+     "header": "Label",
+     "key": "label"
+    },
+    {
+     "header": "Value",
+     "key": "value"
+    }
+   ],
+   "rows": [
+    {
+     "label": "923000000201",
+     "value": 14
+    },
+    {
+     "label": "923000000202",
+     "value": 9
+    },
+    {
+     "label": "923000000203",
+     "value": 4
+    }
+   ],
+   "count": 3
+  },
+  "derivation": {
+   "sql": "SELECT dst AS label, events AS value FROM v_contact_pairs WHERE src = '923000000101' AND NOT is_service ORDER BY events DESC LIMIT 3",
+   "steps": [
+    "Read: v_contact_pairs (One row per subscriber (src) and other party (dst)).",
+    "Kept only the rows where src = '923000000101', and NOT is_service.",
+    "Returned: dst AS label, events AS value.",
+    "Ordered by events DESC.",
+    "Kept the first 3 rows."
+   ],
+   "conditions_checked": [
+    "Every identifier of the question (1) is in the query, and the query names none the question does not.",
+    "The query keeps exactly the 3 results the question asks for."
+   ],
+   "views": [
+    "v_contact_pairs"
+   ],
+   "attempts": 1,
+   "repairs": []
+  },
+  "executive_answer": "3 results: 923000000201 (14), 923000000202 (9), 923000000203 (4).",
+  "limitations": [
+   "Computed by a model-written query over Call detail records (v_cdr), checked against the question and run read-only. The query is shown under derivation."
+  ],
+  "metrics": [
+   {
+    "label": "Number of records",
+    "source": "governed_sql",
+    "value": "5,005"
+   }
+  ],
+  "operation": {
+   "family_id": "communications_cdr",
+   "operation_id": "forensics.governed_sql",
+   "source_access": "records_sql",
+   "template": "governed_sql"
+  },
+  "provenance": [
+   {
+    "kind": "governed_sql",
+    "record_type": "cdr",
+    "row_count": 1,
+    "source": "records_sql",
+    "sql": "SELECT count(*) AS number_of_records FROM v_cdr",
+    "table": "forensic.records",
+    "view": "v_cdr"
+   }
+  ],
+  "result_state": "COMPLETED",
+  "row_count": 3,
+  "status": "completed",
+  "summary": "Computed by a model-written query over Call detail records (v_cdr), checked against the question and run read-only. The query is shown under derivation.",
+  "result_shape": "ranked"
+ },
+ "telemetry": {
+  "request_id": "",
+  "db_latency_ms": 0,
+  "kb_latency_ms": 0,
+  "llm_latency_ms": 0,
+  "total_latency_ms": 2149,
+  "planner_confidence": 0,
+  "execution_path": ""
+ },
+ "generated_at": "2026-10-07T07:53:15.075543707Z"
+}
