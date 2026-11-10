@@ -455,6 +455,10 @@ services:
       # case fact). Any failure leaves the request on the existing path. Thresholds written before the arms ran:
       # reports/free-question-baseline-20261002/PREREGISTRATION.md. UNMEASURED -- default off.
       FORENSIC_CONVERSATION_FRONT_DOOR: ${FORENSIC_CONVERSATION_FRONT_DOOR:-false}
+      # Text-search intent: one model call reads the sentence (never case data) and, when it asks to find words or a phrase in transcripts, image text or documents,
+      # the request carries a structured text query and goes to the governed text retrieval instead of the SQL engine. Server checks: the literal must be a verbatim part
+      # of the sentence, a national ID number is never routed, any failure changes nothing. docs/roadmap/text-intent-preregistration-20261110.md. UNMEASURED -- default off.
+      FORENSIC_TEXT_INTENT: ${FORENSIC_TEXT_INTENT:-false}
       # Governed SQL lane (docs/architecture/QUERY_ANSWERING_DECISION_20261005.md): a model writes one SELECT over analyst views built from
       # the curated semantic layer; a parse-tree allowlist validates it, a verifier checks that every condition in the question is in the
       # query, and it runs read-only. GOVERNED_SQL alone runs it only AFTER the existing path declines (it cannot change an answer already
@@ -533,6 +537,13 @@ services:
       FORENSIC_ANPR_OCR_CONFIG_PATH: /models/media/fast-plate-ocr/cct-xs-v2-global-model/cct_xs_v2_global_plate_config.yaml
       FORENSIC_ANPR_ONNX_PROVIDERS: ${FORENSIC_ANPR_ONNX_PROVIDERS:-OpenVINOExecutionProvider,CPUExecutionProvider}
       FORENSIC_ANPR_MIN_DETECTION_CONFIDENCE: ${FORENSIC_ANPR_MIN_DETECTION_CONFIDENCE:-0.75}
+      # Plate engine: `fastalpr` (YOLOv9-t + cct-xs-v2, ship-blocking on licence) or `nexus` (published RF-DETR detector + cct-s-v2 reader, PROVISIONAL: training data of the
+      # detector not stated, reader weights without a separate licence statement). Measured on the owner-labelled real sealed set, docs/data/plates-m5-preregistration-20261110.md (Amendment 4).
+      FORENSIC_ANPR_ENGINE: ${FORENSIC_ANPR_ENGINE:-fastalpr}
+      FORENSIC_ANPR_NEXUS_DETECTOR_MODEL_PATH: /models/media/nexus-plates/rfdetr_alpr.onnx
+      FORENSIC_ANPR_NEXUS_OCR_MODEL_PATH: /models/media/nexus-plates/cct_s_v2_global.onnx
+      FORENSIC_ANPR_NEXUS_OCR_CONFIG_PATH: /models/media/nexus-plates/cct_s_v2_global_plate_config.yaml
+      FORENSIC_ANPR_NEXUS_MIN_DETECTION_CONFIDENCE: ${FORENSIC_ANPR_NEXUS_MIN_DETECTION_CONFIDENCE:-0.5}
       FORENSIC_FACE_ENABLED: ${FORENSIC_FACE_ENABLED:-false}
       FORENSIC_FACE_ENDPOINT: ${FORENSIC_FACE_ENDPOINT:-http://api:8080/v1/face}
       FORENSIC_FACE_MODEL: ${FORENSIC_FACE_MODEL:-face-detect-yunet-sface}

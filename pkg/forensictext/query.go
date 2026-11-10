@@ -9,6 +9,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"golang.org/x/text/cases"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -30,9 +31,15 @@ type Query struct {
 	LiteralText    string   `json:"literal_text,omitempty"`
 	MatchSemantic  Semantic `json:"match_semantic"`
 	Representation string   `json:"text_representation,omitempty"`
+	// CaseInsensitive compares by Unicode case folding. It is false for every query that does not say otherwise, so exact-value searches keep their meaning;
+	// the natural-language route sets it, because an analyst who types "invoice" is not asking to miss "Invoice".
+	CaseInsensitive bool `json:"case_insensitive,omitempty"`
 }
 
 func Normalize(value string) string { return strings.Join(strings.Fields(norm.NFC.String(value)), " ") }
+
+// fold is applied to both sides of a case-insensitive comparison, after Normalize.
+func fold(value string) string { return cases.Fold().String(value) }
 
 func (q Query) Validate() error {
 	switch q.MatchSemantic {
@@ -80,6 +87,9 @@ func Match(text string, q Query) bool {
 		return false
 	}
 	haystack, needle := Normalize(text), Normalize(q.LiteralText)
+	if q.CaseInsensitive {
+		haystack, needle = fold(haystack), fold(needle)
+	}
 	switch q.MatchSemantic {
 	case ExactValue:
 		return haystack == needle
@@ -106,7 +116,7 @@ func Match(text string, q Query) bool {
 		return false
 	case TokenSearch:
 		for _, token := range strings.Fields(needle) {
-			if !Match(text, Query{LiteralText: token, MatchSemantic: ExactPhrase}) {
+			if !Match(text, Query{LiteralText: token, MatchSemantic: ExactPhrase, CaseInsensitive: q.CaseInsensitive}) {
 				return false
 			}
 		}

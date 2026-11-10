@@ -1,0 +1,1478 @@
+{
+ "built": "2026-11-10",
+ "seed": "holdout",
+ "frames": "holdout",
+ "preregistration": "docs/roadmap/text-intent-preregistration-20261110.md",
+ "positives": [
+  {
+   "id": "TI-H-001",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "list the documents where passage and source is written",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "passage and source",
+   "oracle_literal": "passage and source",
+   "oracle_evidence_lower": [
+    "88eedb87-658a-4f3e-a89c-8b5740e4a248"
+   ],
+   "oracle_evidence_upper": [
+    "88eedb87-658a-4f3e-a89c-8b5740e4a248"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-002",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "I need every PDF that has can usually in it",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "can usually",
+   "oracle_literal": "can usually",
+   "oracle_evidence_lower": [
+    "b7608931-046a-4b29-9eef-241c7315f38f"
+   ],
+   "oracle_evidence_upper": [
+    "b7608931-046a-4b29-9eef-241c7315f38f"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-003",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "look through the letters and statements for MAY NEED",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "MAY NEED",
+   "oracle_literal": "may need",
+   "oracle_evidence_lower": [
+    "b7608931-046a-4b29-9eef-241c7315f38f"
+   ],
+   "oracle_evidence_upper": [
+    "b7608931-046a-4b29-9eef-241c7315f38f"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-004",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "which emails refer to structured?",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "structured",
+   "oracle_literal": "structured",
+   "oracle_evidence_lower": [
+    "ee48bd0b-acde-4b51-b8c6-d9194278efda"
+   ],
+   "oracle_evidence_upper": [
+    "ee48bd0b-acde-4b51-b8c6-d9194278efda"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-005",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "does the paperwork say plugged-in anywhere",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "plugged-in",
+   "oracle_literal": "plugged-in",
+   "oracle_evidence_lower": [
+    "b7608931-046a-4b29-9eef-241c7315f38f"
+   ],
+   "oracle_evidence_upper": [
+    "b7608931-046a-4b29-9eef-241c7315f38f"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-006",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "show me documents containing CHOOSE",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "CHOOSE",
+   "oracle_literal": "choose",
+   "oracle_evidence_lower": [
+    "b7608931-046a-4b29-9eef-241c7315f38f"
+   ],
+   "oracle_evidence_upper": [
+    "b7608931-046a-4b29-9eef-241c7315f38f"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-007",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "list the documents where acceptance boundaries is written",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "acceptance boundaries",
+   "oracle_literal": "acceptance boundaries",
+   "oracle_evidence_lower": [
+    "88eedb87-658a-4f3e-a89c-8b5740e4a248"
+   ],
+   "oracle_evidence_upper": [
+    "88eedb87-658a-4f3e-a89c-8b5740e4a248"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-008",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "I need every PDF that has combine structured observations in it",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "combine structured observations",
+   "oracle_literal": "combine structured observations",
+   "oracle_evidence_lower": [
+    "ee48bd0b-acde-4b51-b8c6-d9194278efda"
+   ],
+   "oracle_evidence_upper": [
+    "ee48bd0b-acde-4b51-b8c6-d9194278efda"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-009",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "has LEAST come up at all?",
+   "source_family": "document",
+   "expected_family": "any",
+   "literal": "LEAST",
+   "oracle_literal": "least",
+   "oracle_evidence_lower": [
+    "b7608931-046a-4b29-9eef-241c7315f38f"
+   ],
+   "oracle_evidence_upper": [
+    "b7608931-046a-4b29-9eef-241c7315f38f"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-010",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "look for api available across everything we hold",
+   "source_family": "document",
+   "expected_family": "any",
+   "literal": "api available",
+   "oracle_literal": "api available",
+   "oracle_evidence_lower": [
+    "b7608931-046a-4b29-9eef-241c7315f38f"
+   ],
+   "oracle_evidence_upper": [
+    "b7608931-046a-4b29-9eef-241c7315f38f"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-011",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "is there any trace of expected grounded in this case?",
+   "source_family": "document",
+   "expected_family": "any",
+   "literal": "expected grounded",
+   "oracle_literal": "expected grounded",
+   "oracle_evidence_lower": [
+    "88eedb87-658a-4f3e-a89c-8b5740e4a248"
+   ],
+   "oracle_evidence_upper": [
+    "88eedb87-658a-4f3e-a89c-8b5740e4a248"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-012",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "check the voice recordings for BEING",
+   "source_family": "audio",
+   "expected_family": "audio",
+   "literal": "BEING",
+   "oracle_literal": "being",
+   "oracle_evidence_lower": [
+    "7b1b6259-5866-4f03-a0d9-624f9c377a73"
+   ],
+   "oracle_evidence_upper": [
+    "7b1b6259-5866-4f03-a0d9-624f9c377a73"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-013",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "was seasoned ever spoken in the intercepted audio",
+   "source_family": "audio",
+   "expected_family": "audio",
+   "literal": "seasoned",
+   "oracle_literal": "seasoned",
+   "oracle_evidence_lower": [
+    "7b1b6259-5866-4f03-a0d9-624f9c377a73"
+   ],
+   "oracle_evidence_upper": [
+    "7b1b6259-5866-4f03-a0d9-624f9c377a73"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-014",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "which recordings include the words available?",
+   "source_family": "audio",
+   "expected_family": "audio",
+   "literal": "available",
+   "oracle_literal": "available",
+   "oracle_evidence_lower": [
+    "7b1b6259-5866-4f03-a0d9-624f9c377a73"
+   ],
+   "oracle_evidence_upper": [
+    "7b1b6259-5866-4f03-a0d9-624f9c377a73"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-015",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "look in the transcripts of the calls for SPICES",
+   "source_family": "audio",
+   "expected_family": "audio",
+   "literal": "SPICES",
+   "oracle_literal": "spices",
+   "oracle_evidence_lower": [
+    "7b1b6259-5866-4f03-a0d9-624f9c377a73"
+   ],
+   "oracle_evidence_upper": [
+    "7b1b6259-5866-4f03-a0d9-624f9c377a73"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-016",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "who says dishes in the calls?",
+   "source_family": "audio",
+   "expected_family": "audio",
+   "literal": "dishes",
+   "oracle_literal": "dishes",
+   "oracle_evidence_lower": [
+    "7b1b6259-5866-4f03-a0d9-624f9c377a73"
+   ],
+   "oracle_evidence_upper": [
+    "7b1b6259-5866-4f03-a0d9-624f9c377a73"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-017",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "check the voice recordings for aor bre",
+   "source_family": "audio",
+   "expected_family": "audio",
+   "literal": "aor bre",
+   "oracle_literal": "aor bre",
+   "oracle_evidence_lower": [
+    "2097c6df-c0ad-4886-b0e7-ea4f4856a220"
+   ],
+   "oracle_evidence_upper": [
+    "2097c6df-c0ad-4886-b0e7-ea4f4856a220"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-018",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "ریکارڈ شدہ آواز میں پائنی دیکھیں",
+   "source_family": "audio",
+   "expected_family": "audio",
+   "literal": "پائنی",
+   "oracle_literal": "پائنی",
+   "oracle_evidence_lower": [
+    "2097c6df-c0ad-4886-b0e7-ea4f4856a220"
+   ],
+   "oracle_evidence_upper": [
+    "2097c6df-c0ad-4886-b0e7-ea4f4856a220"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-019",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "کالز میں بڑے شاہوں کس نے کہا؟",
+   "source_family": "audio",
+   "expected_family": "audio",
+   "literal": "بڑے شاہوں",
+   "oracle_literal": "بڑے شاہوں",
+   "oracle_evidence_lower": [
+    "2097c6df-c0ad-4886-b0e7-ea4f4856a220"
+   ],
+   "oracle_evidence_upper": [
+    "2097c6df-c0ad-4886-b0e7-ea4f4856a220"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-020",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "ریکارڈ شدہ آواز میں بہنی کھین دیکھیں",
+   "source_family": "audio",
+   "expected_family": "audio",
+   "literal": "بہنی کھین",
+   "oracle_literal": "بہنی کھین",
+   "oracle_evidence_lower": [
+    "a2755d7d-05d2-4bc9-8e95-7e8992b53ada"
+   ],
+   "oracle_evidence_upper": [
+    "a2755d7d-05d2-4bc9-8e95-7e8992b53ada"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-021",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "is there any trace of COCONUT in this case?",
+   "source_family": "audio",
+   "expected_family": "any",
+   "literal": "COCONUT",
+   "oracle_literal": "coconut",
+   "oracle_evidence_lower": [
+    "7b1b6259-5866-4f03-a0d9-624f9c377a73"
+   ],
+   "oracle_evidence_upper": [
+    "7b1b6259-5866-4f03-a0d9-624f9c377a73"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-022",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "where do we see widely available?",
+   "source_family": "audio",
+   "expected_family": "any",
+   "literal": "widely available",
+   "oracle_literal": "widely available",
+   "oracle_evidence_lower": [
+    "7b1b6259-5866-4f03-a0d9-624f9c377a73"
+   ],
+   "oracle_evidence_upper": [
+    "7b1b6259-5866-4f03-a0d9-624f9c377a73"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-023",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "can you find throughout for me",
+   "source_family": "audio",
+   "expected_family": "any",
+   "literal": "throughout",
+   "oracle_literal": "throughout",
+   "oracle_evidence_lower": [
+    "7b1b6259-5866-4f03-a0d9-624f9c377a73"
+   ],
+   "oracle_evidence_upper": [
+    "7b1b6259-5866-4f03-a0d9-624f9c377a73"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-024",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "any screenshot that reads SINDH?",
+   "source_family": "image",
+   "expected_family": "image",
+   "literal": "SINDH",
+   "oracle_literal": "sindh",
+   "oracle_evidence_lower": [
+    "d9ad332d-ff51-409d-9683-79abfa5cfacd"
+   ],
+   "oracle_evidence_upper": [
+    "d9ad332d-ff51-409d-9683-79abfa5cfacd"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-025",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "find 019039 in the images",
+   "source_family": "image",
+   "expected_family": "image",
+   "literal": "019039",
+   "oracle_literal": "019039",
+   "oracle_evidence_lower": [
+    "a0ff7b18-129f-4a8a-82cf-48887f98bd9e"
+   ],
+   "oracle_evidence_upper": [
+    "a0ff7b18-129f-4a8a-82cf-48887f98bd9e"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-026",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "which pictures contain the writing eyginbg?",
+   "source_family": "image",
+   "expected_family": "image",
+   "literal": "eyginbg",
+   "oracle_literal": "eyginbg",
+   "oracle_evidence_lower": [
+    "a3c75ee1-957d-4476-867b-6c3bf0b6cecd"
+   ],
+   "oracle_evidence_upper": [
+    "a3c75ee1-957d-4476-867b-6c3bf0b6cecd"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-027",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "کون سی تصویر پر حوال ۲۰۲۶ درج ہے؟",
+   "source_family": "image",
+   "expected_family": "image",
+   "literal": "حوال ۲۰۲۶",
+   "oracle_literal": "حوال ۲۰۲۶",
+   "oracle_evidence_lower": [
+    "b3c8e587-adac-4c3b-be08-a78c227a6efe"
+   ],
+   "oracle_evidence_upper": [
+    "b3c8e587-adac-4c3b-be08-a78c227a6efe"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-028",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "can you find 019039 for me",
+   "source_family": "image",
+   "expected_family": "any",
+   "literal": "019039",
+   "oracle_literal": "019039",
+   "oracle_evidence_lower": [
+    "a0ff7b18-129f-4a8a-82cf-48887f98bd9e"
+   ],
+   "oracle_evidence_upper": [
+    "a0ff7b18-129f-4a8a-82cf-48887f98bd9e"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-029",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "has sindh come up at all?",
+   "source_family": "image",
+   "expected_family": "any",
+   "literal": "sindh",
+   "oracle_literal": "sindh",
+   "oracle_evidence_lower": [
+    "d9ad332d-ff51-409d-9683-79abfa5cfacd"
+   ],
+   "oracle_evidence_upper": [
+    "d9ad332d-ff51-409d-9683-79abfa5cfacd"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-030",
+   "case": "nexusai-multimodal-product-acceptance",
+   "question": "look for EYGINBG across everything we hold",
+   "source_family": "image",
+   "expected_family": "any",
+   "literal": "EYGINBG",
+   "oracle_literal": "eyginbg",
+   "oracle_evidence_lower": [
+    "a3c75ee1-957d-4476-867b-6c3bf0b6cecd"
+   ],
+   "oracle_evidence_upper": [
+    "a3c75ee1-957d-4476-867b-6c3bf0b6cecd"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-031",
+   "case": "nexusai-media-wave1-20261021",
+   "question": "کالز میں مقام حاصل کس نے کہا؟",
+   "source_family": "audio",
+   "expected_family": "audio",
+   "literal": "مقام حاصل",
+   "oracle_literal": "مقام حاصل",
+   "oracle_evidence_lower": [
+    "5c098423-21ed-466d-a0ae-a467c12dad99"
+   ],
+   "oracle_evidence_upper": [
+    "5c098423-21ed-466d-a0ae-a467c12dad99"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-032",
+   "case": "nexusai-media-wave1-20261021",
+   "question": "ریکارڈ شدہ آواز میں گیارمہ دیکھیں",
+   "source_family": "audio",
+   "expected_family": "audio",
+   "literal": "گیارمہ",
+   "oracle_literal": "گیارمہ",
+   "oracle_evidence_lower": [
+    "5c098423-21ed-466d-a0ae-a467c12dad99"
+   ],
+   "oracle_evidence_upper": [
+    "5c098423-21ed-466d-a0ae-a467c12dad99"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-033",
+   "case": "nexusai-media-wave1-20261021",
+   "question": "کالز میں چھٹے مقام کس نے کہا؟",
+   "source_family": "audio",
+   "expected_family": "audio",
+   "literal": "چھٹے مقام",
+   "oracle_literal": "چھٹے مقام",
+   "oracle_evidence_lower": [
+    "5c098423-21ed-466d-a0ae-a467c12dad99"
+   ],
+   "oracle_evidence_upper": [
+    "5c098423-21ed-466d-a0ae-a467c12dad99"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-034",
+   "case": "nexusai-media-wave1-20261021",
+   "question": "any screenshot that reads 7536826?",
+   "source_family": "image",
+   "expected_family": "image",
+   "literal": "7536826",
+   "oracle_literal": "7536826",
+   "oracle_evidence_lower": [
+    "5a938a5d-a0e2-4fc7-947f-6acfd6c717ff"
+   ],
+   "oracle_evidence_upper": [
+    "5a938a5d-a0e2-4fc7-947f-6acfd6c717ff"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-035",
+   "case": "nexusai-media-wave1-20261021",
+   "question": "find 4095893 in the images",
+   "source_family": "image",
+   "expected_family": "image",
+   "literal": "4095893",
+   "oracle_literal": "4095893",
+   "oracle_evidence_lower": [
+    "e981e2e9-c0f1-4487-8ce9-04d691d5ec56"
+   ],
+   "oracle_evidence_upper": [
+    "e981e2e9-c0f1-4487-8ce9-04d691d5ec56"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-036",
+   "case": "nexusai-media-wave1-20261021",
+   "question": "which pictures contain the writing 36000?",
+   "source_family": "image",
+   "expected_family": "image",
+   "literal": "36000",
+   "oracle_literal": "36000",
+   "oracle_evidence_lower": [
+    "5a938a5d-a0e2-4fc7-947f-6acfd6c717ff"
+   ],
+   "oracle_evidence_upper": [
+    "5a938a5d-a0e2-4fc7-947f-6acfd6c717ff"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-037",
+   "case": "nexusai-media-wave1-20261021",
+   "question": "check the photographs for the text refers",
+   "source_family": "image",
+   "expected_family": "image",
+   "literal": "refers",
+   "oracle_literal": "refers",
+   "oracle_evidence_lower": [
+    "76f0909e-ce92-412e-b22e-3f236c13e9f8",
+    "9742f095-dd13-468e-85fe-99049f95aa04"
+   ],
+   "oracle_evidence_upper": [
+    "76f0909e-ce92-412e-b22e-3f236c13e9f8",
+    "9742f095-dd13-468e-85fe-99049f95aa04"
+   ],
+   "oracle_passages": 2
+  },
+  {
+   "id": "TI-H-038",
+   "case": "nexusai-media-wave1-20261021",
+   "question": "look at the scans for confirmed near",
+   "source_family": "image",
+   "expected_family": "image",
+   "literal": "confirmed near",
+   "oracle_literal": "confirmed near",
+   "oracle_evidence_lower": [
+    "b29c4a0e-c7aa-4cd3-9874-3cc9fd4b80e1"
+   ],
+   "oracle_evidence_upper": [
+    "b29c4a0e-c7aa-4cd3-9874-3cc9fd4b80e1"
+   ],
+   "oracle_passages": 2
+  },
+  {
+   "id": "TI-H-039",
+   "case": "nexusai-media-wave1-20261021",
+   "question": "any screenshot that reads 6904020?",
+   "source_family": "image",
+   "expected_family": "image",
+   "literal": "6904020",
+   "oracle_literal": "6904020",
+   "oracle_evidence_lower": [
+    "b29c4a0e-c7aa-4cd3-9874-3cc9fd4b80e1"
+   ],
+   "oracle_evidence_upper": [
+    "b29c4a0e-c7aa-4cd3-9874-3cc9fd4b80e1"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-040",
+   "case": "nexusai-media-wave1-20261021",
+   "question": "سکین شدہ صفحات میں اور خندہ ڈھونڈیں",
+   "source_family": "image",
+   "expected_family": "image",
+   "literal": "اور خندہ",
+   "oracle_literal": "اور خندہ",
+   "oracle_evidence_lower": [
+    "e981e2e9-c0f1-4487-8ce9-04d691d5ec56"
+   ],
+   "oracle_evidence_upper": [
+    "e981e2e9-c0f1-4487-8ce9-04d691d5ec56"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-041",
+   "case": "nexusai-media-wave1-20261021",
+   "question": "کون سی تصویر پر گاندھی lss درج ہے؟",
+   "source_family": "image",
+   "expected_family": "image",
+   "literal": "گاندھی lss",
+   "oracle_literal": "گاندھی lss",
+   "oracle_evidence_lower": [
+    "e981e2e9-c0f1-4487-8ce9-04d691d5ec56"
+   ],
+   "oracle_evidence_upper": [
+    "e981e2e9-c0f1-4487-8ce9-04d691d5ec56"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-042",
+   "case": "nexusai-media-wave1-20261021",
+   "question": "سکین شدہ صفحات میں چھتیس ٹکڑے ہیں ڈھونڈیں",
+   "source_family": "image",
+   "expected_family": "image",
+   "literal": "چھتیس ٹکڑے ہیں",
+   "oracle_literal": "چھتیس ٹکڑے ہیں",
+   "oracle_evidence_lower": [
+    "e981e2e9-c0f1-4487-8ce9-04d691d5ec56"
+   ],
+   "oracle_evidence_upper": [
+    "e981e2e9-c0f1-4487-8ce9-04d691d5ec56"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-043",
+   "case": "nexusai-media-wave1-20261021",
+   "question": "can you find statement for me",
+   "source_family": "image",
+   "expected_family": "any",
+   "literal": "statement",
+   "oracle_literal": "statement",
+   "oracle_evidence_lower": [
+    "76f0909e-ce92-412e-b22e-3f236c13e9f8",
+    "9742f095-dd13-468e-85fe-99049f95aa04"
+   ],
+   "oracle_evidence_upper": [
+    "76f0909e-ce92-412e-b22e-3f236c13e9f8",
+    "9742f095-dd13-468e-85fe-99049f95aa04"
+   ],
+   "oracle_passages": 2
+  },
+  {
+   "id": "TI-H-044",
+   "case": "nexusai-media-wave1-20261021",
+   "question": "has 398753316 come up at all?",
+   "source_family": "image",
+   "expected_family": "any",
+   "literal": "398753316",
+   "oracle_literal": "398753316",
+   "oracle_evidence_lower": [
+    "76f0909e-ce92-412e-b22e-3f236c13e9f8",
+    "9742f095-dd13-468e-85fe-99049f95aa04"
+   ],
+   "oracle_evidence_upper": [
+    "76f0909e-ce92-412e-b22e-3f236c13e9f8",
+    "9742f095-dd13-468e-85fe-99049f95aa04"
+   ],
+   "oracle_passages": 2
+  },
+  {
+   "id": "TI-H-045",
+   "case": "nexusai-media-wave1-20261021",
+   "question": "look for KARACHI across everything we hold",
+   "source_family": "image",
+   "expected_family": "any",
+   "literal": "KARACHI",
+   "oracle_literal": "karachi",
+   "oracle_evidence_lower": [
+    "d207038e-1c41-4a6b-a2c2-84058a0d3720"
+   ],
+   "oracle_evidence_upper": [
+    "d207038e-1c41-4a6b-a2c2-84058a0d3720"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-046",
+   "case": "nexusai-wave1-dev3-20261021",
+   "question": "which emails refer to 19828?",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "19828",
+   "oracle_literal": "19828",
+   "oracle_evidence_lower": [
+    "e150ba2e-c015-4e02-a3cb-332351d432aa"
+   ],
+   "oracle_evidence_upper": [
+    "e150ba2e-c015-4e02-a3cb-332351d432aa"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-047",
+   "case": "nexusai-wave1-dev3-20261021",
+   "question": "does the paperwork say 59030 anywhere",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "59030",
+   "oracle_literal": "59030",
+   "oracle_evidence_lower": [
+    "e150ba2e-c015-4e02-a3cb-332351d432aa"
+   ],
+   "oracle_evidence_upper": [
+    "e150ba2e-c015-4e02-a3cb-332351d432aa"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-048",
+   "case": "nexusai-wave1-dev3-20261021",
+   "question": "show me documents containing 40574",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "40574",
+   "oracle_literal": "40574",
+   "oracle_evidence_lower": [
+    "c9c40307-fca5-4daa-857d-6ae97dcdfab1"
+   ],
+   "oracle_evidence_upper": [
+    "c9c40307-fca5-4daa-857d-6ae97dcdfab1"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-049",
+   "case": "nexusai-wave1-dev3-20261021",
+   "question": "list the documents where 389737 is written",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "389737",
+   "oracle_literal": "389737",
+   "oracle_evidence_lower": [
+    "45888ec6-ff16-454b-adff-d809624e34b6"
+   ],
+   "oracle_evidence_upper": [
+    "45888ec6-ff16-454b-adff-d809624e34b6"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-050",
+   "case": "nexusai-wave1-dev3-20261021",
+   "question": "I need every PDF that has 80724 324387 in it",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "80724 324387",
+   "oracle_literal": "80724 324387",
+   "oracle_evidence_lower": [
+    "e150ba2e-c015-4e02-a3cb-332351d432aa"
+   ],
+   "oracle_evidence_upper": [
+    "e150ba2e-c015-4e02-a3cb-332351d432aa"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-051",
+   "case": "nexusai-wave1-dev3-20261021",
+   "question": "look through the letters and statements for 11936",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "11936",
+   "oracle_literal": "11936",
+   "oracle_evidence_lower": [
+    "45888ec6-ff16-454b-adff-d809624e34b6"
+   ],
+   "oracle_evidence_upper": [
+    "45888ec6-ff16-454b-adff-d809624e34b6"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-052",
+   "case": "nexusai-wave1-dev3-20261021",
+   "question": "which emails refer to 50884 530046?",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "50884 530046",
+   "oracle_literal": "50884 530046",
+   "oracle_evidence_lower": [
+    "e150ba2e-c015-4e02-a3cb-332351d432aa"
+   ],
+   "oracle_evidence_upper": [
+    "e150ba2e-c015-4e02-a3cb-332351d432aa"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-053",
+   "case": "nexusai-wave1-dev3-20261021",
+   "question": "does the paperwork say 6143 863740 anywhere",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "6143 863740",
+   "oracle_literal": "6143 863740",
+   "oracle_evidence_lower": [
+    "45888ec6-ff16-454b-adff-d809624e34b6"
+   ],
+   "oracle_evidence_upper": [
+    "45888ec6-ff16-454b-adff-d809624e34b6"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-054",
+   "case": "nexusai-wave1-dev3-20261021",
+   "question": "has 41277 come up at all?",
+   "source_family": "document",
+   "expected_family": "any",
+   "literal": "41277",
+   "oracle_literal": "41277",
+   "oracle_evidence_lower": [
+    "c9c40307-fca5-4daa-857d-6ae97dcdfab1"
+   ],
+   "oracle_evidence_upper": [
+    "c9c40307-fca5-4daa-857d-6ae97dcdfab1"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-055",
+   "case": "nexusai-wave1-dev3-20261021",
+   "question": "look for 31341 across everything we hold",
+   "source_family": "document",
+   "expected_family": "any",
+   "literal": "31341",
+   "oracle_literal": "31341",
+   "oracle_evidence_lower": [
+    "e150ba2e-c015-4e02-a3cb-332351d432aa"
+   ],
+   "oracle_evidence_upper": [
+    "e150ba2e-c015-4e02-a3cb-332351d432aa"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-056",
+   "case": "nexusai-wave1-dev3-20261021",
+   "question": "is there any trace of 82764 in this case?",
+   "source_family": "document",
+   "expected_family": "any",
+   "literal": "82764",
+   "oracle_literal": "82764",
+   "oracle_evidence_lower": [
+    "c9c40307-fca5-4daa-857d-6ae97dcdfab1"
+   ],
+   "oracle_evidence_upper": [
+    "c9c40307-fca5-4daa-857d-6ae97dcdfab1"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-057",
+   "case": "orion-lahore-20261030",
+   "question": "look through the letters and statements for 49340",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "49340",
+   "oracle_literal": "49340",
+   "oracle_evidence_lower": [
+    "3532fc83-a2be-4b76-a672-59537935d5e6"
+   ],
+   "oracle_evidence_upper": [
+    "3532fc83-a2be-4b76-a672-59537935d5e6"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-058",
+   "case": "orion-lahore-20261030",
+   "question": "which emails refer to 44802?",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "44802",
+   "oracle_literal": "44802",
+   "oracle_evidence_lower": [
+    "ee2837c8-5c55-41c7-b34d-c12bcc9e7531"
+   ],
+   "oracle_evidence_upper": [
+    "ee2837c8-5c55-41c7-b34d-c12bcc9e7531"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-059",
+   "case": "orion-lahore-20261030",
+   "question": "does the paperwork say 32138 anywhere",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "32138",
+   "oracle_literal": "32138",
+   "oracle_evidence_lower": [
+    "3532fc83-a2be-4b76-a672-59537935d5e6"
+   ],
+   "oracle_evidence_upper": [
+    "3532fc83-a2be-4b76-a672-59537935d5e6"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-060",
+   "case": "orion-lahore-20261030",
+   "question": "show me documents containing 29064",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "29064",
+   "oracle_literal": "29064",
+   "oracle_evidence_lower": [
+    "3532fc83-a2be-4b76-a672-59537935d5e6"
+   ],
+   "oracle_evidence_upper": [
+    "3532fc83-a2be-4b76-a672-59537935d5e6"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-061",
+   "case": "orion-lahore-20261030",
+   "question": "list the documents where 656448 is written",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "656448",
+   "oracle_literal": "656448",
+   "oracle_evidence_lower": [
+    "3532fc83-a2be-4b76-a672-59537935d5e6"
+   ],
+   "oracle_evidence_upper": [
+    "3532fc83-a2be-4b76-a672-59537935d5e6"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-062",
+   "case": "orion-lahore-20261030",
+   "question": "I need every PDF that has 131101 in it",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "131101",
+   "oracle_literal": "131101",
+   "oracle_evidence_lower": [
+    "4e943c79-a7a4-4256-be78-330fa888114c"
+   ],
+   "oracle_evidence_upper": [
+    "4e943c79-a7a4-4256-be78-330fa888114c"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-063",
+   "case": "orion-lahore-20261030",
+   "question": "look through the letters and statements for 17902",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "17902",
+   "oracle_literal": "17902",
+   "oracle_evidence_lower": [
+    "4e943c79-a7a4-4256-be78-330fa888114c"
+   ],
+   "oracle_evidence_upper": [
+    "4e943c79-a7a4-4256-be78-330fa888114c"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-064",
+   "case": "orion-lahore-20261030",
+   "question": "which emails refer to 64501 554218?",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "64501 554218",
+   "oracle_literal": "64501 554218",
+   "oracle_evidence_lower": [
+    "3532fc83-a2be-4b76-a672-59537935d5e6"
+   ],
+   "oracle_evidence_upper": [
+    "3532fc83-a2be-4b76-a672-59537935d5e6"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-065",
+   "case": "orion-lahore-20261030",
+   "question": "کن دستاویزات میں درج تمام موجود ہے؟",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "درج تمام",
+   "oracle_literal": "درج تمام",
+   "oracle_evidence_lower": [
+    "6692406f-4036-4c80-aadb-dd3ef6223db2"
+   ],
+   "oracle_evidence_upper": [
+    "6692406f-4036-4c80-aadb-dd3ef6223db2"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-066",
+   "case": "orion-lahore-20261030",
+   "question": "خطوط اور بیانات میں میں جمع کرانے دیکھیں",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "میں جمع کرانے",
+   "oracle_literal": "میں جمع کرانے",
+   "oracle_evidence_lower": [
+    "6692406f-4036-4c80-aadb-dd3ef6223db2"
+   ],
+   "oracle_evidence_upper": [
+    "6692406f-4036-4c80-aadb-dd3ef6223db2"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-067",
+   "case": "orion-lahore-20261030",
+   "question": "کن دستاویزات میں بخدمت موجود ہے؟",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "بخدمت",
+   "oracle_literal": "بخدمت",
+   "oracle_evidence_lower": [
+    "0b18fbe6-0f95-48d3-9426-6f8634a837e0"
+   ],
+   "oracle_evidence_upper": [
+    "0b18fbe6-0f95-48d3-9426-6f8634a837e0"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-068",
+   "case": "orion-lahore-20261030",
+   "question": "can you find 14299 90594 for me",
+   "source_family": "document",
+   "expected_family": "any",
+   "literal": "14299 90594",
+   "oracle_literal": "14299 90594",
+   "oracle_evidence_lower": [
+    "4e943c79-a7a4-4256-be78-330fa888114c"
+   ],
+   "oracle_evidence_upper": [
+    "4e943c79-a7a4-4256-be78-330fa888114c"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-069",
+   "case": "orion-lahore-20261030",
+   "question": "has 35676 come up at all?",
+   "source_family": "document",
+   "expected_family": "any",
+   "literal": "35676",
+   "oracle_literal": "35676",
+   "oracle_evidence_lower": [
+    "ee2837c8-5c55-41c7-b34d-c12bcc9e7531"
+   ],
+   "oracle_evidence_upper": [
+    "ee2837c8-5c55-41c7-b34d-c12bcc9e7531"
+   ],
+   "oracle_passages": 1
+  },
+  {
+   "id": "TI-H-070",
+   "case": "orion-lahore-20261030",
+   "question": "look for 36360 across everything we hold",
+   "source_family": "document",
+   "expected_family": "any",
+   "literal": "36360",
+   "oracle_literal": "36360",
+   "oracle_evidence_lower": [
+    "ee2837c8-5c55-41c7-b34d-c12bcc9e7531"
+   ],
+   "oracle_evidence_upper": [
+    "ee2837c8-5c55-41c7-b34d-c12bcc9e7531"
+   ],
+   "oracle_passages": 1
+  }
+ ],
+ "negatives": [
+  {
+   "id": "VB-APPS-006",
+   "kind": "plain",
+   "question": "Which app did 923000001000 use the most?",
+   "area": "apps"
+  },
+  {
+   "id": "VB-APPS-005",
+   "kind": "plain",
+   "question": "How many different apps did 923000001000 use?",
+   "area": "apps"
+  },
+  {
+   "id": "VB-BANK-035",
+   "kind": "plain",
+   "question": "What was the balance after the last transaction of the account PK00SYNT0000000000002007?",
+   "area": "bank"
+  },
+  {
+   "id": "VB-BANK-082",
+   "kind": "plain",
+   "question": "How many transactions does the account PK00SYNT0000000000002008 have?",
+   "area": "bank"
+  },
+  {
+   "id": "VB-BANK-085",
+   "kind": "plain",
+   "question": "What is the largest single debit of the account PK00SYNT0000000000002008?",
+   "area": "bank"
+  },
+  {
+   "id": "VB-BANK-068",
+   "kind": "plain",
+   "question": "On which day was the last transaction of the account PK00SYNT0000000000002009?",
+   "area": "bank"
+  },
+  {
+   "id": "VB-BANK-108",
+   "kind": "plain",
+   "question": "On which day was the first transaction of the account PK00SYNT0000000000002002?",
+   "area": "bank"
+  },
+  {
+   "id": "VB-BANK-089",
+   "kind": "plain",
+   "question": "Who did the account PK00SYNT0000000000002008 pay the most money to?",
+   "area": "bank"
+  },
+  {
+   "id": "VB-BANK-037",
+   "kind": "plain",
+   "question": "On which day was the last transaction of the account PK00SYNT0000000000002007?",
+   "area": "bank"
+  },
+  {
+   "id": "VB-BANK-095",
+   "kind": "plain",
+   "question": "What is the total amount debited from the account PK00SYNT0000000000002006?",
+   "area": "bank"
+  },
+  {
+   "id": "VB-BANK-107",
+   "kind": "plain",
+   "question": "What was the balance after the last transaction of the account PK00SYNT0000000000002002?",
+   "area": "bank"
+  },
+  {
+   "id": "VB-CALL-101",
+   "kind": "plain",
+   "question": "How many voice calls does 923000001008 have in this case?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CALL-052",
+   "kind": "plain",
+   "question": "How many incoming voice calls did 923000001000 receive?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CALL-136",
+   "kind": "plain",
+   "question": "How many different numbers did 923000001011 contact, leaving out services?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CALL-007",
+   "kind": "plain",
+   "question": "How many voice calls of 923000001005 lasted more than 10 minutes?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CALL-135",
+   "kind": "plain",
+   "question": "Which number did 923000001011 call the most with outgoing voice calls?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CALL-042",
+   "kind": "plain",
+   "question": "What is the duration of the longest voice call of 923000001010, in seconds?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CALL-072",
+   "kind": "plain",
+   "question": "When was the last call or message of 923000001007?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CALL-028",
+   "kind": "plain",
+   "question": "How many incoming voice calls did 923000001006 receive?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CALL-032",
+   "kind": "plain",
+   "question": "How many voice calls of 923000001006 lasted more than 10 minutes?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CALL-045",
+   "kind": "plain",
+   "question": "How many voice calls of 923000001010 started between 00:00 and 04:59 Karachi time?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CELL-006",
+   "kind": "plain",
+   "question": "How many different cell sites did 923000001006 use?",
+   "area": "cells"
+  },
+  {
+   "id": "VB-CELL-003",
+   "kind": "plain",
+   "question": "Which cell site did 923000001002 use the most?",
+   "area": "cells"
+  },
+  {
+   "id": "VB-HAND-008",
+   "kind": "plain",
+   "question": "How many different handsets was 923000001010 seen with?",
+   "area": "handsets"
+  },
+  {
+   "id": "VB-HAND-020",
+   "kind": "plain",
+   "question": "How many different handsets was 923000001003 seen with?",
+   "area": "handsets"
+  },
+  {
+   "id": "VB-INTE-006",
+   "kind": "plain",
+   "question": "How many internet sessions does 923000001006 have?",
+   "area": "internet"
+  },
+  {
+   "id": "VB-INTE-026",
+   "kind": "plain",
+   "question": "How many internet sessions does 923000001001 have?",
+   "area": "internet"
+  },
+  {
+   "id": "VB-INVE-003",
+   "kind": "plain",
+   "question": "How many tabular files are in this case?",
+   "area": "inventory"
+  },
+  {
+   "id": "VB-INVE-004",
+   "kind": "plain",
+   "question": "How many text files are in this case?",
+   "area": "inventory"
+  },
+  {
+   "id": "VB-MESS-018",
+   "kind": "plain",
+   "question": "How many text messages did 923000001000 receive?",
+   "area": "messages"
+  },
+  {
+   "id": "VB-MESS-007",
+   "kind": "plain",
+   "question": "How many text messages did 923000001006 send?",
+   "area": "messages"
+  },
+  {
+   "id": "VB-PAIR-028",
+   "kind": "plain",
+   "question": "When was the last contact between 923000001009 and 923000001053?",
+   "area": "pairs"
+  },
+  {
+   "id": "VB-PAIR-008",
+   "kind": "plain",
+   "question": "When was the last contact between 923000001002 and 923000001027?",
+   "area": "pairs"
+  },
+  {
+   "id": "VB-PLAT-015",
+   "kind": "plain",
+   "question": "When was the plate SYNT2233 first seen?",
+   "area": "plates"
+  },
+  {
+   "id": "VB-PLAT-019",
+   "kind": "plain",
+   "question": "When was the plate SYNT9150 first seen?",
+   "area": "plates"
+  },
+  {
+   "id": "VB-PLAT-049",
+   "kind": "plain",
+   "question": "How many plate sightings did the camera CAM-09 record?",
+   "area": "plates"
+  },
+  {
+   "id": "VB-PLAT-001",
+   "kind": "plain",
+   "question": "How many times was the plate SYNT2905 seen?",
+   "area": "plates"
+  },
+  {
+   "id": "VB-REGI-004",
+   "kind": "plain",
+   "question": "What is the status of the registration of the number 923000001007?",
+   "area": "registrations"
+  },
+  {
+   "id": "VB-REGI-008",
+   "kind": "plain",
+   "question": "What is the status of the registration of the number 923000001010?",
+   "area": "registrations"
+  },
+  {
+   "id": "TI-H-N01",
+   "kind": "plain",
+   "question": "good morning",
+   "area": "conversation"
+  },
+  {
+   "id": "TI-H-N02",
+   "kind": "plain",
+   "question": "what does ANPR stand for?",
+   "area": "conversation"
+  },
+  {
+   "id": "TI-H-N03",
+   "kind": "plain",
+   "question": "can you read Urdu?",
+   "area": "conversation"
+  },
+  {
+   "id": "TI-H-N04",
+   "kind": "plain",
+   "question": "give me an overview of the case",
+   "area": "conversation"
+  },
+  {
+   "id": "TI-H-N05",
+   "kind": "plain",
+   "question": "how many recordings do we have?",
+   "area": "conversation"
+  },
+  {
+   "id": "TI-H-N06",
+   "kind": "plain",
+   "question": "which file types can I upload?",
+   "area": "conversation"
+  },
+  {
+   "id": "TI-H-N07",
+   "kind": "plain",
+   "question": "what is the difference between a CDR and an IPDR?",
+   "area": "conversation"
+  },
+  {
+   "id": "TI-H-N08",
+   "kind": "plain",
+   "question": "you were very quick, well done",
+   "area": "conversation"
+  },
+  {
+   "id": "TI-H-N09",
+   "kind": "plain",
+   "question": "read the first document to me",
+   "area": "conversation"
+  },
+  {
+   "id": "TI-H-N10",
+   "kind": "plain",
+   "question": "who are you?",
+   "area": "conversation"
+  },
+  {
+   "id": "TI-H-H01",
+   "kind": "hard",
+   "question": "which messages mention the word password",
+   "area": "structured-field"
+  },
+  {
+   "id": "TI-H-H02",
+   "kind": "hard",
+   "question": "find transactions whose remark contains invoice",
+   "area": "structured-field"
+  },
+  {
+   "id": "TI-H-H03",
+   "kind": "hard",
+   "question": "which calls lasted longer than ten minutes",
+   "area": "structured-field"
+  },
+  {
+   "id": "TI-H-H04",
+   "kind": "hard",
+   "question": "list vehicles with plates starting with LHR",
+   "area": "structured-field"
+  },
+  {
+   "id": "TI-H-H05",
+   "kind": "hard",
+   "question": "which subscribers are registered under the name Ahmed",
+   "area": "structured-field"
+  },
+  {
+   "id": "TI-H-H06",
+   "kind": "hard",
+   "question": "show the cell sites near the airport",
+   "area": "structured-field"
+  },
+  {
+   "id": "TI-H-H07",
+   "kind": "hard",
+   "question": "does any bank remark say loan",
+   "area": "structured-field"
+  },
+  {
+   "id": "TI-H-H08",
+   "kind": "hard",
+   "question": "which SMS were sent after midnight",
+   "area": "structured-field"
+  }
+ ]
+}

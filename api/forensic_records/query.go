@@ -336,6 +336,13 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 				req.RequestClass = forensicrequest.GovernedAnalysis
 			}
 		}
+		// FORENSIC_TEXT_INTENT (ask_text_intent.go): a model reads the sentence, and when it asks to find words or a phrase in the case's transcripts, image text or
+		// documents, the request carries the structured text query and operation and goes to the governed text retrieval. The SQL engine and the lane are not given a
+		// text search to turn into a count.
+		textRouted := false
+		if textIntentEnabled() {
+			req, _, textRouted = textIntentRoute(ctx, w, cfg, req, startedAt)
+		}
 		// FORENSIC_GOVERNED_SQL / _FIRST (governed_sql_lane.go). This sits BEFORE the terminal contract so that a data question the keyword classifier labelled a concept or a clarification can still be answered; for those, only an answered lane result replaces the terminal reply (govSQLReclassifiable).
 		reclassified := govSQLReclassifiable(req)
 		if holder := govSQLHolderFrom(ctx); holder != nil && (reclassified || req.RequestClass == forensicrequest.GovernedAnalysis || req.RequestClass == forensicrequest.ContextualFollowUp) {
@@ -344,7 +351,7 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			holder.reclassified = reclassified
 		}
 		// FORENSIC_ASK_V2_FIRST (ask_engine_run.go): the Ask engine, before the existing path. A decline goes on to the lane and the existing path unchanged.
-		if askV2FirstEnabled() {
+		if askV2FirstEnabled() && !textRouted {
 			askResponse, askAudit := askV2Run(ctx, cfg, db, req, startedAt)
 			setAskV2Header(w, askAudit)
 			if askResponse != nil && (!reclassified || askAudit.State == "answered") {
@@ -352,7 +359,7 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 				return
 			}
 		}
-		if governedSQLFirstEnabled() {
+		if governedSQLFirstEnabled() && !textRouted {
 			laneResponse, laneAudit := govSQLLaneRun(ctx, cfg, db, req, startedAt)
 			setGovernedSQLHeader(w, laneAudit)
 			if laneResponse != nil && (!reclassified || laneAudit.State == "answered") {
