@@ -49,6 +49,12 @@ function endpoint(baseUrl, path) {
   return new URL(`${baseUrl || ''}${path}`, origin)
 }
 
+// For the conversation service (lib/conversationsApi.js): the same headers and the same proxy as every other call, and a function that makes the address of a path.
+export function caseFetchContext(caseId) {
+  const { baseUrl, headers } = requestContext(caseId)
+  return { headers, url: path => endpoint(baseUrl, path) }
+}
+
 async function scopedGet(path, caseId, { signal, fetchImpl = globalThis.fetch, responseType = 'json' } = {}) {
   const { baseUrl, tenantId, collectionId, headers } = requestContext(caseId)
   const url = endpoint(baseUrl, path)

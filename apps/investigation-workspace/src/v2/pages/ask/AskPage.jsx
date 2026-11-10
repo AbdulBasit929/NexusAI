@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { ArrowDown, History, MessageSquarePlus } from 'lucide-react'
+import { ArrowDown, CircleAlert, GitFork, History, MessageSquarePlus } from 'lucide-react'
 import { familyDefinition, useEvidenceScope } from '../../../components/ScopeChips.jsx'
 import { useQuestionDraft, useQuestionHistory } from '../../../lib/workspaceState.js'
 import { useCaseOverview } from '../../../lib/useCaseOverview.js'
@@ -11,21 +11,36 @@ import { Composer } from './Composer.jsx'
 import { EmptyAsk } from './EmptyAsk.jsx'
 import { EvidenceDrawer } from './EvidenceDrawer.jsx'
 import { HistoryRail } from './HistoryRail.jsx'
+import { ConversationRail } from './ConversationRail.jsx'
+import { RunDiff } from './RunDiff.jsx'
 import { Turn } from './Turn.jsx'
 import { useAskThread } from './useAskThread.js'
+import { useConversationRail } from './useConversationRail.js'
+import { useConversationThread } from './useConversationThread.js'
+import { getTurnDiff } from '../../../lib/conversationsApi.js'
 import { useStarters } from './starters.js'
 
 // Ask: a question in plain words, an answer that shows its evidence. One column for the conversation that uses the width it is given, a history
-// of earlier questions on the left, and the proof of the answer you are reading on the right when you open it.
+// of earlier conversations on the left, and the proof of the answer you are reading on the right when you open it. When the conversation service is installed (migration 034) the history,
+// the answers, "Run again" with its comparison, forks, feedback and findings are kept in the case; otherwise the page keeps the history of this browser, as before.
 export default function AskPage() {
   const { id: caseId = '' } = useParams()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const reopened = searchParams.get('question') || ''
   const requestedScope = searchParams.get('scope')
   const [scope, setScope] = useEvidenceScope(caseId, 'investigate', requestedScope || 'all')
   const family = familyDefinition(scope)
   const canAskScope = scope === 'all' || Boolean(family.recordType)
-  const { turns, busy, ask, retry, stop, reset } = useAskThread(caseId)
+  const [railQuery, setRailQuery] = useState('')
+  const rail = useConversationRail(caseId, { query: railQuery })
+  const serviceReady = rail.status === 'ready'
+  // a question limited to one kind of record has no place in the service yet (it takes the question only), so it stays in this browser
+  const useService = serviceReady && scope === 'all'
+  const local = useAskThread(caseId)
+  const served = useConversationThread(caseId, { enabled: useService, onChanged: rail.reload })
+  const { turns, busy, ask, retry, stop, reset } = useService ? served : local
+  const [diff, setDiff] = useState(null)
+  const [editing, setEditing] = useState(null)
   const [draft, setDraft] = useQuestionDraft(caseId)
   const overview = useCaseOverview(caseId)
   const history = useQuestionHistory(caseId)
@@ -46,11 +61,23 @@ export default function AskPage() {
 
   const submittedScope = useCallback(() => ({ id: scope, label: scope === 'all' ? 'All evidence' : family.label, recordType: family.recordType || '' }), [scope, family])
   const askQuestion = useCallback((query, extra = {}) => {
-    const turn = ask(query, { scope: submittedScope(), ...extra })
+    const turn = useService ? ask(query, extra.editOfTurnId ? { editOfTurnId: extra.editOfTurnId } : {}) : ask(query, { scope: submittedScope(), ...extra })
     return turn
-  }, [ask, submittedScope])
+  }, [ask, submittedScope, useService])
 
   // A link that carries a question and `run=1` (Connections, "Ask about this case") asks it once, here; without `run` it only fills the box.
+  // the address is read once, when the page opens: a conversation the page itself starts writes its id there, and must not be opened again (that would cancel the question being sent)
+  const opened = useRef(false)
+  const initialThread = useRef(searchParams.get('thread'))
+  useEffect(() => {
+    if (opened.current || !initialThread.current || !useService) return
+    opened.current = true
+    served.open(initialThread.current)
+  }, [useService]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!served.threadId || !useService) return
+    setSearchParams(previous => { if (previous.get('thread') === served.threadId) return previous; const next = new URLSearchParams(previous); next.set('thread', served.threadId); return next }, { replace: true })
+  }, [served.threadId, useService]) // eslint-disable-line react-hooks/exhaustive-deps
   const autoRan = useRef(false)
   useEffect(() => { if (reopened) setDraft(reopened) }, [reopened, setDraft])
   useEffect(() => {
@@ -78,7 +105,7 @@ export default function AskPage() {
     node?.focus({ preventScroll: true })
   }, [turns, busy])
 
-  function submit(text) { setDraft(''); askQuestion(text) }
+  function submit(text) { const editOfTurnId = editing; setEditing(null); setDraft(''); askQuestion(text, editOfTurnId ? { editOfTurnId } : {}) }
   function pick(item) {
     if (item.scope && item.scope !== scope) { setScope(item.scope) }
     setDraft(item.query)
@@ -103,7 +130,20 @@ export default function AskPage() {
     const node = scroller.current
     if (node) setAtBottom(node.scrollHeight - node.scrollTop - node.clientHeight < 160)
   }
-  function newConversation() { reset(); setPanelId(null); globalThis.setTimeout(() => composer.current?.focus(), 0) }
+  function newConversation() { reset(); setPanelId(null); setEditing(null); setSearchParams(previous => { const next = new URLSearchParams(previous); next.delete('thread'); return next }, { replace: true }); globalThis.setTimeout(() => composer.current?.focus(), 0) }
+  function openConversation(item) { setPanelId(null); setEditing(null); opened.current = true; served.open(item.thread_id) }
+  async function compare(turn) {
+    if (turn.diff) { setDiff(turn.diff); return }
+    const latest = turn.reruns?.latest_turn_id
+    if (!latest) return
+    try { setDiff(await getTurnDiff({ caseId, turnId: latest })) } catch { /* the badge stays; the comparison could not be read */ }
+  }
+  async function fork(turn) {
+    await served.fork(turn)
+    setPanelId(null)
+    setDraft('')
+    globalThis.setTimeout(() => composer.current?.focus(), 0)
+  }
   function changeScope(value) { stop(); reset(); setPanelId(null); setScope(value) }
 
   const unavailable = canAskScope ? '' : `${family.label} questions are not available yet. The question service cannot enforce this scope, so NexusAI has not widened the question to other evidence.`
@@ -115,26 +155,33 @@ export default function AskPage() {
     <AppShell caseId={caseId} rail="collapsed" railKind="ask">
       <main id="workspace-main" className="nx-ui nx-ask" tabIndex={-1} data-history={historyOpen ? 'open' : 'closed'} data-drawer={panelTurn ? 'open' : 'closed'}>
         {historyOpen ? (
-          <HistoryRail caseId={caseId} entries={history} onPick={runHistory} onNew={newConversation} activeQuery={turns.at(-1)?.query} />
+          serviceReady
+            ? <ConversationRail rail={rail} activeId={served.threadId} onOpen={openConversation} onNew={newConversation} query={railQuery} onQuery={setRailQuery} />
+            : <HistoryRail caseId={caseId} entries={history} onPick={runHistory} onNew={newConversation} activeQuery={turns.at(-1)?.query} />
         ) : null}
         <section className="nx-ask__col" aria-label="Conversation">
           <div className="nx-ask__bar">
             <button type="button" className="nx-btn nx-btn--ghost nx-btn--sm" aria-pressed={historyOpen} onClick={() => setHistoryOpen(open => !open)}><History aria-hidden="true" />History</button>
-            <span className="nx-ask__coverage" role="status">{coverageLine(overview) || 'Checking what this case holds…'}</span>
+            <span className="nx-ask__coverage" role="status">{coverageLine(overview) || 'Checking what this case holds…'}{serviceReady && scope !== 'all' ? ' Questions limited to one kind of record are kept in this browser only.' : ''}</span>
             {turns.length ? <button type="button" className="nx-btn nx-btn--ghost nx-btn--sm" onClick={newConversation}><MessageSquarePlus aria-hidden="true" />New conversation</button> : null}
           </div>
           <div className="nx-ask__scroll" ref={scroller} onScroll={watchScroll}>
+            {useService && served.opening ? <p className="nx-muted nx-ask__opening" role="status">Opening the conversation…</p> : null}
+            {useService && served.problem ? <p className="nx-callout nx-callout--danger" role="alert"><CircleAlert aria-hidden="true" />{served.problem}</p> : null}
+            {useService && served.thread?.forked_from && !turns.length ? <p className="nx-callout nx-callout--info" role="status"><GitFork aria-hidden="true" />This is a fork. Your first question continues from the question you forked.</p> : null}
             {turns.length ? (
               <div className="nx-thread" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Conversation">
                 {turns.map((turn, index) => (
                   <Turn key={turn.id} turn={turn} index={index} last={index === turns.length - 1} caseId={caseId}
                     onAsk={query => askQuestion(query)} onChoose={(option, clarification) => choose(option, clarification, turn)} onRetry={() => retry(turn)}
-                    onEdit={() => pick({ query: turn.query, scope: turn.scope?.id })} onCopy={() => copyAnswer(turn)} copied={copiedId === turn.id}
+                    onEdit={() => { setEditing(useService && turn.stored && index === turns.length - 1 ? turn.id : null); pick({ query: turn.query, scope: turn.scope?.id }) }} onCopy={() => copyAnswer(turn)} copied={copiedId === turn.id}
+                    onRerun={useService ? () => served.rerun(turn) : undefined} onFork={useService ? () => fork(turn) : undefined}
+                    onFeedback={useService ? verdict => served.feedback(turn, verdict) : undefined} onPin={useService ? () => served.pin(turn) : undefined} onCompare={() => compare(turn)}
                     evidenceOpen={panelId === turn.id} onToggleEvidence={() => setPanelId(panelId === turn.id ? null : turn.id)} />
                 ))}
               </div>
             ) : (
-              <EmptyAsk caseId={caseId} overview={overview} links={links} evidence={evidence} recent={history.slice(0, 3)} onPick={pick}>
+              <EmptyAsk caseId={caseId} overview={overview} links={links} evidence={evidence} recent={serviceReady ? rail.items.slice(0, 3).map(item => ({ id: item.thread_id, query: item.last_question || item.first_question || item.display_title, label: item.display_title, state: item.last_outcome })) : history.slice(0, 3)} onPick={pick}>
                 <Composer large value={draft} onChange={setDraft} onSubmit={submit} busy={busy} onStop={stop} scope={scope} onScope={changeScope} inputRef={composer} unavailable={unavailable} />
               </EmptyAsk>
             )}
@@ -143,6 +190,7 @@ export default function AskPage() {
           {turns.length ? <div className="nx-ask__dock">{dock}</div> : null}
         </section>
         {panelTurn ? <EvidenceDrawer turn={panelTurn} caseId={caseId} onClose={() => setPanelId(null)} /> : null}
+        {diff ? <RunDiff diff={diff} onClose={() => setDiff(null)} /> : null}
       </main>
     </AppShell>
   )

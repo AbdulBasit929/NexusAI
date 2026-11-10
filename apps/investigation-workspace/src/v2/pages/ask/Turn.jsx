@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Check, ChevronRight, CircleAlert, CircleHelp, Copy, FileSearch, Info, Pencil, RefreshCw, SearchX, Sparkles } from 'lucide-react'
+import { ArrowLeftRight, Check, ChevronRight, CircleAlert, CircleHelp, Copy, FileSearch, GitFork, Info, Pencil, Pin, PinOff, RefreshCw, RotateCcw, SearchX, Sparkles, ThumbsDown, ThumbsUp } from 'lucide-react'
 import { ClaimText } from '../../../components/Citations.jsx'
 import { ClarificationPrompt } from '../../../components/ClarificationPrompt.jsx'
 import { MethodDetails } from '../../../components/AnalystComponents.jsx'
@@ -19,12 +19,18 @@ function useElapsed(startedAt) {
 function Waiting({ turn }) {
   const seconds = useElapsed(turn.startedAt)
   const where = !turn.scope || turn.scope.label === 'All evidence' ? 'the evidence of this case' : `${turn.scope.label} evidence`
+  const phase = turn.phase
+  const clock = phase?.elapsedMs != null ? Math.round(phase.elapsedMs / 1000) : seconds
+  // only phases the service really reports; it never invents progress, so there is a clock and no percentage
+  let title = `Searching ${where}…`
+  if (phase?.name === 'queued') title = `Waiting for the language model${phase.position ? ` (number ${phase.position} in the queue)` : ''}…`
+  else if (phase?.label) title = `${phase.label}…`
   return (
     <div className="nx-wait" role="status">
       <span className="nx-spinner" aria-hidden="true" />
       <div>
-        <p className="nx-wait__title">Searching {where}…</p>
-        <p className="nx-wait__text nx-muted">{seconds} s. A question usually takes 20 to 60 seconds on this machine. You can keep reading the answers above.</p>
+        <p className="nx-wait__title">{title}</p>
+        <p className="nx-wait__text nx-muted">{clock} s. A question usually takes 20 to 60 seconds on this machine.{turn.stored || phase ? ' It keeps running if you leave this page.' : ' You can keep reading the answers above.'}</p>
       </div>
     </div>
   )
@@ -87,7 +93,7 @@ function EvidenceBar({ presentation, open, onToggle }) {
   )
 }
 
-export function Turn({ turn, index, last, caseId, onAsk, onChoose, onRetry, onEdit, onCopy, copied, evidenceOpen, onToggleEvidence }) {
+export function Turn({ turn, index, last, caseId, onAsk, onChoose, onRetry, onEdit, onCopy, copied, evidenceOpen, onToggleEvidence, onRerun, onFork, onFeedback, onPin, onCompare }) {
   const presentation = turn.presentation
   const state = presentation?.state
   const answered = presentation && ['answered', 'partial', 'zero-result'].includes(state)
@@ -99,11 +105,13 @@ export function Turn({ turn, index, last, caseId, onAsk, onChoose, onRetry, onEd
       <header className="nx-turn__question">
         {turn.parentId ? <p className="nx-turn__branch">Following your choice{turn.label ? <>: <bdi>{turn.label}</bdi></> : null}</p> : null}
         <h2 className="nx-turn__text" dir="auto">{turn.query}</h2>
+        {turn.kind === 'edit' ? <p className="nx-turn__branch">Edited question</p> : null}
         <p className="nx-turn__meta">{turn.scope?.label || 'All evidence'}{time ? <> · <time dateTime={new Date(time).toISOString()}>{new Date(time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time></> : null}</p>
       </header>
       <div id={`${turn.id}-anchor`} tabIndex={-1} className="nx-turn__answer">
         {turn.busy ? <Waiting turn={turn} /> : null}
-        {turn.aborted && !turn.busy ? <p className="nx-callout nx-callout--info" role="status"><Info aria-hidden="true" />This question was stopped before a result came back.</p> : null}
+        {turn.aborted && !turn.busy ? <p className="nx-callout nx-callout--info" role="status"><Info aria-hidden="true" />{turn.stoppedWaiting ? 'You stopped waiting. The question may still finish: open this conversation again to see its answer.' : 'This question was stopped before a result came back.'}</p> : null}
+        {turn.answerMissing && !turn.presentation && !turn.busy ? <p className="nx-callout nx-callout--info" role="status"><Info aria-hidden="true" /><span>This answer was not kept, or is still being loaded.{onRerun ? <> <button type="button" className="nx-link-button" onClick={onRerun}>Run it again</button></> : null}</span></p> : null}
 
         {state === 'clarify' ? (
           <div className="nx-clarify">
@@ -117,6 +125,7 @@ export function Turn({ turn, index, last, caseId, onAsk, onChoose, onRetry, onEd
             <CircleAlert aria-hidden="true" />
             <div>
               <p><strong>This question could not be completed.</strong> Your case evidence was not changed.</p>
+              {turn.serviceMessage ? <p dir="auto">{turn.serviceMessage}</p> : null}
               <p className="nx-muted">Reference <span className="nx-mono">{presentation.errorReference}</span></p>
               <p><button type="button" className="nx-btn nx-btn--sm" onClick={onRetry}><RefreshCw aria-hidden="true" />Try this question again</button></p>
             </div>
@@ -139,6 +148,11 @@ export function Turn({ turn, index, last, caseId, onAsk, onChoose, onRetry, onEd
             <div className="nx-answer__meta">
               <Strength strength={topStrength(presentation)} />
               {state === 'partial' ? <span className="nx-badge nx-badge--warn">Partial answer</span> : null}
+              {turn.diff ? (
+                turn.diff.changed
+                  ? <button type="button" className="nx-badge nx-badge--warn nx-badge--button" onClick={onCompare}><ArrowLeftRight aria-hidden="true" />Changed since the earlier run · Compare</button>
+                  : <span className="nx-badge">Same as the earlier run</span>
+              ) : turn.reruns?.latest_changed ? <button type="button" className="nx-badge nx-badge--warn nx-badge--button" onClick={onCompare}><ArrowLeftRight aria-hidden="true" />A later run differs · Compare</button> : null}
             </div>
             <p className="nx-answer__text" dir={presentation.direction || 'ltr'}>
               <ClaimText text={presentation.answer} segments={presentation.claimSegments} citations={presentation.citations.markerItems || presentation.citations.items} />
@@ -173,6 +187,15 @@ export function Turn({ turn, index, last, caseId, onAsk, onChoose, onRetry, onEd
           <div className="nx-actions" role="group" aria-label="Actions for this answer">
             {answered ? <button type="button" className="nx-btn nx-btn--sm nx-btn--ghost" onClick={onCopy}>{copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}{copied ? 'Copied' : 'Copy answer'}</button> : null}
             <button type="button" className="nx-btn nx-btn--sm nx-btn--ghost" onClick={onEdit}><Pencil aria-hidden="true" />Ask a variation</button>
+            {turn.stored && onRerun && !turn.busy ? <button type="button" className="nx-btn nx-btn--sm nx-btn--ghost" onClick={onRerun} title="Ask the same question again against the data as it is now"><RotateCcw aria-hidden="true" />Run again</button> : null}
+            {turn.stored && answered && onPin ? <button type="button" className="nx-btn nx-btn--sm nx-btn--ghost" aria-pressed={turn.pinnedAs?.length > 0} onClick={onPin} title="Keep this answer as a finding of the case">{turn.pinnedAs?.length ? <PinOff aria-hidden="true" /> : <Pin aria-hidden="true" />}{turn.pinnedAs?.length ? 'Pinned to findings' : 'Pin to findings'}</button> : null}
+            {turn.stored && onFork ? <button type="button" className="nx-btn nx-btn--sm nx-btn--ghost" onClick={onFork} title="Continue from here in a conversation of your own"><GitFork aria-hidden="true" />Fork</button> : null}
+            {turn.stored && answered && onFeedback ? (
+              <span className="nx-actions__verdict" role="group" aria-label="Is this answer right?">
+                <button type="button" className="nx-btn nx-btn--sm nx-btn--ghost nx-btn--icon" aria-pressed={turn.feedback?.mine?.verdict === 'correct'} aria-label="This answer is correct" title="This answer is correct" onClick={() => onFeedback('correct')}><ThumbsUp aria-hidden="true" /></button>
+                <button type="button" className="nx-btn nx-btn--sm nx-btn--ghost nx-btn--icon" aria-pressed={turn.feedback?.mine?.verdict === 'wrong'} aria-label="This answer is wrong" title="This answer is wrong" onClick={() => onFeedback('wrong')}><ThumbsDown aria-hidden="true" /></button>
+              </span>
+            ) : null}
           </div>
         ) : null}
       </div>
