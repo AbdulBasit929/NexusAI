@@ -17,7 +17,7 @@ STD = np.array([0.229, 0.224, 0.225], np.float32)
 
 
 class OnnxPlateDetector:
-    def __init__(self, model_path: str | Path, cv2_module: Any, *, providers: list[str] | None = None, normalise: str = "imagenet", threshold: float = 0.5) -> None:
+    def __init__(self, model_path: str | Path, cv2_module: Any, *, providers: list[str] | None = None, normalise: str = "imagenet", threshold: float = 0.5, drop_non_plates: bool = False) -> None:
         import onnxruntime as ort
 
         self.cv2 = cv2_module
@@ -25,7 +25,7 @@ class OnnxPlateDetector:
         shape = self.session.get_inputs()[0].shape
         self.model = self.session  # the processor reports the active providers through `.model.get_providers()`
         self.input_name, self.size = self.session.get_inputs()[0].name, int(shape[-1])
-        self.normalise, self.threshold = normalise, threshold
+        self.normalise, self.threshold, self.drop_non_plates = normalise, threshold, drop_non_plates
 
     def _prepare(self, frame_bgr: np.ndarray) -> np.ndarray:
         rgb = self.cv2.cvtColor(self.cv2.resize(frame_bgr, (self.size, self.size), interpolation=self.cv2.INTER_LINEAR), self.cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
@@ -50,7 +50,36 @@ class OnnxPlateDetector:
         for det in found:  # a light non-maximum suppression: queries that land on the same plate
             if all(_iou(det, k) < 0.5 for k in kept):
                 kept.append(det)
+        if self.drop_non_plates:
+            kept = drop_non_plates(kept, width, height)
         return kept
+
+
+def drop_non_plates(detections: list[tuple[int, int, int, int, float]], width: int, height: int) -> list[tuple[int, int, int, int, float]]:
+    """Remove the boxes that are not plates although the published detector returns them (it also boxes whole vehicles, measured 2026-11-10 on real photos).
+
+    Two geometric checks, chosen on the owner-labelled development images and the Open Images validation photos, never on a sealed set:
+      * a large, boxy box (more than 5% of the image, width under twice its height) that CONTAINS a much smaller detection (at most a quarter of its area, 90% inside it) is a vehicle around its plate;
+        a close-up in which the plate fills the frame contains nothing smaller and is kept;
+      * a portrait-shaped box (width under 1.1 times its height) is not a one- or two-line plate.
+    """
+    def area(d: tuple) -> float:
+        return max(0, d[2] - d[0]) * max(0, d[3] - d[1])
+
+    def inside(small: tuple, big: tuple) -> float:
+        ix0, iy0, ix1, iy1 = max(small[0], big[0]), max(small[1], big[1]), min(small[2], big[2]), min(small[3], big[3])
+        return max(0, ix1 - ix0) * max(0, iy1 - iy0) / max(1, area(small))
+
+    kept = []
+    for a in detections:
+        aspect = (a[2] - a[0]) / max(1, a[3] - a[1])
+        if aspect < 1.1:
+            continue
+        big_and_boxy = area(a) / max(1, width * height) > 0.05 and aspect < 2.0
+        if big_and_boxy and any(b is not a and area(b) <= 0.25 * area(a) and inside(b, a) >= 0.9 for b in detections):
+            continue
+        kept.append(a)
+    return kept
 
 
 def _iou(a: tuple, b: tuple) -> float:

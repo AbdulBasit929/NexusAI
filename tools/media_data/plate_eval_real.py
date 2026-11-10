@@ -99,6 +99,7 @@ def main():
     parser.add_argument("--detector-onnx", default="/data/models/plates/rfdetr-alpr/rfdetr_alpr.onnx")
     parser.add_argument("--detector-norm", default="imagenet", choices=["imagenet", "unit"])
     parser.add_argument("--detector-threshold", type=float, default=0.5)
+    parser.add_argument("--drop-non-plates", action="store_true")
     parser.add_argument("--out", default="/data/results/plates")
     parser.add_argument("--tag", default="")
     args = parser.parse_args()
@@ -108,7 +109,7 @@ def main():
     detector = ocr_model = None
     if args.engine == "rfdetr_pair":
         import plate_detector_onnx as pd
-        detector = pd.OnnxPlateDetector(args.detector_onnx, cv2, normalise=args.detector_norm, threshold=args.detector_threshold)
+        detector = pd.OnnxPlateDetector(args.detector_onnx, cv2, normalise=args.detector_norm, threshold=args.detector_threshold, drop_non_plates=args.drop_non_plates)
         from fast_alpr.default_ocr import DefaultOCR
         ocr_model = DefaultOCR(hub_ocr_model=None, device="cpu", providers=["CPUExecutionProvider"], model_path=args.incumbent_ocr, config_path=args.incumbent_ocr_config, force_download=False)
         engine = None

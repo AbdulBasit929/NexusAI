@@ -127,3 +127,24 @@ Paired by image: both correct 13, **only the new pair correct 3, only the incumb
 * **Checks:** 4 unit tests of the processor pass in the worker image's own runtime, plus 6 registry and 3 reader tests; an end-to-end smoke through `configured_media_processor()` with the real models on four real photos gives readiness READY, 1.2 to 2.9 s per image on this CPU.
 * **Finding to carry forward:** the detector finds several plate-like regions per photo (2 to 4 on the four smoke images, 0.69 to 0.96 confidence); usually one of them reads as a registered format and the others are flagged `format_unknown`. They may be other plates in the frame or false regions; the owner-labelled gold has one plate per image and cannot say which. All are returned as model observations for review, flagged.
 * **To switch it on in the live product (not done, needs the owner's word):** rebuild the worker overlay with the four new modules and the edited `media_pipeline.py` (`tools/media_data/Build-WorkerOverlay.ps1`), mount `models/media/nexus-plates`, set `FORENSIC_ANPR_ENGINE=nexus`, recreate the worker (rollback: the previous worker tag, or set the switch back).
+
+## Amendment 6 (2026-11-10): go-live preparation found that the detector also boxes vehicles; a correction and the final configuration
+
+**Correction to Amendment 4.** The published detector returns boxes around whole vehicles (a car, a neighbouring car, a rickshaw) as well as around plates, at confidences up to 0.96. The "plates found" figure (22 of 22) is a count proxy that counts any detection, so a vehicle box counted as a found plate; that figure is not evidence that 22 plates were localised. The exact-read result (16 of 22) is unaffected, because an exact read needs the right text.
+
+**Box recall on real photographs** (Open Images, CC BY 2.0, the 125 sealed photos with 167 usable plate boxes, IoU 0.5, at each detector's product threshold; evaluator `tools/media_data/plate_eval_detect.py`):
+
+| Detector | Recall | Under 40 px | 40 to 100 px | 100 px and over | Detections per image |
+|---|---|---|---|---|---|
+| RF-DETR at 0.5, no rule | 79.0% | 9 of 35 | 38 of 43 | 85 of 89 | 3.2 |
+| RF-DETR at 0.5 with the non-plate rule | 77.2% | 9 of 35 | 35 of 43 | 85 of 89 | 1.76 |
+| incumbent YOLOv9-t at 0.75 | 70.7% | 1 of 35 | 28 of 43 | 89 of 89 | 0.94 |
+| incumbent at 0.5 | 75.4% | 2 of 35 | 35 of 43 | 89 of 89 | 1.02 |
+
+**Gate 2 (box recall):** plates 40 px and wider at least 95%: **not met** (about 93% without the rule, 91% with it; the incumbent 89% at its threshold). Overall recall at least the incumbent's plus 5 points: met against the incumbent at its product threshold (77 to 79% against 70.7%). False boxes at most 0.1 per image: **not met** as measured, but Open Images labels are not exhaustive, so the over-count (0.73 per image with the rule, 2.1 without) cannot be read as a false-plate rate.
+
+**The non-plate rule (final form, chosen on the owner's development images and the Open Images photos, not on a sealed set).** A first rule (large and boxy) dropped a real plate in a close-up whose plate fills the frame (development: 9 of 10 found, character error 6.2% to 16.9%) and was replaced. The final rule, `drop_non_plates` in `plate_detector_onnx.py`: drop a box that is portrait-shaped (width under 1.1 times its height), and drop a large boxy box (over 5% of the image, width under twice its height) that contains a much smaller detection (at most a quarter of its area, 90% inside it). Result with the rule: development 10 of 10 found, 7 of 10 exact, character error 6.2% (identical to without); each of six real photos in the staging proof yields exactly one plate observation, all fitting a registered format.
+
+**Disclosed second use of the sealed 22 (final configuration).** The product ships with the rule, so the final configuration was run once on the real sealed 22 to check that the rule costs no real plate: 22 found, 16 exact, character error 7.9%, paired with the incumbent unchanged (3 gained, 0 lost). This is the same result as Amendment 4; no setting was tuned on it.
+
+**Overlay.** `nexusai-forensic-records-worker:plates-20261110c` is built on top of the running image with a fail-safe patch of the image's own (older) `media_pipeline.py` (`tools/media_data/patch_image_media_pipeline_plates.py`, `Build-PlatesOverlay.ps1`); `latest` and the running worker are unchanged. Staging proof with the overlay's own code: engine unset builds the current processor; engine `nexus` works end to end. Runbook with the rollback: `tools/media_data/PLATES_GO_LIVE.md`. **Not executed.** The live worker has the plate role off today; going live also means enabling `FORENSIC_ANPR_ENABLED`.

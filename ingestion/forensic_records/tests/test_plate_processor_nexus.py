@@ -65,3 +65,16 @@ def test_the_incumbent_processor_keeps_its_identity_and_detector_version():
     assert mp.FastALPRImageProcessor.processor_id == "fastalpr-onnx-cpu"
     assert mp.FastALPRImageProcessor.detector_version == "fast-alpr-0.4.0/open-image-models-0.6.0"
     assert pn.NexusPlateImageProcessor.detector_version != mp.FastALPRImageProcessor.detector_version
+
+
+def test_non_plate_boxes_are_dropped_and_plates_and_close_ups_are_kept():
+    import plate_detector_onnx as pdo
+
+    W, H = 1100, 906
+    car, plate, neighbour, rickshaw = (65, 62, 1035, 822, 0.94), (515, 570, 678, 655, 0.94), (875, 182, 1100, 628, 0.89), (45, 140, 380, 560, 0.69)
+    assert pdo.drop_non_plates([car, plate, neighbour, rickshaw], W, H) == [plate]  # the car contains the plate; the other two are portrait-shaped
+    assert pdo.drop_non_plates([(0, 0, 297, 173, 0.92)], 297, 173) == [(0, 0, 297, 173, 0.92)]  # a close-up: fills the frame, contains nothing smaller, aspect 1.7: kept
+    assert pdo.drop_non_plates([(10, 10, 60, 160, 0.7)], W, H) == []  # a tall, narrow box is not a plate
+    big_wide = (0, 0, 800, 300, 0.9)  # wide enough (aspect 2.7) to be a plate even though it is large, and it holds a smaller detection: kept
+    assert big_wide in pdo.drop_non_plates([big_wide, (100, 100, 200, 140, 0.8)], 1100, 906)
+    assert pdo.drop_non_plates([], W, H) == []

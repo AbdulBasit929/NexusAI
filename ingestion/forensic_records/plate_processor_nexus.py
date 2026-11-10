@@ -103,9 +103,14 @@ class NexusPlateImageProcessor(FastALPRImageProcessor):
             raise ModelUnavailableError(f"plate engine runtime dependency unavailable: {exc.name}") from exc
         providers = _onnx_providers()
         confidence = float(os.getenv("FORENSIC_ANPR_NEXUS_MIN_DETECTION_CONFIDENCE", "0.5")) if minimum_confidence is None else float(minimum_confidence)
-        detector = OnnxPlateDetector(detector_path, cv2, providers=providers, normalise="unit", threshold=confidence)
+        detector = OnnxPlateDetector(detector_path, cv2, providers=providers, normalise="unit", threshold=confidence, drop_non_plates=True)
         ocr = DefaultOCR(hub_ocr_model=None, device="cpu", providers=providers, model_path=ocr_path, config_path=ocr_config, force_download=False)
         return cls(NexusPlateEngine(detector, ocr), cv2, confidence, model_hashes={"detector": _sha256(detector_path), "ocr": _sha256(ocr_path), "ocr_config": _sha256(ocr_config)})
+
+    def __init__(self, engine: Any, cv2_module: Any, minimum_confidence: float = 0.5, *, model_hashes: dict[str, str] | None = None) -> None:
+        # The base constructor of the repository takes `model_hashes`; the older class inside the production worker image does not. Call it in the form both accept and keep the hashes here.
+        super().__init__(engine, cv2_module, minimum_confidence)
+        self.model_hashes = dict(model_hashes or {})
 
     def process_image(self, path: Path, **kwargs: Any) -> MediaProcessResult:
         result = super().process_image(path, **kwargs)
@@ -117,6 +122,8 @@ class NexusPlateImageProcessor(FastALPRImageProcessor):
             payload["plate_format"] = matches[0] if matches else None
             payload["plate_format_flags"] = [] if matches else ["format_unknown"]
             payload["plate_registry_version"] = registry_version
+            for key, source in (("detector_model_sha256", "detector"), ("ocr_model_sha256", "ocr"), ("ocr_config_sha256", "ocr_config")):
+                payload[key] = self.model_hashes.get(source)  # the older base class does not write the model hashes itself
             payload["model_provenance"] = PROVENANCE_NOTE
             observations.append(dataclasses.replace(observation, payload=payload))
         limitations = tuple(result.limitations) + (f"plate models are {PROVENANCE_NOTE}",)
