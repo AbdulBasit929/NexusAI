@@ -1,4 +1,4 @@
-# Migration 034: conversations and the case layer (DRAFT, never applied)
+# Migration 034: conversations and the case layer (applied to the live database 2026-11-10)
 
 Design: [`docs/architecture/CONVERSATIONS_AND_CASE_LAYER_20261103.md`](../../../../docs/architecture/CONVERSATIONS_AND_CASE_LAYER_20261103.md). Contract for the interface: [`docs/work/API_CONTRACT_CONVERSATIONS_20261103.md`](../../../../docs/work/API_CONTRACT_CONVERSATIONS_20261103.md).
 
@@ -19,7 +19,7 @@ SOURCE=dump DUMP=/path/to/live.dump bash tools/dev/live-window/rehearse-034.sh  
 
 HEAVY: take `C:\tmp\nexusai-locks\heavy.lock` and check 3 GB of free RAM first.
 
-## Applying it to the live database (needs the owner's chat word; this is not done)
+## Applying it to the live database (DONE 2026-11-10 09:12 PKT on the owner's instruction; the steps below are how it was done and how to repeat it elsewhere)
 
 1. Backup first (`tools/dev/live-window/1-backup.sh`), and the rehearsal on a restored copy of that dump.
 2. `preflight.sql`, then `034_conversations_and_case_layer.sql`, then `verify.sql`, then `behaviour.sql` (it rolls back), then `verify.sql` again. From PowerShell the files are pure ASCII, so piping is safe:
