@@ -113,6 +113,19 @@ func searchPlateReads(typed string, rows []plateReadRow) plateSearchResult {
 			result.Similar = append(result.Similar, match)
 		}
 	}
+	// A file that already has an exact reading is not listed again as a similar one. A video read frame by frame often has a few frames that misread the very plate it shows (one
+	// character off); reporting them as "another file with a similar reading" would name the same file twice and invite the analyst to look for a second vehicle.
+	exactIDs := map[string]bool{}
+	for _, m := range result.Exact {
+		exactIDs[m.EvidenceID+"|"+m.File] = true
+	}
+	similar := result.Similar[:0]
+	for _, m := range result.Similar {
+		if !exactIDs[m.EvidenceID+"|"+m.File] {
+			similar = append(similar, m)
+		}
+	}
+	result.Similar = similar
 	byFile := func(list []plateMatchedFile) {
 		sort.SliceStable(list, func(i, j int) bool {
 			if list[i].Cost != list[j].Cost {

@@ -55,6 +55,27 @@ func TestSearchPlateReadsKeepsExactAndSimilarApartAndNeverUsesAFormat(t *testing
 	}
 }
 
+func TestSearchPlateReadsNeverListsAFileAsSimilarWhenItHasAnExactReading(t *testing.T) {
+	// a video: most frames read the plate exactly, two frames misread it by one character (O for 0); another video only has the misreading
+	rows := []plateReadRow{
+		{EvidenceID: "v1", File: "gate.mp4", Key: "RLX902", Observation: "f1"},
+		{EvidenceID: "v1", File: "gate.mp4", Key: "RLX9O2", Observation: "f2"},
+		{EvidenceID: "v1", File: "gate.mp4", Key: "RLX902", Observation: "f3"},
+		{EvidenceID: "v1", File: "gate.mp4", Key: "RLX9O2", Observation: "f4"},
+		{EvidenceID: "v2", File: "other.mp4", Key: "RLX9O2", Observation: "f5"},
+	}
+	r := searchPlateReads("RLX902", rows)
+	if got := distinctPlateFiles(r.Exact); len(got) != 1 || got[0] != "gate.mp4" {
+		t.Fatalf("exact %v", got) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+	if got := distinctPlateFiles(r.Similar); len(got) != 1 || got[0] != "other.mp4" {
+		t.Fatalf("similar %v: the file with an exact reading must not be listed again", got) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+	if s := plateSearchSentence(r); strings.Contains(s, "1 other file shows a similar reading") == false || strings.Count(s, "gate.mp4") != 1 {
+		t.Fatalf("sentence %q names the matching file once and the other file as similar", s) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+}
+
 func TestPlateSearchSentenceNamesTheTypedPlateAndNeverAStoredReading(t *testing.T) {
 	rows := []plateReadRow{{EvidenceID: "e2", File: "b.jpg", Key: "SYNI2905", Observation: "o2"}, {EvidenceID: "e4", File: "d.jpg", Key: "SYNT4024", Observation: "o4"}}
 	text := plateSearchSentence(searchPlateReads("SYNT2905", rows))
