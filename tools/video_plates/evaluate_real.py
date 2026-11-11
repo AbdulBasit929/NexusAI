@@ -117,6 +117,8 @@ def main():
             run = v3.run_video(Path(args.video), context={**CTX, "source_file": os.path.basename(args.video)}, allowed_intervals=[TimeInterval(0.0, float(args.max_seconds))] if args.max_seconds else None)
             out = {"groups": [{"plate": g.selected_normalized_plate, "support": g.support_count, "first": g.first_observed_seconds, "last": g.last_observed_seconds} for g in run.groups],
                    "frames": run.result.metadata["coverage"]["frames_decoded"]}
+        elif method == "v4p":
+            out = run_v4(VideoANPRNexusV4Processor.from_environment(), args.video, args.max_seconds, f"/clips/explore/{args.tag}", method)
         elif method == "v4s":
             from video_anpr_nexus_v4 import default_engine_processor
             nexus.engine = base_engine

@@ -50,7 +50,8 @@ DEFAULT_POLICY = ProductAggregationPolicy(
     minimum_candidate_length=4,
     maximum_candidate_length=10,
     minimum_best_ocr_confidence=0.5,
-    minimum_weighted_support=1.0,
+    minimum_weighted_support=0.6,       # was 1.0: the weights are a product of factors, so a triple of moderately confident reads (about 0.2 each) was dropped that V3's weights would have kept
+    maximum_active_groups=1024,         # was 128 (the V2 default): in a long or noisy clip (night glare: 416 reads, 279 distinct strings in 37 s) junk clusters filled the cap and later real plates were dropped
 )
 
 
@@ -221,8 +222,10 @@ class VideoANPRNexusV4Processor:
             second = default_engine_processor()
             if second is not None:
                 extra.append(second)
+        primary = NexusPlateImageProcessor.from_environment(minimum_confidence=float(os.getenv("FORENSIC_VIDEO_ANPR_V4_DETECTION_CONFIDENCE", "0.5")))
+        with_high_resolution(primary, tile_side=1280, wide_px=int(os.getenv("FORENSIC_VIDEO_ANPR_V4_TILE_MIN_PX", "2200")), tile_every=2, min_aspect=1.5)
         return cls(
-            NexusPlateImageProcessor.from_environment(minimum_confidence=float(os.getenv("FORENSIC_VIDEO_ANPR_V4_DETECTION_CONFIDENCE", "0.5"))),
+            primary,
             cv2,
             extra_processors=tuple(extra),
             engine_every=(2, 1) if extra else (),       # the frozen configuration of the pre-registration (Amendments 2 and 3): the slow primary engine reads every second base frame, the fast engine every one

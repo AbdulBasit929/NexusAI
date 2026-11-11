@@ -123,6 +123,8 @@ def build_methods(names):
     if "b2" in names:
         v3_nexus = VideoANPROnnxV3Processor(state["nexus"], cv2)
         methods["b2"] = lambda p: run_v3_like(v3_nexus, p)
+    if "v4p" in names:
+        methods["v4p"] = (lambda proc: (lambda p: run_v4(proc, p)))(VideoANPRNexusV4Processor.from_environment())
     if "v4s" in names:
         from video_anpr_nexus_v4 import default_engine_processor
         methods["v4s"] = (lambda proc: (lambda p: run_v4(proc, p)))(VideoANPRNexusV4Processor(state["nexus"], cv2, extra_processors=(default_engine_processor(),), engine_every=(2, 1)))
