@@ -13,10 +13,12 @@ before its rivals). tools/showcase/judge_verified_bank.py reads the engine's ans
 import argparse
 import datetime
 import json
+import os
 import subprocess
 import sys
 
 COLLECTION = "orion-lahore-reference-20261030"
+PLATE_KEY = os.environ.get("ORION_PLATE_KEY", "C:/NexusAI-Showcase/orion/key/plate-images-key.json")  # the construction key of the photos added to the case (synthetic plates only)
 TZ = "Asia/Karachi"
 SUBS_VOICE_ONLY = ["923000001005"]
 COMM = "forensic.comm_event c WHERE c.collection_id = '%s' AND c.dataset_kind = 'target_cdr' AND NOT ('duplicate_row' = ANY (c.quality_flags))" % COLLECTION
@@ -194,6 +196,18 @@ def build():
     for modality, n in psql("select i.modality, count(*) from forensic.evidence_items i where i.collection_id = '%s' group by 1 order by 1" % COLLECTION):
         add("inventory", "files_by_modality", "How many %s files are in this case?" % {"structured_records": "structured record", "text": "text", "document": "document", "tabular": "tabular"}.get(modality, modality), {"kind": "scalar", "value": int(n)}, "the evidence files of the case, by their type")
     add("inventory", "files_total", "How many evidence files are in this case?", {"kind": "scalar", "value": int(one("select count(*) from forensic.evidence_items i where i.collection_id = '%s'" % COLLECTION))})
+
+    # ------------------------------------------------------------------ the photos added to the case (plate search over image readings)
+    # The oracle is the construction key, not the engine: each constructed photo is a real car photo with an Orion plate written on it, so the plate it shows is known. The engine reads the plate with a
+    # model, so the photo may be listed as an exact match or as a "similar reading" (one or two characters different); either way the file must be named. Real labelled photos are not in this bank:
+    # their labels are the owner's and stay local.
+    key_path = PLATE_KEY if os.path.exists(PLATE_KEY) else None
+    if key_path:
+        for image in json.load(open(key_path, encoding="utf-8"))["images"]:
+            if image.get("kind") == "constructed" and image.get("plate_written"):
+                bank.add("imgplate", "plate_in_image", "Which photos show the plate %s?" % image["plate_written"], {"kind": "set", "values": [image["file"]]},
+                         "a constructed photo: a real car photo with this plate written on it; listed as an exact match or as a similar reading to check by eye")
+        bank.add("imgplate", "plate_in_image_none", "Which photos show the plate QZX7731?", {"kind": "text", "value": "No image or video reading matches the plate QZX7731 exactly"}, "a plate that is in no photo: no exact match is reported")
 
     return bank.items
 
