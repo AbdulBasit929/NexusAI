@@ -23,14 +23,14 @@ import numpy as np
 try:
     from ingestion.forensic_records.video_anpr_onnx_v3 import _mean_confidence
     from ingestion.forensic_records.video_anpr_parity_adapter import (
-        AggregationPolicy, FramePolicy, PlateBounds, PlateObservation, PlateObservationGroup, TimeInterval, _candidate_alternatives, aggregate_observations, coverage_state, crop_quality, make_coverage_receipt,
+        AggregationPolicy, FramePolicy, PlateBounds, PlateObservation, PlateObservationGroup, TimeInterval, _candidate_alternatives, _edit_distance, _select_candidate, aggregate_observations, coverage_state, crop_quality, make_coverage_receipt,
         normalize_plate_neutral, observation_id, schedule_base_frames, schedule_refinement_frames,
     )
     from ingestion.forensic_records.video_anpr_product_v2 import ProductAggregationPolicy, aggregate_product_observations
 except ModuleNotFoundError:  # pragma: no cover - direct worker image execution
     from video_anpr_onnx_v3 import _mean_confidence
     from video_anpr_parity_adapter import (
-        AggregationPolicy, FramePolicy, PlateBounds, PlateObservation, PlateObservationGroup, TimeInterval, _candidate_alternatives, aggregate_observations, coverage_state, crop_quality, make_coverage_receipt,
+        AggregationPolicy, FramePolicy, PlateBounds, PlateObservation, PlateObservationGroup, TimeInterval, _candidate_alternatives, _edit_distance, _select_candidate, aggregate_observations, coverage_state, crop_quality, make_coverage_receipt,
         normalize_plate_neutral, observation_id, schedule_base_frames, schedule_refinement_frames,
     )
     from video_anpr_product_v2 import ProductAggregationPolicy, aggregate_product_observations
@@ -52,6 +52,22 @@ DEFAULT_POLICY = ProductAggregationPolicy(
     minimum_best_ocr_confidence=0.5,
     minimum_weighted_support=1.0,
 )
+
+
+def default_engine_processor(minimum_confidence: float | None = None) -> Any | None:
+    """The licence-clean default engine (YOLO plate detector with the cct-xs reader, the engine of V3) as a second, independent reader, with its model hashes. None when its models are not configured."""
+    try:
+        from ingestion.forensic_records.media_pipeline import FastALPRImageProcessor, _sha256
+    except ModuleNotFoundError:  # pragma: no cover - direct worker image execution
+        from media_pipeline import FastALPRImageProcessor, _sha256
+    detector, ocr, config = (os.getenv(name, "").strip() for name in ("FORENSIC_ANPR_DETECTOR_MODEL_PATH", "FORENSIC_ANPR_OCR_MODEL_PATH", "FORENSIC_ANPR_OCR_CONFIG_PATH"))
+    if not (detector and ocr and config and Path(detector).exists() and Path(ocr).exists()):
+        return None
+    confidence = float(os.getenv("FORENSIC_VIDEO_ANPR_V3_DETECTION_CONFIDENCE", "0.25")) if minimum_confidence is None else minimum_confidence
+    processor = FastALPRImageProcessor.from_environment(minimum_confidence=confidence)
+    if not getattr(processor, "model_hashes", None):
+        processor.model_hashes = {"detector": _sha256(Path(detector)), "ocr": _sha256(Path(ocr)), "ocr_config": _sha256(Path(config)) if Path(config).exists() else ""}
+    return processor
 
 
 @dataclass(frozen=True)
@@ -82,32 +98,70 @@ def combined_quality(size_score: float, sharp_score: float) -> float:
     return QUALITY_SIZE_SHARE * size_score + (1.0 - QUALITY_SIZE_SHARE) * sharp_score
 
 
-def merge_same_text_groups(groups: Sequence[PlateObservationGroup], observations: Sequence[PlateObservation], gap_seconds: float = 1.5) -> tuple[PlateObservationGroup, ...]:
-    """Groups that selected the same text and whose intervals overlap or lie within `gap_seconds` of each other are one group. The spatial association of the grouping can fail for a plate that moves
-    far between two sampled frames (a vehicle approaching a fixed camera), which then reads as two groups of one plate. Only identical selected text is merged: no identity is claimed beyond it."""
+def merge_overlapping_groups(groups: Sequence[PlateObservationGroup], observations: Sequence[PlateObservation], gap_seconds: float = 1.5, max_edit_distance: int = 0,
+                             policy: ProductAggregationPolicy | None = None) -> tuple[PlateObservationGroup, ...]:
+    """One group out of groups that are the same plate seen twice. Two groups are one when their selected texts are identical and their intervals touch within `gap_seconds` (the spatial association of the
+    grouping can fail for a plate that moves far between two sampled frames), or, with `max_edit_distance` 1, when the texts are one edit apart and reads of the two groups taken at the same moment lie at the
+    same place (the grouping never puts two reads of one frame into one group, so two engines reading the same plate form two groups; this is how their reads reinforce each other). The merged group selects,
+    as always, an observed string by weighted support, and keeps the others as alternatives; it must still pass the precision gates of `policy`, else the groups stay as they were."""
+    policy = policy or DEFAULT_POLICY
     by_id = {o.observation_id: o for o in observations}
-    merged: list[list[PlateObservationGroup]] = []
-    for group in sorted(groups, key=lambda g: (g.selected_normalized_plate, g.first_observed_seconds)):
-        if merged and merged[-1][0].selected_normalized_plate == group.selected_normalized_plate and group.first_observed_seconds <= max(g.last_observed_seconds for g in merged[-1]) + gap_seconds:
-            merged[-1].append(group)
-        else:
-            merged.append([group])
+    members_of = [sorted((by_id[i] for i in g.observation_ids if i in by_id), key=lambda o: (o.timestamp_seconds, o.observation_id)) for g in groups]
+
+    def touch(a: int, b: int) -> bool:
+        ga, gb = groups[a], groups[b]
+        distance = _edit_distance(ga.selected_normalized_plate, gb.selected_normalized_plate)
+        if distance > max_edit_distance:
+            return False
+        gap = max(ga.first_observed_seconds, gb.first_observed_seconds) - min(ga.last_observed_seconds, gb.last_observed_seconds)
+        if distance == 0:
+            return gap <= gap_seconds
+        if gap > 0:
+            return False
+        return any(abs(x.timestamp_seconds - y.timestamp_seconds) <= 0.12 and (x.bounds.iou(y.bounds) >= 0.05 or x.bounds.center_distance_ratio(y.bounds) <= 2.0)
+                   for x in members_of[a] for y in members_of[b])
+
+    parent = list(range(len(groups)))
+
+    def find(i: int) -> int:
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    for a in range(len(groups)):
+        for b in range(a + 1, len(groups)):
+            if find(a) != find(b) and touch(a, b):
+                parent[find(b)] = find(a)
+    components: dict[int, list[int]] = {}
+    for index in range(len(groups)):
+        components.setdefault(find(index), []).append(index)
     output: list[PlateObservationGroup] = []
-    for parts in merged:
-        if len(parts) == 1:
-            output.append(parts[0])
+    for indexes in components.values():
+        if len(indexes) == 1:
+            output.append(groups[indexes[0]])
             continue
-        members = sorted({i: by_id[i] for g in parts for i in g.observation_ids if i in by_id}.values(), key=lambda o: (o.timestamp_seconds, o.observation_id))
-        text = parts[0].selected_normalized_plate
+        members = sorted({o.observation_id: o for i in indexes for o in members_of[i]}.values(), key=lambda o: (o.timestamp_seconds, o.observation_id))
+        alternatives = _candidate_alternatives(members)
+        selected = _select_candidate(alternatives, "confidence_weighted_support")
+        text = selected.normalized_plate_text
+        if (not text.isalnum() or not policy.minimum_candidate_length <= len(text) <= policy.maximum_candidate_length or (selected.best_ocr_confidence or 0.0) < policy.minimum_best_ocr_confidence
+                or selected.confidence_weighted_support < policy.minimum_weighted_support or selected.support_count < policy.minimum_selected_support):
+            output.extend(groups[i] for i in indexes)
+            continue
         supporting = [o for o in members if o.normalized_ocr == text]
         best = min(supporting, key=lambda o: (-o.support_weight(), -float(o.ocr_confidence or 0), o.timestamp_seconds, o.observation_id))
         output.append(PlateObservationGroup(
             group_id=str(uuid.uuid5(uuid.NAMESPACE_URL, ":".join((members[0].source_sha256, ADAPTER_ID, members[0].observation_id, members[-1].observation_id, text)))),
             selected_normalized_plate=text, selected_raw_plate=best.raw_ocr, support_count=len(supporting), first_observed_seconds=members[0].timestamp_seconds,
             last_observed_seconds=members[-1].timestamp_seconds, best_observation_id=best.observation_id, observation_ids=tuple(o.observation_id for o in members),
-            alternatives=_candidate_alternatives(members), bounds_at_best_observation=best.bounds, aggregation_strategy=parts[0].aggregation_strategy,
+            alternatives=alternatives, bounds_at_best_observation=best.bounds, aggregation_strategy=groups[indexes[0]].aggregation_strategy,
         ))
     return tuple(sorted(output, key=lambda g: (g.first_observed_seconds, g.last_observed_seconds, g.group_id)))
+
+
+def merge_same_text_groups(groups: Sequence[PlateObservationGroup], observations: Sequence[PlateObservation], gap_seconds: float = 1.5) -> tuple[PlateObservationGroup, ...]:
+    return merge_overlapping_groups(groups, observations, gap_seconds, 0)
 
 
 @dataclass(frozen=True)
@@ -126,11 +180,15 @@ class VideoANPRNexusV4Processor:
     processor_id = ADAPTER_ID
     processor_revision = ADAPTER_VERSION
 
-    def __init__(self, image_processor: Any, cv2_module: Any, *, base_fps: float = 4.0, refinement: bool = True, sharpness_weight: bool = True,
+    def __init__(self, image_processor: Any, cv2_module: Any, *, extra_processors: Sequence[Any] = (), engine_every: Sequence[int] = (), base_fps: float = 4.0, refinement: bool = True, sharpness_weight: bool = True,
                  policy: ProductAggregationPolicy = DEFAULT_POLICY, maximum_frames: int = 1200, maximum_duration_seconds: float = 900.0,
                  refinement_window_seconds: float = 0.5, refinement_cadence_fps: float = 8.0, maximum_refinement_per_trigger: int = 9,
                  refinement_mode: str = "per_group", refinement_per_group: int = 3, refinement_budget_ratio: float = 0.5, refinement_pad_seconds: float = 0.25, merge_gap_seconds: float = 1.5) -> None:
         self.image_processor = image_processor
+        # Every sampled frame is read by each of these engines; the reads of all of them go into one grouping (an ensemble of independent readers). The first one is the primary engine.
+        self.processors = (image_processor, *extra_processors)
+        # engine_every[i]: engine i reads every n-th BASE frame (refinement frames are read by every engine). A slow engine can read every second base frame while a fast one reads all of them.
+        self.engine_every = tuple(max(1, int(n)) for n in engine_every) + (1,) * (len(self.processors) - len(engine_every))
         self.cv2 = cv2_module
         self.base_fps = base_fps
         self.refinement = refinement
@@ -158,21 +216,26 @@ class VideoANPRNexusV4Processor:
         except ModuleNotFoundError:  # pragma: no cover - direct worker image execution
             import cv2  # type: ignore[import-not-found]
             from plate_processor_nexus import NexusPlateImageProcessor
+        extra: list[Any] = []
+        if os.getenv("FORENSIC_VIDEO_ANPR_V4_SECOND_ENGINE", "true").strip().lower() in {"1", "true", "yes", "on"}:
+            second = default_engine_processor()
+            if second is not None:
+                extra.append(second)
         return cls(
             NexusPlateImageProcessor.from_environment(minimum_confidence=float(os.getenv("FORENSIC_VIDEO_ANPR_V4_DETECTION_CONFIDENCE", "0.5"))),
             cv2,
+            extra_processors=tuple(extra),
+            engine_every=(2, 1) if extra else (),       # the frozen configuration of the pre-registration (Amendments 2 and 3): the slow primary engine reads every second base frame, the fast engine every one
             base_fps=max(0.5, min(25.0, float(os.getenv("FORENSIC_VIDEO_ANPR_V4_BASE_FPS", "4")))),
             maximum_frames=max(1, min(3600, int(os.getenv("FORENSIC_VIDEO_ANPR_V4_MAX_FRAMES", "1200")))),
             maximum_duration_seconds=max(1.0, float(os.getenv("FORENSIC_VIDEO_ANPR_V4_MAX_DURATION_SECONDS", "900"))),
         )
 
     # -- one decoded frame -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    def _observe(self, frame: Any, *, source_sha256: str, source_file: str, frame_number: int, timestamp: float) -> tuple[list[PlateObservation], int]:
-        results = tuple(self.image_processor.engine.predict(frame))
+    def _observe(self, frame: Any, processor: Any, frame_hash: str, *, source_sha256: str, source_file: str, frame_number: int, timestamp: float) -> tuple[list[PlateObservation], int]:
+        results = tuple(processor.engine.predict(frame))
         height, width = int(frame.shape[0]), int(frame.shape[1])
-        hashes = getattr(self.image_processor, "model_hashes", {}) or {}
-        # the hash of the decoded pixels (BGR, row by row), not of a PNG encoding of them: the same value can be recomputed from the decoded frame, and it costs a few milliseconds instead of about 0.1 s per 1080p frame
-        frame_hash = hashlib.sha256(np.ascontiguousarray(frame).tobytes()).hexdigest()
+        hashes = getattr(processor, "model_hashes", {}) or {}
         observations: list[PlateObservation] = []
         for result in results[:32]:
             box = result.detection.bounding_box
@@ -196,9 +259,11 @@ class VideoANPRNexusV4Processor:
                 detector_model_sha256=str(hashes.get("detector", "")), ocr_model_sha256=str(hashes.get("ocr", "")), vehicle_context_matched=None,
             )
             if self.sharpness_weight:
-                observations.append(PlateObservationV4(**fields, crop_quality=combined_quality(size_score, sharp), sharpness=sharp))
+                observation = PlateObservationV4(**fields, crop_quality=combined_quality(size_score, sharp), sharpness=sharp)
             else:
-                observations.append(PlateObservation(**fields, crop_quality=size_score))
+                observation = PlateObservation(**fields, crop_quality=size_score)
+            observations.append(observation)
+            self._engine_of[observation.observation_id] = processor
         return observations, len(results)
 
     def _per_group_refinement(self, observations: Sequence[PlateObservation], analysed: dict[int, list[PlateObservation]], fps: float, duration: float, frames_base: int,
@@ -250,13 +315,14 @@ class VideoANPRNexusV4Processor:
         )
         base = schedule_base_frames(duration, fps, policy, allowed_intervals=allowed_intervals)
         source_sha256, source_file = str(context["source_sha256"]), str(context["source_file"])
+        self._engine_of: dict[str, Any] = {}
         observations: list[PlateObservation] = []
         analysed: dict[int, list[PlateObservation]] = {}
-        failed = crops = 0
+        failed = crops = base_index = 0
         wall_started, cpu_started = time.perf_counter(), time.process_time()
 
-        def read(timestamp: float) -> None:
-            nonlocal failed, crops
+        def read(timestamp: float, refined: bool = False) -> None:
+            nonlocal failed, crops, base_index
             number = round(timestamp * fps)
             if number in analysed:
                 return
@@ -265,10 +331,19 @@ class VideoANPRNexusV4Processor:
             if not ok:
                 failed += 1
                 return
-            found, detected = self._observe(frame, source_sha256=source_sha256, source_file=source_file, frame_number=number, timestamp=number / fps)
+            # the hash of the decoded pixels (BGR, row by row), not of a PNG encoding of them: the same value can be recomputed from the decoded frame, and it costs a few milliseconds instead of about 0.1 s per 1080p frame
+            frame_hash = hashlib.sha256(np.ascontiguousarray(frame).tobytes()).hexdigest()
+            found: list[PlateObservation] = []
+            if not refined:
+                base_index += 1
+            for position, processor in enumerate(self.processors):
+                if not refined and (base_index - 1) % self.engine_every[position] != 0:
+                    continue
+                read_by, detected = self._observe(frame, processor, frame_hash, source_sha256=source_sha256, source_file=source_file, frame_number=number, timestamp=number / fps)
+                found.extend(read_by)
+                crops += detected
             analysed[number] = found
             observations.extend(found)
-            crops += detected
 
         try:
             for timestamp in base:
@@ -277,17 +352,17 @@ class VideoANPRNexusV4Processor:
             if self.refinement and self.refinement_mode == "windows":
                 triggers = [number / fps for number, found in sorted(analysed.items()) if found]
                 for timestamp in schedule_refinement_frames(triggers, duration, fps, policy, already_scheduled=[n / fps for n in analysed], allowed_intervals=allowed_intervals):
-                    read(timestamp)
+                    read(timestamp, True)
             elif self.refinement:
                 for timestamp in self._per_group_refinement(observations, analysed, fps, duration, frames_base, allowed_intervals):
-                    read(timestamp)
+                    read(timestamp, True)
         finally:
             capture.release()
         frames_refined = len(analysed) - frames_base
 
         groups = aggregate_product_observations(observations, self.policy)
         if self.merge_gap_seconds > 0:
-            groups = merge_same_text_groups(groups, observations, self.merge_gap_seconds)
+            groups = merge_overlapping_groups(groups, observations, self.merge_gap_seconds, 1 if len(self.processors) > 1 else 0, self.policy)
         coverage = make_coverage_receipt(
             source_fps=fps, source_duration_seconds=duration, source_frame_count=frame_count, frames_decoded=len(analysed), frames_analyzed_by_plate_detector=len(analysed),
             frames_refined=frames_refined, ocr_crops_processed=crops, sampling_policy=policy.policy_id, dropped_or_failed_frames=failed,
@@ -295,11 +370,12 @@ class VideoANPRNexusV4Processor:
         )
         state, coverage_limitations = coverage_state(coverage, len(observations))
         packets: list[Any] = []
-        engine_note = {"processor": ADAPTER_ID, "processor_revision": ADAPTER_VERSION, "engine_processor": getattr(self.image_processor, "processor_id", ""),
-                       "engine_detector": getattr(self.image_processor, "detector_id", ""), "engine_ocr": getattr(self.image_processor, "ocr_id", ""), "vehicle_context": "not_used_plate_only", "frame_hash_method": "sha256 of the decoded BGR pixel bytes"}
+        engine_note = {"processor": ADAPTER_ID, "processor_revision": ADAPTER_VERSION, "vehicle_context": "not_used_plate_only", "frame_hash_method": "sha256 of the decoded BGR pixel bytes",
+                       "engines": [getattr(p, "processor_id", "") for p in self.processors]}
         for item in observations:
             packet = item.to_packet(evidence_id=str(context["evidence_id"]), version_id=str(context["version_id"]))
-            packet["payload"].update(engine_note)
+            engine = self._engine_of.get(item.observation_id, self.image_processor)
+            packet["payload"].update({**engine_note, "engine_processor": getattr(engine, "processor_id", ""), "engine_detector": getattr(engine, "detector_id", ""), "engine_ocr": getattr(engine, "ocr_id", "")})
             if isinstance(item, PlateObservationV4):
                 packet["payload"]["sharpness"] = round(item.sharpness or 0.0, 4)
             packets.append(MediaObservation(observation_id=packet["observation_id"], contract_version=packet["contract_version"], observation_type=packet["observation_type"],

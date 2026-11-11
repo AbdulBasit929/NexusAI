@@ -75,3 +75,38 @@ First runs of the processor on a real 15 s fixed-camera clip (public stock foota
 
 Changes made because of this, all before the first DEV-V run: (1) the refinement windows of V3 analysed 76% of all frames in dense traffic; replaced by a per-group budget (at most 3 extra frames per cluster of reads, unconfirmed and larger plates first, extra frames at most half of the base frames); the windows stay available as a mode for comparison. (2) The per-frame hash is the SHA-256 of the decoded pixels, not of a PNG encoding (saves about 0.1 s per 1080p frame; recorded in each observation as `frame_hash_method`). (3) Groups of the same selected text whose intervals touch within 1.5 s are merged (a plate that moves far between two sampled frames was split into two groups). (4) `HighResolutionPlateEngine` (native tiles on large frames and a plate-shape filter, width over height at least 1.5) exists as an option and is measured on real clips; it is not part of the default V4 until DEV-V shows its effect. The per-frame cost grows with the number of plates in the frame (each plate is one read); VG4 stays as written and the measured factor is reported.
 
+### DEV-V results of the first complete run (2026-11-11; development, not gates)
+
+| Method | Positive clips read exactly | Spurious groups per positive clip | Negative clips with a group | Median time over clip length |
+|---|---|---|---|---|
+| B0 today's live path | 19 / 24 (79.2%) | 0.04 | 0 / 6 | 0.79x |
+| B1 V3 as built (licence-clean engine, 4 frames per second) | 21 / 24 (87.5%) | 0.13 | 0 / 6 | 0.94x |
+| B2 V3's scheduler with the M5 engine | 19 / 24 (79.2%) | 0.21 | 0 / 6 | 3.4x |
+| V4 as built (M5 engine, per-group refinement, sharpness weight, merge) | 19 / 24 (79.2%) | 0.17 | 0 / 6 | 4.4x (max 8.9x) |
+
+V4 as built meets neither VG1 (85%) nor the VG5 margin over B0 (a gain of 10 points); VG2 negatives and VG3 time sanity (19 of 19) are fine, VG4 median is within 6x. Reasons for the five misses of V4 (from the per-clip results): two clips with strong motion blur where the V3 engine reads the plate and the M5 engine scatters its reads over several strings (dev-01, dev-11); two plates with a letter O where the reader prints a zero (dev-05, dev-10; a confusable pair, exact equality cannot hold); one clip so blurred that no engine reads it (dev-19). Note on the set: the plates in the DEV-V clips are large (between 160 and 260 px wide at 1280 px) because the car photographs have large plates, so these clips do not test small or distant plates; the real clips do.
+
+### Amendment 2 (2026-11-11): tuning round 1 of 3 on DEV-V
+
+Change: each sampled frame is read by two independent engines, the M5 engine and the licence-clean default engine (YOLO plate detector with the cct-xs reader, the engine of V3). The reads of both go into the same grouping and a group selects, as before, an observed string by weighted support, so two engines that agree reinforce each other and a read that only one engine makes needs more support. Every observation keeps its own engine's model hashes. Expected cost: about 25% more time (the second engine is fast). No threshold of the gates changes. Rounds left after this one: 2.
+
+
+### Round 1 result and Amendment 3: tuning round 2 of 3 on DEV-V (2026-11-11)
+
+Round 1 (two engines, M5 and the licence-clean default engine, in one grouping; the merge of groups one edit apart that overlap in time and space) on DEV-V: **20 / 24 clips read exactly (83.3%)** against 79.2% before; spurious groups per positive clip 0.29 (gate 0.3); negatives 0 of 6 clips with a group; time sanity 20 of 20; **median time 8.5x the clip length (gate 6x), maximum 10.7x**. Remaining misses: two plates with a letter O that every engine prints as a zero (dev-05, dev-10), one plate misread as another by both engines under strong blur (dev-11: the true string was read on 14 frames by one engine, the wrong string on 83), one clip too blurred for any engine (dev-19). Those four cannot be repaired by voting, so on this set 20 of 24 is close to what an exact-match gate allows; VG1 (85%, 21 clips) is missed by one clip and VG4 is missed.
+
+Change of round 2: the slow engine (M5, about 0.6 s per frame) reads every second BASE frame (and every refinement frame), the fast engine (about 0.2 s) reads all of them. Expected: about a third less time at a small cost in reads. Added, not a gate: **search read**, the number of positive clips whose true plate was read on at least two frames by any engine. The plate search over the case reads these frame-level reads (not the groups), so this is what a typed plate finds. Round 2 is run with B0 and B1 again so that all three report the search measure. Rounds left after this one: 1.
+
+### Round 2 result and Amendment 4: the method is frozen (2026-11-11)
+
+Round 2 on DEV-V (M5 engine on every second base frame, default engine on every base frame, per-group refinement, sharpness weight, merge of identical or one-edit groups that overlap):
+
+| Method | Clips read exactly (VG1) | Search read (not a gate) | Spurious groups per positive clip (VG2) | Negative clips with a group (VG2) | Time sanity (VG3) | Median / max time over clip length (VG4) |
+|---|---|---|---|---|---|---|
+| B0 today's live path | 19 / 24 (79.2%) | 19 | 0.04 | 0 / 6 | 19 / 19 | 0.78x / 1.3x |
+| B1 V3 (default engine) | 21 / 24 (87.5%) | 21 | 0.13 | 0 / 6 | 21 / 21 | 1.0x / 1.1x |
+| **V4 frozen** | **20 / 24 (83.3%)** | 21 | 0.29 | 0 / 6 | 20 / 20 | **4.6x / 7.7x**, peak memory 598 MiB |
+
+Reading: VG2, VG3 and VG4 are met on DEV-V; VG1 (85%, 21 clips) is missed by one clip, and the remaining four misses (two letter-O plates printed as zeros, one plate misread by both engines under strong blur, one clip too blurred for any engine) are not repairable by voting. On these synthetic clips the licence-clean default engine alone (B1) reads as many plates as V4 at a quarter of the time; the V4 advantage is expected on real footage, where the M5 engine read 7 of 7 plates of a real motorway clip correctly. That is checked separately on real clips (counts and a look at the crops) and is not a gate. Two rounds of tuning were used (round 1 two engines, round 2 engine cadence); the third is not used.
+
+**Frozen for the sealed run:** `video_anpr_nexus_v4.py` as committed with this amendment (defaults of `from_environment`: M5 primary engine every second base frame, default engine every base frame, base cadence 4 frames per second, per-group refinement of at most 3 extra frames per group and at most half of the base frames, merge gap 1.5 s, product policy of `DEFAULT_POLICY`). SEALED-V is run once with the methods `v4s` (this configuration), B0, B1 and B2; the numbers are reported whatever they are.

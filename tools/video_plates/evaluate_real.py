@@ -21,6 +21,9 @@ os.environ.setdefault("FORENSIC_ANPR_ONNX_PROVIDERS", "CPUExecutionProvider")
 os.environ.setdefault("FORENSIC_ANPR_NEXUS_DETECTOR_MODEL_PATH", "/models/media/nexus-plates/rfdetr_alpr.onnx")
 os.environ.setdefault("FORENSIC_ANPR_NEXUS_OCR_MODEL_PATH", "/models/media/nexus-plates/cct_s_v2_global.onnx")
 os.environ.setdefault("FORENSIC_ANPR_NEXUS_OCR_CONFIG_PATH", "/models/media/nexus-plates/cct_s_v2_global_plate_config.yaml")
+os.environ.setdefault("FORENSIC_ANPR_DETECTOR_MODEL_PATH", "/models/media/open-image-models/yolo-v9-t-384-license-plate-end2end/yolo-v9-t-384-license-plates-end2end.onnx")
+os.environ.setdefault("FORENSIC_ANPR_OCR_MODEL_PATH", "/models/media/fast-plate-ocr/cct-xs-v2-global-model/cct_xs_v2_global.onnx")
+os.environ.setdefault("FORENSIC_ANPR_OCR_CONFIG_PATH", "/models/media/fast-plate-ocr/cct-xs-v2-global-model/cct_xs_v2_global_plate_config.yaml")
 sys.path.insert(0, "/repo")
 sys.path.insert(0, "/repo/ingestion/forensic_records")
 
@@ -106,7 +109,19 @@ def main():
         if method == "b0":
             nexus.engine = base_engine
             out = run_b0(args.video, nexus, args.max_seconds)
-        else:
+        elif method == "b1":
+            from media_pipeline import FastALPRImageProcessor
+            from video_anpr_onnx_v3 import VideoANPROnnxV3Processor
+            from video_anpr_parity_adapter import TimeInterval
+            v3 = VideoANPROnnxV3Processor(FastALPRImageProcessor.from_environment(minimum_confidence=0.25), cv2)
+            run = v3.run_video(Path(args.video), context={**CTX, "source_file": os.path.basename(args.video)}, allowed_intervals=[TimeInterval(0.0, float(args.max_seconds))] if args.max_seconds else None)
+            out = {"groups": [{"plate": g.selected_normalized_plate, "support": g.support_count, "first": g.first_observed_seconds, "last": g.last_observed_seconds} for g in run.groups],
+                   "frames": run.result.metadata["coverage"]["frames_decoded"]}
+        elif method == "v4s":
+            from video_anpr_nexus_v4 import default_engine_processor
+            nexus.engine = base_engine
+            out = run_v4(VideoANPRNexusV4Processor(nexus, cv2, extra_processors=(default_engine_processor(),), engine_every=(2, 1), base_fps=args.base_fps), args.video, args.max_seconds, f"/clips/explore/{args.tag}", method)
+        elif method in ("v4", "v4f", "v4t"):
             if method == "v4":
                 nexus.engine = base_engine
             elif method == "v4f":
@@ -115,6 +130,8 @@ def main():
                 nexus.engine = HighResolutionPlateEngine(base_engine, tile_side=1280, wide_px=1500)
             processor = VideoANPRNexusV4Processor(nexus, cv2, base_fps=args.base_fps)
             out = run_v4(processor, args.video, args.max_seconds, f"/clips/explore/{args.tag}", method)
+        else:
+            raise SystemExit(f"unknown method {method}")
         out["wall"] = round(time.perf_counter() - started, 1)
         results[method] = out
         groups = out["groups"]

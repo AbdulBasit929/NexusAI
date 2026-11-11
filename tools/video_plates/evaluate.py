@@ -73,18 +73,24 @@ def run_b0(path, state):
                     entry["last"] = t
         t += step
     capture.release()
-    return {"groups": sorted(seen.values(), key=lambda g: g["first"]), "frames": frames, "observations": sum(g["support"] for g in seen.values())}
+    return {"groups": sorted(seen.values(), key=lambda g: g["first"]), "frames": frames, "observations": sum(g["support"] for g in seen.values()), "reads": {g["plate"]: g["support"] for g in seen.values()}}
 
 
 def run_v3_like(processor, path):
     run = processor.run_video(__import__("pathlib").Path(path), context={**CTX, "source_file": os.path.basename(path)})
     cov = run.result.metadata["coverage"]
-    return {"groups": groups_from_v(run), "frames": cov["frames_decoded"], "observations": len(run.observations)}
+    reads = {}
+    for o in run.observations:
+        reads[o.normalized_ocr] = reads.get(o.normalized_ocr, 0) + 1
+    return {"groups": groups_from_v(run), "frames": cov["frames_decoded"], "observations": len(run.observations), "reads": reads}
 
 
 def run_v4(processor, path):
     run = processor.run_video(__import__("pathlib").Path(path), context={**CTX, "source_file": os.path.basename(path)})
-    out = {"groups": groups_from_v(run), "frames": run.coverage.frames_decoded, "frames_refined": run.frames_refined, "observations": len(run.observations)}
+    reads = {}
+    for o in run.observations:
+        reads[o.normalized_ocr] = reads.get(o.normalized_ocr, 0) + 1
+    out = {"groups": groups_from_v(run), "frames": run.coverage.frames_decoded, "frames_refined": run.frames_refined, "observations": len(run.observations), "reads": reads}
     # what a per-character vote over each group's reads would have said (an ablation; a string nobody read is not shippable)
     votes = []
     for g in run.groups:
@@ -117,6 +123,16 @@ def build_methods(names):
     if "b2" in names:
         v3_nexus = VideoANPROnnxV3Processor(state["nexus"], cv2)
         methods["b2"] = lambda p: run_v3_like(v3_nexus, p)
+    if "v4s" in names:
+        from video_anpr_nexus_v4 import default_engine_processor
+        methods["v4s"] = (lambda proc: (lambda p: run_v4(proc, p)))(VideoANPRNexusV4Processor(state["nexus"], cv2, extra_processors=(default_engine_processor(),), engine_every=(2, 1)))
+    if "v4e" in names or "v4e-norefine" in names or "v4e-nosharp" in names:
+        from video_anpr_nexus_v4 import default_engine_processor
+        second = default_engine_processor()
+        for name, refine, sharp in (("v4e", True, True), ("v4e-norefine", False, True), ("v4e-nosharp", True, False)):
+            if name in names:
+                processor = VideoANPRNexusV4Processor(state["nexus"], cv2, extra_processors=(second,), refinement=refine, sharpness_weight=sharp)
+                methods[name] = (lambda proc: (lambda p: run_v4(proc, p)))(processor)
     for name, refine, sharp in (("v4", True, True), ("v4-norefine", False, True), ("v4-nosharp", True, False)):
         if name in names:
             processor = VideoANPRNexusV4Processor(state["nexus"], cv2, refinement=refine, sharpness_weight=sharp)
@@ -127,10 +143,11 @@ def build_methods(names):
 def score(clips, results):
     pos = [c for c in clips if c["kind"] == "positive"]
     neg = [c for c in clips if c["kind"] != "positive"]
-    read = top = spurious = timed = exact = 0
+    read = top = spurious = timed = exact = search = 0
     for c in pos:
         groups = results[c["clip"]]["groups"]
         truth = c["plate"]
+        search += results[c["clip"]].get("reads", {}).get(truth, 0) >= 2   # not a gate: the plate search reads the frame-level reads, so a typed plate is found when it was read on at least two frames
         hit = [g for g in groups if g["plate"] == truth]
         read += bool(hit)
         if groups and max(groups, key=lambda g: (g["support"], -g["first"]))["plate"] == truth:
@@ -143,7 +160,7 @@ def score(clips, results):
                 timed += 1
     neg_with = sum(1 for c in neg if any(g["support"] >= 2 for g in results[c["clip"]]["groups"]))
     ratio = [results[c["clip"]]["wall"] / c["duration_seconds"] for c in clips]
-    return {"positives": len(pos), "clip_read": read, "clip_read_rate": round(read / len(pos), 3), "top_group_exact": top, "spurious_groups_per_positive": round(spurious / len(pos), 3),
+    return {"positives": len(pos), "clip_read": read, "clip_read_rate": round(read / len(pos), 3), "search_read": search, "top_group_exact": top, "spurious_groups_per_positive": round(spurious / len(pos), 3),
             "negatives": len(neg), "negative_clips_with_group_support_2plus": neg_with, "time_sane_of_exact": f"{timed}/{exact}",
             "median_wall_over_duration": round(statistics.median(ratio), 2), "max_wall_over_duration": round(max(ratio), 2),
             "median_frames": statistics.median(results[c["clip"]]["frames"] for c in clips)}

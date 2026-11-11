@@ -35,14 +35,15 @@ def write_video(path: Path) -> None:
 class ScriptedEngine:
     """Returns the reads scripted for a time window, whatever the frame; the processor tells frames apart by call order through `calls`."""
 
-    def __init__(self, reads_by_call):
+    def __init__(self, reads_by_call, box=(100, 60, 200, 90)):
         self.reads_by_call = reads_by_call
+        self.box = box
         self.calls = 0
 
     def predict(self, _frame):
         reads = self.reads_by_call(self.calls)
         self.calls += 1
-        return [SimpleNamespace(detection=SimpleNamespace(confidence=0.9, bounding_box=SimpleNamespace(x1=100, y1=60, x2=200, y2=90)),
+        return [SimpleNamespace(detection=SimpleNamespace(confidence=0.9, bounding_box=SimpleNamespace(x1=self.box[0], y1=self.box[1], x2=self.box[2], y2=self.box[3])),
                                 ocr=SimpleNamespace(text=text, confidence=[confidence] * max(1, len(text)))) for text, confidence in reads]
 
 
@@ -157,6 +158,21 @@ class VideoANPRNexusV4Tests(unittest.TestCase):
         self.assertEqual(len(next(g for g in merged if g.selected_normalized_plate == "ABC1234").observation_ids), 6)
         apart = merge_same_text_groups(groups, reads, gap_seconds=0.01)
         self.assertEqual(len(apart), 3)
+
+
+    def test_two_engines_read_every_frame_keep_their_own_hashes_and_reinforce_each_other(self):
+        def engine_for(text, box):
+            return ScriptedEngine(lambda n: [(text, 0.9)], box)       # real engines draw slightly different boxes; identical boxes of one frame are one observation to the grouping
+        primary = SimpleNamespace(engine=engine_for("ABC1234", (100, 60, 200, 90)), model_hashes={"detector": "a" * 64, "ocr": "b" * 64}, processor_id="engine-one", detector_id="d1", ocr_id="o1")
+        second = SimpleNamespace(engine=engine_for("ABC1284", (104, 62, 206, 92)), model_hashes={"detector": "c" * 64, "ocr": "d" * 64}, processor_id="engine-two", detector_id="d2", ocr_id="o2")
+        run = VideoANPRNexusV4Processor(primary, cv2, extra_processors=(second,), refinement=False).run_video(self.path, context=dict(CONTEXT))
+        self.assertEqual(primary.engine.calls, second.engine.calls)       # both engines read every analysed frame
+        packets = [o for o in run.result.observations if o.observation_type == "anpr_ocr_observation"]
+        by_engine = {p.payload["engine_processor"]: p.payload["detector_model_sha256"] for p in packets}
+        self.assertEqual(by_engine, {"engine-one": "a" * 64, "engine-two": "c" * 64})
+        self.assertEqual(run.result.metadata["selected_policy"]["strategy"], "confidence_weighted_support")
+        self.assertEqual(len(run.groups), 1)                              # the two reads are one edit apart and close in space: one group that keeps both as alternatives
+        self.assertEqual({a.normalized_plate_text for a in run.groups[0].alternatives}, {"ABC1234", "ABC1284"})
 
 
 if __name__ == "__main__":
