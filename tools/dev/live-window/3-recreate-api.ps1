@@ -3,9 +3,10 @@
 # container or the secrets file, never printed).
 #   (no switch)  DRY RUN: compose's config hash must equal the running container's label; the rendered environment is compared; nothing changes
 #   -Apply       retags nexusai-forensic-records-api:families-20261030 as :latest and recreates the API; compares the environment before and after
+#   -Set NAME=value   changes one FORENSIC_/NEXUSAI_ setting in the recreate (repeatable); to undo, run again with the old value
 #   -Rollback    retags :$RollbackTo (default before-families-20261030, the image that ran before; for a later engine round pass -To <tag> -RollbackTo <tag>) as :latest and recreates the API
 # Run from PowerShell:  .\tools\dev\live-window\3-recreate-api.ps1 [-Apply|-Rollback]     Afterwards restart the interface workspace:  .\tools\dev\Restart-Workspace.ps1 -Port 4181 -Tree lane
-param([switch]$Apply, [switch]$Rollback, [string]$To = 'families-20261030', [string]$RollbackTo = 'before-families-20261030')
+param([switch]$Apply, [switch]$Rollback, [string]$To = 'families-20261030', [string]$RollbackTo = 'before-families-20261030', [string[]]$Set = @())
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '..\..\..\evaluation\question_factory\Run-Arms.ps1')
 $ErrorActionPreference = 'Stop'
@@ -30,6 +31,14 @@ $before = Get-EnvFingerprint $s
 Write-Host ("environment: {0} variables" -f $before.Count)
 
 $saved = Import-ContainerEnv $s
+# -Set NAME=value: a setting to CHANGE in this recreate (the container's own values were just copied in, so a plain shell setting would be overridden). Example: -Set FORENSIC_TEXT_INTENT=true
+foreach ($pair in $Set) {
+  $i = $pair.IndexOf('=')
+  if ($i -lt 1 -or $pair.Substring(0, $i) -notmatch '^(FORENSIC|NEXUSAI)_') { throw "-Set takes NAME=value for a FORENSIC_ or NEXUSAI_ setting, got: $pair" }
+  if (-not $saved.ContainsKey($pair.Substring(0, $i))) { $saved[$pair.Substring(0, $i)] = [Environment]::GetEnvironmentVariable($pair.Substring(0, $i), 'Process') }
+  [Environment]::SetEnvironmentVariable($pair.Substring(0, $i), $pair.Substring($i + 1), 'Process')
+  Write-Host ('setting {0} = {1} for this recreate' -f $pair.Substring(0, $i), $pair.Substring($i + 1))
+}
 Ensure-ComposeSecrets $s
 try {
   Write-Host "--- what compose would render (hash) against the running container's label"

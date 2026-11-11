@@ -157,3 +157,11 @@ A miss is reported as a miss and analysed from the audit; the instruction is not
 * For comparison, the keyword route (English only: needs a subject word such as plate or vehicle and a media word) applies to 12 of 36 positives on each bank with the right key, and 0 of 24 negatives. The model route is 30 of 36 with the same 0 false routes. It is the better router, and it still misses its own gate.
 
 **Decision under the pre-registration.** A miss is reported as a miss. The plate value of the step ships in the code (tested), the switch `FORENSIC_TEXT_INTENT` stays off in compose, and the keyword route keeps running, now with plate extraction that accepts any format. Turning the switch on is the owner's decision with these numbers, because it adds one model call (median about 6 s) to every eligible question and its word-search gate G1 (86.0%, gate 90%) is also unmet.
+
+## Decision (2026-11-11): the switch is ON live, on the owner's word
+
+The gates were not all met (sealed plate bank P1 83.3% against 90%; word-search G1a 86.0% against 90%), and the pre-registration had said the switch stays off in that case. The owner decided, with these numbers in front of them, to turn it on: "Turn it on". It is applied to the live API (image `plate-search-20261110c`, `FORENSIC_TEXT_INTENT=true`; compose default flipped to true so a recreate keeps it). The numbers above stay as the record; they are not revised.
+
+Checked live straight after: "Check the footage for SYNT9150" (no word "plate") is routed to the plate image search (10.2 s); "Which photos show the plate SYNT4O24?" is routed (6.4 s, one similar reading); "How many evidence files are in this case?" is not routed and answers `N: 90` (18.6 s, of which the intent step is about 4 s); "When was the plate SYNT4O24 last seen?" is refused by the media-quote check (`NO_MEDIA_NAMED`) and answered by the camera engine (1 sighting at 1 camera, 65.8 s).
+
+Cost to expect: one model call (about 4 to 10 s on this laptop) before each eligible question. Undo: `.\tools\dev\live-window\3-recreate-api.ps1 -Apply -To plate-search-20261110c -RollbackTo plate-search-20261110c -Set FORENSIC_TEXT_INTENT=false`, restart the workspaces, and set the compose default back to `false` so a later recreate does not turn it on again.
