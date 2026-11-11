@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"sort"
 	"strings"
 	"time"
@@ -79,6 +80,8 @@ type plateMatchedFile struct {
 	Cost                          int
 	VersionID                     string
 	Locator                       map[string]any
+	Time                          float64 // seconds into a video where the reading was taken; only meaningful when HasTime
+	HasTime                       bool
 }
 
 type plateSearchResult struct {
@@ -97,6 +100,7 @@ func searchPlateReads(typed string, rows []plateReadRow) plateSearchResult {
 		}
 		seen[row.Observation+"|"+row.EvidenceID] = true
 		match := plateMatchedFile{EvidenceID: row.EvidenceID, File: row.File, Observation: row.Observation, VersionID: row.VersionID, Locator: row.Locator}
+		match.Time, match.HasTime = plateLocatorSeconds(row.Locator)
 		if row.Key == typed {
 			result.Exact = append(result.Exact, match)
 			continue
@@ -133,6 +137,121 @@ func distinctPlateFiles(list []plateMatchedFile) []string {
 	return out
 }
 
+// plateLocatorSeconds is the time into a video at which a reading was taken, from the citation locator of its artifact; images have none.
+func plateLocatorSeconds(locator map[string]any) (float64, bool) {
+	value, ok := locator["timestamp_seconds"].(float64)
+	if !ok || value < 0 || math.IsNaN(value) || math.IsInf(value, 0) {
+		return 0, false
+	}
+	return value, true
+}
+
+// plateClock writes seconds as m:ss (h:mm:ss from an hour on), rounded down to the second.
+func plateClock(seconds float64) string {
+	total := int(math.Floor(seconds))
+	if total >= 3600 {
+		return fmt.Sprintf("%d:%02d:%02d", total/3600, (total%3600)/60, total%60)
+	}
+	return fmt.Sprintf("%d:%02d", total/60, total%60)
+}
+
+// describePlateFiles names each matched file once. A video that matched on several frames says when ("clip.mp4 (0:03 to 0:06)", or "at 0:03" for one moment); a photo is just its name.
+func describePlateFiles(list []plateMatchedFile) []string {
+	type span struct {
+		min, max float64
+		has      bool
+	}
+	spans, order := map[string]*span{}, []string{}
+	for _, m := range list {
+		if m.File == "" {
+			continue
+		}
+		item := spans[m.File]
+		if item == nil {
+			item = &span{}
+			spans[m.File] = item
+			order = append(order, m.File)
+		}
+		if m.HasTime {
+			if !item.has || m.Time < item.min {
+				item.min = m.Time
+			}
+			if !item.has || m.Time > item.max {
+				item.max = m.Time
+			}
+			item.has = true
+		}
+	}
+	out := make([]string, 0, len(order))
+	for _, file := range order {
+		item := spans[file]
+		switch {
+		case !item.has:
+			out = append(out, file)
+		case plateClock(item.min) == plateClock(item.max):
+			out = append(out, fmt.Sprintf("%s (at %s)", file, plateClock(item.min)))
+		default:
+			out = append(out, fmt.Sprintf("%s (%s to %s)", file, plateClock(item.min), plateClock(item.max)))
+		}
+	}
+	return out
+}
+
+// plateRepresentatives keeps every reading of a photo, and for a video at most three: the earliest, the latest and the one with the largest plate box (the best view). A video read on 80 frames is one
+// match, not 80 rows.
+func plateRepresentatives(list []plateMatchedFile) []plateMatchedFile {
+	groups, order := map[string][]plateMatchedFile{}, []string{}
+	for _, m := range list {
+		key := m.EvidenceID + "|" + m.File
+		if _, ok := groups[key]; !ok {
+			order = append(order, key)
+		}
+		groups[key] = append(groups[key], m)
+	}
+	area := func(m plateMatchedFile) float64 {
+		box, _ := m.Locator["bbox"].(map[string]any)
+		width, _ := box["width"].(float64)
+		height, _ := box["height"].(float64)
+		return width * height
+	}
+	out := []plateMatchedFile{}
+	for _, key := range order {
+		group := groups[key]
+		if !group[0].HasTime || len(group) <= 3 {
+			out = append(out, group...)
+			continue
+		}
+		earliest, latest, best := group[0], group[0], group[0]
+		for _, m := range group[1:] {
+			if m.Time < earliest.Time {
+				earliest = m
+			}
+			if m.Time > latest.Time {
+				latest = m
+			}
+			if area(m) > area(best) {
+				best = m
+			}
+		}
+		chosen := map[string]bool{}
+		for _, m := range []plateMatchedFile{earliest, best, latest} {
+			if !chosen[m.Observation] {
+				chosen[m.Observation] = true
+				out = append(out, m)
+			}
+		}
+	}
+	return out
+}
+
+// plateOptionalSeconds is the reading's time for a result row: a number for a video, nil for a photo.
+func plateOptionalSeconds(m plateMatchedFile) any {
+	if !m.HasTime {
+		return nil
+	}
+	return m.Time
+}
+
 func plateFileList(files []string) string {
 	if len(files) > 5 {
 		return strings.Join(files[:5], ", ") + fmt.Sprintf(" and %d more", len(files)-5)
@@ -153,13 +272,13 @@ func plateSearchSentence(r plateSearchResult) string {
 	var b strings.Builder
 	switch {
 	case len(exact) > 0:
-		fmt.Fprintf(&b, "The plate %s was read in %d image or video %s: %s.", r.Typed, len(exact), plural(len(exact), "file", "files"), plateFileList(exact))
+		fmt.Fprintf(&b, "The plate %s was read in %d image or video %s: %s.", r.Typed, len(exact), plural(len(exact), "file", "files"), plateFileList(describePlateFiles(r.Exact)))
 	default:
 		fmt.Fprintf(&b, "No image or video reading matches the plate %s exactly.", r.Typed)
 	}
 	if len(similar) > 0 {
 		fmt.Fprintf(&b, " %d other %s a similar reading (one or two characters different, often characters a reader confuses, such as O and 0 or I and T): %s. This may be the same plate or a different one: check %s by eye.",
-			len(similar), plural(len(similar), "file shows", "files show"), plateFileList(similar), plural(len(similar), "it", "them"))
+			len(similar), plural(len(similar), "file shows", "files show"), plateFileList(describePlateFiles(r.Similar)), plural(len(similar), "it", "them"))
 	}
 	if len(exact) == 0 && len(similar) == 0 {
 		b.WriteString(" The plate reader may have misread it, so this does not show the plate is absent from the images or video.")
@@ -240,16 +359,20 @@ func plateImageSearchRun(ctx context.Context, db *pgxpool.Pool, req hybridQueryR
 		exactTotal += len(distinctPlateFiles(r.Exact))
 		similarTotal += len(distinctPlateFiles(r.Similar))
 		for kind, list := range map[string][]plateMatchedFile{"exact": r.Exact, "similar": r.Similar} {
+			counts := map[string]int{}
 			for _, m := range list {
+				counts[m.EvidenceID+"|"+m.File]++
+			}
+			for _, m := range plateRepresentatives(list) {
 				results = append(results, map[string]any{
 					"id": m.Observation, "preview": "", "content": "", "score": map[string]float64{"exact": 1, "similar": 0.5}[kind],
 					"metadata": map[string]any{"evidence_id": m.EvidenceID, "version_id": m.VersionID, "source_file": m.File, "source_family": "image_or_video", "match_kind": kind, "review_state": "model_candidate",
-						"artifact_type": "forensics.anpr-observation/v1", "plate_distance": m.Cost},
+						"artifact_type": "forensics.anpr-observation/v1", "plate_distance": m.Cost, "observation_count": counts[m.EvidenceID+"|"+m.File], "timestamp_seconds": plateOptionalSeconds(m)},
 				})
 				// One openable source per matched image: the evidence, its version and where in the image the plate was found. The locator holds a bounding box, never plate text.
 				if m.VersionID != "" && m.Locator != nil {
 					locator := map[string]any{"artifact_id": m.Observation, "source_file": m.File}
-					for _, field := range []string{"bbox", "coordinate_space", "frame_ts", "t_start"} {
+					for _, field := range []string{"bbox", "coordinate_space", "frame_ts", "t_start", "timestamp_seconds", "frame_number"} {
 						if value, ok := m.Locator[field]; ok {
 							locator[field] = value
 						}

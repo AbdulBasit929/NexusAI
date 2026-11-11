@@ -175,5 +175,17 @@ class VideoANPRNexusV4Tests(unittest.TestCase):
         self.assertEqual({a.normalized_plate_text for a in run.groups[0].alternatives}, {"ABC1234", "ABC1284"})
 
 
+    def test_a_spent_wall_clock_budget_stops_the_run_and_says_so(self):
+        run = processor_for(ScriptedEngine(lambda n: [("ABC1234", 0.9)]), refinement=True, maximum_wall_seconds=0.0).run_video(self.path, context=dict(CONTEXT))
+        self.assertEqual(run.coverage.frames_decoded, 0)
+        self.assertTrue(run.coverage.resource_stop)
+        self.assertEqual(run.result.metadata["execution_state"], "resource_stopped")
+        self.assertIn("resource boundary", " ".join(run.result.limitations))
+        # a generous budget does not stop anything
+        full = processor_for(ScriptedEngine(lambda n: [("ABC1234", 0.9)]), refinement=False, maximum_wall_seconds=600.0).run_video(self.path, context=dict(CONTEXT))
+        self.assertFalse(full.coverage.resource_stop)
+        self.assertGreater(full.coverage.frames_decoded, 0)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -65,7 +65,18 @@ def default_engine_processor(minimum_confidence: float | None = None) -> Any | N
     if not (detector and ocr and config and Path(detector).exists() and Path(ocr).exists()):
         return None
     confidence = float(os.getenv("FORENSIC_VIDEO_ANPR_V3_DETECTION_CONFIDENCE", "0.25")) if minimum_confidence is None else minimum_confidence
-    processor = FastALPRImageProcessor.from_environment(minimum_confidence=confidence)
+    try:
+        processor = FastALPRImageProcessor.from_environment(minimum_confidence=confidence)
+    except TypeError:   # the class inside the production worker image is older: it reads its detection threshold from the environment
+        previous = os.environ.get("FORENSIC_ANPR_MIN_DETECTION_CONFIDENCE")
+        os.environ["FORENSIC_ANPR_MIN_DETECTION_CONFIDENCE"] = str(confidence)
+        try:
+            processor = FastALPRImageProcessor.from_environment()
+        finally:
+            if previous is None:
+                os.environ.pop("FORENSIC_ANPR_MIN_DETECTION_CONFIDENCE", None)
+            else:
+                os.environ["FORENSIC_ANPR_MIN_DETECTION_CONFIDENCE"] = previous
     if not getattr(processor, "model_hashes", None):
         processor.model_hashes = {"detector": _sha256(Path(detector)), "ocr": _sha256(Path(ocr)), "ocr_config": _sha256(Path(config)) if Path(config).exists() else ""}
     return processor
@@ -184,7 +195,7 @@ class VideoANPRNexusV4Processor:
     def __init__(self, image_processor: Any, cv2_module: Any, *, extra_processors: Sequence[Any] = (), engine_every: Sequence[int] = (), base_fps: float = 4.0, refinement: bool = True, sharpness_weight: bool = True,
                  policy: ProductAggregationPolicy = DEFAULT_POLICY, maximum_frames: int = 1200, maximum_duration_seconds: float = 900.0,
                  refinement_window_seconds: float = 0.5, refinement_cadence_fps: float = 8.0, maximum_refinement_per_trigger: int = 9,
-                 refinement_mode: str = "per_group", refinement_per_group: int = 3, refinement_budget_ratio: float = 0.5, refinement_pad_seconds: float = 0.25, merge_gap_seconds: float = 1.5) -> None:
+                 refinement_mode: str = "per_group", refinement_per_group: int = 3, refinement_budget_ratio: float = 0.5, refinement_pad_seconds: float = 0.25, merge_gap_seconds: float = 1.5, maximum_wall_seconds: float = 540.0) -> None:
         self.image_processor = image_processor
         # Every sampled frame is read by each of these engines; the reads of all of them go into one grouping (an ensemble of independent readers). The first one is the primary engine.
         self.processors = (image_processor, *extra_processors)
@@ -208,6 +219,8 @@ class VideoANPRNexusV4Processor:
         self.refinement_budget_ratio = refinement_budget_ratio
         self.refinement_pad_seconds = refinement_pad_seconds
         self.merge_gap_seconds = merge_gap_seconds
+        # A job has a lease (FORENSIC_WORKER_LEASE_SECONDS, 600 by default): a long video must not run past it. When the budget is spent the run stops, keeps what it read and says so in its coverage receipt.
+        self.maximum_wall_seconds = maximum_wall_seconds
 
     @classmethod
     def from_environment(cls) -> "VideoANPRNexusV4Processor":
@@ -223,7 +236,7 @@ class VideoANPRNexusV4Processor:
             if second is not None:
                 extra.append(second)
         primary = NexusPlateImageProcessor.from_environment(minimum_confidence=float(os.getenv("FORENSIC_VIDEO_ANPR_V4_DETECTION_CONFIDENCE", "0.5")))
-        with_high_resolution(primary, tile_side=1280, wide_px=int(os.getenv("FORENSIC_VIDEO_ANPR_V4_TILE_MIN_PX", "2200")), tile_every=2, min_aspect=1.5)
+        with_high_resolution(primary, tile_side=1280, wide_px=int(os.getenv("FORENSIC_VIDEO_ANPR_V4_TILE_MIN_PX", "2200")), tile_every=max(1, int(os.getenv("FORENSIC_VIDEO_ANPR_V4_TILE_EVERY", "2"))), min_aspect=1.5)
         return cls(
             primary,
             cv2,
@@ -232,6 +245,7 @@ class VideoANPRNexusV4Processor:
             base_fps=max(0.5, min(25.0, float(os.getenv("FORENSIC_VIDEO_ANPR_V4_BASE_FPS", "4")))),
             maximum_frames=max(1, min(3600, int(os.getenv("FORENSIC_VIDEO_ANPR_V4_MAX_FRAMES", "1200")))),
             maximum_duration_seconds=max(1.0, float(os.getenv("FORENSIC_VIDEO_ANPR_V4_MAX_DURATION_SECONDS", "900"))),
+            maximum_wall_seconds=max(30.0, float(os.getenv("FORENSIC_VIDEO_ANPR_V4_MAX_WALL_SECONDS", "540"))),
         )
 
     # -- one decoded frame -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -323,9 +337,14 @@ class VideoANPRNexusV4Processor:
         analysed: dict[int, list[PlateObservation]] = {}
         failed = crops = base_index = 0
         wall_started, cpu_started = time.perf_counter(), time.process_time()
+        deadline = wall_started + self.maximum_wall_seconds
+        stopped = False
 
         def read(timestamp: float, refined: bool = False) -> None:
-            nonlocal failed, crops, base_index
+            nonlocal failed, crops, base_index, stopped
+            if stopped or time.perf_counter() > deadline:
+                stopped = True
+                return
             number = round(timestamp * fps)
             if number in analysed:
                 return
@@ -369,7 +388,7 @@ class VideoANPRNexusV4Processor:
         coverage = make_coverage_receipt(
             source_fps=fps, source_duration_seconds=duration, source_frame_count=frame_count, frames_decoded=len(analysed), frames_analyzed_by_plate_detector=len(analysed),
             frames_refined=frames_refined, ocr_crops_processed=crops, sampling_policy=policy.policy_id, dropped_or_failed_frames=failed,
-            wall_seconds=time.perf_counter() - wall_started, cpu_seconds=time.process_time() - cpu_started, peak_ram_mib=None,
+            wall_seconds=time.perf_counter() - wall_started, cpu_seconds=time.process_time() - cpu_started, peak_ram_mib=None, resource_stop=stopped,
         )
         state, coverage_limitations = coverage_state(coverage, len(observations))
         packets: list[Any] = []

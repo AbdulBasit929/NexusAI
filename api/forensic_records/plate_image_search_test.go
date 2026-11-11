@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"sort"
 	"strings"
 	"testing"
 )
@@ -102,5 +104,68 @@ func TestAnalystPlateLiteralsAreFormatFree(t *testing.T) {
 		if strings.Join(got, ",") != strings.Join(c.want, ",") {
 			t.Fatalf("%q: got %v, want %v", c.question, got, c.want) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
 		}
+	}
+}
+
+func videoRow(file, observation, key string, seconds float64, width float64) plateReadRow {
+	return plateReadRow{EvidenceID: "ev-" + file, File: file, Key: key, Observation: observation, VersionID: "v-" + file,
+		Locator: map[string]any{"timestamp_seconds": seconds, "bbox": map[string]any{"width": width, "height": 40.0}}}
+}
+
+func TestPlateSearchNamesTheMomentsOfAVideoAndKeepsPhotosPlain(t *testing.T) {
+	rows := []plateReadRow{
+		videoRow("gate.mp4", "o1", "LEA1234", 3.2, 80), videoRow("gate.mp4", "o2", "LEA1234", 4.0, 120), videoRow("gate.mp4", "o3", "LEA1234", 5.9, 90),
+		videoRow("once.mp4", "o4", "LEA1234", 12.4, 100),
+		{EvidenceID: "ev-photo", File: "photo.jpg", Key: "LEA1234", Observation: "o5", VersionID: "v-photo", Locator: map[string]any{"bbox": map[string]any{"width": 90.0, "height": 30.0}}},
+		videoRow("later.mp4", "o6", "LEA1Z34", 3725.0, 60),
+	}
+	result := searchPlateReads("LEA1234", rows)
+	sentence := plateSearchSentence(result)
+	for _, want := range []string{"gate.mp4 (0:03 to 0:05)", "once.mp4 (at 0:12)", "photo.jpg", "later.mp4 (at 1:02:05)"} {
+		if !strings.Contains(sentence, want) { //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+			t.Fatalf("the answer lacks %q: %s", want, sentence) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+		}
+	}
+	if strings.Contains(sentence, "photo.jpg (") { //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+		t.Fatalf("a photo has no time: %s", sentence) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+	if strings.Contains(sentence, "LEA1Z34") { //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+		t.Fatalf("a stored reading must never be printed: %s", sentence) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+	if len(distinctPlateFiles(result.Exact)) != 3 || len(distinctPlateFiles(result.Similar)) != 1 { //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+		t.Fatalf("exact files %v similar files %v", distinctPlateFiles(result.Exact), distinctPlateFiles(result.Similar)) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+}
+
+func TestPlateSearchKeepsAtMostThreeSourcesOfOneVideoAndAllReadingsOfAPhoto(t *testing.T) {
+	rows := []plateReadRow{}
+	for i := 0; i < 80; i++ {
+		rows = append(rows, videoRow("gate.mp4", fmt.Sprintf("o%02d", i), "LEA1234", float64(i)/4, 50+float64(i%7)*10))
+	}
+	rows = append(rows,
+		plateReadRow{EvidenceID: "ev-photo", File: "photo.jpg", Key: "LEA1234", Observation: "p1", VersionID: "v-photo", Locator: map[string]any{}},
+		plateReadRow{EvidenceID: "ev-photo", File: "photo.jpg", Key: "LEA1234", Observation: "p2", VersionID: "v-photo", Locator: map[string]any{}})
+	result := searchPlateReads("LEA1234", rows)
+	kept := plateRepresentatives(result.Exact)
+	perFile := map[string]int{}
+	for _, m := range kept {
+		perFile[m.File]++
+	}
+	if perFile["gate.mp4"] != 3 || perFile["photo.jpg"] != 2 { //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+		t.Fatalf("kept per file %v", perFile) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+	var times []float64
+	widest := 0.0
+	for _, m := range kept {
+		if m.File == "gate.mp4" {
+			times = append(times, m.Time)
+			if box, _ := m.Locator["bbox"].(map[string]any); box["width"].(float64) > widest {
+				widest = box["width"].(float64)
+			}
+		}
+	}
+	sort.Float64s(times)
+	if times[0] != 0 || times[len(times)-1] != 19.75 || widest != 110 { //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+		t.Fatalf("earliest, latest and widest were not kept: times %v widest %v", times, widest) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
 	}
 }

@@ -140,3 +140,19 @@ Time over clip length: b0 0.9 to 2.2x, b1 1.3 to 6.1x, v4s 4.3 to 12.9x (HD 4.3 
 
 The night clip showed a flaw that the synthetic clips could not: 416 reads of which 279 were distinct strings (glare), 128 junk clusters filled the cap on active groups, and later real plates were dropped (with the cap lifted the same reads give 8 groups against 3, the old processor's 5). Changes, made after the sealed run and therefore **not covered by it**, checked on DEV-V (regression) and on the real clips only, which are not independent of the diagnosis: (1) `maximum_active_groups` 128 to 1024; (2) `minimum_weighted_support` 1.0 to 0.6 (the weights of V4 are a product of factors, so the floor of 1.0 dropped triples of moderately confident reads that V3's weights kept); (3) the production default of `from_environment` wraps the primary engine in `HighResolutionPlateEngine` (tiles of 1280 px on frames of 2200 px and more, on every second call of the primary engine, i.e. one second in two base frames at 4 frames per second; plate-shape filter, width over height at least 1.5, on all frames). The method of the sealed run is the method of Amendment 4; this configuration is a new one, and the pass/fail verdict of the sealed run does not carry over to it. Its evidence is the real-footage benchmark above and, as a regression check only, DEV-V.
 
+### Production configuration results on the real clips (2026-11-11; not a gate; plates confirmed on at least 3 frames)
+
+`VideoANPRNexusV4Processor.from_environment()` as built into the worker overlay image (two engines, per-group refinement, merge, group cap 1024, support floor 0.6, tiles on frames of 2200 px and more on every second call of the primary engine):
+
+| Clip | Frozen V4 of the sealed run (`v4s`) | Production configuration (`v4p`) | Time over clip length (`v4p`) |
+|---|---|---|---|
+| Highway from an overpass, 1080p, 15 s | 9 | 9 | 11.6x (the machine was also building images and running tests) |
+| Street junction, 1080p, 19 s | 1 | 1 | 7.4x |
+| Street at night, 1080p, 37 s | **1** | **5** | 9.2x |
+| Highway, 4K, 21.5 s (distant plates) | 1 (7 with tiles on every call, 58x) | 3 | 25x |
+| Owner's `sample.mp4`, 4K, first 20 s | 15 | 15 | 19.8x |
+
+The night clip is repaired by the larger group cap and the lower support floor (5 plates, the old processor's 5). Tiles on every second call of the primary engine (one second in two base frames at 4 frames per second) find 3 of the 7 distant plates of the 4K highway clip where tiles on every call found 7, at less than half the time (25x against 58x); near plates need no tiles (`sample.mp4` 15 against 14 with). The tile cadence is the setting `FORENSIC_VIDEO_ANPR_V4_TILE_EVERY` (default 2; 1 reads distant plates better at about twice the time): a trade-off between recall of distant plates and time, and the default favours time. A 60 s clip of 4K video takes about 20 to 25 minutes on this CPU; the wall-clock budget of the job (1800 s) stops a longer one with a stated partial result.
+
+Integration (staging proof, offline, on the built overlay image): the worker's own pipeline processed a 10 s synthetic video with the switch on: 87 frame reads in the stored contract (`forensics.anpr-observation/v1`, with `timestamp_seconds`, `frame_number` and the bounding box), one plate group (`forensics.video-anpr-plate-group/v1`, 0.0 to 9.96 s, 86 sightings) and `result_states.video_anpr = COMPLETE_RESULTS`; with the switch off the pipeline behaves as before (frames read as images). The proof found one incompatibility (the image's older default-engine class takes its threshold from the environment), fixed before the image was built.
+

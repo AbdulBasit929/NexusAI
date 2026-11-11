@@ -1,0 +1,14 @@
+# Plates in video (docs/data/video-plates-research-and-preregistration-20261111.md, Amendments 1 to 5): switches the video plate processor V4 ON in the worker.
+# NOT CERTIFIED: the frozen V4 missed three of the five pre-registered gates on the synthetic sealed set (75% of clips read exactly against 85%, 0.46 stray groups per clip against 0.3, 4 points below today's path against
+# a required gain of 10); it read 9 of 9, 7 of 7 and 13 of 15 plates exactly on real clips, where today's path confirms 0 to 4. The owner decides the switch with those numbers in front of them.
+# Add this file AFTER the five files of the running worker (main compose, ingest-v2, media, families, plates). Recreating the worker WITHOUT it turns V4 off again (the safe direction):
+#   tools/dev/live-window/6-recreate-worker-video.ps1 [-Apply|-Rollback]
+# A video takes about 4 to 13 times its own length on this CPU, so the lease of a job is raised and V4 stops by itself at a wall-clock budget below it (coverage receipt: resource_stopped, partial).
+services:
+  forensic-records-worker:
+    environment:
+      FORENSIC_VIDEO_ANPR_V4_ENABLED: ${FORENSIC_VIDEO_ANPR_V4_ENABLED:-true}
+      FORENSIC_VIDEO_ANPR_V4_SECOND_ENGINE: ${FORENSIC_VIDEO_ANPR_V4_SECOND_ENGINE:-true}
+      FORENSIC_VIDEO_ANPR_V4_MAX_WALL_SECONDS: ${FORENSIC_VIDEO_ANPR_V4_MAX_WALL_SECONDS:-1800}
+      FORENSIC_VIDEO_ANPR_V4_MAX_DURATION_SECONDS: ${FORENSIC_VIDEO_ANPR_V4_MAX_DURATION_SECONDS:-900}
+      FORENSIC_WORKER_LEASE_SECONDS: "2400"
