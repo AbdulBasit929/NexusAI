@@ -161,3 +161,21 @@ Integration (staging proof, offline, on the built overlay image): the worker's o
 The owner said "Go live" after being told that the synthetic gates VG1, VG2 and VG5 were not met on the sealed set, that the strong evidence is on real clips (9 of 9, 7 of 7, 13 of 15 plates read exactly, checked crop by crop) and that the production configuration post-dates the sealed run. Applied the same day: API image `video-search-20261111` (video moments in plate answers), worker overlay with `FORENSIC_VIDEO_ANPR_V4_ENABLED=true`, second engine on, wall-clock budget 1800 s, job lease 2400 s. No gate was changed; the misses stay on the record.
 
 Live check (throwaway collection `video-plates-live-test-20261111`, one 10 s synthetic clip with one known plate, uploaded through the normal upload route): job completed; 87 frame reads with `timestamp_seconds` 0 to 9.96; one `video_anpr_plate_group_observation` (RLX902, 86 sightings, 0.0 to 9.96 s); "Which videos show the plate RLX902?" named the clip and its moments (0:00 to 0:09) with three openable places; an absent plate (ABC123) was declined with the "the reader may have misread it" wording; a plate one character away (O for 0) listed the clip as a similar reading to check by eye; the question took 40 s cold (model load) and 7 to 9 s after. The workspace on :4182 opened the video at the cited moment (6.96 s) with the plate region. A real-footage check through the live worker (the owner's own clips) is still owed.
+
+### Real clips through the live worker (2026-11-11, after going live; counts only, no plate text recorded)
+
+The five real clips were uploaded through the normal upload route to a private throwaway collection (`video-plates-real-clips-20261111`, local only) and read by the live worker (overlay 4dcc14ec5901, one job at a time). Plate groups are the stored `video-anpr-plate-group/v1` rows, each with at least 3 sightings.
+
+| Clip | Length | Frame reads stored | Plate groups | Benchmark of the same configuration (`v4p`) | Time over clip length |
+|---|---|---|---|---|---|
+| Street junction, 1080p | 19 s | 49 | 1 | 1 | 7.8x |
+| Highway from an overpass, 1080p | 15 s | 207 | 9 | 9 | 11.7x |
+| Street at night, 1080p | 37 s | 416 | 5 | 5 | 10.3x |
+| Highway, 4K (Roboflow example) | 21.5 s | 77 | 3 | 3 | 20.8x |
+| Owner's `sample.mp4`, 4K | 60 s | 974 | 27 | 15 in the first 20 s (no whole-clip figure) | 20.5x |
+
+The four clips with a benchmark give the same counts as the tested code, so the live worker reproduces it. No job reached the wall-clock budget (1800 s), no error was logged, the worker's memory peaked near 1.9 GB (the machine had 1 to 2 GB free at the time). One question per clip, with that clip's best-supported plate typed, found the clip with its moments (for example 0:00 to 0:04 for `sample.mp4`, 0:25 to 0:35 for the night clip) and three openable places.
+
+Two findings:
+1. **Wording fault (fixed in the code, not yet deployed at the time of writing).** Every answer added "1 other file shows a similar reading" and named the same video: a few frames of a real clip misread the plate by one character, and those frame reads were listed as a similar reading of a second file. A file with an exact reading is now left out of the similar list (one new test); a video that has only the misreading is still listed.
+2. **Same file in two collections.** `sample.mp4` is byte-identical to `video-v3.mp4` in the multimodal acceptance collection. The new copy has all its frame reads and plate groups but no `video-observation/v1` and no `audio-observation/v1` row: the single copy of each belongs to the older collection (consistent with a deterministic artifact identity, not confirmed in the code). The plate search is unaffected; the container details of the second copy are not stored.
