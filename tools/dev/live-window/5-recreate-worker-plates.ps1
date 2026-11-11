@@ -4,7 +4,7 @@
 #   -Apply     tags the running :latest as :before-<Tag>, tags :<Tag> as :latest and recreates the worker with the plates file
 #   -Rollback  tags :before-<Tag> as :latest and recreates the worker without the plates file (the plate role is off again)
 # Run from PowerShell:  .\tools\dev\live-window\5-recreate-worker-plates.ps1 [-Apply|-Rollback] [-Tag plates-20261110d]
-param([switch]$Apply, [switch]$Rollback, [string]$Tag = 'plates-20261110d')
+param([switch]$Apply, [switch]$Rollback, [string]$Tag = 'plates-20261110d', [switch]$IgnoreInFlight)  # -IgnoreInFlight: queued jobs stay in the queue and are picked up by the new worker (use only with the worker stopped)
 $ErrorActionPreference = 'Stop'
 $main = 'C:\Users\sheik\Workspace\Office\Projects\NexusAI'
 $lw = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
@@ -24,7 +24,7 @@ Write-Host ("compose hash: four files {0}, five files {1} -> {2}" -f $hash4.Subs
 if (-not $state) { throw 'compose does not reproduce the running worker; stop' }
 if (-not $Apply -and -not $Rollback) { Write-Host 'dry run only; nothing changed.'; Remove-Item Env:\NEXUSAI_MEDIA_MODEL_DIR -ErrorAction SilentlyContinue; return }
 $inflight = docker exec nexusai-forensic-postgres-1 psql -U localrecall -d localrecall -At -c "select count(*) from forensic.records_ingest_jobs where status::text in ('queued','running')"
-if ([int]$inflight -ne 0) { throw "jobs are in flight ($inflight); wait for the worker to be idle" }
+if ([int]$inflight -ne 0 -and -not $IgnoreInFlight) { throw "jobs are in flight ($inflight); wait for the worker to be idle" }
 $rollbackTag = "before-$Tag"
 if ($Apply) {
   if (-not (docker images -q "${image}:${Tag}")) { throw "image ${image}:${Tag} does not exist (Build-PlatesOverlay.ps1)" }

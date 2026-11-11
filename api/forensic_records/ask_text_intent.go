@@ -45,12 +45,14 @@ const (
 	textIntentMaxLiteralRune = 200
 
 	tiKindText  = "text_search"
+	tiKindPlate = "plate_search"
 	tiKindOther = "other"
 
 	tiFamilyAudio    = "audio"
 	tiFamilyImage    = "image"
 	tiFamilyDocument = "document"
 	tiFamilyAny      = "any"
+	tiFamilyPlate    = "plate"
 	tiFamilyNone     = "none"
 
 	// what the message is about, as the model says it; the first four are searches for words in text
@@ -58,6 +60,8 @@ const (
 	tiAboutImages   = "written_in_images"
 	tiAboutDocument = "written_in_documents"
 	tiAboutAny      = "words_in_any_source"
+	// a number plate the investigator typed, asked about in photos, images or video: not words in text but plate readings (plate_image_search.go); the model extracts the plate in whatever format it has
+	tiAboutPlate = "plate_in_images_or_video"
 
 	tiMatchPhrase = "phrase"
 	tiMatchExact  = "exact_phrase"
@@ -65,7 +69,9 @@ const (
 	tiMatchNone   = "none"
 )
 
-func textIntentEnabled() bool { return envBoolValue(os.Getenv(textIntentEnv), false) }
+func textIntentEnabled() bool {
+	return envBoolValue(os.Getenv(textIntentEnv), false) //nolint:forbidigo // forensic records product API reads its feature switches from the environment by design (docker compose); not LocalAI server config
+}
 
 // TextIntentAuditV1 is recorded on every request the step looked at, so the switch can be measured from the response headers alone. It holds no literal.
 type TextIntentAuditV1 struct {
@@ -91,14 +97,21 @@ var (
 
 // textIntentWire is what the model returns.
 type textIntentWire struct {
-	About   string `json:"about"`
-	Match   string `json:"match"`
-	Literal string `json:"literal"`
+	// MediaWords comes FIRST in the reply (the grammar emits fields alphabetically and "a_media_words" sorts before "about"): the model quotes the words that name photos, video or footage before it
+	// chooses a subject. Only the plate value uses it (textIntentPlateKey); it is ignored for every other value.
+	MediaWords string `json:"a_media_words"`
+	About      string `json:"about"`
+	Match      string `json:"match"`
+	Literal    string `json:"literal"`
 }
 
 // result turns what the model said into the kind and family the rest of the step works with. A value outside the list gives an empty kind, which the validator refuses.
 func (w textIntentWire) result() textIntentResult {
-	result := textIntentResult{About: w.About, Match: w.Match, Literal: w.Literal, Family: tiFamilyNone}
+	result := textIntentResult{About: w.About, Match: w.Match, Literal: w.Literal, MediaWords: w.MediaWords, Family: tiFamilyNone}
+	if w.About == tiAboutPlate {
+		result.Kind, result.Family = tiKindPlate, tiFamilyPlate
+		return result
+	}
 	if family, ok := tiAboutText[w.About]; ok {
 		result.Kind, result.Family = tiKindText, family
 		// The instruction names "phrase" as the default for a search for words; a model that says "none" for the match of a search (it does for a bare number) has not chosen another kind.
@@ -116,17 +129,19 @@ func (w textIntentWire) result() textIntentResult {
 }
 
 type textIntentResult struct {
-	About   string `json:"about,omitempty"`
-	Kind    string `json:"kind"`
-	Family  string `json:"family"`
-	Match   string `json:"match"`
-	Literal string `json:"literal"`
+	About      string `json:"about,omitempty"`
+	Kind       string `json:"kind"`
+	Family     string `json:"family"`
+	Match      string `json:"match"`
+	Literal    string `json:"literal"`
+	MediaWords string `json:"media_words,omitempty"`
 }
 
 // textIntentSystemPrompt is identical for every message, so a server that reuses the start of a prompt reads it once. The model says what the message is ABOUT from a fixed list; only the first four
 // values are searches for words in text, and the rest give a message about calls, messages or transactions somewhere to go that is not "recordings". It contains no example question.
 func textIntentSystemPrompt() string {
-	return "You route one message from an investigator who works with case evidence. Read it and return JSON with \"about\", \"match\" and \"literal\". You cannot see the case.\n" +
+	return "You route one message from an investigator who works with case evidence. Read it and return JSON with \"a_media_words\", \"about\", \"match\" and \"literal\". You cannot see the case.\n" +
+		"a_media_words - fill this first. The words of the message that name photos, images, pictures, video, footage or stills as the place to look, copied exactly from the message. Empty when the message names none of these.\n" +
 		"about - what the message is about:\n" +
 		"spoken_words - the investigator wants to FIND WORDS that were said in recordings, calls, voice notes or the sound of a video (the transcripts).\n" +
 		"written_in_images - wants to find words written in images, photos, screenshots or scans.\n" +
@@ -136,12 +151,14 @@ func textIntentSystemPrompt() string {
 		"message_records - SMS or chat message records.\n" +
 		"bank_transactions - bank accounts, debits, credits, balances, remarks.\n" +
 		"device_records - handsets, IMEI, SIM cards, apps.\n" +
-		"vehicle_records - vehicles, number plates, camera sightings.\n" +
+		"vehicle_records - camera (ANPR) sightings and vehicle records: which camera saw a vehicle, when, where, how many times, which plates, who owns or is registered to a plate. A plate typed in a message like this is only what the message is about.\n" +
+		"plate_in_images_or_video - ONLY when the message itself asks to look in photos, images, pictures, video or footage for a vehicle number plate the investigator typed, in any format. The literal is that plate exactly as typed. A plate in a message about sightings, cameras, times, counts, owners or registrations is vehicle_records, not this.\n" +
 		"location_records - cell towers, positions, places.\n" +
 		"internet_records - web or data usage.\n" +
 		"people_and_numbers - who a person or number is, contacts, links between numbers.\n" +
 		"other - anything else: a greeting, small talk, what you can do, what a term means, a summary or reading of a whole recording or document, and anything you are unsure about.\n" +
-		"Only the first four are searches for words in text, where the words to look for are the subject of the request. A number, account, plate or name that only says whom or what a question is about is not a text to look for.\n" +
+		"The first four are searches for words in text, where the words to look for are the subject of the request. plate_in_images_or_video is a search of photos and video for a plate. A number, account, plate or name that only says whom or what a question is about is not a text to look for.\n" +
+		"For plate_in_images_or_video the match is none and the literal is the plate.\n" +
 		"match - for a search for words only:\n" +
 		"phrase - the words appear together, in this order, anywhere inside longer text. This is the default.\n" +
 		"exact_phrase - the message asks for that exact phrase as whole words, not as part of a longer word.\n" +
@@ -152,15 +169,16 @@ func textIntentSystemPrompt() string {
 }
 
 func textIntentSchema() map[string]any {
-	about := []string{tiAboutSpoken, tiAboutImages, tiAboutDocument, tiAboutAny}
+	about := []string{tiAboutSpoken, tiAboutImages, tiAboutDocument, tiAboutAny, tiAboutPlate}
 	about = append(about, tiAboutOther...)
 	return map[string]any{
 		"type": "object", "additionalProperties": false,
-		"required": []string{"about", "match", "literal"},
+		"required": []string{"a_media_words", "about", "match", "literal"},
 		"properties": map[string]any{
-			"about":   map[string]any{"type": "string", "enum": about},
-			"match":   map[string]any{"type": "string", "enum": []string{tiMatchPhrase, tiMatchExact, tiMatchWords, tiMatchNone}},
-			"literal": map[string]any{"type": "string"},
+			"a_media_words": map[string]any{"type": "string"},
+			"about":         map[string]any{"type": "string", "enum": about},
+			"match":         map[string]any{"type": "string", "enum": []string{tiMatchPhrase, tiMatchExact, tiMatchWords, tiMatchNone}},
+			"literal":       map[string]any{"type": "string"},
 		},
 	}
 }
@@ -316,6 +334,68 @@ func tiStandsAlone(haystack, needle string) bool {
 	return false
 }
 
+// textIntentPlateKey checks what the model proposed for a plate search and returns the plate as a normalised search key (upper case, letters and digits). The plate may have ANY format: no list of
+// formats is consulted and a plate is not required to mix letters and digits, because the model, not a pattern, decided that this is a plate. What the server keeps is the same discipline as for
+// words: the literal is a verbatim part of the sentence, stands alone in it, is not the whole message, and is between 3 and 12 letters and digits.
+func textIntentPlateKey(query string, result textIntentResult) (string, string) {
+	literal := forensictext.Normalize(result.Literal)
+	if literal == "" {
+		return "", "EMPTY_LITERAL"
+	}
+	haystack := strings.ToLower(forensictext.Normalize(query))
+	if !tiStandsAlone(haystack, strings.ToLower(literal)) {
+		return "", "LITERAL_NOT_IN_QUESTION"
+	}
+	endMarks := func(r rune) bool { return unicode.IsSpace(r) || strings.ContainsRune("?.!؟۔", r) }
+	if strings.TrimRightFunc(strings.ToLower(literal), endMarks) == strings.TrimRightFunc(haystack, endMarks) {
+		return "", "LITERAL_IS_WHOLE_MESSAGE"
+	}
+	key := plateKeyStrip.ReplaceAllString(strings.ToUpper(literal), "")
+	if len(key) < 3 || len(key) > 12 {
+		return "", "PLATE_LENGTH"
+	}
+	// The message must itself name photos, images or video as the place to look: the model quoted those words (a_media_words) and the quote must really be in the message and must not be the plate.
+	media := forensictext.Normalize(result.MediaWords)
+	if media == "" {
+		return "", "NO_MEDIA_NAMED"
+	}
+	if !tiQuoteGrounded(haystack, strings.ToLower(media)) || plateKeyStrip.ReplaceAllString(strings.ToUpper(media), "") == key {
+		return "", "MEDIA_WORDS_NOT_IN_QUESTION"
+	}
+	return key, ""
+}
+
+// tiQuoteGrounded reports whether a quote the model made of the message really comes from it: the quote stands alone in the message as written, or the quote with up to two trailing letters removed
+// (at least four letters left) starts a word of the message. The second form accepts a singular/plural or tense variant of a word that is in the sentence ("photos" for "photo") and still refuses a
+// word that is not there. Both arguments are lower case.
+func tiQuoteGrounded(haystack, quote string) bool {
+	if quote == "" {
+		return false
+	}
+	if tiStandsAlone(haystack, quote) {
+		return true
+	}
+	runes := []rune(quote)
+	for cut := 1; cut <= 2; cut++ {
+		if len(runes)-cut < 4 {
+			break
+		}
+		stem := string(runes[:len(runes)-cut])
+		for from := 0; ; {
+			at := strings.Index(haystack[from:], stem)
+			if at < 0 {
+				break
+			}
+			at += from
+			if before, _ := utf8.DecodeLastRuneInString(haystack[:at]); at == 0 || !(unicode.IsLetter(before) || unicode.IsDigit(before)) {
+				return true
+			}
+			from = at + len(stem)
+		}
+	}
+	return false
+}
+
 // textIntentEligible limits the model call to a message nothing else has tied to an operation or to selected evidence.
 func textIntentEligible(cfg config, req hybridQueryRequest) (string, bool) {
 	if strings.TrimSpace(cfg.LocalAIURL) == "" {
@@ -364,6 +444,19 @@ func textIntentRoute(ctx context.Context, w http.ResponseWriter, cfg config, req
 		return req, "", false
 	}
 	audit.About, audit.Kind, audit.Family, audit.Match = result.About, result.Kind, result.Family, result.Match
+	if result.Kind == tiKindPlate {
+		key, why := textIntentPlateKey(query, result)
+		if why != "" {
+			audit.State, audit.RejectedReason = "REJECTED", why
+			finish()
+			return req, "", false
+		}
+		audit.State, audit.LiteralRunes = "ROUTED", utf8.RuneCountInString(key)
+		finish()
+		req.Plate = key
+		req.RequestClass = forensicrequest.GovernedAnalysis
+		return req, tiFamilyPlate, true
+	}
 	text, family, why := textIntentValidate(query, result)
 	if why == "NOT_TEXT_SEARCH" {
 		audit.State = "NOT_TEXT_SEARCH"

@@ -99,3 +99,61 @@ If the holdout misses a gate, that is the result; the step stays off and the ana
 **Change.** The model no longer answers "is this a search, and of what". It states what the message is about from a fixed list: spoken words, text in images, text in documents, words in an unnamed source, and then call records, message records, bank transactions, device records, vehicle records, location records, internet records, people and numbers, other. Only the first four are searches; every other value is not, whatever literal comes with it. Calls, messages and transactions now have a place to go that is not "recordings". The server's checks are unchanged. The kind and family are derived from the answer; they are no longer asked for.
 
 **Procedure.** The same rules as Amendment 1: the change is tested on development bank 2 (reported, not counted); the holdout bank, built before any of this and not yet run, is run once for the gates. The strict literal gate stays as written. The holdout report will also show how many literal differences are a filler word at the edge of the sampled phrase, so a reader can see how much of a G3 miss is the bank.
+
+## Amendment 3 (2026-11-10, written before any plate-routing number exists): the model also routes "which photos show this plate"
+
+**Why.** The owner's rule: every runtime question is understood by the model and answered from the database, not routed by a keyword list. The plate-in-images search (`plate_image_search.go`, exact and similar readings, search-only) was first reached by a keyword cue plus a format pattern, which rejects plates that fit no known format and misses unusual wordings (measured: a plate typed as `SYNT4O24` was missed by the pattern). The intent step already reads each sentence once; it now has one more subject in its fixed list.
+
+**Change.** One new value of `about`: `plate_in_images_or_video` (the investigator typed a vehicle number plate, in any format, and asks which photos, images or videos show it). The plate is returned as the literal. The server keeps the same discipline as for words: the literal is a verbatim part of the sentence, stands alone in it, is not the whole message, and is 3 to 12 letters and digits; no list of plate formats is consulted. The `vehicle_records` line of the instruction now says that camera (ANPR) sightings are vehicle records and that a question about which images or videos show a typed plate is the new value. When the step does not decide (switch off, model unavailable, unsure) the old keyword route still runs afterwards, so nothing that worked is lost. Nothing else in the instruction changes.
+
+**Bank (new, `evaluation/text_intent/bank-plate-20261110.json`, built by `build_plate_bank.py`, seed fixed in the file).** 36 positives: plates generated in nine formats (Pakistani letters-and-digits shapes, province-style, dashed, spaced, foreign-looking, and a free shape that matches no registry entry), put into twelve sentence frames in English, Roman Urdu and Urdu. 24 negatives: the same generated plates in questions about camera sightings, counts, owners, timelines and "plates containing", which must NOT be routed to the image search. No owner-labelled plate is used; every plate string is generated.
+
+**Gates (fixed now).**
+
+| Gate | Threshold |
+|---|---|
+| P1 routing and fidelity | at least 90% of the 36 positives routed to `plate` with the plate exactly as typed (case, dashes and spaces ignored) |
+| P2 false routes | 0 of the 24 plate negatives routed to `plate` |
+| P3 no regression on words | on development bank 2 (reported against the last run, 2026-11-10 `ti-tier1-dev2c`: G1a 84.2%, G4 0 of 50): G4 stays 0 of 50 and no word-search positive is routed to `plate`; G1a may not fall by more than 3 points |
+| P4 time | median at most 8 s, p95 at most 25 s over the plate bank with the model resident |
+
+A miss is reported as a miss and analysed from the audit; the instruction is not patched with the failing sentence. The holdout bank remains unrun and sealed for the text-search gates.
+
+## Amendment 4 (2026-11-10, after the first plate run; thresholds unchanged)
+
+**Result of run 1 on plate bank A (`ti-plate-run1`).** P1 MET: 36 of 36 positives routed to `plate` with the plate exactly as typed, in all nine plate shapes including the shape that matches no registry entry. P4 MET: median 4.8 s, p95 6.1 s. **P2 NOT MET: 15 of 24 plate negatives were routed to `plate`** (camera-sighting, count, owner and "plates containing" questions). Reading: the model took "a plate is in the question" as the subject, although the instruction says the question must ask about photos, images or videos. A wrong route here is costly: the image search would answer "no photo shows it" for a plate that the camera table does record.
+
+**Change (general, no sentence of the bank is quoted).** The plate value now states what makes it that value and what does not: it is chosen only when the message itself asks to look in photos, images, pictures, video or footage; a plate that appears in a message about sightings, cameras, times, counts, owners, registrations or other records is `vehicle_records`. The cross-reference inside the `vehicle_records` line is replaced by the same statement from its side, and the plate value moves to sit directly after `vehicle_records`, so the two are read together. The sentence "Only the first four are searches" is reworded to cover the five.
+
+**Procedure.** Plate bank A (now development, rerun and reported). **Plate bank B (`bank-plate-B-20261111.json`: new seed, new wording, 36 positives and 24 negatives) was built before this change and is run once for the P1, P2 and P4 gates.** P3 is measured on development bank 2 as stated. If bank B misses, the miss is reported as a miss and the switch for the plate value stays off; the keyword route keeps running as before.
+
+## Amendment 5 (2026-11-10, after the second plate run on development bank A; thresholds unchanged)
+
+**Result of run 2 (wording change of Amendment 4) on bank A (development).** P1 34 of 36 (94.4%, MET; two sentences went to the written-in-images value instead of the plate value), P2 **6 of 24 false routes (NOT MET; was 15)**, P4 median 4.7 s MET. The remaining false routes are two sentence shapes: "when was the plate ... last seen" and "which vehicles have a plate containing ...". Bank B (sealed) has not been run.
+
+**Change.** The reply gets one more field, `a_media_words`, first in the reply (the grammar emits fields in alphabetical order, and this name sorts before `about`; the order is deliberate and tested): the words of the message that name photos, images, pictures, video, footage or stills as the place to look, copied exactly, empty if the message names none. The model must quote before it chooses a subject. The server then refuses the plate value unless the quote is non-empty, is a verbatim part of the message (same rule as the literal: stands alone, case and spacing ignored) and is not the plate itself. No list of media words exists in code; the model supplies the quote and the server checks that it is really in the sentence. The value is ignored for every other `about`, so word searches change only through the extra field in the reply.
+
+**Procedure.** Bank A rerun (development, reported); development bank 2 for P3 (reported against the 2026-11-10 `ti-tier1-dev2c` numbers); bank B run once for the gates. If bank B misses P1, P2 or P4 the plate value stays off in the live switch and the keyword route continues as before.
+
+## Amendment 6 (2026-11-10, after run 3 on development bank A; thresholds unchanged)
+
+**Result of run 3 (media quote of Amendment 5) on bank A.** P2 **MET: 0 of 24 false routes** (was 6). P4 MET (median 6.1 s, p95 7.7 s; the extra field costs about 1.4 s). P1 **86.1% (31 of 36), NOT MET**: three misses are the sentence "Show me every photo of ..." where the model quoted "photos" for the word "photo" and the server's verbatim check refused a correct route; two misses are "list the images containing <plate>", which the model read as a search for the written text in images (`written_in_images`), a legitimate other reading that is left as a miss.
+
+**Change (server check only; no model change).** The quote is grounded if it stands alone in the message as written, or if the quote with up to two trailing letters removed (at least four letters left) starts a word of the message. This accepts the model's singular/plural and tense variants of a word that really is in the sentence, and still refuses a word that is not (a quote of "photographs" for a sentence about when a plate was last seen is refused). The quote still must not be the plate.
+
+**Procedure.** Bank A rerun (development, reported); development bank 2 for P3; bank B once for the gates.
+
+## Results of Amendments 3 to 6 (2026-11-10)
+
+| Run | Bank | P1 positives routed with the plate as typed | P2 plate negatives routed | P4 median / p95 |
+|---|---|---|---|---|
+| 1 (first wording) | A (development) | 36 / 36 | **15 / 24** | 4.8 s / 6.1 s |
+| 2 (Amendment 4 wording) | A | 34 / 36 | 6 / 24 | 4.7 s / 5.5 s |
+| 3 (Amendment 5 media quote) | A | 31 / 36 (three refused by the verbatim quote check, repaired by Amendment 6) | **0 / 24** | 6.1 s / 7.7 s |
+| **Sealed, run once (Amendments 5 and 6)** | **B** | **30 / 36 = 83.3%, gate 90%: NOT MET** | **0 / 24: MET** | 6.2 s / 7.9 s: MET |
+
+* P3 (development bank 2, Amendments 5 and 6): false routes on the 50 plain negatives 0 of 50 (MET); routed to the named family 49 of 57 = 86.0% (the earlier run: 84.2%, so it did not fall); routed at all 66 of 75 = 88.0% (earlier 82.7%); five word-bank questions were called a plate question by the model and all five were refused by the server (none reached the plate search). Model time median 5.7 s, p95 8.9 s.
+* The sealed bank misses by 4 sentences. Five of the six misses are the model reading "photographs showing <plate>" or "image evidence show <plate>" as a search for text written in images (`written_in_images`); one is a literal with an extra word ("gari <plate>", a wrong key, which would have searched the wrong string; the literal-in-question rule cannot see that).
+* For comparison, the keyword route (English only: needs a subject word such as plate or vehicle and a media word) applies to 12 of 36 positives on each bank with the right key, and 0 of 24 negatives. The model route is 30 of 36 with the same 0 false routes. It is the better router, and it still misses its own gate.
+
+**Decision under the pre-registration.** A miss is reported as a miss. The plate value of the step ships in the code (tested), the switch `FORENSIC_TEXT_INTENT` stays off in compose, and the keyword route keeps running, now with plate extraction that accepts any format. Turning the switch on is the owner's decision with these numbers, because it adds one model call (median about 6 s) to every eligible question and its word-search gate G1 (86.0%, gate 90%) is also unmet.

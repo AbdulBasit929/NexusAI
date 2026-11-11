@@ -341,7 +341,26 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 		// text search to turn into a count.
 		textRouted := false
 		if textIntentEnabled() {
-			req, _, textRouted = textIntentRoute(ctx, w, cfg, req, startedAt)
+			beforeIntent := req
+			var intentFamily string
+			req, intentFamily, textRouted = textIntentRoute(ctx, w, cfg, req, startedAt)
+			// The model says the question is about a plate the investigator typed, asked about in images or video (any plate format): exact matches and similar readings over the case's plate
+			// reads, kept apart, search-only (plate_image_search.go). If the search cannot run, the question takes the path it would have taken without the step.
+			if textRouted && intentFamily == tiFamilyPlate {
+				if answered, ok := plateImageSearchRun(ctx, db, req, startedAt, []string{req.Plate}); ok {
+					writeJSON(w, http.StatusOK, answered)
+					return
+				}
+				req, textRouted = beforeIntent, false
+			}
+		}
+		// Keyword fallback when the model did not decide (the step is off, unavailable or unsure): the same search, before the SQL engine, which only knows the camera-sightings table and answered
+		// "no sighting" for a plate that an added image reads (measured 2026-11-10).
+		if !textRouted && plateSearchOnlyEnabled() && req.Template == "" && req.EvidenceID == "" {
+			if answered, ok := plateImageSearchRun(ctx, db, req, startedAt, nil); ok {
+				writeJSON(w, http.StatusOK, answered)
+				return
+			}
 		}
 		// FORENSIC_GOVERNED_SQL / _FIRST (governed_sql_lane.go). This sits BEFORE the terminal contract so that a data question the keyword classifier labelled a concept or a clarification can still be answered; for those, only an answered lane result replaces the terminal reply (govSQLReclassifiable).
 		reclassified := govSQLReclassifiable(req)

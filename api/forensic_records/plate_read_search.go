@@ -68,6 +68,21 @@ func analystPlateLiterals(query string) []string {
 		seen[key] = true
 		out = append(out, key)
 	}
+	// FORMAT-FREE EXTRACTION. extractTargets only recognises shapes such as letters-digits-up-to-three-letters, so a plate of any other make-up (letters, digits, a letter, digits; digits first;
+	// two letter groups) was never extracted and the question fell through to a "no sighting" answer. Any word of the question that mixes letters and digits and is 4 to 10 letters and digits long
+	// (separators ignored) is a candidate plate, whatever its format; file names (a dot or an underscore) and pure numbers are not.
+	for _, word := range strings.Fields(query) {
+		word = strings.Trim(word, " \t.,;:!?\"'()[]{}<>")
+		if word == "" || strings.ContainsAny(word, "._/\\@:") {
+			continue
+		}
+		key := plateKeyStrip.ReplaceAllString(strings.ToUpper(word), "")
+		if len(key) < 4 || len(key) > 10 || !strings.ContainsAny(key, "ABCDEFGHIJKLMNOPQRSTUVWXYZ") || !strings.ContainsAny(key, "0123456789") || seen[key] {
+			continue
+		}
+		seen[key] = true
+		out = append(out, key)
+	}
 	return out
 }
 

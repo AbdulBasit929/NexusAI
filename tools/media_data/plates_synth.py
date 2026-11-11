@@ -67,6 +67,8 @@ def render_plate(rng: random.Random, plate: dict) -> np.ndarray:
         else:
             parts = [norm[:letters], norm[letters:]]
         lines = [sep.join(parts)]
+    if plate.get("text_override"):  # an exact string to draw (a demo plate that is outside any registered format); the label is still plate["norm"]
+        lines = [plate["text_override"]]
     area_top = 10 + (16 if caption and not two_line else 0)
     area_bottom = height - 12 - (0 if two_line or not caption else 14)
     slot = (area_bottom - area_top) / len(lines)

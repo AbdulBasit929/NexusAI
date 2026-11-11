@@ -1,0 +1,455 @@
+{
+ "built": "2026-11-10",
+ "seed": 20261110,
+ "preregistration": "docs/roadmap/text-intent-preregistration-20261110.md Amendment 3",
+ "frames": {
+  "positive": [
+   "Which photos show {p}?",
+   "Is the plate {p} visible in any of the images?",
+   "Find the pictures where {p} appears",
+   "does {p} show up in any video",
+   "Any image with the number plate {p}?",
+   "Show me every photo of the vehicle with plate {p}",
+   "کون سی تصاویر میں {p} نمبر پلیٹ نظر آتی ہے؟",
+   "kin tasveeron mein {p} number plate nazar aati hai?",
+   "Check the footage for {p}",
+   "list the images containing {p}",
+   "was a car with registration {p} photographed?",
+   "Look through the videos for plate {p}"
+  ],
+  "negative": [
+   "When was the plate {p} last seen?",
+   "How many times was the plate {p} seen by the cameras?",
+   "Which cameras recorded {p}?",
+   "List all ANPR sightings of {p}",
+   "Who owns the vehicle {p}?",
+   "Show the sighting timeline for {p}",
+   "Which vehicles have a plate containing {q}?",
+   "Is {p} registered to anyone in the case?"
+  ]
+ },
+ "positives": [
+  {
+   "id": "TI-P-001",
+   "question": "Which photos show JUF-9755?",
+   "plate": "JUF-9755",
+   "shape": "L3D4",
+   "frame": 0
+  },
+  {
+   "id": "TI-P-002",
+   "question": "Is the plate FRK 358 visible in any of the images?",
+   "plate": "FRK 358",
+   "shape": "L3D3",
+   "frame": 1
+  },
+  {
+   "id": "TI-P-003",
+   "question": "Find the pictures where RM-8259 appears",
+   "plate": "RM-8259",
+   "shape": "L2D4",
+   "frame": 2
+  },
+  {
+   "id": "TI-P-004",
+   "question": "does OXM3297 show up in any video",
+   "plate": "OXM3297",
+   "shape": "L3D4_plain",
+   "frame": 3
+  },
+  {
+   "id": "TI-P-005",
+   "question": "Any image with the number plate 8322-GIX?",
+   "plate": "8322-GIX",
+   "shape": "D4_L3",
+   "frame": 4
+  },
+  {
+   "id": "TI-P-006",
+   "question": "Show me every photo of the vehicle with plate CC47BC2637",
+   "plate": "CC47BC2637",
+   "shape": "L2D2L2D4",
+   "frame": 5
+  },
+  {
+   "id": "TI-P-007",
+   "question": "کون سی تصاویر میں F 13876 نمبر پلیٹ نظر آتی ہے؟",
+   "plate": "F 13876",
+   "shape": "L1D5",
+   "frame": 6
+  },
+  {
+   "id": "TI-P-008",
+   "question": "kin tasveeron mein SYNCO01 number plate nazar aati hai?",
+   "plate": "SYNCO01",
+   "shape": "synthetic_O",
+   "frame": 7
+  },
+  {
+   "id": "TI-P-009",
+   "question": "Check the footage for IL23X7",
+   "plate": "IL23X7",
+   "shape": "free_mixed",
+   "frame": 8
+  },
+  {
+   "id": "TI-P-010",
+   "question": "list the images containing JEC-3094",
+   "plate": "JEC-3094",
+   "shape": "L3D4",
+   "frame": 9
+  },
+  {
+   "id": "TI-P-011",
+   "question": "was a car with registration SAT 507 photographed?",
+   "plate": "SAT 507",
+   "shape": "L3D3",
+   "frame": 10
+  },
+  {
+   "id": "TI-P-012",
+   "question": "Look through the videos for plate GY-3762",
+   "plate": "GY-3762",
+   "shape": "L2D4",
+   "frame": 11
+  },
+  {
+   "id": "TI-P-013",
+   "question": "Which photos show ZWO3704?",
+   "plate": "ZWO3704",
+   "shape": "L3D4_plain",
+   "frame": 0
+  },
+  {
+   "id": "TI-P-014",
+   "question": "Is the plate 0456-FQU visible in any of the images?",
+   "plate": "0456-FQU",
+   "shape": "D4_L3",
+   "frame": 1
+  },
+  {
+   "id": "TI-P-015",
+   "question": "Find the pictures where LB00OV0216 appears",
+   "plate": "LB00OV0216",
+   "shape": "L2D2L2D4",
+   "frame": 2
+  },
+  {
+   "id": "TI-P-016",
+   "question": "does C 03892 show up in any video",
+   "plate": "C 03892",
+   "shape": "L1D5",
+   "frame": 3
+  },
+  {
+   "id": "TI-P-017",
+   "question": "Any image with the number plate SYNS007?",
+   "plate": "SYNS007",
+   "shape": "synthetic_O",
+   "frame": 4
+  },
+  {
+   "id": "TI-P-018",
+   "question": "Show me every photo of the vehicle with plate RW32H5",
+   "plate": "RW32H5",
+   "shape": "free_mixed",
+   "frame": 5
+  },
+  {
+   "id": "TI-P-019",
+   "question": "کون سی تصاویر میں WMC-7101 نمبر پلیٹ نظر آتی ہے؟",
+   "plate": "WMC-7101",
+   "shape": "L3D4",
+   "frame": 6
+  },
+  {
+   "id": "TI-P-020",
+   "question": "kin tasveeron mein RMZ 335 number plate nazar aati hai?",
+   "plate": "RMZ 335",
+   "shape": "L3D3",
+   "frame": 7
+  },
+  {
+   "id": "TI-P-021",
+   "question": "Check the footage for DC-6936",
+   "plate": "DC-6936",
+   "shape": "L2D4",
+   "frame": 8
+  },
+  {
+   "id": "TI-P-022",
+   "question": "list the images containing SDZ3291",
+   "plate": "SDZ3291",
+   "shape": "L3D4_plain",
+   "frame": 9
+  },
+  {
+   "id": "TI-P-023",
+   "question": "was a car with registration 8793-FNB photographed?",
+   "plate": "8793-FNB",
+   "shape": "D4_L3",
+   "frame": 10
+  },
+  {
+   "id": "TI-P-024",
+   "question": "Look through the videos for plate FM80HB8515",
+   "plate": "FM80HB8515",
+   "shape": "L2D2L2D4",
+   "frame": 11
+  },
+  {
+   "id": "TI-P-025",
+   "question": "Which photos show K 79662?",
+   "plate": "K 79662",
+   "shape": "L1D5",
+   "frame": 0
+  },
+  {
+   "id": "TI-P-026",
+   "question": "Is the plate SYNY048 visible in any of the images?",
+   "plate": "SYNY048",
+   "shape": "synthetic_O",
+   "frame": 1
+  },
+  {
+   "id": "TI-P-027",
+   "question": "Find the pictures where CH87H4 appears",
+   "plate": "CH87H4",
+   "shape": "free_mixed",
+   "frame": 2
+  },
+  {
+   "id": "TI-P-028",
+   "question": "does BBJ-8284 show up in any video",
+   "plate": "BBJ-8284",
+   "shape": "L3D4",
+   "frame": 3
+  },
+  {
+   "id": "TI-P-029",
+   "question": "Any image with the number plate LJH 168?",
+   "plate": "LJH 168",
+   "shape": "L3D3",
+   "frame": 4
+  },
+  {
+   "id": "TI-P-030",
+   "question": "Show me every photo of the vehicle with plate OP-1698",
+   "plate": "OP-1698",
+   "shape": "L2D4",
+   "frame": 5
+  },
+  {
+   "id": "TI-P-031",
+   "question": "کون سی تصاویر میں JRO1007 نمبر پلیٹ نظر آتی ہے؟",
+   "plate": "JRO1007",
+   "shape": "L3D4_plain",
+   "frame": 6
+  },
+  {
+   "id": "TI-P-032",
+   "question": "kin tasveeron mein 6350-XZN number plate nazar aati hai?",
+   "plate": "6350-XZN",
+   "shape": "D4_L3",
+   "frame": 7
+  },
+  {
+   "id": "TI-P-033",
+   "question": "Check the footage for ZM20TS7333",
+   "plate": "ZM20TS7333",
+   "shape": "L2D2L2D4",
+   "frame": 8
+  },
+  {
+   "id": "TI-P-034",
+   "question": "list the images containing N 28142",
+   "plate": "N 28142",
+   "shape": "L1D5",
+   "frame": 9
+  },
+  {
+   "id": "TI-P-035",
+   "question": "was a car with registration SYNN021 photographed?",
+   "plate": "SYNN021",
+   "shape": "synthetic_O",
+   "frame": 10
+  },
+  {
+   "id": "TI-P-036",
+   "question": "Look through the videos for plate SH89G6",
+   "plate": "SH89G6",
+   "shape": "free_mixed",
+   "frame": 11
+  }
+ ],
+ "negatives": [
+  {
+   "id": "TI-PN-001",
+   "question": "When was the plate TMU 641 last seen?",
+   "plate": "TMU 641",
+   "shape": "L3D3",
+   "frame": 0
+  },
+  {
+   "id": "TI-PN-002",
+   "question": "How many times was the plate QUX4107 seen by the cameras?",
+   "plate": "QUX4107",
+   "shape": "L3D4_plain",
+   "frame": 1
+  },
+  {
+   "id": "TI-PN-003",
+   "question": "Which cameras recorded VN43AG2080?",
+   "plate": "VN43AG2080",
+   "shape": "L2D2L2D4",
+   "frame": 2
+  },
+  {
+   "id": "TI-PN-004",
+   "question": "List all ANPR sightings of SYNC073",
+   "plate": "SYNC073",
+   "shape": "synthetic_O",
+   "frame": 3
+  },
+  {
+   "id": "TI-PN-005",
+   "question": "Who owns the vehicle ANX-8765?",
+   "plate": "ANX-8765",
+   "shape": "L3D4",
+   "frame": 4
+  },
+  {
+   "id": "TI-PN-006",
+   "question": "Show the sighting timeline for PS-8835",
+   "plate": "PS-8835",
+   "shape": "L2D4",
+   "frame": 5
+  },
+  {
+   "id": "TI-PN-007",
+   "question": "Which vehicles have a plate containing 719?",
+   "plate": "7199-UXN",
+   "shape": "D4_L3",
+   "frame": 6
+  },
+  {
+   "id": "TI-PN-008",
+   "question": "Is W 26829 registered to anyone in the case?",
+   "plate": "W 26829",
+   "shape": "L1D5",
+   "frame": 7
+  },
+  {
+   "id": "TI-PN-009",
+   "question": "When was the plate FE59F5 last seen?",
+   "plate": "FE59F5",
+   "shape": "free_mixed",
+   "frame": 0
+  },
+  {
+   "id": "TI-PN-010",
+   "question": "How many times was the plate BDG 886 seen by the cameras?",
+   "plate": "BDG 886",
+   "shape": "L3D3",
+   "frame": 1
+  },
+  {
+   "id": "TI-PN-011",
+   "question": "Which cameras recorded LWR1128?",
+   "plate": "LWR1128",
+   "shape": "L3D4_plain",
+   "frame": 2
+  },
+  {
+   "id": "TI-PN-012",
+   "question": "List all ANPR sightings of HK45TP8002",
+   "plate": "HK45TP8002",
+   "shape": "L2D2L2D4",
+   "frame": 3
+  },
+  {
+   "id": "TI-PN-013",
+   "question": "Who owns the vehicle SYNDO69?",
+   "plate": "SYNDO69",
+   "shape": "synthetic_O",
+   "frame": 4
+  },
+  {
+   "id": "TI-PN-014",
+   "question": "Show the sighting timeline for ERY-6472",
+   "plate": "ERY-6472",
+   "shape": "L3D4",
+   "frame": 5
+  },
+  {
+   "id": "TI-PN-015",
+   "question": "Which vehicles have a plate containing EI5?",
+   "plate": "EI-5674",
+   "shape": "L2D4",
+   "frame": 6
+  },
+  {
+   "id": "TI-PN-016",
+   "question": "Is 3664-PAG registered to anyone in the case?",
+   "plate": "3664-PAG",
+   "shape": "D4_L3",
+   "frame": 7
+  },
+  {
+   "id": "TI-PN-017",
+   "question": "When was the plate S 09917 last seen?",
+   "plate": "S 09917",
+   "shape": "L1D5",
+   "frame": 0
+  },
+  {
+   "id": "TI-PN-018",
+   "question": "How many times was the plate FW21F6 seen by the cameras?",
+   "plate": "FW21F6",
+   "shape": "free_mixed",
+   "frame": 1
+  },
+  {
+   "id": "TI-PN-019",
+   "question": "Which cameras recorded SZD 790?",
+   "plate": "SZD 790",
+   "shape": "L3D3",
+   "frame": 2
+  },
+  {
+   "id": "TI-PN-020",
+   "question": "List all ANPR sightings of ELI5804",
+   "plate": "ELI5804",
+   "shape": "L3D4_plain",
+   "frame": 3
+  },
+  {
+   "id": "TI-PN-021",
+   "question": "Who owns the vehicle TK62DA0753?",
+   "plate": "TK62DA0753",
+   "shape": "L2D2L2D4",
+   "frame": 4
+  },
+  {
+   "id": "TI-PN-022",
+   "question": "Show the sighting timeline for SYNX060",
+   "plate": "SYNX060",
+   "shape": "synthetic_O",
+   "frame": 5
+  },
+  {
+   "id": "TI-PN-023",
+   "question": "Which vehicles have a plate containing PDS?",
+   "plate": "PDS-9655",
+   "shape": "L3D4",
+   "frame": 6
+  },
+  {
+   "id": "TI-PN-024",
+   "question": "Is NE-2915 registered to anyone in the case?",
+   "plate": "NE-2915",
+   "shape": "L2D4",
+   "frame": 7
+  }
+ ]
+}

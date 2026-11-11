@@ -15,18 +15,18 @@ import (
 func TestTextIntentLive(t *testing.T) {
 	bankPath := os.Getenv("TEXT_INTENT_BANK") //nolint:forbidigo // measurement harness reads its inputs from the environment
 	if bankPath == "" {
-		t.Skip("TEXT_INTENT_BANK not set")
+		t.Skip("TEXT_INTENT_BANK not set") //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
 	}
 	raw, err := os.ReadFile(bankPath)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal(err) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
 	}
 	var bank struct {
 		Positives []struct{ ID, Question string } `json:"positives"`
 		Negatives []struct{ ID, Question string } `json:"negatives"`
 	}
 	if err := json.Unmarshal(raw, &bank); err != nil {
-		t.Fatal(err)
+		t.Fatal(err) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
 	}
 	cfg := config{LocalAIURL: os.Getenv("TEXT_INTENT_MODEL_URL"), SynthesisModel: os.Getenv("TEXT_INTENT_MODEL")} //nolint:forbidigo // measurement harness
 	if cfg.LocalAIURL == "" {
@@ -45,6 +45,7 @@ func TestTextIntentLive(t *testing.T) {
 		Family   string `json:"family"`
 		Match    string `json:"match"`
 		Proposed string `json:"proposed_literal"`
+		Media    string `json:"media_words,omitempty"`
 		Literal  string `json:"literal,omitempty"`
 		MS       int64  `json:"ms"`
 	}
@@ -58,6 +59,17 @@ func TestTextIntentLive(t *testing.T) {
 			d.State, d.Reason = "UNAVAILABLE", failure
 		} else {
 			d.About, d.Kind, d.Family, d.Match, d.Proposed = result.About, result.Kind, result.Family, result.Match, result.Literal
+			d.Media = result.MediaWords
+			if result.Kind == tiKindPlate { // Amendment 3: the plate is checked by the same rules the route applies
+				key, plateWhy := textIntentPlateKey(question, result)
+				if plateWhy != "" {
+					d.State, d.Reason = "REJECTED", plateWhy
+				} else {
+					d.State, d.Literal, d.Family = "ROUTED", key, tiFamilyPlate
+				}
+				out = append(out, d)
+				return
+			}
 			text, family, why := textIntentValidate(question, result)
 			switch {
 			case why == "NOT_TEXT_SEARCH":
@@ -82,7 +94,7 @@ func TestTextIntentLive(t *testing.T) {
 		path = "text-intent-live.json"
 	}
 	if err := os.WriteFile(path, encoded, 0o644); err != nil {
-		t.Fatal(err)
+		t.Fatal(err) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
 	}
-	t.Logf("%d decisions written to %s", len(out), path)
+	t.Logf("%d decisions written to %s", len(out), path) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
 }

@@ -1,0 +1,457 @@
+{
+ "built": "2026-11-10",
+ "seed": 20261111,
+ "preregistration": "docs/roadmap/text-intent-preregistration-20261110.md Amendment 3",
+ "frames": {
+  "positive": [
+   "Do any photos in the case contain the number plate {p}?",
+   "I need every picture where {p} can be seen.",
+   "Search the images for {p}.",
+   "has a vehicle with plate {p} been captured in the videos?",
+   "pull up the photographs showing {p}",
+   "Is there footage of {p}?",
+   "{p} - which of the uploaded photos show this plate?",
+   "کیا کسی ویڈیو میں گاڑی {p} موجود ہے؟",
+   "kisi tasveer mein gari {p} dikhai deti hai?",
+   "Look in the pictures for a vehicle numbered {p}.",
+   "Does the image evidence show {p} anywhere?",
+   "Locate all stills and clips that show plate {p}."
+  ],
+  "negative": [
+   "What time did {p} pass the checkpoint camera?",
+   "Count the ANPR hits for {p}.",
+   "Give me the sighting history of {p}.",
+   "Which camera locations saw {p} on 12 March?",
+   "Is the vehicle {p} linked to any phone number in the case?",
+   "How often does {p} appear in the camera sightings table?",
+   "Find vehicles whose plate starts with {q}.",
+   "Where was {p} last recorded by ANPR?",
+   "Does {p} show up in the vehicle records?",
+   "Which owner is registered for {p}?"
+  ]
+ },
+ "positives": [
+  {
+   "id": "TI-PB-001",
+   "question": "Do any photos in the case contain the number plate OIL-2759?",
+   "plate": "OIL-2759",
+   "shape": "L3D4",
+   "frame": 0
+  },
+  {
+   "id": "TI-PB-002",
+   "question": "I need every picture where DFY 107 can be seen.",
+   "plate": "DFY 107",
+   "shape": "L3D3",
+   "frame": 1
+  },
+  {
+   "id": "TI-PB-003",
+   "question": "Search the images for PI-2451.",
+   "plate": "PI-2451",
+   "shape": "L2D4",
+   "frame": 2
+  },
+  {
+   "id": "TI-PB-004",
+   "question": "has a vehicle with plate VTI8313 been captured in the videos?",
+   "plate": "VTI8313",
+   "shape": "L3D4_plain",
+   "frame": 3
+  },
+  {
+   "id": "TI-PB-005",
+   "question": "pull up the photographs showing 1075-CDL",
+   "plate": "1075-CDL",
+   "shape": "D4_L3",
+   "frame": 4
+  },
+  {
+   "id": "TI-PB-006",
+   "question": "Is there footage of NU34JY7772?",
+   "plate": "NU34JY7772",
+   "shape": "L2D2L2D4",
+   "frame": 5
+  },
+  {
+   "id": "TI-PB-007",
+   "question": "X 32265 - which of the uploaded photos show this plate?",
+   "plate": "X 32265",
+   "shape": "L1D5",
+   "frame": 6
+  },
+  {
+   "id": "TI-PB-008",
+   "question": "کیا کسی ویڈیو میں گاڑی SYNF073 موجود ہے؟",
+   "plate": "SYNF073",
+   "shape": "synthetic_O",
+   "frame": 7
+  },
+  {
+   "id": "TI-PB-009",
+   "question": "kisi tasveer mein gari WN40E9 dikhai deti hai?",
+   "plate": "WN40E9",
+   "shape": "free_mixed",
+   "frame": 8
+  },
+  {
+   "id": "TI-PB-010",
+   "question": "Look in the pictures for a vehicle numbered IOM-2140.",
+   "plate": "IOM-2140",
+   "shape": "L3D4",
+   "frame": 9
+  },
+  {
+   "id": "TI-PB-011",
+   "question": "Does the image evidence show MMU 158 anywhere?",
+   "plate": "MMU 158",
+   "shape": "L3D3",
+   "frame": 10
+  },
+  {
+   "id": "TI-PB-012",
+   "question": "Locate all stills and clips that show plate ZU-3737.",
+   "plate": "ZU-3737",
+   "shape": "L2D4",
+   "frame": 11
+  },
+  {
+   "id": "TI-PB-013",
+   "question": "Do any photos in the case contain the number plate LPN4303?",
+   "plate": "LPN4303",
+   "shape": "L3D4_plain",
+   "frame": 0
+  },
+  {
+   "id": "TI-PB-014",
+   "question": "I need every picture where 5874-AVG can be seen.",
+   "plate": "5874-AVG",
+   "shape": "D4_L3",
+   "frame": 1
+  },
+  {
+   "id": "TI-PB-015",
+   "question": "Search the images for SF62YU8941.",
+   "plate": "SF62YU8941",
+   "shape": "L2D2L2D4",
+   "frame": 2
+  },
+  {
+   "id": "TI-PB-016",
+   "question": "has a vehicle with plate M 84476 been captured in the videos?",
+   "plate": "M 84476",
+   "shape": "L1D5",
+   "frame": 3
+  },
+  {
+   "id": "TI-PB-017",
+   "question": "pull up the photographs showing SYNBO15",
+   "plate": "SYNBO15",
+   "shape": "synthetic_O",
+   "frame": 4
+  },
+  {
+   "id": "TI-PB-018",
+   "question": "Is there footage of UZ80D4?",
+   "plate": "UZ80D4",
+   "shape": "free_mixed",
+   "frame": 5
+  },
+  {
+   "id": "TI-PB-019",
+   "question": "DZF-7284 - which of the uploaded photos show this plate?",
+   "plate": "DZF-7284",
+   "shape": "L3D4",
+   "frame": 6
+  },
+  {
+   "id": "TI-PB-020",
+   "question": "کیا کسی ویڈیو میں گاڑی CUO 268 موجود ہے؟",
+   "plate": "CUO 268",
+   "shape": "L3D3",
+   "frame": 7
+  },
+  {
+   "id": "TI-PB-021",
+   "question": "kisi tasveer mein gari XI-4416 dikhai deti hai?",
+   "plate": "XI-4416",
+   "shape": "L2D4",
+   "frame": 8
+  },
+  {
+   "id": "TI-PB-022",
+   "question": "Look in the pictures for a vehicle numbered QSS6245.",
+   "plate": "QSS6245",
+   "shape": "L3D4_plain",
+   "frame": 9
+  },
+  {
+   "id": "TI-PB-023",
+   "question": "Does the image evidence show 4389-HGK anywhere?",
+   "plate": "4389-HGK",
+   "shape": "D4_L3",
+   "frame": 10
+  },
+  {
+   "id": "TI-PB-024",
+   "question": "Locate all stills and clips that show plate BL80FY3689.",
+   "plate": "BL80FY3689",
+   "shape": "L2D2L2D4",
+   "frame": 11
+  },
+  {
+   "id": "TI-PB-025",
+   "question": "Do any photos in the case contain the number plate X 04297?",
+   "plate": "X 04297",
+   "shape": "L1D5",
+   "frame": 0
+  },
+  {
+   "id": "TI-PB-026",
+   "question": "I need every picture where SYNYO64 can be seen.",
+   "plate": "SYNYO64",
+   "shape": "synthetic_O",
+   "frame": 1
+  },
+  {
+   "id": "TI-PB-027",
+   "question": "Search the images for VI30T8.",
+   "plate": "VI30T8",
+   "shape": "free_mixed",
+   "frame": 2
+  },
+  {
+   "id": "TI-PB-028",
+   "question": "has a vehicle with plate AUZ-3931 been captured in the videos?",
+   "plate": "AUZ-3931",
+   "shape": "L3D4",
+   "frame": 3
+  },
+  {
+   "id": "TI-PB-029",
+   "question": "pull up the photographs showing WUK 973",
+   "plate": "WUK 973",
+   "shape": "L3D3",
+   "frame": 4
+  },
+  {
+   "id": "TI-PB-030",
+   "question": "Is there footage of SG-8352?",
+   "plate": "SG-8352",
+   "shape": "L2D4",
+   "frame": 5
+  },
+  {
+   "id": "TI-PB-031",
+   "question": "PLP5985 - which of the uploaded photos show this plate?",
+   "plate": "PLP5985",
+   "shape": "L3D4_plain",
+   "frame": 6
+  },
+  {
+   "id": "TI-PB-032",
+   "question": "کیا کسی ویڈیو میں گاڑی 2827-VAM موجود ہے؟",
+   "plate": "2827-VAM",
+   "shape": "D4_L3",
+   "frame": 7
+  },
+  {
+   "id": "TI-PB-033",
+   "question": "kisi tasveer mein gari JU79AI3033 dikhai deti hai?",
+   "plate": "JU79AI3033",
+   "shape": "L2D2L2D4",
+   "frame": 8
+  },
+  {
+   "id": "TI-PB-034",
+   "question": "Look in the pictures for a vehicle numbered I 84058.",
+   "plate": "I 84058",
+   "shape": "L1D5",
+   "frame": 9
+  },
+  {
+   "id": "TI-PB-035",
+   "question": "Does the image evidence show SYNA023 anywhere?",
+   "plate": "SYNA023",
+   "shape": "synthetic_O",
+   "frame": 10
+  },
+  {
+   "id": "TI-PB-036",
+   "question": "Locate all stills and clips that show plate RM22D5.",
+   "plate": "RM22D5",
+   "shape": "free_mixed",
+   "frame": 11
+  }
+ ],
+ "negatives": [
+  {
+   "id": "TI-PNB-001",
+   "question": "What time did PHF 373 pass the checkpoint camera?",
+   "plate": "PHF 373",
+   "shape": "L3D3",
+   "frame": 0
+  },
+  {
+   "id": "TI-PNB-002",
+   "question": "Count the ANPR hits for ICR4260.",
+   "plate": "ICR4260",
+   "shape": "L3D4_plain",
+   "frame": 1
+  },
+  {
+   "id": "TI-PNB-003",
+   "question": "Give me the sighting history of VH03ZL5386.",
+   "plate": "VH03ZL5386",
+   "shape": "L2D2L2D4",
+   "frame": 2
+  },
+  {
+   "id": "TI-PNB-004",
+   "question": "Which camera locations saw SYNYO77 on 12 March?",
+   "plate": "SYNYO77",
+   "shape": "synthetic_O",
+   "frame": 3
+  },
+  {
+   "id": "TI-PNB-005",
+   "question": "Is the vehicle IVK-8019 linked to any phone number in the case?",
+   "plate": "IVK-8019",
+   "shape": "L3D4",
+   "frame": 4
+  },
+  {
+   "id": "TI-PNB-006",
+   "question": "How often does KG-1853 appear in the camera sightings table?",
+   "plate": "KG-1853",
+   "shape": "L2D4",
+   "frame": 5
+  },
+  {
+   "id": "TI-PNB-007",
+   "question": "Find vehicles whose plate starts with 492.",
+   "plate": "4925-VHZ",
+   "shape": "D4_L3",
+   "frame": 6
+  },
+  {
+   "id": "TI-PNB-008",
+   "question": "Where was G 27747 last recorded by ANPR?",
+   "plate": "G 27747",
+   "shape": "L1D5",
+   "frame": 7
+  },
+  {
+   "id": "TI-PNB-009",
+   "question": "Does IZ93R8 show up in the vehicle records?",
+   "plate": "IZ93R8",
+   "shape": "free_mixed",
+   "frame": 8
+  },
+  {
+   "id": "TI-PNB-010",
+   "question": "Which owner is registered for RZW 344?",
+   "plate": "RZW 344",
+   "shape": "L3D3",
+   "frame": 9
+  },
+  {
+   "id": "TI-PNB-011",
+   "question": "What time did XTV1891 pass the checkpoint camera?",
+   "plate": "XTV1891",
+   "shape": "L3D4_plain",
+   "frame": 0
+  },
+  {
+   "id": "TI-PNB-012",
+   "question": "Count the ANPR hits for GE79OR7569.",
+   "plate": "GE79OR7569",
+   "shape": "L2D2L2D4",
+   "frame": 1
+  },
+  {
+   "id": "TI-PNB-013",
+   "question": "Give me the sighting history of SYNWO34.",
+   "plate": "SYNWO34",
+   "shape": "synthetic_O",
+   "frame": 2
+  },
+  {
+   "id": "TI-PNB-014",
+   "question": "Which camera locations saw JTW-5656 on 12 March?",
+   "plate": "JTW-5656",
+   "shape": "L3D4",
+   "frame": 3
+  },
+  {
+   "id": "TI-PNB-015",
+   "question": "Is the vehicle TE-9707 linked to any phone number in the case?",
+   "plate": "TE-9707",
+   "shape": "L2D4",
+   "frame": 4
+  },
+  {
+   "id": "TI-PNB-016",
+   "question": "How often does 5499-QBG appear in the camera sightings table?",
+   "plate": "5499-QBG",
+   "shape": "D4_L3",
+   "frame": 5
+  },
+  {
+   "id": "TI-PNB-017",
+   "question": "Find vehicles whose plate starts with I95.",
+   "plate": "I 95980",
+   "shape": "L1D5",
+   "frame": 6
+  },
+  {
+   "id": "TI-PNB-018",
+   "question": "Where was CC77E7 last recorded by ANPR?",
+   "plate": "CC77E7",
+   "shape": "free_mixed",
+   "frame": 7
+  },
+  {
+   "id": "TI-PNB-019",
+   "question": "Does JTE 739 show up in the vehicle records?",
+   "plate": "JTE 739",
+   "shape": "L3D3",
+   "frame": 8
+  },
+  {
+   "id": "TI-PNB-020",
+   "question": "Which owner is registered for OEZ9848?",
+   "plate": "OEZ9848",
+   "shape": "L3D4_plain",
+   "frame": 9
+  },
+  {
+   "id": "TI-PNB-021",
+   "question": "What time did OT70YJ9766 pass the checkpoint camera?",
+   "plate": "OT70YJ9766",
+   "shape": "L2D2L2D4",
+   "frame": 0
+  },
+  {
+   "id": "TI-PNB-022",
+   "question": "Count the ANPR hits for SYNZO52.",
+   "plate": "SYNZO52",
+   "shape": "synthetic_O",
+   "frame": 1
+  },
+  {
+   "id": "TI-PNB-023",
+   "question": "Give me the sighting history of YXZ-7073.",
+   "plate": "YXZ-7073",
+   "shape": "L3D4",
+   "frame": 2
+  },
+  {
+   "id": "TI-PNB-024",
+   "question": "Which camera locations saw DG-8190 on 12 March?",
+   "plate": "DG-8190",
+   "shape": "L2D4",
+   "frame": 3
+  }
+ ]
+}

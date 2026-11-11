@@ -29,7 +29,8 @@ function safeText(value) {
 // it drops an answer about a "model" or a "route", and the reason an abstention gives ("unreviewed model observations").
 // The Ask engine (api/forensic_records/ask_engine_run.go) builds its sentences on the server in the same way, from the result and the parse tree of the query, so it is held to the
 // same rule: its text reaches the analyst as written.
-const LANE_POLICIES = ['governed_sql_lane', 'ask_engine_v2']
+// The plate search over image and video readings (api/forensic_records/plate_image_search.go, policy plate_search_only) is held to it as well: its sentences are written on the server and must say "model readings" and "similar reading, check by eye" as written; the vocabulary filter would drop them.
+const LANE_POLICIES = ['governed_sql_lane', 'ask_engine_v2', 'plate_search_only']
 function fromLane(response) {
   return LANE_POLICIES.includes(response?.policy)
 }
