@@ -211,7 +211,14 @@ func askDocumentLinkStep(line map[string]string) (askTraceStep, bool) {
 }
 
 // askUntraceable are the views of the catalogue that have no records behind a line, with the reason said to the analyst.
-var askUntraceable = map[string]string{}
+var askUntraceable = map[string]string{
+	"v_plate_reads":          "each row is itself a reading a model made from a photo or a video (its file and, for a video, the first and last second it was seen are in the row)",
+	"v_video_plate_frames":   "each row is itself a reading a model made on one frame of a video (its file and second are in the row)",
+	"v_video_files":          "each row is a video file, as its container header describes it",
+	"v_speech_segments":      "each row is itself a segment of a machine transcript (its file and its start and end second are in the row)",
+	"v_ocr_regions":          "each row is itself a piece of text a model read from a photo or a video frame (its file and, for a frame, its second are in the row)",
+	"v_ocr_evidence_summary": "each row is a photo or video with the text read from it, joined from its regions",
+}
 
 // askTraceViewNames lists the views that have a trace, sorted (for the spec and the messages).
 func askTraceViewNames() []string {

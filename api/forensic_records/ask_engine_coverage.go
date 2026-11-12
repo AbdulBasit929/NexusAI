@@ -37,6 +37,8 @@ type askCoverage struct {
 	// no mention has not been indexed, which is not the same as documents that name nothing.
 	AnyDocument bool
 	Documents   int
+	// Media readings (migration 023): plate readings made from photos or video frames, speech transcripts, text read from photos or frames, and video files (ask_engine_media.go).
+	AnyMediaPlate, AnyMediaSpeech, AnyMediaText, AnyVideo bool
 	// DateOnlyAccounts are the accounts (as the views compare them) whose every transaction states only a day and no time of day: a question about minutes or a time of day cannot be answered for them.
 	DateOnlyAccounts map[string]bool
 	// AnyVolume is whether any typed internet record states a byte count in a direction. An export that gives one undirected volume keeps it in the raw row (the entry does not
@@ -188,6 +190,9 @@ var askCoverageRead = func(ctx context.Context, db *pgxpool.Pool, tenantID, coll
 	if err = tx.QueryRow(ctx, askCoverageQuery, tenantID, collectionID).Scan(&c.Files, &c.Typed, &c.AnyComm, &c.AnySession, &c.AnyUsage, &c.AnyVolume, &c.AnyPlate, &c.AnyRegistration, &c.AnyTransaction, &c.AnyDocument, &c.Documents); err != nil {
 		return c, err
 	}
+	if err = askReadMediaCoverage(ctx, tx, tenantID, collectionID, &c); err != nil {
+		return c, err
+	}
 	if err = askReadDateOnlyAccounts(ctx, tx, tenantID, collectionID, &c); err != nil {
 		return c, err
 	}
@@ -301,6 +306,10 @@ func askCoverageGap(c askCoverage, views []string) string {
 		case "v_bank_transactions", "v_account_counterparties", "v_account_activity", "v_account_flows", "v_account_limit_bands":
 			if !c.AnyTransaction {
 				return "the case has no typed bank or wallet transactions"
+			}
+		case "v_plate_reads", "v_video_plate_frames", "v_video_files", "v_speech_segments", "v_ocr_regions", "v_ocr_evidence_summary":
+			if gap := askMediaGap(c, v); gap != "" {
+				return gap
 			}
 		case "v_document_mentions", "v_document_values", "v_document_links":
 			if !c.AnyDocument {

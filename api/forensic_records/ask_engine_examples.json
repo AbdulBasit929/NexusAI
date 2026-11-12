@@ -594,5 +594,131 @@
     ],
     "shape": "table",
     "sql": "SELECT DISTINCT v.value FROM v_document_values v LEFT JOIN v_document_links l ON l.kind = 'account' AND l.value = v.value WHERE v.kind = 'account' AND l.value IS NULL ORDER BY v.value"
+  },
+  {
+    "id": "video-plate-count",
+    "question": "How many different plates were read in the video gate.mp4?",
+    "views": [
+      "v_plate_reads"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT count(DISTINCT plate) AS n FROM v_plate_reads WHERE source = 'video' AND original_filename = 'gate.mp4'"
+  },
+  {
+    "id": "video-plate-list",
+    "question": "Which plates were read in the video gate.mp4, and between which seconds was each seen?",
+    "views": [
+      "v_plate_reads"
+    ],
+    "shape": "table",
+    "sql": "SELECT plate, sightings, first_seen_seconds, last_seen_seconds FROM v_plate_reads WHERE source = 'video' AND original_filename = 'gate.mp4' ORDER BY first_seen_seconds, plate LIMIT 200"
+  },
+  {
+    "id": "video-first-plate",
+    "question": "At what second of gate.mp4 does the first plate appear?",
+    "views": [
+      "v_plate_reads"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT min(first_seen_seconds) AS first_second FROM v_plate_reads WHERE source = 'video' AND original_filename = 'gate.mp4'"
+  },
+  {
+    "id": "video-plate-window",
+    "question": "Which plates were read between 0:10 and 0:20 of gate.mp4?",
+    "views": [
+      "v_plate_reads"
+    ],
+    "shape": "table",
+    "sql": "SELECT plate, first_seen_seconds, last_seen_seconds FROM v_plate_reads WHERE source = 'video' AND original_filename = 'gate.mp4' AND first_seen_seconds <= 20 AND last_seen_seconds >= 10 ORDER BY first_seen_seconds, plate LIMIT 200"
+  },
+  {
+    "id": "video-plate-longest",
+    "question": "Which plate stays in view the longest in gate.mp4? Give the five longest.",
+    "views": [
+      "v_plate_reads"
+    ],
+    "shape": "ranked",
+    "sql": "SELECT plate AS label, round(last_seen_seconds - first_seen_seconds, 2) AS value FROM v_plate_reads WHERE source = 'video' AND original_filename = 'gate.mp4' ORDER BY value DESC, label LIMIT 5"
+  },
+  {
+    "id": "video-most-plates",
+    "question": "Which video shows the most different plates?",
+    "views": [
+      "v_plate_reads"
+    ],
+    "shape": "ranked",
+    "sql": "SELECT original_filename AS label, count(DISTINCT plate) AS value FROM v_plate_reads WHERE source = 'video' GROUP BY original_filename ORDER BY value DESC, label LIMIT 5"
+  },
+  {
+    "id": "plate-in-several-videos",
+    "question": "Which plates were read in more than one video?",
+    "views": [
+      "v_plate_reads"
+    ],
+    "shape": "table",
+    "sql": "SELECT plate, count(DISTINCT evidence_id) AS videos FROM v_plate_reads WHERE source = 'video' GROUP BY plate HAVING count(DISTINCT evidence_id) > 1 ORDER BY videos DESC, plate LIMIT 200"
+  },
+  {
+    "id": "video-frames-with-plates",
+    "question": "On how many frames of gate.mp4 was a plate read?",
+    "views": [
+      "v_video_plate_frames"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT count(DISTINCT frame_number) AS n FROM v_video_plate_frames WHERE original_filename = 'gate.mp4'"
+  },
+  {
+    "id": "video-best-reading",
+    "question": "What is the most confident plate reading in gate.mp4, and at which second was it read?",
+    "views": [
+      "v_video_plate_frames"
+    ],
+    "shape": "table",
+    "sql": "SELECT plate, seen_at_seconds, read_confidence FROM v_video_plate_frames WHERE original_filename = 'gate.mp4' ORDER BY read_confidence DESC, seen_at_seconds LIMIT 1"
+  },
+  {
+    "id": "video-length",
+    "question": "How long is the video gate.mp4?",
+    "views": [
+      "v_video_files"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT max(duration_seconds) AS duration_seconds FROM v_video_files WHERE original_filename = 'gate.mp4'"
+  },
+  {
+    "id": "video-footage-total",
+    "question": "How many minutes of video does the case hold in total?",
+    "views": [
+      "v_video_files"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT round(sum(duration_seconds) / 60, 1) AS minutes FROM v_video_files"
+  },
+  {
+    "id": "speech-window",
+    "question": "What is said between 0:10 and 0:30 of interview.mp4?",
+    "views": [
+      "v_speech_segments"
+    ],
+    "shape": "table",
+    "sql": "SELECT start_seconds, end_seconds, text FROM v_speech_segments WHERE original_filename = 'interview.mp4' AND start_seconds < 30 AND end_seconds > 10 ORDER BY start_seconds LIMIT 200"
+  },
+  {
+    "id": "speech-word",
+    "question": "Which recordings or videos have someone say the word delivery?",
+    "views": [
+      "v_speech_segments"
+    ],
+    "shape": "table",
+    "sql": "SELECT DISTINCT original_filename FROM v_speech_segments WHERE text ILIKE '%delivery%' ORDER BY original_filename LIMIT 200"
+  },
+  {
+    "id": "ocr-word",
+    "question": "Which photos or videos show the text INVOICE?",
+    "views": [
+      "v_ocr_regions"
+    ],
+    "shape": "table",
+    "sql": "SELECT DISTINCT original_filename, source FROM v_ocr_regions WHERE text ILIKE '%INVOICE%' ORDER BY original_filename LIMIT 200"
   }
 ]

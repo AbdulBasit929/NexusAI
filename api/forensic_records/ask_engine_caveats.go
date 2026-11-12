@@ -52,6 +52,13 @@ var askViewCaveatText = map[string]string{
 	"v_rhythm_changes": "A change in the pattern of use, not an explanation: the daily count of events changed, and the records do not say why. A short series can show a change by chance; a change is listed only when |t| of Welch's test is at least 5.",
 	// where a number was: a cell visit is a coverage area (the probe "Where was X on that Tuesday at nine?" of stage 3c is answered from it)
 	"v_cell_visits": "Cell sites, not positions of a person: a cell visit says which coverage area a phone used at that time, not where its holder was.",
+	// media readings (photos, video frames, audio)
+	"v_plate_reads":          askMediaPlateCaveat,
+	"v_video_plate_frames":   askMediaPlateCaveat,
+	"v_video_files":          askMediaFileCaveat,
+	"v_speech_segments":      askMediaSpeechCaveat,
+	"v_ocr_regions":          askMediaTextCaveat,
+	"v_ocr_evidence_summary": askMediaTextCaveat,
 	// camera sightings of plates (ANPR)
 	"v_plate_sightings": askPlateCaveat,
 	"v_plate_visits":    askPlateCaveat,

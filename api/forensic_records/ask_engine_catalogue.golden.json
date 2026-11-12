@@ -1432,6 +1432,199 @@
       ]
     },
     {
+      "name": "v_ocr_evidence_summary",
+      "description": "One row per image that has OCR text: the regions joined in reading order, how many there are, mean and lowest confidence. Use it to find the images that mention a word or an identifier, or to count images with text.",
+      "columns": [
+        {
+          "name": "evidence_id",
+          "type": "uuid",
+          "description": "Identifier of the image evidence item."
+        },
+        {
+          "name": "original_filename",
+          "type": "text",
+          "description": "File name of the image as it was added."
+        },
+        {
+          "name": "regions",
+          "type": "bigint",
+          "description": "Number of text regions read on the image."
+        },
+        {
+          "name": "mean_confidence",
+          "type": "numeric",
+          "description": "Mean of the readers' confidence over the regions, 0 to 1."
+        },
+        {
+          "name": "lowest_confidence",
+          "type": "numeric",
+          "description": "The lowest confidence among the regions; a low value marks an image worth checking first."
+        },
+        {
+          "name": "text",
+          "type": "text",
+          "description": "All the regions joined in reading order, one per line, as read."
+        },
+        {
+          "name": "needs_review",
+          "type": "boolean",
+          "description": "True: a person must check the reading before it is relied on."
+        }
+      ]
+    },
+    {
+      "name": "v_ocr_regions",
+      "description": "Text the OCR role read from photos and from frames of videos, one row per region of text, as read (nothing corrected); for a video frame seen_at_seconds is the second of the video. Every row is a machine reading that a person must check (needs_review). Use text ILIKE for a word; a value read from a photo is not a fact about the case until checked.",
+      "columns": [
+        {
+          "name": "evidence_id",
+          "type": "uuid",
+          "description": "Identifier of the image evidence item."
+        },
+        {
+          "name": "original_filename",
+          "type": "text",
+          "description": "File name of the image as it was added."
+        },
+        {
+          "name": "region_no",
+          "type": "integer",
+          "description": "Reading order of the region on the image: 1 is read first."
+        },
+        {
+          "name": "source",
+          "type": "text",
+          "description": "image for a photo, video for a frame of a video."
+        },
+        {
+          "name": "seen_at_seconds",
+          "type": "numeric",
+          "description": "For a frame of a video, the second of the video the text was read at; empty for a photo."
+        },
+        {
+          "name": "text",
+          "type": "text",
+          "description": "The text of the region exactly as the model read it, in the language of the image; digits and letters are not corrected."
+        },
+        {
+          "name": "normalized_text",
+          "type": "text",
+          "description": "The same text after Unicode normalisation and whitespace clean-up; use it for matching, show text to the analyst."
+        },
+        {
+          "name": "script",
+          "type": "text",
+          "description": "latin, arabic (Urdu, Pashto, Arabic), mixed (both in one region) or undetermined when the region is only digits or symbols."
+        },
+        {
+          "name": "reader",
+          "type": "text",
+          "description": "Which reader produced the text (the name of the recogniser or of the OCR engine); readings from different readers are not equally reliable."
+        },
+        {
+          "name": "confidence",
+          "type": "numeric(7,6)",
+          "description": "The reader's own confidence from 0 to 1; a high value is not a proof that the text is right."
+        },
+        {
+          "name": "x",
+          "type": "numeric",
+          "description": "Left edge of the region in pixels of the original image."
+        },
+        {
+          "name": "y",
+          "type": "numeric",
+          "description": "Top edge of the region in pixels of the original image."
+        },
+        {
+          "name": "width",
+          "type": "numeric",
+          "description": "Width of the region in pixels of the original image."
+        },
+        {
+          "name": "height",
+          "type": "numeric",
+          "description": "Height of the region in pixels of the original image."
+        },
+        {
+          "name": "needs_review",
+          "type": "boolean",
+          "description": "True: a person must check the reading before it is relied on (always true for a machine reading)."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "description": "When the reading was stored, UTC."
+        }
+      ]
+    },
+    {
+      "name": "v_plate_reads",
+      "description": "Number plates a model read from photos (one sighting per row, source image) or from videos (one row per plate group, source video: the frames in which the same plate was read, with the first and last second it was seen and how many frames). To count the plates of a video count the rows of that video; sightings is a number of frames, not of vehicles. The frame-by-frame reads are in v_video_plate_frames. A model candidate that needs review: never an identification of a vehicle or its owner.",
+      "columns": [
+        {
+          "name": "evidence_id",
+          "type": "uuid",
+          "description": "Identifier of the image or video evidence item."
+        },
+        {
+          "name": "original_filename",
+          "type": "text",
+          "description": "File name of the image or video as it was added."
+        },
+        {
+          "name": "source",
+          "type": "text",
+          "description": "image for one sighting in a photo, video for a group of the sightings of the same plate in one video."
+        },
+        {
+          "name": "plate",
+          "type": "text",
+          "description": "The plate text after normalisation (capital letters and digits only); use it for matching."
+        },
+        {
+          "name": "plate_as_read",
+          "type": "text",
+          "description": "The plate text exactly as the reader gave it, before normalisation."
+        },
+        {
+          "name": "detection_confidence",
+          "type": "numeric",
+          "description": "How sure the detector is that the box is a plate, 0 to 1 (empty for a video group)."
+        },
+        {
+          "name": "read_confidence",
+          "type": "numeric",
+          "description": "The reader's confidence in the characters, 0 to 1; a letter-digit confusion such as O and 0 can remain at high confidence."
+        },
+        {
+          "name": "sightings",
+          "type": "bigint",
+          "description": "Number of frames in which the plate was read (1 for a photo); a number of frames, not of vehicles."
+        },
+        {
+          "name": "first_seen_seconds",
+          "type": "numeric",
+          "description": "For a video, the second the plate was first seen; empty for a photo."
+        },
+        {
+          "name": "last_seen_seconds",
+          "type": "numeric",
+          "description": "For a video, the second the plate was last seen; empty for a photo."
+        },
+        {
+          "name": "needs_review",
+          "type": "boolean",
+          "description": "True: a model candidate that a person must check (always true); never an identification of a vehicle owner."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "description": "When the reading was stored, UTC."
+        }
+      ]
+    },
+    {
       "name": "v_plate_sightings",
       "description": "Plate sightings of camera exports, one row per sighting, repeats within a file left out, times in UTC (shown on the case clock). A sighting says a camera read this plate at this time, not who drove; a camera can misread. Compare plate_norm, never plate_raw. Plates read from images or video are not here.",
       "columns": [
@@ -1651,6 +1844,62 @@
       ]
     },
     {
+      "name": "v_speech_segments",
+      "description": "Speech to text of audio and video evidence, one row per timed segment (start and end in seconds from the start of the recording). Machine transcript of unverified quality, needs_review is always true; Urdu, Punjabi and Pashto readings are less reliable than English.",
+      "columns": [
+        {
+          "name": "evidence_id",
+          "type": "uuid",
+          "description": "Identifier of the audio or video evidence item."
+        },
+        {
+          "name": "original_filename",
+          "type": "text",
+          "description": "File name of the recording as it was added."
+        },
+        {
+          "name": "start_seconds",
+          "type": "numeric",
+          "description": "Start of the segment in seconds from the start of the recording."
+        },
+        {
+          "name": "end_seconds",
+          "type": "numeric",
+          "description": "End of the segment in seconds from the start of the recording."
+        },
+        {
+          "name": "text",
+          "type": "text",
+          "description": "What the model heard in the segment, as written by the model; not a verified transcript."
+        },
+        {
+          "name": "requested_language",
+          "type": "text",
+          "description": "The language the processing was told to expect (ur, en, pa, ps) or empty when it was left to the model."
+        },
+        {
+          "name": "detected_language",
+          "type": "text",
+          "description": "The language the model reports it heard, when it was asked to detect it."
+        },
+        {
+          "name": "model",
+          "type": "text",
+          "description": "The speech model that produced the segment."
+        },
+        {
+          "name": "needs_review",
+          "type": "boolean",
+          "description": "True: a person must listen and check before the text is relied on (always true)."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "description": "When the segment was stored, UTC."
+        }
+      ]
+    },
+    {
       "name": "v_speed_alerts",
       "description": "Two consecutive events of one number at different cell sites whose distance (haversine between the sites) divided by the time between them is at least limit_kmh (set by the application from the question; 200 when it names none: never compute on it yourself); two events at different cell sites in the same second are listed with no speed. A cell site is a coverage area, so an alert may be a handover between towers, a fault or a record error: CELL SITES, NOT POSITIONS OF A PERSON.",
       "columns": [
@@ -1850,6 +2099,133 @@
           "name": "score_percent",
           "type": "integer",
           "description": "The lowest score listed, in percent, set by the application from the question (35 when it names none)."
+        }
+      ]
+    },
+    {
+      "name": "v_video_files",
+      "description": "One row per video file: its length in seconds, its size in pixels and whether it has an audio track, as the container's own header states them (empty when the container is not one the header reader knows). Use it for how long a video is and how much footage the case holds.",
+      "columns": [
+        {
+          "name": "evidence_id",
+          "type": "uuid",
+          "description": "Identifier of the video evidence item."
+        },
+        {
+          "name": "original_filename",
+          "type": "text",
+          "description": "File name of the video as it was added."
+        },
+        {
+          "name": "duration_seconds",
+          "type": "numeric",
+          "description": "Length of the video in seconds, from the container header; empty when the header could not be read."
+        },
+        {
+          "name": "width_pixels",
+          "type": "integer",
+          "description": "Width of the picture in pixels, from the container header."
+        },
+        {
+          "name": "height_pixels",
+          "type": "integer",
+          "description": "Height of the picture in pixels, from the container header."
+        },
+        {
+          "name": "has_audio",
+          "type": "boolean",
+          "description": "True when the container has an audio track, false when it has none, empty when the header could not be read."
+        },
+        {
+          "name": "size_bytes",
+          "type": "bigint",
+          "description": "Size of the file in bytes."
+        },
+        {
+          "name": "processing_status",
+          "type": "text",
+          "description": "Where the file is in processing (for example completed or failed)."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "description": "When the file was added, UTC."
+        }
+      ]
+    },
+    {
+      "name": "v_video_plate_frames",
+      "description": "Every plate a model read on one frame of a video, one row per read, with the second of the video (seen_at_seconds), the frame number, the box and the confidences. Use it for a question about one second, a count of frames read or the most confident single reading; use v_plate_reads for how many plates a video shows. A model candidate that needs review.",
+      "columns": [
+        {
+          "name": "evidence_id",
+          "type": "uuid",
+          "description": "Identifier of the video evidence item."
+        },
+        {
+          "name": "original_filename",
+          "type": "text",
+          "description": "File name of the video as it was added."
+        },
+        {
+          "name": "seen_at_seconds",
+          "type": "numeric",
+          "description": "The second of the video the frame was read at."
+        },
+        {
+          "name": "frame_number",
+          "type": "bigint",
+          "description": "The number of the frame in the video, counted from 0."
+        },
+        {
+          "name": "plate",
+          "type": "text",
+          "description": "The plate text after normalisation (capital letters and digits only); use it for matching."
+        },
+        {
+          "name": "plate_as_read",
+          "type": "text",
+          "description": "The plate text exactly as the reader gave it, before normalisation."
+        },
+        {
+          "name": "detection_confidence",
+          "type": "numeric",
+          "description": "How sure the detector is that the box is a plate, 0 to 1."
+        },
+        {
+          "name": "read_confidence",
+          "type": "numeric",
+          "description": "The reader's confidence in the characters, 0 to 1; a letter-digit confusion such as O and 0 can remain at high confidence."
+        },
+        {
+          "name": "x",
+          "type": "numeric",
+          "description": "Left edge of the plate box in pixels of the frame."
+        },
+        {
+          "name": "y",
+          "type": "numeric",
+          "description": "Top edge of the plate box in pixels of the frame."
+        },
+        {
+          "name": "width",
+          "type": "numeric",
+          "description": "Width of the plate box in pixels of the frame."
+        },
+        {
+          "name": "height",
+          "type": "numeric",
+          "description": "Height of the plate box in pixels of the frame."
+        },
+        {
+          "name": "needs_review",
+          "type": "boolean",
+          "description": "True: a model candidate that a person must check (always true)."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "description": "When the reading was stored, UTC."
         }
       ]
     },

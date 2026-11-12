@@ -362,11 +362,17 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 		// "last week" has no meaning without a reference day, and a model that is not given one invents it (measured 2026-10-14). The question is not run.
 		return decline("the question uses a relative time (" + frame.Relative + ") and no reference day is stated")
 	}
-	short := cat.Shortlist(frame.Question, askShortlistMax)
+	// The views read the typed tables only: a case that is not (fully) in them gets no answer from the engine (ask_engine_coverage.go). Read first, because the media views are offered to the
+	// shortlist only for a case that holds media readings (ask_engine_media.go).
+	coverage, err := askCoverageFor(ctx, db, req.TenantID, req.CollectionID)
+	if err != nil {
+		return decline("could not read the case's coverage of the typed tables")
+	}
+	short := cat.ShortlistWith(frame.Question, askShortlistMax, askMediaExcluded(cat, coverage, frame.Question))
 	if len(short.Views) == 0 || !short.Confident {
 		return decline("no analyst view fits the question closely enough")
 	}
-	chosen := append([]string{}, short.Views...)
+	chosen := askMediaPrune(coverage, short)
 	if frame.Hops > 3 {
 		// v_connection_edges walks up to three links: a question for more is answered by the recursive query over the contact pairs
 		chosen = askReplaceView(chosen, "v_connection_edges", "v_contact_pairs")
@@ -389,11 +395,6 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 		return finish(askClarification(req, paramIssue.Message, "No result is shown, because the question names a number the analysis cannot use as it stands. Nothing was inferred.", audit, nil))
 	}
 	frame.ParamUses = paramUses
-	// The views read the typed tables only: a case that is not (fully) in them gets no answer from the engine (ask_engine_coverage.go).
-	coverage, err := askCoverageFor(ctx, db, req.TenantID, req.CollectionID)
-	if err != nil {
-		return decline("could not read the case's coverage of the typed tables")
-	}
 	frame.Domains = askDomainsFor(coverage, chosen)
 	if gap := askCoverageGap(coverage, chosen); gap != "" {
 		return decline("the analyst views cannot speak for this case: " + gap)

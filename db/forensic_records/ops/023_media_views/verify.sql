@@ -5,7 +5,7 @@ DO $$
 DECLARE
   v text;
 BEGIN
-  FOREACH v IN ARRAY ARRAY['v_ocr_regions', 'v_ocr_evidence_summary', 'v_speech_segments', 'v_plate_reads'] LOOP
+  FOREACH v IN ARRAY ARRAY['v_ocr_regions', 'v_ocr_evidence_summary', 'v_speech_segments', 'v_plate_reads', 'v_video_plate_frames', 'v_video_files'] LOOP
     IF to_regclass('analyst.' || v) IS NULL THEN
       RAISE EXCEPTION 'analyst.% is missing (migration 023 is not applied)', v;
     END IF;

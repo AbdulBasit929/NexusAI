@@ -5,12 +5,15 @@
 -- with named, described columns lets the query be `SELECT original_filename FROM analyst.v_ocr_regions WHERE text ILIKE '%TOTAL%'`. Nothing is interpreted here: every row is one machine
 -- reading, shown as read, with its confidence and the fact that a person has to check it (needs_review).
 --
--- What is added (four views; nothing existing changes; no table is touched; no data is written):
+-- What is added (six views; nothing existing changes; no table is touched; no data is written):
 --   * analyst.v_ocr_regions            one row per text region the OCR role found in an image: the text as read, the normalised text, the script, the reader that produced it, confidence, box.
 --   * analyst.v_ocr_evidence_summary   one row per image with its regions joined in reading order, the number of regions, mean and lowest confidence.
 --   * analyst.v_speech_segments        one row per timed speech segment: start and end in seconds, text, requested and detected language, the model.
---   * analyst.v_plate_reads            one row per number plate reading: from an image (one sighting) or from a video (a group of sightings of the same plate with first and last second seen).
--- Plate readings and speech are model candidates: they are never an identification of a person or a vehicle owner, and every row says needs_review = true. A view for image fingerprints (near
+--   * analyst.v_plate_reads            one row per number plate reading: from a photo (one sighting) or from a video (one row per plate GROUP: the sightings of the same plate in that video, with the first and last second seen).
+--                                      The frame-by-frame reads of a video are NOT in this view (they would count a plate once per frame): they are in v_video_plate_frames.
+--   * analyst.v_video_plate_frames     one row per plate read on one frame of a video, with the second of the video it was read at, the frame number, the box and the confidences (the evidence under the groups).
+--   * analyst.v_video_files            one row per video: duration in seconds, size in pixels, whether it has an audio track (from the container's own header, read at upload).
+-- Plate readings, text in frames and speech are model candidates: they are never an identification of a person or a vehicle owner, and every row says needs_review = true. A view for image fingerprints (near
 -- duplicates) is NOT here: its method and threshold are decided by the track I measurement first, and faces are not here: identity claims are an owner decision (D33 and the face gate).
 --
 -- Same scope as every analyst view (tenant and collection from the transaction settings), same role (forensic_analyst_ro gets SELECT on each new view only). Additive and idempotent.
@@ -24,6 +27,8 @@ SELECT
   d.evidence_id,
   e.original_filename,
   COALESCE((d.citation_locator ->> 'reading_order')::integer, (d.metadata -> 'observation' ->> 'reading_order')::integer) AS region_no,
+  CASE WHEN e.modality = 'video' THEN 'video' ELSE 'image' END AS source,
+  (d.citation_locator ->> 'timestamp_seconds')::numeric AS seen_at_seconds,
   d.metadata -> 'observation' ->> 'raw_text' AS text,
   d.metadata -> 'observation' ->> 'normalized_text' AS normalized_text,
   CASE
@@ -98,6 +103,7 @@ FROM forensic.derived_artifacts d
 JOIN forensic.evidence_items e
   ON e.tenant_id = d.tenant_id AND e.collection_id = d.collection_id AND e.evidence_id = d.evidence_id
 WHERE d.artifact_type = 'forensics.anpr-observation/v1'
+  AND e.modality IS DISTINCT FROM 'video'
   AND d.processing_status = 'completed'
   AND d.tenant_id = current_setting('app.tenant_id', true)
   AND d.collection_id = current_setting('app.collection_id', true)
@@ -123,14 +129,59 @@ WHERE d.artifact_type = 'forensics.video-anpr-plate-group/v1'
   AND d.tenant_id = current_setting('app.tenant_id', true)
   AND d.collection_id = current_setting('app.collection_id', true);
 
+CREATE OR REPLACE VIEW analyst.v_video_plate_frames AS
+SELECT
+  d.evidence_id,
+  e.original_filename,
+  (d.citation_locator ->> 'timestamp_seconds')::numeric AS seen_at_seconds,
+  (d.citation_locator ->> 'frame_number')::bigint AS frame_number,
+  d.metadata -> 'observation' ->> 'normalized_plate_text' AS plate,
+  d.metadata -> 'observation' ->> 'raw_plate_text' AS plate_as_read,
+  (d.metadata -> 'observation' ->> 'detection_confidence')::numeric AS detection_confidence,
+  (d.metadata -> 'observation' ->> 'ocr_confidence')::numeric AS read_confidence,
+  (d.citation_locator -> 'bbox' ->> 'x')::numeric AS x,
+  (d.citation_locator -> 'bbox' ->> 'y')::numeric AS y,
+  (d.citation_locator -> 'bbox' ->> 'width')::numeric AS width,
+  (d.citation_locator -> 'bbox' ->> 'height')::numeric AS height,
+  true AS needs_review,
+  d.created_at
+FROM forensic.derived_artifacts d
+JOIN forensic.evidence_items e
+  ON e.tenant_id = d.tenant_id AND e.collection_id = d.collection_id AND e.evidence_id = d.evidence_id
+WHERE d.artifact_type = 'forensics.anpr-observation/v1'
+  AND e.modality = 'video'
+  AND d.processing_status = 'completed'
+  AND d.tenant_id = current_setting('app.tenant_id', true)
+  AND d.collection_id = current_setting('app.collection_id', true);
+
+CREATE OR REPLACE VIEW analyst.v_video_files AS
+SELECT
+  e.evidence_id,
+  e.original_filename,
+  round(((jsonb_path_query_first(e.media_metadata, '$.tracks[*] ? (@.handler_type == "vide")') ->> 'duration_ms')::numeric) / 1000, 2) AS duration_seconds,
+  (jsonb_path_query_first(e.media_metadata, '$.tracks[*] ? (@.handler_type == "vide")') ->> 'width_pixels')::integer AS width_pixels,
+  (jsonb_path_query_first(e.media_metadata, '$.tracks[*] ? (@.handler_type == "vide")') ->> 'height_pixels')::integer AS height_pixels,
+  CASE WHEN jsonb_typeof(e.media_metadata -> 'tracks') = 'array' THEN jsonb_path_exists(e.media_metadata, '$.tracks[*] ? (@.handler_type == "soun")') ELSE NULL END AS has_audio,
+  e.size_bytes,
+  e.processing_status,
+  e.created_at
+FROM forensic.evidence_items e
+WHERE e.modality = 'video'
+  AND e.tenant_id = current_setting('app.tenant_id', true)
+  AND e.collection_id = current_setting('app.collection_id', true);
+
 COMMENT ON VIEW analyst.v_ocr_regions IS
-  'Text the OCR role read from images, one row per region of text, as read (nothing corrected). Every row is a machine reading that a person must check (needs_review). Use text ILIKE for a word; a value read from a photo is not a fact about the case until checked.';
+  'Text the OCR role read from photos and from frames of videos, one row per region of text, as read (nothing corrected); for a video frame seen_at_seconds is the second of the video. Every row is a machine reading that a person must check (needs_review). Use text ILIKE for a word; a value read from a photo is not a fact about the case until checked.';
 COMMENT ON VIEW analyst.v_ocr_evidence_summary IS
   'One row per image that has OCR text: the regions joined in reading order, how many there are, mean and lowest confidence. Use it to find the images that mention a word or an identifier, or to count images with text.';
 COMMENT ON VIEW analyst.v_speech_segments IS
   'Speech to text of audio and video evidence, one row per timed segment (start and end in seconds from the start of the recording). Machine transcript of unverified quality, needs_review is always true; Urdu, Punjabi and Pashto readings are less reliable than English.';
 COMMENT ON VIEW analyst.v_plate_reads IS
-  'Number plates a model read from images (one sighting per row) or from video (one row per plate group with first and last second seen). A model candidate that needs review: never an identification of a vehicle or its owner.';
+  'Number plates a model read from photos (one sighting per row, source image) or from videos (one row per plate group, source video: the frames in which the same plate was read, with the first and last second it was seen and how many frames). To count the plates of a video count the rows of that video; sightings is a number of frames, not of vehicles. The frame-by-frame reads are in v_video_plate_frames. A model candidate that needs review: never an identification of a vehicle or its owner.';
+COMMENT ON VIEW analyst.v_video_plate_frames IS
+  'Every plate a model read on one frame of a video, one row per read, with the second of the video (seen_at_seconds), the frame number, the box and the confidences. Use it for a question about one second, a count of frames read or the most confident single reading; use v_plate_reads for how many plates a video shows. A model candidate that needs review.';
+COMMENT ON VIEW analyst.v_video_files IS
+  'One row per video file: its length in seconds, its size in pixels and whether it has an audio track, as the container''s own header states them (empty when the container is not one the header reader knows). Use it for how long a video is and how much footage the case holds.';
 
 DO $$
 DECLARE
@@ -141,6 +192,8 @@ BEGIN
       ('v_ocr_regions', 'evidence_id', 'Identifier of the image evidence item.'),
       ('v_ocr_regions', 'original_filename', 'File name of the image as it was added.'),
       ('v_ocr_regions', 'region_no', 'Reading order of the region on the image: 1 is read first.'),
+      ('v_ocr_regions', 'source', 'image for a photo, video for a frame of a video.'),
+      ('v_ocr_regions', 'seen_at_seconds', 'For a frame of a video, the second of the video the text was read at; empty for a photo.'),
       ('v_ocr_regions', 'text', 'The text of the region exactly as the model read it, in the language of the image; digits and letters are not corrected.'),
       ('v_ocr_regions', 'normalized_text', 'The same text after Unicode normalisation and whitespace clean-up; use it for matching, show text to the analyst.'),
       ('v_ocr_regions', 'script', 'latin, arabic (Urdu, Pashto, Arabic), mixed (both in one region) or undetermined when the region is only digits or symbols.'),
@@ -171,15 +224,38 @@ BEGIN
       ('v_speech_segments', 'created_at', 'When the segment was stored, UTC.'),
       ('v_plate_reads', 'evidence_id', 'Identifier of the image or video evidence item.'),
       ('v_plate_reads', 'original_filename', 'File name of the image or video as it was added.'),
-      ('v_plate_reads', 'source', 'image for one sighting in a photo, video for a group of sightings of the same plate in a video.'),
+      ('v_plate_reads', 'source', 'image for one sighting in a photo, video for a group of the sightings of the same plate in one video.'),
       ('v_plate_reads', 'plate', 'The plate text after normalisation (capital letters and digits only); use it for matching.'),
       ('v_plate_reads', 'plate_as_read', 'The plate text exactly as the reader gave it, before normalisation.'),
       ('v_plate_reads', 'detection_confidence', 'How sure the detector is that the box is a plate, 0 to 1 (empty for a video group).'),
       ('v_plate_reads', 'read_confidence', 'The reader''s confidence in the characters, 0 to 1; a letter-digit confusion such as O and 0 can remain at high confidence.'),
-      ('v_plate_reads', 'sightings', 'Number of frames or images in which the plate was seen (1 for a photo).'),
+      ('v_plate_reads', 'sightings', 'Number of frames in which the plate was read (1 for a photo); a number of frames, not of vehicles.'),
       ('v_plate_reads', 'first_seen_seconds', 'For a video, the second the plate was first seen; empty for a photo.'),
       ('v_plate_reads', 'last_seen_seconds', 'For a video, the second the plate was last seen; empty for a photo.'),
       ('v_plate_reads', 'needs_review', 'True: a model candidate that a person must check (always true); never an identification of a vehicle owner.'),
+      ('v_video_plate_frames', 'evidence_id', 'Identifier of the video evidence item.'),
+      ('v_video_plate_frames', 'original_filename', 'File name of the video as it was added.'),
+      ('v_video_plate_frames', 'seen_at_seconds', 'The second of the video the frame was read at.'),
+      ('v_video_plate_frames', 'frame_number', 'The number of the frame in the video, counted from 0.'),
+      ('v_video_plate_frames', 'plate', 'The plate text after normalisation (capital letters and digits only); use it for matching.'),
+      ('v_video_plate_frames', 'plate_as_read', 'The plate text exactly as the reader gave it, before normalisation.'),
+      ('v_video_plate_frames', 'detection_confidence', 'How sure the detector is that the box is a plate, 0 to 1.'),
+      ('v_video_plate_frames', 'read_confidence', 'The reader''s confidence in the characters, 0 to 1; a letter-digit confusion such as O and 0 can remain at high confidence.'),
+      ('v_video_plate_frames', 'x', 'Left edge of the plate box in pixels of the frame.'),
+      ('v_video_plate_frames', 'y', 'Top edge of the plate box in pixels of the frame.'),
+      ('v_video_plate_frames', 'width', 'Width of the plate box in pixels of the frame.'),
+      ('v_video_plate_frames', 'height', 'Height of the plate box in pixels of the frame.'),
+      ('v_video_plate_frames', 'needs_review', 'True: a model candidate that a person must check (always true).'),
+      ('v_video_plate_frames', 'created_at', 'When the reading was stored, UTC.'),
+      ('v_video_files', 'evidence_id', 'Identifier of the video evidence item.'),
+      ('v_video_files', 'original_filename', 'File name of the video as it was added.'),
+      ('v_video_files', 'duration_seconds', 'Length of the video in seconds, from the container header; empty when the header could not be read.'),
+      ('v_video_files', 'width_pixels', 'Width of the picture in pixels, from the container header.'),
+      ('v_video_files', 'height_pixels', 'Height of the picture in pixels, from the container header.'),
+      ('v_video_files', 'has_audio', 'True when the container has an audio track, false when it has none, empty when the header could not be read.'),
+      ('v_video_files', 'size_bytes', 'Size of the file in bytes.'),
+      ('v_video_files', 'processing_status', 'Where the file is in processing (for example completed or failed).'),
+      ('v_video_files', 'created_at', 'When the file was added, UTC.'),
       ('v_plate_reads', 'created_at', 'When the reading was stored, UTC.')
     ) AS t(view_name, column_name, description)
   LOOP
@@ -189,6 +265,6 @@ END
 $$;
 
 -- The role reads the new views and nothing else: SELECT is granted view by view; no other privilege on them.
-REVOKE ALL ON analyst.v_ocr_regions, analyst.v_ocr_evidence_summary, analyst.v_speech_segments, analyst.v_plate_reads FROM PUBLIC;
-GRANT SELECT ON analyst.v_ocr_regions, analyst.v_ocr_evidence_summary, analyst.v_speech_segments, analyst.v_plate_reads TO forensic_analyst_ro;
+REVOKE ALL ON analyst.v_ocr_regions, analyst.v_ocr_evidence_summary, analyst.v_speech_segments, analyst.v_plate_reads, analyst.v_video_plate_frames, analyst.v_video_files FROM PUBLIC;
+GRANT SELECT ON analyst.v_ocr_regions, analyst.v_ocr_evidence_summary, analyst.v_speech_segments, analyst.v_plate_reads, analyst.v_video_plate_frames, analyst.v_video_files TO forensic_analyst_ro;
 COMMIT;

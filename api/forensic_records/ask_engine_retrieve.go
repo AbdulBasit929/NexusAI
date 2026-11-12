@@ -149,6 +149,16 @@ var askLexicon = map[string][]string{
 	// cannot speak for makes the coverage guard decline the whole question, so the generic words of ordinary questions stay out
 	// (no lexicon words for the document views: "which numbers no registration file mentions" is not about documents and the case 121 run declined it for views the case could not speak for;
 	// a question about documents is recognised by the word document with a key, a kind of key, an area or a verb of naming, in askApplyFeatures)
+	// media readings (migration 023; offered only for a case that holds them, see askMediaExcluded). The words of a video, of its frames, of speech and of text in a picture. Not here: "second"
+	// (second most) and "seen" (who was seen with a phone).
+	// One form of each word: a word and its plural are one stem and would count twice. A case that holds typed records as well is offered these views only for a question that says
+	// footage, photo, video or the like (askMediaExcluded), so words such as "frame" and "text" do not send a call question here.
+	"v_plate_reads":        {"plate", "licence", "license", "vehicle", "car"},
+	"v_video_plate_frames": {"plate", "frame", "footage", "clearest", "sharpest", "confident", "confidence"},
+	"v_video_files":        {"video!", "clip!", "footage!", "mp4!", "mov!", "duration", "resolution", "pixel", "length"},
+	"v_speech_segments":    {"speech!", "said!", "spoke!", "spoken!", "speak", "transcript!", "transcription!", "voice!", "heard!", "hear", "audio", "recording"},
+	"v_ocr_regions":        {"ocr!", "visible!", "text", "signboard", "billboard", "caption", "banner", "poster", "printed", "lettering", "sign"},
+	"v_ocr_evidence_summary": {"ocr!", "signboard", "billboard", "caption", "banner", "poster"},
 	"v_app_usage": {"app", "application", "whatsapp", "facebook", "tiktok", "youtube", "social", "usage", "feature", "province", "city", "networking",
 		"lahore", "karachi", "peshawar", "quetta", "islamabad"},
 }
@@ -195,6 +205,15 @@ func askViewTokens(v *askView) map[string]bool {
 // in the view's own description and columns (inverse-frequency weighted, at most 1.5 each), and the kinds of identifier in the question (an address
 // points at internet sessions, a 15-digit number at devices, two phone numbers with a linking word at contact pairs).
 func (c *askCatalogue) Shortlist(question string, max int) askShortlist {
+	return c.ShortlistWith(question, max, askMediaViewSet)
+}
+
+// ShortlistWith is Shortlist over the catalogue without the named views. Shortlist leaves out every media view, which is what it meant before they existed; the engine leaves out only
+// the ones the case cannot speak for (askMediaExcluded), so a case with media readings can be asked about them.
+func (c *askCatalogue) ShortlistWith(question string, max int, exclude map[string]bool) askShortlist {
+	if len(exclude) > 0 {
+		c = c.without(exclude)
+	}
 	if max <= 0 {
 		max = askShortlistMax
 	}
