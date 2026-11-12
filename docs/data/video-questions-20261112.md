@@ -110,3 +110,36 @@ frames in the whole case 0 of 1, longest video 0 of 1, speech which 0 of 1 (luck
 AVG or SUM satisfies the count obligation); the vocabulary of the video view gains runtime and running; the inventory is not offered next to the video view; the text-search check passes over numbers and comparison words
 (than, over, under, longer, shorter); migration 036 (descriptions only) says that the video view lists every video, that the audio flag is not speech and that a frame can hold several reads. The proof is a third fresh set,
 set 3 (a fourth wording, new kinds of question), run once; after it the video questions are closed whatever it shows and the remaining misses are listed.
+
+## Set 3 (stopped early, no gate verdict) and closure of the video questions (2026-11-12)
+
+**Set 3** (51 questions, a fourth wording, new kinds of question; image `video-round4-20261112`, migrations 035 and 036 applied) was **stopped by decision after 13 questions**: 10 correct, 2 declined, 1 wrong, median 33 s.
+The owner decided to close the video questions and move on; the remaining 38 questions would not have changed that, and the run held the CPU that the upload and processing of the real clips in the Orion case needed.
+It is therefore reported as a partial run: it gives **no gate verdict** and is not counted as a pass or a miss. The 13 answers are recorded, including the three that were not right:
+1. *Length, 2 abstained* ("How many seconds long is X?"): the count obligation of the frame fires on "how many" and the model's right answer is a plain read of a column, not an aggregate. Round 4 fixed "how many seconds into X" (a MIN) but not this form.
+2. *Frames with a plate, 1 wrong* ("In X, how many frames contain a readable plate?"): the model added `read_confidence >= 0.5` for "readable" and answered 47 where the frames that had a plate number 29. A word of the question was turned into a filter nobody asked for.
+
+**The three runs side by side (each run once, gates fixed before the first):**
+
+| | correct (gate 85) | wrong (gate 5) | declined (gate 15) | median (gate 60 s) |
+|---|---|---|---|---|
+| sealed run, 36 questions, round 2 | 69.4 percent | 13.9 percent | 16.7 percent | 24 s |
+| set 2, 55 questions, round 3 | 74.5 percent | **3.6 percent (met)** | 20.0 percent | 22 s (met) |
+| set 3, 13 of 51 asked, round 4 | 10 of 13 | 1 of 13 | 2 of 13 | 33 s |
+
+**Closure statement.** The gates for correct and for declined were not met on any of the runs that gave a verdict; the gate for wrong answers was met once (set 2) and the time gate every time. What can be said: after round 3 the engine
+answers about three in four free-form questions about videos correctly, almost never gives a wrong answer, and declines or abstains on most of the rest; a decline is stated as one (it never invents). What is known to remain:
+1. The incoming/outgoing and the "how many" checks of the frame were written for calls and transactions and still apply to the media views by word cues ("made", "how many seconds long"); each fresh wording finds one more. The fix of
+   the class is to apply those checks only to the views they were built for, not to chase wordings (not done: the video questions are closed).
+2. A word of the question can become a filter ("readable" became a confidence threshold).
+3. Questions that name the video by a description ("the overpass clip") and not by its file name are not mapped to a file.
+4. Behind an answer, the videos themselves are not yet opened at the cited second from an engine answer (built in the phase that follows: docs below).
+5. The plate readings are the readers' own (O and 0, 8 and B): plates are matched exactly; the typed-plate search lists a similar reading separately.
+
+**What is live (2026-11-12):** analyst views of migration 023 (reworked), 035 and 036 (descriptions), applied to the live database (backups of the analyst schema before 023, 035 and 036 in `C:/tmp/video-plates/`, never committed);
+API image `video-round4-20261112` (rollback chain: `video-round3-20261112`, `video-round2-20261112`, `text-guards-20261112`, `media-views-20261112`, `plate-similar-20261112`); text-intent Amendment 7 (server guards, instruction unchanged).
+Commits `e958399`, `88a61e4`, `32b2943`, `efdadae`, `06b3304` and this one.
+
+**The real clips in the Orion Lahore case.** The five real clips (three HD, two 4K; the owner's own `sample.mp4` among them) were uploaded to the reference case `orion-lahore-reference-20261030` (one through the workspace's own upload on :4182,
+four through the upload route), under the names `street-junction-hd`, `highway-overpass-hd`, `street-night-hd`, `highway-4k` and `traffic-control-cctv-4k`. Orion's file counts change (the verified bank's questions about the number
+of files or of videos follow the database: their keys are SQL on the database, not numbers written down).
