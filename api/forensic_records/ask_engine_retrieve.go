@@ -216,7 +216,8 @@ func (c *askCatalogue) ShortlistWith(question string, max int, exclude map[strin
 	}
 	if c.View("v_video_files") != nil || c.View("v_plate_reads") != nil || c.View("v_speech_segments") != nil {
 		// the media views are candidates: the kind of a named media file is a word of the question (askMediaFileWords)
-		question += " " + askMediaFileWords(question)
+		kind := askMediaFileWords(question)
+		question = askWithoutMediaFileNames(question) + " " + kind
 	}
 	if max <= 0 {
 		max = askShortlistMax

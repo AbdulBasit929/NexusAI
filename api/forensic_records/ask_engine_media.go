@@ -93,6 +93,15 @@ func askAnyMedia(c askCoverage) bool {
 // rows. The count obligation of the frame accepts such a query (measured 2026-11-12: "how many seconds into the video does the first plate show up" was abstained three times for want of a COUNT).
 var askHowManyUnit = regexp.MustCompile(`\bhow (?:many|much)\s+(?:seconds?|minutes?|hours?|days?|weeks?|months?|years?)\b`)
 
+// askMediaFileNameRE is the file name of a video, a recording or a picture inside a question.
+var askMediaFileNameRE = regexp.MustCompile(`(?i)\S+\.(?:mp4|mov|avi|mkv|webm|m4v|wmv|flv|3gp|mp3|wav|m4a|aac|ogg|flac|amr|opus|jpe?g|png|gif|bmp|tiff?|heic|webp)\b`)
+
+// askWithoutMediaFileNames is the question with the file names of media taken out: a file name is an identifier, not words ("night" in street-night-hd.mp4 is not a time of day, and "owner" in
+// owner-sample.mp4 is not a question about an owner: measured 2026-11-12 on the Orion case, where the engine added an hour filter and answered "0 plates"). The names stay in the question the model reads.
+func askWithoutMediaFileNames(question string) string {
+	return askMediaFileNameRE.ReplaceAllString(question, " ")
+}
+
 // askMediaFileWords are the words that a media file name says about the kind of source: a question that names clip.mp4 is about a video, one that names note.m4a about a recording, one that names
 // scene.jpg about a photo. ONE word is added to the question for the shortlist, so that "how long is clip.mp4" finds the view of videos (the file name is one token and says nothing else). One and not
 // several: two strong words of the video view (video, clip) outweighed "plates" and took the plate views out of the shortlist of "how many plates were read in clip.mp4" (caught by the media specs).

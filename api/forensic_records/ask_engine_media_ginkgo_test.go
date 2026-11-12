@@ -183,6 +183,16 @@ var _ = Describe("Ask engine media views (migration 023)", func() {
 		Expect(askMediaPrune(askCoverage{}, short)).To(Equal([]string{"v_video_files", "v_evidence_inventory"}))
 	})
 
+	It("does not read the words of a media file name as words of the question", func() {
+		Expect(askWithoutMediaFileNames("How many plates were read in street-night-hd.mp4?")).NotTo(ContainSubstring("night"))
+		Expect(askExtractFrame("How many different number plates were read in street-night-hd.mp4?").Cues["night"]).To(BeFalse())
+		Expect(askExtractFrame("Who called 923001110001 at night?").Cues["night"]).To(BeTrue(), "the word night in a question is still a time of day")
+		Expect(askExtractFrame("Which hosts did 923001110001 reach, such as night.example.com?").Cues["night"]).To(BeTrue(), "only the file names of media are held back, not a host name")
+		short := cat.ShortlistWith("Which plates were read between 0:20 and 0:35 of street-night-hd.mp4?", 0, askMediaExcluded(cat, mixed, "Which plates were read between 0:20 and 0:35 of street-night-hd.mp4?"))
+		Expect(short.Views).To(ContainElement("v_plate_reads"))
+		Expect(short.Views).NotTo(ContainElement("v_comm_events"))
+	})
+
 	It("carries a caveat for every media view, and declares each media view untraceable with its reason", func() {
 		for _, view := range askMediaViews {
 			Expect(askViewCaveatText[view]).NotTo(BeEmpty(), view)

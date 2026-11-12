@@ -204,6 +204,8 @@ func askExtractFrameWith(question string, plates bool) askFrame {
 		held = append(held, canonical)
 		return fmt.Sprintf(" \x00%d\x00 ", len(held)-1)
 	}
+	// the file name of a video, a recording or a picture is an identifier of the question, not words (askWithoutMediaFileNames)
+	text = askMediaFileNameRE.ReplaceAllStringFunc(text, func(s string) string { return hold(s) })
 	text = askFrameNID.ReplaceAllStringFunc(text, func(s string) string { f.NationalIDs = append(f.NationalIDs, s); return hold(s) })
 	text = askFrameNIDRun.ReplaceAllStringFunc(text, func(s string) string {
 		digits := askFrameNIDRun.FindStringSubmatch(s)[1]
