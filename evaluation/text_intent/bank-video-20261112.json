@@ -1,0 +1,353 @@
+{
+ "built": "2026-11-12",
+ "seed": 20261112,
+ "preregistration": "Amendment 7 (development bank, not a gate)",
+ "positives": [
+  {
+   "id": "TI-V-P-001",
+   "question": "Look through the footage for NHW-652; start with IMG_2031.jpg.",
+   "plate": "NHW-652"
+  },
+  {
+   "id": "TI-V-P-002",
+   "question": "Which pictures show KCT1953, apart from IMG_2031.jpg?",
+   "plate": "KCT1953"
+  },
+  {
+   "id": "TI-V-P-003",
+   "question": "Which pictures show BB42-8159, apart from clip-7.mp4?",
+   "plate": "BB42-8159"
+  },
+  {
+   "id": "TI-V-P-004",
+   "question": "Which photos show ZXE-883?",
+   "plate": "ZXE-883"
+  },
+  {
+   "id": "TI-V-P-005",
+   "question": "Show me the video footage with the plate DUC-723.",
+   "plate": "DUC-723"
+  },
+  {
+   "id": "TI-V-P-006",
+   "question": "Which photos show YE 526?",
+   "plate": "YE 526"
+  },
+  {
+   "id": "TI-V-P-007",
+   "question": "Which photos show CL 897?",
+   "plate": "CL 897"
+  },
+  {
+   "id": "TI-V-P-008",
+   "question": "Is SK58-9748 visible in any of the videos?",
+   "plate": "SK58-9748"
+  },
+  {
+   "id": "TI-V-P-009",
+   "question": "Find the plate LEA 5495 in the recordings highway-4k.mp4.",
+   "plate": "LEA 5495"
+  },
+  {
+   "id": "TI-V-P-010",
+   "question": "Look through the footage for JF05-3169; start with IMG_2031.jpg.",
+   "plate": "JF05-3169"
+  },
+  {
+   "id": "TI-V-P-011",
+   "question": "Look through the footage for LEA 2270; start with clip-7.mp4.",
+   "plate": "LEA 2270"
+  },
+  {
+   "id": "TI-V-P-012",
+   "question": "Is AXY-788 visible in any of the videos?",
+   "plate": "AXY-788"
+  },
+  {
+   "id": "TI-V-P-013",
+   "question": "Does the plate MT31-5349 appear in front-gate.jpg?",
+   "plate": "MT31-5349"
+  },
+  {
+   "id": "TI-V-P-014",
+   "question": "Does the plate NXW-728 appear in IMG_2031.jpg?",
+   "plate": "NXW-728"
+  },
+  {
+   "id": "TI-V-P-015",
+   "question": "Is JBZ-064 visible in any of the videos?",
+   "plate": "JBZ-064"
+  },
+  {
+   "id": "TI-V-P-016",
+   "question": "Which photos show YB 356?",
+   "plate": "YB 356"
+  },
+  {
+   "id": "TI-V-P-017",
+   "question": "Which photos show GAE9624?",
+   "plate": "GAE9624"
+  },
+  {
+   "id": "TI-V-P-018",
+   "question": "Does the plate SRX-226 appear in clip-7.mp4?",
+   "plate": "SRX-226"
+  },
+  {
+   "id": "TI-V-P-019",
+   "question": "Which photos show CU36-7906?",
+   "plate": "CU36-7906"
+  },
+  {
+   "id": "TI-V-P-020",
+   "question": "Does the plate HXS-650 appear in highway-4k.mp4?",
+   "plate": "HXS-650"
+  },
+  {
+   "id": "TI-V-P-021",
+   "question": "Does the plate HSM4030 appear in clip-7.mp4?",
+   "plate": "HSM4030"
+  },
+  {
+   "id": "TI-V-P-022",
+   "question": "Does the plate JU 866 appear in gate-cam.mp4?",
+   "plate": "JU 866"
+  },
+  {
+   "id": "TI-V-P-023",
+   "question": "Which pictures show LEA 5595, apart from highway-4k.mp4?",
+   "plate": "LEA 5595"
+  },
+  {
+   "id": "TI-V-P-024",
+   "question": "Which photos show DRN8804?",
+   "plate": "DRN8804"
+  }
+ ],
+ "negatives": [
+  {
+   "id": "TI-V-N-001",
+   "question": "How many different number plates were read in owner-sample-4k.mp4?"
+  },
+  {
+   "id": "TI-V-N-002",
+   "question": "At what second of owner-sample-4k.mp4 does the first plate appear?"
+  },
+  {
+   "id": "TI-V-N-003",
+   "question": "Which plates were read between 0:10 and 0:20 of owner-sample-4k.mp4?"
+  },
+  {
+   "id": "TI-V-N-004",
+   "question": "Which plate stays in view the longest in owner-sample-4k.mp4?"
+  },
+  {
+   "id": "TI-V-N-005",
+   "question": "On how many frames of owner-sample-4k.mp4 was a plate read?"
+  },
+  {
+   "id": "TI-V-N-006",
+   "question": "How long is the video owner-sample-4k.mp4?"
+  },
+  {
+   "id": "TI-V-N-007",
+   "question": "How many different number plates were read in pexels-5293898-hd.mp4?"
+  },
+  {
+   "id": "TI-V-N-008",
+   "question": "At what second of pexels-5293898-hd.mp4 does the first plate appear?"
+  },
+  {
+   "id": "TI-V-N-009",
+   "question": "Which plate stays in view the longest in pexels-5293898-hd.mp4?"
+  },
+  {
+   "id": "TI-V-N-010",
+   "question": "On how many frames of pexels-5293898-hd.mp4 was a plate read?"
+  },
+  {
+   "id": "TI-V-N-011",
+   "question": "How long is the video pexels-5293898-hd.mp4?"
+  },
+  {
+   "id": "TI-V-N-012",
+   "question": "How many different number plates were read in pexels-6571483-hd.mp4?"
+  },
+  {
+   "id": "TI-V-N-013",
+   "question": "At what second of pexels-6571483-hd.mp4 does the first plate appear?"
+  },
+  {
+   "id": "TI-V-N-014",
+   "question": "Which plate stays in view the longest in pexels-6571483-hd.mp4?"
+  },
+  {
+   "id": "TI-V-N-015",
+   "question": "On how many frames of pexels-6571483-hd.mp4 was a plate read?"
+  },
+  {
+   "id": "TI-V-N-016",
+   "question": "How long is the video pexels-6571483-hd.mp4?"
+  },
+  {
+   "id": "TI-V-N-017",
+   "question": "How many different number plates were read in pexels-6719160-hd.mp4?"
+  },
+  {
+   "id": "TI-V-N-018",
+   "question": "At what second of pexels-6719160-hd.mp4 does the first plate appear?"
+  },
+  {
+   "id": "TI-V-N-019",
+   "question": "Which plates were read between 0:10 and 0:20 of pexels-6719160-hd.mp4?"
+  },
+  {
+   "id": "TI-V-N-020",
+   "question": "Which plate stays in view the longest in pexels-6719160-hd.mp4?"
+  },
+  {
+   "id": "TI-V-N-021",
+   "question": "On how many frames of pexels-6719160-hd.mp4 was a plate read?"
+  },
+  {
+   "id": "TI-V-N-022",
+   "question": "How long is the video pexels-6719160-hd.mp4?"
+  },
+  {
+   "id": "TI-V-N-023",
+   "question": "How many different number plates were read in roboflow-vehicles-4k.mp4?"
+  },
+  {
+   "id": "TI-V-N-024",
+   "question": "At what second of roboflow-vehicles-4k.mp4 does the first plate appear?"
+  },
+  {
+   "id": "TI-V-N-025",
+   "question": "Which plates were read between 0:10 and 0:20 of roboflow-vehicles-4k.mp4?"
+  },
+  {
+   "id": "TI-V-N-026",
+   "question": "Which plate stays in view the longest in roboflow-vehicles-4k.mp4?"
+  },
+  {
+   "id": "TI-V-N-027",
+   "question": "On how many frames of roboflow-vehicles-4k.mp4 was a plate read?"
+  },
+  {
+   "id": "TI-V-N-028",
+   "question": "How long is the video roboflow-vehicles-4k.mp4?"
+  },
+  {
+   "id": "TI-V-N-029",
+   "question": "Which video shows the most different plates?"
+  },
+  {
+   "id": "TI-V-N-030",
+   "question": "Which plates were read in more than one video?"
+  },
+  {
+   "id": "TI-V-N-031",
+   "question": "How many minutes of video does the case hold in total?"
+  },
+  {
+   "id": "TI-V-N-032",
+   "question": "How many of the videos have an audio track?"
+  },
+  {
+   "id": "TI-V-N-033",
+   "question": "Which video is the longest?"
+  },
+  {
+   "id": "TI-V-N-034",
+   "question": "How many different plates were read across all the videos?"
+  },
+  {
+   "id": "TI-V-N-035",
+   "question": "Which videos have speech in them?"
+  },
+  {
+   "id": "TI-V-N-036",
+   "question": "Which video has the most text visible in it?"
+  },
+  {
+   "id": "TI-V-N-037",
+   "question": "How many seconds of footage does gate-cam.mp4 hold?"
+  },
+  {
+   "id": "TI-V-N-038",
+   "question": "On which frames of gate-cam.mp4 does a plate appear?"
+  },
+  {
+   "id": "TI-V-N-039",
+   "question": "How many frames in night-1.mp4 contain a number plate?"
+  },
+  {
+   "id": "TI-V-N-040",
+   "question": "What plates were read in clip-7.mp4 and at which second?"
+  },
+  {
+   "id": "TI-V-N-041",
+   "question": "List every plate read in night-1.mp4 with the time it was first read."
+  },
+  {
+   "id": "TI-V-N-042",
+   "question": "Which of the clips has the most plates in it?"
+  },
+  {
+   "id": "TI-V-N-043",
+   "question": "Is there any plate that appears in both gate-cam.mp4 and night-1.mp4?"
+  },
+  {
+   "id": "TI-V-N-044",
+   "question": "What is the longest video we have?"
+  },
+  {
+   "id": "TI-V-N-045",
+   "question": "How many videos are there with sound?"
+  },
+  {
+   "id": "TI-V-N-046",
+   "question": "At which second of clip-7.mp4 is the clearest plate reading?"
+  },
+  {
+   "id": "TI-V-N-047",
+   "question": "Show me the readings from the second half of gate-cam.mp4."
+  },
+  {
+   "id": "TI-V-N-048",
+   "question": "How many different vehicles' plates were picked up in the last video?"
+  },
+  {
+   "id": "TI-V-N-049",
+   "question": "What was said in the first ten seconds of interview-3.mp4?"
+  },
+  {
+   "id": "TI-V-N-050",
+   "question": "How many minutes of recordings are in the case?"
+  },
+  {
+   "id": "TI-V-N-051",
+   "question": "Which video has the most readable writing on screen?"
+  },
+  {
+   "id": "TI-V-N-052",
+   "question": "How many plates does highway-4k.mp4 show and for how long is each in view?"
+  },
+  {
+   "id": "TI-V-N-053",
+   "question": "Give the length of every video in the case."
+  },
+  {
+   "id": "TI-V-N-054",
+   "question": "Was any plate read with low confidence in clip-7.mp4?"
+  },
+  {
+   "id": "TI-V-N-055",
+   "question": "Between which seconds is the first plate visible in night-1.mp4?"
+  },
+  {
+   "id": "TI-V-N-056",
+   "question": "How many readings were taken from night-1.mp4 altogether?"
+  }
+ ]
+}

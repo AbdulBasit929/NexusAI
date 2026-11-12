@@ -293,6 +293,12 @@ func textIntentValidate(query string, result textIntentResult) (*forensictext.Qu
 	} else if !tiStandsAlone(haystack, strings.ToLower(literal)) {
 		return nil, "", "LITERAL_NOT_IN_QUESTION"
 	}
+	if tiInsideFileName(haystack, strings.ToLower(literal), true) {
+		return nil, "", "LITERAL_IN_FILE_NAME"
+	}
+	if tiOnlyRequestWords(literal, false) {
+		return nil, "", "LITERAL_DESCRIBES_THE_REQUEST"
+	}
 	endMarks := func(r rune) bool { return unicode.IsSpace(r) || strings.ContainsRune("?.!\u061f\u06d4", r) }
 	if strings.TrimRightFunc(strings.ToLower(literal), endMarks) == strings.TrimRightFunc(haystack, endMarks) {
 		return nil, "", "LITERAL_IS_WHOLE_MESSAGE"
@@ -306,6 +312,76 @@ func textIntentValidate(query string, result textIntentResult) (*forensictext.Qu
 		return nil, "", err.Error()
 	}
 	return text, result.Family, ""
+}
+
+// tiFileNameToken is a word of a message that is a file name: no space in it, and a dot followed by two to five letters or digits that start with a letter (clip-12.mp4, report.pdf).
+var tiFileNameToken = regexp.MustCompile(`^[^\s]+\.[a-z][a-z0-9]{1,4}$`)
+
+// tiMediaFileName is a file name of a video, a recording or a picture: such a name says which file a question is about and is not words to find in the text of the case.
+var tiMediaFileName = regexp.MustCompile(`\.(?:mp4|mov|avi|mkv|webm|m4v|wmv|flv|3gp|mp3|wav|m4a|aac|ogg|flac|amr|opus|jpe?g|png|gif|bmp|tiff?|heic|webp)$`)
+
+// tiNamesMediaFile reports that a word of the message is the file name of a video, a recording or a picture.
+func tiNamesMediaFile(message string) bool {
+	for _, field := range strings.Fields(strings.ToLower(message)) {
+		token := strings.TrimRight(strings.Trim(field, "?!,;:()[]{}\"'"), ".")
+		if tiFileNameToken.MatchString(token) && tiMediaFileName.MatchString(token) {
+			return true
+		}
+	}
+	return false
+}
+
+// tiRequestWords are the words that say what kind of source a question is about, or what is asked of it, and so are never the words to find: the instruction already tells the model to leave them
+// out, and a 4B model that is asked how long a video is, or which one has speech in it, proposes "longest", "speech" or "clip" as the literal. A literal made only of these words is refused (the
+// question then takes the path it would have taken without this step). The set is closed and small, it holds no question and no plate, and a literal with any other word in it is not touched.
+var tiRequestWords = map[string]bool{
+	"video": true, "videos": true, "clip": true, "clips": true, "footage": true, "recording": true, "recordings": true, "audio": true, "speech": true, "voice": true, "sound": true,
+	"photo": true, "photos": true, "photograph": true, "photographs": true, "image": true, "images": true, "picture": true, "pictures": true, "screenshot": true, "screenshots": true,
+	"frame": true, "frames": true, "file": true, "files": true, "plate": true, "plates": true, "text": true,
+	"longest": true, "shortest": true, "most": true, "least": true, "first": true, "last": true, "total": true, "many": true, "much": true, "count": true, "duration": true, "length": true,
+	"seconds": true, "minutes": true, "distinct": true, "different": true, "visible": true, "readable": true, "heard": true, "spoken": true, "said": true, "speaking": true,
+}
+
+// tiPlateRequestWords are, for a plate, the words that name the kind of thing a plate is: "vehicle", "car", "number" are not a plate either.
+var tiPlateRequestWords = map[string]bool{"vehicle": true, "vehicles": true, "car": true, "cars": true, "number": true, "numbers": true, "registration": true}
+
+// tiOnlyRequestWords reports that every word of the literal is one of the words that describe the request (and, with plate set, the words that name a plate).
+func tiOnlyRequestWords(literal string, plate bool) bool {
+	words := strings.FieldsFunc(strings.ToLower(literal), func(r rune) bool { return !(unicode.IsLetter(r) || unicode.IsDigit(r)) })
+	if len(words) == 0 {
+		return false
+	}
+	for _, w := range words {
+		if !tiRequestWords[w] && !(plate && tiPlateRequestWords[w]) {
+			return false
+		}
+	}
+	return true
+}
+
+// tiInsideFileName reports that the literal lies inside a file name of the message, or is one. A question names a file to say which file it is about ("of clip-12.mp4", "in call.wav"); a piece of
+// that name (12, clip-12) is neither a plate nor the words to look for, and a model that proposed one was reading the file name as the subject. A whole file name is allowed when allowWhole is set (a search
+// of the documents for a file name is a real request), and never for a plate. Both arguments are lower case.
+func tiInsideFileName(haystack, literal string, allowWhole bool) bool {
+	if literal == "" {
+		return false
+	}
+	for _, field := range strings.Fields(haystack) {
+		token := strings.TrimRight(strings.Trim(field, "?!,;:()[]{}\"'"), ".")
+		if !tiFileNameToken.MatchString(token) {
+			continue
+		}
+		if token == literal {
+			if allowWhole && !tiMediaFileName.MatchString(token) {
+				continue
+			}
+			return true
+		}
+		if strings.Contains(token, literal) {
+			return true
+		}
+	}
+	return false
 }
 
 // tiStandsAlone reports that needle occurs in haystack at least once with no letter, digit or combining mark touching it on either side. Both are already lower case.
@@ -345,6 +421,12 @@ func textIntentPlateKey(query string, result textIntentResult) (string, string) 
 	haystack := strings.ToLower(forensictext.Normalize(query))
 	if !tiStandsAlone(haystack, strings.ToLower(literal)) {
 		return "", "LITERAL_NOT_IN_QUESTION"
+	}
+	if tiInsideFileName(haystack, strings.ToLower(literal), false) {
+		return "", "LITERAL_IN_FILE_NAME"
+	}
+	if tiOnlyRequestWords(literal, true) {
+		return "", "LITERAL_DESCRIBES_THE_REQUEST"
 	}
 	endMarks := func(r rune) bool { return unicode.IsSpace(r) || strings.ContainsRune("?.!؟۔", r) }
 	if strings.TrimRightFunc(strings.ToLower(literal), endMarks) == strings.TrimRightFunc(haystack, endMarks) {
@@ -415,6 +497,11 @@ func textIntentEligible(cfg config, req hybridQueryRequest) (string, bool) {
 	}
 	query := strings.TrimSpace(req.Query)
 	if query == "" || utf8.RuneCountInString(query) > textIntentMaxQueryRune {
+		return "", false
+	}
+	// A question that names a video, a recording or a picture by its file name is about that file. The case-wide text search cannot be scoped to a file by name, and the SQL engine can (the
+	// media views carry the file name), so the question is not put to the model at all.
+	if tiNamesMediaFile(query) {
 		return "", false
 	}
 	if req.Template != "" || req.TextQuery != nil || req.ExactTerm != "" || req.TranscriptMode != "" || req.Target != "" || len(req.Targets) > 0 ||

@@ -236,6 +236,24 @@ func TestTextIntentSkipsRequestsAlreadyTiedToAnOperationOrToEvidence(t *testing.
 	}
 }
 
+func TestTextIntentLeavesAQuestionAboutANamedMediaFileToTheEngine(t *testing.T) {
+	m := newIntentModel(t, textIntentResult{Kind: tiKindText, Family: tiFamilyAny, Match: tiMatchPhrase, Literal: "readings"})
+	cfg := config{LocalAIURL: m.server.URL, SynthesisModel: "qwen3-4b"}
+	for _, q := range []string{"What was said in the first ten seconds of interview-3.mp4?", "How many readings were taken from night-1.mp4 altogether?", "Which plates are in front-gate.JPG?"} {
+		if _, ok := textIntentEligible(cfg, textIntentRequest(q)); ok {
+			t.Fatalf("%q names a media file and must not reach the model", q) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+		}
+	}
+	for _, q := range []string{"Which documents mention report-12.pdf?", "Which recordings mention delivery?", "find the word invoice in the statements"} {
+		if _, ok := textIntentEligible(cfg, textIntentRequest(q)); !ok {
+			t.Fatalf("%q names no media file and must reach the model", q) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+		}
+	}
+	if len(m.bodies) != 0 {
+		t.Fatalf("the eligibility check makes no model call; saw %d", len(m.bodies)) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+}
+
 func TestTextIntentSendsOnlyTheQuestionAndAStablePrompt(t *testing.T) {
 	m := newIntentModel(t, textIntentResult{Kind: tiKindOther, Family: tiFamilyNone, Match: tiMatchNone})
 	question := "Which documents mention wire transfer?"
@@ -454,6 +472,71 @@ func TestTextIntentRefusesAPlateThatIsNotTypedInTheQuestion(t *testing.T) {
 		c := cases[name]
 		if _, got := textIntentPlateKey(c[0], textIntentResult{Kind: tiKindPlate, Literal: c[1], MediaWords: c[2]}); got != why {
 			t.Fatalf("%s: got %q want %q", name, got, why) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+		}
+	}
+}
+
+func TestTextIntentRefusesAPlateThatIsPartOfAFileNameButNotOneNextToIt(t *testing.T) {
+	question := "On how many frames of pexels-5293898-hd.mp4 was a plate read?"
+	for _, literal := range []string{"5293898-hd", "pexels-5293898-hd", "pexels-5293898-hd.mp4", "hd"} {
+		if _, why := textIntentPlateKey(question, textIntentResult{Kind: tiKindPlate, Literal: literal, MediaWords: "frames"}); why == "" {
+			t.Fatalf("%q is part of a file name and was accepted as a plate", literal) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+		}
+	}
+	if key, why := textIntentPlateKey("Which photos show the plate LEA-1234, taken near gate.jpg?", textIntentResult{Kind: tiKindPlate, Literal: "LEA-1234", MediaWords: "photos"}); why != "" || key != "LEA1234" {
+		t.Fatalf("a plate typed next to a file name was refused: %q %q", key, why) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+}
+
+func TestTextIntentRefusesAPieceOfAFileNameAsWordsToFindButAllowsTheWholeName(t *testing.T) {
+	result := func(literal string) textIntentResult {
+		return textIntentResult{Kind: tiKindText, Family: tiFamilyAny, Match: tiMatchPhrase, Literal: literal}
+	}
+	question := "What is said in clip-12.mp4 about delivery?"
+	if _, _, why := textIntentValidate(question, result("clip-12")); why != "LITERAL_IN_FILE_NAME" {
+		t.Fatalf("a piece of a file name was taken as the words to find: %q", why) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+	if _, _, why := textIntentValidate(question, result("delivery")); why != "" {
+		t.Fatalf("a search for a word was refused: %q", why) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+	if _, _, why := textIntentValidate("Which documents mention report-12.pdf and when?", result("report-12.pdf")); why != "" {
+		t.Fatalf("a search of the documents for the name of a document was refused: %q", why) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+	if _, _, why := textIntentValidate("On how many frames of clip-12.mp4 was a plate read?", result("clip-12.mp4")); why != "LITERAL_IN_FILE_NAME" {
+		t.Fatalf("the name of a video was taken as the words to find: %q", why) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+}
+
+func TestTextIntentRefusesALiteralThatOnlyDescribesTheRequest(t *testing.T) {
+	text := func(literal string) textIntentResult {
+		return textIntentResult{Kind: tiKindText, Family: tiFamilyAudio, Match: tiMatchPhrase, Literal: literal}
+	}
+	for _, c := range [][2]string{
+		{"Which video is the longest?", "longest"},
+		{"Which videos have speech in them?", "speech"},
+		{"Which video has the most text visible in it?", "text visible"},
+		{"What is the longest video in the case?", "longest video"},
+		{"Which clip shows the largest amount of readable text?", "clip"},
+	} {
+		if _, _, why := textIntentValidate(c[0], text(c[1])); why != "LITERAL_DESCRIBES_THE_REQUEST" {
+			t.Fatalf("%q: the literal %q was not refused: %q", c[0], c[1], why) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+		}
+	}
+	// a literal with a word of its own in it is a search, whatever else it says
+	for _, c := range [][2]string{
+		{"Which videos have someone say delivery?", "delivery"},
+		{"Which recordings mention wire transfer?", "wire transfer"},
+		{"Which video shows the sign for the pharmacy?", "pharmacy"},
+		{"Which documents mention the longest queue?", "longest queue"},
+	} {
+		if _, _, why := textIntentValidate(c[0], text(c[1])); why != "" {
+			t.Fatalf("%q: the search for %q was refused: %q", c[0], c[1], why) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+		}
+	}
+	// a plate is never the word plate, vehicle or number
+	for _, literal := range []string{"plate", "vehicle", "number plate", "plates"} {
+		if _, why := textIntentPlateKey("On how many frames of the video was a plate read, photo evidence?", textIntentResult{Kind: tiKindPlate, Literal: literal, MediaWords: "video"}); why == "" {
+			t.Fatalf("the word %q was accepted as a plate", literal) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
 		}
 	}
 }
