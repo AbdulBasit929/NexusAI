@@ -143,3 +143,24 @@ Commits `e958399`, `88a61e4`, `32b2943`, `efdadae`, `06b3304` and this one.
 **The real clips in the Orion Lahore case.** The five real clips (three HD, two 4K; the owner's own `sample.mp4` among them) were uploaded to the reference case `orion-lahore-reference-20261030` (one through the workspace's own upload on :4182,
 four through the upload route), under the names `street-junction-hd`, `highway-overpass-hd`, `street-night-hd`, `highway-4k` and `traffic-control-cctv-4k`. Orion's file counts change (the verified bank's questions about the number
 of files or of videos follow the database: their keys are SQL on the database, not numbers written down).
+
+## Defect found on the Orion upload: the second copy of a file lost every reading (2026-11-12)
+
+**Found** by putting the five real clips into the Orion reference case after they had been read in a throwaway collection (the same bytes): the first questions on the Orion case answered "0 plates" and the evidence step found no reading.
+In the database the Orion copy of a clip held only its speech segments; its 49 plate records (table `forensic.records`) pointed at artifacts of the OTHER collection.
+
+**Cause.** The id of a media reading is derived from the SHA-256 of the file and the reading's position (`media_pipeline.py`), so it is the same wherever the file is, and it is the primary key of `forensic.derived_artifacts`; the
+worker stores with `ON CONFLICT (artifact_id) DO NOTHING`. The second copy of the same bytes in another case therefore stored nothing of what it read (plate reads, plate groups, video summary, frame text). The speech segments survived
+because their id carries the evidence and the version. The earlier hint (2026-11-11: a second copy had no `video-observation` row) was this defect seen on one artifact type. Any analyst who puts one video into two cases is affected.
+
+**Fix** (`ingestion/forensic_records/media_artifact_scope.py`, `tools/media_data/patch_worker_artifact_scope.py`): a reading keeps its content id unless ANOTHER evidence version already holds it, and then it is stored under an id of its own
+(uuid5 of "<version_id>:<content id>"); the plate record gets the same resolved id in its link and in its payload. Everything stored before, every first copy and every replay of a version is unchanged. Ten Python tests (the rule, replays,
+three copies of one file, rows as tuples and as dictionaries, the patch's refusals); the repository worker and the live image's own worker take the same seven edits (the image is an older build: an overlay image, `artifact-scope-20261112`,
+built by `tools/media_data/Build-ArtifactScopeOverlay.ps1`, switched by `tools/dev/live-window/7-recreate-worker-artifact-scope.ps1`; rollback tag `before-artifact-scope-20261112`; no setting changed).
+
+**What the fix does not do.** The clips that completed during the defect (junction, overpass, highway-4k in the Orion case) keep their missing readings: a re-upload is a duplicate by hash, and a reprocess is a governed operator step (a
+new linked generation, prior outputs kept). The stale plate records of those clips (pointing at the other collection) remain until then.
+
+**Operational note.** The worker was stopped while the fix was built so that the queued clips would run on the fixed code. The queue's consumer allows one message in flight (`max_ack_pending` 1, `ack_wait` 600 s) and a video job holds a
+2400 s database lease: after a worker is stopped mid-job, its job blocks the queue until the lease ends (the worker answers "busy" and retries every 30 s). The lease of the one stopped job was released by hand; the 2400 s lease is the
+long pole of any worker restart that interrupts a video.

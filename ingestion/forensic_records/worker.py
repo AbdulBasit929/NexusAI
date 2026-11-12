@@ -55,6 +55,11 @@ except ModuleNotFoundError:  # pragma: no cover - supports direct worker.py exec
     from forensic_contracts import CompatibilityAdapterRegistry, load_platform_catalog
 
 try:
+    from ingestion.forensic_records.media_artifact_scope import resolve_media_artifact_id
+except ModuleNotFoundError:  # pragma: no cover - supports direct worker.py execution
+    from media_artifact_scope import resolve_media_artifact_id
+
+try:
     from ingestion.forensic_records.media_pipeline import (
         ANPR_OBSERVATION_CONTRACT,
         AUDIO_TIMESTAMP_SEGMENT_CONTRACT,
@@ -1246,6 +1251,7 @@ def persist_media_result(
                 else "derived_technical_observation"
             ),
         }
+        artifact_id = resolve_media_artifact_id(cur, version_id, observation.observation_id)
         cur.execute(
             """
             INSERT INTO forensic.derived_artifacts (
@@ -1260,7 +1266,7 @@ def persist_media_result(
             ON CONFLICT (artifact_id) DO NOTHING
             """,
             (
-                observation.observation_id,
+                artifact_id,
                 job.tenant_id,
                 job.collection_id,
                 job.evidence_id,
@@ -1274,7 +1280,7 @@ def persist_media_result(
             ),
         )
         if observation.contract_version == ANPR_OBSERVATION_CONTRACT:
-            persist_anpr_media_observation(cur, job, observation, index)
+            persist_anpr_media_observation(cur, job, observation, index, artifact_id)
 
     summary = {
         "contract_version": result.contract_version,
@@ -1309,6 +1315,7 @@ def persist_anpr_media_observation(
     job: IngestJob,
     observation: Any,
     row_number: int,
+    artifact_id: Any = None,
 ) -> None:
     raw_plate = str(observation.payload.get("raw_plate_text") or "")
     normalized_plate = str(observation.payload.get("normalized_plate_text") or "")
@@ -1319,7 +1326,7 @@ def persist_anpr_media_observation(
         "ocr_confidence": observation.payload.get("ocr_confidence"),
         "detection_confidence": observation.payload.get("detection_confidence"),
         "source_locator": observation.citation_locator,
-        "observation_id": observation.observation_id,
+        "observation_id": artifact_id or observation.observation_id,
         "observation_state": "model_candidate",
     }
     row_hash = hashlib.sha256(
@@ -1362,7 +1369,7 @@ def persist_anpr_media_observation(
             json.dumps(raw_payload),
             job.evidence_id,
             json.dumps(normalized_fields),
-            observation.observation_id,
+            artifact_id or observation.observation_id,
         ),
     )
 
