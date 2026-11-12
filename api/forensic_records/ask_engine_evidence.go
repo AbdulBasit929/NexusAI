@@ -365,15 +365,16 @@ func askEvidenceNumber(value any) (float64, bool) {
 // ---- the result ----------------------------------------------------------------------------------------------------------------------------------------
 
 type askEvidenceRow struct {
-	Key        string   `json:"key"`
-	EvidenceID string   `json:"evidence_id"`
-	SourceFile string   `json:"source_file"`
-	VersionID  string   `json:"version_id,omitempty"`
-	SourceRow  int      `json:"source_row,omitempty"` // the typed row's own position in the statement
-	SheetRow   int      `json:"row_number,omitempty"` // the row of the sheet as the evidence viewer shows it; 0 when it could not be found
-	RowHash    string   `json:"row_hash,omitempty"`
-	Preview    string   `json:"preview,omitempty"`
-	Cells      []string `json:"cells,omitempty"` // what the row says, under the headings of askEvidence.Columns, in the same order
+	Key        string         `json:"key"`
+	EvidenceID string         `json:"evidence_id"`
+	SourceFile string         `json:"source_file"`
+	VersionID  string         `json:"version_id,omitempty"`
+	SourceRow  int            `json:"source_row,omitempty"` // the typed row's own position in the statement
+	SheetRow   int            `json:"row_number,omitempty"` // the row of the sheet as the evidence viewer shows it; 0 when it could not be found
+	RowHash    string         `json:"row_hash,omitempty"`
+	Preview    string         `json:"preview,omitempty"`
+	Cells      []string       `json:"cells,omitempty"` // what the row says, under the headings of askEvidence.Columns, in the same order
+	Media      *askMediaPlace `json:"media,omitempty"` // a reading of a video, a recording or a picture: where in its file it lies (ask_engine_media_evidence.go)
 }
 
 type askEvidenceFile struct {
@@ -419,6 +420,12 @@ var askCollectEvidenceFn = askCollectEvidence
 func askCollectEvidence(ctx context.Context, db *pgxpool.Pool, tenantID, collectionID string, cat *askCatalogue, v *askValidated, result *govSQLResult, limits askLimits) *askEvidence {
 	if db == nil || v == nil || result == nil || !askEvidenceEnabled() {
 		return nil
+	}
+	if media := askMediaEvidencePlanOf(v); media != nil {
+		// a reading of a video, a recording or a picture has a place in its file and no spreadsheet row: its readings are listed with their second and box
+		mediaCtx, cancelMedia := context.WithTimeout(ctx, askEvidenceBudget)
+		defer cancelMedia()
+		return askCollectMediaEvidence(mediaCtx, db, tenantID, collectionID, cat, media, result, limits)
 	}
 	plan, reason := askEvidencePlanOf(v, result.Columns)
 	if plan == nil {
@@ -832,6 +839,13 @@ func askAttachEvidence(resp *hybridQueryResponse, ev *askEvidence) {
 	provenance, _ := resp.Enterprise["provenance"].([]map[string]any)
 	shown := 0
 	for _, r := range ev.Rows {
+		if r.Media != nil {
+			if r.VersionID != "" {
+				provenance = append(provenance, askMediaProvenance(r))
+				shown++
+			}
+			continue
+		}
 		if r.SheetRow == 0 || r.RowHash == "" || r.VersionID == "" {
 			continue
 		}
