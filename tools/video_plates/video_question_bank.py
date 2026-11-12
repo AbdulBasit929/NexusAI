@@ -50,10 +50,10 @@ FILES = """select e.original_filename as f, e.size_bytes as size,
  from forensic.evidence_items e where e.collection_id = '{C}' and e.modality = 'video'"""
 SPEECH = """select e.original_filename as f, (d.citation_locator->>'start_seconds')::numeric as s, (d.citation_locator->>'end_seconds')::numeric as e, d.metadata->'observation'->>'text' as text
  from forensic.derived_artifacts d join forensic.evidence_items e on e.evidence_id = d.evidence_id
- where d.collection_id = '{C}' and d.artifact_type = 'forensics.audio-timestamp-segment/v1' and d.processing_status = 'completed'"""
+ where d.collection_id = '{C}' and d.artifact_type = 'forensics.audio-timestamp-segment/v1' and d.processing_status = 'completed' and e.modality = 'video'"""
 OCR = """select e.original_filename as f, (d.citation_locator->>'timestamp_seconds')::numeric as t, d.metadata->'observation'->>'raw_text' as text
  from forensic.derived_artifacts d join forensic.evidence_items e on e.evidence_id = d.evidence_id
- where d.collection_id = '{C}' and d.artifact_type = 'forensics.image-ocr-observation/v1' and d.processing_status = 'completed'"""
+ where d.collection_id = '{C}' and d.artifact_type = 'forensics.image-ocr-observation/v1' and d.processing_status = 'completed' and e.modality = 'video'"""
 
 
 def mmss(seconds):

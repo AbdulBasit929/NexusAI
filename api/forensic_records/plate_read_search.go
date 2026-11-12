@@ -52,6 +52,9 @@ var (
 // ("BCX-567" -> "BCX567"). A key must mix letters and digits, so a phone number
 // is never mistaken for a plate.
 func analystPlateLiterals(query string) []string {
+	// A plate never lives inside the file name of a video, a recording or a picture: "cctv-4k" in traffic-control-cctv-4k.mp4 was taken for a plate by extractTargets (measured 2026-11-12 on the
+	// Orion case: "on how many frames of traffic-control-cctv-4k.mp4 was a plate read" was answered as a search for it). The names are taken out of the question before any plate is looked for.
+	query = askWithoutMediaFileNames(query)
 	seen := map[string]bool{}
 	out := []string{}
 	for _, target := range extractTargets(query) {

@@ -193,6 +193,13 @@ var _ = Describe("Ask engine media views (migration 023)", func() {
 		Expect(short.Views).NotTo(ContainElement("v_comm_events"))
 	})
 
+	It("does not take a piece of a media file name for a plate typed by the analyst", func() {
+		Expect(analystPlateLiterals("On how many frames of traffic-control-cctv-4k.mp4 was a plate read?")).To(BeEmpty())
+		Expect(analystPlateLiterals("How many plates are in street-night-hd.mp4 and highway-4k.mp4?")).To(BeEmpty())
+		Expect(analystPlateLiterals("Which photos show the plate LEA-1234, taken near gate-cam.mp4?")).To(ContainElement("LEA1234"))
+		Expect(analystPlateLiterals("Does the plate HXS-650 appear in highway-4k.mp4?")).To(ConsistOf("HXS650"))
+	})
+
 	It("carries a caveat for every media view, and declares each media view untraceable with its reason", func() {
 		for _, view := range askMediaViews {
 			Expect(askViewCaveatText[view]).NotTo(BeEmpty(), view)
