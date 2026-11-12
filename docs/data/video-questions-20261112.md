@@ -82,3 +82,31 @@ speech 1 of 1; **distinct plates of one video 0 of 5, plates in a time window 0 
 applies only to views that have a direction; the descriptions of the seconds, the source and the needs_review columns say what they are; function words are ignored by the request-words check; three examples instead of
 two are shown for a media question), and proven on a fresh set, set 2 (55 questions, a third wording, new kinds of question: plates in view for more than 5 seconds, videos longer than 30 seconds, the average length,
 speech segments and text regions per video), run once after the deploy and judged by the same gates. The result of set 2 is recorded here whatever it is.
+
+## Set 2 result (2026-11-12; after round 3, image `video-round3-20261112`, migration 035 applied)
+
+55 questions in a third wording and with new kinds of question, run once, judged by the same gates:
+
+| Gate | Result | |
+|---|---|---|
+| correct at least 85 percent | **41 of 55 = 74.5 percent** | NOT MET |
+| wrong at most 5 percent | **2 of 55 = 3.6 percent** (sealed run: 13.9) | MET |
+| declined or no plan at most 15 percent | **11 of 55 = 20.0 percent** (sealed run: 16.7) | NOT MET |
+| median answer time at most 60 s | 22 s (p90 50 s, slowest 79 s) | MET |
+
+One answer was right by the wrong view (reported as lucky, not counted as correct). By kind: distinct plates of one video 5 of 5 (sealed run: 0 of 5), plates in a time window 3 of 3 (0 of 3), frames with a plate 5 of 5,
+plates in view for more than 5 seconds 5 of 5, speech segments per video 5 of 5, text regions per video 5 of 5, longest plate in view 5 of 6, **first plate 0 of 5, length 0 of 5**, videos longer than 30 seconds 0 of 1,
+frames in the whole case 0 of 1, longest video 0 of 1, speech which 0 of 1 (lucky).
+
+**Causes (each read from the engine log; none specific to a clip):**
+1. *First plate, 5 abstained.* "How many seconds into X does the first plate show up?": the count obligation of the frame fired on "how many" and wanted a COUNT; a MIN of the first second is the answer (`OBLIGATION:AGGREGATE` three times).
+2. *Length, 5 (4 declined, 1 wrong).* "Tell me the running time of X in seconds": no view fitted (the file name is one token and says nothing of a video; "running time" is not a word of the view), and the one answer took the span of the plate readings for the length.
+3. *Longest video, 1 declined.* The inventory view and the video view were both offered and the model asked one for a column of the other, twice.
+4. *Videos longer than 30 seconds, 1 declined.* The text-search step claimed it ("longer than 30 seconds" held words and a number outside the closed set).
+5. *Frames in the whole case, 1 wrong.* The query counted the reads (1,723) and not the frames that had a plate.
+6. *Speech which, 1 lucky.* Answered from the audio-track flag of the video view, which says nothing of speech.
+
+**Round 4 (the last fix round; general changes).** A question that names a media file by its name gets the words of its kind (video, recording, photo) for the shortlist; "how many" followed by a unit of time is a measure (a MIN, MAX,
+AVG or SUM satisfies the count obligation); the vocabulary of the video view gains runtime and running; the inventory is not offered next to the video view; the text-search check passes over numbers and comparison words
+(than, over, under, longer, shorter); migration 036 (descriptions only) says that the video view lists every video, that the audio flag is not speech and that a frame can hold several reads. The proof is a third fresh set,
+set 3 (a fourth wording, new kinds of question), run once; after it the video questions are closed whatever it shows and the remaining misses are listed.

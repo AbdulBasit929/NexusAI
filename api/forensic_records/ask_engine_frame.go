@@ -792,7 +792,8 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	if f.Cues["howmany"] && askUsesView(v, "v_bank_transactions") && !askSQLMentions(sql, "count(") {
 		add("AGGREGATE", "A row of v_bank_transactions is one transaction: how many of them is COUNT(*) of the rows. SUM(amount) adds the money up and says nothing of how many.", "the question asks how many transactions and the query does not count them")
 	}
-	if f.Cues["count"] && !askSQLMentions(sql, "count(", "sum(") && !askUsesColumn(v, "events", "incoming", "outgoing", "sightings", "transactions") {
+	if f.Cues["count"] && !askSQLMentions(sql, "count(", "sum(") && !askUsesColumn(v, "events", "incoming", "outgoing", "sightings", "transactions") &&
+		!(askHowManyUnit.MatchString(strings.ToLower(f.Question)) && askSQLMentions(sql, "min(", "max(", "avg(")) {
 		add("AGGREGATE", "The question asks how many: count the rows (COUNT) or sum the counts of the view.", "the question asks for a count that the query does not compute")
 	}
 	if askNullCounterpartySQL.MatchString(sql) && !askNoCounterpartyAsked.MatchString(strings.ToLower(f.Question)) &&

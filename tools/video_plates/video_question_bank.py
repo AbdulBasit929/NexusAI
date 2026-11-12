@@ -70,7 +70,7 @@ def build(collection, which):
         """The view a question calls for; an answer that matches the key through another view is reported as lucky, not correct."""
         if qid.startswith("frames-"):
             return "v_video_plate_frames"
-        if qid.startswith(("length-", "total-", "with-audio", "longest-video", "videos-over", "avg-length")):
+        if qid.startswith(("length-", "total-", "with-audio", "longest-video", "videos-over", "videos-under", "videos-hd", "avg-length")):
             return "v_video_files"
         if qid.startswith("all-frames"):
             return "v_video_plate_frames"
@@ -109,6 +109,14 @@ def build(collection, which):
             "frames": "For how many frames of {f} did the reader find a plate?",
             "length": "Tell me the running time of {f} in seconds.",
         },
+        "sealed3": {
+            "count": "Tell me how many different plates {f} contains.",
+            "first": "At which second does a plate first become visible in {f}?",
+            "window": "Which plates can be seen in {f} between the {a} and {b} marks?",
+            "longest": "Which plate in {f} stays visible the longest?",
+            "frames": "In {f}, how many frames contain a readable plate?",
+            "length": "How many seconds long is {f}?",
+        },
     }[which]
     for f in names:
         gs, fr = by_file(groups, f), by_file(frames, f)
@@ -134,6 +142,8 @@ def build(collection, which):
                    "How many videos carry sound?", "What is the longest video in the case?", "Across every video, how many distinct plates were read?"),
         "sealed2": ("Which video contains the most unique plates?", "Do any plates appear in more than one of the videos? Name them.", "How many minutes of footage are there altogether?",
                     "Count the videos that come with sound.", "Name the longest video.", "How many unique plates were recognised overall?"),
+        "sealed3": ("Which video shows the greatest variety of plates?", "Are there plates that show up in several videos?", "What is the combined length of all the videos, in minutes?",
+                    "How many of the videos have sound?", "Which video has the longest running time?", "In total, how many different plates were identified in the case?"),
     }[which]
     add("most-plates", cross[0], "top1", sorted(f for f, n in distinct.items() if n == top))
     multi = {}
@@ -149,13 +159,30 @@ def build(collection, which):
     # speech and text in the pictures: the key is what the model transcribed or read, whatever its quality
     with_speech = sorted({s["f"] for s in speech})
     if with_speech:
-        add("speech-which", {"dev": "Which videos have speech in them?", "sealed": "In which of the videos can anyone be heard speaking?", "sealed2": "Which of the videos contain spoken audio?"}[which], "set", with_speech, what="files")
+        add("speech-which", {"dev": "Which videos have speech in them?", "sealed": "In which of the videos can anyone be heard speaking?", "sealed2": "Which of the videos contain spoken audio?", "sealed3": "Which videos have a transcript of speech?"}[which], "set", with_speech, what="files")
     if ocr:
         counts = {}
         for r in ocr:
             counts[r["f"]] = counts.get(r["f"], 0) + 1
         top = max(counts.values())
-        add("ocr-most", {"dev": "Which video has the most text visible in it?", "sealed": "Which clip shows the largest amount of readable text?", "sealed2": "Which video has the most text on screen?"}[which], "top1", sorted(f for f, n in counts.items() if n == top))
+        add("ocr-most", {"dev": "Which video has the most text visible in it?", "sealed": "Which clip shows the largest amount of readable text?", "sealed2": "Which video has the most text on screen?", "sealed3": "Which video shows the most written text?"}[which], "top1", sorted(f for f, n in counts.items() if n == top))
+    if which == "sealed3":
+        # new kinds of question again, keyed by the same independent path
+        durations = {x["f"]: float(x["dur"]) for x in files if x["dur"] is not None}
+        for f in names:
+            gs = by_file(groups, f)
+            key = re.sub(r"[^a-z0-9]+", "-", f.lower()).strip("-")
+            add("short3-" + key, "How many plates are visible for less than 3 seconds in %s?" % f, "number", len({g["plate"] for g in gs if float(g["last"]) - float(g["first"]) < 3}))
+            add("after10-" + key, "How many plates first appear after the 10 second mark in %s?" % f, "number", len({g["plate"] for g in gs if float(g["first"]) > 10}))
+        add("videos-under-25", "How many videos are shorter than 25 seconds?", "number", sum(1 for d in durations.values() if d < 25))
+        add("videos-hd", "Which videos have a picture height of at least 2000 pixels?", "set", sorted(x["f"] for x in files if x["h"] and int(x["h"]) >= 2000), what="files")
+        most_segments = {}
+        for s in speech:
+            most_segments[s["f"]] = most_segments.get(s["f"], 0) + 1
+        top_s = max(most_segments.values())
+        add("speech-most", "Which video has the most speech segments?", "top1", sorted(f for f, n in most_segments.items() if n == top_s))
+        add("regions-all", "How many pieces of text were read in all the videos together?", "number", len(ocr))
+        add("total-seconds", "What is the total length of all the videos in seconds?", "number", round(sum(durations.values()), 1), tolerance=0.1)
     if which == "sealed2":
         # new kinds of question, keyed by the same independent path
         for f in names:
@@ -286,7 +313,7 @@ def main(argv):
     b = sub.add_parser("build")
     b.add_argument("collection")
     b.add_argument("key")
-    b.add_argument("--set", default="dev", choices=["dev", "sealed", "sealed2"])
+    b.add_argument("--set", default="dev", choices=["dev", "sealed", "sealed2", "sealed3"])
     r = sub.add_parser("run")
     r.add_argument("key")
     r.add_argument("results")

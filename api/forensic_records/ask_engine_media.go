@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -86,6 +87,38 @@ func askMediaGap(c askCoverage, view string) string {
 // askAnyMedia is whether the case holds any media reading at all.
 func askAnyMedia(c askCoverage) bool {
 	return c.AnyMediaPlate || c.AnyMediaSpeech || c.AnyMediaText || c.AnyVideo
+}
+
+// askHowManyUnit is a "how many" that is followed by a unit of time: it asks for a measure (a position in a video, a length of time), which a MIN, MAX, AVG or SUM states, and not for the number of
+// rows. The count obligation of the frame accepts such a query (measured 2026-11-12: "how many seconds into the video does the first plate show up" was abstained three times for want of a COUNT).
+var askHowManyUnit = regexp.MustCompile(`\bhow (?:many|much)\s+(?:seconds?|minutes?|hours?|days?|weeks?|months?|years?)\b`)
+
+// askMediaFileWords are the words that a media file name says about the kind of source: a question that names clip.mp4 is about a video, one that names note.m4a about a recording, one that names
+// scene.jpg about a photo. ONE word is added to the question for the shortlist, so that "how long is clip.mp4" finds the view of videos (the file name is one token and says nothing else). One and not
+// several: two strong words of the video view (video, clip) outweighed "plates" and took the plate views out of the shortlist of "how many plates were read in clip.mp4" (caught by the media specs).
+func askMediaFileWords(question string) string {
+	kinds := map[string]string{}
+	for _, field := range strings.Fields(strings.ToLower(question)) {
+		token := strings.TrimRight(strings.Trim(field, "?!,;:()[]{}\"'"), ".")
+		dot := strings.LastIndex(token, ".")
+		if dot < 0 || !tiFileNameToken.MatchString(token) {
+			continue
+		}
+		switch ext := token[dot+1:]; ext {
+		case "mp4", "mov", "avi", "mkv", "webm", "m4v", "wmv", "flv", "3gp":
+			kinds["video"] = "video"
+		case "mp3", "wav", "m4a", "aac", "ogg", "flac", "amr", "opus":
+			kinds["audio"] = "audio"
+		case "jpg", "jpeg", "png", "gif", "bmp", "tif", "tiff", "heic", "webp":
+			kinds["photo"] = "photo"
+		}
+	}
+	var words []string
+	for _, k := range kinds {
+		words = append(words, k)
+	}
+	sort.Strings(words)
+	return strings.Join(words, " ")
 }
 
 // askHasMediaView is whether any of the views is a media view.
@@ -198,6 +231,16 @@ func askMediaExcluded(cat *askCatalogue, c askCoverage, question string) map[str
 // Without a media view as the best one, the shortlist is returned as it is.
 func askMediaPrune(c askCoverage, short askShortlist) []string {
 	chosen := append([]string{}, short.Views...)
+	if askMediaGap(c, "v_video_files") == "" {
+		// v_video_files lists every video with its length, size and audio, so v_evidence_inventory beside it only gives a model two views to mix (measured 2026-11-12: a column of one asked of the other, twice)
+		kept := []string{}
+		for _, v := range chosen {
+			if !(v == "v_evidence_inventory" && askHasMediaView(chosen) && containsString(chosen, "v_video_files")) {
+				kept = append(kept, v)
+			}
+		}
+		chosen = kept
+	}
 	if len(chosen) == 0 || !askMediaViewSet[chosen[0]] || askMediaGap(c, chosen[0]) != "" {
 		return chosen
 	}

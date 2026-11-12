@@ -2104,7 +2104,7 @@
     },
     {
       "name": "v_video_files",
-      "description": "One row per video file: its length in seconds, its size in pixels and whether it has an audio track, as the container's own header states them (empty when the container is not one the header reader knows). Use it for how long a video is and how much footage the case holds.",
+      "description": "One row per video file of the case: its length in seconds (its running time or duration), its size in pixels and whether it has an audio track, as the container's own header states them (empty when the container is not one the header reader knows). Use it, and not v_evidence_inventory, for anything about the videos themselves: how many there are, which is the longest, how long they are in total, which have sound.",
       "columns": [
         {
           "name": "evidence_id",
@@ -2119,7 +2119,7 @@
         {
           "name": "duration_seconds",
           "type": "numeric",
-          "description": "Length of the video in seconds, from the container header; empty when the header could not be read."
+          "description": "Length of the video in seconds (its running time or duration), from the container header; empty when the header could not be read."
         },
         {
           "name": "width_pixels",
@@ -2134,7 +2134,7 @@
         {
           "name": "has_audio",
           "type": "boolean",
-          "description": "True when the container has an audio track, false when it has none, empty when the header could not be read."
+          "description": "True when the container has an audio track, false when it has none, empty when the header could not be read. It does not say that anyone speaks: for what was said use v_speech_segments."
         },
         {
           "name": "size_bytes",
@@ -2175,7 +2175,7 @@
         {
           "name": "frame_number",
           "type": "bigint",
-          "description": "The number of the frame in the video, counted from 0."
+          "description": "The number of the frame in the video, counted from 0. A frame can hold several reads: to count the frames that had a plate count distinct frame_number within one video (distinct evidence_id and frame_number across videos); to count the reads count the rows."
         },
         {
           "name": "plate",

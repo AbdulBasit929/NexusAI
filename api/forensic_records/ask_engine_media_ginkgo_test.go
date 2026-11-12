@@ -64,6 +64,18 @@ var _ = Describe("Ask engine media views (migration 023)", func() {
 			{"What text is visible in the videos?", []string{"v_ocr_regions"}},
 			{"Which photos or videos show the text INVOICE?", []string{"v_ocr_regions"}},
 			{"What text can be read in the videos?", []string{"v_ocr_regions"}},
+			// the kinds of per-file question, in the wordings of the question banks: a named file must not take the view of the plates, the frames, the speech or the text out of the shortlist
+			{"Give me the number of unique plates recognised in owner-sample-4k.mp4.", []string{"v_plate_reads"}},
+			{"How many seconds into roboflow-vehicles-4k.mp4 does the first plate show up?", []string{"v_plate_reads"}},
+			{"Between 0:10 and 0:20, which plates are on screen in pexels-6571483-hd.mp4?", []string{"v_plate_reads"}},
+			{"At which second does a plate first become visible in roboflow-vehicles-4k.mp4?", []string{"v_plate_reads"}},
+			{"For how many frames of pexels-5293898-hd.mp4 did the reader find a plate?", []string{"v_video_plate_frames"}},
+			{"In pexels-6719160-hd.mp4, how many frames contain a readable plate?", []string{"v_video_plate_frames"}},
+			{"Tell me the running time of owner-sample-4k.mp4 in seconds.", []string{"v_video_files"}},
+			{"How many seconds long is pexels-6719160-hd.mp4?", []string{"v_video_files"}},
+			{"What is the duration of owner-sample-4k.mp4 in seconds?", []string{"v_video_files"}},
+			{"How many speech segments does owner-sample-4k.mp4 have?", []string{"v_speech_segments"}},
+			{"How many pieces of text were read in owner-sample-4k.mp4?", []string{"v_ocr_regions"}},
 		} {
 			short := cat.ShortlistWith(c.q, 0, askMediaExcluded(cat, mediaOnly, c.q))
 			Expect(short.Confident).To(BeTrue(), c.q)
@@ -152,6 +164,23 @@ var _ = Describe("Ask engine media views (migration 023)", func() {
 		Expect(askExampleCount([]string{"v_comm_events", "v_plate_reads"})).To(Equal(3))
 		Expect(askExampleCount([]string{"v_comm_events"})).To(Equal(2))
 		Expect(askExampleCount(nil)).To(Equal(2))
+	})
+
+	It("says the kind of a named media file as words of the question, and reads how many seconds as a measure", func() {
+		Expect(askMediaFileWords("How long is clip-7.mp4?")).To(Equal("video"))
+		Expect(askMediaFileWords("What was said in call.WAV and shown in front.jpg?")).To(Equal("audio photo"))
+		Expect(askMediaFileWords("Which documents mention report-12.pdf?")).To(BeEmpty())
+		Expect(askHowManyUnit.MatchString("how many seconds into clip.mp4 does the first plate show up?")).To(BeTrue())
+		Expect(askHowManyUnit.MatchString("how many plates were read?")).To(BeFalse())
+		short := cat.ShortlistWith("Tell me the running time of owner-sample-4k.mp4 in seconds.", 0, askMediaExcluded(cat, mediaOnly, "Tell me the running time of owner-sample-4k.mp4 in seconds."))
+		Expect(short.Confident).To(BeTrue())
+		Expect(short.Views).To(ContainElement("v_video_files"))
+	})
+
+	It("drops the inventory from a question that reads the video files", func() {
+		short := askShortlist{Views: []string{"v_video_files", "v_evidence_inventory"}, Scores: map[string]float64{"v_video_files": 4, "v_evidence_inventory": 2.5}}
+		Expect(askMediaPrune(mediaOnly, short)).To(Equal([]string{"v_video_files"}))
+		Expect(askMediaPrune(askCoverage{}, short)).To(Equal([]string{"v_video_files", "v_evidence_inventory"}))
 	})
 
 	It("carries a caveat for every media view, and declares each media view untraceable with its reason", func() {

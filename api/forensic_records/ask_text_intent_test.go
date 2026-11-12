@@ -518,6 +518,7 @@ func TestTextIntentRefusesALiteralThatOnlyDescribesTheRequest(t *testing.T) {
 		{"What is the longest video in the case?", "longest video"},
 		{"Which clip shows the largest amount of readable text?", "clip"},
 		{"What is the total running time of all the videos, in minutes?", "running time of all the videos"},
+		{"Which videos are longer than 30 seconds?", "longer than 30 seconds"},
 	} {
 		if _, _, why := textIntentValidate(c[0], text(c[1])); why != "LITERAL_DESCRIBES_THE_REQUEST" {
 			t.Fatalf("%q: the literal %q was not refused: %q", c[0], c[1], why) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md

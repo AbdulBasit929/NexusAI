@@ -340,7 +340,7 @@ var tiRequestWords = map[string]bool{
 	"frame": true, "frames": true, "file": true, "files": true, "plate": true, "plates": true, "text": true,
 	"longest": true, "shortest": true, "most": true, "least": true, "first": true, "last": true, "total": true, "many": true, "much": true, "count": true, "duration": true, "length": true,
 	"seconds": true, "minutes": true, "distinct": true, "different": true, "visible": true, "readable": true, "heard": true, "spoken": true, "said": true, "speaking": true,
-	"running": true, "time": true, "times": true, "long": true, "short": true, "biggest": true, "largest": true, "smallest": true, "highest": true, "lowest": true, "best": true, "worst": true,
+	"longer": true, "shorter": true, "runtime": true, "running": true, "time": true, "times": true, "long": true, "short": true, "biggest": true, "largest": true, "smallest": true, "highest": true, "lowest": true, "best": true, "worst": true,
 	"average": true, "amount": true, "size": true, "resolution": true, "each": true, "every": true, "all": true, "any": true, "clearest": true, "sharpest": true, "clear": true,
 }
 
@@ -350,14 +350,28 @@ var tiPlateRequestWords = map[string]bool{"vehicle": true, "vehicles": true, "ca
 // tiFunctionWords are the small words that join the others ("running time of all the videos"): they are neither request words nor a thing to find, so they are passed over.
 var tiFunctionWords = map[string]bool{"the": true, "a": true, "an": true, "of": true, "in": true, "on": true, "at": true, "to": true, "for": true, "and": true, "or": true, "is": true, "are": true,
 	"was": true, "were": true, "be": true, "with": true, "from": true, "by": true, "that": true, "this": true, "these": true, "those": true, "it": true, "its": true, "there": true,
-	"do": true, "does": true, "did": true, "have": true, "has": true}
+	"do": true, "does": true, "did": true, "have": true, "has": true,
+	"than": true, "over": true, "under": true, "above": true, "below": true, "less": true, "more": true, "greater": true}
+
+// tiAllDigits is a word made of digits only (a count or a number of seconds in "longer than 30 seconds").
+func tiAllDigits(w string) bool {
+	if w == "" {
+		return false
+	}
+	for _, r := range w {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+	return true
+}
 
 // tiOnlyRequestWords reports that every word of the literal is one of the words that describe the request (and, with plate set, the words that name a plate).
 func tiOnlyRequestWords(literal string, plate bool) bool {
 	words := strings.FieldsFunc(strings.ToLower(literal), func(r rune) bool { return !(unicode.IsLetter(r) || unicode.IsDigit(r)) })
 	meaningful := 0
 	for _, w := range words {
-		if tiFunctionWords[w] {
+		if tiFunctionWords[w] || tiAllDigits(w) {
 			continue
 		}
 		if !tiRequestWords[w] && !(plate && tiPlateRequestWords[w]) {
