@@ -340,6 +340,8 @@ var tiRequestWords = map[string]bool{
 	"frame": true, "frames": true, "file": true, "files": true, "plate": true, "plates": true, "text": true,
 	"longest": true, "shortest": true, "most": true, "least": true, "first": true, "last": true, "total": true, "many": true, "much": true, "count": true, "duration": true, "length": true,
 	"seconds": true, "minutes": true, "distinct": true, "different": true, "visible": true, "readable": true, "heard": true, "spoken": true, "said": true, "speaking": true,
+	"running": true, "time": true, "times": true, "long": true, "short": true, "biggest": true, "largest": true, "smallest": true, "highest": true, "lowest": true, "best": true, "worst": true,
+	"average": true, "amount": true, "size": true, "resolution": true, "each": true, "every": true, "all": true, "any": true, "clearest": true, "sharpest": true, "clear": true,
 }
 
 // tiPlateRequestWords are, for a plate, the words that name the kind of thing a plate is: "vehicle", "car", "number" are not a plate either.

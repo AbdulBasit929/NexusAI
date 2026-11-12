@@ -720,5 +720,23 @@
     ],
     "shape": "table",
     "sql": "SELECT DISTINCT original_filename, source FROM v_ocr_regions WHERE text ILIKE '%INVOICE%' ORDER BY original_filename LIMIT 200"
+  },
+  {
+    "id": "video-longest",
+    "question": "Which video is the longest?",
+    "views": [
+      "v_video_files"
+    ],
+    "shape": "ranked",
+    "sql": "SELECT original_filename AS label, duration_seconds AS value FROM v_video_files WHERE duration_seconds IS NOT NULL ORDER BY value DESC, label LIMIT 1"
+  },
+  {
+    "id": "speech-which-videos",
+    "question": "Which videos have speech in them?",
+    "views": [
+      "v_speech_segments"
+    ],
+    "shape": "table",
+    "sql": "SELECT DISTINCT original_filename FROM v_speech_segments ORDER BY original_filename LIMIT 200"
   }
 ]

@@ -146,7 +146,7 @@ var _ = Describe("Ask engine media views (migration 023)", func() {
 			byID[e.ID] = e
 		}
 		for _, id := range []string{"video-plate-count", "video-plate-list", "video-first-plate", "video-plate-window", "video-plate-longest", "video-most-plates", "plate-in-several-videos",
-			"video-frames-with-plates", "video-best-reading", "video-length", "video-footage-total", "speech-window", "speech-word", "ocr-word"} {
+			"video-frames-with-plates", "video-best-reading", "video-length", "video-footage-total", "speech-window", "speech-word", "ocr-word", "video-longest", "speech-which-videos"} {
 			e, ok := byID[id]
 			Expect(ok).To(BeTrue(), id)
 			Expect(e.Views).NotTo(BeEmpty(), id)

@@ -175,9 +175,12 @@ func askMediaAbsence(v *askValidated, f askFrame) string {
 	return "no plate reading from a photo or a video of this case matches your question. The reader may have missed it or misread it, so this does not show the plate is absent"
 }
 
+// askFileNameWord is a file name inside a question; the premise cue must not read "owner" in owner-sample.mp4.
+var askFileNameWord = regexp.MustCompile(`\S+\.[a-z][a-z0-9]{1,4}\b`)
+
 // askMediaLead is the correction put in front of a question that treats a machine reading as an identification or a fact about the person or the vehicle's owner. "" when it does not.
 func askMediaLead(f askFrame, stated bool) string {
-	if stated || askOwnershipCue.MatchString(strings.ToLower(f.Question)) {
+	if stated || askOwnershipCue.MatchString(askFileNameWord.ReplaceAllString(strings.ToLower(f.Question), " ")) {
 		return "A reading a model made from a photo or a video frame is a candidate that needs checking. It does not say who owns the vehicle or who was in it."
 	}
 	return ""

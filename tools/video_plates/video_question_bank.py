@@ -66,8 +66,20 @@ def build(collection, which):
     by_file = lambda rows, f: [r for r in rows if r["f"] == f]  # noqa: E731
     qs = []
 
+    def view_for(qid):
+        """The view a question calls for; an answer that matches the key through another view is reported as lucky, not correct."""
+        if qid.startswith("frames-"):
+            return "v_video_plate_frames"
+        if qid.startswith(("length-", "total-", "with-audio", "longest-video")):
+            return "v_video_files"
+        if qid.startswith("speech-"):
+            return "v_speech_segments"
+        if qid.startswith("ocr-"):
+            return "v_ocr_regions|v_ocr_evidence_summary"
+        return "v_plate_reads"
+
     def add(qid, text, kind, expected, **extra):
-        qs.append(dict(id=qid, q=text, kind=kind, expected=expected, **extra))
+        qs.append(dict(id=qid, q=text, kind=kind, expected=expected, expect_view=view_for(qid), **extra))
 
     # (kind) number: expected is a number; set: a list of strings; top1: a list of acceptable first labels; none: nothing is expected
     wording = {
@@ -212,7 +224,11 @@ def run(keyfile, out_path, only, url):
             state = state.group(1) if state else "none"
             answer = ent.get("executive_answer") or data.get("answer") or ""
             grid = (ent.get("data_grid") or {}).get("rows") or []
-            verdict, why = ("correct", "") if False else judge(q, answer, grid) if state == "answered" else ("declined", "engine state " + state)
+            verdict, why = judge(q, answer, grid) if state == "answered" else ("declined", "engine state " + state)
+            sql_text = (ent.get("derivation") or {}).get("sql") or ""
+            wanted = [v for v in (q.get("expect_view") or "").split("|") if v]
+            if verdict == "correct" and wanted and not any(v in sql_text for v in wanted):
+                verdict, why = "lucky", "the answer matches the key but the query does not read " + " or ".join(wanted)
             row = {"id": q["id"], "q": q["q"], "state": state, "verdict": verdict, "why": why, "seconds": reply.get("seconds"), "answer": mask(answer)[:600],
                    "sql": mask(((ent.get("derivation") or {}).get("sql")) or "")[:500], "views": (ent.get("derivation") or {}).get("views")}
             out.write(json.dumps(row, ensure_ascii=False) + "\n")
