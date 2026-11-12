@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
@@ -84,6 +86,64 @@ func askMediaGap(c askCoverage, view string) string {
 // askAnyMedia is whether the case holds any media reading at all.
 func askAnyMedia(c askCoverage) bool {
 	return c.AnyMediaPlate || c.AnyMediaSpeech || c.AnyMediaText || c.AnyVideo
+}
+
+// askHasMediaView is whether any of the views is a media view.
+func askHasMediaView(names []string) bool {
+	for _, name := range names {
+		if askMediaViewSet[name] {
+			return true
+		}
+	}
+	return false
+}
+
+// askExampleCount is how many verified examples a question is shown: two, and three when it reads a media view (the media views have many kinds of question and a model that is shown two
+// missed the one that matters, measured 2026-11-12: a video grouped by its kind of evidence and not by its file).
+func askExampleCount(names []string) int {
+	if askHasMediaView(names) {
+		return 3
+	}
+	return 2
+}
+
+// askClockTime is a clock time written in a question: 0:10, 1:05 or 1:02:03.
+var askClockTime = regexp.MustCompile(`\b(\d{1,2}):(\d{2})(?::(\d{2}))?\b`)
+
+// askMediaClockTimes reads, by code and never by the model, the clock times of a question about a video into seconds from the start: a time written 0:10 is minutes and seconds (10 seconds),
+// and one written 1:02:03 is hours, minutes and seconds. A model left to read "from 0:10 to 0:20" took it for hours and minutes and asked for seconds 600 to 1200 (measured 2026-11-12).
+func askMediaClockTimes(question string) []string {
+	var out []string
+	for _, m := range askClockTime.FindAllStringSubmatch(question, -1) {
+		a, _ := strconv.Atoi(m[1])
+		b, _ := strconv.Atoi(m[2])
+		if b > 59 {
+			continue
+		}
+		seconds := a*60 + b
+		if m[3] != "" {
+			c, _ := strconv.Atoi(m[3])
+			if c > 59 {
+				continue
+			}
+			seconds = a*3600 + b*60 + c
+		}
+		out = append(out, fmt.Sprintf("%s = %d seconds", m[0], seconds))
+	}
+	return askUnique(out)
+}
+
+// askOnlyMediaViews is whether the query reads media views and nothing else.
+func askOnlyMediaViews(v *askValidated) bool {
+	if v == nil || len(v.Views) == 0 {
+		return false
+	}
+	for _, name := range v.Views {
+		if !askMediaViewSet[name] {
+			return false
+		}
+	}
+	return true
 }
 
 // askMediaWord is a word that says the question is about footage, photos or recordings. A case that holds typed records as well as media readings is offered the media views only for a question

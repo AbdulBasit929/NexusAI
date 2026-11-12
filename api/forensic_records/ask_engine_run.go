@@ -243,6 +243,9 @@ func askUserPrompt(f askFrame) string {
 	if len(f.Dates) > 0 {
 		hints = append(hints, "Dates: "+strings.Join(f.Dates, ", ")+".")
 	}
+	if len(f.MediaTimes) > 0 {
+		hints = append(hints, "Times in the question are minutes and seconds from the start of the video, never hours and minutes: "+strings.Join(f.MediaTimes, ", ")+". The media views count seconds from the start: use these seconds as the numbers.")
+	}
 	for _, m := range f.Months {
 		hints = append(hints, fmt.Sprintf("Month %d%s: compare the time with its first day and the first day of the next month.", m.Month, askYearNote(m.Year)))
 	}
@@ -373,6 +376,9 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 		return decline("no analyst view fits the question closely enough")
 	}
 	chosen := askMediaPrune(coverage, short)
+	if askHasMediaView(chosen) {
+		frame.MediaTimes = askMediaClockTimes(frame.Question)
+	}
 	if frame.Hops > 3 {
 		// v_connection_edges walks up to three links: a question for more is answered by the recursive query over the contact pairs
 		chosen = askReplaceView(chosen, "v_connection_edges", "v_contact_pairs")
@@ -405,7 +411,7 @@ func runAskEngineV2(ctx context.Context, cfg config, db *pgxpool.Pool, req hybri
 	if gap := askTimeOfDayGap(coverage, frame, chosen); gap != "" {
 		return decline("the analyst views cannot speak for this case: " + gap)
 	}
-	shown := askRetrieveExamples(frame.Question, chosen, examples, 2)
+	shown := askRetrieveExamples(frame.Question, chosen, examples, askExampleCount(chosen))
 	for _, e := range shown {
 		audit.Examples = append(audit.Examples, e.ID)
 	}

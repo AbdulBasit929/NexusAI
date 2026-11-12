@@ -129,6 +129,31 @@ var _ = Describe("Ask engine media views (migration 023)", func() {
 		Expect(askMediaPrune(askCoverage{}, noMedia)).To(Equal([]string{"v_plate_reads", "v_comm_events"}))
 	})
 
+	It("knows a query that reads media views only, so a word such as made does not raise a direction obligation for a reading of a photo or a frame", func() {
+		Expect(askOnlyMediaViews(&askValidated{Views: []string{"v_plate_reads", "v_video_plate_frames"}})).To(BeTrue())
+		Expect(askOnlyMediaViews(&askValidated{Views: []string{"v_plate_reads", "v_comm_events"}})).To(BeFalse())
+		Expect(askOnlyMediaViews(&askValidated{})).To(BeFalse())
+		Expect(askOnlyMediaViews(nil)).To(BeFalse())
+	})
+
+	It("reads the clock times of a question about a video into seconds by code, minutes and seconds first", func() {
+		Expect(askMediaClockTimes("Between 0:10 and 0:20, which plates are on screen in gate.mp4?")).To(Equal([]string{"0:10 = 10 seconds", "0:20 = 20 seconds"}))
+		Expect(askMediaClockTimes("What was said from 1:05 to 1:02:03?")).To(Equal([]string{"1:05 = 65 seconds", "1:02:03 = 3723 seconds"}))
+		Expect(askMediaClockTimes("at 0:75 and 3 plates")).To(BeEmpty(), "seconds above 59 are not a clock time")
+		Expect(askMediaClockTimes("How many plates were read?")).To(BeEmpty())
+		prompt := askUserPrompt(askFrame{Question: "Between 0:10 and 0:20, which plates are on screen?", MediaTimes: []string{"0:10 = 10 seconds", "0:20 = 20 seconds"}})
+		Expect(prompt).To(ContainSubstring("minutes and seconds from the start of the video"))
+		Expect(prompt).To(ContainSubstring("0:10 = 10 seconds"))
+		Expect(askUserPrompt(askFrame{Question: "How many plates were read?"})).NotTo(ContainSubstring("minutes and seconds"))
+	})
+
+	It("shows three verified examples to a question that reads a media view and two to every other", func() {
+		Expect(askExampleCount([]string{"v_plate_reads"})).To(Equal(3))
+		Expect(askExampleCount([]string{"v_comm_events", "v_plate_reads"})).To(Equal(3))
+		Expect(askExampleCount([]string{"v_comm_events"})).To(Equal(2))
+		Expect(askExampleCount(nil)).To(Equal(2))
+	})
+
 	It("carries a caveat for every media view, and declares each media view untraceable with its reason", func() {
 		for _, view := range askMediaViews {
 			Expect(askViewCaveatText[view]).NotTo(BeEmpty(), view)

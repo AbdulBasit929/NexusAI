@@ -1468,7 +1468,7 @@
         {
           "name": "needs_review",
           "type": "boolean",
-          "description": "True: a person must check the reading before it is relied on."
+          "description": "True for every row: a person must check the reading before it is relied on. Do not filter on it: needs_review = false matches no row."
         }
       ]
     },
@@ -1549,7 +1549,7 @@
         {
           "name": "needs_review",
           "type": "boolean",
-          "description": "True: a person must check the reading before it is relied on (always true for a machine reading)."
+          "description": "True for every row: a person must check the reading before it is relied on. Do not filter on it: needs_review = false matches no row."
         },
         {
           "name": "created_at",
@@ -1575,7 +1575,7 @@
         {
           "name": "source",
           "type": "text",
-          "description": "image for one sighting in a photo, video for a group of the sightings of the same plate in one video."
+          "description": "image for one sighting in a photo, video for a group of the sightings of the same plate in one video. It says which kind of evidence the row is, not which file: to count or compare per video, group by original_filename."
         },
         {
           "name": "plate",
@@ -1605,17 +1605,17 @@
         {
           "name": "first_seen_seconds",
           "type": "numeric",
-          "description": "For a video, the second the plate was first seen; empty for a photo."
+          "description": "For a video, the second the plate was first seen; empty for a photo. Seconds count from the start of the video: a time written 1:30 in a question is 90 seconds (minutes and seconds, not hours and minutes). To ask which plates were in view during a window from second A to second B, compare the stay with the window: first_seen_seconds \u003c= B AND last_seen_seconds \u003e= A. Requiring both ends inside the window would miss a plate that was already in view when the window began or stayed on after it ended."
         },
         {
           "name": "last_seen_seconds",
           "type": "numeric",
-          "description": "For a video, the second the plate was last seen; empty for a photo."
+          "description": "For a video, the second the plate was last seen; empty for a photo. How long a plate stayed in view is last_seen_seconds minus first_seen_seconds. For a window, see first_seen_seconds."
         },
         {
           "name": "needs_review",
           "type": "boolean",
-          "description": "True: a model candidate that a person must check (always true); never an identification of a vehicle owner."
+          "description": "True for every row: a model candidate that a person must check, never an identification of a vehicle owner. Do not filter on it: needs_review = false matches no row."
         },
         {
           "name": "created_at",
@@ -1860,12 +1860,12 @@
         {
           "name": "start_seconds",
           "type": "numeric",
-          "description": "Start of the segment in seconds from the start of the recording."
+          "description": "Start of the segment in seconds from the start of the recording (a time written 1:30 in a question is 90 seconds, minutes and seconds)."
         },
         {
           "name": "end_seconds",
           "type": "numeric",
-          "description": "End of the segment in seconds from the start of the recording."
+          "description": "End of the segment in seconds from the start of the recording (a time written 1:30 in a question is 90 seconds, minutes and seconds)."
         },
         {
           "name": "text",
@@ -1890,7 +1890,7 @@
         {
           "name": "needs_review",
           "type": "boolean",
-          "description": "True: a person must listen and check before the text is relied on (always true)."
+          "description": "True for every row: a person must listen and check before the text is relied on. Do not filter on it: needs_review = false matches no row."
         },
         {
           "name": "created_at",
@@ -2170,7 +2170,7 @@
         {
           "name": "seen_at_seconds",
           "type": "numeric",
-          "description": "The second of the video the frame was read at."
+          "description": "The second of the video the frame was read at, counted from the start (a time written 1:30 in a question is 90 seconds). The reads of a window from second A to second B are those with seen_at_seconds BETWEEN A AND B."
         },
         {
           "name": "frame_number",
@@ -2220,7 +2220,7 @@
         {
           "name": "needs_review",
           "type": "boolean",
-          "description": "True: a model candidate that a person must check (always true)."
+          "description": "True for every row: a model candidate that a person must check. Do not filter on it: needs_review = false matches no row."
         },
         {
           "name": "created_at",

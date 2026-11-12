@@ -51,3 +51,34 @@ median answer time at most 60 seconds on this machine. A wrong answer weighs mor
 1. Apply migration 023 to the live database: `ops/023_media_views/preflight.sql`, the migration, `verify.sql`; rollback `ops/023_media_views/rollback.sql` drops the six views and changes nothing else.
 2. Build and deploy the API image (the catalogue snapshot includes the views, so the engine must be deployed after the views exist; deploying it before makes every question that names them fail validation).
 3. Restart the workspaces.
+
+## Dev run and sealed result (2026-11-12)
+
+**Dev set (36 questions, tuning).** First run on the live engine: 30 correct, 6 declined, 0 wrong, median 29 s. All six declines were the text-search step claiming the question before the engine saw it (Amendment 7 of
+`docs/roadmap/text-intent-preregistration-20261110.md`: a first attempt, a new prompt value, was measured and reverted because it cost 12 ordinary word searches; the final fix is three server checks). After the
+deploy the six were re-asked: 5 correct.
+
+**Sealed set (36 questions in other wording, keys from the stored readings, run once on the live engine after the round 2 deploy, image `video-round2-20261112`):**
+
+| Gate (fixed before the run) | Result | |
+|---|---|---|
+| correct at least 85 percent | **25 of 36 = 69.4 percent** | NOT MET |
+| wrong at most 5 percent | **5 of 36 = 13.9 percent** | NOT MET |
+| declined or no plan at most 15 percent | **6 of 36 = 16.7 percent** | NOT MET |
+| median answer time at most 60 s | 24 s (p90 125 s, slowest 132 s) | MET |
+
+By kind: first plate 5 of 5, frames with a plate 5 of 5, length 5 of 5, longest plate in view 6 of 6, plates in more than one video 1 of 1, videos with audio 1 of 1, longest video 1 of 1, distinct plates overall 1 of 1,
+speech 1 of 1; **distinct plates of one video 0 of 5, plates in a time window 0 of 3, video with the most plates 0 of 1, video with the most text 0 of 1, total minutes 0 of 1.** No answer was right by the wrong view.
+
+**Causes (each read from the engine's own log, none specific to a clip):**
+1. *Distinct plates of one video, 5 declined.* "How many distinct plates can be made out in X?": the engine's frame reads the word "made" as an outgoing call (a cue written for "calls made by") and requires a direction
+   filter that a plate reading cannot have; the model gave up after two repairs (`OBLIGATION:DIRECTION`).
+2. *Plates in a window, 3 wrong.* "from 0:10 to 0:20" was read as hours and minutes, 600 to 1200 seconds, and the query required the first second to lie inside that window; the answer said that nothing matches.
+3. *Video with the most plates, 1 wrong.* The query grouped by `source` (photo or video) and not by file: "video, 45".
+4. *Video with the most text, 1 wrong.* The query filtered on `needs_review = false`, a column that is always true for a machine reading, so no row matched.
+5. *Total minutes, 1 declined.* The text-search step claimed it: the literal "running time of all the videos" held function words (of, the) beyond the closed set of request-describing words.
+
+**Decision.** The sealed set is spent and is not re-run. The five causes are general and are fixed as general changes (a clock time in a question is read by code into seconds and handed to the model; the direction check
+applies only to views that have a direction; the descriptions of the seconds, the source and the needs_review columns say what they are; function words are ignored by the request-words check; three examples instead of
+two are shown for a media question), and proven on a fresh set, set 2 (55 questions, a third wording, new kinds of question: plates in view for more than 5 seconds, videos longer than 30 seconds, the average length,
+speech segments and text regions per video), run once after the deploy and judged by the same gates. The result of set 2 is recorded here whatever it is.

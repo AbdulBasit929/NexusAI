@@ -43,6 +43,8 @@ type askFrame struct {
 	NationalIDs []string
 	IPs         []string
 	Cells       []string
+	// MediaTimes are the clock times of a question about a video, read by code into seconds from the start ("0:10 = 10 seconds"); the run sets them when the query reads a media view.
+	MediaTimes []string
 	// Plates are the search keys of the plates the question names (askNormalizePlate), PlateWritten how the question wrote each (ask_engine_plates.go).
 	Plates       []string
 	PlateWritten map[string]string
@@ -637,6 +639,10 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	// the views of pass-through pairs and of debits just under a limit are one direction or both by definition: their columns say so (credit_amount, debit_amount) or the view does
 	bothWays := (f.Cues["incoming"] && f.Cues["outgoing"]) || askUsesView(v, "v_account_flows") || askUsesView(v, "v_account_limit_bands")
 	wantIncoming, wantOutgoing := f.Cues["incoming"] && !bothWays, f.Cues["outgoing"] && !bothWays
+	if askOnlyMediaViews(v) {
+		// a reading of a photo, a frame or a recording has no direction: "made" in "plates that can be made out" is not an outgoing call (measured 2026-11-12: the question was declined for a direction it cannot have)
+		wantIncoming, wantOutgoing = false, false
+	}
 	// When the place of the identifier decided the direction, the direction is the identifier's own. A query that compares the identifier with the column of the OTHER end of an event reads the
 	// same events from the senders' side, where each row carries the opposite direction.
 	flipped := f.DirectionRole != "" && askComparesOtherParty(sql, f.RoleIDs)

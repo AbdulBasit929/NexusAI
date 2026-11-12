@@ -347,18 +347,25 @@ var tiRequestWords = map[string]bool{
 // tiPlateRequestWords are, for a plate, the words that name the kind of thing a plate is: "vehicle", "car", "number" are not a plate either.
 var tiPlateRequestWords = map[string]bool{"vehicle": true, "vehicles": true, "car": true, "cars": true, "number": true, "numbers": true, "registration": true}
 
+// tiFunctionWords are the small words that join the others ("running time of all the videos"): they are neither request words nor a thing to find, so they are passed over.
+var tiFunctionWords = map[string]bool{"the": true, "a": true, "an": true, "of": true, "in": true, "on": true, "at": true, "to": true, "for": true, "and": true, "or": true, "is": true, "are": true,
+	"was": true, "were": true, "be": true, "with": true, "from": true, "by": true, "that": true, "this": true, "these": true, "those": true, "it": true, "its": true, "there": true,
+	"do": true, "does": true, "did": true, "have": true, "has": true}
+
 // tiOnlyRequestWords reports that every word of the literal is one of the words that describe the request (and, with plate set, the words that name a plate).
 func tiOnlyRequestWords(literal string, plate bool) bool {
 	words := strings.FieldsFunc(strings.ToLower(literal), func(r rune) bool { return !(unicode.IsLetter(r) || unicode.IsDigit(r)) })
-	if len(words) == 0 {
-		return false
-	}
+	meaningful := 0
 	for _, w := range words {
+		if tiFunctionWords[w] {
+			continue
+		}
 		if !tiRequestWords[w] && !(plate && tiPlateRequestWords[w]) {
 			return false
 		}
+		meaningful++
 	}
-	return true
+	return meaningful > 0
 }
 
 // tiInsideFileName reports that the literal lies inside a file name of the message, or is one. A question names a file to say which file it is about ("of clip-12.mp4", "in call.wav"); a piece of
