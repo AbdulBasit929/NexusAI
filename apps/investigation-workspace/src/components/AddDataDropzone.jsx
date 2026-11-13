@@ -19,7 +19,8 @@ function nextItemId(file) {
   return `${file.name}:${file.size}:${file.lastModified ?? 0}:${intakeSequence}`
 }
 
-export function AddDataDropzone({ caseId, onAccepted, uploader = uploadEvidence }) {
+// `bare`: the heading is left out when the zone sits under a title of its own (the dialog of the evidence list).
+export function AddDataDropzone({ caseId, onAccepted, uploader = uploadEvidence, bare = false }) {
   const [items, setItems] = useState([])
   const [dragging, setDragging] = useState(false)
   const [dropStatus, setDropStatus] = useState('')
@@ -92,12 +93,14 @@ export function AddDataDropzone({ caseId, onAccepted, uploader = uploadEvidence 
   }
 
   return (
-    <section id="add-evidence" className="intake" aria-labelledby="intake-heading">
-      <div className="intake__heading">
-        <p className="section-kicker">Step 2</p>
-        <h2 id="intake-heading">Add the first evidence</h2>
-        <p>The case begins when the service accepts its first file.</p>
-      </div>
+    <section id="add-evidence" className="intake" aria-labelledby={bare ? undefined : 'intake-heading'} aria-label={bare ? 'Add evidence files' : undefined}>
+      {bare ? null : (
+        <div className="intake__heading">
+          <p className="section-kicker">Step 2</p>
+          <h2 id="intake-heading">Add the first evidence</h2>
+          <p>The case begins when the service accepts its first file.</p>
+        </div>
+      )}
       <div
         className={`intake__target${dragging ? ' intake__target--active' : ''}`}
         onDragEnter={event => { event.preventDefault(); setDragging(true); setDropStatus('Entered the evidence drop area.') }}
