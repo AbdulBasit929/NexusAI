@@ -1,3 +1,4 @@
+import { pictureText, plateReadings } from './mediaReadings.js'
 function finite(value) {
   if (value == null || value === '') return null
   const number = Number(value)
@@ -112,6 +113,11 @@ export function imageRegions(detail, citedBBox) {
       })
     }
   }
+  // what the service stores: a plate reading and the text read in a photo, each with its box in citation_locator and its reading in metadata.observation
+  for (const plate of plateReadings(detail).photo) {
+    if (plate.box) values.push({ id: plate.id, bbox: plate.box, label: plate.plate, kind: 'plate', confidence: plate.confidence, flags: plate.flags, cited: false })
+  }
+  for (const item of pictureText(detail)) values.push({ id: item.id, bbox: item.box, label: item.text, kind: 'text', confidence: item.confidence, flags: [], cited: false })
   if (citedBBox) {
     const bbox = bboxFrom(citedBBox)
     if (bbox?.every(value => value !== null)) values.unshift({ id: 'cited-region', bbox, label: 'Cited region', confidence: null, cited: true })

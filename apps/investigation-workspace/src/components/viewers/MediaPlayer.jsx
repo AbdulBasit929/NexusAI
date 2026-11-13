@@ -10,7 +10,7 @@ const BARS = 200
 // a seek bar carrying the moments the service derived (markers) and, for audio, the waveform; speed and volume. Keyboard:
 // Space plays, the arrow keys skip 5 s, M mutes, F goes full screen for video. The waveform is read from the file itself when
 // it is small enough to decode in the browser, and is simply absent otherwise, never estimated.
-export function MediaPlayer({ kind, src, label, markers = [], initialTime = null, mediaRef, durationHint = 0, onTime }) {
+export function MediaPlayer({ kind, src, label, markers = [], bands = [], initialTime = null, mediaRef, durationHint = 0, onTime, onMetadata, overlay = null }) {
   const local = useRef(null)
   const ref = mediaRef || local
   const frame = useRef(null)
@@ -78,6 +78,7 @@ export function MediaPlayer({ kind, src, label, markers = [], initialTime = null
   const progress = duration ? Math.min(1, current / duration) : 0
   return (
     <div ref={frame} className={`mp mp--${kind}`} role="group" aria-label={`${label}. Space plays or pauses, arrow keys skip five seconds.`} tabIndex={0} onKeyDown={onKey}>
+      <div className="mp__stage">
       <Media
         ref={ref}
         className="evidence-media mp__media"
@@ -88,9 +89,11 @@ export function MediaPlayer({ kind, src, label, markers = [], initialTime = null
         onClick={isVideo ? toggle : undefined}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
-        onLoadedMetadata={event => setDuration(event.currentTarget.duration || durationHint || 0)}
+        onLoadedMetadata={event => { setDuration(event.currentTarget.duration || durationHint || 0); onMetadata?.(event.currentTarget) }}
         onTimeUpdate={event => { setCurrent(event.currentTarget.currentTime); onTime?.(event.currentTarget.currentTime) }}
       />
+      {overlay}
+      </div>
       <div className="mp__bar">
         <div className="mp__track">
           {!isVideo && peaks ? (
@@ -99,6 +102,15 @@ export function MediaPlayer({ kind, src, label, markers = [], initialTime = null
             </svg>
           ) : <span className="mp__rail" aria-hidden="true"><i style={{ inlineSize: `${progress * 100}%` }} /></span>}
           <input type="range" className="mp__seek" min="0" max={duration || 0} step="0.1" value={Math.min(current, duration || 0)} aria-label="Seek" aria-valuetext={`${formatClock(current)} of ${formatClock(duration)}`} onChange={event => { if (ref.current) ref.current.currentTime = Number(event.target.value) }} />
+          {duration > 0 && bands.length ? (
+            <div className="mp__bands" aria-label="Spoken segments">
+              {bands.map(band => {
+                const left = Math.min(100, Math.max(0, (band.start / duration) * 100))
+                const width = Math.max(0.7, Math.min(100 - left, (((band.end ?? band.start + 1) - band.start) / duration) * 100))
+                return <button key={band.id} type="button" className={`mp__band mp__band--${band.tone || 'plain'}${band.active ? ' is-active' : ''}`} style={{ insetInlineStart: `${left}%`, inlineSize: `${width}%` }} onClick={() => { if (ref.current) ref.current.currentTime = band.start }} aria-label={band.label} title={band.label} />
+              })}
+            </div>
+          ) : null}
           {duration > 0 && markers.length ? (
             <div className="event-scrubber" aria-label="Derived events on the timeline">
               {markers.map(marker => <button key={marker.id} type="button" className={marker.cited ? 'arrival-highlight is-cited' : undefined} style={{ insetInlineStart: `${Math.min(100, Math.max(0, (marker.time / duration) * 100))}%` }} onClick={() => { if (ref.current) ref.current.currentTime = marker.time }} aria-label={`${marker.label} at ${marker.time} seconds`} title={`${marker.label} · ${formatClock(marker.time)}`} />)}

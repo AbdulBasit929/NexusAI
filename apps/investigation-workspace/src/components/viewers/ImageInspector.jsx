@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Eye, EyeOff, Maximize, RotateCw, ScanSearch, ZoomIn, ZoomOut } from 'lucide-react'
 import { EvidenceStrengthBadge } from '../Citations.jsx'
+import { LanguageText } from '../AnalystComponents.jsx'
+import { Conf, MediaBox, PlateChip, RegionCrop } from './MediaMarks.jsx'
 import { imageRegions } from '../../lib/viewerPresentation.js'
 import { strength } from '../../lib/viewerStrength.js'
 import { clampZoom, fitScale, focusRegion, normalizeBox } from '../../lib/viewerTools.js'
@@ -16,6 +18,7 @@ function boxStyle(fraction) {
 // drawn over it and listed beside it, and choosing one brings it to the middle of the frame.
 export function ImageInspector({ detail, objectUrl, citedBBox }) {
   const regions = useMemo(() => imageRegions(detail, parsed(citedBBox)), [detail, citedBBox])
+  const image = useRef(null)
   const [overlays, setOverlays] = useState(regions.length > 0)
   const [natural, setNatural] = useState(null)
   const [frame, setFrame] = useState(null)
@@ -89,23 +92,45 @@ export function ImageInspector({ detail, objectUrl, citedBBox }) {
       </header>
       <div className="ii__layout">
         <div ref={stage} className="ii__stage" tabIndex={0} role="group" aria-label="Image. Plus and minus zoom, arrow keys move, R rotates, 0 fits." onKeyDown={onKey} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onDoubleClick={reset}>
-          <div className="ii__layer" style={layer ? { inlineSize: layer.width, blockSize: layer.height, transform: `translate(-50%, -50%) translate(${view.x}px, ${view.y}px) rotate(${view.turn}deg) scale(${view.zoom})` } : { visibility: 'hidden' }}>
-            <img src={objectUrl} alt={`Source ${detail.item?.original_filename || 'image'}`} draggable="false" onLoad={event => setNatural({ width: event.currentTarget.naturalWidth || 1, height: event.currentTarget.naturalHeight || 1 })} />
+          <div className="ii__layer" style={layer ? { inlineSize: layer.width, blockSize: layer.height, transform: `translate(-50%, -50%) translate(${view.x}px, ${view.y}px) rotate(${view.turn}deg) scale(${view.zoom})`, '--zoom': view.zoom, '--turn': view.turn } : { visibility: 'hidden' }}>
+            <img ref={image} src={objectUrl} alt={`Source ${detail.item?.original_filename || 'image'}`} draggable="false" onLoad={event => setNatural({ width: event.currentTarget.naturalWidth || 1, height: event.currentTarget.naturalHeight || 1 })} />
             {overlays && natural ? regions.map(region => {
               const fraction = normalizeBox(region.bbox, natural)
-              return fraction ? <span key={region.id} className={`evidence-overlay${region.cited ? ' evidence-overlay--cited arrival-highlight' : ''}${chosen === region.id ? ' is-chosen' : ''}`} style={boxStyle(fraction)}><span>{region.label}</span>{region.confidence == null ? null : <small>{Math.round(region.confidence * 100)}%</small>}</span> : null
+              return fraction ? <MediaBox key={region.id} style={boxStyle(fraction)} tone={region.kind === 'plate' ? 'plate' : 'text'} label={region.label} below={fraction[1] < 0.08} chosen={chosen === region.id} cited={region.cited} /> : null
             }) : null}
           </div>
         </div>
         {regions.length ? (
-          <ul className="overlay-key ii__regions" aria-label="Regions read from the image">
-            {regions.map(region => (
-              <li key={region.id} className={chosen === region.id ? 'is-chosen' : undefined}>
-                <button type="button" onClick={() => focus(region)} aria-label={`Show region ${region.label}`}><ScanSearch aria-hidden="true" /><span>{region.label}</span></button>
-                <EvidenceStrengthBadge strength={strength(region.confidence, region.cited)} />
-              </li>
-            ))}
-          </ul>
+          <div className="mx-readings mx-readings--side">
+            {[['plate', 'Plates read'], ['text', 'Text in the picture']].map(([kind, title]) => {
+              const items = regions.filter(region => (region.kind || 'text') === kind)
+              if (!items.length) return null
+              return (
+                <section key={kind} aria-label={title}>
+                  <h3 className="mx-title">{title}<span>{items.length}</span></h3>
+                  {kind === 'plate' ? <p className="mx-readings__note">Machine readings. Check each plate by eye; a reading is not an identification.</p> : null}
+                  <ul className="mx-list">
+                    {items.map(region => {
+                      const fraction = normalizeBox(region.bbox, natural)
+                      const pixels = fraction && natural ? [fraction[0] * natural.width, fraction[1] * natural.height, fraction[2] * natural.width, fraction[3] * natural.height] : null
+                      return (
+                        <li key={region.id} className={`mx-item${chosen === region.id ? ' is-chosen' : ''}`}>
+                          <button type="button" className="mx-item__main mx-item__main--stack" onClick={() => focus(region)} aria-label={`Show ${kind === 'plate' ? 'plate' : 'text'} ${region.label} on the image`}>
+                            {pixels ? <RegionCrop source={image.current} box={pixels} height={kind === 'plate' ? 40 : 28} label={`Original region of ${region.label}`} /> : null}
+                            <span className="mx-item__line">
+                              {kind === 'plate' ? <PlateChip>{region.label}</PlateChip> : <LanguageText className="mx-item__text">{region.label}</LanguageText>}
+                              {region.cited ? <EvidenceStrengthBadge strength={strength(region.confidence, true)} /> : <Conf value={region.confidence} />}
+                            </span>
+                            {(region.flags || []).map(flag => <span className="mx-flag" key={flag}>{flag}</span>)}
+                          </button>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </section>
+              )
+            })}
+          </div>
         ) : <p className="viewer-gap">No OCR or plate regions were supplied with this evidence.</p>}
       </div>
     </section>

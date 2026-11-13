@@ -4,18 +4,24 @@ import { LanguageText } from './AnalystComponents.jsx'
 import { VirtualizedTable } from './VirtualizedTable.jsx'
 import { humanizeKey } from '../lib/format.js'
 import { semanticCatalog } from '../lib/semanticCatalog.js'
-import { lineage, transcriptCues, transcriptText, videoEvents } from '../lib/viewerPresentation.js'
+import { lineage, transcriptText, videoEvents } from '../lib/viewerPresentation.js'
+import { audioSegments } from '../lib/audioSegments.js'
+import { plateReadings, videoText } from '../lib/mediaReadings.js'
 import { strength } from '../lib/viewerStrength.js'
 import { formatClock } from '../lib/viewerTools.js'
 import { DocumentReader } from './viewers/DocumentReader.jsx'
 import { HighlightedText } from './viewers/HighlightedText.jsx'
 import { ImageInspector } from './viewers/ImageInspector.jsx'
 import { MediaPlayer } from './viewers/MediaPlayer.jsx'
+import { SpeechBanner, languageName } from './viewers/SpeechBanner.jsx'
+import { VideoBoxes } from './viewers/MediaMarks.jsx'
+import { groupsFromReads, VideoPlates } from './viewers/VideoPlates.jsx'
 import { TranscriptPanel } from './viewers/TranscriptPanel.jsx'
 
 export { HighlightedText }
 
-function number(value) { const result = Number(value); return Number.isFinite(result) ? result : null }
+// no time asked for (null, an empty parameter) is no time, not second 0
+function number(value) { if (value == null || value === '') return null; const result = Number(value); return Number.isFinite(result) ? result : null }
 
 export function LineagePanel({ detail, version }) {
   const model = lineage(detail, version)
@@ -54,16 +60,19 @@ export function ImageViewer(props) { return <ImageInspector {...props} /> }
 
 export function AudioViewer({ detail, objectUrl, sourceTime, charSpan }) {
   const media = useRef(null)
-  const cues = useMemo(() => transcriptCues(detail), [detail])
+  const speech = useMemo(() => audioSegments(detail), [detail])
+  const cues = speech.segments
   const [current, setCurrent] = useState(number(sourceTime) || 0)
   const cited = number(sourceTime)
   function seek(time) { if (media.current) { media.current.currentTime = time; media.current.play().catch(() => {}) } }
   const plain = transcriptText(detail)
+  const bands = useMemo(() => cues.map((cue, index) => ({ id: cue.id, start: cue.start, end: cue.end, tone: cue.status === 'SEARCH_LEAD' ? 'caution' : cue.status === 'LOW_RESOURCE_LANGUAGE' ? 'danger' : 'plain', active: cues[index].start <= current && (cue.end == null ? index === cues.length - 1 || current < cues[index + 1].start : current < cue.end), label: `Segment ${index + 1}, ${formatClock(cue.start)}${cue.end ? ` to ${formatClock(cue.end)}` : ''}${cue.language ? `, ${languageName(cue.language)}` : ''}` })), [cues, current])
   return (
-    <section className="source-viewer audio-viewer" aria-labelledby="audio-viewer-heading">
+    <section className="source-viewer audio-viewer mx" aria-labelledby="audio-viewer-heading">
       <header><h2 id="audio-viewer-heading">Audio source</h2>{cited !== null ? <EvidenceStrengthBadge strength={strength(null, true)} ariaLabel="Evidence strength" /> : null}</header>
-      <MediaPlayer kind="audio" src={objectUrl} label="Audio player" mediaRef={media} initialTime={cited} durationHint={number(detail.item?.metadata?.duration_seconds) || 0} onTime={setCurrent} markers={cited !== null ? [{ id: 'cited', time: cited, label: 'Cited moment', cited: true }] : []} />
-      {cues.length ? <TranscriptPanel cues={cues} time={current} onSeek={seek} cited={cited} /> : plain ? <><p className="viewer-gap">A transcript was supplied without timestamp cues, so synchronized seeking and speaker turns are unavailable.</p><HighlightedText text={plain} span={charSpan} /></> : <p className="viewer-gap">No transcript was supplied for this audio.</p>}
+      {cues.length ? <SpeechBanner model={speech} /> : null}
+      <MediaPlayer kind="audio" src={objectUrl} label="Audio player" mediaRef={media} initialTime={cited} durationHint={number(detail.item?.metadata?.duration_seconds) || speech.audioSeconds || 0} onTime={setCurrent} markers={cited !== null ? [{ id: 'cited', time: cited, label: 'Cited moment', cited: true }] : []} bands={bands} />
+      {cues.length ? <TranscriptPanel cues={cues} time={current} onSeek={seek} cited={cited} stopAt={speech.complete ? null : speech.readUntil} overall={speech.status} /> : plain ? <><p className="viewer-gap">A transcript was supplied without timestamp cues, so synchronized seeking and speaker turns are unavailable.</p><HighlightedText text={plain} span={charSpan} /></> : <p className="viewer-gap">No transcript was supplied for this audio.</p>}
     </section>
   )
 }
@@ -73,6 +82,12 @@ export function VideoViewer({ detail, objectUrl, frame }) {
   const canvas = useRef(null)
   const [capture, setCapture] = useState(null)
   const events = useMemo(() => videoEvents(detail, frame), [detail, frame])
+  const readings = useMemo(() => plateReadings(detail), [detail])
+  const plates = useMemo(() => groupsFromReads(readings.groups, readings.reads), [readings])
+  const words = useMemo(() => videoText(detail), [detail])
+  const [current, setCurrent] = useState(0)
+  const [natural, setNatural] = useState(null)
+  const bands = useMemo(() => plates.map(group => ({ id: group.id, start: group.first, end: group.last, tone: 'plate', active: current >= group.first - 0.05 && current <= group.last + 0.05, label: `Plate ${group.plate}, ${formatClock(group.first)} to ${formatClock(group.last)}` })), [plates, current])
   useEffect(() => () => { if (capture) URL.revokeObjectURL(capture) }, [capture])
   function seek(time) { if (media.current) media.current.currentTime = time }
   function extractFrame() {
@@ -87,10 +102,12 @@ export function VideoViewer({ detail, objectUrl, frame }) {
     }, 'image/png')
   }
   return (
-    <section className="source-viewer video-viewer" aria-labelledby="video-viewer-heading">
+    <section className="source-viewer video-viewer mx" aria-labelledby="video-viewer-heading">
       <header><h2 id="video-viewer-heading">Video source</h2><button type="button" onClick={extractFrame}>Extract current frame</button></header>
-      <MediaPlayer kind="video" src={objectUrl} label="Video player" mediaRef={media} initialTime={number(frame)} durationHint={number(detail.item?.metadata?.duration_seconds) || 0} markers={events} />
-      {events.length ? <ol className="video-events">{events.map(event => <li key={event.id} className={event.cited ? 'is-cited' : undefined}><button type="button" onClick={() => seek(event.time)}><time>{formatClock(event.time)}</time><span>{event.label}</span></button><EvidenceStrengthBadge strength={strength(event.confidence, event.cited)} /></li>)}</ol> : <p className="viewer-gap">No timestamped derived events were supplied for this video.</p>}
+      <div className={`mx__grid${plates.length ? ' mx__grid--wide' : ''}`}>
+      <div className="mx__stage"><MediaPlayer kind="video" src={objectUrl} label="Video player" mediaRef={media} initialTime={number(frame)} durationHint={number(detail.item?.metadata?.duration_seconds) || 0} markers={plates.length ? [] : events} bands={bands} onTime={setCurrent} onMetadata={node => setNatural({ width: node.videoWidth, height: node.videoHeight })} overlay={<VideoBoxes plates={plates} texts={words} time={current} media={media} natural={natural} />} /></div>
+      {plates.length ? <VideoPlates groups={plates} texts={words} time={current} onSeek={seek} media={media} /> : events.length ? <ol className="video-events">{events.map(event => <li key={event.id} className={event.cited ? 'is-cited' : undefined}><button type="button" onClick={() => seek(event.time)}><time>{formatClock(event.time)}</time><span>{event.label}</span></button><EvidenceStrengthBadge strength={strength(event.confidence, event.cited)} /></li>)}</ol> : <p className="viewer-gap">No timestamped derived events were supplied for this video.</p>}
+      </div>
       <canvas ref={canvas} hidden />
       {capture ? <figure className="frame-capture"><img src={capture} alt={`Extracted video frame at ${media.current?.currentTime?.toFixed(1) || 'current'} seconds`} /><figcaption><a href={capture} download="nexusai-frame.png">Download extracted frame</a></figcaption></figure> : null}
     </section>
