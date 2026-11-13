@@ -37,6 +37,7 @@ AREAS = [
     ("cells", "Cell sites", "The cell site a number used most and how many different cell sites it used. A cell site is a coverage area, not a position.", "Ask this case, or Places."),
     ("registrations", "Registrations", "Which SIM identity a number is registered with and the status of the registration. A registration is what a source file states, not who holds the number.", "Ask this case."),
     ("inventory", "The evidence files", "How many files the case holds, in total and by type.", "Ask this case, or Evidence."),
+    ("speech", "Speech recordings (Pashto, Urdu, English)", "The ten audio recordings of the case, public speech of real speakers: how many there are and how long, which are in Pashto, Urdu or English, how many segments a recording has, which recordings say a word, and what a recording says. The text is a machine transcript; Pashto is a search lead, not a transcript.", "Ask this case; open a recording to hear it and read the transcript beside the player."),
     ("imgplate", "Plates in photos", "Which photos show a plate, and what is said when no photo shows it. The photos are constructed (a real car photo with an Orion plate written on it).", "Ask this case; a reading is a model's candidate, shown as an exact match or as a similar reading to check by eye."),
     ("videos", "Videos, speech and text read from them", "The five real video clips of the case: how many plates were read in a clip, when the first appears, which plate stays in view longest, how long a clip is, which clips have sound, speech segments and pieces of text read from the pictures. The plates themselves are masked here.", "Ask this case; under \"Behind this answer\" each reading opens the video at its second."),
     ("vsearch", "Typed plate search over the videos", "The plate that stays in view longest in each clip, typed as an analyst would type it: every clip that holds a reading of exactly that plate must be named. The plate is masked here.", "Ask this case: \"Which photos or videos show the plate ...?\" The answer names each clip and the moments, and lists a reading that differs by one or two characters as \"check by eye\"."),
@@ -57,6 +58,17 @@ def render(expect):
         return str(expect["value"])
     if kind == "set":
         return ", ".join(str(v) for v in expect["values"])
+    if kind == "files":
+        return ", ".join(str(v) for v in expect["values"]) if expect["values"] else "none"
+    if kind == "words":
+        parts = []
+        if expect.get("any"):
+            parts.append("one of: " + ", ".join(expect["any"]))
+        if expect.get("all"):
+            parts.append("all of: " + ", ".join(expect["all"]))
+        if expect.get("forbid"):
+            parts.append("and not: " + ", ".join(expect["forbid"]))
+        return "; ".join(parts)
     if kind == "top":
         extra = (" (before " + ", ".join(expect["rivals"]) + ")") if expect.get("rivals") else ""
         return str(expect["value"]) + extra + ((" - %s" % (("{:,.2f}".format(expect["count"]) if isinstance(expect["count"], float) else "{:,}".format(expect["count"])))) if expect.get("count") else "")
@@ -112,7 +124,7 @@ def verdict(item, result, private=None):
     if kind == "scalar":
         value = float(expect["value"])
         found = numbers(blob)
-        if any(abs(n - value) < 0.006 for n in found):
+        if any(abs(n - value) <= float(expect.get("tolerance", 0.006)) for n in found):
             return "correct"
         if value == 0 and re.search(r"no row matches|no record|nothing", blob, re.I):
             return "correct"
@@ -121,6 +133,19 @@ def verdict(item, result, private=None):
         return "correct" if str(expect["value"]) in blob else "wrong"
     if kind == "set":
         return "correct" if all(str(v) in blob for v in expect["values"]) else "wrong"
+    if kind == "files":
+        # the files the answer names must be exactly the expected ones among the files of its universe (a pattern): a missing file or an extra one is wrong
+        named = set(re.findall(expect.get("universe", r"[\w.-]+\.\w{2,4}"), blob))
+        wanted = set(str(v) for v in expect["values"])
+        if not wanted:
+            return "correct" if not named or re.search(r"no row matches|no record|no recording|none|nothing|0 ", blob, re.I) else "wrong"
+        return "correct" if named == wanted else "wrong"
+    if kind == "words":
+        low = blob.lower()
+        def has(word):
+            return re.search(r"(?<![\w])" + re.escape(str(word).lower()) + r"(?![\w])", low, re.U) is not None
+        ok = (not expect.get("any") or any(has(w) for w in expect["any"])) and all(has(w) for w in expect.get("all", [])) and not any(has(w) for w in expect.get("forbid", []))
+        return "correct" if ok else "wrong"
     if kind == "top":
         value = str(expect["value"])
         ties = [str(t) for t in expect.get("ties", [])]
@@ -198,7 +223,7 @@ def main(argv):
     for q in bank["questions"] + typed:
         item = dict(q)
         item["expected_text"] = render(q["expect"])
-        item["kind_of_check"] = {"scalar": "a number", "text": "a time or a day", "set": "a list of values", "top": "the first of a ranking", "video": "what the stored readings of the clips say"}.get(q["expect"]["kind"], "")
+        item["kind_of_check"] = {"scalar": "a number", "text": "a time or a day", "set": "a list of values", "top": "the first of a ranking", "video": "what the stored readings of the clips say", "files": "exactly these recordings", "words": "words the answer must contain"}.get(q["expect"]["kind"], "")
         r = results.get(q["id"])
         if r:
             v = verdict(item, r, private_values)

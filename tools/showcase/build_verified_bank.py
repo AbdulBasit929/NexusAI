@@ -19,6 +19,7 @@ import argparse
 import datetime
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -30,6 +31,7 @@ import video_question_bank as vqb  # noqa: E402  (its key is computed from the s
 COLLECTION = "orion-lahore-reference-20261030"
 PLATE_KEY = os.environ.get("ORION_PLATE_KEY", "C:/NexusAI-Showcase/orion/key/plate-images-key.json")  # the construction key of the photos added to the case (synthetic plates only)
 PRIVATE_BANK = os.environ.get("ORION_VIDEO_PRIVATE_BANK", "C:/NexusAI-Showcase/orion/key/video-private-bank.json")  # plates read from the owner's real footage: this machine only
+SPEECH_KEY = os.environ.get("ORION_SPEECH_KEY", "C:/NexusAI-Showcase/orion/key/speech-pack-key.json")  # the speech pack: language and length of each recording and the text it was recorded from (public speech)
 VIDEO_SUFFIXES = (".mp4", ".mov", ".avi", ".mkv")
 TZ = "Asia/Karachi"
 SUBS_VOICE_ONLY = ["923000001005"]
@@ -118,6 +120,85 @@ def typed_plate_searches(collection):
         plate = max(mine, key=lambda g: (float(g["last"]) - float(g["first"]), g["plate"]))["plate"]
         searches.append((plate, sorted({g["f"] for g in groups if g["plate"] == plate})))
     return searches
+
+
+SPEECH_ROWS = ("select e.original_filename, coalesce((d.citation_locator ->> 'start_seconds')::numeric, (d.metadata -> 'observation' ->> 'start_seconds')::numeric), "
+               "coalesce((d.citation_locator ->> 'end_seconds')::numeric, (d.metadata -> 'observation' ->> 'end_seconds')::numeric), d.metadata -> 'observation' ->> 'text' "
+               "from forensic.derived_artifacts d join forensic.evidence_items e on e.tenant_id = d.tenant_id and e.collection_id = d.collection_id and e.evidence_id = d.evidence_id "
+               "where d.collection_id = '%s' and e.modality = 'audio' and d.artifact_type = 'forensics.audio-timestamp-segment/v1' and d.processing_status = 'completed' "
+               "order by 1, 2")
+LANGUAGE_WORDS = {"ps": (["Pashto"], ["Urdu", "English", "Persian", "Punjabi"]), "ur": (["Urdu"], ["Pashto", "English", "Hindi", "Punjabi"]), "en": (["English"], ["Pashto", "Urdu", "Hindi", "Punjabi"])}
+LANGUAGE_NAMES = {"ps": "Pashto", "ur": "Urdu", "en": "English"}
+
+
+def tokens(text):
+    return re.findall(r"[^\W\d_]+", text or "", re.U)
+
+
+def add_speech(bank, collection):
+    """Questions about the audio recordings of the case (the speech pack: public speech of real speakers, see docs/data/speech-lab-results-20261112.md section 10). Three kinds of key, none of them the engine:
+    the pack's own truth (language and length of each recording), the stored readings read straight from the artifacts table (segments, words and what a recording says: this tests the engine over the data),
+    and, separately in tools/media_data/speech_pack_report.py, the reference text (this tests the reading). The questions are written the way an analyst would put them."""
+    if not os.path.exists(SPEECH_KEY):
+        return
+    pack = {p["file"]: p for p in json.load(open(SPEECH_KEY, encoding="utf-8"))}
+    stored = {}
+    for name, start, end, text in psql(SPEECH_ROWS % collection):
+        stored.setdefault(name, []).append({"start": float(start), "end": float(end), "text": text})
+    files = sorted(pack)
+    missing = [f for f in files if f not in stored]
+    if missing:
+        raise SystemExit("the speech pack is not fully read yet (no segment for %s)" % ", ".join(missing))
+    universe = r"voice-note-\d+\.wav"
+    seconds = {f: pack[f]["seconds"] for f in files}
+    add = bank.add
+
+    def audio_files(**where):
+        return [f for f in files if all(pack[f][k] == v for k, v in where.items())]
+
+    n_audio = int(one("select count(*) from forensic.evidence_items i where i.collection_id = '%s' and i.modality = 'audio'" % collection))
+    if n_audio != len(files):
+        raise SystemExit("the case holds %d audio files but the speech pack has %d" % (n_audio, len(files)))
+    add("speech", "audio_count", "How many audio recordings are in this case?", {"kind": "scalar", "value": n_audio}, "the audio files of the case")
+    add("speech", "audio_total_seconds", "How long are all the audio recordings together, in seconds?", {"kind": "scalar", "value": round(sum(seconds.values()), 1), "unit": "seconds", "tolerance": 1.5}, "the length of each recording is the pack's own; a reading ends where its last segment ends, so one second and a half is allowed over ten recordings")
+    longest = max(files, key=lambda f: seconds[f])
+    add("speech", "audio_longest", "Which audio recording is the longest?", {"kind": "top", "value": longest}, "the first row must be this recording")
+    add("speech", "audio_longer_than", "Which audio recordings are longer than 9 seconds?", {"kind": "files", "values": sorted(f for f in files if seconds[f] > 9), "universe": universe}, "exactly these; no recording is within 0.2 s of the limit")
+    add("speech", "audio_shorter_than", "Which audio recordings are shorter than 7 seconds?", {"kind": "files", "values": sorted(f for f in files if seconds[f] < 7), "universe": universe}, "exactly these; no recording is within 0.7 s of the limit")
+    for f in (files[2], files[4], files[7]):
+        add("speech", "audio_length", "How long is %s, in seconds?" % f, {"kind": "scalar", "value": seconds[f], "unit": "seconds", "tolerance": 0.6}, "the pack's own length; the reading ends where its last segment ends")
+    # language: the truth is the pack's; an upload is made with no language chosen, so the worker has to find it
+    for code in ("ps", "ur", "en"):
+        mine = audio_files(language=code)
+        add("speech", "audio_in_language", "Which audio recordings are in %s?" % LANGUAGE_NAMES[code], {"kind": "files", "values": mine, "universe": universe}, "no language was chosen at upload: the worker identified it; exactly these recordings")
+        add("speech", "audio_language_count", "How many audio recordings are spoken in %s?" % LANGUAGE_NAMES[code], {"kind": "scalar", "value": len(mine)})
+    for f, how in ((files[4], "What language is %s in?"), (files[0], "In which language is %s spoken?"), (files[8], "What language does %s use?"), (files[9], "What language is %s in?")):
+        code = pack[f]["language"]
+        add("speech", "audio_language_of", how % f, {"kind": "words", "any": LANGUAGE_WORDS[code][0] + [code], "forbid": LANGUAGE_WORDS[code][1]}, "the language the pack says the speaker used (%s)" % LANGUAGE_NAMES[code])
+    add("speech", "audio_review", "Which audio recordings need manual review?", {"kind": "files", "values": files, "universe": universe}, "every machine transcript needs a person's check, so all of them")
+    # segments: the stored readings
+    for f in (files[1], files[3]):
+        add("speech", "audio_segments", "How many speech segments does %s have?" % f, {"kind": "scalar", "value": len(stored[f])}, "counted in the stored readings")
+    add("speech", "audio_segments_all", "How many speech segments do the audio recordings have in all?", {"kind": "scalar", "value": sum(len(v) for v in stored.values())}, "counted in the stored readings of the audio files (the soundtracks of the video clips are not counted)")
+    # words: a word that the stored reading holds, in a recording that was recorded from a text that holds it
+    seen = set()
+    for code, phrasing in (("en", "Which audio recordings mention the word %s?"), ("ur", "Which audio recordings say %s?"), ("ps", "Which audio recordings contain the word %s?"), ("en", "Find the recordings where someone says %s"), ("ur", "Which audio recordings mention the word %s?")):
+        for f in audio_files(language=code):
+            reference = [r.lower() for r in tokens(pack[f]["reference"])]
+            candidates = [w for w in tokens(" ".join(s["text"] for s in stored[f])) if len(w) >= 4 and w.lower() not in seen and w.lower() in reference]
+            if candidates:
+                word = sorted(candidates, key=lambda w: (-len(w), w))[0]
+                seen.add(word.lower())
+                hits = sorted(g for g in files if word.lower() in [w.lower() for w in tokens(" ".join(s["text"] for s in stored[g]))])
+                said = sorted(g for g in files if word.lower() in [w.lower() for w in tokens(pack[g]["reference"])])
+                add("speech", "audio_word_search", phrasing % word, {"kind": "files", "values": hits, "universe": universe},
+                    "the recordings whose stored reading holds the word (%s); the recordings whose reference text holds it: %s" % (", ".join(hits), ", ".join(said) or "none"))
+                break
+    # what a recording says: three words of its stored reading must be in the answer
+    for f, phrasing in ((files[2], "What does %s say?"), (files[0], "Give me the transcript of %s"), (files[1], "What is said in %s?"), (files[9], "Read me %s")):
+        words = [w for w in tokens(" ".join(s["text"] for s in stored[f])) if len(w) >= 4][:6]
+        pick = [words[0], words[2], words[4]] if len(words) >= 5 else words[:3]
+        add("speech", "audio_transcript", phrasing % f, {"kind": "words", "all": pick}, "three words of the stored reading, which must be in the answer; the reading is a machine transcript (Pashto: a search lead)")
 
 
 def build():
@@ -274,6 +355,7 @@ def build():
     # ------------------------------------------------------------------ the video clips added to the case (real footage: the plates stay in the private bank)
     for question in video_questions(COLLECTION):
         add_video(bank, question)
+    add_speech(bank, COLLECTION)
     typed = Bank()
     for plate, clips in typed_plate_searches(COLLECTION):
         typed.add("vsearch", "typed_plate_search", "Which photos or videos show the plate %s?" % plate, {"kind": "video", "vkind": "named", "value": clips, "what": "files"},

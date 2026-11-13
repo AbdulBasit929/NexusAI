@@ -234,6 +234,11 @@ class OmniCTCReader:
         self._penalty = None
         import gc
         gc.collect()
+        try:        # the allocator keeps freed pages of a big model: hand them back to the system (Linux only; nothing happens elsewhere)
+            import ctypes
+            ctypes.CDLL("libc.so.6").malloc_trim(0)
+        except (OSError, AttributeError):
+            pass
 
     def read(self, samples) -> tuple[str, float | None]:
         """Text and mean confidence (the mean of the top probability over the frames that emit a piece) of one piece of at most 40 seconds."""
