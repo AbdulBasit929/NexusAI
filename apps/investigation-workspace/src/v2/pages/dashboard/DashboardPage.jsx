@@ -3,14 +3,13 @@ import { CircleAlert } from 'lucide-react'
 import { configuredCaseIds } from '../../../lib/apiClient.js'
 import { dashboardKpis, dashboardRowState, latestEvidenceActivity, parseTimestamp } from '../../../lib/dashboardCases.js'
 import { useCaseActivity } from '../../../lib/useCaseActivity.js'
-import { useCaseRecords } from '../../../lib/useCaseRecords.js'
 import { formatNumber } from '../../../lib/format.js'
 import { summariseCase, useConfiguredCaseOverviews } from '../../../lib/useCaseOverview.js'
 import { listDrafts, useQuestionHistoryAcross } from '../../../lib/workspaceState.js'
 import { AppShell } from '../../shell/AppShell.jsx'
 import { useEngineDailyAcross, useEngineHealthAcross, useTypingReportsAcross } from './data.js'
 import { AnswersPanel, DataQualityPanel, EvidenceTypesPanel, RecordKindsPanel, TimeToReadyPanel, TimelinePanel } from './insights.jsx'
-import { answerQuality, caseStates, caseTimelines, dailyQuestions, dataNotes, modalityMix, needsYou, recordKinds, setAside, timeBasis, timeToReady } from './model.js'
+import { answerQuality, caseTimelines, dailyQuestions, dataNotes, modalityMix, needsYou, recordKinds, setAside, timeBasis, timeToReady } from './model.js'
 import { CasesPanel } from './panels.jsx'
 import { Indicators } from './indicators.jsx'
 import { FirstRun, Hero, LatestPanel, NeedsPanel, ResumePanel, ServiceDown, latestItems, resumeEntries } from './sections.jsx'
@@ -27,7 +26,6 @@ export default function DashboardPage() {
   const covered = useMemo(() => cases.slice(0, READ_LIMIT), [cases.join('|')]) // eslint-disable-line react-hooks/exhaustive-deps
   const recent = useQuestionHistoryAcross(cases)
   const { states: overviews, reload } = useConfiguredCaseOverviews(cases)
-  const { records } = useCaseRecords()
   useEffect(() => { globalThis.document.title = 'Dashboard · NexusAI' }, [])
 
   const rows = useMemo(() => cases.map((caseId, index) => {
@@ -70,7 +68,6 @@ export default function DashboardPage() {
   const typingLoading = loading || typing.pending || (!reports.length && !typing.failed.length)
   const timelineLoading = loading || activity.status !== 'ready' || (!activity.results.length && !activity.failures.length)
   const answersLoading = !quality.reported && !engine.failed.length
-  const caseStateCounts = useMemo(() => caseStates(records, cases), [records, cases])
 
   useEffect(() => {
     if (!hasProcessing) return undefined
@@ -98,7 +95,7 @@ export default function DashboardPage() {
               {unreadable > 0 ? (
                 <p className="nx-callout nx-callout--warn" role="status"><CircleAlert aria-hidden="true" /><span>{formatNumber(unreadable)} of {formatNumber(cases.length)} not reporting. <button type="button" className="nx-link-button" onClick={reload}>Try again</button></span></p>
               ) : null}
-              <Indicators kpis={kpis} rows={rows} states={caseStateCounts} quality={quality} daily={daily} needs={needs} loading={loading} />
+              <Indicators kpis={kpis} rows={rows} quality={quality} daily={daily} needs={needs} loading={loading} />
               <div className="nx-board nx-board--hero" data-band="hero">
                 <div className="nx-cell nx-cell--timeline"><TimelinePanel timelines={timelines} loading={timelineLoading} failures={activity.failures} /></div>
                 <div className="nx-cell nx-cell--answers"><AnswersPanel quality={quality} daily={daily} loading={answersLoading} /></div>

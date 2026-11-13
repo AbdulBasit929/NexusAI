@@ -298,6 +298,13 @@ export function caseStates(records, caseIds) {
   return counts
 }
 
+// One entry for each case, in the order the row of marks is read: ready, still processing, needs review, then the cases that have not reported. A case that is still being read counts with the latter.
+const MARK_ORDER = ['ready', 'processing', 'review', 'other']
+export function caseStateMix(rows) {
+  const stateOf = row => (row.status === 'complete' ? 'ready' : row.status === 'processing' ? 'processing' : row.status === 'attention' ? 'review' : 'other')
+  return (rows || []).map(row => ({ caseId: row.caseId, state: stateOf(row) })).sort((left, right) => MARK_ORDER.indexOf(left.state) - MARK_ORDER.indexOf(right.state))
+}
+
 // The cases that hold the most accepted rows, largest first: where the volume is.
 export function largestCases(rows, limit = 4) {
   return (rows || []).filter(row => row.summary && row.summary.acceptedRows > 0).map(row => ({ caseId: row.caseId, records: row.summary.acceptedRows }))

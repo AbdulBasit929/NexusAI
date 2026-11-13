@@ -29,12 +29,6 @@
   /* a panel body is a size container: what a cell has room for (rows, lanes) is asked of the cell, not guessed from the window */
   .nx-board .nx-panel__body { container: panel / size; }
 
-  /* ---------- the indicator band, one height ---------- */
-  .nx-tile { gap: 2px; padding: 10px var(--nx-s-4); }
-  .nx-tile__figure { font-size: 1.6rem; line-height: 1.15; }
-  .nx-tile__visual { min-block-size: 28px; margin-block: var(--nx-s-1); }
-  .nx-tile__caption { min-block-size: 1.3em; }
-
   /* ---------- the table button and the dialog it opens ---------- */
   .nx-twin__open { flex: none; display: inline-grid; place-items: center; inline-size: 28px; block-size: 28px; margin-inline-start: auto; padding: 0; border: 0; border-radius: var(--nx-r-2); background: transparent; color: var(--nx-text-3); cursor: pointer; }
   .nx-twin__open:hover { background: var(--nx-hover); color: var(--nx-text); }

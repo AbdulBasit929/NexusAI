@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import DashboardPage from './DashboardPage.jsx'
 import { TimelinePanel } from './insights.jsx'
 import { resetDashboardReads } from './data.js'
-import { alignTimelines, answerQuality, caseStates, durationHistogram, caseTimelines, dailyQuestions, dataNotes, declineText, formatDuration, heatShare, modalityMix, needsYou, niceCeiling, recordKinds, setAside, timeBasis, timeToReady } from './model.js'
+import { alignTimelines, answerQuality, caseStateMix, caseStates, durationHistogram, caseTimelines, dailyQuestions, dataNotes, declineText, formatDuration, heatShare, modalityMix, needsYou, niceCeiling, recordKinds, setAside, timeBasis, timeToReady } from './model.js'
 import { cleanRate, latestItems, resumeEntries, statusCounts } from './sections.jsx'
 import { BarStrip, DotRow, Histogram, RangeStrip, SegBar } from '../../ui/micro.jsx'
 import { CountUp } from '../../ui/CountUp.jsx'
@@ -226,6 +226,14 @@ describe('caseStates', () => {
   })
 })
 
+describe('caseStateMix', () => {
+  it('gives one entry for each case, those that need a look after those that are ready, and counts a case still being read with the unread', () => {
+    const rows = [{ caseId: 'a', status: 'complete' }, { caseId: 'b', status: 'attention' }, { caseId: 'c', status: 'loading' }, { caseId: 'd', status: 'processing' }, { caseId: 'e', status: 'complete' }]
+    expect(caseStateMix(rows).map(item => `${item.caseId}:${item.state}`)).toEqual(['a:ready', 'e:ready', 'd:processing', 'b:review', 'c:other'])
+    expect(caseStateMix(undefined)).toEqual([])
+  })
+})
+
 describe('the small pictures', () => {
   it('draws the parts of a whole in proportion and leaves out a part with nothing', () => {
     const { container } = render(<SegBar label="Split" parts={[{ id: 'a', value: 3, colour: 'red' }, { id: 'b', value: 0, colour: 'blue' }, { id: 'c', value: 1, colour: 'green' }]} />)
@@ -300,9 +308,9 @@ describe('the dashboard page', () => {
     expect(states.textContent).toMatch(/2 need review/)
     const figures = screen.getByRole('region', { name: 'Figures' })
     expect(figures.textContent).toMatch(/Cases\s*2/)
-    expect(figures.textContent).toMatch(/Files ready\s*4\s*\/\s*8/)
+    expect(figures.textContent).toMatch(/Files ready.*4\s*\/\s*8/)
     expect(figures.textContent).toMatch(/Records\s*240/)
-    expect(figures.textContent).toMatch(/Needs you\s*2/)
+    expect(figures.textContent).toMatch(/Needs you.*2/)
 
     // the files that did not finish come from the status; the notes to read come from the typing report, which arrives later
     const needs = screen.getByRole('region', { name: 'Needs you' })

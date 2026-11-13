@@ -3,11 +3,11 @@
 // stylesheet with logical properties, so a right-to-left page mirrors them without a line of script.
 
 // Parts of a whole in one row, with a 2px surface gap between them (the gap separates the parts; no outline is drawn). `parts`: [{ id, value, colour, title }].
-export function SegBar({ parts, label, height = 8 }) {
+export function SegBar({ parts, label, height = 8, probe = false }) {
   const shown = parts.filter(part => part.value > 0)
   return (
     <span className="nx-seg" role="img" aria-label={label} style={{ blockSize: height }}>
-      {shown.map((part, index) => <i key={part.id} className="nx-seg__part" style={{ flexGrow: part.value, background: part.colour, '--i': index }} title={part.title} />)}
+      {shown.map((part, index) => <i key={part.id} className="nx-seg__part" style={{ flexGrow: part.value, background: part.colour, '--i': index }} title={probe ? undefined : part.title} data-probe={probe ? part.title : undefined} />)}
     </span>
   )
 }
@@ -38,14 +38,14 @@ export function RangeStrip({ stats, axisMax, label, reference }) {
 }
 
 // Columns for equal periods, each a stack of parts (from the bottom), scaled to the tallest period. A period with nothing is a thin tick, not an invisible gap. `columns`: [{ key, title, parts: [{ id, value, colour }] }].
-export function ColumnChart({ columns, label, height = 64 }) {
+export function ColumnChart({ columns, label, height = 64, probe = false }) {
   const max = Math.max(1, ...columns.map(column => column.parts.reduce((total, part) => total + part.value, 0)))
   return (
     <span className="nx-cols" role="img" aria-label={label} style={{ blockSize: height }}>
       {columns.map((column, index) => {
         const total = column.parts.reduce((sum, part) => sum + part.value, 0)
         return (
-          <span key={column.key} className={`nx-cols__col${total ? '' : ' is-empty'}`} title={column.title} style={total ? { '--h': `${Math.max(6, (total / max) * 100)}%`, '--i': index } : undefined}>
+          <span key={column.key} className={`nx-cols__col${total ? '' : ' is-empty'}`} title={probe ? undefined : column.title} data-probe={probe && column.title ? column.title : undefined} style={total ? { '--h': `${Math.max(6, (total / max) * 100)}%`, '--i': index } : undefined}>
             {column.parts.filter(part => part.value > 0).map(part => <i key={part.id} style={{ flexGrow: part.value, background: part.colour }} />)}
           </span>
         )
@@ -65,22 +65,22 @@ export function Dumbbell({ low, high, axisMax, label }) {
 }
 
 // One dot for each thing, in the colour of its cause (a unit chart: the count is the number of dots). More than `max` dots end in "+N".
-export function DotRow({ dots, max = 24, label }) {
+export function DotRow({ dots, max = 24, label, probe = false, size }) {
   const shown = dots.slice(0, max)
   return (
-    <span className="nx-dots" role="img" aria-label={label}>
-      {shown.map((dot, index) => <i key={dot.id || index} style={{ background: dot.colour, '--i': Math.min(index, 24) }} title={dot.title} />)}
+    <span className={`nx-dots${size ? ` nx-dots--${size}` : ''}`} role="img" aria-label={label}>
+      {shown.map((dot, index) => <i key={dot.id || index} data-shape={dot.shape} style={{ '--c': dot.colour, '--i': Math.min(index, 24) }} title={probe ? undefined : dot.title} data-probe={probe ? dot.title : undefined} />)}
       {dots.length > max ? <b>+{dots.length - max}</b> : null}
     </span>
   )
 }
 
 // A distribution in adjacent bins on one scale; the bin that holds the median is the accent, the others are quiet. `bins`: [{ key, count, title, mark }].
-export function Histogram({ bins, label, height = 36 }) {
+export function Histogram({ bins, label, height = 36, probe = false }) {
   const max = Math.max(1, ...bins.map(bin => bin.count))
   return (
     <span className="nx-hist" role="img" aria-label={label} style={{ blockSize: height }}>
-      {bins.map((bin, index) => <i key={bin.key} className={`${bin.mark ? 'is-mark' : ''}${bin.count ? '' : ' is-empty'}`.trim() || undefined} style={bin.count ? { '--h': `${Math.max(8, (bin.count / max) * 100)}%`, '--i': index } : undefined} title={bin.title} />)}
+      {bins.map((bin, index) => <i key={bin.key} className={`${bin.mark ? 'is-mark' : ''}${bin.count ? '' : ' is-empty'}`.trim() || undefined} style={bin.count ? { '--h': `${Math.max(8, (bin.count / max) * 100)}%`, '--i': index } : undefined} title={probe ? undefined : bin.title} data-probe={probe ? bin.title : undefined} />)}
     </span>
   )
 }

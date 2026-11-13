@@ -1,0 +1,58 @@
+/* The key indicators: six tiles in the look of the panels below. A tile is one link: an icon chip and a name, the figure, one picture, one line. The six pictures share a height and a baseline and one
+   visual language (soft rounded marks, a 2px gap, grey for context, the accent only for what matters, the state colours only where a mark is a state), so they read as a family. The line under the picture
+   says what it is; pointing at a mark makes it say what the mark is (nothing floats over the data). The band answers for the width it is given (container queries): six across, then three, then two. */
+@layer nx-pages {
+  .nx-kpis { container: kpi / inline-size; }
+  .nx-tiles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--nx-s-3); }
+  @container kpi (max-width: 1020px) { .nx-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @container kpi (max-width: 560px) { .nx-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--nx-s-2); } }
+
+  .nx-tile { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 1fr auto; gap: 0; min-inline-size: 0; padding: var(--nx-s-3) var(--nx-s-4); border: 1px solid var(--nx-border); border-radius: var(--nx-r-3); background: var(--nx-surface); color: inherit; text-decoration: none; overflow: hidden; transition: border-color var(--nx-dur-1) var(--nx-ease-standard), background-color var(--nx-dur-1) var(--nx-ease-standard); }
+  .nx-tile:hover { border-color: var(--nx-border-strong); background: var(--nx-hover); }
+  .nx-tile:focus-visible { outline: 2px solid var(--nx-focus); outline-offset: 2px; }
+  .nx-tile--alert { border-color: var(--nx-danger-border); }
+
+  .nx-tile__head { display: flex; align-items: center; gap: var(--nx-s-2); min-block-size: 28px; }
+  .nx-tile__chip { flex: none; display: grid; place-items: center; inline-size: 28px; block-size: 28px; border-radius: var(--nx-r-2); background: var(--nx-accent-subtle); color: var(--nx-accent-text); }
+  .nx-tile__chip > svg { inline-size: 16px; block-size: 16px; }
+  .nx-tile--alert .nx-tile__chip { background: var(--nx-danger-bg); color: var(--nx-danger-text); }
+  .nx-tile__label { flex: 1; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--nx-fs-sm); font-weight: var(--nx-fw-medium); color: var(--nx-text-2); }
+  .nx-tile__go { flex: none; inline-size: 15px; block-size: 15px; color: var(--nx-text-3); opacity: 0; transform: translate(-2px, 2px); transition: opacity var(--nx-dur-1) var(--nx-ease-standard), transform var(--nx-dur-1) var(--nx-ease-standard); }
+  .nx-tile:hover .nx-tile__go, .nx-tile:focus-visible .nx-tile__go { opacity: 1; transform: none; color: var(--nx-accent-text); }
+  :dir(rtl) .nx-tile__go, :dir(rtl) .nx-tile:hover .nx-tile__go { transform: scaleX(-1); }
+
+  .nx-tile__figure { display: flex; align-items: baseline; gap: var(--nx-s-2); min-block-size: 38px; margin-block-start: var(--nx-s-1); font-size: 2rem; font-weight: var(--nx-fw-semibold); letter-spacing: -0.02em; line-height: 1.2; white-space: nowrap; }
+  .nx-tile__suffix { font-size: var(--nx-fs-sm); font-weight: var(--nx-fw-regular); letter-spacing: 0; color: var(--nx-text-3); }
+  .nx-tile--alert .nx-tile__figure { color: var(--nx-danger-text); }
+
+  /* the picture: one height, one baseline; an axis note, when there is one, sits under it inside the same height */
+  .nx-tile__chart { display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; min-block-size: 44px; margin-block: var(--nx-s-2) var(--nx-s-2); }
+  .nx-tile__chart > * { min-inline-size: 0; }
+  .nx-tile__ends { display: flex; justify-content: space-between; font-size: 11px; line-height: 12px; color: var(--nx-text-3); white-space: nowrap; }
+  .nx-tile__ends > span { overflow: hidden; text-overflow: ellipsis; }
+  .nx-tile__clear { display: inline-flex; align-items: center; gap: var(--nx-s-2); font-size: var(--nx-fs-sm); font-weight: var(--nx-fw-medium); color: var(--nx-ok-text); }
+  .nx-tile__clear > svg { inline-size: 18px; block-size: 18px; }
+  .nx-tile__caption { min-block-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--nx-fs-xs); line-height: 16px; color: var(--nx-text-2); }
+  .nx-tile__caption.is-probe { color: var(--nx-accent-text); font-weight: var(--nx-fw-medium); }
+
+  /* not read yet: the shape it will have, at the same height */
+  .nx-tile__sk-figure { display: block; inline-size: 50%; block-size: 30px; }
+  .nx-tile__sk-chart { display: block; inline-size: 100%; block-size: 14px; border-radius: var(--nx-r-pill); }
+
+  /* the family: soft rounded marks, a 2px gap, a hairline baseline under the columns */
+  .nx-tile .nx-seg { gap: 3px; }
+  .nx-tile .nx-seg__part { border-radius: 4px; }
+  .nx-tile .nx-cols, .nx-tile .nx-hist { gap: 2px; padding-block-end: 1px; border-block-end: 1px solid var(--nx-border); }
+  .nx-tile .nx-cols__col, .nx-tile .nx-hist > i { border-start-start-radius: 3px; border-start-end-radius: 3px; }
+  .nx-tile .nx-hist > i { background: var(--nx-border-strong); }
+  .nx-tile .nx-hist > i.is-mark { background: var(--nx-accent); }
+  .nx-tile .nx-hist > i.is-empty { background: var(--nx-border); }
+  .nx-tile .nx-cols__col.is-empty { background: var(--nx-border); }
+
+  /* one bar for each case: its colour is its state */
+  .nx-dots--pill { flex-wrap: nowrap; align-items: flex-end; gap: 4px; inline-size: 100%; block-size: 30px; }
+  .nx-dots--pill > i { flex: 1 1 0; max-inline-size: 18px; block-size: 100%; inline-size: auto; border-radius: 5px; }
+
+  @media (prefers-reduced-motion: reduce) { .nx-tile, .nx-tile__go { transition: none; } }
+  :root[data-motion='reduce'] .nx-tile, :root[data-motion='reduce'] .nx-tile__go { transition: none; }
+}
