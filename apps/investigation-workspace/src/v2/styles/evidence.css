@@ -88,6 +88,17 @@
   /* the table gives up columns as its own width shrinks, not the window's */
   @container (max-width: 900px) { .nx-evtable[data-density='compact'] .nx-evrow__text small { display: none; } }
 
+  /* a phone: the chips scroll in one line, the card size is not offered (the cards are one column), the type and the view share a line */
+  @media (max-width: 640px) {
+    .nx-evbar { gap: var(--nx-s-2); }
+    .nx-evbar__search { flex-basis: 100%; max-inline-size: none; }
+    .nx-evbar__status { flex-wrap: nowrap; overflow-x: auto; max-inline-size: 100%; padding-block-end: 2px; scrollbar-width: none; }
+    .nx-evbar__status .nx-chip { flex: none; }
+    .nx-evbar__size, .nx-evbar__space { display: none; }
+    .nx-evbar__type { flex: 1 1 auto; }
+    .nx-evbar__type .nx-select { inline-size: 100%; }
+  }
+
   /* while reading: the shape of the answer */
   .nx-evskel { display: grid; border: 1px solid var(--nx-border); border-radius: var(--nx-r-3); background: var(--nx-surface); overflow: hidden; }
   .nx-evskel__row { display: grid; grid-template-columns: 28px minmax(0, 1fr) 120px 90px 80px; align-items: center; gap: var(--nx-s-3); padding: var(--nx-s-3) var(--nx-s-4); border-block-end: 1px solid var(--nx-border-subtle); }
