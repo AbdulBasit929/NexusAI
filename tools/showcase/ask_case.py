@@ -68,7 +68,7 @@ def to_result(question, reply):
     if timed_out or reply.get("error") == "TimeoutError":
         result["timed_out"] = True      # the engine ran out of time, or the client gave up first: either way it is no verdict about the content
     if state == "declined":
-        result["older_path_answer"] = answer[:300]
+        result["older_path_answer"] = answer[:2000]     # 2000: a typed plate search names every clip and its moments, which a shorter cut loses
     if reply.get("error"):
         result["error"] = reply["error"]
     return result

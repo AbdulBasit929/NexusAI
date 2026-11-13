@@ -84,6 +84,10 @@ For each of the five clips, the plate that stays in view longest was typed in th
 - One clip (`highway-overpass-hd.mp4`) has 16 speech segments, not 3: it was read twice (the first time lost its plate readings to a defect fixed the same day) and a reprocess keeps the earlier outputs. A question about its speech segments counts both.
 - Questions that name a video by a description ("the overpass clip") and not by its file name are not mapped to a file.
 
+## Where these questions live now
+
+The questions of this sheet, with the two other wordings that work, are part of the verified bank of the case (`docs/qa/verified-bank-20261112.json`, family "Videos, speech and text read from them", `VB-VIDE-001` onward), so they are re-run with every full run of the bank and scored by the same judge. The answers that are plates, and the five typed plate searches (`Which photos or videos show the plate ...?` for the plate that stays in view longest in each clip), are kept in a **private bank** outside the repository (`C:\NexusAI-Showcase\orion\key\video-private-bank.json`); the sheet of the bank shows them with the plate masked.
+
 ## How it was verified
 
 The key of each question is computed from the stored readings of the case by queries that do not use the analyst views the engine reads (`tools/video_plates/video_question_bank.py`, `build`). 36 questions were run on the live engine on 2026-11-12:

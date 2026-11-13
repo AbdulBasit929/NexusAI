@@ -17,6 +17,13 @@ import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, "..", "video_plates"))
+import video_question_bank as vqb  # noqa: E402  (its judge scores the video questions; its mask hides plates)
+
+PRIVATE_BANK = os.environ.get("ORION_VIDEO_PRIVATE_BANK", "C:/NexusAI-Showcase/orion/key/video-private-bank.json")  # plates read from the owner's real footage: this machine only
+VIDEO_SUFFIXES = (".mp4", ".mov", ".avi", ".mkv")
+VIDEO_AREAS = ("videos", "vsearch")
+PLATE_ROUTE_AREAS = ("imgplate", "vsearch")     # questions with a typed plate: answered by the plate-in-images route, not by the Ask engine's SQL
 
 AREAS = [
     ("calls", "Calls of one subscriber", "How many voice calls, how long, when, to whom and on which day: counts of calls made and received, talk time, the longest and the average call, calls at night, calls over ten minutes, the first and last event, the number called most, the busiest day, how many different numbers were contacted.", "Ask this case: the sentence first, then the table and \"Behind this answer\"."),
@@ -30,6 +37,9 @@ AREAS = [
     ("cells", "Cell sites", "The cell site a number used most and how many different cell sites it used. A cell site is a coverage area, not a position.", "Ask this case, or Places."),
     ("registrations", "Registrations", "Which SIM identity a number is registered with and the status of the registration. A registration is what a source file states, not who holds the number.", "Ask this case."),
     ("inventory", "The evidence files", "How many files the case holds, in total and by type.", "Ask this case, or Evidence."),
+    ("imgplate", "Plates in photos", "Which photos show a plate, and what is said when no photo shows it. The photos are constructed (a real car photo with an Orion plate written on it).", "Ask this case; a reading is a model's candidate, shown as an exact match or as a similar reading to check by eye."),
+    ("videos", "Videos, speech and text read from them", "The five real video clips of the case: how many plates were read in a clip, when the first appears, which plate stays in view longest, how long a clip is, which clips have sound, speech segments and pieces of text read from the pictures. The plates themselves are masked here.", "Ask this case; under \"Behind this answer\" each reading opens the video at its second."),
+    ("vsearch", "Typed plate search over the videos", "The plate that stays in view longest in each clip, typed as an analyst would type it: every clip that holds a reading of exactly that plate must be named. The plate is masked here.", "Ask this case: \"Which photos or videos show the plate ...?\" The answer names each clip and the moments, and lists a reading that differs by one or two characters as \"check by eye\"."),
 ]
 
 
@@ -50,16 +60,50 @@ def render(expect):
     if kind == "top":
         extra = (" (before " + ", ".join(expect["rivals"]) + ")") if expect.get("rivals") else ""
         return str(expect["value"]) + extra + ((" - %s" % (("{:,.2f}".format(expect["count"]) if isinstance(expect["count"], float) else "{:,}".format(expect["count"])))) if expect.get("count") else "")
+    if kind == "video":
+        if expect.get("private"):
+            return "%d plate%s read from the footage (kept in a private file)" % (expect["n"], "" if expect["n"] == 1 else "s")
+        value = expect.get("value")
+        if isinstance(value, list):
+            return ", ".join(str(v) for v in value) if value else "none"
+        return "{:,}".format(value) if isinstance(value, int) else str(value)
     return json.dumps(expect, ensure_ascii=False)
 
 
-def verdict(item, result):
+def video_verdict(item, result, private):
+    """A question about the video clips, judged as tools/video_plates/video_question_bank.py judges it: a number within its tolerance, a set that is exactly the expected files or plates (no extra),
+    the first row of a ranking among the acceptable labels, or (typed plate search) every expected clip named. An answer that matches but whose query does not read the view the question calls for is
+    'lucky' and does not count as correct. Without the private bank on this machine a question that expects plates is not run."""
+    expect = item["expect"]
+    values = private.get(item["id"]) if expect.get("private") else expect.get("value")
+    if values is None:
+        return "not run"
+    answer = result.get("answer") or ""
+    rows = result.get("rows") or []
+    if expect["vkind"] == "named":
+        blob = answer + " " + json.dumps(rows, ensure_ascii=False)
+        return "correct" if all(str(v) in blob for v in values) else "wrong"
+    verdict_, _ = vqb.judge({"kind": expect["vkind"], "expected": values, "tolerance": expect.get("tolerance", 0.0), "what": expect.get("what")}, answer, rows)
+    if verdict_ == "correct":
+        wanted = [v for v in (expect.get("expect_view") or "").split("|") if v]
+        if wanted and not any(v in (result.get("sql") or "") for v in wanted):
+            return "lucky"
+    return verdict_
+
+
+def verdict(item, result, private=None):
     state = result.get("state")
+    if state == "declined" and item.get("area") in PLATE_ROUTE_AREAS and not result.get("header") and result.get("older_path_answer"):
+        # a plate typed into a question is answered by the plate-in-images route, which comes before the Ask engine and sets no engine header: ask_case.py calls that "declined"; it is the designed answer
+        result = dict(result, state="answered", answer=result["older_path_answer"])
+        state = "answered"
     if result.get("timed_out") or result.get("error") == "TimeoutError":
         return "timed out"          # the engine said it could not finish in time: no verdict about the content (a timeout is never a verdict)
     if state != "answered":
         return state or "declined"
     expect = item["expect"]
+    if expect.get("kind") == "video":
+        return video_verdict(item, result, private or {})
     answer = result.get("answer") or ""
     rows = result.get("rows") or []
     flat = rows if isinstance(rows, list) else []
@@ -111,24 +155,53 @@ def load_results(path):
     return out
 
 
+def load_private(path):
+    """The private bank (plates read from the real footage), or empty when it is not on this machine."""
+    if path and os.path.exists(path):
+        data = json.load(open(path, encoding="utf-8"))
+        return data.get("values") or {}, data.get("questions") or []
+    return {}, []
+
+
+def known_plates(private_values, typed):
+    plates = {str(v) for values in private_values.values() for v in values if not str(v).lower().endswith(VIDEO_SUFFIXES)}
+    for q in typed:
+        plates.add(q["question"].rsplit(" ", 1)[1].rstrip("?"))
+    return plates
+
+
+def masked(text, plates):
+    """The text with every plate of the private bank and every plate-like string replaced."""
+    text = text or ""
+    for p in sorted(plates, key=len, reverse=True):
+        text = text.replace(p, "<PLATE>")
+    return vqb.mask(text)
+
+
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("bank")
-    ap.add_argument("results")
+    ap.add_argument("results", nargs="+", help="one or more result files of ask_case.py; the latest line of a question wins, later files after earlier ones")
     ap.add_argument("--out", required=True)
     ap.add_argument("--notes", default="")
+    ap.add_argument("--private-bank", default=PRIVATE_BANK)
+    ap.add_argument("--run-note", default="", help="a sentence for the head of the sheet: which questions were run when, on which engine")
     args = ap.parse_args(argv)
     bank = json.load(open(args.bank, encoding="utf-8"))
-    results = load_results(args.results)
+    results = {}
+    for path in args.results:
+        results.update(load_results(path))
+    private_values, typed = load_private(args.private_bank)
+    plates = known_plates(private_values, typed)
     notes = json.load(open(args.notes, encoding="utf-8")) if args.notes and os.path.exists(args.notes) else {}
     questions = []
-    for q in bank["questions"]:
+    for q in bank["questions"] + typed:
         item = dict(q)
         item["expected_text"] = render(q["expect"])
-        item["kind_of_check"] = {"scalar": "a number", "text": "a time or a day", "set": "a list of values", "top": "the first of a ranking"}.get(q["expect"]["kind"], "")
+        item["kind_of_check"] = {"scalar": "a number", "text": "a time or a day", "set": "a list of values", "top": "the first of a ranking", "video": "what the stored readings of the clips say"}.get(q["expect"]["kind"], "")
         r = results.get(q["id"])
         if r:
-            v = verdict(item, r)
+            v = verdict(item, r, private_values)
             row_text = ""
             rows = r.get("rows")
             if isinstance(rows, list) and rows and isinstance(rows[0], dict):
@@ -138,8 +211,16 @@ def main(argv):
         if q["id"] in notes:
             item["review_note"] = notes[q["id"]]
         item.pop("bank", None)
+        if q["area"] in VIDEO_AREAS:      # real footage: no plate string leaves this function
+            for field in ("question", "expected_text", "note"):
+                item[field] = masked(item.get(field), plates)
+            if item.get("live"):
+                item["live"]["answer"] = masked(item["live"]["answer"], plates)
+                item["live"]["sql"] = masked(item["live"]["sql"], plates)
         questions.append(item)
     pack = {"collection": bank.get("collection"), "areas": [{"key": k, "title": t, "exercises": e, "where": w} for k, t, e, w in AREAS], "questions": questions}
+    if any(q["area"] in VIDEO_AREAS for q in questions):
+        pack["scope"] = "the Orion Lahore reference case (synthetic records, and five real video clips whose plates are masked)"
     with open(args.out + ".json", "w", encoding="utf-8", newline="\n") as handle:
         json.dump(pack, handle, indent=1, ensure_ascii=False)
         handle.write("\n")
@@ -154,22 +235,27 @@ def main(argv):
         key = (q.get("live") or {}).get("verdict", "not run")
         counts.setdefault(q["area"], {}).setdefault(key, 0)
         counts[q["area"]][key] += 1
+    has_video = any(q["area"] in VIDEO_AREAS for q in questions)
     lines = ["# Verified question bank: the Orion Lahore reference case", "",
-             "%d questions, each with the answer computed by plain SQL on the stored rows (never through the engine) and the live engine's answer scored against it. Synthetic data only." % len(questions), "",
-             "| Family | Questions | Correct | Wrong | Declined or abstained | Not run |", "|---|---|---|---|---|---|"]
-    total = {"correct": 0, "wrong": 0, "other": 0, "none": 0}
+             "%d questions, each with the answer computed from the stored rows or readings (never through the engine) and the live engine's answer scored against it. %s" % (len(questions),
+                 "The records are synthetic; the five video clips are real footage of the owner's, so the plates read from them are masked here and kept in a private file outside the repository. A reading is a model's candidate, never an identification." if has_video else "Synthetic data only."), ""]
+    if args.run_note:
+        lines += [args.run_note, ""]
+    lines += ["| Family | Questions | Correct | Wrong | Right number, wrong view | Declined or abstained | Not run |", "|---|---|---|---|---|---|---|"]
+    total = {"correct": 0, "wrong": 0, "lucky": 0, "other": 0, "none": 0}
     for key, title, _, _ in AREAS:
         c = counts.get(key, {})
         n = sum(c.values())
         if not n:
             continue
-        other = sum(v for k, v in c.items() if k not in ("correct", "wrong", "not run"))
-        lines.append("| %s | %d | %d | %d | %d | %d |" % (title, n, c.get("correct", 0), c.get("wrong", 0), other, c.get("not run", 0)))
+        other = sum(v for k, v in c.items() if k not in ("correct", "wrong", "lucky", "not run"))
+        lines.append("| %s | %d | %d | %d | %d | %d | %d |" % (title, n, c.get("correct", 0), c.get("wrong", 0), c.get("lucky", 0), other, c.get("not run", 0)))
         total["correct"] += c.get("correct", 0)
         total["wrong"] += c.get("wrong", 0)
+        total["lucky"] += c.get("lucky", 0)
         total["other"] += other
         total["none"] += c.get("not run", 0)
-    lines += ["| **All** | **%d** | **%d** | **%d** | **%d** | **%d** |" % (len(questions), total["correct"], total["wrong"], total["other"], total["none"]), ""]
+    lines += ["| **All** | **%d** | **%d** | **%d** | **%d** | **%d** | **%d** |" % (len(questions), total["correct"], total["wrong"], total["lucky"], total["other"], total["none"]), ""]
     for key, title, exercises, where in AREAS:
         group = [q for q in questions if q["area"] == key]
         if not group:
@@ -185,8 +271,18 @@ def main(argv):
     subprocess.run([sys.executable, "-X", "utf8", os.path.join(HERE, "render_pack_html.py"), args.out + ".json", args.out + ".html"], check=True, capture_output=True)
     html = open(args.out + ".html", encoding="utf-8").read().replace("<title>Orion Query Pack</title>", "<title>Orion Verified Questions</title>")
     open(args.out + ".html", "w", encoding="utf-8", newline="\n").write(html)
+    written = [args.out + ext for ext in (".json", ".csv", ".md", ".html")]
+    written_text = []
+    for path in written:
+        with open(path, encoding="utf-8") as handle:
+            written_text.append(handle.read())
+    leaked = sorted(p for p in plates if any(p in text for text in written_text))
+    if leaked:
+        for path in written:
+            os.remove(path)
+        raise SystemExit("%d plate(s) of the private bank occur in the sheet; the sheet was removed" % len(leaked))
     timed_out = sum(1 for q in questions if (q.get("live") or {}).get("verdict") == "timed out")
-    print("%d questions: correct %d, wrong %d, declined or abstained %d (of which timed out %d), not run %d -> %s.{json,csv,md,html}" % (len(questions), total["correct"], total["wrong"], total["other"], timed_out, total["none"], args.out))
+    print("%d questions: correct %d, wrong %d, right number but wrong view %d, declined or abstained %d (of which timed out %d), not run %d -> %s.{json,csv,md,html}" % (len(questions), total["correct"], total["wrong"], total["lucky"], total["other"], timed_out, total["none"], args.out))
     return 0
 
 

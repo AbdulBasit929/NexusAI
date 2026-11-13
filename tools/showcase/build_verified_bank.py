@@ -8,7 +8,12 @@ The questions are templates filled with the case's own entities (its subscribers
 "voice calls" and "text messages" are never mixed, a direction is said, a time is on the case clock (Asia/Karachi), a question whose top answer is tied is not asked. Nothing here writes to the case.
 
 Expectation kinds: scalar (a number, with its unit), text (a time or a day that must occur in the answer), set (every value must occur), top (the first row of the answer must be the value, and it must come
-before its rivals). tools/showcase/judge_verified_bank.py reads the engine's answers and scores them.
+before its rivals), video (a question about the video clips of the case, judged by tools/video_plates/video_question_bank.py: number, set, top1, none, or named). tools/showcase/judge_verified_bank.py reads
+the engine's answers and scores them.
+
+The five video clips of the case are REAL footage of the owner's, so the plates read from them never enter the repository: a question whose answer is made of plates keeps only the count of plates in this
+bank and its values go to the PRIVATE bank (--private-out, default C:/NexusAI-Showcase/orion/key/video-private-bank.json, refused inside the repository), which also holds the typed plate searches (they contain
+plates). The judge reads the private bank to score them and writes the sheet with every plate masked.
 """
 import argparse
 import datetime
@@ -17,8 +22,15 @@ import os
 import subprocess
 import sys
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
+sys.path.insert(0, os.path.join(HERE, "..", "video_plates"))
+import video_question_bank as vqb  # noqa: E402  (its key is computed from the stored readings by queries that do not use the analyst views)
+
 COLLECTION = "orion-lahore-reference-20261030"
 PLATE_KEY = os.environ.get("ORION_PLATE_KEY", "C:/NexusAI-Showcase/orion/key/plate-images-key.json")  # the construction key of the photos added to the case (synthetic plates only)
+PRIVATE_BANK = os.environ.get("ORION_VIDEO_PRIVATE_BANK", "C:/NexusAI-Showcase/orion/key/video-private-bank.json")  # plates read from the owner's real footage: this machine only
+VIDEO_SUFFIXES = (".mp4", ".mov", ".avi", ".mkv")
 TZ = "Asia/Karachi"
 SUBS_VOICE_ONLY = ["923000001005"]
 COMM = "forensic.comm_event c WHERE c.collection_id = '%s' AND c.dataset_kind = 'target_cdr' AND NOT ('duplicate_row' = ANY (c.quality_flags))" % COLLECTION
@@ -52,10 +64,60 @@ class Bank:
     def __init__(self):
         self.items = []
         self.seq = {}
+        self.private = {}   # bank id -> the plates a video question expects (never written to the public bank)
+        self.typed = []     # the typed plate searches (their wording holds a plate): private bank only
 
     def add(self, area, kind, question, expect, note=""):
         self.seq[area] = self.seq.get(area, 0) + 1
         self.items.append({"id": "VB-%s-%03d" % (area.upper()[:4], self.seq[area]), "area": area, "type": kind, "question": question, "expect": expect, "bank": "extra", "note": note})
+
+
+def holds_plates(question):
+    """True when the expected answer of a video question is made of plates read from the footage (those stay out of the repository); file names are public."""
+    if question["kind"] not in ("set", "top1"):
+        return False
+    return any(not str(x).lower().endswith(VIDEO_SUFFIXES) for x in question["expected"])
+
+
+def add_video(bank, question, type_name=None):
+    """One question of tools/video_plates/video_question_bank.py as an item of the bank; the plates it expects, if any, go to bank.private under the item's id."""
+    expect = {"kind": "video", "vkind": question["kind"], "expect_view": question.get("expect_view", "")}
+    for key in ("tolerance", "what"):
+        if key in question:
+            expect[key] = question[key]
+    plates = holds_plates(question)
+    if plates:
+        expect["private"] = True
+        expect["n"] = len(question["expected"])
+    else:
+        expect["value"] = question["expected"]
+    bank.add("videos", type_name or question["id"], question["q"], expect,
+             "the key is computed from the stored readings, not through the analyst views; a reading is a model's candidate, to be checked by eye" + ("; the plates it expects are in the private bank" if plates else ""))
+    if plates:
+        bank.private[bank.items[-1]["id"]] = question["expected"]
+
+
+def video_questions(collection):
+    """The questions about the videos of the case: the wording of the live run of 2026-11-12 (35 correct, one clarifying question) and the two other wordings that were answered correctly."""
+    questions = [dict(q) for q in vqb.build(collection, "dev")]
+    for which, wanted, suffix in (("sealed2", "total-minutes", "-alt"), ("sealed3", "total-seconds", "")):
+        for q in vqb.build(collection, which):
+            if q["id"] == wanted:
+                q = dict(q)
+                q["id"] = wanted + suffix
+                questions.append(q)
+    return questions
+
+
+def typed_plate_searches(collection):
+    """For each clip, the plate that stays in view longest and every clip that holds a reading of exactly that plate: [(plate, [clip, ...])]."""
+    groups = vqb.psql_rows(collection, vqb.GROUPS)
+    searches = []
+    for clip in sorted({g["f"] for g in groups}):
+        mine = [g for g in groups if g["f"] == clip]
+        plate = max(mine, key=lambda g: (float(g["last"]) - float(g["first"]), g["plate"]))["plate"]
+        searches.append((plate, sorted({g["f"] for g in groups if g["plate"] == plate})))
+    return searches
 
 
 def build():
@@ -209,23 +271,60 @@ def build():
                          "a constructed photo: a real car photo with this plate written on it; listed as an exact match or as a similar reading to check by eye")
         bank.add("imgplate", "plate_in_image_none", "Which photos show the plate QZX7731?", {"kind": "text", "value": "No image or video reading matches the plate QZX7731 exactly"}, "a plate that is in no photo: no exact match is reported")
 
-    return bank.items
+    # ------------------------------------------------------------------ the video clips added to the case (real footage: the plates stay in the private bank)
+    for question in video_questions(COLLECTION):
+        add_video(bank, question)
+    typed = Bank()
+    for plate, clips in typed_plate_searches(COLLECTION):
+        typed.add("vsearch", "typed_plate_search", "Which photos or videos show the plate %s?" % plate, {"kind": "video", "vkind": "named", "value": clips, "what": "files"},
+                  "a plate typed by the analyst: every clip that holds a reading of exactly that plate must be named; a reading that differs by one or two characters may be listed as 'check by eye'")
+    bank.typed = typed.items
+
+    return bank
+
+
+def private_plates(bank):
+    """Every plate string of the private side, to prove that none of them reached the public bank."""
+    plates = set()
+    for values in bank.private.values():
+        plates.update(str(v) for v in values)
+    for item in bank.typed:
+        plates.add(item["question"].rsplit(" ", 1)[1].rstrip("?"))
+    return plates
 
 
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--private-out", default=PRIVATE_BANK, help="where the plates read from the real footage go; refused inside the repository")
     args = ap.parse_args(argv)
-    items = build()
+    private_path = os.path.abspath(args.private_out)
+    try:
+        inside = os.path.commonpath([os.path.normcase(private_path), os.path.normcase(REPO)]) == os.path.normcase(REPO)
+    except ValueError:      # another drive: certainly outside
+        inside = False
+    if inside:
+        raise SystemExit("the private bank holds plates read from real footage and must not be inside the repository: " + private_path)
+    bank = build()
+    items = bank.items
     areas = {}
     for i in items:
         areas[i["area"]] = areas.get(i["area"], 0) + 1
+    public_text = json.dumps({"collection": COLLECTION, "built": datetime.date.today().isoformat(), "questions": items}, indent=1, ensure_ascii=False) + "\n"
+    leaked = sorted(p for p in private_plates(bank) if p in public_text)
+    if leaked:
+        raise SystemExit("%d plate(s) of the private bank occur in the public bank; nothing was written" % len(leaked))
     with open(args.out, "w", encoding="utf-8", newline="\n") as handle:
-        json.dump({"collection": COLLECTION, "built": datetime.date.today().isoformat(), "questions": items}, handle, indent=1, ensure_ascii=False)
-        handle.write("\n")
+        handle.write(public_text)
     print("%d questions -> %s" % (len(items), args.out))
     for area, n in sorted(areas.items()):
         print("  %-14s %d" % (area, n))
+    if bank.private or bank.typed:
+        os.makedirs(os.path.dirname(private_path), exist_ok=True)
+        with open(private_path, "w", encoding="utf-8", newline="\n") as handle:
+            json.dump({"collection": COLLECTION, "built": datetime.date.today().isoformat(), "values": bank.private, "questions": bank.typed}, handle, indent=1, ensure_ascii=False)
+            handle.write("\n")
+        print("private bank (plates read from the footage; this machine only): %d expected plate lists, %d typed plate searches -> %s" % (len(bank.private), len(bank.typed), private_path))
     return 0
 
 

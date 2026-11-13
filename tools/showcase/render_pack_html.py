@@ -181,7 +181,7 @@ function chips() {
   el.innerHTML = '<button class="chip" data-area="" aria-pressed="' + (state.area === "") + '">All families</button>' +
     PACK.areas.filter(a => PACK.questions.some(q => q.area === a.key)).map(a => '<button class="chip" data-area="' + esc(a.key) + '" aria-pressed="' + (state.area === a.key) + '">' + esc(a.title) + '</button>').join("");
 }
-document.getElementById("sub").textContent = PACK.questions.length + " questions for the synthetic Orion Lahore case, " + PACK.areas.filter(a => PACK.questions.some(q => q.area === a.key)).length +
+document.getElementById("sub").textContent = PACK.questions.length + " questions for " + (PACK.scope || "the synthetic Orion Lahore case") + ", " + PACK.areas.filter(a => PACK.questions.some(q => q.area === a.key)).length +
   " families. Expected answers come from the case's own truth or from SQL on the stored rows, never from the engine.";
 document.addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
@@ -209,7 +209,7 @@ def main(argv):
     if len(argv) != 2:
         raise SystemExit(__doc__)
     pack = json.load(open(argv[0], encoding="utf-8"))
-    slim = {"areas": pack["areas"], "questions": [{k: q.get(k) for k in ("id", "area", "type", "question", "expected_text", "note", "kind_of_check", "live", "review_note")} for q in pack["questions"]]}
+    slim = {"scope": pack.get("scope"), "areas": pack["areas"], "questions": [{k: q.get(k) for k in ("id", "area", "type", "question", "expected_text", "note", "kind_of_check", "live", "review_note")} for q in pack["questions"]]}
     html = TEMPLATE.replace("__DATA__", json.dumps(slim, ensure_ascii=False).replace("</", "<\\/"))
     with open(argv[1], "w", encoding="utf-8", newline="\n") as handle:
         handle.write(html)
