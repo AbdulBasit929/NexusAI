@@ -50,6 +50,41 @@ class RouteTable(unittest.TestCase):
         self.assertTrue(all(r["status"] in sr.STATUSES for r in routes.values()))
 
 
+PASHTO_SIGNATURE = {"ps": {"letters": "ټډړږښڅځڼېۍګ", "min_share": 0.02, "min_letters": 20, "probe_seconds": 30}}
+PASHTO_READING = "زه پښتو ښه پوهېږم او ستا ټول کورنۍ ته سلام وايم ډېر ښه"      # 33 Arabic letters, 8 of them Pashto-only
+URDU_READING = "میں آج لاہور جا رہا ہوں اور کل واپس آؤں گا انشاء اللہ"            # no Pashto-only letter
+
+
+class Signatures(unittest.TestCase):
+    def test_a_reading_with_enough_pashto_only_letters_is_identified(self):
+        found = sr.identify_from_reading(PASHTO_READING, PASHTO_SIGNATURE)
+        self.assertEqual(found[0], "ps")
+        self.assertGreater(found[1], 0.1)
+
+    def test_a_reading_without_them_or_too_short_or_in_another_script_is_not(self):
+        for text in (URDU_READING, "ټ ښ", "", "यह एक परीक्षा है", "hello this is english speech"):
+            self.assertIsNone(sr.identify_from_reading(text, PASHTO_SIGNATURE), text)
+
+    def test_the_share_counts_only_arabic_script_letters(self):
+        share, total = sr.signature_share("ټab ښ 12", "ټښ")
+        self.assertEqual((share, total), (1.0, 2))
+
+    def test_the_shipped_table_carries_the_pashto_signature_and_it_is_valid(self):
+        signatures = sr.load_signatures()
+        self.assertEqual(set(signatures), {"ps"})
+        self.assertIsNotNone(sr.identify_from_reading(PASHTO_READING, signatures))
+        self.assertIsNone(sr.identify_from_reading(URDU_READING, signatures))
+
+    def test_a_signature_that_could_not_work_is_refused(self):
+        good = {"letters": "ټ", "min_share": 0.02}
+        for bad in ({"fr": good}, {"ps": dict(good, letters="")}, {"ps": dict(good, min_share=0)}, {"ps": dict(good, min_share=1.5)}, {"ps": dict(good, min_share="0.02")}, []):
+            data = {"version": "t", "routes": {"ps": GOOD}, "signatures": bad}
+            with tempfile.TemporaryDirectory() as tmp, self.assertRaises(sr.RouteError):
+                sr.load_signatures(write_table(tmp, data))
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(sr.load_signatures(write_table(tmp, {"version": "t", "routes": {"ps": GOOD}})), {})
+
+
 def tone(seconds, rate=16000):
     return array("f", (0.5 * math.sin(2 * math.pi * 220 * i / rate) for i in range(int(seconds * rate))))
 
@@ -78,7 +113,10 @@ class Cutter(unittest.TestCase):
 
 class FakeReader:
     def __init__(self, texts):
-        self.texts, self.calls = list(texts), 0
+        self.texts, self.calls, self.released = list(texts), 0, 0
+
+    def release(self):
+        self.released += 1
 
     def read(self, samples):
         self.calls += 1
@@ -100,6 +138,7 @@ class Transcriber(unittest.TestCase):
     SPEECH_WITH_A_PAUSE = tone(30) + array("f", [0.0] * int(0.4 * 16000)) + tone(30)       # 60.4 s, a pause at 30 s
 
     def make(self, texts, fallback=None, samples=None, **kwargs):
+        kwargs.setdefault("keep_loaded", True)
         reader = FakeReader(texts)
         routes = {"ps": dict(GOOD, table_version="t1")}
         t = sr.RoutedSpeechTranscriber(fallback or FakeFallback(), routes=routes, reader_factory=lambda route: reader, decoder=lambda path: samples if samples is not None else self.SPEECH_WITH_A_PAUSE, **kwargs)
@@ -148,6 +187,66 @@ class Transcriber(unittest.TestCase):
         t, reader = self.make([], fallback)
         self.assertEqual(self.run_it(t, language=None)[0].payload["text"], "hello")
         self.assertEqual(reader.calls, 0)
+
+    def test_no_language_requested_and_the_client_hears_persian_but_the_reading_has_pashto_letters_reads_by_the_pashto_route(self):
+        fallback = FakeFallback(language="fa")
+        t, reader = self.make([PASHTO_READING, "full pashto reading"], fallback, samples=tone(10), signatures=PASHTO_SIGNATURE)
+        out = self.run_it(t, language=None)
+        self.assertEqual(reader.calls, 2)                                   # the probe, then the reading
+        p = out[0].payload
+        self.assertEqual((p["text"], p["language"], p["detected_language"], p["requested_language"]), ("full pashto reading", "ps", "ps", None))
+        self.assertEqual((p["reliability_state"], p["first_detected_language"]), ("SEARCH_LEAD", "fa"))
+        self.assertIn("letters that only ps uses", p["language_resolution"])
+        self.assertIn("'fa'", p["language_resolution"])
+
+    def test_the_probe_reads_only_the_first_seconds(self):
+        seen = []
+        class Spy(FakeReader):
+            def read(self, samples):
+                seen.append(len(samples))
+                return super().read(samples)
+        reader = Spy([PASHTO_READING, "x"])
+        t = sr.RoutedSpeechTranscriber(FakeFallback(language="fa"), routes={"ps": dict(GOOD, table_version="t1")}, reader_factory=lambda route: reader, decoder=lambda path: tone(100), signatures=PASHTO_SIGNATURE, keep_loaded=True)
+        self.run_it(t, language=None)
+        self.assertEqual(seen[0], 30 * 16000)
+
+    def test_no_language_requested_and_the_reading_has_no_pashto_letters_keeps_the_clients_result(self):
+        fallback = FakeFallback(language="fa")
+        t, reader = self.make([URDU_READING], fallback, samples=tone(10), signatures=PASHTO_SIGNATURE)
+        out = self.run_it(t, language=None)
+        self.assertEqual((reader.calls, out[0].payload["text"], out[0].payload["language"]), (1, "hello", "fa"))
+
+    def test_english_heard_is_never_probed(self):
+        t, reader = self.make([PASHTO_READING], FakeFallback(language="en"), samples=tone(10), signatures=PASHTO_SIGNATURE)
+        self.assertEqual(self.run_it(t, language=None)[0].payload["text"], "hello")
+        self.assertEqual(reader.calls, 0)
+
+    def test_a_requested_language_is_never_probed(self):
+        fallback = FakeFallback(language="fa")
+        t, reader = self.make([], fallback, signatures=PASHTO_SIGNATURE)
+        self.run_it(t, language="ur")
+        self.assertEqual((fallback.calls, reader.calls), (["ur"], 0))
+
+    def test_a_probe_that_fails_never_fails_the_job(self):
+        class Broken(FakeReader):
+            def read(self, samples):
+                raise RuntimeError("model could not load")
+        t = sr.RoutedSpeechTranscriber(FakeFallback(language="fa"), routes={"ps": dict(GOOD, table_version="t1")}, reader_factory=lambda route: Broken([]), decoder=lambda path: tone(10), signatures=PASHTO_SIGNATURE, keep_loaded=True)
+        self.assertEqual(self.run_it(t, language=None)[0].payload["text"], "hello")
+
+    def test_without_signatures_nothing_is_probed(self):
+        t, reader = self.make([PASHTO_READING], FakeFallback(language="fa"), samples=tone(10))
+        self.assertEqual(self.run_it(t, language=None)[0].payload["text"], "hello")
+        self.assertEqual(reader.calls, 0)
+
+    def test_the_model_is_given_back_after_each_recording_unless_kept(self):
+        t, reader = self.make(["a", "b"], samples=tone(10), keep_loaded=False)
+        self.run_it(t)
+        self.run_it(t)
+        self.assertEqual(reader.released, 2)
+        kept, reader2 = self.make(["a"], samples=tone(10), keep_loaded=True)
+        self.run_it(kept)
+        self.assertEqual(reader2.released, 0)
 
     def test_a_reading_that_runs_out_of_time_says_so_and_keeps_what_it_read(self):
         ticks = iter([0.0, 5.0, 99.0, 99.0, 99.0, 99.0])       # the start, the check before piece 2 (in time), the check before piece 3 (over the budget)

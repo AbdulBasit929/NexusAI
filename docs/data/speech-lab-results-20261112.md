@@ -99,3 +99,22 @@ The route table `ingestion/forensic_records/speech_routes.json` now carries the 
 * **Not done:** the interface does not yet draw the three labels as badges or play from a segment (the audio viewer of the interface programme); the label is in every segment's data. The worker holds about 1.1 GB with the model loaded lazily; the route stops by itself at its time budget and says so on the segments it did read. Not tested live: a recording longer than the 1500 s budget, and a recording requested without a language that Whisper then hears as Pashto (the re-read rule is covered by a unit test).
 * The throwaway collection holds public clips only and can be retired with the other two throwaway collections.
 
+
+## 9. Automatic language identification for recordings uploaded without a language (2026-11-13)
+
+**Why.** An analyst should not have to know the language of a recording. The live Whisper service does not know Pashto as such: on 2026-11-13 it called the Pashto test clip Persian (`fa`), Punjabi Gujarati (`gu`) and Urdu Hindi (`hi`, which the worker already corrects to Urdu). So an upload with no language was read by Whisper and the Pashto route was never reached.
+
+**What it does (`speech_routes.py`, rule in the `signatures` block of `speech_routes.json`).** When no language was requested, Whisper has read the recording and did not hear English or a routed language, the first 30 seconds are read by the Pashto model and the reading is checked for the letters only Pashto uses (ټ ډ ړ ږ ښ څ ځ ڼ ې ۍ ګ). If they are at least 2% of the reading's Arabic-script letters (and there are at least 20 letters) the whole recording is read by the Pashto route, and every segment carries `first_detected_language` and a `language_resolution` sentence saying what the service heard and why the route was taken. A probe that cannot run never fails the job: the Whisper reading stands. The model is given back after each recording (`FORENSIC_ASR_ROUTE_KEEP_LOADED`, default off), because the Docker VM is small.
+
+**Measured before it was written, on the saved lab readings (no new run):**
+
+| Readings | Called Pashto |
+|---|---|
+| Pashto, three varieties, development and sealed, 280 clips | 278 (the two misses: one empty reading, one of 6.3 s with 41 letters and no Pashto-only letter) |
+| of those with at least 20 letters, 279 clips | 278 |
+| Punjabi Shahmukhi, 20 clips | 0 |
+| Urdu, 40 clips unconstrained (Devanagari, no Arabic letter) and the same 40 held to the Arabic script | 0 and 0 |
+
+**Checked in the built image (`speech-routes-20261113b`) on the three real clips**, with the speech service replaced by a stub that says what the live service said: the Pashto clip (service heard `fa`) was read by the Pashto route, 5.2% Pashto-only letters, status SEARCH_LEAD, 2 segments, 33 s; the Punjabi clip (service heard `gu`) and the Urdu clip stayed with the Whisper reading, no route fields; the Pashto clip with the service hearing `en` was not probed; the model was released after every recording.
+
+**What this does not cover (said plainly).** (1) Other Arabic-script languages were not measured: Persian, Sindhi, Arabic, Dari. A Persian recording might carry some of these letters in a reading by a Pashto model; the 2% rate was set from Pashto, Punjabi and Urdu only, so a few Persian or Dari recordings could be sent to the Pashto route, in which case the segment says SEARCH_LEAD and carries the reason sentence. (2) Punjabi (Shahmukhi) is not identified automatically: it has no letters of its own that separate it from Urdu, so a Punjabi upload is read by Whisper unless its language is given; its route stays LOW_RESOURCE_LANGUAGE. (3) Short clips: a reading with fewer than 20 Arabic letters, a recording with more than 30 seconds of silence at the start, or heavy noise, may not be identified. (4) Telephone-quality speech was not measured. The next check is a fresh set of clips, including Persian, when the machine has the memory for it.

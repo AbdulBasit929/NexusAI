@@ -1,5 +1,5 @@
 {
-  "version": "2026-11-13",
+  "version": "2026-11-13b",
   "note": "Statuses follow the registered gates of docs/data/speech-lab-preregistration-20261112.md as applied by tools/media_data/speech_gate.py to the sealed read. pa is routed as Pakistani Punjabi (Shahmukhi); Urdu, English and every language not listed stay on the Whisper service. A route may only be raised by a new sealed measurement.",
   "routes": {
     "ps": {
@@ -7,7 +7,7 @@
       "model_dir": "/models/media/speech/omni-ctc-300m-hf",
       "model_id": "omniASR-CTC-300M (Apache-2.0, converted by tools/media_data/omni_ctc.py)",
       "script": "arabic",
-      "table_version": "2026-11-13",
+      "table_version": "2026-11-13b",
       "evidence": "docs/data/speech-lab-results-20261112.md",
       "status": "SEARCH_LEAD",
       "measured": {
@@ -24,7 +24,7 @@
       "model_dir": "/models/media/speech/omni-ctc-300m-hf",
       "model_id": "omniASR-CTC-300M (Apache-2.0, converted by tools/media_data/omni_ctc.py)",
       "script": "arabic",
-      "table_version": "2026-11-13",
+      "table_version": "2026-11-13b",
       "evidence": "docs/data/speech-lab-results-20261112.md",
       "status": "SEARCH_LEAD",
       "measured": {
@@ -41,7 +41,7 @@
       "model_dir": "/models/media/speech/omni-ctc-300m-hf",
       "model_id": "omniASR-CTC-300M (Apache-2.0, converted by tools/media_data/omni_ctc.py)",
       "script": "arabic",
-      "table_version": "2026-11-13",
+      "table_version": "2026-11-13b",
       "evidence": "docs/data/speech-lab-results-20261112.md",
       "status": "SEARCH_LEAD",
       "measured": {
@@ -58,7 +58,7 @@
       "model_dir": "/models/media/speech/omni-ctc-300m-hf",
       "model_id": "omniASR-CTC-300M (Apache-2.0, converted by tools/media_data/omni_ctc.py)",
       "script": "arabic",
-      "table_version": "2026-11-13",
+      "table_version": "2026-11-13b",
       "evidence": "docs/data/speech-lab-results-20261112.md",
       "status": "SEARCH_LEAD",
       "measured": {
@@ -75,7 +75,7 @@
       "model_dir": "/models/media/speech/omni-ctc-300m-hf",
       "model_id": "omniASR-CTC-300M (Apache-2.0, converted by tools/media_data/omni_ctc.py)",
       "script": "arabic",
-      "table_version": "2026-11-13",
+      "table_version": "2026-11-13b",
       "evidence": "docs/data/speech-lab-results-20261112.md",
       "status": "SEARCH_LEAD",
       "measured": {
@@ -92,7 +92,7 @@
       "model_dir": "/models/media/speech/omni-ctc-300m-hf",
       "model_id": "omniASR-CTC-300M (Apache-2.0, converted by tools/media_data/omni_ctc.py)",
       "script": "arabic",
-      "table_version": "2026-11-13",
+      "table_version": "2026-11-13b",
       "evidence": "docs/data/speech-lab-results-20261112.md",
       "status": "LOW_RESOURCE_LANGUAGE",
       "measured": {
@@ -108,7 +108,7 @@
       "model_dir": "/models/media/speech/omni-ctc-300m-hf",
       "model_id": "omniASR-CTC-300M (Apache-2.0, converted by tools/media_data/omni_ctc.py)",
       "script": "arabic",
-      "table_version": "2026-11-13",
+      "table_version": "2026-11-13b",
       "evidence": "docs/data/speech-lab-results-20261112.md",
       "status": "LOW_RESOURCE_LANGUAGE",
       "measured": {
@@ -117,6 +117,21 @@
         "character_error": 0.398,
         "word_recall": 0.361,
         "tier": "T3 public data; development only"
+      }
+    }
+  },
+  "signatures": {
+    "ps": {
+      "letters": "ټډړږښڅځڼېۍګ",
+      "min_share": 0.02,
+      "min_letters": 20,
+      "probe_seconds": 30,
+      "evidence": "docs/data/speech-lab-results-20261112.md (section 9)",
+      "measured": {
+        "set": "saved Omnilingual readings of the speech lab, development and sealed",
+        "pashto_clips_identified": "278 of 279 with at least 20 letters (one clip below the floor, one reading empty)",
+        "other_language_readings_called_pashto": "0 of 100 (Punjabi Shahmukhi 20, Urdu 40 unconstrained, Urdu 40 Arabic-script)",
+        "not_measured": "Persian, Sindhi, Arabic, Dari and other Arabic-script languages; telephone or noisy speech"
       }
     }
   }

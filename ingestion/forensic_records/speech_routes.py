@@ -8,6 +8,10 @@ script or nothing. The speech lab (docs/data/speech-lab-preregistration-20261112
 * a CUTTER that splits a recording into pieces of at most `limit` seconds at the quietest points, so that a model with a short input limit (40 s) or one trained on short clips reads it in pieces and every
   piece has a start and an end in the recording (the Omnilingual CTC models take at most 40 s; the Whisper Pashto fine-tune loses most words on long input);
 * an in-process READER for the Omnilingual CTC model converted by tools/media_data/omni_ctc.py (torch and transformers are in the worker image; nothing is installed and nothing leaves the machine);
+* a LANGUAGE SIGNATURE: the Whisper service cannot tell Pashto from its neighbours (on 2026-11-13 it called a Pashto clip Persian), so when no language was requested and it heard anything but English, the
+  first seconds of the recording are read by the Pashto model and, if the reading carries the letters only Pashto uses (at least `min_share` of its Arabic-script letters, a rule kept in the route table), the whole
+  recording is read by the Pashto route. Measured on the saved readings of the speech lab: 278 of 280 Pashto clips identified, none of 20 Pashto-free Punjabi readings, and the Urdu readings are in Devanagari and
+  never reach it (docs/data/speech-lab-results-20261112.md);
 * a TRANSCRIBER wrapper with the interface of the worker's ASR client (`transcribe(path, *, evidence_id, version_id, source_file, language=None)`): a language with a route is read here, any other language
   goes to the wrapped client unchanged; with no language requested, a recording the wrapped client detects as a routed language is read again by the route (the same rule as the Hindi-to-Urdu re-read).
 
@@ -71,6 +75,45 @@ def load_routes(path: str | os.PathLike | None = None) -> dict[str, dict[str, An
         if not str(route.get("model_dir") or "").strip():
             raise RouteError(f"route {language}: model_dir is required")
     return routes
+
+
+def load_signatures(path: str | os.PathLike | None = None) -> dict[str, dict[str, Any]]:
+    """The language signatures of the table (`signatures`: per routed language the letters only that language uses and the share of a reading's Arabic-script letters that identifies it). A table
+    without signatures identifies nothing. A signature for a language that has no route, or with no letters or a share outside 0 to 1, is refused."""
+    source = Path(path or os.getenv(ROUTES_ENV, "").strip() or DEFAULT_ROUTES_PATH)
+    try:
+        data = json.loads(source.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise RouteError(f"speech route table {source} cannot be read: {exc}") from exc
+    signatures = data.get("signatures", {})
+    routes = data.get("routes") or {}
+    if not isinstance(signatures, dict):
+        raise RouteError("speech route table: signatures must be an object")
+    for language, signature in signatures.items():
+        if language not in routes:
+            raise RouteError(f"signature {language}: there is no route for that language")
+        if not str(signature.get("letters") or "").strip():
+            raise RouteError(f"signature {language}: letters are required")
+        share = signature.get("min_share")
+        if not isinstance(share, (int, float)) or not 0 < share <= 1:
+            raise RouteError(f"signature {language}: min_share must be a number above 0 and at most 1")
+    return signatures
+
+
+def signature_share(text: str, letters: str) -> tuple[float, int]:
+    """(share of the Arabic-script letters of `text` that are in `letters`, number of Arabic-script letters)."""
+    import unicodedata
+    arabic = [ch for ch in text or "" if unicodedata.category(ch).startswith("L") and any(lo <= ord(ch) <= hi for lo, hi in ARABIC_RANGES)]
+    return (sum(1 for ch in arabic if ch in letters) / len(arabic) if arabic else 0.0), len(arabic)
+
+
+def identify_from_reading(text: str, signatures: dict[str, dict[str, Any]]) -> tuple[str, float] | None:
+    """The language whose signature a reading carries, with its share, or None."""
+    for language, signature in signatures.items():
+        share, total = signature_share(text, str(signature["letters"]))
+        if total >= int(signature.get("min_letters", 1)) and share >= float(signature["min_share"]):
+            return language, share
+    return None
 
 
 def route_for(language: str | None, routes: dict[str, dict[str, Any]]) -> dict[str, Any] | None:
@@ -185,6 +228,13 @@ class OmniCTCReader:
         if self.script == "arabic":      # a CTC model takes no language: the same spoken Urdu comes out in Devanagari unless the output is held to the Arabic script
             self._penalty = torch.tensor([0.0 if ok else -1e4 for ok in allowed_pieces(self._pieces)])
 
+    def release(self) -> None:
+        """Gives the model's memory back (about 1.3 GB): the Docker VM is small and the language model beside it needs most of it."""
+        self._model = None
+        self._penalty = None
+        import gc
+        gc.collect()
+
     def read(self, samples) -> tuple[str, float | None]:
         """Text and mean confidence (the mean of the top probability over the frames that emit a piece) of one piece of at most 40 seconds."""
         self._load()
@@ -224,9 +274,13 @@ class RoutedSpeechTranscriber:
         decoder: Callable[[Path], Any] | None = None,
         budget_seconds: float | None = None,
         clock: Callable[[], float] = time.monotonic,
+        signatures: dict[str, dict[str, Any]] | None = None,
+        keep_loaded: bool | None = None,
     ) -> None:
         self.fallback = fallback
         self.routes = load_routes() if routes is None else routes
+        self.signatures = (load_signatures() if routes is None else {}) if signatures is None else signatures
+        self.keep_loaded = (os.getenv("FORENSIC_ASR_ROUTE_KEEP_LOADED", "false").strip().lower() in {"1", "true", "yes", "on"}) if keep_loaded is None else keep_loaded
         self._reader_factory = reader_factory or (lambda route: OmniCTCReader(route["model_dir"], script=route.get("script")))
         self._readers: dict[str, Any] = {}
         self._decoder = decoder or decode_audio
@@ -243,18 +297,53 @@ class RoutedSpeechTranscriber:
         return self._readers[key]
 
     def transcribe(self, path: Path, *, evidence_id: str, version_id: str, source_file: str, language: str | None = None):
+        try:
+            return self._transcribe(path, evidence_id=evidence_id, version_id=version_id, source_file=source_file, language=language)
+        finally:
+            if not self.keep_loaded:
+                for reader in self._readers.values():
+                    release = getattr(reader, "release", None)
+                    if release is not None:
+                        release()
+
+    def _transcribe(self, path: Path, *, evidence_id: str, version_id: str, source_file: str, language: str | None):
         route = route_for(language, self.routes)
+        context = {"evidence_id": evidence_id, "version_id": version_id, "source_file": source_file}
         if route is not None:
-            return self._read(path, route, str(language).lower(), evidence_id=evidence_id, version_id=version_id, source_file=source_file, requested=language, detected=None)
+            return self._read(path, route, str(language).lower(), requested=language, detected=None, **context)
         result = self.fallback.transcribe(path, evidence_id=evidence_id, version_id=version_id, source_file=source_file, language=language)
         if language is None:
             detected = next((str(o.payload.get("language") or "").lower() for o in result if o.payload.get("language")), "")
             again = route_for(detected, self.routes)
             if again is not None:
-                return self._read(path, again, detected, evidence_id=evidence_id, version_id=version_id, source_file=source_file, requested=None, detected=detected)
+                return self._read(path, again, detected, requested=None, detected=detected, resolution={"first_detected_language": detected, "language_resolution": f"no language requested; the speech service heard {detected!r}, which has its own route"}, **context)
+            # the service cannot tell Pashto from its neighbours (it called a Pashto clip Persian): unless it heard English, the first seconds are read by the Pashto model and the reading is checked for the letters only Pashto uses
+            if self.signatures and detected != "en":
+                found = self._identify(path)
+                if found is not None:
+                    identified, share, seconds = found
+                    return self._read(path, route_for(identified, self.routes), identified, requested=None, detected=identified,
+                                      resolution={"first_detected_language": detected or None, "language_resolution": f"no language requested; the speech service heard {detected or 'nothing'!r}; the reading of the first {seconds:g} seconds has {share:.1%} letters that only {identified} uses (a reading is taken as {identified} from {float(self.signatures[identified]['min_share']):.0%}); read again by the {identified} route"}, **context)
         return result
 
-    def _read(self, path: Path, route: dict[str, Any], language: str, *, evidence_id: str, version_id: str, source_file: str, requested: str | None, detected: str | None):
+    def _identify(self, path: Path):
+        """(language, share, seconds probed) of the first seconds of a recording when their reading carries a language's signature; None when it does not or when the reading cannot be made (a failed probe never fails the job)."""
+        try:
+            samples = self._decoder(path)
+            for language, signature in self.signatures.items():
+                route = route_for(language, self.routes)
+                if route is None:
+                    continue
+                seconds = float(signature.get("probe_seconds", 30.0))
+                text, _ = self._reader(route).read(samples[: int(seconds * SAMPLE_RATE)])
+                hit = identify_from_reading(text, {language: signature})
+                if hit is not None:
+                    return hit[0], hit[1], seconds
+        except Exception:  # noqa: BLE001 - the probe is an addition: the service's own reading stands when it cannot run
+            return None
+        return None
+
+    def _read(self, path: Path, route: dict[str, Any], language: str, *, evidence_id: str, version_id: str, source_file: str, requested: str | None, detected: str | None, resolution: dict[str, Any] | None = None):
         started = self._clock()
         samples = self._decoder(path)
         seconds_total = len(samples) / SAMPLE_RATE
@@ -281,6 +370,8 @@ class RoutedSpeechTranscriber:
                 "reliability_state": status, "route": {"backend": route["backend"], "table_version": route.get("table_version"), "measured": route.get("measured"), "evidence": route.get("evidence")},
                 "reading_complete": complete, "audio_seconds_total": round(seconds_total, 3),
             }
+            if resolution:
+                payload.update(resolution)
             warnings = ("Transcript is a model observation and requires analyst review", STATUS_NOTE[status])
             if not complete:
                 warnings += (f"Reading stopped at the time budget; the recording continues after {observations[-1][2]} seconds and is not read",)
