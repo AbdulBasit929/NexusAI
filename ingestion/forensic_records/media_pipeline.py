@@ -1760,6 +1760,12 @@ def configured_media_processor() -> DeterministicMediaProcessor:
             image_processors.append(TesseractImageOCRProcessor.from_environment())
     if os.getenv("FORENSIC_ASR_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}:
         audio_transcriber = LocalAIASRProcessor.from_environment()
+        if os.getenv("FORENSIC_ASR_ROUTES_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}:
+            try:
+                from ingestion.forensic_records.speech_routes import RoutedSpeechTranscriber
+            except ModuleNotFoundError:  # pragma: no cover - supports direct worker image execution
+                from speech_routes import RoutedSpeechTranscriber
+            audio_transcriber = RoutedSpeechTranscriber(audio_transcriber)
     video_v2_enabled = os.getenv("FORENSIC_VIDEO_ANPR_V2_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}
     video_v3_enabled = os.getenv("FORENSIC_VIDEO_ANPR_V3_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}
     if video_v2_enabled and video_v3_enabled:

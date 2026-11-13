@@ -218,12 +218,16 @@ def file_sha256(path):
     return h.hexdigest()
 
 
-def whisper_backend(model_dir, threads, beam):
+def whisper_backend(model_dir, threads, beam, timestamps=True):
+    """timestamps=False reads with `without_timestamps=True` (the prompt then ends with the no-timestamps token): a checkpoint fine-tuned without timestamp tokens (its tokenizer configuration says
+    predict_timestamps false) does not know how to start a segment in timestamp mode and returns an empty text for some clips (found by the smoke test of 2026-11-13, amendment A3). Such a model gives
+    no segment times; a product route would have to cut the recording by voice activity first."""
     from faster_whisper import WhisperModel
     model = WhisperModel(model_dir, device="cpu", compute_type="int8", cpu_threads=threads)
+    extra = {} if timestamps else {"without_timestamps": True}
 
     def read(samples, lang):
-        segments, info = model.transcribe(samples, language=lang, beam_size=beam, condition_on_previous_text=False)
+        segments, info = model.transcribe(samples, language=lang, beam_size=beam, condition_on_previous_text=False, **extra)
         return " ".join(s.text.strip() for s in segments), info.language
     return read
 
@@ -238,19 +242,37 @@ def main(argv):
     ap.add_argument("--threads", type=int, default=8)
     ap.add_argument("--beam", type=int, default=1)
     ap.add_argument("--label", default="")
+    ap.add_argument("--script", default="", choices=("", "arabic"), help="omni backend: only pieces in this script may be emitted (amendment A8)")
+    ap.add_argument("--backend", default="whisper", choices=("whisper", "omni"), help="omni: the converted Omnilingual CTC model of tools/media_data/omni_ctc.py (clips over 38 s are cut at the quietest point)")
+    ap.add_argument("--chunk-seconds", type=float, default=0.0, help="cut each clip into pieces of at most this many seconds at the quietest points and read the pieces one by one (amendment A5)")
+    ap.add_argument("--no-timestamps", action="store_true", help="read with without_timestamps=True, for a checkpoint fine-tuned without timestamp tokens (amendment A3)")
     args = ap.parse_args(argv)
     lang = FLEURS.get(args.set) or OMNI[args.set]
     expected_script = lang
     folder = os.path.join(DATA, "models", "asr", args.model)
-    model_sha = file_sha256(os.path.join(folder, "model.bin"))
+    model_sha = file_sha256(os.path.join(folder, "model.safetensors" if args.backend == "omni" else "model.bin"))
     clips, keys = load_clips(args.set, args.partition, args.limit)
     print("%s %s: %d clips, %.1f min of audio; model %s (model.bin %s...); told %s; threads %d, beam %d" % (args.set, args.partition, len(clips), sum(c["seconds"] for c in clips) / 60, args.model, model_sha[:12], args.told, args.threads, args.beam), flush=True)
-    read = whisper_backend(folder, args.threads, args.beam)
+    if args.backend == "omni":
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from omni_ctc import OmniCTC
+        omni = OmniCTC(folder, args.threads, script=args.script or None)
+
+        def read(samples, lang):
+            return omni.transcribe(samples), lang
+        if not args.chunk_seconds:
+            args.chunk_seconds = 38.0       # the 40-second input limit of the model; pieces are cut at the quietest point
+    else:
+        read = whisper_backend(folder, args.threads, args.beam, timestamps=not args.no_timestamps)
     free_start, free_low = mem_available_mib(), mem_available_mib()
     rows = []
     for clip in clips:
         t0 = time.time()
-        text, detected = read(clip["samples"], args.told)
+        if args.chunk_seconds:
+            parts = [read(piece, args.told) for piece in split_for_limit(clip["samples"], 16000, limit=args.chunk_seconds, low=(20.0 if args.chunk_seconds >= 36 else 0.5 * args.chunk_seconds), high=(36.0 if args.chunk_seconds >= 36 else 0.9 * args.chunk_seconds))]
+            text, detected = " ".join(t for t, _ in parts if t), (parts[0][1] if parts else "")
+        else:
+            text, detected = read(clip["samples"], args.told)
         compute = time.time() - t0
         free_low = min(free_low, mem_available_mib())
         row = {"key": clip["key"], "seconds": clip["seconds"], "compute": compute, "detected": detected, "reference": clip["text"], "hypothesis": text,
@@ -266,7 +288,7 @@ def main(argv):
     os.makedirs(out_dir, exist_ok=True)
     name = "%s-%s-%s-told-%s%s-%s.json" % (args.set, args.partition, args.model, args.told, ("-" + args.label) if args.label else "", stamp)
     meta = {"set": args.set, "partition": args.partition, "model": args.model, "model_bin_sha256": model_sha, "told": args.told, "threads": args.threads, "beam": args.beam, "limit": args.limit,
-            "keys_sha256": hashlib.sha256("\n".join(keys).encode("utf-8")).hexdigest(), "preregistration": "docs/data/speech-lab-preregistration-20261112.md", "when": stamp, "vm_free_mib_start": free_start, "vm_free_mib_lowest": free_low}
+            "keys_sha256": hashlib.sha256("\n".join(keys).encode("utf-8")).hexdigest(), "preregistration": "docs/data/speech-lab-preregistration-20261112.md", "when": stamp, "without_timestamps": args.no_timestamps, "chunk_seconds": args.chunk_seconds, "backend": args.backend, "script_constraint": args.script, "vm_free_mib_start": free_start, "vm_free_mib_lowest": free_low}
     with open(os.path.join(out_dir, name), "w", encoding="utf-8") as handle:
         json.dump({"meta": meta, "summary": summary, "rows": rows}, handle, ensure_ascii=False)
     for version in ("N1", "N2"):

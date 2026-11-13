@@ -1,0 +1,123 @@
+{
+  "version": "2026-11-13",
+  "note": "Statuses follow the registered gates of docs/data/speech-lab-preregistration-20261112.md as applied by tools/media_data/speech_gate.py to the sealed read. pa is routed as Pakistani Punjabi (Shahmukhi); Urdu, English and every language not listed stay on the Whisper service. A route may only be raised by a new sealed measurement.",
+  "routes": {
+    "ps": {
+      "backend": "omni_ctc",
+      "model_dir": "/models/media/speech/omni-ctc-300m-hf",
+      "model_id": "omniASR-CTC-300M (Apache-2.0, converted by tools/media_data/omni_ctc.py)",
+      "script": "arabic",
+      "table_version": "2026-11-13",
+      "evidence": "docs/data/speech-lab-results-20261112.md",
+      "status": "SEARCH_LEAD",
+      "measured": {
+        "set": "Pashto spontaneous, three varieties pooled, sealed, 120 clips",
+        "word_error": 0.303,
+        "character_error": 0.107,
+        "word_recall": 0.649,
+        "read_speech_word_error": 0.449,
+        "tier": "T3 public data; the model's home corpus; not telephone or noisy speech"
+      }
+    },
+    "pus": {
+      "backend": "omni_ctc",
+      "model_dir": "/models/media/speech/omni-ctc-300m-hf",
+      "model_id": "omniASR-CTC-300M (Apache-2.0, converted by tools/media_data/omni_ctc.py)",
+      "script": "arabic",
+      "table_version": "2026-11-13",
+      "evidence": "docs/data/speech-lab-results-20261112.md",
+      "status": "SEARCH_LEAD",
+      "measured": {
+        "set": "Pashto spontaneous, three varieties pooled, sealed, 120 clips",
+        "word_error": 0.303,
+        "character_error": 0.107,
+        "word_recall": 0.649,
+        "read_speech_word_error": 0.449,
+        "tier": "T3 public data; the model's home corpus; not telephone or noisy speech"
+      }
+    },
+    "pbt": {
+      "backend": "omni_ctc",
+      "model_dir": "/models/media/speech/omni-ctc-300m-hf",
+      "model_id": "omniASR-CTC-300M (Apache-2.0, converted by tools/media_data/omni_ctc.py)",
+      "script": "arabic",
+      "table_version": "2026-11-13",
+      "evidence": "docs/data/speech-lab-results-20261112.md",
+      "status": "SEARCH_LEAD",
+      "measured": {
+        "set": "Pashto spontaneous, three varieties pooled, sealed, 120 clips",
+        "word_error": 0.303,
+        "character_error": 0.107,
+        "word_recall": 0.649,
+        "read_speech_word_error": 0.449,
+        "tier": "T3 public data; the model's home corpus; not telephone or noisy speech"
+      }
+    },
+    "pbu": {
+      "backend": "omni_ctc",
+      "model_dir": "/models/media/speech/omni-ctc-300m-hf",
+      "model_id": "omniASR-CTC-300M (Apache-2.0, converted by tools/media_data/omni_ctc.py)",
+      "script": "arabic",
+      "table_version": "2026-11-13",
+      "evidence": "docs/data/speech-lab-results-20261112.md",
+      "status": "SEARCH_LEAD",
+      "measured": {
+        "set": "Pashto spontaneous, three varieties pooled, sealed, 120 clips",
+        "word_error": 0.303,
+        "character_error": 0.107,
+        "word_recall": 0.649,
+        "read_speech_word_error": 0.449,
+        "tier": "T3 public data; the model's home corpus; not telephone or noisy speech"
+      }
+    },
+    "pst": {
+      "backend": "omni_ctc",
+      "model_dir": "/models/media/speech/omni-ctc-300m-hf",
+      "model_id": "omniASR-CTC-300M (Apache-2.0, converted by tools/media_data/omni_ctc.py)",
+      "script": "arabic",
+      "table_version": "2026-11-13",
+      "evidence": "docs/data/speech-lab-results-20261112.md",
+      "status": "SEARCH_LEAD",
+      "measured": {
+        "set": "Pashto spontaneous, three varieties pooled, sealed, 120 clips",
+        "word_error": 0.303,
+        "character_error": 0.107,
+        "word_recall": 0.649,
+        "read_speech_word_error": 0.449,
+        "tier": "T3 public data; the model's home corpus; not telephone or noisy speech"
+      }
+    },
+    "pnb": {
+      "backend": "omni_ctc",
+      "model_dir": "/models/media/speech/omni-ctc-300m-hf",
+      "model_id": "omniASR-CTC-300M (Apache-2.0, converted by tools/media_data/omni_ctc.py)",
+      "script": "arabic",
+      "table_version": "2026-11-13",
+      "evidence": "docs/data/speech-lab-results-20261112.md",
+      "status": "LOW_RESOURCE_LANGUAGE",
+      "measured": {
+        "set": "Western Punjabi (Shahmukhi) spontaneous, development, 20 clips",
+        "word_error": 0.67,
+        "character_error": 0.398,
+        "word_recall": 0.361,
+        "tier": "T3 public data; development only"
+      }
+    },
+    "pa": {
+      "backend": "omni_ctc",
+      "model_dir": "/models/media/speech/omni-ctc-300m-hf",
+      "model_id": "omniASR-CTC-300M (Apache-2.0, converted by tools/media_data/omni_ctc.py)",
+      "script": "arabic",
+      "table_version": "2026-11-13",
+      "evidence": "docs/data/speech-lab-results-20261112.md",
+      "status": "LOW_RESOURCE_LANGUAGE",
+      "measured": {
+        "set": "Western Punjabi (Shahmukhi) spontaneous, development, 20 clips",
+        "word_error": 0.67,
+        "character_error": 0.398,
+        "word_recall": 0.361,
+        "tier": "T3 public data; development only"
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+# Speech routes (docs/data/speech-lab-preregistration-20261112.md and speech-lab-results-20261112.md; code in ingestion/forensic_records/speech_routes.py): the worker reads Pashto, Pakistani Punjabi (Shahmukhi)
+# and the other languages of its route table itself, in this process, with the converted Omnilingual CTC model; every other language still goes to the local Whisper service exactly as before.
+# Add this file AFTER the six files of the running worker (main compose, ingest-v2, media, families, plates, video). Recreating the worker WITHOUT it turns the routes off again (the safe direction).
+#   tools/dev/live-window/8-recreate-worker-speech-routes.ps1 [-Apply|-Rollback]
+# The model folder is read from the media model directory (models/media/speech/omni-ctc-300m-hf in this checkout, mounted read-only at /models/media, see tools/media_data/run_speech_baseline.sh omni-convert
+# and Install-SpeechRouteModel.ps1). What a route promises is in its row of speech_routes.json (its status and the figures measured on public speech); a recording read by a route says so on every segment.
+# A reading stops by itself at the wall-clock budget below (the job lease is 2400 s from the video file); what it did not read is said on the segments it did.
+services:
+  forensic-records-worker:
+    environment:
+      FORENSIC_ASR_ROUTES_ENABLED: ${FORENSIC_ASR_ROUTES_ENABLED:-true}
+      FORENSIC_ASR_ROUTES_PATH: ${FORENSIC_ASR_ROUTES_PATH:-/app/speech_routes.json}
+      FORENSIC_ASR_ROUTE_THREADS: ${FORENSIC_ASR_ROUTE_THREADS:-4}
+      FORENSIC_ASR_ROUTE_BUDGET_SECONDS: ${FORENSIC_ASR_ROUTE_BUDGET_SECONDS:-1500}

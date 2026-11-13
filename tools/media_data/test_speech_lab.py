@@ -12,6 +12,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 import speech_lab as sl  # noqa: E402
+import speech_report as sr  # noqa: E402
 
 
 class Partition(unittest.TestCase):
@@ -111,6 +112,15 @@ class Cutting(unittest.TestCase):
         first = len(pieces[0]) / rate
         self.assertTrue(30.0 <= first <= 30.5, first)
 
+    def test_short_pieces_for_a_model_trained_on_short_clips(self):
+        rate = 16000
+        samples = tone(40, rate)
+        pieces = sl.split_for_limit(samples, rate, limit=12.0, low=6.0, high=10.8)
+        self.assertEqual(sum(len(p) for p in pieces), len(samples))
+        self.assertTrue(all(len(p) / rate <= 12.0 for p in pieces))
+        self.assertTrue(all(len(p) / rate >= 6.0 for p in pieces[:-1]))
+        self.assertGreaterEqual(len(pieces), 4)
+
     def test_a_clip_of_90_seconds_is_cut_into_pieces_within_the_limit(self):
         rate = 16000
         samples = tone(90, rate)
@@ -132,6 +142,18 @@ class Summary(unittest.TestCase):
         self.assertEqual((s["loops"], s["empty"]), (1, 1))
         self.assertAlmostEqual(s["script_share"], 2.5 / 3)
         self.assertAlmostEqual(s["rtf"], 0.5)
+
+
+class Recall(unittest.TestCase):
+    def test_recall_counts_distinct_reference_words_of_three_letters_or_more_found_in_the_reading(self):
+        rows = [{"reference": "کتاب د سړي دی کتاب", "hypothesis": "کتاب سړي"},      # distinct reference words of 3+ letters: کتاب, سړي -> both found
+                {"reference": "اوبه شول زما", "hypothesis": "اوبه"}]                  # 3 words, 1 found
+        self.assertAlmostEqual(sr.recall(rows), 3 / 5)
+
+    def test_recall_ignores_letter_form_differences_through_n2_and_short_words(self):
+        rows = [{"reference": "كتاب في", "hypothesis": "کتاب"}]
+        self.assertEqual(sr.recall(rows), 1.0)
+        self.assertEqual(sr.recall([{"reference": "د به", "hypothesis": ""}]), 0.0)
 
 
 if __name__ == "__main__":
