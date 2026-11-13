@@ -57,7 +57,8 @@ try {
   Invoke-Docker @('build', '-t', $output, $context)
   Write-Host "built $output on top of $base ($($files -join ', ')); :latest and the running worker are unchanged"
   # no quotes inside the -c strings (Windows PowerShell 5.1 strips them): compile the patched file, import the route module from /app and load its table
-  Invoke-Docker @('run', '--rm', '--network', 'none', '--entrypoint', 'python', $output, '-m', 'py_compile', '/app/media_pipeline.py')
+  # /app is not writable for the container user: the compile cache goes to a scratch folder
+  Invoke-Docker @('run', '--rm', '--network', 'none', '--tmpfs', '/app/__pycache__:rw,mode=1777', '--entrypoint', 'python', $output, '-m', 'py_compile', '/app/media_pipeline.py')
   Invoke-Docker @('run', '--rm', '--network', 'none', '--workdir', '/app', '--entrypoint', 'python', $output, '-c', 'import speech_routes as s;print(sorted(s.load_routes()))')
 } finally {
   Remove-Item -LiteralPath $context -Recurse -Force -ErrorAction SilentlyContinue

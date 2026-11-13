@@ -83,3 +83,19 @@ Public speech only (T3). The Omnilingual figures are on the Omnilingual corpus, 
 ## 7. What changed in the repository
 
 The route table `ingestion/forensic_records/speech_routes.json` now carries the measured status of each route. The worker wiring (`speech_routes.py`, the one-line patch of `media_pipeline.py`, the overlay build, the compose file and the recreate script) is written and tested and **not applied to the live worker**. Applying it needs the owner's word and the model folder installed (`tools/media_data/Install-SpeechRouteModel.ps1`).
+
+## 8. Applied to the live worker (2026-11-13, on the owner's word "Yes, apply it")
+
+* **Image:** `nexusai-forensic-records-worker:speech-routes-20261113` (`f32bd367b972`), built on top of the running worker image (`e70bf7e28b6e`, the artifact-scope overlay); **rollback tag `before-speech-routes-20261113` = `e70bf7e28b6e`**; one command: `tools/dev/live-window/8-recreate-worker-speech-routes.ps1 -Rollback`. Four settings added (`FORENSIC_ASR_ROUTES_ENABLED=true`, route table path, 4 threads, 1500 s budget); nothing else changed (video plate step V4 and the 2400 s lease are as before). The dry run reproduced the running worker from six compose files before the switch; the build smoke test (compile, import, table load) passed; the model folder was installed with a verified SHA-256.
+* **Live check on a throwaway collection `speech-routes-live-test-20261113`** (three public clips through the normal upload path, one per path, all three jobs finished in under two minutes, no error in the worker log):
+
+| Clip | Requested language | Stored segments | Route and label |
+|---|---|---|---|
+| Central Pashto, 39 s | `ps` | 2: 0.0 to 33.13 s and 33.13 to 38.96 s (cut at a quiet point), text in Pashto script matching the lab's reading | Omnilingual route, **SEARCH_LEAD**, measured recall 0.649 carried on each segment, timing "reported", review required |
+| Western Punjabi (Shahmukhi), 47 s | `pa` | 2: 0.0 to 34.81 s and 34.81 to 47.11 s, Shahmukhi text | Omnilingual route, **LOW_RESOURCE_LANGUAGE**, recall 0.361 carried |
+| Urdu (FLEURS), 9 s | `ur` | 1, 0.0 to 8.88 s | unchanged: Whisper turbo through the local service, no route fields |
+
+* **Ask engine:** "How many speech segments does ps_pst.wav have?" answered 2 (83 s, the first question of a cold model); "which recordings have speech segments, and in which language?" answered with 3 rows.
+* **Not done:** the interface does not yet draw the three labels as badges or play from a segment (the audio viewer of the interface programme); the label is in every segment's data. The worker holds about 1.1 GB with the model loaded lazily; the route stops by itself at its time budget and says so on the segments it did read. Not tested live: a recording longer than the 1500 s budget, and a recording requested without a language that Whisper then hears as Pashto (the re-read rule is covered by a unit test).
+* The throwaway collection holds public clips only and can be retired with the other two throwaway collections.
+
