@@ -195,6 +195,79 @@ var _ = Describe("B1 shared derived text", func() {
 		b["citation_locator"] = map[string]any{}
 		Expect(governedDerivedTextEvidence([]map[string]any{a, b}, b1Request("clear phrase"))["result_state"]).To(Equal("SEARCH_INCOMPLETE"))
 	})
+	Describe("a literal of one word and the gaps between segments", func() {
+		// Three segments of one recording with small gaps between them, as the speech reader leaves them (measured on the Orion voice notes, 2026-11-16).
+		gapped := func() []map[string]any {
+			return []map[string]any{
+				b1Row("a", "Along the same line", 0, 2.1),
+				b1Row("b", "men are required to wear trousers covering the knees", 2.4, 6.0),
+				b1Row("c", "and women the same", 6.3, 8.0),
+			}
+		}
+		oneWord := func(literal string, semantic forensictext.Semantic) hybridQueryRequest {
+			req := b1Request(literal)
+			req.TextQuery.MatchSemantic = semantic
+			req.TextQuery.CaseInsensitive = true
+			return req
+		}
+		DescribeTable("is searched in every segment and is not called incomplete", func(semantic forensictext.Semantic) {
+			result := governedDerivedTextEvidence(gapped(), oneWord("covering", semantic))
+			Expect(evidenceResults(result)).To(HaveLen(1))
+			Expect(result["result_state"]).To(Equal("COMPLETE_RESULTS"))
+			Expect(result["search_completeness"]).To(Equal("EXHAUSTIVE"))
+		}, Entry("phrase", forensictext.PhraseContains), Entry("exact phrase", forensictext.ExactPhrase))
+		It("says that nothing matched, not that the search is incomplete, when no segment holds the word", func() {
+			result := governedDerivedTextEvidence(gapped(), oneWord("zebra", forensictext.PhraseContains))
+			Expect(evidenceResults(result)).To(BeEmpty())
+			Expect(result["result_state"]).To(Equal("NO_EXACT_MATCH"))
+		})
+		It("still finds the word when segments overlap", func() {
+			rows := []map[string]any{b1Row("a", "men are required", 0, 2), b1Row("b", "trousers covering the knees", 1, 3)}
+			result := governedDerivedTextEvidence(rows, oneWord("covering", forensictext.PhraseContains))
+			Expect(evidenceResults(result)).To(HaveLen(1))
+			Expect(result["result_state"]).To(Equal("COMPLETE_RESULTS"))
+		})
+		It("is not found across a boundary, because the segments are joined by a space", func() {
+			rows := []map[string]any{b1Row("a", "trousers cov", 0, 2), b1Row("b", "ering the knees", 2.4, 4)}
+			result := governedDerivedTextEvidence(rows, oneWord("covering", forensictext.PhraseContains))
+			Expect(evidenceResults(result)).To(BeEmpty())
+		})
+		It("keeps a phrase of two words incomplete when the segments do not touch", func() {
+			result := governedDerivedTextEvidence(gapped(), oneWord("line men", forensictext.PhraseContains))
+			Expect(evidenceResults(result)).To(BeEmpty())
+			Expect(result["result_state"]).To(Equal("SEARCH_INCOMPLETE"))
+			Expect(result["search_completeness"]).To(Equal("INCOMPLETE"))
+		})
+		It("keeps a phrase of two words found across touching segments", func() {
+			rows := []map[string]any{b1Row("a", "men are required", 0, 2), b1Row("b", "to wear trousers", 2, 4)}
+			result := governedDerivedTextEvidence(rows, oneWord("required to", forensictext.PhraseContains))
+			Expect(evidenceResults(result)).To(HaveLen(2))
+			Expect(evidenceResults(result)[0]["metadata"].(map[string]any)["cross_segment"]).To(BeTrue())
+			Expect(result["result_state"]).To(Equal("COMPLETE_RESULTS"))
+		})
+		DescribeTable("which literals count as one word", func(literal string, one bool) {
+			Expect(literalStaysInOneSegment(oneWord(literal, forensictext.PhraseContains))).To(Equal(one))
+		},
+			Entry("one word", "covering", true),
+			Entry("one word with surrounding space", "  covering ", true),
+			Entry("Urdu word", "رپورٹ", true),
+			Entry("Pashto word", "ډېر", true),
+			Entry("two words", "required to", false),
+			Entry("a line break between words", "required\nto", false),
+			Entry("Chinese, written without spaces", "北京", false),
+			Entry("Japanese, written without spaces", "ありがとう", false),
+			Entry("Thai, written without spaces", "สวัสดี", false),
+		)
+		It("applies to a phrase search only", func() {
+			Expect(literalStaysInOneSegment(oneWord("covering", forensictext.TokenSearch))).To(BeFalse())
+			Expect(literalStaysInOneSegment(hybridQueryRequest{ExactTerm: "covering"})).To(BeFalse())
+		})
+		It("keeps a word of an unspaced script incomplete when the segments do not touch", func() {
+			rows := []map[string]any{b1Row("a", "我们去北", 0, 2), b1Row("b", "京开会", 2.4, 4)}
+			result := governedDerivedTextEvidence(rows, oneWord("北京", forensictext.PhraseContains))
+			Expect(result["result_state"]).To(Equal("SEARCH_INCOMPLETE"))
+		})
+	})
 	It("keeps OCR and native document literals on raw observations and preserves locators", func() {
 		for template, contract := range map[string]string{"image_ocr_search": "forensics.image-ocr-observation/v1", "document_search": "forensics.document-native-text-passage/v1"} {
 			req := b1Request("Annual Report")

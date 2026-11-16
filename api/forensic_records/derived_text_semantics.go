@@ -5,6 +5,7 @@ import (
 	"math"
 	"sort"
 	"strings"
+	"unicode"
 
 	"github.com/mudler/LocalAI/pkg/forensictext"
 )
@@ -194,6 +195,28 @@ func segmentTimes(row map[string]any) (float64, float64, bool) {
 	return a, b, okA && okB && !math.IsNaN(a) && !math.IsNaN(b) && !math.IsInf(a, 0) && !math.IsInf(b, 0) && b > a
 }
 
+// unspacedScripts are written without a space between words, so a literal of "one word" in them is not known to sit inside one segment.
+var unspacedScripts = []*unicode.RangeTable{unicode.Han, unicode.Hiragana, unicode.Katakana, unicode.Thai, unicode.Lao, unicode.Khmer, unicode.Myanmar}
+
+// literalStaysInOneSegment is true when a phrase or exact-phrase literal is a single word of a script that separates words with spaces. The match compares the literal with segment text
+// joined by a single space, so a literal without a space cannot be found across a boundary, and the adjacency of segments is not needed to know the search covered them all.
+// A word that a recording's reading cut in two ("cov" and "ering") is not found, as before: the stored reading is searched as it was written.
+func literalStaysInOneSegment(req hybridQueryRequest) bool {
+	if req.TextQuery == nil || req.TextQuery.MatchSemantic != forensictext.PhraseContains && req.TextQuery.MatchSemantic != forensictext.ExactPhrase {
+		return false
+	}
+	words := strings.Fields(forensictext.Normalize(req.TextQuery.LiteralText))
+	if len(words) != 1 {
+		return false
+	}
+	for _, r := range words[0] {
+		if unicode.In(r, unspacedScripts...) {
+			return false
+		}
+	}
+	return true
+}
+
 // The current worker persists source times, not a usable ordinal. Only touching,
 // non-overlapping ranges establish adjacency; UUIDs and creation time never do.
 func derivedTextWindows(rows []map[string]any, req hybridQueryRequest) (map[string][]map[string]any, bool) {
@@ -223,6 +246,11 @@ func derivedTextWindows(rows []map[string]any, req hybridQueryRequest) (map[stri
 			continue
 		}
 		groups[strings.Join(keys, "\x00")] = append(groups[strings.Join(keys, "\x00")], row)
+	}
+	// Whether neighbouring segments touch decides nothing for a literal of one word: segments are joined with a space and the literal holds none, so no match can straddle two of them.
+	// Measured 2026-11-16: every word search of the Orion speech pack was labelled incomplete because three segments of one recording have small gaps between them.
+	if literalStaysInOneSegment(req) {
+		return matches, uncertain
 	}
 	for _, group := range groups {
 		if len(group) < 2 {
