@@ -507,6 +507,38 @@ func TestTextIntentRefusesAPieceOfAFileNameAsWordsToFindButAllowsTheWholeName(t 
 	}
 }
 
+func TestTextIntentDoesNotSearchForTheNameOfALanguageAskedAsTheLanguageOfRecordings(t *testing.T) {
+	text := func(literal string) textIntentResult {
+		return textIntentResult{Kind: tiKindText, Family: tiFamilyAudio, Match: tiMatchPhrase, Literal: literal}
+	}
+	// the language of the recordings is a field of the audio files, not a word to find in what was said
+	for _, c := range [][2]string{
+		{"Which audio recordings are in Pashto?", "Pashto"},
+		{"Which audio recordings are in Urdu?", "Urdu"},
+		{"How many audio recordings are spoken in English?", "English"},
+		{"Which recordings are in Pashto?", "in Pashto"},
+		{"List the Punjabi recordings", "Punjabi"},
+		{"Who speaks Urdu in the recordings?", "Urdu"},
+		{"Which recording has an Urdu speaker?", "Urdu"},
+	} {
+		if _, _, why := textIntentValidate(c[0], text(c[1])); why != "LITERAL_NAMES_A_LANGUAGE" {
+			t.Fatalf("%q: the language name %q was taken as words to find: %q", c[0], c[1], why) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+		}
+	}
+	// a language name the analyst asked to be SAID, or put in quotes, is a search for the word
+	for _, c := range [][2]string{
+		{"Which recordings mention Pashto?", "Pashto"},
+		{"Which recordings have someone say the word Urdu?", "Urdu"},
+		{"Which audio recordings say 'Urdu'?", "Urdu"},
+		{"Find the recordings where \"English\" is said", "English"},
+		{"Which recordings mention delivery?", "delivery"},
+	} {
+		if _, _, why := textIntentValidate(c[0], text(c[1])); why != "" {
+			t.Fatalf("%q: the search for %q was refused: %q", c[0], c[1], why) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+		}
+	}
+}
+
 func TestTextIntentRefusesALiteralThatOnlyDescribesTheRequest(t *testing.T) {
 	text := func(literal string) textIntentResult {
 		return textIntentResult{Kind: tiKindText, Family: tiFamilyAudio, Match: tiMatchPhrase, Literal: literal}

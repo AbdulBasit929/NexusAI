@@ -299,6 +299,9 @@ func textIntentValidate(query string, result textIntentResult) (*forensictext.Qu
 	if tiOnlyRequestWords(literal, false) {
 		return nil, "", "LITERAL_DESCRIBES_THE_REQUEST"
 	}
+	if tiNamesALanguage(query, literal) {
+		return nil, "", "LITERAL_NAMES_A_LANGUAGE"
+	}
 	endMarks := func(r rune) bool { return unicode.IsSpace(r) || strings.ContainsRune("?.!\u061f\u06d4", r) }
 	if strings.TrimRightFunc(strings.ToLower(literal), endMarks) == strings.TrimRightFunc(haystack, endMarks) {
 		return nil, "", "LITERAL_IS_WHOLE_MESSAGE"
@@ -312,6 +315,28 @@ func textIntentValidate(query string, result textIntentResult) (*forensictext.Qu
 		return nil, "", err.Error()
 	}
 	return text, result.Family, ""
+}
+
+// tiLanguageNames are the languages of the recordings of a case, as an analyst writes them. "Which recordings are in Pashto?" asks for the language of the recordings (a field of the audio files),
+// not for the word Pashto to be said in them: measured 2026-11-16 on the Orion case, where the model read "in Pashto" and "in Urdu" as spoken words to find and the governed text search answered
+// "the text search is incomplete" in six seconds, before the engine saw the question.
+var tiLanguageNames = `pashto|pushto|pukhto|urdu|english|punjabi|panjabi|hindi|persian|farsi|dari|arabic|sindhi|saraiki|balochi|baluchi|chinese|russian`
+
+// tiLanguageCue is a language name placed where a language is named: after in, spoken in, speaking, or beside the word language, speaker, recording or call.
+var tiLanguageCue = regexp.MustCompile(`(?:\b(?:in|speaks?|speaking|spoken in|language|languages)\s+(?:the\s+)?(?:` + tiLanguageNames + `)\b|\b(?:` + tiLanguageNames + `)\s+(?:language|languages|speakers?|recordings?|audio|calls?)\b)`)
+
+// tiNamesALanguage reports that the literal is a language name used to say which language the recordings are in. A name the analyst put in quotes, or asked to be said ("who says Urdu"), is still
+// a search for the word.
+func tiNamesALanguage(query, literal string) bool {
+	word := strings.TrimSpace(strings.TrimPrefix(strings.ToLower(literal), "in "))
+	if !regexp.MustCompile(`^(?:` + tiLanguageNames + `)$`).MatchString(word) {
+		return false
+	}
+	lower := strings.ToLower(query)
+	if regexp.MustCompile(`["'\x{201c}\x{2018}\x{00ab}]\s*` + regexp.QuoteMeta(word) + `\s*["'\x{201d}\x{2019}\x{00bb}]`).MatchString(lower) {
+		return false
+	}
+	return tiLanguageCue.MatchString(lower)
 }
 
 // tiFileNameToken is a word of a message that is a file name: no space in it, and a dot followed by two to five letters or digits that start with a letter (clip-12.mp4, report.pdf).
