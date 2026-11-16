@@ -1,0 +1,140 @@
+/* The evidence timeline and the answers panel, rebuilt. The timeline keeps one lane for each case on one shared calendar (small multiples compare several series more accurately than denser forms),
+   and adds what an investigation needs: drag across the lanes to zoom (double-click or Escape to go back), a strip of all cases together with the part in view marked, the busiest month of each lane
+   named, and a crosshair that reads one month across every lane. Answers draws one question: were my questions answered, and if not, why. */
+@layer nx-pages {
+  /* ---------- the timeline lanes ---------- */
+  .nx-tl { --tl-who: minmax(112px, 168px); --tl-val: 84px; }
+  .nx-tl .nx-lane { cursor: crosshair; user-select: none; }
+  .nx-tl[data-dragging] { cursor: ew-resize; }
+  .nx-tl__name { display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; white-space: normal; line-height: 1.25; }
+  .nx-lane > i { position: relative; z-index: 1; background: color-mix(in oklab, var(--lane, var(--nx-accent)) 72%, var(--nx-surface)); }
+  .nx-lane > i.is-peak, .nx-lane > i.is-on { background: var(--lane, var(--nx-accent)); }
+  .nx-lane > i.is-peak::after { content: ''; position: absolute; inset-block-start: -7px; inset-inline-start: 50%; inline-size: 5px; block-size: 5px; margin-inline-start: -2.5px; border-radius: 50%; background: var(--lane, var(--nx-accent)); }
+  .nx-lane > i.is-empty { background: var(--nx-border); }
+  .nx-lane > i.is-unread { background: linear-gradient(90deg, var(--nx-text-3) 0 45%, transparent 45%); }
+  .nx-lane > i.is-before, .nx-lane > i.is-after { background: transparent; }
+  .nx-lane__tick { position: absolute; z-index: 0; inset-block: 0; inset-inline-start: calc(var(--k) / var(--n) * 100%); border-inline-start: 1px solid var(--nx-border-subtle); pointer-events: none; }
+  .nx-lane[data-m]::before { content: ''; position: absolute; z-index: 2; inset-block: -4px 0; inset-inline-start: calc(var(--m0) / var(--n) * 100%); inline-size: calc((var(--m1) - var(--m0) + 1) / var(--n) * 100%); border-inline: 1px solid var(--nx-accent); background: color-mix(in oklab, var(--nx-accent) 16%, transparent); pointer-events: none; }
+
+  /* the end of a lane: the figure, and under it the busiest month (or, while a month is read, that month) */
+  .nx-tl__end { grid-area: count; display: grid; justify-items: end; gap: 1px; min-inline-size: 0; }
+  .nx-tl__count { grid-area: auto; }
+  .nx-tl__who { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: var(--nx-s-2); }
+  .nx-tl__dot { display: block; inline-size: 8px; block-size: 8px; border-radius: 50%; background: var(--lane, var(--nx-accent)); }
+  .nx-tl { position: relative; }
+  .nx-tl__peak { min-block-size: 13px; font-size: 11px; line-height: 13px; color: var(--nx-text-3); white-space: nowrap; }
+  .nx-tl__range-pick { margin-inline-start: auto; }
+  .nx-tl__range-pick + .nx-segmented { margin-inline-start: var(--nx-s-2); }
+  .nx-tl__range-pick button:disabled { opacity: 0.45; cursor: default; }
+
+  /* the strip of all cases together; it is drawn when the cell is tall enough for it */
+  .nx-tl__overview { display: none; grid-template-columns: var(--tl-who) minmax(0, 1fr) var(--tl-val); align-items: center; column-gap: var(--nx-s-4); margin-block-start: var(--nx-s-1); }
+  @container panel (min-height: 290px) { .nx-tl__overview { display: grid; } }
+  .nx-tl__overview .nx-tl__legend { grid-column: 1; }
+  .nx-tl__strip { position: relative; block-size: 24px; overflow: hidden; border-radius: var(--nx-r-2); background: var(--nx-sunken); cursor: crosshair; touch-action: pan-y; user-select: none; }
+  .nx-tl__strip > svg { display: block; inline-size: 100%; block-size: 100%; }
+  .nx-tl__area { fill: color-mix(in oklab, var(--nx-accent) 22%, transparent); }
+  .nx-tl__line { fill: none; stroke: var(--nx-accent); stroke-width: 1.25; stroke-linejoin: round; }
+  .nx-tl__brush { position: absolute; inset-block: 0; inset-inline-start: calc(var(--a) / var(--n) * 100%); inline-size: calc((var(--b) - var(--a)) / var(--n) * 100%); min-inline-size: 3px; border: 1px solid var(--nx-accent); border-radius: 3px; background: color-mix(in oklab, var(--nx-accent) 14%, transparent); box-shadow: 0 0 0 100vmax color-mix(in oklab, var(--nx-surface) 58%, transparent); pointer-events: none; }
+  .nx-tl__range { text-align: end; font-size: 11px; color: var(--nx-text-3); white-space: nowrap; }
+
+  /* ---------- answers: a gauge, a week as a stacked area, and the reasons ---------- */
+  .nx-ans { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 10px; min-inline-size: 0; min-block-size: 0; block-size: 100%; }
+  .nx-ans__hero { display: grid; justify-items: center; gap: 4px; min-inline-size: 0; }
+  .nx-ans__side { display: grid; align-content: start; gap: 10px; min-inline-size: 0; min-block-size: 0; }
+  [data-o='answered'] { --c: var(--nx-accent); }
+  [data-o='declined'] { --c: var(--nx-warn); }
+  [data-o='abstained'] { --c: var(--nx-border-strong); }
+
+  /* the gauge: one half-circle cut into the three outcomes; the figure sits in its bowl, and it is also the readout */
+  .nx-gauge { position: relative; inline-size: 100%; max-inline-size: 192px; aspect-ratio: 200 / 104; }
+  .nx-gauge__svg { display: block; inline-size: 100%; block-size: 100%; overflow: visible; }
+  .nx-gauge__track { fill: none; stroke: var(--nx-sunken); stroke-width: 14; stroke-linecap: round; }
+  .nx-gauge__part { fill: none; stroke: var(--c); stroke-width: 14; stroke-linecap: butt; cursor: pointer; transition: opacity var(--nx-dur-2) var(--nx-ease-standard), stroke-width var(--nx-dur-1) var(--nx-ease-standard); }
+  .nx-gauge__part:hover, .nx-gauge__part.is-on { stroke-width: 17; }
+  .nx-gauge__svg[data-lit] .nx-gauge__part:not(.is-on) { opacity: 0.3; }
+  .nx-gauge__part[data-o='answered'] { stroke-linecap: round; }
+  .nx-gauge__read { position: absolute; inset-inline: 18%; inset-block-end: 0; display: grid; justify-items: center; pointer-events: none; text-align: center; }
+  .nx-gauge__read > b { font-size: 1.75rem; font-weight: var(--nx-fw-semibold); letter-spacing: -0.02em; line-height: 1.05; }
+  .nx-gauge__read > span { max-inline-size: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; line-height: 14px; color: var(--nx-text-3); }
+  .nx-gauge__read > span.is-probe { color: var(--nx-accent-text); font-weight: var(--nx-fw-medium); }
+
+  /* the legend that is also the way in: plain words, no boxes */
+  .nx-ans__legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px var(--nx-s-3); }
+  .nx-ans__legend > button { display: inline-flex; align-items: center; gap: 6px; min-block-size: 24px; padding: 0 var(--nx-s-1); border: 0; border-radius: var(--nx-r-2); background: none; color: var(--nx-text-2); font: inherit; font-size: var(--nx-fs-xs); cursor: pointer; }
+  .nx-ans__legend > button > i { inline-size: 9px; block-size: 9px; border-radius: 3px; background: var(--c); }
+  .nx-ans__legend b { font-weight: var(--nx-fw-semibold); color: var(--nx-text); }
+  .nx-ans__legend > button:hover:not(:disabled), .nx-ans__legend > button[aria-pressed='true'] { background: var(--nx-hover); }
+  .nx-ans__legend > button[aria-pressed='true'] { color: var(--nx-accent-text); }
+  .nx-ans__legend > button:focus-visible { outline: 2px solid var(--nx-focus); outline-offset: 1px; }
+  .nx-ans__legend > button:disabled { opacity: 0.5; cursor: default; }
+
+  /* the week: stacked, so the height is the number of questions; the hit columns carry the readout */
+  .nx-trend { margin: 0; display: grid; gap: 3px; }
+  .nx-trend__svg { display: block; inline-size: 100%; block-size: 40px; overflow: visible; }
+  .nx-trend__base { stroke: var(--nx-border); stroke-width: 1; }
+  .nx-trend__layer { fill: var(--c); opacity: 0.88; transition: opacity var(--nx-dur-2) var(--nx-ease-standard); }
+  .nx-trend__svg[data-lit] .nx-trend__layer:not(.is-on) { opacity: 0.22; }
+  .nx-trend__cursor { stroke: var(--nx-text-2); stroke-width: 1; stroke-dasharray: 2 2; }
+  .nx-trend__hit { fill: transparent; cursor: crosshair; }
+  .nx-trend__axis { display: flex; justify-content: space-between; gap: var(--nx-s-2); font-size: 11px; line-height: 14px; color: var(--nx-text-3); white-space: nowrap; }
+  .nx-trend__axis.is-probe { color: var(--nx-accent-text); font-weight: var(--nx-fw-medium); }
+  .nx-trend__axis > span { overflow: hidden; text-overflow: ellipsis; }
+
+  /* not answered: one row for each reason */
+  .nx-ans__rest { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 6px; min-block-size: min-content; overflow: hidden; padding-block-start: 10px; border-block-start: 1px solid var(--nx-border-subtle); }
+  .nx-ans__rest h3 { display: flex; align-items: baseline; gap: var(--nx-s-2); margin: 0; font-size: 11px; font-weight: var(--nx-fw-medium); line-height: 14px; color: var(--nx-text-3); }
+  .nx-ans__rest h3 > b { font-weight: var(--nx-fw-semibold); color: var(--nx-text-2); }
+  .nx-ans__rest ol { display: grid; align-content: start; gap: 2px; margin: 0; padding: 0; list-style: none; }
+  .nx-ans__rest li { display: grid; grid-template-columns: minmax(0, 1fr) auto; row-gap: 4px; column-gap: var(--nx-s-3); padding: 4px var(--nx-s-2); margin-inline: calc(var(--nx-s-2) * -1); border-radius: var(--nx-r-2); font-size: var(--nx-fs-xs); cursor: pointer; transition: background-color var(--nx-dur-1) var(--nx-ease-standard); }
+  .nx-ans__rest li:hover, .nx-ans__rest li[aria-pressed='true'] { background: var(--nx-hover); }
+  .nx-ans__reason { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--nx-text-2); }
+  .nx-ans__rest li > b { display: inline-flex; align-items: baseline; gap: 6px; font-weight: var(--nx-fw-semibold); color: var(--nx-text); }
+  .nx-ans__rest li > b > small { font-size: 11px; font-weight: var(--nx-fw-regular); color: var(--nx-text-3); }
+  .nx-ans__track { grid-column: 1 / -1; display: block; block-size: 5px; border-radius: 3px; background: var(--nx-sunken); overflow: hidden; }
+  .nx-ans__track > i { display: block; block-size: 100%; border-radius: 3px; background: var(--c); transform-origin: left center; animation: nx-grow-x 460ms var(--nx-ease-standard) both; animation-delay: calc(var(--i, 0) * 50ms); }
+  :dir(rtl) .nx-ans__track > i { transform-origin: right center; }
+
+  /* how long answers took, in one line */
+  .nx-ans__time { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 var(--nx-s-4); margin: 0; font-size: var(--nx-fs-xs); color: var(--nx-text-3); }
+  .nx-ans__time b { font-weight: var(--nx-fw-semibold); color: var(--nx-text); }
+
+  /* A cell that is tall or wide enough keeps everything; a shorter one gives way from the bottom, so nothing is cut in half. Measured: the gauge with its legend is 128px, the week 54px, the reasons are
+     29px and 36px for each row, the times 17px, and the gaps 10px. */
+  /* wide (about 400px and more): the gauge stands beside the week, the reasons and the times, so the height they need is the height of the right-hand column only */
+  @container panel (min-width: 400px) {
+    .nx-ans { grid-template-columns: minmax(150px, 0.7fr) minmax(0, 1.5fr); align-items: center; column-gap: var(--nx-s-5); }
+    .nx-ans__time { justify-content: flex-start; }
+    @container panel (max-height: 283px) { .nx-ans__rest li:nth-child(n+4) { display: none; } }
+    @container panel (max-height: 249px) { .nx-ans__rest li:nth-child(n+3) { display: none; } }
+    @container panel (max-height: 213px) { .nx-ans__rest li:nth-child(n+2) { display: none; } }
+    @container panel (max-height: 176px) { .nx-trend { display: none; } }
+    @container panel (max-height: 120px) { .nx-ans__rest { display: none; } }
+  }
+  /* narrow: one column, with a smaller gauge (150px wide, so the gauge with its legend is 106px); the reasons come before the week (an analyst can act on them). What each combination needs, in a cell of
+     this height: gauge + 1 reason 208px, 2 reasons 244, 3 reasons 280; with the week, 64px more. The smallest cell the board ever gives the panel is about 220px, so a laptop always shows the gauge, a reason and
+     the times. */
+  @container panel (max-width: 399px) {
+    .nx-gauge { max-inline-size: 150px; }
+    .nx-ans__legend { gap: 0 var(--nx-s-2); }
+    .nx-ans__legend > button { gap: 5px; padding-inline: 2px; }
+    .nx-ans__rest li:nth-child(n+4) { display: none; }
+    @container panel (max-height: 343px) { .nx-ans__rest li:nth-child(n+3) { display: none; } }
+    @container panel (max-height: 307px) { .nx-ans__rest li:nth-child(n+2) { display: none; } }
+    @container panel (max-height: 271px) { .nx-trend { display: none; } .nx-ans__rest li:nth-child(2) { display: grid; } }
+    @container panel (max-height: 243px) { .nx-ans__rest li:nth-child(n+2) { display: none; } }
+    @container panel (max-height: 207px) { .nx-ans__rest { display: none; } }
+    @container panel (max-height: 150px) { .nx-ans__time { display: none; } }
+  }
+  @media (prefers-reduced-motion: reduce) { .nx-ans__track > i, .nx-gauge__part, .nx-trend__layer { animation: none; transition: none; } }
+  :root[data-motion='reduce'] .nx-ans__track > i, :root[data-motion='reduce'] .nx-gauge__part, :root[data-motion='reduce'] .nx-trend__layer { animation: none; transition: none; }
+
+  /* the card that names the month and every case's figure for it; it follows the pointer and never takes a click */
+  .nx-tl__tip { position: absolute; z-index: 5; min-inline-size: 190px; max-inline-size: 280px; padding: var(--nx-s-2) var(--nx-s-3); border: 1px solid var(--nx-border-strong); border-radius: var(--nx-r-3); background: var(--nx-raised, var(--nx-surface)); box-shadow: 0 8px 24px rgb(0 0 0 / 0.16); pointer-events: none; font-size: var(--nx-fs-xs); }
+  .nx-tl__tip > b { display: block; margin-block-end: var(--nx-s-1); font-size: var(--nx-fs-sm); font-weight: var(--nx-fw-semibold); color: var(--nx-text); }
+  .nx-tl__tip ul { display: grid; gap: 3px; margin: 0; padding: 0; list-style: none; }
+  .nx-tl__tip li { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; align-items: center; column-gap: var(--nx-s-2); }
+  .nx-tl__tip li > i { inline-size: 8px; block-size: 8px; border-radius: 50%; }
+  .nx-tl__tip li > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--nx-text-2); }
+  .nx-tl__tip li > b { font-weight: var(--nx-fw-semibold); font-variant-numeric: tabular-nums; color: var(--nx-text); }
+}

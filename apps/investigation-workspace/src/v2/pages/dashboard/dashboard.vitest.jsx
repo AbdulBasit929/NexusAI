@@ -2,9 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import DashboardPage from './DashboardPage.jsx'
-import { TimelinePanel } from './insights.jsx'
+import { TimelinePanel, exceptionRows, gaugePath } from './insights.jsx'
 import { resetDashboardReads } from './data.js'
-import { alignTimelines, answerQuality, caseStateMix, caseStates, durationHistogram, caseTimelines, dailyQuestions, dataNotes, declineText, formatDuration, heatShare, modalityMix, needsYou, niceCeiling, recordKinds, setAside, timeBasis, timeToReady } from './model.js'
+import { MIN_WINDOW, alignTimelines, answerQuality, caseStateMix, caseStates, panWindow, viewWindow, windowTicks, zoomWindow, durationHistogram, caseTimelines, dailyQuestions, dataNotes, declineText, formatDuration, heatShare, modalityMix, needsYou, niceCeiling, recordKinds, setAside, timeBasis, timeToReady } from './model.js'
 import { cleanRate, latestItems, resumeEntries, statusCounts } from './sections.jsx'
 import { BarStrip, DotRow, Histogram, RangeStrip, SegBar } from '../../ui/micro.jsx'
 import { CountUp } from '../../ui/CountUp.jsx'
@@ -510,16 +510,16 @@ describe('the timeline panel', () => {
     expect(status.textContent).toMatch(/^Mar 2025: /)
     fireEvent.keyDown(plot, { key: 'Escape' })
     expect(status.textContent).toBe('')
-    expect(screen.getByText('Events per month')).toBeTruthy()
+    expect(screen.getByText('Events per month · drag to zoom')).toBeTruthy()
   })
 
   it('shows each lane’s total at rest, with a plus where the read was only the earliest rows', () => {
     panel()
     const lanes = screen.getAllByRole('listitem')
-    expect(lanes[0].textContent).toMatch(/7$/)
+    expect(lanes[0].querySelector('.nx-tl__count').textContent).toBe('7')
     expect(lanes[1].querySelector('a').getAttribute('title')).toMatch(/at most 100 rows/)
-    expect(lanes[0].querySelector('a').getAttribute('title')).toBeNull()
-    expect(lanes[1].textContent).toMatch(/4\+$/)
+    expect(lanes[0].querySelector('a').getAttribute('title')).not.toMatch(/at most 100 rows/)
+    expect(lanes[1].querySelector('.nx-tl__count').textContent).toBe('4+')
   })
 
   it('offers the two scales and says which is on', () => {
@@ -529,6 +529,59 @@ describe('the timeline panel', () => {
     expect([own.getAttribute('aria-pressed'), shared.getAttribute('aria-pressed')]).toEqual(['true', 'false'])
     fireEvent.click(shared)
     expect(shared.getAttribute('aria-pressed')).toBe('true')
+  })
+})
+
+describe('gaugePath', () => {
+  it('runs along the half-circle from the left end to the right end, and a part of it ends where it should', () => {
+    expect(gaugePath(0, 1)).toBe('M24.00 92.00 A76 76 0 0 1 176.00 92.00')
+    expect(gaugePath(0, 0.5)).toBe('M24.00 92.00 A76 76 0 0 1 100.00 16.00')
+    expect(gaugePath(0.5, 1)).toBe('M100.00 16.00 A76 76 0 0 1 176.00 92.00')
+  })
+})
+
+describe('exceptionRows', () => {
+  const quality = (over = {}) => ({ questions: 153, answered: 128, declined: 20, abstained: 5, reasons: [{ reason: 'a', text: 'Cannot answer', count: 11 }, { reason: 'b', text: 'No view fits', count: 9 }], ...over })
+  it('gives one row for each of the three most common reasons, then the questions the engine held back', () => {
+    expect(exceptionRows(quality()).map(row => `${row.id}:${row.outcome}:${row.count}`)).toEqual(['r0:declined:11', 'r1:declined:9', 'abstained:abstained:5'])
+  })
+  it('keeps the declines that no reason covers as their own row, and says so when no reason was recorded', () => {
+    expect(exceptionRows(quality({ declined: 25 })).find(row => row.id === 'rx')).toMatchObject({ count: 5, label: 'Other reasons' })
+    expect(exceptionRows(quality({ reasons: [] })).find(row => row.id === 'rx')).toMatchObject({ count: 20, label: 'No reason recorded' })
+  })
+  it('has no rows when everything was answered', () => {
+    expect(exceptionRows(quality({ declined: 0, abstained: 0, reasons: [] }))).toEqual([])
+  })
+  it('lights the part of the bar of what a reason belongs to, and a reason with many questions is a bar, not marks', () => {
+    expect(exceptionRows(quality({ declined: 40, reasons: [{ reason: 'a', text: 'Cannot answer', count: 40 }] }))[0]).toMatchObject({ id: 'r0', outcome: 'declined', count: 40 })
+  })
+})
+
+describe('the view of the timeline', () => {
+  it('keeps a window inside the calendar, never narrower than the minimum, and treats everything as no window', () => {
+    expect(viewWindow(60, null)).toEqual([0, 60])
+    expect(viewWindow(60, [10, 30])).toEqual([10, 30])
+    expect(viewWindow(60, [10, 11])).toEqual([0, 60])
+    expect(viewWindow(60, [-5, 999])).toEqual([0, 60])
+    expect(MIN_WINDOW).toBe(3)
+  })
+  it('zooms in around a group and out again, and gives back no window when everything would show', () => {
+    expect(zoomWindow(60, null, 0.5, 30)).toEqual([15, 45])
+    expect(zoomWindow(60, [15, 45], 0.5, 30)).toEqual([23, 38])
+    expect(zoomWindow(60, [15, 45], 2, 30)).toBeNull()
+    expect(zoomWindow(60, [40, 60], 0.5, 59)).toEqual([50, 60])
+  })
+  it('moves the view without leaving the calendar, and does nothing when the whole calendar shows', () => {
+    expect(panWindow(60, [10, 30], 5)).toEqual([15, 35])
+    expect(panWindow(60, [50, 60], 9)).toEqual([50, 60])
+    expect(panWindow(60, [2, 22], -9)).toEqual([0, 20])
+    expect(panWindow(60, null, 3)).toBeNull()
+  })
+  it('puts a tick at each year start when the view is long and at each quarter when it is short', () => {
+    const months = (start, length) => Array.from({ length }, (_, index) => { const total = start + index; const year = 2024 + Math.floor(total / 12); return { from: `${year}-${String((total % 12) + 1).padStart(2, '0')}`, to: `${year}-${String((total % 12) + 1).padStart(2, '0')}` } })
+    expect(windowTicks(months(0, 40)).map(tick => tick.label)).toEqual(['2024', '2025', '2026', '2027'])
+    expect(windowTicks(months(2, 10)).map(tick => tick.label)).toEqual(['Mar ’24', 'Apr', 'Jul', 'Oct'])
+    expect(windowTicks([])).toEqual([])
   })
 })
 

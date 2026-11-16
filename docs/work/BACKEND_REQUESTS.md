@@ -226,3 +226,10 @@ Why: "my own cases" and any per-person view depend on facts the system does not 
 - **Endpoint:** `GET /workspace/overlaps`.
 - **Response:** `{ pairs: [{ cases: [id, id], subscribers, devices, plates, accounts }], complete }`; values are never returned here.
 - **Why:** an investigator wants to know that two cases touch before they ask across cases. Subject to the owner's cross-case visibility decision and a privacy review; the Dashboard shows nothing until it exists.
+
+## 34. Latency distribution by day
+
+- **Endpoint:** `GET /analysis/engine-health/latency?collection_id=&days=` (or the `buckets` of `GET /analysis/engine-health` for each daily window).
+- **Response:** `{ days: [{ date, buckets: [{ upper_ms, count }] }] }` with fixed, log-spaced buckets (for example 1 s, 2 s, 5 s, 10 s, 30 s, 1 min, 2 min, 5 min), and the same for a whole workspace without `collection_id`.
+- **Why:** the Answers panel can draw how long answers take as a heatmap of the distribution over time (time on one axis, duration buckets on the other, colour for the count; a log duration axis), which shows a slow tail that a median and a 90th percentile hide. Today the service returns only the median, the 90th percentile and the slowest time for a window, so the panel draws those three marks.
+- **Section:** Answers (dashboard).

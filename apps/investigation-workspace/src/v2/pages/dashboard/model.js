@@ -128,6 +128,54 @@ export function alignTimelines(timelines, today = isoToday()) {
   return { lanes: rows, groups, groupSize, ticks: starts.filter((tick, position) => position % step === 0) }
 }
 
+// ---------- the view of the timeline: a window over the groups of the shared calendar ----------
+// A window is [from, to) in group indexes, or null for the whole calendar. It is never narrower than MIN_WINDOW groups (a drag of one cell is a click, not a zoom) and never leaves the calendar.
+export const MIN_WINDOW = 3
+
+export function viewWindow(count, win) {
+  if (!win || !count) return [0, Math.max(0, count)]
+  const from = Math.max(0, Math.min(count - 1, Math.floor(win[0])))
+  const to = Math.max(from + 1, Math.min(count, Math.ceil(win[1])))
+  if (to - from < Math.min(MIN_WINDOW, count)) return [0, count]
+  return from === 0 && to === count ? [0, count] : [from, to]
+}
+
+// Zoom in (factor < 1) or out (factor > 1) around a group, keeping that group at the same place in the view; the result is the whole calendar (null) when it would show everything.
+export function zoomWindow(count, win, factor, around) {
+  const [from, to] = viewWindow(count, win)
+  const span = to - from
+  const next = Math.max(Math.min(MIN_WINDOW, count), Math.min(count, Math.round(span * factor)))
+  if (next >= count) return null
+  const anchor = Number.isFinite(around) ? Math.min(to - 1, Math.max(from, around)) : from + span / 2
+  const share = span ? (anchor - from) / span : 0.5
+  const start = Math.max(0, Math.min(count - next, Math.round(anchor - share * next)))
+  return [start, start + next]
+}
+
+// Move the view by `steps` groups, staying inside the calendar.
+export function panWindow(count, win, steps) {
+  const [from, to] = viewWindow(count, win)
+  if (from === 0 && to === count) return null
+  const span = to - from
+  const start = Math.max(0, Math.min(count - span, from + steps))
+  return [start, start + span]
+}
+
+// Tick marks for the groups in view: the starts of years when the view is long, the starts of quarters when it is short. Each is { index (within the view), label }.
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+export function windowTicks(groups) {
+  const list = groups || []
+  if (!list.length) return []
+  const years = list.map((group, index) => ({ index, year: group.from.slice(0, 4), month: Number(group.from.slice(5, 7)) })).filter((tick, index) => index === 0 || tick.year !== list[index - 1].from.slice(0, 4))
+  if (list.length > 30 || years.length >= 3) {
+    const step = Math.max(1, Math.ceil(years.length / 7))
+    return years.filter((tick, position) => position % step === 0).map(tick => ({ index: tick.index, label: tick.year }))
+  }
+  const quarters = list.map((group, index) => ({ index, year: group.from.slice(2, 4), month: Number(group.from.slice(5, 7)) })).filter(tick => (tick.month - 1) % 3 === 0 || tick.index === 0)
+  const step = Math.max(1, Math.ceil(quarters.length / 6))
+  return quarters.filter((tick, position) => position % step === 0).map(tick => ({ index: tick.index, label: tick.month === 1 ? `${MONTHS[0]} ’${tick.year}` : `${MONTHS[tick.month - 1]}${tick.index === 0 ? ` ’${tick.year}` : ''}` }))
+}
+
 // ---------- answers: what the engine did with the questions of the last days ----------
 const DECLINE_TEXT = [
   [/cannot answer|can not answer|no view/i, 'The case’s records cannot answer that kind of question'],

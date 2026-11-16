@@ -90,7 +90,7 @@
 
   /* ---------- the timeline lanes take the height of the cell ---------- */
   .nx-tl__lanes { grid-auto-rows: minmax(0, 1fr); }
-  .nx-tl__row > .nx-lane { align-self: center; block-size: calc(100% - 10px); min-block-size: 14px; max-block-size: 44px; }
+  .nx-tl__row > .nx-lane { align-self: center; block-size: calc(100% - 6px); min-block-size: 14px; max-block-size: 44px; }
   .nx-tl__legend { grid-column: 1; align-self: center; display: inline-flex; align-items: center; gap: var(--nx-s-2); font-size: var(--nx-fs-xs); color: var(--nx-text-3); }
   .nx-tl__dash { display: inline-block; inline-size: 18px; border-block-end: 2px dotted var(--nx-text-3); }
 
