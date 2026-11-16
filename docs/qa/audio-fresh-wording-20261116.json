@@ -1,0 +1,496 @@
+{
+ "collection": "orion-lahore-reference-20261030",
+ "built": "2026-11-16",
+ "questions": [
+  {
+   "id": "FA-001",
+   "area": "speech",
+   "type": "audio_length",
+   "question": "What is the duration of voice-note-07.wav?",
+   "expect": {
+    "kind": "scalar",
+    "value": 6.48,
+    "unit": "seconds",
+    "tolerance": 0.6
+   },
+   "bank": "fresh",
+   "note": "the pack's own length (the file header)"
+  },
+  {
+   "id": "FA-002",
+   "area": "speech",
+   "type": "audio_length",
+   "question": "Tell me how many seconds voice-note-09.wav lasts.",
+   "expect": {
+    "kind": "scalar",
+    "value": 8.8,
+    "unit": "seconds",
+    "tolerance": 0.6
+   },
+   "bank": "fresh",
+   "note": "the pack's own length (the file header)"
+  },
+  {
+   "id": "FA-003",
+   "area": "speech",
+   "type": "audio_length",
+   "question": "How many seconds is the file voice-note-01.wav?",
+   "expect": {
+    "kind": "scalar",
+    "value": 9.72,
+    "unit": "seconds",
+    "tolerance": 0.6
+   },
+   "bank": "fresh",
+   "note": "the pack's own length (the file header)"
+  },
+  {
+   "id": "FA-004",
+   "area": "speech",
+   "type": "audio_shortest",
+   "question": "Which recording has the shortest duration?",
+   "expect": {
+    "kind": "top",
+    "value": "voice-note-03.wav"
+   },
+   "bank": "fresh",
+   "note": "the first row must be this recording"
+  },
+  {
+   "id": "FA-005",
+   "area": "speech",
+   "type": "audio_total_minutes",
+   "question": "What is the combined running time of every audio file in the case, in minutes?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1.43,
+    "unit": "minutes",
+    "tolerance": 0.03
+   },
+   "bank": "fresh",
+   "note": "the pack's own lengths, in minutes"
+  },
+  {
+   "id": "FA-006",
+   "area": "speech",
+   "type": "audio_count_longer",
+   "question": "How many recordings run longer than 9.5 seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 5
+   },
+   "bank": "fresh",
+   "note": "no recording within 0.2 s of the limit"
+  },
+  {
+   "id": "FA-007",
+   "area": "speech",
+   "type": "audio_under",
+   "question": "List the audio files that are under 8 seconds.",
+   "expect": {
+    "kind": "files",
+    "values": [
+     "voice-note-03.wav",
+     "voice-note-06.wav",
+     "voice-note-07.wav",
+     "voice-note-10.wav"
+    ],
+    "universe": "voice-note-\\d+\\.wav"
+   },
+   "bank": "fresh",
+   "note": "exactly these; no recording within 0.2 s of the limit"
+  },
+  {
+   "id": "FA-008",
+   "area": "speech",
+   "type": "audio_average",
+   "question": "What is the average length of the audio recordings, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 8.59,
+    "unit": "seconds",
+    "tolerance": 0.3
+   },
+   "bank": "fresh",
+   "note": "the pack's own lengths"
+  },
+  {
+   "id": "FA-009",
+   "area": "speech",
+   "type": "audio_in_language",
+   "question": "Which voice notes are spoken in English?",
+   "expect": {
+    "kind": "files",
+    "values": [
+     "voice-note-03.wav",
+     "voice-note-06.wav",
+     "voice-note-09.wav"
+    ],
+    "universe": "voice-note-\\d+\\.wav"
+   },
+   "bank": "fresh",
+   "note": "exactly these recordings"
+  },
+  {
+   "id": "FA-010",
+   "area": "speech",
+   "type": "audio_in_language",
+   "question": "List the recordings where Urdu is spoken.",
+   "expect": {
+    "kind": "files",
+    "values": [
+     "voice-note-01.wav",
+     "voice-note-04.wav",
+     "voice-note-07.wav"
+    ],
+    "universe": "voice-note-\\d+\\.wav"
+   },
+   "bank": "fresh",
+   "note": "exactly these recordings"
+  },
+  {
+   "id": "FA-011",
+   "area": "speech",
+   "type": "audio_language_count",
+   "question": "Count the recordings whose language is Pashto.",
+   "expect": {
+    "kind": "scalar",
+    "value": 4
+   },
+   "bank": "fresh",
+   "note": ""
+  },
+  {
+   "id": "FA-012",
+   "area": "speech",
+   "type": "audio_language_of",
+   "question": "Which language is spoken in voice-note-07.wav?",
+   "expect": {
+    "kind": "words",
+    "any": [
+     "Urdu",
+     "ur"
+    ],
+    "forbid": [
+     "Pashto",
+     "English",
+     "Hindi",
+     "Punjabi"
+    ]
+   },
+   "bank": "fresh",
+   "note": "the language the pack says the speaker used (Urdu)"
+  },
+  {
+   "id": "FA-013",
+   "area": "speech",
+   "type": "audio_language_of",
+   "question": "Is voice-note-04.wav in Pashto, Urdu or English?",
+   "expect": {
+    "kind": "words",
+    "any": [
+     "Urdu",
+     "ur"
+    ]
+   },
+   "bank": "fresh",
+   "note": "the options are in the question, so no word is forbidden"
+  },
+  {
+   "id": "FA-014",
+   "area": "speech",
+   "type": "audio_language_distinct",
+   "question": "How many different languages are spoken across the recordings?",
+   "expect": {
+    "kind": "scalar",
+    "value": 3
+   },
+   "bank": "fresh",
+   "note": ""
+  },
+  {
+   "id": "FA-015",
+   "area": "speech",
+   "type": "audio_language_top",
+   "question": "Which language has the most recordings?",
+   "expect": {
+    "kind": "top",
+    "value": "Pashto"
+   },
+   "bank": "fresh",
+   "note": "4 recordings; the next has 3"
+  },
+  {
+   "id": "FA-016",
+   "area": "speech",
+   "type": "audio_two_conditions",
+   "question": "Which recordings are in Urdu and longer than 9.2 seconds?",
+   "expect": {
+    "kind": "files",
+    "values": [
+     "voice-note-01.wav",
+     "voice-note-04.wav"
+    ],
+    "universe": "voice-note-\\d+\\.wav"
+   },
+   "bank": "fresh",
+   "note": "exactly these"
+  },
+  {
+   "id": "FA-017",
+   "area": "speech",
+   "type": "audio_longest_in_language",
+   "question": "What is the longest English recording?",
+   "expect": {
+    "kind": "top",
+    "value": "voice-note-09.wav"
+   },
+   "bank": "fresh",
+   "note": "the first row must be this recording"
+  },
+  {
+   "id": "FA-018",
+   "area": "speech",
+   "type": "audio_length_of_shortest_in_language",
+   "question": "How long is the shortest Pashto recording, in seconds?",
+   "expect": {
+    "kind": "scalar",
+    "value": 7.79,
+    "unit": "seconds",
+    "tolerance": 0.6
+   },
+   "bank": "fresh",
+   "note": "the pack's own length (voice-note-10.wav)"
+  },
+  {
+   "id": "FA-019",
+   "area": "speech",
+   "type": "audio_segments_in_language",
+   "question": "How many speech segments do the Urdu recordings have in total?",
+   "expect": {
+    "kind": "scalar",
+    "value": 5
+   },
+   "bank": "fresh",
+   "note": "counted in the stored readings"
+  },
+  {
+   "id": "FA-020",
+   "area": "speech",
+   "type": "audio_segments",
+   "question": "How many segments is voice-note-04.wav split into?",
+   "expect": {
+    "kind": "scalar",
+    "value": 3
+   },
+   "bank": "fresh",
+   "note": "counted in the stored readings"
+  },
+  {
+   "id": "FA-021",
+   "area": "speech",
+   "type": "audio_segments",
+   "question": "Into how many speech segments was voice-note-09.wav divided?",
+   "expect": {
+    "kind": "scalar",
+    "value": 1
+   },
+   "bank": "fresh",
+   "note": "counted in the stored readings"
+  },
+  {
+   "id": "FA-022",
+   "area": "speech",
+   "type": "audio_segments_all",
+   "question": "What is the total number of speech segments across all the audio files?",
+   "expect": {
+    "kind": "scalar",
+    "value": 12
+   },
+   "bank": "fresh",
+   "note": "counted in the stored readings"
+  },
+  {
+   "id": "FA-023",
+   "area": "speech",
+   "type": "audio_most_segments",
+   "question": "Which recording has the most speech segments?",
+   "expect": {
+    "kind": "top",
+    "value": "voice-note-04.wav"
+   },
+   "bank": "fresh",
+   "note": "3 segments; the next has 1"
+  },
+  {
+   "id": "FA-024",
+   "area": "speech",
+   "type": "audio_single_segment",
+   "question": "How many recordings consist of a single segment?",
+   "expect": {
+    "kind": "scalar",
+    "value": 9
+   },
+   "bank": "fresh",
+   "note": "counted in the stored readings"
+  },
+  {
+   "id": "FA-025",
+   "area": "speech",
+   "type": "audio_review",
+   "question": "Which audio files still need a person to check them?",
+   "expect": {
+    "kind": "files",
+    "values": [
+     "voice-note-01.wav",
+     "voice-note-02.wav",
+     "voice-note-03.wav",
+     "voice-note-04.wav",
+     "voice-note-05.wav",
+     "voice-note-06.wav",
+     "voice-note-07.wav",
+     "voice-note-08.wav",
+     "voice-note-09.wav",
+     "voice-note-10.wav"
+    ],
+    "universe": "voice-note-\\d+\\.wav"
+   },
+   "bank": "fresh",
+   "note": "every machine transcript needs a person's check, so all of them"
+  },
+  {
+   "id": "FA-026",
+   "area": "speech",
+   "type": "audio_review_count",
+   "question": "How many recordings need manual review?",
+   "expect": {
+    "kind": "scalar",
+    "value": 10
+   },
+   "bank": "fresh",
+   "note": "every machine transcript needs a person's check, so all of them"
+  },
+  {
+   "id": "FA-027",
+   "area": "speech",
+   "type": "audio_transcript",
+   "question": "Show the text of voice-note-06.wav",
+   "expect": {
+    "kind": "words",
+    "all": [
+     "Along",
+     "line",
+     "wear"
+    ]
+   },
+   "bank": "fresh",
+   "note": "three words of the stored reading, which must be in the answer; the reading is a machine transcript (Pashto: a search lead)"
+  },
+  {
+   "id": "FA-028",
+   "area": "speech",
+   "type": "audio_transcript",
+   "question": "Transcribe voice-note-07.wav",
+   "expect": {
+    "kind": "words",
+    "all": [
+     "ڈائنسور",
+     "نہیں",
+     "کیونکہ"
+    ]
+   },
+   "bank": "fresh",
+   "note": "three words of the stored reading, which must be in the answer; the reading is a machine transcript (Pashto: a search lead)"
+  },
+  {
+   "id": "FA-029",
+   "area": "speech",
+   "type": "audio_transcript",
+   "question": "What does the speaker in voice-note-08.wav say?",
+   "expect": {
+    "kind": "words",
+    "all": [
+     "هیواد",
+     "خارونو",
+     "بیلوالي"
+    ]
+   },
+   "bank": "fresh",
+   "note": "three words of the stored reading, which must be in the answer; the reading is a machine transcript (Pashto: a search lead)"
+  },
+  {
+   "id": "FA-030",
+   "area": "speech",
+   "type": "audio_word_search",
+   "question": "Which of the voice notes talk about sharpener?",
+   "expect": {
+    "kind": "files",
+    "values": [
+     "voice-note-09.wav"
+    ],
+    "universe": "voice-note-\\d+\\.wav"
+   },
+   "bank": "fresh",
+   "note": "the recordings whose stored reading holds the word (voice-note-09.wav)"
+  },
+  {
+   "id": "FA-031",
+   "area": "speech",
+   "type": "audio_word_search",
+   "question": "Search the recordings for تسلیم",
+   "expect": {
+    "kind": "files",
+    "values": [
+     "voice-note-07.wav"
+    ],
+    "universe": "voice-note-\\d+\\.wav"
+   },
+   "bank": "fresh",
+   "note": "the recordings whose stored reading holds the word (voice-note-07.wav)"
+  },
+  {
+   "id": "FA-032",
+   "area": "speech",
+   "type": "audio_word_search",
+   "question": "Where is انسان mentioned in the audio?",
+   "expect": {
+    "kind": "files",
+    "values": [
+     "voice-note-10.wav"
+    ],
+    "universe": "voice-note-\\d+\\.wav"
+   },
+   "bank": "fresh",
+   "note": "the recordings whose stored reading holds the word (voice-note-10.wav)"
+  },
+  {
+   "id": "FA-033",
+   "area": "speech",
+   "type": "audio_word_search",
+   "question": "Which recording contains trousers?",
+   "expect": {
+    "kind": "files",
+    "values": [
+     "voice-note-03.wav",
+     "voice-note-06.wav"
+    ],
+    "universe": "voice-note-\\d+\\.wav"
+   },
+   "bank": "fresh",
+   "note": "the recordings whose stored reading holds the word (voice-note-03.wav, voice-note-06.wav)"
+  },
+  {
+   "id": "FA-034",
+   "area": "speech",
+   "type": "audio_word_absent",
+   "question": "Which audio recordings mention the word zebra?",
+   "expect": {
+    "kind": "files",
+    "values": [],
+    "universe": "voice-note-\\d+\\.wav"
+   },
+   "bank": "fresh",
+   "note": "no stored reading holds it: the answer must name no recording"
+  }
+ ]
+}
