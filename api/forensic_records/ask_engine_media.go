@@ -98,6 +98,7 @@ func askAnyMedia(c askCoverage) bool {
 
 // askHowManyUnit is a "how many" that is followed by a unit of time: it asks for a measure (a position in a video, a length of time), which a MIN, MAX, AVG or SUM states, and not for the number of
 // rows. The count obligation of the frame accepts such a query (measured 2026-11-12: "how many seconds into the video does the first plate show up" was abstained three times for want of a COUNT).
+// A plain read of a length column also states such a measure (measured 2026-11-16: "How many seconds is the file voice-note-01.wav?" was abstained three times, the right query being SELECT duration_seconds).
 var askHowManyUnit = regexp.MustCompile(`\bhow (?:many|much)\s+(?:seconds?|minutes?|hours?|days?|weeks?|months?|years?)\b`)
 
 // askMediaFileNameRE is the file name of a video, a recording or a picture inside a question.

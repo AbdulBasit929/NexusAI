@@ -186,6 +186,13 @@ var _ = Describe("Ask engine obligations", func() {
 		Expect(check("How many different numbers did 923000000101 contact?", "SELECT count(*) AS value FROM v_contact_pairs WHERE src = '923000000101'")).NotTo(ContainElement("AGGREGATE"))
 	})
 
+	It("takes a plain read of the length as the answer to how many seconds a recording lasts, and still counts when it is a number of things", func() {
+		for _, q := range []string{"Tell me how many seconds voice-note-09.wav lasts.", "How many seconds is the file voice-note-01.wav?"} {
+			Expect(check(q, "SELECT duration_seconds FROM v_audio_files WHERE original_filename = 'voice-note-01.wav'")).NotTo(ContainElement("AGGREGATE"))
+		}
+		Expect(check("How many audio recordings are there?", "SELECT duration_seconds FROM v_audio_files")).To(ContainElement("AGGREGATE"))
+	})
+
 	It("reads the two directions of a pair in the forms a query writes them, and in no other query", func() {
 		numbers := []string{"923000000101", "923000000102"}
 		a, b, both := askBothDirections("where (src = '923000000101' and dst = '923000000102') or (src = '923000000102' and dst = '923000000101')", numbers)

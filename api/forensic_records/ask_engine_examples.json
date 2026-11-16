@@ -875,6 +875,15 @@
     "sql": "SELECT start_seconds, end_seconds, text FROM v_speech_segments WHERE original_filename = 'call-07.wav' ORDER BY start_seconds LIMIT 200"
   },
   {
+    "id": "audio-show-text",
+    "question": "Show the text of the recording memo-03.wav.",
+    "views": [
+      "v_speech_segments"
+    ],
+    "shape": "table",
+    "sql": "SELECT start_seconds, end_seconds, text FROM v_speech_segments WHERE original_filename = 'memo-03.wav' ORDER BY start_seconds LIMIT 200"
+  },
+  {
     "id": "audio-which-says",
     "question": "Which recording says the word invoice, and where?",
     "views": [

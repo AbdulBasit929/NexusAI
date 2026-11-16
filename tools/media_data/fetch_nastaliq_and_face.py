@@ -22,7 +22,7 @@ TARGETS = {
     "qwen2vl": {"kind": "models", "repo": "Qwen/Qwen2-VL-2B-Instruct", "dest": "models/ocr/qwen2-vl-2b-instruct", "ledger": "MOD-045", "only": None},
     "qaari": {"kind": "models", "repo": "oddadmix/Qaari-0.1-Urdu-OCR-VL-2B-Instruct", "dest": "models/ocr/qaari-0.1-urdu-adapter", "ledger": "MOD-046", "only": None},
     "auraface": {"kind": "models", "repo": "fal/AuraFace-v1", "dest": "models/face/auraface-v1", "ledger": "MOD-032", "only": ("glintr100.onnx", "LICENSE.md", "README.md")},
-    "unb": {"kind": "datasets", "repo": "ULRs/Urdu-Newspaper-Benchmark", "dest": "datasets/urdu-newspaper-benchmark", "ledger": "DAT-024", "only": None},
+    "unb": {"kind": "datasets", "repo": "ULRs/Urdu-Newspaper-Benchmark", "dest": "datasets/urdu-newspaper-benchmark", "ledger": "DAT-024", "only": ("README.md", "metadata.csv", "data/train-00000-of-00001.parquet")},   # the parquet holds the 829 rows; the loose image folders (3,300 files) repeat it
 }
 
 

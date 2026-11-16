@@ -528,6 +528,13 @@ func TestTextIntentDoesNotSearchForTheNameOfALanguageAskedAsTheLanguageOfRecordi
 		{"List the Punjabi recordings", "Punjabi"},
 		{"Who speaks Urdu in the recordings?", "Urdu"},
 		{"Which recording has an Urdu speaker?", "Urdu"},
+		// measured 2026-11-16 on the fresh-wording run: a language name with no cue for words said, alone or with request words around it
+		{"List the recordings where Urdu is spoken.", "Urdu"},
+		{"What is the longest English recording?", "English recording"},
+		{"What is the longest English recording?", "longest English recording"},
+		{"How long is the shortest Pashto recording, in seconds?", "shortest Pashto recording"},
+		{"How long is the shortest Pashto recording, in seconds?", "Pashto"},
+		{"Which voice notes are spoken in English?", "English"},
 	} {
 		if _, _, why := textIntentValidate(c[0], text(c[1])); why != "LITERAL_NAMES_A_LANGUAGE" {
 			t.Fatalf("%q: the language name %q was taken as words to find: %q", c[0], c[1], why) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
@@ -540,6 +547,13 @@ func TestTextIntentDoesNotSearchForTheNameOfALanguageAskedAsTheLanguageOfRecordi
 		{"Which audio recordings say 'Urdu'?", "Urdu"},
 		{"Find the recordings where \"English\" is said", "English"},
 		{"Which recordings mention delivery?", "delivery"},
+		// another word in the literal, or a cue for words said, keeps it a search
+		{"find the audio where dari kam is mentioned", "dari kam"},
+		{"Search the recordings for Urdu", "Urdu"},
+		{"Where is Pashto mentioned in the audio?", "Pashto"},
+		{"Which of the voice notes talk about English?", "English"},
+		{"Is the word Urdu said in any recording?", "Urdu"},
+		{"Which recordings contain the phrase Urdu newspaper?", "Urdu newspaper"},
 	} {
 		if _, _, why := textIntentValidate(c[0], text(c[1])); why != "" {
 			t.Fatalf("%q: the search for %q was refused: %q", c[0], c[1], why) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md

@@ -325,18 +325,37 @@ var tiLanguageNames = `pashto|pushto|pukhto|urdu|english|punjabi|panjabi|hindi|p
 // tiLanguageCue is a language name placed where a language is named: after in, spoken in, speaking, or beside the word language, speaker, recording or call.
 var tiLanguageCue = regexp.MustCompile(`(?:\b(?:in|speaks?|speaking|spoken in|language|languages)\s+(?:the\s+)?(?:` + tiLanguageNames + `)\b|\b(?:` + tiLanguageNames + `)\s+(?:language|languages|speakers?|recordings?|audio|calls?)\b)`)
 
+// tiLanguageWord is one word that is the name of a language.
+var tiLanguageWord = regexp.MustCompile(`^(?:` + tiLanguageNames + `)$`)
+
+// tiSpeechCue is what a question says when it asks for WORDS SAID: say, mention, word, phrase, quote, contain, talk about, appear, search ... for, look ... for. "Spoken" is not one: "where Urdu is spoken" asks
+// for the language. A question about a language that has none of these asks about the recordings, not about what is said in them.
+var tiSpeechCue = regexp.MustCompile(`\b(?:say|says|said|saying|mention|mentions|mentioned|mentioning|word|words|phrase|phrases|quote|quotes|quoted|utter|utters|uttered|contain|contains|containing|talk|talks|talking|appear|appears|appearing)\b|\b(?:search(?:es|ing)?|look(?:s|ing)?)\b[^.?!]{0,40}\bfor\b`)
+
 // tiNamesALanguage reports that the literal is a language name used to say which language the recordings are in. A name the analyst put in quotes, or asked to be said ("who says Urdu"), is still
-// a search for the word.
+// a search for the word. The literal may hold request words around the name ("English recording", "longest English recording": measured 2026-11-16, the model proposed these as the words to find for
+// "What is the longest English recording?"), never another word: a literal with any other word in it is a real search. With a language cue (in Urdu, an Urdu speaker) the name is a language; without any
+// cue for words said ("List the recordings where Urdu is spoken") it is a language too.
 func tiNamesALanguage(query, literal string) bool {
-	word := strings.TrimSpace(strings.TrimPrefix(strings.ToLower(literal), "in "))
-	if !regexp.MustCompile(`^(?:` + tiLanguageNames + `)$`).MatchString(word) {
-		return false
-	}
 	lower := strings.ToLower(query)
-	if regexp.MustCompile(`["'\x{201c}\x{2018}\x{00ab}]\s*` + regexp.QuoteMeta(word) + `\s*["'\x{201d}\x{2019}\x{00bb}]`).MatchString(lower) {
+	words := strings.FieldsFunc(strings.ToLower(literal), func(r rune) bool { return !(unicode.IsLetter(r) || unicode.IsDigit(r)) })
+	named := 0
+	for _, w := range words {
+		switch {
+		case tiLanguageWord.MatchString(w):
+			if regexp.MustCompile(`["'\x{201c}\x{2018}\x{00ab}]\s*` + regexp.QuoteMeta(w) + `\s*["'\x{201d}\x{2019}\x{00bb}]`).MatchString(lower) {
+				return false
+			}
+			named++
+		case tiFunctionWords[w] || tiAllDigits(w) || tiRequestWords[w]:
+		default:
+			return false
+		}
+	}
+	if named == 0 {
 		return false
 	}
-	return tiLanguageCue.MatchString(lower)
+	return tiLanguageCue.MatchString(lower) || !tiSpeechCue.MatchString(lower)
 }
 
 // tiFileNameToken is a word of a message that is a file name: no space in it, and a dot followed by two to five letters or digits that start with a letter (clip-12.mp4, report.pdf).
