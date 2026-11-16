@@ -507,6 +507,14 @@ func TestTextIntentRefusesAPieceOfAFileNameAsWordsToFindButAllowsTheWholeName(t 
 	}
 }
 
+func TestTextIntentAsksForEveryMatchAndNeverFewerThanTheCallerAsked(t *testing.T) {
+	for current, want := range map[int]int{0: 20, 1: 20, 5: 20, 19: 20, 20: 20, 50: 50} {
+		if got := textIntentResultLimit(current); got != want {
+			t.Fatalf("a limit of %d became %d, want %d", current, got, want) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+		}
+	}
+}
+
 func TestTextIntentDoesNotSearchForTheNameOfALanguageAskedAsTheLanguageOfRecordings(t *testing.T) {
 	text := func(literal string) textIntentResult {
 		return textIntentResult{Kind: tiKindText, Family: tiFamilyAudio, Match: tiMatchPhrase, Literal: literal}

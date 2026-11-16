@@ -7404,6 +7404,14 @@ func imageOCRExecutiveAnswer(req hybridQueryRequest, resp hybridQueryResponse) s
 	return fmt.Sprintf("%s contains the text “%s”.%s", source, text, more)
 }
 
+// namedRecordings lists the recordings that carried a match, in the order of the results (the best first), at most limit of them, and says how many more there are.
+func namedRecordings(names []string, limit int) string {
+	if limit <= 0 || len(names) <= limit {
+		return strings.Join(names, ", ")
+	}
+	return fmt.Sprintf("%s and %d more", strings.Join(names[:limit], ", "), len(names)-limit)
+}
+
 func transcriptExecutiveAnswer(req hybridQueryRequest, resp hybridQueryResponse) string {
 	results := evidenceResults(resp.Evidence)
 	if len(results) == 0 {
@@ -7422,10 +7430,14 @@ func transcriptExecutiveAnswer(req hybridQueryRequest, resp hybridQueryResponse)
 		return ""
 	}
 	sources := map[string]struct{}{}
+	names := []string{}
 	for _, result := range results {
 		meta, _ := result["metadata"].(map[string]any)
 		loc := mapFromAny(meta["citation_locator"])
 		if name := strings.TrimSpace(stringValueAny(firstPresent(loc, "source_file"))); name != "" {
+			if _, seen := sources[name]; !seen {
+				names = append(names, name)
+			}
 			sources[name] = struct{}{}
 		}
 	}
@@ -7435,7 +7447,8 @@ func transcriptExecutiveAnswer(req hybridQueryRequest, resp hybridQueryResponse)
 	}
 	more := ""
 	if len(sources) > 1 {
-		more = fmt.Sprintf(" %d recording%s carry a matching segment.", len(sources), pluralSuffix(len(sources)))
+		// "which recordings say it" is answered by naming them, not by counting them: measured 2026-11-16, the sentence named the best one and said how many there were
+		more = fmt.Sprintf(" %d recording%s carry a matching segment: %s.", len(sources), pluralSuffix(len(sources)), namedRecordings(names, 8))
 	}
 	return fmt.Sprintf("%s mentions it%s: “%s”.%s", source, at, passage, more)
 }

@@ -606,11 +606,25 @@ func textIntentRoute(ctx context.Context, w http.ResponseWriter, cfg config, req
 	audit.State, audit.LiteralRunes = "ROUTED", utf8.RuneCountInString(text.LiteralText)
 	finish()
 	req.TextQuery = text
+	req.MaxKBResults = textIntentResultLimit(req.MaxKBResults)
 	req.RequestClass = forensicrequest.GovernedAnalysis
 	if template := forensictext.Template(family); template != "" {
 		req.Template = template
 	}
 	return req, family, true
+}
+
+// textIntentListResults is how many matches a routed text search asks for: the largest list the endpoint gives.
+const textIntentListResults = 20
+
+// textIntentResultLimit is the number of results a routed text search asks for. A request that sets no limit is read as one (clampKBResults), which suits a lookup of one passage and cut a
+// question such as "which recordings mention covering?" to the first match and marked the search incomplete: measured 2026-11-16, the same sentence read by two speakers named one of the two.
+// A question that asks which recordings, documents or photos say something wants every match, so the limit is raised, never lowered.
+func textIntentResultLimit(current int) int {
+	if current < textIntentListResults {
+		return textIntentListResults
+	}
+	return current
 }
 
 // setTextIntentHeader records the outcome on every request the step looked at, so the added time per question is measurable from the response alone.

@@ -113,6 +113,30 @@ func TestTranscriptAnswerReportsWhenSeveralRecordingsMatch(t *testing.T) {
 	}
 }
 
+// "Which recordings mention it?" is answered by naming them: the sentence names the best recording and lists every recording that matched, so the second one is not hidden behind a count.
+func TestTranscriptAnswerNamesEveryRecordingThatMatched(t *testing.T) {
+	seg := func(file string) map[string]any {
+		return map[string]any{"content": "men are required to wear trousers covering the knees", "metadata": map[string]any{
+			"citation_locator": map[string]any{"source_file": file, "start_seconds": 0.0},
+		}}
+	}
+	resp := hybridQueryResponse{Template: "audio_transcript_search", Answer: map[string]any{}, Evidence: map[string]any{
+		"results": []map[string]any{seg("voice-note-06.wav"), seg("voice-note-03.wav"), seg("voice-note-06.wav")},
+	}}
+	answer := transcriptExecutiveAnswer(hybridQueryRequest{Query: "Which audio recordings mention the word covering?"}, resp)
+	for _, want := range []string{"2 recordings carry a matching segment: voice-note-06.wav, voice-note-03.wav."} {
+		if !strings.Contains(answer, want) {
+			t.Errorf("the answer must name every recording once, got: %s", answer) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+		}
+	}
+	if got := namedRecordings([]string{"a", "b", "c", "d"}, 2); got != "a, b and 2 more" {
+		t.Errorf("a long list is cut and says how many more: %q", got) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+	if got := namedRecordings([]string{"a", "b"}, 8); got != "a, b" {
+		t.Errorf("a short list is whole: %q", got) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+}
+
 // A citation that does not carry the claim is not a citation. Three segments
 // of one recording matched AUD-02; the answer must cite the one containing
 // the phrase the analyst asked about, not whichever came back first.
