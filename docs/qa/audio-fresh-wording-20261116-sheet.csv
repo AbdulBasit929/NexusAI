@@ -1,0 +1,35 @@
+id,family,question,expected,live verdict,live answer,seconds
+FA-001,speech,What is the duration of voice-note-07.wav?,6.48 seconds,correct,Duration seconds: 6.48. | first row: duration_seconds 6.48,32.4
+FA-002,speech,Tell me how many seconds voice-note-09.wav lasts.,8.80 seconds,abstained,"I did not give an answer, because I could not show that the query I wrote asks everything you asked: the question asks for a count that the query does not compute. Rephrase the question with the exact number, date or condition.",56.5
+FA-003,speech,How many seconds is the file voice-note-01.wav?,9.72 seconds,abstained,"I did not give an answer, because I could not show that the query I wrote asks everything you asked: the question asks for a count that the query does not compute. Rephrase the question with the exact number, date or condition.",27.7
+FA-004,speech,Which recording has the shortest duration?,voice-note-03.wav,correct,1 result: voice-note-03.wav (6). | first row: label voice-note-03.wav; value 6,56.0
+FA-005,speech,"What is the combined running time of every audio file in the case, in minutes?",1.43 minutes,wrong,Minutes: 1.4. | first row: minutes 1.4,18.2
+FA-006,speech,How many recordings run longer than 9.5 seconds?,5,correct,Count: 5. | first row: count 5,43.0
+FA-007,speech,List the audio files that are under 8 seconds.,"voice-note-03.wav, voice-note-06.wav, voice-note-07.wav, voice-note-10.wav",correct,4 rows. | first row: duration_seconds 7.79; original_filename voice-note-10.wav,16.9
+FA-008,speech,"What is the average length of the audio recordings, in seconds?",8.59 seconds,correct,Average length seconds: 8.593. | first row: average_length_seconds 8.593,12.4
+FA-009,speech,Which voice notes are spoken in English?,"voice-note-03.wav, voice-note-06.wav, voice-note-09.wav",correct,3 rows. | first row: original_filename voice-note-03.wav,16.1
+FA-010,speech,List the recordings where Urdu is spoken.,"voice-note-01.wav, voice-note-04.wav, voice-note-07.wav",declined,No observation or supported adjacent-segment window matched the supplied text filter in the searched current source scope.,5.7
+FA-011,speech,Count the recordings whose language is Pashto.,4,correct,A reading a model made from a photo or a video frame is a candidate that needs checking. It does not say who owns the vehicle or who was in it. Value: 4. | first row: value 4,16.8
+FA-012,speech,Which language is spoken in voice-note-07.wav?,"one of: Urdu, ur; and not: Pashto, English, Hindi, Punjabi",correct,Language name: Urdu. | first row: language_name Urdu,37.4
+FA-013,speech,"Is voice-note-04.wav in Pashto, Urdu or English?","one of: Urdu, ur",correct,Language name: Urdu. | first row: language_name Urdu,11.6
+FA-014,speech,How many different languages are spoken across the recordings?,3,correct,N: 3. | first row: n 3,45.2
+FA-015,speech,Which language has the most recordings?,Pashto,correct,1 result: Pashto (4). | first row: label Pashto; value 4,22.1
+FA-016,speech,Which recordings are in Urdu and longer than 9.2 seconds?,"voice-note-01.wav, voice-note-04.wav",correct,2 rows. | first row: duration_seconds 10.56; original_filename voice-note-04.wav,23.8
+FA-017,speech,What is the longest English recording?,voice-note-09.wav,declined,The text search is incomplete. Any listed observations are supported matches; absence of further matches has not been established.,7.5
+FA-018,speech,"How long is the shortest Pashto recording, in seconds?",7.79 seconds,declined,The text search is incomplete. Any listed observations are supported matches; absence of further matches has not been established.,7.8
+FA-019,speech,How many speech segments do the Urdu recordings have in total?,5,correct,N: 5. | first row: n 5,20.4
+FA-020,speech,How many segments is voice-note-04.wav split into?,3,correct,N: 3. | first row: n 3,14.8
+FA-021,speech,Into how many speech segments was voice-note-09.wav divided?,1,correct,N: 1. | first row: n 1,12.1
+FA-022,speech,What is the total number of speech segments across all the audio files?,12,correct,N: 12. | first row: n 12,18.5
+FA-023,speech,Which recording has the most speech segments?,voice-note-04.wav,correct,1 result: voice-note-04.wav (3). | first row: label voice-note-04.wav; value 3,18.7
+FA-024,speech,How many recordings consist of a single segment?,9,correct,N: 9. | first row: n 9,10.9
+FA-025,speech,Which audio files still need a person to check them?,"voice-note-01.wav, voice-note-02.wav, voice-note-03.wav, voice-note-04.wav, voice-note-05.wav, voice-note-06.wav, voice-note-07.wav, voice-note-08.wav, voice-note-09.wav, voice-note-10.wav",correct,10 rows. | first row: original_filename voice-note-01.wav,16.7
+FA-026,speech,How many recordings need manual review?,10,correct,N: 10. | first row: n 10,13.2
+FA-027,speech,Show the text of voice-note-06.wav,"all of: Along, line, wear",declined,I could not map that request to a deterministic forensic workflow. Please name the evidence family and the calculation or view you need.,34.2
+FA-028,speech,Transcribe voice-note-07.wav,"all of: ڈائنسور, نہیں, کیونکہ",correct,Text: بہت سے لوگ ان کو ڈائنسور تسلیم نہیں کرتے کیونکہ وہ بال وپر رکھتے ہیں اور اڑھنے کے قابل تھے. | first row: text بہت سے لوگ ان کو ڈائنسور تسلیم نہیں کرتے کیونکہ وہ بال وپر رکھتے ہیں اور اڑھنے کے قابل تھے,17.0
+FA-029,speech,What does the speaker in voice-note-08.wav say?,"all of: هیواد, خارونو, بیلوالي",correct,Start seconds 0; End seconds 10.02; Text دا ښار د هیواد نورو خارونو سره ډیر ښکلې بیلوالي لري ځکه چې دا د افریکې یې په پرتله عربي خوند زیات لري. | first row: end_seconds 10.02; start_seconds 0; text دا ښار د هیواد نورو خارونو سره ډیر ښکلې بیلوالي لري ځکه چې دا د افریکې یې په پرتله عربي خوند زیات لري,140.3
+FA-030,speech,Which of the voice notes talk about sharpener?,voice-note-09.wav,correct,voice-note-09.wav mentions it at 0 seconds: “People now write messages on computer screens never having to come close to a sharpener.”.,11.8
+FA-031,speech,Search the recordings for تسلیم,voice-note-07.wav,correct,voice-note-07.wav mentions it at 0 seconds: “بہت سے لوگ ان کو ڈائنسور تسلیم نہیں کرتے کیونکہ وہ بال وپر رکھتے ہیں اور اڑھنے کے قابل تھے”.,9.2
+FA-032,speech,Where is انسان mentioned in the audio?,voice-note-10.wav,correct,voice-note-10.wav mentions it at 0 seconds: “داسې څاروای خو ذهن ته نه راځي خو دا چلند کولی شي انسان یا هیوان وشغوري”.,5.4
+FA-033,speech,Which recording contains trousers?,"voice-note-03.wav, voice-note-06.wav",correct,"voice-note-06.wav mentions it at 0 seconds: “Along the same line, men are required to wear trousers covering the knees.”. 2 recordings carry a matching segment: voice-note-06.wav, voice-note-03.wav.",5.4
+FA-034,speech,Which audio recordings mention the word zebra?,none,correct,No observation or supported adjacent-segment window matched the supplied text filter in the searched current source scope.,5.8

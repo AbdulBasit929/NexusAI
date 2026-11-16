@@ -24,7 +24,7 @@ PRIVATE_BANK = os.environ.get("ORION_VIDEO_PRIVATE_BANK", "C:/NexusAI-Showcase/o
 VIDEO_SUFFIXES = (".mp4", ".mov", ".avi", ".mkv")
 VIDEO_AREAS = ("videos", "vsearch")
 PLATE_ROUTE_AREAS = ("imgplate", "vsearch")     # questions with a typed plate: answered by the plate-in-images route, not by the Ask engine's SQL
-TEXT_ROUTE_TYPES = ("audio_word_search",)       # a word to find in the recordings: answered by the governed text search (the text-intent step routes it before the engine), not by the engine's SQL
+TEXT_ROUTE_TYPES = ("audio_word_search", "audio_word_absent")      # a word to find in the recordings: answered by the governed text search (the text-intent step routes it before the engine), not by the engine's SQL
 INCOMPLETE_SENTENCE = re.compile(r"search is incomplete|absence of further matches has not been established", re.I)
 
 AREAS = [
