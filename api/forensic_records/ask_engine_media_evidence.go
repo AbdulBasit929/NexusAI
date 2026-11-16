@@ -30,6 +30,7 @@ var askMediaEvidenceColumns = map[string][]string{
 	"v_ocr_regions":          {"seen_at_seconds", "x", "y", "width", "height"},
 	"v_ocr_evidence_summary": {},
 	"v_video_files":          {},
+	"v_audio_files":          {},
 }
 
 // askMediaPlace is where in its file a reading lies: the second it was read at (or began at), the second it ended at, the frame and the box on the frame.

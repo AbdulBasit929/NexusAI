@@ -374,6 +374,77 @@
       ]
     },
     {
+      "name": "v_audio_files",
+      "description": "One row per audio file (recording) of the case: its length in seconds (running time or duration), the language spoken, how it was read and how many speech segments it has. Use it, and not v_evidence_inventory, for anything about the recordings themselves: how many there are, which is the longest or shortest, how long they are in total or longer than some seconds, which are in Pashto, Urdu or English. Every recording needs a person's check, so a question about which recordings need manual review or checking is answered by listing every row; reading_status says how far a reading can be relied on and is not a filter for that. For what was said use v_speech_segments (source_kind audio); the soundtrack of a video is not here (see v_video_files.has_audio). A reading is a machine candidate: a person must listen before relying on it.",
+      "columns": [
+        {
+          "name": "evidence_id",
+          "type": "uuid",
+          "description": "Identifier of the audio evidence item."
+        },
+        {
+          "name": "original_filename",
+          "type": "text",
+          "description": "File name of the recording as it was added, exactly as written (for example voice-note-03.wav)."
+        },
+        {
+          "name": "duration_seconds",
+          "type": "numeric",
+          "description": "Length of the recording in seconds (its running time or duration), from the audio file's own header; empty when the header could not be read. Use this, not the end of the last speech segment, for how long a recording is."
+        },
+        {
+          "name": "sample_rate_hz",
+          "type": "integer",
+          "description": "Samples per second of the audio, from the file's header (16000 for telephone-quality speech, 44100 for music)."
+        },
+        {
+          "name": "channels",
+          "type": "integer",
+          "description": "Number of audio channels: 1 mono, 2 stereo."
+        },
+        {
+          "name": "language",
+          "type": "text",
+          "description": "The language spoken as a short code (en English, ur Urdu, ps Pashto, pa Punjabi, ...): the one most of the recording's segments carry; empty when the recording has not been read."
+        },
+        {
+          "name": "language_name",
+          "type": "text",
+          "description": "The language spoken in words (English, Urdu, Pashto, Punjabi, ...): filter on this for a question that names a language, for example language_name = 'Pashto'; empty when the recording has not been read."
+        },
+        {
+          "name": "reading_status",
+          "type": "text",
+          "description": "How the recording was read: MACHINE_TRANSCRIPT (a transcript to be checked by listening), SEARCH_LEAD (Pashto: good enough to find the recording by a spoken word, not to read as a transcript), LOW_RESOURCE_LANGUAGE (a language read poorly) or NOT_READ (no speech segment yet). Every reading needs a person's check."
+        },
+        {
+          "name": "segments",
+          "type": "bigint",
+          "description": "Number of timed speech segments the recording has."
+        },
+        {
+          "name": "size_bytes",
+          "type": "bigint",
+          "description": "Size of the file in bytes."
+        },
+        {
+          "name": "processing_status",
+          "type": "text",
+          "description": "Where the file is in processing (for example completed or failed)."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "description": "When the file was added, UTC."
+        },
+        {
+          "name": "needs_review",
+          "type": "boolean",
+          "description": "True for every row: a person must listen and check before the language or the text of a recording is relied on. A question about which recordings need manual review is answered by listing every row; do not filter on reading_status for it."
+        }
+      ]
+    },
+    {
       "name": "v_bank_transactions",
       "description": "Transactions of bank statements and wallet lists, one row each (exact repeats within a file left out; a row that another file of the case already holds with the same account, time, direction, amount and balance is counted once, in the file with the smaller evidence id, and the repeat stays in the stored rows): the account, the other side, the direction, the amount (positive) and its signed form, the balance after, the channel, the reference and the time with its precision. Amounts are as the source states them. The narration and names are not held here.",
       "columns": [
@@ -1845,7 +1916,7 @@
     },
     {
       "name": "v_speech_segments",
-      "description": "Speech to text of audio and video evidence, one row per timed segment (start and end in seconds from the start of the recording). Machine transcript of unverified quality, needs_review is always true; Urdu, Punjabi and Pashto readings are less reliable than English.",
+      "description": "What was said, one row per timed segment of the speech to text of audio recordings (source_kind audio) and of the soundtracks of videos (source_kind video); start and end are seconds from the start of the file. A machine transcript of unverified quality (needs_review is always true); Pashto is a search lead and Urdu and Punjabi are less reliable than English. For the recordings themselves (how many, how long, which language) use v_audio_files; to separate recordings from video soundtracks filter source_kind. The language of a segment is in language and language_name, not in requested_language.",
       "columns": [
         {
           "name": "evidence_id",
@@ -1875,12 +1946,12 @@
         {
           "name": "requested_language",
           "type": "text",
-          "description": "The language the processing was told to expect (ur, en, pa, ps) or empty when it was left to the model."
+          "description": "The language the processing was told to expect (ur, en, pa, ps) or empty when it was left to the model. It is not the language that was spoken: use language or language_name for that."
         },
         {
           "name": "detected_language",
           "type": "text",
-          "description": "The language the model reports it heard, when it was asked to detect it."
+          "description": "The language the model or the language route reported for the segment, when it reported one; empty for older readings. Use language, which falls back to the other fields."
         },
         {
           "name": "model",
@@ -1896,6 +1967,26 @@
           "name": "created_at",
           "type": "timestamp with time zone",
           "description": "When the segment was stored, UTC."
+        },
+        {
+          "name": "language",
+          "type": "text",
+          "description": "The language of the segment as a short code (en English, ur Urdu, ps Pashto, pa Punjabi, fa Persian, ...), from what the model or the route reported; empty when none was reported."
+        },
+        {
+          "name": "language_name",
+          "type": "text",
+          "description": "The language of the segment in words (English, Urdu, Pashto, Punjabi, ...): filter on this for a question that names a language, for example language_name = 'Pashto'."
+        },
+        {
+          "name": "reading_status",
+          "type": "text",
+          "description": "How far the reading can be relied on: MACHINE_TRANSCRIPT (a transcript to be checked by listening), SEARCH_LEAD (Pashto: good enough to find a recording by a spoken word, not to read as a transcript) or LOW_RESOURCE_LANGUAGE (a language the speech model reads poorly)."
+        },
+        {
+          "name": "source_kind",
+          "type": "text",
+          "description": "audio for a segment of an audio recording, video for a segment of the soundtrack of a video. Filter source_kind = 'audio' for questions about recordings only."
         }
       ]
     },

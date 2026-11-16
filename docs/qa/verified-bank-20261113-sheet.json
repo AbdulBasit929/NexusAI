@@ -12901,11 +12901,11 @@
    "live": {
     "state": "answered",
     "answer": "N: 10. | first row: n 10",
-    "seconds": 32.0,
+    "seconds": 289.7,
     "verdict": "correct",
-    "sql": "SELECT count(*) AS n FROM v_evidence_inventory WHERE modality = 'audio'",
+    "sql": "SELECT count(*) AS n FROM v_audio_files",
     "views": [
-     "v_evidence_inventory"
+     "v_audio_files"
     ]
    }
   },
@@ -12925,12 +12925,12 @@
    "kind_of_check": "a number",
    "live": {
     "state": "answered",
-    "answer": "Total seconds: 2,750,184. | first row: total_seconds 2750184",
-    "seconds": 74.7,
-    "verdict": "wrong",
-    "sql": "SELECT sum(size_bytes) AS total_seconds FROM v_evidence_inventory WHERE modality = 'audio'",
+    "answer": "Total seconds: 85.93. | first row: total_seconds 85.93",
+    "seconds": 172.4,
+    "verdict": "correct",
+    "sql": "SELECT sum(duration_seconds) AS total_seconds FROM v_audio_files",
     "views": [
-     "v_evidence_inventory"
+     "v_audio_files"
     ]
    }
   },
@@ -12948,12 +12948,12 @@
    "kind_of_check": "the first of a ranking",
    "live": {
     "state": "answered",
-    "answer": "Original filename: voice-note-04.wav. | first row: original_filename voice-note-04.wav",
-    "seconds": 32.3,
+    "answer": "1 result: voice-note-04.wav (10.56). | first row: label voice-note-04.wav; value 10.56",
+    "seconds": 178.7,
     "verdict": "correct",
-    "sql": "SELECT original_filename FROM v_evidence_inventory WHERE modality = 'audio' ORDER BY size_bytes DESC LIMIT 1",
+    "sql": "SELECT original_filename AS label, duration_seconds AS value FROM v_audio_files WHERE duration_seconds IS NOT NULL ORDER BY value DESC, label LIMIT 1",
     "views": [
-     "v_evidence_inventory"
+     "v_audio_files"
     ]
    }
   },
@@ -12978,12 +12978,12 @@
    "kind_of_check": "exactly these recordings",
    "live": {
     "state": "answered",
-    "answer": "10 rows. | first row: original_filename voice-note-01.wav",
-    "seconds": 23.1,
-    "verdict": "wrong",
-    "sql": "SELECT DISTINCT original_filename FROM v_evidence_inventory WHERE modality = 'audio' AND size_bytes > 9000 ORDER BY original_filename",
+    "answer": "5 rows. | first row: duration_seconds 10.56; original_filename voice-note-04.wav",
+    "seconds": 174.2,
+    "verdict": "correct",
+    "sql": "SELECT original_filename, duration_seconds FROM v_audio_files WHERE duration_seconds > 9 ORDER BY duration_seconds DESC, original_filename LIMIT 200",
     "views": [
-     "v_evidence_inventory"
+     "v_audio_files"
     ]
    }
   },
@@ -13006,12 +13006,12 @@
    "kind_of_check": "exactly these recordings",
    "live": {
     "state": "answered",
-    "answer": "No row matches what you asked.",
-    "seconds": 19.5,
-    "verdict": "wrong",
-    "sql": "SELECT original_filename FROM v_evidence_inventory WHERE modality = 'audio' AND size_bytes < 7000 ORDER BY original_filename LIMIT 200",
+    "answer": "3 rows. | first row: duration_seconds 6.48; original_filename voice-note-07.wav",
+    "seconds": 219.0,
+    "verdict": "correct",
+    "sql": "SELECT original_filename, duration_seconds FROM v_audio_files WHERE duration_seconds < 7 ORDER BY duration_seconds DESC, original_filename LIMIT 200",
     "views": [
-     "v_evidence_inventory"
+     "v_audio_files"
     ]
    }
   },
@@ -13030,12 +13030,14 @@
    "expected_text": "6 seconds",
    "kind_of_check": "a number",
    "live": {
-    "state": "declined",
-    "answer": "No matching records were found for VOICE-NOTE-03 in the selected case scope.",
-    "seconds": 87.2,
-    "verdict": "declined",
-    "sql": "",
-    "views": []
+    "state": "answered",
+    "answer": "Duration seconds: 6. | first row: duration_seconds 6",
+    "seconds": 85.5,
+    "verdict": "correct",
+    "sql": "SELECT duration_seconds FROM v_audio_files WHERE original_filename = 'voice-note-03.wav'",
+    "views": [
+     "v_audio_files"
+    ]
    }
   },
   {
@@ -13053,12 +13055,14 @@
    "expected_text": "10.20 seconds",
    "kind_of_check": "a number",
    "live": {
-    "state": "declined",
-    "answer": "No matching records were found for VOICE-NOTE-05 in the selected case scope.",
-    "seconds": 19.2,
-    "verdict": "declined",
-    "sql": "",
-    "views": []
+    "state": "answered",
+    "answer": "Duration seconds: 10.2. | first row: duration_seconds 10.2",
+    "seconds": 195.7,
+    "verdict": "correct",
+    "sql": "SELECT duration_seconds FROM v_audio_files WHERE original_filename = 'voice-note-05.wav'",
+    "views": [
+     "v_audio_files"
+    ]
    }
   },
   {
@@ -13076,12 +13080,14 @@
    "expected_text": "10.02 seconds",
    "kind_of_check": "a number",
    "live": {
-    "state": "declined",
-    "answer": "No matching records were found for VOICE-NOTE-08 in the selected case scope.",
-    "seconds": 18.4,
-    "verdict": "declined",
-    "sql": "",
-    "views": []
+    "state": "answered",
+    "answer": "Duration seconds: 10.02. | first row: duration_seconds 10.02",
+    "seconds": 80.7,
+    "verdict": "correct",
+    "sql": "SELECT duration_seconds FROM v_audio_files WHERE original_filename = 'voice-note-08.wav'",
+    "views": [
+     "v_audio_files"
+    ]
    }
   },
   {
@@ -13103,12 +13109,14 @@
    "expected_text": "voice-note-02.wav, voice-note-05.wav, voice-note-08.wav, voice-note-10.wav",
    "kind_of_check": "exactly these recordings",
    "live": {
-    "state": "declined",
-    "answer": "The text search is incomplete. Any listed observations are supported matches; absence of further matches has not been established.",
-    "seconds": 7.7,
-    "verdict": "declined",
-    "sql": "",
-    "views": []
+    "state": "answered",
+    "answer": "4 rows. | first row: original_filename voice-note-02.wav",
+    "seconds": 152.0,
+    "verdict": "correct",
+    "sql": "SELECT original_filename FROM v_audio_files WHERE language_name = 'Pashto' ORDER BY original_filename LIMIT 200",
+    "views": [
+     "v_audio_files"
+    ]
    }
   },
   {
@@ -13124,12 +13132,14 @@
    "expected_text": "4",
    "kind_of_check": "a number",
    "live": {
-    "state": "declined",
-    "answer": "The text search is incomplete. Any listed observations are supported matches; absence of further matches has not been established.",
-    "seconds": 6.3,
-    "verdict": "declined",
-    "sql": "",
-    "views": []
+    "state": "answered",
+    "answer": "N: 4. | first row: n 4",
+    "seconds": 176.0,
+    "verdict": "correct",
+    "sql": "SELECT count(*) AS n FROM v_audio_files WHERE language_name = 'Pashto'",
+    "views": [
+     "v_audio_files"
+    ]
    }
   },
   {
@@ -13150,12 +13160,14 @@
    "expected_text": "voice-note-01.wav, voice-note-04.wav, voice-note-07.wav",
    "kind_of_check": "exactly these recordings",
    "live": {
-    "state": "declined",
-    "answer": "The text search is incomplete. Any listed observations are supported matches; absence of further matches has not been established.",
-    "seconds": 5.5,
-    "verdict": "declined",
-    "sql": "",
-    "views": []
+    "state": "answered",
+    "answer": "3 rows. | first row: original_filename voice-note-01.wav",
+    "seconds": 264.9,
+    "verdict": "correct",
+    "sql": "SELECT original_filename FROM v_audio_files WHERE language_name = 'Urdu' ORDER BY original_filename LIMIT 200",
+    "views": [
+     "v_audio_files"
+    ]
    }
   },
   {
@@ -13171,12 +13183,14 @@
    "expected_text": "3",
    "kind_of_check": "a number",
    "live": {
-    "state": "declined",
-    "answer": "The text search is incomplete. Any listed observations are supported matches; absence of further matches has not been established.",
-    "seconds": 6.7,
-    "verdict": "declined",
-    "sql": "",
-    "views": []
+    "state": "answered",
+    "answer": "N: 3. | first row: n 3",
+    "seconds": 167.1,
+    "verdict": "correct",
+    "sql": "SELECT count(*) AS n FROM v_audio_files WHERE language_name = 'Urdu'",
+    "views": [
+     "v_audio_files"
+    ]
    }
   },
   {
@@ -13197,12 +13211,14 @@
    "expected_text": "voice-note-03.wav, voice-note-06.wav, voice-note-09.wav",
    "kind_of_check": "exactly these recordings",
    "live": {
-    "state": "declined",
-    "answer": "The text search is incomplete. Any listed observations are supported matches; absence of further matches has not been established.",
-    "seconds": 5.1,
-    "verdict": "declined",
-    "sql": "",
-    "views": []
+    "state": "answered",
+    "answer": "3 rows. | first row: original_filename voice-note-03.wav",
+    "seconds": 250.0,
+    "verdict": "correct",
+    "sql": "SELECT original_filename FROM v_audio_files WHERE language_name = 'English' ORDER BY original_filename LIMIT 200",
+    "views": [
+     "v_audio_files"
+    ]
    }
   },
   {
@@ -13219,12 +13235,12 @@
    "kind_of_check": "a number",
    "live": {
     "state": "answered",
-    "answer": "N: 10. | first row: n 10",
-    "seconds": 44.0,
-    "verdict": "wrong",
-    "sql": "SELECT count(*) AS n FROM v_evidence_inventory WHERE modality = 'audio' AND detected_type = 'audio'",
+    "answer": "N: 3. | first row: n 3",
+    "seconds": 151.6,
+    "verdict": "correct",
+    "sql": "SELECT count(*) AS n FROM v_audio_files WHERE language_name = 'English'",
     "views": [
-     "v_evidence_inventory"
+     "v_audio_files"
     ]
    }
   },
@@ -13250,12 +13266,14 @@
    "expected_text": "one of: Pashto, ps; and not: Urdu, English, Persian, Punjabi",
    "kind_of_check": "words the answer must contain",
    "live": {
-    "state": "declined",
-    "answer": "No matching records were found for VOICE-NOTE-05 in the selected case scope.",
-    "seconds": 4.2,
-    "verdict": "declined",
-    "sql": "",
-    "views": []
+    "state": "answered",
+    "answer": "Language name: Pashto. | first row: language_name Pashto",
+    "seconds": 238.5,
+    "verdict": "correct",
+    "sql": "SELECT language_name FROM v_audio_files WHERE original_filename = 'voice-note-05.wav'",
+    "views": [
+     "v_audio_files"
+    ]
    }
   },
   {
@@ -13280,12 +13298,14 @@
    "expected_text": "one of: Urdu, ur; and not: Pashto, English, Hindi, Punjabi",
    "kind_of_check": "words the answer must contain",
    "live": {
-    "state": "declined",
-    "answer": "No matching records were found for VOICE-NOTE-01 in the selected case scope.",
-    "seconds": 5.0,
-    "verdict": "declined",
-    "sql": "",
-    "views": []
+    "state": "answered",
+    "answer": "Language name: Urdu. | first row: language_name Urdu",
+    "seconds": 147.7,
+    "verdict": "correct",
+    "sql": "SELECT language_name FROM v_audio_files WHERE original_filename = 'voice-note-01.wav'",
+    "views": [
+     "v_audio_files"
+    ]
    }
   },
   {
@@ -13310,12 +13330,14 @@
    "expected_text": "one of: English, en; and not: Pashto, Urdu, Hindi, Punjabi",
    "kind_of_check": "words the answer must contain",
    "live": {
-    "state": "declined",
-    "answer": "No matching records were found for VOICE-NOTE-09 in the selected case scope.",
-    "seconds": 4.3,
-    "verdict": "declined",
-    "sql": "",
-    "views": []
+    "state": "answered",
+    "answer": "Language name: English. | first row: language_name English",
+    "seconds": 124.7,
+    "verdict": "correct",
+    "sql": "SELECT language_name FROM v_audio_files WHERE original_filename = 'voice-note-09.wav'",
+    "views": [
+     "v_audio_files"
+    ]
    }
   },
   {
@@ -13340,12 +13362,14 @@
    "expected_text": "one of: Pashto, ps; and not: Urdu, English, Persian, Punjabi",
    "kind_of_check": "words the answer must contain",
    "live": {
-    "state": "declined",
-    "answer": "No matching records were found for VOICE-NOTE-10 in the selected case scope.",
-    "seconds": 4.1,
-    "verdict": "declined",
-    "sql": "",
-    "views": []
+    "state": "answered",
+    "answer": "Language name: Pashto. | first row: language_name Pashto",
+    "seconds": 160.6,
+    "verdict": "correct",
+    "sql": "SELECT language_name FROM v_audio_files WHERE original_filename = 'voice-note-10.wav'",
+    "views": [
+     "v_audio_files"
+    ]
    }
   },
   {
@@ -13373,12 +13397,14 @@
    "expected_text": "voice-note-01.wav, voice-note-02.wav, voice-note-03.wav, voice-note-04.wav, voice-note-05.wav, voice-note-06.wav, voice-note-07.wav, voice-note-08.wav, voice-note-09.wav, voice-note-10.wav",
    "kind_of_check": "exactly these recordings",
    "live": {
-    "state": "declined",
-    "answer": "Modality: audio_roman_urdu_segment.",
-    "seconds": 69.4,
-    "verdict": "declined",
-    "sql": "SELECT DISTINCT source_modality AS modality FROM v_audio_roman_urdu_segment WHERE manual_review_required = true",
-    "views": []
+    "state": "answered",
+    "answer": "10 rows. | first row: original_filename voice-note-01.wav; reading_status MACHINE_TRANSCRIPT",
+    "seconds": 118.9,
+    "verdict": "correct",
+    "sql": "SELECT original_filename, reading_status FROM v_audio_files WHERE needs_review = true ORDER BY original_filename LIMIT 200",
+    "views": [
+     "v_audio_files"
+    ]
    }
   },
   {
@@ -13396,7 +13422,7 @@
    "live": {
     "state": "answered",
     "answer": "N: 1. | first row: n 1",
-    "seconds": 10.0,
+    "seconds": 234.6,
     "verdict": "correct",
     "sql": "SELECT count(*) AS n FROM v_speech_segments WHERE original_filename = 'voice-note-02.wav'",
     "views": [
@@ -13419,7 +13445,7 @@
    "live": {
     "state": "answered",
     "answer": "N: 3. | first row: n 3",
-    "seconds": 6.4,
+    "seconds": 94.5,
     "verdict": "correct",
     "sql": "SELECT count(*) AS n FROM v_speech_segments WHERE original_filename = 'voice-note-04.wav'",
     "views": [
@@ -13440,12 +13466,14 @@
    "expected_text": "12",
    "kind_of_check": "a number",
    "live": {
-    "state": "declined",
-    "answer": "Number of speech segments: 39.",
-    "seconds": 62.7,
-    "verdict": "declined",
-    "sql": "SELECT count(*) AS number_of_speech_segments FROM v_audio_timestamp_segment",
-    "views": []
+    "state": "answered",
+    "answer": "N: 12. | first row: n 12",
+    "seconds": 79.8,
+    "verdict": "correct",
+    "sql": "SELECT count(*) AS n FROM v_speech_segments WHERE source_kind = 'audio'",
+    "views": [
+     "v_speech_segments"
+    ]
    }
   },
   {
@@ -13465,12 +13493,14 @@
    "expected_text": "voice-note-03.wav, voice-note-06.wav",
    "kind_of_check": "exactly these recordings",
    "live": {
-    "state": "declined",
-    "answer": "voice-note-06.wav mentions it at 0 seconds: “Along the same line, men are required to wear trousers covering the knees.”. This search is incomplete; absence of further matches has not been established.",
-    "seconds": 5.3,
-    "verdict": "declined",
-    "sql": "",
-    "views": []
+    "state": "answered",
+    "answer": "2 rows. | first row: original_filename voice-note-03.wav",
+    "seconds": 95.0,
+    "verdict": "correct",
+    "sql": "SELECT DISTINCT original_filename FROM v_speech_segments WHERE source_kind = 'audio' AND text ILIKE '%covering%' ORDER BY original_filename LIMIT 200",
+    "views": [
+     "v_speech_segments"
+    ]
    }
   },
   {
@@ -13489,12 +13519,14 @@
    "expected_text": "voice-note-01.wav",
    "kind_of_check": "exactly these recordings",
    "live": {
-    "state": "declined",
-    "answer": "voice-note-01.wav mentions it at 0 seconds: “جزیرہ ہانگ کونگ کے نام سے ہانگ کونگ کھتے کا نام پڑا ہے اور یہ وہ جگہ ہے جسے بہت سارے سیاہ اپنی سیاحت کمر کا سمجھتے ہیں”. This search is incomplete; absence of further matches has not been established.",
-    "seconds": 6.3,
-    "verdict": "declined",
-    "sql": "",
-    "views": []
+    "state": "answered",
+    "answer": "Original filename: voice-note-01.wav. | first row: original_filename voice-note-01.wav",
+    "seconds": 110.4,
+    "verdict": "correct",
+    "sql": "SELECT DISTINCT original_filename FROM v_speech_segments WHERE text ILIKE '%سمجھتے%' AND source_kind = 'audio' ORDER BY original_filename LIMIT 200",
+    "views": [
+     "v_speech_segments"
+    ]
    }
   },
   {
@@ -13513,12 +13545,14 @@
    "expected_text": "voice-note-02.wav",
    "kind_of_check": "exactly these recordings",
    "live": {
-    "state": "declined",
-    "answer": "voice-note-02.wav mentions it at 0 seconds: “ددې فارمټ د ابغادو نصبت په تکسیمیږي تر څو د ټول نمبر ساده نسبت لاسته را شي ځکه دتر نثبتټو یادیږي”. This search is incomplete; absence of further matches has not been established.",
-    "seconds": 5.7,
-    "verdict": "declined",
-    "sql": "",
-    "views": []
+    "state": "answered",
+    "answer": "Original filename: voice-note-02.wav. | first row: original_filename voice-note-02.wav",
+    "seconds": 88.6,
+    "verdict": "correct",
+    "sql": "SELECT DISTINCT original_filename FROM v_speech_segments WHERE source_kind = 'audio' AND text ILIKE '%فارمټ%' ORDER BY original_filename LIMIT 200",
+    "views": [
+     "v_speech_segments"
+    ]
    }
   },
   {
@@ -13538,12 +13572,14 @@
    "expected_text": "voice-note-03.wav, voice-note-06.wav",
    "kind_of_check": "exactly these recordings",
    "live": {
-    "state": "declined",
-    "answer": "voice-note-06.wav mentions it at 0 seconds: “Along the same line, men are required to wear trousers covering the knees.”. This search is incomplete; absence of further matches has not been established.",
-    "seconds": 5.2,
-    "verdict": "declined",
-    "sql": "",
-    "views": []
+    "state": "answered",
+    "answer": "2 rows. | first row: original_filename voice-note-03.wav",
+    "seconds": 187.6,
+    "verdict": "correct",
+    "sql": "SELECT DISTINCT original_filename FROM v_speech_segments WHERE text ILIKE '%required%' ORDER BY original_filename LIMIT 200",
+    "views": [
+     "v_speech_segments"
+    ]
    }
   },
   {
@@ -13562,12 +13598,14 @@
    "expected_text": "voice-note-01.wav",
    "kind_of_check": "exactly these recordings",
    "live": {
-    "state": "declined",
-    "answer": "voice-note-01.wav mentions it at 0 seconds: “جزیرہ ہانگ کونگ کے نام سے ہانگ کونگ کھتے کا نام پڑا ہے اور یہ وہ جگہ ہے جسے بہت سارے سیاہ اپنی سیاحت کمر کا سمجھتے ہیں”. This search is incomplete; absence of further matches has not been established.",
-    "seconds": 5.7,
-    "verdict": "declined",
-    "sql": "",
-    "views": []
+    "state": "answered",
+    "answer": "Original filename: voice-note-01.wav. | first row: original_filename voice-note-01.wav",
+    "seconds": 122.4,
+    "verdict": "correct",
+    "sql": "SELECT DISTINCT original_filename FROM v_speech_segments WHERE source_kind = 'audio' AND text ILIKE '%جزیرہ%' ORDER BY original_filename LIMIT 200",
+    "views": [
+     "v_speech_segments"
+    ]
    }
   },
   {
@@ -13587,12 +13625,14 @@
    "expected_text": "all of: Along, line, wear",
    "kind_of_check": "words the answer must contain",
    "live": {
-    "state": "declined",
-    "answer": "No matching records were found for VOICE-NOTE-03 in the selected case scope.",
-    "seconds": 4.2,
-    "verdict": "declined",
-    "sql": "",
-    "views": []
+    "state": "answered",
+    "answer": "Start seconds 0; End seconds 7; Text Along the same line, men are required to wear trousers covering the knees.. | first row: end_seconds 7; start_seconds 0; text Along the same line, men are required to wear trousers covering the knees.",
+    "seconds": 23.0,
+    "verdict": "correct",
+    "sql": "SELECT start_seconds, end_seconds, text FROM v_speech_segments WHERE original_filename = 'voice-note-03.wav' ORDER BY start_seconds LIMIT 200",
+    "views": [
+     "v_speech_segments"
+    ]
    }
   },
   {
@@ -13614,7 +13654,7 @@
    "live": {
     "state": "answered",
     "answer": "Transcript: جزیرہ ہانگ کونگ کے نام سے ہانگ کونگ کھتے کا نام پڑا ہے اور یہ وہ جگہ ہے جسے بہت سارے سیاہ اپنی سیاحت کمر کا سمجھتے ہیں. | first row: transcript جزیرہ ہانگ کونگ کے نام سے ہانگ کونگ کھتے کا نام پڑا ہے اور یہ وہ جگہ ہے جسے بہت سارے سیاہ اپنی سیاحت کمر کا سمجھتے ہیں",
-    "seconds": 8.9,
+    "seconds": 161.5,
     "verdict": "correct",
     "sql": "SELECT text AS transcript FROM v_speech_segments WHERE original_filename = 'voice-note-01.wav'",
     "views": [
@@ -13639,12 +13679,14 @@
    "expected_text": "all of: فارمټ, نصبت, نمبر",
    "kind_of_check": "words the answer must contain",
    "live": {
-    "state": "declined",
-    "answer": "No matching records were found for VOICE-NOTE-02 in the selected case scope.",
-    "seconds": 3.9,
-    "verdict": "declined",
-    "sql": "",
-    "views": []
+    "state": "answered",
+    "answer": "What is said: ددې فارمټ د ابغادو نصبت په تکسیمیږي تر څو د ټول نمبر ساده نسبت لاسته را شي ځکه دتر نثبتټو یادیږي. | first row: what_is_said ددې فارمټ د ابغادو نصبت په تکسیمیږي تر څو د ټول نمبر ساده نسبت لاسته را شي ځکه دتر نثبتټو یادیږي",
+    "seconds": 100.2,
+    "verdict": "correct",
+    "sql": "SELECT text AS what_is_said FROM v_speech_segments WHERE original_filename = 'voice-note-02.wav'",
+    "views": [
+     "v_speech_segments"
+    ]
    }
   },
   {
@@ -13664,12 +13706,14 @@
    "expected_text": "all of: داسې, راځي, کولی",
    "kind_of_check": "words the answer must contain",
    "live": {
-    "state": "declined",
-    "answer": "No matching records were found for VOICE-NOTE-10 in the selected case scope.",
-    "seconds": 3.9,
-    "verdict": "declined",
-    "sql": "",
-    "views": []
+    "state": "answered",
+    "answer": "Start seconds 0; End seconds 7.79; Text داسې څاروای خو ذهن ته نه راځي خو دا چلند کولی شي انسان یا هیوان وشغوري. | first row: end_seconds 7.79; start_seconds 0; text داسې څاروای خو ذهن ته نه راځي خو دا چلند کولی شي انسان یا هیوان وشغوري",
+    "seconds": 123.2,
+    "verdict": "correct",
+    "sql": "SELECT start_seconds, end_seconds, text FROM v_speech_segments WHERE original_filename = 'voice-note-10.wav' ORDER BY start_seconds LIMIT 200",
+    "views": [
+     "v_speech_segments"
+    ]
    }
   },
   {

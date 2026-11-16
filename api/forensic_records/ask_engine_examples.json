@@ -738,5 +738,149 @@
     ],
     "shape": "table",
     "sql": "SELECT DISTINCT original_filename FROM v_speech_segments ORDER BY original_filename LIMIT 200"
+  },
+  {
+    "id": "audio-length",
+    "question": "How long is the recording note.wav, in seconds?",
+    "views": [
+      "v_audio_files"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT max(duration_seconds) AS duration_seconds FROM v_audio_files WHERE original_filename = 'note.wav'"
+  },
+  {
+    "id": "audio-total-length",
+    "question": "How long are all the audio recordings together, in seconds?",
+    "views": [
+      "v_audio_files"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT sum(duration_seconds) AS total_seconds FROM v_audio_files"
+  },
+  {
+    "id": "audio-longer-than",
+    "question": "Which audio recordings are longer than 30 seconds?",
+    "views": [
+      "v_audio_files"
+    ],
+    "shape": "table",
+    "sql": "SELECT original_filename, duration_seconds FROM v_audio_files WHERE duration_seconds > 30 ORDER BY duration_seconds DESC, original_filename LIMIT 200"
+  },
+  {
+    "id": "audio-longest",
+    "question": "Which audio recording is the longest?",
+    "views": [
+      "v_audio_files"
+    ],
+    "shape": "ranked",
+    "sql": "SELECT original_filename AS label, duration_seconds AS value FROM v_audio_files WHERE duration_seconds IS NOT NULL ORDER BY value DESC, label LIMIT 1"
+  },
+  {
+    "id": "audio-count",
+    "question": "How many audio recordings are in this case?",
+    "views": [
+      "v_audio_files"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT count(*) AS n FROM v_audio_files"
+  },
+  {
+    "id": "audio-in-language",
+    "question": "Which audio recordings are in Pashto?",
+    "views": [
+      "v_audio_files"
+    ],
+    "shape": "table",
+    "sql": "SELECT original_filename FROM v_audio_files WHERE language_name = 'Pashto' ORDER BY original_filename LIMIT 200"
+  },
+  {
+    "id": "audio-language-count",
+    "question": "How many audio recordings are spoken in Urdu?",
+    "views": [
+      "v_audio_files"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT count(*) AS n FROM v_audio_files WHERE language_name = 'Urdu'"
+  },
+  {
+    "id": "audio-language-of",
+    "question": "What language is the recording note.wav in?",
+    "views": [
+      "v_audio_files"
+    ],
+    "shape": "table",
+    "sql": "SELECT language_name, reading_status FROM v_audio_files WHERE original_filename = 'note.wav'"
+  },
+  {
+    "id": "audio-by-language",
+    "question": "How many recordings are there in each language?",
+    "views": [
+      "v_audio_files"
+    ],
+    "shape": "ranked",
+    "sql": "SELECT language_name AS label, count(*) AS value FROM v_audio_files GROUP BY language_name ORDER BY value DESC, label LIMIT 10"
+  },
+  {
+    "id": "audio-need-review",
+    "question": "Which audio recordings need manual review?",
+    "views": [
+      "v_audio_files"
+    ],
+    "shape": "table",
+    "sql": "SELECT original_filename, reading_status FROM v_audio_files ORDER BY original_filename LIMIT 200"
+  },
+  {
+    "id": "audio-segments-of-file",
+    "question": "How many speech segments does note.wav have?",
+    "views": [
+      "v_speech_segments"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT count(*) AS n FROM v_speech_segments WHERE original_filename = 'note.wav'"
+  },
+  {
+    "id": "audio-segments-total",
+    "question": "How many speech segments do the audio recordings have in all?",
+    "views": [
+      "v_speech_segments"
+    ],
+    "shape": "scalar",
+    "sql": "SELECT count(*) AS n FROM v_speech_segments WHERE source_kind = 'audio'"
+  },
+  {
+    "id": "audio-transcript",
+    "question": "What does the recording note.wav say?",
+    "views": [
+      "v_speech_segments"
+    ],
+    "shape": "table",
+    "sql": "SELECT start_seconds, end_seconds, text FROM v_speech_segments WHERE original_filename = 'note.wav' ORDER BY start_seconds LIMIT 200"
+  },
+  {
+    "id": "audio-word",
+    "question": "Which audio recordings mention the word cheque?",
+    "views": [
+      "v_speech_segments"
+    ],
+    "shape": "table",
+    "sql": "SELECT DISTINCT original_filename FROM v_speech_segments WHERE source_kind = 'audio' AND text ILIKE '%cheque%' ORDER BY original_filename LIMIT 200"
+  },
+  {
+    "id": "audio-read-out",
+    "question": "Read out the recording call-07.wav for me.",
+    "views": [
+      "v_speech_segments"
+    ],
+    "shape": "table",
+    "sql": "SELECT start_seconds, end_seconds, text FROM v_speech_segments WHERE original_filename = 'call-07.wav' ORDER BY start_seconds LIMIT 200"
+  },
+  {
+    "id": "audio-which-says",
+    "question": "Which recording says the word invoice, and where?",
+    "views": [
+      "v_speech_segments"
+    ],
+    "shape": "table",
+    "sql": "SELECT original_filename, start_seconds, text FROM v_speech_segments WHERE source_kind = 'audio' AND text ILIKE '%invoice%' ORDER BY original_filename, start_seconds LIMIT 200"
   }
 ]

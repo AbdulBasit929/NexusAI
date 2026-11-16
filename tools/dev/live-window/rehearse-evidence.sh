@@ -4,6 +4,7 @@
 # "Ask engine evidence on the restored Orion case" as the application role.
 #   bash tools/dev/live-window/rehearse-evidence.sh [STAMP]            restore, run the spec, remove the container
 #   KEEP=1 bash tools/dev/live-window/rehearse-evidence.sh [STAMP]     the same, and keep the container (the restore takes about 9 minutes)
+#   SKIP_SPEC=1 KEEP=1 bash ...rehearse-evidence.sh [STAMP]            restore and keep the container without running the spec (to apply a migration to the copy and ask the staging API)
 #   bash tools/dev/live-window/rehearse-evidence.sh [STAMP] --reuse    run the spec again on the kept container (about 3 minutes); remove it with:  docker rm -f nx-rehearsal-evidence-STAMP
 export MSYS_NO_PATHCONV=1
 REPO="$(cd "$(dirname "$0")/../../.." && pwd)"
@@ -54,4 +55,5 @@ docker exec "$N" psql -U localrecall -d localrecall -v ON_ERROR_STOP=1 -c "ALTER
 say "restored: $(docker exec "$N" psql -U localrecall -d localrecall -At -c "select count(*) from forensic.comm_event where collection_id='orion-lahore-reference-20261030'") Orion call events, $(docker exec "$N" psql -U localrecall -d localrecall -At -c "select count(*) from forensic.records where collection_id='orion-lahore-reference-20261030'") Orion source rows"
 PORT=$(docker port "$N" 5432/tcp | head -1 | sed 's/.*://')
 echo "$PW $PORT" > "$CONN"
+if [ -n "$SKIP_SPEC" ]; then say "$(t) restored; the spec is skipped (SKIP_SPEC): the container is for another check"; exit 0; fi
 run_spec "$PW" "$PORT"

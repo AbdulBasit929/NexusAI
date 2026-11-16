@@ -8979,6 +8979,9 @@ func overlapsProtectedSpan(candidate []int, protected [][]int) bool {
 func protectedTargetSpans(query string) [][]int {
 	spans := append([][]int(nil), forensicUUIDInTextPattern.FindAllStringIndex(query, -1)...)
 	spans = append(spans, regexp.MustCompile(`\b\d{4}[-/]\d{1,2}[-/]\d{1,2}\b|\b\d{1,2}[-/]\d{1,2}[-/]\d{4}\b`).FindAllStringIndex(query, -1)...)
+	// the name of a video, a recording or a picture is an identifier as the analyst wrote it (voice-note-03.wav), not a plate or a code: measured 2026-11-13, the code patterns took voice-note-03
+	// out of it, wrote it VOICE-NOTE-03 without its extension and the answer said no record matched
+	spans = append(spans, askMediaFileNameRE.FindAllStringIndex(query, -1)...)
 	for _, pattern := range sourceSecondRangePatterns {
 		for _, span := range pattern.FindAllStringIndex(query, -1) {
 			matched := strings.ToLower(query[span[0]:span[1]])

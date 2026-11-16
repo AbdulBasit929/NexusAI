@@ -239,6 +239,26 @@ class Transcriber(unittest.TestCase):
         self.assertEqual(self.run_it(t, language=None)[0].payload["text"], "hello")
         self.assertEqual(reader.calls, 0)
 
+    def test_every_reading_of_the_client_names_its_language_in_detected_language(self):
+        class Urdu(FakeFallback):
+            def transcribe(self, path, *, evidence_id, version_id, source_file, language=None):
+                one = MediaObservation("x", "c", "audio_transcript_segment", None, {"source_file": source_file}, {"text": "a", "language": "ur", "requested_language": "ur"})
+                two = MediaObservation("y", "c", "audio_transcript_segment", None, {"source_file": source_file}, {"text": "b", "language": "UR ", "detected_language": "hi"})
+                three = MediaObservation("z", "c", "audio_transcript_segment", None, {"source_file": source_file}, {"text": "c", "language": None})
+                return (one, two, three)
+        t, _ = self.make([], Urdu(), samples=tone(10))
+        out = self.run_it(t, language=None)
+        self.assertEqual(out[0].payload["detected_language"], "ur")
+        self.assertEqual(out[0].payload["requested_language"], "ur")           # what the service wrote is left as it was
+        self.assertEqual(out[1].payload["detected_language"], "hi")             # a value already there is kept
+        self.assertNotIn("detected_language", out[2].payload)                   # nothing is guessed
+
+    def test_english_and_requested_languages_are_labelled_too(self):
+        t, _ = self.make([], FakeFallback(language="en"), samples=tone(10))
+        self.assertEqual(self.run_it(t, language=None)[0].payload["detected_language"], "en")
+        t2, _ = self.make([], FakeFallback(language="ur"), samples=tone(10))
+        self.assertEqual(self.run_it(t2, language="ur")[0].payload["detected_language"], "ur")
+
     def test_the_model_is_given_back_after_each_recording_unless_kept(self):
         t, reader = self.make(["a", "b"], samples=tone(10), keep_loaded=False)
         self.run_it(t)

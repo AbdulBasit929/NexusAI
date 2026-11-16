@@ -116,6 +116,20 @@ def identify_from_reading(text: str, signatures: dict[str, dict[str, Any]]) -> t
     return None
 
 
+def label_language(observations):
+    """Every speech reading says which language it is in `detected_language`, the field the analyst view v_speech_segments reads (migration 037). The speech service names the language in `language`
+    (and, after its own Hindi-as-Urdu step, in `requested_language` although nobody requested one); until now only a reading of a route carried `detected_language`, so "which recordings are in Urdu?"
+    had no column to ask. A value already there is kept, and a reading with no language gets none: nothing is guessed."""
+    for observation in observations or ():
+        payload = getattr(observation, "payload", None)
+        if not isinstance(payload, dict) or payload.get("detected_language"):
+            continue
+        language = str(payload.get("language") or "").strip().lower()
+        if language:
+            payload["detected_language"] = language
+    return observations
+
+
 def route_for(language: str | None, routes: dict[str, dict[str, Any]]) -> dict[str, Any] | None:
     return routes.get(str(language).strip().lower()) if language else None
 
@@ -329,7 +343,7 @@ class RoutedSpeechTranscriber:
                     identified, share, seconds = found
                     return self._read(path, route_for(identified, self.routes), identified, requested=None, detected=identified,
                                       resolution={"first_detected_language": detected or None, "language_resolution": f"no language requested; the speech service heard {detected or 'nothing'!r}; the reading of the first {seconds:g} seconds has {share:.1%} letters that only {identified} uses (a reading is taken as {identified} from {float(self.signatures[identified]['min_share']):.0%}); read again by the {identified} route"}, **context)
-        return result
+        return label_language(result)
 
     def _identify(self, path: Path):
         """(language, share, seconds probed) of the first seconds of a recording when their reading carries a language's signature; None when it does not or when the reading cannot be made (a failed probe never fails the job)."""

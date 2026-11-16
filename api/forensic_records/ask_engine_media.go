@@ -13,12 +13,13 @@ import (
 
 // ASK ENGINE V2: MEDIA READINGS (docs/data/video-questions-20261112.md). What the media roles read from photos, video frames and audio is stored as derived artifacts, and migration 023 gives the
 // engine views over it: v_plate_reads (a plate per photo, a plate GROUP per video: the frames in which the same plate was read, first and last second seen), v_video_plate_frames (every frame read,
-// with its second), v_video_files (length, size, audio), v_speech_segments (the transcript, timed), v_ocr_regions and v_ocr_evidence_summary (text in photos and frames).
+// with its second), v_video_files (length, size, audio), v_audio_files (migration 037: an audio recording, its length, language and reading), v_speech_segments (the transcript, timed, with its
+// language and whether it is a recording or the soundtrack of a video), v_ocr_regions and v_ocr_evidence_summary (text in photos and frames).
 //
 // Everything these views hold is a model reading that a person must check; none is an identification. A case that holds no such reading never sees these views: they are not offered to the
 // shortlist, so every other question behaves exactly as it did before they existed (Shortlist keeps that meaning; ShortlistWith takes the views to leave out).
 
-var askMediaViews = []string{"v_plate_reads", "v_video_plate_frames", "v_video_files", "v_speech_segments", "v_ocr_regions", "v_ocr_evidence_summary"}
+var askMediaViews = []string{"v_plate_reads", "v_video_plate_frames", "v_video_files", "v_audio_files", "v_speech_segments", "v_ocr_regions", "v_ocr_evidence_summary"}
 
 var askMediaViewSet = func() map[string]bool {
 	out := map[string]bool{}
@@ -34,6 +35,7 @@ const askMediaPlateCaveat = "A plate here is what a model read from a photo or a
 const askMediaSpeechCaveat = "Speech to text is a machine transcript of unverified quality (Urdu, Punjabi and Pashto are less reliable than English). It is not what was said until a person has listened."
 const askMediaTextCaveat = "Text a model read from a photo or a video frame, as read: it can be wrong and needs a person's check."
 const askMediaFileCaveat = "Length, size and audio are what the video container's header states; they say nothing about what the video shows."
+const askMediaAudioFileCaveat = "Length, sample rate and channels are what the audio file's own header states. The language and the reading are a machine's: a person must listen before relying on them (a Pashto reading is a search lead, not a transcript)."
 
 // askReadsMediaView is whether the query reads one of the media views.
 func askReadsMediaView(v *askValidated) bool {
@@ -54,11 +56,12 @@ SELECT
           AND d.artifact_type = 'forensics.audio-timestamp-segment/v1'),
   EXISTS (SELECT 1 FROM forensic.derived_artifacts d WHERE d.tenant_id = $1 AND d.collection_id = $2 AND d.processing_status = 'completed'
           AND d.artifact_type = 'forensics.image-ocr-observation/v1'),
-  EXISTS (SELECT 1 FROM forensic.evidence_items e WHERE e.tenant_id = $1 AND e.collection_id = $2 AND e.modality = 'video')`
+  EXISTS (SELECT 1 FROM forensic.evidence_items e WHERE e.tenant_id = $1 AND e.collection_id = $2 AND e.modality = 'video'),
+  EXISTS (SELECT 1 FROM forensic.evidence_items e WHERE e.tenant_id = $1 AND e.collection_id = $2 AND e.modality = 'audio')`
 
 // askReadMediaCoverage fills the media fields of the coverage, with the connection's own scope.
 func askReadMediaCoverage(ctx context.Context, tx pgx.Tx, tenantID, collectionID string, c *askCoverage) error {
-	return tx.QueryRow(ctx, askMediaCoverageQuery, tenantID, collectionID).Scan(&c.AnyMediaPlate, &c.AnyMediaSpeech, &c.AnyMediaText, &c.AnyVideo)
+	return tx.QueryRow(ctx, askMediaCoverageQuery, tenantID, collectionID).Scan(&c.AnyMediaPlate, &c.AnyMediaSpeech, &c.AnyMediaText, &c.AnyVideo, &c.AnyAudio)
 }
 
 // askMediaGap says why the media views cannot speak for this case when the question reads the given view; "" when they can (or the view is not a media view).
@@ -80,13 +83,17 @@ func askMediaGap(c askCoverage, view string) string {
 		if !c.AnyVideo {
 			return "the case holds no video files"
 		}
+	case "v_audio_files":
+		if !c.AnyAudio {
+			return "the case holds no audio recordings"
+		}
 	}
 	return ""
 }
 
 // askAnyMedia is whether the case holds any media reading at all.
 func askAnyMedia(c askCoverage) bool {
-	return c.AnyMediaPlate || c.AnyMediaSpeech || c.AnyMediaText || c.AnyVideo
+	return c.AnyMediaPlate || c.AnyMediaSpeech || c.AnyMediaText || c.AnyVideo || c.AnyAudio
 }
 
 // askHowManyUnit is a "how many" that is followed by a unit of time: it asks for a measure (a position in a video, a length of time), which a MIN, MAX, AVG or SUM states, and not for the number of
@@ -190,7 +197,7 @@ func askOnlyMediaViews(v *askValidated) bool {
 
 // askMediaWord is a word that says the question is about footage, photos or recordings. A case that holds typed records as well as media readings is offered the media views only for a question
 // that says so, so that its questions about calls, plates of a camera export or accounts are put to the model exactly as before.
-var askMediaWord = regexp.MustCompile(`\b(?:videos?|clips?|footage|photos?|photographs?|images?|pictures?|frames?|mp4|mov|avi|mkv|jpe?g|png|recordings?|audio|speech|transcripts?|screenshots?|visible|on screen|on-screen)\b`)
+var askMediaWord = regexp.MustCompile(`\b(?:videos?|clips?|footage|photos?|photographs?|images?|pictures?|frames?|mp4|mov|avi|mkv|jpe?g|png|recordings?|audio|speech|transcripts?|screenshots?|visible|on screen|on-screen|wav|mp3|m4a|aac|ogg|flac|amr|opus|voice notes?)\b`)
 
 // askHasTypedData is whether the case holds typed records of any family the analyst views read (call, internet, usage, plate sightings of a camera export, registrations, transactions, documents).
 func askHasTypedData(c askCoverage) bool {
@@ -240,15 +247,18 @@ func askMediaExcluded(cat *askCatalogue, c askCoverage, question string) map[str
 // Without a media view as the best one, the shortlist is returned as it is.
 func askMediaPrune(c askCoverage, short askShortlist) []string {
 	chosen := append([]string{}, short.Views...)
-	if askMediaGap(c, "v_video_files") == "" {
-		// v_video_files lists every video with its length, size and audio, so v_evidence_inventory beside it only gives a model two views to mix (measured 2026-11-12: a column of one asked of the other, twice)
-		kept := []string{}
-		for _, v := range chosen {
-			if !(v == "v_evidence_inventory" && askHasMediaView(chosen) && containsString(chosen, "v_video_files")) {
-				kept = append(kept, v)
+	for _, files := range []string{"v_video_files", "v_audio_files"} {
+		if askMediaGap(c, files) == "" {
+			// v_video_files lists every video with its length, size and audio (and v_audio_files every recording with its length, language and reading), so v_evidence_inventory beside it only gives a
+			// model two views to mix (measured 2026-11-12: a column of one asked of the other, twice)
+			kept := []string{}
+			for _, v := range chosen {
+				if !(v == "v_evidence_inventory" && askHasMediaView(chosen) && containsString(chosen, files)) {
+					kept = append(kept, v)
+				}
 			}
+			chosen = kept
 		}
-		chosen = kept
 	}
 	if len(chosen) == 0 || !askMediaViewSet[chosen[0]] || askMediaGap(c, chosen[0]) != "" {
 		return chosen
@@ -277,6 +287,8 @@ func (c *askCatalogue) without(names map[string]bool) *askCatalogue {
 // askMediaAbsence says what was searched when a media view returns no row.
 func askMediaAbsence(v *askValidated, f askFrame) string {
 	switch {
+	case askReadsView(v, "v_audio_files"):
+		return "no audio recording of this case matches your question"
 	case askReadsView(v, "v_speech_segments"):
 		return "no speech segment of this case matches your question"
 	case askReadsView(v, "v_ocr_regions"), askReadsView(v, "v_ocr_evidence_summary"):

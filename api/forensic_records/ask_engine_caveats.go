@@ -56,6 +56,7 @@ var askViewCaveatText = map[string]string{
 	"v_plate_reads":          askMediaPlateCaveat,
 	"v_video_plate_frames":   askMediaPlateCaveat,
 	"v_video_files":          askMediaFileCaveat,
+	"v_audio_files":          askMediaAudioFileCaveat,
 	"v_speech_segments":      askMediaSpeechCaveat,
 	"v_ocr_regions":          askMediaTextCaveat,
 	"v_ocr_evidence_summary": askMediaTextCaveat,

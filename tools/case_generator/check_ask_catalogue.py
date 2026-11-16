@@ -46,6 +46,7 @@ def main(argv):
         db.psql("-f", "/tmp/mig/023_media_views.sql")
         db.psql("-f", "/tmp/mig/035_media_view_descriptions.sql")
         db.psql("-f", "/tmp/mig/036_media_view_descriptions_2.sql")
+        db.psql("-f", "/tmp/mig/037_audio_files_and_speech_language.sql")
         db.psql("-f", "/tmp/mig/024_colocation_and_meetings.sql")
         db.psql("-f", "/tmp/mig/025_successor_candidates.sql")
         db.psql("-f", "/tmp/mig/026_movement_and_rhythm.sql")

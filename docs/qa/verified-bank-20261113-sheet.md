@@ -2,7 +2,7 @@
 
 565 questions, each with the answer computed from the stored rows or readings (never through the engine) and the live engine's answer scored against it. The records are synthetic; the five video clips are real footage of the owner's, so the plates read from them are masked here and kept in a private file outside the repository. A reading is a model's candidate, never an identification.
 
-Run of 2026-11-13: the 521 earlier answers still valid carried from the runs of 2026-11-03 to 2026-11-12, the 5 typed plate searches from the private run, and the 39 new or changed questions (31 speech, 8 inventory) asked live on engine round 9d with the speech routes worker (image speech-routes-20261113b).
+Run of 2026-11-13 to 11-16: 521 earlier answers still valid carried from the runs of 2026-11-03 to 2026-11-12, the 5 typed plate searches from the private run, the 8 inventory questions asked live on engine round 9d, and the 31 speech questions asked on a STAGING engine built from this checkout (migration 037 applied to a restored copy of the live database, the examples and descriptions of this change); on the live engine, before the change, the 31 speech questions scored 5 correct, 4 wrong, 22 declined. Nothing of this change is applied to the live system.
 
 | Family | Questions | Correct | Wrong | Right number, wrong view | Declined or abstained | Not run |
 |---|---|---|---|---|---|---|
@@ -17,11 +17,11 @@ Run of 2026-11-13: the 521 earlier answers still valid carried from the runs of 
 | Cell sites | 16 | 16 | 0 | 0 | 0 | 0 |
 | Registrations | 16 | 16 | 0 | 0 | 0 | 0 |
 | The evidence files | 8 | 8 | 0 | 0 | 0 | 0 |
-| Speech recordings (Pashto, Urdu, English) | 31 | 5 | 4 | 0 | 22 | 0 |
+| Speech recordings (Pashto, Urdu, English) | 31 | 31 | 0 | 0 | 0 | 0 |
 | Plates in photos | 4 | 4 | 0 | 0 | 0 | 0 |
 | Videos, speech and text read from them | 38 | 36 | 0 | 0 | 2 | 0 |
 | Typed plate search over the videos | 5 | 5 | 0 | 0 | 0 | 0 |
-| **All** | **565** | **536** | **4** | **0** | **25** | **0** |
+| **All** | **565** | **562** | **0** | **0** | **3** | **0** |
 
 ## Calls of one subscriber
 
@@ -594,36 +594,36 @@ The ten audio recordings of the case, public speech of real speakers: how many t
 | ID | Question | Expected | Live engine |
 |---|---|---|---|
 | VB-SPEE-001 | How many audio recordings are in this case? | 10 | correct: N: 10. \| first row: n 10 |
-| VB-SPEE-002 | How long are all the audio recordings together, in seconds? | 85.90 seconds | wrong: Total seconds: 2,750,184. \| first row: total_seconds 2750184 |
-| VB-SPEE-003 | Which audio recording is the longest? | voice-note-04.wav | correct: Original filename: voice-note-04.wav. \| first row: original_filename voice-note-04.wav |
-| VB-SPEE-004 | Which audio recordings are longer than 9 seconds? | voice-note-01.wav, voice-note-02.wav, voice-note-04.wav, voice-note-05.wav, voice-note-08.wav | wrong: 10 rows. \| first row: original_filename voice-note-01.wav |
-| VB-SPEE-005 | Which audio recordings are shorter than 7 seconds? | voice-note-03.wav, voice-note-06.wav, voice-note-07.wav | wrong: No row matches what you asked. |
-| VB-SPEE-006 | How long is voice-note-03.wav, in seconds? | 6 seconds | declined: No matching records were found for VOICE-NOTE-03 in the selected case scope. |
-| VB-SPEE-007 | How long is voice-note-05.wav, in seconds? | 10.20 seconds | declined: No matching records were found for VOICE-NOTE-05 in the selected case scope. |
-| VB-SPEE-008 | How long is voice-note-08.wav, in seconds? | 10.02 seconds | declined: No matching records were found for VOICE-NOTE-08 in the selected case scope. |
-| VB-SPEE-009 | Which audio recordings are in Pashto? | voice-note-02.wav, voice-note-05.wav, voice-note-08.wav, voice-note-10.wav | declined: The text search is incomplete. Any listed observations are supported matches; absence of further matches has n |
-| VB-SPEE-010 | How many audio recordings are spoken in Pashto? | 4 | declined: The text search is incomplete. Any listed observations are supported matches; absence of further matches has n |
-| VB-SPEE-011 | Which audio recordings are in Urdu? | voice-note-01.wav, voice-note-04.wav, voice-note-07.wav | declined: The text search is incomplete. Any listed observations are supported matches; absence of further matches has n |
-| VB-SPEE-012 | How many audio recordings are spoken in Urdu? | 3 | declined: The text search is incomplete. Any listed observations are supported matches; absence of further matches has n |
-| VB-SPEE-013 | Which audio recordings are in English? | voice-note-03.wav, voice-note-06.wav, voice-note-09.wav | declined: The text search is incomplete. Any listed observations are supported matches; absence of further matches has n |
-| VB-SPEE-014 | How many audio recordings are spoken in English? | 3 | wrong: N: 10. \| first row: n 10 |
-| VB-SPEE-015 | What language is voice-note-05.wav in? | one of: Pashto, ps; and not: Urdu, English, Persian, Punjabi | declined: No matching records were found for VOICE-NOTE-05 in the selected case scope. |
-| VB-SPEE-016 | In which language is voice-note-01.wav spoken? | one of: Urdu, ur; and not: Pashto, English, Hindi, Punjabi | declined: No matching records were found for VOICE-NOTE-01 in the selected case scope. |
-| VB-SPEE-017 | What language does voice-note-09.wav use? | one of: English, en; and not: Pashto, Urdu, Hindi, Punjabi | declined: No matching records were found for VOICE-NOTE-09 in the selected case scope. |
-| VB-SPEE-018 | What language is voice-note-10.wav in? | one of: Pashto, ps; and not: Urdu, English, Persian, Punjabi | declined: No matching records were found for VOICE-NOTE-10 in the selected case scope. |
-| VB-SPEE-019 | Which audio recordings need manual review? | voice-note-01.wav, voice-note-02.wav, voice-note-03.wav, voice-note-04.wav, voice-note-05.wav, voice-note-06.wav, voice-note-07.wav, voice-note-08.wav, voice-note-09.wav, voice-note-10.wav | declined: Modality: audio_roman_urdu_segment. |
+| VB-SPEE-002 | How long are all the audio recordings together, in seconds? | 85.90 seconds | correct: Total seconds: 85.93. \| first row: total_seconds 85.93 |
+| VB-SPEE-003 | Which audio recording is the longest? | voice-note-04.wav | correct: 1 result: voice-note-04.wav (10.56). \| first row: label voice-note-04.wav; value 10.56 |
+| VB-SPEE-004 | Which audio recordings are longer than 9 seconds? | voice-note-01.wav, voice-note-02.wav, voice-note-04.wav, voice-note-05.wav, voice-note-08.wav | correct: 5 rows. \| first row: duration_seconds 10.56; original_filename voice-note-04.wav |
+| VB-SPEE-005 | Which audio recordings are shorter than 7 seconds? | voice-note-03.wav, voice-note-06.wav, voice-note-07.wav | correct: 3 rows. \| first row: duration_seconds 6.48; original_filename voice-note-07.wav |
+| VB-SPEE-006 | How long is voice-note-03.wav, in seconds? | 6 seconds | correct: Duration seconds: 6. \| first row: duration_seconds 6 |
+| VB-SPEE-007 | How long is voice-note-05.wav, in seconds? | 10.20 seconds | correct: Duration seconds: 10.2. \| first row: duration_seconds 10.2 |
+| VB-SPEE-008 | How long is voice-note-08.wav, in seconds? | 10.02 seconds | correct: Duration seconds: 10.02. \| first row: duration_seconds 10.02 |
+| VB-SPEE-009 | Which audio recordings are in Pashto? | voice-note-02.wav, voice-note-05.wav, voice-note-08.wav, voice-note-10.wav | correct: 4 rows. \| first row: original_filename voice-note-02.wav |
+| VB-SPEE-010 | How many audio recordings are spoken in Pashto? | 4 | correct: N: 4. \| first row: n 4 |
+| VB-SPEE-011 | Which audio recordings are in Urdu? | voice-note-01.wav, voice-note-04.wav, voice-note-07.wav | correct: 3 rows. \| first row: original_filename voice-note-01.wav |
+| VB-SPEE-012 | How many audio recordings are spoken in Urdu? | 3 | correct: N: 3. \| first row: n 3 |
+| VB-SPEE-013 | Which audio recordings are in English? | voice-note-03.wav, voice-note-06.wav, voice-note-09.wav | correct: 3 rows. \| first row: original_filename voice-note-03.wav |
+| VB-SPEE-014 | How many audio recordings are spoken in English? | 3 | correct: N: 3. \| first row: n 3 |
+| VB-SPEE-015 | What language is voice-note-05.wav in? | one of: Pashto, ps; and not: Urdu, English, Persian, Punjabi | correct: Language name: Pashto. \| first row: language_name Pashto |
+| VB-SPEE-016 | In which language is voice-note-01.wav spoken? | one of: Urdu, ur; and not: Pashto, English, Hindi, Punjabi | correct: Language name: Urdu. \| first row: language_name Urdu |
+| VB-SPEE-017 | What language does voice-note-09.wav use? | one of: English, en; and not: Pashto, Urdu, Hindi, Punjabi | correct: Language name: English. \| first row: language_name English |
+| VB-SPEE-018 | What language is voice-note-10.wav in? | one of: Pashto, ps; and not: Urdu, English, Persian, Punjabi | correct: Language name: Pashto. \| first row: language_name Pashto |
+| VB-SPEE-019 | Which audio recordings need manual review? | voice-note-01.wav, voice-note-02.wav, voice-note-03.wav, voice-note-04.wav, voice-note-05.wav, voice-note-06.wav, voice-note-07.wav, voice-note-08.wav, voice-note-09.wav, voice-note-10.wav | correct: 10 rows. \| first row: original_filename voice-note-01.wav; reading_status MACHINE_TRANSCRIPT |
 | VB-SPEE-020 | How many speech segments does voice-note-02.wav have? | 1 | correct: N: 1. \| first row: n 1 |
 | VB-SPEE-021 | How many speech segments does voice-note-04.wav have? | 3 | correct: N: 3. \| first row: n 3 |
-| VB-SPEE-022 | How many speech segments do the audio recordings have in all? | 12 | declined: Number of speech segments: 39. |
-| VB-SPEE-023 | Which audio recordings mention the word covering? | voice-note-03.wav, voice-note-06.wav | declined: voice-note-06.wav mentions it at 0 seconds: “Along the same line, men are required to wear trousers covering t |
-| VB-SPEE-024 | Which audio recordings say سمجھتے? | voice-note-01.wav | declined: voice-note-01.wav mentions it at 0 seconds: “جزیرہ ہانگ کونگ کے نام سے ہانگ کونگ کھتے کا نام پڑا ہے اور یہ وہ  |
-| VB-SPEE-025 | Which audio recordings contain the word فارمټ? | voice-note-02.wav | declined: voice-note-02.wav mentions it at 0 seconds: “ددې فارمټ د ابغادو نصبت په تکسیمیږي تر څو د ټول نمبر ساده نسبت لا |
-| VB-SPEE-026 | Find the recordings where someone says required | voice-note-03.wav, voice-note-06.wav | declined: voice-note-06.wav mentions it at 0 seconds: “Along the same line, men are required to wear trousers covering t |
-| VB-SPEE-027 | Which audio recordings mention the word جزیرہ? | voice-note-01.wav | declined: voice-note-01.wav mentions it at 0 seconds: “جزیرہ ہانگ کونگ کے نام سے ہانگ کونگ کھتے کا نام پڑا ہے اور یہ وہ  |
-| VB-SPEE-028 | What does voice-note-03.wav say? | all of: Along, line, wear | declined: No matching records were found for VOICE-NOTE-03 in the selected case scope. |
+| VB-SPEE-022 | How many speech segments do the audio recordings have in all? | 12 | correct: N: 12. \| first row: n 12 |
+| VB-SPEE-023 | Which audio recordings mention the word covering? | voice-note-03.wav, voice-note-06.wav | correct: 2 rows. \| first row: original_filename voice-note-03.wav |
+| VB-SPEE-024 | Which audio recordings say سمجھتے? | voice-note-01.wav | correct: Original filename: voice-note-01.wav. \| first row: original_filename voice-note-01.wav |
+| VB-SPEE-025 | Which audio recordings contain the word فارمټ? | voice-note-02.wav | correct: Original filename: voice-note-02.wav. \| first row: original_filename voice-note-02.wav |
+| VB-SPEE-026 | Find the recordings where someone says required | voice-note-03.wav, voice-note-06.wav | correct: 2 rows. \| first row: original_filename voice-note-03.wav |
+| VB-SPEE-027 | Which audio recordings mention the word جزیرہ? | voice-note-01.wav | correct: Original filename: voice-note-01.wav. \| first row: original_filename voice-note-01.wav |
+| VB-SPEE-028 | What does voice-note-03.wav say? | all of: Along, line, wear | correct: Start seconds 0; End seconds 7; Text Along the same line, men are required to wear trousers covering the knees |
 | VB-SPEE-029 | Give me the transcript of voice-note-01.wav | all of: جزیرہ, کونگ, کونگ | correct: Transcript: جزیرہ ہانگ کونگ کے نام سے ہانگ کونگ کھتے کا نام پڑا ہے اور یہ وہ جگہ ہے جسے بہت سارے سیاہ اپنی سیا |
-| VB-SPEE-030 | What is said in voice-note-02.wav? | all of: فارمټ, نصبت, نمبر | declined: No matching records were found for VOICE-NOTE-02 in the selected case scope. |
-| VB-SPEE-031 | Read me voice-note-10.wav | all of: داسې, راځي, کولی | declined: No matching records were found for VOICE-NOTE-10 in the selected case scope. |
+| VB-SPEE-030 | What is said in voice-note-02.wav? | all of: فارمټ, نصبت, نمبر | correct: What is said: ددې فارمټ د ابغادو نصبت په تکسیمیږي تر څو د ټول نمبر ساده نسبت لاسته را شي ځکه دتر نثبتټو یادیږي |
+| VB-SPEE-031 | Read me voice-note-10.wav | all of: داسې, راځي, کولی | correct: Start seconds 0; End seconds 7.79; Text داسې څاروای خو ذهن ته نه راځي خو دا چلند کولی شي انسان یا هیوان وشغوري |
 
 ## Plates in photos
 

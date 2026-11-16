@@ -39,6 +39,8 @@ type askCoverage struct {
 	Documents   int
 	// Media readings (migration 023): plate readings made from photos or video frames, speech transcripts, text read from photos or frames, and video files (ask_engine_media.go).
 	AnyMediaPlate, AnyMediaSpeech, AnyMediaText, AnyVideo bool
+	// AnyAudio is whether the case holds audio files (v_audio_files: their length, language and reading), whether or not they have been read.
+	AnyAudio bool
 	// DateOnlyAccounts are the accounts (as the views compare them) whose every transaction states only a day and no time of day: a question about minutes or a time of day cannot be answered for them.
 	DateOnlyAccounts map[string]bool
 	// AnyVolume is whether any typed internet record states a byte count in a direction. An export that gives one undirected volume keeps it in the raw row (the entry does not
@@ -307,7 +309,7 @@ func askCoverageGap(c askCoverage, views []string) string {
 			if !c.AnyTransaction {
 				return "the case has no typed bank or wallet transactions"
 			}
-		case "v_plate_reads", "v_video_plate_frames", "v_video_files", "v_speech_segments", "v_ocr_regions", "v_ocr_evidence_summary":
+		case "v_plate_reads", "v_video_plate_frames", "v_video_files", "v_audio_files", "v_speech_segments", "v_ocr_regions", "v_ocr_evidence_summary":
 			if gap := askMediaGap(c, v); gap != "" {
 				return gap
 			}

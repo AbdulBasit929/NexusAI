@@ -156,7 +156,8 @@ var askLexicon = map[string][]string{
 	"v_plate_reads":          {"plate", "licence", "license", "vehicle", "car"},
 	"v_video_plate_frames":   {"plate", "frame", "footage", "clearest", "sharpest", "confident", "confidence"},
 	"v_video_files":          {"video!", "clip!", "footage!", "mp4!", "mov!", "duration", "resolution", "pixel", "length", "runtime", "running"},
-	"v_speech_segments":      {"speech!", "said!", "spoke!", "spoken!", "speak", "transcript!", "transcription!", "voice!", "heard!", "hear", "audio", "recording"},
+	"v_audio_files":          {"audio!", "recording!", "wav!", "mp3!", "m4a!", "voicenote!", "duration", "length", "runtime", "language", "pashto", "urdu", "english", "punjabi", "spoken", "review"},
+	"v_speech_segments":      {"speech!", "said!", "spoke!", "spoken!", "speak", "transcript!", "transcription!", "voice!", "heard!", "hear", "say", "says", "audio", "recording"},
 	"v_ocr_regions":          {"ocr!", "visible!", "text", "signboard", "billboard", "caption", "banner", "poster", "printed", "lettering", "sign"},
 	"v_ocr_evidence_summary": {"ocr!", "signboard", "billboard", "caption", "banner", "poster"},
 	"v_app_usage": {"app", "application", "whatsapp", "facebook", "tiktok", "youtube", "social", "usage", "feature", "province", "city", "networking",
@@ -214,7 +215,7 @@ func (c *askCatalogue) ShortlistWith(question string, max int, exclude map[strin
 	if len(exclude) > 0 {
 		c = c.without(exclude)
 	}
-	if c.View("v_video_files") != nil || c.View("v_plate_reads") != nil || c.View("v_speech_segments") != nil {
+	if c.View("v_video_files") != nil || c.View("v_plate_reads") != nil || c.View("v_speech_segments") != nil || c.View("v_audio_files") != nil {
 		// the media views are candidates: the kind of a named media file is a word of the question (askMediaFileWords)
 		kind := askMediaFileWords(question)
 		question = askWithoutMediaFileNames(question) + " " + kind

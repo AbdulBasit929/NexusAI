@@ -15,8 +15,9 @@ var _ = Describe("Ask engine media views (migration 023)", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	mediaOnly := askCoverage{AnyMediaPlate: true, AnyMediaSpeech: true, AnyMediaText: true, AnyVideo: true}
-	mixed := askCoverage{AnyMediaPlate: true, AnyMediaSpeech: true, AnyMediaText: true, AnyVideo: true, AnyComm: true, AnyPlate: true, Files: 1, Typed: 1}
+	mediaOnly := askCoverage{AnyMediaPlate: true, AnyMediaSpeech: true, AnyMediaText: true, AnyVideo: true, AnyAudio: true}
+	mixed := askCoverage{AnyMediaPlate: true, AnyMediaSpeech: true, AnyMediaText: true, AnyVideo: true, AnyAudio: true, AnyComm: true, AnyPlate: true, Files: 1, Typed: 1}
+	audioOnly := askCoverage{AnyMediaSpeech: true, AnyAudio: true}
 
 	It("keeps every media view out of Shortlist, so a case without media readings behaves as it did before they existed", func() {
 		for _, q := range []string{"Which plates were read in the video gate.mp4?", "How long is the video gate.mp4?", "What is said in the videos?", "What text is visible in the videos?"} {
@@ -76,6 +77,19 @@ var _ = Describe("Ask engine media views (migration 023)", func() {
 			{"What is the duration of owner-sample-4k.mp4 in seconds?", []string{"v_video_files"}},
 			{"How many speech segments does owner-sample-4k.mp4 have?", []string{"v_speech_segments"}},
 			{"How many pieces of text were read in owner-sample-4k.mp4?", []string{"v_ocr_regions"}},
+			// recordings (migration 037): the length, the language and the count of recordings are asked of the audio files; what a recording says is asked of the segments
+			{"How long is the recording voice-note-03.wav, in seconds?", []string{"v_audio_files"}},
+			{"How long are all the audio recordings together, in seconds?", []string{"v_audio_files"}},
+			{"Which audio recordings are longer than 9 seconds?", []string{"v_audio_files"}},
+			{"Which audio recording is the longest?", []string{"v_audio_files"}},
+			{"Which audio recordings are in Pashto?", []string{"v_audio_files"}},
+			{"How many audio recordings are spoken in Urdu?", []string{"v_audio_files"}},
+			{"What language is voice-note-05.wav in?", []string{"v_audio_files"}},
+			{"Which audio recordings need manual review?", []string{"v_audio_files"}},
+			{"How many speech segments does voice-note-02.wav have?", []string{"v_audio_files", "v_speech_segments"}},
+			{"What does voice-note-03.wav say?", []string{"v_speech_segments"}},
+			{"Give me the transcript of voice-note-01.wav", []string{"v_speech_segments"}},
+			{"Which audio recordings mention the word covering?", []string{"v_speech_segments"}},
 		} {
 			short := cat.ShortlistWith(c.q, 0, askMediaExcluded(cat, mediaOnly, c.q))
 			Expect(short.Confident).To(BeTrue(), c.q)
@@ -125,7 +139,43 @@ var _ = Describe("Ask engine media views (migration 023)", func() {
 		Expect(askCoverageGap(askCoverage{}, []string{"v_video_files"})).To(Equal("the case holds no video files"))
 		Expect(askCoverageGap(askCoverage{}, []string{"v_speech_segments"})).To(Equal("the case holds no speech transcripts"))
 		Expect(askCoverageGap(askCoverage{}, []string{"v_ocr_regions"})).To(Equal("the case holds no text read from photos or video frames"))
-		Expect(askCoverageGap(mediaOnly, []string{"v_plate_reads", "v_video_files", "v_speech_segments", "v_ocr_regions", "v_video_plate_frames", "v_ocr_evidence_summary"})).To(BeEmpty())
+		Expect(askCoverageGap(askCoverage{}, []string{"v_audio_files"})).To(Equal("the case holds no audio recordings"))
+		Expect(askCoverageGap(mediaOnly, []string{"v_plate_reads", "v_video_files", "v_audio_files", "v_speech_segments", "v_ocr_regions", "v_video_plate_frames", "v_ocr_evidence_summary"})).To(BeEmpty())
+	})
+
+	It("offers the audio files to a case that holds recordings, and only those media views that case can speak for", func() {
+		excluded := askMediaExcluded(cat, audioOnly, "How long is the recording voice-note-03.wav, in seconds?")
+		Expect(excluded).NotTo(HaveKey("v_audio_files"))
+		Expect(excluded).NotTo(HaveKey("v_speech_segments"))
+		Expect(excluded).To(HaveKey("v_video_files"), "no video in the case")
+		Expect(excluded).To(HaveKey("v_plate_reads"))
+		Expect(askMediaExcluded(cat, askCoverage{}, "How long is the recording voice-note-03.wav, in seconds?")).To(HaveKey("v_audio_files"))
+		Expect(askMediaExcluded(cat, mixed, "Who does 923001110001 talk to most?")).To(HaveKey("v_audio_files"), "a typed case is offered the media views only for a question that speaks of them")
+		Expect(askMediaExcluded(cat, mixed, "How many audio recordings are in this case?")).NotTo(HaveKey("v_audio_files"))
+		Expect(askMediaExcluded(cat, mixed, "What language is voice-note-05.wav in?")).NotTo(HaveKey("v_audio_files"), "the name of an audio file is enough to say the question is about a recording")
+		Expect(askMediaExcluded(cat, mixed, "How long is call-note.MP3?")).NotTo(HaveKey("v_audio_files"))
+		Expect(askMediaExcluded(cat, mixed, "Which numbers called 923001110001 on Monday?")).To(HaveKey("v_audio_files"))
+	})
+
+	It("drops the inventory from a question that reads the audio files, as from one that reads the video files", func() {
+		short := askShortlist{Views: []string{"v_audio_files", "v_evidence_inventory"}, Scores: map[string]float64{"v_audio_files": 4, "v_evidence_inventory": 2.5}}
+		Expect(askMediaPrune(audioOnly, short)).To(Equal([]string{"v_audio_files"}))
+		Expect(askMediaPrune(askCoverage{}, short)).To(Equal([]string{"v_audio_files", "v_evidence_inventory"}))
+	})
+
+	It("says what was searched when a question about recordings finds nothing", func() {
+		Expect(askMediaAbsence(&askValidated{Views: []string{"v_audio_files"}}, askFrame{})).To(Equal("no audio recording of this case matches your question"))
+		Expect(askMediaAbsence(&askValidated{Views: []string{"v_speech_segments"}}, askFrame{})).To(Equal("no speech segment of this case matches your question"))
+	})
+
+	It("keeps the name of a media file as the analyst wrote it and never takes it for a target", func() {
+		Expect(extractTargets("How long is voice-note-03.wav, in seconds?")).To(BeEmpty())
+		Expect(extractTargets("What language is voice-note-05.wav in?")).To(BeEmpty())
+		Expect(extractTargets("What does voice-note-10.wav say?")).To(BeEmpty())
+		Expect(extractTargets("How long is the video street-night-hd.mp4?")).To(BeEmpty())
+		Expect(extractTargets("Which photos show the plate LEA-1234, taken near gate-cam.jpg?")).To(ConsistOf("LEA-1234"))
+		Expect(extractTargets("How many calls did 923001110001 make?")).To(ConsistOf("923001110001"))
+		Expect(extractTarget("Show the rows of call-data-01.csv")).NotTo(BeEmpty(), "a name that is not a media file keeps the behaviour it had")
 	})
 
 	It("drops a view the case cannot speak for from a media question whose best view the case can speak for, and only then", func() {
