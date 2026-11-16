@@ -44,4 +44,6 @@ If Q meets N1 and N2 but not N3: not adopted. If T already meets N1 on real prin
 
 ## Amendments
 
-(none yet)
+**A1, 2026-11-16, before the first measurement.** The measurement runs in the existing evaluation image `nexusai-media-eval:latest` (the worker image plus `pyarrow`, `torch` 2.6.0 CPU, `transformers` 4.49.0, built for the earlier media measurements, `tools/media_data/Dockerfile.eval`), not in a new `Dockerfile.eval-nastaliq`: no new image and no new package. It runs with `--network none` and the data mounted read-only; results are written to `C:/tmp/nexusai-media-data/results/nastaliq` (outside the repository).
+
+**A2, 2026-11-16, before the first measurement.** Two corrections of wording, no change of method. (a) Image size: the processor's default maximum is 12,845,056 pixels (not 1,003,520, which I wrote in error); every row is far below it, so no row is resized. (b) A "loop or invented text" row is one whose output is longer than twice the reference (characters without spaces) or that repeats a word 8-gram more than five times (`nastaliq_lab.py`, function `looped`). The lab script is `tools/media_data/nastaliq_lab.py`; rows are taken in hash order as in section 2 (development: the first 12 whose hash starts with 0; sealed: the first 60 whose hash starts with anything else).
