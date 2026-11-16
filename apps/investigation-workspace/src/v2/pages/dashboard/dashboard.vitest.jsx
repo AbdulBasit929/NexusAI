@@ -118,6 +118,16 @@ describe('modalityMix and recordKinds', () => {
     expect(mix.kinds.find(kind => kind.id === 'image').failed).toBe(1)
     expect(mix.kinds.find(kind => kind.id === 'structured_records').caseCount).toBe(2)
   })
+  it('keeps which cases hold each kind, the largest first, with the files that did not finish', () => {
+    const mix = modalityMix([
+      report('a', [{ modality: 'image', files: 23, failed: 1 }, { modality: 'tabular', files: 2, failed: 0 }]),
+      report('b', [{ modality: 'image', files: 30, failed: 0 }, { modality: 'image', files: 5, failed: 2 }]),
+      report('c', [{ modality: 'document', files: 0, failed: 0 }]),
+    ])
+    expect(mix.kinds.find(kind => kind.id === 'image').byCase).toEqual([{ caseId: 'b', files: 35, failed: 2 }, { caseId: 'a', files: 23, failed: 1 }])
+    expect(mix.kinds.find(kind => kind.id === 'other').byCase).toEqual([{ caseId: 'a', files: 2, failed: 0 }])
+    expect(mix.kinds.find(kind => kind.id === 'document')).toBeUndefined()
+  })
   it('types the records as calls, internet sessions and app usage with repeats left out, and keeps the rest as "Other records"', () => {
     const rows = [{ caseId: 'a', summary: { acceptedRows: 1000 } }, { caseId: 'b', summary: { acceptedRows: 50 } }, { caseId: 'c', summary: { acceptedRows: 7 } }]
     const kinds = recordKinds([

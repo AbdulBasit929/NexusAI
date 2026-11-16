@@ -1,0 +1,33 @@
+/* Evidence by type: a row for each kind, in the family of the indicator tiles. The row is one button (focus and hover light it, a click keeps it lit); the bar is the kind's files, its hatched red end the files
+   that did not finish; the card that lists the cases holding a kind is the same card the timeline uses. */
+@layer nx-pages {
+  .nx-types { position: relative; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 10px; min-inline-size: 0; min-block-size: 0; block-size: 100%; }
+  .nx-types__top { display: flex; align-items: baseline; gap: var(--nx-s-2); min-inline-size: 0; }
+  .nx-types__figure { flex: none; font-size: 2rem; font-weight: var(--nx-fw-semibold); letter-spacing: -0.02em; line-height: 1.1; }
+  .nx-types__sentence { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--nx-fs-xs); color: var(--nx-text-2); }
+  .nx-types__sentence.is-probe { color: var(--nx-accent-text); font-weight: var(--nx-fw-medium); }
+
+  .nx-types__rows { display: grid; align-content: start; grid-auto-rows: minmax(26px, 34px); gap: 2px; margin: 0; padding: 0; list-style: none; min-block-size: 0; }
+  .nx-types__rows > li { display: grid; min-block-size: 0; }
+  .nx-types__row { display: grid; grid-template-columns: 24px minmax(64px, 30%) minmax(0, 1fr) auto auto; align-items: center; column-gap: var(--nx-s-2); inline-size: calc(100% + var(--nx-s-4)); min-block-size: 0; block-size: 100%; margin-inline: calc(var(--nx-s-2) * -1); padding: 0 var(--nx-s-2); border: 0; border-radius: var(--nx-r-2); background: none; color: var(--nx-text); font: inherit; font-size: var(--nx-fs-sm); text-align: start; cursor: pointer; transition: background-color var(--nx-dur-1) var(--nx-ease-standard), opacity var(--nx-dur-2) var(--nx-ease-standard); }
+  .nx-types__row:hover, .nx-types__row[aria-pressed='true'], .nx-types__row.is-on { background: var(--nx-hover); }
+  .nx-types__row:focus-visible { outline: 2px solid var(--nx-focus); outline-offset: -2px; }
+  .nx-types__rows[data-lit] .nx-types__row:not(.is-on) { opacity: 0.45; }
+  .nx-types__chip { display: grid; place-items: center; inline-size: 22px; block-size: 22px; border-radius: 7px; background: color-mix(in oklab, var(--k) 16%, var(--nx-surface)); color: var(--k); }
+  .nx-types__chip > svg { inline-size: 13px; block-size: 13px; }
+  .nx-types__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nx-types__track { display: block; block-size: 8px; border-radius: 4px; background: var(--nx-sunken); overflow: hidden; }
+  .nx-types__fill { display: flex; gap: 1px; block-size: 100%; border-radius: 4px; overflow: hidden; transform-origin: left center; animation: nx-grow-x 460ms var(--nx-ease-standard) both; animation-delay: calc(var(--i, 0) * 40ms); }
+  :dir(rtl) .nx-types__fill { transform-origin: right center; }
+  .nx-types__fill > i { display: block; flex-basis: 0; block-size: 100%; }
+  .nx-types__fill > .is-ok { background: var(--k); }
+  .nx-types__fill > .is-fail { min-inline-size: 4px; background: repeating-linear-gradient(135deg, var(--nx-danger) 0 2px, color-mix(in oklab, var(--nx-danger) 45%, var(--nx-surface)) 2px 4px); }
+  .nx-types__value { min-inline-size: 3ch; text-align: end; font-weight: var(--nx-fw-semibold); }
+  .nx-types__share { min-inline-size: 5ch; text-align: end; font-size: var(--nx-fs-xs); color: var(--nx-text-3); }
+  @container panel (max-width: 300px) { .nx-types__share { display: none; } .nx-types__row { grid-template-columns: 24px minmax(56px, 34%) minmax(0, 1fr) auto; } }
+  @container panel (max-height: 230px) { .nx-types__rows { grid-auto-rows: 24px; gap: 0; } }
+
+  .nx-types__tip { min-inline-size: 200px; }
+  @media (prefers-reduced-motion: reduce) { .nx-types__fill { animation: none; } .nx-types__row { transition: none; } }
+  :root[data-motion='reduce'] .nx-types__fill { animation: none; }
+}

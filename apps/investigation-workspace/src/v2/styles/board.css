@@ -4,11 +4,12 @@
   .nx-dash { gap: var(--nx-s-4); padding-block-end: var(--nx-s-8); }
 
   /* ---------- the first screen: it ends 28px above the bottom edge, so the next band shows as an edge and the page is seen to continue ---------- */
-  .nx-first { display: flex; flex-direction: column; gap: var(--nx-s-4); block-size: clamp(780px, calc(100dvh - var(--nx-topbar-h) - var(--nx-s-6) - 28px), 1000px); }
+  .nx-first { display: flex; flex-direction: column; gap: var(--nx-s-4); min-block-size: clamp(780px, calc(100dvh - var(--nx-topbar-h) - var(--nx-s-6) - 28px), 1000px); }
   .nx-board { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--nx-s-4); }
   .nx-cell { display: grid; min-inline-size: 0; min-block-size: 0; }
   .nx-cell > .nx-panel { block-size: 100%; min-block-size: 0; }
-  .nx-board--hero { flex: 1 1 0; min-block-size: 0; grid-template-rows: minmax(292px, 1fr) minmax(264px, 1fr); }
+  /* the two rows never get less than their content needs (so the band below can never sit on them): the first screen has a minimum height and grows with the rows when the window is short */
+  .nx-board--hero { flex: 1 1 auto; min-block-size: 0; grid-template-rows: minmax(292px, 1fr) minmax(340px, 1fr); }
   .nx-cell--timeline { grid-area: 1 / 1 / 2 / 9; }
   .nx-cell--answers { grid-area: 1 / 9 / 2 / 13; }
   .nx-cell--types { grid-area: 2 / 1 / 3 / 4; }

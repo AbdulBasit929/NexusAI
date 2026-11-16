@@ -228,18 +228,26 @@ export const MODALITIES = [
 
 export function modalityMix(reports) {
   const read = (reports || []).filter(report => report && report.available !== false)
-  const named = new Map(MODALITIES.map(kind => [kind.id, { ...kind, files: 0, failed: 0, caseCount: 0 }]))
-  const other = { id: 'other', label: 'Other files', slot: 0, files: 0, failed: 0, caseCount: 0 }
+  const named = new Map(MODALITIES.map(kind => [kind.id, { ...kind, files: 0, failed: 0, caseCount: 0, byCase: [] }]))
+  const other = { id: 'other', label: 'Other files', slot: 0, files: 0, failed: 0, caseCount: 0, byCase: [] }
   for (const report of read) {
-    const seen = new Set()
+    const parts = new Map()
     for (const entry of report.evidence || []) {
       const target = named.get(entry.modality) || other
       target.files += number(entry.files)
       target.failed += number(entry.failed)
-      if (!seen.has(target.id) && number(entry.files) > 0) { target.caseCount += 1; seen.add(target.id) }
+      let part = parts.get(target.id)
+      if (!part && number(entry.files) > 0) {
+        part = { caseId: report.collection_id, files: 0, failed: 0 }
+        parts.set(target.id, part)
+        target.byCase.push(part)
+        target.caseCount += 1
+      }
+      if (part) { part.files += number(entry.files); part.failed += number(entry.failed) }
     }
   }
   const kinds = [...named.values(), other].filter(kind => kind.files > 0).sort((left, right) => right.files - left.files || left.slot - right.slot)
+  for (const kind of kinds) kind.byCase.sort((left, right) => right.files - left.files || String(left.caseId).localeCompare(String(right.caseId)))
   return { reported: read.length, total: sum(kinds, kind => kind.files), kinds }
 }
 

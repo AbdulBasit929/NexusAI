@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CircleAlert, CircleCheckBig, MessageSquareText } from 'lucide-react'
+import { AudioLines, CircleAlert, CircleCheckBig, Files, FileText, Image as ImageIcon, MessageSquareText, NotebookText, Table2, Video } from 'lucide-react'
 import { formatNumber } from '../../../lib/format.js'
 import { formatRate } from '../../../lib/dashboardCharts.js'
 import { CaseLabel, useCaseNameOf } from '../../shell/CaseLabel.jsx'
@@ -252,25 +252,79 @@ export function TimelinePanel({ timelines, loading, failures, today }) {
   )
 }
 
-// ---------- what the evidence holds: sorted bars, because there are more than five kinds and a bar is the form that reads exact shares ----------
+// ---------- what the evidence holds ----------
+// One question, "what kinds of evidence do I hold, and is it usable?". A row for each kind, in the same family as the indicator tiles: a chip with the kind's icon in the kind's own colour (a colour belongs to a
+// kind for good, so it keeps it when another kind comes or goes), its name, a bar of its files (a sorted bar reads an exact share best, and there are more than five kinds), the count and its share of all files.
+// The files that did not finish are the hatched red end of the bar, so what is unusable is seen where it sits. Pointing at a kind (or focusing it) dims the others, says what it is under the figure, and opens a
+// card that lists the cases that hold it; a click keeps it lit. The table lists the same figures for each kind and each case.
+const KIND_ICON = { structured_records: Table2, document: FileText, image: ImageIcon, audio: AudioLines, video: Video, text: NotebookText, other: Files }
+
 export function EvidenceTypesPanel({ mix, indexed, loading }) {
+  const nameOf = useCaseNameOf()
   const kinds = mix.kinds.slice().sort((left, right) => right.files - left.files || left.label.localeCompare(right.label))
   const max = Math.max(1, ...kinds.map(kind => kind.files))
+  const [pinned, setPinned] = useState(null)
+  const [hover, setHover] = useState(null)
+  const [tip, setTip] = useState(null)
+  const body = useRef(null)
+  const active = hover || pinned
+  const failedTotal = kinds.reduce((total, kind) => total + kind.failed, 0)
+  const caseCount = new Set(kinds.flatMap(kind => (kind.byCase || []).map(part => part.caseId))).size
+  const share = value => formatRate(mix.total ? value / mix.total : 0)
+  const colour = colourOf
+  const chosen = kinds.find(kind => kind.id === active) || null
+  const sentence = chosen
+    ? `${chosen.label} · ${formatNumber(chosen.files)} · ${share(chosen.files)}${chosen.failed ? ` · ${formatNumber(chosen.failed)} did not finish` : ''}`
+    : `files${caseCount ? ` · in ${plural(caseCount, 'case')}` : ''}`
+  const twin = kinds.flatMap(kind => [{ id: kind.id, type: kind.label, case: 'All cases', files: kind.files, failed: kind.failed, share: share(kind.files) }, ...(kind.byCase || []).map(part => ({ id: `${kind.id}:${part.caseId}`, type: kind.label, case: nameOf(part.caseId), files: part.files, failed: part.failed, share: share(part.files) }))])
+  const move = event => {
+    const box = body.current?.getBoundingClientRect()
+    setTip(box ? { x: event.clientX - box.left, y: event.clientY - box.top, w: box.width } : null)
+  }
   return (
-    <Panel id="dash-types" title="Evidence by type" sub={mix.total ? plural(mix.total, 'file') : null} subTitle={indexed ? `${formatNumber(indexed)} items are indexed for search` : undefined}
-      twin={mix.total ? { label: 'Files by type', exportName: 'nexusai-evidence-by-type.csv', summary: `${plural(mix.total, 'file')} in all: ${kinds.map(kind => `${formatNumber(kind.files)} ${kind.label.toLowerCase()}`).join(', ')}.`, columns: [{ key: 'type', label: 'Type' }, { key: 'files', label: 'Files' }, { key: 'failed', label: 'Did not finish' }, { key: 'share', label: 'Share' }], rows: kinds.map(kind => ({ id: kind.id, type: kind.label, files: kind.files, failed: kind.failed, share: formatRate(kind.files / mix.total) })) } : undefined}>
+    <Panel id="dash-types" title="Evidence by type"
+      twin={mix.total ? { label: 'Files by type and case', exportName: 'nexusai-evidence-by-type.csv', summary: `${plural(mix.total, 'file')} in all: ${kinds.map(kind => `${formatNumber(kind.files)} ${kind.label.toLowerCase()}`).join(', ')}${failedTotal ? `; ${formatNumber(failedTotal)} did not finish` : ''}.`, columns: [{ key: 'type', label: 'Type' }, { key: 'case', label: 'Case' }, { key: 'files', label: 'Files' }, { key: 'failed', label: 'Did not finish' }, { key: 'share', label: 'Share of all files' }], rows: twin } : undefined}>
       {loading && !mix.total ? <PanelSkeleton /> : mix.total ? (
-        <ul className="nx-hbars">
-          {kinds.map((kind, index) => (
-            <li key={kind.id} title={kind.failed ? `${formatNumber(kind.failed)} did not finish` : undefined}>
-              <i className="nx-hbars__key" style={{ background: colourOf(kind) }} />
-              <span className="nx-hbars__name">{kind.label}</span>
-              <span className="nx-hbars__track" aria-hidden="true"><i style={{ inlineSize: `${Math.max(1.5, (kind.files / max) * 100)}%`, background: colourOf(kind), '--i': index }} /></span>
-              <span className="nx-hbars__value nx-tabular">{formatNumber(kind.files)}</span>
-              <span className="nx-hbars__share nx-tabular">{formatRate(kind.files / mix.total)}</span>
-            </li>
-          ))}
-        </ul>
+        <div ref={body} className="nx-types" onMouseLeave={() => { setHover(null); setTip(null) }}>
+          <div className="nx-types__top">
+            <b className="nx-types__figure nx-tabular">{formatNumber(mix.total)}</b>
+            <span className={`nx-types__sentence${chosen ? ' is-probe' : ''}`} title={indexed && !chosen ? `${formatNumber(indexed)} items are indexed for search` : undefined}>{sentence}</span>
+          </div>
+          <ol className="nx-types__rows" data-lit={active ? '' : undefined}>
+            {kinds.map((kind, index) => {
+              const Icon = KIND_ICON[kind.id] || Files
+              const good = Math.max(0, kind.files - kind.failed)
+              return (
+                <li key={kind.id}>
+                  <button type="button" className={`nx-types__row${kind.id === active ? ' is-on' : ''}`} style={{ '--k': colour(kind) }} aria-pressed={pinned === kind.id}
+                    aria-label={`${kind.label}: ${plural(kind.files, 'file')}, ${share(kind.files)}${kind.failed ? `, ${formatNumber(kind.failed)} did not finish` : ''}, in ${plural(kind.caseCount, 'case')}`}
+                    onMouseEnter={() => setHover(kind.id)} onMouseMove={move} onFocus={() => setHover(kind.id)} onBlur={() => setHover(null)} onClick={() => setPinned(current => (current === kind.id ? null : kind.id))}>
+                    <span className="nx-types__chip" aria-hidden="true"><Icon /></span>
+                    <span className="nx-types__name">{kind.label}</span>
+                    <span className="nx-types__track" aria-hidden="true">
+                      <span className="nx-types__fill" style={{ inlineSize: `${Math.max(2, (kind.files / max) * 100)}%`, '--i': index }}>
+                        {good > 0 ? <i className="is-ok" style={{ flexGrow: good }} /> : null}
+                        {kind.failed > 0 ? <i className="is-fail" style={{ flexGrow: kind.failed }} /> : null}
+                      </span>
+                    </span>
+                    <span className="nx-types__value nx-tabular">{formatNumber(kind.files)}</span>
+                    <span className="nx-types__share nx-tabular">{share(kind.files)}</span>
+                  </button>
+                </li>
+              )
+            })}
+          </ol>
+          {chosen && tip && hover ? (
+            <div className="nx-tl__tip nx-types__tip" style={tip.x > tip.w * 0.5 ? { insetInlineEnd: tip.w - tip.x + 14, insetBlockStart: Math.max(0, tip.y - 24) } : { insetInlineStart: tip.x + 14, insetBlockStart: Math.max(0, tip.y - 24) }} aria-hidden="true">
+              <b>{chosen.label}</b>
+              <ul>
+                {(chosen.byCase || []).slice(0, 6).map(part => (
+                  <li key={part.caseId}><i style={{ background: colour(chosen) }} /><span>{nameOf(part.caseId)}</span><b>{formatNumber(part.files)}{part.failed ? ` · ${formatNumber(part.failed)} failed` : ''}</b></li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
       ) : <Calm icon={CircleAlert}>No files read yet</Calm>}
     </Panel>
   )
