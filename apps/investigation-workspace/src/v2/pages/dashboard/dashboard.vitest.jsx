@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import DashboardPage from './DashboardPage.jsx'
 import { TimelinePanel, exceptionRows, gaugePath } from './insights.jsx'
 import { resetDashboardReads } from './data.js'
-import { MIN_WINDOW, alignTimelines, answerQuality, caseStateMix, caseStates, panWindow, viewWindow, windowTicks, zoomWindow, durationHistogram, caseTimelines, dailyQuestions, dataNotes, declineText, formatDuration, heatShare, modalityMix, needsYou, niceCeiling, recordKinds, setAside, timeBasis, timeToReady } from './model.js'
+import { MIN_WINDOW, alignTimelines, answerQuality, caseStateMix, caseStates, panWindow, viewWindow, windowTicks, zoomWindow, durationHistogram, caseTimelines, dailyQuestions, dataNotes, declineText, formatDuration, flowLayout, flowModel, heatShare, modalityMix, spreadLabels, needsYou, niceCeiling, recordKinds, setAside, timeBasis, timeToReady } from './model.js'
 import { cleanRate, latestItems, resumeEntries, statusCounts } from './sections.jsx'
 import { BarStrip, DotRow, Histogram, RangeStrip, SegBar } from '../../ui/micro.jsx'
 import { CountUp } from '../../ui/CountUp.jsx'
@@ -547,6 +547,64 @@ describe('gaugePath', () => {
     expect(gaugePath(0, 1)).toBe('M24.00 92.00 A76 76 0 0 1 176.00 92.00')
     expect(gaugePath(0, 0.5)).toBe('M24.00 92.00 A76 76 0 0 1 100.00 16.00')
     expect(gaugePath(0.5, 1)).toBe('M100.00 16.00 A76 76 0 0 1 176.00 92.00')
+  })
+})
+
+describe('the flow of records', () => {
+  const records = {
+    kinds: [{ id: 'calls', count: 100 }, { id: 'sessions', count: 60 }, { id: 'usage', count: 0 }, { id: 'other', count: 40 }],
+    byCase: [
+      { caseId: 'a', values: { calls: 60, sessions: 30, usage: 0, other: 10 } },
+      { caseId: 'b', values: { calls: 30, sessions: 20, usage: 0, other: 20 } },
+      { caseId: 'c', values: { calls: 10, sessions: 10, usage: 0, other: 10 } },
+    ],
+  }
+  it('keeps the kinds that have records, the largest first, and the cases the largest first', () => {
+    const model = flowModel(records)
+    expect(model.kinds.map(kind => kind.id)).toEqual(['calls', 'sessions', 'other'])
+    expect(model.cases.map(item => item.caseId)).toEqual(['a', 'b', 'c'])
+    expect(model.total).toBe(200)
+  })
+  it('folds the cases beyond the limit into one node, so every record is still drawn', () => {
+    const model = flowModel(records, 2)
+    expect(model.cases.map(item => item.label ?? item.caseId)).toEqual(['a', 'b', '1 more case'])
+    expect(model.cases[2].values).toEqual({ calls: 10, sessions: 10, other: 10 })
+    expect(model.total).toBe(200)
+  })
+  it('places the nodes and ribbons exactly: one scale for both sides, a ribbon as thick at both ends, the sums of the ribbons the totals', () => {
+    const model = flowModel(records)
+    const layout = flowLayout(model, 0.04)
+    const thickness = layout.ribbons.map(ribbon => [ribbon.a1 - ribbon.a0, ribbon.b1 - ribbon.b0])
+    for (const [left, right] of thickness) expect(left).toBeCloseTo(right, 10)
+    expect(layout.ribbons.reduce((sum, ribbon) => sum + ribbon.value, 0)).toBe(200)
+    const scale = layout.left[0].h / model.cases[0].total
+    expect(layout.right[0].h).toBeCloseTo(model.kinds[0].count * scale, 10)
+    const span = nodes => nodes.at(-1).y + nodes.at(-1).h - nodes[0].y
+    expect(span(layout.left)).toBeCloseTo(layout.left.reduce((sum, node) => sum + node.h, 0) + 0.04 * 2, 10)
+    expect(layout.left[0].y).toBeGreaterThanOrEqual(0)
+    expect(layout.left.at(-1).y + layout.left.at(-1).h).toBeLessThanOrEqual(1.0000001)
+  })
+  it('stacks the ribbons of a case inside its node and the ribbons of a kind inside its node', () => {
+    const layout = flowLayout(flowModel(records))
+    for (const ribbon of layout.ribbons) {
+      expect(ribbon.a0).toBeGreaterThanOrEqual(layout.left[ribbon.caseIndex].y - 1e-9)
+      expect(ribbon.a1).toBeLessThanOrEqual(layout.left[ribbon.caseIndex].y + layout.left[ribbon.caseIndex].h + 1e-9)
+      expect(ribbon.b0).toBeGreaterThanOrEqual(layout.right[ribbon.kindIndex].y - 1e-9)
+      expect(ribbon.b1).toBeLessThanOrEqual(layout.right[ribbon.kindIndex].y + layout.right[ribbon.kindIndex].h + 1e-9)
+    }
+  })
+  it('keeps labels apart without moving them off their node more than needed, and draws nothing for no records', () => {
+    const near = spreadLabels([{ y: 0, h: 0.02 }, { y: 0.03, h: 0.02 }, { y: 0.06, h: 0.02 }], 0.075)
+    ;[0.01, 0.085, 0.16].forEach((value, index) => expect(near[index]).toBeCloseTo(value, 10))
+    const wide = spreadLabels([{ y: 0, h: 0.4 }, { y: 0.45, h: 0.5 }], 0.075)
+    ;[0.2, 0.7].forEach((value, index) => expect(wide[index]).toBeCloseTo(value, 10))
+    expect(flowLayout(flowModel({ kinds: [], byCase: [] })).ribbons).toEqual([])
+    const tall = spreadLabels([{ y: 0, h: 0.02 }, { y: 0.03, h: 0.02 }], 0, [0.2, 0.1])
+    expect(tall[0]).toBeCloseTo(0.01, 10)
+    expect(tall[1]).toBeCloseTo(0.17, 10)
+    const low = spreadLabels([{ y: 0.9, h: 0.05 }, { y: 0.95, h: 0.05 }], 0, [0.2, 0.2])
+    expect(low[0]).toBeCloseTo(0.69, 10)
+    expect(low[1]).toBeCloseTo(0.9, 10)
   })
 })
 

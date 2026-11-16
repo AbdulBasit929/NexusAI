@@ -274,6 +274,65 @@ export function recordKinds(reports, rows) {
   return { reported: reportsByCase.size, total: sum(kinds, kind => kind.count), kinds: kinds.filter(kind => kind.count > 0), byCase: byCase.sort((left, right) => total(right) - total(left)) }
 }
 
+// ---------- the flow of records: each case into the kinds of record it holds ----------
+// `flowModel` takes what `recordKinds` returns and keeps the largest cases (the rest are one "more cases" node, so every record is still drawn); the kinds are those that have records, the largest first.
+// `flowLayout` places the nodes and the ribbons between them as fractions of the height: both sides use ONE scale (the height of a node is its records), so a ribbon is as thick where it leaves a case as where it
+// enters a kind; the side with fewer gaps is centred. Nothing is rounded: the sums of the nodes are the totals.
+const FLOW_KINDS = ['calls', 'sessions', 'usage', 'other']
+
+export function flowModel(records, limit = 5) {
+  const present = (records?.kinds || []).filter(kind => kind.count > 0).slice().sort((left, right) => right.count - left.count || FLOW_KINDS.indexOf(left.id) - FLOW_KINDS.indexOf(right.id))
+  const ids = present.map(kind => kind.id)
+  const sized = (records?.byCase || []).map(row => ({ caseId: row.caseId, label: null, values: Object.fromEntries(ids.map(id => [id, number(row.values?.[id])])), total: ids.reduce((sum, id) => sum + number(row.values?.[id]), 0) })).filter(item => item.total > 0).sort((left, right) => right.total - left.total)
+  const cases = sized.slice(0, limit)
+  const rest = sized.slice(limit)
+  if (rest.length) cases.push({ caseId: null, label: `${rest.length} more ${rest.length === 1 ? 'case' : 'cases'}`, values: Object.fromEntries(ids.map(id => [id, sum(rest, item => item.values[id])])), total: sum(rest, item => item.total) })
+  return { cases, kinds: present, total: sum(cases, item => item.total) }
+}
+
+export function flowLayout(model, gap = 0.035) {
+  const total = model.total
+  if (!total || !model.cases.length || !model.kinds.length) return { left: [], right: [], ribbons: [] }
+  const leftGaps = gap * (model.cases.length - 1)
+  const rightGaps = gap * (model.kinds.length - 1)
+  const scale = (1 - Math.max(leftGaps, rightGaps)) / total
+  const place = (items, size, gaps) => {
+    let y = (1 - (total * scale + gaps)) / 2
+    return items.map(item => { const node = { y, h: size(item) * scale }; y += node.h + gap; return node })
+  }
+  const left = place(model.cases, item => item.total, leftGaps)
+  const kindTotals = model.kinds.map(kind => kind.count)
+  const right = place(kindTotals, value => value, rightGaps)
+  const usedLeft = left.map(() => 0)
+  const usedRight = right.map(() => 0)
+  const ribbons = []
+  model.cases.forEach((item, caseIndex) => {
+    model.kinds.forEach((kind, kindIndex) => {
+      const value = item.values[kind.id]
+      if (!(value > 0)) return
+      const h = value * scale
+      ribbons.push({ caseIndex, kindIndex, value, a0: left[caseIndex].y + usedLeft[caseIndex], a1: left[caseIndex].y + usedLeft[caseIndex] + h, b0: right[kindIndex].y + usedRight[kindIndex], b1: right[kindIndex].y + usedRight[kindIndex] + h })
+      usedLeft[caseIndex] += h
+      usedRight[kindIndex] += h
+    })
+  })
+  return { left, right, ribbons }
+}
+
+// Labels sit at the middle of their node but never closer to the one above than their sizes need (`sizes`: the height of each label as a fraction of the height, plus a little air; or one number `min` for the
+// distance between middles), so the small nodes stay readable. Going down, a label that is too close is pushed down; then, going up from the bottom, a label that would fall off the bottom (or onto the one
+// below it) is pushed up, only as far as it must go, so the labels at the top keep their place.
+export function spreadLabels(nodes, min = 0.075, sizes = null) {
+  const distance = index => (sizes ? (sizes[index - 1] + sizes[index]) / 2 + 0.01 : min)
+  const out = []
+  nodes.forEach((node, index) => { out.push(Math.max(node.y + node.h / 2, index ? out[index - 1] + distance(index) : 0)) })
+  for (let index = out.length - 1; index >= 0; index -= 1) {
+    const limit = index === out.length - 1 ? 1 - (sizes ? sizes[index] : min) / 2 : out[index + 1] - distance(index + 1)
+    if (out[index] > limit) out[index] = limit
+  }
+  return out
+}
+
 // ---------- notes the service says to read before trusting an answer ----------
 const NOTE_TITLE = {
   no_volume: 'Internet records state no byte volumes',

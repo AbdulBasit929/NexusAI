@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AudioLines, CircleAlert, CircleCheckBig, Files, FileText, Image as ImageIcon, MessageSquareText, NotebookText, Table2, Video } from 'lucide-react'
 import { formatNumber } from '../../../lib/format.js'
@@ -6,7 +6,7 @@ import { formatRate } from '../../../lib/dashboardCharts.js'
 import { CaseLabel, useCaseNameOf } from '../../shell/CaseLabel.jsx'
 import { Calm, Panel, PanelSkeleton } from '../../ui/Panel.jsx'
 import { Dumbbell, RangeStrip, SegBar } from '../../ui/micro.jsx'
-import { MIN_WINDOW, alignTimelines, formatDuration, heatShare, niceCeiling, panWindow, viewWindow, windowTicks, zoomWindow } from './model.js'
+import { MIN_WINDOW, alignTimelines, flowLayout, flowModel, formatDuration, niceCeiling, panWindow, spreadLabels, viewWindow, windowTicks, zoomWindow } from './model.js'
 
 // Every panel here is drawn for a cell of a fixed size (the board gives it one; see styles/board.css): its picture takes the height that is left, its words are a title, a note and the numbers
 // beside the marks, and the same figures as a table are one button away in a dialog. Nothing in a panel grows with its content, so neighbours always share a top and a bottom.
@@ -331,42 +331,107 @@ export function EvidenceTypesPanel({ mix, indexed, loading }) {
 }
 
 const KIND_COLUMNS = [{ id: 'calls', label: 'Calls' }, { id: 'sessions', label: 'Internet' }, { id: 'usage', label: 'App use' }, { id: 'other', label: 'Other' }]
-const MATRIX_ROWS = 5
+const KIND_NAME = Object.fromEntries(KIND_COLUMNS.map(column => [column.id, column.label]))
+// A colour for each kind of record that is not the colour of a kind of file next door: the accent for calls, then two of the data hues, then grey for the rest; the labels carry the counts, so no kind is told by colour alone.
+const FLOW_COLOUR = { calls: 'var(--nx-accent)', sessions: 'var(--nx-data-4)', usage: 'var(--nx-data-5)', other: 'var(--nx-border-strong)' }
 
-// Records by kind, as a heat matrix: one row for each case (the largest first), one column for each kind, and a last row for all cases. The number is in every cell (the shade only helps the eye);
-// shading is on a log scale so one huge cell does not turn the others blank, and a dot means none.
+// Which kinds of record each case holds, as a flow: a node for each case (its height is its records), a node for each kind, and between them a ribbon as thick as the records the case holds of that kind. The question
+// is "where do the records of each kind come from, and what is each case made of?", and a flow answers both at once: follow a ribbon from either end. The layout is exact (one scale for both sides: see model.flowLayout).
+// Pointing at a ribbon, a case or a kind lights what belongs to it and dims the rest; the sentence under the figure says what it is (the kind, the case, the count, its share of the case and of all records of that
+// kind); a click on a kind keeps it lit. The names of the cases are links, the kinds are buttons, and the table lists the same figures for every case.
 export function RecordKindsPanel({ kinds, loading }) {
   const nameOf = useCaseNameOf()
-  const rows = kinds.byCase.slice(0, MATRIX_ROWS)
-  const cellMax = Math.max(1, ...rows.flatMap(row => Object.values(row.values)))
-  const totals = Object.fromEntries(kinds.kinds.map(kind => [kind.id, kind.count]))
+  const model = useMemo(() => flowModel(kinds), [kinds])
+  const layout = useMemo(() => flowLayout(model), [model])
+  const chart = useRef(null)
+  const [size, setSize] = useState({ w: 404, h: 223 })
+  useEffect(() => {
+    const node = chart.current
+    if (!node || typeof ResizeObserver === 'undefined') return undefined
+    const watcher = new ResizeObserver(entries => { const box = entries[0]?.contentRect; if (box && box.height > 0) setSize({ w: Math.round(box.width), h: Math.round(box.height) }) })
+    watcher.observe(node)
+    return () => watcher.disconnect()
+  }, [loading, kinds.total])
+  // a label is as tall as its lines (14px each, and a name wraps in the width of its column), so the labels keep that much between them; they stay at their node and a thin line joins them to it when they have to move
+  const nameWidth = Math.max(96, size.w * (size.w < 420 ? 0.42 : 0.34) - 8)
+  const lineCount = text => Math.min(2, Math.max(1, Math.ceil((text.length * 6.4) / nameWidth)))
+  const leftSizes = useMemo(() => model.cases.map(item => (lineCount(`${item.caseId ? nameOf(item.caseId) : item.label} ${formatNumber(item.total)}`) * 14 + 4) / Math.max(60, size.h)), [model, size, nameOf]) // eslint-disable-line react-hooks/exhaustive-deps
+  const rightSizes = useMemo(() => model.kinds.map(() => 32 / Math.max(60, size.h)), [model, size])
+  const leftLabels = useMemo(() => spreadLabels(layout.left, 0, leftSizes), [layout, leftSizes])
+  const rightLabels = useMemo(() => spreadLabels(layout.right, 0, rightSizes), [layout, rightSizes])
+  const [pinned, setPinned] = useState(null)
+  const [hover, setHover] = useState(null)
+  const focus = hover || (pinned !== null ? { kindIndex: pinned } : null)
+  const share = (value, whole) => formatRate(whole ? value / whole : 0)
+  const caseName = item => (item.caseId ? nameOf(item.caseId) : item.label)
+  const sizeOf = row => KIND_COLUMNS.reduce((sum, column) => sum + (row.values[column.id] || 0), 0)
+  const isOn = ribbon => !focus || (focus.ribbon !== undefined ? focus.ribbon === ribbon : focus.caseIndex !== undefined ? focus.caseIndex === ribbon.caseIndex : focus.kindIndex === ribbon.kindIndex)
+  // a case node stays lit when it is the one pointed at, or when it holds records of the kind (or the ribbon) pointed at
+  const caseOn = index => !focus || (focus.ribbon ? focus.ribbon.caseIndex === index : focus.caseIndex !== undefined ? focus.caseIndex === index : model.cases[index].values[model.kinds[focus.kindIndex]?.id] > 0)
+  const sentence = (() => {
+    if (!focus) return `records · in ${plural(kinds.byCase.length, 'case')}`
+    if (focus.ribbon) {
+      const item = model.cases[focus.ribbon.caseIndex]
+      const kind = model.kinds[focus.ribbon.kindIndex]
+      return `${KIND_NAME[kind.id]} · ${caseName(item)} · ${formatNumber(focus.ribbon.value)} · ${share(focus.ribbon.value, item.total)} of the case · ${share(focus.ribbon.value, kind.count)} of all ${KIND_NAME[kind.id].toLowerCase()}`
+    }
+    if (focus.caseIndex !== undefined) {
+      const item = model.cases[focus.caseIndex]
+      return `${caseName(item)} · ${formatNumber(item.total)} · ${share(item.total, model.total)} of all records`
+    }
+    const kind = model.kinds[focus.kindIndex]
+    return kind ? `${KIND_NAME[kind.id]} · ${formatNumber(kind.count)} · ${share(kind.count, model.total)} of all records · in ${plural(model.cases.filter(item => item.values[kind.id] > 0).length, 'case')}` : ''
+  })()
+  const curve = ribbon => `M0 ${(ribbon.a0 * 100).toFixed(2)} C50 ${(ribbon.a0 * 100).toFixed(2)} 50 ${(ribbon.b0 * 100).toFixed(2)} 100 ${(ribbon.b0 * 100).toFixed(2)} L100 ${(ribbon.b1 * 100).toFixed(2)} C50 ${(ribbon.b1 * 100).toFixed(2)} 50 ${(ribbon.a1 * 100).toFixed(2)} 0 ${(ribbon.a1 * 100).toFixed(2)} Z`
   return (
-    <Panel id="dash-kinds" title="Records by kind" sub={kinds.total ? `${plural(kinds.total, 'record')} · log shading` : null}
-      twin={kinds.total ? { label: 'Records of each kind', exportName: 'nexusai-records-by-kind.csv', summary: `${plural(kinds.total, 'record')} in all: ${kinds.kinds.map(kind => `${formatNumber(kind.count)} ${kind.label.toLowerCase()}`).join(', ')}.`, columns: [{ key: 'case', label: 'Case' }, ...KIND_COLUMNS.map(column => ({ key: column.id, label: column.label }))], rows: kinds.byCase.map(row => ({ id: row.caseId, case: nameOf(row.caseId), ...row.values })) } : undefined}>
-      {loading && !kinds.total ? <PanelSkeleton /> : kinds.total ? (
-        <table className="nx-heat">
-          <caption className="nx-visually-hidden">Records of each kind in each case; shading is on a log scale and a dot means none</caption>
-          <thead><tr><th scope="col"><span className="nx-visually-hidden">Case</span></th>{KIND_COLUMNS.map(column => <th key={column.id} scope="col">{column.label}</th>)}</tr></thead>
-          <tbody>
-            {rows.map(row => (
-              <tr key={row.caseId}>
-                <th scope="row"><Link to={`/cases/${encodeURIComponent(row.caseId)}/overview`}><CaseLabel caseId={row.caseId} /></Link></th>
-                {KIND_COLUMNS.map(column => <Cell key={column.id} value={row.values[column.id]} share={heatShare(row.values[column.id], cellMax)} />)}
-              </tr>
-            ))}
-            <tr className="nx-heat__total">
-              <th scope="row">All cases</th>
-              {KIND_COLUMNS.map(column => <td key={column.id} className="nx-tabular">{totals[column.id] ? formatNumber(totals[column.id]) : <span aria-label="none">·</span>}</td>)}
-            </tr>
-          </tbody>
-        </table>
+    <Panel id="dash-kinds" title="Records by kind" sub={kinds.total ? 'Case into kind' : null}
+      twin={kinds.total ? { label: 'Records of each kind', exportName: 'nexusai-records-by-kind.csv', summary: `${plural(kinds.total, 'record')} in all: ${kinds.kinds.map(kind => `${formatNumber(kind.count)} ${kind.label.toLowerCase()}`).join(', ')}.`, columns: [{ key: 'case', label: 'Case' }, ...KIND_COLUMNS.map(column => ({ key: column.id, label: column.label })), { key: 'total', label: 'Total' }], rows: kinds.byCase.map(row => ({ id: row.caseId, case: nameOf(row.caseId), ...row.values, total: sizeOf(row) })) } : undefined}>
+      {loading && !kinds.total ? <PanelSkeleton /> : kinds.total && layout.ribbons.length ? (
+        <div className="nx-flow" onMouseLeave={() => setHover(null)}>
+          <div className="nx-flow__top">
+            <b className="nx-flow__figure nx-tabular">{formatNumber(kinds.total)}</b>
+            <span className={`nx-flow__sentence${focus ? ' is-probe' : ''}`}>{sentence}</span>
+          </div>
+          <div ref={chart} className="nx-flow__chart" data-lit={focus ? '' : undefined} role="group" aria-label="Records by case and kind. The names of the cases open the case; the kinds can be kept lit.">
+            <div className="nx-flow__names">
+              {model.cases.map((item, index) => (
+                <div key={item.caseId || 'rest'} className="nx-flow__name" style={{ insetBlockStart: `${leftLabels[index] * 100}%` }} onMouseEnter={() => setHover({ caseIndex: index })}>
+                  {item.caseId ? <Link to={`/cases/${encodeURIComponent(item.caseId)}/overview`} title={caseName(item)} onFocus={() => setHover({ caseIndex: index })} onBlur={() => setHover(null)}><CaseLabel caseId={item.caseId} /></Link> : <span>{item.label}</span>}
+                  <b className="nx-tabular">{formatNumber(item.total)}</b>
+                </div>
+              ))}
+            </div>
+            <div className="nx-flow__side nx-flow__side--left" aria-hidden="true">
+              <svg className="nx-flow__leaders" viewBox="0 0 8 100" preserveAspectRatio="none">
+                {layout.left.map((node, index) => <line key={index} x1="0" x2="8" y1={(leftLabels[index] * 100).toFixed(2)} y2={((node.y + node.h / 2) * 100).toFixed(2)} />)}
+              </svg>
+              {layout.left.map((node, index) => <i key={index} className={caseOn(index) ? undefined : 'is-dim'} style={{ insetBlockStart: `${node.y * 100}%`, blockSize: `${node.h * 100}%` }} onMouseEnter={() => setHover({ caseIndex: index })} />)}
+            </div>
+            <svg className="nx-flow__svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              {layout.ribbons.map((ribbon, index) => (
+                <path key={index} className={isOn(ribbon) ? 'is-on' : undefined} d={curve(ribbon)} style={{ '--c': FLOW_COLOUR[model.kinds[ribbon.kindIndex].id], '--i': Math.min(index, 20) }} onMouseEnter={() => setHover({ ribbon })} />
+              ))}
+            </svg>
+            <div className="nx-flow__side nx-flow__side--right" aria-hidden="true">
+              <svg className="nx-flow__leaders" viewBox="0 0 8 100" preserveAspectRatio="none">
+                {layout.right.map((node, index) => <line key={index} x1="0" x2="8" y1={((node.y + node.h / 2) * 100).toFixed(2)} y2={(rightLabels[index] * 100).toFixed(2)} />)}
+              </svg>
+              {layout.right.map((node, index) => <i key={index} style={{ insetBlockStart: `${node.y * 100}%`, blockSize: `${node.h * 100}%`, '--c': FLOW_COLOUR[model.kinds[index].id] }} onMouseEnter={() => setHover({ kindIndex: index })} />)}
+            </div>
+            <div className="nx-flow__kinds">
+              {model.kinds.map((kind, index) => (
+                <button key={kind.id} type="button" className="nx-flow__kind" style={{ insetBlockStart: `${rightLabels[index] * 100}%`, '--c': FLOW_COLOUR[kind.id] }} aria-pressed={pinned === index}
+                  aria-label={`${KIND_NAME[kind.id]}: ${plural(kind.count, 'record')}, ${share(kind.count, model.total)} of all records`}
+                  onMouseEnter={() => setHover({ kindIndex: index })} onFocus={() => setHover({ kindIndex: index })} onBlur={() => setHover(null)} onClick={() => setPinned(current => (current === index ? null : index))}>
+                  <span>{KIND_NAME[kind.id]}</span><small className="nx-tabular"><b>{formatNumber(kind.count)}</b><em> · {share(kind.count, model.total)}</em></small>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       ) : <Calm icon={CircleAlert}>No records typed yet</Calm>}
     </Panel>
   )
-}
-
-function Cell({ value, share }) {
-  return <td className="nx-heat__cell nx-tabular" style={share ? { '--p': `${share}%` } : undefined}>{value ? formatNumber(value) : <span aria-label="none">·</span>}</td>
 }
 
 // ---------- answers: what the engine did with the questions of the last days ----------

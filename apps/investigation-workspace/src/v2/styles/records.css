@@ -1,0 +1,52 @@
+/* Records by kind as a flow: the cases on the left, the kinds on the right, a ribbon between them as thick as the records the case holds of that kind. Every column is positioned by the same fractions of the height
+   (model.flowLayout), so the ribbons meet the nodes exactly. The look follows the indicator tiles: soft marks, the readout under the figure, what is not pointed at steps back. */
+@layer nx-pages {
+  .nx-flow { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 8px; min-inline-size: 0; min-block-size: 0; block-size: 100%; }
+  .nx-flow__top { display: flex; align-items: baseline; gap: var(--nx-s-2); min-inline-size: 0; }
+  .nx-flow__figure { flex: none; font-size: 2rem; font-weight: var(--nx-fw-semibold); letter-spacing: -0.02em; line-height: 1.1; }
+  .nx-flow__sentence { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--nx-fs-xs); color: var(--nx-text-2); }
+  .nx-flow__sentence.is-probe { color: var(--nx-accent-text); font-weight: var(--nx-fw-medium); }
+  @container panel (max-height: 190px) { .nx-flow__top { display: none; } .nx-flow { grid-template-rows: minmax(0, 1fr); } }
+
+  .nx-flow__chart { position: relative; display: grid; grid-template-columns: minmax(104px, 34%) 16px minmax(36px, 1fr) 16px minmax(116px, auto); min-block-size: 0; }
+  .nx-flow__names, .nx-flow__kinds, .nx-flow__side { position: relative; min-inline-size: 0; }
+  /* a case: its name and its records as one text of at most two lines, so nothing is cut off by an ellipsis on one line */
+  .nx-flow__name { position: absolute; inset-inline: 0 var(--nx-s-1); transform: translateY(-50%); display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: var(--nx-fs-xs); line-height: 14px; color: var(--nx-text); }
+  .nx-flow__name > a, .nx-flow__name > span { display: inline; color: var(--nx-text); text-decoration: none; overflow-wrap: anywhere; }
+  .nx-flow__name > a:hover { color: var(--nx-accent-text); text-decoration: underline; }
+  .nx-flow__name > a:focus-visible { outline: 2px solid var(--nx-focus); outline-offset: 1px; border-radius: 2px; }
+  .nx-flow__name > b { margin-inline-start: 6px; font-weight: var(--nx-fw-semibold); color: var(--nx-text-2); white-space: nowrap; }
+
+  /* the nodes are the bars at the outer edge of each side; the thin lines join a label to its node when the label had to move */
+  .nx-flow__side > i { position: absolute; inline-size: 8px; min-block-size: 3px; border-radius: 3px; background: var(--c, var(--nx-text-3)); opacity: 0.8; transition: opacity var(--nx-dur-2) var(--nx-ease-standard); }
+  .nx-flow__side--left > i { inset-inline-end: 0; }
+  .nx-flow__side--right > i { inset-inline-start: 0; }
+  .nx-flow__chart[data-lit] .nx-flow__side > i.is-dim { opacity: 0.25; }
+  .nx-flow__leaders { position: absolute; inset-block: 0; inline-size: 8px; block-size: 100%; overflow: visible; }
+  .nx-flow__side--left .nx-flow__leaders { inset-inline-start: 0; }
+  .nx-flow__side--right .nx-flow__leaders { inset-inline-end: 0; }
+  .nx-flow__leaders > line { stroke: var(--nx-border-strong); stroke-width: 1; vector-effect: non-scaling-stroke; }
+
+  .nx-flow__svg { position: relative; inline-size: 100%; block-size: 100%; overflow: visible; }
+  .nx-flow__svg > path { fill: var(--c); opacity: 0.45; cursor: default; transform-origin: left center; animation: nx-grow-x 520ms var(--nx-ease-standard) both; animation-delay: calc(var(--i, 0) * 25ms); transition: opacity var(--nx-dur-2) var(--nx-ease-standard); }
+  .nx-flow__svg > path:hover, .nx-flow__svg > path.is-on { opacity: 0.8; }
+  .nx-flow__chart[data-lit] .nx-flow__svg > path:not(.is-on) { opacity: 0.14; }
+  :dir(rtl) .nx-flow__svg > path { transform-origin: right center; }
+
+  /* a kind: its name, and under it the records and the share, both whole */
+  .nx-flow__kind { position: absolute; inset-inline: var(--nx-s-1) 0; box-sizing: border-box; block-size: 32px; min-block-size: 0; max-block-size: 32px; align-content: center; display: grid; gap: 1px; transform: translateY(-50%); padding: 0 var(--nx-s-2) 0 var(--nx-s-3); border: 0; border-radius: var(--nx-r-2); background: none; color: var(--nx-text); font: inherit; font-size: var(--nx-fs-xs); line-height: 14px; text-align: start; cursor: pointer; }
+  .nx-flow__kind > span { display: block; font-weight: var(--nx-fw-semibold); line-height: 14px; }
+  .nx-flow__kind > small { display: block; font-size: 11px; line-height: 14px; color: var(--nx-text-2); white-space: nowrap; }
+  .nx-flow__kind > small > b { font-weight: var(--nx-fw-semibold); color: var(--nx-text); }
+  .nx-flow__kind > small > em { font-style: normal; }
+  .nx-flow__kind::before { content: ''; position: absolute; inset-inline-start: 0; inset-block: 3px; inline-size: 2px; border-radius: 1px; background: var(--c); }
+  .nx-flow__kind:hover, .nx-flow__kind[aria-pressed='true'] { background: var(--nx-hover); }
+  .nx-flow__kind[aria-pressed='true'] > span { color: var(--nx-accent-text); }
+  .nx-flow__kind:focus-visible { outline: 2px solid var(--nx-focus); outline-offset: 1px; }
+
+  /* a narrow cell gives the names the larger share (a name has two lines; the whole name is in the tooltip), the kinds a narrower column without the percentage (it is in the sentence under the figure and in the
+     table), and the ribbons what is left */
+  @container panel (max-width: 419px) { .nx-flow__chart { grid-template-columns: minmax(100px, 42%) 12px minmax(40px, 1fr) 12px minmax(76px, auto); } .nx-flow__kind > small > em { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .nx-flow__svg > path { animation: none; transition: none; } .nx-flow__nodes > i { transition: none; } }
+  :root[data-motion='reduce'] .nx-flow__svg > path { animation: none; transition: none; }
+}
