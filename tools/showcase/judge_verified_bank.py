@@ -24,6 +24,8 @@ PRIVATE_BANK = os.environ.get("ORION_VIDEO_PRIVATE_BANK", "C:/NexusAI-Showcase/o
 VIDEO_SUFFIXES = (".mp4", ".mov", ".avi", ".mkv")
 VIDEO_AREAS = ("videos", "vsearch")
 PLATE_ROUTE_AREAS = ("imgplate", "vsearch")     # questions with a typed plate: answered by the plate-in-images route, not by the Ask engine's SQL
+TEXT_ROUTE_TYPES = ("audio_word_search",)       # a word to find in the recordings: answered by the governed text search (the text-intent step routes it before the engine), not by the engine's SQL
+INCOMPLETE_SENTENCE = re.compile(r"search is incomplete|absence of further matches has not been established", re.I)
 
 AREAS = [
     ("calls", "Calls of one subscriber", "How many voice calls, how long, when, to whom and on which day: counts of calls made and received, talk time, the longest and the average call, calls at night, calls over ten minutes, the first and last event, the number called most, the busiest day, how many different numbers were contacted.", "Ask this case: the sentence first, then the table and \"Behind this answer\"."),
@@ -107,6 +109,11 @@ def verdict(item, result, private=None):
     state = result.get("state")
     if state == "declined" and item.get("area") in PLATE_ROUTE_AREAS and not result.get("header") and result.get("older_path_answer"):
         # a plate typed into a question is answered by the plate-in-images route, which comes before the Ask engine and sets no engine header: ask_case.py calls that "declined"; it is the designed answer
+        result = dict(result, state="answered", answer=result["older_path_answer"])
+        state = "answered"
+    elif state == "declined" and item.get("type") in TEXT_ROUTE_TYPES and not result.get("header") and result.get("older_path_answer") and not INCOMPLETE_SENTENCE.search(result["older_path_answer"]):
+        # owner's decision 2026-11-16: the governed text search is a designed answer route, so its answer is judged like any other. An answer that itself says the search is incomplete stays "declined":
+        # it makes no claim to be the full list, and the file check below is exact (a missing or an extra recording is wrong)
         result = dict(result, state="answered", answer=result["older_path_answer"])
         state = "answered"
     if result.get("timed_out") or result.get("error") == "TimeoutError":

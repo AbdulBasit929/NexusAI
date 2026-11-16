@@ -125,6 +125,20 @@ class VideoVerdicts(unittest.TestCase):
         # and a question of another family is never rescued this way
         self.assertEqual(judge.verdict(dict(item, area="calls", expect={"kind": "scalar", "value": 3}), route), "declined")
 
+    def test_a_word_search_is_scored_on_the_text_search_answer_unless_it_says_it_is_incomplete(self):
+        item = {"id": "VB-SPEE-023", "area": "speech", "type": "audio_word_search", "expect": {"kind": "files", "values": ["voice-note-03.wav", "voice-note-06.wav"], "universe": r"voice-note-\d+\.wav"}}
+        route = {"state": "declined", "header": "", "older_path_answer": "voice-note-06.wav mentions it at 0 seconds. 2 recordings carry a matching segment: voice-note-06.wav, voice-note-03.wav."}
+        self.assertEqual(judge.verdict(item, route), "correct")
+        # a recording missing or one too many is wrong
+        self.assertEqual(judge.verdict(item, dict(route, older_path_answer="voice-note-06.wav mentions it at 0 seconds.")), "wrong")
+        self.assertEqual(judge.verdict(item, dict(route, older_path_answer=route["older_path_answer"] + " Also voice-note-01.wav.")), "wrong")
+        # an answer that says its search is incomplete makes no claim to be the full list: it stays a decline
+        incomplete = route["older_path_answer"] + " This search is incomplete; absence of further matches has not been established."
+        self.assertEqual(judge.verdict(item, dict(route, older_path_answer=incomplete)), "declined")
+        # an engine that really declined (it sent its header) is still a decline, and another question type is never rescued this way
+        self.assertEqual(judge.verdict(item, dict(route, header="state=declined")), "declined")
+        self.assertEqual(judge.verdict(dict(item, type="audio_length", expect={"kind": "scalar", "value": 3}), route), "declined")
+
     def test_a_declined_answer_is_not_a_verdict_on_the_content(self):
         item = self.item({"vkind": "number", "value": 3})
         self.assertEqual(judge.verdict(item, {"state": "declined"}), "declined")
