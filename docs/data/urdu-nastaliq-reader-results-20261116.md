@@ -22,7 +22,7 @@ Run on this laptop on 2026-11-17 inside the existing stack's memory: the languag
 | Development row | Pixels / resized | Reader Q (capped) character error | Reader T (live route) character error | Characters returned (reference) | Seconds |
 |---|---|---|---|---|---|
 | 286 | 645,120 / yes | 39.1% | 72.4% | 473 (550) | 207 |
-| 671 | larger than the cap / yes | 42.8% | 65.0% | 584 (697) | 239 |
+| 671 | 913,152 / yes | 42.8% | 65.0% | 584 (697) | 239 |
 | 245 | 264,192 / no | 27.0% | 76.7% | 244 (270) | 103 |
 | **Pooled, 3 rows** | | **38.6% [27.0, 42.8]**, word error 77.7%, no loops | **69.7%** | | median 207, max 239; peak 6.05 GB |
 
