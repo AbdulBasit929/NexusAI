@@ -15,6 +15,11 @@ Reader T is what the product does today for an Urdu page: Tesseract 5, `best` da
 
 **Consequence for the product.** An Urdu page printed in Nastaliq is reported as read with low confidence and review required; that wording is right, but the reading is of little use for search. Naskh print (books, some forms) is a different case and is not measured here (9% on rendered lines; real Naskh print is not in this set).
 
-## 2. The VLM reader (Q) and the control (B)
+## 2. The VLM reader (Q) and the control (B): not run on this machine
 
-Not run yet: the base model (Qwen2-VL-2B-Instruct, 4.43 GB) is still downloading. The plan is in the pre-registration: Q on the first 30 sealed rows, then the other 30 if the speed allows; the language-model container is stopped for the run and started again after it.
+Qwen2-VL-2B-Instruct (4.43 GB) and the Qaari adapter are downloaded, hashed and in the ledger, and the lab script runs them, but they were **not measured**: this laptop cannot hold the model next to the live stack without risking a Docker freeze (pre-registration, amendment A3). Full pass of the live route over all 829 pages, for information: 70.1% character error, 91.4% word error, the best page 25.1%, no page under 25%, the reader returns half of the characters (0.50). The question this leaves open is whether an open vision-language reader gets real Nastaliq print under 25%: the published open readers do not (TrOCR 15.9% on a related set, Kraken 22.1%, EasyOCR 24.6%), and the adapter's own 2.9% was measured on synthetic pages of five fonts. It is measured on the first machine with a GPU or at least 12 GB of free memory.
+
+## 3. What this means now
+
+* The Urdu route reads Nastaliq newspaper print at about 70% character error. It is labelled low confidence and review required, which is correct, and it should not be relied on to find words in such pages.
+* Nothing in the live system changed because of this measurement.
