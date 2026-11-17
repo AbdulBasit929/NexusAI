@@ -19,9 +19,9 @@ import sys
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 DATA = os.environ.get("NEXUSAI_MEDIA_DATA", "/data")
-OUT = os.path.join(DATA, "generated", "ocr_en")
+OUT = os.path.join(DATA, "generated", "ocr_en" + os.environ.get("OCR_GEN_SUFFIX", ""))
 FONT = os.path.join(DATA, "fonts", "NotoSans.ttf")
-SEED = 20261021
+SEED = int(os.environ.get("OCR_GEN_SEED", "20261021"))  # a different seed makes a fresh set (acceptance runs); the default reproduces the registered set
 PAGES = 48
 
 BANKS = ["HBL", "UBL", "MCB", "ALFH", "SCBL", "MEZN", "ABPA", "BAHL"]

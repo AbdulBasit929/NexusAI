@@ -27,9 +27,9 @@ import pyarrow.parquet as pq
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 DATA = os.environ.get("NEXUSAI_MEDIA_DATA", "/data")
-OUT = Path(DATA) / "generated" / "ocr_mixed"
+OUT = Path(DATA) / "generated" / ("ocr_mixed" + os.environ.get("OCR_GEN_SUFFIX", ""))
 FONT_DIR = Path(DATA) / "fonts"
-SEED = 20261117
+SEED = int(os.environ.get("OCR_GEN_SEED", "20261117"))  # a different seed makes a fresh set (acceptance runs); the default reproduces the registered set
 GAP = 12          # pixels between two runs of a line: the swash of an Urdu letter reaches past its advance and touched the next Latin word
 PER_KIND = {"mixline": 40, "form": 24, "statement": 24, "receipt": 24, "chat": 24}
 ARABIC = re.compile(r"[\u0600-\u06ff\u0750-\u077f\ufb50-\ufdff\ufe70-\ufeff]")

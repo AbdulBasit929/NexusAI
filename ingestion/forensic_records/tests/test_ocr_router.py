@@ -3,9 +3,10 @@
 
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
-from ingestion.forensic_records.media_pipeline import MediaObservation, MediaProcessResult
-from ingestion.forensic_records.ocr_router import ONNX_LATIN, TESSERACT_LATIN, TESSERACT_URDU, OcrRouter, reading_quality
+from ingestion.forensic_records.media_pipeline import MediaObservation, MediaProcessingError, MediaProcessResult, ModelUnavailableError
+from ingestion.forensic_records.ocr_router import EASYOCR_URDU, ONNX_LATIN, TESSERACT_LATIN, TESSERACT_URDU, OcrRouter, reading_quality
 
 
 def observation(text, confidence):
@@ -145,6 +146,132 @@ class ProbeRoutingTests(unittest.TestCase):
         out = OcrRouter(FakeEngine(result()), urdu, onnx, lambda image: "Arabic").process_image(self.path)
         self.assertEqual(out.metadata["ocr_route"]["engine_used"], TESSERACT_URDU)
         self.assertIsNone(out.metadata["ocr_route"]["arabic_script_share"])
+
+
+class FailingEngine(FakeEngine):
+    def process_image(self, path, **context):
+        self.calls += 1
+        raise MediaProcessingError("engine failed")
+
+
+URDU_LINE = "اس بات سے کہا گیا"
+
+
+class EasyOcrRoutingTests(unittest.TestCase):
+    path = Path("page.png")
+
+    def build(self, easy, tess_urdu=None, share=0.9, onnx=None, **kwargs):
+        onnx = onnx or ProbedOnnx(result(("Receipt total 1,200 cash 1,500", 0.95)), share)
+        onnx.share = share
+        return OcrRouter(FakeEngine(result()), tess_urdu, onnx, lambda image: "Arabic", confident=0.75, minimum_characters=12, easyocr=easy, **kwargs), onnx
+
+    def test_an_urdu_page_is_read_by_easyocr_and_nothing_else_is_run(self):
+        easy, tess = FakeEngine(result((URDU_LINE, 0.80))), FakeEngine(result(("other", 0.99)))
+        router_, onnx = self.build(easy, tess, share=0.92)
+        out = router_.process_image(self.path)
+        self.assertEqual((easy.calls, tess.calls, onnx.calls), (1, 0, 0))
+        self.assertEqual(out.metadata["ocr_route"]["engine_used"], EASYOCR_URDU)
+        self.assertEqual(out.metadata["ocr_route"]["engines_tried"], [EASYOCR_URDU])
+        self.assertEqual(out.metadata["ocr_route"]["arabic_script_share"], 0.92)
+        self.assertTrue(any("Arabic-script page" in item for item in out.limitations))
+
+    def test_a_latin_page_is_still_read_by_the_onnx_engine_and_easyocr_is_not_run(self):
+        easy = FakeEngine(result(("never used", 0.9)))
+        router_, onnx = self.build(easy, FakeEngine(result()), share=0.05)
+        out = router_.process_image(self.path)
+        self.assertEqual((easy.calls, onnx.calls), (0, 1))
+        self.assertEqual(out.metadata["ocr_route"]["engine_used"], ONNX_LATIN)
+        self.assertTrue(out.metadata["ocr_route"]["easyocr_configured"])
+
+    def test_the_urdu_share_threshold_decides_where_a_mixed_page_goes(self):
+        easy = FakeEngine(result((URDU_LINE + " 0300-1234567", 0.8)))
+        router_, onnx = self.build(easy, FakeEngine(result()), share=0.40, urdu_share_threshold=0.30)
+        self.assertEqual(router_.process_image(self.path).metadata["ocr_route"]["engine_used"], EASYOCR_URDU)
+        easy2 = FakeEngine(result(("never used", 0.8)))
+        router2, onnx2 = self.build(easy2, FakeEngine(result()), share=0.40, urdu_share_threshold=0.5)
+        self.assertEqual(router2.process_image(self.path).metadata["ocr_route"]["engine_used"], ONNX_LATIN)
+        self.assertEqual(easy2.calls, 0)
+
+    def test_the_default_threshold_is_the_one_chosen_on_development_rows(self):
+        # every English page and receipt measured at most 0.047 and every Urdu page at least 0.50 (acceptance plan, amendment A1)
+        self.assertEqual(OcrRouter(FakeEngine(result()), None, None, lambda image: None).urdu_share_threshold, 0.10)
+        easy_low, easy_high = FakeEngine(result(("never used", 0.8))), FakeEngine(result((URDU_LINE, 0.8)))
+        self.assertEqual(self.build(easy_low, FakeEngine(result()), share=0.05)[0].process_image(self.path).metadata["ocr_route"]["engine_used"], ONNX_LATIN)
+        self.assertEqual(self.build(easy_high, FakeEngine(result()), share=0.12)[0].process_image(self.path).metadata["ocr_route"]["engine_used"], EASYOCR_URDU)
+
+    def test_without_a_probe_the_script_pass_decides(self):
+        easy = FakeEngine(result((URDU_LINE, 0.8)))
+        out = OcrRouter(FakeEngine(result()), None, FakeEngine(result(("x", 0.9))), lambda image: "Arabic", easyocr=easy).process_image(self.path)
+        self.assertEqual(out.metadata["ocr_route"]["engine_used"], EASYOCR_URDU)
+        self.assertIsNone(out.metadata["ocr_route"]["arabic_script_share"])
+
+    def test_a_failing_easyocr_falls_back_to_tesseract_urdu_and_says_so(self):
+        easy, tess = FailingEngine(result()), FakeEngine(result((URDU_LINE, 0.7)))
+        router_, _ = self.build(easy, tess)
+        out = router_.process_image(self.path)
+        self.assertEqual(out.metadata["ocr_route"]["engine_used"], TESSERACT_URDU)
+        self.assertEqual(out.metadata["ocr_route"]["engines_tried"], [EASYOCR_URDU, TESSERACT_URDU])
+        self.assertTrue(any("easyocr-ur+en failed" in item for item in out.limitations))
+
+    def test_a_failing_easyocr_with_no_fallback_is_an_error_not_a_silent_latin_reading(self):
+        router_, onnx = self.build(FailingEngine(result()), None)
+        with self.assertRaises(MediaProcessingError):
+            router_.process_image(self.path)
+        self.assertEqual(onnx.calls, 0)
+
+    def test_both_engines_failing_raises_the_fallbacks_error(self):
+        router_, _ = self.build(FailingEngine(result()), FailingEngine(result()))
+        with self.assertRaises(MediaProcessingError):
+            router_.process_image(self.path)
+
+    def test_an_almost_empty_easyocr_reading_is_replaced_only_by_a_longer_fallback_reading(self):
+        easy, tess = FakeEngine(result(("ab", 0.9))), FakeEngine(result((URDU_LINE, 0.4)))
+        out = self.build(easy, tess)[0].process_image(self.path)
+        self.assertEqual(out.metadata["ocr_route"]["engine_used"], TESSERACT_URDU)
+        easy2, tess2 = FakeEngine(result(("abcdef", 0.5))), FakeEngine(result(("ab", 0.99)))
+        out2 = self.build(easy2, tess2)[0].process_image(self.path)
+        self.assertEqual(out2.metadata["ocr_route"]["engine_used"], EASYOCR_URDU)  # the fallback read less: confidences of different engines are never compared
+
+    def test_a_long_easyocr_reading_is_kept_even_when_its_confidence_is_low(self):
+        easy, tess = FakeEngine(result((URDU_LINE + " " + URDU_LINE, 0.30))), FakeEngine(result(("other text here", 0.99)))
+        out = self.build(easy, tess)[0].process_image(self.path)
+        self.assertEqual((out.metadata["ocr_route"]["engine_used"], tess.calls), (EASYOCR_URDU, 0))
+
+    def test_an_empty_easyocr_reading_with_an_empty_fallback_returns_an_empty_result(self):
+        easy, tess = FakeEngine(result()), FakeEngine(result())
+        out = self.build(easy, tess)[0].process_image(self.path)
+        self.assertEqual(len(out.observations), 0)
+
+    def test_the_urdu_share_threshold_must_be_a_share(self):
+        for bad in (0, -0.1, 1.5):
+            with self.assertRaises(ValueError):
+                OcrRouter(FakeEngine(result()), None, None, lambda image: None, urdu_share_threshold=bad)
+
+    def test_the_router_names_version_5(self):
+        self.assertEqual(OcrRouter.processor_revision, "nexusai-ocr-router-v5")
+
+
+class EnvironmentTests(unittest.TestCase):
+    base = {"FORENSIC_OCR_LANGUAGES": "eng", "FORENSIC_ONNX_OCR_DETECTOR_PATH": ""}
+
+    def test_easyocr_is_off_unless_it_is_enabled(self):
+        with patch.dict("os.environ", {**self.base, "FORENSIC_OCR_EASYOCR_ENABLED": ""}), \
+                patch("ingestion.forensic_records.ocr_router.TesseractImageOCRProcessor.from_environment", return_value=FakeEngine(result())):
+            self.assertIsNone(OcrRouter.from_environment().easyocr)
+
+    def test_an_enabled_easyocr_with_a_model_file_that_does_not_match_refuses_to_start(self):
+        import hashlib
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as directory:
+            for name in ("craft_mlt_25k.pth", "arabic.pth"):
+                (Path(directory) / name).write_bytes(b"x")
+            environment = {**self.base, "FORENSIC_OCR_EASYOCR_ENABLED": "true", "FORENSIC_EASYOCR_MODEL_DIR": directory,
+                           "FORENSIC_EASYOCR_DETECTOR_SHA256": hashlib.sha256(b"x").hexdigest(), "FORENSIC_EASYOCR_RECOGNIZER_SHA256": "0" * 64}
+            with patch.dict("os.environ", environment), \
+                    patch("ingestion.forensic_records.ocr_router.TesseractImageOCRProcessor.from_environment", return_value=FakeEngine(result())):
+                with self.assertRaises(ModelUnavailableError):
+                    OcrRouter.from_environment()
 
 
 if __name__ == "__main__":

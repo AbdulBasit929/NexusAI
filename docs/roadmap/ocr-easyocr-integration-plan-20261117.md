@@ -35,7 +35,7 @@ Train our own recogniser with EasyOCR's open trainer (`None-VGG-BiLSTM-CTC`) on 
 
 ## 5. Rules
 
-* The role is **off** until the owner switches it on; the first deploy ships it disabled. One role is turned on at a time.
+* The role is **off** until the owner switches it on; the first deploy ships it disabled. One role is turned on at a time. **Owner direction, 2026-11-17 (chat):** enable it for development after the acceptance run, and do not treat the weights licence as a blocker for now (the ledger rows and the `weights_licence_status` field on every reading stay, so the question is not lost; it matters before the tool is given to others).
 * Every EasyOCR reading is a **model observation, review required**; the limitation sentence says that Urdu line order and low-quality Nastaliq are not certified and that a reading of a table row with Urdu text may return its columns in reverse order (the order effect measured in the bake-off).
 * Existing evidence is read again only by a governed reprocess with lineage (the earlier reading is kept); nothing is overwritten.
 * A reading that fails or comes back almost empty falls back to Tesseract `urd+eng`, as today; no reading is merged with another.

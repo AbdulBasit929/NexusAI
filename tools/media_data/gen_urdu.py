@@ -21,9 +21,9 @@ import pyarrow.parquet as pq
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 DATA = os.environ.get("NEXUSAI_MEDIA_DATA", "/data")
-OUT = Path(DATA) / "generated" / "ocr_ur"
+OUT = Path(DATA) / "generated" / ("ocr_ur" + os.environ.get("OCR_GEN_SUFFIX", ""))
 FONTS = {"nastaliq": Path(DATA) / "fonts" / "NotoNastaliqUrdu.ttf", "naskh": Path(DATA) / "fonts" / "NotoNaskhArabic.ttf"}
-SEED = 20261021
+SEED = int(os.environ.get("OCR_GEN_SEED", "20261021"))  # a different seed makes a fresh set (acceptance runs); the default reproduces the registered set
 
 
 def partition(key):

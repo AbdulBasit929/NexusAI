@@ -36,16 +36,26 @@ LORA_ALPHA, LORA_RANK = 16, 16
 def rows(part):
     import pyarrow.parquet as pq
     path = glob.glob(os.path.join(DATA, "datasets/urdu-newspaper-benchmark/*/data/*.parquet"))[0]
-    table = pq.read_table(path).to_pylist()
-    keyed = sorted(((hashlib.sha256(str(i).encode()).hexdigest(), i) for i in range(len(table))))
+    parquet = pq.ParquetFile(path)
+    keyed = sorted(((hashlib.sha256(str(i).encode()).hexdigest(), i) for i in range(parquet.metadata.num_rows)))
     if part == "dev":
         chosen = [k for k in keyed if k[0][0] == "0"][:12]
     elif part == "sealed":
         chosen = [k for k in keyed if k[0][0] != "0"][:60]
+    elif part == "fresh":   # the rows of the sealed side AFTER the 60 that the bake-off read: no EasyOCR reading of them exists (product acceptance, 2026-11-17)
+        chosen = [k for k in keyed if k[0][0] != "0"][60:]
     else:
         chosen = keyed
+    # Memory only (2026-11-17, amendment A2 of the bake-off plan): the whole table used to be turned into Python objects, which with the EasyOCR reader beside it exceeded the 3 GB cap.
+    # The rows chosen above are the same; only these are held, read in small batches.
+    wanted, held, index = {i for _, i in chosen}, {}, 0
+    for batch in parquet.iter_batches(batch_size=4, columns=["high_resolution", "transcription"]):
+        for record in batch.to_pylist():
+            if index in wanted:
+                held[index] = (record["high_resolution"]["bytes"], record["transcription"])
+            index += 1
     for key, i in chosen:
-        yield i, key, table[i]["high_resolution"]["bytes"], table[i]["transcription"]
+        yield i, key, held[i][0], held[i][1]
 
 
 def read_tesseract(image_bytes):
@@ -143,7 +153,7 @@ def summary(records):
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--reader", required=True, choices=("tesseract", "qaari", "base", "easyocr"))
-    ap.add_argument("--part", required=True, choices=("dev", "sealed", "all"))
+    ap.add_argument("--part", required=True, choices=("dev", "sealed", "fresh", "all"))
     ap.add_argument("--limit", type=int, default=0, help="the first N rows in hash order (0 = all of the part)")
     ap.add_argument("--out", required=True)
     ap.add_argument("--max-pixels", type=int, default=0, help="cap the image size in pixels (amendment A5: the CPU laptop cannot hold the vision attention of a full-size page); 0 = the processor default, no resizing")

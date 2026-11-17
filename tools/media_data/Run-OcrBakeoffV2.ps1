@@ -1,10 +1,11 @@
 # OCR bake-off v2, sealed runs (docs/data/ocr-bakeoff-v2-preregistration-20261117.md). One container at a time, memory-capped, no network, with a watchdog that kills ONLY the test container
 # when host available memory falls below 600 MB. Each sealed run is made once: a failed run is reported, never repeated automatically.
 #
-#   powershell -NoProfile -File tools\media_data\Run-OcrBakeoffV2.ps1
+#   powershell -NoProfile -File tools\media_data\Run-OcrBakeoffV2.ps1                 (all runs)
+#   powershell -NoProfile -File tools\media_data\Run-OcrBakeoffV2.ps1 -Only unb-E       (named runs; a value without -Only used to be taken as the data folder)
 #
 # Results: JSON files under <data>\results\ocr (one per set and reader), logs under C:\tmp\nexusai-g4\ocr_v2_*.log.
-param([string]$Data = 'C:/tmp/nexusai-media-data', [string]$Repo = 'C:/Users/sheik/Workspace/Office/Projects/NexusAI-localwork', [string]$Logs = 'C:/tmp/nexusai-g4')
+param([string]$Data = 'C:/tmp/nexusai-media-data', [string]$Repo = 'C:/Users/sheik/Workspace/Office/Projects/NexusAI-localwork', [string]$Logs = 'C:/tmp/nexusai-g4', [string[]]$Only = @())
 $docker = "C:\Users\sheik\AppData\Local\Programs\DockerDesktop\resources\bin\docker.exe"
 $base = 'nexusai-media-eval:latest'
 $easy = 'nexusai-media-eval-easyocr:20261117'
@@ -28,14 +29,14 @@ $runs = @(
   @('cord-Een',       $easy, 3000, '/repo/tools/media_data/ocr_eval.py --set cord --engine easyocr:en --partition sealed'),
   @('unb-E',          $easy, 3000, '/repo/tools/media_data/nastaliq_lab.py --reader easyocr --part sealed --out /out/e-sealed.jsonl')
 )
-$only = $args | Where-Object { $_ }
 foreach ($r in $runs) {
   $name, $image, $mem, $pyargs = $r
-  if ($only -and ($only -notcontains $name)) { continue }
+  if ($Only.Count -gt 0 -and ($Only -notcontains $name)) { continue }
   $cname = "nxocr-$name-" + (Get-Date -Format 'HHmmss')
   "[{0}] {1}: start (host available {2} MB)" -f (Get-Date -Format 'HH:mm:ss'), $name, (Avail)
   $volumes = @('-v', "${Data}:/data", '-v', "${Repo}:/repo:ro", '-v', "${Data}/results/nastaliq:/out")
   & $docker run -d --name $cname --network none --memory "${mem}m" --memory-swap "${mem}m" --entrypoint python @volumes $image @($pyargs -split ' ') 2>&1 | Out-Null
+  if ($LASTEXITCODE -ne 0) { "[{0}] {1}: the container did not start (docker exit {2}); nothing was read" -f (Get-Date -Format 'HH:mm:ss'), $name, $LASTEXITCODE; continue }
   $reason = ''
   while ($true) {
     Start-Sleep -Seconds 20
@@ -45,7 +46,7 @@ foreach ($r in $runs) {
   }
   if ($reason) { "[{0}] {1}: WATCHDOG {2}: killing only the test container" -f (Get-Date -Format 'HH:mm:ss'), $name, $reason; & $docker kill $cname 2>&1 | Out-Null }
   $state = (& $docker inspect -f 'exit={{.State.ExitCode}} oom_killed={{.State.OOMKilled}}' $cname 2>&1)
-  & $docker logs $cname 2>&1 | Where-Object { $_ -notmatch 'device_discovery|Warning|warn' } | Out-File -Encoding utf8 "$Logs/ocr_v2_$name.log"
+  & $docker logs $cname 2>&1 | Where-Object { $_ -notmatch 'device_discovery|Warning|warn' } | Out-File -Encoding utf8 "$Logs/ocr_v2_${name}_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
   & $docker rm -f $cname 2>&1 | Out-Null
   "[{0}] {1}: finished, {2}" -f (Get-Date -Format 'HH:mm:ss'), $name, $state
 }

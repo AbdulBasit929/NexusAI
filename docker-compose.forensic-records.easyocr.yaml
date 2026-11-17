@@ -1,0 +1,18 @@
+# EasyOCR role of the routed image OCR (docs/roadmap/ocr-easyocr-integration-plan-20261117.md; code in ingestion/forensic_records/easyocr_ocr_processor.py and ocr_router.py v5).
+# Add this file AFTER the files of the running worker (main compose, ingest-v2, media, families, plates, video, speech-routes). Recreating the worker WITHOUT it leaves the router exactly as before.
+# The role is OFF by default: with FORENSIC_OCR_EASYOCR_ENABLED=false nothing is loaded and no page is sent to EasyOCR. Turning it on is a separate decision (the owner's word, one role at a time, D25);
+# the licence of the pretrained weights is not confirmed (docs/compliance/easyocr-weights-licence-request-20261117.md, ledger MOD-047 to MOD-049) and the role stays "evaluation only" until it is, or
+# until our own recogniser replaces the files.
+# The two model files (craft_mlt_25k.pth and arabic.pth) are read from the media model folder (mounted read-only at /models/media) and pinned by SHA-256: the worker refuses to start with a file that differs.
+# Provision them with tools/media_data/Install-EasyOcrModels.ps1. Every reading is a model observation that needs review; Urdu line order and low-quality Nastaliq are not certified.
+services:
+  forensic-records-worker:
+    environment:
+      FORENSIC_OCR_EASYOCR_ENABLED: ${FORENSIC_OCR_EASYOCR_ENABLED:-false}
+      FORENSIC_EASYOCR_MODEL_DIR: ${FORENSIC_EASYOCR_MODEL_DIR:-/models/media/easyocr/model}
+      FORENSIC_EASYOCR_DETECTOR_SHA256: ${FORENSIC_EASYOCR_DETECTOR_SHA256:-4a5efbfb48b4081100544e75e1e2b57f8de3d84f213004b14b85fd4b3748db17}
+      FORENSIC_EASYOCR_RECOGNIZER_SHA256: ${FORENSIC_EASYOCR_RECOGNIZER_SHA256:-2a9afd42c374deb98aed0b53c9b77d75e1d00d4e0501f3b0276c54190c89b1a8}
+      FORENSIC_EASYOCR_THREADS: ${FORENSIC_EASYOCR_THREADS:-4}
+      FORENSIC_EASYOCR_MAX_SIDE: ${FORENSIC_EASYOCR_MAX_SIDE:-1400}
+      # the share of Arabic-script letters (from the existing probe) at or above which a page goes to EasyOCR; 0.10 chosen on development rows (every English page and receipt measured at most 0.047, every Urdu page at least 0.50; docs/data/ocr-easyocr-acceptance-preregistration-20261117.md amendment A1)
+      FORENSIC_OCR_ROUTER_URDU_SHARE: ${FORENSIC_OCR_ROUTER_URDU_SHARE:-0.10}
