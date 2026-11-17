@@ -501,6 +501,10 @@ func askUsesColumn(v *askValidated, names ...string) bool {
 }
 
 // askCheckFrame holds a validated query against the frame of its question. It returns what is unmet, in a fixed order.
+// askLanguageFilterSQL is a condition on the language of a recording; askLanguageAsked is a question that names a language or asks about languages.
+var askLanguageFilterSQL = regexp.MustCompile(`\blanguage(?:_name)?\s*(?:=|<>|!=|in\b|not in\b|like\b|ilike\b)`)
+var askLanguageAsked = regexp.MustCompile(`\b(?:` + tiLanguageNames + `|languages?|spoken|speaks?|speaking|tongue)\b`)
+
 func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	var unmet []askObligation
 	add := func(kind, message, reason string) {
@@ -797,6 +801,11 @@ func askCheckFrame(f askFrame, v *askValidated) []askObligation {
 	if f.Cues["count"] && !askSQLMentions(sql, "count(", "sum(") && !askUsesColumn(v, "events", "incoming", "outgoing", "sightings", "transactions") &&
 		!(askHowManyUnit.MatchString(strings.ToLower(f.Question)) && askSQLMentions(sql, "min(", "max(", "avg(", "duration")) {
 		add("AGGREGATE", "The question asks how many: count the rows (COUNT) or sum the counts of the view.", "the question asks for a count that the query does not compute")
+	}
+	// A condition on the language of a recording that the question never names (measured 2026-11-16: "Which of the voice notes talk about sharpener?" was answered with language_name = 'Pashto' added,
+	// matched nothing, and said that no speech segment matches: a false absence).
+	if askLanguageFilterSQL.MatchString(sql) && !askLanguageAsked.MatchString(strings.ToLower(f.Question)) {
+		add("INVENTED_FILTER", "The question does not name a language: remove the condition on language_name. It limits the answer to recordings of one language and the answer would say that nothing was found.", "the query filters on a language that the question never names")
 	}
 	if askNullCounterpartySQL.MatchString(sql) && !askNoCounterpartyAsked.MatchString(strings.ToLower(f.Question)) &&
 		(askUsesView(v, "v_account_flows") || askUsesView(v, "v_account_counterparties") || askUsesView(v, "v_account_activity") || askUsesView(v, "v_account_limit_bands") || askUsesView(v, "v_bank_transactions")) {

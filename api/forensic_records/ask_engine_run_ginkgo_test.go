@@ -186,6 +186,16 @@ var _ = Describe("Ask engine obligations", func() {
 		Expect(check("How many different numbers did 923000000101 contact?", "SELECT count(*) AS value FROM v_contact_pairs WHERE src = '923000000101'")).NotTo(ContainElement("AGGREGATE"))
 	})
 
+	It("refuses a language condition that the question never names, and accepts one it names", func() {
+		invented := "SELECT start_seconds, end_seconds, text FROM v_speech_segments WHERE language_name = 'Pashto' AND text ILIKE '%sharpener%' ORDER BY start_seconds"
+		plain := "SELECT start_seconds, end_seconds, text FROM v_speech_segments WHERE text ILIKE '%sharpener%' ORDER BY start_seconds"
+		Expect(check("Which of the voice notes talk about sharpener?", invented)).To(ContainElement("INVENTED_FILTER"))
+		Expect(check("Which of the voice notes talk about sharpener?", plain)).NotTo(ContainElement("INVENTED_FILTER"))
+		Expect(check("Which Pashto recordings talk about sharpener?", invented)).NotTo(ContainElement("INVENTED_FILTER"))
+		Expect(check("In which language is the recording that talks about sharpener?", invented)).NotTo(ContainElement("INVENTED_FILTER"))
+		Expect(check("Which audio recordings are in Pashto?", "SELECT original_filename FROM v_audio_files WHERE language_name = 'Pashto'")).NotTo(ContainElement("INVENTED_FILTER"))
+	})
+
 	It("takes a plain read of the length as the answer to how many seconds a recording lasts, and still counts when it is a number of things", func() {
 		for _, q := range []string{"Tell me how many seconds voice-note-09.wav lasts.", "How many seconds is the file voice-note-01.wav?"} {
 			Expect(check(q, "SELECT duration_seconds FROM v_audio_files WHERE original_filename = 'voice-note-01.wav'")).NotTo(ContainElement("AGGREGATE"))

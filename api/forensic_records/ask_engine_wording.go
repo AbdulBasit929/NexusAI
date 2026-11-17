@@ -393,6 +393,9 @@ func askPremiseLead(v *askValidated, f askFrame) string {
 	case askReadsDocumentView(v):
 		return askDocumentLead(f, stated)
 	case askReadsMediaView(v):
+		if askReadsOnlyAudioViews(v) {
+			return "" // the lead is about a vehicle or a photo (measured 2026-11-16: "Count the recordings whose language is Pashto" opened with it, "whose" being an ownership cue)
+		}
 		return askMediaLead(f, stated)
 	}
 	return ""

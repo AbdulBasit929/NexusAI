@@ -37,6 +37,19 @@ const askMediaTextCaveat = "Text a model read from a photo or a video frame, as 
 const askMediaFileCaveat = "Length, size and audio are what the video container's header states; they say nothing about what the video shows."
 const askMediaAudioFileCaveat = "Length, sample rate and channels are what the audio file's own header states. The language and the reading are a machine's: a person must listen before relying on them (a Pashto reading is a search lead, not a transcript)."
 
+// askReadsOnlyAudioViews is whether the query reads recordings and no other media view.
+func askReadsOnlyAudioViews(v *askValidated) bool {
+	if !askReadsView(v, "v_audio_files") && !askReadsView(v, "v_speech_segments") {
+		return false
+	}
+	for _, view := range askMediaViews {
+		if view != "v_audio_files" && view != "v_speech_segments" && askReadsView(v, view) {
+			return false
+		}
+	}
+	return true
+}
+
 // askReadsMediaView is whether the query reads one of the media views.
 func askReadsMediaView(v *askValidated) bool {
 	for _, view := range askMediaViews {

@@ -227,6 +227,20 @@ var _ = Describe("Ask engine media views (migration 023)", func() {
 		Expect(short.Views).To(ContainElement("v_video_files"))
 	})
 
+	It("keeps the vehicle and photo lead off a question that reads recordings only", func() {
+		cat, err := askGoldenCatalogue()
+		Expect(err).NotTo(HaveOccurred())
+		audio, rej := askValidate("SELECT count(*) AS value FROM v_audio_files WHERE language_name = 'Pashto'", cat, []string{"v_audio_files"})
+		Expect(rej).To(BeNil())
+		f := askExtractFrame("Count the recordings whose language is Pashto.")
+		Expect(askReadsOnlyAudioViews(audio)).To(BeTrue())
+		Expect(askPremiseLead(audio, f)).To(Equal(""))
+		video, rej := askValidate("SELECT count(*) AS value FROM v_video_files", cat, []string{"v_video_files"})
+		Expect(rej).To(BeNil())
+		Expect(askReadsOnlyAudioViews(video)).To(BeFalse())
+		Expect(askPremiseLead(video, askExtractFrame("Whose video is the longest?"))).To(ContainSubstring("candidate that needs checking"))
+	})
+
 	It("drops the inventory from a question that reads the video files", func() {
 		short := askShortlist{Views: []string{"v_video_files", "v_evidence_inventory"}, Scores: map[string]float64{"v_video_files": 4, "v_evidence_inventory": 2.5}}
 		Expect(askMediaPrune(mediaOnly, short)).To(Equal([]string{"v_video_files"}))
