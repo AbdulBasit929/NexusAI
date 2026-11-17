@@ -58,7 +58,7 @@ def read_tesseract(image_bytes):
 
 
 class Vlm:
-    def __init__(self, merge, device="cpu"):
+    def __init__(self, merge, device="cpu", max_pixels=None):
         import torch
         from safetensors.torch import load_file
         from transformers import AutoProcessor, Qwen2VLForConditionalGeneration
@@ -66,7 +66,8 @@ class Vlm:
         base = glob.glob(os.path.join(DATA, "models/ocr/qwen2-vl-2b-instruct/*"))[0]
         started = time.time()
         self.model = Qwen2VLForConditionalGeneration.from_pretrained(base, torch_dtype=torch.float16 if device == "cuda" else torch.bfloat16).eval()
-        self.processor = AutoProcessor.from_pretrained(base)
+        self.processor = AutoProcessor.from_pretrained(base, **({"max_pixels": max_pixels} if max_pixels else {}))
+        self.max_pixels = max_pixels
         self.torch = torch
         self.device = device
         merged = 0
@@ -99,6 +100,12 @@ class Vlm:
             ids = self.model.generate(**inputs, max_new_tokens=2000, do_sample=False)
         new = ids[:, inputs["input_ids"].shape[1]:]
         return self.processor.batch_decode(new, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0], int(new.shape[1])
+
+
+def image_pixels(image_bytes):
+    from PIL import Image
+    w, h = Image.open(io.BytesIO(image_bytes)).size
+    return w * h
 
 
 def looped(reference, hypothesis):
@@ -139,11 +146,12 @@ def main(argv):
     ap.add_argument("--part", required=True, choices=("dev", "sealed", "all"))
     ap.add_argument("--limit", type=int, default=0, help="the first N rows in hash order (0 = all of the part)")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--max-pixels", type=int, default=0, help="cap the image size in pixels (amendment A5: the CPU laptop cannot hold the vision attention of a full-size page); 0 = the processor default, no resizing")
     ap.add_argument("--device", default="cpu", choices=("cpu", "cuda"), help="cuda runs the same weights in float16 (amendment A4); nothing else changes")
     args = ap.parse_args(argv)
     if os.path.abspath(args.out).startswith("/repo") or os.path.commonpath([os.path.abspath(args.out), os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))]) == os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))):
         raise SystemExit("--out holds the reader's text of unlicensed newspaper pages and must be outside the repository")
-    vlm = Vlm(merge=args.reader == "qaari", device=args.device) if args.reader in ("qaari", "base") else None
+    vlm = Vlm(merge=args.reader == "qaari", device=args.device, max_pixels=args.max_pixels) if args.reader in ("qaari", "base") else None
     done = {json.loads(l)["row"] for l in open(args.out, encoding="utf-8")} if os.path.exists(args.out) else set()
     records = [json.loads(l) for l in open(args.out, encoding="utf-8")] if done else []
     for n, (i, key, image, reference) in enumerate(rows(args.part), 1):
@@ -153,7 +161,7 @@ def main(argv):
             continue
         started = time.time()
         text, tokens = read_tesseract(image) if args.reader == "tesseract" else vlm.read(image)
-        record = dict(row=i, key=key[:12], part=args.part, reader=args.reader, seconds=round(time.time() - started, 1), tokens=tokens, loop=looped(reference, text), hyp=text, **score(reference, text))
+        record = dict(row=i, key=key[:12], part=args.part, reader=args.reader, max_pixels=args.max_pixels, resized=bool(args.max_pixels and image_pixels(image) > args.max_pixels), seconds=round(time.time() - started, 1), tokens=tokens, loop=looped(reference, text), hyp=text, **score(reference, text))
         records.append(record)
         with open(args.out, "a", encoding="utf-8", newline="\n") as handle:
             handle.write(json.dumps(record, ensure_ascii=False) + "\n")
