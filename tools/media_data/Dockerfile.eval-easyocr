@@ -1,0 +1,11 @@
+# Throw-away evaluation image for the OCR bake-off v2 (docs/data/ocr-bakeoff-v2-preregistration-20261117.md): the evaluation image plus EasyOCR and its small requirements.
+# Built locally, never deployed, never run as a service. The product image is not touched. The model files are mounted from the data folder, never baked in.
+#
+#   docker build -t nexusai-media-eval-easyocr:20261117 -f tools/media_data/Dockerfile.eval-easyocr tools/media_data
+#
+# torchvision is the CPU build matching the torch of the base image; easyocr is installed without its dependency list so that torch and opencv are not replaced.
+FROM nexusai-media-eval:latest
+USER root
+RUN pip install --no-cache-dir --no-deps easyocr==1.7.2 \
+ && pip install --no-cache-dir --no-deps torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cpu \
+ && pip install --no-cache-dir scikit-image python-bidi Shapely pyclipper ninja PyYAML

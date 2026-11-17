@@ -116,12 +116,24 @@ def make_onnx(spec):
     return run_page
 
 
+def make_easyocr(spec):
+    """easyocr:<languages joined by +>, for example easyocr:ur+en or easyocr:en (OCR bake-off v2; one thread; the line assembly of easyocr_reader.py)."""
+    import easyocr_reader
+    reader = easyocr_reader.make_reader(spec.split(":")[1].split("+"), DATA)
+
+    def run(path):
+        return easyocr_reader.read_path(reader, path)
+    return run
+
+
 def make_engine(spec):
     kind = spec.split(":")[0]
     if kind == "tess":
         return make_tesseract(spec)
     if kind == "onnx":
         return make_onnx(spec)
+    if kind == "easyocr":
+        return make_easyocr(spec)
     raise SystemExit(f"unknown engine {spec}")
 
 
@@ -163,6 +175,14 @@ def items_ur(kind, style, limit, part):
         yield {"id": row["id"], "path": folder / row["file"], "text": row["text"], "group": f"{row['style']}-{row['variant']}", "identifiers": row.get("identifiers", [])}
 
 
+def items_mixed(limit, part):
+    folder = Path(DATA) / "generated" / "ocr_mixed"
+    rows = [json.loads(line) for line in open(folder / "truth.jsonl", encoding="utf-8")]
+    rows = [r for r in rows if r["partition"] == part]
+    for row in rows[:limit] if limit else rows:
+        yield {"id": row["id"], "path": folder / row["file"], "text": row["text"], "group": row["variant"], "identifiers": row["identifiers"]}
+
+
 def items_cord(limit, part):
     import pyarrow.parquet as pq
     table = pq.read_table(Path(DATA) / "cord" / "test.parquet")
@@ -187,7 +207,7 @@ def items_cord(limit, part):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--set", required=True, choices=("en_pages", "urdu_naskh", "urdu_nastaliq", "cord", "ur_lines_naskh", "ur_lines_nastaliq", "ur_pages"))
+    parser.add_argument("--set", required=True, choices=("en_pages", "urdu_naskh", "urdu_nastaliq", "cord", "ur_lines_naskh", "ur_lines_nastaliq", "ur_pages", "mixed"))
     parser.add_argument("--engine", action="append", required=True)
     parser.add_argument("--partition", default="dev", choices=("dev", "sealed"))
     parser.add_argument("--limit", type=int, default=0)
@@ -196,6 +216,8 @@ def main():
         items = list(items_en_pages(args.limit, args.partition))
     elif args.set == "cord":
         items = list(items_cord(args.limit, args.partition))
+    elif args.set == "mixed":
+        items = list(items_mixed(args.limit, args.partition))
     elif args.set == "ur_pages":
         items = list(items_ur("page", None, args.limit, args.partition))
     elif args.set.startswith("ur_lines_"):

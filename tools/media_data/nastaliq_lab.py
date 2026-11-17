@@ -142,7 +142,7 @@ def summary(records):
 
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--reader", required=True, choices=("tesseract", "qaari", "base"))
+    ap.add_argument("--reader", required=True, choices=("tesseract", "qaari", "base", "easyocr"))
     ap.add_argument("--part", required=True, choices=("dev", "sealed", "all"))
     ap.add_argument("--limit", type=int, default=0, help="the first N rows in hash order (0 = all of the part)")
     ap.add_argument("--out", required=True)
@@ -152,6 +152,10 @@ def main(argv):
     if os.path.abspath(args.out).startswith("/repo") or os.path.commonpath([os.path.abspath(args.out), os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))]) == os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))):
         raise SystemExit("--out holds the reader's text of unlicensed newspaper pages and must be outside the repository")
     vlm = Vlm(merge=args.reader == "qaari", device=args.device, max_pixels=args.max_pixels) if args.reader in ("qaari", "base") else None
+    easy = None
+    if args.reader == "easyocr":
+        import easyocr_reader
+        easy = easyocr_reader.make_reader(["ur", "en"], DATA)
     done = {json.loads(l)["row"] for l in open(args.out, encoding="utf-8")} if os.path.exists(args.out) else set()
     records = [json.loads(l) for l in open(args.out, encoding="utf-8")] if done else []
     for n, (i, key, image, reference) in enumerate(rows(args.part), 1):
@@ -160,7 +164,10 @@ def main(argv):
         if i in done:
             continue
         started = time.time()
-        text, tokens = read_tesseract(image) if args.reader == "tesseract" else vlm.read(image)
+        if args.reader == "easyocr":
+            text, tokens = easyocr_reader.read_bytes(easy, image)[0], None
+        else:
+            text, tokens = read_tesseract(image) if args.reader == "tesseract" else vlm.read(image)
         record = dict(row=i, key=key[:12], part=args.part, reader=args.reader, max_pixels=args.max_pixels, resized=bool(args.max_pixels and image_pixels(image) > args.max_pixels), seconds=round(time.time() - started, 1), tokens=tokens, loop=looped(reference, text), hyp=text, **score(reference, text))
         records.append(record)
         with open(args.out, "a", encoding="utf-8", newline="\n") as handle:
