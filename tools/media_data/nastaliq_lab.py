@@ -24,7 +24,7 @@ import sys
 import tempfile
 import time
 
-sys.path.insert(0, "/repo/tools/media_data")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import editdistance  # noqa: E402
 import ocr_eval as oe  # noqa: E402  (normalise: NFKC, zero-width removed, whitespace collapsed; the same measure as the earlier OCR results)
 
@@ -58,16 +58,17 @@ def read_tesseract(image_bytes):
 
 
 class Vlm:
-    def __init__(self, merge):
+    def __init__(self, merge, device="cpu"):
         import torch
         from safetensors.torch import load_file
         from transformers import AutoProcessor, Qwen2VLForConditionalGeneration
         torch.set_num_threads(int(os.environ.get("LAB_THREADS", "16")))
         base = glob.glob(os.path.join(DATA, "models/ocr/qwen2-vl-2b-instruct/*"))[0]
         started = time.time()
-        self.model = Qwen2VLForConditionalGeneration.from_pretrained(base, torch_dtype=torch.bfloat16).eval()
+        self.model = Qwen2VLForConditionalGeneration.from_pretrained(base, torch_dtype=torch.float16 if device == "cuda" else torch.bfloat16).eval()
         self.processor = AutoProcessor.from_pretrained(base)
         self.torch = torch
+        self.device = device
         merged = 0
         if merge:
             adapter = glob.glob(os.path.join(DATA, "models/ocr/qaari-0.1-urdu-adapter/*/adapter_model.safetensors"))[0]
@@ -83,6 +84,8 @@ class Vlm:
                 weight.data.copy_((weight.data.float() + delta).to(weight.dtype))
                 merged += 1
             assert merged * 2 == len(tensors), (merged, len(tensors))
+        if device == "cuda":
+            self.model.to("cuda")
         print("loaded in %.0f s; %d adapter modules merged; peak %.2f GB" % (time.time() - started, merged, resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6), flush=True)
 
     def read(self, image_bytes):
@@ -91,6 +94,7 @@ class Vlm:
         messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": PROMPT}]}]
         text = self.processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         inputs = self.processor(text=[text], images=[image], padding=True, return_tensors="pt")
+        inputs = inputs.to(self.device)
         with self.torch.no_grad():
             ids = self.model.generate(**inputs, max_new_tokens=2000, do_sample=False)
         new = ids[:, inputs["input_ids"].shape[1]:]
@@ -135,10 +139,11 @@ def main(argv):
     ap.add_argument("--part", required=True, choices=("dev", "sealed", "all"))
     ap.add_argument("--limit", type=int, default=0, help="the first N rows in hash order (0 = all of the part)")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--device", default="cpu", choices=("cpu", "cuda"), help="cuda runs the same weights in float16 (amendment A4); nothing else changes")
     args = ap.parse_args(argv)
-    if os.path.abspath(args.out).startswith("/repo"):
+    if os.path.abspath(args.out).startswith("/repo") or os.path.commonpath([os.path.abspath(args.out), os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))]) == os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))):
         raise SystemExit("--out holds the reader's text of unlicensed newspaper pages and must be outside the repository")
-    vlm = Vlm(merge=args.reader == "qaari") if args.reader in ("qaari", "base") else None
+    vlm = Vlm(merge=args.reader == "qaari", device=args.device) if args.reader in ("qaari", "base") else None
     done = {json.loads(l)["row"] for l in open(args.out, encoding="utf-8")} if os.path.exists(args.out) else set()
     records = [json.loads(l) for l in open(args.out, encoding="utf-8")] if done else []
     for n, (i, key, image, reference) in enumerate(rows(args.part), 1):
