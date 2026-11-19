@@ -30,8 +30,13 @@ $runs = @(
   @('router-share',    $base, 2000, @(), "$py/measure_router_share.py --out /data/results/ocr/router-share-dev-20261117.json"),
   @('easyocr-speed',   $easy, 3000, @(), "$py/measure_easyocr_speed.py --driver --threads 1 2 4 8 --caps 2400 1800 1400 --cap-threads 4 --out /data/results/ocr/easyocr-speed-dev-20261117.json"),
   @('easyocr-large',   $easy, 3500, @(), "$py/measure_easyocr_large.py --driver --caps 0 1800 --threads 4 --out /data/results/ocr/easyocr-large-dev-20261117.json"),
+  @('latin-reread',    $easy, 3500, @(), "$py/measure_latin_reread.py --out /data/results/ocr/latin-reread-dev-20261117.json"),
   @('easyocr-smoke',   $Image, 3500, @('ENV'), "$py/smoke_easyocr_role.py"),   # use -MaxSide 0 so the parity check against the lab reader compares like with like
-  @('accept-prepare',  $base, 2000, @(), "$py/accept_router_prepare.py 30"),
+  @('accept-prepare',  $base, 2000, @(), "$py/accept_router_prepare.py --news 30"),
+  @('accept2-prepare', $base, 2000, @(), "$py/accept_router_prepare.py --news 0 --suffix _accept2 --seeds 20261204 20261205 20261206"),
+  @('accept2-today',   $Image, 3500, @('ENV'), "$py/accept_router_runner.py --arm today --suffix _accept2 --sets ur_pages mixed --out /data/results/ocr/accept2-today.jsonl"),
+  @('accept2-easyocr', $Image, 3500, @('ENV'), "$py/accept_router_runner.py --arm easyocr --suffix _accept2 --sets ur_pages mixed --out /data/results/ocr/accept2-easyocr.jsonl"),
+  @('accept2-reread',  $Image, 3500, @('ENV'), "$py/accept_router_runner.py --arm reread --suffix _accept2 --sets ur_pages mixed --out /data/results/ocr/accept2-reread.jsonl"),
   @('accept-today',    $Image, 3500, @('ENV'), "$py/accept_router_runner.py --arm today --out /data/results/ocr/accept-today.jsonl"),
   @('accept-easyocr',  $Image, 3500, @('ENV'), "$py/accept_router_runner.py --arm easyocr --out /data/results/ocr/accept-easyocr.jsonl")
 )

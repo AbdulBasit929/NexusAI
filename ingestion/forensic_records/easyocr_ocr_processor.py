@@ -86,13 +86,13 @@ def assemble_lines(results: list[Any]) -> list[dict[str, Any]]:
     """EasyOCR's [(box, text, confidence), ...] -> lines, top to bottom: {"text", "confidence" (mean of the boxes), "box" (x1, y1, x2, y2), "boxes" (count)}.
     The same rule as tools/media_data/easyocr_reader.py, which produced the bake-off numbers."""
     items = []
-    for box, text, confidence in results:
+    for index, (box, text, confidence) in enumerate(results):
         if not str(text).strip():
             continue
         ys = [float(p[1]) for p in box]
         xs = [float(p[0]) for p in box]
         items.append({"cy": (min(ys) + max(ys)) / 2.0, "cx": (min(xs) + max(xs)) / 2.0, "h": max(ys) - min(ys), "text": str(text), "conf": float(confidence),
-                      "x1": min(xs), "x2": max(xs), "y1": min(ys), "y2": max(ys)})
+                      "x1": min(xs), "x2": max(xs), "y1": min(ys), "y2": max(ys), "i": index})
     lines: list[list[dict[str, Any]]] = []
     for item in sorted(items, key=lambda i: i["cy"]):
         item["top"], item["bottom"] = item["cy"] - item["h"] / 2.0, item["cy"] + item["h"] / 2.0
@@ -115,17 +115,59 @@ def assemble_lines(results: list[Any]) -> list[dict[str, Any]]:
             "confidence": sum(i["conf"] for i in line) / len(line),
             "box": (min(i["x1"] for i in line), min(i["y1"] for i in line), max(i["x2"] for i in line), max(i["y2"] for i in line)),
             "boxes": len(line),
+            "members": sorted(i["i"] for i in line),
         })
     return out
+
+
+def has_arabic_script(text: str) -> bool:
+    return bool(_ARABIC_LETTER.search(text))
+
+
+def reread_latin_boxes(raw: list[Any], frame: Any, recognizer: Any, *, scale: float = 1.0, mode: str = "all", margin: int = 2) -> tuple[list[Any], list[dict[str, Any]]]:
+    """Read again, with the PP-OCRv5 Latin recogniser, every EasyOCR box whose text has no Arabic-script character and at least one letter or digit.
+    The box is cropped from the ORIGINAL image (coordinates divided by the size-cap scale). mode "all": the Latin text replaces the box text when it is not empty; mode "confidence": only when its
+    mean confidence is higher. Returns (results with the replacements, audit entries {box, easyocr_text, latin_text, easyocr_confidence, latin_confidence, used}). A recogniser error or an empty
+    reading leaves the EasyOCR text; boxes with any Arabic-script character are never touched."""
+    height, width = int(frame.shape[0]), int(frame.shape[1])
+    results: list[Any] = []
+    audit: list[dict[str, Any]] = []
+    for index, (box, text, confidence) in enumerate(raw):
+        content = str(text)
+        if not content.strip() or has_arabic_script(content) or not any(ch.isalnum() for ch in content):
+            results.append((box, text, confidence))
+            continue
+        xs, ys = [float(p[0]) for p in box], [float(p[1]) for p in box]
+        x1, y1 = max(0, math.floor(min(xs) / scale) - margin), max(0, math.floor(min(ys) / scale) - margin)
+        x2, y2 = min(width, math.ceil(max(xs) / scale) + margin), min(height, math.ceil(max(ys) / scale) + margin)
+        if x2 <= x1 or y2 <= y1:
+            results.append((box, text, confidence))
+            continue
+        try:
+            latin_text, latin_confidence = recognizer.recognize(frame[y1:y2, x1:x2])
+        except Exception:  # a recogniser failure must not lose the EasyOCR reading
+            results.append((box, text, confidence))
+            continue
+        latin_text = (latin_text or "").strip()
+        if not latin_text:
+            results.append((box, text, confidence))
+            continue
+        use = mode == "all" or (mode == "confidence" and float(latin_confidence) > float(confidence))
+        audit.append({"box": index, "easyocr_text": content, "latin_text": latin_text, "easyocr_confidence": float(confidence), "latin_confidence": float(latin_confidence), "used": use})
+        results.append((box, latin_text, float(latin_confidence)) if use else (box, text, confidence))
+    return results, audit
 
 
 class EasyOcrProcessor:
     processor_id = PROCESSOR_ID
     processor_revision = PROCESSOR_REVISION
 
-    def __init__(self, reader: Any, *, model_hashes: dict[str, str], maximum_lines: int = 2048, maximum_side: int = 0, cv2_module: Any = cv2, threads: int = 4) -> None:
+    def __init__(self, reader: Any, *, model_hashes: dict[str, str], maximum_lines: int = 2048, maximum_side: int = 0, cv2_module: Any = cv2, threads: int = 4,
+                 latin_recognizer: Any | None = None, latin_mode: str = "all", latin_model_sha256: str = "") -> None:
         if not 1 <= maximum_lines <= 8192:
             raise ValueError("maximum OCR lines is invalid")
+        if latin_mode not in ("all", "confidence"):
+            raise ValueError("the Latin re-read mode is invalid")
         if maximum_side < 0:
             raise ValueError("maximum image side is invalid")
         self.reader = reader
@@ -134,9 +176,18 @@ class EasyOcrProcessor:
         self.maximum_side = maximum_side  # 0 = no cap; a cap on the long side bounds the time of a large page (measured on development rows before it is set)
         self.cv2 = cv2_module
         self.threads = threads
+        self.latin_recognizer, self.latin_mode = latin_recognizer, latin_mode  # the PP-OCRv5 Latin recogniser the router already loads; None = no re-read
+        if latin_recognizer is not None and latin_model_sha256:
+            self.model_hashes["latin_reread_recognizer"] = latin_model_sha256
 
     @classmethod
-    def from_environment(cls) -> "EasyOcrProcessor":
+    def from_environment(cls, *, latin_recognizer: Any | None = None, latin_model_sha256: str = "") -> "EasyOcrProcessor":
+        reread = os.getenv("FORENSIC_EASYOCR_LATIN_REREAD", "false").strip().lower() in ("1", "true", "yes")
+        mode = os.getenv("FORENSIC_EASYOCR_LATIN_MODE", "all").strip().lower()
+        if mode not in ("all", "confidence"):
+            raise ModelUnavailableError("FORENSIC_EASYOCR_LATIN_MODE must be all or confidence")
+        if reread and latin_recognizer is None:
+            raise ModelUnavailableError("FORENSIC_EASYOCR_LATIN_REREAD needs the PP-OCRv5 Latin recogniser (configure the ONNX OCR models)")
         value = os.getenv("FORENSIC_EASYOCR_MODEL_DIR", "").strip()
         if not value:
             raise ModelUnavailableError("FORENSIC_EASYOCR_MODEL_DIR is required; implicit model download is disabled")
@@ -153,7 +204,8 @@ class EasyOcrProcessor:
             raise ModelUnavailableError("the easyocr and torch packages are not installed in this image") from exc
         torch.set_num_threads(threads)
         reader = easyocr.Reader(list(LANGUAGES), gpu=False, model_storage_directory=str(directory), user_network_directory=str(directory), download_enabled=False, verbose=False)
-        return cls(reader, model_hashes=hashes, maximum_side=int(os.getenv("FORENSIC_EASYOCR_MAX_SIDE", "0")), threads=threads)
+        return cls(reader, model_hashes=hashes, maximum_side=int(os.getenv("FORENSIC_EASYOCR_MAX_SIDE", "0")), threads=threads,
+                   latin_recognizer=latin_recognizer if reread else None, latin_mode=mode, latin_model_sha256=latin_model_sha256)
 
     def process_image(self, path: Path, **context: Any) -> MediaProcessResult:
         frame = self.cv2.imread(str(path))
@@ -169,7 +221,11 @@ class EasyOcrProcessor:
             raw = self.reader.readtext(work, detail=1, paragraph=False)
         except Exception as exc:  # the reader raises many kinds of errors (memory, shape, torch); the router falls back to the other engine
             raise MediaProcessingError(f"EasyOCR could not read the image ({type(exc).__name__})") from exc
-        lines = assemble_lines(raw)[: self.maximum_lines]
+        audit: list[dict[str, Any]] = []
+        results = raw
+        if self.latin_recognizer is not None:
+            results, audit = reread_latin_boxes(raw, frame, self.latin_recognizer, scale=scale, mode=self.latin_mode)
+        lines = assemble_lines(results)[: self.maximum_lines]
         observations: list[MediaObservation] = []
         for reading_order, line in enumerate(lines, 1):
             x1 = int(max(0, min(width, math.floor(line["box"][0] / scale))))
@@ -217,6 +273,8 @@ class EasyOcrProcessor:
                     "recognizer_models": {"arabic_g1_ur_en": RECOGNIZER_ID},
                     "model_sha256": self.model_hashes,
                     "image_scale_applied": round(scale, 4),
+                    **({"latin_reread": [{k: a[k] for k in ("easyocr_text", "latin_text", "easyocr_confidence", "latin_confidence")} for a in audit if a["used"] and a["box"] in line["members"]]}
+                       if self.latin_recognizer is not None else {}),
                     "manual_review_required": True,
                 },
                 warnings=("Recognized text is a model observation and requires analyst review",),
@@ -226,6 +284,8 @@ class EasyOcrProcessor:
             "a table row that holds Urdu text beside left-to-right columns can come back with its columns in reverse order; the words and identifiers are read, their order in the line is not certified",
             "printed text only; handwriting is not certified",
         ]
+        if self.latin_recognizer is not None:
+            limitations.append("Latin letters and digits are read again with the PP-OCRv5 Latin recogniser (the EasyOCR text of each replaced box is kept in the observation); a box with any Arabic-script character keeps the EasyOCR reading")
         if not observations:
             limitations.append("no non-empty OCR region was returned")
         return MediaProcessResult(
@@ -243,5 +303,6 @@ class EasyOcrProcessor:
                 "easyocr_threads": self.threads,
                 "image_scale_applied": round(scale, 4),
                 "weights_licence_status": WEIGHTS_LICENCE_STATUS,
+                **({"latin_reread": {"mode": self.latin_mode, "boxes_checked": len(audit), "boxes_replaced": sum(1 for a in audit if a["used"])}} if self.latin_recognizer is not None else {}),
             },
         )

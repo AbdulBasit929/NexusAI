@@ -16,20 +16,22 @@ import sys
 from pathlib import Path
 
 DATA = os.environ.get("NEXUSAI_MEDIA_DATA", "/data")
-SEEDS = {"gen_ocr_pages.py": "20261201", "gen_urdu.py": "20261202", "gen_mixed.py": "20261203"}
+SCRIPTS = ("gen_ocr_pages.py", "gen_urdu.py", "gen_mixed.py")
 
 
-def main(limit_news):
-    for script, seed in SEEDS.items():
-        environment = dict(os.environ, OCR_GEN_SEED=seed, OCR_GEN_SUFFIX="_accept", NEXUSAI_MEDIA_DATA=DATA)
+def main(limit_news, suffix, seeds):
+    for script, seed in zip(SCRIPTS, seeds):
+        environment = dict(os.environ, OCR_GEN_SEED=seed, OCR_GEN_SUFFIX=suffix, NEXUSAI_MEDIA_DATA=DATA)
         done = subprocess.run([sys.executable, f"/repo/tools/media_data/{script}"], env=environment, capture_output=True, text=True)
         print(script, "seed", seed, "->", (done.stdout.strip().splitlines() or [done.stderr[-300:]])[-1], flush=True)
         if done.returncode != 0:
             print(done.stderr[-500:])
             return 1
+    if limit_news <= 0:
+        return 0
     sys.path.insert(0, "/repo/tools/media_data")
     import nastaliq_lab
-    out = Path(DATA) / "generated" / "ocr_unb_accept"
+    out = Path(DATA) / "generated" / ("ocr_unb" + suffix)
     out.mkdir(parents=True, exist_ok=True)
     rows = []
     for n, (index, key, image, reference) in enumerate(nastaliq_lab.rows("fresh")):
@@ -46,4 +48,10 @@ def main(limit_news):
 
 
 if __name__ == "__main__":
-    sys.exit(main(int(sys.argv[1]) if len(sys.argv) > 1 else 30))
+    import argparse
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--news", type=int, default=30, help="newspaper rows to export (0 = none)")
+    ap.add_argument("--suffix", default="_accept")
+    ap.add_argument("--seeds", nargs=3, default=["20261201", "20261202", "20261203"], help="seeds for the English, Urdu and mixed generators")
+    parsed = ap.parse_args()
+    sys.exit(main(parsed.news, parsed.suffix, parsed.seeds))

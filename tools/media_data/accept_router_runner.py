@@ -18,18 +18,19 @@ from pathlib import Path
 
 sys.path.insert(0, "/app")
 DATA = os.environ.get("NEXUSAI_MEDIA_DATA", "/data")
-SETS = {  # set -> (folder, row filter)
-    "en": ("ocr_en_accept", lambda r: True),
-    "ur_pages": ("ocr_ur_accept", lambda r: r["kind"] == "page"),
-    "ur_lines": ("ocr_ur_accept", lambda r: r["kind"] == "line"),
-    "mixed": ("ocr_mixed_accept", lambda r: True),
-    "unb": ("ocr_unb_accept", lambda r: True),
+SETS = {  # set -> (folder base name; the --suffix is added), row filter)
+    "en": ("ocr_en", lambda r: True),
+    "ur_pages": ("ocr_ur", lambda r: r["kind"] == "page"),
+    "ur_lines": ("ocr_ur", lambda r: r["kind"] == "line"),
+    "mixed": ("ocr_mixed", lambda r: True),
+    "unb": ("ocr_unb", lambda r: True),
 }
 DEFAULT_COUNTS = {"en": 48, "ur_pages": 40, "ur_lines": 60, "mixed": 120, "unb": 30}
 
 
-def chosen_rows(name, count):
+def chosen_rows(name, count, suffix):
     folder, keep = SETS[name]
+    folder = folder + suffix
     rows = [json.loads(line) for line in open(Path(DATA) / "generated" / folder / "truth.jsonl", encoding="utf-8")]
     rows = sorted((r for r in rows if keep(r)), key=lambda r: hashlib.sha256(r["id"].encode()).hexdigest())  # a fixed pseudo-random order by id hash, the same for both arms
     return folder, rows[:count]
@@ -37,20 +38,23 @@ def chosen_rows(name, count):
 
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--arm", required=True, choices=("today", "easyocr"))
+    ap.add_argument("--arm", required=True, choices=("today", "easyocr", "reread"), help="today = role off; easyocr = role on; reread = role on and Latin/digit boxes read again (docs/data/ocr-latin-reread-preregistration-20261117.md)")
+    ap.add_argument("--suffix", default="_accept", help="folder suffix of the fresh sets (_accept = seeds 20261201-3, _accept2 = seeds 20261204-6)")
     ap.add_argument("--out", required=True)
     ap.add_argument("--sets", nargs="+", default=list(SETS))
     ap.add_argument("--count", nargs="*", default=[], help="name=N overrides of the default image counts")
     args = ap.parse_args(argv)
     counts = {**DEFAULT_COUNTS, **{k: int(v) for k, v in (x.split("=") for x in args.count)}}
-    os.environ["FORENSIC_OCR_EASYOCR_ENABLED"] = "true" if args.arm == "easyocr" else "false"
+    os.environ["FORENSIC_OCR_EASYOCR_ENABLED"] = "true" if args.arm in ("easyocr", "reread") else "false"
+    os.environ["FORENSIC_EASYOCR_LATIN_REREAD"] = "true" if args.arm == "reread" else "false"
+    os.environ["FORENSIC_EASYOCR_LATIN_MODE"] = "all"
     import ocr_router
     started = time.time()
     router = ocr_router.OcrRouter.from_environment()
-    print(f"router built in {time.time() - started:.1f} s; easyocr configured: {router.easyocr is not None}; urdu share threshold {router.urdu_share_threshold}", flush=True)
+    print(f"router built in {time.time() - started:.1f} s; easyocr configured: {router.easyocr is not None}; latin re-read: {router.easyocr is not None and router.easyocr.latin_recognizer is not None}; urdu share threshold {router.urdu_share_threshold}", flush=True)
     done = {json.loads(line)["id"] for line in open(args.out, encoding="utf-8")} if os.path.exists(args.out) else set()
     for name in args.sets:
-        folder, rows = chosen_rows(name, counts[name])
+        folder, rows = chosen_rows(name, counts[name], args.suffix)
         for row in rows:
             key = f"{name}:{row['id']}"
             if key in done:

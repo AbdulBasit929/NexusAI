@@ -105,7 +105,9 @@ class OcrRouter:
                 from ingestion.forensic_records.easyocr_ocr_processor import EasyOcrProcessor
             except ModuleNotFoundError:  # pragma: no cover - direct worker image execution
                 from easyocr_ocr_processor import EasyOcrProcessor
-            easyocr = EasyOcrProcessor.from_environment()  # a model file that is missing or does not match its pinned hash refuses to start
+            # a model file that is missing or does not match its pinned hash refuses to start; the PP-OCRv5 Latin recogniser the router already holds can read the Latin and digit boxes again
+            easyocr = EasyOcrProcessor.from_environment(latin_recognizer=(onnx.recognizers.get("latin") if onnx is not None else None),
+                                                        latin_model_sha256=(onnx.model_hashes.get("latin", "") if onnx is not None else ""))
         return cls(
             latin, urdu, onnx, lambda image: detect_script(executable, tessdata, image),
             confident=float(os.getenv("FORENSIC_OCR_ROUTER_CONFIDENT", "0.75")),

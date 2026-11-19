@@ -15,4 +15,7 @@ services:
       FORENSIC_EASYOCR_THREADS: ${FORENSIC_EASYOCR_THREADS:-4}
       FORENSIC_EASYOCR_MAX_SIDE: ${FORENSIC_EASYOCR_MAX_SIDE:-1400}
       # the share of Arabic-script letters (from the existing probe) at or above which a page goes to EasyOCR; 0.10 chosen on development rows (every English page and receipt measured at most 0.047, every Urdu page at least 0.50; docs/data/ocr-easyocr-acceptance-preregistration-20261117.md amendment A1)
+      # Latin letters and digits are read again with the PP-OCRv5 Latin recogniser the router already holds (docs/data/ocr-latin-reread-preregistration-20261117.md); off until its acceptance passes
+      FORENSIC_EASYOCR_LATIN_REREAD: ${FORENSIC_EASYOCR_LATIN_REREAD:-false}
+      FORENSIC_EASYOCR_LATIN_MODE: ${FORENSIC_EASYOCR_LATIN_MODE:-all}
       FORENSIC_OCR_ROUTER_URDU_SHARE: ${FORENSIC_OCR_ROUTER_URDU_SHARE:-0.10}

@@ -274,5 +274,38 @@ class EnvironmentTests(unittest.TestCase):
                     OcrRouter.from_environment()
 
 
+try:
+    import cv2  # noqa: F401  (the worker image has OpenCV; the ONNX engine module imports it)
+    HAS_CV2 = True
+except ImportError:
+    HAS_CV2 = False
+
+
+@unittest.skipUnless(HAS_CV2, "needs OpenCV (runs inside the worker image)")
+class LatinRecogniserWiringTests(unittest.TestCase):
+    def test_the_router_hands_its_latin_recogniser_and_its_hash_to_the_easyocr_engine(self):
+        marker = object()
+
+        class FakeOnnx(FakeEngine):
+            recognizers = {"latin": marker}
+            model_hashes = {"latin": "a" * 64}
+
+        captured = {}
+
+        def fake_easyocr(**kwargs):
+            captured.update(kwargs)
+            return FakeEngine(result())
+
+        environment = {"FORENSIC_OCR_LANGUAGES": "eng", "FORENSIC_ONNX_OCR_DETECTOR_PATH": "/x/det.onnx", "FORENSIC_OCR_EASYOCR_ENABLED": "true"}
+        with patch.dict("os.environ", environment), \
+                patch("ingestion.forensic_records.ocr_router.TesseractImageOCRProcessor.from_environment", return_value=FakeEngine(result())), \
+                patch("ingestion.forensic_records.onnx_ocr_processor.OnnxPaddleOCRProcessor.from_environment", return_value=FakeOnnx(result())), \
+                patch("ingestion.forensic_records.easyocr_ocr_processor.EasyOcrProcessor.from_environment", side_effect=fake_easyocr):
+            router_ = OcrRouter.from_environment()
+        self.assertIs(captured["latin_recognizer"], marker)
+        self.assertEqual(captured["latin_model_sha256"], "a" * 64)
+        self.assertIsNotNone(router_.easyocr)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -15,6 +15,7 @@ from ingestion.forensic_records.easyocr_ocr_processor import (
     RECOGNIZER_FILE,
     EasyOcrProcessor,
     assemble_lines,
+    reread_latin_boxes,
 )
 from ingestion.forensic_records.media_pipeline import (
     IMAGE_OCR_OBSERVATION_CONTRACT,
@@ -232,6 +233,110 @@ class StartupTests(unittest.TestCase):
             with patch.dict("os.environ", self.environment(directory, detector, recognizer)), patch.dict(sys.modules, {"easyocr": None}):
                 with self.assertRaises(ModelUnavailableError):
                     EasyOcrProcessor.from_environment()
+
+
+class FakeLatin:
+    """A stand-in for the PP-OCRv5 Latin recogniser: answers by the size of the crop it is given, and records every crop."""
+
+    def __init__(self, answers=None, error=None):
+        self.answers, self.error, self.crops = answers or {}, error, []
+
+    def recognize(self, crop):
+        self.crops.append(crop.shape[:2])
+        if self.error:
+            raise self.error
+        return self.answers.get(crop.shape[1], ("", 0.0))
+
+
+class LatinRereadTests(unittest.TestCase):
+    path = Path("scan.png")
+
+    def processor(self, reader, latin, cv2_module=None, **kwargs):
+        return EasyOcrProcessor(reader, model_hashes=HASHES, cv2_module=cv2_module or FakeCv2(), latin_recognizer=latin, latin_model_sha256="l" * 64, **kwargs)
+
+    def page(self):
+        # an Urdu box, a currency box the Arabic-trained recogniser misreads, a digit box, a box with Urdu and a digit, and a punctuation-only box
+        return StubReader([
+            (box(500, 10, 700, 50), URDU_ONE, 0.9),
+            (box(100, 10, 220, 50), "R5. 145,622", 0.6),
+            (box(240, 10, 400, 50), "0300-1234567", 0.8),
+            (box(100, 100, 300, 140), URDU_TWO + " 12", 0.7),
+            (box(400, 100, 440, 140), "--", 0.5),
+        ])
+
+    def test_only_boxes_without_arabic_script_are_read_again_and_the_urdu_text_is_untouched(self):
+        latin = FakeLatin({124: ("Rs. 145,622", 0.97), 164: ("0300-1234567", 0.99)})
+        out = self.processor(self.page(), latin).process_image(self.path, **CONTEXT)
+        texts = [o.payload["raw_text"] for o in out.observations]
+        self.assertEqual(texts[0], f"{URDU_ONE} 0300-1234567 Rs. 145,622")  # right-to-left line: the Urdu box first, Latin boxes by position
+        self.assertEqual(texts[1], f"-- {URDU_TWO} 12")                    # the mixed box and the punctuation box are not re-read (the line runs right to left: Urdu letters outnumber the rest)
+        self.assertEqual(len(latin.crops), 2)
+
+    def test_the_original_text_of_a_replaced_box_is_kept_in_the_observation_and_counted(self):
+        latin = FakeLatin({124: ("Rs. 145,622", 0.97)})
+        out = self.processor(self.page(), latin).process_image(self.path, **CONTEXT)
+        entries = out.observations[0].payload["latin_reread"]
+        self.assertEqual(len(entries), 1)
+        self.assertEqual((entries[0]["easyocr_text"], entries[0]["latin_text"]), ("R5. 145,622", "Rs. 145,622"))
+        self.assertEqual(out.metadata["latin_reread"], {"mode": "all", "boxes_checked": 1, "boxes_replaced": 1})
+        self.assertIn("latin_reread_recognizer", out.observations[0].payload["model_sha256"])
+        self.assertTrue(any("read again with the PP-OCRv5 Latin recogniser" in item for item in out.limitations))
+
+    def test_confidence_mode_replaces_only_when_the_latin_reading_is_more_confident(self):
+        latin = FakeLatin({124: ("Rs. 145,622", 0.97), 164: ("0300-1234568", 0.50)})
+        out = self.processor(self.page(), latin, latin_mode="confidence").process_image(self.path, **CONTEXT)
+        text = out.observations[0].payload["raw_text"]
+        self.assertIn("Rs. 145,622", text)
+        self.assertIn("0300-1234567", text)      # the digit box keeps EasyOCR's reading (0.8 against 0.5)
+        self.assertNotIn("0300-1234568", text)
+        self.assertEqual(out.metadata["latin_reread"]["boxes_replaced"], 1)
+
+    def test_an_empty_reading_or_a_recogniser_error_leaves_the_easyocr_text(self):
+        for latin in (FakeLatin({}), FakeLatin(error=RuntimeError("model failed"))):
+            out = self.processor(self.page(), latin).process_image(self.path, **CONTEXT)
+            self.assertIn("R5. 145,622", out.observations[0].payload["raw_text"])
+            self.assertEqual(out.metadata["latin_reread"]["boxes_replaced"], 0)
+
+    def test_without_a_recogniser_nothing_changes_and_no_reread_fields_are_written(self):
+        out = self.processor(self.page(), None).process_image(self.path, **CONTEXT)
+        self.assertIn("R5. 145,622", out.observations[0].payload["raw_text"])
+        self.assertNotIn("latin_reread", out.observations[0].payload)
+        self.assertNotIn("latin_reread", out.metadata)
+
+    def test_the_crop_comes_from_the_original_image_when_the_size_cap_reduced_it(self):
+        fake = FakeCv2(height=2000, width=4000)
+        reader = StubReader([(box(100, 50, 300, 100), "R5. 1", 0.6)])
+        latin = FakeLatin({804: ("Rs. 1", 0.9)})   # (300 - 100) / 0.25 = 800 wide, plus a 2 px margin each side
+        out = self.processor(reader, latin, fake, maximum_side=1000).process_image(self.path, **CONTEXT)
+        self.assertEqual(latin.crops, [(204, 804)])
+        self.assertEqual(out.observations[0].payload["raw_text"], "Rs. 1")
+
+    def test_an_unknown_mode_is_refused(self):
+        with self.assertRaises(ValueError):
+            self.processor(StubReader(), FakeLatin(), latin_mode="always")
+
+    def test_the_reread_helper_never_touches_arabic_digits_or_boxes_that_are_only_punctuation(self):
+        raw = [(box(0, 0, 90, 40), "۱۲۳", 0.9), (box(0, 50, 90, 90), "..", 0.9), (box(0, 100, 90, 140), "AB-123", 0.7)]
+        latin = FakeLatin({92: ("AB-1234", 0.95)})   # 90 px wide box, a 2 px margin on the right only (the left margin is clipped at the image edge)
+        results, audit = reread_latin_boxes(raw, Frame(400, 1000), latin)
+        self.assertEqual([r[1] for r in results], ["۱۲۳", "..", "AB-1234"])
+        self.assertEqual(len(audit), 1)
+
+    def test_lines_report_which_boxes_they_hold(self):
+        lines = assemble_lines([(box(0, 0, 90, 40), "a", 0.9), (box(100, 5, 190, 45), "b", 0.9), (box(0, 200, 90, 240), "c", 0.9)])
+        self.assertEqual([line["members"] for line in lines], [[0, 1], [2]])
+
+
+class LatinStartupTests(unittest.TestCase):
+    def test_a_reread_switch_without_the_latin_recogniser_refuses_to_start(self):
+        with patch.dict("os.environ", {"FORENSIC_EASYOCR_LATIN_REREAD": "true"}):
+            with self.assertRaises(ModelUnavailableError):
+                EasyOcrProcessor.from_environment()
+
+    def test_an_unknown_mode_in_the_environment_refuses_to_start(self):
+        with patch.dict("os.environ", {"FORENSIC_EASYOCR_LATIN_MODE": "sometimes"}):
+            with self.assertRaises(ModelUnavailableError):
+                EasyOcrProcessor.from_environment(latin_recognizer=FakeLatin())
 
 
 if __name__ == "__main__":
