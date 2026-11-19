@@ -7,6 +7,11 @@
 # Provision them with tools/media_data/Install-EasyOcrModels.ps1. Every reading is a model observation that needs review; Urdu line order and low-quality Nastaliq are not certified.
 services:
   forensic-records-worker:
+    # Memory cap (docs/data/ocr-easyocr-e2e-live-check-20261119.md and the memory note of 2026-11-19): once the OCR models are loaded the worker holds about 1.6 GB, a page read peaks near 2.3 GB, and the Docker VM
+    # (7.6 GB) also holds the language model (3.5 GB) and the database. Without a cap an overrun squeezes those containers; with it only the worker restarts and the job is retried. 3600m leaves the model
+    # container and the database their room; raise it with FORENSIC_WORKER_MEMORY_LIMIT only with the model unloaded. No swap (the two limits are equal).
+    mem_limit: ${FORENSIC_WORKER_MEMORY_LIMIT:-3600m}
+    memswap_limit: ${FORENSIC_WORKER_MEMORY_LIMIT:-3600m}
     environment:
       FORENSIC_OCR_EASYOCR_ENABLED: ${FORENSIC_OCR_EASYOCR_ENABLED:-false}
       FORENSIC_EASYOCR_MODEL_DIR: ${FORENSIC_EASYOCR_MODEL_DIR:-/models/media/easyocr/model}
@@ -18,4 +23,6 @@ services:
       # Latin letters and digits are read again with the PP-OCRv5 Latin recogniser the router already holds (docs/data/ocr-latin-reread-preregistration-20261117.md); off until its acceptance passes
       FORENSIC_EASYOCR_LATIN_REREAD: ${FORENSIC_EASYOCR_LATIN_REREAD:-false}
       FORENSIC_EASYOCR_LATIN_MODE: ${FORENSIC_EASYOCR_LATIN_MODE:-all}
+      # a left-to-right table row (non-Arabic at both ends, Urdu between) is read in table order (docs/data/ocr-table-row-order-preregistration-20261119.md); off until its acceptance passes
+      FORENSIC_EASYOCR_TABLE_ROWS: ${FORENSIC_EASYOCR_TABLE_ROWS:-false}
       FORENSIC_OCR_ROUTER_URDU_SHARE: ${FORENSIC_OCR_ROUTER_URDU_SHARE:-0.10}

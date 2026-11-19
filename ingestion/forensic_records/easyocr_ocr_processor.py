@@ -82,9 +82,10 @@ def _verified(path: Path, hash_variable: str) -> str:
     return actual
 
 
-def assemble_lines(results: list[Any]) -> list[dict[str, Any]]:
-    """EasyOCR's [(box, text, confidence), ...] -> lines, top to bottom: {"text", "confidence" (mean of the boxes), "box" (x1, y1, x2, y2), "boxes" (count)}.
-    The same rule as tools/media_data/easyocr_reader.py, which produced the bake-off numbers."""
+def assemble_lines(results: list[Any], *, table_rows: bool = False) -> list[dict[str, Any]]:
+    """EasyOCR's [(box, text, confidence), ...] -> lines, top to bottom: {"text", "confidence" (mean of the boxes), "box" (x1, y1, x2, y2), "boxes" (count), "members", "table_row"}.
+    The same rule as tools/media_data/easyocr_reader.py, which produced the bake-off numbers. With table_rows (docs/data/ocr-table-row-order-preregistration-20261119.md) a line of at least three boxes whose
+    leftmost and rightmost boxes have no Arabic-script character while a box between them has one is a table row and is read left to right."""
     items = []
     for index, (box, text, confidence) in enumerate(results):
         if not str(text).strip():
@@ -109,6 +110,11 @@ def assemble_lines(results: list[Any]) -> list[dict[str, Any]]:
         letters = "".join(i["text"] for i in line)
         arabic, total = len(_ARABIC_LETTER.findall(letters)), len(_LETTER.findall(letters))
         right_to_left = total > 0 and arabic * 2 > total
+        table_row = False
+        if table_rows and len(line) >= 3:
+            by_x = sorted(line, key=lambda i: i["cx"])
+            if not has_arabic_script(by_x[0]["text"]) and not has_arabic_script(by_x[-1]["text"]) and any(has_arabic_script(i["text"]) for i in by_x[1:-1]):
+                table_row, right_to_left = True, False
         ordered = sorted(line, key=lambda i: i["cx"], reverse=right_to_left)
         out.append({
             "text": " ".join(i["text"] for i in ordered),
@@ -116,6 +122,7 @@ def assemble_lines(results: list[Any]) -> list[dict[str, Any]]:
             "box": (min(i["x1"] for i in line), min(i["y1"] for i in line), max(i["x2"] for i in line), max(i["y2"] for i in line)),
             "boxes": len(line),
             "members": sorted(i["i"] for i in line),
+            "table_row": table_row,
         })
     return out
 
@@ -163,7 +170,7 @@ class EasyOcrProcessor:
     processor_revision = PROCESSOR_REVISION
 
     def __init__(self, reader: Any, *, model_hashes: dict[str, str], maximum_lines: int = 2048, maximum_side: int = 0, cv2_module: Any = cv2, threads: int = 4,
-                 latin_recognizer: Any | None = None, latin_mode: str = "all", latin_model_sha256: str = "") -> None:
+                 latin_recognizer: Any | None = None, latin_mode: str = "all", latin_model_sha256: str = "", table_rows: bool = False) -> None:
         if not 1 <= maximum_lines <= 8192:
             raise ValueError("maximum OCR lines is invalid")
         if latin_mode not in ("all", "confidence"):
@@ -176,6 +183,7 @@ class EasyOcrProcessor:
         self.maximum_side = maximum_side  # 0 = no cap; a cap on the long side bounds the time of a large page (measured on development rows before it is set)
         self.cv2 = cv2_module
         self.threads = threads
+        self.table_rows = table_rows  # read a left-to-right table row (non-Arabic at both ends, Urdu between) in table order
         self.latin_recognizer, self.latin_mode = latin_recognizer, latin_mode  # the PP-OCRv5 Latin recogniser the router already loads; None = no re-read
         if latin_recognizer is not None and latin_model_sha256:
             self.model_hashes["latin_reread_recognizer"] = latin_model_sha256
@@ -205,7 +213,8 @@ class EasyOcrProcessor:
         torch.set_num_threads(threads)
         reader = easyocr.Reader(list(LANGUAGES), gpu=False, model_storage_directory=str(directory), user_network_directory=str(directory), download_enabled=False, verbose=False)
         return cls(reader, model_hashes=hashes, maximum_side=int(os.getenv("FORENSIC_EASYOCR_MAX_SIDE", "0")), threads=threads,
-                   latin_recognizer=latin_recognizer if reread else None, latin_mode=mode, latin_model_sha256=latin_model_sha256)
+                   latin_recognizer=latin_recognizer if reread else None, latin_mode=mode, latin_model_sha256=latin_model_sha256,
+                   table_rows=os.getenv("FORENSIC_EASYOCR_TABLE_ROWS", "false").strip().lower() in ("1", "true", "yes"))
 
     def process_image(self, path: Path, **context: Any) -> MediaProcessResult:
         frame = self.cv2.imread(str(path))
@@ -225,7 +234,7 @@ class EasyOcrProcessor:
         results = raw
         if self.latin_recognizer is not None:
             results, audit = reread_latin_boxes(raw, frame, self.latin_recognizer, scale=scale, mode=self.latin_mode)
-        lines = assemble_lines(results)[: self.maximum_lines]
+        lines = assemble_lines(results, table_rows=self.table_rows)[: self.maximum_lines]
         observations: list[MediaObservation] = []
         for reading_order, line in enumerate(lines, 1):
             x1 = int(max(0, min(width, math.floor(line["box"][0] / scale))))
@@ -273,6 +282,7 @@ class EasyOcrProcessor:
                     "recognizer_models": {"arabic_g1_ur_en": RECOGNIZER_ID},
                     "model_sha256": self.model_hashes,
                     "image_scale_applied": round(scale, 4),
+                    **({"table_row": line["table_row"]} if self.table_rows else {}),
                     **({"latin_reread": [{k: a[k] for k in ("easyocr_text", "latin_text", "easyocr_confidence", "latin_confidence")} for a in audit if a["used"] and a["box"] in line["members"]]}
                        if self.latin_recognizer is not None else {}),
                     "manual_review_required": True,
@@ -286,6 +296,8 @@ class EasyOcrProcessor:
         ]
         if self.latin_recognizer is not None:
             limitations.append("Latin letters and digits are read again with the PP-OCRv5 Latin recogniser (the EasyOCR text of each replaced box is kept in the observation); a box with any Arabic-script character keeps the EasyOCR reading")
+        if self.table_rows:
+            limitations.append("a line with non-Arabic boxes at both ends and Urdu between them is read left to right as a table row (marked table_row); other lines keep the right-to-left rule")
         if not observations:
             limitations.append("no non-empty OCR region was returned")
         return MediaProcessResult(
@@ -303,6 +315,7 @@ class EasyOcrProcessor:
                 "easyocr_threads": self.threads,
                 "image_scale_applied": round(scale, 4),
                 "weights_licence_status": WEIGHTS_LICENCE_STATUS,
+                **({"table_rows": {"enabled": True, "rows_read_left_to_right": sum(1 for line in lines if line["table_row"])}} if self.table_rows else {}),
                 **({"latin_reread": {"mode": self.latin_mode, "boxes_checked": len(audit), "boxes_replaced": sum(1 for a in audit if a["used"])}} if self.latin_recognizer is not None else {}),
             },
         )

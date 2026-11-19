@@ -339,5 +339,79 @@ class LatinStartupTests(unittest.TestCase):
                 EasyOcrProcessor.from_environment(latin_recognizer=FakeLatin())
 
 
+class TableRowTests(unittest.TestCase):
+    path = Path("scan.png")
+    NARRATION = "\u0628\u062c\u0644\u06cc \u06a9\u0627 \u0628\u0644"
+
+    def statement_row(self):
+        # a left-to-right table row: date at the left, Urdu narration, two amounts at the right
+        return [(box(20, 10, 160, 50), "01/01/2024", 0.9), (box(200, 12, 380, 52), self.NARRATION, 0.8), (box(420, 10, 520, 50), "198,635", 0.9), (box(560, 11, 650, 51), "40,986", 0.95)]
+
+    def test_a_statement_row_is_read_left_to_right_when_the_rule_is_on_and_reversed_when_it_is_off(self):
+        off = assemble_lines(self.statement_row())
+        on = assemble_lines(self.statement_row(), table_rows=True)
+        self.assertEqual(off[0]["text"], f"40,986 198,635 {self.NARRATION} 01/01/2024")   # today's rule: Urdu letters are the majority, so the row runs right to left
+        self.assertEqual(on[0]["text"], f"01/01/2024 {self.NARRATION} 198,635 40,986")
+        self.assertTrue(on[0]["table_row"])
+        self.assertFalse(off[0]["table_row"])
+
+    def test_a_right_to_left_sentence_with_a_number_at_its_left_end_stays_right_to_left(self):
+        row = [(box(20, 10, 160, 50), "0313-6783098", 0.9), (box(200, 12, 380, 52), URDU_ONE, 0.8), (box(420, 10, 520, 50), "Daraz", 0.9), (box(560, 11, 700, 51), URDU_TWO, 0.95)]
+        line = assemble_lines(row, table_rows=True)[0]
+        self.assertFalse(line["table_row"])   # the rightmost box is Urdu
+        self.assertEqual(line["text"], f"{URDU_TWO} Daraz {URDU_ONE} 0313-6783098")
+
+    def test_a_form_row_with_a_latin_value_at_the_left_and_an_urdu_label_at_the_right_is_not_marked_and_keeps_the_ordinary_order(self):
+        row = [(box(20, 10, 200, 50), "Ahmed Raza", 0.9), (box(400, 12, 520, 52), URDU_ONE, 0.8)]
+        line = assemble_lines(row, table_rows=True)[0]
+        self.assertFalse(line["table_row"])
+        self.assertEqual(line["text"], assemble_lines(row)[0]["text"])   # the table-row rule changes nothing here (Latin letters outnumber the Urdu ones, so the ordinary rule reads it left to right)
+
+    def test_a_line_of_two_boxes_is_never_a_table_row(self):
+        row = [(box(20, 10, 160, 50), "01/01/2024", 0.9), (box(560, 11, 650, 51), "40,986", 0.95)]
+        self.assertFalse(assemble_lines(row, table_rows=True)[0]["table_row"])
+
+    def test_a_line_without_urdu_between_the_ends_is_left_to_right_by_the_ordinary_rule_and_not_marked(self):
+        row = [(box(20, 10, 160, 50), "Biscuits", 0.9), (box(200, 12, 300, 52), "x2", 0.8), (box(420, 10, 520, 50), "2,367", 0.9)]
+        line = assemble_lines(row, table_rows=True)[0]
+        self.assertFalse(line["table_row"])
+        self.assertEqual(line["text"], "Biscuits x2 2,367")
+
+    def test_a_row_whose_last_column_is_urdu_is_left_to_right_only_by_the_ordinary_rule(self):
+        row = [(box(20, 10, 160, 50), "01/01/2024", 0.9), (box(200, 12, 300, 52), "5,000", 0.8), (box(420, 10, 560, 50), self.NARRATION, 0.9)]
+        self.assertFalse(assemble_lines(row, table_rows=True)[0]["table_row"])   # documented limit: the rule needs non-Arabic text at BOTH ends
+
+    def test_the_processor_marks_table_rows_and_counts_them_and_writes_nothing_when_the_rule_is_off(self):
+        reader = StubReader(self_rows := [(box(20, 10, 160, 50), "01/01/2024", 0.9), (box(200, 12, 380, 52), TableRowTests.NARRATION, 0.8), (box(420, 10, 520, 50), "198,635", 0.9)])
+        on = EasyOcrProcessor(reader, model_hashes=HASHES, cv2_module=FakeCv2(), table_rows=True).process_image(self.path, **CONTEXT)
+        off = EasyOcrProcessor(reader, model_hashes=HASHES, cv2_module=FakeCv2()).process_image(self.path, **CONTEXT)
+        self.assertTrue(on.observations[0].payload["table_row"])
+        self.assertEqual(on.metadata["table_rows"], {"enabled": True, "rows_read_left_to_right": 1})
+        self.assertTrue(any("table row" in item for item in on.limitations))
+        self.assertNotIn("table_row", off.observations[0].payload)
+        self.assertNotIn("table_rows", off.metadata)
+
+    def test_the_environment_switch_turns_the_rule_on(self):
+        with tempfile.TemporaryDirectory() as directory:
+            for name, content in ((DETECTOR_FILE, b"d"), (RECOGNIZER_FILE, b"r")):
+                (Path(directory) / name).write_bytes(content)
+            environment = {"FORENSIC_EASYOCR_MODEL_DIR": directory, "FORENSIC_EASYOCR_DETECTOR_SHA256": hashlib.sha256(b"d").hexdigest(), "FORENSIC_EASYOCR_RECOGNIZER_SHA256": hashlib.sha256(b"r").hexdigest(),
+                           "FORENSIC_EASYOCR_TABLE_ROWS": "true"}
+
+            class FakeEasyocr:
+                @staticmethod
+                def Reader(*args, **kwargs):
+                    return StubReader()
+
+            class FakeTorch:
+                @staticmethod
+                def set_num_threads(n):
+                    pass
+
+            with patch.dict("os.environ", environment), patch.dict(sys.modules, {"easyocr": FakeEasyocr, "torch": FakeTorch}):
+                processor = EasyOcrProcessor.from_environment()
+        self.assertTrue(processor.table_rows)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -171,6 +171,12 @@ def build_item(kind, n, rng, texts):
             idents.append({"type": "phone", "value": ph})
         lines.append(("r", sentence))
         canvas = Canvas(1500, 130, style)
+        # Fixed 2026-11-19: the canvas used to stay 1500 px wide whatever the sentence, so a long sentence ran off the LEFT edge and took its phone number (the last run, drawn leftmost) with it:
+        # 56 of 160 mixline images of the registered set were cut (docs/data, erratum of 2026-11-19). The canvas now grows to fit; OCR_GEN_LEGACY_CLIP=1 reproduces the registered (cut) images.
+        if os.environ.get("OCR_GEN_LEGACY_CLIP", "") != "1":
+            needed = canvas.measure(sentence, 40) + 80
+            if needed > 1500:
+                canvas = Canvas(int(needed) + 1, 130, style)
     else:
         canvas = None
     if kind == "form":
