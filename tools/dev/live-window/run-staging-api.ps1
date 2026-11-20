@@ -7,7 +7,7 @@ STAGING API: the API of this checkout, built as a binary, run on THIS machine ag
   Stop it with:  Stop-Process -Id <pid>
 Ask it with tools/showcase/ask_case.py --url http://127.0.0.1:8191 (no key is needed: the file's reader still sends the live key, which this API ignores).
 #>
-param([string]$Stamp = "20261031T103450Z", [string]$Binary = "C:\tmp\nexusai-g4\api-staging.exe")
+param([string]$Stamp = "20261031T103450Z", [string]$Binary = "C:\tmp\nexusai-g4\api-staging.exe", [switch]$WithAuth)   # -WithAuth keeps the live API key and authentication setting: the text-search routes need the workspace scope an authenticated request carries (measured 2026-11-19: without it a document search answered "execution plan requires a complete workspace scope")
 $ErrorActionPreference = "Stop"
 $repo = Split-Path (Split-Path (Split-Path $PSScriptRoot))          # the checkout: tools\dev\live-window -> its root
 $projects = Split-Path $repo                                          # the main checkout sits beside it and holds the git-ignored backups
@@ -22,8 +22,8 @@ New-Item -ItemType Directory -Force "$work\spool", "$work\plans" | Out-Null
 $settings["FORENSIC_DATABASE_URL"] = "postgres://forensic_runtime:$pw@127.0.0.1:$port/localrecall?sslmode=disable"
 $settings["LOCALAI_KB_URL"] = "http://127.0.0.1:8080"
 $settings["FORENSIC_API_ADDR"] = "127.0.0.1:8191"
-$settings["FORENSIC_API_KEY"] = ""
-$settings["FORENSIC_API_AUTH_REQUIRED"] = "false"
+if (-not $WithAuth) { $settings["FORENSIC_API_KEY"] = "" }
+if (-not $WithAuth) { $settings["FORENSIC_API_AUTH_REQUIRED"] = "false" }
 $settings["FORENSIC_SPOOL_DIR"] = "$work\spool"
 $settings["FORENSIC_PLAN_CACHE_DIR"] = "$work\plans"
 $settings["FORENSIC_KB_MIRROR_ENABLED"] = "false"

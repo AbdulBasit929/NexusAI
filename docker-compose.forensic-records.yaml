@@ -459,6 +459,10 @@ services:
       # the request carries a structured text query and goes to the governed text retrieval instead of the SQL engine. Server checks: the literal must be a verbatim part
       # of the sentence, a national ID number is never routed, any failure changes nothing. docs/roadmap/text-intent-preregistration-20261110.md. UNMEASURED -- default off.
       FORENSIC_TEXT_INTENT: ${FORENSIC_TEXT_INTENT:-true}
+      # Any-source text search (api/forensic_records/ask_text_search_all.go): a text search reads the documents, the image text and the recording transcripts of the case together, matches what was typed as
+      # typed, written differently (digit scripts, separators, case, 0/92/0092 forms of a phone number) or as a labelled close reading, and answers with EVERY file (never "and N others"), saying when it stopped
+      # early. Off by default: the existing text retrieval answers as before. docs/roadmap/ask-exhaustive-search-plan-20261119.md.
+      FORENSIC_TEXT_SEARCH_ALL: ${FORENSIC_TEXT_SEARCH_ALL:-false}
       # Governed SQL lane (docs/architecture/QUERY_ANSWERING_DECISION_20261005.md): a model writes one SELECT over analyst views built from
       # the curated semantic layer; a parse-tree allowlist validates it, a verifier checks that every condition in the question is in the
       # query, and it runs read-only. GOVERNED_SQL alone runs it only AFTER the existing path declines (it cannot change an answer already

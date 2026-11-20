@@ -1,0 +1,563 @@
+{
+ "built": "2026-11-19",
+ "note": "Lookup questions of ask_exhaustive_bank bank-A (the TUNING set of the exhaustive-search work; bank-B and the sealed holdout are not used for tuning). Negatives are those of bank-dev2.",
+ "positives": [
+  {
+   "id": "LK-001",
+   "case": "orion-lahore-reference-20261030",
+   "question": "Which files mention the number 042-35761234?",
+   "source_family": "any",
+   "expected_family": "any",
+   "literal": "042-35761234",
+   "oracle_literal": "042-35761234"
+  },
+  {
+   "id": "LK-002",
+   "case": "orion-lahore-reference-20261030",
+   "question": "Where does 042-35761234 appear in this case?",
+   "source_family": "any",
+   "expected_family": "any",
+   "literal": "042-35761234",
+   "oracle_literal": "042-35761234"
+  },
+  {
+   "id": "LK-003",
+   "case": "orion-lahore-reference-20261030",
+   "question": "find 04235761234",
+   "source_family": "any",
+   "expected_family": "any",
+   "literal": "04235761234",
+   "oracle_literal": "04235761234"
+  },
+  {
+   "id": "LK-004",
+   "case": "orion-lahore-reference-20261030",
+   "question": "Show every document that lists the helpline 042 35761234",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "042 35761234",
+   "oracle_literal": "042 35761234"
+  },
+  {
+   "id": "LK-005",
+   "case": "orion-lahore-reference-20261030",
+   "question": "042-35761234 kis kis file mein likha hai?",
+   "source_family": "any",
+   "expected_family": "any",
+   "literal": "042-35761234",
+   "oracle_literal": "042-35761234"
+  },
+  {
+   "id": "LK-006",
+   "case": "orion-lahore-reference-20261030",
+   "question": "Which documents carry the reference REF00000394?",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "REF00000394",
+   "oracle_literal": "REF00000394"
+  },
+  {
+   "id": "LK-007",
+   "case": "orion-lahore-reference-20261030",
+   "question": "search REF00000394",
+   "source_family": "any",
+   "expected_family": "any",
+   "literal": "REF00000394",
+   "oracle_literal": "REF00000394"
+  },
+  {
+   "id": "LK-008",
+   "case": "orion-lahore-reference-20261030",
+   "question": "Is the reference number REF00000394 written anywhere?",
+   "source_family": "any",
+   "expected_family": "any",
+   "literal": "REF00000394",
+   "oracle_literal": "REF00000394"
+  },
+  {
+   "id": "LK-009",
+   "case": "orion-lahore-reference-20261030",
+   "question": "REF00000394 kahan kahan aaya hai",
+   "source_family": "any",
+   "expected_family": "any",
+   "literal": "REF00000394",
+   "oracle_literal": "REF00000394"
+  },
+  {
+   "id": "LK-010",
+   "case": "orion-lahore-reference-20261030",
+   "question": "Which files say synthetic?",
+   "source_family": "any",
+   "expected_family": "any",
+   "literal": "synthetic",
+   "oracle_literal": "synthetic"
+  },
+  {
+   "id": "LK-011",
+   "case": "orion-lahore-reference-20261030",
+   "question": "Find every document that is marked as a synthetic test document",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "synthetic test document",
+   "oracle_literal": "synthetic test document"
+  },
+  {
+   "id": "LK-012",
+   "case": "orion-lahore-reference-20261030",
+   "question": "how many and which documents contain the word SYNTHETIC",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "SYNTHETIC",
+   "oracle_literal": "SYNTHETIC"
+  },
+  {
+   "id": "LK-013",
+   "case": "orion-lahore-reference-20261030",
+   "question": "show all evidence mentioning synthetic",
+   "source_family": "any",
+   "expected_family": "any",
+   "literal": "synthetic",
+   "oracle_literal": "synthetic"
+  },
+  {
+   "id": "LK-014",
+   "case": "orion-lahore-reference-20261030",
+   "question": "Which files contain an IMSI?",
+   "source_family": "any",
+   "expected_family": "any",
+   "literal": "IMSI",
+   "oracle_literal": "IMSI"
+  },
+  {
+   "id": "LK-015",
+   "case": "orion-lahore-reference-20261030",
+   "question": "Find all evidence that mentions IMSI",
+   "source_family": "any",
+   "expected_family": "any",
+   "literal": "IMSI",
+   "oracle_literal": "IMSI"
+  },
+  {
+   "id": "LK-016",
+   "case": "orion-lahore-reference-20261030",
+   "question": "Where is the IMSI recorded in the case?",
+   "source_family": "any",
+   "expected_family": "any",
+   "literal": "IMSI",
+   "oracle_literal": "IMSI"
+  },
+  {
+   "id": "LK-017",
+   "case": "orion-lahore-reference-20261030",
+   "question": "list the documents with IMSI values",
+   "source_family": "document",
+   "expected_family": "document",
+   "literal": "IMSI",
+   "oracle_literal": "IMSI"
+  },
+  {
+   "id": "LK-018",
+   "case": "orion-lahore-reference-20261030",
+   "question": "Which statement was given by Hassan Farooqi?",
+   "source_family": "any",
+   "expected_family": "any",
+   "literal": "Hassan Farooqi",
+   "oracle_literal": "Hassan Farooqi"
+  },
+  {
+   "id": "LK-019",
+   "case": "orion-lahore-reference-20261030",
+   "question": "find Hassan Farooqi",
+   "source_family": "any",
+   "expected_family": "any",
+   "literal": "Hassan Farooqi",
+   "oracle_literal": "Hassan Farooqi"
+  },
+  {
+   "id": "LK-020",
+   "case": "orion-lahore-reference-20261030",
+   "question": "Does the name Hassan Farooqi appear in any evidence?",
+   "source_family": "any",
+   "expected_family": "any",
+   "literal": "Hassan Farooqi",
+   "oracle_literal": "Hassan Farooqi"
+  },
+  {
+   "id": "LK-025",
+   "case": "orion-lahore-reference-20261030",
+   "question": "Which files mention the account PK00SYNT0000000000002005?",
+   "source_family": "any",
+   "expected_family": "any",
+   "literal": "PK00SYNT0000000000002005",
+   "oracle_literal": "PK00SYNT0000000000002005"
+  },
+  {
+   "id": "LK-026",
+   "case": "orion-lahore-reference-20261030",
+   "question": "Find account PK00SYNT0000000000002005 in the evidence",
+   "source_family": "any",
+   "expected_family": "any",
+   "literal": "PK00SYNT0000000000002005",
+   "oracle_literal": "PK00SYNT0000000000002005"
+  },
+  {
+   "id": "LK-027",
+   "case": "orion-lahore-reference-20261030",
+   "question": "where is bank account number PK00SYNT0000000000002005 used",
+   "source_family": "any",
+   "expected_family": "any",
+   "literal": "PK00SYNT0000000000002005",
+   "oracle_literal": "PK00SYNT0000000000002005"
+  }
+ ],
+ "negatives": [
+  {
+   "id": "VB-APPS-004",
+   "kind": "plain",
+   "question": "How many app usage records does 923000001000 have?",
+   "area": "apps"
+  },
+  {
+   "id": "VB-APPS-001",
+   "kind": "plain",
+   "question": "How many app usage records does 923000001001 have?",
+   "area": "apps"
+  },
+  {
+   "id": "VB-BANK-058",
+   "kind": "plain",
+   "question": "On which day was the last transaction of the account PK00SYNT0000000000002001?",
+   "area": "bank"
+  },
+  {
+   "id": "VB-BANK-047",
+   "kind": "plain",
+   "question": "On which day was the last transaction of the account PK00SYNT0000000000002005?",
+   "area": "bank"
+  },
+  {
+   "id": "VB-BANK-081",
+   "kind": "plain",
+   "question": "How many debits of the account PK00SYNT0000000000002011 were above 43701 rupees?",
+   "area": "bank"
+  },
+  {
+   "id": "VB-BANK-075",
+   "kind": "plain",
+   "question": "What is the largest single debit of the account PK00SYNT0000000000002011?",
+   "area": "bank"
+  },
+  {
+   "id": "VB-BANK-010",
+   "kind": "plain",
+   "question": "How many debits of the account PK00SYNT0000000000002010 were above 245250 rupees?",
+   "area": "bank"
+  },
+  {
+   "id": "VB-BANK-017",
+   "kind": "plain",
+   "question": "On which day was the last transaction of the account PK00SYNT0000000000002004?",
+   "area": "bank"
+  },
+  {
+   "id": "VB-BANK-050",
+   "kind": "plain",
+   "question": "Which accounts or numbers sent money to the account PK00SYNT0000000000002005?",
+   "area": "bank"
+  },
+  {
+   "id": "VB-BANK-021",
+   "kind": "plain",
+   "question": "How many transactions does the account PK00SYNT0000000000002003 have?",
+   "area": "bank"
+  },
+  {
+   "id": "VB-BANK-004",
+   "kind": "plain",
+   "question": "What is the largest single debit of the account PK00SYNT0000000000002010?",
+   "area": "bank"
+  },
+  {
+   "id": "VB-BANK-087",
+   "kind": "plain",
+   "question": "On which day was the first transaction of the account PK00SYNT0000000000002008?",
+   "area": "bank"
+  },
+  {
+   "id": "VB-CALL-011",
+   "kind": "plain",
+   "question": "Which number did 923000001005 call the most with outgoing voice calls?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CALL-055",
+   "kind": "plain",
+   "question": "What is the average duration of the voice calls of 923000001000, in seconds?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CALL-004",
+   "kind": "plain",
+   "question": "What is the total talk time of 923000001005 across all its voice calls, in seconds?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CALL-100",
+   "kind": "plain",
+   "question": "How many different numbers did 923000001001 contact, leaving out services?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CALL-025",
+   "kind": "plain",
+   "question": "How many different numbers did 923000001002 contact, leaving out services?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CALL-016",
+   "kind": "plain",
+   "question": "How many incoming voice calls did 923000001002 receive?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CALL-020",
+   "kind": "plain",
+   "question": "How many voice calls of 923000001002 lasted more than 10 minutes?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CALL-115",
+   "kind": "plain",
+   "question": "What is the total talk time of 923000001003 across all its voice calls, in seconds?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CALL-122",
+   "kind": "plain",
+   "question": "Which number did 923000001003 call the most with outgoing voice calls?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CALL-019",
+   "kind": "plain",
+   "question": "What is the average duration of the voice calls of 923000001002, in seconds?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CALL-106",
+   "kind": "plain",
+   "question": "What is the average duration of the voice calls of 923000001008, in seconds?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CALL-012",
+   "kind": "plain",
+   "question": "Which day had the most voice calls for 923000001005?",
+   "area": "calls"
+  },
+  {
+   "id": "VB-CELL-015",
+   "kind": "plain",
+   "question": "Which cell site did 923000001001 use the most?",
+   "area": "cells"
+  },
+  {
+   "id": "VB-CELL-004",
+   "kind": "plain",
+   "question": "How many different cell sites did 923000001002 use?",
+   "area": "cells"
+  },
+  {
+   "id": "VB-HAND-013",
+   "kind": "plain",
+   "question": "Which handset (IMEI) was 923000001009 seen with?",
+   "area": "handsets"
+  },
+  {
+   "id": "VB-HAND-024",
+   "kind": "plain",
+   "question": "How many different handsets was 923000001004 seen with?",
+   "area": "handsets"
+  },
+  {
+   "id": "VB-INTE-015",
+   "kind": "plain",
+   "question": "Which app did 923000001009 use the most in its internet sessions?",
+   "area": "internet"
+  },
+  {
+   "id": "VB-INTE-031",
+   "kind": "plain",
+   "question": "Which number has the most internet sessions?",
+   "area": "internet"
+  },
+  {
+   "id": "VB-INTE-017",
+   "kind": "plain",
+   "question": "How many bytes did 923000001002 download in total?",
+   "area": "internet"
+  },
+  {
+   "id": "VB-INVE-001",
+   "kind": "plain",
+   "question": "How many document files are in this case?",
+   "area": "inventory"
+  },
+  {
+   "id": "VB-INVE-005",
+   "kind": "plain",
+   "question": "How many evidence files are in this case?",
+   "area": "inventory"
+  },
+  {
+   "id": "VB-MESS-019",
+   "kind": "plain",
+   "question": "Which number did 923000001000 send the most text messages to?",
+   "area": "messages"
+  },
+  {
+   "id": "VB-MESS-029",
+   "kind": "plain",
+   "question": "Which number did 923000001007 send the most text messages to?",
+   "area": "messages"
+  },
+  {
+   "id": "VB-PAIR-015",
+   "kind": "plain",
+   "question": "What is the total duration of the voice calls between 923000001010 and 923000001080, in seconds?",
+   "area": "pairs"
+  },
+  {
+   "id": "VB-PAIR-019",
+   "kind": "plain",
+   "question": "What is the total duration of the voice calls between 923000001000 and 923000001098, in seconds?",
+   "area": "pairs"
+  },
+  {
+   "id": "VB-PAIR-024",
+   "kind": "plain",
+   "question": "When was the last contact between 923000001007 and 923000001057?",
+   "area": "pairs"
+  },
+  {
+   "id": "VB-PLAT-032",
+   "kind": "plain",
+   "question": "When was the plate SYNT4016 last seen?",
+   "area": "plates"
+  },
+  {
+   "id": "VB-PLAT-025",
+   "kind": "plain",
+   "question": "How many times was the plate SYNT4O24 seen?",
+   "area": "plates"
+  },
+  {
+   "id": "TI-D-N01",
+   "kind": "plain",
+   "question": "hello, how are you?",
+   "area": "conversation"
+  },
+  {
+   "id": "TI-D-N02",
+   "kind": "plain",
+   "question": "what is an IMEI?",
+   "area": "conversation"
+  },
+  {
+   "id": "TI-D-N03",
+   "kind": "plain",
+   "question": "what can you do?",
+   "area": "conversation"
+  },
+  {
+   "id": "TI-D-N04",
+   "kind": "plain",
+   "question": "what does the audio transcript say?",
+   "area": "conversation"
+  },
+  {
+   "id": "TI-D-N05",
+   "kind": "plain",
+   "question": "summarise the documents",
+   "area": "conversation"
+  },
+  {
+   "id": "TI-D-N06",
+   "kind": "plain",
+   "question": "how many documents are in this case?",
+   "area": "conversation"
+  },
+  {
+   "id": "TI-D-N07",
+   "kind": "plain",
+   "question": "list the files that were ingested",
+   "area": "conversation"
+  },
+  {
+   "id": "TI-D-N08",
+   "kind": "plain",
+   "question": "thanks, that helps",
+   "area": "conversation"
+  },
+  {
+   "id": "TI-D-N09",
+   "kind": "plain",
+   "question": "explain what a CDR is",
+   "area": "conversation"
+  },
+  {
+   "id": "TI-D-N10",
+   "kind": "plain",
+   "question": "which evidence types do you support?",
+   "area": "conversation"
+  },
+  {
+   "id": "TI-D-H01",
+   "kind": "hard",
+   "question": "Which text messages contain the word otp?",
+   "area": "structured-field"
+  },
+  {
+   "id": "TI-D-H02",
+   "kind": "hard",
+   "question": "show messages whose body mentions urgent",
+   "area": "structured-field"
+  },
+  {
+   "id": "TI-D-H03",
+   "kind": "hard",
+   "question": "which bank transactions have the remark salary",
+   "area": "structured-field"
+  },
+  {
+   "id": "TI-D-H04",
+   "kind": "hard",
+   "question": "find calls to a number containing 0300",
+   "area": "structured-field"
+  },
+  {
+   "id": "TI-D-H05",
+   "kind": "hard",
+   "question": "which vehicles have a plate containing LEA",
+   "area": "structured-field"
+  },
+  {
+   "id": "TI-D-H06",
+   "kind": "hard",
+   "question": "list subscribers whose name contains Khan",
+   "area": "structured-field"
+  },
+  {
+   "id": "TI-D-H07",
+   "kind": "hard",
+   "question": "does any transaction description say rent",
+   "area": "structured-field"
+  },
+  {
+   "id": "TI-D-H08",
+   "kind": "hard",
+   "question": "show the SMS that say meet me",
+   "area": "structured-field"
+  }
+ ]
+}

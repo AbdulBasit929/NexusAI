@@ -22,7 +22,7 @@ func TestCaseInsensitiveQueryFoldsBothSides(t *testing.T) {
 	}
 	for _, c := range cases {
 		if got := Match(c.text, c.query); got != c.want {
-			t.Errorf("%s: Match(%q, %+v) = %v, want %v", c.name, c.text, c.query, got, c.want)
+			t.Errorf("%s: Match(%q, %+v) = %v, want %v", c.name, c.text, c.query, got, c.want) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
 		}
 	}
 }

@@ -84,6 +84,7 @@ type hybridQueryRequest struct {
 	EndSeconds              *float64                 `json:"end_seconds,omitempty"`
 	SourceFile              string                   `json:"source_file,omitempty"`
 	SourceSet               *StructuredSourceSetV1   `json:"source_set,omitempty"`
+	TextLookup              string                   `json:"-"` // a number or code of the message, looked up in the text of the case if the records route has nothing; set by textLookupCandidate, read by textLookupAugment
 	BatchID                 string                   `json:"batch_id,omitempty"`
 	RawPayloadFilters       []CanonicalPayloadFilter `json:"raw_payload_filters,omitempty"`
 	Projection              []string                 `json:"projection,omitempty"`
@@ -344,10 +345,27 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			beforeIntent := req
 			var intentFamily string
 			req, intentFamily, textRouted = textIntentRoute(ctx, w, cfg, req, startedAt)
+			// FORENSIC_TEXT_SEARCH_ALL: a message that holds a number or a code keeps its records route; if that route turns out to have nothing (no rows, or a request for more input), the text
+			// search says where the value is written (textLookupAugment). No model is asked: see ask_text_lookup.go.
+			if !textRouted && textSearchAllEnabled() {
+				req.TextLookup = textLookupCandidate(req)
+			}
 			// The model says the question is about a plate the investigator typed, asked about in images or video (any plate format): exact matches and similar readings over the case's plate
 			// reads, kept apart, search-only (plate_image_search.go). If the search cannot run, the question takes the path it would have taken without the step.
 			if textRouted && intentFamily == tiFamilyPlate {
 				if answered, ok := plateImageSearchRun(ctx, db, req, startedAt, []string{req.Plate}); ok {
+					if textSearchAllEnabled() { // FORENSIC_TEXT_SEARCH_ALL: add the documents and recordings that write the plate
+						answered = textSearchPlateMentions(ctx, db, req, answered, req.Plate)
+					}
+					writeJSON(w, http.StatusOK, answered)
+					return
+				}
+				req, textRouted = beforeIntent, false
+			}
+			// FORENSIC_TEXT_SEARCH_ALL (ask_text_search_all.go): a text search is run over the text of the kind of source the question names (documents, image text, recordings) or, when it names none,
+			// all three together, matched as typed, written differently or as a close reading, and answered with every file. If it cannot run, the question takes the path it would have taken without it.
+			if textRouted && intentFamily != tiFamilyPlate && textSearchAllEnabled() {
+				if answered, ok := textSearchAllRun(ctx, db, req, startedAt, derivedTextContractsForTemplate(req.Template)); ok {
 					writeJSON(w, http.StatusOK, answered)
 					return
 				}
@@ -374,7 +392,7 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			askResponse, askAudit := askV2Run(ctx, cfg, db, req, startedAt)
 			setAskV2Header(w, askAudit)
 			if askResponse != nil && (!reclassified || askAudit.State == "answered") {
-				writeJSON(w, http.StatusOK, *askResponse)
+				writeJSON(w, http.StatusOK, textLookupAugment(ctx, db, req, *askResponse))
 				return
 			}
 		}
@@ -382,7 +400,7 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			laneResponse, laneAudit := govSQLLaneRun(ctx, cfg, db, req, startedAt)
 			setGovernedSQLHeader(w, laneAudit)
 			if laneResponse != nil && (!reclassified || laneAudit.State == "answered") {
-				writeJSON(w, http.StatusOK, *laneResponse)
+				writeJSON(w, http.StatusOK, textLookupAugment(ctx, db, req, *laneResponse))
 				return
 			}
 			// A question the lane spent model time on and still declined goes on with ONE short model attempt, not the two that
@@ -1158,7 +1176,7 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			resp.Enterprise["tool_results"] = resp.ToolResults
 		}
 		attachTypedVisualizationsToLegacyEnterprise(req, requestID, &resp)
-		writeJSON(w, http.StatusOK, resp)
+		writeJSON(w, http.StatusOK, textLookupAugment(ctx, db, req, resp))
 	}
 }
 
