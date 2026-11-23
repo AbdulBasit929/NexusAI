@@ -55,6 +55,33 @@ So a prompt change buys roughly 20 points of full recall and costs a measured re
 2. **Accept the prompt variant** (the `where_written` paragraph): +20 points on the banks, with the measured intent regression above. The edits are small (appendix below); they were reverted from the working tree, not committed.
 3. **A better router**: a larger or fine-tuned intent model, or running the text search in parallel with the records route for every message that holds a value and merging the two answers (no classifier needed, noisier answers, one more database read per question). Needs a design decision.
 
+## Phase 1 (2026-11-20 / 23): certification of the shipped design, and two defects it found
+
+**Certification run of the committed code (`ad1afb2`), bank-C (36 fresh questions, never seen): 25 fully answered (69%), mean recall 0.71, precision 0.91, 8 citing nothing, median 10.7 s.** Gates not met.
+
+Reading its misses showed two defects in my own code, both general rather than question-specific:
+
+1. The "records answer is empty, so add the files" step was wired into 3 of the handler's 11 response exits; the clarification, decline and terminal answers (exactly the empty ones) never got it. All exits are wrapped now.
+2. Dates were excluded from the values looked up (a leftover from when the check gated a model call). They are values too.
+
+A third change, added with them: when the answer is empty and the message holds no number, the model is asked for the value (a name, a place, a word). Safe here only: the answer was empty, so a wrong guess costs one sentence and replaces nothing. The server's checks apply (verbatim in the message, never a national identity number, never the whole message).
+
+**Diagnostic runs of the fixed build** (bank-C and bank-B are no longer clean: their misses were read before the fixes):
+
+| | committed code | fixed build |
+|---|---|---|
+| bank-A (30) | 18 (60%) | 21 (70%), recall 0.75, precision 0.84 |
+| bank-B (39) | 29 (74%) | 33 (85%), recall 0.88, precision 0.92 |
+| bank-C (36) | 25 (69%) | 31 (86%), recall 0.88, precision 0.93 |
+
+The gain is the same size on all three banks (+10 to +17 points), which says it is the general effect of the fix. A clean certification of the fixed build needs a new bank (bank-D).
+
+**Verified-bank sample, switch on, fixed build (64 questions: the one earlier abstention plus a seeded draw across every family, private and video questions left out): 62 correct, 1 wrong, 1 declined; the earlier abstention (VB-MESS-019) is now correct. No answer carries the appended sentence: nothing the engine answered with rows was touched.** The two changed questions (VB-SPEE-010, "How many recordings are spoken in Pashto?" now 10 against the bank's 4; VB-SPEE-022, the segment count, a decline that shows 39 against 12) were re-asked with the new search **off** and give the same result: the staging copy is the Nov 16 database, with speech data newer than the Nov 13 bank was built from. Not a regression.
+
+**What is still missing is the non-empty records answers.** "where does +92 300 0001010 turn up" is answered "443 cell visits", "which file lists an ICCID" "2 rows", "which files mention the vehicle registration SYNT 4024" "50 rows" (the camera sightings): the table engine has something to say, so nothing is added, and the files that write the value are not named. That is Phase 2 (below). One bank-C miss, `SYNT-2905`, is a data-version mismatch (the staging copy has OCR from before the re-read of 2026-11-19; the truth was computed from the live database), not a defect.
+
+**Phase 2, recommended:** run the text search alongside every message that holds a long number or code (in parallel with the records route, so it adds no waiting) and keep the records answer's headline exactly as it is; attach the files in a separate "also written in" field that the interface shows as a secondary line. No classifier is needed, nothing a records answer says can change, and the lookups that the table engine answers with rows get their files. It needs a small interface change on :4182 and a decision about the noise (most phone numbers of this case are written in several files).
+
 ## Not yet done
 
 - The 484-question verified bank has not been re-run with the switch on; the only change an answered question can see is an appended sentence on an **empty** answer.

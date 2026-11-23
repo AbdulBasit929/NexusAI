@@ -898,11 +898,19 @@ func textSearchPlateMentions(ctx context.Context, db *pgxpool.Pool, req hybridQu
 	return merged
 }
 
-// textLookupAugment adds the files whose text holds the number or code of the message (req.TextLookup, ask_text_lookup.go) to an answer the records route gave with nothing in it. An answer that has
-// rows is returned unchanged.
-func textLookupAugment(ctx context.Context, db *pgxpool.Pool, req hybridQueryRequest, resp hybridQueryResponse) hybridQueryResponse {
-	if req.TextLookup == "" || !textSearchAllEnabled() || !textLookupAnswerEmpty(resp) {
+// textLookupAugment adds the files whose text holds the value of the message to an answer the records route gave with nothing in it (no rows, or a request for more input); an answer that has rows
+// is returned unchanged. The value is the number or code the analyst typed (req.TextLookup, ask_text_lookup.go); when the message holds none, the model is asked for the value (textLookupExtract), which
+// is safe here and only here: the answer was empty, so a wrong guess costs one extra sentence and cannot replace anything.
+func textLookupAugment(ctx context.Context, cfg config, db *pgxpool.Pool, req hybridQueryRequest, resp hybridQueryResponse) hybridQueryResponse {
+	if !textSearchAllEnabled() || !textLookupAnswerEmpty(resp) {
 		return resp
 	}
-	return textSearchAddMentions(ctx, db, req, resp, req.TextLookup, searchableDerivedTextContracts, " The text you asked about is also written in", "")
+	literal := req.TextLookup
+	if literal == "" {
+		literal = textLookupExtract(ctx, cfg, req)
+	}
+	if literal == "" {
+		return resp
+	}
+	return textSearchAddMentions(ctx, db, req, resp, literal, searchableDerivedTextContracts, " The text you asked about is also written in", "")
 }

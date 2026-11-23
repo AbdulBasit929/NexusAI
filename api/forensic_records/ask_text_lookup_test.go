@@ -1,6 +1,10 @@
 package main
 
 import (
+	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
@@ -13,7 +17,7 @@ func TestTextLookupValueIsALongNumberOrACodeAsTyped(t *testing.T) {
 		"find Hassan Farooqi":                          "",
 		"Who called 0300 most often?":                  "",
 		"how many calls were made in March 2026":       "",
-		"calls between 04/02/2026 and 16/04/2026":      "",
+		"calls between 04/02/2026 and 16/04/2026":      "04/02/2026",
 	} {
 		if got := textLookupValue(message); got != want {
 			t.Errorf("textLookupValue(%q) = %q, want %q", message, got, want) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
@@ -72,15 +76,85 @@ func TestTextLookupAugmentLeavesAnAnswerWithRowsAndASwitchedOffSearchUntouched(t
 	req.TextLookup = "042-35761234"
 	withRows := hybridQueryResponse{Enterprise: map[string]any{"status": "completed", "row_count": 4, "executive_answer": "Total calls: 694."}}
 	t.Setenv(textSearchAllEnv, "true")
-	if got := textLookupAugment(t.Context(), nil, req, withRows); got.Enterprise["executive_answer"] != "Total calls: 694." {
+	if got := textLookupAugment(t.Context(), config{}, nil, req, withRows); got.Enterprise["executive_answer"] != "Total calls: 694." {
 		t.Fatalf("an answer with rows must not change: %v", got.Enterprise["executive_answer"]) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
 	}
 	empty := hybridQueryResponse{Enterprise: map[string]any{"status": "needs_input", "row_count": 0, "executive_answer": "Which MSISDN?"}}
-	if got := textLookupAugment(t.Context(), nil, req, empty); got.Enterprise["executive_answer"] != "Which MSISDN?" { // no database: nothing can be added
+	if got := textLookupAugment(t.Context(), config{}, nil, req, empty); got.Enterprise["executive_answer"] != "Which MSISDN?" { // no database: nothing can be added
 		t.Fatalf("without a database nothing is added: %v", got.Enterprise["executive_answer"]) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
 	}
 	t.Setenv(textSearchAllEnv, "false")
-	if got := textLookupAugment(t.Context(), nil, req, empty); got.Enterprise["executive_answer"] != "Which MSISDN?" {
+	if got := textLookupAugment(t.Context(), config{}, nil, req, empty); got.Enterprise["executive_answer"] != "Which MSISDN?" {
 		t.Fatalf("with the switch off nothing is added: %v", got.Enterprise["executive_answer"]) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+}
+
+func lookupServer(t *testing.T, reply textLookupWire) (*httptest.Server, *int) {
+	t.Helper()
+	calls := 0
+	content, _ := json.Marshal(reply)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = io.ReadAll(r.Body)
+		calls++
+		_ = json.NewEncoder(w).Encode(map[string]any{"choices": []map[string]any{{"message": map[string]string{"content": string(content)}, "finish_reason": "stop"}}})
+	}))
+	t.Cleanup(server.Close)
+	return server, &calls
+}
+
+func TestTextLookupExtractAcceptsOnlyAValueTheServerAccepts(t *testing.T) {
+	message := "Which chats mention Zainab Gill?"
+	server, calls := lookupServer(t, textLookupWire{Literal: "Zainab Gill"})
+	cfg := config{LocalAIURL: server.URL, SynthesisModel: "qwen3-4b"}
+	if got := textLookupExtract(t.Context(), cfg, textIntentRequest(message)); got != "Zainab Gill" || *calls != 1 {
+		t.Fatalf("value = %q after %d calls", got, *calls) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+	for name, reply := range map[string]textLookupWire{
+		"empty":                {Literal: ""},
+		"not in the message":   {Literal: "Someone Else"},
+		"the whole message":    {Literal: message},
+		"national identity id": {Literal: "35202-1234567-1"},
+	} {
+		server, _ := lookupServer(t, reply)
+		question := message
+		if name == "national identity id" {
+			question = "Where is 35202-1234567-1 written?"
+		}
+		if got := textLookupExtract(t.Context(), config{LocalAIURL: server.URL, SynthesisModel: "qwen3-4b"}, textIntentRequest(question)); got != "" {
+			t.Errorf("%s: value %q must be refused", name, got) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+		}
+	}
+	tied := textIntentRequest(message)
+	tied.Template = "document_search"
+	server, calls = lookupServer(t, textLookupWire{Literal: "Zainab Gill"})
+	if got := textLookupExtract(t.Context(), config{LocalAIURL: server.URL, SynthesisModel: "qwen3-4b"}, tied); got != "" || *calls != 0 {
+		t.Fatalf("a request tied to an operation is not looked at (calls %d, value %q)", *calls, got) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+	failing := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusInternalServerError) }))
+	t.Cleanup(failing.Close)
+	if got := textLookupExtract(t.Context(), config{LocalAIURL: failing.URL, SynthesisModel: "qwen3-4b"}, textIntentRequest(message)); got != "" {
+		t.Fatalf("a failing model must change nothing: %q", got) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+}
+
+func TestTextLookupAugmentAsksTheModelOnlyForAnEmptyAnswerWithoutANumber(t *testing.T) {
+	t.Setenv(textSearchAllEnv, "true")
+	server, calls := lookupServer(t, textLookupWire{Literal: "Zainab Gill"})
+	cfg := config{LocalAIURL: server.URL, SynthesisModel: "qwen3-4b"}
+	req := textIntentRequest("Which chats mention Zainab Gill?")
+	withRows := hybridQueryResponse{Enterprise: map[string]any{"status": "completed", "row_count": 2, "executive_answer": "2 rows."}}
+	if got := textLookupAugment(t.Context(), cfg, nil, req, withRows); got.Enterprise["executive_answer"] != "2 rows." || *calls != 0 {
+		t.Fatalf("an answer with rows asks nothing (calls %d)", *calls) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+	empty := hybridQueryResponse{Enterprise: map[string]any{"status": "needs_input", "row_count": 0, "executive_answer": "I could not tie it."}}
+	_ = textLookupAugment(t.Context(), cfg, nil, req, empty) // no database: nothing is added, but the model was asked once
+	if *calls != 1 {
+		t.Fatalf("an empty answer without a number asks the model once (calls %d)", *calls) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
+	}
+	numbered := textIntentRequest("Where does 042-35761234 appear?")
+	numbered.TextLookup = "042-35761234"
+	_ = textLookupAugment(t.Context(), cfg, nil, numbered, empty)
+	if *calls != 1 {
+		t.Fatalf("a message with a number needs no model (calls %d)", *calls) //nolint:forbidigo // test uses the standard testing package; conversion to Ginkgo is tracked in docs/work/LINT_DEBT_20261005.md
 	}
 }

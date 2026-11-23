@@ -392,7 +392,7 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			askResponse, askAudit := askV2Run(ctx, cfg, db, req, startedAt)
 			setAskV2Header(w, askAudit)
 			if askResponse != nil && (!reclassified || askAudit.State == "answered") {
-				writeJSON(w, http.StatusOK, textLookupAugment(ctx, db, req, *askResponse))
+				writeJSON(w, http.StatusOK, textLookupAugment(ctx, cfg, db, req, *askResponse))
 				return
 			}
 		}
@@ -400,7 +400,7 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			laneResponse, laneAudit := govSQLLaneRun(ctx, cfg, db, req, startedAt)
 			setGovernedSQLHeader(w, laneAudit)
 			if laneResponse != nil && (!reclassified || laneAudit.State == "answered") {
-				writeJSON(w, http.StatusOK, textLookupAugment(ctx, db, req, *laneResponse))
+				writeJSON(w, http.StatusOK, textLookupAugment(ctx, cfg, db, req, *laneResponse))
 				return
 			}
 			// A question the lane spent model time on and still declined goes on with ONE short model attempt, not the two that
@@ -408,7 +408,7 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			ctx = govSQLContextAfterDecline(ctx, laneAudit)
 		}
 		if terminal, ok := terminalRequestResponse(req, startedAt); ok {
-			writeJSON(w, http.StatusOK, terminal)
+			writeJSON(w, http.StatusOK, textLookupAugment(ctx, cfg, db, req, terminal))
 			return
 		}
 
@@ -726,7 +726,7 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			applyWithhold(req, &resp, *reason)
 			resp.Telemetry = buildQueryTelemetry(requestID, dbLatencyMS, kbLatencyMS, llmLatencyMS, startedAt, resp)
 			resp.Enterprise = buildEnterprisePayload(req, resp)
-			writeJSON(w, http.StatusOK, resp)
+			writeJSON(w, http.StatusOK, textLookupAugment(ctx, cfg, db, req, resp))
 			return
 		}
 
@@ -742,7 +742,7 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			resp.Planner["query_plan"] = resp.QueryPlan
 			resp.Telemetry = buildQueryTelemetry(requestID, dbLatencyMS, kbLatencyMS, llmLatencyMS, startedAt, resp)
 			resp.Enterprise = buildEnterprisePayload(req, resp)
-			writeJSON(w, http.StatusOK, resp)
+			writeJSON(w, http.StatusOK, textLookupAugment(ctx, cfg, db, req, resp))
 			return
 		}
 
@@ -780,7 +780,7 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			resp.Planner["query_plan"] = resp.QueryPlan
 			resp.Telemetry = buildQueryTelemetry(requestID, dbLatencyMS, kbLatencyMS, llmLatencyMS, startedAt, resp)
 			resp.Enterprise = buildEnterprisePayload(req, resp)
-			writeJSON(w, http.StatusOK, resp)
+			writeJSON(w, http.StatusOK, textLookupAugment(ctx, cfg, db, req, resp))
 			return
 		}
 
@@ -823,7 +823,7 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			resp.Clarification = &ClarificationRequestV1{ContractVersion: clarificationRequestContractV1, ReasonCode: "missing_required_parameter", Question: stringValueAny(resp.Answer["clarification"]), MissingFields: append([]string(nil), understanding.Clarification.MissingFields...), Options: clarificationOptions(req, understanding.Clarification.MissingFields), ExecutionHeld: true}
 			resp.Telemetry = buildQueryTelemetry(requestID, dbLatencyMS, kbLatencyMS, llmLatencyMS, startedAt, resp)
 			resp.Enterprise = buildEnterprisePayload(req, resp)
-			writeJSON(w, http.StatusOK, resp)
+			writeJSON(w, http.StatusOK, textLookupAugment(ctx, cfg, db, req, resp))
 			return
 		}
 		if template == "cross_family_correlation" && len(req.Targets) > maxCrossFamilyTargets {
@@ -864,7 +864,7 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			resp.Answer["guardrail"] = "No operation executed because capability resolution did not produce the complete authorized, data-ready capability set."
 			resp.Telemetry = buildQueryTelemetry(requestID, dbLatencyMS, kbLatencyMS, llmLatencyMS, startedAt, resp)
 			resp.Enterprise = buildEnterprisePayload(req, resp)
-			writeJSON(w, http.StatusOK, resp)
+			writeJSON(w, http.StatusOK, textLookupAugment(ctx, cfg, db, req, resp))
 			return
 		}
 		resolvedCapability := resolution.Candidates[0]
@@ -888,7 +888,7 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			resp.Warnings = append(resp.Warnings, err.Error())
 			resp.Telemetry = buildQueryTelemetry(requestID, dbLatencyMS, kbLatencyMS, llmLatencyMS, startedAt, resp)
 			resp.Enterprise = buildEnterprisePayload(req, resp)
-			writeJSON(w, http.StatusOK, resp)
+			writeJSON(w, http.StatusOK, textLookupAugment(ctx, cfg, db, req, resp))
 			return
 		}
 		resp.ExecutionPlan = &executionPlan
@@ -911,7 +911,7 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			}
 			resp.Telemetry = buildQueryTelemetry(requestID, dbLatencyMS, kbLatencyMS, llmLatencyMS, startedAt, resp)
 			resp.Enterprise = buildEnterprisePayload(req, resp)
-			writeJSON(w, http.StatusOK, resp)
+			writeJSON(w, http.StatusOK, textLookupAugment(ctx, cfg, db, req, resp))
 			return
 		}
 		resp.Planner["query_understanding_version"] = understanding.ContractVersion
@@ -1176,7 +1176,7 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 			resp.Enterprise["tool_results"] = resp.ToolResults
 		}
 		attachTypedVisualizationsToLegacyEnterprise(req, requestID, &resp)
-		writeJSON(w, http.StatusOK, textLookupAugment(ctx, db, req, resp))
+		writeJSON(w, http.StatusOK, textLookupAugment(ctx, cfg, db, req, resp))
 	}
 }
 
