@@ -107,7 +107,7 @@ Cross-case (no registry, no overlaps, no cross-case findings, no Ask across case
 
 ## 6. Git state and files left on purpose
 
-- Lane tree `lane-arms` (worktree `NexusAI-localwork`): pushed to `origin claude/gifted-pasteur-4kpx0r` up to `d853190`; **later commits are not pushed** (`8b74703` state file and bank, `e43aa3f` and `acb9c9a` the watch lists, and the commit of this pack; a push needs the owner's word). About 480 commits in the repository.
+- Lane tree `lane-arms` (worktree `NexusAI-localwork`): on `origin claude/gifted-pasteur-4kpx0r` up to the watch-list commit `acb9c9a`; **the commits of this pack (`6ce3f99` and later) are local** until the owner says push. About 480 commits in the repository.
 - Interface tree `ui/v2-redesign` (worktree `NexusAI-ui`): tip `a10ce43`, pushed.
 - **Uncommitted by design**: `tests/e2e-ui/Dockerfile`, `tests/fixtures/backend-image/Dockerfile`, `tools/visual_spike/package-lock.json` (project rule), the interface's `runtime-config.js` (temporary local case list), old files under `reports/` and `evaluation/question_factory/*.txt`.
 - **Watch lists are committed** (`e43aa3f`: migration 039, its rehearsal, pre-registration and results; `acb9c9a`: the Go files and routes `GET/POST /images/known-sets`, `POST /images/known-sets/{id}/hashes`, `POST /images/known-sets/{id}/retire`, `GET /images/known`). The live API image `known-sets-20261124` was built from the working tree before those commits; a comparison of a build from HEAD with the live binary has not been repeated for it.
