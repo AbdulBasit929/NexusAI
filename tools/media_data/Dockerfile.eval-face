@@ -1,0 +1,9 @@
+# Evaluation image for the face and image-search bake-off (docs/data/face-image-search-preregistration-20261119.md): the media evaluation image plus a TFLite runtime
+# (for the BlazeFace file) and an isolated virtual environment for OFIQ (the `ofiqpy` package pins its own numpy, OpenCV and onnxruntime, so it must not share the base environment).
+# Built locally, never deployed, never run as a service. Measurements run with --network none and the data mounted read-only.
+#
+#   docker build -t nexusai-media-eval-face:20261119 -f tools/media_data/Dockerfile.eval-face <an empty folder>
+FROM nexusai-media-eval:latest
+USER root
+RUN pip install --no-cache-dir ai-edge-litert
+RUN python -m venv /opt/ofiq && /opt/ofiq/bin/pip install --no-cache-dir ofiqpy

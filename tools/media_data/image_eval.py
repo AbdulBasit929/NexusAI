@@ -8,7 +8,8 @@ Set: the general Open Images photos of the subset (CC BY 2.0; DAT-018), each wit
 transformed photo is a query. A query whose original is in the gallery must return that original within the threshold (positive); a query whose original is NOT in the gallery must return nothing
 (negative, one third of the photos). Precision = correct answers / all answers given; recall = positives answered correctly / positives. The threshold per method is the loosest one with
 precision at least 99.5% on the dev photos (last hex digit of the SHA-256 of the photo id, 0 to b); the sealed photos (c to f) are then scored at that threshold once and only reported.
-Methods: dhash64 (the worker's own image_dhash, Hamming), pdq (PDQ 256-bit, Hamming), dinov2 (dinov2-small CLS, cosine), siglip (the worker's SigLIP-base, cosine).
+Methods: dhash64 (the worker's own image_dhash, Hamming), pdq (PDQ 256-bit, Hamming), dinov2 (dinov2-small CLS, cosine), dinov2b (dinov2-base CLS, cosine; added 2026-11-19), siglip (the worker's SigLIP-base, cosine),
+siglip2 (google/siglip2-base-patch16-224, cosine; added 2026-11-19). The 2026-11-19 additions only extend the list of embedders; the protocol, the transformations and the threshold rule are unchanged.
 """
 import argparse
 import hashlib
@@ -112,8 +113,11 @@ class Embedder:
         from transformers import AutoImageProcessor, AutoModel
         self.torch, self.kind = torch, kind
         torch.set_num_threads(int(os.environ.get("IMG_THREADS", "6")))
-        if kind == "dinov2":
-            path = Path(DATA) / "models" / "image" / "dinov2-small"
+        if kind in ("dinov2", "dinov2b"):
+            path = Path(DATA) / "models" / "image" / ("dinov2-small" if kind == "dinov2" else "dinov2-base")
+            self.processor, self.model = AutoImageProcessor.from_pretrained(path), AutoModel.from_pretrained(path).eval()
+        elif kind == "siglip2":
+            path = Path(DATA) / "models" / "image" / "siglip2-base-patch16-224"
             self.processor, self.model = AutoImageProcessor.from_pretrained(path), AutoModel.from_pretrained(path).eval()
         else:
             path = os.environ.get("SIGLIP_PATH", "/models/media/nexusai/models/google-siglip-base-patch16-224/7fd15f0689c79d79e38b1c2e2e2370a7bf2761ed")
@@ -122,7 +126,7 @@ class Embedder:
     def __call__(self, image):
         with self.torch.no_grad():
             inputs = self.processor(images=image.convert("RGB"), return_tensors="pt")
-            if self.kind == "dinov2":
+            if self.kind in ("dinov2", "dinov2b"):
                 vector = self.model(**inputs).last_hidden_state[:, 0]
             else:
                 vector = self.model.get_image_features(**inputs)
@@ -142,7 +146,7 @@ def main():
     # two thirds of the photos have their original in the gallery; one third does not (the negatives)
     in_gallery = {i: (int(hashlib.sha256(("g" + i).encode()).hexdigest(), 16) % 3 != 0) for i in ids}
     methods = args.methods.split(",")
-    embedders = {m: Embedder(m) for m in methods if m in ("dinov2", "siglip")}
+    embedders = {m: Embedder(m) for m in methods if m in ("dinov2", "dinov2b", "siglip", "siglip2")}
     tmp = Path("/tmp/imgvar")
     tmp.mkdir(exist_ok=True)
     descriptors = {m: {"orig": {}, "var": []} for m in methods}  # var: (photo id, transformation, descriptor)
