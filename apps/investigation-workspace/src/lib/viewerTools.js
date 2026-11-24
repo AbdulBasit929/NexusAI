@@ -130,3 +130,28 @@ export function scrollWithin(container, element, align = 'nearest', smooth = fal
   const options = { top: Math.max(0, next), behavior: smooth ? 'smooth' : 'auto' }
   if (container.scrollTo) container.scrollTo(options); else container.scrollTop = options.top
 }
+
+// ---- selecting a part of a picture ("find this part elsewhere")
+export const MIN_SELECTION = 0.02 // each side of a usable box, as a fraction of the picture
+
+// A point on the screen as a fraction of the picture's rectangle on the screen (so zoom and panning are already accounted for), kept inside the picture.
+export function pointToFraction(rect, clientX, clientY) {
+  if (!rect || !rect.width || !rect.height) return null
+  const clamp = value => Math.min(1, Math.max(0, value))
+  return [clamp((clientX - rect.left) / rect.width), clamp((clientY - rect.top) / rect.height)]
+}
+
+// The box between two points: [x0, y0, x1, y1] with the smaller first.
+export function selectionBox(a, b) {
+  if (!a || !b) return null
+  return [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1])]
+}
+
+export function usableSelection(box) {
+  return Array.isArray(box) && box.length === 4 && box[2] - box[0] >= MIN_SELECTION - 1e-9 && box[3] - box[1] >= MIN_SELECTION - 1e-9 // the tolerance absorbs floating-point error at exactly the minimum
+}
+
+// The box as the search address wants it: four fractions with four decimals.
+export function selectionParam(box) {
+  return box.map(value => Math.round(value * 10000) / 10000).join(',')
+}

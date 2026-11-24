@@ -6,6 +6,7 @@ import { MethodDetails } from '../../../components/AnalystComponents.jsx'
 import { AnswerReading } from '../../../components/AnswerBasis.jsx'
 import { formatNumber } from '../../../lib/format.js'
 import { ResultBlock } from './ResultBlock.jsx'
+import { ImageResults, isImageSearchAnswer } from './ImageResults.jsx'
 
 function useElapsed(startedAt) {
   const [now, setNow] = useState(() => Date.now())
@@ -70,6 +71,7 @@ const CHECK = {
 
 // What the answer rests on, in one line: the records and files behind the figure, and whether they were counted again.
 function EvidenceBar({ presentation, open, onToggle }) {
+  if (isImageSearchAnswer(presentation)) return null // the pictures themselves are the evidence, and each opens as the file
   const evidence = presentation.original?.enterprise?.evidence
   const groups = presentation.citations?.groups || []
   let lead
@@ -93,7 +95,7 @@ function EvidenceBar({ presentation, open, onToggle }) {
   )
 }
 
-export function Turn({ turn, index, last, caseId, onAsk, onChoose, onRetry, onEdit, onCopy, copied, evidenceOpen, onToggleEvidence, onRerun, onFork, onFeedback, onPin, onCompare }) {
+export function Turn({ turn, index, last, caseId, onAsk, onChoose, onRetry, onEdit, onCopy, copied, evidenceOpen, onToggleEvidence, onRerun, onFork, onFeedback, onPin, onCompare, onImageAction }) {
   const presentation = turn.presentation
   const state = presentation?.state
   const answered = presentation && ['answered', 'partial', 'zero-result'].includes(state)
@@ -146,7 +148,7 @@ export function Turn({ turn, index, last, caseId, onAsk, onChoose, onRetry, onEd
         {answered ? (
           <div className="nx-answer">
             <div className="nx-answer__meta">
-              <Strength strength={topStrength(presentation)} />
+              {isImageSearchAnswer(presentation) ? <span className="nx-strength" data-strength="candidate"><StrengthMark shape="candidate" />Candidates to look at</span> : <Strength strength={topStrength(presentation)} />}
               {state === 'partial' ? <span className="nx-badge nx-badge--warn">Partial answer</span> : null}
               {turn.diff ? (
                 turn.diff.changed
@@ -163,10 +165,18 @@ export function Turn({ turn, index, last, caseId, onAsk, onChoose, onRetry, onEd
               </dl>
             ) : null}
             {hasResult ? <div className="nx-answer__result"><ResultBlock presentation={presentation} caseId={caseId} onAsk={onAsk} /></div> : null}
+            {isImageSearchAnswer(presentation) ? <div className="nx-answer__result"><ImageResults presentation={presentation} caseId={caseId} onAction={onImageAction} /></div> : null}
             <EvidenceBar presentation={presentation} open={evidenceOpen} onToggle={onToggleEvidence} />
             <AnswerReading caseId={caseId} reading={presentation.original?.enterprise?.reading} />
             {presentation.limitations.length ? (
-              <ul className="nx-limits" aria-label="Limitations">{presentation.limitations.map(item => <li key={item}><Info aria-hidden="true" /><span>{item}</span></li>)}</ul>
+              isImageSearchAnswer(presentation) ? (
+                <details className="nx-disclosure">
+                  <summary><ChevronRight aria-hidden="true" />What to keep in mind</summary>
+                  <div className="nx-disclosure__body"><ul className="nx-limits" aria-label="Limitations">{presentation.limitations.map(item => <li key={item}><Info aria-hidden="true" /><span>{item}</span></li>)}</ul></div>
+                </details>
+              ) : (
+                <ul className="nx-limits" aria-label="Limitations">{presentation.limitations.map(item => <li key={item}><Info aria-hidden="true" /><span>{item}</span></li>)}</ul>
+              )
             ) : null}
             {presentation.derivation ? (
               <details className="nx-disclosure">

@@ -18,6 +18,8 @@ import { useAskThread } from './useAskThread.js'
 import { useConversationRail } from './useConversationRail.js'
 import { useConversationThread } from './useConversationThread.js'
 import { getTurnDiff } from '../../../lib/conversationsApi.js'
+import { searchImages } from '../../../lib/apiClient.js'
+import { presentInvestigationResponse } from '../../../lib/investigationPresentation.js'
 import { useStarters } from './starters.js'
 
 // Ask: a question in plain words, an answer that shows its evidence. One column for the conversation that uses the width it is given, a history
@@ -40,6 +42,10 @@ export default function AskPage() {
   const served = useConversationThread(caseId, { enabled: useService, onChanged: rail.reload })
   const { turns, busy, ask, retry, stop, reset } = useService ? served : local
   const [diff, setDiff] = useState(null)
+  // reference-image questions (an attached picture): answered by the image search of the case, kept on this page next to the conversation
+  const [attachment, setAttachment] = useState(null)
+  const [imageTurns, setImageTurns] = useState([])
+  const imageRun = useRef(null)
   const [editing, setEditing] = useState(null)
   const [draft, setDraft] = useQuestionDraft(caseId)
   const overview = useCaseOverview(caseId)
@@ -53,7 +59,7 @@ export default function AskPage() {
   const scroller = useRef(null)
   const composer = useRef(null)
   const pendingFocus = useRef(null)
-  const panelTurn = turns.find(turn => turn.id === panelId) || null
+  const panelTurn = [...turns, ...imageTurns].find(turn => turn.id === panelId) || null
 
   useEffect(() => { globalThis.document.title = `Ask · ${title || caseId} · NexusAI` }, [title, caseId])
   // Opening the evidence on a screen that cannot hold three columns folds the history away, so the conversation keeps room to be read.
@@ -87,6 +93,16 @@ export default function AskPage() {
     askQuestion(reopened)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (requestedScope) setScope(requestedScope) }, [requestedScope, setScope])
+  // a box drawn on a picture in the evidence viewer arrives here as ?regionOf=<evidence>&box=x0,y0,x1,y1&run=1: search for that part once, then take the search out of the address
+  const regionRan = useRef(false)
+  useEffect(() => {
+    const evidenceId = searchParams.get('regionOf')
+    const box = (searchParams.get('box') || '').split(',').map(Number)
+    if (regionRan.current || !evidenceId || searchParams.get('run') !== '1' || box.length !== 4 || box.some(value => !Number.isFinite(value))) return
+    regionRan.current = true
+    askImageAction('region', evidenceId, '', box)
+    setSearchParams(previous => { const next = new URLSearchParams(previous); ['regionOf', 'box', 'run'].forEach(key => next.delete(key)); return next }, { replace: true })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // New question: show it. Answer arrived: move focus to it, so a keyboard or screen-reader user lands on what they asked for.
   const lastCount = useRef(0)
@@ -105,7 +121,36 @@ export default function AskPage() {
     node?.focus({ preventScroll: true })
   }, [turns, busy])
 
-  function submit(text) { const editOfTurnId = editing; setEditing(null); setDraft(''); askQuestion(text, editOfTurnId ? { editOfTurnId } : {}) }
+  async function runImageTurn(query, run) {
+    const id = `image-turn-${Date.now()}`
+    const scope = { id: 'all', label: 'All evidence' }
+    setImageTurns(items => [...items, { id, query, scope, presentation: null, busy: true, startedAt: Date.now() }])
+    imageRun.current?.abort()
+    imageRun.current = new AbortController()
+    try {
+      const response = await run(imageRun.current.signal)
+      const presentation = { ...presentInvestigationResponse(response, { caseId }), question: query }
+      setImageTurns(items => items.map(turn => (turn.id === id ? { ...turn, presentation, busy: false, finishedAt: Date.now() } : turn)))
+    } catch (error) {
+      if (error.name === 'AbortError') { setImageTurns(items => items.map(turn => (turn.id === id ? { ...turn, busy: false, aborted: true } : turn))); return }
+      const presentation = presentInvestigationResponse(null, { caseId, error })
+      setImageTurns(items => items.map(turn => (turn.id === id ? { ...turn, presentation, serviceMessage: error.status === 409 || error.status === 503 || error.status === 400 ? error.message : '', busy: false, finishedAt: Date.now() } : turn)))
+    }
+  }
+  function askImage(file, note) {
+    const query = note ? `${note} (reference image: ${file.name})` : `Find exact and similar pictures to ${file.name}`
+    return runImageTurn(query, signal => searchImages({ caseId, file, signal }))
+  }
+  // one click on a picture of an answer: its look-alikes, or its copies and look-alikes
+  function askImageAction(action, evidenceId, name, box) {
+    if (action === 'region') return runImageTurn('Find the selected part of a picture elsewhere in the case', signal => searchImages({ caseId, kind: 'reference_region', evidenceId, box, signal }))
+    const more = action === 'more_like_this'
+    return runImageTurn(more ? `Pictures that look like ${name}` : `Find exact and similar pictures to ${name}`, signal => searchImages({ caseId, kind: more ? 'more_like_this' : 'reference', evidenceId, signal }))
+  }
+  function submit(text, file) {
+    if (file) { setDraft(''); setAttachment(null); askImage(file, text); return }
+    const editOfTurnId = editing; setEditing(null); setDraft(''); askQuestion(text, editOfTurnId ? { editOfTurnId } : {})
+  }
   function pick(item) {
     if (item.scope && item.scope !== scope) { setScope(item.scope) }
     setDraft(item.query)
@@ -130,7 +175,7 @@ export default function AskPage() {
     const node = scroller.current
     if (node) setAtBottom(node.scrollHeight - node.scrollTop - node.clientHeight < 160)
   }
-  function newConversation() { reset(); setPanelId(null); setEditing(null); setSearchParams(previous => { const next = new URLSearchParams(previous); next.delete('thread'); return next }, { replace: true }); globalThis.setTimeout(() => composer.current?.focus(), 0) }
+  function newConversation() { reset(); setImageTurns([]); setAttachment(null); setPanelId(null); setEditing(null); setSearchParams(previous => { const next = new URLSearchParams(previous); next.delete('thread'); return next }, { replace: true }); globalThis.setTimeout(() => composer.current?.focus(), 0) }
   function openConversation(item) { setPanelId(null); setEditing(null); opened.current = true; served.open(item.thread_id) }
   async function compare(turn) {
     if (turn.diff) { setDiff(turn.diff); return }
@@ -148,7 +193,8 @@ export default function AskPage() {
 
   const unavailable = canAskScope ? '' : `${family.label} questions are not available yet. The question service cannot enforce this scope, so NexusAI has not widened the question to other evidence.`
   const dock = (
-    <Composer value={draft} onChange={setDraft} onSubmit={submit} busy={busy} onStop={stop} scope={scope} onScope={changeScope} inputRef={composer} unavailable={unavailable} />
+    <Composer value={draft} onChange={setDraft} onSubmit={submit} busy={busy} onStop={stop} scope={scope} onScope={changeScope} inputRef={composer} unavailable={unavailable}
+      attachment={attachment} onAttach={setAttachment} onClearAttachment={() => setAttachment(null)} />
   )
 
   return (
@@ -169,25 +215,31 @@ export default function AskPage() {
             {useService && served.opening ? <p className="nx-muted nx-ask__opening" role="status">Opening the conversation…</p> : null}
             {useService && served.problem ? <p className="nx-callout nx-callout--danger" role="alert"><CircleAlert aria-hidden="true" />{served.problem}</p> : null}
             {useService && served.thread?.forked_from && !turns.length ? <p className="nx-callout nx-callout--info" role="status"><GitFork aria-hidden="true" />This is a fork. Your first question continues from the question you forked.</p> : null}
-            {turns.length ? (
+            {turns.length || imageTurns.length ? (
               <div className="nx-thread" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Conversation">
                 {turns.map((turn, index) => (
                   <Turn key={turn.id} turn={turn} index={index} last={index === turns.length - 1} caseId={caseId}
-                    onAsk={query => askQuestion(query)} onChoose={(option, clarification) => choose(option, clarification, turn)} onRetry={() => retry(turn)}
+                    onImageAction={askImageAction} onAsk={query => askQuestion(query)} onChoose={(option, clarification) => choose(option, clarification, turn)} onRetry={() => retry(turn)}
                     onEdit={() => { setEditing(useService && turn.stored && index === turns.length - 1 ? turn.id : null); pick({ query: turn.query, scope: turn.scope?.id }) }} onCopy={() => copyAnswer(turn)} copied={copiedId === turn.id}
                     onRerun={useService ? () => served.rerun(turn) : undefined} onFork={useService ? () => fork(turn) : undefined}
                     onFeedback={useService ? verdict => served.feedback(turn, verdict) : undefined} onPin={useService ? () => served.pin(turn) : undefined} onCompare={() => compare(turn)}
                     evidenceOpen={panelId === turn.id} onToggleEvidence={() => setPanelId(panelId === turn.id ? null : turn.id)} />
                 ))}
+                {imageTurns.map((turn, index) => (
+                  <Turn key={turn.id} turn={turn} index={turns.length + index} last={index === imageTurns.length - 1} caseId={caseId}
+                    onImageAction={askImageAction} onAsk={query => askQuestion(query)} onChoose={() => undefined} onRetry={() => undefined} onEdit={() => undefined} onCopy={() => copyAnswer(turn)} copied={copiedId === turn.id}
+                    onCompare={() => undefined} evidenceOpen={panelId === turn.id} onToggleEvidence={() => setPanelId(panelId === turn.id ? null : turn.id)} />
+                ))}
               </div>
             ) : (
               <EmptyAsk caseId={caseId} overview={overview} links={links} evidence={evidence} recent={serviceReady ? rail.items.slice(0, 3).map(item => ({ id: item.thread_id, query: item.last_question || item.first_question || item.display_title, label: item.display_title, state: item.last_outcome })) : history.slice(0, 3)} onPick={pick}>
-                <Composer large value={draft} onChange={setDraft} onSubmit={submit} busy={busy} onStop={stop} scope={scope} onScope={changeScope} inputRef={composer} unavailable={unavailable} />
+                <Composer large value={draft} onChange={setDraft} onSubmit={submit} busy={busy} onStop={stop} scope={scope} onScope={changeScope} inputRef={composer} unavailable={unavailable}
+                  attachment={attachment} onAttach={setAttachment} onClearAttachment={() => setAttachment(null)} />
               </EmptyAsk>
             )}
             {!atBottom && turns.length ? <button type="button" className="nx-btn nx-jump" onClick={() => scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: 'smooth' })}><ArrowDown aria-hidden="true" />Latest</button> : null}
           </div>
-          {turns.length ? <div className="nx-ask__dock">{dock}</div> : null}
+          {turns.length || imageTurns.length ? <div className="nx-ask__dock">{dock}</div> : null}
         </section>
         {panelTurn ? <EvidenceDrawer turn={panelTurn} caseId={caseId} onClose={() => setPanelId(null)} /> : null}
         {diff ? <RunDiff diff={diff} onClose={() => setDiff(null)} /> : null}

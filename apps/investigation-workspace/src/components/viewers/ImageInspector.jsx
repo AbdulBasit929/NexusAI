@@ -1,17 +1,29 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Eye, EyeOff, Maximize, RotateCw, ScanSearch, ZoomIn, ZoomOut } from 'lucide-react'
+import { useInRouterContext, useNavigate, useParams } from 'react-router-dom'
+import { Crop, Eye, EyeOff, Maximize, RotateCw, ScanSearch, ZoomIn, ZoomOut } from 'lucide-react'
 import { EvidenceStrengthBadge } from '../Citations.jsx'
 import { LanguageText } from '../AnalystComponents.jsx'
 import { Conf, MediaBox, PlateChip, RegionCrop } from './MediaMarks.jsx'
 import { imageRegions } from '../../lib/viewerPresentation.js'
 import { strength } from '../../lib/viewerStrength.js'
-import { clampZoom, fitScale, focusRegion, normalizeBox } from '../../lib/viewerTools.js'
+import { clampZoom, fitScale, focusRegion, normalizeBox, pointToFraction, selectionBox, selectionParam, usableSelection } from '../../lib/viewerTools.js'
 
 function parsed(value) { if (!value) return null; try { return JSON.parse(value) } catch { return null } }
 
 function boxStyle(fraction) {
   const [x, y, width, height] = fraction
   return { insetInlineStart: `${x * 100}%`, insetBlockStart: `${y * 100}%`, inlineSize: `${width * 100}%`, blockSize: `${height * 100}%` }
+}
+
+// "Search for this part": takes the box drawn on the picture to the Ask page, which cuts that part out of the stored picture and looks for it in the case. Rendered only where a router is present.
+function SearchPartButton({ evidenceId, box }) {
+  const navigate = useNavigate()
+  const { id: caseId } = useParams()
+  return (
+    <button type="button" className="ii__go" disabled={!caseId || !evidenceId || !usableSelection(box)} onClick={() => navigate(`/cases/${caseId}/investigate?regionOf=${encodeURIComponent(evidenceId)}&box=${selectionParam(box)}&run=1`)}>
+      <ScanSearch aria-hidden="true" />Search for this part
+    </button>
+  )
 }
 
 // The image as something to inspect: zoom (buttons, wheel, keys), drag to pan, rotate, fit; the regions the service read are
@@ -24,6 +36,9 @@ export function ImageInspector({ detail, objectUrl, citedBBox }) {
   const [frame, setFrame] = useState(null)
   const [view, setView] = useState({ zoom: 1, x: 0, y: 0, turn: 0 })
   const [chosen, setChosen] = useState(null)
+  const inRouter = useInRouterContext()
+  const [picking, setPicking] = useState(false)
+  const [box, setBox] = useState(null)
   const stage = useRef(null)
   const drag = useRef(null)
 
@@ -73,9 +88,29 @@ export function ImageInspector({ detail, objectUrl, citedBBox }) {
     else return
     event.preventDefault()
   }
-  const down = event => { drag.current = { x: event.clientX - view.x, y: event.clientY - view.y }; event.currentTarget.setPointerCapture?.(event.pointerId) }
-  const move = event => { if (drag.current) setView(value => ({ ...value, x: event.clientX - drag.current.x, y: event.clientY - drag.current.y })) }
-  const up = () => { drag.current = null }
+  // while choosing a part, dragging draws the box on the picture (in fractions of the picture, so zoom and panning do not matter); otherwise it pans
+  const canPick = view.turn === 0
+  const down = event => {
+    if (picking && canPick && image.current) {
+      drag.current = { select: pointToFraction(image.current.getBoundingClientRect(), event.clientX, event.clientY) }
+      setBox(null)
+    } else {
+      drag.current = { x: event.clientX - view.x, y: event.clientY - view.y }
+    }
+    event.currentTarget.setPointerCapture?.(event.pointerId)
+  }
+  const move = event => {
+    if (!drag.current) return
+    if (drag.current.select) {
+      setBox(selectionBox(drag.current.select, pointToFraction(image.current.getBoundingClientRect(), event.clientX, event.clientY)))
+    } else {
+      setView(value => ({ ...value, x: event.clientX - drag.current.x, y: event.clientY - drag.current.y }))
+    }
+  }
+  const up = () => {
+    if (drag.current?.select) setBox(current => (usableSelection(current) ? current : null))
+    drag.current = null
+  }
 
   return (
     <section className="source-viewer image-viewer ii" aria-labelledby="image-viewer-heading">
@@ -87,13 +122,20 @@ export function ImageInspector({ detail, objectUrl, citedBBox }) {
           <button type="button" onClick={() => zoomBy(1.25)} aria-label="Zoom in"><ZoomIn aria-hidden="true" /></button>
           <button type="button" onClick={() => setView(value => ({ ...value, turn: (value.turn + 90) % 360 }))} aria-label="Rotate 90 degrees"><RotateCw aria-hidden="true" /></button>
           <button type="button" onClick={reset} aria-label="Fit to view"><Maximize aria-hidden="true" /></button>
+          {inRouter && detail.item?.evidence_id ? (
+            <button type="button" className="ii__toggle" aria-pressed={picking} disabled={!canPick && !picking} title={canPick ? 'Draw a box around a part of the picture, then search for that part in the other pictures of the case' : 'Fit the picture to the view (rotation off) to choose a part'} onClick={() => { setPicking(value => !value); setBox(null) }}>
+              <Crop aria-hidden="true" />{picking ? 'Drawing: drag on the picture' : 'Find this part elsewhere'}
+            </button>
+          ) : null}
+          {picking && usableSelection(box) && inRouter ? <SearchPartButton evidenceId={detail.item?.evidence_id} box={box} /> : null}
           {regions.length ? <button type="button" className="ii__toggle" aria-pressed={overlays} onClick={() => setOverlays(value => !value)}>{overlays ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}{overlays ? 'Hide observation overlays' : 'Show observation overlays'}</button> : null}
         </div>
       </header>
       <div className="ii__layout">
-        <div ref={stage} className="ii__stage" tabIndex={0} role="group" aria-label="Image. Plus and minus zoom, arrow keys move, R rotates, 0 fits." onKeyDown={onKey} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onDoubleClick={reset}>
+        <div ref={stage} className="ii__stage" data-picking={picking ? 'true' : undefined} tabIndex={0} role="group" aria-label="Image. Plus and minus zoom, arrow keys move, R rotates, 0 fits." onKeyDown={onKey} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onDoubleClick={reset}>
           <div className="ii__layer" style={layer ? { inlineSize: layer.width, blockSize: layer.height, transform: `translate(-50%, -50%) translate(${view.x}px, ${view.y}px) rotate(${view.turn}deg) scale(${view.zoom})`, '--zoom': view.zoom, '--turn': view.turn } : { visibility: 'hidden' }}>
             <img ref={image} src={objectUrl} alt={`Source ${detail.item?.original_filename || 'image'}`} draggable="false" onLoad={event => setNatural({ width: event.currentTarget.naturalWidth || 1, height: event.currentTarget.naturalHeight || 1 })} />
+            {box ? <span className="ii__selection" style={boxStyle([box[0], box[1], box[2] - box[0], box[3] - box[1]])} aria-label="The part you chose" role="img" /> : null}
             {overlays && natural ? regions.map(region => {
               const fraction = normalizeBox(region.bbox, natural)
               return fraction ? <MediaBox key={region.id} style={boxStyle(fraction)} tone={region.kind === 'plate' ? 'plate' : 'text'} label={region.label} below={fraction[1] < 0.08} chosen={chosen === region.id} cited={region.cited} /> : null

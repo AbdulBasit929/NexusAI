@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import DashboardPage from './DashboardPage.jsx'
 import { TimelinePanel, exceptionRows, gaugePath } from './insights.jsx'
 import { resetDashboardReads } from './data.js'
-import { MIN_WINDOW, alignTimelines, answerQuality, caseStateMix, caseStates, panWindow, viewWindow, windowTicks, zoomWindow, durationHistogram, caseTimelines, dailyQuestions, dataNotes, declineText, formatDuration, flowLayout, flowModel, heatShare, modalityMix, spreadLabels, needsYou, niceCeiling, recordKinds, setAside, timeBasis, timeToReady } from './model.js'
+import { MIN_WINDOW, alignTimelines, answerQuality, caseStateMix, caseStates, panWindow, viewWindow, windowTicks, zoomWindow, durationHistogram, caseTimelines, dailyQuestions, dataNotes, declineText, formatDuration, flowLayout, flowModel, heatShare, modalityMix, spreadLabels, needsYou, niceCeiling, qualityMap, recordKinds, setAside, setAsideCauses, timeBasis, timeToReady } from './model.js'
 import { cleanRate, latestItems, resumeEntries, statusCounts } from './sections.jsx'
 import { BarStrip, DotRow, Histogram, RangeStrip, SegBar } from '../../ui/micro.jsx'
 import { CountUp } from '../../ui/CountUp.jsx'
@@ -208,6 +208,46 @@ describe('needsYou', () => {
   })
   it('says nothing needs you when nothing does', () => {
     expect(needsYou({ rows: [row('a', { recent_evidence: [], recent_jobs: [] })] })).toEqual({ groups: [], attention: 0 })
+  })
+})
+
+describe('setAsideCauses', () => {
+  it('adds the rejected rows and the exact repeats of the cases, and what was kept', () => {
+    const aside = setAside([
+      { caseId: 'a', summary: { acceptedRows: 940, duplicateRows: 10, rejectedRows: 50 } },
+      { caseId: 'b', summary: { acceptedRows: 480, duplicateRows: 20, rejectedRows: 0 } },
+    ])
+    expect(setAsideCauses(aside)).toEqual({ read: 1500, rejected: 50, repeats: 30, kept: 1420 })
+    expect(setAsideCauses({ items: [], read: 0 })).toEqual({ read: 0, rejected: 0, repeats: 0, kept: 0 })
+    expect(setAsideCauses(undefined)).toEqual({ read: 0, rejected: 0, repeats: 0, kept: 0 })
+  })
+})
+
+describe('qualityMap', () => {
+  const aside = setAside([
+    { caseId: 'big', summary: { acceptedRows: 54000, duplicateRows: 4, rejectedRows: 1661 } },
+    { caseId: 'mid', summary: { acceptedRows: 12900, duplicateRows: 301, rejectedRows: 7 } },
+    { caseId: 'clean', summary: { acceptedRows: 204, duplicateRows: 0, rejectedRows: 0 } },
+  ])
+  it('puts a case across by its rows on a log scale and up by its share set aside, and the area of its bubble is its rows set aside', () => {
+    const map = qualityMap(aside, { width: 320, height: 160 })
+    const by = id => map.points.find(point => point.caseId === id)
+    expect(by('big').x).toBeGreaterThan(by('mid').x)
+    expect(by('mid').x).toBeGreaterThan(by('clean').x)
+    expect(by('big').y).toBeLessThan(by('mid').y)
+    expect(by('clean').y).toBeCloseTo(map.plot.bottom, 6)
+    expect((by('mid').r / by('big').r) ** 2).toBeCloseTo(308 / 1665, 2)
+    expect(by('clean').r).toBe(2.5)
+  })
+  it('starts the axes at a decade and at zero, and names every decade it draws', () => {
+    const map = qualityMap(aside, { width: 320, height: 160 })
+    expect(map.xTicks.map(tick => tick.label)).toEqual(['100', '1k', '10k', '100k'])
+    expect(map.yTicks[0]).toMatchObject({ value: 0, label: '0%' })
+    expect(map.yMax).toBeGreaterThanOrEqual(3.1)
+  })
+  it('draws nothing for no rows or a box too small to say anything', () => {
+    expect(qualityMap({ items: [] }, { width: 320, height: 160 })).toBeNull()
+    expect(qualityMap(aside, { width: 40, height: 160 })).toBeNull()
   })
 })
 

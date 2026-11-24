@@ -135,5 +135,9 @@
     .ii__layout:has(.mx-readings--side) { grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr); }
   }
   .ii__stage { border-color: var(--nx-border-subtle); border-radius: 10px; }
+  /* choosing a part of the picture to search for elsewhere: a crosshair, and the chosen part is outlined with the rest dimmed */
+  .ii__stage[data-picking='true'] { cursor: crosshair; }
+  .ii__layer .ii__selection { position: absolute; box-sizing: border-box; border: 2px dashed var(--nx-accent); background: transparent; box-shadow: 0 0 0 9999px color-mix(in srgb, #000 40%, transparent); pointer-events: none; }
+  .ii__tools .ii__go { border-color: var(--nx-accent); }
   @media (prefers-reduced-motion: reduce) { .mp__band { transition: none; } }
 }

@@ -1,0 +1,51 @@
+/* Data quality as a map of the cases: bubbles on a log scale of rows and a share axis, red for rows the reader rejected and grey for exact repeats left out, in the family of the indicator tiles. The chart takes the
+   height the cell leaves (drawn in pixels, so the bubbles stay round); the legend and the times give way from the bottom when the cell is short. */
+@layer nx-pages {
+  .nx-dq { display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; gap: 8px; min-inline-size: 0; min-block-size: 0; block-size: 100%; }
+  .nx-dq__top { display: flex; align-items: baseline; gap: var(--nx-s-2); min-inline-size: 0; }
+  .nx-dq__figure { flex: none; font-size: 2rem; font-weight: var(--nx-fw-semibold); letter-spacing: -0.02em; line-height: 1.1; }
+  .nx-dq__sentence { min-inline-size: 0; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; font-size: var(--nx-fs-xs); line-height: 15px; color: var(--nx-text-2); }
+  .nx-dq__sentence.is-probe { color: var(--nx-accent-text); font-weight: var(--nx-fw-medium); }
+
+  .nx-dq__map { position: relative; min-block-size: 0; min-inline-size: 0; overflow: hidden; }
+  .nx-dq__svg { position: absolute; inset: 0; display: block; overflow: visible; }
+  .nx-dq__grid { stroke: var(--nx-border-subtle); stroke-width: 1; }
+  .nx-dq__tick { fill: var(--nx-text-3); font-size: 10px; font-variant-numeric: tabular-nums; }
+  .nx-dq__tick--axis { font-style: italic; }
+  .nx-dq__bubble { cursor: pointer; outline: none; transition: opacity var(--nx-dur-2) var(--nx-ease-standard); }
+  .nx-dq__bubble.is-dim { opacity: 0.2; }
+  .nx-dq__hit { fill: transparent; }
+  .nx-dq__slice { fill: var(--c); fill-opacity: 0.78; stroke: var(--nx-surface); stroke-width: 1.5; transition: fill-opacity var(--nx-dur-1) var(--nx-ease-standard); animation: nx-pop 380ms var(--nx-ease-standard) both; transform-box: fill-box; transform-origin: center; }
+  .nx-dq__bubble:hover .nx-dq__slice, .nx-dq__bubble:focus-visible .nx-dq__slice { fill-opacity: 1; }
+  .nx-dq__bubble:focus-visible .nx-dq__hit { stroke: var(--nx-focus); stroke-width: 2; }
+  .nx-dq__dot { fill: var(--nx-text-3); fill-opacity: 0.55; }
+  /* the name of a bubble that needs a look, beside it (the others are named by pointing at them) */
+  .nx-dq__tag { position: absolute; max-inline-size: 42%; transform: translateY(-50%); font-size: var(--nx-fs-xs); line-height: 14px; color: var(--nx-text); pointer-events: none; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 0 0 4px var(--nx-surface), 0 0 4px var(--nx-surface); }
+  .nx-dq__tag--left { text-align: end; }
+
+  .nx-dq__legend { display: flex; flex-wrap: wrap; gap: 0 var(--nx-s-3); }
+  .nx-dq__legend > button { display: inline-flex; align-items: center; gap: 6px; min-block-size: 22px; padding: 0 var(--nx-s-1); border: 0; border-radius: var(--nx-r-2); background: none; color: var(--nx-text-2); font: inherit; font-size: var(--nx-fs-xs); cursor: pointer; }
+  .nx-dq__legend > button > i { inline-size: 9px; block-size: 9px; border-radius: 50%; background: var(--c); }
+  .nx-dq__legend b { font-weight: var(--nx-fw-semibold); color: var(--nx-text); }
+  .nx-dq__legend > button:hover:not(:disabled), .nx-dq__legend > button[aria-pressed='true'] { background: var(--nx-hover); }
+  .nx-dq__legend > button[aria-pressed='true'] { color: var(--nx-accent-text); }
+  .nx-dq__legend > button:focus-visible { outline: 2px solid var(--nx-focus); outline-offset: 1px; }
+  .nx-dq__legend > button:disabled { opacity: 0.5; cursor: default; }
+
+  /* how the times are known: one thin bar, its parts named with their shares */
+  .nx-dq__times { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px var(--nx-s-2); min-inline-size: 0; }
+  .nx-dq__times h3 { margin: 0; font-size: 11px; font-weight: var(--nx-fw-medium); line-height: 14px; color: var(--nx-text-3); white-space: nowrap; }
+  .nx-dq__times > .nx-dq__basis, .nx-dq__times > p { grid-column: 1 / -1; }
+  .nx-dq__basis { display: flex; flex-wrap: wrap; gap: 0 var(--nx-s-3); margin: 0; padding: 0; list-style: none; font-size: var(--nx-fs-xs); color: var(--nx-text-2); }
+  .nx-dq__basis li { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .nx-dq__basis li > i { inline-size: 8px; block-size: 8px; border-radius: 3px; background: var(--c); }
+  .nx-dq__basis b { font-weight: var(--nx-fw-semibold); color: var(--nx-text); }
+  .nx-dq .nx-seg { gap: 3px; }
+  .nx-dq .nx-seg__part { border-radius: 4px; }
+
+  /* a short cell gives up the times first, then the legend (the map keeps what is left; it needs about 100px to say anything) */
+  @container panel (max-height: 235px) { .nx-dq__times { display: none; } }
+  @container panel (max-height: 160px) { .nx-dq__legend { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .nx-dq__slice { animation: none; transition: none; } .nx-dq__bubble { transition: none; } }
+  :root[data-motion='reduce'] .nx-dq__slice { animation: none; transition: none; }
+}

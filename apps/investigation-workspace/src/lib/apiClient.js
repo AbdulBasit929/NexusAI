@@ -330,3 +330,36 @@ function intakeRefusalMessage(status) {
 }
 
 import { collectionIdForCase } from './caseScope.js'
+
+// Image search over one case (module M1): photos by words, the copies of an image the case holds, and a reference image dropped in (exact and near copies, then similar images). With format=ask the service
+// answers in the shape of an Ask answer, so the page shows it like any other answer. A file is sent as multipart and is not kept in the case.
+export async function searchImages({ caseId, kind, evidenceId, text, topK, file, box, signal, fetchImpl = globalThis.fetch }) {
+  const { baseUrl, tenantId, collectionId, headers } = requestContext(caseId)
+  const url = endpoint(baseUrl, '/images/search')
+  url.searchParams.set('tenant_id', tenantId)
+  url.searchParams.set('collection_id', collectionId)
+  url.searchParams.set('format', 'ask')
+  let init
+  if (file) {
+    const body = new FormData()
+    body.append('image', file, file.name || 'reference-image')
+    url.searchParams.set('kind', 'reference_upload')
+    init = { method: 'POST', signal, headers, body }
+  } else {
+    url.searchParams.set('kind', kind)
+    if (evidenceId) url.searchParams.set('evidence_id', evidenceId)
+    if (box) url.searchParams.set('box', Array.isArray(box) ? box.join(',') : String(box)) // kind reference_region: a part drawn on a stored picture, as four fractions of it
+    if (text) url.searchParams.set('q', text)
+    if (topK) url.searchParams.set('top_k', String(topK))
+    init = { method: 'GET', signal, headers }
+  }
+  const response = await fetchImpl(url, init)
+  if (!response.ok) {
+    const detail = await response.json().catch(() => ({}))
+    const error = new Error(detail?.error || 'The image search could not be completed.')
+    error.reference = response.headers.get('x-request-id') || `HTTP-${response.status}`
+    error.status = response.status
+    throw error
+  }
+  return response.json()
+}

@@ -366,6 +366,47 @@ export function setAside(rows) {
   return { items: items.sort((left, right) => right.share - left.share || right.rejected - left.rejected), read, setAside: kept, share: read ? kept / read : 0 }
 }
 
+// The two causes of the rows set aside, summed over the cases: exact repeats (duplicates left out of the counts) and rejected rows (the reader could not accept them), and what was kept.
+export function setAsideCauses(aside) {
+  const items = aside?.items || []
+  const rejected = sum(items, item => item.rejected)
+  const repeats = sum(items, item => item.duplicates)
+  const read = number(aside?.read)
+  return { read, rejected, repeats, kept: Math.max(0, read - rejected - repeats) }
+}
+
+// The quality map: each case is a bubble. Its place across is the rows it has (a log scale, because the cases differ by a factor of a thousand), its place up is the share of those rows that were set aside, and the AREA
+// of the bubble is the rows set aside (so the radius goes with the square root). Everything is in pixels of the box the chart was given, so the bubbles stay round; the axes start where the data starts (a decade) and
+// the share axis at zero. A case with nothing set aside is a small flat dot on the floor, not a bubble of nothing.
+const compactNumber = value => (value >= 1_000_000 ? `${value / 1_000_000}M` : value >= 1000 ? `${value / 1000}k` : String(value))
+
+export function qualityMap(aside, { width = 320, height = 160, left = 34, right = 14, top = 10, bottom = 22, maxRadius = 15 } = {}) {
+  const items = (aside?.items || []).filter(item => item.read > 0)
+  if (!items.length || width < 60 || height < 60) return null
+  const plotW = Math.max(10, width - left - right)
+  const plotH = Math.max(10, height - top - bottom)
+  const reads = items.map(item => item.read)
+  const first = Math.floor(Math.log10(Math.min(...reads)))
+  const last = Math.max(Math.ceil(Math.log10(Math.max(...reads))), first + 1)
+  const x = value => left + ((Math.log10(value) - first) / (last - first)) * plotW
+  const maxShare = Math.max(0, ...items.map(item => item.share * 100))
+  const step = maxShare <= 2 ? 0.5 : maxShare <= 5 ? 1 : maxShare <= 12 ? 2 : 5
+  const yMax = Math.max(step * 2, Math.ceil((maxShare * 1.15) / step) * step)
+  const y = percent => top + plotH - (percent / yMax) * plotH
+  const maxAside = Math.max(1, ...items.map(item => item.rejected + item.duplicates))
+  const points = items.map(item => {
+    const rows = item.rejected + item.duplicates
+    return { caseId: item.caseId, read: item.read, rejected: item.rejected, repeats: item.duplicates, setAside: rows, share: item.share, x: x(item.read), y: y(item.share * 100), r: rows ? Math.max(3, maxRadius * Math.sqrt(rows / maxAside)) : 2.5 }
+  }).sort((a, b) => b.r - a.r)
+  const decades = []
+  for (let power = first; power <= last; power += 1) decades.push(power)
+  const every = Math.max(1, Math.ceil((decades.length * 34) / plotW))
+  const xTicks = decades.filter((power, index) => index % every === 0).map(power => ({ value: 10 ** power, x: x(10 ** power), label: compactNumber(10 ** power) }))
+  const yTicks = []
+  for (let value = 0; value <= yMax + 1e-9; value += step) yTicks.push({ value, y: y(value), label: `${Number.isInteger(value) ? value : value.toFixed(1)}%` })
+  return { points, xTicks, yTicks, plot: { left, right: width - right, top, bottom: height - bottom }, yMax }
+}
+
 // How long files take from upload to ready, from the finished jobs each case lists (its latest 20 at most). Seconds, whole.
 export function timeToReady(rows) {
   const stamp = value => { const time = value ? Date.parse(value) : NaN; return Number.isFinite(time) ? time : null }

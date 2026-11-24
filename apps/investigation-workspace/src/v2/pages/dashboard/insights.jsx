@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { AudioLines, CircleAlert, CircleCheckBig, Files, FileText, Image as ImageIcon, MessageSquareText, NotebookText, Table2, Video } from 'lucide-react'
 import { formatNumber } from '../../../lib/format.js'
 import { formatRate } from '../../../lib/dashboardCharts.js'
 import { CaseLabel, useCaseNameOf } from '../../shell/CaseLabel.jsx'
 import { Calm, Panel, PanelSkeleton } from '../../ui/Panel.jsx'
-import { Dumbbell, RangeStrip, SegBar } from '../../ui/micro.jsx'
-import { MIN_WINDOW, alignTimelines, flowLayout, flowModel, formatDuration, niceCeiling, panWindow, spreadLabels, viewWindow, windowTicks, zoomWindow } from './model.js'
+import { RangeStrip, SegBar } from '../../ui/micro.jsx'
+import { MIN_WINDOW, alignTimelines, flowLayout, flowModel, formatDuration, niceCeiling, panWindow, qualityMap, setAsideCauses, spreadLabels, viewWindow, windowTicks, zoomWindow } from './model.js'
 
 // Every panel here is drawn for a cell of a fixed size (the board gives it one; see styles/board.css): its picture takes the height that is left, its words are a title, a note and the numbers
 // beside the marks, and the same figures as a table are one button away in a dialog. Nothing in a panel grows with its content, so neighbours always share a top and a bottom.
@@ -602,48 +602,120 @@ export function AnswersPanel({ quality, daily, loading }) {
   )
 }
 
-// ---------- data quality: what was set aside, and how the times are known ----------
-// Rows set aside is a dumbbell (exactly two values for each case: the rejected share, and the rejected plus exact-repeat share) on one axis that starts at zero; the four cases with the most set aside
-// are drawn, the rest are in the table. The basis of the times is one stacked bar with its counts beside it.
+// ---------- data quality: a map of the cases, and how the times are known ----------
+// One question, "can I trust the rows?", and the two causes of a row set aside are not the same: an exact repeat is a duplicate left out of the counts (harmless), a rejected row is one the reader could not accept
+// (it needs a look). Each case is a bubble on a map: across, the rows it has (log scale); up, the share of them set aside; the area of the bubble is the rows set aside, and its colours are the two causes (a bubble
+// with both is cut in two, in proportion). A big red bubble high up is the case to open first. A case with nothing set aside is a small flat dot on the floor. Pointing at a bubble, or at a cause in the legend,
+// says what it is under the figure and dims the rest; a click on a bubble (or Enter) opens the case. Under the map, in one thin bar, how the hours of the typed rows are known (an analyst confirmed them, the file
+// states them, the source declared them, or they were assumed): what an analyst must know before trusting an answer about time. No target is defined for any of this, so none is drawn; the table lists every case.
+const CAUSES = [
+  { id: 'rejected', label: 'Rejected', colour: 'var(--nx-danger)', hint: 'the reader could not accept them' },
+  { id: 'repeats', label: 'Exact repeats', colour: 'var(--nx-text-3)', hint: 'left out of the counts' },
+]
+const BASIS_COLOUR = { confirmed_by_analyst: 'var(--nx-accent)', explicit_offset: 'var(--nx-data-3)', declared: 'var(--nx-data-6)', assumed: 'var(--nx-warn)' }
+
+// A slice of a disc, from one angle to another (radians, 0 at the top, clockwise).
+const slicePath = (cx, cy, r, from, to) => {
+  const point = angle => [cx + r * Math.sin(angle), cy - r * Math.cos(angle)]
+  const [x0, y0] = point(from)
+  const [x1, y1] = point(to)
+  return `M${cx.toFixed(2)} ${cy.toFixed(2)} L${x0.toFixed(2)} ${y0.toFixed(2)} A${r.toFixed(2)} ${r.toFixed(2)} 0 ${to - from > Math.PI ? 1 : 0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)} Z`
+}
+
 export function DataQualityPanel({ aside, basis, loading, basisLoading }) {
   const nameOf = useCaseNameOf()
-  const shown = aside.items.filter(item => item.share > 0).slice(0, 5)
-  const axisMax = niceCeiling(Math.max(0.1, ...shown.map(item => item.share * 100)))
+  const navigate = useNavigate()
+  const [box, setBox] = useState(null)
+  const [size, setSize] = useState({ w: 0, h: 0 })
+  const [pinned, setPinned] = useState(null)
+  const [hover, setHover] = useState(null)
+  const [focusCase, setFocusCase] = useState(null)
+  const [probe, setProbe] = useState('')
+  useEffect(() => {
+    if (!box) return undefined
+    setSize({ w: Math.round(box.clientWidth), h: Math.round(box.clientHeight) })
+    if (typeof ResizeObserver === 'undefined') return undefined
+    const watcher = new ResizeObserver(entries => { const rect = entries[0]?.contentRect; if (rect) setSize({ w: Math.round(rect.width), h: Math.round(rect.height) }) })
+    watcher.observe(box)
+    return () => watcher.disconnect()
+  }, [box])
+  const lit = hover || pinned
+  const causes = useMemo(() => setAsideCauses(aside), [aside])
+  const map = useMemo(() => qualityMap(aside, { width: size.w, height: size.h }), [aside, size])
+  const share = (value, whole) => formatRate(whole ? value / whole : 0)
+  const countOf = id => (id === 'rejected' ? causes.rejected : causes.repeats)
+  const describe = point => `${nameOf(point.caseId)} · ${formatNumber(point.read)} rows · ${formatNumber(point.rejected)} rejected · ${formatNumber(point.repeats)} repeats · ${formatRate(point.share)}`
+  const sentence = probe || (causes.read ? `of ${formatNumber(causes.read)} rows set aside` : '')
+  const tagged = useMemo(() => {
+    if (!map) return []
+    const chosen = []
+    for (const point of map.points.filter(item => item.setAside > 0).sort((left, right) => right.setAside - left.setAside)) {
+      if (chosen.length >= 3) break
+      const side = point.x > (map.plot.left + map.plot.right) / 2 ? 'left' : 'right'
+      const spot = { point, side, top: point.y }
+      if (chosen.every(other => Math.abs(other.top - spot.top) > 30 || other.side !== spot.side)) chosen.push(spot)
+    }
+    return chosen
+  }, [map])
+  const twin = { label: 'Data quality for each case', exportName: 'nexusai-data-quality.csv', summary: `${formatRate(aside.share)} of ${formatNumber(aside.read)} rows read were set aside (${formatNumber(causes.rejected)} rejected, ${formatNumber(causes.repeats)} exact repeats); the times of ${formatNumber(basis.total)} typed rows are known as: ${basis.parts.map(part => `${formatNumber(part.rows)} ${part.label.toLowerCase()}`).join(', ') || 'not yet read'}.`, columns: [{ key: 'case', label: 'Case' }, { key: 'read', label: 'Rows read' }, { key: 'repeats', label: 'Exact repeats' }, { key: 'rejected', label: 'Rejected' }, { key: 'share', label: 'Share set aside' }], rows: aside.items.map(item => ({ id: item.caseId, case: nameOf(item.caseId), read: item.read, repeats: item.duplicates, rejected: item.rejected, share: formatRate(item.share) })) }
+  const dim = point => (focusCase && focusCase !== point.caseId) || (lit && !(lit === 'rejected' ? point.rejected > 0 : point.repeats > 0))
   return (
-    <Panel id="dash-quality" title="Data quality" sub={aside.read ? `${formatRate(aside.share)} of ${formatNumber(aside.read)} rows set aside` : null}
-      twin={{ label: 'Data quality for each case', exportName: 'nexusai-data-quality.csv', summary: `${formatRate(aside.share)} of ${formatNumber(aside.read)} rows read were set aside; the times of ${formatNumber(basis.total)} typed rows are known as: ${basis.parts.map(part => `${formatNumber(part.rows)} ${part.label.toLowerCase()}`).join(', ') || 'not yet read'}.`, columns: [{ key: 'case', label: 'Case' }, { key: 'read', label: 'Rows read' }, { key: 'repeats', label: 'Exact repeats' }, { key: 'rejected', label: 'Rejected' }, { key: 'share', label: 'Share set aside' }], rows: aside.items.map(item => ({ id: item.caseId, case: nameOf(item.caseId), read: item.read, repeats: item.duplicates, rejected: item.rejected, share: formatRate(item.share) })) }}>
-      {loading && !aside.read ? <PanelSkeleton /> : (
-        <>
-          <div className="nx-quality__aside nx-fill">
-            {shown.length ? (
-              <>
-                <p className="nx-keyline"><span><i className="nx-keys__key nx-keys__key--dot" style={{ background: 'var(--nx-accent)' }} />Rejected</span><span><i className="nx-keys__key nx-keys__key--ring" />Rejected and exact repeats</span></p>
-                <ul className="nx-aside">
-                  {shown.map(item => (
-                    <li key={item.caseId} className="nx-aside__row" title={`${formatNumber(item.rejected)} rejected, ${formatNumber(item.duplicates)} exact repeats, of ${formatNumber(item.read)} rows read`}>
-                      <Link className="nx-aside__name" to={`/cases/${encodeURIComponent(item.caseId)}/overview`}><CaseLabel caseId={item.caseId} /></Link>
-                      <Dumbbell low={(item.rejected / item.read) * 100} high={item.share * 100} axisMax={axisMax} label={`${formatRate(item.rejected / item.read)} rejected, ${formatRate(item.share)} rejected or exact repeats`} />
-                      <span className="nx-aside__value nx-tabular">{formatRate(item.share)}</span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="nx-axis nx-tabular" aria-hidden="true"><i /><span className="nx-axis__scale"><span>0%</span><span>{formatRate(axisMax / 100)}</span></span><i /></p>
-              </>
-            ) : aside.read ? <Calm icon={CircleCheckBig} tone="ok"><strong>Every row was kept</strong></Calm> : <Calm icon={CircleAlert}>No rows read yet</Calm>}
+    <Panel id="dash-quality" title="Data quality" twin={twin}>
+      {loading && !aside.read ? <PanelSkeleton /> : aside.read ? (
+        <div className="nx-dq" onMouseLeave={() => { setHover(null); setFocusCase(null); setProbe('') }}>
+          <div className="nx-dq__top">
+            <b className="nx-dq__figure nx-tabular">{formatRate(aside.share)}</b>
+            <span className={`nx-dq__sentence${probe ? ' is-probe' : ''}`}>{sentence}</span>
           </div>
-          <div className="nx-group nx-quality__basis">
-            <p className="nx-overline">How the times are known</p>
+          <div ref={setBox} className="nx-dq__map">
+            {map ? (
+              <>
+                <svg className="nx-dq__svg" width={size.w} height={size.h} role="group" aria-label="Map of the cases: across, the rows of a case; up, the share set aside; the area of a bubble is the rows set aside. Each bubble opens its case.">
+                  {map.yTicks.map(tick => <g key={tick.value}><line className="nx-dq__grid" x1={map.plot.left} x2={map.plot.right} y1={tick.y} y2={tick.y} /><text className="nx-dq__tick" x={map.plot.left - 6} y={tick.y + 3} textAnchor="end">{tick.label}</text></g>)}
+                  {map.xTicks.map(tick => <text key={tick.value} className="nx-dq__tick" x={tick.x} y={map.plot.bottom + 14} textAnchor="middle">{tick.label}</text>)}
+                  {map.points.map(point => {
+                    const total = point.rejected + point.repeats
+                    const angle = total ? (point.rejected / total) * Math.PI * 2 : 0
+                    return (
+                      <g key={point.caseId} className={`nx-dq__bubble${dim(point) ? ' is-dim' : ''}${total ? '' : ' is-clean'}`} role="link" tabIndex={0} aria-label={describe(point)}
+                        onMouseEnter={() => { setFocusCase(point.caseId); setProbe(describe(point)) }} onFocus={() => { setFocusCase(point.caseId); setProbe(describe(point)) }} onBlur={() => { setFocusCase(null); setProbe('') }}
+                        onClick={() => navigate(`/cases/${encodeURIComponent(point.caseId)}/overview`)} onKeyDown={event => { if (event.key === 'Enter') navigate(`/cases/${encodeURIComponent(point.caseId)}/overview`) }}>
+                        <circle className="nx-dq__hit" cx={point.x} cy={point.y} r={Math.max(point.r, 9)} />
+                        {!total ? <circle className="nx-dq__dot" cx={point.x} cy={point.y} r={point.r} />
+                          : point.rejected && point.repeats ? <><path className="nx-dq__slice" data-c="rejected" d={slicePath(point.x, point.y, point.r, 0, angle)} style={{ '--c': CAUSES[0].colour }} /><path className="nx-dq__slice" data-c="repeats" d={slicePath(point.x, point.y, point.r, angle, Math.PI * 2)} style={{ '--c': CAUSES[1].colour }} /></>
+                            : <circle className="nx-dq__slice" data-c={point.rejected ? 'rejected' : 'repeats'} cx={point.x} cy={point.y} r={point.r} style={{ '--c': point.rejected ? CAUSES[0].colour : CAUSES[1].colour }} />}
+                      </g>
+                    )
+                  })}
+                </svg>
+                {tagged.map(spot => (
+                  <span key={spot.point.caseId} className={`nx-dq__tag nx-dq__tag--${spot.side}`} style={{ insetBlockStart: spot.point.y, ...(spot.side === 'right' ? { insetInlineStart: spot.point.x + spot.point.r + 6 } : { insetInlineEnd: size.w - spot.point.x + spot.point.r + 6 }) }} aria-hidden="true"><CaseLabel caseId={spot.point.caseId} /></span>
+                ))}
+              </>
+            ) : causes.rejected + causes.repeats === 0 ? <Calm icon={CircleCheckBig} tone="ok"><strong>Every row was kept</strong></Calm> : null}
+          </div>
+          <div className="nx-dq__legend" role="group" aria-label="Light up one cause">
+            {CAUSES.map(item => (
+              <button key={item.id} type="button" aria-pressed={pinned === item.id} disabled={!countOf(item.id)} style={{ '--c': item.colour }} title={`${item.label}: ${item.hint}`}
+                onMouseEnter={() => { setHover(item.id); setProbe(`${item.label} · ${formatNumber(countOf(item.id))} · ${item.hint}`) }} onFocus={() => setHover(item.id)} onBlur={() => setHover(null)}
+                onClick={() => setPinned(current => (current === item.id ? null : item.id))}>
+                <i aria-hidden="true" />{item.label}<b className="nx-tabular">{formatNumber(countOf(item.id))}</b>
+              </button>
+            ))}
+          </div>
+          <div className="nx-dq__times">
+            <h3>How the times are known</h3>
             {basisLoading && !basis.total ? <PanelSkeleton rows={1} /> : basis.total ? (
               <>
-                <SegBar height={8} label="Rows by the basis of their time" parts={basis.parts.map((part, index) => ({ id: part.id, value: part.rows, colour: `var(--nx-data-${index + 1})`, title: `${part.label}: ${formatNumber(part.rows)} rows` }))} />
-                <ul className="nx-keyline nx-keyline--counts">
-                  {basis.parts.map((part, index) => <li key={part.id} title={`${part.label}: ${formatNumber(part.rows)} rows`}><i className="nx-keys__key" style={{ background: `var(--nx-data-${index + 1})` }} />{BASIS_SHORT[part.id] || part.label}<b className="nx-tabular">{formatRate(part.rows / basis.total)}</b></li>)}
+                <SegBar height={8} label="Rows by how their time is known" parts={basis.parts.map(part => ({ id: part.id, value: part.rows, colour: BASIS_COLOUR[part.id] || 'var(--nx-border-strong)', title: `${part.label} · ${formatNumber(part.rows)} rows · ${share(part.rows, basis.total)}` }))} />
+                <ul className="nx-dq__basis">
+                  {basis.parts.map(part => <li key={part.id} title={`${part.label}: ${formatNumber(part.rows)} rows`} style={{ '--c': BASIS_COLOUR[part.id] || 'var(--nx-border-strong)' }}><i aria-hidden="true" />{BASIS_SHORT[part.id] || part.label}<b className="nx-tabular">{share(part.rows, basis.total)}</b></li>)}
                 </ul>
               </>
             ) : <p className="nx-muted">No typed records yet</p>}
           </div>
-        </>
-      )}
+        </div>
+      ) : <Calm icon={CircleAlert}>No rows read yet</Calm>}
     </Panel>
   )
 }

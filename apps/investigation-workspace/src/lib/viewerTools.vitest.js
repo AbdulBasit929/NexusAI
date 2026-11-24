@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { clampZoom, findMatches, fitScale, formatClock, pageMatchCounts, peaksFrom, recordFields, splitByMatches, ZOOM_MAX, ZOOM_MIN } from './viewerTools.js'
+import { clampZoom, findMatches, fitScale, formatClock, MIN_SELECTION, pageMatchCounts, peaksFrom, pointToFraction, recordFields, selectionBox, selectionParam, splitByMatches, usableSelection, ZOOM_MAX, ZOOM_MIN } from './viewerTools.js'
 
 describe('formatClock', () => {
   it('reads seconds as minutes and hours, and bad input as zero', () => {
@@ -117,5 +117,31 @@ describe('scrollWithin', () => {
     scrollWithin(container, box(100, 20), 'center')
     expect(container.scrollTop).toBe(Math.max(0, container.scrollTop))
     expect(() => scrollWithin(null, null)).not.toThrow()
+  })
+})
+
+describe('selecting a part of a picture', () => {
+  const rect = { left: 100, top: 50, width: 400, height: 200 }
+  it('turns a screen point into a fraction of the picture, whatever the zoom, and keeps it inside', () => {
+    expect(pointToFraction(rect, 300, 150)).toEqual([0.5, 0.5])
+    expect(pointToFraction(rect, 100, 50)).toEqual([0, 0])
+    expect(pointToFraction(rect, 900, -40)).toEqual([1, 0])
+    expect(pointToFraction({ left: 0, top: 0, width: 0, height: 10 }, 1, 1)).toBeNull()
+    expect(pointToFraction(null, 1, 1)).toBeNull()
+  })
+  it('makes the box between two points with the smaller numbers first, in either direction', () => {
+    expect(selectionBox([0.6, 0.7], [0.2, 0.1])).toEqual([0.2, 0.1, 0.6, 0.7])
+    expect(selectionBox([0.2, 0.1], [0.6, 0.7])).toEqual([0.2, 0.1, 0.6, 0.7])
+    expect(selectionBox(null, [0.1, 0.1])).toBeNull()
+  })
+  it('accepts a box only when each side is a usable part of the picture', () => {
+    expect(usableSelection([0.2, 0.1, 0.6, 0.7])).toBe(true)
+    expect(usableSelection([0.2, 0.1, 0.2 + MIN_SELECTION, 0.1 + MIN_SELECTION])).toBe(true)
+    expect(usableSelection([0.2, 0.1, 0.21, 0.7])).toBe(false)
+    expect(usableSelection([0.2, 0.1, 0.6])).toBe(false)
+    expect(usableSelection(null)).toBe(false)
+  })
+  it('writes the box for the search address with four decimals', () => {
+    expect(selectionParam([0.123456, 0.2, 0.6, 0.7000001])).toBe('0.1235,0.2,0.6,0.7')
   })
 })
