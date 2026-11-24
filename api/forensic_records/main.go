@@ -213,6 +213,8 @@ func main() {
 	mux.HandleFunc("GET /evidence/compare", imageComparisonHandler(db))
 	mux.HandleFunc("GET /faces/similar", faceSimilarityHandler(db))
 	mux.HandleFunc("GET /images/similar", imageSimilarityHandler(db))
+	mux.HandleFunc("GET /images/search", imageCaseSearchHandler(cfg, db, evidenceStore))
+	mux.HandleFunc("POST /images/search", imageCaseSearchHandler(cfg, db, evidenceStore))
 	mux.HandleFunc("GET /evidence/{evidence_id}", evidenceDetailHandler(db))
 	mux.HandleFunc("GET /evidence/{evidence_id}/content", evidenceContentHandler(db, evidenceStore))
 	mux.HandleFunc("GET /evidence/{evidence_id}/source-row", evidenceSourceRowHandler(db))

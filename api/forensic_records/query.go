@@ -337,6 +337,16 @@ func hybridQueryHandlerCore(cfg config, db *pgxpool.Pool) http.HandlerFunc {
 				req.RequestClass = forensicrequest.GovernedAnalysis
 			}
 		}
+		// FORENSIC_IMAGE_SEARCH_ASK (ask_image_search.go) runs BEFORE the text-intent step: that step reads "photos of an airplane" as a plate called AIRPLANE and "a baby watching something on a laptop" as
+		// words written in images (measured 2026-11-23), so a sentence that names photographs must first be asked whether it describes what the photographs SHOW. A model reads the sentence; when it asks
+		// for photographs described in words (any language) or for the copies of an image the case holds, the governed image search of the case answers with ranked, cited candidates and how much of the
+		// case was searched. If the model declines (plates, written words, records, people), or the search cannot run, the question goes on unchanged to the steps below.
+		if imageAskEnabled() {
+			if answered, ok := imageAskRun(ctx, cfg, db, w, req, startedAt); ok {
+				writeJSON(w, http.StatusOK, answered)
+				return
+			}
+		}
 		// FORENSIC_TEXT_INTENT (ask_text_intent.go): a model reads the sentence, and when it asks to find words or a phrase in the case's transcripts, image text or
 		// documents, the request carries the structured text query and operation and goes to the governed text retrieval. The SQL engine and the lane are not given a
 		// text search to turn into a count.
