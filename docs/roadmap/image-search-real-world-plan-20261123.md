@@ -77,7 +77,7 @@ Smoke run (4 sources x 8 variants): 32 of 32 found at rank 1 with one region hit
 
 **Not implemented yet (the triage layer and the proofs):** watch lists and known sets, the duplicate count on gallery thumbnails, categories, EXIF filters and timeline, mark relevant / several pictures / picture + words, a firm "not in this case" (needs a vision-language check, parked: no GPU), indexed nearest-window query for tens of thousands of pictures (not measured, by decision), calibration on real casework pictures.
 
-**Next step 1: watch lists and known sets (recommended first).**
+**Next step 1: watch lists and known sets. BUILT 2026-11-24 (gates K1 to K7 and U1 met on the throwaway database and on the Lahore hashes; not applied live, not deployed, awaiting the owner's word): `docs/data/image-known-sets-preregistration-20261124.md`, `docs/data/image-known-sets-results-20261124.md`.** The design below is what was built.
 * Named sets of known pictures stored as hashes only (SHA-256 plus the perceptual hash), never the pictures; kinds such as "of interest" and "known harmless".
 * Every picture of a case is checked against the sets from the hashes already stored; a match is flagged ("in set X") or hidden from the gallery and results, never deleted; the flag can be switched off.
 * Import: a table of hashes (CSV first). Attach many pictures or a zip, get one table, save as a set.

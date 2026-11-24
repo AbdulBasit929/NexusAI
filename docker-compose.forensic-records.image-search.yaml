@@ -69,3 +69,5 @@ services:
       FORENSIC_IMAGE_REGION_SEARCH: ${FORENSIC_IMAGE_REGION_SEARCH:-true}
       FORENSIC_IMAGE_REGION_VERIFIED_MIN: ${FORENSIC_IMAGE_REGION_VERIFIED_MIN:-12}
       FORENSIC_IMAGE_REGION_PROBABLE_MIN: ${FORENSIC_IMAGE_REGION_PROBABLE_MIN:-8}
+      # known sets, the watch lists of pictures (hashes only; migration 039, docs/data/image-known-sets-results-20261124.md): the routes exist only when this is true; the Evidence page leaves the feature out when they do not
+      FORENSIC_IMAGE_KNOWN_SETS: ${FORENSIC_IMAGE_KNOWN_SETS:-false}
