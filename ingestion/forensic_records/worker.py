@@ -60,6 +60,11 @@ except ModuleNotFoundError:  # pragma: no cover - supports direct worker.py exec
     from media_artifact_scope import resolve_media_artifact_id
 
 try:
+    from ingestion.forensic_records.image_search import IMAGE_SEARCH_CONTRACTS, IMAGE_SEARCH_VECTOR_CONTRACT, persist_image_search_rows
+except ModuleNotFoundError:  # pragma: no cover - supports direct worker.py execution
+    from image_search import IMAGE_SEARCH_CONTRACTS, IMAGE_SEARCH_VECTOR_CONTRACT, persist_image_search_rows
+
+try:
     from ingestion.forensic_records.media_pipeline import (
         ANPR_OBSERVATION_CONTRACT,
         AUDIO_TIMESTAMP_SEGMENT_CONTRACT,
@@ -1246,6 +1251,7 @@ def persist_media_result(
                     AUDIO_TIMESTAMP_SEGMENT_CONTRACT,
                     FACE_OBSERVATION_CONTRACT,
                     IMAGE_EMBEDDING_CONTRACT,
+                    IMAGE_SEARCH_VECTOR_CONTRACT,
                     IMAGE_OCR_OBSERVATION_CONTRACT,
                 }
                 else "derived_technical_observation"
@@ -1281,6 +1287,8 @@ def persist_media_result(
         )
         if observation.contract_version == ANPR_OBSERVATION_CONTRACT:
             persist_anpr_media_observation(cur, job, observation, index, artifact_id)
+        if observation.contract_version in IMAGE_SEARCH_CONTRACTS:
+            persist_image_search_rows(cur, job, version_id, observation, artifact_id)
 
     summary = {
         "contract_version": result.contract_version,

@@ -1,0 +1,71 @@
+# Image search over a whole case (module M1; docs/roadmap/image-search-m1-handoff-20261120.md, gates and results docs/data/image-search-m1-*-20261120.md).
+# Add this file AFTER the files of the running stack. tools/dev/live-window/10-image-search.ps1 does that for the worker, the API and the new service, with a dry run, rollback tags and a rollback.
+# Shape (decided 2026-11-23 after the worker image was found to carry the EasyOCR role near its memory cap): the models live in their OWN container, forensic-image-search (same image as the worker, own memory cap,
+# models released after FORENSIC_IMAGE_SEARCH_IDLE_RELEASE_SECONDS without a call). The worker sends each new image to it (FORENSIC_IMAGE_SEARCH_URL) and stores the descriptors; the API calls it for a search
+# phrase or an uploaded probe image. Nothing here is published on a host port; the shared key is the only secret.
+# Needs migration 038 (db/forensic_records/038_image_search.sql, after its preflight, a backup and a rehearsal) and the two model folders under models/media/image-search/
+# (tools/media_data/Install-ImageSearchModels.ps1; the service refuses to start with a file whose SHA-256 differs).
+# Switches (all OFF unless set): FORENSIC_IMAGE_SEARCH_ENABLED (worker: compute and store descriptors of new images), FORENSIC_IMAGE_SEARCH_ASK (API: the Ask step that understands photo questions).
+# The endpoint /images/search itself needs no switch: it answers from what is stored, and says how much of the case that is.
+services:
+  forensic-records-worker:
+    environment:
+      FORENSIC_IMAGE_SEARCH_ENABLED: ${FORENSIC_IMAGE_SEARCH_ENABLED:-false}
+      FORENSIC_IMAGE_SEARCH_URL: ${FORENSIC_IMAGE_SEARCH_URL:-http://forensic-image-search:8097}
+      FORENSIC_IMAGE_SEARCH_SERVICE_KEY: ${FORENSIC_IMAGE_SEARCH_SERVICE_KEY:-}
+      FORENSIC_IMAGE_SEARCH_TIMEOUT_SECONDS: ${FORENSIC_IMAGE_SEARCH_TIMEOUT_SECONDS:-180}
+      # also store the vectors of 34 windows of every picture (halves, thirds, quarters; DINOv2 and SigLIP 2): a detail, a small object or a region of one photograph can then be found in others.
+      # About 7 seconds more per picture on this CPU.
+      FORENSIC_IMAGE_SEARCH_TILES: ${FORENSIC_IMAGE_SEARCH_TILES:-true}
+
+  forensic-image-search:
+    image: ${FORENSIC_IMAGE_SEARCH_SERVICE_IMAGE:-nexusai-forensic-records-worker:latest}
+    restart: unless-stopped
+    entrypoint: ["python", "/app/image_search_service.py"]
+    # Both vision models and the text tower can be loaded at once: about 1.5 to 2 GB. The Docker VM (7.6 GB) also holds the language model and the database, so the cap is explicit and the models are released when idle.
+    mem_limit: ${FORENSIC_IMAGE_SEARCH_SERVICE_MEMORY_LIMIT:-2300m}
+    memswap_limit: ${FORENSIC_IMAGE_SEARCH_SERVICE_MEMORY_LIMIT:-2300m}
+    environment:
+      FORENSIC_IMAGE_SEARCH_SERVICE_KEY: ${FORENSIC_IMAGE_SEARCH_SERVICE_KEY:?set FORENSIC_IMAGE_SEARCH_SERVICE_KEY to a long random value}
+      FORENSIC_IMAGE_SEARCH_PORT: "8097"
+      FORENSIC_IMAGE_SEARCH_DINO_MODEL_PATH: ${FORENSIC_IMAGE_SEARCH_DINO_MODEL_PATH:-/models/media/image-search/dinov2-base}
+      FORENSIC_IMAGE_SEARCH_DINO_MODEL: ${FORENSIC_IMAGE_SEARCH_DINO_MODEL:-facebook/dinov2-base}
+      FORENSIC_IMAGE_SEARCH_DINO_MODEL_SHA256: ${FORENSIC_IMAGE_SEARCH_DINO_MODEL_SHA256:-d73036b56966966d07975d696bde331762f37297e2f095de8cea0040c3aa0841}
+      FORENSIC_IMAGE_SEARCH_SIGLIP_MODEL_PATH: ${FORENSIC_IMAGE_SEARCH_SIGLIP_MODEL_PATH:-/models/media/image-search/siglip2-base-patch16-224}
+      FORENSIC_IMAGE_SEARCH_SIGLIP_MODEL: ${FORENSIC_IMAGE_SEARCH_SIGLIP_MODEL:-google/siglip2-base-patch16-224}
+      FORENSIC_IMAGE_SEARCH_SIGLIP_MODEL_SHA256: ${FORENSIC_IMAGE_SEARCH_SIGLIP_MODEL_SHA256:-612923381c76ec5a9bed335d1c48827e3f2e506ac31b044b63b2031fadee6a0b}
+      FORENSIC_IMAGE_SEARCH_CPU_THREADS: ${FORENSIC_IMAGE_SEARCH_CPU_THREADS:-3}
+      # Released after 45 s idle and the freed heap is handed back (image_search_service.trim_memory). Measured 2026-11-23: with this service holding about 1 GB the Docker VM ran out of memory
+      # (swap full) and the language model's answers took 100 s instead of 6 s. Two malloc arenas keep the heap from fragmenting across request threads.
+      FORENSIC_IMAGE_SEARCH_IDLE_RELEASE_SECONDS: ${FORENSIC_IMAGE_SEARCH_IDLE_RELEASE_SECONDS:-45}
+      MALLOC_ARENA_MAX: "2"
+    volumes:
+      - ${NEXUSAI_MEDIA_MODEL_DIR:-./models/media}:/models/media:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8097/healthz', timeout=3).read(1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 40s
+
+  forensic-records-api:
+    environment:
+      FORENSIC_IMAGE_SEARCH_URL: ${FORENSIC_IMAGE_SEARCH_URL:-http://forensic-image-search:8097}
+      FORENSIC_IMAGE_SEARCH_SERVICE_KEY: ${FORENSIC_IMAGE_SEARCH_SERVICE_KEY:-}
+      # the distances used for a match (docs/data/image-search-m1-results-20261120.md and amendment A5): 56 bits for the hash (midway between the farthest true copy and the nearest unrelated image on the development part), 0.108 cosine distance for DINOv2 (the registered threshold); change them only after a recalibration
+      FORENSIC_IMAGE_SEARCH_HASH_MAX: ${FORENSIC_IMAGE_SEARCH_HASH_MAX:-56}
+      FORENSIC_IMAGE_SEARCH_DINO_MAX: ${FORENSIC_IMAGE_SEARCH_DINO_MAX:-0.108}
+      # the lowest similarity at which a picture is listed as visually similar (provisional: similar vehicles 0.80 to 0.84, an unrelated picture 0.53 to 0.57 on the live Lahore case)
+      FORENSIC_IMAGE_SEARCH_SIMILAR_MIN: ${FORENSIC_IMAGE_SEARCH_SIMILAR_MIN:-0.70}
+      # "a part of it looks like this picture": the largest DINOv2 distance between the attached picture and a window of another picture. Measured 2026-11-23 on 216 probes (docs/data/image-search-region-results-20261123.md):
+      # at 0.15 / 0.20 / 0.25 / 0.30 the source came back as a part in 1 / 3 / 4 / 5 probes and 1 / 2 / 11 / 28 other pictures were listed; 0.25 is the knee
+      FORENSIC_IMAGE_SEARCH_TILE_DINO_MAX: ${FORENSIC_IMAGE_SEARCH_TILE_DINO_MAX:-0.25}
+      # the window penalty and the "in a part of a picture" share (docs/roadmap/image-search-real-world-plan-20261123.md)
+      FORENSIC_IMAGE_SEARCH_WINDOW_PENALTY: ${FORENSIC_IMAGE_SEARCH_WINDOW_PENALTY:-0.06}
+      FORENSIC_IMAGE_SEARCH_WINDOW_ONLY_RATIO: ${FORENSIC_IMAGE_SEARCH_WINDOW_ONLY_RATIO:-0.92}
+      FORENSIC_IMAGE_SEARCH_ASK: ${FORENSIC_IMAGE_SEARCH_ASK:-false}
+      # an attached picture is also looked for INSIDE the case's other pictures (a crop, a detail, a sign): SIFT matches that agree on one placement (image_region_search.go, image_region.py). 12 agreeing
+      # matches are reported as "contains it", 8 to 11 as "probably"; provisional until the calibration on negatives is recorded
+      FORENSIC_IMAGE_REGION_SEARCH: ${FORENSIC_IMAGE_REGION_SEARCH:-true}
+      FORENSIC_IMAGE_REGION_VERIFIED_MIN: ${FORENSIC_IMAGE_REGION_VERIFIED_MIN:-12}
+      FORENSIC_IMAGE_REGION_PROBABLE_MIN: ${FORENSIC_IMAGE_REGION_PROBABLE_MIN:-8}

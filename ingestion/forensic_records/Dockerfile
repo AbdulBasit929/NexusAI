@@ -28,6 +28,9 @@ COPY ingestion/forensic_records/video_anpr_product_v2.py ./video_anpr_product_v2
 COPY ingestion/forensic_records/video_anpr_onnx_v3.py ./video_anpr_onnx_v3.py
 COPY ingestion/forensic_records/video_anpr_parity_adapter.py ./video_anpr_parity_adapter.py
 COPY ingestion/forensic_records/image_intelligence.py ./image_intelligence.py
+COPY ingestion/forensic_records/image_search.py ./image_search.py
+COPY ingestion/forensic_records/image_search_service.py ./image_search_service.py
+COPY ingestion/forensic_records/image_region.py ./image_region.py
 COPY ingestion/forensic_records/roman_urdu.py ./roman_urdu.py
 COPY ingestion/forensic_records/document_pipeline.py ./document_pipeline.py
 COPY ingestion/forensic_records/xlsx_reader.py ./xlsx_reader.py

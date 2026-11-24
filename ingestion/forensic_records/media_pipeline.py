@@ -1720,7 +1720,7 @@ class DeterministicMediaProcessor:
         )
 
 
-def configured_media_processor() -> DeterministicMediaProcessor:
+def configured_media_processor() -> Any:
     image_processors: list[ImageProcessor] = []
     audio_transcriber: AudioTranscriber | None = None
     video_anpr_processor: Any | None = None
@@ -1795,7 +1795,14 @@ def configured_media_processor() -> DeterministicMediaProcessor:
         image_processor = image_processors[0]
     elif image_processors:
         image_processor = CompositeImageProcessor(tuple(image_processors))
-    return DeterministicMediaProcessor(image_processor, audio_transcriber, video_anpr_processor)
+    processor = DeterministicMediaProcessor(image_processor, audio_transcriber, video_anpr_processor)
+    if os.getenv("FORENSIC_IMAGE_SEARCH_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}:
+        try:
+            from ingestion.forensic_records.image_search import ImageSearchAugmentedProcessor, search_processor_from_environment
+        except ModuleNotFoundError:  # pragma: no cover - direct worker image execution
+            from image_search import ImageSearchAugmentedProcessor, search_processor_from_environment
+        return ImageSearchAugmentedProcessor(processor, search_processor_from_environment())
+    return processor
 
 
 def _requested_asr_language(metadata: dict[str, Any]) -> str | None:
