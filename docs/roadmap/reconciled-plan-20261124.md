@@ -60,7 +60,7 @@ A family is **finished** only when it has the loop of section 1: a view, a viewe
 
 | Step | Work | Who | Done when |
 |---|---|---|---|
-| **A0 (now)** | **Make live equal committed.** Commit the media session's files and mine in separate commits with explicit paths, rebuild the API and worker images from HEAD, tag them, push the branch (outward step: the owner's word) | both sessions, owner's word for the hook bypass and the push | a build from HEAD equals the live binary except for the build id |
+| **A0 (done 2026-11-24 for the API)** | **Make live equal committed.** Commit the media session's files and mine in separate commits with explicit paths, rebuild the API and worker images from HEAD, tag them, push the branch (outward step: the owner's word) | both sessions, owner's word for the hook bypass and the push | a build from HEAD equals the live binary except for the build id |
 | A1 | Refresh `NEXUSAI_CONTINUATION.md` and the supersession map; move the image test pack into its own collection; regenerate the verified-bank oracles and re-run the whole bank once in the background | this session | file under 300 lines; bank counts reported |
 | A2 | Ask Phase 2: run the text search beside every value-bearing message and attach the files in a secondary field (headline unchanged); one interface line | this session (Go), interface session | records answers with rows name their files; 0 changed headlines on the verified sample |
 | **B (weeks 1 to 3)** | X0, X1, then the audio product; the image test cycle continues | this session (X), media session (audio, images) | X1 gate met; audio gate per language reported |
@@ -84,3 +84,9 @@ A bigger intent model, vision-model captions, fine-tuning and faces at scale (no
 ## 8. What would change this plan
 
 A GPU (the larger intent model, captions and the speech fine-tunes come back), real casework files or consented data (calibration and the face gates), or the owner choosing a different order for cross-case against media.
+
+## 9. Step A0 result (2026-11-24, on the owner's approval)
+
+Committed in the lane tree: `f16a638` (API image search and Ask step), `2d0cea7` (migration 038, service, worker code, deploy scripts), `3bf9051` (media tooling), `e70c96f` (docs); interface tree: `a10ce43`. Pushed without force: `lane-arms` to `claude/gifted-pasteur-4kpx0r` (99 commits) and `ui/v2-redesign` as a new remote branch. **Proof for the API:** a clean build of HEAD, cross-compiled without stripping, is 37,448,185 bytes like the live binary, with the same 2,684 function and type names; 77 bytes differ (the build id).
+
+**Still open from A0:** (1) the live **worker** image is an overlay on files older than the repository's, so a worker built from HEAD would not equal it; the media session is asked to document how to reproduce it; (2) left uncommitted on purpose: the image-search PDF report (four embedded pictures not checked against the real-footage rule), two Dockerfiles and a package lock (project rule), and `runtime-config.js` of the interface tree (temporary local case list); (3) `NEXUSAI_CONTINUATION.md` is still stale (step A1).
