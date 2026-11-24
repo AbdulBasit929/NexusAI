@@ -1,0 +1,54 @@
+/* Known sets on the Evidence page: the flag on a card or row, picking pictures for a set, the bar of what is picked, and the panel that makes and fills the sets. Hashes only; see docs/data/image-known-sets-preregistration-20261124.md. */
+@layer nx-pages {
+  .nx-evbar__known { display: inline-flex; align-items: center; gap: var(--nx-s-2); flex-wrap: wrap; }
+
+  /* the flag and the pick mark sit on the picture, not on the card: the wrapper of the face is their frame */
+  .nx-evcard__facewrap { position: relative; }
+
+  /* the flag: a watch list is loud (the warning colours), known harmless is quiet */
+  .nx-evcard__flag { position: absolute; z-index: 2; inset-block-end: 8px; inset-inline-start: 8px; display: inline-flex; align-items: center; gap: 4px; max-inline-size: calc(100% - 16px); padding: 1px 8px; border: 1px solid var(--nx-border); border-radius: 999px; background: var(--nx-surface); color: var(--nx-text-2); font-size: var(--nx-fs-xs); font-weight: var(--nx-fw-semibold); line-height: 1.6; }
+  .nx-evcard__flag > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nx-evcard__flag svg { flex: none; inline-size: 12px; block-size: 12px; }
+  .nx-evcard__flag[data-tone='watch'], .nx-evrow__flag[data-tone='watch'] { border-color: var(--nx-warn-border); background: var(--nx-warn-bg); color: var(--nx-warn-text); }
+  .nx-evcard[data-flag='watch'] { border-color: var(--nx-warn-border); }
+  .nx-evcard[data-flag='harmless'] .nx-evcard__face { opacity: 0.86; }
+
+  .nx-evrow__flag { display: inline-flex; align-items: center; gap: 4px; inline-size: fit-content; max-inline-size: 100%; margin-block-start: 2px; padding: 0 7px; border: 1px solid var(--nx-border); border-radius: 999px; background: var(--nx-surface-sunken); color: var(--nx-text-2); font-size: var(--nx-fs-xs); font-weight: var(--nx-fw-semibold); }
+  .nx-evrow__flag svg { flex: none; inline-size: 11px; block-size: 11px; }
+
+  /* picking pictures: a round check at the top left of the card; a click anywhere on the card picks it */
+  .nx-evcard[data-picking] { cursor: pointer; }
+  .nx-evcard[data-picking] .nx-evcard__chip--kind { inset-inline-start: 40px; }
+  .nx-evcard__pick { position: absolute; z-index: 3; inset-block-start: 8px; inset-inline-start: 8px; display: grid; place-items: center; inline-size: 24px; block-size: 24px; min-block-size: 0; padding: 0; border: 2px solid var(--nx-border-strong); border-radius: 50%; background: var(--nx-surface); color: var(--nx-on-accent); cursor: pointer; }
+  .nx-evcard__pick svg { inline-size: 14px; block-size: 14px; stroke-width: 3; }
+  .nx-evcard__pick[aria-pressed='true'] { border-color: var(--nx-accent); background: var(--nx-accent); }
+  .nx-evcard[data-selected] { border-color: var(--nx-accent); box-shadow: 0 0 0 2px var(--nx-accent); }
+
+  .nx-ksbar { position: fixed; inset-block-end: var(--nx-s-5); inset-inline: 0; z-index: 20; inline-size: fit-content; max-inline-size: calc(100% - 32px); margin-inline: auto; display: flex; align-items: center; gap: var(--nx-s-3); padding: var(--nx-s-2) var(--nx-s-4); border: 1px solid var(--nx-border-strong); border-radius: 999px; background: var(--nx-surface-raised); box-shadow: 0 10px 28px rgb(16 22 32 / 0.2); }
+
+  .nx-ks__hidden { display: flex; align-items: center; gap: var(--nx-s-2); flex-wrap: wrap; margin: 0; padding: var(--nx-s-2) var(--nx-s-3); border: 1px solid var(--nx-border-subtle); border-radius: var(--nx-r-3); background: var(--nx-surface-sunken); color: var(--nx-text-2); font-size: var(--nx-fs-sm); }
+
+  /* the panel */
+  .nx-ks { display: grid; gap: var(--nx-s-4); min-inline-size: min(560px, 80vw); }
+  .nx-ks__lede { margin: 0; color: var(--nx-text-2); }
+  .nx-ks__block { display: grid; gap: var(--nx-s-3); padding-block-start: var(--nx-s-3); border-block-start: 1px solid var(--nx-border-subtle); }
+  .nx-ks__block h3 { margin: 0; font-size: var(--nx-fs-sm); }
+  .nx-ks__sets { display: grid; gap: var(--nx-s-2); margin: 0; padding: 0; list-style: none; }
+  .nx-ks__set { display: flex; align-items: center; gap: var(--nx-s-3); flex-wrap: wrap; }
+  .nx-ks__name { flex: 1 1 140px; min-inline-size: 0; overflow-wrap: anywhere; }
+  .nx-ks__count { color: var(--nx-text-3); font-size: var(--nx-fs-sm); }
+  .nx-ks__confirm { display: inline-flex; gap: var(--nx-s-1); }
+  .nx-ks__kind { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border: 1px solid var(--nx-border); border-radius: 999px; background: var(--nx-surface-sunken); color: var(--nx-text-2); font-size: var(--nx-fs-xs); font-weight: var(--nx-fw-semibold); }
+  .nx-ks__kind svg { inline-size: 12px; block-size: 12px; }
+  .nx-ks__kind[data-tone='watch'] { border-color: var(--nx-warn-border); background: var(--nx-warn-bg); color: var(--nx-warn-text); }
+  .nx-ks__row { display: flex; flex-wrap: wrap; align-items: end; gap: var(--nx-s-3); }
+  .nx-ks__field { display: grid; flex: 1 1 220px; gap: 4px; min-inline-size: 0; }
+  .nx-ks__field > span { color: var(--nx-text-2); font-size: var(--nx-fs-xs); font-weight: var(--nx-fw-semibold); }
+  .nx-ks__table { font-family: var(--nx-font-mono, ui-monospace, monospace); font-size: var(--nx-fs-xs); resize: vertical; }
+  .nx-ks__file { cursor: pointer; }
+  .nx-ks__message { min-block-size: 1.5em; margin: 0; font-size: var(--nx-fs-sm); }
+  .nx-ks__message.is-ok { color: var(--nx-ok-text); }
+  .nx-ks__message.is-error { color: var(--nx-danger-text); }
+  .nx-ks__foot { display: flex; justify-content: flex-end; }
+  @media (prefers-reduced-motion: no-preference) { .nx-evcard[data-selected] { transition: box-shadow var(--nx-dur-2, 160ms) var(--nx-ease-standard, ease); } }
+}

@@ -363,3 +363,32 @@ export async function searchImages({ caseId, kind, evidenceId, text, topK, file,
   }
   return response.json()
 }
+
+// Known sets: the watch lists of pictures, hashes only (docs/data/image-known-sets-preregistration-20261124.md). The server routes exist only when FORENSIC_IMAGE_KNOWN_SETS is on: a 404 on a read means "not available here" and the page leaves the feature out.
+async function knownSetsRequest(path, { caseId, method = 'GET', body, params = {}, signal, fetchImpl = globalThis.fetch }) {
+  const { baseUrl, tenantId, collectionId, headers } = requestContext(caseId)
+  const url = endpoint(baseUrl, path)
+  url.searchParams.set('tenant_id', tenantId)
+  url.searchParams.set('collection_id', collectionId)
+  for (const [key, value] of Object.entries(params)) if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, String(value))
+  const init = { method, signal, headers: body ? { ...headers, 'Content-Type': 'application/json' } : headers }
+  if (body) init.body = JSON.stringify(body)
+  const response = await fetchImpl(url, init)
+  if (response.status === 404 && method === 'GET') return null
+  if (!response.ok) {
+    const detail = await response.json().catch(() => ({}))
+    const error = new Error(detail?.error || 'The known sets could not be reached.')
+    error.reference = response.headers.get('x-request-id') || `HTTP-${response.status}`
+    error.status = response.status
+    throw error
+  }
+  return response.json()
+}
+
+// Which pictures of the case are flagged by an active set, with the coverage line; null when the server does not have known sets.
+export const getKnownFlags = ({ caseId, sets, signal, fetchImpl }) => knownSetsRequest('/images/known', { caseId, params: { sets: Array.isArray(sets) ? sets.join(',') : sets }, signal, fetchImpl })
+export const listKnownSets = ({ caseId, includeRetired, signal, fetchImpl }) => knownSetsRequest('/images/known-sets', { caseId, params: { include_retired: includeRetired ? '1' : '' }, signal, fetchImpl })
+export const createKnownSet = ({ caseId, name, kind, description, signal, fetchImpl }) => knownSetsRequest('/images/known-sets', { caseId, method: 'POST', body: { name, kind, description: description || '' }, signal, fetchImpl })
+// csv: a table of hashes as text; evidenceIds: stored pictures of the case whose hashes are copied (the pictures themselves are never stored in a set)
+export const addKnownHashes = ({ caseId, setId, csv, evidenceIds, signal, fetchImpl }) => knownSetsRequest(`/images/known-sets/${encodeURIComponent(setId)}/hashes`, { caseId, method: 'POST', body: { ...(csv ? { csv } : {}), ...(evidenceIds?.length ? { evidence_ids: evidenceIds } : {}) }, signal, fetchImpl })
+export const retireKnownSet = ({ caseId, setId, signal, fetchImpl }) => knownSetsRequest(`/images/known-sets/${encodeURIComponent(setId)}/retire`, { caseId, method: 'POST', signal, fetchImpl })

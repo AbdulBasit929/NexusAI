@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowUpRight, AudioLines, Eye, File, FileSpreadsheet, FileText, Image as ImageIcon, Play, Table2, Video, Volume2 } from 'lucide-react'
+import { ArrowUpRight, AudioLines, Check, Eye, File, FileSpreadsheet, FileText, Flag, Image as ImageIcon, Play, Table2, Video, Volume2 } from 'lucide-react'
 import { LanguageText } from '../../../components/AnalystComponents.jsx'
 import { formatBytes } from '../../../lib/format.js'
 import { relativeAge } from '../../../lib/dashboardCases.js'
@@ -8,6 +8,7 @@ import { curatedFamilyLabel } from '../../../lib/semanticCatalog.js'
 import { Dialog } from '../../ui/Dialog.jsx'
 import { displayName, itemFacts, kindOf, shortId, statusOf, failureReason } from './evidenceModel.js'
 import { cachedPreview, loadPreview } from './previewStore.js'
+import { flagSummary } from './knownSetsModel.js'
 
 export const KIND_ICON = { structured_records: Table2, tabular: FileSpreadsheet, document: FileText, text: FileText, image: ImageIcon, audio: AudioLines, video: Video }
 
@@ -90,15 +91,23 @@ export function StatusMark({ item }) {
   return <span className={`nx-st nx-st--${status.key}`} title={reason || undefined}><i aria-hidden="true" />{status.label}</span>
 }
 
-export function EvidenceCard({ item, caseId, onPeek }) {
+// flags: what the known sets say about this file (knownSetsModel.js); selecting: the page is choosing pictures for a set, and a click on a picture's card chooses it instead of opening it
+export function EvidenceCard({ item, caseId, onPeek, flags, selecting = false, selected = false, onToggle }) {
   const [ref, preview] = usePreview(caseId, item)
   const status = statusOf(item)
   const when = item.created_at ? new Date(item.created_at) : null
   const known = when && !Number.isNaN(when.getTime())
   const name = displayName(item)
+  const summary = flagSummary(flags)
+  const pickable = Boolean(selecting && onToggle && kindOf(item.modality).id === 'image')
+  const pick = pickable ? event => { if (event.target.closest('.nx-evcard__pick, .nx-evcard__peek')) return; event.preventDefault(); onToggle(item.evidence_id) } : undefined
   return (
-    <li className="nx-evcard" data-id={item.evidence_id} data-status={status.key} data-tone={kindOf(item.modality).tone}>
-      <div className="nx-evcard__facewrap" ref={ref}><Face item={item} preview={preview} /></div>
+    <li className="nx-evcard" data-id={item.evidence_id} data-status={status.key} data-tone={kindOf(item.modality).tone} data-flag={summary?.tone} data-picking={pickable || undefined} data-selected={(pickable && selected) || undefined} onClickCapture={pick}>
+      <div className="nx-evcard__facewrap" ref={ref}>
+        <Face item={item} preview={preview} />
+        {summary ? <span className="nx-evcard__flag" data-tone={summary.tone} title={summary.title}><Flag aria-hidden="true" /><span>{summary.label}</span></span> : null}
+        {pickable ? <button type="button" className="nx-evcard__pick" aria-pressed={selected} aria-label={`${selected ? 'Deselect' : 'Select'} ${name}`} onClick={() => onToggle(item.evidence_id)}>{selected ? <Check aria-hidden="true" /> : null}</button> : null}
+      </div>
       <div className="nx-evcard__body">
         <h3 className="nx-evcard__name"><Link className="nx-ev-open nx-evcard__link" to={evidenceHref(caseId, item)} title={name} aria-label={name}><LanguageText>{name}</LanguageText></Link></h3>
         <p className="nx-evcard__meta">

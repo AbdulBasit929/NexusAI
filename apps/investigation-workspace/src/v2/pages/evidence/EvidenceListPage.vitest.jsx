@@ -4,7 +4,14 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
 const listEvidence = vi.fn()
-vi.mock('../../../lib/apiClient.js', () => ({ listEvidence: (...args) => listEvidence(...args), getEvidence: vi.fn(async () => ({})), getEvidenceContent: vi.fn(async () => new Blob()), uploadEvidence: vi.fn() }))
+const getKnownFlags = vi.fn(async () => null) // a server without known sets answers 404, which the client turns into null
+const createKnownSet = vi.fn()
+const addKnownHashes = vi.fn()
+const retireKnownSet = vi.fn()
+vi.mock('../../../lib/apiClient.js', () => ({
+  listEvidence: (...args) => listEvidence(...args), getEvidence: vi.fn(async () => ({})), getEvidenceContent: vi.fn(async () => new Blob()), uploadEvidence: vi.fn(),
+  getKnownFlags: (...args) => getKnownFlags(...args), createKnownSet: (...args) => createKnownSet(...args), addKnownHashes: (...args) => addKnownHashes(...args), retireKnownSet: (...args) => retireKnownSet(...args),
+}))
 vi.mock('../../shell/AppShell.jsx', () => ({ CaseShell: ({ children }) => <div>{children}</div> }))
 vi.mock('./previewStore.js', () => ({
   cachedPreview: () => undefined,
@@ -119,5 +126,110 @@ describe('the evidence list', () => {
     await open()
     expect(await screen.findByRole('heading', { name: 'The evidence list could not be read' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy()
+  })
+})
+
+describe('known sets on the evidence list', () => {
+  const pictures = [
+    { evidence_id: 'dddddddd-4444', original_filename: 'photo-a.jpg', modality: 'image', detected_type: 'image', size_bytes: 52000, created_at: hoursAgo(1), processing_status: 'completed' },
+    { evidence_id: 'eeeeeeee-5555', original_filename: 'logo.png', modality: 'image', detected_type: 'image', size_bytes: 8000, created_at: hoursAgo(2), processing_status: 'completed' },
+    { evidence_id: 'ffffffff-6666', original_filename: 'scene.jpg', modality: 'image', detected_type: 'image', size_bytes: 91000, created_at: hoursAgo(3), processing_status: 'completed' },
+  ]
+  const imageSummary = { evidence_total: 3, completed: 3, failed: 0, processing: 0, queued: 0, total_size_bytes: '151000', modality_counts: { image: 3 } }
+  const flagsResponse = (flags, sets = []) => ({ contract_version: 'forensics.image-known-sets/v1', flags, sets, flagged_pictures: new Set(flags.map(flag => flag.evidence_id)).size, coverage: { statement: 'Checked 3 of 3 images.' } })
+  const watch = { evidence_id: 'dddddddd-4444', set_id: 's1', set_name: 'Case 12 watch', set_kind: 'of_interest', tier: 'identical', distance: 0 }
+  const harmless = { evidence_id: 'eeeeeeee-5555', set_id: 's2', set_name: 'Stock', set_kind: 'known_harmless', tier: 'same_image', distance: 3 }
+  const sets = [{ set_id: 's1', name: 'Case 12 watch', kind: 'of_interest', hashes: 4 }, { set_id: 's2', name: 'Stock', kind: 'known_harmless', hashes: 9 }]
+  const cardTitles = () => screen.getAllByRole('listitem').filter(node => node.className.includes('nx-evcard')).map(node => node.querySelector('.nx-evcard__link').getAttribute('aria-label'))
+
+  beforeEach(() => {
+    localStorage.clear()
+    listEvidence.mockImplementation(async () => ({ items: pictures, summary: imageSummary, pagination: { evidence_total: 3, returned: 3, has_next: false, has_previous: false } }))
+    getKnownFlags.mockImplementation(async () => null)
+  })
+  afterEach(() => { vi.clearAllMocks() })
+
+  it('leaves the feature out when the server has no known sets', async () => {
+    await open()
+    await screen.findByRole('link', { name: 'photo-a.jpg' })
+    expect(screen.queryByRole('button', { name: /Known sets/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Select' })).toBeNull()
+  })
+
+  it('shows the set on a flagged card, and hides pictures that only a known-harmless set flags when asked, never one on a watch list', async () => {
+    getKnownFlags.mockImplementation(async () => flagsResponse([watch, harmless], sets))
+    await open()
+    expect(await screen.findByText('Case 12 watch', { selector: '.nx-evcard__flag span' })).toBeTruthy()
+    expect(screen.getByText('Stock', { selector: '.nx-evcard__flag span' })).toBeTruthy()
+    expect(cardTitles()).toEqual(['photo-a.jpg', 'logo.png', 'scene.jpg'])
+    await userEvent.click(screen.getByRole('button', { name: /Hide known harmless/ }))
+    expect(cardTitles()).toEqual(['photo-a.jpg', 'scene.jpg'])
+    expect(screen.getByText(/picture is hidden because a known-harmless set flags it/)).toBeTruthy()
+    await userEvent.click(screen.getByRole('button', { name: 'Show it' }))
+    expect(cardTitles()).toEqual(['photo-a.jpg', 'logo.png', 'scene.jpg'])
+  })
+
+  it('brings the flagged pictures to the front with one chip, counted for the page, and back again', async () => {
+    getKnownFlags.mockImplementation(async () => flagsResponse([watch, harmless], sets))
+    await open()
+    await screen.findByRole('link', { name: 'photo-a.jpg' })
+    expect(cardTitles()).toEqual(['photo-a.jpg', 'logo.png', 'scene.jpg'])
+    const chip = screen.getByRole('button', { name: /^Flagged/ })
+    expect(chip).toHaveTextContent('2')
+    await userEvent.click(chip)
+    expect(cardTitles()).toEqual(['photo-a.jpg', 'logo.png'])
+    expect(screen.getByRole('button', { name: /^Flagged/ })).toHaveAttribute('aria-pressed', 'true')
+    await userEvent.click(screen.getByRole('button', { name: /^Flagged/ }))
+    expect(cardTitles()).toEqual(['photo-a.jpg', 'logo.png', 'scene.jpg'])
+  })
+
+  it('picks pictures on their cards without opening them, and makes a set from them in the panel', async () => {
+    getKnownFlags.mockImplementation(async () => flagsResponse([], []))
+    createKnownSet.mockResolvedValue({ set: { set_id: 'new-set', name: 'Banners', kind: 'known_harmless' } })
+    addKnownHashes.mockResolvedValue({ added: 2, already_in_set: 0, rejected_count: 0 })
+    await open()
+    await screen.findByRole('link', { name: 'photo-a.jpg' })
+    await userEvent.click(screen.getByRole('button', { name: 'Select' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Select photo-a.jpg' }))
+    await userEvent.click(screen.getByRole('link', { name: 'logo.png' })) // a click on a card while picking picks it; it does not navigate
+    expect(screen.queryByText('the file')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Deselect logo.png' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByText('2 selected')).toBeTruthy()
+    await userEvent.click(screen.getByRole('button', { name: 'Add to a set…' }))
+    const panel = await screen.findByRole('dialog', { name: 'Known sets' })
+    await userEvent.type(within(panel).getByLabelText('Name'), 'Banners')
+    await userEvent.selectOptions(within(panel).getByLabelText(/^Kind/), 'known_harmless')
+    await userEvent.click(within(panel).getByRole('button', { name: 'Create and add 2 selected' }))
+    await waitFor(() => expect(addKnownHashes).toHaveBeenCalledTimes(1))
+    expect(createKnownSet).toHaveBeenCalledWith(expect.objectContaining({ caseId: 'orion', name: 'Banners', kind: 'known_harmless' }))
+    expect(addKnownHashes).toHaveBeenCalledWith(expect.objectContaining({ setId: 'new-set', evidenceIds: ['dddddddd-4444', 'eeeeeeee-5555'] }))
+    expect(await within(panel).findByText('Set "Banners" created. 2 hashes added.')).toBeTruthy()
+    expect(getKnownFlags.mock.calls.length).toBeGreaterThan(1) // the flags are read again after the change
+  })
+
+  it('imports a table into a chosen set and says which rows could not be used', async () => {
+    getKnownFlags.mockImplementation(async () => flagsResponse([], sets))
+    addKnownHashes.mockResolvedValue({ added: 1, already_in_set: 0, rejected_count: 1, rejected: [{ line: 3, reason: 'x' }] })
+    await open()
+    await userEvent.click(await screen.findByRole('button', { name: /Known sets/ }))
+    const panel = await screen.findByRole('dialog', { name: 'Known sets' })
+    expect(within(panel).getByText('Watch list')).toBeTruthy()
+    expect(within(panel).getByText('4 hashes')).toBeTruthy()
+    fireEvent.change(within(panel).getByPlaceholderText('sha256,pdq256,label'), { target: { value: 'sha256,label\nabc,x' } })
+    await userEvent.click(within(panel).getByRole('button', { name: 'Import the table' }))
+    await waitFor(() => expect(addKnownHashes).toHaveBeenCalledWith(expect.objectContaining({ setId: 's1', csv: 'sha256,label\nabc,x' })))
+    expect(await within(panel).findByText('1 hash added, 1 row could not be used.')).toBeTruthy()
+  })
+
+  it('retires a set only after a second, explicit click', async () => {
+    getKnownFlags.mockImplementation(async () => flagsResponse([], sets))
+    retireKnownSet.mockResolvedValue({ retired: true })
+    await open()
+    await userEvent.click(await screen.findByRole('button', { name: /Known sets/ }))
+    const panel = await screen.findByRole('dialog', { name: 'Known sets' })
+    await userEvent.click(within(panel).getByRole('button', { name: 'Retire Case 12 watch' }))
+    expect(retireKnownSet).not.toHaveBeenCalled()
+    await userEvent.click(within(panel).getByRole('button', { name: 'Retire it' }))
+    await waitFor(() => expect(retireKnownSet).toHaveBeenCalledWith(expect.objectContaining({ setId: 's1' })))
   })
 })

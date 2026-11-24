@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
-import { AlertTriangle, ChevronRight, LayoutGrid, Plus, RefreshCw, Rows2, Rows3, Search, SearchX, Table2, X } from 'lucide-react'
+import { AlertTriangle, ChevronRight, Flag, LayoutGrid, Plus, RefreshCw, Rows2, Rows3, Search, SearchX, Table2, X } from 'lucide-react'
 import { AddDataDropzone } from '../../../components/AddDataDropzone.jsx'
 import { LanguageText } from '../../../components/AnalystComponents.jsx'
 import { evidenceFamilies } from '../../../components/ScopeChips.jsx'
@@ -11,6 +11,8 @@ import { CaseShell } from '../../shell/AppShell.jsx'
 import { Dialog } from '../../ui/Dialog.jsx'
 import { EvidenceCard, evidenceHref, KIND_ICON, QuickLook, StatusMark, typeLabel } from './EvidenceCard.jsx'
 import { composition, displayName, groupByDay, itemFacts, kindFromLegacyFamily, kindOf, shortId, statusCounts, statusOf } from './evidenceModel.js'
+import { KnownSetsPanel, useKnownFlags } from './KnownSets.jsx'
+import { applyHide, flagSummary, harmlessCount, onlyFlagged, toggled } from './knownSetsModel.js'
 
 const PAGE_SIZE = 48
 const RECORD_TYPES = evidenceFamilies.filter(family => family.recordType)
@@ -18,6 +20,7 @@ const STATUS_FILTERS = [['all', 'All'], ['completed', 'Ready'], ['processing', '
 const STATUS_KEY = { all: 'all', completed: 'ready', processing: 'processing', failed: 'failed' }
 const KIND_IDS = ['structured_records', 'image', 'audio', 'video', 'document', 'text', 'tabular']
 const SIZES = [['s', 'Small cards'], ['m', 'Medium cards'], ['l', 'Large cards']]
+const NO_FLAGS = new Map()
 
 const oneOf = (value, allowed, fallback) => (allowed.includes(value) ? value : fallback)
 const offsetOf = value => { const n = Number(value); return Number.isInteger(n) && n >= 0 ? n : 0 }
@@ -57,7 +60,8 @@ function Composition({ parts, total, kind, onKind }) {
   )
 }
 
-function Row({ item, caseId, onOpen, width }) {
+function Row({ item, caseId, onOpen, width, flags }) {
+  const summary = flagSummary(flags)
   const href = evidenceHref(caseId, item)
   const facts = itemFacts(item)
   const when = item.created_at ? new Date(item.created_at) : null
@@ -71,6 +75,7 @@ function Row({ item, caseId, onOpen, width }) {
           <span className="nx-evrow__text">
             <Link className="nx-ev-open" to={href} aria-label={displayName(item)}><LanguageText>{displayName(item)}</LanguageText></Link>
             <small className="nx-mono" dir="ltr" title={item.evidence_id}>{shortId(item.evidence_id)}{item.extension ? ` · ${String(item.extension).toLowerCase()}` : ''}</small>
+            {summary ? <span className="nx-evrow__flag" data-tone={summary.tone} title={summary.title}><Flag aria-hidden="true" />{summary.label}</span> : null}
           </span>
         </div>
       </th>
@@ -135,6 +140,12 @@ export default function EvidenceListPage() {
   const [peek, setPeek] = useState(null)
   const [list, setList] = useState({ loading: true })
   const [inventory, setInventory] = useState(null)
+  const [known, refreshKnown] = useKnownFlags(caseId, tick)
+  const [selecting, setSelecting] = useState(false)
+  const [selected, setSelected] = useState(() => new Set())
+  const [hideHarmless, setHideHarmless] = useState(() => remembered('nexusai.evidence.hide-known', ['yes', 'no'], 'no') === 'yes')
+  const [setsOpen, setSetsOpen] = useState(false)
+  const [flaggedOnly, setFlaggedOnly] = useState(false)
   const addButton = useRef(null)
   const peekReturn = useRef(null)
   const tbody = useRef(null)
@@ -194,7 +205,13 @@ export default function EvidenceListPage() {
   const last = offset + items.length
   const counts = statusCounts(inventory)
   const parts = useMemo(() => composition(inventory?.modality_counts), [inventory])
-  const groups = useMemo(() => groupByDay(items), [items])
+  const byEvidence = known.byEvidence || NO_FLAGS
+  const { visible: afterHide, hidden } = useMemo(() => applyHide(items, byEvidence, hideHarmless && known.status === 'ready'), [items, byEvidence, hideHarmless, known.status])
+  const flaggedHere = useMemo(() => onlyFlagged(items, byEvidence).length, [items, byEvidence])
+  const visible = useMemo(() => (flaggedOnly && known.status === 'ready' ? onlyFlagged(afterHide, byEvidence) : afterHide), [afterHide, byEvidence, flaggedOnly, known.status])
+  const harmless = useMemo(() => harmlessCount(items, byEvidence), [items, byEvidence])
+  const toggle = useCallback(id => setSelected(current => toggled(current, id)), [])
+  const groups = useMemo(() => groupByDay(visible), [visible])
   const filtered = Boolean(kind || recordType || status !== 'all' || query)
   const showTypes = !kind || kind === 'structured_records'
 
@@ -263,8 +280,16 @@ export default function EvidenceListPage() {
               </select>
             </label>
           ) : null}
+          {known.status === 'ready' ? (
+            <div className="nx-evbar__known" role="group" aria-label="Known sets">
+              <button type="button" className="nx-btn nx-btn--sm" onClick={() => setSetsOpen(true)}><Flag aria-hidden="true" />Known sets{known.data.flagged_pictures ? <span className="nx-chip__count nx-tabular">{formatNumber(known.data.flagged_pictures)}</span> : null}</button>
+              {view === 'grid' ? <button type="button" className="nx-btn nx-btn--sm" aria-pressed={selecting} onClick={() => { setSelecting(value => !value); setSelected(new Set()) }}>Select</button> : null}
+              {flaggedHere || flaggedOnly ? <button type="button" className="nx-chip" aria-pressed={flaggedOnly} title="Show only the pictures of this page that a known set flags" onClick={() => setFlaggedOnly(value => !value)}>Flagged<span className="nx-chip__count nx-tabular">{formatNumber(flaggedHere)}</span></button> : null}
+              {harmless || hideHarmless ? <button type="button" className="nx-chip" aria-pressed={hideHarmless} onClick={() => { const next = !hideHarmless; setHideHarmless(next); remember('nexusai.evidence.hide-known', next ? 'yes' : 'no') }}>Hide known harmless<span className="nx-chip__count nx-tabular">{formatNumber(harmless)}</span></button> : null}
+            </div>
+          ) : null}
           <span className="nx-evbar__space" />
-          {filtered ? <button type="button" className="nx-btn nx-btn--ghost nx-btn--sm" onClick={clear}><X aria-hidden="true" />Clear</button> : null}
+          {filtered ?<button type="button" className="nx-btn nx-btn--ghost nx-btn--sm" onClick={clear}><X aria-hidden="true" />Clear</button> : null}
           {view === 'grid' ? (
             <div className="nx-segmented nx-evbar__size" role="group" aria-label="Card size">
               {SIZES.map(([id, label]) => <button key={id} type="button" aria-pressed={cardSize === id} aria-label={label} title={label} onClick={() => { setCardSize(id); remember('nexusai.evidence.cards', id) }}><span className={`nx-evbar__sz nx-evbar__sz--${id}`} aria-hidden="true" /></button>)}
@@ -280,6 +305,8 @@ export default function EvidenceListPage() {
             <button type="button" aria-pressed={view === 'list'} onClick={() => { setView('list'); remember('nexusai.evidence.view', 'list') }}><Table2 aria-hidden="true" />List</button>
           </div>
         </div>
+
+        {hidden.length ? <p className="nx-ks__hidden" role="status"><b className="nx-tabular">{formatNumber(hidden.length)}</b> {hidden.length === 1 ? 'picture is' : 'pictures are'} hidden because a known-harmless set flags {hidden.length === 1 ? 'it' : 'them'}. <button type="button" className="nx-btn nx-btn--ghost nx-btn--sm" onClick={() => { setHideHarmless(false); remember('nexusai.evidence.hide-known', 'no') }}>Show {hidden.length === 1 ? 'it' : 'them'}</button></p> : null}
 
         {list.loading && !items.length ? <Skeleton view={view} /> : null}
         {list.error && !items.length ? (
@@ -297,7 +324,7 @@ export default function EvidenceListPage() {
               <div key={group.key || 'unknown'} className="nx-evgroup">
                 <h2 className="nx-evgroup__head"><span>{group.label}</span><b className="nx-tabular">{formatNumber(group.items.length)}</b></h2>
                 <ul className="nx-evgrid" role="list">
-                  {group.items.map(item => <EvidenceCard key={item.evidence_id} item={item} caseId={caseId} onPeek={openPeek} />)}
+                  {group.items.map(item => <EvidenceCard key={item.evidence_id} item={item} caseId={caseId} onPeek={openPeek} flags={byEvidence.get(item.evidence_id)} selecting={selecting} selected={selected.has(item.evidence_id)} onToggle={toggle} />)}
                 </ul>
               </div>
             ))}
@@ -317,7 +344,7 @@ export default function EvidenceListPage() {
                   {groups.map(group => (
                     <Fragment key={group.key || 'unknown'}>
                       <tr className="nx-evday"><th scope="rowgroup" colSpan={tableWidth === 'wide' ? 7 : tableWidth === 'medium' ? 5 : 3}><span>{group.label}</span><b className="nx-tabular">{formatNumber(group.items.length)}</b></th></tr>
-                      {group.items.map(item => <Row key={item.evidence_id} item={item} caseId={caseId} onOpen={open} width={tableWidth} />)}
+                      {group.items.map(item => <Row key={item.evidence_id} item={item} caseId={caseId} onOpen={open} width={tableWidth} flags={byEvidence.get(item.evidence_id)} />)}
                     </Fragment>
                   ))}
                 </tbody>
@@ -337,6 +364,14 @@ export default function EvidenceListPage() {
         ) : null}
       </main>
 
+      {selecting && selected.size ? (
+        <div className="nx-ksbar" role="region" aria-label="Selected pictures">
+          <b className="nx-tabular">{formatNumber(selected.size)} selected</b>
+          <button type="button" className="nx-btn nx-btn--primary nx-btn--sm" onClick={() => setSetsOpen(true)}>Add to a set…</button>
+          <button type="button" className="nx-btn nx-btn--ghost nx-btn--sm" onClick={() => setSelected(new Set())}>Clear</button>
+        </div>
+      ) : null}
+      {setsOpen && known.status === 'ready' ? <KnownSetsPanel caseId={caseId} sets={known.data.sets || []} selected={selected} onChanged={refreshKnown} onClose={() => { setSetsOpen(false); setSelected(new Set()); setSelecting(false) }} /> : null}
       {adding ? <Dialog title="Add evidence" wide onClose={closeAdding}><AddDataDropzone bare caseId={caseId} onAccepted={() => { setOffset(0); setTick(value => value + 1) }} /></Dialog> : null}
       {peek ? <QuickLook item={peek} caseId={caseId} onClose={closePeek} /> : null}
     </CaseShell>
