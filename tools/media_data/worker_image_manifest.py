@@ -72,7 +72,9 @@ def cmd_compare(container: str) -> None:
 def cmd_manifest(container: str, out: str) -> None:
     with tempfile.TemporaryDirectory() as tmp:
         live = files_of(copy_app(container, pathlib.Path(tmp)))
-    manifest = {"container": container, "image": image_of(container), "files": {n: {"sha256": hashlib.sha256(d).hexdigest(), "bytes": len(d)} for n, d in live.items()}}
+    # sha256 is of the bytes as stored; sha256_lf is of the same text with Windows line endings turned into Unix ones, because the live files came from a Windows checkout and a rebuild from `git archive` has Unix endings
+    manifest = {"container": container, "image": image_of(container),
+                "files": {n: {"sha256": hashlib.sha256(d).hexdigest(), "sha256_lf": hashlib.sha256(lf(d)).hexdigest(), "bytes": len(d)} for n, d in live.items()}}
     pathlib.Path(out).write_text(json.dumps(manifest, indent=1, sort_keys=True) + "\n", encoding="utf-8")
     print(f"wrote {out}: {len(live)} files")
 
@@ -83,8 +85,10 @@ def cmd_check(container: str, manifest_path: str) -> None:
         live = files_of(copy_app(container, pathlib.Path(tmp)))
     bad = 0
     for name in sorted(set(expected) | set(live)):
-        have = hashlib.sha256(live[name]).hexdigest() if name in live else None
-        want = expected.get(name, {}).get("sha256")
+        # compare with line endings normalised when the manifest has that hash (a rebuilt image has Unix endings, the live one often Windows ones)
+        use_lf = "sha256_lf" in expected.get(name, {})
+        have = hashlib.sha256(lf(live[name]) if use_lf else live[name]).hexdigest() if name in live else None
+        want = expected.get(name, {}).get("sha256_lf" if use_lf else "sha256")
         if have != want:
             bad += 1
             print(f"  {'missing' if have is None else 'extra' if want is None else 'DIFFERS'}: {name}")

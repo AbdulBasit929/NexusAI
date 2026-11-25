@@ -1,6 +1,6 @@
 # MF-0, part 1: rehearsal of a worker rebuild from the repository (2026-11-25)
 
-Programme: `docs/roadmap/master-roadmap-20261124/03_media_first_programme.md`, step MF-0. Background: `docs/roadmap/worker-image-reproduction-20261124.md` (the live worker is the end of a chain of overlays; a worker built from HEAD would not equal it). **Nothing here has been built, downloaded, deployed or changed. This note is the plan and the drafts; the rehearsal waits for the owner's word because it downloads packages.**
+Programme: `docs/roadmap/master-roadmap-20261124/03_media_first_programme.md`, step MF-0. Background: `docs/roadmap/worker-image-reproduction-20261124.md` (the live worker is the end of a chain of overlays; a worker built from HEAD would not equal it). **Status 2026-11-25: the rehearsal was run on the owner's word ("Yes, run it"); the results are in section 7. Nothing was deployed or changed: the rebuilt image is a new tag (`rebuild-rehearsal-20261125`), the live worker was not touched.** Sections 1 to 6 are the plan as written before the run.
 
 ## 1. What the live worker really contains (read-only, 2026-11-25)
 
@@ -68,3 +68,22 @@ The base image `python:3.11-slim` (189 MB) is already on this machine. The build
 ## 6. Still to do in MF-0 (not started)
 
 The one reading contract (tier, model, version, input hash, measured error, candidate label, shown the same way in every viewer and every Ask answer) and the moments view over the typed views. Both are software work with no heavy job and no download; they come after this rehearsal has a yes or a no.
+
+## 7. Results (run 2026-11-25, 04:49 to 05:01 UTC; the build took 12.7 minutes)
+
+Run from a clean `git archive HEAD` (commit `5eb0e37`, 184 files) with `Dockerfile.rebuild` into the new tag `nexusai-forensic-records-worker:rebuild-rehearsal-20261125` (image `d3ae3045581a`). The lowest memory available inside the Docker VM during the build was 2,401 MB (a watchdog would have stopped the build below 450 MB; it did not need to). The build downloaded the Debian packages and the 57 wheels; the rebuilt image was also started once with `--network none` for the import test.
+
+| # | Condition | Result |
+|---|---|---|
+| P1 | `pip freeze` of the rebuilt image equals the live list | **MET**: 57 of 57 packages and versions identical, none missing, none extra |
+| P2 | the import smoke test prints `ok` with no network | **MET** (`worker`, `media_pipeline`, `image_search`, `ocr_router`, `speech_routes`, `plate_processor_nexus`) |
+| P3 | the files that differ from the live manifest are exactly the documented ones | **NOT MET as written, by one file.** With line endings normalised, 23 of 32 live files are identical to the rebuilt ones; 8 differ in content: the 7 documented (`media_pipeline.py`, `worker.py`, `typed_ingest.py`, `roman_urdu.py`, `image_region.py`, `image_search.py`, `image_search_service.py`) **and `forensic-platform-v1.json`, which the plan did not list**: HEAD's contract catalogue is newer than the one baked into the live worker (catalog_version `2026-08-28.nxb1.1` against `2026-08-23.post-bfa-source.1`; HEAD adds `financial.transaction_summary`, `access.failed_events` and changes the image operations list and an implementation status). Also as documented: `requirements.txt` exists only in the live image (the rebuild installs from the lock instead), and six files exist only in the rebuild (`plate_reader.py`, `processor_readiness.py`, `reference_loader.py`, `video_anpr_product_v21.py`, `video_anpr_product_v22.py`, `requirements.lock`). Compared with HEAD itself the rebuilt `/app` is identical (35 files, line endings ignored; the 2 extras are the contract and the lock) |
+| P4 | the image size is within 10% of the live worker's | **MET**: 3,678,690,393 bytes against 3,683,749,875 (-0.14%) |
+
+**Reading.** The repository can now rebuild a worker with exactly the same packages as the live one and a clean, complete set of the current modules, in about 13 minutes with the downloads. It does not yet equal the live worker, for two reasons that were known (seven modules differ in both directions, listed above) and one that is new (the contract catalogue). Whether HEAD's seven modules are safe against the live database is still the separate rehearsal named in section 3; this result does not change that.
+
+**Findings that changed tools or notes:**
+* The raw-byte `check` of `tools/media_data/worker_image_manifest.py` reported 33 differing files, almost all because the live files carry Windows line endings and a `git archive` has Unix ones. The manifest now also stores `sha256_lf` (the hash after line endings are normalised) and `check` compares that when it is present; the live manifest was regenerated from the same live image (`40f9bbfbd3cd`; every raw hash is unchanged, only the new field was added). The check on the rebuilt image now lists exactly the 8 content differences, the 6 extras and `requirements.txt` as missing, nothing else.
+* `Dockerfile.rebuild` has no `requirements.txt` (not needed) and runs as `USER nobody`; pip prints a harmless warning about its cache directory at that user.
+
+The rebuilt image stays on this machine as a reference (`docker rmi nexusai-forensic-records-worker:rebuild-rehearsal-20261125` removes it; it shares layers with nothing live). To move to a rebuilt worker, the owner's word is needed after the full rehearsal of HEAD's modules against the live schema.
