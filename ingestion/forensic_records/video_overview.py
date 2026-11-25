@@ -225,25 +225,48 @@ def _tesseract_digits(image: np.ndarray) -> str:
     return done.stdout.decode("utf-8", "replace").strip()
 
 
-def read_clock_frame(frame_bgr: np.ndarray, box: tuple[int, int, int, int]) -> dict[str, Any]:
-    """One frame, the clock's box (x, y, width, height; the camera configuration an analyst sets once): the crop is enlarged and read as dark-on-light and as light-on-dark; the first reading that is a valid
-    time wins. Returns the text read and the time in seconds, or None for both when nothing valid was read."""
+def _clock_candidates(gray: np.ndarray) -> list[np.ndarray]:
+    """Preparations of an enlarged clock crop, each black text on white: the text isolated by a fixed bright threshold (white stamps), by a percentile of the crop (light grey stamps, any brightness), by a dark
+    percentile (dark stamps), and by Otsu in both polarities. The order is the order of preference when readings tie."""
     import cv2
+
+    big = cv2.resize(gray, None, fx=4, fy=4, interpolation=cv2.INTER_CUBIC)
+    out: list[np.ndarray] = []
+    for thr in (200, 225):
+        out.append(np.where(big >= thr, 0, 255).astype(np.uint8))
+    for p in (94, 97):
+        out.append(np.where(big >= np.percentile(big, p), 0, 255).astype(np.uint8))
+    for p in (6, 3):
+        out.append(np.where(big <= np.percentile(big, p), 0, 255).astype(np.uint8))
+    _, otsu = cv2.threshold(big, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    out += [otsu, 255 - otsu]
+    return out
+
+
+def read_clock_frame(frame_bgr: np.ndarray, box: tuple[int, int, int, int]) -> dict[str, Any]:
+    """One frame, the clock's box (x, y, width, height; the camera configuration an analyst sets once). The crop is enlarged and prepared several ways (see _clock_candidates); each preparation is read as digits
+    and the time most of them agree on wins (ties go to the earlier preparation). Returns the text, the time in seconds and the number of agreeing readings; None when no preparation gave a valid time."""
+    import cv2
+    from collections import Counter
 
     x, y, w, h = box
     crop = frame_bgr[max(0, y):y + h, max(0, x):x + w]
     if crop.size == 0:
-        return {"text": "", "seconds": None}
+        return {"text": "", "seconds": None, "votes": 0}
     gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-    big = cv2.resize(gray, None, fx=4, fy=4, interpolation=cv2.INTER_CUBIC)
-    _, otsu = cv2.threshold(big, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    for image in (otsu, 255 - otsu, big, 255 - big):
-        padded = cv2.copyMakeBorder(image, 12, 12, 12, 12, cv2.BORDER_CONSTANT, value=int(255 if image.mean() > 127 else 0))
+    readings: list[tuple[int, str]] = []
+    for image in _clock_candidates(gray):
+        padded = cv2.copyMakeBorder(image, 14, 14, 14, 14, cv2.BORDER_CONSTANT, value=255)
         text = _tesseract_digits(padded)
         seconds = parse_clock_text(text)
         if seconds is not None:
-            return {"text": text, "seconds": seconds}
-    return {"text": "", "seconds": None}
+            readings.append((seconds, text))
+    if not readings:
+        return {"text": "", "seconds": None, "votes": 0}
+    counts = Counter(sec for sec, _ in readings)
+    best = max(counts.values())
+    winner = next(sec for sec, _ in readings if counts[sec] == best)
+    return {"text": next(t for sec, t in readings if sec == winner), "seconds": winner, "votes": best}
 
 
 def read_clock_samples(path: str | Path, box: tuple[int, int, int, int], every_seconds: float = 60.0, start_seconds: float = 0.0, end_seconds: float | None = None) -> list[dict[str, Any]]:
