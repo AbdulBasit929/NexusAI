@@ -60,6 +60,13 @@ L1 to L3 decide how much of a long video is read at all; L4 to L7 decide how man
 
 Research marks, as for every media step: primary sources for each of these (plate detectors for small objects, SAHI-style sliced inference, ByteTrack-style association of boxes, multi-frame plate reading, licence of every model) before any model is chosen; a licence that is not clear is a ledger row, not a download.
 
+### 4a. Research marks so far (2026-11-25; from search results, the papers were not read in full and their numbers are theirs, not ours)
+
+* **Sliced inference (SAHI)**, Akyon et al., [arXiv 2202.06934](https://arxiv.org/abs/2202.06934): overlapping slices, each run through the detector and merged, no retraining; the price is many more forward passes, which is why C1 needs a gate (C3) and why a cheap detector on slices with the accurate one only on candidates (C2) is the shape to test. The cascade for plates specifically was not found in a source; it is our design to measure.
+* **Multi-frame plate reading**, MF-LPR^2, [arXiv 2508.14797](https://arxiv.org/abs/2508.14797): aligns neighbouring frames with optical flow and refines the flow; the authors report 86.44% on their own real-world set against 14.04% for the best single-frame reader. **UFPR-SR-Plates**, [arXiv 2505.06393](https://arxiv.org/abs/2505.06393): 10,000 tracks of low-resolution plate frames with high-resolution pairs; fusing five frames raised recognition from 29.9% to 42.3%. Both say that blurred, small plates are recovered by combining frames, not by a better single-frame reader.
+* **Governance question this raises (the owner's to decide, not assumed):** a fused or super-resolved crop contains pixels that no frame contained. A reading taken from one would break the rule kept since V2 ("the selected string is one actually read on a frame"). If used at all it would be stored as a separate, explicitly labelled lead (tier LEAD in the reading contract of MF-0, the enhanced crop kept next to the original frames), never as a confirmed reading. C7 is therefore limited to choosing the best of several real crops until the owner decides.
+* Licences of any model taken from these papers are not read yet; a licence that is unclear becomes a ledger row, not a download.
+
 ## 5. What this cannot show (stated in advance)
 
 The census is the plates a person can read in five clips by one reader and is a lower bound; synthetic plates are easier than real ones in ways the generator does not draw (dirt, damage, lighting on the metal); the clips are daytime motorway and one night street; faces are not touched; real CCTV from the owner's own sites is not available here; figures are on this laptop's CPU. Speed claims are for 4 threads in a memory-capped container.

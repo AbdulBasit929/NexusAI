@@ -15,6 +15,7 @@ import resource
 import sys
 import time
 import uuid
+from dataclasses import asdict
 from pathlib import Path
 
 os.environ.setdefault("FORENSIC_ANPR_ONNX_PROVIDERS", "CPUExecutionProvider")
@@ -82,7 +83,7 @@ def run_v4(processor, path, max_seconds, crops_dir, name):
             if crop.size:
                 cv2.imwrite(f"{crops_dir}/{name}-g{i:02d}.png", cv2.resize(crop, None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC))
     capture.release()
-    return {"groups": groups, "frames": run.coverage.frames_decoded, "frames_refined": run.frames_refined, "observations": len(run.observations)}
+    return {"groups": groups, "frames": run.coverage.frames_decoded, "frames_refined": run.frames_refined, "observations": len(run.observations), "coverage": asdict(run.coverage)}
 
 
 def main():
