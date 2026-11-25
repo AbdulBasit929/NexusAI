@@ -10,7 +10,9 @@ weighted support; (4) the same contracts and flags as V3 (`persistent_tracking: 
 
 from __future__ import annotations
 
+import dataclasses
 import hashlib
+import math
 import os
 import time
 import uuid
@@ -36,9 +38,10 @@ except ModuleNotFoundError:  # pragma: no cover - direct worker image execution
     from video_anpr_product_v2 import ProductAggregationPolicy, aggregate_product_observations
 
 ADAPTER_ID = "NX-MMR-VIDEO-ANPR-NEXUS-V4"
-ADAPTER_VERSION = "4.0.0-development"
+ADAPTER_VERSION = "4.1.0-development"
 POLICY_REVISION = "observed-support-quality-sharpness-v4"
 FRAME_POLICY_ID = "base-cadence-with-refinement-v4"
+PROGRESSIVE_FRAME_POLICY_ID = "progressive-whole-video-with-refinement-v4.1"
 SHARPNESS_REFERENCE_HEIGHT = 32          # crops are brought to this height before the Laplacian so that sharpness does not depend on size
 SHARPNESS_HALF_POINT = 100.0             # Laplacian variance at which the sharpness score is 0.5
 QUALITY_SIZE_SHARE = 0.5                 # quality = share * size score + (1 - share) * sharpness score
@@ -53,6 +56,39 @@ DEFAULT_POLICY = ProductAggregationPolicy(
     minimum_weighted_support=0.6,       # was 1.0: the weights are a product of factors, so a triple of moderately confident reads (about 0.2 each) was dropped that V3's weights would have kept
     maximum_active_groups=1024,         # was 128 (the V2 default): in a long or noisy clip (night glare: 416 reads, 279 distinct strings in 37 s) junk clusters filled the cap and later real plates were dropped
 )
+
+
+def progressive_schedule(duration_seconds: float, source_fps: float, base_fps: float, maximum_frames: int, allowed_intervals: Sequence[TimeInterval] | None = None,
+                         levels: Sequence[int] | None = None) -> tuple[float, ...]:
+    """The order in which frames are read: a coarse pass over the WHOLE video first (every 8th base frame, 0.5 per second at the default cadence), then the frames in between, finer and finer, ending
+    at the base cadence. The older schedule read the base cadence from the start and stopped at `maximum_frames` or at the time budget, so a long video was read densely for its first minutes and
+    not at all after that; this one leaves the whole video sampled, sparsely, whenever it has to stop. The result is in reading order, each frame once, and has at most `maximum_frames` frames. The
+    coarsest step doubles until the coarse pass alone fits in `maximum_frames`, so the cut never falls inside it: it thins a finer level, never the coverage of the video."""
+    if duration_seconds <= 0 or source_fps <= 0:
+        return ()
+    fine = max(1, round(source_fps / base_fps))
+    total = max(1, math.ceil(duration_seconds * source_fps))
+    if levels is None:
+        top = 8
+        while math.ceil(total / (fine * top)) > maximum_frames:
+            top *= 2
+        levels = []
+        step = top
+        while step >= 1:
+            levels.append(step)
+            step //= 2
+    seen: set[int] = set()
+    order: list[float] = []
+    for multiple in levels:
+        for number in range(0, total, fine * multiple):
+            if number in seen:
+                continue
+            timestamp = number / source_fps
+            if timestamp >= duration_seconds or (allowed_intervals is not None and not any(i.contains(timestamp) for i in allowed_intervals)):
+                continue
+            seen.add(number)
+            order.append(timestamp)
+    return tuple(order[:maximum_frames])
 
 
 def default_engine_processor(minimum_confidence: float | None = None) -> Any | None:
@@ -193,9 +229,10 @@ class VideoANPRNexusV4Processor:
     processor_revision = ADAPTER_VERSION
 
     def __init__(self, image_processor: Any, cv2_module: Any, *, extra_processors: Sequence[Any] = (), engine_every: Sequence[int] = (), base_fps: float = 4.0, refinement: bool = True, sharpness_weight: bool = True,
-                 policy: ProductAggregationPolicy = DEFAULT_POLICY, maximum_frames: int = 1200, maximum_duration_seconds: float = 900.0,
+                 policy: ProductAggregationPolicy = DEFAULT_POLICY, maximum_frames: int = 6000, maximum_duration_seconds: float = 14400.0,
                  refinement_window_seconds: float = 0.5, refinement_cadence_fps: float = 8.0, maximum_refinement_per_trigger: int = 9,
-                 refinement_mode: str = "per_group", refinement_per_group: int = 3, refinement_budget_ratio: float = 0.5, refinement_pad_seconds: float = 0.25, merge_gap_seconds: float = 1.5, maximum_wall_seconds: float = 540.0) -> None:
+                 refinement_mode: str = "per_group", refinement_per_group: int = 3, refinement_budget_ratio: float = 0.5, refinement_pad_seconds: float = 0.25, merge_gap_seconds: float = 1.5, maximum_wall_seconds: float = 540.0,
+                 progressive: bool = True, sparse_support: int = 2, sparse_fps_below: float = 2.0) -> None:
         self.image_processor = image_processor
         # Every sampled frame is read by each of these engines; the reads of all of them go into one grouping (an ensemble of independent readers). The first one is the primary engine.
         self.processors = (image_processor, *extra_processors)
@@ -221,6 +258,11 @@ class VideoANPRNexusV4Processor:
         self.merge_gap_seconds = merge_gap_seconds
         # A job has a lease (FORENSIC_WORKER_LEASE_SECONDS, 600 by default): a long video must not run past it. When the budget is spent the run stops, keeps what it read and says so in its coverage receipt.
         self.maximum_wall_seconds = maximum_wall_seconds
+        # progressive: read the whole video coarse to fine (see progressive_schedule). sparse_support: when the frames actually read give fewer than `sparse_fps_below` frames per second of video, a plate
+        # needs this many reads (not the policy's 3) to become a group, because a plate that is in view for two seconds is read once or twice at that rate; the groups say so in their payload.
+        self.progressive = progressive
+        self.sparse_support = sparse_support
+        self.sparse_fps_below = sparse_fps_below
 
     @classmethod
     def from_environment(cls) -> "VideoANPRNexusV4Processor":
@@ -236,15 +278,18 @@ class VideoANPRNexusV4Processor:
             if second is not None:
                 extra.append(second)
         primary = NexusPlateImageProcessor.from_environment(minimum_confidence=float(os.getenv("FORENSIC_VIDEO_ANPR_V4_DETECTION_CONFIDENCE", "0.5")))
-        with_high_resolution(primary, tile_side=1280, wide_px=int(os.getenv("FORENSIC_VIDEO_ANPR_V4_TILE_MIN_PX", "2200")), tile_every=max(1, int(os.getenv("FORENSIC_VIDEO_ANPR_V4_TILE_EVERY", "2"))), min_aspect=1.5)
+        with_high_resolution(primary, tile_side=1280, wide_px=int(os.getenv("FORENSIC_VIDEO_ANPR_V4_TILE_MIN_PX", "1600")), tile_every=max(1, int(os.getenv("FORENSIC_VIDEO_ANPR_V4_TILE_EVERY", "2"))),
+                             tile_every_hd=max(1, int(os.getenv("FORENSIC_VIDEO_ANPR_V4_TILE_EVERY_HD", "1"))), min_aspect=1.5)
         return cls(
             primary,
             cv2,
             extra_processors=tuple(extra),
             engine_every=(2, 1) if extra else (),       # the frozen configuration of the pre-registration (Amendments 2 and 3): the slow primary engine reads every second base frame, the fast engine every one
             base_fps=max(0.5, min(25.0, float(os.getenv("FORENSIC_VIDEO_ANPR_V4_BASE_FPS", "4")))),
-            maximum_frames=max(1, min(3600, int(os.getenv("FORENSIC_VIDEO_ANPR_V4_MAX_FRAMES", "1200")))),
-            maximum_duration_seconds=max(1.0, float(os.getenv("FORENSIC_VIDEO_ANPR_V4_MAX_DURATION_SECONDS", "900"))),
+            maximum_frames=max(1, min(20000, int(os.getenv("FORENSIC_VIDEO_ANPR_V4_MAX_FRAMES", "6000")))),
+            maximum_duration_seconds=max(1.0, float(os.getenv("FORENSIC_VIDEO_ANPR_V4_MAX_DURATION_SECONDS", "14400"))),
+            progressive=os.getenv("FORENSIC_VIDEO_ANPR_V4_PROGRESSIVE", "true").strip().lower() in {"1", "true", "yes", "on"},
+            sparse_support=max(1, int(os.getenv("FORENSIC_VIDEO_ANPR_V4_SPARSE_SUPPORT", "2"))),
             maximum_wall_seconds=max(30.0, float(os.getenv("FORENSIC_VIDEO_ANPR_V4_MAX_WALL_SECONDS", "540"))),
         )
 
@@ -327,10 +372,11 @@ class VideoANPRNexusV4Processor:
             capture.release()
             raise RuntimeError("Video ANPR V4 source metadata violates configured bounds")
         policy = FramePolicy(
-            FRAME_POLICY_ID, self.base_fps, refinement_enabled=self.refinement, refinement_window_seconds=self.refinement_window_seconds,
+            PROGRESSIVE_FRAME_POLICY_ID if self.progressive else FRAME_POLICY_ID, self.base_fps, refinement_enabled=self.refinement, refinement_window_seconds=self.refinement_window_seconds,
             refinement_cadence_fps=self.refinement_cadence_fps, maximum_analyzed_frames=self.maximum_frames, maximum_refinement_frames_per_trigger=self.maximum_refinement_per_trigger,
         )
-        base = schedule_base_frames(duration, fps, policy, allowed_intervals=allowed_intervals)
+        base = (progressive_schedule(duration, fps, self.base_fps, self.maximum_frames, allowed_intervals) if self.progressive
+                else schedule_base_frames(duration, fps, policy, allowed_intervals=allowed_intervals))
         source_sha256, source_file = str(context["source_sha256"]), str(context["source_file"])
         self._engine_of: dict[str, Any] = {}
         observations: list[PlateObservation] = []
@@ -382,18 +428,35 @@ class VideoANPRNexusV4Processor:
             capture.release()
         frames_refined = len(analysed) - frames_base
 
-        groups = aggregate_product_observations(observations, self.policy)
+        policy_used = self.policy
+        scope_seconds = sum(i.end_seconds - i.start_seconds for i in allowed_intervals) if allowed_intervals else duration
+        effective_fps = frames_base / scope_seconds if scope_seconds > 0 else 0.0
+        if self.progressive and effective_fps < self.sparse_fps_below and self.sparse_support < policy_used.minimum_selected_support:
+            # two reads of one plate are about 1 / effective_fps seconds apart, so the grouping must be allowed to join reads that far apart (its normal limit is one second)
+            policy_used = dataclasses.replace(policy_used, minimum_selected_support=self.sparse_support,
+                                              maximum_temporal_gap_seconds=max(policy_used.maximum_temporal_gap_seconds, 2.5 / max(effective_fps, 0.05)))
+        groups = aggregate_product_observations(observations, policy_used)
         if self.merge_gap_seconds > 0:
-            groups = merge_overlapping_groups(groups, observations, self.merge_gap_seconds, 1 if len(self.processors) > 1 else 0, self.policy)
+            groups = merge_overlapping_groups(groups, observations, self.merge_gap_seconds, 1 if len(self.processors) > 1 else 0, policy_used)
         coverage = make_coverage_receipt(
             source_fps=fps, source_duration_seconds=duration, source_frame_count=frame_count, frames_decoded=len(analysed), frames_analyzed_by_plate_detector=len(analysed),
             frames_refined=frames_refined, ocr_crops_processed=crops, sampling_policy=policy.policy_id, dropped_or_failed_frames=failed,
             wall_seconds=time.perf_counter() - wall_started, cpu_seconds=time.process_time() - cpu_started, peak_ram_mib=None, resource_stop=stopped,
         )
         state, coverage_limitations = coverage_state(coverage, len(observations))
+        planned = len(base)
+        coarse_planned = len(progressive_schedule(duration, fps, self.base_fps, self.maximum_frames, allowed_intervals, levels=(8,))) if self.progressive else planned
+        coverage_note = (f"{frames_base} of {planned} planned frames were read ({effective_fps:.2f} frames per second of video); the video was read from start to end at that rate"
+                         if self.progressive and frames_base >= coarse_planned else
+                         f"only {frames_base} of {planned} planned frames were read before the time budget ended; the coarse pass over the whole video was not finished, so part of the video was not looked at"
+                         if self.progressive else f"{frames_base} of {planned} planned frames were read")
+        if stopped or (self.progressive and (effective_fps < self.sparse_fps_below or frames_base < planned)):
+            coverage_limitations = (*coverage_limitations, f"Plate reading of this video is sparse: {coverage_note}. A plate seen for less than a second or two may not have been read; zero readings do not show that a plate was absent")
         packets: list[Any] = []
         engine_note = {"processor": ADAPTER_ID, "processor_revision": ADAPTER_VERSION, "vehicle_context": "not_used_plate_only", "frame_hash_method": "sha256 of the decoded BGR pixel bytes",
-                       "engines": [getattr(p, "processor_id", "") for p in self.processors]}
+                       "engines": [getattr(p, "processor_id", "") for p in self.processors],
+                       "sampling": {"progressive": self.progressive, "frames_planned": planned, "frames_read": frames_base, "effective_frames_per_second": round(effective_fps, 3),
+                                    "support_required": policy_used.minimum_selected_support, "note": coverage_note}}
         for item in observations:
             packet = item.to_packet(evidence_id=str(context["evidence_id"]), version_id=str(context["version_id"]))
             engine = self._engine_of.get(item.observation_id, self.image_processor)
@@ -413,8 +476,8 @@ class VideoANPRNexusV4Processor:
             limitations=(*coverage_limitations, "Development model observations require analyst review", "Plate-only temporal grouping is not tracking, identity, ownership, or continuous presence"),
             metadata={
                 "result_states": {"video_anpr": result_state}, "coverage": asdict(coverage), "raw_observation_count": len(observations), "group_count": len(groups),
-                "selected_policy": asdict(self.policy), "execution_state": state, "vehicle_context": "not_used_plate_only", "interpolated_observations": False, "persistent_tracking": False,
-                "frames_base": frames_base, "frames_refined": frames_refined, "refinement": self.refinement, "refinement_mode": self.refinement_mode, "sharpness_weight": self.sharpness_weight,
+                "selected_policy": asdict(policy_used), "execution_state": state, "vehicle_context": "not_used_plate_only", "interpolated_observations": False, "persistent_tracking": False,
+                "frames_base": frames_base, "frames_refined": frames_refined, "coverage_note": coverage_note, "effective_frames_per_second": round(effective_fps, 3), "support_required": policy_used.minimum_selected_support, "refinement": self.refinement, "refinement_mode": self.refinement_mode, "sharpness_weight": self.sharpness_weight,
             },
         )
         return VideoV4Run(result, tuple(observations), groups, coverage, frames_base, frames_refined)
@@ -456,13 +519,18 @@ def tile_origins(width: int, height: int, side: int, stride: int) -> list[tuple[
 class HighResolutionPlateEngine:
     """Wraps an engine with `.detector` (frame -> (x1, y1, x2, y2, score)) and `.ocr` (crop -> read). Same `predict(frame)` contract as the engine it wraps."""
 
-    def __init__(self, engine: Any, *, tile_side: int | None = 1280, wide_px: int = 2200, tile_every: int = 1, min_aspect: float = 1.5, minimum_width_px: int = 12, merge_iou: float = 0.3) -> None:
+    def __init__(self, engine: Any, *, tile_side: int | None = 1280, wide_px: int = 2200, tile_every: int = 1, min_aspect: float = 1.5, minimum_width_px: int = 12, merge_iou: float = 0.3,
+                 tile_every_hd: int | None = None, uhd_px: int = 2200) -> None:
         self.engine = engine
         self.detector = engine.detector
         self.ocr = engine.ocr
         self.tile_side = tile_side
         self.wide_px = wide_px
         self.tile_every = max(1, tile_every)
+        # frames below `uhd_px` (1080p and 720p footage) take tiles on every `tile_every_hd`-th call (default: as often as 4K frames do); a tile there is as large as the frame is high, so it is a
+        # native-resolution look at half of the frame, which makes the plates of a 1080p frame about 1.8 times larger for the detector than the whole frame does
+        self.tile_every_hd = self.tile_every if tile_every_hd is None else max(1, tile_every_hd)
+        self.uhd_px = uhd_px
         self.min_aspect = min_aspect
         self.minimum_width_px = minimum_width_px
         self.merge_iou = merge_iou
@@ -476,7 +544,8 @@ class HighResolutionPlateEngine:
             from plate_processor_nexus import _Box, _Detection, _Ocr, _PlateResult
         height, width = int(frame.shape[0]), int(frame.shape[1])
         boxes: list[Sequence[float]] = list(self.detector.detect(frame))
-        if self.tile_side and max(width, height) >= self.wide_px and self.calls % self.tile_every == 0:
+        every = self.tile_every if max(width, height) >= self.uhd_px else self.tile_every_hd
+        if self.tile_side and max(width, height) >= self.wide_px and self.calls % every == 0:
             side = min(self.tile_side, width, height)
             for x, y in tile_origins(width, height, side, int(side * 0.8)):
                 self.tile_calls += 1

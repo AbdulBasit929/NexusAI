@@ -10,9 +10,11 @@ import numpy as np
 
 from ingestion.forensic_records.video_anpr_nexus_v4 import (
     ADAPTER_ID,
+    HighResolutionPlateEngine,
     PlateObservationV4,
     VideoANPRNexusV4Processor,
     combined_quality,
+    progressive_schedule,
     sharpness_score,
 )
 from ingestion.forensic_records.video_anpr_parity_adapter import PlateBounds
@@ -185,6 +187,87 @@ class VideoANPRNexusV4Tests(unittest.TestCase):
         full = processor_for(ScriptedEngine(lambda n: [("ABC1234", 0.9)]), refinement=False, maximum_wall_seconds=600.0).run_video(self.path, context=dict(CONTEXT))
         self.assertFalse(full.coverage.resource_stop)
         self.assertGreater(full.coverage.frames_decoded, 0)
+
+class ProgressiveScheduleTests(unittest.TestCase):
+    def test_a_cut_schedule_still_spans_the_whole_video_and_the_old_one_would_not(self):
+        from ingestion.forensic_records.video_anpr_parity_adapter import FramePolicy, schedule_base_frames
+        order = progressive_schedule(600.0, 30.0, 4.0, 100)
+        self.assertEqual(len(order), 100)
+        self.assertLess(order[0], 1.0)
+        self.assertGreater(max(order), 560.0)                               # the coarse pass reaches the end of a ten minute video within 100 frames
+        old = schedule_base_frames(600.0, 30.0, FramePolicy("old", 4.0, maximum_analyzed_frames=100))
+        self.assertLess(max(old), 30.0)                                     # the older schedule read the first 25 s and stopped
+
+    def test_every_frame_once_finest_level_is_the_base_cadence_and_intervals_are_respected(self):
+        from ingestion.forensic_records.video_anpr_parity_adapter import TimeInterval
+        full = progressive_schedule(40.0, 30.0, 4.0, 10000)
+        self.assertEqual(len(full), len(set(full)))
+        self.assertEqual(sorted(full), [n / 30.0 for n in range(0, 1200, 8)])   # 4 per second means every 8th frame of a 30 fps video
+        inside = progressive_schedule(40.0, 30.0, 4.0, 10000, [TimeInterval(10.0, 20.0)])
+        self.assertTrue(inside and all(10.0 <= t <= 20.0 for t in inside))
+
+    def test_a_long_video_is_not_refused_and_a_video_over_the_configured_limit_is_(self):
+        directory = tempfile.TemporaryDirectory()
+        try:
+            path = Path(directory.name) / "clip.mp4"
+            write_video(path)
+            processor_for(ScriptedEngine(lambda n: []), refinement=False).run_video(path, context=dict(CONTEXT))          # default limit is hours
+            with self.assertRaises(RuntimeError):
+                processor_for(ScriptedEngine(lambda n: []), refinement=False, maximum_duration_seconds=3.0).run_video(path, context=dict(CONTEXT))
+        finally:
+            directory.cleanup()
+
+    def test_sparse_sampling_lowers_the_support_a_plate_needs_and_says_so(self):
+        directory = tempfile.TemporaryDirectory()
+        try:
+            path = Path(directory.name) / "clip.mp4"
+            write_video(path)
+            reads = lambda n: [("ABC1234", 0.95)] if n in (1, 2) else []     # the plate is read on two of the sampled frames only
+            sparse = processor_for(ScriptedEngine(reads), refinement=False, base_fps=1.0).run_video(path, context=dict(CONTEXT))
+            self.assertEqual([g.selected_normalized_plate for g in sparse.groups], ["ABC1234"])
+            self.assertEqual(sparse.result.metadata["support_required"], 2)
+            self.assertLess(sparse.result.metadata["effective_frames_per_second"], 2.0)
+            self.assertIn("sparse", " ".join(sparse.result.limitations))
+            group_packets = [o for o in sparse.result.observations if o.observation_type == "video_anpr_plate_group_observation"]
+            self.assertEqual(group_packets[0].payload["sampling"]["support_required"], 2)
+            dense = processor_for(ScriptedEngine(reads), refinement=False, base_fps=1.0, progressive=False).run_video(path, context=dict(CONTEXT))
+            self.assertEqual(dense.groups, ())                                  # with the older rule two reads are not a group
+            busy = processor_for(ScriptedEngine(reads), refinement=False, base_fps=4.0).run_video(path, context=dict(CONTEXT))
+            self.assertEqual(busy.result.metadata["support_required"], 3)       # at 4 frames per second the policy's own 3 reads apply
+        finally:
+            directory.cleanup()
+
+
+class TilesOnHdFramesTests(unittest.TestCase):
+    class CountingDetector:
+        def __init__(self):
+            self.sizes = []
+
+        def detect(self, image):
+            self.sizes.append(image.shape[:2])
+            return []
+
+    def engine(self, **options):
+        inner = SimpleNamespace(detector=self.CountingDetector(), ocr=SimpleNamespace(predict=lambda crop: None))
+        return HighResolutionPlateEngine(inner, tile_side=1280, wide_px=1600, **options), inner.detector
+
+    def test_a_1080p_frame_gets_two_native_tiles_beside_the_whole_frame_and_a_720p_frame_none(self):
+        wrapper, detector = self.engine(tile_every=2, tile_every_hd=1)
+        wrapper.predict(np.zeros((1080, 1920, 3), np.uint8))
+        self.assertEqual(detector.sizes, [(1080, 1920), (1080, 1080), (1080, 1080)])
+        wrapper.predict(np.zeros((1080, 1920, 3), np.uint8))               # HD takes tiles on every call
+        self.assertEqual(len(detector.sizes), 6)
+        small, small_detector = self.engine(tile_every=2, tile_every_hd=1)
+        small.predict(np.zeros((720, 1280, 3), np.uint8))
+        self.assertEqual(len(small_detector.sizes), 1)
+
+    def test_a_4k_frame_keeps_its_slower_tile_cadence(self):
+        wrapper, detector = self.engine(tile_every=2, tile_every_hd=1)
+        wrapper.predict(np.zeros((2160, 3840, 3), np.uint8))
+        first = len(detector.sizes)
+        self.assertGreater(first, 3)
+        wrapper.predict(np.zeros((2160, 3840, 3), np.uint8))
+        self.assertEqual(len(detector.sizes), first + 1)                    # the second call: whole frame only
 
 
 if __name__ == "__main__":
