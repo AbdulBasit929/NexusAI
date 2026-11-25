@@ -645,8 +645,9 @@ def overview_packets(path: str | Path, context: dict[str, Any]) -> tuple[list[di
         for interval in motion["intervals"]:
             packets.append(make("video_motion_interval_observation", f"motion:{interval['start_seconds']}", {"timestamp_seconds": interval["start_seconds"], "end_seconds": interval["end_seconds"]},
                                 {**interval, "parameters": motion["parameters"]}, motion["method"]))
-        cuts = shot_cuts(path)
+        cuts = shot_cuts_window(path)
         for cut in cuts["cuts"]:
-            packets.append(make("video_shot_cut_observation", f"cut:{cut['seconds']}", {"timestamp_seconds": cut["seconds"]}, {**cut, "threshold": cuts["threshold"]}, cuts["method"]))
+            packets.append(make("video_shot_cut_observation", f"cut:{cut['seconds']}", {"timestamp_seconds": cut["seconds"]},
+                                {**cut, "step_threshold": cuts["step_threshold"], "window_threshold": cuts["window_threshold"], "pixel_threshold": cuts["pixel_threshold"]}, cuts["method"]))
         summary.update({"motion_intervals": len(motion["intervals"]), "motion_covered_fraction": motion["covered_fraction"], "shot_cuts": len(cuts["cuts"]), "analysed_seconds": motion["analysed_seconds"]})
     return packets, summary
