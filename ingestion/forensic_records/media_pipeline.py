@@ -1683,6 +1683,19 @@ class DeterministicMediaProcessor:
             observation_type, aggregate_limitation = VIDEO_FRAME_ZERO_LIMITATIONS[limitation]
             if observation_type not in observed_types:
                 limitations.append(aggregate_limitation)
+        video_overview_state = "NOT_RUN"
+        try:
+            try:
+                from ingestion.forensic_records.video_overview import overview_enabled, overview_packets
+            except ModuleNotFoundError:  # pragma: no cover - direct worker image execution
+                from video_overview import overview_enabled, overview_packets
+            if overview_enabled():
+                overview_items, overview_summary = overview_packets(path, context)
+                observations.extend(MediaObservation(**item) for item in overview_items)
+                video_overview_state = "COMPLETE_RESULTS" if overview_summary.get("readable") else "COMPLETE_ZERO_RESULTS"
+        except Exception as exc:   # the overview is additional: its failure never loses the readings above
+            video_overview_state = "FAILED"
+            limitations.append(f"video overview failed: {type(exc).__name__}")
         return MediaProcessResult(
             modality="video",
             readiness=READY_WITH_WARNINGS,
@@ -1698,6 +1711,7 @@ class DeterministicMediaProcessor:
                 "sampling_strategy": sampling_strategy,
                 "result_states": {
                     "asr": asr_result_state,
+                    "video_overview": video_overview_state,
                     "video_anpr": (
                         str(video_anpr_result.metadata.get("result_states", {}).get("video_anpr"))
                         if video_anpr_result is not None

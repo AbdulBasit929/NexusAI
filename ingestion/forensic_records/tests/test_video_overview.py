@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 
 from ingestion.forensic_records.video_overview import (
-    MotionParameters, compare_signatures, export_clip, file_sha256, intervals_from_series, motion_index, probe_video, shot_cuts, video_signature)
+    MotionParameters, compare_signatures, export_clip, file_sha256, intervals_from_series, motion_index, probe_video, shot_cuts, shot_cuts_window, video_signature)
 
 HAVE_FFMPEG = shutil.which("ffmpeg") is not None and shutil.which("ffprobe") is not None
 
@@ -142,6 +142,58 @@ class FileTests(unittest.TestCase):
         self.assertEqual(file_sha256(source), before)                       # the source is only read
         with self.assertRaises(ValueError):
             export_clip(source, 5.0, 2.0, self.dir / "bad.mp4")
+
+    def test_the_persistent_change_detector_finds_the_cut_and_ignores_a_lamp_and_a_passing_square(self):
+        cut = self.dir / "cut_window.mp4"
+        make_clip(cut, seconds=8.0, moving=((1.0, 2.5),), cut_at=5.0)       # a square crosses at 1 to 2.5 s; the picture changes for good at 5 s
+        cuts = shot_cuts_window(cut)["cuts"]
+        self.assertEqual(len(cuts), 1, cuts)
+        self.assertAlmostEqual(cuts[0]["seconds"], 5.0, delta=0.11)
+        quiet = self.dir / "square_only.mp4"
+        make_clip(quiet, seconds=8.0, moving=((1.0, 2.5), (4.0, 6.0)))
+        self.assertEqual(shot_cuts_window(quiet)["cuts"], [])
+
+    def test_overview_packets_carry_the_reading_contract_and_stable_ids(self):
+        from ingestion.forensic_records.video_overview import VIDEO_OVERVIEW_CONTRACT, overview_packets
+        source = self.dir / "packets.mp4"
+        make_clip(source, seconds=10.0, moving=((2.0, 4.0),), cut_at=7.0)
+        context = {"source_sha256": "b" * 64, "source_file": "packets.mp4", "evidence_id": "e-1", "version_id": "v-1"}
+        packets, summary = overview_packets(source, context)
+        again, _ = overview_packets(source, context)
+        self.assertEqual([p["observation_id"] for p in packets], [p["observation_id"] for p in again])
+        self.assertEqual(len({p["observation_id"] for p in packets}), len(packets))
+        kinds = sorted({p["observation_type"] for p in packets})
+        self.assertEqual(kinds, ["video_motion_interval_observation", "video_overview_probe_observation", "video_shot_cut_observation"])
+        for p in packets:
+            self.assertEqual(p["contract_version"], VIDEO_OVERVIEW_CONTRACT)
+            rc = p["payload"]["reading_contract"]
+            self.assertEqual((rc["tier"], rc["input_sha256"], rc["candidate"], rc["measured_error"]), ("UNMEASURED", "b" * 64, True, None))
+            self.assertTrue(p["payload"]["manual_review_required"])
+        self.assertEqual(summary["motion_intervals"], sum(1 for p in packets if p["observation_type"] == "video_motion_interval_observation"))
+        self.assertGreaterEqual(summary["shot_cuts"], 1)
+
+    def test_the_pipeline_stores_overview_observations_only_when_the_switch_is_on(self):
+        from unittest import mock
+
+        from ingestion.forensic_records import media_pipeline as mp
+
+        source = self.dir / "pipeline.mp4"
+        make_clip(source, seconds=10.0, moving=((2.0, 4.0),), cut_at=7.0)
+        context = dict(evidence_id="e-1", version_id="v-1", source_sha256="c" * 64, source_file="pipeline.mp4", admitted_metadata={})
+
+        def run(switch):
+            with mock.patch.object(mp, "_extract_video_audio", lambda _path: None), mock.patch.object(mp, "_sample_video_frames", lambda _path, **_options: []),                  mock.patch.dict("os.environ", {"FORENSIC_VIDEO_OVERVIEW": switch}):
+                return mp.DeterministicMediaProcessor().process(source, modality="video", **context)
+
+        off = run("false")
+        self.assertEqual(off.metadata["result_states"]["video_overview"], "NOT_RUN")
+        self.assertFalse([o for o in off.observations if o.contract_version == "forensics.video-overview/v1"])
+        on = run("true")
+        self.assertEqual(on.metadata["result_states"]["video_overview"], "COMPLETE_RESULTS")
+        overview = [o for o in on.observations if o.contract_version == "forensics.video-overview/v1"]
+        self.assertTrue(any(o.observation_type == "video_motion_interval_observation" for o in overview))
+        self.assertTrue(any(o.observation_type == "video_shot_cut_observation" for o in overview))
+        self.assertEqual(len(on.observations) - len(overview), len(off.observations))      # everything else is untouched
 
     def test_a_cut_is_found_at_the_new_pictures_first_frame(self):
         cut = self.dir / "cut.mp4"

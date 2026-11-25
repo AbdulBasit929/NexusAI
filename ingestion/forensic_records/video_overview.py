@@ -199,6 +199,85 @@ def shot_cuts(path: str | Path, threshold: float = 0.3) -> dict[str, Any]:
             "reading": "candidate: the picture changes abruptly at these times"}
 
 
+
+def cut_shares(path: str | Path, parameters: MotionParameters | None = None) -> tuple[np.ndarray, float]:
+    """Per step of the small grey stream at the video's own frame rate (at most 25 a second): the share of pixels that changed by more than the pixel threshold after the global brightness change (a lamp
+    or exposure step moves every pixel alike) is removed. A hard cut changes most of the picture at once, a passing vehicle or a lamp does not. Returns the shares and the analysis rate."""
+    info = probe_video(path)
+    fps = min(25.0, float(info.get("fps") or 10.0))
+    p = parameters or MotionParameters(analysis_fps=fps, pixel_threshold=20.0)
+    p = MotionParameters(**{**p.__dict__, "analysis_fps": fps})
+    shares: list[float] = []
+    previous = None
+    for frame in _read_small_frames(path, p):
+        current = _blur(frame, p.blur)
+        if previous is not None:
+            diff = current - previous
+            diff -= np.median(diff)
+            shares.append(float((np.abs(diff) > p.pixel_threshold).mean()))
+        previous = current
+    return np.asarray(shares, np.float32), fps
+
+
+def shot_cuts_compensated(path: str | Path, share_threshold: float = 0.3, parameters: MotionParameters | None = None) -> dict[str, Any]:
+    """Hard cuts: the steps where the brightness-compensated share of changed pixels is at least `share_threshold` and is the largest within 0.3 s (one cut gives one detection). The position is the
+    presentation time of the first frame of the new shot. Dissolves and fades change a little at every step and are mostly not found (they are reported without a gate)."""
+    shares, fps = cut_shares(path, parameters)
+    window = max(1, int(round(0.3 * fps)))
+    cuts = []
+    for i, s in enumerate(shares):
+        if s < share_threshold:
+            continue
+        lo, hi = max(0, i - window), min(len(shares), i + window + 1)
+        if s >= shares[lo:hi].max():
+            cuts.append({"seconds": round((i + 1) / fps, 3), "score": round(float(s), 4)})
+    return {"method": "brightness-compensated-difference", "overview_version": OVERVIEW_VERSION, "threshold": share_threshold, "cuts": cuts, "cut_count": len(cuts), "analysis_fps": fps,
+            "reading": "candidate: most of the picture changes at these times"}
+
+
+
+def cut_window_shares(path: str | Path, window: int = 3, pixel_threshold: float = 6.0) -> tuple[np.ndarray, np.ndarray, float]:
+    """For the small grey stream at the video's own frame rate: (1) per step the share of pixels that changed after the global brightness change is removed, and (2) per frame i the same share between the mean of the
+    `window` frames before i and the mean of the `window` frames from i on. A hard cut changes most of the picture at one step and the change stays; a vehicle or a lamp changes part of it, or all of it alike, for a while.
+    Returns (step shares indexed by the frame the step ends on, window shares indexed by frame, analysis rate); entries without enough neighbours are 0."""
+    info = probe_video(path)
+    fps = min(25.0, float(info.get("fps") or 10.0))
+    p = MotionParameters(analysis_fps=fps, pixel_threshold=pixel_threshold)
+    frames = [_blur(f, p.blur) for f in _read_small_frames(path, p)]
+    n = len(frames)
+    step = np.zeros(n, np.float32)
+    win = np.zeros(n, np.float32)
+    for i in range(1, n):
+        d = frames[i] - frames[i - 1]
+        d -= np.median(d)
+        step[i] = float((np.abs(d) > pixel_threshold).mean())
+    for i in range(window, n - window + 1):
+        d = np.mean(frames[i:i + window], axis=0) - np.mean(frames[i - window:i], axis=0)
+        d -= np.median(d)
+        win[i] = float((np.abs(d) > pixel_threshold).mean())
+    return step, win, fps
+
+
+def cuts_from_window_shares(step: np.ndarray, win: np.ndarray, fps: float, step_threshold: float, window_threshold: float, window: int = 3) -> list[dict[str, Any]]:
+    cuts = []
+    for i in range(len(win)):
+        if win[i] < window_threshold or step[i] < step_threshold:
+            continue
+        lo, hi = max(0, i - window), min(len(win), i + window + 1)
+        if win[i] >= win[lo:hi].max():
+            cuts.append({"seconds": round(i / fps, 3), "score": round(float(win[i]), 4), "step_share": round(float(step[i]), 4)})
+    return cuts
+
+
+def shot_cuts_window(path: str | Path, step_threshold: float = 0.20, window_threshold: float = 0.08, window: int = 3, pixel_threshold: float = 6.0) -> dict[str, Any]:
+    """Hard cuts by a persistent change: the picture changes at one step (at least `step_threshold` of the pixels, brightness change removed) and the frames after differ from the frames before over at least
+    `window_threshold` of the picture. A passing vehicle, a lamp or a dissolve fails one of the two. The position is the presentation time of the first frame of the new shot."""
+    step, win, fps = cut_window_shares(path, window, pixel_threshold)
+    cuts = cuts_from_window_shares(step, win, fps, step_threshold, window_threshold, window)
+    return {"method": "persistent-change-window", "overview_version": OVERVIEW_VERSION, "step_threshold": step_threshold, "window_threshold": window_threshold, "window_frames": window, "pixel_threshold": pixel_threshold, "cuts": cuts,
+            "cut_count": len(cuts), "analysis_fps": fps, "reading": "candidate: the picture changes abruptly and stays changed from these times"}
+
+
 # ---------------------------------------------------------------------------------------------------------------------------------
 # P5 clock text
 # ---------------------------------------------------------------------------------------------------------------------------------
@@ -365,6 +444,34 @@ def _dhash_bits(small: np.ndarray) -> int:
     return value
 
 
+def _motion_pass(path: str | Path, parameters: MotionParameters) -> tuple[np.ndarray, np.ndarray]:
+    """One decoding pass over the small grey stream: per step the share of changed pixels and an 8 x 8 map of which blocks changed (a block is set when more than 3% of its pixels changed)."""
+    rows = np.linspace(0, parameters.height, 9).astype(int)[:-1]
+    cols = np.linspace(0, parameters.width, 9).astype(int)[:-1]
+    area = np.outer(np.diff(np.append(rows, parameters.height)), np.diff(np.append(cols, parameters.width))).astype(np.float32)
+    shares: list[float] = []
+    layouts: list[np.ndarray] = []
+    previous = None
+    for frame in _read_small_frames(path, parameters):
+        current = _blur(frame, parameters.blur)
+        if previous is not None:
+            diff = current - previous
+            diff -= np.median(diff)
+            changed = (np.abs(diff) > parameters.pixel_threshold).astype(np.float32)
+            shares.append(float(changed.mean()))
+            blocks = np.add.reduceat(np.add.reduceat(changed, rows, axis=0), cols, axis=1) / area
+            layouts.append((blocks > 0.03).reshape(-1))
+        previous = current
+    return np.asarray(shares, np.float32), (np.asarray(layouts, bool) if layouts else np.zeros((0, 64), bool))
+
+
+def _layout_value(bits: np.ndarray) -> int:
+    value = 0
+    for b in bits:
+        value = (value << 1) | int(b)
+    return value
+
+
 def video_signature(path: str | Path, motion: MotionParameters = MotionParameters()) -> dict[str, Any]:
     """A signature of what the picture shows, one entry per second: a 64-bit difference hash of the frame, the same hash of the mirrored frame, and the share of the picture that moved in that second (the
     motion series). Survives re-encoding, a few per cent of cropping and mirroring; two different recordings of the same camera view share the hash of the background but not the motion series."""
@@ -377,25 +484,59 @@ def video_signature(path: str | Path, motion: MotionParameters = MotionParameter
         small = raw[i * 72:(i + 1) * 72].reshape(8, 9)
         seconds_hash.append(_dhash_bits(small))
         seconds_mirror.append(_dhash_bits(small[:, ::-1]))
-    series = motion_series(path, motion)
+    series, layouts = _motion_pass(path, motion)
     per_second = int(round(motion.analysis_fps))
+    layout_hex, layout_mirror_hex = [], []
+    for i in range(0, max(n, 0) * per_second, per_second):
+        steps = layouts[i:i + per_second]
+        merged = steps.any(axis=0) if steps.size else np.zeros(64, bool)
+        layout_hex.append(format(_layout_value(merged), "016x"))
+        layout_mirror_hex.append(format(_layout_value(merged.reshape(8, 8)[:, ::-1].reshape(-1)), "016x"))
+    layout_hex, layout_mirror_hex = layout_hex[:n], layout_mirror_hex[:n]
+    if len(layout_hex):
+        layout_hex[0] = layout_mirror_hex[0] = format(0, "016x")      # the first second of a clip is ignored, as for the motion series
     energy = [min(0.1, float(series[i:i + per_second].max())) if series[i:i + per_second].size else 0.0 for i in range(0, max(n, 0) * per_second, per_second)][:n]
     if energy:
         energy[0] = 0.0            # the first step of a clip is an encoder transient (a re-encoded or cut copy starts with a different first frame): it is ignored, and larger values are capped above
     return {"method": "dhash64-per-second+motion-series", "overview_version": OVERVIEW_VERSION, "seconds": n, "hash": [format(v, "016x") for v in seconds_hash],
-            "mirror_hash": [format(v, "016x") for v in seconds_mirror], "motion": [round(v, 5) for v in energy]}
+            "mirror_hash": [format(v, "016x") for v in seconds_mirror], "motion": [round(v, 5) for v in energy], "layout": layout_hex, "layout_mirror": layout_mirror_hex}
 
 
 def _hamming(a: int, b: int) -> int:
     return bin(a ^ b).count("1")
 
 
+def _layout_grid(value: int) -> np.ndarray:
+    return np.array([(value >> (63 - i)) & 1 for i in range(64)], dtype=bool).reshape(8, 8)
+
+
+def _dilate_grid(grid: np.ndarray) -> np.ndarray:
+    padded = np.pad(grid, 1)
+    out = np.zeros_like(grid)
+    for dy in (0, 1, 2):
+        for dx in (0, 1, 2):
+            out |= padded[dy:dy + 8, dx:dx + 8]
+    return out
+
+
+def layouts_agree(a: int, b: int, containment: float = 0.6) -> bool:
+    """Whether two 8 x 8 motion maps show motion in the same places, with one block of tolerance (a crop or a re-scale moves the edges of what moved): at least `containment` of the set blocks of each lie
+    inside the other map widened by one block. A distance in bits is not used: sparse maps (a few blocks set) are always close in bits, even when they have nothing in common."""
+    ga, gb = _layout_grid(a), _layout_grid(b)
+    na, nb = int(ga.sum()), int(gb.sum())
+    if na == 0 or nb == 0:
+        return na == nb
+    return (ga & _dilate_grid(gb)).sum() / na >= containment and (gb & _dilate_grid(ga)).sum() / nb >= containment
+
+
 def compare_signatures(a: dict[str, Any], b: dict[str, Any], bit_threshold: int = 12, match_fraction: float = 0.8, min_overlap_seconds: int = 20, motion_correlation: float = 0.7,
-                       flat: float = 0.002) -> dict[str, Any]:
+                       flat: float = 0.002, layout_containment: float = 0.6, layout_fraction: float = 0.6, layout_min_seconds: int = 3) -> dict[str, Any]:
     """Whether two videos are the same footage: for each shift of one against the other (sliding alignment), the share of overlapping seconds whose hashes differ by at most `bit_threshold` bits (also against the
     mirrored hashes), and the motion series must agree over the overlap (correlation, or both flat). The best shift that passes both is reported. A candidate for an analyst to check, never proof of identity."""
     ha, hb, hbm = [int(x, 16) for x in a["hash"]], [int(x, 16) for x in b["hash"]], [int(x, 16) for x in b["mirror_hash"]]
     ma, mb = np.asarray(a["motion"], np.float32), np.asarray(b["motion"], np.float32)
+    la = [int(x, 16) for x in a.get("layout", [])]
+    lb, lbm = [int(x, 16) for x in b.get("layout", [])], [int(x, 16) for x in b.get("layout_mirror", [])]
     best = {"same": False, "fraction": 0.0, "shift_seconds": None, "mirrored": False, "motion_agrees": None, "overlap_seconds": 0}
     na, nb = len(ha), len(hb)
     if na == 0 or nb == 0:
@@ -416,6 +557,16 @@ def compare_signatures(a: dict[str, Any], b: dict[str, Any], bit_threshold: int 
                 agrees = bool(sa.std() > flat and sb.std() > flat and np.corrcoef(sa, sb)[0, 1] >= motion_correlation)
             else:
                 agrees = bool(abs(float(sa.mean()) - float(sb.mean())) < 2 * flat + 0.0005)
+            if agrees and la and lb:
+                # where the picture moved must agree too, in the seconds in which both moved: two recordings of one camera view share the background but not the paths of what crossed it
+                layouts_b = lbm if mirrored else lb
+                both = [i for i in range(lo, hi) if la[i] and layouts_b[i - shift]]
+                if len(both) >= layout_min_seconds:
+                    agrees = sum(1 for i in both if layouts_agree(la[i], layouts_b[i - shift], layout_containment)) / len(both) >= layout_fraction
+                elif ma[lo:hi].std() > flat and mb[lo - shift:hi - shift].std() > flat:
+                    agrees = False         # both pictures move in this overlap but hardly ever at the same time: a correlation of a few seconds of motion is not evidence of the same footage
+                if agrees and len(both) < layout_min_seconds and overlap < 0.5 * min(na, nb):
+                    agrees = False         # a short overlap in which nothing moves in both shows only the shared background, which two recordings of one camera view also share
             if fraction >= match_fraction and agrees and (not best["same"] or fraction > best["fraction"]):    # a shift that passes always replaces one that does not
                 best = {"same": True, "fraction": round(fraction, 3), "shift_seconds": shift, "mirrored": mirrored, "motion_agrees": True, "overlap_seconds": overlap}
             elif not best["same"] and fraction > best["fraction"]:
@@ -454,3 +605,48 @@ def export_clip(source: str | Path, start_seconds: float, end_seconds: float, de
             "output_file": destination.name, "output_sha256": file_sha256(destination), "output_frames": out.get("frames"), "expected_frames": expected,
             "decodes": bool(out.get("readable")), "frame_count_matches": out.get("frames") == expected, "ffmpeg": version, "command": command, "burned_in": burn_in,
             "reading": "an excerpt of the source with its hash and time burned in; the manifest lets anyone verify it against the original"}
+
+
+# ---------------------------------------------------------------------------------------------------------------------------------
+# Observation packets for the worker (behind the switch FORENSIC_VIDEO_OVERVIEW, default off)
+# ---------------------------------------------------------------------------------------------------------------------------------
+VIDEO_OVERVIEW_CONTRACT = "forensics.video-overview/v1"
+
+
+def overview_enabled() -> bool:
+    import os
+
+    return os.getenv("FORENSIC_VIDEO_OVERVIEW", "false").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def overview_packets(path: str | Path, context: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """What the worker stores for a video when the overview is on: one probe packet, one packet per motion interval and one per shot cut, each carrying the reading contract of MF-0 (tier, method, version, input
+    SHA-256, measured error, candidate). The tier is UNMEASURED until the sealed measurement of the pre-registration is recorded in the reading error register. The ids are derived from the source hash and the
+    position, so the same file gives the same ids. Returns the packets (as dicts of MediaObservation fields) and a summary for the result metadata."""
+    import uuid
+
+    sha, source_file = str(context["source_sha256"]), str(context["source_file"])
+    packets: list[dict[str, Any]] = []
+
+    def make(kind: str, key: str, locator: dict[str, Any], payload: dict[str, Any], method: str) -> dict[str, Any]:
+        return {
+            "observation_id": str(uuid.uuid5(uuid.NAMESPACE_URL, f"{sha}:video-overview:{kind}:{key}")), "contract_version": VIDEO_OVERVIEW_CONTRACT, "observation_type": kind, "confidence": None,
+            "citation_locator": {"source_file": source_file, **locator},
+            "payload": {**payload, "reading_contract": {"family": kind, "tier": "UNMEASURED", "method": method, "version": OVERVIEW_VERSION, "input_sha256": sha, "measured_error": None, "candidate": True},
+                        "parent_evidence_id": context.get("evidence_id"), "parent_version_id": context.get("version_id"), "manual_review_required": True},
+            "warnings": ["A measurement of the picture, not a statement about what happened: check against the video"],
+        }
+
+    probe = probe_video(path)
+    packets.append(make("video_overview_probe_observation", "probe", {"timestamp_seconds": 0}, probe, "ffprobe"))
+    summary: dict[str, Any] = {"overview_version": OVERVIEW_VERSION, "readable": bool(probe.get("readable")), "motion_intervals": 0, "shot_cuts": 0}
+    if probe.get("readable"):
+        motion = motion_index(path)
+        for interval in motion["intervals"]:
+            packets.append(make("video_motion_interval_observation", f"motion:{interval['start_seconds']}", {"timestamp_seconds": interval["start_seconds"], "end_seconds": interval["end_seconds"]},
+                                {**interval, "parameters": motion["parameters"]}, motion["method"]))
+        cuts = shot_cuts(path)
+        for cut in cuts["cuts"]:
+            packets.append(make("video_shot_cut_observation", f"cut:{cut['seconds']}", {"timestamp_seconds": cut["seconds"]}, {**cut, "threshold": cuts["threshold"]}, cuts["method"]))
+        summary.update({"motion_intervals": len(motion["intervals"]), "motion_covered_fraction": motion["covered_fraction"], "shot_cuts": len(cuts["cuts"]), "analysed_seconds": motion["analysed_seconds"]})
+    return packets, summary
