@@ -1,6 +1,6 @@
 # Video plates, round 2: why plates are missed and how to read more of them (plan and diagnosis protocol, 2026-11-25)
 
-**Status: plan. Nothing here has been measured or changed yet.** Programme step MF-7 of `docs/roadmap/master-roadmap-20261124/03_media_first_programme.md`, brought forward by the owner's word of 2026-11-25: "the current video ANPR misses many plates in videos as well, so fix and improve it accordingly". It continues `docs/data/video-plates-research-and-preregistration-20261111.md` (V4, live since 2026-11-11). Rules of every media programme apply: public or synthetic data and the owner's own clips, plate text of real footage never in the repository or in a message, one heavy job at a time in a memory-capped container without network, gates written before the sealed run, nothing deployed or enabled without the owner's word.
+**Status 2026-11-25: plan and diagnosis written first; then cut down to a quick fix at the owner's word (Amendment 1 and section 8 below hold what was done and measured).** Programme step MF-7 of `docs/roadmap/master-roadmap-20261124/03_media_first_programme.md`, brought forward by the owner's word of 2026-11-25: "the current video ANPR misses many plates in videos as well, so fix and improve it accordingly". It continues `docs/data/video-plates-research-and-preregistration-20261111.md` (V4, live since 2026-11-11). Rules of every media programme apply: public or synthetic data and the owner's own clips, plate text of real footage never in the repository or in a message, one heavy job at a time in a memory-capped container without network, gates written before the sealed run, nothing deployed or enabled without the owner's word.
 
 ## 1. What we know (read from the code and the stored readings, 2026-11-25; not yet measured)
 
@@ -77,4 +77,43 @@ The census is the plates a person can read in five clips by one reader and is a 
 
 ## 7. Amendments
 
-(none yet)
+### Amendment 1 (2026-11-25): the owner asked for a quick fix, so the programme was cut down
+
+The owner's word the same day: fix and improve it, do not spend long on it or on testing, then go back to the main plan. So sections 3 and 4 were **not** run as a pre-registered programme: no hard synthetic set (A4), no long-video run (A3), no gates, no sealed run. What was done is the census (A1, A2) on three of the five real clips, a fix of the causes that the code reading and the census made certain (C1 partly, C4 as a new whole-video schedule, C5 as a sparse-sampling rule, C6 partly), and one confirming run per clip. The figures below are development evidence on real clips that are not independent of the diagnosis; they are not a gate result and must not be quoted as one. C2 (cascade), C3 (motion-gated regions, which the video overview will supply), C7 (crop preparation) and multi-frame fusion were not done.
+
+## 8. Results (2026-11-25; counts only, no plate text of real footage; the census files with the plate text are private and outside the repository)
+
+**Census, where production loses plates** (a plate "a person can read" is one the person labelling the contact sheets could read on its best crop; the census covers 20 s of the owner's 4K clip, all of the HD overpass and the junction clip; the night clip was run but not labelled, and the 4K highway clip and the rest of the owner's clip were not run):
+
+| Clip | Readable plates | Found by production (stored reads of the live run) | Where the rest were lost |
+|---|---|---|---|
+| Owner's 4K traffic clip, first 20 s | 16 (seen as 36 candidates; 33 more were plates not readable, many of them white bars with no text at all: the clip looks anonymised there) | 14 (13 exactly right, 1 one character off) | 1 plate hidden by a flashing blue light (boxed, read wrongly); 1 blurred plate seen on 2 frames at the end (never detected) |
+| HD highway from an overpass | 11 | 9, all exact | both losses are plates under 80 px wide near the start of the clip: one read correctly on only 1 to 2 frames (no group), one never detected |
+| Street junction, HD | 1 (16 more were plates too small or blurred to read, 24 to 60 px wide) | 1 | none |
+
+Reading: **for plates of 80 px or more the stored production reading found every one; losses are small plates (under 80 px), plates visible for under a second, and obstructed plates.** The stored reads of the 4K clip show that most distinct strings are single reads (292 of 376), which is glare and non-plates and unreadable small plates; none of the 292 that were labelled turned out to be a readable plate the production run had missed (the 16 census plates account for the 51 strings read three or more times, the 33 read twice and a few of the singles). The recall of readable near plates is therefore high, and the larger loss for an analyst is **coverage of long videos**, below.
+
+**Limits read from the code (L1 to L3, now changed) and what the fix does:**
+
+| Limit | Before | Now (video_anpr_nexus_v4.py 4.1.0) |
+|---|---|---|
+| L1 length | a video over 900 s was refused (no plate reading) | limit 14,400 s (the compose default changes from 900) |
+| L2 frames | the schedule stopped at 1,200 frames, i.e. after the first 300 s of a long video | `progressive_schedule`: the whole video is read coarse to fine (every 8th base frame first, then the frames between), up to 6,000 frames; the coarse pass always fits, so a cut thins a finer level, never the coverage |
+| L3 time | the 1800 s budget was spent on the first minutes at full density | the same budget is spent on the whole video, sparse first; the result states how much was read |
+| L5 tiles | tiles only on frames of 2200 px and more | tiles also on 1080p frames (two native-resolution tiles beside the whole frame); the 4K cadence is unchanged |
+| L7 support | a plate needed 3 reads of one string to become a group | when the frames actually read give under 2 per second of video, 2 reads are enough and the grouping gap widens to 2.5 sampling intervals; the group's payload and the result's limitations say the reading is sparse |
+
+The result's `result_states` still say COMPLETE_RESULTS; the coverage is stated in the stored metadata (`coverage_note`, `effective_frames_per_second`, `support_required`) and in the limitations. **The API and the interface do not show coverage anywhere**, so an analyst does not see "read 3 of 10 minutes" yet; that is a follow-up (a line in the video viewer and in answers about a video).
+
+**Confirming runs with the new settings** (the `v4p` configuration of `from_environment()` with the new defaults, the 1800 s budget, one container at a time; scored against the census):
+
+| Clip | Readable plates found, before | now | Time over clip length, before | now |
+|---|---|---|---|---|
+| Owner's 4K clip, first 20 s | 14 of 16 (13 exact) | 14 of 16 (13 exact) | 19.8x | 21.3x |
+| HD overpass | 9 of 11 | 9 of 11 (the small 58 px plate that was missed is found; a plate seen for about half a second, found by chance before, is missed) | 11.7x | 12.2x |
+| Junction | 1 of 1 | 1 of 1 | 7.8x | 9.1x |
+
+**Per-frame recall on these clips did not change.** What changed is how much of a long video is read, the 15-minute refusal, and the rule for sparse sampling. These were checked by 16 unit tests (the schedule spans a ten-minute video within 100 frames where the old one stopped at 25 s; the 2-read rule applies only when sparse; HD tiles; the length limit), not by an end-to-end run of a long video, which was not done.
+
+**Deployment (nothing is deployed):** overlay image `nexusai-forensic-records-worker:video-v41-20261125` (built on the running `latest`, replacing only `video_anpr_nexus_v4.py`; imports without network). `tools/dev/live-window/12-recreate-worker-video-v41.ps1` (dry run passed: with the length limit forced back to 900 s the nine compose files reproduce the running worker's configuration exactly, so the limit is the only configuration change; `-Apply` and `-Rollback` need the owner's word). Rollback tag created at `-Apply`: `before-video-v41-20261125`.
+
