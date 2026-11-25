@@ -1,0 +1,62 @@
+# Video overview (programme step MF-1): pre-registration (2026-11-25)
+
+**Written before any measurement and before any of the components below is built.** It completes `docs/data/video-evidence-preregistration-20261119.md`: that registration fixed gate **V-A** (motion index) and **V-F** (clip export) and left the other parts of the overview without gates; both **stand unchanged**. This file adds the gates the overview needs and fixes the data. Programme: `docs/roadmap/master-roadmap-20261124/03_media_first_programme.md` section 7. A gate that is missed stays missed; every change is a dated amendment at the end. Results: `docs/data/video-overview-results-<date>.md`.
+
+Rules of every media programme apply: public or synthetic data, sealed scenes read once per method, one heavy job at a time in a memory-capped container without network, medians of three for timings, no deploy, migration, enabling or push without the owner's chat word, nothing about a person.
+
+## 1. What MF-1 builds (the parts), and what an analyst gets
+
+| Part | What it is | Analyst can then |
+|---|---|---|
+| P1 Probe | ffprobe of every video: duration, frame rate, size, codec, streams, container times; an unreadable or truncated file is recorded as such with the reason | see what each file is; "how many minutes of video are in this case" is a plain sum |
+| P2 Proxy and thumbnails | a small H.264 proxy to play in the browser, thumbnails at every shot start | open and scrub a 12-hour recording without the original |
+| P3 Motion index | frame differences on a downscaled grey stream, merged into intervals | a static-camera night becomes a short list of intervals (gate V-A) |
+| P4 Shots | cut positions | jump between scenes of an edited clip |
+| P5 Clock text | the burned-in time read at one frame per minute, drift and jump detection, a clock-offset table | align footage to cell records and messages |
+| P6 Same footage | exact file hash, then a perceptual frame signature | "this clip is a re-encoding of that one" |
+| P7 Clip export | a cut with burned-in hash and time and a manifest (gate V-F) | a clip for a report or court that can be checked |
+
+**Methods and candidates (chosen on the dev part only):** motion: absolute difference of 160x90 grey frames, threshold and minimum interval length from dev. Shots: **FFmpeg's scene filter first** (already in the worker, no new package), against PySceneDetect's content detector (BSD-3-Clause, one new small package) as the comparison; **TransNetV2 is evaluation-only** (licence ledger, 2026-11-25: the licence of its weights is not stated and its training data includes IACC.3), never shipped unless that is resolved in writing. Clock: the worker's OCR on a fixed crop with a digits-and-colon alphabet (EasyOCR, against Tesseract digits), parsed to a time; drift by a straight-line fit of read time against container time; a jump is a residual of 10 s or more. Same footage: a 64-bit difference hash of one frame per second compared with sliding alignment. Export: ffmpeg cut and re-encode with a burned-in hash and time; the manifest holds the source SHA-256, the interval, the output SHA-256, the ffmpeg version and the command; verified by decoding.
+
+## 2. Data
+
+| Id | Set | Truth | Use |
+|---|---|---|---|
+| VD1-M | **Synthetic static-camera scenes**, 3 minutes each at 640x360, 10 frames per second, from a **new generator** `tools/showcase/build_video_overview_scenes.py` (the existing plate-scene generator has no clock, no planted cuts and no motion truth, so this generator is part of the work, written before any scene is used; own code, backgrounds permissively licensed). 6 to 12 planted motion intervals of 3 to 40 s per scene; one scene in four has none | exact intervals | gate V-A, MF1-B |
+| VD1-S | **Cut sequences**: the same scenes joined at planted positions: hard cuts, 12-frame dissolves, fades | exact cut frames | MF1-S |
+| VD1-C | **Clock scenes** at 1280x720, a burned-in `hh:mm:ss` clock in four conditions (clean day; night with sensor noise; compressed at CRF 35; small font), with planted drift (gaining or losing 2 s per hour) and planted jumps (10 s to 6 h) | exact times | MF1-C |
+| VD1-F | **Signature sets**: each clip re-encoded at three bitrates, cropped by 5%, mirrored; unrelated clips; same-scene clips with different motion (hard negatives) | exact relation | MF1-F |
+| VD1-P | **Probe set**: 100 files in mp4/h264, mkv/h264, avi/mpeg4 and mov with known duration, frame rate, size and audio presence, plus 20 planted bad files (truncated, zero-length, wrong extension, corrupt header) | exact | MF1-P |
+| VD2 | The five real public clips already used for plates (`C:/tmp/video-plates`) | by eye | sanity on real footage; reported, never a gate |
+
+**Partition (fixed now).** Scene ids are `mf1-0001` to `mf1-0120`; a scene is dev if the last hex digit of the SHA-256 of its id is `0` to `9`, `a` or `b`, sealed if `c` to `f` (about 25%, so about 30 sealed scenes, which gives the minimum counts below). Thresholds, detector choices and parameters are chosen on dev; sealed is read **once per method**. Because the generator is deterministic from the id, the sealed scenes are generated only for the sealed run.
+
+## 3. Gates (fixed now; "met" or "NOT met", never softened)
+
+| Gate | Pass condition |
+|---|---|
+| **V-A** (stands) | motion index on VD1-M sealed: recall of truth intervals at least 95%, at most 1 false interval per hour, indexed intervals cover at most 10% of the duration where the truth covers at most 5% |
+| **V-F** (stands) | 30 of 30 exports decode, frame count equals the requested interval, source hash and manifest verify |
+| **MF1-P1 probe** | on VD1-P: duration within one frame of truth, frame rate, width, height and audio presence exact for 100 of 100 good files; the 20 bad files are each recorded as unreadable with a reason, 0 crashes, 0 invented values |
+| **MF1-P2 minutes of video** | for three planted cases the total minutes shown equal the truth within 0.1% and equal the SQL sum of the stored durations |
+| **MF1-T proxy and thumbnails** | every proxy decodes with a duration within 0.5% of the source; a decodable thumbnail exists for every shot start (100%) |
+| **MF1-S shots** | on VD1-S sealed (at least 150 hard cuts): hard-cut recall at least 95% and precision at least 95% within 2 frames; dissolves and fades are **reported, not gated** |
+| **MF1-C clock** | on VD1-C sealed (at least 300 sampled frames per condition): (a) the time is read exactly in at least 98% of clean-day samples and at least 90% of night, compressed and small-font samples, where a different valid time counts as wrong and "unreadable" is not wrong; (b) every planted jump of 10 s or more is found (100%) with at most 1 false jump per 24 hours of video; (c) a planted drift of 2 s per hour is measured with an offset error of at most 2 s after one hour |
+| **MF1-F same footage** | exact: 100% with 0 false matches; perceptual on VD1-F sealed: recall at least 95% at precision at least 99% over re-encodes, 5% crops and mirrors, against at least 200 unrelated pairs and at least 50 hard negatives (same scene, different motion), which must **not** match |
+| **MF1-B budget** | probe, proxy, thumbnails, motion index, shots and clock of one hour of 720p video in at most 20 minutes with 4 threads and at most 2 GB resident memory (median of three, in the memory-capped container); 1080p is reported |
+| **MF1-I isolation and audit** | the runtime role can read and insert but not update or delete a derived row (as in migrations 038 and 039); a case never reads another case's video rows (role test, 0 leaks); every export writes an audit row with actor, evidence id, interval and output hash; the source file's SHA-256 is identical before and after every operation |
+| **MF1-R reading contract** | every stored row carries its tier, method, version, input SHA-256 and the measured error from the results document, and the viewer shows it as a machine reading to be checked (tested) |
+
+**Decision rule.** A part that meets its gates is recommended for the switch `FORENSIC_VIDEO_OVERVIEW` (default off); nothing is enabled, deployed or migrated by this work, and each needs the owner's word. A part that misses its gate is shown as a weaker indicator or not at all, and the results say which.
+
+## 4. What this cannot show (stated in advance)
+
+Synthetic footage is easier than real CCTV; real-footage figures are by eye on five clips; clock fonts, cameras that stamp more than `hh:mm:ss`, fisheye and heavy night noise are represented only as far as the generator draws them; telephone-camera clips with variable frame rate are not covered; the budget is for 4 threads on this laptop; all figures are tier T1 or T2 (synthetic or public), not T4 (authorised real evidence).
+
+## 5. Needs
+
+From the owner: authorised or consented real clips with someone who can say what they show (D26); the migration number (the plan reserves 040 to 042; this needs its own, proposed 043); a decision on the extra package PySceneDetect if it wins the shot comparison. From the programme: the reading contract and the moments view of MF-0, which the viewer and the clock-offset table rely on.
+
+## 6. Amendments
+
+* **A1 (2026-11-25, to `video-evidence-preregistration-20261119.md`).** The shot detector order changes: the FFmpeg scene filter is measured first and PySceneDetect second; TransNetV2 becomes evaluation-only after the licence reading of 2026-11-25. Gates V-A and V-F are unchanged. The new gates MF1-P1, P2, T, S, C, F, B, I and R are added by this file.

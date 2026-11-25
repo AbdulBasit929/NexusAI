@@ -44,4 +44,4 @@ Authorised or consented real CCTV clips with someone who can say what they show;
 
 ## 6. Amendments
 
-(none yet)
+* **A1 (2026-11-25).** The video overview (U1, U9 and U10 as programme step MF-1) is completed by `video-overview-preregistration-20261125.md`: gates V-A and V-F above are unchanged; new gates for probe, minutes of video, proxy and thumbnails, shots, clock text, same footage, cost, isolation and the reading contract; the shot detector order is the FFmpeg scene filter, then PySceneDetect, with TransNetV2 evaluation-only (licence ledger, 2026-11-25).
