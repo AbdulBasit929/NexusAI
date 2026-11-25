@@ -145,6 +145,7 @@ export default function EvidenceListPage() {
   const [selected, setSelected] = useState(() => new Set())
   const [hideHarmless, setHideHarmless] = useState(() => remembered('nexusai.evidence.hide-known', ['yes', 'no'], 'no') === 'yes')
   const [setsOpen, setSetsOpen] = useState(false)
+  const knownButton = useRef(null)
   const [flaggedOnly, setFlaggedOnly] = useState(false)
   const addButton = useRef(null)
   const peekReturn = useRef(null)
@@ -207,7 +208,7 @@ export default function EvidenceListPage() {
   const parts = useMemo(() => composition(inventory?.modality_counts), [inventory])
   const byEvidence = known.byEvidence || NO_FLAGS
   const { visible: afterHide, hidden } = useMemo(() => applyHide(items, byEvidence, hideHarmless && known.status === 'ready'), [items, byEvidence, hideHarmless, known.status])
-  const flaggedHere = useMemo(() => onlyFlagged(items, byEvidence).length, [items, byEvidence])
+  const flaggedHere = useMemo(() => onlyFlagged(afterHide, byEvidence).length, [afterHide, byEvidence]) // what the chip would show, so the number and the result agree
   const visible = useMemo(() => (flaggedOnly && known.status === 'ready' ? onlyFlagged(afterHide, byEvidence) : afterHide), [afterHide, byEvidence, flaggedOnly, known.status])
   const harmless = useMemo(() => harmlessCount(items, byEvidence), [items, byEvidence])
   const toggle = useCallback(id => setSelected(current => toggled(current, id)), [])
@@ -282,7 +283,7 @@ export default function EvidenceListPage() {
           ) : null}
           {known.status === 'ready' ? (
             <div className="nx-evbar__known" role="group" aria-label="Known sets">
-              <button type="button" className="nx-btn nx-btn--sm" onClick={() => setSetsOpen(true)}><Flag aria-hidden="true" />Known sets{known.data.flagged_pictures ? <span className="nx-chip__count nx-tabular">{formatNumber(known.data.flagged_pictures)}</span> : null}</button>
+              <button type="button" ref={knownButton} className="nx-btn nx-btn--sm" onClick={() => setSetsOpen(true)}><Flag aria-hidden="true" />Known sets{known.data.flagged_pictures ? <span className="nx-chip__count nx-tabular">{formatNumber(known.data.flagged_pictures)}</span> : null}</button>
               {view === 'grid' ? <button type="button" className="nx-btn nx-btn--sm" aria-pressed={selecting} onClick={() => { setSelecting(value => !value); setSelected(new Set()) }}>Select</button> : null}
               {flaggedHere || flaggedOnly ? <button type="button" className="nx-chip" aria-pressed={flaggedOnly} title="Show only the pictures of this page that a known set flags" onClick={() => setFlaggedOnly(value => !value)}>Flagged<span className="nx-chip__count nx-tabular">{formatNumber(flaggedHere)}</span></button> : null}
               {harmless || hideHarmless ? <button type="button" className="nx-chip" aria-pressed={hideHarmless} onClick={() => { const next = !hideHarmless; setHideHarmless(next); remember('nexusai.evidence.hide-known', next ? 'yes' : 'no') }}>Hide known harmless<span className="nx-chip__count nx-tabular">{formatNumber(harmless)}</span></button> : null}
@@ -371,7 +372,7 @@ export default function EvidenceListPage() {
           <button type="button" className="nx-btn nx-btn--ghost nx-btn--sm" onClick={() => setSelected(new Set())}>Clear</button>
         </div>
       ) : null}
-      {setsOpen && known.status === 'ready' ? <KnownSetsPanel caseId={caseId} sets={known.data.sets || []} selected={selected} onChanged={refreshKnown} onClose={() => { setSetsOpen(false); setSelected(new Set()); setSelecting(false) }} /> : null}
+      {setsOpen && known.status === 'ready' ? <KnownSetsPanel caseId={caseId} sets={known.data.sets || []} selected={selected} onChanged={refreshKnown} onClose={() => { setSetsOpen(false); setSelected(new Set()); setSelecting(false); globalThis.requestAnimationFrame(() => knownButton.current?.focus()) }} /> : null}
       {adding ? <Dialog title="Add evidence" wide onClose={closeAdding}><AddDataDropzone bare caseId={caseId} onAccepted={() => { setOffset(0); setTick(value => value + 1) }} /></Dialog> : null}
       {peek ? <QuickLook item={peek} caseId={caseId} onClose={closePeek} /> : null}
     </CaseShell>

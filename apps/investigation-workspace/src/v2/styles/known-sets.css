@@ -49,6 +49,7 @@
   .nx-ks__message { min-block-size: 1.5em; margin: 0; font-size: var(--nx-fs-sm); }
   .nx-ks__message.is-ok { color: var(--nx-ok-text); }
   .nx-ks__message.is-error { color: var(--nx-danger-text); }
+  .nx-ks__rejected { display: grid; gap: 2px; margin: 0; padding-inline-start: var(--nx-s-5); color: var(--nx-warn-text); font-size: var(--nx-fs-xs); }
   .nx-ks__foot { display: flex; justify-content: flex-end; }
   @media (prefers-reduced-motion: no-preference) { .nx-evcard[data-selected] { transition: box-shadow var(--nx-dur-2, 160ms) var(--nx-ease-standard, ease); } }
 }

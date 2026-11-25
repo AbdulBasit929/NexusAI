@@ -219,6 +219,37 @@ describe('known sets on the evidence list', () => {
     await userEvent.click(within(panel).getByRole('button', { name: 'Import the table' }))
     await waitFor(() => expect(addKnownHashes).toHaveBeenCalledWith(expect.objectContaining({ setId: 's1', csv: 'sha256,label\nabc,x' })))
     expect(await within(panel).findByText('1 hash added, 1 row could not be used.')).toBeTruthy()
+    expect(within(panel).getByText('Line 3: x')).toBeTruthy() // the row that failed is named, with the server's reason
+  })
+
+  it('keeps the keyboard working after a change: Escape still closes the panel, and "Keep" puts the set back without losing focus', async () => {
+    getKnownFlags.mockImplementation(async () => flagsResponse([], sets))
+    addKnownHashes.mockResolvedValue({ added: 1 })
+    await open()
+    await userEvent.click(await screen.findByRole('button', { name: /Known sets/ }))
+    const panel = await screen.findByRole('dialog', { name: 'Known sets' })
+    fireEvent.change(within(panel).getByPlaceholderText('sha256,pdq256,label'), { target: { value: 'abc' } })
+    await userEvent.click(within(panel).getByRole('button', { name: 'Import the table' }))
+    expect(await within(panel).findByText('1 hash added.')).toBeTruthy()
+    await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true)) // focus is inside the dialog, not on the page body
+    await userEvent.click(within(panel).getByRole('button', { name: 'Retire Stock' }))
+    await userEvent.click(within(panel).getByRole('button', { name: 'Keep' }))
+    await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true))
+    expect(retireKnownSet).not.toHaveBeenCalled()
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Known sets' })).toBeNull())
+    await waitFor(() => expect(screen.getByRole('button', { name: /Known sets/ })).toHaveFocus()) // focus goes back to the button that opened the panel
+  })
+
+  it('counts on the Flagged chip what the chip would show: pictures hidden as known harmless are not counted', async () => {
+    getKnownFlags.mockImplementation(async () => flagsResponse([watch, harmless], sets))
+    await open()
+    await screen.findByRole('link', { name: 'photo-a.jpg' })
+    expect(screen.getByRole('button', { name: /^Flagged/ })).toHaveTextContent('2')
+    await userEvent.click(screen.getByRole('button', { name: /Hide known harmless/ }))
+    expect(screen.getByRole('button', { name: /^Flagged/ })).toHaveTextContent('1')
+    await userEvent.click(screen.getByRole('button', { name: /^Flagged/ }))
+    expect(cardTitles()).toEqual(['photo-a.jpg'])
   })
 
   it('retires a set only after a second, explicit click', async () => {
@@ -229,6 +260,7 @@ describe('known sets on the evidence list', () => {
     const panel = await screen.findByRole('dialog', { name: 'Known sets' })
     await userEvent.click(within(panel).getByRole('button', { name: 'Retire Case 12 watch' }))
     expect(retireKnownSet).not.toHaveBeenCalled()
+    expect(within(panel).getByRole('button', { name: 'Keep' })).toHaveFocus() // the safe answer has the keyboard, and focus did not fall to the page body
     await userEvent.click(within(panel).getByRole('button', { name: 'Retire it' }))
     await waitFor(() => expect(retireKnownSet).toHaveBeenCalledWith(expect.objectContaining({ setId: 's1' })))
   })

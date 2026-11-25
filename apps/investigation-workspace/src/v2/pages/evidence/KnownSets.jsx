@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Flag, Upload } from 'lucide-react'
 import { addKnownHashes, createKnownSet, getKnownFlags, retireKnownSet } from '../../../lib/apiClient.js'
 import { Dialog } from '../../ui/Dialog.jsx'
@@ -31,12 +31,23 @@ export function KnownSetsPanel({ caseId, sets, selected, onChanged, onClose }) {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState(null)
   const [confirming, setConfirming] = useState('')
+  const [rejected, setRejected] = useState([]) // the rows of an imported table that could not be used, with the reason (the server names the line)
+  const root = useRef(null)
 
   useEffect(() => { if (!sets.some(set => set.set_id === target)) setTarget(sets[0]?.set_id || '') }, [sets, target])
+
+  // A button that was focused becomes disabled or leaves the page (the work is running; "Retire" turns into "Retire it / Keep"), and the browser then drops focus on the page body, where
+  // Escape no longer reaches the dialog. After every such change focus goes back into the dialog, so the keyboard keeps working.
+  const keepFocus = () => globalThis.requestAnimationFrame(() => {
+    const active = globalThis.document.activeElement
+    if (!active || active === globalThis.document.body) root.current?.closest('[role="dialog"]')?.focus()
+  })
+  const focusNode = useCallback(node => { node?.focus() }, [])
 
   const run = async work => {
     setBusy(true)
     setMessage(null)
+    setRejected([])
     try {
       const text = await work()
       setMessage({ tone: 'ok', text })
@@ -47,6 +58,7 @@ export function KnownSetsPanel({ caseId, sets, selected, onChanged, onClose }) {
       return false
     } finally {
       setBusy(false)
+      keepFocus()
     }
   }
   const createAndAdd = async event => {
@@ -63,7 +75,13 @@ export function KnownSetsPanel({ caseId, sets, selected, onChanged, onClose }) {
   }
   const addSelected = () => run(async () => addedSentence(await addKnownHashes({ caseId, setId: target, evidenceIds: picked })))
   const importTable = async () => {
-    const ok = await run(async () => addedSentence(await addKnownHashes({ caseId, setId: target, csv })))
+    let unusable = []
+    const ok = await run(async () => {
+      const result = await addKnownHashes({ caseId, setId: target, csv })
+      unusable = result?.rejected || []
+      return addedSentence(result)
+    })
+    setRejected(unusable)
     if (ok) setCsv('')
   }
   const readFile = async event => {
@@ -81,7 +99,7 @@ export function KnownSetsPanel({ caseId, sets, selected, onChanged, onClose }) {
 
   return (
     <Dialog title="Known sets" wide onClose={onClose}>
-      <div className="nx-ks">
+      <div className="nx-ks" ref={root}>
         <p className="nx-ks__lede">Pictures you know in advance, kept as <b>hashes only</b>. A set never stores the pictures. A picture of this case that is the same file, or the same picture saved or resized, is flagged; nothing is deleted.</p>
 
         <section aria-label="Your sets" className="nx-ks__block">
@@ -94,7 +112,7 @@ export function KnownSetsPanel({ caseId, sets, selected, onChanged, onClose }) {
                   <b className="nx-ks__name">{set.name}</b>
                   <span className="nx-tabular nx-ks__count">{`${set.hashes} ${set.hashes === 1 ? 'hash' : 'hashes'}`}</span>
                   {confirming === set.set_id
-                    ? <span className="nx-ks__confirm"><button type="button" className="nx-btn nx-btn--sm" disabled={busy} onClick={() => retire(set)}>Retire it</button><button type="button" className="nx-btn nx-btn--ghost nx-btn--sm" onClick={() => setConfirming('')}>Keep</button></span>
+                    ? <span className="nx-ks__confirm"><button type="button" className="nx-btn nx-btn--sm" disabled={busy} onClick={() => retire(set)}>Retire it</button><button type="button" ref={focusNode} className="nx-btn nx-btn--ghost nx-btn--sm" onClick={() => { setConfirming(''); keepFocus() }}>Keep</button></span>
                     : <button type="button" className="nx-btn nx-btn--ghost nx-btn--sm" disabled={busy} aria-label={`Retire ${set.name}`} onClick={() => setConfirming(set.set_id)}>Retire</button>}
                 </li>
               ))}
@@ -138,6 +156,12 @@ export function KnownSetsPanel({ caseId, sets, selected, onChanged, onClose }) {
         ) : null}
 
         <p className={`nx-ks__message${message ? ` is-${message.tone}` : ''}`} role="status" aria-live="polite">{message?.text || ''}</p>
+        {rejected.length ? (
+          <ul className="nx-ks__rejected" aria-label="Rows that could not be used">
+            {rejected.slice(0, 8).map(row => <li key={row.line}>{`Line ${row.line}: ${row.reason}`}</li>)}
+            {rejected.length > 8 ? <li>{`and ${rejected.length - 8} more`}</li> : null}
+          </ul>
+        ) : null}
         <div className="nx-ks__foot"><button type="button" className="nx-btn" onClick={onClose}>Close</button></div>
       </div>
     </Dialog>
