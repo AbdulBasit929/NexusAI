@@ -8,7 +8,8 @@ from pathlib import Path
 
 import numpy as np
 
-from ingestion.forensic_records.video_overview import MotionParameters, intervals_from_series, motion_index, probe_video, shot_cuts
+from ingestion.forensic_records.video_overview import (
+    MotionParameters, compare_signatures, export_clip, file_sha256, intervals_from_series, motion_index, probe_video, shot_cuts, video_signature)
 
 HAVE_FFMPEG = shutil.which("ffmpeg") is not None and shutil.which("ffprobe") is not None
 
@@ -22,6 +23,8 @@ def make_clip(path: Path, seconds: float = 6.0, fps: int = 10, moving=((2.0, 3.5
     command = ["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", f"{width}x{height}", "-r", str(fps), "-i", "-", "-an", "-c:v", "libx264", "-pix_fmt", "yuv420p", str(path)]
     process = subprocess.Popen(command, stdin=subprocess.PIPE)
     base = np.full((height, width, 3), 90, np.uint8)
+    for (x0, y0, x1, y1, grey) in ((10, 10, 120, 70, 170), (200, 30, 300, 150, 40), (30, 110, 140, 170, 130), (150, 90, 190, 120, 220)):   # structure that is not mirror symmetric
+        cv2.rectangle(base, (x0, y0), (x1, y1), (grey, grey, grey), -1)
     other = np.full((height, width, 3), 190, np.uint8)
     cv2.circle(other, (80, 60), 40, (30, 30, 30), -1)
     for i in range(int(seconds * fps)):
@@ -98,6 +101,47 @@ class FileTests(unittest.TestCase):
         quiet = self.dir / "quiet.mp4"
         make_clip(quiet, seconds=8.0, moving=())
         self.assertEqual(motion_index(quiet)["interval_count"], 0)
+
+    def reencode(self, src: Path, name: str, vf: str | None = None, bitrate: str = "120k") -> Path:
+        dst = self.dir / name
+        cmd = ["ffmpeg", "-v", "error", "-y", "-i", str(src)] + (["-vf", vf] if vf else []) + ["-an", "-c:v", "libx264", "-b:v", bitrate, "-pix_fmt", "yuv420p", str(dst)]
+        subprocess.run(cmd, check=True)
+        return dst
+
+    def test_the_signature_matches_a_reencode_a_mirror_and_a_crop_and_not_other_footage(self):
+        original = self.dir / "original.mp4"
+        make_clip(original, seconds=40.0, moving=((5.0, 9.0), (22.0, 30.0)))
+        a = video_signature(original)
+        self.assertGreaterEqual(a["seconds"], 39)
+        low = compare_signatures(a, video_signature(self.reencode(original, "low.mp4")))
+        self.assertTrue(low["same"], low)
+        mirror = compare_signatures(a, video_signature(self.reencode(original, "mirror.mp4", "hflip")))
+        self.assertTrue(mirror["same"] and mirror["mirrored"], mirror)
+        crop = compare_signatures(a, video_signature(self.reencode(original, "crop.mp4", "crop=iw*0.95:ih*0.95,scale=320:180")))
+        self.assertTrue(crop["same"], crop)
+        trim = compare_signatures(a, video_signature(self.reencode(original, "trim.mp4", "trim=start=8:duration=25,setpts=PTS-STARTPTS")))
+        self.assertTrue(trim["same"] and trim["shift_seconds"] == 8, trim)
+        # the same camera view recorded again with other events: the background matches, the motion does not
+        other_events = self.dir / "other_events.mp4"
+        make_clip(other_events, seconds=40.0, moving=((12.0, 15.0), (33.0, 37.0)))
+        self.assertFalse(compare_signatures(a, video_signature(other_events))["same"])
+        quiet = self.dir / "quiet.mp4"
+        make_clip(quiet, seconds=40.0, moving=())
+        self.assertFalse(compare_signatures(a, video_signature(quiet))["same"])
+        self.assertTrue(compare_signatures(video_signature(quiet), video_signature(self.reencode(quiet, "quiet_low.mp4")))["same"])
+
+    def test_an_export_decodes_has_the_requested_frames_and_a_manifest_that_verifies(self):
+        source = self.dir / "source.mp4"
+        make_clip(source, seconds=8.0, moving=((2.0, 4.0),))
+        before = file_sha256(source)
+        manifest = export_clip(source, 2.0, 5.0, self.dir / "excerpt.mp4")
+        self.assertTrue(manifest["decodes"] and manifest["frame_count_matches"], manifest)
+        self.assertEqual(manifest["expected_frames"], 30)
+        self.assertEqual(manifest["source_sha256"], before)
+        self.assertEqual(manifest["output_sha256"], file_sha256(self.dir / "excerpt.mp4"))
+        self.assertEqual(file_sha256(source), before)                       # the source is only read
+        with self.assertRaises(ValueError):
+            export_clip(source, 5.0, 2.0, self.dir / "bad.mp4")
 
     def test_a_cut_is_found_at_the_new_pictures_first_frame(self):
         cut = self.dir / "cut.mp4"
