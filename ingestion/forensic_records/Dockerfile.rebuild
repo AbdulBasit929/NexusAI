@@ -1,0 +1,44 @@
+# A complete, reproducible worker image built from the repository alone (programme MF-0, docs/roadmap/worker-rebuild-rehearsal-20261125.md). NOT the file compose builds today: Dockerfile stays as it is
+# until the rehearsal has passed and the owner says so.
+#
+# What is different from Dockerfile, and why:
+#   * the Python packages come from requirements.worker-live-20261124.lock, the exact list of the live image, not from requirements.txt (which pins packages the live image does not have and lacks 38 it runs);
+#   * every module of ingestion/forensic_records is copied with a pattern, so a new module cannot be forgotten (the old file list had lost ocr_router, easyocr_ocr_processor, onnx_ocr_processor,
+#     speech_routes, media_artifact_scope, video_anpr_nexus_v4 and the plate modules, which only the overlay images added);
+#   * a build-time check that every copied module parses.
+# Build (a new tag only, never :latest):
+#   docker build -f ingestion/forensic_records/Dockerfile.rebuild -t nexusai-forensic-records-worker:rebuild-rehearsal-20261125 .
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ffmpeg poppler-utils tesseract-ocr && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY ingestion/forensic_records/requirements.worker-live-20261124.lock ./requirements.lock
+# Reuse package downloads after a stalled transfer, including across failed builds; bound whole attempts too (pip 24 does not reliably retry mid-body read failures).
+RUN --mount=type=cache,target=/root/.cache/pip \
+    attempt=1; while :; do \
+      echo "Worker package installation attempt ${attempt}/3 (socket timeout 120s)"; \
+      python -m pip install --timeout 120 --retries 5 --progress-bar off --disable-pip-version-check -r requirements.lock && break; \
+      status=$?; if [ "$attempt" -ge 3 ]; then exit "$status"; fi; \
+      attempt=$((attempt + 1)); echo "Package attempt failed; retrying in 5 seconds"; sleep 5; \
+    done
+
+COPY ingestion/forensic_records/*.py ./
+COPY ingestion/forensic_records/plate_format_registry_v1.json ingestion/forensic_records/speech_routes.json ./
+COPY ingestion/forensic_records/gazetteers ./gazetteers
+COPY ingestion/forensic_records/layout_registry ./layout_registry
+COPY ingestion/forensic_records/adapters ./adapters
+COPY api/forensic_records/contracts/forensic-platform-v1.json ./forensic-platform-v1.json
+
+RUN python -B -c "import ast, pathlib; files = sorted(pathlib.Path('/app').glob('*.py')); [ast.parse(p.read_text(encoding='utf-8'), str(p)) for p in files]; print(len(files), 'modules parse')"
+
+USER nobody
+
+EXPOSE 9109
+ENTRYPOINT ["python", "/app/worker.py"]
