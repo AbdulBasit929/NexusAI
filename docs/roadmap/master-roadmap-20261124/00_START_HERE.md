@@ -1,9 +1,12 @@
-# Start here (2026-11-24)
+# Start here (2026-11-24, updated 2026-11-25)
 
-## The four files of this request
+**2026-11-25: the owner approved Wave 1 and ordered the media data types first.** The order of work for media is in `03_media_first_programme.md` (steps MF-0 to MF-8); it replaces the order of section 6 of the roadmap for the media rows, and the media prompt below follows it. The non-media families continue in parallel only where they need no heavy-job slot.
+
+## The five files of this request
 
 | File | What it is |
 |---|---|
+| `docs/roadmap/master-roadmap-20261124/03_media_first_programme.md` | **Media first**: per media type the use cases, what is built, the online research of 2026-11-25 with marks, the best implementation, gates, needs from the owner, and the order MF-0 to MF-8 |
 | `docs/roadmap/master-roadmap-20261124/01_roadmap_flow_architecture.md` | The roadmap, the flow and the architecture: every data type, remaining media, breadth first and depth after |
 | `docs/roadmap/master-roadmap-20261124/02_research_sources.md` | The online and repository research behind it, each source marked primary or secondary |
 | `docs/status/complete-status-20261124.md` | What has been done and what is live, as of today |
@@ -39,10 +42,12 @@ Ask me for: the push, the disk for docker save, the move of the 60 imgsearch tes
 ### Prompt for the media session
 
 ```
-Continue the media track of NexusAI in C:\Users\sheik\Workspace\Office\Projects\NexusAI-localwork. Read NEXUSAI_CONTINUATION.md, docs/roadmap/master-roadmap-20261124/01_roadmap_flow_architecture.md
-(sections 5.7 to 5.11 and Wave 1 steps W1-4, W1-10, W1-11, W1-12, W1-13) and docs/roadmap/media-modules-reconciled-plan-20261120.md. Build every image from the repository HEAD plus your own committed files
-and compare it with the live one (docs/roadmap/worker-image-reproduction-20261124.md). Order: audio product (diarisation, spoken numbers, call linking; Punjabi and Saraiki bake-off in the background),
-image EXIF and C2PA, video overview, face governance (migration 042) then within-case grouping, Urdu OCR bake-off. Every step: pre-registration first, a switch, a fresh bank, my word to deploy.
+Continue the media track of NexusAI in C:\Users\sheik\Workspace\Office\Projects\NexusAI-localwork. Read NEXUSAI_CONTINUATION.md, docs/roadmap/master-roadmap-20261124/03_media_first_programme.md (the order of work, MF-0 to MF-7),
+01_roadmap_flow_architecture.md (sections 5.7 to 5.11) and docs/roadmap/media-modules-reconciled-plan-20261120.md. Build every image from the repository HEAD plus your own committed files
+and compare it with the live one (docs/roadmap/worker-image-reproduction-20261124.md). Order (owner, 2026-11-25: media first, each best of the best): MF-0 foundations (worker rebuild rehearsal, reading contract, moments view),
+MF-1 video overview and clip export, MF-2 image EXIF, Content Credentials, scale, MF-3 audio product (speaker turns, spoken numbers, call linking; Punjabi and Saraiki bake-off in the background),
+MF-4 face governance (migration 042) then within-case grouping, MF-5 Urdu OCR bake-off, MF-6 video detection and tracking, MF-7 plates. Every step: pre-registration first (the gates in the programme are proposals until you write them),
+a switch, a fresh bank, my word to deploy. Close the licence debts in section 10 of the programme (read each LICENSE file) before anything ships.
 Commit the watch-list Go files only with my yes for the --no-verify commit.
 ```
 
@@ -58,7 +63,7 @@ I look at each page before the next starts. Next: the "also appears in" chip onc
 ## What to do first, in your own words
 
 1. Say yes or no to the three Wave 0 items: **push** the unpushed commits, **choose a disk** for `docker save` of the live images (the only copy today), **move the 60 test photographs** out of the reference case.
-2. Approve Wave 1 in the order of section 6 of the roadmap (or tell me what you want first: for example email before messages).
+2. ~~Approve Wave 1~~ **Done 2026-11-25: Wave 1 approved, media first** (`03_media_first_programme.md`). Still owed: the decisions and clicks in its section 11.
 3. Paste the prompts above into a new main chat and into the two other sessions.
 
 ## Honest limits of this pack

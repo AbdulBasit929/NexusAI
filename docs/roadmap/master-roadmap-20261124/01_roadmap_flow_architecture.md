@@ -196,6 +196,8 @@ For each family: **Now** (live or not), **Best implementation** (what to build a
 | W0-3 | Move the 60 `imgsearch-*` photographs to their own collection and regenerate the verified-bank oracles once | yes: a write to retained evidence |
 | W0-4 | Re-ask the older UI query pack (208 questions, measured 2026-10-31) on the live engine in the background | no |
 
+> **Order changed 2026-11-25 (owner: Wave 1 approved, media data types first).** The media rows W1-4 and W1-10 to W1-13 now run first as MF-0 to MF-7 with video depth added, in the order and with the research of `03_media_first_programme.md`; W1-1 (Ask Phase 2) becomes MF-8. The suggested order paragraph below is superseded for media; the non-media rows keep their gates and follow, or run in parallel where they need no heavy-job slot. Estimated total: roughly 11 to 13 weeks.
+
 ### Wave 1: breadth, every data type reaches the seven-part loop (about 8 to 10 weeks)
 | Step | Work | Lane | Gate | Size |
 |---|---|---|---|---|

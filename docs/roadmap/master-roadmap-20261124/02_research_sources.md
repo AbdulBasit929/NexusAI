@@ -16,6 +16,10 @@
 
 Caveat from the reading: the OpenCelliD home page does not state the licence itself; it is on the attribution and downloads pages. For the full licence texts check each repository's LICENSE file.
 
+### 1b. Media research of 2026-11-25
+
+A second pass for the media data types (speech, speaker turns, language ID, video, images, OCR, faces, plates) read more pages at their source and re-checked secondary claims. The table of what was read, what was only seen in search results, and what failed to load is **section 10 of `03_media_first_programme.md`**; it supersedes the [S] rows below for the tools it names (TruFor is now [P]: informational and nonprofit use only). New [P] rows there: Silero VAD (licence conflict), WeSpeaker, SpeechBrain ECAPA and VoxLingua107, AASIST, faster-whisper, TransNetV2, ByteTrack, supervision, OpenCV Zoo, PaddleOCR-VL, AuraFace, InsightFace.
+
 ## 2. Our own research and measurements [R]
 
 | Topic | Where | What the roadmap takes from it |
